@@ -145,8 +145,9 @@ qsizetype LiteralTextLayout::offsetAtLineX(int index, qreal x) const {
   // hit testing is the inverse of the retained cursor geometry at those edges.
   int best = position;
   qreal distance = std::abs(line.cursorX(line.start + best - first) - x);
-  const auto consider = [&](int candidate) {
-    if (candidate < first || candidate > last || !line.layout->isValidCursorPosition(candidate)) return;
+  const auto consider = [&](int candidate, bool allowTrailingSpace = false) {
+    if (candidate < first || candidate > last ||
+        (!allowTrailingSpace && !line.layout->isValidCursorPosition(candidate))) return;
     const qreal candidateDistance = std::abs(line.cursorX(line.start + candidate - first) - x);
     if (candidateDistance < distance || (candidateDistance == distance && candidate > best)) {
       best = candidate;
@@ -159,7 +160,7 @@ qsizetype LiteralTextLayout::offsetAtLineX(int index, qreal x) const {
   if (line.trailingStart >= line.start) {
     const int trailing = first + int(line.trailingStart - line.start);
     for (int candidate = trailing; candidate <= last; ++candidate)
-      consider(candidate);
+      consider(candidate, true);
   }
   return sourceOffset(line.start + best - first);
 }
