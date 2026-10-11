@@ -2,6 +2,7 @@
 
 #include <QFont>
 #include <QGlyphRun>
+#include <QPainterPath>
 #include <QSizeF>
 #include <QString>
 #include "render/TextLayout.h"
@@ -140,7 +141,12 @@ struct FlowLabelVisualRun {
   // Full-line shaping payload, including the synthetic style face selected by
   // TextLayout. Positions are logical pixels local to x and retain the shaped baseline, so
   // painters must not reshape the source slice.
-  QGlyphRun preparedGlyphs;
+  mutable QGlyphRun preparedGlyphs;
+  // Fractional glyph runs are painted from a shared outline so every zoom
+  // reuses the same vector geometry instead of growing Qt's device-pixel
+  // glyph atlas. Native keeps the QGlyphRun fast path.
+  mutable std::shared_ptr<const QPainterPath> preparedOutline;
+  bool hasBaselineTable = false;
   qreal preparedGlyphWidth = 0.0;
   int fontWeight = QFont::Normal;
   bool fontItalic = false;

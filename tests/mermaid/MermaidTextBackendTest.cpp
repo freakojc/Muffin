@@ -91,16 +91,27 @@ void flowLabels() {
       const auto measured = layoutFlowLabel(label, family, size, size * 1.5);
       require(measured.lines.size() > 1 && measured.size.height() > size, "long labels wrap at allocated width");
       qreal totalHeight = 0;
+      bool sawBold = false;
+      bool sawItalic = false;
+      bool sawCjkFallback = false;
       for (const auto& line : measured.lines) {
         require(line.width > 0 && line.width < width + size, "wrapped line has logical width");
         require(line.baseline > 0 && line.baseline <= line.height, "baseline is inside line box");
         totalHeight += line.blockHeight;
         for (const auto& run : line.runs) {
           require(!run.preparedGlyphs.isEmpty(), "paint consumes full-line prepared glyphs");
+          sawBold = sawBold || run.fontWeight >= QFont::Bold;
+          sawItalic = sawItalic || run.fontItalic;
+          sawCjkFallback = sawCjkFallback ||
+              run.fontFamily.contains(QStringLiteral("CJK"), Qt::CaseInsensitive);
+          if (documentTextBackend() == TextBackend::Native)
+            require(!run.preparedOutline, "native FlowLabel keeps the glyph-run paint path");
           require(qAbs(run.preparedGlyphs.rawFont().pixelSize() - textFontPixelSize(makeFlowLabelFont(family, size))) < .02,
                   "FlowLabel retains the common backend size");
         }
       }
+      require(sawBold && sawItalic && sawCjkFallback,
+              "FlowLabel preserves bold, italic, and CJK fallback runs");
       require(qAbs(totalHeight - measured.size.height()) < .001, "layout height sums the same line boxes used by painting");
       for (qreal zoom : {.8, 1., 1.25, 2.}) {
         QImage image(qCeil((width + 60) * zoom), qCeil((measured.size.height() + 60) * zoom), QImage::Format_ARGB32_Premultiplied);
@@ -110,6 +121,17 @@ void flowLabels() {
           painter.scale(zoom, zoom);
           paintFlowLabel(painter, label, {30, 30, width, measured.size.height()}, family, size, size * 1.5, Qt::black,
                          false, FlowLabelAlign::Left);
+        }
+        if (documentTextBackend() == TextBackend::Fractional) {
+          const auto cached = layoutFlowLabel(label, family, size, size * 1.5);
+          require(std::any_of(cached.lines.cbegin(), cached.lines.cend(),
+                              [](const FlowLabelLineMetrics& line) {
+                                return std::any_of(line.runs.cbegin(), line.runs.cend(),
+                                                   [](const FlowLabelVisualRun& run) {
+                                                     return !run.math && bool(run.preparedOutline);
+                                                   });
+                              }),
+                  "fractional FlowLabel caches glyph outlines after paint");
         }
         const QRect ink = inkBounds(image);
         require(!ink.isEmpty(), "zoomed label paints");
@@ -212,6 +234,7 @@ void benchmark() {
   const bool cjkDense = qEnvironmentVariable("MUFFIN_TEXT_BENCH_WORKLOAD") == "cjk";
   const auto family = MermaidFontRegistry::cssFamilyStack();
   QVector<FlowLabelDocument> labels;
+  resetFlowLabelLayoutCacheStats();
   QElapsedTimer timer;
   const auto before = diag::workingSetBytes();
   timer.start();
@@ -225,6 +248,7 @@ void benchmark() {
     require(layoutFlowLabel(labels.back(), family, 28.8, 43.2).size.width() > 0, "benchmark label layout");
   }
   const auto shapeMs = timer.elapsed(), measured = diag::workingSetBytes();
+  const auto shapeCache = flowLabelLayoutCacheStats();
   QImage image(900, 500, QImage::Format_ARGB32_Premultiplied);
   const auto paint = [&](qreal zoom) {
     image.fill(Qt::transparent);
@@ -236,16 +260,20 @@ void benchmark() {
   timer.restart();
   paint(1);
   const auto coldMs = timer.elapsed(), cold = diag::workingSetBytes();
+  const auto coldCache = flowLabelLayoutCacheStats();
   timer.restart();
   paint(1);
   const auto warmMs = timer.elapsed(), warm = diag::workingSetBytes();
+  const auto warmCache = flowLabelLayoutCacheStats();
   const auto zoomPass = [&] { for (int i = 0; i < 24; ++i) paint(.8 + i * 1.2 / 23); };
   timer.restart();
   zoomPass();
   const auto firstZoomMs = timer.elapsed(), firstZoomMemory = diag::workingSetBytes();
+  const auto firstZoomCache = flowLabelLayoutCacheStats();
   timer.restart();
   zoomPass();
   const auto secondZoomMs = timer.elapsed(), secondZoomMemory = diag::workingSetBytes();
+  const auto secondZoomCache = flowLabelLayoutCacheStats();
   MermaidRenderCache cache;
   QVector<mermaid_editor::MermaidRenderKey> keys;
   QVector<mermaid_editor::MermaidRenderEntry> scenes;
@@ -264,10 +292,18 @@ void benchmark() {
   require(cache.size() == sources.size(), "scene cache bounded for repeated requests");
   std::fprintf(stdout,
       "[mermaid-bench] backend=%s workload=%s labels=300 shapeMs=%lld coldPaintMs=%lld warmPaintMs=%lld zoomFrames=24 firstZoomMs=%lld secondZoomMs=%lld "
-      "memoryBefore=%lld measured=%lld cold=%lld warm=%lld firstZoomMemory=%lld secondZoomMemory=%lld scenes=6 sceneMs=%lld cacheRequests=6000 cacheMs=%lld\n",
+      "memoryBefore=%lld measured=%lld cold=%lld warm=%lld firstZoomMemory=%lld secondZoomMemory=%lld "
+      "layoutCacheShape=%llu/%llu layoutCacheCold=%llu/%llu layoutCacheWarm=%llu/%llu "
+      "layoutCacheFirstZoom=%llu/%llu layoutCacheSecondZoom=%llu/%llu scenes=6 sceneMs=%lld cacheRequests=6000 cacheMs=%lld\n",
       documentTextBackend() == TextBackend::Native ? "native" : "fractional", cjkDense ? "cjk" : "mixed", (long long)shapeMs, (long long)coldMs, (long long)warmMs,
       (long long)firstZoomMs, (long long)secondZoomMs, (long long)before, (long long)measured, (long long)cold, (long long)warm,
-      (long long)firstZoomMemory, (long long)secondZoomMemory, (long long)sceneMs, (long long)timer.elapsed());
+      (long long)firstZoomMemory, (long long)secondZoomMemory,
+      static_cast<unsigned long long>(shapeCache.hits), static_cast<unsigned long long>(shapeCache.misses),
+      static_cast<unsigned long long>(coldCache.hits), static_cast<unsigned long long>(coldCache.misses),
+      static_cast<unsigned long long>(warmCache.hits), static_cast<unsigned long long>(warmCache.misses),
+      static_cast<unsigned long long>(firstZoomCache.hits), static_cast<unsigned long long>(firstZoomCache.misses),
+      static_cast<unsigned long long>(secondZoomCache.hits), static_cast<unsigned long long>(secondZoomCache.misses),
+      (long long)sceneMs, (long long)timer.elapsed());
 }
 }  // namespace
 

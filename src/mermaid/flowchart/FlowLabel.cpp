@@ -1087,6 +1087,7 @@ ShapedTextMetrics shapeTextRangePass(const FlowLabelDocument& label,
       visual.fontWeight = run.rawFont().weight();
       visual.fontItalic = run.rawFont().style() != QFont::StyleNormal;
       visual.fontFamily = run.rawFont().familyName();
+      visual.hasBaselineTable = !run.rawFont().fontTable("BASE").isEmpty();
       const FlowLabelFontMetrics vertical = openTypeFontBoundingMetrics(
           run.rawFont(), textFontPixelSize(font));
       visual.fontAscent = vertical.ascent;
@@ -2632,7 +2633,7 @@ void paintFlowLabel(QPainter& painter, const FlowLabelDocument& label,
         measuredLine.runs.cbegin(), measuredLine.runs.cend(),
         [](const FlowLabelVisualRun& candidate) { return candidate.math; });
     auto drawVisualTextRun = [&](const FlowLabelVisualRun& run) {
-      if (!run.preparedGlyphs.isEmpty()) {
+      if (!run.preparedGlyphs.isEmpty() || run.preparedOutline) {
         const bool fallbackFont = !run.fontFamily.isEmpty() &&
             run.fontFamily.compare(font.family(), Qt::CaseInsensitive) != 0;
         qreal glyphOriginAscent = fallbackAscent;
@@ -2641,8 +2642,7 @@ void paintFlowLabel(QPainter& painter, const FlowLabelDocument& label,
           // alphabetic/ideographic alignment). In a Math flex line, faces
           // without BASE inherit the CSS inline box baseline and cannot raise
           // their top-origin past it; ordinary text lines retain face ascent.
-          const bool hasBaselineTable =
-              !run.preparedGlyphs.rawFont().fontTable("BASE").isEmpty();
+          const bool hasBaselineTable = run.hasBaselineTable;
           glyphOriginAscent = !mathFlexLine || hasBaselineTable
               ? run.fontAscent
               : std::min(run.fontAscent, measuredLine.baseline);
@@ -2652,21 +2652,28 @@ void paintFlowLabel(QPainter& painter, const FlowLabelDocument& label,
                           lineTop + measuredLine.baseline - glyphOriginAscent);
         if (run.preparedGlyphWidth > 0.0)
           painter.scale(run.width / run.preparedGlyphWidth, 1.0);
-        if (run.rightToLeft) {
-          QPainterPath outline;
-          const QRawFont rawFont = run.preparedGlyphs.rawFont();
-          const QList<quint32> glyphs = run.preparedGlyphs.glyphIndexes();
-          const QList<QPointF> positions = run.preparedGlyphs.positions();
-          for (qsizetype glyphIndex = 0;
-               glyphIndex < glyphs.size() && glyphIndex < positions.size();
-               ++glyphIndex) {
-            QTransform transform;
-            transform.translate(positions.at(glyphIndex).x(),
-                                positions.at(glyphIndex).y());
-            outline.addPath(transform.map(rawFont.pathForGlyph(
-                glyphs.at(glyphIndex))));
+        if (run.rightToLeft || documentTextBackend() == TextBackend::Fractional) {
+          if (!run.preparedOutline) {
+            auto outline = std::make_shared<QPainterPath>();
+            const QRawFont rawFont = run.preparedGlyphs.rawFont();
+            const QList<quint32> glyphs = run.preparedGlyphs.glyphIndexes();
+            const QList<QPointF> positions = run.preparedGlyphs.positions();
+            for (qsizetype glyphIndex = 0;
+                 glyphIndex < glyphs.size() && glyphIndex < positions.size();
+                 ++glyphIndex) {
+              QTransform transform;
+              transform.translate(positions.at(glyphIndex).x(),
+                                  positions.at(glyphIndex).y());
+              outline->addPath(transform.map(rawFont.pathForGlyph(
+                  glyphs.at(glyphIndex))));
+            }
+            run.preparedOutline = std::move(outline);
+            // The vector outline is now the Fractional paint payload. Drop
+            // the high-DPI glyph arrays so repeated zooms cannot retain a
+            // second copy of every CJK glyph run.
+            run.preparedGlyphs.clear();
           }
-          painter.fillPath(outline, color);
+          painter.fillPath(*run.preparedOutline, color);
         } else {
           painter.drawGlyphRun(QPointF(), run.preparedGlyphs);
         }
