@@ -45,13 +45,21 @@ Muffin combines a native C++/Qt editor with a broad, fully editable Markdown run
 | Native Mermaid diagrams | **38 IDs** | — | **11 IDs** | — | — | — |
 | Native math blocks | **KaTeX-compatible** | — | — | — | — | — |
 | Export | PDF, HTML, Pandoc formats | HTML, PDF | HTML, PDF | PDF, HTML | HTML, PDF | HTML, PDF |
-| Distribution | MSI / 7z portable | Single binary | Installers / portable mode | Installer | Installers | Installers |
+| Large files | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
 
-<sub>◐ means the project documents a partial or mode-dependent capability. Velotype's and Ferrite's Mermaid counts are the IDs documented by their READMEs; Muffin's count includes its native Mermaid 11.16 implementation. Obsidian's Live Preview blends rendered Markdown with raw syntax rather than offering the same block-level WYSIWYG model.</sub>
+### Document size and opening time
 
-The practical Muffin advantages are one editable block tree for rendered and source modes, a single CSS theme source shared by document content and application chrome, native rendering without Electron or a WebView, and a larger built-in document surface (Mermaid, KaTeX-compatible math, HTML/CSS blocks, editable tables, code blocks, and Pandoc import/export).
+```mermaid
+xychart-beta
+    title "Muffin Markdown time to first rendered viewport"
+    x-axis "Document size (MiB)" [25, 50, 75, 100]
+    y-axis "Open to first rendered viewport (s)" 0 --> 40
+    line [7.60, 15.60, 35.00, 34.40]
+```
 
-See the projects directly: [Velotype](https://github.com/manyougz/velotype) and [Ferrite](https://github.com/OlaProeis/Ferrite).
+The curve measures the time from opening the Markdown file until the first viewport has finished text layout and is visible.
+
+<sub>Obsidian's Live Preview blends rendered Markdown with raw syntax rather than offering true inline WYSIWYG. ⚠️ marks editors that can open very large documents but may lag while scrolling or editing.</sub>
 
 <br />
 

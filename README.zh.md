@@ -45,13 +45,21 @@ Muffin 将原生 C++/Qt 编辑器与完整、可编辑的 Markdown 运行时结�
 | 原生 Mermaid 图表 | **38 种 ID** | — | **11 种 ID** | — | — | — |
 | 原生数学块 | **KaTeX 兼容** | — | — | — | — | — |
 | 导出 | PDF、HTML、Pandoc 格式 | HTML、PDF | HTML、PDF | PDF、HTML | HTML、PDF | HTML、PDF |
-| 分发方式 | MSI／7z 便携包 | 单文件二进制 | 安装包／便携模式 | 安装包 | 安装包 | 安装包 |
+| 大文件 | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
 
-<sub>◐ 表示项目文档中描述的是部分支持或依赖模式的能力。Velotype 和 Ferrite 的 Mermaid 数量来自各自 README 中列出的 ID；Muffin 的数量包含原生 Mermaid 11.16 实现。Obsidian 的实时预览（Live Preview）将渲染后的 Markdown 与原始语法混合在一起，其块级编辑模型与这里的所见即所得并不相同。</sub>
+### 文档大小与打开耗时
 
-Muffin 的实际优势在于：渲染模式与源码模式共用一棵可编辑块树；文档内容和应用界面共用一套 CSS 主题来源；无需 Electron 或 WebView 即可原生渲染；并且内置了更完整的文档能力，包括 Mermaid、KaTeX 兼容数学公式、HTML/CSS 块、可编辑表格、代码块，以及 Pandoc 导入导出。
+```mermaid
+xychart-beta
+    title "Muffin Markdown 首屏排版耗时"
+    x-axis "文档大小（MiB）" [25, 50, 75, 100]
+    y-axis "打开到首屏显示（秒）" 0 --> 40
+    line [7.60, 15.60, 35.00, 34.40]
+```
 
-项目链接：[Velotype](https://github.com/manyougz/velotype) · [Ferrite](https://github.com/OlaProeis/Ferrite)。
+曲线表示从开始打开 Markdown 文件，到首个视口完成文字排版并显示出来的耗时。
+
+<sub>Obsidian 的实时预览（Live Preview）将渲染后的 Markdown 与原始语法混合，并非真正的行内所见即所得。⚠️ 表示编辑器虽然可以打开超大文档，但滚动或编辑时可能出现卡顿。</sub>
 
 <br />
 

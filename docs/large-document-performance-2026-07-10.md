@@ -228,3 +228,21 @@ session still occupies about 3.01 GiB, and the 100 MiB lazy layout index takes a
 The next memory work should target cmark's parse-tree peak and remaining range/index materialization;
 the next latency work should profile the large-tree lazy-layout build without regressing bounded
 viewport promotion or millisecond local edits.
+
+## Current opening-to-first-viewport check (2026-10-11)
+
+The README curve was refreshed against source commit `659a790` after the text/layout work. The
+opening-to-first-viewport phase combines file open and parse, lazy layout construction, and the first
+visible text layout:
+
+| Fixture | Open to first viewport | Reopen to first viewport |
+| ---: | ---: | ---: |
+| 25 MiB | 7.603 s | 7.682 s |
+| 50 MiB | 15.601 s | 14.978 s |
+| 75 MiB | 35.003 s | 34.829 s |
+| 100 MiB | 34.405 s | 34.372 s |
+
+These points supersede the July values for the current source tree, but remain informational rather
+than a cross-machine promise. Repeat runs and different memory pressure can move the timings; use
+the benchmark command above with `MUFFIN_BENCH_SIZE_MB` and `MUFFIN_BENCH_JSON` when comparing a
+future build.
