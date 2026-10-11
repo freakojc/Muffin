@@ -156,6 +156,11 @@ TextLayout::TextLayout(const QString& text, const QFont& font, TextBackend backe
       scale_(textBackendScale(backend)),
       font_(font),
       layout_(std::make_unique<QTextLayout>(text, deviceFont(font, backend), shapingDevice(backend))) {
+  // Fractional layouts are retained across paints (document blocks and
+  // Mermaid labels). Keep Qt's shaped glyph cache alive so a zoom or repaint
+  // reuses the same glyph runs instead of reshaping at the oversized device
+  // scale. Native remains on Qt's compatibility default.
+  if (backend_ == TextBackend::Fractional) layout_->setCacheEnabled(true);
   // Apply the same spacing correction even when a caller has no explicit
   // character formats.  The default QTextLayout path otherwise bypasses
   // setFormats(), which is precisely where Han-script word spacing is fixed.
