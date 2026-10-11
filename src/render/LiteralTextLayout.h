@@ -25,6 +25,11 @@ public:
     QRectF rect;
     TextLine line;
     const TextLayout* layout = nullptr;
+    // Qt may collapse a run of trailing breakable spaces onto the line end
+    // when the line reaches its wrap width. Keep their logical caret advance
+    // explicitly so painting, selection and hit testing remain invertible.
+    qsizetype trailingStart = -1;
+    qreal trailingSpaceAdvance = 0;
     qreal cursorX(qsizetype displayOffset) const;
   };
   struct NumberedLine {

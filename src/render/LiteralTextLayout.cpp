@@ -10,7 +10,12 @@
 namespace muffin {
 
 qreal LiteralTextLayout::VisualLine::cursorX(qsizetype offset) const {
-  return line.isValid() ? line.cursorToX(int(offset - start) + line.textStart()) : 0;
+  if (!line.isValid()) return 0;
+  if (trailingStart >= 0 && offset >= trailingStart) {
+    const qreal base = line.cursorToX(int(trailingStart - start) + line.textStart());
+    return base + qreal(offset - trailingStart) * trailingSpaceAdvance;
+  }
+  return line.cursorToX(int(offset - start) + line.textStart());
 }
 
 LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qreal lineHeight, bool wrap)
@@ -29,6 +34,7 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
   // paint their advances while xToCursor() collapses the whole suffix onto
   // the paragraph end, making a caret round-trip choose the newline offset.
   option.setFlags(option.flags() | QTextOption::IncludeTrailingSpaces);
+  const qreal defaultSpaceAdvance = TextFontMetrics(font_).horizontalAdvance(QLatin1Char(' '));
   qsizetype start = 0;
   qsizetype countedSource = 0;
   int sourceLineNumber = 1;
@@ -70,9 +76,23 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
     for (qsizetype i = firstVisualLine; i < lines_.size(); ++i) {
       const qsizetype end = i + 1 < lines_.size() && lines_[i + 1].start <= paragraphEnd
           ? lines_[i + 1].start : paragraphEnd;
-      lines_[i].length = qMax<qsizetype>(0, end - lines_[i].start);
-      maximumLineWidth_ = qMax(maximumLineWidth_, lines_[i].line.naturalTextWidth());
-      maximumLineWidth_ = qMax(maximumLineWidth_, std::abs(lines_[i].cursorX(end)));
+      auto& visual = lines_[i];
+      visual.length = qMax<qsizetype>(0, end - visual.start);
+      qsizetype trailingStart = end;
+      while (trailingStart > visual.start && display_.at(trailingStart - 1) == QLatin1Char(' ')) --trailingStart;
+      if (trailingStart < end) {
+        const qreal base = visual.line.cursorToX(int(trailingStart - visual.start) + visual.line.textStart());
+        const qreal measured = visual.line.cursorToX(int(end - visual.start) + visual.line.textStart()) - base;
+        // At a hard wrap Qt can report the whole trailing run at one x
+        // coordinate. Use the same font/device advance as the document
+        // shaper in that case, retaining one caret slot per source space.
+        const qreal advance = measured > defaultSpaceAdvance * .5 && std::isfinite(measured)
+            ? measured / qreal(end - trailingStart) : defaultSpaceAdvance;
+        visual.trailingStart = trailingStart;
+        visual.trailingSpaceAdvance = qMax<qreal>(defaultSpaceAdvance / 64, advance);
+      }
+      maximumLineWidth_ = qMax(maximumLineWidth_, visual.line.naturalTextWidth());
+      maximumLineWidth_ = qMax(maximumLineWidth_, std::abs(visual.cursorX(end)));
     }
     layout->endLayout();
     const qsizetype sourceStart = sourceOffset(start);
@@ -124,15 +144,22 @@ qsizetype LiteralTextLayout::offsetAtLineX(int index, qreal x) const {
   // Compare its answer with neighbouring valid carets and both line edges so
   // hit testing is the inverse of the retained cursor geometry at those edges.
   int best = position;
-  qreal distance = std::abs(line.line.cursorToX(best) - x);
-  for (int candidate : {first, last, line.layout->previousCursorPosition(position),
-                        line.layout->nextCursorPosition(position)}) {
-    if (candidate < first || candidate > last || !line.layout->isValidCursorPosition(candidate)) continue;
-    const qreal candidateDistance = std::abs(line.line.cursorToX(candidate) - x);
+  qreal distance = std::abs(line.cursorX(line.start + best - first) - x);
+  const auto consider = [&](int candidate) {
+    if (candidate < first || candidate > last || !line.layout->isValidCursorPosition(candidate)) return;
+    const qreal candidateDistance = std::abs(line.cursorX(line.start + candidate - first) - x);
     if (candidateDistance < distance || (candidateDistance == distance && candidate > best)) {
       best = candidate;
       distance = candidateDistance;
     }
+  };
+  for (int candidate : {first, last, line.layout->previousCursorPosition(position),
+                        line.layout->nextCursorPosition(position)})
+    consider(candidate);
+  if (line.trailingStart >= line.start) {
+    const int trailing = first + int(line.trailingStart - line.start);
+    for (int candidate = trailing; candidate <= last; ++candidate)
+      consider(candidate);
   }
   return sourceOffset(line.start + best - first);
 }
