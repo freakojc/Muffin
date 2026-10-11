@@ -209,13 +209,16 @@ void cacheAndDocument() {
 
 void benchmark() {
   if (!qEnvironmentVariableIsSet("MUFFIN_TEXT_BENCH")) return;
+  const bool cjkDense = qEnvironmentVariable("MUFFIN_TEXT_BENCH_WORKLOAD") == "cjk";
   const auto family = MermaidFontRegistry::cssFamilyStack();
   QVector<FlowLabelDocument> labels;
   QElapsedTimer timer;
   const auto before = diag::workingSetBytes();
   timer.start();
   for (int i = 0; i < 300; ++i) {
-    auto label = parseFlowLabel(QString::fromUtf8("Label %1 **bold** *italic* 中文标签 office fi more words").arg(i), "markdown");
+    auto label = parseFlowLabel((cjkDense
+        ? QStringLiteral("中文标签 %1 **粗体文字** *斜体文字* 字体回退与连续缩放测试，长标签应正确换行且复用布局。")
+        : QStringLiteral("Label %1 **bold** *italic* 中文标签 office fi more words")).arg(i), "markdown");
     label.letterSpacingPx = .7;
     label.wordSpacingPx = .3;
     labels.push_back(wrapFlowLabel(label, family, 28.8, 260));
@@ -260,9 +263,9 @@ void benchmark() {
       require(cache.getSync(keys[i], sources[i]).scene == scenes[i].scene, "cached scene reused without rebuilding");
   require(cache.size() == sources.size(), "scene cache bounded for repeated requests");
   std::fprintf(stdout,
-      "[mermaid-bench] backend=%s labels=300 shapeMs=%lld coldPaintMs=%lld warmPaintMs=%lld zoomFrames=24 firstZoomMs=%lld secondZoomMs=%lld "
+      "[mermaid-bench] backend=%s workload=%s labels=300 shapeMs=%lld coldPaintMs=%lld warmPaintMs=%lld zoomFrames=24 firstZoomMs=%lld secondZoomMs=%lld "
       "memoryBefore=%lld measured=%lld cold=%lld warm=%lld firstZoomMemory=%lld secondZoomMemory=%lld scenes=6 sceneMs=%lld cacheRequests=6000 cacheMs=%lld\n",
-      documentTextBackend() == TextBackend::Native ? "native" : "fractional", (long long)shapeMs, (long long)coldMs, (long long)warmMs,
+      documentTextBackend() == TextBackend::Native ? "native" : "fractional", cjkDense ? "cjk" : "mixed", (long long)shapeMs, (long long)coldMs, (long long)warmMs,
       (long long)firstZoomMs, (long long)secondZoomMs, (long long)before, (long long)measured, (long long)cold, (long long)warm,
       (long long)firstZoomMemory, (long long)secondZoomMemory, (long long)sceneMs, (long long)timer.elapsed());
 }

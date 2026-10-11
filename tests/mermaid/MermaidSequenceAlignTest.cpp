@@ -358,11 +358,15 @@ int main(int argc, char** argv) {
         return QStringLiteral("%%{init: {\"sequence\": {\"messageAlign\": \"") + align +
                QStringLiteral("\"}}}%%\nsequenceDiagram\nAlice->>Bob: ") + msg;
       };
+      // Populate font/raster caches before comparing independent scenes.
+      // A first-use paint is not an alignment oracle.
+      renderPng(src("center"));
       const QImage left = renderPng(src("left"));
       const QImage center = renderPng(src("center"));
       const QImage right = renderPng(src("right"));
       require(rgbaDiffPixels(left, center) == 0 && rgbaDiffPixels(right, center) == 0,
-              QStringLiteral("Math message changed with messageAlign: %1").arg(msg));
+              QStringLiteral("Math message changed with messageAlign: %1 (diff L=%2 R=%3)")
+                  .arg(msg).arg(rgbaDiffPixels(left, center)).arg(rgbaDiffPixels(right, center)));
     };
     const auto mathNoteUnchanged = [](const QString& note) {
       const auto src = [&note](const QString& align) {
@@ -370,24 +374,18 @@ int main(int argc, char** argv) {
                QStringLiteral("\"}}}%%\nsequenceDiagram\nAlice->>Bob: hi\nNote over Alice,Bob: ") +
                note;
       };
+      renderPng(src("center"));
       const QImage left = renderPng(src("left"));
       const QImage center = renderPng(src("center"));
       const QImage right = renderPng(src("right"));
       require(rgbaDiffPixels(left, center) == 0 && rgbaDiffPixels(right, center) == 0,
-              QStringLiteral("Math note changed with noteAlign: %1").arg(note));
+              QStringLiteral("Math note changed with noteAlign: %1 (diff L=%2 R=%3)")
+                  .arg(note).arg(rgbaDiffPixels(left, center)).arg(rgbaDiffPixels(right, center)));
     };
-#if defined(Q_OS_MACOS)
-    // CoreText's offscreen rasterization can vary by a few antialiased pixels
-    // between otherwise identical MathML paints.  Geometry and alignment are
-    // covered by the scene/layout checks above; keep this pixel-only oracle on
-    // the deterministic Linux/Windows runners.
-    qInfo() << "skipping byte-identical math PNG oracle on macOS";
-#else
     mathMsgUnchanged(QStringLiteral("$$x^2 + y^2 = r^2$$"));
     mathMsgUnchanged(QStringLiteral("value $$x^2$$ here"));
     mathNoteUnchanged(QStringLiteral("$$E=mc^2$$"));
     mathNoteUnchanged(QStringLiteral("energy $$E$$ now"));
-#endif
   }
 
   qDebug().noquote()
