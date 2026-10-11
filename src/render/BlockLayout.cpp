@@ -1064,7 +1064,19 @@ bool BlockLayout::containsNode(NodeId id) const {
 
 bool BlockLayout::containsInteractiveContent(QPointF documentPos, const RenderTheme& theme) const {
   if (isLiteralBlockType(type_)) {
-    return rect_.adjusted(-2, 0, 2, 0).contains(documentPos);
+    if (rect_.adjusted(-2, 0, 2, 0).contains(documentPos)) return true;
+    const bool sourceVisible = type_ == BlockType::FrontMatter ||
+        (type_ == BlockType::CodeFence && !isMermaidRendered()) || literalEditing_;
+    if (!sourceVisible) return false;
+    const auto& source = literalTextLayout(theme);
+    // Wrapped trailing spaces retain editable advances beyond the box edge.
+    // Route those points to the measured source row instead of DocumentLayout's
+    // nearest-block fallback, which clamps x and replaces y with the box centre.
+    // Unwrapped source remains restricted to its horizontally scrolled viewport.
+    if (!source.wraps()) return false;
+    auto bounds = literalContentRect(theme);
+    bounds.setWidth(qMax(bounds.width(), source.maximumLineWidth() + 1));
+    return bounds.contains(documentPos);
   }
   if (type_ == BlockType::LinkDefinition || type_ == BlockType::FootnoteDefinition) {
     return rect_.adjusted(-2, -theme.blockSpacing() * 0.5, 2, theme.blockSpacing() * 0.5).contains(documentPos);
@@ -1086,7 +1098,7 @@ HitTestResult BlockLayout::hitTest(
     const auto target = cssBoxGeometry_.style.layout.establishesFormattingContext() ? child.rect()
                                                               : child.rect().adjusted(-theme.blockSpacing(), -theme.blockSpacing(),
                                                                                       theme.blockSpacing(), theme.blockSpacing());
-    if (target.contains(documentPos)) {
+    if (target.contains(documentPos) || child.containsInteractiveContent(documentPos, theme)) {
       HitTestResult childHit =
           child.hitTest(documentPos, theme, scroll, openSequenceMenus);
       if (childHit.isValid()) {
@@ -1095,7 +1107,8 @@ HitTestResult BlockLayout::hitTest(
     }
   }
 
-  if (!rect_.adjusted(-2, -theme.blockSpacing() * 0.5, 2, theme.blockSpacing() * 0.5).contains(documentPos)) {
+  if (!rect_.adjusted(-2, -theme.blockSpacing() * 0.5, 2, theme.blockSpacing() * 0.5).contains(documentPos) &&
+      !containsInteractiveContent(documentPos, theme)) {
     return {};
   }
 

@@ -237,6 +237,29 @@ void testSelectionAndLayoutChanges() {
   }
 }
 
+void testOverflowingTrailingSpaceCarets() {
+  // Qt keeps a breakable whitespace suffix on the preceding wrapped row.
+  // Its editable caret advances can extend beyond the source block's box,
+  // particularly with the wider monospace fallback used on Linux.
+  const QString firstLine = QStringLiteral("second line with trailing spaces   ");
+  const QString source = firstLine + QStringLiteral("\nnext row\nend");
+  for (const auto type : {BlockType::MathBlock, BlockType::CodeFence}) {
+    auto themeDefinition = CssThemeMapper::fromCss(
+        "pre{font-family:monospace;font-size:20px;line-height:1.5;padding:0}", "source-overflow", {});
+    bool exercisedOverflow = false;
+    for (int width = 300; width <= 460 && !exercisedOverflow; ++width) {
+      Fixture fixture(RenderTheme::fromDefinition(themeDefinition), type == BlockType::MathBlock
+          ? QStringLiteral("$$\n%1\n$$").arg(source) : QStringLiteral("```\n%1\n```").arg(source), type, width);
+      const auto& theme = fixture.view.theme();
+      const auto caret = fixture.block().literalVisualCursorRect(firstLine.size(), theme);
+      if (caret.left() <= fixture.block().rect().right() + 2) continue;
+      exercisedOverflow = true;
+      verifyRoundTrip(fixture);
+    }
+    require(exercisedOverflow, "fixture must exercise a source caret outside the block hit box");
+  }
+}
+
 void testHorizontalScrollAndNavigation() {
   SettingsOverride wrapOff("markdown/codeBlockWrap", false);
   Fixture fixture(RenderTheme::github(), QStringLiteral("```\n%1\n%1\n```").arg(QString(180, QLatin1Char('a'))), BlockType::CodeFence);
@@ -345,6 +368,7 @@ int main(int argc, char** argv) {
   runTest("local CSS, HTML, metadata and Unicode", testScopedCssAndOtherSourceBlocks);
   runTest("painted glyph geometry", testSourcePaintUsesTheMeasuredGlyphs);
   runTest("selection, whitespace and layout changes", testSelectionAndLayoutChanges);
+  runTest("overflowing trailing space carets", testOverflowingTrailingSpaceCarets);
   runTest("horizontal scroll and vertical navigation", testHorizontalScrollAndNavigation);
   runTest("source preedit and commit", testPreeditReflowsSourceAndCommitsAtCaret);
   QApplication::clipboard()->clear();
