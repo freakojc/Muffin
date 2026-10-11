@@ -1098,7 +1098,8 @@ HitTestResult BlockLayout::hitTest(
     const auto target = cssBoxGeometry_.style.layout.establishesFormattingContext() ? child.rect()
                                                               : child.rect().adjusted(-theme.blockSpacing(), -theme.blockSpacing(),
                                                                                       theme.blockSpacing(), theme.blockSpacing());
-    if (target.contains(documentPos) || child.containsInteractiveContent(documentPos, theme)) {
+    if (target.contains(documentPos) ||
+        (isLiteralBlockType(child.type_) && child.containsInteractiveContent(documentPos, theme))) {
       HitTestResult childHit =
           child.hitTest(documentPos, theme, scroll, openSequenceMenus);
       if (childHit.isValid()) {
