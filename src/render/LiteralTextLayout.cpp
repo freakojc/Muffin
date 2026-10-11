@@ -25,6 +25,10 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
   display_.insert(preedit_.offset, preedit_.text);
   QTextOption option;
   option.setWrapMode(wrap_ ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
+  // Keep trailing spaces in Qt's hit-test interval. Without this flag Qt can
+  // paint their advances while xToCursor() collapses the whole suffix onto
+  // the paragraph end, making a caret round-trip choose the newline offset.
+  option.setFlags(option.flags() | QTextOption::IncludeTrailingSpaces);
   qsizetype start = 0;
   qsizetype countedSource = 0;
   int sourceLineNumber = 1;
