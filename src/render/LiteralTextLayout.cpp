@@ -45,6 +45,7 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
     layout->setFormats(preeditFormats);
     layout->beginLayout();
     const qreal paragraphTop = height_;
+    const qsizetype firstVisualLine = lines_.size();
     for (;;) {
       auto line = layout->createLine();
       if (!line.isValid()) break;
@@ -53,9 +54,21 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
       line.setPosition({0, height_ + (rowHeight - line.height()) * .5});
       lines_.append({start + line.textStart(), qMin<qsizetype>(line.textLength(), length - line.textStart()),
                      QRectF(0, height_, width_, rowHeight), line, layout.get()});
-      maximumLineWidth_ = qMax(maximumLineWidth_, line.naturalTextWidth());
-      maximumLineWidth_ = qMax(maximumLineWidth_, std::abs(line.cursorToX(line.textStart() + line.textLength())));
       height_ += rowHeight;
+    }
+    // QTextLine::textLength() excludes trailing breakable spaces unless the
+    // caller asks for IncludeTrailingSpaces.  The painter still draws their
+    // advances and cursorToX() accepts them, so retaining only textLength made
+    // the end-of-line caret hit a different offset than a click on it.  Infer
+    // the complete visual span from the next line's start (or the paragraph
+    // end for the final line) after all lines have been materialized.
+    const qsizetype paragraphEnd = start + length;
+    for (qsizetype i = firstVisualLine; i < lines_.size(); ++i) {
+      const qsizetype end = i + 1 < lines_.size() && lines_[i + 1].start <= paragraphEnd
+          ? lines_[i + 1].start : paragraphEnd;
+      lines_[i].length = qMax<qsizetype>(0, end - lines_[i].start);
+      maximumLineWidth_ = qMax(maximumLineWidth_, lines_[i].line.naturalTextWidth());
+      maximumLineWidth_ = qMax(maximumLineWidth_, std::abs(lines_[i].cursorX(end)));
     }
     layout->endLayout();
     const qsizetype sourceStart = sourceOffset(start);
