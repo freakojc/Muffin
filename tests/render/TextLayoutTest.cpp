@@ -403,7 +403,8 @@ void testSharedDocumentFallbackStack() {
   QFont font;
   font.setFamilies(resolvedFamilies);
   setTextPixelSize(font, 18.4, TextBackend::Fractional);
-  TextLayout layout(QString::fromUtf8("中文混排"), font,
+  const QString cjk = QString::fromUtf8("\xE4\xB8\xAD\xE6\x96\x87\xE6\xB7\xB7\xE6\x8E\x92");
+  TextLayout layout(cjk, font,
                     TextBackend::Fractional);
   layout.beginLayout();
   auto line = layout.createLine();
