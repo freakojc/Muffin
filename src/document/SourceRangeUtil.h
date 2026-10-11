@@ -24,9 +24,9 @@ struct ListLineInfo {
   int orderedNumber = 0;
 };
 
-// Full byte span of a block, snapping indented-code starts back to their line start. Templated so
+// Full byte span of a block, including serialized leading indentation. Templated so
 // it reads the document text from either a QString (command/edit path) or a PieceTable (zero-copy);
-// body only uses size() and lineStartOffset(), both of which work on either.
+// body only uses size(), at() and lineStartOffset(), which work on either.
 template <typename Text>
 SourceRange fullBlockSourceRange(const MarkdownNode& node, const Text& markdown) {
   SourceRange range = node.sourceRange();
@@ -36,8 +36,21 @@ SourceRange fullBlockSourceRange(const MarkdownNode& node, const Text& markdown)
   // cmark reports indented-code content starting past its 4-space indent, so extend the
   // range back to the line start so serialization (which re-applies the indent) replaces the
   // whole block rather than double-indenting the first line.
-  if (node.type() == BlockType::CodeFence && node.isIndentedCode() && range.byteStart > 0) {
+  // A top-level HTML literal also retains indentation which cmark excludes
+  // from its start column. Replacing from that column would duplicate the
+  // indentation and can turn the first HTML line into indented code.
+  const bool indentedCode = node.type() == BlockType::CodeFence && node.isIndentedCode();
+  const bool topLevelHtml = node.type() == BlockType::HtmlBlock && node.parent() &&
+                            node.parent()->type() == BlockType::Document;
+  if ((indentedCode || topLevelHtml) && range.byteStart > 0) {
     range.byteStart = lineStartOffset(markdown, range.byteStart);
+  }
+  // cmark keeps this newline in the HTML literal but leaves it outside the
+  // source span. Replace it as well so every keystroke does not append a blank
+  // line. The separator after that newline remains outside the replacement.
+  if (topLevelHtml && node.literal().endsWith(QLatin1Char('\n')) &&
+      range.byteEnd < markdown.size() && markdown.at(range.byteEnd) == QLatin1Char('\n')) {
+    ++range.byteEnd;
   }
   return range;
 }

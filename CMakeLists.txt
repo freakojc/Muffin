@@ -1258,6 +1258,8 @@ set(MUFFIN_UI_SOURCES
   src/math/MathSymbols.h
   src/render/BlockLayout.cpp
   src/render/BlockLayout.h
+  src/render/LiteralTextLayout.cpp
+  src/render/LiteralTextLayout.h
   src/render/LayoutBox.h
   src/render/LayoutBox.cpp
   src/render/CssFormattingContext.cpp

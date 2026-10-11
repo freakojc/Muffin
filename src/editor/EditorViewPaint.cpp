@@ -450,8 +450,24 @@ void EditorView::paintPreedit(QPainter& painter) const {
     }
   }
 
-  // Literal blocks (code/math/html/front-matter): the preedit is not in the inline layout, so render
-  // it as an overlay at the caret (the original approach).
+  // Source blocks paint the composition in their retained source layout. Only
+  // its caret belongs here; drawing an overlay would duplicate the glyphs.
+  if (layout_) {
+    if (const auto* block = layout_->blockIfPromoted(cursorHit_.blockId);
+        block && (cursorHit_.zone == HitTestResult::Zone::Code || cursorHit_.zone == HitTestResult::Zone::Math ||
+                  cursorHit_.zone == HitTestResult::Zone::Html || cursorHit_.zone == HitTestResult::Zone::FrontMatter) &&
+        block->literalTextLayout(theme_).hasPreedit()) {
+      if (preeditCursor_ >= 0) {
+        QRectF cursor = caretDoc.translated(0, -scrollY());
+        cursor.setWidth(1.5);
+        painter.fillRect(cursor, theme_.linkColor());
+        lastPaintedCaretDocumentRect_ = caretDoc;
+      } else {
+        lastPaintedCaretDocumentRect_ = {};
+      }
+      return;
+    }
+  }
   const QRectF caretView = caretDoc.translated(0, -scrollY());  // document -> viewport coords
 
   TextLayout layout(preedit_, preeditFont());
@@ -476,16 +492,15 @@ void EditorView::paintPreedit(QPainter& painter) const {
 }
 
 QFont EditorView::preeditFont() const {
-  // Match the rendered font at the caret so the composition baseline-aligns with surrounding text:
-  // code/math/html/front-matter literals use their monospace/math font; everything else the body font.
-  if (cursorHit_.isValid()) {
+  if (cursorHit_.isValid() && layout_) {
+    const auto* block = layout_->blockIfPromoted(cursorHit_.blockId);
     switch (cursorHit_.zone) {
       case HitTestResult::Zone::Code:
       case HitTestResult::Zone::Html:
       case HitTestResult::Zone::FrontMatter:
-        return theme_.codeFont();
       case HitTestResult::Zone::Math:
-        return theme_.mathFont();
+        if (block) return block->literalFont();
+        break;
       default:
         break;
     }

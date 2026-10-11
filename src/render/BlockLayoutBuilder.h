@@ -176,7 +176,6 @@ public:
   // it defaults to emptyText_ and is refreshed with the live document before every build/estimate,
   // so a stray build without configureBuilder yields an empty layout instead of a null dereference.
   const PieceTable& md() const;
-  qreal textHeight(const QString& text, const QFont& font, qreal lineHeight, qreal width, const QMarginsF& padding, bool wrap = true) const;
 
   // Height-estimate helpers mirroring the build* dispatch. Never touch TextLayout.
   EstimateResult estimateParagraphLike(const MarkdownNode& node, const RenderTheme& theme, qreal width) const;

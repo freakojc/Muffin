@@ -137,8 +137,8 @@ bool omitVirtualEmptyParagraphInRenderFlow(const MarkdownNode& node, const Selec
 // Width to right-align 1..lineCount in a code-fence gutter, measured with the zoom-aware code font
 // (so the gutter scales with zoom). (digits + 1) glyph widths: the digits plus a half-glyph gap on
 // each side, matching how paintCodeLineNumbers right-aligns numbers just left of the code text.
-qreal codeLineNumberGutterWidth(const QString& literal, const RenderTheme& theme) {
-  const TextFontMetrics metrics(theme.codeFont());
+qreal codeLineNumberGutterWidth(const QString& literal, const QFont& font) {
+  const TextFontMetrics metrics(font);
   const int lineCount = literal.isEmpty() ? 1 : int(literal.count(QLatin1Char('\n'))) + 1;
   int digits = 1;
   for (int n = lineCount; n >= 10; n /= 10) {
@@ -247,29 +247,10 @@ qreal layoutTextHeight(const QString& text, const QFont& font, qreal lineHeight,
   return qMax(height, lineHeight);
 }
 
-qreal layoutLiteralHeight(const QString& text, const QFont& font, qreal lineHeight, qreal width, bool wrap = true) {
-  const QStringList lines = text.isEmpty() ? QStringList{QString()} : text.split(QLatin1Char('\n'));
-  if (!wrap) {
-    // NoWrap: one visual line per physical line, regardless of width.
-    return qMax<qreal>(static_cast<qreal>(lines.size()) * lineHeight, lineHeight);
-  }
-  qreal height = 0;
-  for (const QString& line : lines) {
-    height += layoutTextHeight(line.isEmpty() ? QStringLiteral(" ") : line, font, lineHeight, width);
-  }
-  return qMax(height, lineHeight);
-}
-
 QString displayLiteralFor(const MarkdownNode& node) {
-  // Math literals are extracted clean (no wrapping newlines) at parse time and are edited verbatim
-  // through the literal editor, so the layout literal must match the node literal 1:1 — otherwise a
-  // trailing newline typed via Enter (e.g. "x\n") gets trimmed to "x", the source panel drops the
-  // new line, and the caret (offset past the '\n') gets clamped back onto line 1.
-  if (node.type() == BlockType::CodeFence || node.type() == BlockType::FrontMatter ||
-      node.type() == BlockType::MathBlock) {
-    return node.literal();
-  }
-  return node.literal().trimmed();
+  // Source geometry and edit offsets address the same verbatim literal,
+  // including HTML indentation and trailing empty lines.
+  return node.literal();
 }
 
 qsizetype pendingPrefixLengthFor(const MarkdownNode& node, const QString& source) {
@@ -1294,16 +1275,28 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
   layout->setLiteralEditing(editingLiteral);
   const qreal lineNumberGutter =
       (node.type() == BlockType::CodeFence && showLineNumbers_)
-          ? codeLineNumberGutterWidth(layout->literal(), theme)
+          ? codeLineNumberGutterWidth(layout->literal(), codeFont)
           : 0.0;
   layout->setLineNumberGutterWidth(lineNumberGutter);
   // Code fences honor markdown/codeBlockWrap; other literal blocks always wrap.
   const bool codeWrap = node.type() == BlockType::CodeFence ? codeBlockWrap_ : true;
+  const qreal sourceWidth = qMax<qreal>(1, width - lineNumberGutter - padding.left() - padding.right());
+  LiteralTextLayout::Preedit preedit;
+  if (selectionFocusesNode(selection_, node.id())) {
+    preedit = {selection_.focus.text.textOffset, preeditText_, preeditFormats_, preeditCursor_};
+  }
+  std::shared_ptr<const LiteralTextLayout> sourceLayout;
+  {
+    BuildAccumTimer t(literalTextNs_, perfEnabled_);
+    sourceLayout = std::make_shared<LiteralTextLayout>(layout->literal(), codeFont, sourceWidth, codeLineHeight, codeWrap,
+                                                      std::move(preedit));
+  }
+  layout->setLiteralTextLayout(sourceLayout);
   // Measure the widest source line so the block knows whether it is horizontally scrollable and
   // the scrollbar thumb ratio. Reserved strip height makes room for the always-on scrollbar.
   qreal reservedStrip = 0.0;
   if (node.type() == BlockType::CodeFence && !codeWrap) {
-    const qreal maxLineW = maxLiteralLineWidth(layout->literal(), codeFont);
+    const qreal maxLineW = sourceLayout->maximumLineWidth();
     layout->setCodeMaxLineWidth(maxLineW);
     if (codeFenceScroll_ != nullptr) {
       codeFenceScroll_->setContentWidth(node.id(), maxLineW);
@@ -1313,31 +1306,27 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
       reservedStrip = BlockLayout::scrollBarStripHeight(theme);
     }
   }
-  qreal height;
-  {
-    BuildAccumTimer t(literalTextNs_, perfEnabled_);
-    height = textHeight(layout->literal(), node.type() == BlockType::MathBlock ? theme.mathFont() : codeFont,
-                        node.type() == BlockType::MathBlock ? qMax<qreal>(14.0, TextFontMetrics(theme.mathFont()).height()) : codeLineHeight,
-                        width - lineNumberGutter, padding, codeWrap);
-  }
-  height += reservedStrip;
+  qreal height = std::ceil(sourceLayout->height() + padding.top() + padding.bottom() + 2) + reservedStrip;
   if (node.type() == BlockType::MathBlock) {
     std::shared_ptr<math::MathLayoutResult> mathLayout;
     {
       BuildAccumTimer t(mathRenderNs_, perfEnabled_);
       mathLayout = std::make_shared<math::MathLayoutResult>(mathRenderer_.render(layout->literal(), theme, true, width));
     }
+    if (editingLiteral) {
+      const qreal markerHeight = qMax<qreal>(14, TextFontMetrics(codeFont).height());
+      const qreal previewHeight = mathLayout->valid() ? mathLayout->size.height() : 0;
+      height = std::ceil(padding.top() + markerHeight + sourceLayout->height() + markerHeight + padding.bottom() +
+                         padding.top() + previewHeight + padding.bottom());
+    } else if (mathLayout->valid()) {
+      height = std::ceil(mathLayout->size.height() + padding.top() + padding.bottom());
+    } else {
+      // The inactive parse-error fallback is plain math text. The editable
+      // source snapshot above always keeps its resolved code font.
+      LiteralTextLayout fallback(layout->literal(), theme.mathFont(), sourceWidth, TextFontMetrics(theme.mathFont()).height(), true);
+      height = std::ceil(fallback.height() + padding.top() + padding.bottom() + 2);
+    }
     if (mathLayout->valid()) {
-      if (!editingLiteral) {
-        height = std::ceil(mathLayout->size.height() + padding.top() + padding.bottom());
-      } else {
-        const qreal contentWidth = qMax<qreal>(1.0, width - padding.left() - padding.right());
-        const qreal markerLine = codeLineHeight;
-        const qreal sourceHeight = textHeight(layout->literal(), codeFont, codeLineHeight, contentWidth, QMarginsF());
-        const qreal previewHeight = mathLayout->size.height();
-        height = std::ceil(padding.top() + markerLine + sourceHeight + markerLine + padding.bottom() + padding.top() + previewHeight +
-                           padding.bottom());
-      }
       layout->setMathLayout(std::move(mathLayout));
     }
   }
@@ -1968,11 +1957,6 @@ qsizetype BlockLayoutBuilder::sourceOffsetForLineEnd(int line) const {
   return lineOffsets_ ? lineOffsets_->lineEndOffset(line) : -1;
 }
 
-qreal BlockLayoutBuilder::textHeight(const QString& text, const QFont& font, qreal lineHeight, qreal width, const QMarginsF& padding, bool wrap) const {
-  const qreal innerWidth = qMax<qreal>(1.0, width - padding.left() - padding.right());
-  return std::ceil(layoutLiteralHeight(text, font, lineHeight, innerWidth, wrap) + padding.top() + padding.bottom() + 2.0);
-}
-
 namespace {
 
 // True if the inline set renders any content whose size is not cheaply derivable from
@@ -2282,7 +2266,7 @@ BlockLayoutBuilder::EstimateResult BlockLayoutBuilder::estimateLiteralBlock(cons
   const qreal lineHeight = isMath ? std::max<qreal>(14.0, TextFontMetrics(theme.mathFont()).height()) : theme.codeLineHeight();
   const QMarginsF padding = LayoutBox::insets(theme.elementBoxStyle(QStringLiteral("pre"), nullptr, width));
   const qreal lineNumberGutter =
-      (node.type() == BlockType::CodeFence && showLineNumbers_) ? codeLineNumberGutterWidth(literal, theme) : 0.0;
+      (node.type() == BlockType::CodeFence && showLineNumbers_) ? codeLineNumberGutterWidth(literal, theme.codeFont()) : 0.0;
   const qreal innerWidth = std::max<qreal>(1.0, width - padding.left() - padding.right() - lineNumberGutter);
   const qreal avgCharWidth = avgCharWidthForFont(font);
   qreal lines;

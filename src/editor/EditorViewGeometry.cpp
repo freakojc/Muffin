@@ -2,98 +2,8 @@
 
 #include "unicode/WordBoundary.h"
 
-#include "render/TextLayout.h"
-#include <QSettings>
-#include <QTextOption>
-#include <QStringList>
-
 namespace muffin {
-namespace {
-// markdown/codeBlockWrap (default on): mirrors the same-named file-local helpers in
-// BlockLayout.cpp / BlockLayoutBuilder.cpp so the caret-geometry path agrees with
-// paint and hit-test on whether a code fence soft-wraps its source lines.
-bool codeBlockWrapEnabled() {
-  return QSettings().value(QStringLiteral("markdown/codeBlockWrap"), true).toBool();
-}
-}  // namespace
 namespace editor_geometry {
-
-QRectF literalCursorRectForOffset(const QString& literal, qsizetype offset, const QFont& font, QPointF origin) {
-  const TextFontMetrics metrics(font);
-  const qreal lineHeight = qMax<qreal>(14.0, metrics.height());
-  offset = qBound<qsizetype>(0, offset, literal.size());
-
-  qsizetype lineStart = 0;
-  int line = 0;
-  for (qsizetype i = 0; i < offset && i < literal.size(); ++i) {
-    if (literal.at(i) == QLatin1Char('\n')) {
-      ++line;
-      lineStart = i + 1;
-    }
-  }
-
-  const qsizetype physicalEnd = literal.indexOf(QLatin1Char('\n'), lineStart);
-  TextLayout shaped(literal.mid(lineStart, physicalEnd < 0 ? -1 : physicalEnd - lineStart), font);
-  shaped.beginLayout();
-  auto shapedLine = shaped.createLine();
-  if (shapedLine.isValid()) shapedLine.setLineWidth(1e9);
-  shaped.endLayout();
-  const qreal x = shapedLine.isValid() ? shapedLine.cursorToX(int(offset - lineStart)) : 0;
-  return QRectF(origin.x() + x, origin.y() + line * lineHeight, 1.0, lineHeight);
-}
-
-QRectF literalCursorRectForOffset(const QString& literal, qsizetype offset, const QFont& font, QPointF origin, qreal width,
-                                  qreal lineHeight, bool wrap) {
-  const qreal fallbackHeight = qMax<qreal>(14.0, lineHeight);
-  offset = qBound<qsizetype>(0, offset, literal.size());
-
-  QTextOption option;
-  option.setWrapMode(wrap ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
-
-  const QStringList physicalLines = literal.isEmpty() ? QStringList{QString()} : literal.split(QLatin1Char('\n'));
-  const qreal lineWidth = qMax<qreal>(1.0, width);
-  qreal y = 0.0;
-  qsizetype globalStart = 0;
-  QRectF fallback(origin.x(), origin.y(), 1.0, fallbackHeight);
-
-  for (const QString& sourceLine : physicalLines) {
-    const QString lineText = sourceLine.isEmpty() ? QStringLiteral(" ") : sourceLine;
-    TextLayout layout(lineText, font);
-    layout.setTextOption(option);
-    layout.beginLayout();
-    bool producedLine = false;
-    while (true) {
-      TextLine textLine = layout.createLine();
-      if (!textLine.isValid()) {
-        break;
-      }
-      textLine.setLineWidth(lineWidth);
-      const qreal height = qMax<qreal>(fallbackHeight, textLine.height());
-      textLine.setPosition(QPointF(0.0, y + (height - textLine.height()) * 0.5));
-      producedLine = true;
-      const qsizetype visualStart = globalStart + textLine.textStart();
-      const qsizetype visualLength = qMin<qsizetype>(textLine.textLength(), sourceLine.size() - textLine.textStart());
-      const qsizetype visualEnd = visualStart + visualLength;
-      fallback = QRectF(origin.x() + textLine.cursorToX(textLine.textStart() + textLine.textLength()), origin.y() + y, 1.0, height);
-      if (offset >= visualStart && offset <= visualEnd) {
-        const qsizetype localOffset = qBound<qsizetype>(visualStart, offset, visualEnd);
-        const qreal x = textLine.cursorToX(int(localOffset - globalStart));
-        layout.endLayout();
-        return QRectF(origin.x() + x, origin.y() + y, 1.0, height);
-      }
-      y += height;
-    }
-    layout.endLayout();
-    if (!producedLine) {
-      if (offset == globalStart) {
-        return QRectF(origin.x(), origin.y() + y, 1.0, fallbackHeight);
-      }
-      y += fallbackHeight;
-    }
-    globalStart += sourceLine.size() + 1;
-  }
-  return fallback;
-}
 
 bool isSelectableZone(HitTestResult::Zone zone) {
   return zone == HitTestResult::Zone::Text || zone == HitTestResult::Zone::Code || zone == HitTestResult::Zone::Math ||
@@ -248,22 +158,12 @@ HitTestResult hitForCursorPosition(DocumentLayout& layout, const RenderTheme& th
     case BlockType::FrontMatter:
     case BlockType::CodeFence:
       hit.zone = block->type() == BlockType::FrontMatter ? HitTestResult::Zone::FrontMatter : HitTestResult::Zone::Code;
-      {
-        const QRectF contentRect = block->literalContentRect(theme);
-        // Code fences honour markdown/codeBlockWrap; front-matter always wraps. Mirrors the hit-test
-        // path in BlockLayout: without this a long line in a wrap-OFF fence is laid out wrapped and
-        // the caret drops onto a phantom second row.
-        const bool wrap = block->type() == BlockType::CodeFence ? codeBlockWrapEnabled() : true;
-        hit.cursorRect = literalCursorRectForOffset(block->literal(), position.text.textOffset, theme.codeFont(),
-                                                    contentRect.topLeft(), contentRect.width(), theme.codeLineHeight(), wrap);
-      }
+      hit.cursorRect = block->literalVisualCursorRect(position.text.textOffset, theme);
       break;
     case BlockType::MathBlock:
       hit.zone = HitTestResult::Zone::Math;
       if (block->literalEditing()) {
-        const QRectF contentRect = block->literalContentRect(theme);
-        hit.cursorRect =
-            literalCursorRectForOffset(block->literal(), position.text.textOffset, theme.codeFont(), contentRect.topLeft(), contentRect.width(), theme.codeLineHeight(), true);
+        hit.cursorRect = block->literalVisualCursorRect(position.text.textOffset, theme);
       } else {
         const qsizetype offset = qBound<qsizetype>(0, position.text.textOffset, block->literal().size());
         const qreal x = offset <= block->literal().size() / 2 ? block->rect().left() : block->rect().right();
@@ -273,9 +173,7 @@ HitTestResult hitForCursorPosition(DocumentLayout& layout, const RenderTheme& th
     case BlockType::HtmlBlock:
       hit.zone = HitTestResult::Zone::Html;
       if (block->literalEditing()) {
-        const QRectF contentRect = block->literalContentRect(theme);
-        hit.cursorRect =
-            literalCursorRectForOffset(block->literal(), position.text.textOffset, theme.codeFont(), contentRect.topLeft(), contentRect.width(), theme.codeLineHeight(), true);
+        hit.cursorRect = block->literalVisualCursorRect(position.text.textOffset, theme);
       } else {
         const qsizetype offset = qBound<qsizetype>(0, position.text.textOffset, block->literal().size());
         const qreal x = offset <= block->literal().size() / 2 ? block->rect().left() : block->rect().right();

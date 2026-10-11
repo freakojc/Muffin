@@ -129,6 +129,7 @@ const CssElement* NodeCssElementBuilder::build(const MarkdownNode& node, const Q
   if (!children.contains(tag)) {
     auto* child = makeOwned();
     child->tag = tag;
+    addDocumentHostClasses(*child);
     child->parent = parent;
     children.insert(tag, child);
   }

@@ -1076,11 +1076,11 @@ bool EditorView::selectionContainsViewportPoint(const HitTestResult& hit, QPoint
 }
 
 void EditorView::inputMethodEvent(QInputMethodEvent* event) {
-  // The composition (preedit) is a paint-layer-only echo of in-progress IME text: it shows at the
-  // caret WITHOUT touching the document — only the eventual commitString is inserted. The preedit
-  // renders in paintPreedit, folded into the caret's dirty-rect machinery so a changing composition
-  // is erased and redrawn exactly like a moving caret.
+  // Composition is a temporary display splice in the caret block's layout.
+  // Only the eventual commitString changes the document.
   const QString previousPreedit = preedit_;
+  const int previousPreeditCursor = preeditCursor_;
+  const auto previousPreeditFormats = preeditFormats_;
   preedit_ = event->preeditString();
   preeditCursor_ = -1;
   preeditFormats_.clear();
@@ -1106,9 +1106,11 @@ void EditorView::inputMethodEvent(QInputMethodEvent* event) {
       layout_->setPreedit({}, {}, -1);
     }
     emit textCommitted(event->commitString());
-  } else if (preedit_ != previousPreedit) {
-    // Pure composition change: push the preedit to the layout and rebuild the caret block so its
-    // inline layout re-splices the preedit (following text shifts/wraps) and repaints. The block's
+  }
+  if (preedit_ != previousPreedit || preeditCursor_ != previousPreeditCursor ||
+      preeditFormats_ != previousPreeditFormats || !event->commitString().isEmpty()) {
+    // Push the preedit to the layout and rebuild the caret block so its
+    // text layout re-splices the preedit (following text shifts/wraps) and repaints. The block's
     // BuiltStamp is dropped so the cached build is discarded; refreshBlocks resolves a nested caret
     // (list item / quote paragraph) up to its top-level block. configureBuilder forwards the preedit.
     resetCaretBlink();  // a composition replaces the caret — stop blinking while composing
@@ -1116,6 +1118,7 @@ void EditorView::inputMethodEvent(QInputMethodEvent* event) {
       layout_->setPreedit(preedit_, preeditFormats_, preeditCursor_);
       blockBuiltAt_.remove(cursorPosition_.blockId);
       refreshBlocks({cursorPosition_.blockId}, *document_);
+      ensureCodeFenceCursorVisible();
     } else {
       QRect dirty = uniteDocumentRectDirty({}, lastPaintedCaretDocumentRect_, scrollY(), viewport()->size());
       dirty = uniteDocumentRectDirty(dirty, effectiveCursorRect(), scrollY(), viewport()->size());

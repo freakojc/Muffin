@@ -22,18 +22,6 @@
 namespace muffin {
 namespace editor_geometry {
 
-// Cursor rect within a literal (code/front-matter/math/html source) block.
-// Single-line variant: no wrapping, advances by horizontalAdvance from origin.
-QRectF literalCursorRectForOffset(const QString& literal, qsizetype offset, const QFont& font, QPointF origin);
-
-// Wrapped-or-not variant for code-style blocks. With `wrap` it soft-wraps each
-// physical line at the given width; without, each physical line is one visual
-// line laid out at its natural advance (so a long line in a wrap-OFF code fence
-// keeps the caret on that single row instead of dropping to a phantom second
-// one). Code fences honour markdown/codeBlockWrap; math/html/front-matter wrap.
-QRectF literalCursorRectForOffset(const QString& literal, qsizetype offset, const QFont& font, QPointF origin,
-                                  qreal width, qreal lineHeight, bool wrap);
-
 // Zones a click/selection can land on (text-bearing content).
 bool isSelectableZone(HitTestResult::Zone zone);
 // Zones a drag (or shift-click) can start or land on — additionally includes the

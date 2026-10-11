@@ -64,6 +64,14 @@ QRectF EditorView::effectiveCursorRect() const {
     return QRectF();
   }
   QRectF cursor = cursorHit_.cursorRect;
+  if (!preedit_.isEmpty() && layout_ &&
+      (cursorHit_.zone == HitTestResult::Zone::Code || cursorHit_.zone == HitTestResult::Zone::Math ||
+       cursorHit_.zone == HitTestResult::Zone::Html || cursorHit_.zone == HitTestResult::Zone::FrontMatter)) {
+    if (const auto* block = layout_->blockIfPromoted(cursorHit_.blockId)) {
+      const QRectF compositionCursor = block->literalPreeditCursorRect(theme_);
+      if (!compositionCursor.isEmpty()) cursor = compositionCursor;
+    }
+  }
   if (cursor.isEmpty()) {
     cursor = QRectF(cursorHit_.blockRect.left(), cursorHit_.blockRect.top(), 1.0, cursorHit_.blockRect.height());
   }
@@ -473,9 +481,14 @@ void EditorView::ensureCodeFenceCursorVisible() {
   if (maxW <= visibleW + 0.5) {
     return;  // wrap on sets maxW to 0; otherwise no overflow
   }
-  const qreal caretX = cursorHit_.cursorRect.left() - content.left();
+  QRectF caret = cursorHit_.cursorRect;
+  if (!preedit_.isEmpty()) {
+    const auto compositionCaret = block->literalPreeditCursorRect(theme_);
+    if (!compositionCaret.isEmpty()) caret = compositionCaret;
+  }
+  const qreal caretX = caret.left() - content.left();
   const qreal current = codeFenceScroll_->offsetFor(cursorHit_.blockId);
-  const qreal margin = TextFontMetrics(theme_.codeFont()).horizontalAdvance(QLatin1Char('M')) * 2.0;
+  const qreal margin = TextFontMetrics(block->literalFont()).horizontalAdvance(QLatin1Char('M')) * 2.0;
   qreal next = current;
   // Only scroll when the caret is genuinely OUTSIDE the visible window. The earlier margin-based
   // test (caretX < current+margin / caretX > current+visibleW-margin) also fired on a click whose

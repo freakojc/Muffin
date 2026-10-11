@@ -347,6 +347,12 @@ muffin_add_test(NAME MuffinImageDecoderTest          SOURCE tests/image/ImageDec
 muffin_add_test(NAME MuffinEditorViewProjectionSourceTest SOURCE tests/render/EditorViewProjectionSourceTest.cpp LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinEditorViewProjectionMappingTest SOURCE tests/render/EditorViewProjectionMappingTest.cpp LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinEditorViewHitTestTest    SOURCE tests/render/EditorViewHitTestTest.cpp    LINK MuffinUi RESOURCE_LOCK)
+muffin_add_test(NAME MuffinLiteralEditingGeometryTest SOURCE tests/render/LiteralEditingGeometryTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
+set_property(TEST MuffinLiteralEditingGeometryTest APPEND PROPERTY ENVIRONMENT_MODIFICATION "MUFFIN_TEXT_LAYOUT_BACKEND=set:native")
+add_test(NAME MuffinFractionalLiteralEditingGeometryTest COMMAND $<TARGET_FILE:MuffinLiteralEditingGeometryTest>)
+set_tests_properties(MuffinFractionalLiteralEditingGeometryTest PROPERTIES
+  ENVIRONMENT_MODIFICATION "${MUFFIN_TEST_ENVIRONMENT_MODIFICATIONS};MUFFIN_TEXT_LAYOUT_BACKEND=set:fractional"
+  RESOURCE_LOCK MuffinQtGui)
 muffin_add_test(NAME MuffinEditorViewTaskCheckboxTest SOURCE tests/render/EditorViewTaskCheckboxTest.cpp LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinEditorViewSelectionTest  SOURCE tests/render/EditorViewSelectionTest.cpp  LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinEditorViewLayoutTest     SOURCE tests/render/EditorViewLayoutTest.cpp     LINK MuffinUi RESOURCE_LOCK)

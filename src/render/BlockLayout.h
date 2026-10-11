@@ -1,6 +1,7 @@
 #pragma once
 #include "render/LayoutResources.h"
 #include "render/LayoutBox.h"
+#include "render/LiteralTextLayout.h"
 
 #include "document/MarkdownNode.h"
 #include "editor/CursorPosition.h"
@@ -170,6 +171,9 @@ public:
   QString literal() const;
   QFont literalFont() const { return cssBoxGeometry_.font; }
   qreal literalLineHeight() const { return cssBoxGeometry_.lineHeight; }
+  void setLiteralTextLayout(std::shared_ptr<const LiteralTextLayout> layout);
+  const LiteralTextLayout& literalTextLayout(const RenderTheme& theme) const;
+  QRectF literalPreeditCursorRect(const RenderTheme& theme) const;
   void setCodeLanguage(QString language);
   QString codeLanguage() const;
   void setCodeHighlightSpans(QVector<CodeHighlightSpan> spans);
@@ -362,18 +366,10 @@ private:
   QVector<QRectF> selectionRectsSelf(const SelectionRange& selection, const RenderTheme& theme) const;
   QVector<QRectF> literalSelectionRects(qsizetype startOffset, qsizetype endOffset, const RenderTheme& theme) const;
   QRectF mathEditorSourceRect(const RenderTheme& theme) const;
-  // (font, width, lineHeight, wrap) used to lay out this block's literal — mirrors the per-type
-  // choices in paint/hit-test so the visual-line queries match what is rendered.
-  struct LiteralLayoutParams {
-    QFont font;
-    qreal width = 0.0;
-    qreal lineHeight = 0.0;
-    bool wrap = true;
-  };
-  LiteralLayoutParams literalLayoutParams(const RenderTheme& theme) const;
+  const LiteralTextLayout& sourceTextLayout(qreal width, bool wrap) const;
   QRectF mathPreviewContentRect(const RenderTheme& theme) const;
   void paintCodeFence(QPainter& painter, const RenderTheme& theme, QRectF viewRect, const CodeFenceScrollController* scroll) const;
-  void paintLiteralSource(QPainter& painter, const RenderTheme& theme, QRectF contentRect, const QVector<CodeHighlightSpan>& spans, bool wrap) const;
+  void paintLiteralSource(QPainter& painter, const RenderTheme& theme, QRectF contentRect, const QVector<CodeHighlightSpan>& spans) const;
   void paintCodeLineNumbers(QPainter& painter, const RenderTheme& theme, const QRectF& codeRect) const;
   void paintCodeFenceScrollBar(QPainter& painter, const RenderTheme& theme, QRectF contentRect, qreal offset, qreal maxLineWidth) const;
   void paintDefinition(QPainter& painter, const RenderTheme& theme, QRectF viewRect) const;
@@ -387,6 +383,7 @@ private:
   CssBoxGeometry cssBoxGeometry_;
   std::unique_ptr<InlineLayout> inlineLayout_;
   QString literal_;
+  mutable std::shared_ptr<const LiteralTextLayout> literalTextLayout_;
   QString codeLanguage_;
   QVector<CodeHighlightSpan> codeHighlightSpans_;
   std::shared_ptr<math::MathLayoutResult> mathLayout_;

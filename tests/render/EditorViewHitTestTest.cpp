@@ -517,7 +517,7 @@ void testNoVirtualTrailingParagraphBelowEmptyLastParagraph() {
 // testNoWrapCodeFenceCursorStaysOnSingleRow
 // Regression: with markdown/codeBlockWrap OFF, a caret at the end of a long code
 // line must stay on that single visual row when recomputed from a CursorPosition
-// (rebuildLayout → editor_geometry::hitForCursorPosition → literalCursorRectForOffset).
+// (rebuildLayout → editor_geometry::hitForCursorPosition → BlockLayout::literalVisualCursorRect).
 // Before the fix the caret-geometry path hardcoded soft-wrap, so the caret dropped
 // onto a phantom second (wrapped) row even though the line renders unwrapped —
 // typing then appeared to insert after the first line while the caret sat below it.
