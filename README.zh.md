@@ -32,19 +32,26 @@ Muffin 由 C++ 与 Qt 6 打造。它把你的 Markdown 渲染成一张可以直�
 
 ### 横向对比
 
-在同类编辑器中，Muffin 是唯一原生、完全开源的所见即所得编辑器，也是唯一能在超大文件上保持流畅的。
+Muffin 将原生 C++/Qt 编辑器与完整、可编辑的 Markdown 运行时结合起来。Velotype 和 Ferrite 也是优秀的原生 Rust 方案；Muffin 的差异在于文档引擎的完整度：懒加载与增量布局、贯穿文档和界面的 CSS 主题、原生 Mermaid 与数学公式，以及可直接编辑的 HTML、表格、代码和图表。下表依据各项目公开文档整理，不代表跨应用性能基准。
 
-| | Muffin | Typora | MarkText | Obsidian |
-|:--|:--:|:--:|:--:|:--:|
-| 核心技术 | C++ / Qt 6 | Electron | Electron | Electron |
-| 开源 | ✅ | ❌ | ✅ | ❌ |
-| 所见即所得 | ✅ | ✅ | ✅ | ❌ |
-| 原生界面 | ✅ | ❌ | ❌ | ❌ |
-| 本地优先 | ✅ | ✅ | ✅ | ✅ |
-| 免费 | ✅ | 付费 | ✅ | 个人免费 |
-| 大文件 | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| | Muffin | Velotype | Ferrite | Typora | MarkText | Obsidian |
+|:--|:--:|:--:|:--:|:--:|:--:|:--:|
+| 核心技术 | C++ / Qt 6 | Rust / GPUI | Rust / egui | Electron | Electron | Electron |
+| 开源 | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| 原生桌面界面 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| 渲染视图所见即所得编辑 | ✅ | ✅ | ✅ | ✅ | ✅ | ◐ |
+| 懒加载／增量文档布局 | ✅ | ◐ | ◐ | — | — | — |
+| 全链路 CSS 主题 | ✅ | ◐ JSONC 令牌 | ◐ 主题系统 | — | — | — |
+| 原生 Mermaid 图表 | **38 种 ID** | — | **11 种 ID** | — | — | — |
+| 原生数学块 | **KaTeX 兼容** | — | — | — | — | — |
+| 导出 | PDF、HTML、Pandoc 格式 | HTML、PDF | HTML、PDF | PDF、HTML | HTML、PDF | HTML、PDF |
+| 分发方式 | MSI／7z 便携包 | 单文件二进制 | 安装包／便携模式 | 安装包 | 安装包 | 安装包 |
 
-<sub>Obsidian 的实时预览（Live Preview）是渲染后 Markdown 与原始语法的混合，并非真正的所见即所得。⚠️ 表示该编辑器能打开超大文档，但在滚动或编辑时可能出现卡顿。</sub>
+<sub>◐ 表示项目文档中描述的是部分支持或依赖模式的能力。Velotype 和 Ferrite 的 Mermaid 数量来自各自 README 中列出的 ID；Muffin 的数量包含原生 Mermaid 11.16 实现。Obsidian 的实时预览（Live Preview）将渲染后的 Markdown 与原始语法混合在一起，其块级编辑模型与这里的所见即所得并不相同。</sub>
+
+Muffin 的实际优势在于：渲染模式与源码模式共用一棵可编辑块树；文档内容和应用界面共用一套 CSS 主题来源；无需 Electron 或 WebView 即可原生渲染；并且内置了更完整的文档能力，包括 Mermaid、KaTeX 兼容数学公式、HTML/CSS 块、可编辑表格、代码块，以及 Pandoc 导入导出。
+
+项目链接：[Velotype](https://github.com/manyougz/velotype) · [Ferrite](https://github.com/OlaProeis/Ferrite)。
 
 <br />
 

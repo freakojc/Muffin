@@ -32,19 +32,26 @@ Muffin is a block-level WYSIWYG Markdown editor built from the ground up in C++ 
 
 ### How it compares
 
-Muffin is the only fully native, fully open-source WYSIWYG editor in this group — and the only one that stays responsive on very large files.
+Muffin combines a native C++/Qt editor with a broad, fully editable Markdown runtime. Velotype and Ferrite are strong native Rust alternatives; Muffin's distinction is the depth of its document engine: lazy and incremental layout, end-to-end CSS themes, native Mermaid and math rendering, and direct editing of HTML, tables, code, and diagrams. The table compares the projects' documented capabilities; it is not a cross-app benchmark.
 
-| | Muffin | Typora | MarkText | Obsidian |
-|:--|:--:|:--:|:--:|:--:|
-| Core technology | C++ / Qt 6 | Electron | Electron | Electron |
-| Open source | ✅ | ❌ | ✅ | ❌ |
-| WYSIWYG | ✅ | ✅ | ✅ | ❌ |
-| Native UI | ✅ | ❌ | ❌ | ❌ |
-| Local-first | ✅ | ✅ | ✅ | ✅ |
-| Free | ✅ | Paid | ✅ | Free for personal use |
-| Large files | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| | Muffin | Velotype | Ferrite | Typora | MarkText | Obsidian |
+|:--|:--:|:--:|:--:|:--:|:--:|:--:|
+| Core technology | C++ / Qt 6 | Rust / GPUI | Rust / egui | Electron | Electron | Electron |
+| Open source | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Native desktop UI | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Rendered WYSIWYG editing | ✅ | ✅ | ✅ | ✅ | ✅ | ◐ |
+| Lazy / incremental document layout | ✅ | ◐ | ◐ | — | — | — |
+| End-to-end CSS themes | ✅ | ◐ JSONC tokens | ◐ themes | — | — | — |
+| Native Mermaid diagrams | **38 IDs** | — | **11 IDs** | — | — | — |
+| Native math blocks | **KaTeX-compatible** | — | — | — | — | — |
+| Export | PDF, HTML, Pandoc formats | HTML, PDF | HTML, PDF | PDF, HTML | HTML, PDF | HTML, PDF |
+| Distribution | MSI / 7z portable | Single binary | Installers / portable mode | Installer | Installers | Installers |
 
-<sub>Obsidian's Live Preview blends rendered Markdown with raw syntax rather than offering true inline WYSIWYG. ⚠️ marks editors that can open very large documents but may lag while scrolling or editing.</sub>
+<sub>◐ means the project documents a partial or mode-dependent capability. Velotype's and Ferrite's Mermaid counts are the IDs documented by their READMEs; Muffin's count includes its native Mermaid 11.16 implementation. Obsidian's Live Preview blends rendered Markdown with raw syntax rather than offering the same block-level WYSIWYG model.</sub>
+
+The practical Muffin advantages are one editable block tree for rendered and source modes, a single CSS theme source shared by document content and application chrome, native rendering without Electron or a WebView, and a larger built-in document surface (Mermaid, KaTeX-compatible math, HTML/CSS blocks, editable tables, code blocks, and Pandoc import/export).
+
+See the projects directly: [Velotype](https://github.com/manyougz/velotype) and [Ferrite](https://github.com/OlaProeis/Ferrite).
 
 <br />
 
