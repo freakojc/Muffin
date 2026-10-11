@@ -67,6 +67,15 @@ quint64 flowLabelQuantized(qreal value) {
   return static_cast<quint64>(qRound64(value * 4096.0));
 }
 
+void mixFontVariationAxes(quint64& key, const QFont& font) {
+  const auto axes = font.variableAxisTags();
+  mixFlowLabelFingerprint(key, static_cast<quint64>(axes.size()));
+  for (const QFont::Tag tag : axes) {
+    mixFlowLabelFingerprint(key, static_cast<quint64>(tag.value()));
+    mixFlowLabelFingerprint(key, flowLabelQuantized(font.variableAxisValue(tag)));
+  }
+}
+
 quint64 flowLabelLayoutFingerprint(const FlowLabelDocument& label,
                                    const QString& fontFamily,
                                    qreal fontPixelSize, qreal lineHeight) {
@@ -92,7 +101,9 @@ quint64 flowLabelLayoutFingerprint(const FlowLabelDocument& label,
   for (const auto& range : label.formats) {
     mixFlowLabelFingerprint(key, static_cast<quint64>(range.start));
     mixFlowLabelFingerprint(key, static_cast<quint64>(range.length));
-    mixFlowLabelFingerprint(key, qHash(range.format.font().toString()));
+    const QFont rangeFont = range.format.font();
+    mixFlowLabelFingerprint(key, qHash(rangeFont.toString()));
+    mixFontVariationAxes(key, rangeFont);
     mixFlowLabelFingerprint(key, flowLabelQuantized(range.format.fontLetterSpacing()));
     mixFlowLabelFingerprint(key, flowLabelQuantized(range.format.fontWordSpacing()));
   }
@@ -1234,6 +1245,13 @@ qreal styledRangeWidth(const FlowLabelDocument& label, qsizetype start,
     setTextPixelSize(styled, textFontPixelSize(font));
     styled.setWeight(font.weight());
     styled.setStyle(font.style());
+    const QFont rangeFont = range.format.font();
+    // Preserve CSS font-variation-settings on the styled measurement face.
+    // QTextLayout already carries the complete format to the shaper; this
+    // explicit OpenType advance path must copy its axes as well or width and
+    // paint can diverge for variable fonts.
+    for (const QFont::Tag tag : rangeFont.variableAxisTags())
+      styled.setVariableAxis(tag, rangeFont.variableAxisValue(tag));
     if (font.letterSpacing() != 0.0)
       styled.setLetterSpacing(QFont::AbsoluteSpacing, font.letterSpacing());
     if (font.wordSpacing() != 0.0)
