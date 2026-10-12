@@ -5,6 +5,7 @@
 #include "editor/VirtualSourceEdit.h"
 
 #include "../TestUtils.h"
+#include "FileTreeTestUtils.h"
 
 #include <QAction>
 #include <QApplication>
@@ -30,6 +31,8 @@
 using namespace muffin;
 
 namespace {
+
+FileTreeTestIcons* fileIcons = nullptr;
 
 void waitUntil(const std::function<bool()>& ready, const char* message) {
   QElapsedTimer timer;
@@ -59,12 +62,9 @@ struct Fixture {
     require(directory.isValid(), "temporary directory");
     tabs = window.findChild<QTabWidget*>(QStringLiteral("DocumentTabs"));
     require(tabs != nullptr, "document tabs exist");
+    fileIcons->apply(window);
     window.resize(1000, 700);
     window.show();
-#ifdef Q_OS_MACOS
-    window.activateWindow();
-    require(QTest::qWaitForWindowActive(&window), "native test window becomes active for keyboard shortcuts");
-#endif
     QApplication::processEvents();
   }
 
@@ -439,14 +439,12 @@ void renameFolderAndTranslateTabs() {
 
 int main(int argc, char** argv) {
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
-#ifdef Q_OS_MACOS
-    qputenv("QT_QPA_PLATFORM", "cocoa");
-#else
     qputenv("QT_QPA_PLATFORM", "offscreen");
-#endif
   }
   QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
   QApplication app(argc, argv);
+  FileTreeTestIcons icons(app);
+  fileIcons = &icons;
   installMuffinTestCrashHandler();
   QStandardPaths::setTestModeEnabled(true);
   QApplication::setOrganizationName(QStringLiteral("MuffinTests"));

@@ -175,8 +175,9 @@ jobs:
         shell: bash
         run: |
           for test in MuffinDocumentTabsTest MuffinSidebarInteractionTest; do
-            (cd build/Release && QT_FONT_DPI=96 QT_QPA_PLATFORM=cocoa lldb --batch -o run -k 'thread backtrace all' -- "./$test") || true
+            (cd build/Release && QT_FONT_DPI=96 QT_QPA_PLATFORM=offscreen lldb --batch -o run -k 'thread backtrace all' -- "./$test") || true
           done
+          find "$HOME/Library/Logs/DiagnosticReports" -name 'Muffin*' -type f -exec cat {} + || true
 
       - name: Upload pixel mismatch diagnostics
         if: failure()
