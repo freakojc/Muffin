@@ -1,5 +1,8 @@
 #pragma once
 #include "render/LayoutBox.h"
+#include "render/InlineDisplayMap.h"
+#include "render/InlineComposition.h"
+#include "render/InlineTextFormats.h"
 
 #include "document/InlineNode.h"
 #include "projection/InlineProjection.h"
@@ -75,7 +78,7 @@ public:
     // Active IME composition to splice into the laid-out text at the caret, so the in-progress
     // glyphs push following text right (and wrap) instead of overlapping it. Set only on the caret
     // block. All offsets are PREEDIT-relative (over [0, preeditText.length()]); buildTextLayout
-    // shifts them by the caret's display offset when splicing into layoutText_.
+    // shifts them by the caret's display offset when splicing into the composed text.
     QString preeditText;
     QVector<QTextLayout::FormatRange> preeditFormats;
     int preeditCursor = -1;                       // composition caret within the preedit (-1 = none)
@@ -133,7 +136,7 @@ public:
   QRectF preeditCursorRect(QPointF origin) const;
   // True when this layout has an IME preedit spliced into its laid-out text (the composition is
   // rendered by the normal text paint, so EditorView draws only the caret — not overlay glyphs).
-  bool hasPreedit() const { return preeditSpliceLength_ > 0; }
+  bool hasPreedit() const { return composition_.active(); }
   bool hasHtmlContent() const { return hasHtmlContent_; }
   // Painted rects (document space, origin-relative) of the inline math atoms — the same rects
   // paintTextLayoutMathAtoms draws. Exposed so tests can verify atoms shift with the spliced preedit.
@@ -168,13 +171,10 @@ public:
   QVector<QTextLayout::FormatRange> debugTextFormats(const RenderTheme& theme, const QFont& baseFont) const;
 
 private:
- qsizetype styleSourceBase_ = 0;
- struct OffsetMapEntry {
-   qsizetype displayStart = 0;
-   qsizetype displayEnd = 0;
-   qsizetype visibleStart = 0;
-   qsizetype visibleEnd = 0;
- };
+  qsizetype styleSourceBase_ = 0;
+  using OffsetMapEntry = InlineDisplayMap::OffsetMapEntry;
+  using DisplayOffsetMapEntry = InlineDisplayMap::DisplayOffsetMapEntry;
+  using DisplayOffsetRange = InlineDisplayMap::DisplayOffsetRange;
 
   struct MathAtom {
     qsizetype displayStart = 0;
@@ -213,19 +213,6 @@ private:
   };
   void buildHtmlAtoms(qreal width, const QFont& font, const QString& documentPath);
 
-  struct DisplayOffsetMapEntry {
-    qsizetype projectionStart = 0;
-    qsizetype projectionEnd = 0;
-    qsizetype layoutStart = 0;
-    qsizetype layoutEnd = 0;
-  };
-
-  struct DisplayOffsetRange {
-    qsizetype start = 0;
-    qsizetype end = 0;
-    bool valid = false;
-  };
-
   struct GeneratedPseudoAtom {
     enum class Kind { Text, Shape, Icon };
     qsizetype rangeStart = 0, rangeEnd = 0;
@@ -250,24 +237,7 @@ private:
     QFont font;
   };
 
-  struct HtmlFormatSpan {
-    QStringList fontFamilies;
-    QFont font;
-    bool fontSet = false;
-    int layoutStart = 0;
-    int layoutEnd = 0;
-    bool bold = false;
-    bool italic = false;
-    bool monospace = false;
-    html::HtmlTextDecoration decoration = html::HtmlTextDecoration::None;
-    QColor color;
-    QColor backgroundColor;
-    qreal fontSize = 0;
-    qreal lineHeight = 0;
-    QTextCharFormat::VerticalAlignment verticalAlignment = QTextCharFormat::AlignNormal;
-    bool keyboard = false;
-    QString href;
-  };
+  using HtmlFormatSpan = InlineHtmlFormatSpan;
 
   void buildOffsetMapFromProjection();
   struct HtmlInlineBoxRun {
@@ -288,7 +258,8 @@ private:
   void buildImageAtoms(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width, const QString& documentPath);
   QString texForInlineMathSpan(const QVector<InlineNode>& inlines, const InlineProjectionSpan& span) const;
   void buildTextLayout(const RenderTheme& theme, qreal width, const QFont& baseFont);
-  // Map a displayText_-space offset to a layoutText_ offset, accounting for the spliced preedit
+  QString shapingText() const;
+  // Map a display-space offset to a composed-text offset, accounting for the spliced preedit
   // (offsets strictly after the splice point advance by the preedit length; the splice point itself
   // and everything before are unchanged). Identity when no preedit is spliced.
   int toLayoutOffset(int displayOffset) const;
@@ -309,7 +280,7 @@ private:
   void paintTextLayoutImageAtoms(QPainter& painter, QPointF origin) const;
   void paintGeneratedPseudoAtoms(QPainter& painter, QPointF origin) const;
   void paintImagePreview(QPainter& painter, QPointF origin) const;
-  QVector<QTextLayout::FormatRange> textLayoutFormats(const RenderTheme& theme, const QFont& baseFont) const;
+  QVector<QTextLayout::FormatRange> textLayoutFormats(const RenderTheme& theme, const QFont& baseFont, const QString& layoutText) const;
   qsizetype visibleOffsetForDisplayOffset(qsizetype displayOffset) const;
   qsizetype displayOffsetForVisibleOffset(qsizetype visibleOffset) const;
   qsizetype projectionDisplayOffsetForLayoutOffset(qsizetype layoutOffset, InlineProjectionBias bias) const;
@@ -354,8 +325,8 @@ private:
   QString plainText_;
   bool isEmpty_ = true;
   bool hasHtmlContent_ = false;
-  QString displayText_;
-  QString layoutText_;
+  InlineDisplayMap displayMap_;
+  InlineComposition composition_;
   // Active IME preedit spliced into layoutText_ (NOT displayText_ — the projection/offset maps stay
   // pristine). Empty/-1 when no composition is active. Set from BuildOptions in build(); read in
   // buildTextLayout (splice), the decoration painters (toLayoutOffset), and preeditCursorRect.
@@ -363,20 +334,13 @@ private:
   QVector<QTextLayout::FormatRange> preeditFormats_;
   int preeditCursor_ = -1;                 // composition caret within the preedit
   qsizetype preeditInsertAtSourceOffset_ = -1;
-  int preeditSpliceInsertAt_ = -1;         // layoutText_ offset where the preedit was spliced
-  int preeditSpliceLength_ = 0;            // preeditText_.length() (0 ⇒ no splice)
-  QVector<OffsetMapEntry> offsetMap_;
   QVector<MathAtom> mathAtoms_;
   QVector<ImageAtom> imageAtoms_;
   QVector<HtmlAtom> htmlAtoms_;
   QVector<ImageAtom> previewAtoms_;   // Active images rendered as block preview below text
   qreal previewHeight_ = 0.0;         // Total height of image previews
   QVector<HtmlFormatSpan> htmlFormatSpans_;
-  QVector<DisplayOffsetMapEntry> displayOffsetMap_;
-  struct InlineSpacer {
-    qsizetype start;
-    qreal width;
-  };
+
   QVector<InlineSpacer> inlineSpacers_;
   InlineProjection projection_;
   math::MathRenderer mathRenderer_;

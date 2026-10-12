@@ -99,7 +99,7 @@ QString layoutTextForDisplayText(QString text) {
   // This Qt build's TextLayout createLine() treats only U+2028 (Line Separator) as a hard
   // break, not '\n' (0x0a) — so a '\n' in the display text (a <br> or a Markdown hard break)
   // would not wrap. Convert '\n' to U+2028 for layout only. Length-preserving (1:1), so every
-  // offset/coordinate computed from displayText_ stays valid; displayText_ keeps the '\n'.
+  // offset/coordinate computed from displayMap_.text() stays valid; displayMap_.text() keeps the '\n'.
   text.replace(QLatin1Char('\n'), QChar(0x2028));
   return text;
 }
@@ -161,19 +161,17 @@ void InlineLayout::build(
     BuildOptions options) {
   hasHtmlContent_ = false;
   plainText_ = flattenPlainText(inlines, options.breakOnSingleNewline, hasHtmlContent_);
-  offsetMap_.clear();
   mathAtoms_.clear();
   imageAtoms_.clear();
   htmlAtoms_.clear();
   previewAtoms_.clear();
   previewHeight_ = 0.0;
   htmlFormatSpans_.clear();
-  displayOffsetMap_.clear();
   generatedPseudoAtoms_.clear();
   generatedPseudoFormats_.clear();
   inlinePseudoFingerprints_.clear();
-  displayText_.clear();
-  layoutText_.clear();
+  displayMap_ = {};
+  composition_ = {};
   lineBoxes_.clear();
   isMisspelled_ = options.isMisspelled;
   const auto sharedSnapshot = [&](const ThemeElementStyle& style, const QFont& font) {
@@ -399,8 +397,9 @@ qsizetype InlineLayout::hitTestSourceOffset(QPointF localPos) const {
       }
       const int lineStart = line.textStart();
       const int lineEnd = lineStart + line.textLength();
-      if (atom.displayStart >= lineStart && atom.displayStart <= lineEnd) {
-        atomLeft = line.cursorToX(static_cast<int>(atom.displayStart));
+      const int atomStart = toLayoutOffset(static_cast<int>(atom.displayStart));
+      if (atomStart >= lineStart && atomStart <= lineEnd) {
+        atomLeft = line.cursorToX(atomStart);
         break;
       }
     }
@@ -539,7 +538,7 @@ int InlineLayout::visualLineIndexForTextOffset(qsizetype textOffset) const {
   if (!textLayout_) {
     return -1;
   }
-  const qsizetype displayOffset = displayOffsetForVisibleOffset(textOffset);
+  const int displayOffset = toLayoutOffset(static_cast<int>(displayOffsetForVisibleOffset(textOffset)));
   for (int i = 0; i < textLayout_->lineCount(); ++i) {
     const TextLine line = textLayout_->lineAt(i);
     if (!line.isValid()) { continue; }
@@ -560,6 +559,7 @@ int InlineLayout::visualLineIndexForSourceOffset(qsizetype sourceOffset) const {
   if (!layoutDisplayOffsetForSourceOffset(sourceOffset, InlineProjectionBias::Forward, displayOffset)) {
     return visualLineIndexForTextOffset(sourceOffset);
   }
+  displayOffset = toLayoutOffset(static_cast<int>(displayOffset));
   for (int i = 0; i < textLayout_->lineCount(); ++i) {
     const TextLine line = textLayout_->lineAt(i);
     if (!line.isValid()) { continue; }
@@ -609,21 +609,13 @@ qsizetype InlineLayout::sourceOffsetAtVisualLineX(int lineIndex, qreal localX) c
   return hitTestSourceOffset(QPointF(localX, line.y() + line.height() * 0.5));
 }
 
-int InlineLayout::toLayoutOffset(int displayOffset) const {
-  // layoutText_ has the preedit spliced in at preeditSpliceInsertAt_; a displayText_-space offset
-  // strictly after that point addresses preeditSpliceLength_ chars later in layoutText_. The splice
-  // point itself maps to itself (it is the caret boundary). Identity when no preedit is spliced.
-  if (preeditSpliceLength_ <= 0 || displayOffset <= preeditSpliceInsertAt_) {
-    return displayOffset;
-  }
-  return displayOffset + preeditSpliceLength_;
-}
+int InlineLayout::toLayoutOffset(int displayOffset) const { return composition_.toLayoutOffset(displayOffset); }
 
 QRectF InlineLayout::preeditCursorRect(QPointF origin) const {
-  if (!textLayout_ || preeditSpliceLength_ <= 0 || preeditCursor_ < 0) {
+  if (!textLayout_ || !composition_.active() || preeditCursor_ < 0) {
     return {};
   }
-  const int pos = preeditSpliceInsertAt_ + qBound(0, preeditCursor_, preeditSpliceLength_);
+  const int pos = composition_.cursorOffset(preeditCursor_);
   for (int i = 0; i < textLayout_->lineCount(); ++i) {
     const TextLine line = textLayout_->lineAt(i);
     if (line.isValid() && pos >= line.textStart() && pos <= line.textStart() + line.textLength()) {
@@ -704,8 +696,8 @@ QVector<QRectF> InlineLayout::selectionRectsForDisplayOffsets(qsizetype startDis
     return rects;
   }
 
-  const int start = qBound(0, static_cast<int>(qMin(startDisplayOffset, endDisplayOffset)), static_cast<int>(displayText_.size()));
-  const int end = qBound(0, static_cast<int>(qMax(startDisplayOffset, endDisplayOffset)), static_cast<int>(displayText_.size()));
+  const int start = toLayoutOffset(qBound(0, static_cast<int>(qMin(startDisplayOffset, endDisplayOffset)), static_cast<int>(displayMap_.text().size())));
+  const int end = toLayoutOffset(qBound(0, static_cast<int>(qMax(startDisplayOffset, endDisplayOffset)), static_cast<int>(displayMap_.text().size())));
   if (start == end) {
     return rects;
   }
@@ -736,10 +728,10 @@ void InlineLayout::paintTextLayoutCodeSpans(QPainter& painter, QPointF origin) c
 
 QString InlineLayout::plainText() const { return plainText_; }
 QString InlineLayout::visibleText() const { return projection_.visibleText(); }
-QString InlineLayout::displayText() const { return displayText_; }
+QString InlineLayout::displayText() const { return displayMap_.text(); }
 int InlineLayout::mathAtomCount() const { return static_cast<int>(mathAtoms_.size()); }
 QVector<QTextLayout::FormatRange> InlineLayout::debugTextFormats(const RenderTheme& theme, const QFont& baseFont) const {
-  return textLayoutFormats(theme, baseFont);
+  return textLayoutFormats(theme, baseFont, shapingText());
 }
 
 void InlineLayout::paintTextLayoutInlineDecorations(QPainter& painter, QPointF origin) const {
@@ -841,17 +833,7 @@ void InlineLayout::buildInlineBoxes() {
       add(atom.displayStart, atom.displayEnd, atom.box);
 }
 
-void InlineLayout::buildOffsetMapFromProjection() {
-  displayText_ = projection_.displayText();
-  offsetMap_.clear();
-  displayOffsetMap_.clear();
-  offsetMap_.reserve(projection_.spans().size());
-  displayOffsetMap_.reserve(projection_.spans().size());
-  for (const InlineProjectionSpan& span : projection_.spans()) {
-    offsetMap_.push_back(OffsetMapEntry{span.displayStart, span.displayEnd, span.visibleStart, span.visibleEnd});
-    displayOffsetMap_.push_back(DisplayOffsetMapEntry{span.displayStart, span.displayEnd, span.displayStart, span.displayEnd});
-  }
-}
+void InlineLayout::buildOffsetMapFromProjection() { displayMap_.reset(projection_); }
 
 void InlineLayout::buildInlineBoxSpacing() {
   inlineSpacers_.clear();
@@ -882,56 +864,12 @@ void InlineLayout::buildInlineBoxSpacing() {
       unique.push_back(edge);
   }
   edges = std::move(unique);
-  const auto before = [&](qsizetype p) {
-    return p + std::count_if(edges.begin(), edges.end(), [&](const auto& e) { return e.position < p; });
-  };
-  const auto after = [&](qsizetype p) {
-    return p + std::count_if(edges.begin(), edges.end(), [&](const auto& e) { return e.position <= p; });
-  };
-  QVector<OffsetMapEntry> offsets;
-  QVector<DisplayOffsetMapEntry> displayOffsets;
-  for (const auto& e : offsetMap_) {
-    qsizetype start = e.displayStart;
-    const auto visible = [&](qsizetype p) {
-      return e.visibleStart +
-             (e.displayEnd > e.displayStart ? (e.visibleEnd - e.visibleStart) * (p - e.displayStart) / (e.displayEnd - e.displayStart) : 0);
-    };
-    for (const auto& edge : edges)
-      if (edge.position > start && edge.position < e.displayEnd) {
-        offsets.push_back({after(start), before(edge.position), visible(start), visible(edge.position)});
-        start = edge.position;
-      }
-    offsets.push_back({after(start), e.displayEnd > start ? before(e.displayEnd) : after(e.displayEnd), visible(start), e.visibleEnd});
-  }
-  for (const auto& e : displayOffsetMap_) {
-    qsizetype start = e.layoutStart;
-    const auto projected = [&](qsizetype p) {
-      return e.projectionStart + (e.layoutEnd > e.layoutStart
-                                      ? (e.projectionEnd - e.projectionStart) * (p - e.layoutStart) / (e.layoutEnd - e.layoutStart)
-                                      : 0);
-    };
-    for (const auto& edge : edges)
-      if (edge.position > start && edge.position < e.layoutEnd) {
-        displayOffsets.push_back({projected(start), projected(edge.position), after(start), before(edge.position)});
-        start = edge.position;
-      }
-    displayOffsets.push_back(
-        {projected(start), e.projectionEnd, after(start), e.layoutEnd > start ? before(e.layoutEnd) : after(e.layoutEnd)});
-  }
-  for (const auto& edge : edges) {
-    const qsizetype pos = before(edge.position);
-    const qsizetype visible = visibleOffsetForDisplayOffset(edge.position);
-    const qsizetype projected = projectionDisplayOffsetForLayoutOffset(edge.position, InlineProjectionBias::Backward);
-    offsets.push_back({pos, pos + 1, visible, visible});
-    displayOffsets.push_back({projected, projected, pos, pos + 1});
-    inlineSpacers_.push_back({pos, edge.width});
-  }
-  for (auto it = edges.rbegin(); it != edges.rend(); ++it) displayText_.insert(it->position, kInlineBoxSpacer);
-  std::stable_sort(offsets.begin(), offsets.end(), [](const auto& a, const auto& b) { return a.displayStart < b.displayStart; });
-  std::stable_sort(displayOffsets.begin(), displayOffsets.end(),
-                   [](const auto& a, const auto& b) { return a.layoutStart < b.layoutStart; });
-  offsetMap_ = std::move(offsets);
-  displayOffsetMap_ = std::move(displayOffsets);
+  QVector<qsizetype> positions;
+  for (const auto& edge : edges) positions.push_back(edge.position);
+  const auto inserted = displayMap_.insertSpacing(std::move(positions), kInlineBoxSpacer);
+  const auto before = [&](qsizetype p) { return inserted.before(p); };
+  const auto after = [&](qsizetype p) { return inserted.after(p); };
+  for (const auto& edge : edges) inlineSpacers_.push_back({before(edge.position), edge.width});
   for (auto& atom : mathAtoms_) {
     atom.displayEnd = before(atom.displayEnd);
     atom.displayStart = after(atom.displayStart);
@@ -982,24 +920,6 @@ void InlineLayout::insertGeneratedPseudoText(const QString& text, const PseudoEl
       end += length;
     }
   };
-  QVector<OffsetMapEntry> offsets;
-  for (auto entry : offsetMap_) {
-    if (entry.displayStart < position && position < entry.displayEnd) {
-      const auto anchor = entry.visibleStart + (entry.visibleEnd - entry.visibleStart) *
-          (position - entry.displayStart) / (entry.displayEnd - entry.displayStart);
-      offsets.push_back({entry.displayStart, position, entry.visibleStart, anchor});
-      offsets.push_back({position + length, entry.displayEnd + length, anchor, entry.visibleEnd});
-    } else { shift(entry.displayStart, entry.displayEnd); offsets.push_back(entry); }
-  }
-  offsetMap_ = std::move(offsets);
-  QVector<DisplayOffsetMapEntry> displayOffsets;
-  for (auto entry : displayOffsetMap_) {
-    if (entry.layoutStart < position && position < entry.layoutEnd) {
-      displayOffsets.push_back({entry.projectionStart, projectionAnchor, entry.layoutStart, position});
-      displayOffsets.push_back({projectionAnchor, entry.projectionEnd, position + length, entry.layoutEnd + length});
-    } else { shift(entry.layoutStart, entry.layoutEnd); displayOffsets.push_back(entry); }
-  }
-  displayOffsetMap_ = std::move(displayOffsets);
   for (auto& atom : mathAtoms_) shift(atom.displayStart, atom.displayEnd);
   for (auto& atom : imageAtoms_) shift(atom.displayStart, atom.displayEnd);
   for (auto& atom : htmlAtoms_) shift(atom.displayStart, atom.displayEnd);
@@ -1014,15 +934,7 @@ void InlineLayout::insertGeneratedPseudoText(const QString& text, const PseudoEl
     if (format.start >= position) format.start += static_cast<int>(length);
   }
 
-  displayText_.insert(position, inserted);
-  offsetMap_.push_back({position, position + length, visibleAnchor, visibleAnchor});
-  displayOffsetMap_.push_back({projectionAnchor, projectionAnchor, position, position + length});
-  std::stable_sort(offsetMap_.begin(), offsetMap_.end(), [](const auto& a, const auto& b) {
-    return a.displayStart < b.displayStart;
-  });
-  std::stable_sort(displayOffsetMap_.begin(), displayOffsetMap_.end(), [](const auto& a, const auto& b) {
-    return a.layoutStart < b.layoutStart;
-  });
+  displayMap_.insertGenerated(position, inserted, projectionAnchor, visibleAnchor);
 
   GeneratedPseudoAtom atom;
   atom.rangeStart = position;
@@ -1270,9 +1182,7 @@ void InlineLayout::buildMathAtoms(const QVector<InlineNode>& inlines, const Rend
     mathAtoms_.push_back(std::move(atom));
   }
   if (!rebuiltDisplay.isEmpty()) {
-    displayText_ = std::move(rebuiltDisplay);
-    offsetMap_ = std::move(rebuiltMap);
-    displayOffsetMap_ = std::move(rebuiltDisplayMap);
+    displayMap_.assign(std::move(rebuiltDisplay), std::move(rebuiltMap), std::move(rebuiltDisplayMap));
   }
 }
 
@@ -1331,7 +1241,7 @@ void InlineLayout::buildImageAtoms(const QVector<InlineNode>& inlines, const Ren
     const bool isImageAtom = span.type == InlineType::Image && span.kind == InlineSpanKind::Atom;
     if (!isImageAtom) {
       const auto previous = layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
-      const QString spanText = previous.valid ? displayText_.mid(previous.start, previous.end - previous.start)
+      const QString spanText = previous.valid ? displayMap_.text().mid(previous.start, previous.end - previous.start)
                                               : projectedDisplay.mid(span.displayStart, span.displayEnd - span.displayStart);
       const qsizetype displayStart = rebuiltDisplay.size();
       rebuiltDisplay += spanText;
@@ -1464,9 +1374,7 @@ void InlineLayout::buildImageAtoms(const QVector<InlineNode>& inlines, const Ren
   }
 
   if (!rebuiltDisplay.isEmpty()) {
-    displayText_ = std::move(rebuiltDisplay);
-    offsetMap_ = std::move(rebuiltMap);
-    displayOffsetMap_ = std::move(rebuiltDisplayMap);
+    displayMap_.assign(std::move(rebuiltDisplay), std::move(rebuiltMap), std::move(rebuiltDisplayMap));
   }
 }
 
@@ -1562,23 +1470,7 @@ void InlineLayout::buildHtmlAtoms(qreal width, const QFont& font, const QString&
       };
       mapText(mapText, *atom.layout->root(), true);
       const qsizetype delta = 1 - (range.end - range.start);
-      displayText_.replace(range.start, range.end - range.start, QChar(0xfffc));
-      for (auto& entry : offsetMap_) {
-        if (entry.displayStart == range.start && entry.displayEnd == range.end)
-          entry.displayEnd = range.start + 1;
-        else if (entry.displayStart >= range.end) {
-          entry.displayStart += delta;
-          entry.displayEnd += delta;
-        }
-      }
-      for (auto& entry : displayOffsetMap_) {
-        if (entry.layoutStart == range.start && entry.layoutEnd == range.end)
-          entry.layoutEnd = range.start + 1;
-        else if (entry.layoutStart >= range.end) {
-          entry.layoutStart += delta;
-          entry.layoutEnd += delta;
-        }
-      }
+      displayMap_.collapse(range, QChar(0xfffc));
       const auto shift = [&](auto& atoms) {
         for (auto& other : atoms)
           if (other.displayStart >= range.end) {
@@ -1594,74 +1486,34 @@ void InlineLayout::buildHtmlAtoms(qreal width, const QFont& font, const QString&
   }
 }
 
-void InlineLayout::buildTextLayout(const RenderTheme& theme, qreal width, const QFont& baseFont) {
-  layoutText_ = layoutTextForDisplayText(displayText_);
+QString InlineLayout::shapingText() const {
+  QString shapingText = layoutTextForDisplayText(displayMap_.text());
   // Tab-indent projection markers use U+200B too, but generated object breaks
   // must remain zero-width breaks rather than becoming indentation NBSPs.
   for (const auto& atom : generatedPseudoAtoms_)
     if (!atom.block && atom.kind != GeneratedPseudoAtom::Kind::Text) {
-      layoutText_[atom.displayEnd] = QChar(0x200b);
-      layoutText_[atom.displayStart - 1] = QChar(0x200b);
+      shapingText[atom.displayEnd] = QChar(0x200b);
+      shapingText[atom.displayStart - 1] = QChar(0x200b);
     }
-  QVector<QTextLayout::FormatRange> formats = textLayoutFormats(theme, baseFont);
+  return shapingText;
+}
 
-  // Splice the active IME preedit into layoutText_ at the caret so following text shifts/wraps
-  // naturally instead of being overlapped. displayText_ and the projection offset maps stay
-  // pristine — only the rendered TextLayout carries the preedit (consumed by paint and
-  // preeditCursorRect). The format ranges above are in displayText_/layoutText_ offsets (1:1
-  // pre-splice); split any range straddling the splice point so no span styles the preedit, then
-  // add the preedit's own formats on top.
-  const int preeditLen = static_cast<int>(preeditText_.length());
+void InlineLayout::buildTextLayout(const RenderTheme& theme, qreal width, const QFont& baseFont) {
+  QString shapingText = this->shapingText();
+  QVector<QTextLayout::FormatRange> formats = textLayoutFormats(theme, baseFont, shapingText);
+
   int insertAt = -1;
-  if (!preeditText_.isEmpty() && preeditLen > 0 && preeditInsertAtSourceOffset_ >= 0) {
-    // Anchor the splice at the caret's rendered position via its SOURCE offset — the same mapping
-    // the blinking caret uses (cursorRectForSourceOffset). A visible-offset anchor would collapse
-    // for a caret inside revealed syntax (a link's URL), splicing at the span boundary instead.
+  if (!preeditText_.isEmpty() && preeditInsertAtSourceOffset_ >= 0) {
     qsizetype displayOffset = -1;
-    if (layoutDisplayOffsetForSourceOffset(preeditInsertAtSourceOffset_, InlineProjectionBias::Forward, displayOffset)) {
-      insertAt = qBound(0, static_cast<int>(displayOffset), static_cast<int>(layoutText_.size()));
-    }
+    if (layoutDisplayOffsetForSourceOffset(preeditInsertAtSourceOffset_, InlineProjectionBias::Forward, displayOffset))
+      insertAt = qBound(0, static_cast<int>(displayOffset), static_cast<int>(shapingText.size()));
   }
-  if (insertAt >= 0) {
-    const QColor baseForeground = baseTextColorOverride_.isValid() ? baseTextColorOverride_ : theme.textColor();
-    QVector<QTextLayout::FormatRange> shifted;
-    shifted.reserve(formats.size() + preeditFormats_.size() + 1);
-    for (const QTextLayout::FormatRange& fr : formats) {
-      const int s = fr.start;
-      const int end = s + fr.length;
-      if (fr.length <= 0 || end <= insertAt) {
-        shifted.append(fr);
-      } else if (s >= insertAt) {
-        shifted.append({s + preeditLen, fr.length, fr.format});
-      } else {  // straddle: split — keep [s, insertAt) and [insertAt+P, end); never cover the preedit
-        shifted.append({s, insertAt - s, fr.format});
-        shifted.append({insertAt + preeditLen, end - insertAt, fr.format});
-      }
-    }
-    if (preeditFormats_.isEmpty()) {
-      QTextCharFormat underline;
-      underline.setForeground(baseForeground);
-      underline.setFontUnderline(true);
-      shifted.append({insertAt, preeditLen, underline});
-    } else {
-      for (const QTextLayout::FormatRange& pf : preeditFormats_) {
-        QTextCharFormat fmt = pf.format;
-        if (!fmt.hasProperty(QTextFormat::ForegroundBrush)) {
-          fmt.setForeground(baseForeground);
-        }
-        shifted.append({insertAt + pf.start, pf.length, fmt});
-      }
-    }
-    formats = std::move(shifted);
-    layoutText_.insert(insertAt, preeditText_);
-    preeditSpliceInsertAt_ = insertAt;
-    preeditSpliceLength_ = preeditLen;
-  } else {
-    preeditSpliceInsertAt_ = -1;
-    preeditSpliceLength_ = 0;
-  }
+  composition_ = composeInlineText(std::move(shapingText), std::move(formats), insertAt,
+                                   preeditText_, preeditFormats_,
+                                   baseTextColorOverride_.isValid() ? baseTextColorOverride_ : theme.textColor());
+  const auto& composedFormats = composition_.formats;
 
-  textLayout_ = std::make_unique<TextLayout>(layoutText_.isEmpty() ? QStringLiteral(" ") : layoutText_, baseFont);
+  textLayout_ = std::make_unique<TextLayout>(composition_.text.isEmpty() ? QStringLiteral(" ") : composition_.text, baseFont);
   // Retain the shaping snapshot together with the line geometry. Qt otherwise
   // frees it at endLayout() and reshapes during paint/caret queries, which can
   // resolve a different font-engine state after an incremental pass.
@@ -1672,12 +1524,12 @@ void InlineLayout::buildTextLayout(const RenderTheme& theme, qreal width, const 
     option.setAlignment(alignment_);
   }
   textLayout_->setTextOption(option);
-  textLayout_->setFormats(formats);
+  textLayout_->setFormats(composedFormats);
   // Pre-compute the runs a `:hover { color }` should recolour (only when the
   // element actually declares a hover colour). Derived from the same `formats`
   // the layout draws, so it stays in lock-step with span colouring.
   if (hoverTextColor_.isValid() || focusTextColor_.isValid()) {
-    computeHoverRecolourRanges(formats, theme);
+    computeHoverRecolourRanges(composedFormats, theme);
   } else {
     hoverRecolourRanges_.clear();
   }
@@ -1829,7 +1681,7 @@ void InlineLayout::buildTextLayout(const RenderTheme& theme, qreal width, const 
 
 void InlineLayout::computeHoverRecolourRanges(const QVector<QTextLayout::FormatRange>& formats, const RenderTheme& theme) {
   hoverRecolourRanges_.clear();
-  const int n = displayText_.size();
+  const int n = displayMap_.text().size();
   if (n <= 0) { return; }
   baseRunColor_ = baseTextColorOverride_.isValid() ? baseTextColorOverride_ : theme.textColor();
   // Effective foreground per character, derived from the SAME format ranges the
@@ -2003,341 +1855,32 @@ void InlineLayout::paintImagePreview(QPainter& painter, QPointF origin) const {
   }
 }
 
-QVector<QTextLayout::FormatRange> InlineLayout::textLayoutFormats(const RenderTheme& theme, const QFont& baseFont) const {
-  QVector<QTextLayout::FormatRange> formats;
-  if (displayText_.isEmpty()) {
-    return formats;
+QVector<QTextLayout::FormatRange> InlineLayout::textLayoutFormats(
+    const RenderTheme& theme, const QFont& baseFont, const QString& shapingText) const {
+  InlineFormatInput input{projection_, displayMap_, shapingText, theme, baseFont, *codeStyle_,
+                          spanStyles_, htmlFormatSpans_, inlineSpacers_, generatedPseudoFormats_,
+                          isMisspelled_, baseTextColorOverride_, {}};
+  for (const auto& atom : mathAtoms_) {
+    if (atom.layout && atom.layout->valid() && atom.displayEnd > atom.displayStart)
+      input.objects.push_back({atom.displayStart, atom.displayEnd - atom.displayStart,
+                               atom.layout->size.width(), kInlineMathPlaceholder});
   }
-
-  // QTextCharFormat::setFont does not carry QFont::letterSpacing through to the
-  // shaping engine (the per-range font would otherwise override the layout's
-  // base font and silently drop CSS letter-spacing). Re-apply it on the format
-  // so the theme's letter-spacing survives (Phase 3). No-op at 0 (built-ins).
-  const auto applyLetterSpacing = [](QTextCharFormat& fmt, const QFont& src) {
-    if (src.letterSpacing() != 0.0) {
-      fmt.setFontLetterSpacingType(src.letterSpacingType());
-      fmt.setFontLetterSpacing(src.letterSpacing());
-    }
-  };
-
-  QTextCharFormat baseFormat;
-  baseFormat.setFont(baseFont);
-  applyLetterSpacing(baseFormat, baseFont);
-  baseFormat.setForeground(baseTextColorOverride_.isValid() ? baseTextColorOverride_ : theme.textColor());
-  QTextLayout::FormatRange baseRange;
-  baseRange.start = 0;
-  baseRange.length = displayText_.size();
-  baseRange.format = baseFormat;
-  formats.push_back(baseRange);
-
-  for (const InlineProjectionSpan& span : projection_.spans()) {
-    if (span.displayEnd <= span.displayStart) {
-      continue;
-    }
-    QTextCharFormat format = baseFormat;
-    if (span.kind == InlineSpanKind::OpenMarker || span.kind == InlineSpanKind::CloseMarker ||
-        span.kind == InlineSpanKind::HiddenSyntax || span.kind == InlineSpanKind::EmptyContentSlot) {
-      format.setForeground(theme.mutedTextColor());
-    }
-    if (span.bold) {
-      format.setFontWeight(QFont::Bold);
-    }
-    if (span.italic) {
-      format.setFontItalic(true);
-    }
-    if (span.strike) {
-      format.setFontStrikeOut(true);
-      // Phase 5: CSS `del { color }` mutes deleted text (phycat → #999). The strike
-      // line itself can't be recoloured (Qt strikeOut uses the text colour), but the
-      // text colour is honoured when the theme declares one.
-      if (theme.delColor().isValid()) {
-        format.setForeground(theme.delColor());
-      }
-    }
-    if (span.underline) {
-      format.setFontUnderline(true);
-    }
-    if (span.highlight) {
-      format.setBackground(theme.highlightBackgroundColor());
-    }
-    if (span.subscript) {
-      format.setVerticalAlignment(QTextCharFormat::AlignSubScript);
-    } else if (span.superscript) {
-      format.setVerticalAlignment(QTextCharFormat::AlignSuperScript);
-    }
-    switch (span.type) {
-      case InlineType::Code:
-        format.setFont(codeStyle_->font);
-        applyLetterSpacing(format, codeStyle_->font);
-        if (codeStyle_->style.paint.color.isValid()) {
-          format.setForeground(codeStyle_->style.paint.color);
-        }
-        if (span.kind == InlineSpanKind::Text) {
-        }
-        break;
-      case InlineType::InlineMath:
-        format.setFont(theme.mathFont());
-        break;
-      default:
-        break;
-    }
-    // Link formatting is an orthogonal wrapping attribute (span.link), decoupled from span.type, so a
-    // link composes with any inner node: an image-link renders as a clickable image, `[`code`](url)`
-    // keeps its code background, etc. Atom is excluded so an image-link's placeholder isn't underlined.
-    if (span.link && span.kind != InlineSpanKind::OpenMarker && span.kind != InlineSpanKind::CloseMarker &&
-        span.kind != InlineSpanKind::HiddenSyntax && span.kind != InlineSpanKind::EmptyContentSlot &&
-        span.kind != InlineSpanKind::Atom) {
-      format.setForeground(theme.linkColor());
-      // CSS `a { text-decoration }`: underline + style + colour, and optional overline.
-      if (theme.linkUnderlined()) {
-        format.setFontUnderline(true);
-        const int style = theme.linkUnderlineStyle();
-        format.setUnderlineStyle(style >= 0 ? static_cast<QTextCharFormat::UnderlineStyle>(style)
-                                            : QTextCharFormat::SingleUnderline);
-        if (const QColor uc = theme.linkUnderlineColor(); uc.isValid()) {
-          format.setUnderlineColor(uc);
-        }
-      }
-      if (theme.linkOverline()) { format.setFontOverline(true); }
-    }
-    const auto computedRun = spanStyles_.constFind(span.displayStart);
-    if (computedRun != spanStyles_.cend() && span.kind == InlineSpanKind::Text && span.type != InlineType::InlineMath) {
-      const auto& run = *computedRun.value();
-      format.setFont(run.font);
-      applyLetterSpacing(format, run.font);
-      const auto& textStyle = run.style.text;
-      format.setFontUnderline(textStyle.decorationLines & 1);
-      format.setFontOverline(textStyle.decorationLines & 2);
-      format.setFontStrikeOut(textStyle.decorationLines & 4);
-      if (textStyle.decorationLines & 1) {
-        format.setUnderlineStyle(static_cast<QTextCharFormat::UnderlineStyle>(textStyle.underlineStyle));
-        if (textStyle.decorationColor.isValid()) format.setUnderlineColor(textStyle.decorationColor);
-      }
-      if (run.style.paint.color.isValid()) format.setForeground(run.style.paint.color);
-    }
-    const DisplayOffsetRange layoutRange = layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
-    if (!layoutRange.valid || layoutRange.end > displayText_.size()) {
-      continue;
-    }
-    // The base range already covers ordinary prose.  Do not add an identical
-    // range for every projection span: splitting a shaping run at an
-    // otherwise invisible boundary changes kerning/advance (notably around
-    // generated counters).  A computed inline style still forces a range so
-    // an explicit normal value can reset inherited Markdown emphasis.
-    const auto computedStyleIt = spanStyles_.constFind(span.displayStart);
-    const bool hasComputedInlineStyle = computedStyleIt != spanStyles_.cend() &&
-                                         span.kind == InlineSpanKind::Text && span.type != InlineType::InlineMath &&
-                                         (computedStyleIt.value()->style.text.fontSizeSet ||
-                                          computedStyleIt.value()->style.text.fontWeightSet ||
-                                          computedStyleIt.value()->style.text.italicSet ||
-                                          computedStyleIt.value()->style.text.decorationLines != 0 ||
-                                          computedStyleIt.value()->style.text.letterSpacing != 0 ||
-                                          computedStyleIt.value()->style.text.wordSpacing != 0 ||
-                                          computedStyleIt.value()->style.text.textTransform != 0);
-    const bool authoredInlineElement = hasComputedInlineStyle && computedStyleIt.value()->style.key != QStringLiteral("p") &&
-                                       !computedStyleIt.value()->style.key.startsWith(QStringLiteral("h"));
-    const bool hasSpanOverride = hasComputedInlineStyle || span.bold || span.italic || span.strike || span.underline ||
-                                 span.highlight || span.subscript || span.superscript || span.link ||
-                                 span.kind != InlineSpanKind::Text || span.type != InlineType::Text;
-    if (!hasSpanOverride) continue;
-    QTextLayout::FormatRange range;
-    range.start = static_cast<int>(layoutRange.start);
-    range.length = static_cast<int>(layoutRange.end - layoutRange.start);
-    range.format = format;
-    if (!authoredInlineElement && span.kind == InlineSpanKind::Text && span.type == InlineType::Text && format.font() == baseFormat.font() &&
-        (!format.hasProperty(QTextFormat::ForegroundBrush) || format.foreground() == baseFormat.foreground()) &&
-        (!format.hasProperty(QTextFormat::BackgroundBrush) || format.background() == baseFormat.background()) &&
-        !format.fontUnderline() && !format.fontOverline() && !format.fontStrikeOut() &&
-        format.verticalAlignment() == QTextCharFormat::AlignNormal)
-      continue;
-    formats.push_back(range);
+  for (const auto& atom : imageAtoms_) {
+    if (atom.loaded && atom.displayEnd > atom.displayStart)
+      input.objects.push_back({atom.displayStart, atom.displayEnd - atom.displayStart,
+                               atom.displaySize.width(), kImagePlaceholder});
   }
-
-  const TextFontMetrics tabMetrics(baseFont);
-  const qreal tabIndentTargetWidth = qMax<qreal>(1.0, tabMetrics.horizontalAdvance(QStringLiteral("汉汉")));
-  const qreal tabIndentPlaceholderWidth = qMax<qreal>(0.0, tabMetrics.horizontalAdvance(QString(kTabIndentLayoutChar)));
-  for (qsizetype i = 0; i < displayText_.size(); ++i) {
-    if (displayText_.at(i) != kTabIndentSourceChar || layoutText_.at(i) != kTabIndentLayoutChar) {
-      continue;
-    }
-    QFont tabFont = baseFont;
-    tabFont.setLetterSpacing(QFont::AbsoluteSpacing, tabIndentTargetWidth - tabIndentPlaceholderWidth);
-    QTextCharFormat format = baseFormat;
-    format.setFont(tabFont);
-    format.setForeground(QColor(Qt::transparent));
-    QTextLayout::FormatRange range;
-    range.start = static_cast<int>(i);
-    range.length = 1;
-    range.format = format;
-    formats.push_back(range);
-  }
-
-  for (const MathAtom& atom : mathAtoms_) {
-    if (!atom.layout || !atom.layout->valid() || atom.displayEnd <= atom.displayStart) {
-      continue;
-    }
-    QFont placeholderFont = baseFont;
-    const TextFontMetrics placeholderMetrics(placeholderFont);
-    const qreal placeholderAdvance = placeholderMetrics.horizontalAdvance(kInlineMathPlaceholder);
-    placeholderFont.setLetterSpacing(QFont::AbsoluteSpacing, atom.layout->size.width() - placeholderAdvance);
-
-    QTextCharFormat format = baseFormat;
-    format.setFont(placeholderFont);
-    format.setForeground(QColor(Qt::transparent));
-    QTextLayout::FormatRange range;
-    range.start = static_cast<int>(atom.displayStart);
-    range.length = static_cast<int>(atom.displayEnd - atom.displayStart);
-    range.format = format;
-    formats.push_back(range);
-  }
-
-  for (const ImageAtom& atom : imageAtoms_) {
-    if (!atom.loaded || atom.displayEnd <= atom.displayStart) {
-      continue;
-    }
-    QFont placeholderFont = baseFont;
-    const TextFontMetrics placeholderMetrics(placeholderFont);
-    const qreal placeholderAdvance = placeholderMetrics.horizontalAdvance(kImagePlaceholder);
-    placeholderFont.setLetterSpacing(QFont::AbsoluteSpacing, atom.displaySize.width() - placeholderAdvance);
-
-    QTextCharFormat format = baseFormat;
-    format.setFont(placeholderFont);
-    format.setForeground(QColor(Qt::transparent));
-    QTextLayout::FormatRange range;
-    range.start = static_cast<int>(atom.displayStart);
-    range.length = static_cast<int>(atom.displayEnd - atom.displayStart);
-    range.format = format;
-    formats.push_back(range);
-  }
-
-  for (const auto& atom : htmlAtoms_) {
-    QFont font = baseFont;
-    font.setLetterSpacing(QFont::AbsoluteSpacing, 0);
-    font.setLetterSpacing(QFont::AbsoluteSpacing, atom.crop.width() + atom.margin.left() + atom.margin.right() -
-                                                      TextFontMetrics(font).horizontalAdvance(QChar(0xfffc)));
-    QTextCharFormat format;
-    format.setFont(font);
-    format.setForeground(Qt::transparent);
-    formats.push_back({static_cast<int>(atom.displayStart), 1, format});
-  }
-  // Apply HTML inline format spans (from <b>, <i>, <span style="...">, etc.)
-  for (const HtmlFormatSpan& hs : htmlFormatSpans_) {
-    if (hs.layoutEnd <= hs.layoutStart) {
-      continue;
-    }
-    QTextCharFormat format = baseFormat;
-    if (hs.fontSet) format.setFont(hs.font);
-    if (hs.color.isValid()) {
-      format.setForeground(hs.color);
-    }
-    if (hs.fontSize > 0 && baseFont.pointSizeF() > 0) {
-      format.setFontPointSize(hs.fontSize);
-    }
-    if (hs.verticalAlignment != QTextCharFormat::AlignNormal) {
-      format.setVerticalAlignment(hs.verticalAlignment);
-    }
-    if (hasDecoration(hs.decoration, html::HtmlTextDecoration::Underline)) {
-      format.setFontUnderline(true);
-    }
-    if (hasDecoration(hs.decoration, html::HtmlTextDecoration::LineThrough)) {
-      format.setFontStrikeOut(true);
-    }
-    if (!hs.href.isEmpty()) {
-      format.setForeground(theme.linkColor());
-      // HTML <a> shares the Markdown link's text-decoration (underline + style +
-      // colour + overline). phycat sets `a { text-decoration: none }`; this keeps
-      // HTML links in step with Markdown links under the same CSS rule.
-      if (theme.linkUnderlined()) {
-        format.setFontUnderline(true);
-        const int style = theme.linkUnderlineStyle();
-        format.setUnderlineStyle(style >= 0 ? static_cast<QTextCharFormat::UnderlineStyle>(style)
-                                            : QTextCharFormat::SingleUnderline);
-        if (const QColor uc = theme.linkUnderlineColor(); uc.isValid()) {
-          format.setUnderlineColor(uc);
-        }
-      }
-      if (theme.linkOverline()) { format.setFontOverline(true); }
-    }
-    QTextLayout::FormatRange range;
-    range.start = hs.layoutStart;
-    range.length = hs.layoutEnd - hs.layoutStart;
-    range.format = format;
-    formats.push_back(range);
-  }
-
-  // Spell-check overlay (rendered mode): append SpellCheckUnderline ranges for misspelled
-  // prose words. Appended last so the underline paints over any bold/italic/link styling
-  // on the same glyphs (Qt composes FormatRanges per-property, later wins). Only Text spans
-  // are scanned — code spans, inline math and atoms are skipped. The misspelled predicate
-  // is supplied by the builder; when it is unset, spell checking is off and this is skipped.
-  if (isMisspelled_) {
-    static const QRegularExpression wordRe(QStringLiteral("[\\p{L}][\\p{L}'\\x{2019}]*"),
-                                           QRegularExpression::UseUnicodePropertiesOption);
-    const QColor errorColor = theme.spellCheckColor();
-    for (const InlineProjectionSpan& span : projection_.spans()) {
-      if (span.kind != InlineSpanKind::Text || span.type == InlineType::Code || span.type == InlineType::InlineMath) {
-        continue;
-      }
-      const DisplayOffsetRange spanRange = layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
-      if (!spanRange.valid || spanRange.end > displayText_.size()) {
-        continue;
-      }
-      const QString spanText = displayText_.mid(spanRange.start, spanRange.end - spanRange.start);
-      QRegularExpressionMatchIterator it = wordRe.globalMatch(spanText);
-      while (it.hasNext()) {
-        const QRegularExpressionMatch m = it.next();
-        const int localStart = static_cast<int>(m.capturedStart());
-        const int localLen = static_cast<int>(m.capturedLength());
-        if (localLen <= 1) {
-          continue;
-        }
-        const QStringView word(spanText.constData() + localStart, localLen);
-        if (!isMisspelled_(word)) {
-          continue;
-        }
-        QTextCharFormat format;
-        format.setUnderlineColor(errorColor);
-        format.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
-        QTextLayout::FormatRange spellRange;
-        spellRange.start = static_cast<int>(spanRange.start) + localStart;
-        spellRange.length = localLen;
-        spellRange.format = format;
-        formats.push_back(spellRange);
-      }
-    }
-  }
-
-  for (const InlineSpacer& spacer : inlineSpacers_) {
-    QFont font = baseFont;
-    font.setLetterSpacing(QFont::AbsoluteSpacing, 0);
-    font.setLetterSpacing(QFont::AbsoluteSpacing, spacer.width - TextFontMetrics(font).horizontalAdvance(kInlineBoxSpacer));
-    QTextCharFormat format;
-    format.setFont(font);
-    format.setForeground(Qt::transparent);
-    formats.push_back({static_cast<int>(spacer.start), 1, format});
-  }
-  // Generated text inherits the surrounding font when its computed font is
-  // unchanged. Keeping a redundant format range here splits HarfBuzz runs at
-  // every pseudo-element boundary and loses kerning across `::before`/text/
-  // `::after`; the browser treats adjacent inline text with the same style as
-  // one shaping run. Preserve only ranges that actually override the base
-  // font or paint properties.
-  for (const auto& generated : generatedPseudoFormats_) {
-    const auto generatedFont = generated.format.font();
-    const bool sameFont = generatedFont == baseFormat.font();
-    const bool hasForeground = generated.format.hasProperty(QTextFormat::ForegroundBrush);
-    const bool hasBackground = generated.format.hasProperty(QTextFormat::BackgroundBrush);
-    if (sameFont && !hasForeground && !hasBackground) continue;
-    formats.push_back(generated);
-  }
-  return formats;
+  for (const auto& atom : htmlAtoms_)
+    input.objects.push_back({atom.displayStart, 1, atom.crop.width() + atom.margin.left() + atom.margin.right(),
+                             QChar(0xfffc), false, true});
+  return buildInlineTextFormats(input);
 }
 
 qsizetype InlineLayout::visibleOffsetForDisplayOffset(qsizetype displayOffset) const {
-  if (offsetMap_.isEmpty()) {
+  if (displayMap_.empty()) {
     return qBound<qsizetype>(0, displayOffset, projection_.visibleText().size());
   }
-  displayOffset = qBound<qsizetype>(0, displayOffset, displayText_.size());
+  displayOffset = qBound<qsizetype>(0, displayOffset, displayMap_.text().size());
   for (const MathAtom& atom : mathAtoms_) {
     if (displayOffset > atom.displayStart && displayOffset <= atom.displayEnd) {
       return atom.visibleEnd;
@@ -2348,20 +1891,11 @@ qsizetype InlineLayout::visibleOffsetForDisplayOffset(qsizetype displayOffset) c
       return atom.visibleEnd;
     }
   }
-  for (const OffsetMapEntry& entry : offsetMap_) {
-    if (displayOffset <= entry.displayEnd) {
-      if (entry.visibleEnd <= entry.visibleStart || entry.displayEnd <= entry.displayStart) {
-        return entry.visibleStart;
-      }
-      const qsizetype delta = qBound<qsizetype>(0, displayOffset - entry.displayStart, entry.visibleEnd - entry.visibleStart);
-      return qBound<qsizetype>(entry.visibleStart, entry.visibleStart + delta, entry.visibleEnd);
-    }
-  }
-  return projection_.visibleText().size();
+  return displayMap_.visibleOffsetForDisplayOffset(displayOffset);
 }
 
 qsizetype InlineLayout::displayOffsetForVisibleOffset(qsizetype visibleOffset) const {
-  if (offsetMap_.isEmpty()) {
+  if (displayMap_.empty()) {
     return qBound<qsizetype>(0, visibleOffset, projection_.visibleText().size());
   }
   visibleOffset = qBound<qsizetype>(0, visibleOffset, projection_.visibleText().size());
@@ -2375,87 +1909,15 @@ qsizetype InlineLayout::displayOffsetForVisibleOffset(qsizetype visibleOffset) c
       return atom.displayEnd;
     }
   }
-  for (const OffsetMapEntry& entry : offsetMap_) {
-    if (visibleOffset == entry.visibleEnd && visibleOffset < projection_.visibleText().size()) continue;
-    if (visibleOffset <= entry.visibleEnd) {
-      if (entry.visibleEnd <= entry.visibleStart || entry.displayEnd <= entry.displayStart) {
-        continue;
-      }
-      const qsizetype delta = qBound<qsizetype>(0, visibleOffset - entry.visibleStart, entry.displayEnd - entry.displayStart);
-      return qBound<qsizetype>(entry.displayStart, entry.displayStart + delta, entry.displayEnd);
-    }
-  }
-  return displayText_.size();
+  return displayMap_.displayOffsetForVisibleOffset(visibleOffset);
 }
 
 qsizetype InlineLayout::projectionDisplayOffsetForLayoutOffset(qsizetype layoutOffset, InlineProjectionBias bias) const {
-  if (displayOffsetMap_.isEmpty()) {
-    return qBound<qsizetype>(0, layoutOffset, projection_.displayText().size());
-  }
-
-  layoutOffset = qBound<qsizetype>(0, layoutOffset, displayText_.size());
-  for (const DisplayOffsetMapEntry& entry : displayOffsetMap_) {
-    if (layoutOffset < entry.layoutStart || layoutOffset > entry.layoutEnd) {
-      continue;
-    }
-    if (entry.layoutEnd <= entry.layoutStart || entry.projectionEnd <= entry.projectionStart) {
-      return bias == InlineProjectionBias::Forward ? entry.projectionEnd : entry.projectionStart;
-    }
-    if (layoutOffset <= entry.layoutStart) {
-      return entry.projectionStart;
-    }
-    if (layoutOffset >= entry.layoutEnd) {
-      return entry.projectionEnd;
-    }
-    const qsizetype projectionLength = entry.projectionEnd - entry.projectionStart;
-    const qsizetype layoutLength = entry.layoutEnd - entry.layoutStart;
-    const qsizetype delta = (layoutOffset - entry.layoutStart) * projectionLength / layoutLength;
-    return qBound<qsizetype>(entry.projectionStart, entry.projectionStart + delta, entry.projectionEnd);
-  }
-
-  return projection_.displayText().size();
+  return displayMap_.projectionDisplayOffsetForLayoutOffset(layoutOffset, bias);
 }
 
 qsizetype InlineLayout::layoutDisplayOffsetForProjectionOffset(qsizetype projectionOffset, InlineProjectionBias bias) const {
-  if (displayOffsetMap_.isEmpty()) {
-    return qBound<qsizetype>(0, projectionOffset, displayText_.size());
-  }
-
-  projectionOffset = qBound<qsizetype>(0, projectionOffset, projection_.displayText().size());
-  qsizetype generatedFallback = -1;
-  for (const DisplayOffsetMapEntry& entry : displayOffsetMap_) {
-    if (projectionOffset < entry.projectionStart || projectionOffset > entry.projectionEnd) {
-      continue;
-    }
-    // Shared boundaries belong to the following editable run, beyond its
-    // zero-source spacers/prefix. Apply this for source selections as well as
-    // carets; the bias still controls positions inside collapsed atoms.
-    if (projectionOffset == entry.projectionEnd &&
-        projectionOffset < projection_.displayText().size()) continue;
-    if (entry.projectionEnd <= entry.projectionStart) {
-      // Generated content has no source extent. Prefer the adjacent editable
-      // range for both caret bias and selections; only an empty source needs
-      // this fallback (the boundary between ::before and ::after).
-      if (generatedFallback < 0) generatedFallback = entry.layoutEnd;
-      continue;
-    }
-    if (entry.layoutEnd <= entry.layoutStart) {
-      return bias == InlineProjectionBias::Forward ? entry.layoutEnd : entry.layoutStart;
-    }
-    if (projectionOffset <= entry.projectionStart) {
-      return entry.layoutStart;
-    }
-    if (projectionOffset >= entry.projectionEnd) {
-      return entry.layoutEnd;
-    }
-    const qsizetype projectionLength = entry.projectionEnd - entry.projectionStart;
-    const qsizetype layoutLength = entry.layoutEnd - entry.layoutStart;
-    const qsizetype delta = (projectionOffset - entry.projectionStart) * layoutLength / projectionLength;
-    const qsizetype snapped = bias == InlineProjectionBias::Forward && delta == 0 ? 1 : delta;
-    return qBound<qsizetype>(entry.layoutStart, entry.layoutStart + snapped, entry.layoutEnd);
-  }
-
-  return generatedFallback >= 0 ? generatedFallback : displayText_.size();
+  return displayMap_.layoutDisplayOffsetForProjectionOffset(projectionOffset, bias);
 }
 
 bool InlineLayout::layoutDisplayOffsetForSourceOffset(qsizetype sourceOffset, InlineProjectionBias bias, qsizetype& layoutOffset) const {
@@ -2468,35 +1930,7 @@ bool InlineLayout::layoutDisplayOffsetForSourceOffset(qsizetype sourceOffset, In
 }
 
 InlineLayout::DisplayOffsetRange InlineLayout::layoutDisplayRangeForProjectionRange(qsizetype projectionStart, qsizetype projectionEnd) const {
-  DisplayOffsetRange range;
-  if (projectionEnd <= projectionStart) {
-    return range;
-  }
-  // Select content entries, excluding generated spacing at either boundary.
-  // Shared boundary offsets can denote both the preceding run and the spacer;
-  // mapping a whole span through one caret bias would include padding as text.
-  bool found = false;
-  for (const auto& entry : displayOffsetMap_) {
-    if (entry.projectionEnd <= entry.projectionStart || entry.projectionEnd <= projectionStart || entry.projectionStart >= projectionEnd)
-      continue;
-    const qsizetype a = qMax(projectionStart, entry.projectionStart), b = qMin(projectionEnd, entry.projectionEnd);
-    const qsizetype length = entry.projectionEnd - entry.projectionStart;
-    const qsizetype start = entry.layoutStart + (a - entry.projectionStart) * (entry.layoutEnd - entry.layoutStart) / length;
-    const qsizetype end = entry.layoutStart + (b - entry.projectionStart) * (entry.layoutEnd - entry.layoutStart) / length;
-    if (!found) {
-      range.start = start;
-      range.end = end;
-      found = true;
-    } else {
-      range.start = qMin(range.start, start);
-      range.end = qMax(range.end, end);
-    }
-  }
-  if (!found) return range;
-  range.start = qBound<qsizetype>(0, range.start, displayText_.size());
-  range.end = qBound<qsizetype>(0, range.end, displayText_.size());
-  range.valid = range.end > range.start;
-  return range;
+  return displayMap_.layoutDisplayRangeForProjectionRange(projectionStart, projectionEnd);
 }
 
 qsizetype InlineLayout::textLayoutDisplayOffsetForPoint(QPointF localPos) const {
@@ -2534,19 +1968,19 @@ InlineLayout::TextLayoutPointHit InlineLayout::textLayoutHitForPoint(QPointF loc
     const int lineStart = line.textStart();
     const int lineEnd = lineStart + line.textLength();
     if (lineEnd <= lineStart) {
-      hit.displayOffset = lineStart;
+      hit.displayOffset = composition_.toDisplayOffset(lineStart);
       hit.bias = InlineProjectionBias::Backward;
       hit.cursorRect = QRectF(line.cursorToX(lineStart), line.y(), 1.0, line.height());
       return hit;
     }
 
     if (localPos.x() <= line.cursorToX(lineStart)) {
-      hit.displayOffset = lineStart;
+      hit.displayOffset = composition_.toDisplayOffset(lineStart);
       hit.cursorRect = QRectF(line.cursorToX(lineStart), line.y(), 1.0, line.height());
       return hit;
     }
     if (localPos.x() >= line.cursorToX(lineEnd)) {
-      hit.displayOffset = lineEnd;
+      hit.displayOffset = composition_.toDisplayOffset(lineEnd);
       hit.bias = InlineProjectionBias::Forward;
       hit.cursorRect = QRectF(line.cursorToX(lineEnd), line.y(), 1.0, line.height());
       return hit;
@@ -2557,25 +1991,25 @@ InlineLayout::TextLayoutPointHit InlineLayout::textLayoutHitForPoint(QPointF loc
       const qreal right = line.cursorToX(offset + 1);
       const qreal midpoint = (left + right) / 2.0;
       if (localPos.x() < midpoint) {
-        hit.displayOffset = offset;
+        hit.displayOffset = composition_.toDisplayOffset(offset);
         hit.bias = InlineProjectionBias::Backward;
         hit.cursorRect = QRectF(line.cursorToX(offset), line.y(), 1.0, line.height());
         return hit;
       }
       if (localPos.x() < right) {
-        hit.displayOffset = offset + 1;
+        hit.displayOffset = composition_.toDisplayOffset(offset + 1);
         hit.bias = InlineProjectionBias::Forward;
         hit.cursorRect = QRectF(line.cursorToX(offset + 1), line.y(), 1.0, line.height());
         return hit;
       }
     }
-    hit.displayOffset = lineEnd;
+    hit.displayOffset = composition_.toDisplayOffset(lineEnd);
     hit.bias = InlineProjectionBias::Forward;
     hit.cursorRect = QRectF(line.cursorToX(lineEnd), line.y(), 1.0, line.height());
     return hit;
   }
 
-  hit.displayOffset = displayText_.size();
+  hit.displayOffset = displayMap_.text().size();
   hit.bias = InlineProjectionBias::Forward;
   hit.cursorRect = textLayoutCursorRectForDisplayOffset(hit.displayOffset);
   return hit;
@@ -2585,7 +2019,7 @@ QRectF InlineLayout::textLayoutCursorRectForDisplayOffset(qsizetype displayOffse
   if (!textLayout_) {
     return {};
   }
-  return textLayout_->cursorRect(int(qBound<qsizetype>(0, displayOffset, displayText_.size())));
+  return textLayout_->cursorRect(toLayoutOffset(int(qBound<qsizetype>(0, displayOffset, displayMap_.text().size()))));
 }
 
 }  // namespace muffin

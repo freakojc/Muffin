@@ -548,9 +548,6 @@ int InputController::topLevelBlockIndex(const MarkdownNode& node) const {
   return -1;
 }
 
-
-
-
 bool InputController::handleInputMethod(QInputMethodEvent* event) {
   if (!event || event->commitString().isEmpty()) {
     return false;
@@ -700,10 +697,6 @@ bool InputController::tryInsertOptionalDefinitionTitle(QString text) {
       QVector<LocalEditNodeHint>{LocalEditNodeHint{node->id(), node->sourceRange().byteStart, node->type()}});
   return true;
 }
-
-
-
-
 
 bool InputController::deleteBackwardInActiveLiteral() {
   if (tryRemoveEmptyLiteralBlock(EditTransaction::Kind::DeleteText,
@@ -1298,7 +1291,7 @@ HitTestResult InputController::visualEdgeHitForBlock(NodeId blockId, int directi
     }
     const auto& cell = row.cells.at(static_cast<size_t>(columnIndex));
     const int line = direction > 0 ? 0 : qMax(0, cell.text.visualLineCount() - 1);
-    const QPointF origin = editor_geometry::tableCellTextOrigin(cell, ctx_.view->theme());
+    const QPointF origin = cell.textOrigin();
     const qsizetype localSource = cell.text.sourceOffsetAtVisualLineX(line, documentX - origin.x());
     result.zone = HitTestResult::Zone::TableCell;
     result.blockId = node->id();
@@ -1446,7 +1439,7 @@ bool InputController::moveTableCellHorizontal(int direction, bool extendSelectio
   hit.sourceOffset = nextSource;
   hit.textOffset = visibleOffset;
   hit.blockRect = tableLayout->rect();
-  const QPointF origin = editor_geometry::tableCellTextOrigin(finalCell, ctx_.view->theme());
+  const QPointF origin = finalCell.textOrigin();
   hit.cursorRect = finalCell.text.cursorRectForSourceOffset(localSource).translated(origin);
   setHitOrExtend(hit, extendSelection);
   return true;
@@ -1498,7 +1491,7 @@ bool InputController::moveTableCellVertical(int direction, bool extendSelection,
   const auto& targetCell = row.cells.at(static_cast<size_t>(targetColumn));
   const int lineCount = qMax(1, targetCell.text.visualLineCount());
   const int targetLine = qBound(0, currentLine, lineCount - 1);
-  const QPointF origin = editor_geometry::tableCellTextOrigin(targetCell, ctx_.view->theme());
+  const QPointF origin = targetCell.textOrigin();
   const qreal localX = documentX - origin.x();
   const qsizetype localSource = targetCell.text.sourceOffsetAtVisualLineX(targetLine, localX);
 
@@ -1549,7 +1542,7 @@ bool InputController::landOnTableCell(const NodeId& tableId, int row, int column
   hit.sourceOffset = context.contentRange.byteStart;
   hit.textOffset = 0;
   hit.blockRect = tableLayout->rect();
-  const QPointF origin = editor_geometry::tableCellTextOrigin(cell, ctx_.view->theme());
+  const QPointF origin = cell.textOrigin();
   hit.cursorRect = cell.text.cursorRectForSourceOffset(0).translated(origin);
   setHitOrExtend(hit, false);
   return true;

@@ -14,17 +14,6 @@ bool isDragSelectableZone(HitTestResult::Zone zone) {
   return isSelectableZone(zone) || zone == HitTestResult::Zone::BlockAfter;
 }
 
-QPointF tableCellTextOrigin(const BlockLayout::TableCellLayout& cell, const RenderTheme& theme) {
-  const QRectF contentRect = cell.box.contentBox;
-  qreal textX = contentRect.left();
-  if (cell.alignment == TableAlignment::Right) {
-    textX = contentRect.right() - cell.text.size().width();
-  } else if (cell.alignment == TableAlignment::Center) {
-    textX = contentRect.left() + (contentRect.width() - cell.text.size().width()) / 2.0;
-  }
-  return QPointF(qMax(contentRect.left(), textX), contentRect.top());
-}
-
 qsizetype selectableLength(const BlockLayout* block) {
   if (!block) {
     return 0;
@@ -133,103 +122,7 @@ HitTestResult hitForCursorPosition(DocumentLayout& layout, const RenderTheme& th
     return hit;
   }
 
-  HitTestResult hit;
-  hit.blockId = position.blockId;
-  hit.textNodeId = position.text.nodeId.isValid() ? position.text.nodeId : position.blockId;
-  hit.textOffset = position.text.textOffset;
-  hit.sourceOffset = position.text.sourceOffset;
-  hit.blockRect = block->rect();
-  hit.zone = HitTestResult::Zone::Block;
-
-  switch (block->type()) {
-    case BlockType::Paragraph:
-    case BlockType::Heading:
-    case BlockType::ListItem:
-      hit.zone = position.text.inMeta ? HitTestResult::Zone::Marker : HitTestResult::Zone::Text;
-      if (const InlineLayout* inlineLayout = block->inlineLayout()) {
-        const qreal textLeft = block->hasListMarker() ? block->rect().left() + block->listContentIndent() : block->rect().left();
-        const qsizetype localSourceOffset =
-            position.text.sourceOffset >= 0 && block->contentSourceStart() >= 0 ? position.text.sourceOffset - block->contentSourceStart() : -1;
-        hit.cursorRect = localSourceOffset >= 0
-                             ? inlineLayout->cursorRectForSourceOffset(localSourceOffset).translated(QPointF(textLeft, block->rect().top()))
-                             : inlineLayout->cursorRect(position.text.textOffset).translated(QPointF(textLeft, block->rect().top()));
-      }
-      break;
-    case BlockType::FrontMatter:
-    case BlockType::CodeFence:
-      hit.zone = block->type() == BlockType::FrontMatter ? HitTestResult::Zone::FrontMatter : HitTestResult::Zone::Code;
-      hit.cursorRect = block->literalVisualCursorRect(position.text.textOffset, theme);
-      break;
-    case BlockType::MathBlock:
-      hit.zone = HitTestResult::Zone::Math;
-      if (block->literalEditing()) {
-        hit.cursorRect = block->literalVisualCursorRect(position.text.textOffset, theme);
-      } else {
-        const qsizetype offset = qBound<qsizetype>(0, position.text.textOffset, block->literal().size());
-        const qreal x = offset <= block->literal().size() / 2 ? block->rect().left() : block->rect().right();
-        hit.cursorRect = QRectF(x, block->rect().top(), 1.0, block->rect().height());
-      }
-      break;
-    case BlockType::HtmlBlock:
-      hit.zone = HitTestResult::Zone::Html;
-      if (block->literalEditing()) {
-        hit.cursorRect = block->literalVisualCursorRect(position.text.textOffset, theme);
-      } else {
-        const qsizetype offset = qBound<qsizetype>(0, position.text.textOffset, block->literal().size());
-        const qreal x = offset <= block->literal().size() / 2 ? block->rect().left() : block->rect().right();
-        hit.cursorRect = QRectF(x, block->rect().top(), 1.0, block->rect().height());
-      }
-      break;
-    case BlockType::Table:
-      hit.zone = HitTestResult::Zone::TableCell;
-      hit.tableRow = -1;
-      hit.tableColumn = -1;
-      for (int row = 0; row < static_cast<int>(block->tableRows().size()); ++row) {
-        const auto& tableRow = block->tableRows().at(static_cast<size_t>(row));
-        for (int column = 0; column < static_cast<int>(tableRow.cells.size()); ++column) {
-          if (tableRow.cells.at(static_cast<size_t>(column)).nodeId == hit.textNodeId) {
-            hit.tableRow = row;
-            hit.tableColumn = column;
-            break;
-          }
-        }
-        if (hit.tableRow >= 0) {
-          break;
-        }
-      }
-      if (hit.tableRow >= 0 && hit.tableColumn >= 0) {
-        const QRectF cellRect = block->tableCellRect(hit.tableRow, hit.tableColumn);
-        for (const auto& tableRow : block->tableRows()) {
-          for (const auto& cell : tableRow.cells) {
-            if (cell.nodeId == hit.textNodeId) {
-              const QPointF textOrigin = tableCellTextOrigin(cell, theme);
-              const qsizetype localSourceOffset =
-                  position.text.sourceOffset >= 0 && cell.contentSourceStart >= 0 ? position.text.sourceOffset - cell.contentSourceStart : -1;
-              hit.cursorRect = localSourceOffset >= 0
-                                   ? cell.text.cursorRectForSourceOffset(localSourceOffset).translated(textOrigin)
-                                   : cell.text.cursorRect(position.text.textOffset).translated(textOrigin);
-              break;
-            }
-          }
-        }
-        if (hit.cursorRect.isEmpty()) {
-          hit.cursorRect = QRectF(cellRect.left() + 6.0, cellRect.top() + 4.0, 1.0, qMax<qreal>(14.0, cellRect.height() - 8.0));
-        }
-      }
-      break;
-    case BlockType::LinkDefinition:
-    case BlockType::FootnoteDefinition:
-      hit.zone = HitTestResult::Zone::Text;
-      hit.cursorRect = block->definitionCursorRectForSourceOffset(position.text.sourceOffset, theme);
-      break;
-    default:
-      break;
-  }
-
-  if (hit.cursorRect.isEmpty()) {
-    hit.cursorRect = QRectF(hit.blockRect.left(), hit.blockRect.top(), 1.0, hit.blockRect.height());
-  }
-  return hit;
+  return block->hitForCursorPosition(position, theme);
 }
 
 QVector<const BlockLayout*> blocksBetween(const DocumentLayout& layout, NodeId first, NodeId last) {

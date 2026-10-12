@@ -1,0 +1,59 @@
+#pragma once
+
+#include "render/CssFormattingContext.h"
+#include "render/LayoutResources.h"
+#include "document/MarkdownNode.h"
+#include "theme/RenderTheme.h"
+
+#include <optional>
+
+namespace muffin {
+
+// Per-document formatting reuse. Signatures, resource generations, measurements
+// and observed solver inputs share one pass lifecycle and one invalidation policy.
+class BlockFormattingCache {
+public:
+  struct Measurement {
+    QByteArray signature;
+    CssIntrinsicMetrics intrinsic;
+    bool intrinsicValid = false;
+    qreal containingWidth = -1;
+    std::shared_ptr<CssMeasurementCache> measurements = std::make_shared<CssMeasurementCache>();
+    quint64 pass = 0;
+    LayoutResourceDependencies resources;
+  };
+
+  struct SolveResult {
+    CssFormattingResult result;
+    bool reused = false;
+  };
+
+  void beginPass(bool incremental, QSet<NodeId> dirty);
+  QPair<quint64, quint64> finishPass();
+  std::optional<QByteArray> signature(NodeId id) const;
+  void rememberSignature(NodeId id, QByteArray value);
+  const QByteArray& themeSignature(const RenderTheme& theme);
+  bool isDirty(NodeId id) const { return dirty_.contains(id); }
+  quint64 pass() const { return pass_; }
+  std::shared_ptr<Measurement> measurement(NodeId id, const QByteArray& signature);
+  SolveResult solve(NodeId id, const ThemeElementStyle& style,
+                    const std::vector<CssFormattingItem>& items, qreal width, qreal height,
+                    const CssGridInheritance& inherited = {});
+
+private:
+  QHash<NodeId, std::shared_ptr<Measurement>> measurements_;
+  struct Solution {
+    QByteArray inputs;
+    CssFormattingResult result;
+    std::vector<CssMeasurementObservation> observations;
+    quint64 pass = 0;
+  };
+  QHash<NodeId, std::vector<std::shared_ptr<Solution>>> solutions_;
+
+  QHash<NodeId, QByteArray> signatures_;
+  QSet<NodeId> dirty_;
+  quint64 pass_ = 0;
+  QByteArray themeSignature_;
+};
+
+}  // namespace muffin

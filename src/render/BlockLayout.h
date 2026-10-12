@@ -50,6 +50,9 @@ public:
     TableAlignment alignment = TableAlignment::None;
     bool header = false;
     bool alternate = false;
+
+    // Shared by paint, hit testing, cursor restoration and keyboard navigation.
+    QPointF textOrigin() const;
   };
 
   struct TableRowLayout {
@@ -147,6 +150,7 @@ public:
   int formattingOrder() const { return cssBoxGeometry_.style.layout.order; }
   QRectF cssBorderBox() const;
   QPointF inlineTextOrigin() const;
+  HitTestResult hitForCursorPosition(CursorPosition position, const RenderTheme& theme) const;
   QRectF visualOverflowRect() const;
   void layoutGeneratedContent(const MarkdownNode& node, const RenderTheme& theme,
                               QPair<QString, QString> resolvedText = {});

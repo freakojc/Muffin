@@ -8,6 +8,8 @@
 #include "html/HtmlRenderer.h"
 #include "math/MathRenderer.h"
 #include "render/BlockLayout.h"
+#include "render/BlockHeightEstimator.h"
+#include "render/BlockFormattingCache.h"
 #include "render/TreeSitterHighlighter.h"
 #include "render/CssFormattingContext.h"
 #include "theme/RenderTheme.h"
@@ -75,10 +77,7 @@ public:
   // stay valid before a block is promoted to full detail. mustMeasure=true means the
   // rendered size is not cheaply knowable (math/html rendered blocks, or text blocks
   // containing inline math/images) and the estimate is a placeholder.
-  struct EstimateResult {
-    qreal height = 0;
-    bool mustMeasure = false;
-  };
+  using EstimateResult = BlockHeightEstimate;
   EstimateResult estimateHeight(const MarkdownNode& node, const RenderTheme& theme, qreal width, int depth = 0) const;
 
   std::unique_ptr<BlockLayout> build(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width, int depth = 0);
@@ -97,31 +96,11 @@ public:
                                       qreal height, const CssGridInheritance& inherited = {});
 
  private:
-  struct FormattingMeasurement {
-    QByteArray signature;
-    CssIntrinsicMetrics intrinsic;
-    bool intrinsicValid = false;
-    qreal containingWidth = -1;
-    std::shared_ptr<CssMeasurementCache> measurements = std::make_shared<CssMeasurementCache>();
-    quint64 pass = 0;
-    LayoutResourceDependencies resources;
-  };
-  QHash<NodeId, std::shared_ptr<FormattingMeasurement>> formattingMeasurements_;
-  struct FormattingSolution {
-    QByteArray inputs;
-    CssFormattingResult result;
-    std::vector<CssMeasurementObservation> observations;
-    quint64 pass = 0;
-  };
-  QHash<NodeId, std::vector<std::shared_ptr<FormattingSolution>>> formattingSolutions_;
+  BlockFormattingCache formattingCache_;
   QHash<NodeId, std::unique_ptr<BlockLayout>*> retainedLayouts_;
   bool materializing_ = true;
   std::unique_ptr<BlockLayout> buildFresh(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width, int depth);
-  QHash<NodeId, QByteArray> formattingSignatures_;
-  QSet<NodeId> formattingDirty_;
-  quint64 formattingPass_ = 0;
   QByteArray renderSettingsSignature_;
-  QByteArray formattingThemeSignature_;
   quint64 fontGeneration_ = 0;
   quint64 renderStateGeneration_ = 0;
   QHash<const MarkdownNode*, QPair<QSizeF, qreal>> allocations_;
@@ -166,7 +145,6 @@ public:
   ListMarkerLayout listMarkerLayout(const MarkdownNode& itemNode, const RenderTheme& theme);
   ResolvedMarker resolveListMarker(const MarkdownNode& itemNode, const RenderTheme& theme, qsizetype itemIndex) const;
   ListLineInfo authoredMarkerInfo(const MarkdownNode& itemNode) const;
-  QVector<InlineNode> primaryInlinesForListItem(const MarkdownNode& node) const;
   QString sourceTextForEditableNode(const MarkdownNode& node) const;
   qsizetype sourceContentStartForEditableNode(const MarkdownNode& node) const;
   qsizetype sourceContentEndForEditableNode(const MarkdownNode& node) const;
@@ -177,27 +155,7 @@ public:
   // so a stray build without configureBuilder yields an empty layout instead of a null dereference.
   const PieceTable& md() const;
 
-  // Height-estimate helpers mirroring the build* dispatch. Never touch TextLayout.
-  EstimateResult estimateParagraphLike(const MarkdownNode& node, const RenderTheme& theme, qreal width) const;
-  EstimateResult estimateContainer(const MarkdownNode& node, const RenderTheme& theme, qreal width, int depth) const;
-  EstimateResult estimateListItem(const MarkdownNode& node, const RenderTheme& theme, qreal width, int depth) const;
-  EstimateResult estimateLiteralBlock(const MarkdownNode& node, const RenderTheme& theme, qreal width) const;
-  EstimateResult estimateTable(const MarkdownNode& node, const RenderTheme& theme, qreal width) const;
-  EstimateResult estimateDefinition(const MarkdownNode& node, const RenderTheme& theme, qreal width) const;
-  qreal estimateLineHeight(const QFont& font) const;
-  // Average advance per character for `text` under `font`, classifying each char as wide
-  // (CJK/fullwidth ~1em) or narrow (~half-em) using cached per-font metrics. Lets the estimate
-  // track CJK vs ASCII density per block without measuring full text widths.
-  qreal avgCharWidthForText(QStringView text, const QFont& font) const;
-  // O(1) variant: cached narrow advance only, no per-char walk. Used by the estimate path to skip
-  // inline-text materialization (see estimateParagraphLike). Exact for ASCII; CJK imprecision is
-  // acceptable since the estimate is only a scrollbar placeholder.
-  qreal avgCharWidthForFont(const QFont& font) const;
-  // Cached estimateLineHeightForElement per element key — avoids re-creating QFont + TextFontMetrics
-  // every block (~14µs/block otherwise, dominating the estimate loop on 250k-block docs).
-  qreal cachedEstimateLineHeight(const RenderTheme& theme, const QString& elementKey, BlockType type, int headingLevel) const;
-  // Cached avgCharWidthForFont per element key — avoids creating QFont + TextFontMetrics per block.
-  qreal cachedAvgCharWidthForElement(const RenderTheme& theme, const QString& elementKey, bool isHeading, int headingLevel) const;
+  BlockHeightEstimator heightEstimator_;
 
   QString documentPath_;
   // Stable empty fallbacks so the non-owning views below are NEVER null. A build/estimate that runs
@@ -237,16 +195,6 @@ public:
   qint64 htmlRenderNs_ = 0;
   qint64 literalTextNs_ = 0;
   bool perfEnabled_ = false;
-  mutable QHash<QString, QPair<qreal, qreal>> fontMetricsCache_;  // QFont::key() -> {wideAdvance, narrowAdvance}
-  mutable QHash<QString, qreal> lineHeightCache_;  // "elementKey|headingLevel" -> estimated line height
-  mutable QHash<QString, qreal> avgCharWidthCache_;  // "elementKey|headingLevel" -> cached narrow advance
-  struct ParagraphEstimate {
-    qreal charsPerLine = 1;
-    qreal lineHeight = 0;
-    ThemeElementBoxStyle box;
-  };
-  // One used box/wrap capacity per prototype and containing width per pass.
-  mutable QHash<QString, QHash<qreal, ParagraphEstimate>> paragraphEstimateCache_;
   // Labels and shared gutters are computed once per list per pass. Both the
   // reuse signature and final layout consume the same values, so a changed
   // sibling marker cannot leave retained list items with a stale indent.

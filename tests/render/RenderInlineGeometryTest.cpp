@@ -473,6 +473,48 @@ void testInlineHtmlSimpleFormattingPassthrough() {
   }
 }
 
+void testCompositionPreservesMixedInlineMappingAcrossRebuilds() {
+  const RenderTheme theme = RenderTheme::github();
+  const QFont font = theme.paragraphFont();
+  const QString source = QStringLiteral("math $x^2$ then `code` and **bold**");
+  const QVector<InlineNode> inlines{
+      InlineNode::text(QStringLiteral("math ")), InlineNode::inlineMath(QStringLiteral("x^2")),
+      InlineNode::text(QStringLiteral(" then ")), InlineNode::code(QStringLiteral("code")),
+      InlineNode::text(QStringLiteral(" and ")),
+      InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("bold"))})};
+  InlineLayout layout;
+  layout.build(inlines, source, theme, 1000, font, {});
+  const QString display = layout.displayText();
+  const QString visible = layout.visibleText();
+  const auto beforeMath = layout.mathAtomRects({});
+  const qsizetype tail = source.indexOf(QStringLiteral("then")) + 2;
+  const QRectF beforeCaret = layout.cursorRectForSourceOffset(tail);
+  require(beforeMath.size() == 1, QStringLiteral("mixed composition fixture needs one math atom"));
+
+  InlineLayout::BuildOptions options;
+  options.preeditText = QStringLiteral("输入");
+  options.preeditInsertAtSourceOffset = 2;
+  options.preeditCursor = 1;
+  layout.build(inlines, source, theme, 1000, font, options);
+  require(layout.hasPreedit() && !layout.preeditCursorRect({}).isEmpty(), QStringLiteral("composition should expose its own caret"));
+  require(layout.displayText() == display && layout.visibleText() == visible,
+          QStringLiteral("composition must preserve projected display and copy text"));
+  const QRectF caret = layout.cursorRectForSourceOffset(tail);
+  require(layout.hitTestSourceOffset(QPointF(caret.left(), caret.center().y())) == tail,
+          QStringLiteral("source offset after math, box spacers and preedit must round-trip"));
+  const auto afterMath = layout.mathAtomRects({});
+  require(afterMath.size() == 1 && afterMath.front().left() > beforeMath.front().left(),
+          QStringLiteral("composition should shift following math geometry"));
+  require(qAbs((caret.left() - beforeCaret.left()) -
+               (afterMath.front().left() - beforeMath.front().left())) < 0.1,
+          QStringLiteral("text and math must advance by the same composed width"));
+
+  layout.build(inlines, source, theme, 1000, font, {});
+  require(!layout.hasPreedit() && layout.displayText() == display &&
+              layout.cursorRectForSourceOffset(tail) == beforeCaret && layout.mathAtomRects({}) == beforeMath,
+          QStringLiteral("rebuilding after composition must discard all temporary text and geometry"));
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -482,6 +524,7 @@ int main(int argc, char** argv) {
   QApplication app(argc, argv);
 #define RUN_TEST(test) runTest(#test, test)
   RUN_TEST(testInlineLayoutGeometryContract);
+  RUN_TEST(testCompositionPreservesMixedInlineMappingAcrossRebuilds);
   RUN_TEST(testInlineLayoutAlignmentAffectsGeometryAndVisualBounds);
   RUN_TEST(testInlineLayoutFirstLineBaselineFollowsLineHeight);
   RUN_TEST(testInlineLayoutZeroWidthTabIndentGeometry);

@@ -29,9 +29,6 @@ bool isSelectableZone(HitTestResult::Zone zone);
 // through the preceding block content.
 bool isDragSelectableZone(HitTestResult::Zone zone);
 
-// Top-left where a table cell's text is painted, honouring per-cell alignment.
-QPointF tableCellTextOrigin(const BlockLayout::TableCellLayout& cell, const RenderTheme& theme);
-
 // Number of selectable offsets a block exposes (inline plain-text length, or
 // literal length for code/math/html/front-matter, or 1 for a table cell range,
 // or the marker→end span for link/footnote definitions). The virtual trailing

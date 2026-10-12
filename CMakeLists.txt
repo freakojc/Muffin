@@ -509,7 +509,6 @@ set(MUFFIN_CORE_SOURCES
   src/math/MathParser.cpp
   src/math/MathParserEnvironment.cpp
   src/math/MathRenderer.cpp
-  src/mermaid/math/MathMlCssLayout.cpp
   src/mermaid/math/MathGlyphRasterizer.cpp
   src/mermaid/math/MathGlyphRasterizer.h
   src/mermaid/math/MathMlCssPainter.cpp
@@ -570,6 +569,15 @@ set(MUFFIN_CORE_SOURCES
   src/mermaid/editor/RailroadDiagramAdapter.cpp
   src/mermaid/editor/ErrorDiagramAdapter.cpp
   src/mermaid/MermaidFontRegistry.cpp
+  src/mermaid/math/MathMlCssLayout.cpp
+  src/mermaid/math/MathMlCssMetrics.cpp
+  src/mermaid/math/MathMlCssStructureMetrics.cpp
+  src/mermaid/math/MathMlCssGlyphs.cpp
+  src/mermaid/math/MathMlCssStructures.cpp
+  src/mermaid/math/MathMlCssDecorations.cpp
+  src/mermaid/math/MathMlCssPaintOperations.cpp
+  src/mermaid/math/MathMlCssSerialization.cpp
+
   src/mermaid/MermaidFontRegistry.h
   src/mermaid/flowchart/Flowchart.cpp
   src/mermaid/flowchart/Flowchart.h
@@ -579,7 +587,10 @@ set(MUFFIN_CORE_SOURCES
   src/mermaid/flowchart/FlowchartTokenizer.cpp
   src/mermaid/flowchart/FlowchartTokenizer.h
   src/mermaid/flowchart/FlowchartLayout.cpp
+  src/mermaid/flowchart/FlowchartDagreLayout.cpp
   src/mermaid/flowchart/SwimlaneLayout.cpp
+  src/mermaid/flowchart/SwimlaneOrthogonalRouter.cpp
+  src/mermaid/flowchart/SwimlaneLineJumps.cpp
   src/mermaid/flowchart/FlowchartLayout.h
   src/mermaid/flowchart/FlowchartShapes.cpp
   src/mermaid/flowchart/FlowchartShapes.h
@@ -1257,6 +1268,7 @@ set(MUFFIN_UI_SOURCES
   src/math/MathSvgGeometry.h
   src/math/MathSymbols.h
   src/render/BlockLayout.cpp
+  src/render/BlockLayoutGeometry.cpp
   src/render/BlockLayout.h
   src/render/LiteralTextLayout.cpp
   src/render/LiteralTextLayout.h
@@ -1268,6 +1280,9 @@ set(MUFFIN_UI_SOURCES
   src/render/CssSizing.h
   src/render/CodeHighlight.h
   src/render/BlockLayoutBuilder.cpp
+  src/render/BlockHeightEstimator.cpp
+  src/render/BlockFormattingCache.cpp
+  src/render/BlockLayoutRules.cpp
   src/render/BlockLayoutBuilder.h
   src/render/DocumentLayout.cpp
   src/render/DocumentLayout.h
@@ -1290,6 +1305,9 @@ set(MUFFIN_UI_SOURCES
   src/render/ImagePlaceholder.cpp
   src/render/ImagePlaceholder.h
   src/render/InlineLayout.cpp
+  src/render/InlineTextFormats.cpp
+  src/render/InlineDisplayMap.cpp
+  src/render/InlineComposition.cpp
   src/render/InlineFormatting.h
   src/render/InlineLayout.h
   src/render/TreeSitterHighlighter.cpp

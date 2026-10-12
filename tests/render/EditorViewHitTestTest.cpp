@@ -1,6 +1,7 @@
 #include "EditorViewTestUtils.h"
 
 #include "render/TextLayout.h"
+#include "theme/CssThemeMapper.h"
 #include <QTextOption>
 #include <QScrollBar>
 
@@ -917,6 +918,37 @@ void testGapClickBelowNonLastBlockIsNotTrailingBlockAfter() {
           QStringLiteral("clicking below the last block should still be the trailing BlockAfter zone"));
 }
 
+void testCssContentOriginSharedByHitCursorAndSelection() {
+  DocumentSession session;
+  EditorView view;
+  view.resize(800, 600);
+  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
+      QStringLiteral("p, h1, li { padding: 17px 23px; border: 3px solid black; }"),
+      QStringLiteral("geometry-origin"), QString()));
+  view.setTheme(theme);
+  session.setMarkdownText(QStringLiteral("Paragraph text\n\n# Heading text\n\n- List item text\n"), false);
+  view.setDocument(session.document());
+  const QVector<MarkdownNode*> nodes{blockAt(session, 0), blockAt(session, 1), listItemAt(session, 2, 0)};
+  for (const auto* node : nodes) {
+    const auto* block = view.blockLayoutForNode(node->id());
+    require(block != nullptr, "CSS geometry block should exist");
+    require(block->inlineLayout() != nullptr, "CSS geometry block should have text");
+    const auto localCaret = block->inlineLayout()->cursorRect(3);
+    const auto expectedCaret = localCaret.translated(block->inlineTextOrigin());
+    const auto hit = view.hitTest(view.mapDocumentToViewport(expectedCaret.center()));
+    require(hit.blockId == node->id(), "CSS content click should hit its block");
+    const auto restored = view.hitForCursorPosition(hit.cursorPosition());
+    require(qAbs(restored.cursorRect.x() - hit.cursorRect.x()) < 0.01 &&
+                qAbs(restored.cursorRect.y() - hit.cursorRect.y()) < 0.01,
+            "restoring a CSS content caret must use the same origin as hit testing");
+    const auto localRects = block->inlineLayout()->selectionRects(0, 3);
+    const auto documentRects = block->selectionRectsSelfForOffsets(0, 3, theme);
+    require(!localRects.isEmpty() && localRects.size() == documentRects.size(), "CSS content should expose selection geometry");
+    require(qAbs(documentRects.front().top() - localRects.front().translated(block->inlineTextOrigin()).top()) < 0.01,
+            "selection must use the same CSS content origin as the caret");
+  }
+}
+
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -928,6 +960,7 @@ int main(int argc, char** argv) {
   QCoreApplication::setOrganizationName(QStringLiteral("MuffinTest"));
   QCoreApplication::setApplicationName(QStringLiteral("EditorViewHitTestTest"));
 #define RUN_TEST(test) runTest(#test, test)
+  RUN_TEST(testCssContentOriginSharedByHitCursorAndSelection);
   RUN_TEST(testCrossBlockClickPreservesScreenPosition);
   RUN_TEST(testGapClickBelowNonLastBlockIsNotTrailingBlockAfter);
   RUN_TEST(testDefinitionPlaceholderHitKeepsCursorInSlot);

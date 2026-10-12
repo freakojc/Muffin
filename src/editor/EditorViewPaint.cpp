@@ -413,7 +413,7 @@ void EditorView::paintPreedit(QPainter& painter) const {
   // Inline-editable blocks (paragraph / heading / list item / TABLE CELL): the preedit is spliced
   // into the block's laid-out text (buildTextLayout), so the glyphs are already rendered by the
   // normal block paint and following text has shifted to make room — including the cell's right/
-  // center alignment (tableCellTextOrigin keys off cell.text.size().width(), which includes the
+  // center alignment (TableCellLayout::textOrigin keys off cell.text.size().width(), which includes the
   // splice). Draw ONLY the composition caret from the layout; overlaying glyphs would double-paint.
   if (layout_) {
     const BlockLayout* block = layout_->blockIfPromoted(cursorHit_.blockId);
@@ -432,7 +432,7 @@ void EditorView::paintPreedit(QPainter& painter) const {
         if (cursorHit_.tableColumn < static_cast<int>(cells.size())) {
           const auto& cell = cells.at(static_cast<size_t>(cursorHit_.tableColumn));
           inlineLayout = &cell.text;
-          origin = editor_geometry::tableCellTextOrigin(cell, theme_);
+          origin = cell.textOrigin();
         }
       }
     }
