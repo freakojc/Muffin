@@ -29,7 +29,7 @@ enum class IconKind { SidebarExpand, SidebarCollapse, SourceMode };
 
 // Load a status-bar SVG, recolor it to `ink`, and rasterize it as a multi-size
 // QIcon. Mirrors the free function that used to live in MainWindow.cpp.
-QIcon makeStatusIcon(IconKind kind, const QColor& ink) {
+QIcon makeStatusIcon(IconKind kind, const QColor& ink, const QColor& activeInk) {
   const char* path = nullptr;
   switch (kind) {
     case IconKind::SidebarExpand: path = ":/icons/statusbar/sidebar-expand.svg"; break;
@@ -40,28 +40,33 @@ QIcon makeStatusIcon(IconKind kind, const QColor& ink) {
   if (!svgFile.open(QIODevice::ReadOnly)) {
     return {};
   }
-  QByteArray svgData = svgFile.readAll();
-  svgFile.close();
-  svgData.replace("#000000", ink.name(QColor::HexRgb).toUtf8());
-
-  QSvgRenderer renderer(svgData);
-  if (!renderer.isValid()) {
-    return {};
-  }
+  const QByteArray svgData = svgFile.readAll();
   const qreal dpr = qApp ? qApp->devicePixelRatio() : qreal(1.0);
   QIcon icon;
-  for (const int sz : {16, 24, 32}) {
-    QPixmap px(static_cast<int>(sz * dpr), static_cast<int>(sz * dpr));
-    px.setDevicePixelRatio(dpr);
-    px.fill(Qt::transparent);
-    QPainter p(&px);
-    p.setRenderHint(QPainter::Antialiasing);
-    // Explicit logical target rect: render(&p) without bounds paints into the painter's
-    // viewport, which is the *physical* size (sz*dpr) on a high-DPI pixmap — so the SVG would
-    // rasterize at dpr× scale and only its top-left corner would fit. Pass the logical sz×sz so
-    // the painter's ×dpr transform maps it exactly onto the physical backing store.
-    renderer.render(&p, QRectF(0, 0, sz, sz));
-    icon.addPixmap(px);
+  for (const bool active : {false, true}) {
+    QByteArray tintedSvg = svgData;
+    tintedSvg.replace("#000000", (active ? activeInk : ink).name(QColor::HexRgb).toUtf8());
+    QSvgRenderer renderer(tintedSvg);
+    if (!renderer.isValid()) {
+      return {};
+    }
+    for (const int sz : {16, 24, 32}) {
+      QPixmap px(qRound(sz * dpr), qRound(sz * dpr));
+      px.setDevicePixelRatio(dpr);
+      px.fill(Qt::transparent);
+      QPainter p(&px);
+      p.setRenderHint(QPainter::Antialiasing);
+      // Explicit logical bounds keep the SVG sharp and unclipped on high-DPI screens.
+      renderer.render(&p, QRectF(0, 0, sz, sz));
+      p.end();
+      if (active) {
+        icon.addPixmap(px, QIcon::Normal, QIcon::On);
+        icon.addPixmap(px, QIcon::Active, QIcon::Off);
+        icon.addPixmap(px, QIcon::Active, QIcon::On);
+      } else {
+        icon.addPixmap(px, QIcon::Normal, QIcon::Off);
+      }
+    }
   }
   return icon;
 }
@@ -152,6 +157,7 @@ muffin::StatusBarWidget::StatusBarWidget(QWidget* parent) : QWidget(parent) {
   setFont(barFont);
 
   sidebarButton_ = new QToolButton(this);
+  sidebarButton_->setObjectName(QStringLiteral("statusSidebarToggle"));
   sidebarButton_->setIconSize(QSize(muffin::ui_metrics::kStatusIconSize, muffin::ui_metrics::kStatusIconSize));
   sidebarButton_->setCheckable(true);
   sidebarButton_->setAutoRaise(true);
@@ -165,9 +171,12 @@ muffin::StatusBarWidget::StatusBarWidget(QWidget* parent) : QWidget(parent) {
   sourceModeButton_->setFocusPolicy(Qt::NoFocus);
   sourceModeButton_->setCursor(Qt::PointingHandCursor);
 
-  // The sidebar icon flips between collapse « (sidebar visible) and expand » (hidden) on every
-  // toggle, so the button always shows the action the next click will perform.
-  connect(sidebarButton_, &QToolButton::toggled, this, [this] { updateSidebarIcon(); });
+  // Keep the ring's center dot in sync with sidebar visibility.
+  connect(sidebarButton_, &QToolButton::toggled, this, [this] {
+    updateSidebarIcon();
+    updateButtonToolTips();
+  });
+  connect(sourceModeButton_, &QToolButton::toggled, this, [this] { updateButtonToolTips(); });
 
   // Defaults until applyThemeColors() is called.
   bg_ = QColor(0xff, 0xff, 0xff);
@@ -175,6 +184,8 @@ muffin::StatusBarWidget::StatusBarWidget(QWidget* parent) : QWidget(parent) {
   muted_ = QColor(0x55, 0x55, 0x55);
   border_ = QColor(0xe5, 0xe7, 0xeb);
   spellDisplayLabel_ = QStringLiteral("EN");
+  applyThemeColors(bg_, text_, muted_, border_);
+  retranslateUi();
 }
 
 QToolButton* muffin::StatusBarWidget::sidebarButton() const { return sidebarButton_; }
@@ -240,9 +251,8 @@ void muffin::StatusBarWidget::updateSidebarIcon() {
   if (!sidebarButton_) {
     return;
   }
-  // Sidebar visible (checked) → collapse « (the next click hides it); hidden → expand ».
   const IconKind kind = sidebarButton_->isChecked() ? IconKind::SidebarCollapse : IconKind::SidebarExpand;
-  sidebarButton_->setIcon(makeStatusIcon(kind, muted_));
+  sidebarButton_->setIcon(makeStatusIcon(kind, muted_, text_));
 }
 
 void muffin::StatusBarWidget::applyThemeColors(const QColor& bg, const QColor& text, const QColor& muted,
@@ -253,17 +263,23 @@ void muffin::StatusBarWidget::applyThemeColors(const QColor& bg, const QColor& t
   border_ = border;
 
   // Style the two child buttons so they blend with the painted bar.
-  const bool dark = bg.lightness() < 128;
-  const QColor hover = dark ? bg.lighter(150) : bg.darker(108);
-  const QColor checked = dark ? QColor(0x30, 0x36, 0x3d) : QColor(0xe3, 0xe6, 0xea);
+  // Translucent theme ink stays subtle on light, dark, and tinted themes alike.
+  QColor hover = text;
+  hover.setAlpha(18);
+  QColor checked = text;
+  checked.setAlpha(12);
+  QColor pressed = text;
+  pressed.setAlpha(30);
   setStyleSheet(QStringLiteral(
-      "QToolButton { background: transparent; border: 0; border-radius: 4px;"
-      " padding: 0 6px; min-width: 22px; min-height: 20px; }"
+      "QToolButton { background: transparent; border: 0; border-radius: 5px; padding: 0; }"
       "QToolButton:hover { background: %1; }"
-      "QToolButton:checked { background: %2; }").arg(hover.name(QColor::HexRgb), checked.name(QColor::HexRgb)));
+      "QToolButton:checked { background: %2; }"
+      "QToolButton:checked:hover { background: %1; }"
+      "QToolButton:pressed, QToolButton:checked:pressed { background: %3; }"
+      "QToolButton#statusSidebarToggle { border-radius: 12px; }")
+      .arg(hover.name(QColor::HexArgb), checked.name(QColor::HexArgb), pressed.name(QColor::HexArgb)));
 
-  const QColor ink = muted;
-  sourceModeButton_->setIcon(makeStatusIcon(IconKind::SourceMode, ink));
+  sourceModeButton_->setIcon(makeStatusIcon(IconKind::SourceMode, muted_, text_));
   updateSidebarIcon();
   update();
 }
@@ -308,12 +324,10 @@ void muffin::StatusBarWidget::relayoutButtons() {
   if (!sidebarButton_ || !sourceModeButton_) {
     return;
   }
-  const int btnW = 30;
-  const int btnH = height() - 4;
-  int x = 4;
-  sidebarButton_->setGeometry(x, 2, btnW, btnH);
-  x += btnW;
-  sourceModeButton_->setGeometry(x, 2, btnW, btnH);
+  const int size = qMin(24, height() - 4);
+  const int y = (height() - size) / 2;
+  sidebarButton_->setGeometry(2, y, size, size);
+  sourceModeButton_->setGeometry(2 + size + 6, y, size, size);
 }
 
 void muffin::StatusBarWidget::resizeEvent(QResizeEvent* event) {
@@ -328,6 +342,9 @@ void muffin::StatusBarWidget::drawSegmentText(QPainter& p, const QString& text, 
 }
 
 bool muffin::StatusBarWidget::event(QEvent* event) {
+  if (event->type() == QEvent::LanguageChange) {
+    retranslateUi();
+  }
   // The status bar is a single self-painted widget whose segments are clickable
   // (stats popup, spell-language menu) but expose nothing to Qt's tooltip/accessibility
   // layer — so a hover over "EN" or the word count gives no hint that it's interactive.
@@ -519,9 +536,19 @@ void muffin::StatusBarWidget::showStatsPopup(const StatusBarStats& stats) {
 }
 
 void muffin::StatusBarWidget::retranslateUi() {
+  updateButtonToolTips();
   wordCountText_ = tr("%1 words").arg(wordCount_);
   if (spellMenu_) {
     rebuildSpellMenu();
   }
   update();
+}
+
+void muffin::StatusBarWidget::updateButtonToolTips() {
+  const QString sidebarHint = sidebarButton_->isChecked() ? tr("Hide sidebar") : tr("Show sidebar");
+  const QString sourceHint = sourceModeButton_->isChecked() ? tr("Switch to rendered mode") : tr("Switch to source mode");
+  sidebarButton_->setToolTip(sidebarHint);
+  sidebarButton_->setAccessibleName(sidebarHint);
+  sourceModeButton_->setToolTip(sourceHint);
+  sourceModeButton_->setAccessibleName(sourceHint);
 }

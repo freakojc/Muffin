@@ -199,12 +199,6 @@ void muffin::MainWindow::retranslateUi() {
   focusMode_ = focusChecked;
   setTypewriterMode(typewriterChecked);
 
-  if (sidebarButton_) {
-    sidebarButton_->setToolTip(tr("Show / Hide Sidebar"));
-  }
-  if (sourceModeButton_) {
-    sourceModeButton_->setToolTip(tr("Toggle source / rendered mode"));
-  }
   if (statusBar_) {
     statusBar_->retranslateUi();
   }

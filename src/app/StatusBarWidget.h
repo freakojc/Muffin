@@ -84,9 +84,9 @@ private:
   };
 
   void relayoutButtons();
-  // Refresh the sidebar button icon to match its checked state: collapse « when the sidebar is
-  // visible, expand » when hidden — so the icon always advertises the next click's action.
+  // A quiet ring when hidden; a center dot indicates that the sidebar is visible.
   void updateSidebarIcon();
+  void updateButtonToolTips();
   SegmentRects layoutSegments() const;
   void drawSegmentText(QPainter& p, const QString& text, const QRect& rect, const QColor& color,
                        int flags = Qt::AlignVCenter | Qt::AlignRight) const;

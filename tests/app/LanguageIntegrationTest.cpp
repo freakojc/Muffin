@@ -1,5 +1,6 @@
 #include "app/HelpViewerDialog.h"
 #include "app/LanguageManager.h"
+#include "app/StatusBarWidget.h"
 #include "editor/EditorView.h"
 #include "editor/VirtualSourceEdit.h"
 #include "image/CustomCommandUploader.h"
@@ -9,10 +10,13 @@
 #include <QDialogButtonBox>
 #include <QEvent>
 #include <QFile>
+#include <QHelpEvent>
 #include <QPushButton>
 #include <QSettings>
 #include <QTemporaryDir>
 #include <QTextBrowser>
+#include <QToolButton>
+#include <QToolTip>
 
 #include <cstdlib>
 #include <iostream>
@@ -27,6 +31,32 @@ void require(bool condition, const QString& message) {
 
 QString translated(const char* context, const char* source) {
   return QCoreApplication::translate(context, source);
+}
+
+void verifyStatusBarTooltips(muffin::StatusBarWidget& bar, bool localized) {
+  for (const bool checked : {false, true}) {
+    bar.setSidebarChecked(checked);
+    bar.setSourceModeChecked(checked);
+    const char* sidebarHint = checked ? "Hide sidebar" : "Show sidebar";
+    const char* sourceHint = checked ? "Switch to rendered mode" : "Switch to source mode";
+    const QString sidebarText = translated("muffin::StatusBarWidget", sidebarHint);
+    const QString sourceText = translated("muffin::StatusBarWidget", sourceHint);
+    require(bar.sidebarButton()->toolTip() == sidebarText,
+            QStringLiteral("Sidebar tooltip must follow visibility and language"));
+    require(bar.sourceModeButton()->toolTip() == sourceText,
+            QStringLiteral("Source-mode tooltip must follow mode and language"));
+    if (localized) {
+      require(sidebarText != QString::fromUtf8(sidebarHint), QStringLiteral("Sidebar hint must be translated"));
+      require(sourceText != QString::fromUtf8(sourceHint), QStringLiteral("Source-mode hint must be translated"));
+    }
+    for (QToolButton* button : {bar.sidebarButton(), bar.sourceModeButton()}) {
+      const QPoint center = button->rect().center();
+      QHelpEvent help(QEvent::ToolTip, center, button->mapToGlobal(center));
+      QApplication::sendEvent(button, &help);
+      require(QToolTip::text() == button->toolTip(), QStringLiteral("Hover event must display the button hint"));
+      QToolTip::hideText();
+    }
+  }
 }
 }  // namespace
 
@@ -44,6 +74,17 @@ int main(int argc, char** argv) {
 
   muffin::EditorView rendered;
   muffin::VirtualSourceEdit source;
+  muffin::StatusBarWidget statusBar;
+  statusBar.resize(800, statusBar.height());
+  statusBar.show();
+  require(statusBar.sidebarButton()->toolTip() == QStringLiteral("Show sidebar"),
+          QStringLiteral("Sidebar hint must be available at startup before any language change"));
+  require(statusBar.sourceModeButton()->toolTip() == QStringLiteral("Switch to source mode"),
+          QStringLiteral("Source-mode hint must be available at startup before any language change"));
+  statusBar.setWordCount(123);
+  statusBar.setEncodingLineEnding(QStringLiteral("UTF-8 | LF"));
+  statusBar.setCursorStatus(QStringLiteral("12 : 4"));
+  verifyStatusBarTooltips(statusBar, false);
   auto& manager = muffin::LanguageManager::instance();
   muffin::HelpViewerDialog::open(nullptr, muffin::HelpTopic::QuickStart);
   QStringList codes;
@@ -68,6 +109,31 @@ int main(int argc, char** argv) {
             QStringLiteral("Source editor accessible name must follow language changes"));
     require(source.accessibleDescription() == translated("muffin::VirtualSourceEdit", "Plain-text Markdown source"),
             QStringLiteral("Source editor description must follow language changes"));
+    verifyStatusBarTooltips(statusBar, manager.effectiveLanguageCode() != QStringLiteral("en"));
+    for (const bool spellEnabled : {false, true}) {
+      statusBar.setSpellLanguage(QStringLiteral("en_US"), spellEnabled);
+      QStringList shownHints;
+      for (int x = statusBar.sourceModeButton()->geometry().right() + 1; x < statusBar.width(); x += 4) {
+        const QPoint pos(x, statusBar.height() / 2);
+        QHelpEvent help(QEvent::ToolTip, pos, statusBar.mapToGlobal(pos));
+        QApplication::sendEvent(&statusBar, &help);
+        shownHints.append(QToolTip::text());
+      }
+      const char* spellHint = spellEnabled ? "Click to change the spell-check language"
+                                           : "Spell check is off — click to enable";
+      for (const char* hint : {"Click to view document statistics", spellHint,
+                               "Cursor position (line : column)", "File encoding · line ending"}) {
+        require(shownHints.contains(translated("muffin::StatusBarWidget", hint)),
+                QStringLiteral("Painted status-bar hints must display in the current language: %1")
+                    .arg(QString::fromUtf8(hint)));
+      }
+      QToolTip::hideText();
+    }
+    muffin::StatusBarWidget newStatusBar;
+    require(newStatusBar.sidebarButton()->toolTip() == translated("muffin::StatusBarWidget", "Show sidebar"),
+            QStringLiteral("New status bars must use the startup language"));
+    require(newStatusBar.sourceModeButton()->toolTip() == translated("muffin::StatusBarWidget", "Switch to source mode"),
+            QStringLiteral("New source-mode buttons must use the startup language"));
 
     bool found = false;
     for (QWidget* window : QApplication::topLevelWidgets()) {
