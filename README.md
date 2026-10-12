@@ -100,6 +100,7 @@ The curve measures the time from opening the Markdown file until the first viewp
 - **File tree sidebar** — Browse and open files from a folder tree.
 - **Quick Open** — Fuzzy-jump to any file in the open workspace, with recently used and recently modified files surfaced first.
 - **File operations** — Move, delete, reveal in file manager, reopen-with-encoding, and save-all-open-files from the file menu.
+- **Document tabs** — The tab bar appears when two or more documents are open and hides when only one remains. Each document keeps its own unsaved content, undo history, view mode, and cursor/scroll position. Drag to reorder, use Ctrl+N to add a tab, Ctrl+Tab / Ctrl+Shift+Tab to switch, and Ctrl+W or middle-click to close.
 - **Draft recovery** — Recover unsaved work after a crash or unexpected exit.
 - **Autosave** — Optional periodic saving and save-on-exit to protect unsaved work.
 - **Custom status bar** — A self-painted, theme-aware status bar showing parse time, cursor position, and word count, with a click-to-open statistics popup (words, characters, lines, reading time, and selection count) and an inline spell-check language quick-switcher.
@@ -241,7 +242,7 @@ Muffin already covers nearly all of core and extended Markdown — headings, par
 - [x] Finish absolute SVG marker URL parity (flowchart/Swimlane/sequence serialize absolute marker references when the export context supplies a document URL; other 11.16 families keep fragment references, matching upstream).
 - [ ] Continue extending GFM coverage.
 - [ ] Harden performance — structured 1–100 MB parser phases scale approximately linearly; AST node bodies are now 96 B smaller each and the 100 MiB roundtrip uses about 834 MiB less resident memory. Next, reduce cmark's parse-tree peak and very-large-document layout cost.
-- [x] Accessibility — word/paragraph/page keyboard navigation, table Tab navigation, focus escape (Ctrl+Tab, F6 pane cycling), and QAccessible screen-reader adapters for both editor canvases.
+- [x] Accessibility — word/paragraph/page keyboard navigation, table Tab navigation, focus escape (F6 pane cycling), and QAccessible screen-reader adapters for both editor canvases.
 
 ## Contributing
 

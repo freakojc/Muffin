@@ -58,7 +58,7 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
   // apply — the spell menu used to live in EditorView::contextMenuEvent.
   auto& checker = SpellChecker::instance();
   if (checker.isEnabled() && hit.zone == HitTestResult::Zone::Text && hit.sourceOffset >= 0) {
-    const QString markdown = session_.document().markdownText().toString();
+    const QString markdown = tab_->session.document().markdownText().toString();
     const WordSegment seg = findWordSegment(markdown, hit.sourceOffset);
     if (seg.isWord && seg.end > seg.start && seg.start < markdown.size()) {
       const QString word = markdown.mid(seg.start, seg.end - seg.start);
@@ -75,14 +75,14 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
             const QString suggestion = suggestions.at(i);
             QAction* replace = menu.addAction(suggestion);
             connect(replace, &QAction::triggered, this, [this, start, length, suggestion]() {
-              session_.applyTextDelta(start, length, suggestion, true);
+              tab_->session.applyTextDelta(start, length, suggestion, true);
             });
           }
         }
         QAction* ignore = menu.addAction(QCoreApplication::translate("muffin::EditorView", "Ignore \"%1\"").arg(word));
         connect(ignore, &QAction::triggered, this, [this, word]() {
           SpellChecker::instance().ignoreWord(word);
-          renderView_->refreshVisibleBlocks(session_.document());  // clear the squiggle on screen
+          tab_->renderView->refreshVisibleBlocks(tab_->session.document());  // clear the squiggle on screen
         });
         menu.addSeparator();
       }
@@ -202,17 +202,17 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
 }
 
 void muffin::MainWindow::exportMermaidDiagram(NodeId blockId) {
-  const MarkdownNode* node = session_.document().node(blockId);
+  const MarkdownNode* node = tab_->session.document().node(blockId);
   if (!node || node->type() != BlockType::CodeFence ||
       node->codeLanguage() != QLatin1String("mermaid")) {
     return;
   }
 
-  const QFileInfo documentInfo(session_.filePath());
+  const QFileInfo documentInfo(tab_->session.filePath());
   const QString baseName = documentInfo.completeBaseName().isEmpty()
       ? QStringLiteral("diagram")
       : documentInfo.completeBaseName() + QStringLiteral("-diagram");
-  const QString directory = session_.filePath().isEmpty()
+  const QString directory = tab_->session.filePath().isEmpty()
       ? defaultSaveDirectory()
       : documentInfo.absolutePath();
   const QString initialPath = directory.isEmpty()
@@ -242,17 +242,17 @@ void muffin::MainWindow::exportMermaidDiagram(NodeId blockId) {
 }
 
 void muffin::MainWindow::exportMermaidDiagramPng(NodeId blockId) {
-  const MarkdownNode* node = session_.document().node(blockId);
+  const MarkdownNode* node = tab_->session.document().node(blockId);
   if (!node || node->type() != BlockType::CodeFence ||
       node->codeLanguage() != QLatin1String("mermaid")) {
     return;
   }
 
-  const QFileInfo documentInfo(session_.filePath());
+  const QFileInfo documentInfo(tab_->session.filePath());
   const QString baseName = documentInfo.completeBaseName().isEmpty()
       ? QStringLiteral("diagram")
       : documentInfo.completeBaseName() + QStringLiteral("-diagram");
-  const QString directory = session_.filePath().isEmpty()
+  const QString directory = tab_->session.filePath().isEmpty()
       ? defaultSaveDirectory()
       : documentInfo.absolutePath();
   const QString initialPath = directory.isEmpty()

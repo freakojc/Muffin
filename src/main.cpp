@@ -197,14 +197,15 @@ int main(int argc, char *argv[]) {
   if (!folderArg.isEmpty()) {
     window.openFolderAtPath(QFileInfo(folderArg).absoluteFilePath());
     openedSomething = true;
-  } else if (!positionalArguments.isEmpty()) {
-    const QFileInfo firstArg(positionalArguments.first());
-    if (firstArg.isDir()) {
-      window.openFolderAtPath(firstArg.absoluteFilePath());
+  }
+  for (const QString& argument : positionalArguments) {
+    const QFileInfo info(argument);
+    if (info.isDir()) {
+      window.openFolderAtPath(info.absoluteFilePath());
+      openedSomething = true;
     } else {
-      window.openFile(firstArg.absoluteFilePath());
+      openedSomething = window.openFile(info.absoluteFilePath()) || openedSomething;
     }
-    openedSomething = true;
   }
   if (!openedSomething && !window.offerDraftRecovery()) {
     // No draft was restored (none existed, all discarded, or deferred) — fall

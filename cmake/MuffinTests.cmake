@@ -424,6 +424,15 @@ muffin_add_test(NAME MuffinBlockTableUndoTest      SOURCE tests/blocks/BlockTabl
 muffin_add_test(NAME MuffinBlockCodeFrontMatterTest SOURCE tests/blocks/BlockCodeFrontMatterTest.cpp LINK MuffinUi RESOURCE_LOCK)
 
 # --- app ---
+# Exercise the actual window and command bindings. Omit main()/platform packaging resources
+# and dictionaries; this fixture neither launches the app nor checks spelling.
+get_target_property(_tab_test_app_sources Muffin SOURCES)
+list(FILTER _tab_test_app_sources INCLUDE REGEX "^src/app/.*\\.(cpp|h)$")
+muffin_add_test(NAME MuffinDocumentTabsTest SOURCE tests/app/DocumentTabsTest.cpp LINK MuffinUi
+  EXTRA_LINK Qt6::Test Qt6::Svg Qt6::PrintSupport
+  EXTRA_SOURCES ${_tab_test_app_sources} src/icons.qrc src/translations.qrc ${MUFFIN_THEMES_QRC} ${MUFFIN_HELP_QRC} ${MUFFIN_EMOJI_QRC}
+  RESOURCE_LOCK)
+target_compile_definitions(MuffinDocumentTabsTest PRIVATE MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}")
 muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
 muffin_add_test(NAME MuffinTranslationResourceTest SOURCE tests/app/TranslationResourceTest.cpp LINK Qt6::Widgets EXTRA_SOURCES src/translations.qrc RESOURCE_LOCK)
 target_compile_definitions(MuffinTranslationResourceTest PRIVATE MUFFIN_TRANSLATIONS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/translations")

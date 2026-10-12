@@ -157,6 +157,7 @@ void muffin::MainWindow::retranslateMenuTexts() {
 }
 
 void muffin::MainWindow::retranslateUi() {
+  retranslateTabs();
   const bool sidebarChecked =
       commands_.action(QStringLiteral("view.sidebar")) && commands_.action(QStringLiteral("view.sidebar"))->isChecked();
   const bool sourceChecked =
@@ -212,6 +213,6 @@ void muffin::MainWindow::retranslateUi() {
   // submenu titles are updated in place by retranslateMenuTexts(). Likewise the
   // document is not re-rendered (its content does not change with locale).
   updateStatus();
-  wordCountDirty_ = true;
+  tab_->wordCountDirty = true;
   updateWordCountNow();
 }

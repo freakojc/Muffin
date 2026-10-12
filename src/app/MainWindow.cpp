@@ -37,8 +37,11 @@
 #include <QVariantAnimation>
 #include <QGraphicsOpacityEffect>
 #include <QSettings>
+#include <QScopedValueRollback>
 #include <QSplitter>
 #include <QStackedWidget>
+#include <QTabWidget>
+#include <QTabBar>
 #include <QStatusBar>
 #include <QSvgRenderer>
 #include <QPrintDialog>
@@ -96,52 +99,49 @@ QString zoneName(muffin::HitTestResult::Zone zone) {
 }  // namespace
 
 muffin::MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent), renderCommands_(editorController_, [this] { return backend_ && backend_->isSourceMode(); }) {
+    : QMainWindow(parent) {
   setupUi();
   setupMenuBar();
   setupStatusBar();
   setupConnections();
+  updateTitle();
   loadAppearanceSettings();
   showBlockSourceEnabled_ = QSettings().value(QStringLiteral("editor/showBlockSource"), false).toBool();
   // Apply markdown parse preferences (markdown/autoLink, markdown/inlineMath, ...) before the first
   // real parse. parseOptions_ defaults to all-on, so this is a no-op re-parse unless the user has
   // disabled an extension.
-  session_.setParseOptions(markdownParseOptions());
+  tab_->session.setParseOptions(markdownParseOptions());
   muffin::UpdateChecker::instance().maybeAutoCheck();
 }
 
-bool muffin::MainWindow::openFile(QString path) {
-  if (fileController_.open(session_, this, path)) {
-    draftKey_ = DraftRecovery::createDraftKey();
-    editorController_.clearHistoryAndSelection();
-    addRecentFile(session_.filePath());
-    return true;
-  }
-  return false;
-}
-
-bool muffin::MainWindow::startNewDocument() {
-  if (!fileController_.newFile(session_, this)) {
-    return false;
-  }
-  draftKey_ = DraftRecovery::createDraftKey();
-  editorController_.clearHistoryAndSelection();
-  return true;
+muffin::MainWindow::~MainWindow() {
+  // Destroy pages while shared window services (drafts, commands, emoji provider) still exist.
+  disconnect(tabs_, nullptr, this, nullptr);
+  tabs_->tabBar()->removeEventFilter(this);
+  delete centralSplitter_;
 }
 
 void muffin::MainWindow::closeEvent(QCloseEvent* event) {
-  // Auto-save before the discard prompt: persist a pathed, modified document
-  // silently so the "unsaved changes" dialog only concerns untitled documents.
-  performAutoSave();
-  // Ensure the latest content is snapshotted for crash recovery before exit.
-  snapshotDraft();
-  if (maybeSaveChanges()) {
-    QSettings settings;
-    settings.setValue(QStringLiteral("window/geometry"), saveGeometry());
-    event->accept();
-  } else {
-    event->ignore();
+  const QScopedValueRollback<bool> switchGuard(suppressSaveOnTabSwitch_, true);
+  DocumentTab* original = tab_;
+  for (DocumentTab* document : documentTabs()) {
+    tabs_->setCurrentWidget(document);
+    performAutoSave(document);
+    snapshotDraft(document);
+    if (!maybeSaveChanges()) {
+      tabs_->setCurrentWidget(original);
+      event->ignore();
+      return;
+    }
   }
+  QSettings settings;
+  settings.setValue(QStringLiteral("window/geometry"), saveGeometry());
+  for (DocumentTab* document : documentTabs()) {
+    document->autoSaveTimer->stop();
+    document->draftTimer->stop();
+    drafts_.markClean(document->session.filePath(), document->draftKey);
+  }
+  event->accept();
 }
 
 void muffin::MainWindow::quitApplication() {
@@ -152,11 +152,11 @@ void muffin::MainWindow::quitApplication() {
 }
 
 void muffin::MainWindow::cycleFocus(bool forward) {
-  if (!viewStack_ || !sidebar_) {
+  if (!tab_->viewStack || !sidebar_) {
     return;
   }
-  QWidget* targets[3] = {viewStack_->currentWidget(), sidebar_->activeTreeWidget(),
-                         findBar_ && findBar_->isVisible() ? findBar_ : nullptr};
+  QWidget* targets[3] = {tab_->viewStack->currentWidget(), sidebar_->activeTreeWidget(),
+                         tab_->findBar && tab_->findBar->isVisible() ? tab_->findBar : nullptr};
   if (!targets[0]) {
     return;
   }
@@ -166,7 +166,7 @@ void muffin::MainWindow::cycleFocus(bool forward) {
   if (QWidget* focus = QApplication::focusWidget()) {
     if (sidebar_->isAncestorOf(focus)) {
       current = 1;
-    } else if (findBar_ && findBar_->isVisible() && findBar_->isAncestorOf(focus)) {
+    } else if (tab_->findBar && tab_->findBar->isVisible() && tab_->findBar->isAncestorOf(focus)) {
       current = 2;
     }
   }
@@ -182,7 +182,7 @@ void muffin::MainWindow::cycleFocus(bool forward) {
       return;
     }
     if (next == 2 && targets[2]) {
-      findBar_->activateFind();
+      tab_->findBar->activateFind();
       return;
     }
     current = next;
@@ -225,29 +225,34 @@ void muffin::MainWindow::setupUi() {
 
   sidebar_ = new SidebarWidget(centralSplitter_);
 
-  auto* editorContainer = new QWidget(this);
-  auto* editorLayout = new QVBoxLayout(editorContainer);
-  editorLayout->setContentsMargins(0, 0, 0, 0);
-  editorLayout->setSpacing(0);
-
-  viewStack_ = new QStackedWidget(editorContainer);
-  renderView_ = new EditorView(viewStack_);
-  editor_ = new SourceEditorWidget(editorContainer);
-  editor_->bindSession(&session_);
-  viewStack_->addWidget(renderView_);
-  viewStack_->addWidget(editor_);
-
-  // Initialize backend to render mode (default)
-  backend_ = std::make_unique<RenderEditorBackend>(editorController_, session_, renderView_);
-
-  findBar_ = new FindBarWidget(editorContainer);
-  findBar_->setVisible(false);
-
-  editorLayout->addWidget(findBar_);
-  editorLayout->addWidget(viewStack_, 1);
+  tabs_ = new QTabWidget(centralSplitter_);
+  tabs_->setObjectName(QStringLiteral("DocumentTabs"));
+  tabs_->setDocumentMode(true);
+  tabs_->setTabBarAutoHide(true);
+  tabs_->tabBar()->setDrawBase(false);
+  tabs_->tabBar()->setExpanding(false);
+  tabs_->setMovable(true);
+  tabs_->setTabsClosable(true);
+  tabs_->setElideMode(Qt::ElideMiddle);
+  tabs_->setUsesScrollButtons(true);
+  tabs_->tabBar()->installEventFilter(this);
+  tab_ = new DocumentTab(tabs_);
+  tabs_->addTab(tab_, tab_->session.displayName());
+  setupTabButton(tab_);
+  auto* newTabButton = new QToolButton(tabs_);
+  newTabButton->setObjectName(QStringLiteral("NewTabButton"));
+  newTabButton->setText(QStringLiteral("+"));
+  newTabButton->setAutoRaise(true);
+  newTabButton->setFixedSize(28, 28);
+  tabs_->setCornerWidget(newTabButton, Qt::TopRightCorner);
+  updateTabBarVisibility();
+  connect(newTabButton, &QToolButton::clicked, this, &MainWindow::startNewDocument);
+  retranslateTabs();
+  connect(tabs_, &QTabWidget::currentChanged, this, &MainWindow::activateTab);
+  connect(tabs_, &QTabWidget::tabCloseRequested, this, &MainWindow::closeTab);
 
   centralSplitter_->addWidget(sidebar_);
-  centralSplitter_->addWidget(editorContainer);
+  centralSplitter_->addWidget(tabs_);
   centralSplitter_->setStretchFactor(0, 0);
   centralSplitter_->setStretchFactor(1, 1);
   sidebar_->setVisible(false);
@@ -320,40 +325,27 @@ void muffin::MainWindow::setupStatusBar() {
   outlineTimer_->setInterval(200);
   connect(outlineTimer_, &QTimer::timeout, this, &muffin::MainWindow::refreshSidebarOutline);
 
-  // Auto-save: debounced silent write of a pathed, modified document. Untitled
-  // documents (no filePath) are covered by draft-recovery snapshots, not here.
-  autoSaveTimer_ = new QTimer(this);
-  autoSaveTimer_->setSingleShot(true);
-  autoSaveTimer_->setInterval(1500);
-  connect(autoSaveTimer_, &QTimer::timeout, this, &muffin::MainWindow::performAutoSave);
-
-  // Crash-recovery: debounce-snapshot the current document so a forced exit can
-  // be restored next launch. See DraftRecovery / offerDraftRecovery.
-  draftTimer_ = new QTimer(this);
-  draftTimer_->setSingleShot(true);
-  draftTimer_->setInterval(3000);
-  connect(draftTimer_, &QTimer::timeout, this, &muffin::MainWindow::snapshotDraft);
-
   statusBar()->addWidget(statusBar_, 1);
 }
 
 void muffin::MainWindow::updateTitle() {
-  const QString marker = session_.document().isModified() ? QStringLiteral(" *") : QString();
-  setWindowTitle(QStringLiteral("%1%2 - Muffin").arg(session_.displayName(), marker));
+  updateTabLabel(tab_);
+  const QString marker = tab_->session.document().isModified() ? QStringLiteral(" *") : QString();
+  setWindowTitle(QStringLiteral("%1%2 - Muffin").arg(tab_->session.displayName(), marker));
 }
 
 void muffin::MainWindow::updateStatus() {
   if (!statusBar_) {
     return;
   }
-  if (!backend_->isSourceMode() && !renderCursorStatus_.isEmpty()) {
-    statusBar_->setCursorStatus(renderCursorStatus_);
+  if (!tab_->backend->isSourceMode() && !tab_->renderCursorStatus.isEmpty()) {
+    statusBar_->setCursorStatus(tab_->renderCursorStatus);
   } else {
-    statusBar_->setCursorStatus(QStringLiteral("%1:%2").arg(cursorLine_).arg(cursorColumn_));
+    statusBar_->setCursorStatus(QStringLiteral("%1:%2").arg(tab_->cursorLine).arg(tab_->cursorColumn));
   }
-  const TextFileFormat& format = session_.fileFormat();
+  const TextFileFormat& format = tab_->session.fileFormat();
   QString lineEnding;
-  if (!format.existingFile && session_.filePath().isEmpty()) {
+  if (!format.existingFile && tab_->session.filePath().isEmpty()) {
     lineEnding = QSettings().value(QStringLiteral("editor/defaultLineBreak"), 1).toInt() == 1
         ? QStringLiteral("CRLF") : QStringLiteral("LF");
   } else {
@@ -369,14 +361,14 @@ void muffin::MainWindow::updateStatus() {
                format.writeBom ? QStringLiteral(" BOM") : QString(),
                lineEnding));
   // The block-source preview is render-mode only; clear any stale text when editing source.
-  if (backend_ && backend_->isSourceMode()) {
+  if (tab_->backend && tab_->backend->isSourceMode()) {
     statusBar_->setBlockSource(QString(), QString());
   }
 }
 
 void muffin::MainWindow::updateCursorStatus(int line, int column) {
-  cursorLine_ = line;
-  cursorColumn_ = column;
+  tab_->cursorLine = line;
+  tab_->cursorColumn = column;
   scheduleEditorStateRefresh();
 }
 
@@ -392,7 +384,7 @@ void muffin::MainWindow::updateSidebarMode() {
       outlineTimer_->stop();
     }
     sidebar_->clearOutline();
-    outlineDirty_ = true;
+    tab_->outlineDirty = true;
   }
 
   // No transition at startup (window not shown yet) or when reduced motion is requested.
@@ -450,7 +442,7 @@ void muffin::MainWindow::setSidebarPanel(SidebarWidget::Panel panel) {
   } else {
     outlineTimer_->stop();
     sidebar_->clearOutline();
-    outlineDirty_ = true;
+    tab_->outlineDirty = true;
   }
 }
 
@@ -458,22 +450,22 @@ void muffin::MainWindow::refreshSidebarDocumentInfo() {
   if (!sidebar_) {
     return;
   }
-  sidebar_->setCurrentDocument(session_.displayName(), session_.filePath(), session_.document().isModified());
+  sidebar_->setCurrentDocument(tab_->session.displayName(), tab_->session.filePath(), tab_->session.document().isModified());
 }
 
 void muffin::MainWindow::refreshSidebarOutline() {
   const QAction* sidebarAction = commands_.action(QStringLiteral("view.sidebar"));
-  if (!sidebar_ || !outlineDirty_ || !sidebarAction || !sidebarAction->isChecked() ||
+  if (!sidebar_ || !tab_->outlineDirty || !sidebarAction || !sidebarAction->isChecked() ||
       sidebar_->panel() != SidebarWidget::Panel::Outline) {
     return;
   }
-  sidebar_->setOutline(session_.document().outline());
-  sidebarOutlineRevision_ = session_.document().outlineRevision();
-  outlineDirty_ = false;
+  sidebar_->setOutline(tab_->session.document().outline());
+  tab_->sidebarOutlineRevision = tab_->session.document().outlineRevision();
+  tab_->outlineDirty = false;
 }
 
 void muffin::MainWindow::openFolder() {
-  const QString initialPath = sidebarFolderRoot_.isEmpty() ? QFileInfo(session_.filePath()).absolutePath() : sidebarFolderRoot_;
+  const QString initialPath = sidebarFolderRoot_.isEmpty() ? QFileInfo(tab_->session.filePath()).absolutePath() : sidebarFolderRoot_;
   const QString path = QFileDialog::getExistingDirectory(this, tr("Open Folder"), initialPath);
   if (path.isEmpty()) {
     return;
@@ -488,19 +480,19 @@ void muffin::MainWindow::openNewWindow() {
 }
 
 void muffin::MainWindow::activateOutlineNode(NodeId nodeId, SourceRange sourceRange) {
-  if (backend_->isSourceMode()) {
+  if (tab_->backend->isSourceMode()) {
     syncSourceEditorIfNeeded();
-    editor_->setCursorPosition(sourceRange.byteStart);
-    editor_->centerCursor();
-    editor_->setFocus(Qt::OtherFocusReason);
+    tab_->editor->setCursorPosition(sourceRange.byteStart);
+    tab_->editor->centerCursor();
+    tab_->editor->setFocus(Qt::OtherFocusReason);
     return;
   }
-  renderView_->scrollToNode(nodeId);
-  renderView_->setFocus(Qt::OtherFocusReason);
+  tab_->renderView->scrollToNode(nodeId);
+  tab_->renderView->setFocus(Qt::OtherFocusReason);
 }
 
 void muffin::MainWindow::updateViewMode() {
-  if (!viewStack_ || !renderView_ || !editor_) {
+  if (!tab_->viewStack || !tab_->renderView || !tab_->editor) {
     return;
   }
   const QAction* action = commands_.action(QStringLiteral("view.source_mode"));
@@ -508,9 +500,9 @@ void muffin::MainWindow::updateViewMode() {
 
   // Switch backend
   if (sourceMode) {
-    backend_ = std::make_unique<SourceEditorBackend>(editor_);
+    tab_->backend = std::make_unique<SourceEditorBackend>(tab_->editor);
   } else {
-    backend_ = std::make_unique<RenderEditorBackend>(editorController_, session_, renderView_);
+    tab_->backend = std::make_unique<RenderEditorBackend>(tab_->editorController, tab_->session, tab_->renderView);
   }
 
   if (sourceMode) {
@@ -518,29 +510,29 @@ void muffin::MainWindow::updateViewMode() {
 
     // Render → Source: sync cursor/viewport position
     qsizetype targetOffset = -1;
-    if (editorController_.selection().hasCursor()) {
-      targetOffset = editorController_.selection().cursorPosition().text.sourceOffset;
+    if (tab_->editorController.selection().hasCursor()) {
+      targetOffset = tab_->editorController.selection().cursorPosition().text.sourceOffset;
     }
     if (targetOffset < 0) {
-      const BlockLayout* topBlock = renderView_->blockAtViewportPos(QPointF(0, 0));
+      const BlockLayout* topBlock = tab_->renderView->blockAtViewportPos(QPointF(0, 0));
       if (topBlock) {
-        MarkdownNode* node = session_.document().node(topBlock->nodeId());
+        MarkdownNode* node = tab_->session.document().node(topBlock->nodeId());
         if (node) {
           targetOffset = node->sourceRange().byteStart;
         }
       }
     }
     if (targetOffset >= 0) {
-      editor_->setCursorPosition(targetOffset);
-      editor_->centerCursor();
+      tab_->editor->setCursorPosition(targetOffset);
+      tab_->editor->centerCursor();
     }
   }
   // Snapshot the outgoing page just before the swap, then crossfade it out over the new page.
   QPixmap outgoingSnapshot;
-  if (isVisible() && !reducedMotion() && viewStack_->currentWidget() != nullptr) {
-    outgoingSnapshot = viewStack_->currentWidget()->grab();
+  if (isVisible() && !reducedMotion() && tab_->viewStack->currentWidget() != nullptr) {
+    outgoingSnapshot = tab_->viewStack->currentWidget()->grab();
   }
-  viewStack_->setCurrentWidget(sourceMode ? static_cast<QWidget*>(editor_) : static_cast<QWidget*>(renderView_));
+  tab_->viewStack->setCurrentWidget(sourceMode ? static_cast<QWidget*>(tab_->editor) : static_cast<QWidget*>(tab_->renderView));
   if (!outgoingSnapshot.isNull()) {
     showViewSwitchOverlay(outgoingSnapshot);
   }
@@ -548,55 +540,53 @@ void muffin::MainWindow::updateViewMode() {
     sourceModeButton_->setChecked(sourceMode);
   }
   if (!sourceMode) {
-    if (renderViewDirty_) {
-      renderView_->setDocument(session_.document(), session_.filePath());
-      renderViewDirty_ = false;
+    if (tab_->renderViewDirty) {
+      tab_->renderView->setDocument(tab_->session.document(), tab_->session.filePath());
+      tab_->renderViewDirty = false;
     }
     // Source → Render: scroll to the block at the source cursor position
-    const qsizetype sourcePos = editor_->cursorPosition();
-    MarkdownNode* block = session_.document().topLevelBlockAtOffset(sourcePos);
+    const qsizetype sourcePos = tab_->editor->cursorPosition();
+    MarkdownNode* block = tab_->session.document().topLevelBlockAtOffset(sourcePos);
     if (block) {
-      renderView_->scrollToNode(block->id());
+      tab_->renderView->scrollToNode(block->id());
     }
-    renderView_->setFocus(Qt::OtherFocusReason);
+    tab_->renderView->setFocus(Qt::OtherFocusReason);
   }
   updateStatus();
 }
 
 void muffin::MainWindow::showViewSwitchOverlay(const QPixmap& snapshot) {
-  if (!viewStack_ || snapshot.isNull()) {
+  if (!tab_->viewStack || snapshot.isNull()) {
     return;
   }
   // A reusable QLabel overlaid on the stack, showing a grab() of the outgoing page and faded out
   // over 120ms. The QGraphicsOpacityEffect is attached to this lightweight label only — never to
   // the live editor views, which would force an offscreen backing store every frame.
-  if (!viewSwitchOverlay_) {
-    viewSwitchOverlay_ = new QLabel(viewStack_);
-    viewSwitchOverlay_->setAlignment(Qt::AlignCenter);
-    auto* opacity = new QGraphicsOpacityEffect(viewSwitchOverlay_);
+  if (!tab_->viewSwitchOverlay) {
+    tab_->viewSwitchOverlay = new QLabel(tab_->viewStack);
+    tab_->viewSwitchOverlay->setAlignment(Qt::AlignCenter);
+    auto* opacity = new QGraphicsOpacityEffect(tab_->viewSwitchOverlay);
     opacity->setOpacity(1.0);
-    viewSwitchOverlay_->setGraphicsEffect(opacity);
-    overlayOpacityAnimation_ = new QPropertyAnimation(opacity, QByteArrayLiteral("opacity"), this);
-    overlayOpacityAnimation_->setDuration(120);
-    overlayOpacityAnimation_->setEasingCurve(QEasingCurve::OutCubic);
-    connect(overlayOpacityAnimation_, &QPropertyAnimation::finished, this, [this] {
-      if (viewSwitchOverlay_) {
-        viewSwitchOverlay_->hide();
-      }
+    tab_->viewSwitchOverlay->setGraphicsEffect(opacity);
+    tab_->overlayOpacityAnimation = new QPropertyAnimation(opacity, QByteArrayLiteral("opacity"), tab_);
+    tab_->overlayOpacityAnimation->setDuration(120);
+    tab_->overlayOpacityAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    connect(tab_->overlayOpacityAnimation, &QPropertyAnimation::finished, tab_, [document = tab_] {
+      document->viewSwitchOverlay->hide();
     });
   }
-  viewSwitchOverlay_->setPixmap(snapshot);
-  viewSwitchOverlay_->setGeometry(viewStack_->rect());
-  viewSwitchOverlay_->raise();
-  viewSwitchOverlay_->show();
-  overlayOpacityAnimation_->stop();
-  overlayOpacityAnimation_->setStartValue(1.0);
-  overlayOpacityAnimation_->setEndValue(0.0);
-  overlayOpacityAnimation_->start();
+  tab_->viewSwitchOverlay->setPixmap(snapshot);
+  tab_->viewSwitchOverlay->setGeometry(tab_->viewStack->rect());
+  tab_->viewSwitchOverlay->raise();
+  tab_->viewSwitchOverlay->show();
+  tab_->overlayOpacityAnimation->stop();
+  tab_->overlayOpacityAnimation->setStartValue(1.0);
+  tab_->overlayOpacityAnimation->setEndValue(0.0);
+  tab_->overlayOpacityAnimation->start();
 }
 
 void muffin::MainWindow::printDocument() {
-  if (session_.filePath().isEmpty()) {
+  if (tab_->session.filePath().isEmpty()) {
     return;
   }
 
@@ -618,11 +608,11 @@ bool muffin::MainWindow::paintDocumentToPrinter(QPrinter* printer) {
   DocumentLayout layout;
   // Reuse the editor's mermaid render cache in sync mode so diagrams render into
   // the print/PDF output via the same BlockLayout paint path (milestone I-4).
-  if (renderView_ && renderView_->mermaidRenderCache()) {
-    layout.setMermaidRenderCache(renderView_->mermaidRenderCache());
+  if (tab_->renderView && tab_->renderView->mermaidRenderCache()) {
+    layout.setMermaidRenderCache(tab_->renderView->mermaidRenderCache());
     layout.setMermaidSyncMode(true);
   }
-  layout.rebuild(session_.document(), theme, page.width(), session_.filePath());
+  layout.rebuild(tab_->session.document(), theme, page.width(), tab_->session.filePath());
 
   QPainter painter(printer);
   if (!painter.isActive()) {
@@ -671,8 +661,10 @@ int muffin::MainWindow::zoomPercent() const {
 
 void muffin::MainWindow::setZoomPercent(int percent) {
   zoomPercent_ = qBound(60, percent, 200);
-  editor_->setZoomPercent(zoomPercent_);
-  renderView_->setZoomPercent(zoomPercent_);
+  for (DocumentTab* document : documentTabs()) {
+    document->editor->setZoomPercent(zoomPercent_);
+    document->renderView->setZoomPercent(zoomPercent_);
+  }
   updateStatus();
 }
 
@@ -682,8 +674,10 @@ int muffin::MainWindow::fontSizePx() const {
 
 void muffin::MainWindow::setFontSizePx(int px) {
   fontSizePx_ = qBound(12, px, 24);
-  editor_->setFontSizePx(fontSizePx_);
-  renderView_->setFontSizePx(fontSizePx_);
+  for (DocumentTab* document : documentTabs()) {
+    document->editor->setFontSizePx(fontSizePx_);
+    document->renderView->setFontSizePx(fontSizePx_);
+  }
   updateStatus();
 }
 
@@ -699,8 +693,10 @@ void muffin::MainWindow::setContentWidthPx(int px) {
   } else {
     contentWidthPx_ = 0;
   }
-  editor_->setContentWidthPx(contentWidthPx_);
-  renderView_->setContentWidthPx(contentWidthPx_);
+  for (DocumentTab* document : documentTabs()) {
+    document->editor->setContentWidthPx(contentWidthPx_);
+    document->renderView->setContentWidthPx(contentWidthPx_);
+  }
 }
 
 void muffin::MainWindow::setStatusBarVisible(bool visible) {
@@ -713,8 +709,8 @@ void muffin::MainWindow::setStatusBarVisible(bool visible) {
 void muffin::MainWindow::setFocusMode(bool enabled) {
   focusMode_ = enabled;
 
-  if (renderView_) {
-    renderView_->setFocusMode(enabled);
+  for (DocumentTab* document : documentTabs()) {
+    document->renderView->setFocusMode(enabled);
   }
 
   if (QAction* action = commands_.action(QStringLiteral("view.focus"))) {
@@ -725,9 +721,9 @@ void muffin::MainWindow::setFocusMode(bool enabled) {
 void muffin::MainWindow::setTypewriterMode(bool enabled) {
   typewriterMode_ = enabled;
 
-  if (renderView_) {
-    renderView_->setTypewriterMode(enabled);
-    renderView_->setTypewriterCursorMiddle(QSettings().value(QStringLiteral("editor/typewriterCursorMiddle"), true).toBool());
+  for (DocumentTab* document : documentTabs()) {
+    document->renderView->setTypewriterMode(enabled);
+    document->renderView->setTypewriterCursorMiddle(QSettings().value(QStringLiteral("editor/typewriterCursorMiddle"), true).toBool());
   }
 
   if (QAction* action = commands_.action(QStringLiteral("view.typewriter"))) {
@@ -735,8 +731,8 @@ void muffin::MainWindow::setTypewriterMode(bool enabled) {
   }
 
   // Apply immediately if just enabled
-  if (enabled && backend_) {
-    backend_->centerCursor();
+  if (enabled && tab_->backend) {
+    tab_->backend->centerCursor();
   }
 }
 
@@ -771,7 +767,7 @@ void muffin::MainWindow::loadAppearanceSettings() {
   restorePersistentActionStates();
 
   if (QAction* action = commands_.action(QStringLiteral("view.word_wrap")); action && !action->isChecked()) {
-    editor_->setWordWrapEnabled(false);
+    tab_->editor->setWordWrapEnabled(false);
   }
 
   if (QAction* action = commands_.action(QStringLiteral("view.sidebar")); action && action->isChecked()) {
@@ -785,8 +781,8 @@ void muffin::MainWindow::loadAppearanceSettings() {
   if (QAction* action = commands_.action(QStringLiteral("view.typewriter")); action && action->isChecked()) {
     setTypewriterMode(true);
   }
-  if (renderView_) {
-    renderView_->setTypewriterCursorMiddle(settings.value(QStringLiteral("editor/typewriterCursorMiddle"), true).toBool());
+  if (tab_->renderView) {
+    tab_->renderView->setTypewriterCursorMiddle(settings.value(QStringLiteral("editor/typewriterCursorMiddle"), true).toBool());
   }
 }
 
@@ -828,8 +824,10 @@ void muffin::MainWindow::saveAppearanceTypewriterMode(bool enabled) const {
 void muffin::MainWindow::applyTheme(QString name) {
   const RenderTheme theme = themeManager_.currentTheme(zoomPercent_, fontSizePx_);
   const ThemeDefinition def = themeManager_.definition(name);
-  renderView_->setTheme(theme);
-  editor_->setTheme(theme);
+  for (DocumentTab* document : documentTabs()) {
+    document->renderView->setTheme(theme);
+    document->editor->setTheme(theme);
+  }
   if (sidebar_) {
     sidebar_->applyTheme(def);
   }

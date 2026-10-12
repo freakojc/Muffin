@@ -49,47 +49,56 @@ private:
 
 }  // namespace
 
-void muffin::MainWindow::connectEditorSignals() {
+void muffin::MainWindow::connectEditorSignals(DocumentTab* tab) {
   auto& window = *this;  // preserves the window.X call sites after the friend→member split
-  QObject::connect(window.editor_, &SourceEditorWidget::cursorPositionChanged, &window, [&window](int line, int column) {
+  QObject::connect(tab->editor, &SourceEditorWidget::cursorPositionChanged, tab, [&window, tab](int line, int column) {
+    tab->cursorLine = line;
+    tab->cursorColumn = column;
+    if (window.tab_ != tab) { return; }
     window.updateCursorStatus(line, column);
-    if (window.typewriterMode_ && window.backend_->isSourceMode()) {
-      window.backend_->centerCursor();
+    if (window.typewriterMode_ && tab->backend->isSourceMode()) {
+      tab->backend->centerCursor();
     }
   });
 }
 
-void muffin::MainWindow::connectRenderSignals() {
+void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
   auto& window = *this;
-  QObject::connect(&window.editorController_, &EditorController::cursorChanged, &window, [&window](const HitTestResult& hit) {
+  QObject::connect(&tab->editorController, &EditorController::cursorChanged, tab, [&window, tab](const HitTestResult& hit) {
+    if (window.tab_ != tab) { return; }
     window.updateRenderCursorStatus(hit);
-    if (window.typewriterMode_ && !window.backend_->isSourceMode()) {
-      window.renderView_->scrollToCursorCenteredAnimated();
+    if (window.typewriterMode_ && !tab->backend->isSourceMode()) {
+      tab->renderView->scrollToCursorCenteredAnimated();
     }
   });
-  QObject::connect(window.renderView_, &EditorView::codeLanguageCommitted, &window, [&window](NodeId codeId, const QString& language) {
-    if (window.backend_->isSourceMode()) {
+  QObject::connect(tab->renderView, &EditorView::codeLanguageCommitted, tab, [&window, tab](NodeId codeId, const QString& language) {
+    if (window.tab_ != tab) { return; }
+    if (tab->backend->isSourceMode()) {
       return;
     }
-    window.renderCommands_.setCodeLanguageFor(codeId, language);
+    tab->renderCommands.setCodeLanguageFor(codeId, language);
   });
-  QObject::connect(window.renderView_, &EditorView::tableResizeRequested, &window, [&window](int rows, int columns) {
-    if (!window.backend_->isSourceMode()) {
-      window.renderCommands_.resizeCurrentTable(rows, columns);
+  QObject::connect(tab->renderView, &EditorView::tableResizeRequested, tab, [&window, tab](int rows, int columns) {
+    if (window.tab_ != tab) { return; }
+    if (!tab->backend->isSourceMode()) {
+      tab->renderCommands.resizeCurrentTable(rows, columns);
     }
   });
-  QObject::connect(window.renderView_, &EditorView::tableColumnAlignmentRequested, &window, [&window](TableAlignment alignment) {
-    if (!window.backend_->isSourceMode()) {
-      window.renderCommands_.setCurrentColumnAlignment(alignment);
+  QObject::connect(tab->renderView, &EditorView::tableColumnAlignmentRequested, tab, [&window, tab](TableAlignment alignment) {
+    if (window.tab_ != tab) { return; }
+    if (!tab->backend->isSourceMode()) {
+      tab->renderCommands.setCurrentColumnAlignment(alignment);
     }
   });
-  QObject::connect(window.renderView_, &EditorView::tableDeleteRequested, &window, [&window] {
-    if (!window.backend_->isSourceMode()) {
-      window.renderCommands_.deleteCurrentTable();
+  QObject::connect(tab->renderView, &EditorView::tableDeleteRequested, tab, [&window, tab] {
+    if (window.tab_ != tab) { return; }
+    if (!tab->backend->isSourceMode()) {
+      tab->renderCommands.deleteCurrentTable();
     }
   });
-  QObject::connect(window.renderView_, &EditorView::tableMoreActionsRequested, &window, [&window](QPoint globalPos) {
-    if (window.backend_->isSourceMode()) {
+  QObject::connect(tab->renderView, &EditorView::tableMoreActionsRequested, tab, [&window, tab](QPoint globalPos) {
+    if (window.tab_ != tab) { return; }
+    if (tab->backend->isSourceMode()) {
       return;
     }
     window.updateTableActions();
@@ -124,9 +133,10 @@ void muffin::MainWindow::connectRenderSignals() {
     }
     menu.exec(globalPos);
   });
-  QObject::connect(window.renderView_, &EditorView::contextMenuRequested, &window,
-      [&window](HitTestResult hit, QPoint globalPos) {
-        if (window.backend_->isSourceMode()) {
+  QObject::connect(tab->renderView, &EditorView::contextMenuRequested, tab,
+      [&window, tab](HitTestResult hit, QPoint globalPos) {
+        if (window.tab_ != tab) { return; }
+        if (tab->backend->isSourceMode()) {
           return;  // the virtual source view owns its source-offset context menu
         }
         window.buildEditorContextMenu(hit, globalPos);
@@ -134,7 +144,8 @@ void muffin::MainWindow::connectRenderSignals() {
 
   // External drag-and-drop of folders / documents is handled by the main window
   // according to the files/drop* preferences (images are still inserted inline).
-  QObject::connect(window.renderView_, &EditorView::folderDropped, &window, [&window](const QString& path) {
+  QObject::connect(tab->renderView, &EditorView::folderDropped, tab, [&window, tab](const QString& path) {
+    if (window.tab_ != tab) { return; }
     // files/dropFolder: 0 = open in Muffin (sidebar root), 1 = open in file manager.
     const int action = QSettings().value(QStringLiteral("files/dropFolder"), 0).toInt();
     if (action == 1) {
@@ -145,12 +156,14 @@ void muffin::MainWindow::connectRenderSignals() {
       window.openFolderAtPath(path);
     }
   });
-  QObject::connect(window.renderView_, &EditorView::markdownFileDropped, &window, [&window](const QString& path) {
+  QObject::connect(tab->renderView, &EditorView::markdownFileDropped, tab, [&window, tab](const QString& path) {
+    if (window.tab_ != tab) { return; }
     // Markdown is Muffin's native format, so a dropped .md/.txt always opens.
     // (files/dropMarkdown is reserved for a future "import into current doc" action.)
     window.openFile(path);
   });
-  QObject::connect(window.renderView_, &EditorView::importableFileDropped, &window, [&window](const QString& path) {
+  QObject::connect(tab->renderView, &EditorView::importableFileDropped, tab, [&window, tab](const QString& path) {
+    if (window.tab_ != tab) { return; }
     // files/dropImportable: 1 = open as text; 0 (default) = import. Import has no
     // backend yet, so it no-ops — which also means a binary/unknown drop (PDF,
     // DOCX, …) is ignored rather than force-opened as text garbage.
@@ -161,130 +174,125 @@ void muffin::MainWindow::connectRenderSignals() {
   });
 }
 
-void muffin::MainWindow::connectSessionSignals() {
-  auto& window = *this;
-  QObject::connect(&window.session_, &DocumentSession::documentTextChanged, &window, [&window](const QString&) {
-    PerfTimer perf("main.documentTextChanged.consumer");
-    window.editor_->syncFromSession();
+void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
+  tab->fileController.setPathAvailableCheck([this, tab](const QString& path) {
+    if (!isPathOpen(path, &tab->session)) {
+      return true;
+    }
+    QMessageBox::warning(this, tr("File Already Open"),
+        tr("This file is already open in another tab. Switch to that tab to edit or save it."));
+    return false;
   });
-  QObject::connect(&window.session_, &DocumentSession::documentLocallyEdited, &window, [&window](qsizetype, qsizetype, const QString&) {
-    PerfTimer perf("main.documentLocallyEdited.consumer");
-    window.editor_->notifyDocumentChanged();
-    if (window.backend_ && window.backend_->isSourceMode()) {
-      window.renderViewDirty_ = true;
+  connect(&tab->session, &DocumentSession::documentTextChanged, tab, [tab](const QString&) {
+    tab->editor->syncFromSession();
+  });
+  connect(&tab->session, &DocumentSession::documentLocallyEdited, tab, [tab](qsizetype, qsizetype, const QString&) {
+    tab->editor->notifyDocumentChanged();
+    if (tab->backend->isSourceMode()) {
+      tab->renderViewDirty = true;
     }
   });
-  QObject::connect(&window.session_, &DocumentSession::filePathChanged, &window, &MainWindow::updateTitle);
-  QObject::connect(&window.session_, &DocumentSession::filePathChanged, &window, [&window] {
-    window.updateFileActions();
+  connect(&tab->session, &DocumentSession::filePathChanged, tab, [this, tab](const QString& path) {
+    tab->editor->setDocumentPath(path);
+    updateTabLabel(tab);
+    if (tab_ == tab) {
+      updateTitle();
+      updateFileActions();
+      refreshSidebarDocumentInfo();
+    }
   });
-  QObject::connect(&window.session_, &DocumentSession::filePathChanged, &window, &MainWindow::refreshSidebarDocumentInfo);
-  // Keep the source editor's document-path in sync so a file-tree drop into source mode
-  // resolves the inserted link relative to the current document dir (open / save-as / rename
-  // all flow through filePathChanged). Initialized below with the value held at connect time.
-  QObject::connect(&window.session_, &DocumentSession::filePathChanged, window.editor_,
-                   [&window](const QString& path) { window.editor_->setDocumentPath(path); });
-  window.editor_->setDocumentPath(window.session_.filePath());
-  // Save As/move changes the resource base without reparsing the text. Defer until the
-  // switch finishes so an async open never renders the previous buffer under its new path.
-  QObject::connect(&window.session_, &DocumentSession::filePathChanged, &window, [&window] {
-    if (window.session_.isAsyncParseInProgress() || (window.backend_ && window.backend_->isSourceMode())) {
-      window.renderViewDirty_ = true;
+  tab->editor->setDocumentPath(tab->session.filePath());
+  connect(&tab->session, &DocumentSession::filePathChanged, tab, [this, tab] {
+    if (tab_ != tab || tab->session.isAsyncParseInProgress() || tab->backend->isSourceMode()) {
+      tab->renderViewDirty = true;
       return;
     }
-    window.renderView_->setDocument(window.session_.document(), window.session_.filePath());
-    window.renderViewDirty_ = false;
+    tab->renderView->setDocument(tab->session.document(), tab->session.filePath());
+    tab->renderViewDirty = false;
   }, Qt::QueuedConnection);
-  QObject::connect(&window.session_, &DocumentSession::modifiedChanged, &window, &MainWindow::updateTitle);
-  QObject::connect(&window.session_, &DocumentSession::modifiedChanged, &window, [&window] {
-    window.scheduleEditorStateRefresh();
-  });
-  QObject::connect(&window.session_, &DocumentSession::modifiedChanged, &window, &MainWindow::refreshSidebarDocumentInfo);
-  // Drive auto-save: arm the debounce timer when a pathed document becomes dirty
-  // (and files/autoSave is on); stop it once clean. The timer does the gated write.
-  QObject::connect(&window.session_, &DocumentSession::modifiedChanged, &window, [&window](bool modified) {
+  connect(&tab->session, &DocumentSession::modifiedChanged, tab, [this, tab](bool modified) {
+    updateTabLabel(tab);
+    if (tab_ == tab) {
+      updateTitle();
+      scheduleEditorStateRefresh();
+      refreshSidebarDocumentInfo();
+    }
     if (modified && QSettings().value(QStringLiteral("files/autoSave"), false).toBool()
-        && !window.session_.filePath().isEmpty()) {
-      window.autoSaveTimer_->start();
+        && !tab->session.filePath().isEmpty()) {
+      tab->autoSaveTimer->start();
     } else {
-      window.autoSaveTimer_->stop();
+      tab->autoSaveTimer->stop();
+    }
+    if (modified) {
+      tab->draftTimer->start(draftSnapshotIntervalMs(tab));
+    } else {
+      tab->draftTimer->stop();
+      tab->lastDraftSnapshotRevision = 0;
     }
   });
-  // External-modification detection: when the file changes on disk (git pull, sync client, another
-  // editor), offer to reload it. Self-trigger from our own save is suppressed in DocumentSession.
-  QObject::connect(&window.session_, &DocumentSession::externalFileChanged, &window, [&window]() {
-    if (window.session_.filePath().isEmpty()) {
+  connect(tab->autoSaveTimer, &QTimer::timeout, tab, [this, tab] { performAutoSave(tab); });
+  connect(tab->draftTimer, &QTimer::timeout, tab, [this, tab] { snapshotDraft(tab); });
+  connect(&tab->session, &DocumentSession::externalFileChanged, tab, [this, tab] {
+    if (tab->session.filePath().isEmpty()) {
       return;
     }
     const auto choice = QMessageBox::question(
-        &window, muffin::MainWindow::tr("File Changed on Disk"),
-        muffin::MainWindow::tr("The file \"%1\" has changed outside Muffin. Reload it?\n"
-                               "Unsaved changes in the editor will be lost.")
-            .arg(window.session_.filePath()),
+        this, tr("File Changed on Disk"),
+        tr("The file \"%1\" has changed outside Muffin. Reload it?\n"
+           "Unsaved changes in the editor will be lost.").arg(tab->session.filePath()),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if (choice == QMessageBox::Yes) {
-      window.fileController_.reload(window.session_, &window);
+      tab->fileController.reload(tab->session, this);
     }
   });
-  // Arm the crash-recovery snapshot timer whenever the document becomes dirty;
-  // snapshotDraft() re-arms it (the heartbeat) while it stays dirty, and stops
-  // here once clean. Resetting the content tracker lets the next dirty period
-  // snapshot immediately instead of deduping against stale text.
-  QObject::connect(&window.session_, &DocumentSession::modifiedChanged, &window, [&window](bool modified) {
-    if (modified) {
-      window.draftTimer_->start(window.draftSnapshotIntervalMs());
-    } else {
-      window.draftTimer_->stop();
-      window.lastDraftSnapshotRevision_ = 0;  // next dirty period snapshots immediately
+  connect(&tab->fileController, &FileController::documentBecameClean, tab,
+          [this, tab](const QString& path) { drafts_.markClean(path, tab->draftKey); });
+  connect(&tab->session, &DocumentSession::parseBusy, tab, [tab](bool busy) {
+    tab->renderView->setLoading(busy);
+    tab->editor->setReadOnly(busy);
+  });
+  connect(&tab->session, &DocumentSession::parsed, tab, [this, tab] {
+    const bool outlineChanged = tab->sidebarOutlineRevision != tab->session.document().outlineRevision();
+    tab->outlineDirty = tab->outlineDirty || outlineChanged;
+    tab->wordCountDirty = true;
+    // A background parse updates only its own views; the sidebar and status describe the active tab.
+    if (!tab->session.lastParseWasLocalEdit()) {
+      if (tab_ != tab || tab->backend->isSourceMode()) {
+        tab->renderViewDirty = true;
+      } else {
+        tab->renderView->setDocument(tab->session.document(), tab->session.filePath());
+        tab->renderViewDirty = false;
+      }
     }
-  });
-  // When unsaved work is resolved (saved or explicitly discarded), clear that
-  // document's recovery draft — see FileController::documentBecameClean.
-  QObject::connect(&window.fileController_, &FileController::documentBecameClean, &window,
-                   [&window](const QString& filePath) { window.drafts_.markClean(filePath, window.draftKey_); });
-  QObject::connect(&window.session_, &DocumentSession::parseBusy, &window, [&window](bool busy) {
-    window.renderView_->setLoading(busy);
-    window.editor_->setReadOnly(busy);
-  });
-  QObject::connect(&window.session_, &DocumentSession::parsed, &window, [&window] {
-    PerfTimer perf("main.parsed.consumer");
-    const bool outlineChanged =
-        window.sidebarOutlineRevision_ != window.session_.document().outlineRevision();
-    window.outlineDirty_ = window.outlineDirty_ || outlineChanged;
-    const QAction* sidebarAction = window.commands_.action(QStringLiteral("view.sidebar"));
-    const bool outlineVisible = sidebarAction && sidebarAction->isChecked() &&
-                                window.sidebar_->panel() == SidebarWidget::Panel::Outline;
-    if (window.session_.lastParseWasLocalEdit()) {
-      // Paragraph edits leave the incremental outline revision unchanged and do not start this
-      // timer. Heading edits debounce only the model update from the compact heading index.
+    if (tab_ != tab) {
+      return;
+    }
+    const QAction* action = commands_.action(QStringLiteral("view.sidebar"));
+    const bool outlineVisible = action && action->isChecked() && sidebar_->panel() == SidebarWidget::Panel::Outline;
+    if (tab->session.lastParseWasLocalEdit()) {
       if (outlineVisible && outlineChanged) {
-        window.outlineTimer_->start();
+        outlineTimer_->start();
       }
     } else {
-      // Full parse (open/import/options change): the view and outline may have changed wholesale.
-      window.outlineTimer_->stop();
-      if (window.backend_ && window.backend_->isSourceMode()) {
-        window.renderViewDirty_ = true;
-      } else {
-        window.renderView_->setDocument(window.session_.document(), window.session_.filePath());
-        window.renderViewDirty_ = false;
-      }
+      outlineTimer_->stop();
       if (outlineVisible) {
-        window.refreshSidebarOutline();
+        refreshSidebarOutline();
       } else {
-        window.sidebar_->clearOutline();
+        sidebar_->clearOutline();
       }
     }
-    window.scheduleWordCountUpdate();
-    window.scheduleEditorStateRefresh();
+    scheduleWordCountUpdate();
+    scheduleEditorStateRefresh();
+  });
+  connect(&tab->editorController, &EditorController::stateChanged, tab, [this, tab] {
+    if (tab_ == tab) {
+      scheduleEditorStateRefresh();
+    }
   });
 }
 
 void muffin::MainWindow::connectApplicationSignals() {
   auto& window = *this;
-  QObject::connect(&window.editorController_, &EditorController::stateChanged, &window, [&window] {
-    window.scheduleEditorStateRefresh();
-  });
   QObject::connect(&window.themeManager_, &ThemeManager::themeChanged, &window, [&window](const QString& name) {
     window.applyTheme(name);
   });
@@ -304,12 +312,9 @@ void muffin::MainWindow::connectApplicationSignals() {
   // baked into InlineLayout — while preserving scroll/cursor/selection and only repainting
   // dirty rects. The source-mode highlighter rehighlights itself on these signals.
   auto refreshSpellOverlay = [&window] {
-    if (!window.renderView_) {
-      return;
+    for (DocumentTab* document : window.documentTabs()) {
+      document->renderView->refreshVisibleBlocks(document->session.document());
     }
-    // Only the visible (promoted) blocks are re-decorated now; offscreen blocks pick up the new
-    // spell state when they scroll into view. Avoids rebuilding an entire large document on toggle.
-    window.renderView_->refreshVisibleBlocks(window.session_.document());
   };
   QObject::connect(&SpellChecker::instance(), &SpellChecker::enabledChanged, &window,
       [&window, refreshSpellOverlay] {
@@ -352,12 +357,22 @@ void muffin::MainWindow::connectApplicationSignals() {
   });
 }
 
-void muffin::MainWindow::connectFindBarSignals() {
-  auto& window = *this;
-  QObject::connect(window.findBar_, &FindBarWidget::findRequested, &window, &MainWindow::performFind);
-  QObject::connect(window.findBar_, &FindBarWidget::closed, &window, &MainWindow::hideFindBar);
-  QObject::connect(window.findBar_, &FindBarWidget::replaceRequested, &window, &MainWindow::performReplace);
-  QObject::connect(window.findBar_, &FindBarWidget::replaceAllRequested, &window, &MainWindow::performReplaceAll);
+void muffin::MainWindow::connectFindBarSignals(DocumentTab* tab) {
+  connect(tab->findBar, &FindBarWidget::findRequested, tab,
+          [this, tab](const QString& text, bool forward, bool regex, bool sensitive) {
+    if (tab_ == tab) { performFind(text, forward, regex, sensitive); }
+  });
+  connect(tab->findBar, &FindBarWidget::closed, tab, [this, tab] {
+    if (tab_ == tab) { hideFindBar(); }
+  });
+  connect(tab->findBar, &FindBarWidget::replaceRequested, tab,
+          [this, tab](const QString& find, const QString& replacement, bool regex, bool sensitive) {
+    if (tab_ == tab) { performReplace(find, replacement, regex, sensitive); }
+  });
+  connect(tab->findBar, &FindBarWidget::replaceAllRequested, tab,
+          [this, tab](const QString& find, const QString& replacement, bool regex, bool sensitive) {
+    if (tab_ == tab) { performReplaceAll(find, replacement, regex, sensitive); }
+  });
 }
 
 void muffin::MainWindow::connectChromeSignals() {
@@ -378,18 +393,18 @@ void muffin::MainWindow::connectChromeSignals() {
     if (!window.statusBar_) {
       return;
     }
-    const PieceTable& md = window.session_.markdownText();
+    const PieceTable& md = window.tab_->session.markdownText();
     muffin::StatusBarStats stats;
     stats.words = muffin::text_stats::countWords(md);
     stats.characters = md.size();
-    stats.lines = window.session_.document().lineOffsets().lineCount();
+    stats.lines = window.tab_->session.document().lineOffsets().lineCount();
     stats.readingMinutes = qMax(1, stats.words / 200);
     // Selection: source mode has a clean extraction; render mode slices the source range.
     QString selected;
-    if (window.backend_ && window.backend_->hasSelection()) {
-      selected = window.backend_->selectedText();
-    } else if (window.backend_ && !window.backend_->isSourceMode()) {
-      const auto range = window.editorController_.selection().selection();
+    if (window.tab_->backend && window.tab_->backend->hasSelection()) {
+      selected = window.tab_->backend->selectedText();
+    } else if (window.tab_->backend && !window.tab_->backend->isSourceMode()) {
+      const auto range = window.tab_->editorController.selection().selection();
       if (!range.isCollapsed()) {
         selected = md.mid(range.startOffset(), range.endOffset() - range.startOffset());
       }
@@ -425,7 +440,7 @@ void muffin::MainWindow::connectSidebarSignals() {
         } else {
           window.outlineTimer_->stop();
           window.sidebar_->clearOutline();
-          window.outlineDirty_ = true;
+          window.tab_->outlineDirty = true;
         }
       });
   QObject::connect(window.sidebar_, &SidebarWidget::newWindowRequested, &window, [&window] {

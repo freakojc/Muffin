@@ -32,6 +32,12 @@ QString accentSelectionTint(const ThemeColors& c) {
 
 QString mainWindowStyleSheet(const ThemeDefinition& d) {
   const ThemeColors& c = d.colors;
+  // A faint ink tint keeps the close button quieter than the whole-tab hover,
+  // even when a theme uses a strong menu/toolbar hover colour.
+  QColor closeHover = c.chromeText;
+  closeHover.setAlpha(18);
+  QColor closePressed = c.chromeText;
+  closePressed.setAlpha(32);
   // Menu labels are primary application chrome, so they use chromeText. Keep the
   // colour on the item subcontrols too: QSS inheritance into QMenu::item and
   // QMenuBar::item varies by platform style, while an explicit colour is stable.
@@ -51,7 +57,21 @@ QString mainWindowStyleSheet(const ThemeDefinition& d) {
       "QToolButton { background: transparent; border: 0; color: %7; padding: 0 8px;"
       "  min-width: 22px; min-height: 18px; font-size: 13px; }"
       "QToolButton:hover { background: %3; }"
-      "QToolButton:checked { color: %2; background: %3; }")
+      "QToolButton:checked { color: %2; background: %3; }"
+      "QTabWidget#DocumentTabs::pane { border: 0; }"
+      "QTabWidget#DocumentTabs QTabBar { background: %1; font-size: 13px; font-weight: normal; }"
+      "QTabWidget#DocumentTabs QTabBar::tab { background: transparent; color: %7;"
+      " margin: 4px 3px; padding: 4px 10px; min-width: 104px; max-width: 220px;"
+      " border: 1px solid transparent; border-radius: 6px; }"
+      "QTabWidget#DocumentTabs QTabBar::tab:hover { background: %3; color: %2; }"
+      "QTabWidget#DocumentTabs QTabBar::tab:selected { background: %4; color: %2; border-color: %5; }"
+      "QToolButton#CloseTabButton { background: transparent; border: 0; color: %7;"
+      " min-width: 0; min-height: 0; padding: 0; border-radius: 10px;"
+      " font-size: 16px; font-weight: normal; }"
+      "QToolButton#CloseTabButton:hover { background: %9; color: %2; }"
+      "QToolButton#CloseTabButton:pressed { background: %10; color: %2; }"
+      "QToolButton#NewTabButton { min-width: 0; min-height: 0; padding: 0; border-radius: 5px;"
+      " font-size: 18px; font-weight: normal; }")
       .arg(hexRgb(c.chromeBackground),
            hexRgb(c.chromeText),
            hexRgb(c.hover),
@@ -59,7 +79,9 @@ QString mainWindowStyleSheet(const ThemeDefinition& d) {
            hexRgb(c.border),
            accentSelectionTint(c),
            hexRgb(c.chromeMuted),
-           hexRgb(c.chromeDisabled));
+           hexRgb(c.chromeDisabled),
+           hexRgb(closeHover),
+           hexRgb(closePressed));
 }
 
 QString sidebarStyleSheet(const ThemeDefinition& d, bool outlineFoldable) {

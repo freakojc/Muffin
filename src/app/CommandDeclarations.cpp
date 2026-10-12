@@ -18,6 +18,7 @@
 #include "spellcheck/SpellChecker.h"
 
 #include <QApplication>
+#include <QTabWidget>
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QDir>
@@ -110,16 +111,16 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.quickOpen(); },
        .enabled = [](const MainWindow& w) {
-         return !w.recentFiles().isEmpty() || !w.session_.filePath().isEmpty();
+         return !w.recentFiles().isEmpty() || !w.tab_->session.filePath().isEmpty();
        }},
       {.id = QStringLiteral("file.save"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Save"),
        .shortcut = QKeySequence::Save,
        .handler = [](MainWindow& window) {
-         const auto outcome = window.fileController_.save(window.session_, &window, window.defaultSaveDirectory());
+         const auto outcome = window.tab_->fileController.save(window.tab_->session, &window, window.defaultSaveDirectory());
          if (outcome == muffin::SaveOutcome::Saved) {
-           window.addRecentFile(window.session_.filePath());
+           window.addRecentFile(window.tab_->session.filePath());
          } else if (outcome == muffin::SaveOutcome::SkippedBusy) {
            window.statusBar()->showMessage(muffin::MainWindow::tr("Document is still loading…"), 3000);
          }
@@ -129,9 +130,9 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Save As..."),
        .shortcut = QKeySequence::SaveAs,
        .handler = [](MainWindow& window) {
-         if (window.fileController_.saveAs(window.session_, &window, window.defaultSaveDirectory()) ==
+         if (window.tab_->fileController.saveAs(window.tab_->session, &window, window.defaultSaveDirectory()) ==
              muffin::SaveOutcome::Saved) {
-           window.addRecentFile(window.session_.filePath());
+           window.addRecentFile(window.tab_->session.filePath());
          }
        }},
       {.id = QStringLiteral("file.move_to"),
@@ -139,7 +140,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Move To..."),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.moveToFile(); },
-       .enabled = [](const MainWindow& w) { return !w.session_.filePath().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.filePath().isEmpty(); }},
       {.id = QStringLiteral("file.save_all"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Save All Open Files..."),
@@ -150,24 +151,24 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Properties"),
        .handler = [](MainWindow& window) { window.showDocumentProperties(); },
-       .enabled = [](const MainWindow& w) { return !w.session_.filePath().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.filePath().isEmpty(); }},
       {.id = QStringLiteral("file.reveal"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Show in File Manager..."),
        .handler = [](MainWindow& window) { window.revealCurrentFile(); },
-       .enabled = [](const MainWindow& w) { return !w.session_.filePath().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.filePath().isEmpty(); }},
       {.id = QStringLiteral("file.sidebar"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Show in Sidebar"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.showInSidebar(); },
-       .enabled = [](const MainWindow& w) { return !w.session_.filePath().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.filePath().isEmpty(); }},
       {.id = QStringLiteral("file.delete"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Delete..."),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.deleteFile(); },
-       .enabled = [](const MainWindow& w) { return !w.session_.filePath().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.filePath().isEmpty(); }},
       {.id = QStringLiteral("file.import"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Import..."),
@@ -179,80 +180,80 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Print..."),
        .shortcut = QKeySequence(QStringLiteral("Alt+Shift+P")),
        .handler = [](MainWindow& window) { window.printDocument(); },
-       .enabled = [](const MainWindow& w) { return !w.session_.filePath().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.filePath().isEmpty(); }},
       // ---- Export (native PDF/HTML; Pandoc-driven for the rest) ----
       {.id = QStringLiteral("file.export_pdf"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("PDF"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Pdf); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_html"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("HTML"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Html); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_html_plain"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("HTML (without Styles)"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::HtmlPlain); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_docx"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Word (.docx)"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Docx); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_odt"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("OpenOffice"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Odt); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_rtf"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("RTF"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Rtf); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_epub"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Epub"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Epub); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_latex"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("LaTeX"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Latex); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_mediawiki"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Media Wiki"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::MediaWiki); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_rst"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("reStructuredText"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Rst); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_textile"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Textile"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Textile); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.export_opml"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("OPML"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.exportAs(ExportFormat::Opml); },
-       .enabled = [](const MainWindow& w) { return !w.session_.markdownText().isEmpty(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->session.markdownText().isEmpty(); }},
       {.id = QStringLiteral("file.preferences"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Preferences..."),
@@ -260,15 +261,26 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .handler = [](MainWindow& window) { window.showPreferences(); }},
       {.id = QStringLiteral("file.close"),
        .category = CommandCategory::File,
-       .text = muffin::MainWindow::tr("Close"),
+       .text = muffin::MainWindow::tr("Close Tab"),
        .shortcut = QKeySequence::Close,
-       .handler = [](MainWindow& window) { window.close(); }},
+       .handler = [](MainWindow& window) { window.closeTab(window.tabs_->currentIndex()); }},
       {.id = QStringLiteral("app.quit"),
        .category = CommandCategory::File,
        .text = muffin::MainWindow::tr("Quit"),
        .shortcut = QKeySequence::Quit,
        .menuRole = QAction::QuitRole,
        .handler = [](MainWindow& window) { window.quitApplication(); }},
+
+      {.id = QStringLiteral("view.next_tab"),
+       .category = CommandCategory::View,
+       .text = muffin::MainWindow::tr("Next Tab"),
+       .shortcut = QKeySequence(QStringLiteral("Ctrl+Tab")),
+       .handler = [](MainWindow& window) { window.cycleTab(true); }},
+      {.id = QStringLiteral("view.previous_tab"),
+       .category = CommandCategory::View,
+       .text = muffin::MainWindow::tr("Previous Tab"),
+       .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+Tab")),
+       .handler = [](MainWindow& window) { window.cycleTab(false); }},
 
       // ---------------- Edit ----------------
       {.id = QStringLiteral("edit.undo"),
@@ -285,178 +297,178 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Cut"),
        .shortcut = QKeySequence::Cut,
-       .handler = [](MainWindow& window) { window.backend_->cut(); }},
+       .handler = [](MainWindow& window) { window.tab_->backend->cut(); }},
       {.id = QStringLiteral("edit.copy"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Copy"),
        .shortcut = QKeySequence::Copy,
-       .handler = [](MainWindow& window) { window.backend_->copy(); }},
+       .handler = [](MainWindow& window) { window.tab_->backend->copy(); }},
       {.id = QStringLiteral("link.open"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Open Link"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) {
-         const QString href = window.renderView_->cursorHit().linkHref;
+         const QString href = window.tab_->renderView->cursorHit().linkHref;
          if (href.isEmpty()) {
            return;
          }
-         QDesktopServices::openUrl(resolvedUrlForDocumentResource(href, window.session_.filePath()));
+         QDesktopServices::openUrl(resolvedUrlForDocumentResource(href, window.tab_->session.filePath()));
        },
        .enabled = [](const MainWindow& w) {
-         return !w.backend_->isSourceMode() && !w.renderView_->cursorHit().linkHref.isEmpty();
+         return !w.tab_->backend->isSourceMode() && !w.tab_->renderView->cursorHit().linkHref.isEmpty();
        }},
       {.id = QStringLiteral("link.copy_address"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Copy Link Address"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) {
-         const QString href = window.renderView_->cursorHit().linkHref;
+         const QString href = window.tab_->renderView->cursorHit().linkHref;
          if (!href.isEmpty()) {
            QApplication::clipboard()->setText(href);
          }
        },
        .enabled = [](const MainWindow& w) {
-         return !w.backend_->isSourceMode() && !w.renderView_->cursorHit().linkHref.isEmpty();
+         return !w.tab_->backend->isSourceMode() && !w.tab_->renderView->cursorHit().linkHref.isEmpty();
        }},
       {.id = QStringLiteral("edit.paste"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Paste"),
        .shortcut = QKeySequence::Paste,
-       .handler = [](MainWindow& window) { window.backend_->paste(); }},
+       .handler = [](MainWindow& window) { window.tab_->backend->paste(); }},
       {.id = QStringLiteral("edit.copy_plain"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Copy as Plain Text"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->copyAsPlainText(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->copyAsPlainText(); },
        .enabled = [](const MainWindow& w) { return selectionPresent(w); }},
       {.id = QStringLiteral("edit.copy_markdown"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Copy as Markdown"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+C")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->copyAsMarkdown(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->copyAsMarkdown(); },
        .enabled = [](const MainWindow& w) { return selectionPresent(w); }},
       {.id = QStringLiteral("edit.copy_html"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Copy as HTML"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->copyAsHtml(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->copyAsHtml(); },
        .enabled = [](const MainWindow& w) { return selectionPresent(w); }},
       {.id = QStringLiteral("edit.paste_plain"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Paste as Plain Text"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+V")),
-       .handler = [](MainWindow& window) { window.backend_->pasteAsPlainText(); }},
+       .handler = [](MainWindow& window) { window.tab_->backend->pasteAsPlainText(); }},
       {.id = QStringLiteral("edit.select_all"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Select All"),
        .shortcut = QKeySequence::SelectAll,
-       .handler = [](MainWindow& window) { window.backend_->selectAll(); }},
+       .handler = [](MainWindow& window) { window.tab_->backend->selectAll(); }},
       {.id = QStringLiteral("edit.select_block"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Select Paragraph or Block"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Alt+P")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->selectBlock(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->selectBlock(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.select_line"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Select Current Line or Sentence"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+L")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->selectLine(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->selectLine(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.select_format"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Select Current Format Text"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+E")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->selectFormatSpan(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->selectFormatSpan(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.select_word"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Select Current Word"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+D")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->selectWord(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->selectWord(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.jump_doc_start"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Jump to Start of Document"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Home")),
        .shortcutWidgetContext = true,
-       .handler = [](MainWindow& window) { window.backend_->moveDocumentStart(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->moveDocumentStart(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.jump_selection"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Jump to Selection"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+J")),
-       .handler = [](MainWindow& window) { window.backend_->selectNextOccurrence(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->selectNextOccurrence(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.jump_doc_end"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Jump to End of Document"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+End")),
        .shortcutWidgetContext = true,
-       .handler = [](MainWindow& window) { window.backend_->moveDocumentEnd(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->moveDocumentEnd(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.jump_line_start"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Jump to Start of Line"),
        .shortcut = QKeySequence(QStringLiteral("Home")),
        .shortcutWidgetContext = true,
-       .handler = [](MainWindow& window) { window.backend_->moveLineStart(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->moveLineStart(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.jump_line_end"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Jump to End of Line"),
        .shortcut = QKeySequence(QStringLiteral("End")),
        .shortcutWidgetContext = true,
-       .handler = [](MainWindow& window) { window.backend_->moveLineEnd(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->moveLineEnd(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.move_line_up"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Move Line Up"),
        .shortcut = QKeySequence(QStringLiteral("Alt+Up")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->moveLineUp(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->moveLineUp(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.move_line_down"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Move Line Down"),
        .shortcut = QKeySequence(QStringLiteral("Alt+Down")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->moveLineDown(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->moveLineDown(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.delete"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Delete"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->deleteForward(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->deleteForward(); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.delete_block"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Delete Block"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->deleteRange(DeleteTarget::Block); },
+       .handler = [](MainWindow& window) { window.tab_->backend->deleteRange(DeleteTarget::Block); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.delete_line"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Delete Current Line"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->deleteRange(DeleteTarget::Line); },
+       .handler = [](MainWindow& window) { window.tab_->backend->deleteRange(DeleteTarget::Line); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.delete_format"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Delete Current Format Text"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->deleteRange(DeleteTarget::FormatSpan); },
+       .handler = [](MainWindow& window) { window.tab_->backend->deleteRange(DeleteTarget::FormatSpan); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.delete_word"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Delete Current Word"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->deleteRange(DeleteTarget::Word); },
+       .handler = [](MainWindow& window) { window.tab_->backend->deleteRange(DeleteTarget::Word); },
        .enabled = [](const MainWindow& w) { return cursorPresent(w); }},
       {.id = QStringLiteral("edit.spellcheck"),
        .category = CommandCategory::Edit,
@@ -513,7 +525,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Find Next"),
        .shortcut = QKeySequence(QStringLiteral("F3")),
        .handler = [](MainWindow& window) {
-         if (!window.findBar_ || !window.findBar_->isVisible()) {
+         if (!window.tab_->findBar || !window.tab_->findBar->isVisible()) {
            window.showFindBar();
          }
          window.performFindNext();
@@ -523,7 +535,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Find Previous"),
        .shortcut = QKeySequence(QStringLiteral("Shift+F3")),
        .handler = [](MainWindow& window) {
-         if (!window.findBar_ || !window.findBar_->isVisible()) {
+         if (!window.tab_->findBar || !window.tab_->findBar->isVisible()) {
            window.showFindBar();
          }
          window.performFindPrevious();
@@ -535,7 +547,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Heading 1"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+1")),
        .checkable = true,
-       .handler = [level = 1](MainWindow& window) { window.renderCommands_.setHeadingLevel(level); },
+       .handler = [level = 1](MainWindow& window) { window.tab_->renderCommands.setHeadingLevel(level); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); },
        .checked = [](const MainWindow& w) { return headingLevel(w) == 1; }},
       {.id = QStringLiteral("paragraph.heading_2"),
@@ -543,7 +555,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Heading 2"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+2")),
        .checkable = true,
-       .handler = [level = 2](MainWindow& window) { window.renderCommands_.setHeadingLevel(level); },
+       .handler = [level = 2](MainWindow& window) { window.tab_->renderCommands.setHeadingLevel(level); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); },
        .checked = [](const MainWindow& w) { return headingLevel(w) == 2; }},
       {.id = QStringLiteral("paragraph.heading_3"),
@@ -551,7 +563,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Heading 3"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+3")),
        .checkable = true,
-       .handler = [level = 3](MainWindow& window) { window.renderCommands_.setHeadingLevel(level); },
+       .handler = [level = 3](MainWindow& window) { window.tab_->renderCommands.setHeadingLevel(level); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); },
        .checked = [](const MainWindow& w) { return headingLevel(w) == 3; }},
       {.id = QStringLiteral("paragraph.heading_4"),
@@ -559,7 +571,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Heading 4"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+4")),
        .checkable = true,
-       .handler = [level = 4](MainWindow& window) { window.renderCommands_.setHeadingLevel(level); },
+       .handler = [level = 4](MainWindow& window) { window.tab_->renderCommands.setHeadingLevel(level); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); },
        .checked = [](const MainWindow& w) { return headingLevel(w) == 4; }},
       {.id = QStringLiteral("paragraph.heading_5"),
@@ -567,7 +579,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Heading 5"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+5")),
        .checkable = true,
-       .handler = [level = 5](MainWindow& window) { window.renderCommands_.setHeadingLevel(level); },
+       .handler = [level = 5](MainWindow& window) { window.tab_->renderCommands.setHeadingLevel(level); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); },
        .checked = [](const MainWindow& w) { return headingLevel(w) == 5; }},
       {.id = QStringLiteral("paragraph.heading_6"),
@@ -575,7 +587,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Heading 6"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+6")),
        .checkable = true,
-       .handler = [level = 6](MainWindow& window) { window.renderCommands_.setHeadingLevel(level); },
+       .handler = [level = 6](MainWindow& window) { window.tab_->renderCommands.setHeadingLevel(level); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); },
        .checked = [](const MainWindow& w) { return headingLevel(w) == 6; }},
       {.id = QStringLiteral("paragraph.paragraph"),
@@ -584,7 +596,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .shortcut = QKeySequence(QStringLiteral("Ctrl+0")),
        .checkable = true,
        .checkedInitial = true,
-       .handler = [](MainWindow& window) { window.renderCommands_.setHeadingLevel(0); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setHeadingLevel(0); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); },
        .checked = [](const MainWindow& w) { return headingLevel(w) == 0 && editableParagraph(w); }},
       {.id = QStringLiteral("paragraph.promote_heading"),
@@ -592,7 +604,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Promote Heading"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+-")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.promoteHeading(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.promoteHeading(); },
        .enabled = [](const MainWindow& w) {
          const int lvl = headingLevel(w);
          return editableParagraph(w) && lvl > 1;
@@ -602,7 +614,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Demote Heading"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+=")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.demoteHeading(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.demoteHeading(); },
        .enabled = [](const MainWindow& w) {
          const int lvl = headingLevel(w);
          return editableParagraph(w) && lvl > 0 && lvl < 6;
@@ -612,129 +624,129 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Formula Block"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+M")),
        .checkable = true,
-       .handler = [](MainWindow& window) { window.renderCommands_.toggleFormulaBlock(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); },
-       .checked = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isInMathBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.toggleFormulaBlock(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); },
+       .checked = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInMathBlock(); }},
       {.id = QStringLiteral("paragraph.code_block"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Code Block"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+K")),
        .checkable = true,
-       .handler = [](MainWindow& window) { window.renderCommands_.toggleCodeBlock(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); },
-       .checked = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isInCodeBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.toggleCodeBlock(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); },
+       .checked = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInCodeBlock(); }},
       {.id = QStringLiteral("paragraph.quote"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Quote"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+Q")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.toggleQuote(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.toggleQuote(); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); }},
       {.id = QStringLiteral("paragraph.ordered_list"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Ordered List"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+[")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.convertToOrderedList(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.convertToOrderedList(); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); }},
       {.id = QStringLiteral("paragraph.unordered_list"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Unordered List"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+]")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.convertToUnorderedList(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.convertToUnorderedList(); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); }},
       {.id = QStringLiteral("paragraph.task_list"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Task List"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+X")),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.convertToTaskList(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.convertToTaskList(); },
        .enabled = [](const MainWindow& w) { return editableParagraph(w); }},
       {.id = QStringLiteral("paragraph.insert_before"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Insert Paragraph Before"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertParagraphBefore(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertParagraphBefore(); },
        .enabled = [](const MainWindow& w) {
-         return editableParagraph(w) || (!w.backend_->isSourceMode() && w.renderCommands_.canInsertParagraphAround());
+         return editableParagraph(w) || (!w.tab_->backend->isSourceMode() && w.tab_->renderCommands.canInsertParagraphAround());
        }},
       {.id = QStringLiteral("paragraph.insert_after"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Insert Paragraph After"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertParagraphAfter(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertParagraphAfter(); },
        .enabled = [](const MainWindow& w) {
-         return editableParagraph(w) || (!w.backend_->isSourceMode() && w.renderCommands_.canInsertParagraphAround());
+         return editableParagraph(w) || (!w.tab_->backend->isSourceMode() && w.tab_->renderCommands.canInsertParagraphAround());
        }},
       {.id = QStringLiteral("paragraph.link_ref"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Link Reference"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertLinkReference(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertLinkReference(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("paragraph.footnote"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Footnote"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertFootnoteDefinition(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertFootnoteDefinition(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("paragraph.hr"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Horizontal Rule"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertHorizontalRule(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertHorizontalRule(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("paragraph.toc"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Table of Contents"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertTableOfContents(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertTableOfContents(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("paragraph.yaml"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("YAML"),
-       .handler = [](MainWindow& window) { window.renderCommands_.insertFrontMatter(FrontMatterFormat::Yaml); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertFrontMatter(FrontMatterFormat::Yaml); }},
       {.id = QStringLiteral("paragraph.toml"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("TOML"),
-       .handler = [](MainWindow& window) { window.renderCommands_.insertFrontMatter(FrontMatterFormat::Toml); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertFrontMatter(FrontMatterFormat::Toml); }},
       {.id = QStringLiteral("paragraph.json"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("JSON"),
-       .handler = [](MainWindow& window) { window.renderCommands_.insertFrontMatter(FrontMatterFormat::Json); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertFrontMatter(FrontMatterFormat::Json); }},
 
       // Alert blocks (GFM [!NOTE]/[!TIP]/[!IMPORTANT]/[!WARNING]/[!CAUTION]).
       {.id = QStringLiteral("paragraph.insert_alert_note"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Note"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertAlert(AlertKind::Note); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertAlert(AlertKind::Note); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("paragraph.insert_alert_tip"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Tip"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertAlert(AlertKind::Tip); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertAlert(AlertKind::Tip); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("paragraph.insert_alert_important"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Important"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertAlert(AlertKind::Important); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertAlert(AlertKind::Important); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("paragraph.insert_alert_warning"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Warning"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertAlert(AlertKind::Warning); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertAlert(AlertKind::Warning); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("paragraph.insert_alert_caution"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Caution"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.insertAlert(AlertKind::Caution); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertAlert(AlertKind::Caution); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
 
       // Task status toggle (menu entry; the rendered-checkbox click path calls
       // toggleTaskListItem directly with the clicked block id).
@@ -742,22 +754,22 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Toggle Task Status"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.toggleCurrentTaskListItem(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isOnTaskItem(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.toggleCurrentTaskListItem(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isOnTaskItem(); }},
 
       // List indent/outdent (menu entry; Tab/Shift+Tab already drive these in the editor).
       {.id = QStringLiteral("paragraph.indent_list"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Indent"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.indentListItem(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isOnListItem(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.indentListItem(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isOnListItem(); }},
       {.id = QStringLiteral("paragraph.outdent_list"),
        .category = CommandCategory::Paragraph,
        .text = muffin::MainWindow::tr("Outdent"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.outdentListItem(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isOnListItem(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.outdentListItem(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isOnListItem(); }},
 
       // ---------------- Table ----------------
       {.id = QStringLiteral("table.insert_table"),
@@ -765,104 +777,104 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Insert Table"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+T")),
        .handler = [](MainWindow& window) { window.insertTableWithDialog(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("table.insert_row_before"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Insert Row Above"),
-       .handler = [](MainWindow& window) { window.renderCommands_.insertRowBefore(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertRowBefore(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.insert_row_after"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Insert Row Below"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Enter")),
-       .handler = [](MainWindow& window) { window.renderCommands_.insertRowAfter(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertRowAfter(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.insert_column_before"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Insert Column Left"),
-       .handler = [](MainWindow& window) { window.renderCommands_.insertColumnBefore(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertColumnBefore(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.insert_column_after"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Insert Column Right"),
-       .handler = [](MainWindow& window) { window.renderCommands_.insertColumnAfter(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.insertColumnAfter(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.move_row_up"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Move Row Up"),
-       .handler = [](MainWindow& window) { window.renderCommands_.moveCurrentRowUp(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.moveCurrentRowUp(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.move_row_down"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Move Row Down"),
-       .handler = [](MainWindow& window) { window.renderCommands_.moveCurrentRowDown(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.moveCurrentRowDown(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.move_column_left"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Move Column Left"),
        .shortcut = QKeySequence(QStringLiteral("Alt+Left")),
-       .handler = [](MainWindow& window) { window.renderCommands_.moveCurrentColumnLeft(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.moveCurrentColumnLeft(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.move_column_right"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Move Column Right"),
        .shortcut = QKeySequence(QStringLiteral("Alt+Right")),
-       .handler = [](MainWindow& window) { window.renderCommands_.moveCurrentColumnRight(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.moveCurrentColumnRight(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.delete_row"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Delete Row"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+Backspace")),
-       .handler = [](MainWindow& window) { window.renderCommands_.deleteCurrentRow(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.deleteCurrentRow(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.delete_column"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Delete Column"),
-       .handler = [](MainWindow& window) { window.renderCommands_.deleteCurrentColumn(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.deleteCurrentColumn(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.copy_table"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Copy Table"),
-       .handler = [](MainWindow& window) { window.renderCommands_.copyCurrentTable(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.copyCurrentTable(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.format_source"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Format Table Source"),
-       .handler = [](MainWindow& window) { window.renderCommands_.formatCurrentTableSource(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.formatCurrentTableSource(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.delete_table"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Delete Table"),
-       .handler = [](MainWindow& window) { window.renderCommands_.deleteCurrentTable(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.deleteCurrentTable(); },
        .enabled = [](const MainWindow& w) { return inTableCell(w); }},
       {.id = QStringLiteral("table.align_left"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Align Left"),
-       .handler = [](MainWindow& window) { window.renderCommands_.setCurrentColumnAlignment(TableAlignment::Left); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setCurrentColumnAlignment(TableAlignment::Left); }},
       {.id = QStringLiteral("table.align_center"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Align Center"),
-       .handler = [](MainWindow& window) { window.renderCommands_.setCurrentColumnAlignment(TableAlignment::Center); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setCurrentColumnAlignment(TableAlignment::Center); }},
       {.id = QStringLiteral("table.align_right"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Align Right"),
-       .handler = [](MainWindow& window) { window.renderCommands_.setCurrentColumnAlignment(TableAlignment::Right); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setCurrentColumnAlignment(TableAlignment::Right); }},
       {.id = QStringLiteral("table.align_none"),
        .category = CommandCategory::Table,
        .text = muffin::MainWindow::tr("Clear Alignment"),
-       .handler = [](MainWindow& window) { window.renderCommands_.setCurrentColumnAlignment(TableAlignment::None); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setCurrentColumnAlignment(TableAlignment::None); }},
 
       // ---------------- Code ----------------
       {.id = QStringLiteral("code.enter_edit"),
        .category = CommandCategory::Code,
        .text = muffin::MainWindow::tr("Enter Edit"),
-       .handler = [](MainWindow& window) { window.renderCommands_.enterCodeEditMode(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isInCodeBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.enterCodeEditMode(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInCodeBlock(); }},
       {.id = QStringLiteral("code.exit_edit"),
        .category = CommandCategory::Code,
        .text = muffin::MainWindow::tr("Exit Edit"),
-       .handler = [](MainWindow& window) { window.renderCommands_.exitCodeEditMode(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isEditingCodeBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.exitCodeEditMode(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isEditingCodeBlock(); }},
       {.id = QStringLiteral("code.set_language"),
        .category = CommandCategory::Code,
        .text = muffin::MainWindow::tr("Set Language..."),
@@ -871,58 +883,58 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          const QString language = QInputDialog::getText(
              &window, muffin::MainWindow::tr("Code Language"), muffin::MainWindow::tr("Language:"), QLineEdit::Normal, QString(), &ok);
          if (ok) {
-           window.renderCommands_.setCodeLanguage(language);
+           window.tab_->renderCommands.setCodeLanguage(language);
          }
        },
        .enabled = [](const MainWindow& w) {
-         return !w.backend_->isSourceMode() && (w.renderCommands_.isInCodeBlock() || w.renderCommands_.isEditingCodeBlock());
+         return !w.tab_->backend->isSourceMode() && (w.tab_->renderCommands.isInCodeBlock() || w.tab_->renderCommands.isEditingCodeBlock());
        }},
       {.id = QStringLiteral("code.copy_content"),
        .category = CommandCategory::Code,
        .text = muffin::MainWindow::tr("Copy Code Block Content"),
        .handler = [](MainWindow& window) {
-         const QString content = window.renderCommands_.codeContentAtCursor();
+         const QString content = window.tab_->renderCommands.codeContentAtCursor();
          if (!content.isEmpty()) {
            QApplication::clipboard()->setText(content);
          }
        },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isInCodeBlock(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInCodeBlock(); }},
       {.id = QStringLiteral("code.indent_selection"),
        .category = CommandCategory::Code,
        .text = muffin::MainWindow::tr("Indent Selection"),
-       .handler = [](MainWindow& window) { window.renderCommands_.indentCodeSelection(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.indentCodeSelection(); },
        .enabled = [](const MainWindow& w) {
-         return !w.backend_->isSourceMode() && w.renderCommands_.isInCodeBlock() && w.commandHasSelection();
+         return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInCodeBlock() && w.commandHasSelection();
        }},
       {.id = QStringLiteral("code.dedent_selection"),
        .category = CommandCategory::Code,
        .text = muffin::MainWindow::tr("Dedent Selection"),
-       .handler = [](MainWindow& window) { window.renderCommands_.dedentCodeSelection(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.dedentCodeSelection(); },
        .enabled = [](const MainWindow& w) {
-         return !w.backend_->isSourceMode() && w.renderCommands_.isInCodeBlock() && w.commandHasSelection();
+         return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInCodeBlock() && w.commandHasSelection();
        }},
       {.id = QStringLiteral("code.indent_block"),
        .category = CommandCategory::Code,
        .text = muffin::MainWindow::tr("Indent Whole Block"),
-       .handler = [](MainWindow& window) { window.renderCommands_.indentCodeBlock(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isInCodeBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.indentCodeBlock(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInCodeBlock(); }},
       {.id = QStringLiteral("code.dedent_block"),
        .category = CommandCategory::Code,
        .text = muffin::MainWindow::tr("Dedent Whole Block"),
-       .handler = [](MainWindow& window) { window.renderCommands_.dedentCodeBlock(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isInCodeBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.dedentCodeBlock(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInCodeBlock(); }},
 
       // ---------------- HTML ----------------
       {.id = QStringLiteral("html.enter_edit"),
        .category = CommandCategory::Html,
        .text = muffin::MainWindow::tr("Enter Edit"),
-       .handler = [](MainWindow& window) { window.renderCommands_.enterHtmlEditMode(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isInHtmlBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.enterHtmlEditMode(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInHtmlBlock(); }},
       {.id = QStringLiteral("html.exit_edit"),
        .category = CommandCategory::Html,
        .text = muffin::MainWindow::tr("Exit Edit"),
-       .handler = [](MainWindow& window) { window.renderCommands_.exitHtmlEditMode(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isEditingHtmlBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.exitHtmlEditMode(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isEditingHtmlBlock(); }},
       {.id = QStringLiteral("html.set_source"),
        .category = CommandCategory::Html,
        .text = muffin::MainWindow::tr("Set HTML..."),
@@ -931,24 +943,24 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          const QString html =
              QInputDialog::getMultiLineText(&window, muffin::MainWindow::tr("HTML Source"), muffin::MainWindow::tr("HTML:"), QString(), &ok);
          if (ok) {
-           window.renderCommands_.setHtmlSource(html);
+           window.tab_->renderCommands.setHtmlSource(html);
          }
        },
        .enabled = [](const MainWindow& w) {
-         return !w.backend_->isSourceMode() && (w.renderCommands_.isInHtmlBlock() || w.renderCommands_.isEditingHtmlBlock());
+         return !w.tab_->backend->isSourceMode() && (w.tab_->renderCommands.isInHtmlBlock() || w.tab_->renderCommands.isEditingHtmlBlock());
        }},
 
       // ---------------- Math ----------------
       {.id = QStringLiteral("math.enter_edit"),
        .category = CommandCategory::Math,
        .text = muffin::MainWindow::tr("Enter Edit"),
-       .handler = [](MainWindow& window) { window.renderCommands_.enterMathEditMode(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isInMathBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.enterMathEditMode(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isInMathBlock(); }},
       {.id = QStringLiteral("math.exit_edit"),
        .category = CommandCategory::Math,
        .text = muffin::MainWindow::tr("Exit Edit"),
-       .handler = [](MainWindow& window) { window.renderCommands_.exitMathEditMode(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode() && w.renderCommands_.isEditingMathBlock(); }},
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.exitMathEditMode(); },
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode() && w.tab_->renderCommands.isEditingMathBlock(); }},
       {.id = QStringLiteral("math.set_tex"),
        .category = CommandCategory::Math,
        .text = muffin::MainWindow::tr("Set TeX..."),
@@ -957,11 +969,11 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          const QString tex =
              QInputDialog::getMultiLineText(&window, muffin::MainWindow::tr("Math TeX"), muffin::MainWindow::tr("TeX:"), QString(), &ok);
          if (ok) {
-           window.renderCommands_.setMathTex(tex);
+           window.tab_->renderCommands.setMathTex(tex);
          }
        },
        .enabled = [](const MainWindow& w) {
-         return !w.backend_->isSourceMode() && (w.renderCommands_.isInMathBlock() || w.renderCommands_.isEditingMathBlock());
+         return !w.tab_->backend->isSourceMode() && (w.tab_->renderCommands.isInMathBlock() || w.tab_->renderCommands.isEditingMathBlock());
        }},
 
       // ---------------- Format ----------------
@@ -970,52 +982,52 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Bold"),
        .shortcut = QKeySequence::Bold,
        .checkable = true,
-       .handler = [](MainWindow& window) { window.backend_->toggleBold(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->toggleBold(); },
        .enabled = [](const MainWindow& w) { return inlineFormat(w); },
-       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.renderCommands_.currentInlineFormats().bold; }},
+       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.tab_->renderCommands.currentInlineFormats().bold; }},
       {.id = QStringLiteral("format.italic"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Italic"),
        .shortcut = QKeySequence::Italic,
        .checkable = true,
-       .handler = [](MainWindow& window) { window.backend_->toggleItalic(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->toggleItalic(); },
        .enabled = [](const MainWindow& w) { return inlineFormat(w); },
-       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.renderCommands_.currentInlineFormats().italic; }},
+       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.tab_->renderCommands.currentInlineFormats().italic; }},
       {.id = QStringLiteral("format.underline"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Underline"),
        .shortcut = QKeySequence::Underline,
        .checkable = true,
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->toggleUnderline(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->toggleUnderline(); },
        .enabled = [](const MainWindow& w) { return inlineFormat(w); },
-       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.renderCommands_.currentInlineFormats().underline; }},
+       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.tab_->renderCommands.currentInlineFormats().underline; }},
       {.id = QStringLiteral("format.code"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Inline Code"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+`")),
        .checkable = true,
-       .handler = [](MainWindow& window) { window.backend_->toggleCode(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->toggleCode(); },
        .enabled = [](const MainWindow& w) { return inlineFormat(w); },
-       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.renderCommands_.currentInlineFormats().code; }},
+       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.tab_->renderCommands.currentInlineFormats().code; }},
       {.id = QStringLiteral("format.inline_math"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Inline Formula"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+M")),
        .checkable = true,
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->toggleInlineMath(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->toggleInlineMath(); },
        .enabled = [](const MainWindow& w) { return inlineFormat(w); },
-       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.renderCommands_.currentInlineFormats().inlineMath; }},
+       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.tab_->renderCommands.currentInlineFormats().inlineMath; }},
       {.id = QStringLiteral("format.strike"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Strikethrough"),
        .shortcut = QKeySequence(QStringLiteral("Alt+Shift+5")),
        .checkable = true,
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.backend_->toggleStrikethrough(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->toggleStrikethrough(); },
        .enabled = [](const MainWindow& w) { return inlineFormat(w); },
-       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.renderCommands_.currentInlineFormats().strikethrough; }},
+       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.tab_->renderCommands.currentInlineFormats().strikethrough; }},
       {.id = QStringLiteral("format.comment"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Comment"),
@@ -1024,17 +1036,17 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Hyperlink"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+K")),
-       .handler = [](MainWindow& window) { window.backend_->insertLink(); }},
+       .handler = [](MainWindow& window) { window.tab_->backend->insertLink(); }},
       {.id = QStringLiteral("format.clear"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Clear Style"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+\\")),
-       .handler = [](MainWindow& window) { window.backend_->clearFormatting(); },
+       .handler = [](MainWindow& window) { window.tab_->backend->clearFormatting(); },
        .enabled = [](const MainWindow& w) {
          // clearFormatting is paragraph-scoped (it strips ALL formatting in the caret's block), so
          // require a collapsed caret — with an active selection it would wipe formatting outside the
          // selection too, which is surprising. Selection-scoped clearing is a separate feature.
-         return inlineFormat(w) && w.editorController_.selection().selection().isCollapsed();
+         return inlineFormat(w) && w.tab_->editorController.selection().selection().isCollapsed();
        }},
 
       // ---------------- Math ----------------
@@ -1042,7 +1054,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .category = CommandCategory::Math,
        .text = muffin::MainWindow::tr("Refresh All Math"),
        .handler = [](MainWindow& window) {
-         window.renderView_->refreshVisibleBlocks(window.session_.document());
+         window.tab_->renderView->refreshVisibleBlocks(window.tab_->session.document());
        }},
 
       // ---------------- Smart Punctuation ----------------
@@ -1079,7 +1091,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
              a->setChecked(false);
            }
          }
-         window.renderView_->refreshVisibleBlocks(window.session_.document());
+         window.tab_->renderView->refreshVisibleBlocks(window.tab_->session.document());
        },
        .checked = [](const MainWindow&) {
          return QSettings().value(QStringLiteral("markdown/convertOnRendering"), false).toBool();
@@ -1091,7 +1103,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .handler = [](MainWindow& window) {
          const bool on = window.commands_.action(QStringLiteral("edit.smart_quotes"))->isChecked();
          QSettings().setValue(QStringLiteral("markdown/smartQuotes"), on);
-         window.renderView_->refreshVisibleBlocks(window.session_.document());
+         window.tab_->renderView->refreshVisibleBlocks(window.tab_->session.document());
        },
        .checked = [](const MainWindow&) {
          return QSettings().value(QStringLiteral("markdown/smartQuotes"), false).toBool();
@@ -1103,7 +1115,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .handler = [](MainWindow& window) {
          const bool on = window.commands_.action(QStringLiteral("edit.smart_dashes"))->isChecked();
          QSettings().setValue(QStringLiteral("markdown/smartDashes"), on);
-         window.renderView_->refreshVisibleBlocks(window.session_.document());
+         window.tab_->renderView->refreshVisibleBlocks(window.tab_->session.document());
        },
        .checked = [](const MainWindow&) {
          return QSettings().value(QStringLiteral("markdown/smartDashes"), false).toBool();
@@ -1115,7 +1127,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .handler = [](MainWindow& window) {
          const bool on = window.commands_.action(QStringLiteral("edit.smart_remap_unicode"))->isChecked();
          QSettings().setValue(QStringLiteral("markdown/remapUnicode"), on);
-         window.session_.setParseOptions(markdownParseOptions());
+         window.tab_->session.setParseOptions(markdownParseOptions());
        },
        .checked = [](const MainWindow&) {
          return QSettings().value(QStringLiteral("markdown/remapUnicode"), false).toBool();
@@ -1131,19 +1143,19 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Insert Image..."),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+I")),
        .handler = [](MainWindow& window) { window.insertImageWithDialog(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("image.insert_local"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("Insert Local Image..."),
        .handler = [](MainWindow& window) { window.insertLocalImageWithDialog(); },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("image.open_location"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("Open Image Location..."),
        .enabledInitial = false,
        .handler = [](MainWindow& window) {
-         const QString src = window.renderCommands_.imageSrcAtCursor();
-         const QString docDir = QFileInfo(window.session_.filePath()).absolutePath();
+         const QString src = window.tab_->renderCommands.imageSrcAtCursor();
+         const QString docDir = QFileInfo(window.tab_->session.filePath()).absolutePath();
          const QString resolved = ImageFileOps::resolveImagePath(src, docDir);
          if (!resolved.isEmpty()) {
            QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(resolved).absolutePath()));
@@ -1155,8 +1167,8 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Copy Image"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) {
-         const QString src = window.renderCommands_.imageSrcAtCursor();
-         const QString docDir = QFileInfo(window.session_.filePath()).absolutePath();
+         const QString src = window.tab_->renderCommands.imageSrcAtCursor();
+         const QString docDir = QFileInfo(window.tab_->session.filePath()).absolutePath();
          const QString resolved = ImageFileOps::resolveImagePath(src, docDir);
          if (resolved.isEmpty()) {
            return;
@@ -1173,8 +1185,8 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Delete Image File"),
        .enabledInitial = false,
        .handler = [](MainWindow& window) {
-         const QString src = window.renderCommands_.imageSrcAtCursor();
-         const QString docDir = QFileInfo(window.session_.filePath()).absolutePath();
+         const QString src = window.tab_->renderCommands.imageSrcAtCursor();
+         const QString docDir = QFileInfo(window.tab_->session.filePath()).absolutePath();
          const QString resolved = ImageFileOps::resolveImagePath(src, docDir);
          if (resolved.isEmpty()) {
            return;
@@ -1187,8 +1199,8 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          }
          // Remove the image markdown syntax first
          qsizetype srcStart = 0, srcEnd = 0;
-         if (window.renderCommands_.imageSourceRangeAtCursor(srcStart, srcEnd)) {
-           window.session_.applyTextDelta(srcStart, srcEnd - srcStart, QString(), true);
+         if (window.tab_->renderCommands.imageSourceRangeAtCursor(srcStart, srcEnd)) {
+           window.tab_->session.applyTextDelta(srcStart, srcEnd - srcStart, QString(), true);
          }
          ImageFileOps::deleteImageFile(resolved);
        },
@@ -1198,8 +1210,8 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Copy Image To..."),
        .enabledInitial = false,
        .handler = [](MainWindow& window) {
-         const QString src = window.renderCommands_.imageSrcAtCursor();
-         const QString docDir = QFileInfo(window.session_.filePath()).absolutePath();
+         const QString src = window.tab_->renderCommands.imageSrcAtCursor();
+         const QString docDir = QFileInfo(window.tab_->session.filePath()).absolutePath();
          const QString resolved = ImageFileOps::resolveImagePath(src, docDir);
          if (resolved.isEmpty()) {
            return;
@@ -1213,12 +1225,12 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
            // Update the markdown src to the new relative path
            const QString relPath = QDir(docDir).relativeFilePath(newPath);
            qsizetype srcStart = 0, srcEnd = 0;
-           if (window.renderCommands_.imageSourceRangeAtCursor(srcStart, srcEnd)) {
-             const PieceTable& md = window.session_.markdownText();
+           if (window.tab_->renderCommands.imageSourceRangeAtCursor(srcStart, srcEnd)) {
+             const PieceTable& md = window.tab_->session.markdownText();
              const QString oldImage = md.mid(srcStart, srcEnd - srcStart);
              const QString newImage = image_syntax::replaceSource(oldImage, link_syntax::localPathHref(relPath));
              if (newImage != oldImage) {
-               window.session_.applyTextDelta(srcStart, srcEnd - srcStart, newImage, true);
+               window.tab_->session.applyTextDelta(srcStart, srcEnd - srcStart, newImage, true);
              }
            }
          }
@@ -1229,8 +1241,8 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Rename / Move Image To..."),
        .enabledInitial = false,
        .handler = [](MainWindow& window) {
-         const QString src = window.renderCommands_.imageSrcAtCursor();
-         const QString docDir = QFileInfo(window.session_.filePath()).absolutePath();
+         const QString src = window.tab_->renderCommands.imageSrcAtCursor();
+         const QString docDir = QFileInfo(window.tab_->session.filePath()).absolutePath();
          const QString resolved = ImageFileOps::resolveImagePath(src, docDir);
          if (resolved.isEmpty()) {
            return;
@@ -1243,12 +1255,12 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          if (ImageFileOps::moveImageTo(resolved, QDir(destDir), &newPath)) {
            const QString relPath = QDir(docDir).relativeFilePath(newPath);
            qsizetype srcStart = 0, srcEnd = 0;
-           if (window.renderCommands_.imageSourceRangeAtCursor(srcStart, srcEnd)) {
-             const PieceTable& md = window.session_.markdownText();
+           if (window.tab_->renderCommands.imageSourceRangeAtCursor(srcStart, srcEnd)) {
+             const PieceTable& md = window.tab_->session.markdownText();
              const QString oldImage = md.mid(srcStart, srcEnd - srcStart);
              const QString newImage = image_syntax::replaceSource(oldImage, link_syntax::localPathHref(relPath));
              if (newImage != oldImage) {
-               window.session_.applyTextDelta(srcStart, srcEnd - srcStart, newImage, true);
+               window.tab_->session.applyTextDelta(srcStart, srcEnd - srcStart, newImage, true);
              }
            }
          }
@@ -1264,8 +1276,8 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
                muffin::MainWindow::tr("No upload command is configured.\nSet up a custom upload command in Preferences → Images."));
            return;
          }
-         const QString src = window.renderCommands_.imageSrcAtCursor();
-         const QString docDir = QFileInfo(window.session_.filePath()).absolutePath();
+         const QString src = window.tab_->renderCommands.imageSrcAtCursor();
+         const QString docDir = QFileInfo(window.tab_->session.filePath()).absolutePath();
          const QString resolved = ImageFileOps::resolveImagePath(src, docDir);
          if (resolved.isEmpty()) {
            return;
@@ -1281,12 +1293,12 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          }
          const QString url = res.urls.first();
          qsizetype srcStart = 0, srcEnd = 0;
-         if (window.renderCommands_.imageSourceRangeAtCursor(srcStart, srcEnd)) {
-           const PieceTable& md = window.session_.markdownText();
+         if (window.tab_->renderCommands.imageSourceRangeAtCursor(srcStart, srcEnd)) {
+           const PieceTable& md = window.tab_->session.markdownText();
            const QString oldImage = md.mid(srcStart, srcEnd - srcStart);
            const QString newImage = image_syntax::replaceSource(oldImage, url);
            if (newImage != oldImage) {
-             window.session_.applyTextDelta(srcStart, srcEnd - srcStart, newImage, true);
+             window.tab_->session.applyTextDelta(srcStart, srcEnd - srcStart, newImage, true);
            }
          }
        },
@@ -1300,8 +1312,8 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
                muffin::MainWindow::tr("No upload command is configured.\nSet up a custom upload command in Preferences → Images."));
            return;
          }
-         const QString docDir = QFileInfo(window.session_.filePath()).absolutePath();
-         const auto refs = ImageFileOps::collectImageRefs(window.session_.document());
+         const QString docDir = QFileInfo(window.tab_->session.filePath()).absolutePath();
+         const auto refs = ImageFileOps::collectImageRefs(window.tab_->session.document());
          // Collect unique resolved local paths (uploaders take a batch; order preserved).
          QStringList paths;
          QHash<QString, int> pathIndex;
@@ -1336,62 +1348,62 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          }
          int uploaded = 0;
          const QString md = ImageFileOps::rewriteImageSources(
-             window.session_.document(), window.session_.markdownText().toString(), docDir, pathToUrl, &uploaded);
-         window.editorController_.applyMarkdownTextWithUndo(md, muffin::MainWindow::tr("Upload All Images"));
+             window.tab_->session.document(), window.tab_->session.markdownText().toString(), docDir, pathToUrl, &uploaded);
+         window.tab_->editorController.applyMarkdownTextWithUndo(md, muffin::MainWindow::tr("Upload All Images"));
          QMessageBox::information(&window, muffin::MainWindow::tr("Upload All Images"),
              muffin::MainWindow::tr("Uploaded %1 image(s).").arg(uploaded));
        },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("image.reload_all"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("Reload All Images"),
        .handler = [](MainWindow& window) {
-         if (window.renderView_) {
-           window.renderView_->setDocument(window.session_.document(), window.session_.filePath());
+         if (window.tab_->renderView) {
+           window.tab_->renderView->setDocument(window.tab_->session.document(), window.tab_->session.filePath());
          }
        },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("image.resize_25"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("25%"),
        .checkable = true,
        .actionGroup = QStringLiteral("image.resize"),
-       .handler = [](MainWindow& window) { window.renderCommands_.setImageZoomAtCursor(25); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setImageZoomAtCursor(25); },
        .enabled = [](const MainWindow& w) { return onImage(w); },
-       .checked = [](const MainWindow& w) { return onImage(w) && w.renderCommands_.currentImageZoomPercent() == 25; }},
+       .checked = [](const MainWindow& w) { return onImage(w) && w.tab_->renderCommands.currentImageZoomPercent() == 25; }},
       {.id = QStringLiteral("image.resize_50"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("50%"),
        .checkable = true,
        .actionGroup = QStringLiteral("image.resize"),
-       .handler = [](MainWindow& window) { window.renderCommands_.setImageZoomAtCursor(50); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setImageZoomAtCursor(50); },
        .enabled = [](const MainWindow& w) { return onImage(w); },
-       .checked = [](const MainWindow& w) { return onImage(w) && w.renderCommands_.currentImageZoomPercent() == 50; }},
+       .checked = [](const MainWindow& w) { return onImage(w) && w.tab_->renderCommands.currentImageZoomPercent() == 50; }},
       {.id = QStringLiteral("image.resize_75"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("75%"),
        .checkable = true,
        .actionGroup = QStringLiteral("image.resize"),
-       .handler = [](MainWindow& window) { window.renderCommands_.setImageZoomAtCursor(75); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setImageZoomAtCursor(75); },
        .enabled = [](const MainWindow& w) { return onImage(w); },
-       .checked = [](const MainWindow& w) { return onImage(w) && w.renderCommands_.currentImageZoomPercent() == 75; }},
+       .checked = [](const MainWindow& w) { return onImage(w) && w.tab_->renderCommands.currentImageZoomPercent() == 75; }},
       {.id = QStringLiteral("image.resize_100"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("100%"),
        .checkable = true,
        .checkedInitial = true,
        .actionGroup = QStringLiteral("image.resize"),
-       .handler = [](MainWindow& window) { window.renderCommands_.setImageZoomAtCursor(100); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setImageZoomAtCursor(100); },
        .enabled = [](const MainWindow& w) { return onImage(w); },
-       .checked = [](const MainWindow& w) { return onImage(w) && w.renderCommands_.currentImageZoomPercent() == 100; }},
+       .checked = [](const MainWindow& w) { return onImage(w) && w.tab_->renderCommands.currentImageZoomPercent() == 100; }},
       {.id = QStringLiteral("image.resize_150"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("150%"),
        .checkable = true,
        .actionGroup = QStringLiteral("image.resize"),
-       .handler = [](MainWindow& window) { window.renderCommands_.setImageZoomAtCursor(150); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.setImageZoomAtCursor(150); },
        .enabled = [](const MainWindow& w) { return onImage(w); },
-       .checked = [](const MainWindow& w) { return onImage(w) && w.renderCommands_.currentImageZoomPercent() == 150; }},
+       .checked = [](const MainWindow& w) { return onImage(w) && w.tab_->renderCommands.currentImageZoomPercent() == 150; }},
       {.id = QStringLiteral("image.resize_custom"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("Custom..."),
@@ -1401,33 +1413,33 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          bool ok = false;
          const int percent = QInputDialog::getInt(
              &window, muffin::MainWindow::tr("Image Size"), muffin::MainWindow::tr("Zoom percent:"),
-             window.renderCommands_.currentImageZoomPercent(), 1, 1000, 1, &ok);
+             window.tab_->renderCommands.currentImageZoomPercent(), 1, 1000, 1, &ok);
          if (ok) {
-           window.renderCommands_.setImageZoomAtCursor(percent);
+           window.tab_->renderCommands.setImageZoomAtCursor(percent);
          }
        },
        .enabled = [](const MainWindow& w) { return onImage(w); },
        .checked = [](const MainWindow& w) {
-         const int zoom = w.renderCommands_.currentImageZoomPercent();
+         const int zoom = w.tab_->renderCommands.currentImageZoomPercent();
          return onImage(w) && zoom != 25 && zoom != 50 && zoom != 75 && zoom != 100 && zoom != 150;
        }},
       {.id = QStringLiteral("image.to_standard"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("Standard Markdown ![](url)"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.convertImageAtCursorToMarkdown(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.convertImageAtCursorToMarkdown(); },
        .enabled = [](const MainWindow& w) { return onImage(w); }},
       {.id = QStringLiteral("image.to_html"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("HTML <img>"),
        .enabledInitial = false,
-       .handler = [](MainWindow& window) { window.renderCommands_.convertImageAtCursorToHtml(); },
+       .handler = [](MainWindow& window) { window.tab_->renderCommands.convertImageAtCursorToHtml(); },
        .enabled = [](const MainWindow& w) { return onImage(w); }},
       {.id = QStringLiteral("image.copy_all_to"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("Copy All Images To..."),
        .handler = [](MainWindow& window) {
-         const QString docDir = QFileInfo(window.session_.filePath()).absolutePath();
+         const QString docDir = QFileInfo(window.tab_->session.filePath()).absolutePath();
          if (docDir.isEmpty()) {
            return;
          }
@@ -1435,7 +1447,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          if (destDir.isEmpty()) {
            return;
          }
-         const QStringList images = ImageFileOps::collectLocalImagePaths(window.session_.document(), docDir);
+         const QStringList images = ImageFileOps::collectLocalImagePaths(window.tab_->session.document(), docDir);
          int copied = 0;
          for (const QString& img : images) {
            if (ImageFileOps::copyImageTo(img, QDir(destDir), nullptr)) {
@@ -1445,12 +1457,12 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          QMessageBox::information(&window, muffin::MainWindow::tr("Copy All Images"),
              muffin::MainWindow::tr("Copied %1 of %2 image(s).").arg(copied).arg(images.size()));
        },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("image.move_all_to"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("Move All Images To..."),
        .handler = [](MainWindow& window) {
-         const QString docDir = QFileInfo(window.session_.filePath()).absolutePath();
+         const QString docDir = QFileInfo(window.tab_->session.filePath()).absolutePath();
          if (docDir.isEmpty()) {
            return;
          }
@@ -1459,7 +1471,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
            return;
          }
          const auto result = ImageFileOps::moveAllImages(
-             window.session_.document(), window.session_.markdownText().toString(),
+             window.tab_->session.document(), window.tab_->session.markdownText().toString(),
              docDir, QDir(destDir));
          if (!result.success) {
            QMessageBox::warning(&window, muffin::MainWindow::tr("Move All Images"),
@@ -1467,14 +1479,14 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
            return;
          }
          const QString md = result.markdown;
-         if (md != window.session_.markdownText().toString()) {
-           window.editorController_.applyMarkdownTextWithUndo(
+         if (md != window.tab_->session.markdownText().toString()) {
+           window.tab_->editorController.applyMarkdownTextWithUndo(
                md, muffin::MainWindow::tr("Move All Images"));
          }
          QMessageBox::information(&window, muffin::MainWindow::tr("Move All Images"),
              muffin::MainWindow::tr("Moved %1 image(s).").arg(result.movedCount));
        },
-       .enabled = [](const MainWindow& w) { return !w.backend_->isSourceMode(); }},
+       .enabled = [](const MainWindow& w) { return !w.tab_->backend->isSourceMode(); }},
       {.id = QStringLiteral("image.global_settings"),
        .category = CommandCategory::Image,
        .text = muffin::MainWindow::tr("Global Image Settings..."),
@@ -1518,7 +1530,9 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .checkedInitial = true,
        .handler = [](MainWindow& window) {
          const bool enabled = window.commands_.action(QStringLiteral("view.word_wrap"))->isChecked();
-         window.editor_->setWordWrapEnabled(enabled);
+         for (DocumentTab* document : window.documentTabs()) {
+           document->editor->setWordWrapEnabled(enabled);
+         }
          QSettings().setValue(QStringLiteral("view/wordWrap"), enabled);
        }},
       {.id = QStringLiteral("view.focus"),
@@ -1732,8 +1746,8 @@ const std::vector<muffin::MenuSpec>& muffin::mainMenuSpec() {
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("file.close")},
 #ifdef Q_OS_DARWIN
            // Quit belongs in the application menu on macOS (moved there by QuitRole). On
-           // Windows/Linux the window close button, Alt+F4 and Ctrl+W already exit, and a second
-           // "Quit" next to "Close" in the same File menu reads as redundant for a single-window app.
+           // Windows/Linux use the window close button or Alt+F4 to close the window;
+           // Ctrl+W closes only the current tab.
            {.kind = MenuItem::Kind::Separator},
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("app.quit")},
 #endif
@@ -2027,6 +2041,9 @@ const std::vector<muffin::MenuSpec>& muffin::mainMenuSpec() {
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("view.actual_size")},
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("view.zoom_in")},
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("view.zoom_out")},
+           {.kind = MenuItem::Kind::Separator},
+           {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("view.next_tab")},
+           {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("view.previous_tab")},
            {.kind = MenuItem::Kind::Separator},
            // Window
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("view.fullscreen")},

@@ -1,0 +1,59 @@
+#pragma once
+
+#include "app/DraftRecovery.h"
+#include "app/EditorBackend.h"
+#include "app/RenderCommandFacade.h"
+#include "document/DocumentSession.h"
+#include "editor/EditorController.h"
+#include "io/FileController.h"
+
+#include <QWidget>
+#include <memory>
+
+class QLabel;
+class QPropertyAnimation;
+class QStackedWidget;
+class QTimer;
+
+namespace muffin {
+
+class EditorView;
+class FindBarWidget;
+class SourceEditorWidget;
+
+// A tab owns the entire editing lifetime, including undo stacks and both viewports.
+// Switching documents never rebinds a view or replaces another document's buffer.
+class DocumentTab final : public QWidget {
+public:
+  explicit DocumentTab(QWidget* parent = nullptr);
+  ~DocumentTab() override;
+
+  DocumentSession session;
+  FileController fileController;
+  EditorController editorController;
+  std::unique_ptr<EditorBackend> backend;
+  RenderCommandFacade renderCommands;
+  QString draftKey = DraftRecovery::createDraftKey();
+  QStackedWidget* viewStack = nullptr;
+  EditorView* renderView = nullptr;
+  SourceEditorWidget* editor = nullptr;
+  FindBarWidget* findBar = nullptr;
+  QTimer* autoSaveTimer = nullptr;
+  QTimer* draftTimer = nullptr;
+  QLabel* viewSwitchOverlay = nullptr;
+  QPropertyAnimation* overlayOpacityAnimation = nullptr;
+  quint64 lastDraftSnapshotRevision = 0;
+  int cursorLine = 1;
+  int cursorColumn = 1;
+  QString renderCursorStatus;
+  bool lastFindRegularExpression = false;
+  bool lastFindCaseSensitive = false;
+  QString lastFindText;
+  qsizetype lastFindOffset = -1;
+  bool renderViewDirty = false;
+  bool wordCountDirty = true;
+  bool outlineDirty = true;
+  quint64 sidebarOutlineRevision = 0;
+};
+
+}  // namespace muffin

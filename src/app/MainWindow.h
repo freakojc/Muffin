@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/CommandRegistry.h"
+#include "app/DocumentTab.h"
 #include "app/CommandDeclarations.h"
 #include "document/DocumentSession.h"
 #include "app/EditorBackend.h"
@@ -25,6 +26,7 @@ class QActionGroup;
 class QTimer;
 class QSplitter;
 class QStackedWidget;
+class QTabWidget;
 class QToolButton;
 class QWidget;
 class QVariantAnimation;
@@ -48,6 +50,7 @@ class MainWindow final : public QMainWindow {
 
 public:
   explicit MainWindow(QWidget* parent = nullptr);
+  ~MainWindow() override;
 
   bool openFile(QString path);
   // Open <path> as the sidebar folder root (switches to the Files panel).
@@ -66,7 +69,7 @@ public:
   bool saveCurrentDocument();
   bool isDocumentModified() const;
   // Quit the application (File → Quit / macOS Cmd+Q). Closes every top-level
-  // window so each runs its closeEvent (unsaved-changes prompt); the event loop
+  // window so each checks all its tabs for unsaved changes; the event loop
   // ends when the last window closes.
   void quitApplication();
 
@@ -84,12 +87,24 @@ public:
   bool commandOnLocalImage() const;
 
 protected:
+  bool eventFilter(QObject* watched, QEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
   void changeEvent(QEvent* event) override;
   void showEvent(QShowEvent* event) override;
 
 private:
   bool startNewDocument();
+  DocumentTab* createDocumentTab();
+  void activateTab(int index);
+  void closeTab(int index);
+  void cycleTab(bool forward);
+  void updateTabLabel(DocumentTab* tab);
+  void setupTabButton(DocumentTab* tab);
+  void updateTabBarVisibility();
+  void retranslateTabs();
+  void configureTab(DocumentTab* tab);
+  QList<DocumentTab*> documentTabs() const;
+  bool isPathOpen(const QString& path, const DocumentSession* except = nullptr) const;
   // F6 / Shift+F6 pane cycling: editor → sidebar → find bar (when visible), wrapping. Gives
   // keyboard-only users a way between the main regions that does not depend on Tab (which the
   // editor canvas consumes for content).
@@ -140,11 +155,11 @@ private:
   void scheduleEditorStateRefresh();
 
   // Qt signal wiring, split out for readability (formerly MainWindowSignalBinder).
-  void connectEditorSignals();
-  void connectRenderSignals();
-  void connectSessionSignals();
+  void connectEditorSignals(DocumentTab* tab);
+  void connectRenderSignals(DocumentTab* tab);
+  void connectSessionSignals(DocumentTab* tab);
   void connectApplicationSignals();
-  void connectFindBarSignals();
+  void connectFindBarSignals(DocumentTab* tab);
   void connectChromeSignals();
   void connectSidebarSignals();
 
@@ -307,78 +322,49 @@ private:
                       bool regularExpression, bool caseSensitive);
   void performReplaceAll(const QString& findText, const QString& replaceText,
                          bool regularExpression, bool caseSensitive);
-  void performAutoSave();
-  void snapshotDraft();
+  void performAutoSave(DocumentTab* tab);
+  void snapshotDraft(DocumentTab* tab);
   // Crash-recovery heartbeat interval, scaled by document length: floor 3s, then +1s per ~2k
   // characters. The length is QString::size() — UTF-16 CODE UNITS, not on-disk bytes — so a
   // CJK-heavy doc (1 code unit per char but 3 UTF-8 bytes) scales by its character count, not byte
   // size (a "50MB on disk" CJK doc is ~25M code units → ~12s, not ~25s). Bounds typing-at-risk on a
   // crash while keeping the O(doc) encode + sync write off the typing path on large documents.
-  int draftSnapshotIntervalMs() const;
+  int draftSnapshotIntervalMs(const DocumentTab* tab) const;
   bool restoreDraft(const DraftRecovery::PendingDraft& draft);
 
-  DocumentSession session_;
-  FileController fileController_;
   DraftRecovery drafts_;
-  QString draftKey_ = DraftRecovery::createDraftKey();
+  QTabWidget* tabs_ = nullptr;
+  DocumentTab* tab_ = nullptr;
+  bool suppressSaveOnTabSwitch_ = false;
   CommandRegistry commands_;
   ThemeManager themeManager_;
-  EditorController editorController_;
   BundledEmojiProvider emojiProvider_;
-  RenderCommandFacade renderCommands_;
   QSplitter* centralSplitter_ = nullptr;
   SidebarWidget* sidebar_ = nullptr;
-  QStackedWidget* viewStack_ = nullptr;
-  EditorView* renderView_ = nullptr;
-  SourceEditorWidget* editor_ = nullptr;
-  FindBarWidget* findBar_ = nullptr;
   QToolButton* sidebarButton_ = nullptr;
   QToolButton* sourceModeButton_ = nullptr;
   StatusBarWidget* statusBar_ = nullptr;
-  // Sidebar width transition (QVariantAnimation drives min+max in lockstep so the splitter tracks
-  // the value exactly) and the mode-switch snapshot overlay (a grab()'d pixmap QLabel faded out by
-  // overlayOpacityAnimation_ — never a live QGraphicsOpacityEffect on the heavy editor widgets).
+  // Sidebar width transition; per-document view transitions live with their tab.
   QVariantAnimation* sidebarAnimation_ = nullptr;
-  QPropertyAnimation* overlayOpacityAnimation_ = nullptr;
-  QLabel* viewSwitchOverlay_ = nullptr;
   int sidebarTargetWidth_ = 260;
   QTimer* wordCountTimer_ = nullptr;
   QTimer* outlineTimer_ = nullptr;
-  QTimer* autoSaveTimer_ = nullptr;
-  QTimer* draftTimer_ = nullptr;
-  // Document revision at the last draft snapshot this dirty period. snapshotDraft() skips the
-  // O(doc) UTF-8 encode + sync disk write when the revision is unchanged (the old code compared a
-  // full copy of the text — an O(doc) copy + compare on every heartbeat). Reset to 0 on clean so
-  // the next dirty period snapshots immediately.
-  quint64 lastDraftSnapshotRevision_ = 0;
   QMenu* recentFilesMenu_ = nullptr;
   QMenu* reopenEncodingMenu_ = nullptr;
   QMenu* themesMenu_ = nullptr;
   // Exclusive radio groups (image resize, image insert action), keyed by the
   // declaration's actionGroup id. Rebuilt on every menu rebuild.
   QHash<QString, QActionGroup*> actionGroups_;
-  int cursorLine_ = 1;
-  int cursorColumn_ = 1;
-  QString renderCursorStatus_;
-  bool lastFindRegularExpression_ = false;
-  bool lastFindCaseSensitive_ = false;
   QString sidebarFolderRoot_;
   int zoomPercent_ = 100;
   int fontSizePx_ = 16;
   int contentWidthPx_ = 0;
-  bool renderViewDirty_ = false;
-  bool wordCountDirty_ = true;
-  bool outlineDirty_ = true;
   bool showBlockSourceEnabled_ = false;
   bool editorStateRefreshScheduled_ = false;
   mutable bool commandContextSnapshotActive_ = false;
   mutable CommandContextSnapshot commandContextSnapshot_;
-  quint64 sidebarOutlineRevision_ = 0;
-  std::unique_ptr<EditorBackend> backend_;
   bool focusMode_ = false;
   bool typewriterMode_ = false;
-  QString lastFindText_;
-  qsizetype lastFindOffset_ = -1;
 };
 
 }  // namespace muffin

@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-12
+
+### Added
+
+- Open multiple documents in tabs, with independent edits, undo history, cursor positions, scrolling, search and source/rendered modes. Reopening a file activates its existing tab; closing a modified tab prompts to save that document.
+- Reorder tabs by dragging, create documents with Ctrl+N, switch tabs with Ctrl+Tab/Ctrl+Shift+Tab, and close tabs with Ctrl+W or the middle mouse button. The tab bar stays hidden when only one document is open.
+
 ### Changed
 
+- Refine tab styling and close-button hover feedback, and add translated tooltips and accessibility labels for tab controls in all 14 application languages.
+- Simplify the sidebar and source-mode status bar buttons, with hover feedback and translated hints. Folder rows toggle expansion with a single click anywhere on the row.
 - Mermaid labels and editor measurements share the document text backend, including FlowLabel wrapping/prepared glyphs and Gantt/C4/Journey/Venn/Mindmap painting. Glyph positions, raw font sizes and decoration metrics use logical pixels; native rendering remains the default, with fractional-size, mixed-script, zoom and full/lazy layout regressions.
 - Link and heading generated content share live pseudo styles and inline layout. Positioned decorations use stored used geometry and state snapshots; the link-icon, list-guide and paint-time pseudo positioning paths have been removed. Compiled selector subjects skip unrelated pseudo-state computation in long documents.
 - CI compares bundled Newsprint/Night page, heading, baseline and component geometry with fixed-font browser references, alongside generated-link editing and full/lazy/incremental consistency checks.
@@ -29,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Clicking after the text on a wrapped line places the caret at that line's end, before its soft or hard Markdown break, instead of jumping to the next line.
+- Toggling task checkboxes preserves the reading position after opening large documents. Showing or hiding the tab bar also preserves source-mode scrolling.
+- Background document parsing uses a worker-owned parser so closing a loading tab cannot access a destroyed session. Changing Markdown preferences during an open reparses the pending file instead of the previous buffer.
 - Wrapped source blocks include retained trailing-space caret advances in hit testing, preventing clicks outside the border box from snapping to another source row. Math and code regressions cover the overflow with both text backends.
 - Fractional text layout preserves logical word spacing in base fonts, inline format ranges and selection painting. Absolute letter spacing rounds before Qt's fixed-point conversion; fixed-font regressions now enforce italic wrapping and advances, with representative Abyss/LaTeX page, component and editing checks.
 - Document text uses a shared logical-pixel layout and font-metrics interface across paragraphs, headings, HTML, code blocks, generated content and source/IME rendering. The existing backend remains the default; an opt-in fractional-size backend shares shaping, painting and editing coordinates, with pinned Latin/Chinese font regressions and performance probes.
@@ -663,7 +675,8 @@ An internal-architecture release. No user-visible behavior changes — every edi
 - **List indentation** - Fixed list item indent/outdent logic
 - **Cross-platform build** - Added `libxcb-util-dev` dependency for Linux CI and offscreen rendering environment for macOS tests
 
-[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.6.6...HEAD
+[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.0
 [0.6.6]: https://github.com/jstzwj/Muffin/releases/tag/v0.6.6
 [0.6.0]: https://github.com/jstzwj/Muffin/releases/tag/v0.6.0
 [0.5.5]: https://github.com/jstzwj/Muffin/releases/tag/v0.5.5

@@ -52,17 +52,16 @@ QString zoneName(muffin::HitTestResult::Zone zone) {
 }  // namespace
 
 void muffin::MainWindow::setupConnections() {
-  editorController_.attach(&session_, renderView_);
-  editorController_.inputController().setEmojiProvider(&emojiProvider_);
+  tab_->editorController.inputController().setEmojiProvider(&emojiProvider_);
 
-  connectEditorSignals();
-  connectRenderSignals();
-  connectSessionSignals();
+  connectEditorSignals(tab_);
+  connectRenderSignals(tab_);
+  connectSessionSignals(tab_);
   connectApplicationSignals();
 
   bindCommands();
 
-  connectFindBarSignals();
+  connectFindBarSignals(tab_);
   connectChromeSignals();
   connectSidebarSignals();
 
@@ -76,21 +75,21 @@ void muffin::MainWindow::setupConnections() {
   updateSidebarMode();
   updateViewMode();
   applyTheme(themeManager_.currentThemeName());
-  renderView_->setDocument(session_.document(), session_.filePath());
+  tab_->renderView->setDocument(tab_->session.document(), tab_->session.filePath());
 }
 
 void muffin::MainWindow::updateRenderCursorStatus(const HitTestResult& hit) {
   if (!hit.isValid()) {
-    renderCursorStatus_.clear();
+    tab_->renderCursorStatus.clear();
   } else {
     // Render mode has no QTextCursor; report the source line:column derived from
     // the hit's text offset (matching the source-mode "line:col" display) instead
     // of the verbose zone/block-id/offset detail.
-    const auto& offsets = session_.document().lineOffsets();
+    const auto& offsets = tab_->session.document().lineOffsets();
     const int line = offsets.lineForOffset(hit.textOffset);
     const qsizetype lineStart = offsets.offsetForLineColumn(line, 1);
     const int column = lineStart >= 0 ? static_cast<int>(hit.textOffset - lineStart) + 1 : 1;
-    renderCursorStatus_ = QStringLiteral("%1:%2").arg(line).arg(column);
+    tab_->renderCursorStatus = QStringLiteral("%1:%2").arg(line).arg(column);
   }
   scheduleEditorStateRefresh();
 }
@@ -99,11 +98,11 @@ void muffin::MainWindow::updateBlockSourceLabel(const HitTestResult& hit) {
   if (!statusBar_) {
     return;
   }
-  if (!showBlockSourceEnabled_ || !backend_ || backend_->isSourceMode() || !hit.isValid()) {
+  if (!showBlockSourceEnabled_ || !tab_->backend || tab_->backend->isSourceMode() || !hit.isValid()) {
     statusBar_->setBlockSource(QString(), QString());
     return;
   }
-  MarkdownNode* node = session_.document().node(hit.blockId);
+  MarkdownNode* node = tab_->session.document().node(hit.blockId);
   if (!node) {
     statusBar_->setBlockSource(QString(), QString());
     return;
@@ -113,12 +112,12 @@ void muffin::MainWindow::updateBlockSourceLabel(const HitTestResult& hit) {
   while (node->parent() && node->parent()->type() != BlockType::Document) {
     node = node->parent();
   }
-  const SourceRange range = fullBlockSourceRange(*node, session_.markdownText());
+  const SourceRange range = fullBlockSourceRange(*node, tab_->session.markdownText());
   if (range.byteStart < 0 || range.byteEnd <= range.byteStart) {
     statusBar_->setBlockSource(QString(), QString());
     return;
   }
-  const PieceTable& markdown = session_.markdownText();
+  const PieceTable& markdown = tab_->session.markdownText();
   const QString raw = markdown.mid(range.byteStart, range.byteEnd - range.byteStart);
   // Flatten to a single status-bar line so multi-line blocks stay readable.
   QString flat = raw;
@@ -131,12 +130,12 @@ void muffin::MainWindow::updateBlockSourceLabel(const HitTestResult& hit) {
 }
 
 void muffin::MainWindow::syncSourceEditorIfNeeded() {
-  if (!editor_) return;
-  editor_->syncFromSession();
+  if (!tab_->editor) return;
+  tab_->editor->syncFromSession();
 }
 
 void muffin::MainWindow::scheduleWordCountUpdate() {
-  wordCountDirty_ = true;
+  tab_->wordCountDirty = true;
   if (wordCountTimer_) {
     // PieceTable maintains this count incrementally. The debounce coalesces status repaints; the
     // callback itself is O(1), independent of document size.
@@ -145,16 +144,16 @@ void muffin::MainWindow::scheduleWordCountUpdate() {
 }
 
 void muffin::MainWindow::updateWordCountNow() {
-  if (!statusBar_ || !wordCountDirty_) {
+  if (!statusBar_ || !tab_->wordCountDirty) {
     return;
   }
-  const int words = text_stats::countWords(session_.markdownText());
+  const int words = text_stats::countWords(tab_->session.markdownText());
   statusBar_->setWordCount(words);
-  wordCountDirty_ = false;
+  tab_->wordCountDirty = false;
 }
 
 void muffin::MainWindow::insertTableWithDialog() {
-  if (backend_->isSourceMode()) {
+  if (tab_->backend->isSourceMode()) {
     return;
   }
 
@@ -192,11 +191,11 @@ void muffin::MainWindow::insertTableWithDialog() {
     return;
   }
 
-  renderCommands_.insertTable(rowSpin->value(), columnSpin->value());
+  tab_->renderCommands.insertTable(rowSpin->value(), columnSpin->value());
 }
 
 void muffin::MainWindow::insertImageWithDialog() {
-  if (backend_->isSourceMode()) {
+  if (tab_->backend->isSourceMode()) {
     return;
   }
 
@@ -243,11 +242,11 @@ void muffin::MainWindow::insertImageWithDialog() {
 
   const QString markdown = image_syntax::markdownImage(alt, url, title);
 
-  editorController_.inputController().insertText(markdown);
+  tab_->editorController.inputController().insertText(markdown);
 }
 
 void muffin::MainWindow::insertLocalImageWithDialog() {
-  if (backend_->isSourceMode()) {
+  if (tab_->backend->isSourceMode()) {
     return;
   }
 
@@ -262,8 +261,8 @@ void muffin::MainWindow::insertLocalImageWithDialog() {
   // configured insert action (copy to ./assets, upload, …) and syntax checkboxes.
   muffin::ImageInsertRequest req;
   req.sourcePath = filePath;
-  req.documentPath = session_.filePath();
-  req.documentText = session_.markdownText().toString();
+  req.documentPath = tab_->session.filePath();
+  req.documentText = tab_->session.markdownText().toString();
   req.alt = QFileInfo(filePath).completeBaseName();
   QSettings settings;
   const muffin::ImageInsertResult res = muffin::ImageInsertionPolicy::resolveHref(req, settings, this);
@@ -273,17 +272,17 @@ void muffin::MainWindow::insertLocalImageWithDialog() {
 
   const QString alt = res.alt.isEmpty() ? QStringLiteral("image") : res.alt;
   const QString markdown = image_syntax::markdownImage(alt, res.href);
-  editorController_.inputController().insertText(markdown);
+  tab_->editorController.inputController().insertText(markdown);
 }
 
 void muffin::MainWindow::undoEdit() {
-  if (backend_->canUndo()) {
-    backend_->undo();
+  if (tab_->backend->canUndo()) {
+    tab_->backend->undo();
   }
 }
 
 void muffin::MainWindow::redoEdit() {
-  if (backend_->canRedo()) {
-    backend_->redo();
+  if (tab_->backend->canRedo()) {
+    tab_->backend->redo();
   }
 }

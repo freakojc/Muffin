@@ -849,11 +849,12 @@ void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector
     asyncParsePending_ = true;
     emit parseBusy(true);
     parseWatcher_->setFuture(QtConcurrent::run(
-        [text = std::move(text), options, collectPerformanceMetrics, this]()
+        [text = std::move(text), options, collectPerformanceMetrics]()
             -> std::shared_ptr<ParseResult> {
+          CmarkGfmParser parser;
           ParseResult result = collectPerformanceMetrics
-              ? parser_.parseDocumentProfiled(QStringView(text), options)
-              : parser_.parseDocument(QStringView(text), options);
+              ? parser.parseDocumentProfiled(QStringView(text), options)
+              : parser.parseDocument(QStringView(text), options);
           return std::make_shared<ParseResult>(std::move(result));
         }));
     return;
@@ -949,6 +950,12 @@ void muffin::DocumentSession::setParseOptions(ParseOptions options) {
     return;
   }
   parseOptions_ = options;
+  if (isAsyncParseInProgress()) {
+    // Preferences can change while a background tab is opening. Reparse its pending file,
+    // rather than superseding that open with the previous (possibly empty) document buffer.
+    parseAndStore(pendingText_, pendingModified_, pendingDemoteAtOffsets_, /*async=*/true);
+    return;
+  }
   // Re-parse in place, preserving the current text and modified flag. parseAndStore sets
   // lastParseWasLocalEdit_=false, so the rendered view rebuilds via the `parsed` signal.
   parseAndStore(document_.markdownText().toString(), document_.isModified());

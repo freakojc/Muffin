@@ -11,12 +11,32 @@
 
 using namespace muffin;
 
-// openDocumentAsync runs parser_.parseDocument on a QtConcurrent worker thread and finishes
+// openDocumentAsync runs a worker-owned parser on a QtConcurrent thread and finishes
 // (setMarkdownText + relativize + emit parsed) on the GUI thread via QFutureWatcher. These tests
 // spin an event loop (no worker block) to confirm the async open path delivers `parsed`, brackets
 // it with `parseBusy`, and supersedes an in-flight parse when a newer open is requested.
 
 namespace {
+
+void testParseOptionsWhileOpeningPreservesPendingFile() {
+  DocumentSession session;
+  session.setMarkdownText(QStringLiteral("Previous buffer\n"), false);
+  const QString pending = QStringLiteral("# Pending file\n\n==highlight==\n");
+  session.openDocumentAsync(pending);
+  ParseOptions options;
+  options.enableHighlight = true;
+  session.setParseOptions(options);
+  require(session.isAsyncParseInProgress(), "changing options keeps the pending open asynchronous");
+  QEventLoop loop;
+  QObject::connect(&session, &DocumentSession::parseBusy, &loop, [&loop](bool busy) {
+    if (!busy) { loop.quit(); }
+  });
+  QTimer::singleShot(5000, &loop, &QEventLoop::quit);
+  loop.exec();
+  require(!session.isAsyncParseInProgress(), "pending file finishes with new options");
+  require(session.markdownText().toString() == pending, "parse options must not replace the pending file with the previous buffer");
+  require(!session.document().isModified(), "pending file remains clean");
+}
 
 void testOpenDocumentAsyncEmitsParsed() {
   DocumentSession session;
@@ -183,6 +203,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testAsyncStateCoversPendingGuiCommit);
   RUN_TEST(testOpenDocumentAsyncSupersedesInFlight);
   RUN_TEST(testApplyTextDeltaRejectedWhileAsyncInFlight);
+  RUN_TEST(testParseOptionsWhileOpeningPreservesPendingFile);
 #undef RUN_TEST
   return 0;
 }

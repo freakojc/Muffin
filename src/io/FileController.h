@@ -4,6 +4,7 @@
 
 #include <QObject>
 #include <QString>
+#include <functional>
 
 class QWidget;
 
@@ -24,6 +25,9 @@ public:
   explicit FileController(QObject* parent = nullptr);
 
   bool newFile(DocumentSession& session, QWidget* parent);
+  QString chooseOpenPath(QWidget* parent) const;
+  // A window can reject a destination already owned by another open document.
+  void setPathAvailableCheck(std::function<bool(const QString&)> check);
   bool open(DocumentSession& session, QWidget* parent, QString path = {});
   // `defaultDir` seeds the Save As dialog for an untitled document (it is ignored
   // once the document has a path). Pass MainWindow::defaultSaveDirectory() so a
@@ -43,6 +47,7 @@ signals:
   void documentBecameClean(QString filePath);
 
 private:
+  std::function<bool(const QString&)> pathAvailableCheck_;
   bool confirmDiscardIfModified(DocumentSession& session, QWidget* parent);
   // Prompts before overwriting when the file drifted on disk vs. the open/save baseline. Returns
   // true to proceed (unchanged, or user accepted overwrite), false to abort the save.

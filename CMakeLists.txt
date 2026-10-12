@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(Muffin
-  VERSION 0.6.6
+  VERSION 0.7.0
   DESCRIPTION "A fast native Markdown WYSIWYG editor built with C++ and Qt 6 Widgets"
   LANGUAGES C CXX
 )
@@ -170,6 +170,7 @@ set(MUFFIN_TRANSLATABLE_SOURCES
   src/app/MainWindowActions.cpp
   src/app/MainWindowFileOps.cpp
   src/app/MainWindowFind.cpp
+  src/app/MainWindowTabs.cpp
   src/app/PreferencesDialog.cpp
   src/app/HelpViewerDialog.cpp
   src/app/QuickOpenDialog.cpp
@@ -1051,6 +1052,8 @@ add_executable(Muffin
   src/app/LanguageManager.h
   src/app/MainWindow.cpp
   src/app/MainWindow.h
+  src/app/DocumentTab.cpp
+  src/app/DocumentTab.h
   src/app/MainWindowActionBinder.cpp
   src/app/CommandDeclarations.cpp
   src/app/CommandDeclarations.h
@@ -1062,6 +1065,7 @@ add_executable(Muffin
   src/app/UpdateChecker.h
   src/app/MainWindowFileOps.cpp
   src/app/MainWindowFind.cpp
+  src/app/MainWindowTabs.cpp
   src/app/PreferencesDialog.cpp
   src/app/PreferencesDialog.h
   src/app/HelpViewerDialog.cpp

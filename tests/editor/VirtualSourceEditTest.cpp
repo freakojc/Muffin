@@ -117,6 +117,25 @@ void testWrappedSourceEditingPreservesViewport() {
   requireStable();
 }
 
+void testHeightResizePreservesReadingPosition() {
+  VirtualSourceEdit edit;
+  edit.setSourceFont(fixtureSourceFont);
+  edit.setStandaloneText(QStringLiteral("A source line\n").repeated(200));
+  edit.resize(500, 300);
+  edit.show();
+  QApplication::processEvents();
+  edit.setCursorPosition(0);
+  edit.verticalScrollBar()->setValue(edit.verticalScrollBar()->maximum() / 2);
+  const int scroll = edit.verticalScrollBar()->value();
+  require(scroll > 300, "reading position is away from the caret");
+  for (int height : {260, 300}) {
+    edit.resize(500, height);
+    QApplication::processEvents();
+    require(edit.verticalScrollBar()->value() == scroll && edit.cursorPosition() == 0,
+            "height-only resize retains source scroll and caret");
+  }
+}
+
 QImage captureEdit(VirtualSourceEdit& edit) { return edit.grab().toImage(); }
 
 // The composition must render with an underline, NOT overlap the following text, and NOT be
@@ -251,6 +270,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testSourcePreeditRendersWithoutOverlap);
   RUN_TEST(testSourcePreeditClearsOnFocusOut);
   RUN_TEST(testWrappedSourceEditingPreservesViewport);
+  RUN_TEST(testHeightResizePreservesReadingPosition);
 #undef RUN_TEST
   qInfo("All source-editor IME tests passed.");
   return 0;

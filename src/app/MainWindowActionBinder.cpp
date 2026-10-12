@@ -36,52 +36,52 @@ bool MainWindow::commandHasCursor() const {
   if (commandContextSnapshotActive_) {
     return commandContextSnapshot_.hasCursor;
   }
-  return backend_->isSourceMode() ? true : editorController_.selection().hasCursor();
+  return tab_->backend->isSourceMode() ? true : tab_->editorController.selection().hasCursor();
 }
 
 bool MainWindow::commandHasSelection() const {
   if (commandContextSnapshotActive_) {
     return commandContextSnapshot_.hasSelection;
   }
-  if (backend_->isSourceMode()) {
-    return editor_->hasSelection();
+  if (tab_->backend->isSourceMode()) {
+    return tab_->editor->hasSelection();
   }
-  return commandHasCursor() && !editorController_.selection().selection().isCollapsed();
+  return commandHasCursor() && !tab_->editorController.selection().selection().isCollapsed();
 }
 
 bool MainWindow::commandOnEditableParagraph() const {
   if (commandContextSnapshotActive_) {
     return commandContextSnapshot_.onEditableParagraph;
   }
-  return !backend_->isSourceMode() && renderCommands_.isOnEditableParagraphBlock();
+  return !tab_->backend->isSourceMode() && tab_->renderCommands.isOnEditableParagraphBlock();
 }
 
 int MainWindow::commandHeadingLevel() const {
   if (commandContextSnapshotActive_) {
     return commandContextSnapshot_.headingLevel;
   }
-  return backend_->isSourceMode() ? -1 : renderCommands_.currentHeadingLevel();
+  return tab_->backend->isSourceMode() ? -1 : tab_->renderCommands.currentHeadingLevel();
 }
 
 bool MainWindow::commandInlineFormatEnabled() const {
   if (commandContextSnapshotActive_) {
     return commandContextSnapshot_.inlineFormatEnabled;
   }
-  return !backend_->isSourceMode() && renderCommands_.isInlineFormatEnabled();
+  return !tab_->backend->isSourceMode() && tab_->renderCommands.isInlineFormatEnabled();
 }
 
 bool MainWindow::commandInTableCell() const {
   if (commandContextSnapshotActive_) {
     return commandContextSnapshot_.inTableCell;
   }
-  return !backend_->isSourceMode() && renderCommands_.hasCurrentTableCell();
+  return !tab_->backend->isSourceMode() && tab_->renderCommands.hasCurrentTableCell();
 }
 
 bool MainWindow::commandOnImage() const {
   if (commandContextSnapshotActive_) {
     return commandContextSnapshot_.onImage;
   }
-  return !backend_->isSourceMode() && renderCommands_.isOnImage();
+  return !tab_->backend->isSourceMode() && tab_->renderCommands.isOnImage();
 }
 
 bool MainWindow::commandOnLocalImage() const {
@@ -91,27 +91,27 @@ bool MainWindow::commandOnLocalImage() const {
   if (!commandOnImage()) {
     return false;
   }
-  const QString src = renderCommands_.imageSrcAtCursor();
+  const QString src = tab_->renderCommands.imageSrcAtCursor();
   return !src.isEmpty() && QFileInfo(src).isFile();
 }
 
 MainWindow::CommandContextSnapshot MainWindow::captureCommandContext() const {
   CommandContextSnapshot snapshot;
-  const bool sourceMode = backend_->isSourceMode();
-  snapshot.hasCursor = sourceMode || editorController_.selection().hasCursor();
+  const bool sourceMode = tab_->backend->isSourceMode();
+  snapshot.hasCursor = sourceMode || tab_->editorController.selection().hasCursor();
   snapshot.hasSelection = sourceMode
-      ? editor_->hasSelection()
-      : snapshot.hasCursor && !editorController_.selection().selection().isCollapsed();
+      ? tab_->editor->hasSelection()
+      : snapshot.hasCursor && !tab_->editorController.selection().selection().isCollapsed();
   if (sourceMode) {
     return snapshot;
   }
-  snapshot.onEditableParagraph = renderCommands_.isOnEditableParagraphBlock();
-  snapshot.headingLevel = renderCommands_.currentHeadingLevel();
-  snapshot.inlineFormatEnabled = renderCommands_.isInlineFormatEnabled();
-  snapshot.inTableCell = renderCommands_.hasCurrentTableCell();
-  snapshot.onImage = renderCommands_.isOnImage();
+  snapshot.onEditableParagraph = tab_->renderCommands.isOnEditableParagraphBlock();
+  snapshot.headingLevel = tab_->renderCommands.currentHeadingLevel();
+  snapshot.inlineFormatEnabled = tab_->renderCommands.isInlineFormatEnabled();
+  snapshot.inTableCell = tab_->renderCommands.hasCurrentTableCell();
+  snapshot.onImage = tab_->renderCommands.isOnImage();
   if (snapshot.onImage) {
-    const QString src = renderCommands_.imageSrcAtCursor();
+    const QString src = tab_->renderCommands.imageSrcAtCursor();
     snapshot.onLocalImage = !src.isEmpty() && QFileInfo(src).isFile();
   }
   return snapshot;
@@ -172,7 +172,7 @@ void MainWindow::updateFileActions() {
   // The Reopen-with-Encoding submenu is not a registered action; it mirrors file
   // presence directly, as the old procedural updateFileActions did.
   if (reopenEncodingMenu_) {
-    reopenEncodingMenu_->setEnabled(!session_.filePath().isEmpty());
+    reopenEncodingMenu_->setEnabled(!tab_->session.filePath().isEmpty());
   }
 }
 void MainWindow::updateEditActions() { updateActionsForCategory(CommandCategory::Edit); }
@@ -223,7 +223,7 @@ void MainWindow::scheduleEditorStateRefresh() {
   editorStateRefreshScheduled_ = true;
   QTimer::singleShot(0, this, [this] {
     editorStateRefreshScheduled_ = false;
-    updateBlockSourceLabel(editorController_.selection().currentHit());
+    updateBlockSourceLabel(tab_->editorController.selection().currentHit());
     updateStatus();
     updateContextActions();
   });

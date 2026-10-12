@@ -280,13 +280,21 @@ bool muffin::FileController::newFile(DocumentSession& session, QWidget* parent) 
   return true;
 }
 
+QString muffin::FileController::chooseOpenPath(QWidget* parent) const {
+  return QFileDialog::getOpenFileName(
+      parent,
+      tr("Open"),
+      QString(),
+      tr("Markdown and text files (*.md *.markdown *.mdown *.txt);;All files (*.*)"));
+}
+
+void muffin::FileController::setPathAvailableCheck(std::function<bool(const QString&)> check) {
+  pathAvailableCheck_ = std::move(check);
+}
+
 bool muffin::FileController::open(DocumentSession& session, QWidget* parent, QString path) {
   if (path.isEmpty()) {
-    path = QFileDialog::getOpenFileName(
-        parent,
-        tr("Open"),
-        QString(),
-        tr("Markdown and text files (*.md *.markdown *.mdown *.txt);;All files (*.*)"));
+    path = chooseOpenPath(parent);
   }
   if (path.isEmpty()) {
     return false;
@@ -395,6 +403,9 @@ muffin::SaveOutcome muffin::FileController::saveAs(DocumentSession& session, QWi
       startingPath,
       tr("Markdown files (*.md *.markdown);;Text files (*.txt);;All files (*.*)"));
   if (path.isEmpty()) {
+    return SaveOutcome::Failed;
+  }
+  if (pathAvailableCheck_ && !pathAvailableCheck_(path)) {
     return SaveOutcome::Failed;
   }
   TextFileFormat format = session.fileFormat();
@@ -618,6 +629,9 @@ bool muffin::FileController::moveTo(DocumentSession& session, QWidget* parent) {
       session.filePath(),
       tr("Markdown files (*.md);;Text files (*.txt);;All files (*.*)"));
   if (newPath.isEmpty() || newPath == session.filePath()) {
+    return false;
+  }
+  if (pathAvailableCheck_ && !pathAvailableCheck_(newPath)) {
     return false;
   }
 

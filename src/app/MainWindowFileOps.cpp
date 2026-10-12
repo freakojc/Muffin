@@ -40,6 +40,8 @@
 #include <QStatusBar>
 #include <QStyle>
 #include <QTimer>
+#include <QTabWidget>
+#include <QScopedValueRollback>
 #include <QUrl>
 #include <QVariant>
 #include <QVBoxLayout>
@@ -332,11 +334,11 @@ void muffin::MainWindow::restoreStartupFile() {
 }
 
 void muffin::MainWindow::showDocumentProperties() {
-  if (session_.filePath().isEmpty()) {
+  if (tab_->session.filePath().isEmpty()) {
     return;
   }
 
-  const QFileInfo info(session_.filePath());
+  const QFileInfo info(tab_->session.filePath());
   const QString message = tr(
       "Name: %1\n"
       "Location: %2\n"
@@ -349,8 +351,8 @@ void muffin::MainWindow::showDocumentProperties() {
                                   QDir::toNativeSeparators(info.absolutePath()),
                                   QString::number(info.size()),
                                   QLocale().toString(info.lastModified(), QLocale::ShortFormat),
-                                  QString::number(text_stats::countWords(session_.markdownText())),
-                                  QString::number(session_.lastParseElapsedMs()));
+                                  QString::number(text_stats::countWords(tab_->session.markdownText())),
+                                  QString::number(tab_->session.lastParseElapsedMs()));
   QMessageBox::information(this, tr("Properties"), message);
 }
 
@@ -436,62 +438,62 @@ void muffin::MainWindow::showPreferences() {
   // spell-check note in MainWindowSignalBinder.cpp). setParseOptions is a no-op when the parse
   // options are unchanged; refreshVisibleBlocks picks up layout-only changes (e.g. codeBlockWrap)
   // without a re-parse.
-  session_.setParseOptions(markdownParseOptions());
-  if (renderView_) {
-    renderView_->refreshVisibleBlocks(session_.document());
+  for (DocumentTab* document : documentTabs()) {
+    document->session.setParseOptions(markdownParseOptions());
+    document->renderView->refreshVisibleBlocks(document->session.document());
   }
 }
 
 void muffin::MainWindow::revealCurrentFile() {
-  if (session_.filePath().isEmpty()) {
+  if (tab_->session.filePath().isEmpty()) {
     return;
   }
-  revealPathInManager(session_.filePath());
+  revealPathInManager(tab_->session.filePath());
 }
 
 bool muffin::MainWindow::saveCurrentDocument() {
-  if (fileController_.save(session_, this) == SaveOutcome::Saved) {
-    addRecentFile(session_.filePath());
-    drafts_.markClean(session_.filePath(), draftKey_);
+  if (tab_->fileController.save(tab_->session, this) == SaveOutcome::Saved) {
+    addRecentFile(tab_->session.filePath());
+    drafts_.markClean(tab_->session.filePath(), tab_->draftKey);
     return true;
   }
   return false;
 }
 
-int muffin::MainWindow::draftSnapshotIntervalMs() const {
-  return qMax(3000, static_cast<int>(session_.markdownText().size() / 2048));
+int muffin::MainWindow::draftSnapshotIntervalMs(const DocumentTab* tab) const {
+  return qMax(3000, static_cast<int>(tab->session.markdownText().size() / 2048));
 }
 
-void muffin::MainWindow::performAutoSave() {
+void muffin::MainWindow::performAutoSave(DocumentTab* tab) {
   // Silent write of a pathed, modified document when files/autoSave is on. Untitled
   // documents (no filePath) are handled by draft-recovery snapshots, not here.
   QSettings settings;
   if (!settings.value(QStringLiteral("files/autoSave"), false).toBool()) {
     return;
   }
-  if (session_.filePath().isEmpty() || !session_.document().isModified()) {
+  if (tab->session.filePath().isEmpty() || !tab->session.document().isModified()) {
     return;
   }
-  const SaveOutcome outcome = fileController_.save(session_, this);
+  const SaveOutcome outcome = tab->fileController.save(tab->session, this);
   if (outcome == SaveOutcome::Saved) {
-    drafts_.markClean(session_.filePath(), draftKey_);
+    drafts_.markClean(tab->session.filePath(), tab->draftKey);
   } else if (outcome == SaveOutcome::SkippedBusy) {
-    autoSaveTimer_->start();  // async parse still in flight — retry once it settles
+    tab->autoSaveTimer->start();  // async parse still in flight — retry once it settles
   }
 }
 
-void muffin::MainWindow::snapshotDraft() {
+void muffin::MainWindow::snapshotDraft(DocumentTab* tab) {
   // Persist a recovery snapshot while the document has unsaved content, so a
   // crash or forced exit can be restored on the next launch. Cleared on save.
-  if (!session_.document().isModified()) {
+  if (!tab->session.document().isModified()) {
     return;
   }
   // Gate by revision (not a full-text compare) so the heartbeat is cheap when idle, and snapshot
   // only when content actually changed. snapshot() takes the text by const-ref and does the UTF-8
   // encode + sync write internally — no 50MB copy/compare here on every fire.
-  const quint64 revision = session_.document().revision();
-  if (revision != lastDraftSnapshotRevision_ && drafts_.snapshotSession(session_, draftKey_)) {
-    lastDraftSnapshotRevision_ = revision;
+  const quint64 revision = tab->session.document().revision();
+  if (revision != tab->lastDraftSnapshotRevision && drafts_.snapshotSession(tab->session, tab->draftKey)) {
+    tab->lastDraftSnapshotRevision = revision;
   }
   // Heartbeat: re-arm for as long as the document stays dirty. modifiedChanged
   // only fires on the clean↔dirty transition, so without this re-arm a single
@@ -499,7 +501,7 @@ void muffin::MainWindow::snapshotDraft() {
   // leaving everything typed afterwards unrecoverable. The revision check above
   // keeps the heartbeat's cost to a revision read when the user pauses. The
   // interval scales with document size so the encode+write doesn't hitch typing.
-  draftTimer_->start(draftSnapshotIntervalMs());
+  tab->draftTimer->start(draftSnapshotIntervalMs(tab));
 }
 
 bool muffin::MainWindow::offerDraftRecovery() {
@@ -524,8 +526,7 @@ bool muffin::MainWindow::offerDraftRecovery() {
 
   auto* list = new QListWidget(&dialog);
   list->setAccessibleName(tr("Unsaved Drafts Found"));
-  // Single selection: Muffin is a single-document window, so only one draft can
-  // be the active document. Leftover drafts stay on disk for the next launch.
+  // Restore one selected draft at a time; the others remain available for later recovery.
   list->setSelectionMode(QAbstractItemView::SingleSelection);
   for (const DraftRecovery::PendingDraft& d : drafts) {
     const QString time = QDateTime::fromMSecsSinceEpoch(d.timestamp)
@@ -577,28 +578,28 @@ bool muffin::MainWindow::restoreDraft(const DraftRecovery::PendingDraft& draft) 
   if (!loaded) {
     return false;
   }
-  if (!draft.sourcePath.isEmpty() && QFileInfo(draft.sourcePath).isFile()) {
+  if (!draft.sourcePath.isEmpty() && QFileInfo(draft.sourcePath).isFile() && !isPathOpen(draft.sourcePath)) {
     // Reopen the on-disk file (restores path and undo history), then overlay the
     // recovered content and mark it modified — the recovered text is the newer version.
     if (!openFile(draft.sourcePath)) {
       return false;
     }
-    session_.setMarkdownText(content, true);
+    tab_->session.setMarkdownText(content, true);
   } else {
     // Untitled draft, or the source file no longer exists: load into a new untitled doc.
     if (!startNewDocument()) {
       return false;
     }
-    session_.setMarkdownText(content, true);
+    tab_->session.setMarkdownText(content, true);
   }
-  draftKey_ = draft.key;
+  tab_->draftKey = draft.key;
   // The restored draft becomes the active document; its key is reused by the next
   // snapshot, so we don't discard here.
   return true;
 }
 
 bool muffin::MainWindow::isDocumentModified() const {
-  return session_.document().isModified();
+  return tab_->session.document().isModified();
 }
 
 // ---- Quick Open -----------------------------------------------------------
@@ -608,7 +609,7 @@ QStringList muffin::MainWindow::quickOpenCandidates() const {
 
   // When a file is open, also surface its sibling Markdown/text files so the
   // picker doubles as a workspace switcher for the current folder.
-  const QString current = session_.filePath();
+  const QString current = tab_->session.filePath();
   if (!current.isEmpty()) {
     const QString dir = QFileInfo(current).absolutePath();
     const QStringList entries = QDir(dir).entryList(
@@ -650,7 +651,7 @@ void muffin::MainWindow::quickOpen() {
 // ---- Import (Pandoc → markdown) -------------------------------------------
 
 void muffin::MainWindow::importFile() {
-  const QString dir = session_.filePath().isEmpty() ? QString() : QFileInfo(session_.filePath()).absolutePath();
+  const QString dir = tab_->session.filePath().isEmpty() ? QString() : QFileInfo(tab_->session.filePath()).absolutePath();
   const QString sourcePath = QFileDialog::getOpenFileName(
       this, tr("Import"), dir,
       tr("Word (*.docx);;OpenDocument (*.odt);;RTF (*.rtf);;EPUB (*.epub);;HTML (*.html *.htm);;"
@@ -685,10 +686,10 @@ void muffin::MainWindow::importFile() {
     return;
   }
 
-  if (!startNewDocument()) {  // confirms discarding unsaved work first
+  if (!startNewDocument()) {
     return;
   }
-  session_.setMarkdownText(QString::fromUtf8(result.out), true);  // imported content is unsaved
+  tab_->session.setMarkdownText(QString::fromUtf8(result.out), true);  // imported content is unsaved
   statusBar()->showMessage(tr("Imported %1").arg(QFileInfo(sourcePath).fileName()), 4000);
 }
 
@@ -772,13 +773,13 @@ bool writeExportBytes(const QString& path, const QByteArray& bytes, QString* err
 }  // namespace
 
 void muffin::MainWindow::exportAs(ExportFormat format) {
-  const QString markdown = session_.markdownText().toString();
+  const QString markdown = tab_->session.markdownText().toString();
   if (markdown.trimmed().isEmpty()) {
     statusBar()->showMessage(tr("Nothing to export"), 4000);
     return;
   }
 
-  const QString sourcePath = session_.filePath();
+  const QString sourcePath = tab_->session.filePath();
   const QString baseName = sourcePath.isEmpty() ? tr("Untitled") : QFileInfo(sourcePath).completeBaseName();
   const QString ext = exportExtension(format);
   const QString suggestedPath = QDir(exportSuggestedDir(sourcePath)).absoluteFilePath(baseName + ext);
@@ -950,30 +951,30 @@ void muffin::MainWindow::buildReopenEncodingMenu() {
 }
 
 void muffin::MainWindow::reopenWithEncoding(const QString& encodingName) {
-  if (session_.filePath().isEmpty()) {
+  if (tab_->session.filePath().isEmpty()) {
     return;
   }
 
-  if (fileController_.reopenWithEncoding(session_, this, encodingName)) {
-    editorController_.clearHistoryAndSelection();
+  if (tab_->fileController.reopenWithEncoding(tab_->session, this, encodingName)) {
+    tab_->editorController.clearHistoryAndSelection();
   }
 }
 
 void muffin::MainWindow::moveToFile() {
-  if (session_.filePath().isEmpty()) {
+  if (tab_->session.filePath().isEmpty()) {
     return;
   }
 
-  const QString oldPath = session_.filePath();
-  if (!fileController_.moveTo(session_, this)) {
+  const QString oldPath = tab_->session.filePath();
+  if (!tab_->fileController.moveTo(tab_->session, this)) {
     return;
   }
 
   QStringList recent = recentFiles();
   recent.removeAll(QFileInfo(oldPath).absoluteFilePath());
   setRecentFiles(recent);
-  addRecentFile(session_.filePath());
-  editorController_.clearHistoryAndSelection();
+  addRecentFile(tab_->session.filePath());
+  tab_->editorController.clearHistoryAndSelection();
 }
 
 void muffin::MainWindow::saveAllOpenFiles() {
@@ -985,13 +986,20 @@ void muffin::MainWindow::saveAllOpenFiles() {
     if (!window) {
       continue;
     }
-    if (window->isDocumentModified()) {
+    DocumentTab* original = window->tab_;
+    const QScopedValueRollback<bool> switchGuard(window->suppressSaveOnTabSwitch_, true);
+    for (DocumentTab* document : window->documentTabs()) {
+      if (!document->session.document().isModified()) {
+        continue;
+      }
+      window->tabs_->setCurrentWidget(document);
       if (window->saveCurrentDocument()) {
         ++savedCount;
       } else {
         ++failedCount;
       }
     }
+    window->tabs_->setCurrentWidget(original);
   }
 
   if (failedCount > 0) {
@@ -1003,21 +1011,21 @@ void muffin::MainWindow::saveAllOpenFiles() {
 }
 
 void muffin::MainWindow::showInSidebar() {
-  if (session_.filePath().isEmpty()) {
+  if (tab_->session.filePath().isEmpty()) {
     return;
   }
   setSidebarPanel(SidebarWidget::Panel::Files);
   sidebar_->setCurrentDocument(
-      session_.displayName(), session_.filePath(),
-      session_.document().isModified());
+      tab_->session.displayName(), tab_->session.filePath(),
+      tab_->session.document().isModified());
 }
 
 void muffin::MainWindow::deleteFile() {
-  if (session_.filePath().isEmpty()) {
+  if (tab_->session.filePath().isEmpty()) {
     return;
   }
 
-  const QString filePath = session_.filePath();
+  const QString filePath = tab_->session.filePath();
   const QString fileName = QFileInfo(filePath).fileName();
 
   const QMessageBox::StandardButton confirm = QMessageBox::warning(
@@ -1032,7 +1040,7 @@ void muffin::MainWindow::deleteFile() {
     return;
   }
 
-  if (session_.document().isModified()) {
+  if (tab_->session.document().isModified()) {
     const QMessageBox::StandardButton unsaved = QMessageBox::warning(
         this, tr("Muffin"), tr("The current document has unsaved changes."),
         QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
@@ -1067,9 +1075,9 @@ void muffin::MainWindow::deleteFile() {
     }
   }
 
-  drafts_.markClean(filePath, draftKey_);
-  session_.document().setModified(false);
-  startNewDocument();
+  drafts_.markClean(filePath, tab_->draftKey);
+  tab_->session.document().setModified(false);
+  closeTab(tabs_->indexOf(tab_));
 
   QStringList recent = recentFiles();
   recent.removeAll(QFileInfo(filePath).absoluteFilePath());
@@ -1080,7 +1088,7 @@ void muffin::MainWindow::deleteFile() {
 // ---- Sidebar file-tree context menu operations ------------------------------
 //
 // These act on arbitrary paths (the file/dir under the right-click), unlike the
-// commands above which operate on session_.filePath(). The filesystem work lives
+// commands above which operate on tab_->session.filePath(). The filesystem work lives
 // in FilePathOps; here we only prompt + integrate with the editor/sidebar.
 
 void muffin::MainWindow::openFolderAtPath(QString path) {
@@ -1197,10 +1205,6 @@ void muffin::MainWindow::onInlineCommit(muffin::InlineEditContext ctx, const QSt
       ? FilePathOps::normalizeMarkdownFileName(trimmed) : trimmed;
   const QString oldName = QFileInfo(ctx.oldPath).fileName();
   const QString newPath = QDir(QFileInfo(ctx.oldPath).absolutePath()).filePath(normalized);
-  const QString previousDocumentPath = session_.filePath();
-  const QString remappedDocumentPath = ctx.isFolder
-      ? FilePathOps::remapDescendant(previousDocumentPath, ctx.oldPath, newPath)
-      : (ctx.oldPath == previousDocumentPath ? newPath : previousDocumentPath);
   if (normalized != oldName) {
     QString error;
     if (!FilePathOps::renamePath(ctx.oldPath, newPath, &error)) {
@@ -1222,18 +1226,23 @@ void muffin::MainWindow::onInlineCommit(muffin::InlineEditContext ctx, const QSt
   if (sidebar_) {
     sidebar_->setCurrentPath(newPath);
   }
-  if (remappedDocumentPath != previousDocumentPath) {
+  for (DocumentTab* document : documentTabs()) {
+    const QString previousDocumentPath = document->session.filePath();
+    const QString remappedDocumentPath = ctx.isFolder
+        ? FilePathOps::remapDescendant(previousDocumentPath, ctx.oldPath, newPath)
+        : (ctx.oldPath == previousDocumentPath ? newPath : previousDocumentPath);
+    if (remappedDocumentPath == previousDocumentPath) {
+      continue;
+    }
     const QString oldAbs = QFileInfo(previousDocumentPath).absoluteFilePath();
-    session_.setFilePath(remappedDocumentPath);
-    session_.recordFileBaseline();
-    updateTitle();
-    refreshSidebarDocumentInfo();
+    document->session.setFilePath(remappedDocumentPath);
+    document->session.recordFileBaseline();
     addRecentFile(remappedDocumentPath);
     QStringList recent = recentFiles();
     recent.removeAll(oldAbs);
     setRecentFiles(recent);
-    rebuildRecentFilesMenu();
   }
+  rebuildRecentFilesMenu();
 }
 
 // Cancel a pending new-item create: the user pressed Escape or submitted an empty name, so
@@ -1277,15 +1286,20 @@ void muffin::MainWindow::deletePath(QString path) {
     return;
   }
 
-  const bool deletesCurrentDocument = FilePathOps::isSameOrDescendant(session_.filePath(), path);
-  if (deletesCurrentDocument && session_.document().isModified()) {
-    const QMessageBox::StandardButton unsaved = QMessageBox::warning(
-        this, tr("Muffin"), tr("The current document has unsaved changes."),
-        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
-        QMessageBox::Save);
-    if (unsaved == QMessageBox::Cancel) { return; }
-    if (unsaved == QMessageBox::Save && !saveCurrentDocument()) { return; }
+  QList<DocumentTab*> affected;
+  const QScopedValueRollback<bool> switchGuard(suppressSaveOnTabSwitch_, true);
+  DocumentTab* original = tab_;
+  for (DocumentTab* document : documentTabs()) {
+    if (FilePathOps::isSameOrDescendant(document->session.filePath(), path)) {
+      affected.append(document);
+      tabs_->setCurrentWidget(document);
+      if (!maybeSaveChanges()) {
+        tabs_->setCurrentWidget(original);
+        return;
+      }
+    }
   }
+  tabs_->setCurrentWidget(original);
 
   QString error;
   bool removed = FilePathOps::moveToTrash(path, &error);
@@ -1305,13 +1319,10 @@ void muffin::MainWindow::deletePath(QString path) {
     return;
   }
 
-  // If the deleted entry was the open document, reset it without a discard
-  // prompt (the file is gone) and clear its draft. Drop it from recents either way.
-  if (deletesCurrentDocument) {
-    const QString currentPath = session_.filePath();
-    session_.document().setModified(false);
-    drafts_.markClean(currentPath, draftKey_);
-    startNewDocument();
+  for (DocumentTab* document : affected) {
+    document->session.document().setModified(false);
+    drafts_.markClean(document->session.filePath(), document->draftKey);
+    closeTab(tabs_->indexOf(document));
   }
   QStringList recent = recentFiles();
   recent.erase(std::remove_if(recent.begin(), recent.end(), [&path](const QString& item) {
@@ -1367,7 +1378,7 @@ QString muffin::MainWindow::defaultUntitledSuggestion() const {
 }
 
 bool muffin::MainWindow::maybeSaveChanges() {
-  if (!session_.document().isModified()) {
+  if (!tab_->session.document().isModified()) {
     return true;
   }
 
@@ -1382,10 +1393,10 @@ bool muffin::MainWindow::maybeSaveChanges() {
     return false;
   }
   if (choice == QMessageBox::Save) {
-    return fileController_.save(session_, this) == SaveOutcome::Saved;  // save() emits documentBecameClean.
+    return tab_->fileController.save(tab_->session, this) == SaveOutcome::Saved;  // save() emits documentBecameClean.
   }
   // Discard: the user explicitly abandoned the unsaved work — drop its recovery
   // draft so the next launch doesn't offer to restore what was just thrown away.
-  drafts_.markClean(session_.filePath(), draftKey_);
+  drafts_.markClean(tab_->session.filePath(), tab_->draftKey);
   return true;
 }

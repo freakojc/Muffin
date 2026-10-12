@@ -431,6 +431,23 @@ qsizetype InlineLayout::hitTestSourceOffset(QPointF localPos) const {
   }
   qsizetype sourceOffset = -1;
   if (projection_.sourceOffsetForDisplayOffset(projPosition, hit.bias, sourceOffset)) {
+    if (hit.bias == InlineProjectionBias::Backward) {
+      for (const auto& span : projection_.spans()) {
+        if (span.type != InlineType::LineBreak || projPosition != span.displayStart) continue;
+        const QString source = projection_.sourceText();
+        qsizetype markerStart = span.sourceStart;
+        // cmark can include hard-break markers in the preceding text node's
+        // source range, even though they are absent from its displayed text.
+        if (markerStart < source.size() && source.at(markerStart) == QLatin1Char('\n')) {
+          qsizetype spacesStart = markerStart;
+          while (spacesStart > 0 && source.at(spacesStart - 1) == QLatin1Char(' ')) --spacesStart;
+          if (markerStart - spacesStart >= 2) markerStart = spacesStart;
+          else if (markerStart > 0 && source.at(markerStart - 1) == QLatin1Char('\\')) --markerStart;
+        }
+        sourceOffset = qMin(sourceOffset, markerStart);
+        break;
+      }
+    }
     return sourceOffset;
   }
   return visibleOffsetForDisplayOffset(position);
@@ -1966,7 +1983,17 @@ InlineLayout::TextLayoutPointHit InlineLayout::textLayoutHitForPoint(QPointF loc
   if (targetLine.isValid()) {
     const TextLine line = targetLine;
     const int lineStart = line.textStart();
-    const int lineEnd = lineStart + line.textLength();
+    const int lineTextEnd = lineStart + line.textLength();
+    int lineEnd = lineTextEnd;
+    // Qt includes the line separator in textLength(). A click after the ink
+    // belongs before that separator; including it places the caret at the
+    // next line's start once its geometry is rebuilt from the source offset.
+    if (lineEnd > lineStart && textLayout_->text().at(lineEnd - 1) == QChar::LineSeparator) {
+      --lineEnd;
+    }
+    // Stay on the preceding text side of a hard break's hidden syntax (two
+    // spaces or a backslash), so typing does not consume its markers.
+    const auto lineEndBias = lineEnd < lineTextEnd ? InlineProjectionBias::Backward : InlineProjectionBias::Forward;
     if (lineEnd <= lineStart) {
       hit.displayOffset = composition_.toDisplayOffset(lineStart);
       hit.bias = InlineProjectionBias::Backward;
@@ -1981,7 +2008,7 @@ InlineLayout::TextLayoutPointHit InlineLayout::textLayoutHitForPoint(QPointF loc
     }
     if (localPos.x() >= line.cursorToX(lineEnd)) {
       hit.displayOffset = composition_.toDisplayOffset(lineEnd);
-      hit.bias = InlineProjectionBias::Forward;
+      hit.bias = lineEndBias;
       hit.cursorRect = QRectF(line.cursorToX(lineEnd), line.y(), 1.0, line.height());
       return hit;
     }
@@ -1998,13 +2025,13 @@ InlineLayout::TextLayoutPointHit InlineLayout::textLayoutHitForPoint(QPointF loc
       }
       if (localPos.x() < right) {
         hit.displayOffset = composition_.toDisplayOffset(offset + 1);
-        hit.bias = InlineProjectionBias::Forward;
+        hit.bias = offset + 1 == lineEnd ? lineEndBias : InlineProjectionBias::Forward;
         hit.cursorRect = QRectF(line.cursorToX(offset + 1), line.y(), 1.0, line.height());
         return hit;
       }
     }
     hit.displayOffset = composition_.toDisplayOffset(lineEnd);
-    hit.bias = InlineProjectionBias::Forward;
+    hit.bias = lineEndBias;
     hit.cursorRect = QRectF(line.cursorToX(lineEnd), line.y(), 1.0, line.height());
     return hit;
   }

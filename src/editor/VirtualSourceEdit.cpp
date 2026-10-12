@@ -1043,8 +1043,15 @@ bool VirtualSourceEdit::isReadOnly() const { return readOnly_; }
 
 void VirtualSourceEdit::resizeEvent(QResizeEvent* event) {
   QAbstractScrollArea::resizeEvent(event);
-  resetGeometryIndex(true);
-  ensureCursorVisible();
+  if (event->size().width() != event->oldSize().width()) {
+    resetGeometryIndex(true);
+    ensureCursorVisible();
+  } else {
+    // Showing or hiding window chrome changes height without rewrapping text.
+    // Keep the reader's scroll position even when the caret is off screen.
+    updateScrollBars();
+    viewport()->update();
+  }
 }
 
 void VirtualSourceEdit::keyPressEvent(QKeyEvent* event) {

@@ -7,6 +7,54 @@
 
 using namespace muffin;
 
+void testClickAfterTextStopsBeforeLineBreak() {
+  SettingsOverride singleNewline("markdown/breakOnSingleNewline", true);
+  const QString first = QStringLiteral("Markdown paragraphs are separated by blank lines. Soft line breaks normally stay inside the same paragraph.");
+  const QString second = QStringLiteral("This line follows a soft break.");
+  for (const QString& separator : {QStringLiteral("\n"), QStringLiteral("  \n"), QStringLiteral("\\\n")}) {
+    DocumentSession session;
+    EditorController controller;
+    EditorView view;
+    controller.attach(&session, &view);
+    view.resize(700, 400);
+    view.show();
+    session.setMarkdownText(first + separator + second + QStringLiteral("\n\nNext paragraph."), false);
+    view.setDocument(session.document());
+    QApplication::processEvents();
+    MarkdownNode* paragraph = blockAt(session, 0);
+    SelectionRange selected;
+    selected.anchor.blockId = selected.focus.blockId = paragraph->id();
+    selected.anchor.text.nodeId = selected.focus.text.nodeId = paragraph->id();
+    selected.anchor.text.textOffset = selected.anchor.text.sourceOffset = 0;
+    selected.focus.text.textOffset = selected.focus.text.sourceOffset = first.size();
+    controller.selection().setSelection(selected);
+    const auto* block = view.blockLayoutForNode(paragraph->id());
+    const auto* text = block->inlineLayout();
+    require(text->visualLineCount() >= 3, "first source line wraps before the following source line");
+    const qsizetype nextLineStart = first.size() + separator.size();
+    const QRectF nextLine = text->cursorRectForSourceOffset(nextLineStart).translated(block->inlineTextOrigin());
+    const auto nextLineHit = view.hitTest(view.mapDocumentToViewport(nextLine.center()));
+    require(nextLineHit.sourceOffset == nextLineStart, "clicking the following row still reaches its first character");
+    const QRectF lineEnd = text->cursorRectForSourceOffset(first.size()).translated(block->inlineTextOrigin());
+    const QPointF point = view.mapDocumentToViewport(QPointF(lineEnd.left() + 90, lineEnd.center().y()));
+    const auto hit = view.hitTest(point);
+    require(hit.sourceOffset == first.size(),
+            QStringLiteral("line-end click before break %1: source=%2 expected=%3 caretY=%4 expectedY=%5")
+                .arg(separator.toHtmlEscaped()).arg(hit.sourceOffset).arg(first.size()).arg(hit.cursorRect.top()).arg(lineEnd.top()));
+    require(qAbs(hit.cursorRect.top() - lineEnd.top()) < 0.01, "hit caret stays on the clicked row");
+    const auto restored = view.hitForCursorPosition(hit.cursorPosition());
+    require(qAbs(restored.cursorRect.top() - lineEnd.top()) < 0.01, "restoring the clicked caret must not jump to the next row");
+    QMouseEvent press(QEvent::MouseButtonPress, point, point, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    QApplication::sendEvent(view.viewport(), &press);
+    QMouseEvent release(QEvent::MouseButtonRelease, point, point, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    QApplication::sendEvent(view.viewport(), &release);
+    require(controller.selection().selection().isCollapsed(), "line-end click clears the old selection");
+    require(controller.inputController().insertText(QStringLiteral("!")), "typing at clicked line end succeeds");
+    require(session.markdownText().toString() == first + QStringLiteral("!") + separator + second + QStringLiteral("\n\nNext paragraph."),
+            "typing after line-end click appends to the clicked line and preserves its break");
+  }
+}
+
 void testCrossBlockClickPreservesScreenPosition() {
   DocumentSession session;
   EditorController controller;
@@ -960,6 +1008,7 @@ int main(int argc, char** argv) {
   QCoreApplication::setOrganizationName(QStringLiteral("MuffinTest"));
   QCoreApplication::setApplicationName(QStringLiteral("EditorViewHitTestTest"));
 #define RUN_TEST(test) runTest(#test, test)
+  RUN_TEST(testClickAfterTextStopsBeforeLineBreak);
   RUN_TEST(testCssContentOriginSharedByHitCursorAndSelection);
   RUN_TEST(testCrossBlockClickPreservesScreenPosition);
   RUN_TEST(testGapClickBelowNonLastBlockIsNotTrailingBlockAfter);
