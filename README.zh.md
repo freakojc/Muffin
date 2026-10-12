@@ -43,7 +43,7 @@ Muffin 将原生 C++/Qt 编辑器与完整、可编辑的 Markdown 运行时结�
 | 懒加载／增量文档布局 | ✅ | ◐ | ◐ | — | — | — |
 | 全链路 CSS 主题 | ✅ | ◐ JSONC 令牌 | ◐ 主题系统 | — | — | — |
 | 原生 Mermaid 图表 | **38 种 ID** | — | **11 种 ID** | — | — | — |
-| 原生数学块 | **KaTeX 兼容** | — | — | — | — | — |
+| 数学块／渲染器 | **原生 C++／兼容 KaTeX** | **原生 Rust／RaTeX** | —（计划中） | MathJax | KaTeX | MathJax |
 | 导出 | PDF、HTML、Pandoc 格式 | HTML、PDF | HTML、PDF | PDF、HTML | HTML、PDF | HTML、PDF |
 | 大文件 | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
 

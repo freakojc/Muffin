@@ -43,7 +43,7 @@ Muffin combines a native C++/Qt editor with a broad, fully editable Markdown run
 | Lazy / incremental document layout | ✅ | ◐ | ◐ | — | — | — |
 | End-to-end CSS themes | ✅ | ◐ JSONC tokens | ◐ themes | — | — | — |
 | Native Mermaid diagrams | **38 IDs** | — | **11 IDs** | — | — | — |
-| Native math blocks | **KaTeX-compatible** | — | — | — | — | — |
+| Math blocks / renderer | **Native C++ / KaTeX-compatible** | **Native Rust / RaTeX** | — (planned) | MathJax | KaTeX | MathJax |
 | Export | PDF, HTML, Pandoc formats | HTML, PDF | HTML, PDF | PDF, HTML | HTML, PDF | HTML, PDF |
 | Large files | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
 
