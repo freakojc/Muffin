@@ -156,7 +156,13 @@ void testRightClickAndInlineRenameDoNotToggleFolder() {
 }  // namespace
 
 int main(int argc, char** argv) {
-  if (qgetenv("QT_QPA_PLATFORM").isEmpty()) qputenv("QT_QPA_PLATFORM", "offscreen");
+  if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+#ifdef Q_OS_MACOS
+    qputenv("QT_QPA_PLATFORM", "cocoa");
+#else
+    qputenv("QT_QPA_PLATFORM", "offscreen");
+#endif
+  }
   QApplication app(argc, argv);
   runTest("testFolderNameAndRowToggleOnSingleClick", testFolderNameAndRowToggleOnSingleClick);
   runTest("testFolderDoubleClickTogglesOnlyOnce", testFolderDoubleClickTogglesOnlyOnce);

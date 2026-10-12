@@ -162,6 +162,14 @@ jobs:
       - name: Test
         run: ${{ matrix.test-command }}
 
+      - name: Diagnose macOS file-tree integration failures
+        if: failure() && runner.os == 'macOS'
+        shell: bash
+        run: |
+          for test in MuffinDocumentTabsTest MuffinSidebarInteractionTest; do
+            QT_QPA_PLATFORM=cocoa lldb --batch -o run -o 'thread backtrace all' -- "build/Release/$test" || true
+          done
+
       - name: Upload pixel mismatch diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

@@ -434,6 +434,14 @@ muffin_add_test(NAME MuffinDocumentTabsTest SOURCE tests/app/DocumentTabsTest.cp
   RESOURCE_LOCK)
 target_compile_definitions(MuffinDocumentTabsTest PRIVATE MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}")
 muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
+if(APPLE)
+  # File-tree integration requests native macOS file icons, which need Cocoa's
+  # NSApplication. Canvas-only tests retain the shared offscreen environment.
+  foreach(_file_tree_test MuffinDocumentTabsTest MuffinSidebarInteractionTest)
+    set_property(TEST ${_file_tree_test} APPEND PROPERTY ENVIRONMENT_MODIFICATION
+      "QT_QPA_PLATFORM=set:cocoa")
+  endforeach()
+endif()
 muffin_add_test(NAME MuffinTranslationResourceTest SOURCE tests/app/TranslationResourceTest.cpp LINK Qt6::Widgets EXTRA_SOURCES src/translations.qrc RESOURCE_LOCK)
 target_compile_definitions(MuffinTranslationResourceTest PRIVATE MUFFIN_TRANSLATIONS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/translations")
 muffin_add_test(NAME MuffinLanguageIntegrationTest SOURCE tests/app/LanguageIntegrationTest.cpp LINK MuffinUi EXTRA_SOURCES src/app/LanguageManager.cpp src/app/LanguageManager.h src/app/HelpViewerDialog.cpp src/app/HelpViewerDialog.h src/translations.qrc ${MUFFIN_HELP_QRC} RESOURCE_LOCK)

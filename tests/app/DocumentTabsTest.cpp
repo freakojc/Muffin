@@ -61,6 +61,10 @@ struct Fixture {
     require(tabs != nullptr, "document tabs exist");
     window.resize(1000, 700);
     window.show();
+#ifdef Q_OS_MACOS
+    window.activateWindow();
+    require(QTest::qWaitForWindowActive(&window), "native test window becomes active for keyboard shortcuts");
+#endif
     QApplication::processEvents();
   }
 
@@ -432,7 +436,13 @@ void renameFolderAndTranslateTabs() {
 }  // namespace
 
 int main(int argc, char** argv) {
-  qputenv("QT_QPA_PLATFORM", QByteArray("offscreen"));
+  if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+#ifdef Q_OS_MACOS
+    qputenv("QT_QPA_PLATFORM", "cocoa");
+#else
+    qputenv("QT_QPA_PLATFORM", "offscreen");
+#endif
+  }
   QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
   QApplication app(argc, argv);
   installMuffinTestCrashHandler();
