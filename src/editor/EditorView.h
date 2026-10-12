@@ -346,6 +346,8 @@ private:
   // implicit setRange -> clamp -> valueChanged -> scrollContentsBy -> ensureVisibleBuilt cascade
   // cannot re-enter layout and re-promote mid-transaction.
   bool inScrollBuild_ = false;
+  // A checkbox click edits in place, even when the text caret is offscreen.
+  bool togglingTaskCheckbox_ = false;
   bool loading_ = false;  // set by setLoading; paintEvent shows a loading hint while true
   QTimer* loadingTimer_ = nullptr;  // idle-gated: runs only while loading_, advancing loadingPhase_
   QTimer* cursorTimer_ = nullptr;   // caret blink; runs only while focused with a caret, no preedit

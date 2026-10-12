@@ -110,6 +110,9 @@ int EditorView::typewriterScrollTarget(const QRectF& cursor) const {
 }
 
 void EditorView::ensureCursorVisible() {
+  if (togglingTaskCheckbox_) {
+    return;
+  }
   const QRectF cursor = effectiveCursorRect();
   if (cursor.isEmpty() || viewport()->height() <= 0) {
     return;
@@ -132,6 +135,9 @@ void EditorView::ensureCursorVisible() {
 }
 
 void EditorView::scrollToCursorCentered() {
+  if (togglingTaskCheckbox_) {
+    return;
+  }
   const QRectF cursor = effectiveCursorRect();
   if (cursor.isEmpty()) {
     return;
@@ -181,6 +187,9 @@ void EditorView::stopScrollAnimation() {
 }
 
 void EditorView::scrollToCursorCenteredAnimated() {
+  if (togglingTaskCheckbox_) {
+    return;
+  }
   const QRectF cursor = effectiveCursorRect();
   if (cursor.isEmpty()) {
     return;

@@ -37,6 +37,7 @@
 #include <QSet>
 #include <QLoggingCategory>
 #include <QScrollBar>
+#include <QScopedValueRollback>
 #include <QPropertyAnimation>
 #include <QTimer>
 #include <QVector>
@@ -744,6 +745,9 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
       return;
     }
     if (hit.isValid() && hit.taskCheckboxHit) {
+      stopScrollAnimation();
+      const QScopedValueRollback<bool> toggling(togglingTaskCheckbox_, true);
+      const ScopedViewportPin pin(*this);
       emit taskCheckboxToggled(hit.blockId);
       event->accept();
       return;

@@ -273,6 +273,9 @@ void EditorController::attach(DocumentSession* session, EditorView* view) {
     });
     connect(view_, &EditorView::taskCheckboxToggled, this, [this](NodeId blockId) {
       if (paragraphController_.toggleTaskListItem(blockId)) {
+        // Finish layout while the view still preserves the checkbox click's viewport.
+        // A deferred range refresh would otherwise follow the old, possibly offscreen caret.
+        brushQueue_.flush();
         emit stateChanged();
       }
     });
