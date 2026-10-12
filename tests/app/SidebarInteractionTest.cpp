@@ -1,7 +1,6 @@
 #include "app/SidebarWidget.h"
 
 #include "../TestUtils.h"
-#include "FileTreeTestUtils.h"
 
 #include <QApplication>
 #include <QDir>
@@ -10,6 +9,7 @@
 #include <QFileSystemModel>
 #include <QKeyEvent>
 #include <QLineEdit>
+#include <QLocale>
 #include <QMouseEvent>
 #include <QTemporaryDir>
 #include <QThread>
@@ -18,8 +18,6 @@
 using namespace muffin;
 
 namespace {
-
-FileTreeTestIcons* fileIcons = nullptr;
 
 void waitUntil(const std::function<bool()>& ready, const char* message) {
   QElapsedTimer timer;
@@ -61,7 +59,6 @@ struct FileTreeFixture {
 
   FileTreeFixture() {
     require(dir.isValid(), "temporary folder should exist");
-    fileIcons->apply(sidebar);
     require(QDir(dir.path()).mkpath(QStringLiteral("Folder/Nested")), "nested folders should exist");
     QFile file(dir.filePath(QStringLiteral("document.md")));
     require(file.open(QIODevice::WriteOnly), "document fixture should open");
@@ -163,9 +160,10 @@ int main(int argc, char** argv) {
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
+  // Keep QFileSystemModel's hidden size/date columns independent of macOS's
+  // unavailable native locale formatters in noninteractive CTest processes.
+  QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
   QApplication app(argc, argv);
-  FileTreeTestIcons icons(app);
-  fileIcons = &icons;
   runTest("testFolderNameAndRowToggleOnSingleClick", testFolderNameAndRowToggleOnSingleClick);
   runTest("testFolderDoubleClickTogglesOnlyOnce", testFolderDoubleClickTogglesOnlyOnce);
   runTest("testArrowAndNestedFolderClicks", testArrowAndNestedFolderClicks);

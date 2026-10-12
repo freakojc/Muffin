@@ -5,7 +5,6 @@
 #include "editor/VirtualSourceEdit.h"
 
 #include "../TestUtils.h"
-#include "FileTreeTestUtils.h"
 
 #include <QAction>
 #include <QApplication>
@@ -15,6 +14,7 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QLocale>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSettings>
@@ -31,8 +31,6 @@
 using namespace muffin;
 
 namespace {
-
-FileTreeTestIcons* fileIcons = nullptr;
 
 void waitUntil(const std::function<bool()>& ready, const char* message) {
   QElapsedTimer timer;
@@ -62,7 +60,6 @@ struct Fixture {
     require(directory.isValid(), "temporary directory");
     tabs = window.findChild<QTabWidget*>(QStringLiteral("DocumentTabs"));
     require(tabs != nullptr, "document tabs exist");
-    fileIcons->apply(window);
     window.resize(1000, 700);
     window.show();
     QApplication::processEvents();
@@ -442,9 +439,11 @@ int main(int argc, char** argv) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
   QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
+  // QFileSystemModel formats hidden size/date columns during row measurement.
+  // CTest's noninteractive macOS locale can return null native formatters;
+  // use a deterministic Qt locale for this interaction fixture.
+  QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
   QApplication app(argc, argv);
-  FileTreeTestIcons icons(app);
-  fileIcons = &icons;
   installMuffinTestCrashHandler();
   QStandardPaths::setTestModeEnabled(true);
   QApplication::setOrganizationName(QStringLiteral("MuffinTests"));

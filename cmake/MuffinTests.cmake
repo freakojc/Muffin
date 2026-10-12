@@ -430,10 +430,10 @@ get_target_property(_tab_test_app_sources Muffin SOURCES)
 list(FILTER _tab_test_app_sources INCLUDE REGEX "^src/app/.*\\.(cpp|h)$")
 muffin_add_test(NAME MuffinDocumentTabsTest SOURCE tests/app/DocumentTabsTest.cpp LINK MuffinUi
   EXTRA_LINK Qt6::Test Qt6::Svg Qt6::PrintSupport
-  EXTRA_SOURCES ${_tab_test_app_sources} tests/app/FileTreeTestUtils.h src/icons.qrc src/translations.qrc ${MUFFIN_THEMES_QRC} ${MUFFIN_HELP_QRC} ${MUFFIN_EMOJI_QRC}
+  EXTRA_SOURCES ${_tab_test_app_sources} src/icons.qrc src/translations.qrc ${MUFFIN_THEMES_QRC} ${MUFFIN_HELP_QRC} ${MUFFIN_EMOJI_QRC}
   RESOURCE_LOCK)
 target_compile_definitions(MuffinDocumentTabsTest PRIVATE MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}")
-muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES tests/app/FileTreeTestUtils.h ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
+muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
 muffin_add_test(NAME MuffinTranslationResourceTest SOURCE tests/app/TranslationResourceTest.cpp LINK Qt6::Widgets EXTRA_SOURCES src/translations.qrc RESOURCE_LOCK)
 target_compile_definitions(MuffinTranslationResourceTest PRIVATE MUFFIN_TRANSLATIONS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/translations")
 muffin_add_test(NAME MuffinLanguageIntegrationTest SOURCE tests/app/LanguageIntegrationTest.cpp LINK MuffinUi EXTRA_SOURCES src/app/LanguageManager.cpp src/app/LanguageManager.h src/app/HelpViewerDialog.cpp src/app/HelpViewerDialog.h src/translations.qrc ${MUFFIN_HELP_QRC} RESOURCE_LOCK)
