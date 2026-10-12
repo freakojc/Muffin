@@ -152,6 +152,14 @@ jobs:
       - name: Configure
         run: cmake --preset ${{ matrix.configure-preset }}
 
+      - name: Build macOS file-tree integration tests
+        if: runner.os == 'macOS'
+        run: cmake --build --preset conan-release --target MuffinDocumentTabsTest MuffinSidebarInteractionTest
+
+      - name: Test macOS file-tree integration
+        if: runner.os == 'macOS'
+        run: ctest --preset conan-release --verbose -R 'Muffin(DocumentTabs|SidebarInteraction)Test'
+
       - name: Build
         run: cmake --build --preset conan-release
 
@@ -167,7 +175,7 @@ jobs:
         shell: bash
         run: |
           for test in MuffinDocumentTabsTest MuffinSidebarInteractionTest; do
-            QT_QPA_PLATFORM=cocoa lldb --batch -o run -o 'thread backtrace all' -- "build/Release/$test" || true
+            (cd build/Release && QT_FONT_DPI=96 QT_QPA_PLATFORM=cocoa lldb --batch -o run -k 'thread backtrace all' -- "./$test") || true
           done
 
       - name: Upload pixel mismatch diagnostics

@@ -377,7 +377,9 @@ void openFailuresAndConflictingSaveAs() {
     });
     choose.start();
     action(f.window, QStringLiteral("Save As..."))->trigger();
-    require(answer.count == 1 && a->session.document().isModified(), "Save As refuses another open document");
+    require(answer.count == 1 && a->session.document().isModified(),
+            QStringLiteral("Save As refuses another open document (prompts=%1, modified=%2, path=%3)")
+                .arg(answer.count).arg(a->session.document().isModified()).arg(a->session.filePath()));
     require(contents(second) == QStringLiteral("B\n") && b->session.markdownText().toString() == QStringLiteral("B\n"),
             "conflicting Save As preserves both disk and open B");
   }
