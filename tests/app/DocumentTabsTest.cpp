@@ -14,7 +14,6 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QLocale>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSettings>
@@ -439,10 +438,6 @@ int main(int argc, char** argv) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
   QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
-  // QFileSystemModel formats hidden size/date columns during row measurement.
-  // CTest's noninteractive macOS locale can return null native formatters;
-  // use a deterministic Qt locale for this interaction fixture.
-  QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
   QApplication app(argc, argv);
   installMuffinTestCrashHandler();
   QStandardPaths::setTestModeEnabled(true);

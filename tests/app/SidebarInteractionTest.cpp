@@ -9,7 +9,6 @@
 #include <QFileSystemModel>
 #include <QKeyEvent>
 #include <QLineEdit>
-#include <QLocale>
 #include <QMouseEvent>
 #include <QTemporaryDir>
 #include <QThread>
@@ -160,9 +159,6 @@ int main(int argc, char** argv) {
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
-  // Keep QFileSystemModel's hidden size/date columns independent of macOS's
-  // unavailable native locale formatters in noninteractive CTest processes.
-  QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
   QApplication app(argc, argv);
   runTest("testFolderNameAndRowToggleOnSingleClick", testFolderNameAndRowToggleOnSingleClick);
   runTest("testFolderDoubleClickTogglesOnlyOnce", testFolderDoubleClickTogglesOnlyOnce);

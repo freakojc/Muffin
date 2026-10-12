@@ -434,6 +434,15 @@ muffin_add_test(NAME MuffinDocumentTabsTest SOURCE tests/app/DocumentTabsTest.cp
   RESOURCE_LOCK)
 target_compile_definitions(MuffinDocumentTabsTest PRIVATE MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}")
 muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
+if(APPLE)
+  # Conan's ICU 74 archive overrides Apple's ICU data in CoreFoundation.
+  # QFileSystemModel formats hidden size/date columns using QLocale::system(),
+  # whose native formatters cannot initialize against that incompatible data.
+  foreach(_file_tree_test MuffinDocumentTabsTest MuffinSidebarInteractionTest)
+    set_property(TEST ${_file_tree_test} APPEND PROPERTY ENVIRONMENT_MODIFICATION
+      "ICU_DATA=unset:")
+  endforeach()
+endif()
 muffin_add_test(NAME MuffinTranslationResourceTest SOURCE tests/app/TranslationResourceTest.cpp LINK Qt6::Widgets EXTRA_SOURCES src/translations.qrc RESOURCE_LOCK)
 target_compile_definitions(MuffinTranslationResourceTest PRIVATE MUFFIN_TRANSLATIONS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/translations")
 muffin_add_test(NAME MuffinLanguageIntegrationTest SOURCE tests/app/LanguageIntegrationTest.cpp LINK MuffinUi EXTRA_SOURCES src/app/LanguageManager.cpp src/app/LanguageManager.h src/app/HelpViewerDialog.cpp src/app/HelpViewerDialog.h src/translations.qrc ${MUFFIN_HELP_QRC} RESOURCE_LOCK)
