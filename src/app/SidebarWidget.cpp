@@ -225,6 +225,9 @@ void muffin::SidebarWidget::setupFilesPanel() {
   fileTree_->setModel(fileModel_);
   fileTree_->setHeaderHidden(true);
   fileTree_->setAnimated(false);
+  // Folder rows toggle on a single click. Disable Qt's additional double-click
+  // expansion so a double-click cannot immediately reverse the first click.
+  fileTree_->setExpandsOnDoubleClick(false);
   fileTree_->setRootIsDecorated(true);
   fileTree_->setIndentation(14);
   fileTree_->setMouseTracking(true);
@@ -264,12 +267,13 @@ void muffin::SidebarWidget::setupFilesPanel() {
   }
   layout->addWidget(fileTree_, 1);
 
+  connect(fileTree_, &QTreeView::clicked, this, [this](const QModelIndex& index) {
+    if (fileModel_->isDir(index)) {
+      fileTree_->setExpanded(index, !fileTree_->isExpanded(index));
+    }
+  });
   connect(fileTree_, &QTreeView::doubleClicked, this, [this](const QModelIndex& index) {
     const QString path = fileModel_->filePath(index);
-    if (QFileInfo(path).isDir()) {
-      fileTree_->setExpanded(index, !fileTree_->isExpanded(index));
-      return;
-    }
     if (QFileInfo(path).isFile()) {
       emit fileOpenRequested(path);
     }

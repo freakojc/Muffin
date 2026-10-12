@@ -424,6 +424,7 @@ muffin_add_test(NAME MuffinBlockTableUndoTest      SOURCE tests/blocks/BlockTabl
 muffin_add_test(NAME MuffinBlockCodeFrontMatterTest SOURCE tests/blocks/BlockCodeFrontMatterTest.cpp LINK MuffinUi RESOURCE_LOCK)
 
 # --- app ---
+muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
 muffin_add_test(NAME MuffinTranslationResourceTest SOURCE tests/app/TranslationResourceTest.cpp LINK Qt6::Widgets EXTRA_SOURCES src/translations.qrc RESOURCE_LOCK)
 target_compile_definitions(MuffinTranslationResourceTest PRIVATE MUFFIN_TRANSLATIONS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/translations")
 muffin_add_test(NAME MuffinLanguageIntegrationTest SOURCE tests/app/LanguageIntegrationTest.cpp LINK MuffinUi EXTRA_SOURCES src/app/LanguageManager.cpp src/app/LanguageManager.h src/app/HelpViewerDialog.cpp src/app/HelpViewerDialog.h src/translations.qrc ${MUFFIN_HELP_QRC} RESOURCE_LOCK)
