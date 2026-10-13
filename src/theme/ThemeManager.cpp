@@ -3,6 +3,7 @@
 #include "theme/CssThemeParser.h"
 
 #include <QDir>
+#include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
@@ -16,10 +17,42 @@ namespace muffin {
 
 namespace {
 
-// User-supplied custom themes live here as *.json (one per file, id = file stem).
-// Created on demand when the user imports a theme.
-QString userThemesDir() {
-  return ThemeManager::themesDirectory();
+QByteArray sourceDigest(const QString& path) {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) return {};  // An absent/unreadable dependency is part of the manifest.
+  QCryptographicHash hash(QCryptographicHash::Sha256);
+  hash.addData(&file);
+  return hash.result();
+}
+
+QHash<QString, QByteArray> sourceManifest(const QString& path) {
+  QHash<QString, QByteArray> sources;
+  sources.insert(path, sourceDigest(path));
+  if (path.endsWith(QLatin1String(".css"), Qt::CaseInsensitive)) {
+    QFile file(path);
+    if (file.open(QIODevice::ReadOnly))
+      for (const auto& dependency : CssThemeParser::localResourcePaths(
+               QString::fromUtf8(file.readAll()), QFileInfo(path).absolutePath(), true))
+        sources.insert(dependency, sourceDigest(dependency));
+  }
+  return sources;
+}
+
+bool sourcesUnchanged(const QHash<QString, QByteArray>& sources) {
+  for (auto it = sources.cbegin(); it != sources.cend(); ++it)
+    if (sourceDigest(it.key()) != it.value()) return false;
+  return true;
+}
+
+QString themeLabel(const QString& id) {
+  QString label = id;
+  bool capitalize = true;
+  for (auto& c : label) {
+    if (c == QLatin1Char('-') || c == QLatin1Char('_')) c = QLatin1Char(' ');
+    if (capitalize) c = c.toUpper();
+    capitalize = c.isSpace();
+  }
+  return label;
 }
 
 // True for a @import/url target that points at a local file (not http(s)/data/
@@ -129,28 +162,28 @@ bool ThemeManager::installCssTheme(const QString& srcPath, const QString& destDi
   return true;
 }
 
-ThemeManager::ThemeManager(QObject* parent) : QObject(parent) {
+ThemeManager::ThemeManager(QObject* parent) : ThemeManager(themesDirectory(), parent) {}
+
+ThemeManager::ThemeManager(const QString& themeDirectory, QObject* parent) : QObject(parent), themeDirectory_(themeDirectory) {
   loadDefinitions();
 }
 
 void ThemeManager::loadDefinitions() {
-  definitions_.clear();
-  // Built-ins first, in their canonical display order.
-  definitions_ = ThemeDefinition::builtIns();
+  // Only discover names here. CSS parsing, JSON decoding and font registration
+  // happen on selection, never while enumerating a directory/menu.
+  themes_ = ThemeDefinition::builtInDescriptors();
+  sourcePaths_.clear();
   cssSourcePaths_.clear();
-  for (const ThemeDefinition& d : definitions_) {
-    if (d.isBuiltIn) {
-      cssSourcePaths_.insert(d.id, QStringLiteral(":/themes/%1.css").arg(d.id));
-    }
-  }
+  for (const auto& d : themes_)
+    cssSourcePaths_.insert(d.id, QStringLiteral(":/themes/%1.css").arg(d.id));
 
   // Then any user-supplied themes from the themes directory — both native *.json
   // and community-CSS *.css. Built-in ids win: a custom file whose stem
   // matches a built-in is skipped so the built-ins stay canonical.
-  const QDir dir(userThemesDir());
+  const QDir dir(themeDirectory_);
   if (dir.exists()) {
     QSet<QString> known;
-    for (const auto& d : definitions_) {
+    for (const auto& d : themes_) {
       known.insert(d.id);
     }
     const QStringList files =
@@ -160,28 +193,18 @@ void ThemeManager::loadDefinitions() {
       if (known.contains(id)) {
         continue;  // don't shadow a built-in (or an already-loaded stem)
       }
-      ThemeDefinition d;
+      const QString absPath = dir.absoluteFilePath(file);
+      sourcePaths_.insert(id, absPath);
       if (file.endsWith(QStringLiteral(".css"), Qt::CaseInsensitive)) {
-        const QString absPath = dir.absoluteFilePath(file);
-        d = ThemeDefinition::fromCss(absPath, id);
         cssSourcePaths_.insert(id, absPath);  // record real path for currentThemeCss()
-      } else {
-        QFile f(dir.absoluteFilePath(file));
-        if (!f.open(QIODevice::ReadOnly)) {
-          continue;
-        }
-        const QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
-        if (!doc.isObject()) {
-          continue;
-        }
-        d = ThemeDefinition::fromJson(doc.object(), id);
       }
-      if (d.valid()) {
-        definitions_.push_back(std::move(d));
-        known.insert(id);
-      }
+      const auto* cached = loaded_.object(id);
+      themes_.push_back({id, cached ? cached->definition.label : themeLabel(id), false});
+      known.insert(id);
     }
   }
+  for (const auto& id : loaded_.keys())
+    if (!sourcePaths_.contains(id) || !loaded_.object(id)->sources.contains(sourcePaths_.value(id))) loaded_.remove(id);
 }
 
 QString ThemeManager::currentThemeName() const {
@@ -214,24 +237,52 @@ RenderTheme ThemeManager::currentTheme(int zoomPercent, int fontSizePx) const {
 
 QStringList ThemeManager::availableThemes() const {
   QStringList names;
-  names.reserve(int(definitions_.size()));
-  for (const auto& d : definitions_) {
+  names.reserve(int(themes_.size()));
+  for (const auto& d : themes_) {
     names << d.id;
   }
   return names;
 }
 
-const std::vector<ThemeDefinition>& ThemeManager::definitions() const {
-  return definitions_;
+const std::vector<ThemeDescriptor>& ThemeManager::themes() const {
+  return themes_;
+}
+
+ThemeDefinition ThemeManager::loadDefinition(const QString& id, bool revalidate, bool* changed) const {
+  if (changed) *changed = false;
+  const auto source = sourcePaths_.constFind(id);
+  if (source == sourcePaths_.cend()) return ThemeDefinition::builtIn(id).value_or(ThemeDefinition{});
+  if (const auto* cached = loaded_.object(id); cached && (!revalidate || sourcesUnchanged(cached->sources)))
+    return cached->definition;
+  loaded_.remove(id);
+  if (changed) *changed = true;
+  const auto sources = sourceManifest(*source);
+  ThemeDefinition d;
+  if (source->endsWith(QLatin1String(".css"), Qt::CaseInsensitive)) {
+    d = ThemeDefinition::fromCss(*source, id);
+  } else {
+    QFile file(*source);
+    if (file.open(QIODevice::ReadOnly)) {
+      const auto json = QJsonDocument::fromJson(file.readAll());
+      if (json.isObject()) d = ThemeDefinition::fromJson(json.object(), id);
+    }
+  }
+  if (!d.valid()) return d;
+  for (auto& descriptor : themes_)
+    if (descriptor.id == id) descriptor.label = d.label;
+  // If an editor replaced a file during loading, don't cache a definition
+  // under a manifest from a different version. The next request retries.
+  if (sourcesUnchanged(sources)) loaded_.insert(id, new CachedTheme{d, sources});
+  return d;
 }
 
 ThemeDefinition ThemeManager::definition(const QString& name) const {
-  const QString lower = name.toLower();
-  for (const auto& d : definitions_) {
-    if (d.id == lower) {
-      return d;
-    }
-  }
+  // Public definition reads are the cache validity boundary. This keeps an
+  // editor that is already open correct when a theme file is edited externally;
+  // the digest is cheap compared with parsing and is only taken for the chosen
+  // theme (never for the whole directory).
+  auto d = loadDefinition(name.toLower(), true);
+  if (d.valid()) return d;
   // Unknown name — fall back to github rather than an empty definition.
   return ThemeDefinition::builtIn(QStringLiteral("github")).value();
 }
@@ -243,7 +294,7 @@ ThemeDefinition ThemeManager::currentDefinition() const {
 bool ThemeManager::setTheme(QString name) {
   name = name.toLower();
   bool found = false;
-  for (const auto& d : definitions_) {
+  for (const auto& d : themes_) {
     if (d.id == name) {
       found = true;
       break;
@@ -252,7 +303,9 @@ bool ThemeManager::setTheme(QString name) {
   if (!found) {
     return false;
   }
-  if (currentThemeName_ == name) {
+  bool changed = false;
+  if (!loadDefinition(name, true, &changed).valid()) return false;
+  if (currentThemeName_ == name && !changed) {
     return true;
   }
   currentThemeName_ = std::move(name);
@@ -263,16 +316,7 @@ bool ThemeManager::setTheme(QString name) {
 void ThemeManager::reloadCustomThemes() {
   loadDefinitions();
   // If the active theme was a custom one that no longer exists, fall back.
-  bool currentStillKnown = false;
-  for (const auto& d : definitions_) {
-    if (d.id == currentThemeName_) {
-      currentStillKnown = true;
-      break;
-    }
-  }
-  if (!currentStillKnown) {
-    currentThemeName_ = QStringLiteral("github");
-  }
+  if (!setTheme(currentThemeName_)) setTheme(QStringLiteral("github"));
   emit themesChanged();
 }
 

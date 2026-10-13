@@ -90,7 +90,7 @@ enum class DynamicMenu {
   RecentFiles,
   ReopenEncoding,
   DeleteRange,
-  Themes,  // top-level Theme menu: enumerated from ThemeManager::definitions()
+  Themes,  // top-level Theme menu: enumerated from ThemeManager::themes()
 };
 
 struct MenuItem {
@@ -116,7 +116,7 @@ struct MenuSpec {
   bool hidden = false;  // top-level menu created hidden (Table/Code/Math/Html)
   // When not None, buildMenus captures this top-level menu into the matching
   // MainWindow member for dynamic population (e.g. the Theme menu, which is
-  // enumerated from ThemeManager::definitions() at runtime rather than a fixed
+  // enumerated from ThemeManager::themes() at runtime rather than a fixed
   // command list).
   DynamicMenu dynamicId = DynamicMenu::None;
 };

@@ -21,6 +21,13 @@ class CssThemeSheet;  // forward-decl; full type lives in CssThemeParser.h
 class CssComputedStyle;
 struct CssPaintRecipe;
 
+// Listing a theme must not parse its CSS or register its fonts.
+struct ThemeDescriptor {
+  QString id;
+  QString label;
+  bool isBuiltIn = false;
+};
+
 // Every colour the UI can theme, in one place. This is the single source of
 // truth that the editor (via RenderTheme), the chrome (menu bar, sidebar,
 // status bar) and the dialogs (Preferences, …) all read from. Split into two
@@ -590,6 +597,7 @@ struct ThemeDefinition {
   // matches its document palette (so e.g. the warm "newsprint" theme warms the
   // whole chrome, not just the document).
   static const std::vector<ThemeDefinition>& builtIns();
+  static const std::vector<ThemeDescriptor>& builtInDescriptors();
   static std::optional<ThemeDefinition> builtIn(const QString& id);
 };
 

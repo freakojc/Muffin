@@ -133,7 +133,7 @@ void muffin::MainWindow::rebuildThemesMenu() {
   // change — see the heap-corruption note in retranslateUi.
   themesMenu_->clear();
   const QString current = themeManager_.currentThemeName();
-  for (const ThemeDefinition& d : themeManager_.definitions()) {
+  for (const auto& d : themeManager_.themes()) {
     QAction* action = themesMenu_->addAction(d.label.isEmpty() ? d.id : d.label);
     action->setCheckable(true);
     action->setChecked(d.id == current);
@@ -363,7 +363,7 @@ void muffin::MainWindow::showPreferences() {
   // same list after the registry changes.
   auto themeOptions = [this]() {
     QVector<QPair<QString, QString>> options;
-    for (const ThemeDefinition& d : themeManager_.definitions()) {
+    for (const auto& d : themeManager_.themes()) {
       options.append({d.id, d.label.isEmpty() ? d.id : d.label});
     }
     return options;

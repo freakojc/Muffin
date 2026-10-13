@@ -147,7 +147,9 @@ public:
   // missing files are skipped. Used at import time to mirror the theme's folder
   // (fonts/base sheets) next to the installed top file so @import/@font-face
   // resolve at runtime.
-  static QStringList localResourcePaths(const QString& text, const QString& baseDir);
+  // Cache manifests also need absent targets: creating a formerly missing
+  // import/font must invalidate the theme just like editing an existing file.
+  static QStringList localResourcePaths(const QString& text, const QString& baseDir, bool includeMissing = false);
 };
 
 }  // namespace muffin

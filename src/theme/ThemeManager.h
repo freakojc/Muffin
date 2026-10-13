@@ -5,6 +5,7 @@
 #include "theme/ThemeDefinition.h"
 
 #include <QHash>
+#include <QCache>
 #include <QObject>
 #include <QStringList>
 
@@ -17,18 +18,20 @@ class MUFFIN_UI_EXPORT ThemeManager final : public QObject {
 
 public:
   explicit ThemeManager(QObject* parent = nullptr);
+  explicit ThemeManager(const QString& themeDirectory, QObject* parent = nullptr);
 
   QString currentThemeName() const;
   RenderTheme currentTheme(int zoomPercent = 100, int fontSizePx = 16) const;
   QStringList availableThemes() const;
 
-  // Every definition the manager knows about: built-ins first (in display
-  // order github/newsprint/night/pixyll/whitey), then user-loaded custom themes
-  // read from the themes directory. Stable unless reloadCustomThemes() runs.
-  const std::vector<ThemeDefinition>& definitions() const;
+  // Metadata only: enumerating menus/preferences never loads a theme.
+  // Custom labels use the filename until their authored definition is loaded.
+  const std::vector<ThemeDescriptor>& themes() const;
 
   // The unified theme definition (document + chrome colours) for a given name,
-  // or the github default if unknown. This is the single source the chrome,
+  // or the github default if unknown. Loads on demand; setTheme() and
+  // reloadCustomThemes() revalidate content digests before reusing a custom
+  // definition. This is the single source the chrome,
   // sidebar, dialogs and editor (via RenderTheme::fromDefinition) read from.
   ThemeDefinition definition(const QString& name) const;
   ThemeDefinition currentDefinition() const;
@@ -42,7 +45,7 @@ public:
 
   bool setTheme(QString name);
 
-  // Re-scan the user themes directory and merge any new *.json files in. Built-in
+  // Re-scan *.css/*.json filenames and revalidate the active theme. Built-in
   // ids are authoritative: a custom file shadowing a built-in id is ignored. If
   // the active theme was a custom one that has since been removed, falls back to
   // github. Call after importing/deleting a theme so menus & dialogs refresh.
@@ -69,9 +72,18 @@ signals:
 
 private:
   void loadDefinitions();
+  ThemeDefinition loadDefinition(const QString& id, bool revalidate, bool* changed = nullptr) const;
 
   QString currentThemeName_ = QStringLiteral("github");
-  std::vector<ThemeDefinition> definitions_;
+  QString themeDirectory_;
+  mutable std::vector<ThemeDescriptor> themes_;
+  QHash<QString, QString> sourcePaths_;
+  struct CachedTheme {
+    ThemeDefinition definition;
+    QHash<QString, QByteArray> sources;
+  };
+  // Bounded, process-local LRU. Runtime Qt/font objects are not serialized.
+  mutable QCache<QString, CachedTheme> loaded_{8};
   // id → absolute source path of the theme's *.css (":/themes/<id>.css" for
   // built-ins, the disk file for custom *.css themes). Absent for JSON-only
   // custom themes. Populated by loadDefinitions(); used by currentThemeCss().

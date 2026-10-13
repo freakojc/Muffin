@@ -502,28 +502,34 @@ const std::vector<ThemeDefinition>& ThemeDefinition::builtIns() {
   // the CSS. testFromDefinitionReproducesBuiltIns guards that each CSS built-in
   // still reproduces the matching RenderTheme factory bit-for-bit.
   static const std::vector<ThemeDefinition> kBuiltIns = [] {
-    struct Spec { const char* id; const char* label; };
-    static constexpr Spec specs[] = {
-        {"github", "GitHub"}, {"newsprint", "Newsprint"}, {"night", "Night"},
-        {"pixyll", "Pixyll"}, {"whitey", "Whitey"},
-    };
     std::vector<ThemeDefinition> out;
-    for (const Spec& s : specs) {
-      const QString path = QStringLiteral(":/themes/%1.css").arg(QString::fromLatin1(s.id));
-      ThemeDefinition d = ThemeDefinition::fromCss(path, QString::fromLatin1(s.id));
-      d.id = QString::fromLatin1(s.id);
-      d.label = QString::fromLatin1(s.label);
-      d.isBuiltIn = true;
-      if (d.valid()) { out.push_back(std::move(d)); }
-    }
+    for (const auto& descriptor : builtInDescriptors())
+      if (auto d = builtIn(descriptor.id)) out.push_back(std::move(*d));
     return out;
   }();
   return kBuiltIns;
 }
 
+const std::vector<ThemeDescriptor>& ThemeDefinition::builtInDescriptors() {
+  static const std::vector<ThemeDescriptor> descriptors = {
+      {QStringLiteral("github"), QStringLiteral("GitHub"), true},
+      {QStringLiteral("newsprint"), QStringLiteral("Newsprint"), true},
+      {QStringLiteral("night"), QStringLiteral("Night"), true},
+      {QStringLiteral("pixyll"), QStringLiteral("Pixyll"), true},
+      {QStringLiteral("whitey"), QStringLiteral("Whitey"), true}};
+  return descriptors;
+}
+
 std::optional<ThemeDefinition> ThemeDefinition::builtIn(const QString& id) {
-  for (const auto& d : builtIns()) {
-    if (d.id == id) {
+  static QHash<QString, ThemeDefinition> loaded;
+  if (const auto found = loaded.constFind(id); found != loaded.cend()) return *found;
+  for (const auto& descriptor : builtInDescriptors()) {
+    if (descriptor.id == id) {
+      auto d = fromCss(QStringLiteral(":/themes/%1.css").arg(id), id);
+      d.label = descriptor.label;
+      d.isBuiltIn = true;
+      if (!d.valid()) return std::nullopt;
+      loaded.insert(id, d);
       return d;
     }
   }

@@ -9,17 +9,11 @@
 #include <QString>
 
 #include <vector>
-#include <atomic>
 #include <functional>
 #include <algorithm>
 
 namespace muffin {
 namespace {
-quint64 nextElementIdentity() {
-  static std::atomic<quint64> next{1};
-  return next.fetch_add(1, std::memory_order_relaxed);
-}
-
 QString cssTagForInline(InlineType type) {
   switch (type) {
     case InlineType::Image: return QStringLiteral("img");
@@ -72,14 +66,14 @@ QString cssTagForNode(const MarkdownNode& node) {
 }
 
 NodeCssElementBuilder::NodeCssElementBuilder(bool maintainTypeIndex) : maintainTypeIndex_(maintainTypeIndex) {
-  host_.html.cacheId = nextElementIdentity();
-  host_.body.cacheId = nextElementIdentity();
-  host_.write.cacheId = nextElementIdentity();
+  host_.html.cacheId = nextCssElementIdentity();
+  host_.body.cacheId = nextCssElementIdentity();
+  host_.write.cacheId = nextCssElementIdentity();
 }
 
 CssElement* NodeCssElementBuilder::makeOwned() const {
   pool_.push_back(std::make_unique<CssElement>());
-  pool_.back()->cacheId = nextElementIdentity();
+  pool_.back()->cacheId = nextCssElementIdentity();
   return pool_.back().get();
 }
 

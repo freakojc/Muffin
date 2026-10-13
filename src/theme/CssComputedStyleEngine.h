@@ -17,6 +17,10 @@
 
 namespace muffin {
 
+// Shared by live document nodes and immutable theme prototypes. Separate
+// allocators could alias computed style identities when an engine is reused.
+quint64 nextCssElementIdentity();
+
 struct CssElement;
 
 // Optional live-tree navigation used by layout-time elements. Prototype elements

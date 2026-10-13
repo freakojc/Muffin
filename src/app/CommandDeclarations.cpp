@@ -1617,7 +1617,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
       // ---------------- Theme ----------------
       // Theme selection is no longer a fixed command list — the Theme menu is a
       // DynamicMenu::Themes (see mainMenuSpec below), enumerated at runtime from
-      // ThemeManager::definitions() so user-imported custom themes appear too.
+      // ThemeManager::themes() so user-imported custom themes appear too.
 
       // ---------------- Help ----------------
       {.id = QStringLiteral("help.quick_start"),
@@ -2049,7 +2049,7 @@ const std::vector<muffin::MenuSpec>& muffin::mainMenuSpec() {
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("view.fullscreen")},
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("view.always_on_top")},
        }},
-      // Theme — top-level menu populated dynamically from ThemeManager::definitions()
+      // Theme — top-level menu populated dynamically from ThemeManager::themes()
       // (built-ins + any imported custom themes). buildMenus captures it into
       // themesMenu_; rebuildThemesMenu() fills it.
       {muffin::MainWindow::tr("Theme"), {}, false, DynamicMenu::Themes},

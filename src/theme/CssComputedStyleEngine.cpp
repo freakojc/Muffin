@@ -12,11 +12,16 @@
 #include <QStringView>
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <functional>
 #include <vector>
 
 namespace muffin {
+quint64 nextCssElementIdentity() {
+  static std::atomic<quint64> next{1};
+  return next.fetch_add(1, std::memory_order_relaxed);
+}
 namespace {
 
 // SimpleSelector / SelectorPart / ParsedSelector now live in the header — the
@@ -1402,9 +1407,9 @@ CssComputedStyle CssComputedStyleEngine::styleFor(const CssElement& element, con
     }
   }
   const auto* inheritanceParent = element.originatingElement ? element.originatingElement : element.parent;
-  CssComputedStyle parent = inheritanceParent && state.subject ? styleFor(*inheritanceParent, state)
+  const bool htmlRoot = !inheritanceParent && element.tag.compare(QLatin1String("html"), Qt::CaseInsensitive) == 0;
+  CssComputedStyle parent = htmlRoot ? CssComputedStyle{} : inheritanceParent && state.subject ? styleFor(*inheritanceParent, state)
       : element.originatingElement ? styleFor(*element.originatingElement, state) : parentStyleFor(inheritanceParent);
-  if (!inheritanceParent && element.tag.compare(QLatin1String("html"), Qt::CaseInsensitive) == 0) parent.customProperties_.clear();
   CssComputedStyle style;
   style.customProperties_ = parent.customProperties_;
   style.fontSizePx = parent.fontSizePx;

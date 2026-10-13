@@ -256,7 +256,8 @@ QStringList collectImports(const QString& text) {
 QString resolveImportPath(const QString& target, const QString& baseDir) {
   // No remote fetch in v1 — only local + qrc imports.
   if (target.startsWith(QLatin1String("http://"), Qt::CaseInsensitive) ||
-      target.startsWith(QLatin1String("https://"), Qt::CaseInsensitive)) {
+      target.startsWith(QLatin1String("https://"), Qt::CaseInsensitive) ||
+      target.startsWith(QLatin1String("data:"), Qt::CaseInsensitive) || target.startsWith(QLatin1String("//"))) {
     return {};
   }
   if (target.startsWith(QLatin1Char(':')) || QDir::isAbsolutePath(target)) {
@@ -280,7 +281,7 @@ QString unquote(const QString& s) {
 // src capture and for import-time resource discovery (fonts + background
 // images). resolveImportPath handles :/ qrc, absolute, and relative paths and
 // rejects http/https.
-QStringList extractLocalUrlTargets(const QString& text, const QString& dir) {
+QStringList extractLocalUrlTargets(const QString& text, const QString& dir, bool includeMissing = false) {
   QStringList out;
   static const QRegularExpression urlRe(QStringLiteral("url\\(\\s*([^)]*?)\\s*\\)"),
                                         QRegularExpression::CaseInsensitiveOption);
@@ -291,7 +292,7 @@ QStringList extractLocalUrlTargets(const QString& text, const QString& dir) {
     const QString resolved = resolveImportPath(target, dir);
     if (resolved.isEmpty()) { continue; }
     const QString canon = QDir::cleanPath(resolved);
-    if (QFileInfo(canon).isFile()) { out << canon; }
+    if (includeMissing || QFileInfo(canon).isFile()) { out << canon; }
   }
   return out;
 }
@@ -522,7 +523,7 @@ std::vector<CssDeclaration> CssThemeParser::parseDeclarations(
   return parseDeclarationBlock(text);
 }
 
-QStringList CssThemeParser::localResourcePaths(const QString& text, const QString& baseDir) {
+QStringList CssThemeParser::localResourcePaths(const QString& text, const QString& baseDir, bool includeMissing) {
   // Recursively walk @import targets (so an imported base and its own @imports
   // are included) and collect every local url() resource (fonts, background
   // images) from each file. Returns absolute, cleaned, de-duplicated paths.
@@ -530,28 +531,28 @@ QStringList CssThemeParser::localResourcePaths(const QString& text, const QStrin
   // file so @import/@font-face resolve at runtime.
   QStringList out;
   QSet<QString> seen;
-  const std::function<void(const QString&, const QString&, int)> walk =
-      [&](const QString& fileText, const QString& fileDir, int depth) {
-        if (depth > 16) { return; }
-        for (const QString& target : collectImports(fileText)) {
-          const QString resolved = resolveImportPath(target, fileDir);
-          if (resolved.isEmpty() || !QFileInfo(resolved).isFile()) { continue; }
-          const QString canon = QDir::cleanPath(resolved);
-          if (seen.contains(canon)) { continue; }
-          seen.insert(canon);
-          out << canon;
-          QFile f(canon);
-          if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            const QString sub = QString::fromUtf8(f.readAll());
-            f.close();
-            walk(sub, QFileInfo(canon).absolutePath(), depth + 1);
-          }
-        }
-        for (const QString& res : extractLocalUrlTargets(fileText, fileDir)) {
-          if (!seen.contains(res)) { seen.insert(res); out << res; }
-        }
-      };
-  walk(text, baseDir, 0);
+  std::vector<std::pair<QString, QString>> pending{{text, baseDir}};
+  while (!pending.empty()) {
+    auto [fileText, fileDir] = std::move(pending.back());
+    pending.pop_back();
+    for (const QString& target : collectImports(fileText)) {
+      const QString resolved = resolveImportPath(target, fileDir);
+      if (resolved.isEmpty() || (!includeMissing && !QFileInfo(resolved).isFile())) { continue; }
+      const QString canon = QDir::cleanPath(resolved);
+      if (seen.contains(canon)) { continue; }
+      seen.insert(canon);
+      out << canon;
+      QFile f(canon);
+      if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        const QString sub = QString::fromUtf8(f.readAll());
+        f.close();
+        pending.emplace_back(sub, QFileInfo(canon).absolutePath());
+      }
+    }
+    for (const QString& res : extractLocalUrlTargets(fileText, fileDir, includeMissing)) {
+      if (!seen.contains(res)) { seen.insert(res); out << res; }
+    }
+  }
   return out;
 }
 
@@ -559,7 +560,9 @@ namespace {
 using VariableLookup = std::function<std::optional<QString>(const QString&)>;
 std::optional<QString> substituteTokens(const QString& value, const VariableLookup& lookup, int depth = 0) {
   if (depth > 64) return std::nullopt;
+  if (!value.contains(QLatin1String("var("), Qt::CaseInsensitive)) return value;
   QString out;
+  out.reserve(value.size());
   for (int i = 0; i < value.size();) {
     if (value[i] == '\'' || value[i] == '"') {
       const int start = i;
@@ -567,7 +570,7 @@ std::optional<QString> substituteTokens(const QString& value, const VariableLook
       out += value.mid(start, i - start);
       continue;
     }
-    if (value.mid(i, 4).compare(QLatin1String("var("), Qt::CaseInsensitive) != 0 ||
+    if (QStringView(value).mid(i, 4).compare(QLatin1String("var("), Qt::CaseInsensitive) != 0 ||
         (i > 0 && (value[i - 1].isLetterOrNumber() || value[i - 1] == '-'))) {
       out += value[i++];
       continue;
@@ -589,6 +592,21 @@ std::optional<QString> substituteTokens(const QString& value, const VariableLook
 }  // namespace
 
 QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QString, QString>& variables) {
+  // Most inherited maps are already computed. Return their shared Qt storage
+  // directly instead of rebuilding a dependency graph for every element.
+  bool references = false;
+  for (const auto& value : variables)
+    if (value.contains(QLatin1String("var("), Qt::CaseInsensitive)) { references = true; break; }
+  if (!references) return variables;
+
+  struct CachedVariables {
+    QHash<QString, QString> input, output;
+  };
+  // Per-thread, bounded and keyed by the full map (including fallbacks/cycles).
+  // Changes in stylesheet, scope or media input cannot reuse a stale result.
+  static thread_local std::vector<CachedVariables> cache;
+  for (auto it = cache.rbegin(); it != cache.rend(); ++it)
+    if (it->input == variables) return it->output;
   // Find dependency cycles first, including references inside fallbacks. A
   // fallback cannot make a cyclic custom property valid.
   QHash<QString, QStringList> dependencies;
@@ -600,6 +618,9 @@ QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QStr
         tryReadString(value, i, value.size());
         continue;
       }
+      // Only 'v' can start var(). Avoid invoking a regex at every byte of
+      // large SVG/data-URI custom properties in themes such as VLOOK.
+      if (value[i].toLower() != QLatin1Char('v')) { ++i; continue; }
       const auto match = reference.match(value, i, QRegularExpression::NormalMatch, QRegularExpression::AnchorAtOffsetMatchOption);
       if (match.hasMatch()) {
         dependencies[it.key()].push_back(match.captured(1));
@@ -637,6 +658,8 @@ QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QStr
     return value;
   };
   for (auto it = variables.cbegin(); it != variables.cend(); ++it) resolve(it.key());
+  if (cache.size() == 16) cache.erase(cache.begin());
+  cache.push_back({variables, computed});
   return computed;
 }
 

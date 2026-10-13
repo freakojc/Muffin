@@ -227,7 +227,7 @@ private:
   // the theme brightness. Style sheets can't reach it; on Windows this calls
   // DwmSetWindowAttribute, elsewhere it's a no-op.
   void applyNativeTitleBarDarkMode(bool dark);
-  // Theme menu is enumerated from ThemeManager::definitions() (built-ins +
+  // Theme menu is enumerated from ThemeManager::themes() (built-ins +
   // imported custom themes), so it is rebuilt rather than a fixed command list.
   void rebuildThemesMenu();
   // Apply a theme by id (menu + Preferences dropdown path): persists the choice

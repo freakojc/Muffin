@@ -43,6 +43,16 @@ class DocumentStylePrototypes {
  public:
   DocumentStyleHost host;
 
+  // Only immutable prototypes owned by a short-lived mapper engine opt in.
+  // Caller-owned engines must not retain temporary prototype cache entries.
+  explicit DocumentStylePrototypes(bool cacheable = false) : cacheable_(cacheable) {
+    if (cacheable_) {
+      host.html.cacheId = nextCssElementIdentity();
+      host.body.cacheId = nextCssElementIdentity();
+      host.write.cacheId = nextCssElementIdentity();
+    }
+  }
+
   const CssElement& element(const QString& key) {
     if (key == QStringLiteral("html")) return host.html;
     if (key == QStringLiteral("body")) return host.body;
@@ -79,10 +89,12 @@ class DocumentStylePrototypes {
       addDocumentHostClasses(*value);
       value->parent = &element(parentKey);
     }
+    if (cacheable_) value->cacheId = nextCssElementIdentity();
     return *value;
   }
 
  private:
+  bool cacheable_ = false;
   QHash<QString, std::shared_ptr<CssElement>> elements_;
 };
 

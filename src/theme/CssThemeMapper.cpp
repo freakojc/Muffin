@@ -594,7 +594,7 @@ ThemeDefinition CssThemeMapper::fromSheet(const CssThemeSheet& source, const QSt
   d.sourceSheet = std::make_shared<CssThemeSheet>(source);
   const auto ownedEngine = computedEngine ? nullptr : std::make_unique<CssComputedStyleEngine>(documentStyleSheet(source), environment);
   const auto& engine = computedEngine ? *computedEngine : *ownedEngine;
-  DocumentStylePrototypes tree;
+  DocumentStylePrototypes tree(!computedEngine);
   ComputedDecorationStyles styles;
   const QStringList hosts{"html",       "body", "#write",     "p",     "blockquote", "blockquote p", "ul",    "ol",       "li",
                           "li::marker", "pre",  ".md-fences", "code",  "pre code",   "kbd",          "a",     "mark",     "del",
@@ -648,6 +648,7 @@ ThemeDefinition CssThemeMapper::fromSheet(const CssThemeSheet& source, const QSt
   k.tableHeaderBackground = color(QStringLiteral("th"), "background-color");
   if (!k.tableHeaderBackground.isValid()) k.tableHeaderBackground = color(QStringLiteral("thead"), "background-color");
   CssElement even = tree.element(QStringLiteral("tbody tr"));
+  even.cacheId = 0;  // Its changed sibling position is not the cached prototype.
   even.childIndex = 1;
   const auto evenStyle = engine.styleFor(even);
   k.tableAlternateBackground = extractColor(evenStyle.resolvedValue(QStringLiteral("background-color")), evenStyle.customProperties());

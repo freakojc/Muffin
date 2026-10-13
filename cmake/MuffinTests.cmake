@@ -335,6 +335,8 @@ endforeach()
 add_executable(MuffinFontBackendProbe EXCLUDE_FROM_ALL scripts/font_backend_probe.cpp)
 target_link_libraries(MuffinFontBackendProbe PRIVATE MuffinUi)
 muffin_add_test(NAME MuffinCssThemeMapperTest SOURCE tests/theme/CssThemeMapperTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} FIXTURE tests/fixtures/theme/mist-blue.css)
+muffin_add_test(NAME MuffinThemeLoadingTest SOURCE tests/theme/ThemeLoadingTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
+set_tests_properties(MuffinThemeLoadingTest PROPERTIES TIMEOUT 60)
 muffin_add_test(NAME MuffinThemeAccessibilityTest SOURCE tests/theme/ThemeAccessibilityTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC})
 
 # --- image subsystem (link MuffinUi; pure logic under QCoreApplication, no GUI lock) ---
