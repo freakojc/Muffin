@@ -294,7 +294,8 @@ void DocumentLayout::rebuild(
     for (size_t i = 0; i < previousSlots.size(); ++i) previousIndices.insert(previousSlots[i].nodeId, i);
   }
   // Style snapshots and the sparse tree belong to this document generation.
-  if (!resourceOnlyUpdate_) theme.invalidateDocumentStyles();
+  if (!resourceOnlyUpdate_ && !selectionOnlyUpdate_) theme.invalidateDocumentStyles();
+  styleDocumentRevision_ = document.revision();
   document_ = &document;
   documentPath_ = std::move(documentPath);
   viewportWidth_ = viewportWidth;
@@ -575,10 +576,26 @@ DocumentLayout::BlockRebuildResult DocumentLayout::rebuildBlock(
     NodeId blockId,
     const MarkdownDocument& document,
     const RenderTheme& theme,
-    SelectionRange selection) {
+    SelectionRange selection,
+    BlockUpdateReason reason) {
   BlockRebuildResult result;
   if (!blockId.isValid() || document_ != &document || slots_.empty() || viewportWidth_ <= 0) {
     return result;
+  }
+  // Selection changes do not edit the AST or alter structural selectors. An
+  // edit may arrive before its queued content refresh, so also check revision.
+  const bool selectionOnly = reason == BlockUpdateReason::Selection && styleDocumentRevision_ == document.revision();
+  const auto* node = topLevelBlockFor(blockId, document);
+  if (!node) return result;
+  if (selectionOnly && preeditText_.isEmpty()) {
+    const auto* detail = blockIfPromoted(node->id());
+    if (detail && detail->selectionLayoutMatches(selection, document)) {
+      selection_ = selection;
+      builder_.setSelection(selection);
+      result.blockId = node->id();
+      result.rebuilt = true;
+      return result;
+    }
   }
   if (formattingRoot_) {
     result.blockId = blockId;
@@ -586,6 +603,7 @@ DocumentLayout::BlockRebuildResult DocumentLayout::rebuildBlock(
     const qreal oldHeight = totalHeight_;
     incrementalFormatting_ = true;
     formattingDirty_.insert(blockId);
+    const QScopedValueRollback<bool> preserveStyles(selectionOnlyUpdate_, selectionOnly);
     rebuild(document, theme, viewportWidth_, selection, documentPath_, buildPolicy_);
     result.newRect = result.shiftedRect = QRectF(pageLeft_, 0, pageWidth_, totalHeight_);
     result.heightDelta = totalHeight_ - oldHeight;
@@ -595,10 +613,9 @@ DocumentLayout::BlockRebuildResult DocumentLayout::rebuildBlock(
 
   // The edit starts one style generation. Dependent geometry rebuilds below
   // consume that generation without discarding the same shared caches again.
-  if (!refreshingStyles_ && !resourceOnlyUpdate_) theme.invalidateDocumentStyles();
-  const MarkdownNode* node = topLevelBlockFor(blockId, document);
-  if (!node) {
-    return result;
+  if (!selectionOnly && !refreshingStyles_ && !resourceOnlyUpdate_) {
+    theme.invalidateDocumentStyles();
+    styleDocumentRevision_ = document.revision();
   }
   const auto& documentBlocks = document.root().children();
   if (static_cast<qsizetype>(slots_.size()) != static_cast<qsizetype>(documentBlocks.size())) {
@@ -678,7 +695,7 @@ DocumentLayout::BlockRebuildResult DocumentLayout::rebuildBlock(
   }
 
   result.rebuilt = true;
-  if (resourceOnlyUpdate_) return result;
+  if (resourceOnlyUpdate_ || selectionOnly) return result;
   const qreal beforeRefresh = totalHeight_;
   result.shiftedRect = result.shiftedRect.united(refreshDependentStyles(document, theme, selection));
   result.heightDelta += totalHeight_ - beforeRefresh;
@@ -708,6 +725,7 @@ DocumentLayout::RangeRebuildResult DocumentLayout::rebuildTopLevelRange(
     return result;
   }
   theme.invalidateDocumentStyles();
+  styleDocumentRevision_ = document.revision();
   if (!range.isValid() || document_ != &document || viewportWidth_ <= 0) {
     return result;
   }

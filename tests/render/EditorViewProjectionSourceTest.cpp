@@ -1,4 +1,130 @@
 #include "EditorViewTestUtils.h"
+#include "theme/CssThemeMapper.h"
+#include <QElapsedTimer>
+#include <QFile>
+
+void testSelectionRefreshRetainsStylesAndUnchangedProjection() {
+  const QString markdown = "Plain **bold** and ~~strikethrough~~ with <kbd>Ctrl</kbd> + <kbd>S</kbd>.\n\nother paragraph";
+  DocumentSession session;
+  session.setMarkdownText(markdown, false);
+  auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
+      "p{font-size:16px}p:first-child{color:red}strong{background:yellow}strong:hover{color:blue}", "nav-test", {}));
+  theme.updateForViewport(700, 600);
+  DocumentLayout layout;
+  layout.rebuild(session.document(), theme, 700, {}, {}, DocumentLayout::BuildPolicy::Lazy);
+  layout.buildAll(theme);
+  const auto& node = *session.document().root().children().front();
+  const auto nodeId = node.id();
+  const auto other = session.document().root().children().back()->id();
+  const auto* otherLayout = layout.block(other);
+  const auto* style = theme.elementStyleForNode(node, "p");
+  SelectionRange selection;
+  const auto move = [&](qsizetype source) {
+    selection.anchor = selection.focus = inlineCursor(node.id(), source, source);
+    require(layout.rebuildBlock(node.id(), session.document(), theme, selection,
+                               DocumentLayout::BlockUpdateReason::Selection).rebuilt, "selection refresh");
+  };
+  move(markdown.indexOf("bold") + 1);
+  const auto* expanded = layout.block(node.id())->inlineLayout();
+  require(expanded->displayText().contains("**bold**"), "entering bold reveals syntax");
+  move(markdown.indexOf("bold") + 2);
+  require(layout.block(node.id())->inlineLayout() == expanded, "moving within revealed syntax retains shaping and HTML");
+  selection.anchor.text.sourceOffset = 0;
+  require(layout.rebuildBlock(node.id(), session.document(), theme, selection,
+                             DocumentLayout::BlockUpdateReason::Selection).rebuilt, "selection extent refresh");
+  require(layout.block(node.id())->inlineLayout() == expanded, "selection extent does not reflow unchanged focus syntax");
+  move(markdown.indexOf("strikethrough") + 2);
+  const auto text = layout.block(node.id())->inlineLayout()->displayText();
+  require(!text.contains("**bold**") && text.contains("~~strikethrough~~"), "crossing inline boundary updates both markers");
+  require(layout.block(other) == otherLayout && theme.elementStyleForNode(node, "p") == style,
+          "selection changes preserve other blocks and the document style cache");
+  require(session.applyTextDelta(0, 0, "edited ", true, {{nodeId, 0, BlockType::Paragraph}}), "edit before queued refresh");
+  require(layout.rebuildBlock(nodeId, session.document(), theme, selection,
+                             DocumentLayout::BlockUpdateReason::Selection).rebuilt, "revision change cannot reuse selection-only layout");
+  require(layout.block(nodeId)->inlineLayout()->visibleText().startsWith("edited Plain"), "pending edit is not lost to navigation reuse");
+}
+
+void testProjectionReuseDecisionsMatchFreshProjection() {
+  for (const QString& source : {QString("plain **bold and *nested*** / ~~strike~~ / `code` / $E=mc^2$"),
+                               QString("&amp; &#x41; \\* :smile: [link](https://example.com)"),
+                               QString("text <kbd>Ctrl</kbd> + <span style=\"color:red\">HTML</span> after")}) {
+    DocumentSession session;
+    session.setMarkdownText(source, false);
+    const auto& inlines = session.document().root().children().front()->inlines();
+    for (int mode = 0; mode < 3; ++mode) {
+      for (qsizetype offset : {qsizetype(-1), qsizetype(0), source.size() / 3, source.size() / 2, source.size()}) {
+        InlineProjectionState initial;
+        if (mode != 1) initial.cursorSourceOffset = offset;
+        if (mode != 0) initial.cursorVisibleOffset = offset;
+        InlineProjection projection(inlines, source, initial, 0);
+        for (qsizetype target = -1; target <= source.size(); ++target) {
+          InlineProjectionState next;
+          if (mode != 1) next.cursorSourceOffset = target;
+          if (mode != 0) next.cursorVisibleOffset = target;
+          if (!projection.matchesState(next)) continue;
+          InlineProjection fresh(inlines, source, next, 0);
+          require(projection.displayText() == fresh.displayText() && projection.visibleText() == fresh.visibleText(),
+                  "reused reveal decisions agree with fresh display text");
+          for (qsizetype sourceOffset = 0; sourceOffset <= source.size(); ++sourceOffset) {
+            qsizetype before = -1, after = -1;
+            require(projection.displayOffsetForSourceOffset(sourceOffset, before) == fresh.displayOffsetForSourceOffset(sourceOffset, after)
+                        && before == after, "reused projection retains source mapping");
+          }
+        }
+      }
+    }
+  }
+}
+
+void benchmarkInlineNavigation() {
+  if (!qEnvironmentVariableIsSet("MUFFIN_INLINE_NAV_BENCH")) return;
+  QFile file(qEnvironmentVariable("MUFFIN_NAV_DOCUMENT"));
+  require(file.open(QIODevice::ReadOnly), "open navigation benchmark document");
+  const auto markdown = QString::fromUtf8(file.readAll());
+  DocumentSession session;
+  session.setMarkdownText(markdown, false);
+  EditorView view;
+  view.resize(1000, 700);
+  const auto cssPath = qEnvironmentVariable("MUFFIN_NAV_THEME");
+  if (!cssPath.isEmpty()) view.setTheme(RenderTheme::fromDefinition(ThemeDefinition::fromCss(cssPath, "nav-benchmark")));
+  view.setDocument(session.document());
+  EditorController controller;
+  controller.attach(&session, &view);
+  view.show();
+  QApplication::processEvents();
+  const auto bold = markdown.indexOf("**bold**") + 3;
+  const auto strike = markdown.indexOf("~~strikethrough~~") + 3;
+  require(bold > 3 && strike > 3, "navigation benchmark inline samples");
+  const auto measure = [&](const char* label, const auto& action) {
+    QVector<qreal> eventMs, frameMs;
+    for (int i = 0; i < 20; ++i) {
+      QElapsedTimer timer; timer.start();
+      action(i);
+      eventMs.append(timer.nsecsElapsed() / 1000000.);
+      QApplication::processEvents();
+      view.viewport()->repaint();
+      frameMs.append(timer.nsecsElapsed() / 1000000.);
+    }
+    const auto report = [&](QVector<qreal> values, const char* phase) {
+      std::sort(values.begin(), values.end());
+      std::cout << "[inline-nav-bench] " << label << ' ' << phase << " p50Ms=" << values[values.size() / 2]
+                << " p95Ms=" << values[values.size() * 95 / 100] << " maxMs=" << values.back() << std::endl;
+    };
+    report(eventMs, "event"); report(frameMs, "frame");
+  };
+  measure("activate", [&](int i) {
+    const auto cursor = controller.inputController().cursorForSourceOffset(i % 2 ? strike : bold);
+    view.setCursorHit(HitTestResult::from(cursor));
+    controller.activateHit(HitTestResult::from(cursor));
+  });
+  controller.selection().setCursorPosition(controller.inputController().cursorForSourceOffset(strike + 4));
+  measure("horizontal", [&](int i) {
+    require(pressKey(controller.inputController(), &view, i % 2 ? Qt::Key_Left : Qt::Key_Right), "horizontal benchmark navigation");
+  });
+  measure("vertical", [&](int i) {
+    require(pressKey(controller.inputController(), &view, i % 2 ? Qt::Key_Up : Qt::Key_Down), "vertical benchmark navigation");
+  });
+}
 
 using namespace muffin;
 
@@ -316,7 +442,7 @@ void testEditorViewInlineLayoutSmoke() {
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
-    qputenv("QT_QPA_PLATFORM", "offscreen");
+    qputenv("QT_QPA_PLATFORM", qEnvironmentVariableIsSet("MUFFIN_INLINE_NAV_BENCH") ? "minimal" : "offscreen");
   }
   QApplication app(argc, argv);
 #define RUN_TEST(test) runTest(#test, test)
@@ -330,7 +456,10 @@ int main(int argc, char** argv) {
   RUN_TEST(testHorizontalNavigationEntersInlineMarkers);
   RUN_TEST(testTextHitActivationAddsSourceOffsetForInlineEditing);
   RUN_TEST(testEditorViewInlineLayoutSmoke);
+  RUN_TEST(testSelectionRefreshRetainsStylesAndUnchangedProjection);
+  RUN_TEST(testProjectionReuseDecisionsMatchFreshProjection);
 #undef RUN_TEST
+  benchmarkInlineNavigation();
   QApplication::clipboard()->clear();
   return 0;
 }

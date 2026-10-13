@@ -1081,14 +1081,18 @@ CursorPosition InputController::cursorForSourceInNode(MarkdownNode& node, qsizet
   if (!contextResolver().fill(node, context)) {
     return {};
   }
+  return cursorForSourceInContext(context, sourceOffset);
+}
+
+CursorPosition InputController::cursorForSourceInContext(const BlockEditContext& context, qsizetype sourceOffset) const {
   const qsizetype localSourceOffset = qBound<qsizetype>(0, sourceOffset - context.contentRange.byteStart, context.contentText.size());
   qsizetype visibleOffset = -1;
   if (context.inlineProjection.visibleOffsetForSourceOffset(localSourceOffset, visibleOffset)) {
-    CursorPosition cursorForVisible = cursorFor(node.id(), visibleOffset);
+    CursorPosition cursorForVisible = cursorFor(context.blockId, visibleOffset);
     cursorForVisible.text.sourceOffset = sourceOffset;
     return cursorForVisible;
   }
-  CursorPosition fallbackCursor = cursorFor(node.id(), qBound<qsizetype>(0, localSourceOffset, context.visibleText.size()));
+  CursorPosition fallbackCursor = cursorFor(context.blockId, qBound<qsizetype>(0, localSourceOffset, context.visibleText.size()));
   fallbackCursor.text.sourceOffset = sourceOffset;
   return fallbackCursor;
 }
@@ -1663,7 +1667,12 @@ bool InputController::moveCursorHorizontal(int direction, bool extendSelection) 
       nextSourceOffset = context.contentRange.byteStart +
           snapOffsetToGrapheme(context.contentText, localNext, direction);
     }
-    setCursorOrExtend(cursorForSourceOffset(nextSourceOffset), extendSelection);
+    // We already resolved this block and built its edit projection above.
+    // Interior character steps do not need another document search and two
+    // more projections. Shared block boundaries retain the normal resolver.
+    const auto next = nextSourceOffset > context.contentRange.byteStart && nextSourceOffset < context.contentRange.byteEnd
+        ? cursorForSourceInContext(context, nextSourceOffset) : cursorForSourceOffset(nextSourceOffset);
+    setCursorOrExtend(next, extendSelection);
     return true;
   }
 

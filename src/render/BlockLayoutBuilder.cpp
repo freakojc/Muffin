@@ -426,6 +426,7 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFresh(const MarkdownNode& 
     }
   };
   auto result = build();
+  if (result) result->setLayoutSelection(selection_);
   if (result && result->rect().width() > 0)
     result->layoutGeneratedContent(node, theme, headingCounterText_ ? headingCounterText_->value(node.id()) : QPair<QString, QString>());
   return result;

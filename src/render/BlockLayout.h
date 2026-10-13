@@ -297,6 +297,8 @@ public:
   void setChildren(std::vector<std::unique_ptr<BlockLayout>> children);
   std::vector<std::unique_ptr<BlockLayout>>& children();
   const std::vector<std::unique_ptr<BlockLayout>>& children() const;
+  void setLayoutSelection(const SelectionRange& selection) { layoutSelection_ = selection; }
+  bool selectionLayoutMatches(const SelectionRange& selection, const MarkdownDocument& document) const;
 
   void setTableRows(std::vector<TableRowLayout> rows);
   std::vector<TableRowLayout>& tableRows();
@@ -331,6 +333,7 @@ public:
   QVector<QRectF> selectionRectsSelfForOffsets(qsizetype startOffset, qsizetype endOffset, const RenderTheme& theme) const;
 
 private:
+  SelectionRange layoutSelection_;
   struct PositionedPseudoFragment {
     std::array<LayoutBox, 4> boxes;
     std::array<PseudoElementRule, 4> rules;

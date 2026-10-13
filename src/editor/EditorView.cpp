@@ -339,7 +339,7 @@ bool EditorView::refreshBlocks(const QVector<NodeId>& blockIds, const MarkdownDo
 // the stamp's key — spell-check enablement, markdown/convertOnRendering, codeBlockWrap, an async
 // mermaid render arriving — so its blocks must rebuild even when the stamp says "current".
 bool EditorView::refreshBlocksInternal(
-    const QVector<NodeId>& blockIds, const MarkdownDocument& document, bool forceRebuild) {
+    const QVector<NodeId>& blockIds, const MarkdownDocument& document, bool forceRebuild, DocumentLayout::BlockUpdateReason reason) {
   PerfTimer perf("view.refreshBlocks");
   if (!layout_ || document_ != &document) {
     return false;
@@ -357,7 +357,7 @@ bool EditorView::refreshBlocksInternal(
           sameSelectionRange(it.value().selection, selection_) && it.value().revision == revision) {
         continue;  // already built with the current selection + revision — skip the O(block) rebuild
       }
-      const DocumentLayout::BlockRebuildResult result = layout_->rebuildBlock(blockId, document, theme_, selection_);
+      const DocumentLayout::BlockRebuildResult result = layout_->rebuildBlock(blockId, document, theme_, selection_, reason);
       if (!result.rebuilt) {
         return false;
       }
@@ -1323,7 +1323,7 @@ void EditorView::refreshInlineProjectionForSelectionChange(SelectionRange previo
 
   bool refreshed = false;
   if (document_ && layout_ && !blockIds.isEmpty()) {
-    refreshed = refreshBlocks(blockIds, *document_);
+    refreshed = refreshBlocksInternal(blockIds, *document_, false, DocumentLayout::BlockUpdateReason::Selection);
   }
   const bool scrolled = refreshed && restoreViewportAnchor(anchor);
 

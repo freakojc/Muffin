@@ -365,6 +365,21 @@ InlineProjectionState InlineProjectionState::forSelection(
   return state;
 }
 
+bool InlineProjection::BuildState::shouldReveal(qsizetype sourceStart, qsizetype sourceEnd,
+                                              qsizetype visibleStart, qsizetype visibleEnd) {
+  const bool revealed = projectionState.shouldRevealSourceRange(sourceStart, sourceEnd) ||
+                        projectionState.shouldRevealVisibleRange(visibleStart, visibleEnd);
+  if (revealChecks) revealChecks->push_back({sourceStart, sourceEnd, visibleStart, visibleEnd, revealed});
+  return revealed;
+}
+
+bool InlineProjection::matchesState(const InlineProjectionState& state) const {
+  return valid_ && std::all_of(revealChecks_.cbegin(), revealChecks_.cend(), [&](const auto& check) {
+    return check.revealed == (state.shouldRevealSourceRange(check.sourceStart, check.sourceEnd) ||
+                             state.shouldRevealVisibleRange(check.visibleStart, check.visibleEnd));
+  });
+}
+
 InlineProjection::InlineProjection(const QVector<InlineNode>& inlines, QString sourceText, InlineProjectionState projectionState,
                                    qsizetype sourceBase, qreal baseFontSize, qsizetype pendingPrefixLength,
                                    SmartPunctRenderOptions smartPunct, bool breakOnSingleNewline, TextTransform textTransform,
@@ -374,6 +389,7 @@ InlineProjection::InlineProjection(const QVector<InlineNode>& inlines, QString s
   state.sourceText = &sourceText_;
   state.sourceBase = sourceBase;
   state.projectionState = projectionState;
+  state.revealChecks = &revealChecks_;
   state.baseFontSize = baseFontSize;
   state.htmlPalette = std::move(htmlPalette);
   state.smartPunct = smartPunct;
@@ -650,6 +666,9 @@ QString InlineProjection::plainTextForInlines(const QVector<InlineNode>& inlines
 }
 
 bool InlineProjection::isPlainInlineSource(const QVector<InlineNode>& inlines, const QString& sourceText, qsizetype sourceBase) {
+  // Semantic nodes require projection mapping. Reject them before rendering a
+  // second copy of every HTML fragment merely to discover that fact.
+  if (std::any_of(inlines.cbegin(), inlines.cend(), [](const auto& node) { return node.type() != InlineType::Text; })) return false;
   InlineProjection projection(inlines, sourceText, InlineProjectionState{}, sourceBase);
   if (!projection.isValid()) {
     return false;
@@ -1128,8 +1147,7 @@ int InlineProjection::tryAppendHtmlInlineGroup(BuildState& state, const QVector<
   // Determine active state (cursor on the HTML group)
   const qsizetype visibleStart = state.visibleOffset;
   const qsizetype visibleEnd = visibleStart + visibleSize;
-  const bool active = state.projectionState.shouldRevealSourceRange(openStart, closeEnd) ||
-                      state.projectionState.shouldRevealVisibleRange(visibleStart, visibleEnd);
+  const bool active = state.shouldReveal(openStart, closeEnd, visibleStart, visibleEnd);
 
   if (active) {
     // When active, show raw HTML tags as visible text (like marker reveal for **bold**)
@@ -1236,8 +1254,9 @@ void InlineProjection::appendInline(BuildState& state, const InlineNode& node, q
   const qsizetype displayStart = state.displayOffset;
   const qsizetype visibleStart = state.visibleOffset;
   const qsizetype visibleEnd = visibleStart + plainTextForInline(node, state.breakOnSingleNewline).size();
-  const bool active = state.projectionState.shouldRevealSourceRange(sourceStart, sourceEnd) ||
-                      state.projectionState.shouldRevealVisibleRange(visibleStart, visibleEnd);
+  const bool revealable = !marker.isEmpty() || (node.type() == InlineType::Link && !node.isAutolink()) ||
+                          node.type() == InlineType::Image || node.type() == InlineType::FootnoteReference;
+  const bool active = revealable && state.shouldReveal(sourceStart, sourceEnd, visibleStart, visibleEnd);
   switch (node.type()) {
     case InlineType::Text: {
       const QString source = state.sourceText->mid(sourceStart, sourceEnd - sourceStart);
@@ -1306,8 +1325,7 @@ void InlineProjection::appendInline(BuildState& state, const InlineNode& node, q
         const qsizetype segmentSourceEnd = sourceStart + segment.sourceEnd;
         const qsizetype segmentVisibleStart = state.visibleOffset;
         const qsizetype segmentVisibleEnd = segmentVisibleStart + segment.decodedText.size();
-        const bool revealSyntax = state.projectionState.shouldRevealSourceRange(segmentSourceStart, segmentSourceEnd) ||
-                                  state.projectionState.shouldRevealVisibleRange(segmentVisibleStart, segmentVisibleEnd);
+        const bool revealSyntax = state.shouldReveal(segmentSourceStart, segmentSourceEnd, segmentVisibleStart, segmentVisibleEnd);
 
         appendTextSpan(state, node.type(), InlineSpanKind::Text,
                         segmentSourceStart, segmentSourceEnd,

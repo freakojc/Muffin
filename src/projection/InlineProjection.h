@@ -137,6 +137,9 @@ public:
   QString displayText() const;
   QString visibleText() const;
   const QVector<InlineProjectionSpan>& spans() const;
+  // Replay only the reveal decisions made while building this projection.
+  // Moving within an already revealed span leaves text and offset maps intact.
+  bool matchesState(const InlineProjectionState& state) const;
   // Render-level folded-token queries (Convert on Rendering). `offset` is source-relative to this
   // projection's sourceText (block-content-relative). For deletion: when the caret sits at a folded
   // token's boundary in `direction`, returns the whole token's source range so backspace/delete
@@ -159,10 +162,16 @@ public:
   static bool isPlainInlineSource(const QVector<InlineNode>& inlines, const QString& sourceText, qsizetype sourceBase = -1);
 
 private:
+  struct RevealCheck {
+    qsizetype sourceStart, sourceEnd, visibleStart, visibleEnd;
+    bool revealed;
+  };
   struct BuildState {
     const QString* sourceText = nullptr;
     qsizetype sourceBase = -1;
     InlineProjectionState projectionState;
+    QVector<RevealCheck>* revealChecks = nullptr;
+    bool shouldReveal(qsizetype sourceStart, qsizetype sourceEnd, qsizetype visibleStart, qsizetype visibleEnd);
     qsizetype displayOffset = 0;
     qsizetype visibleOffset = 0;
     bool bold = false;
@@ -227,6 +236,7 @@ private:
   QVector<InlineProjectionSpan> spans_;
   QVector<LinkRange> linkRanges_;
   QVector<HtmlInlineFormatData> htmlFormatData_;
+  QVector<RevealCheck> revealChecks_;
   bool valid_ = false;
 };
 

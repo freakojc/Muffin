@@ -440,6 +440,33 @@ void BlockLayout::paintPositionedPseudos(QPainter& painter, QPointF origin, qrea
   }
 }
 
+bool BlockLayout::selectionLayoutMatches(const SelectionRange& selection, const MarkdownDocument& document) const {
+  // Entering/leaving a block can switch generated previews, literal editors or
+  // omitted empty paragraphs. Reuse within a block is governed by its actual
+  // projection decisions, rather than the caret's exact character offset.
+  if (layoutSelection_.focus.blockId != selection.focus.blockId ||
+      layoutSelection_.focus.text.nodeId != selection.focus.text.nodeId ||
+      isLiteralBlockType(type_) || type_ == BlockType::LinkDefinition || type_ == BlockType::FootnoteDefinition) return false;
+  if (!document.node(id_)) return false;
+  // A quote's virtual empty paragraphs also depend on the selection anchor.
+  // Containers may omit those children entirely, so compare that dependency
+  // before inspecting just the materialized descendants.
+  if (!children_.empty() && (layoutSelection_.anchor.blockId != selection.anchor.blockId ||
+      layoutSelection_.anchor.text.nodeId != selection.anchor.text.nodeId ||
+      layoutSelection_.anchor.text.sourceOffset != selection.anchor.text.sourceOffset)) return false;
+  if (inlineLayout_ && !inlineLayout_->projectionMatchesState(
+          InlineProjectionState::forSelection(selection, id_, contentSourceStart_))) return false;
+  for (const auto& row : tableRows_)
+    for (const auto& cell : row.cells) {
+      InlineProjectionState state;
+      if (selection.focus.text.nodeId == cell.nodeId)
+        state = InlineProjectionState::forSelection(selection, selection.focus.blockId, cell.contentSourceStart);
+      if (!cell.text.projectionMatchesState(state)) return false;
+    }
+  return std::all_of(children_.cbegin(), children_.cend(),
+                     [&](const auto& child) { return child->selectionLayoutMatches(selection, document); });
+}
+
 bool BlockLayout::stylesMatch(const RenderTheme& theme, const MarkdownDocument& document) const {
   const auto* node = document.node(id_);
   if (!node) return false;

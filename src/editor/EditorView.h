@@ -198,7 +198,8 @@ private:
   // Shared core of refreshBlocks/refreshVisibleBlocks. forceRebuild bypasses the BuiltStamp
   // coalescing check for callers whose visible output depends on state outside the stamp's
   // {selection, revision} key (spell toggle, smart-punct rendering, mermaid async arrival).
-  bool refreshBlocksInternal(const QVector<NodeId>& blockIds, const MarkdownDocument& document, bool forceRebuild);
+  bool refreshBlocksInternal(const QVector<NodeId>& blockIds, const MarkdownDocument& document, bool forceRebuild,
+                            DocumentLayout::BlockUpdateReason reason = DocumentLayout::BlockUpdateReason::Content);
   // Drop any active IME composition (splice + state) and rebuild the caret block. Called on
   // focus changes so a composition cannot survive at a caret that has moved on.
   void resetComposition();

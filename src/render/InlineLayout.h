@@ -142,6 +142,9 @@ public:
   // True when this layout has an IME preedit spliced into its laid-out text (the composition is
   // rendered by the normal text paint, so EditorView draws only the caret — not overlay glyphs).
   bool hasPreedit() const { return composition_.active(); }
+  bool projectionMatchesState(const InlineProjectionState& state) const {
+    return !hasPreedit() && projection_.matchesState(state);
+  }
   bool hasHtmlContent() const { return hasHtmlContent_; }
   // Painted rects (document space, origin-relative) of the inline math atoms — the same rects
   // paintTextLayoutMathAtoms draws. Exposed so tests can verify atoms shift with the spliced preedit.

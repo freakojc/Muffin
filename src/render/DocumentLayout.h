@@ -28,6 +28,7 @@ class DocumentLayout {
   // tests and print. Lazy builds only cheap estimated heights up front and promotes blocks to
   // full detail on demand (ensureBuilt) as they scroll into view.
   enum class BuildPolicy { Eager, Lazy };
+  enum class BlockUpdateReason { Content, Selection };
   std::optional<PseudoElementRule> documentPseudo(const RenderTheme& theme, const QString& pseudo) const {
     return document_ ? theme.pseudoForNode(document_->root(), pseudo) : std::nullopt;
   }
@@ -103,7 +104,8 @@ class DocumentLayout {
   // Visible blocks are measured immediately by ensureBuilt; indices stay intact.
   bool hasPendingViewportEstimates() const;
   void refreshViewportEstimates(const RenderTheme& theme, int maxBlocks = 256, int budgetMs = 4);
-  BlockRebuildResult rebuildBlock(NodeId blockId, const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection);
+  BlockRebuildResult rebuildBlock(NodeId blockId, const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection,
+                                  BlockUpdateReason reason = BlockUpdateReason::Content);
   RangeRebuildResult rebuildTopLevelRange(TopLevelRangeChange range, const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection);
 
   qreal pageLeft() const;   // content left
@@ -151,6 +153,8 @@ class DocumentLayout {
   QRectF refreshDependentStyles(const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection);
   bool refreshingStyles_ = false;
   bool resourceOnlyUpdate_ = false;
+  bool selectionOnlyUpdate_ = false;
+  quint64 styleDocumentRevision_ = 0;
   bool formattingRoot_ = false;
   bool incrementalFormatting_ = false;
   QSet<NodeId> formattingDirty_;

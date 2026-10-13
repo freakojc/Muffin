@@ -18,6 +18,7 @@ class QInputMethodEvent;
 namespace muffin {
 
 class BlockLayout;
+struct BlockEditContext;
 class CodeFenceController;
 class EditorView;
 class EmojiCompleter;
@@ -164,6 +165,7 @@ private:
   // tree walk to LOCATE the node. Use this whenever the block is already in hand (vertical
   // navigation, which fires per key press).
   CursorPosition cursorForSourceInNode(MarkdownNode& node, qsizetype sourceOffset) const;
+  CursorPosition cursorForSourceInContext(const BlockEditContext& context, qsizetype sourceOffset) const;
   CursorPosition cursorAfterEdit(CursorPosition preferredCursor, qsizetype fallbackSourceOffset, bool preferLaterEmptyAtOffset = false) const;
   // A caret that sits block-after a non-text top-level block (thematic break, etc.) — the only kind
   // of caret an offset on such a block can resolve to, since they host no inline-editable text.
