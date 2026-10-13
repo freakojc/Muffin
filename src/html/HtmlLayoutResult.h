@@ -33,6 +33,8 @@ public:
   QString error() const;
   QString baseDirectory() const;
   const HtmlBox* root() const;
+  // Authored style attributes are already entity-decoded in the box tree.
+  bool hasViewportUnits() const;
 
   // True iff the laid-out box tree actually paints something a user would read as content —
   // text glyphs, an image, a rule, a list marker, or a box with a background/border. Pure

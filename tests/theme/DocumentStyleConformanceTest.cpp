@@ -500,14 +500,29 @@ void testResponsiveProjectionReuse() {
       "resize", {});
   auto theme = muffin::RenderTheme::fromDefinition(definition);
   require(theme.updateForViewport(700, 600), "first viewport projects the environment");
+  muffin::DocumentSession session;
+  session.setMarkdownText("paragraph with **bold**", false);
+  const auto& paragraph = *session.document().root().children().front();
+  const auto* snapshot = theme.elementStyleForNode(paragraph, "p");
+  const auto* element = theme.cssElementForNode(paragraph);
   auto original = theme;
   require(!theme.updateForViewport(850, 600), "same active rules reuse theme projections");
+  require(theme.elementStyleForNode(paragraph, "p") == snapshot && theme.cssElementForNode(paragraph) == element,
+          "resize preserves live styles and selector views in the same media bucket");
   near(theme.documentCssEnvironment().viewportWidth, 850, "reused projection exposes the current viewport");
   near(original.documentCssEnvironment().viewportWidth, 700, "theme copy retains its viewport");
+  require(!theme.updateForViewport(860, 600), "exclusive theme also reuses its projection");
+  require(theme.elementStyleForNode(paragraph, "p") == snapshot, "consecutive resizes retain cached styles");
   require(theme.updateForViewport(950, 600), "crossing width media condition invalidates projections");
   near(theme.elementStyle("p")->text.fontSizePx, 24, "media font size updates");
   require(theme.updateForViewport(950, 1000), "height/orientation change invalidates projections");
   near(theme.elementStyle("h1")->text.fontSizePx, 25, "orientation media applies");
+  auto exportOnly = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(
+      "#write{max-width:500px}p{font-size:16px}"
+      ".typora-export #write{min-height:calc(100vh - 40px)}"
+      ".typora-export-sidebar + #write{min-height:100vh}", "export-resize", {}));
+  exportOnly.updateForViewport(700, 600);
+  require(!exportOnly.updateForViewport(850, 650), "export-only viewport units do not rebuild the editor theme");
   for (const auto& css :
        {QString(":root{--size:2vw}#write{max-width:500px}p{font-size:var(--size)}"),
         QString("#write{width:70%;padding:2% 3%;margin:1% auto}"), QString("#write{max-width:calc(80% - 10px);padding:0}")}) {

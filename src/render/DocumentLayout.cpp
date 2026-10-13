@@ -310,7 +310,7 @@ void DocumentLayout::rebuild(
   nestedToTopLevel_.clear();
   nestedIdsByTopLevel_.clear();
   ++viewportGeneration_;
-  hasHtmlContent_ = false;
+  hasHtmlViewportUnits_ = false;
 
   const PageMetrics metrics = pageMetricsFor(theme, viewportWidth);
   pageOuterLeft_ = metrics.outerLeft;
@@ -502,8 +502,9 @@ bool DocumentLayout::relayoutForViewportWidth(const RenderTheme& theme, qreal vi
   const PageMetrics metrics = pageMetricsFor(theme, viewportWidth);
   const auto environment = theme.documentCssEnvironment();
   const QSizeF cssViewport(environment.viewportWidth, environment.viewportHeight);
+  const bool htmlViewportChanged = (hasHtmlViewportUnits_ || theme.hasInlineViewportUnits()) && cssViewport != cssViewport_;
   const bool reflow = stylesChanged || !qFuzzyCompare(metrics.contentWidth + 1.0, pageWidth_ + 1.0) ||
-                      (hasHtmlContent_ && cssViewport != cssViewport_);
+                      htmlViewportChanged;
   if (reflow) {
     const auto* rootStyle = theme.elementStyle(QStringLiteral("#write"));
     // A root flex/grid needs all sibling allocations together. Export/eager
@@ -512,7 +513,11 @@ bool DocumentLayout::relayoutForViewportWidth(const RenderTheme& theme, qreal vi
         (rootStyle && rootStyle->layout.establishesFormattingContext())) return false;
     ++viewportGeneration_;
     viewportEstimateCursor_ = 0;
-    theme.invalidateDocumentStyles();
+    // Rewrapping unchanged nodes does not invalidate their CSS ancestry or
+    // interaction recipes. Inline viewport lengths need fresh values, while
+    // ordinary <kbd>/<br> markup leaves the Markdown style cache intact.
+    if (stylesChanged) theme.invalidateDocumentStyles();
+    else if (htmlViewportChanged) theme.invalidateInlineViewportStyles();
     configureBuilder(selection_);
     if (stylesChanged) recomputeHeadingCounters(*document_, theme);
   }
@@ -1241,7 +1246,7 @@ const MarkdownNode* DocumentLayout::topLevelBlockFor(NodeId id, const MarkdownDo
 }
 
 void DocumentLayout::indexLayoutBlock(const BlockLayout& block) {
-  hasHtmlContent_ = hasHtmlContent_ || block.htmlLayout() || (block.inlineLayout() && block.inlineLayout()->hasHtmlContent());
+  hasHtmlViewportUnits_ = hasHtmlViewportUnits_ || (block.htmlLayout() && block.htmlLayout()->hasViewportUnits());
   if (block.nodeId().isValid()) {
     layoutIndex_.insert(block.nodeId(), &block);
   }

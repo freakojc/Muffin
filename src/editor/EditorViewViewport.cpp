@@ -291,7 +291,10 @@ void EditorView::ensureVisibleBuilt() {
     return;
   }
   const QRectF vis = documentViewportRect();
-  const qreal buffer = viewport()->height() * 1.5;
+  // A pending width reflow must measure the screen, not reshape several screens
+  // of overscan on every drag step. Restore normal scroll prefetch after the
+  // bounded idle estimate pass completes.
+  const qreal buffer = layout_->hasPendingViewportEstimates() ? 80.0 : viewport()->height() * 1.5;
   const QPair<qsizetype, qsizetype> range = layout_->slotRangeOverlappingY(vis.top() - buffer, vis.bottom() + buffer);
   if (range.first < 0) {
     return;

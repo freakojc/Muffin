@@ -130,7 +130,7 @@ RenderTheme RenderTheme::fromDefinitionWithEngine(const ThemeDefinition& input, 
   if (t.sourceSheet_ && !t.styleEngine_) {
     t.styleEngine_ = std::make_shared<CssComputedStyleEngine>(muffin::documentStyleSheet(*t.sourceSheet_));
   }
-  t.viewportUnits_ = t.sourceSheet_ && t.sourceSheet_->hasViewportUnits();
+  t.viewportUnits_ = t.styleEngine_ && t.styleEngine_->hasViewportUnits();
   if (const auto* page = t.elementStyle(QStringLiteral("#write"))) {
     const auto& box = page->box;
     t.percentagePageBox_ = box.widthLength.hasPercentage || box.minWidthLength.hasPercentage || box.maxWidthLength.hasPercentage;
@@ -200,14 +200,17 @@ bool RenderTheme::updateForViewport(qreal width, qreal height) {
   environment.dark = backgroundColor_.lightnessF() < 0.5;
   const bool reuseProjection =
       cssViewportWidth_ >= 0 && !viewportUnits_ && !percentagePageBox_ && styleEngine_->sameActiveRules(environment);
-  auto engine = styleEngine_->withEnvironment(environment);
   if (reuseProjection) {
-    styleEngine_ = std::move(engine);
+    // A width change rewraps text, but it does not change selectors or computed
+    // styles in this media bucket. Keep the live tree, paint recipes and fonts.
+    // Detach only if another theme snapshot still owns the engine.
+    if (styleEngine_.use_count() == 1) styleEngine_->updateViewportSize(cssWidth, cssHeight);
+    else styleEngine_ = styleEngine_->withEnvironment(environment);
     cssViewportWidth_ = cssWidth;
     cssViewportHeight_ = cssHeight;
-    invalidateDocumentStyles();
     return false;
   }
+  auto engine = styleEngine_->withEnvironment(environment);
   const auto definition = CssThemeMapper::fromSheet(*sourceSheet_, sourceId_, environment, engine.get());
   RenderTheme resolved = fromDefinitionWithEngine(definition, zoomPercent_, fontSizePx_, std::move(engine));
   resolved.contentWidthPx_ = contentWidthPx_;
@@ -596,6 +599,14 @@ std::optional<PseudoElementRule> RenderTheme::pseudoForElement(const CssElement&
   for (const auto& rule : decorations_.pseudos)
     if (rule.host == host && rule.pseudo == pseudo) return rule;
   return {};
+}
+
+void RenderTheme::invalidateInlineViewportStyles() const {
+  if (hasInlineViewportUnits()) invalidateDocumentStyles();
+}
+
+bool RenderTheme::hasInlineViewportUnits() const {
+  return styleTree_ && styleTree_->hasInlineViewportUnits();
 }
 
 void RenderTheme::invalidateDocumentStyles() const {

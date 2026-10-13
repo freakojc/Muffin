@@ -116,6 +116,9 @@ public:
  // Drop resolved styles and the sparse live-tree adapter. Recreating the adapter
  // is proportional to the selector paths queried, so every edit gets fresh data.
  void invalidateDocumentStyles() const;
+ // Keep static Markdown snapshots when only embedded HTML's viewport changes.
+ void invalidateInlineViewportStyles() const;
+ bool hasInlineViewportUnits() const;
  QFont headingFont(int level) const;
  QFont codeFont() const;
  QFont inlineCodeFont() const;

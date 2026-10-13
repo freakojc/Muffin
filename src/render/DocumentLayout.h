@@ -189,7 +189,7 @@ class DocumentLayout {
   QSizeF cssViewport_;
   quint64 viewportGeneration_ = 1;
   qsizetype viewportEstimateCursor_ = 0;
-  bool hasHtmlContent_ = false;
+  bool hasHtmlViewportUnits_ = false;
   BuildPolicy buildPolicy_ = BuildPolicy::Eager;
 
   std::vector<BlockSlot> slots_;

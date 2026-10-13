@@ -126,6 +126,9 @@ public:
   // specificity. Invalid/incomplete declarations are skipped exactly as in a
   // normal rule block.
   static std::vector<CssDeclaration> parseDeclarations(const QString& text);
+  // Conservative dependency check, including custom-property values before
+  // var() substitution. Shared by stylesheets and authored inline HTML.
+  static bool usesViewportUnits(const QString& value);
 
   // Recursively substitute var(--x[, fallback]) references in `value` using the
   // variable table. Unknown variables with no fallback resolve to empty string.

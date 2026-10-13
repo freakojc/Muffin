@@ -195,6 +195,16 @@ public:
  // computed values/caches isolated from the previous theme and its copies.
  std::shared_ptr<CssComputedStyleEngine> withEnvironment(CssEnvironment environment) const;
  bool sameActiveRules(CssEnvironment environment) const { return sourceSheet_->sameActiveRules(environment_, environment); }
+ bool hasViewportUnits() const { return viewportUnits_; }
+ // The caller owns this snapshot exclusively. With unchanged active rules and
+ // no viewport-dependent declarations, cached document styles remain valid.
+ void updateViewportSize(qreal width, qreal height) {
+   environment_.viewportWidth = width;
+   environment_.viewportHeight = height;
+   // Inline HTML declarations can introduce viewport lengths even if the
+   // stylesheet has none. Selector matches and static node styles still apply.
+   valueCache_.clear();
+ }
 
  CssComputedStyle styleFor(const CssElement& element) const;
  CssComputedStyle styleFor(const CssElement& element, const CssElementState& state) const;
@@ -233,6 +243,7 @@ private:
  std::shared_ptr<const CssThemeSheet> sourceSheet_;
  CssThemeSheet sheet_;
  CssEnvironment environment_;
+ bool viewportUnits_ = false;
  std::vector<ParsedSelector> parsedSelectors_;         // every selector of every rule, flattened
  std::vector<std::pair<int, int>> ruleSelectorRange_;  // per-rule [start,end) into parsedSelectors_
  CssSelectorFeatures selectorFeatures_;

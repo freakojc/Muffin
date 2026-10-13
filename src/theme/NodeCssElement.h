@@ -32,6 +32,7 @@ public:
   const CssElement* linkForSourceRange(const MarkdownNode& owner, qsizetype start, qsizetype end,
                                       const QString& href) const;
   qsizetype materializedElementCount() const;
+  bool hasInlineViewportUnits() const { return inlineViewportUnits_; }
 
   const CssElement* previousSibling(const CssElement& element) const override;
   const CssElement* nextSibling(const CssElement& element) const override;
@@ -55,6 +56,7 @@ private:
     const CssElement* element;
   };
   mutable QHash<const MarkdownNode*, QVector<InlineView>> inlineTrees_;
+  mutable bool inlineViewportUnits_ = false;
   bool maintainTypeIndex_ = true;
   DocumentStyleHost host_;
 };

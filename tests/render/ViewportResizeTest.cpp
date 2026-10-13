@@ -4,6 +4,7 @@
 
 #include <QElapsedTimer>
 #include <QScrollBar>
+#include <QFile>
 
 namespace {
 RenderTheme resizeTheme() {
@@ -91,7 +92,7 @@ void testCenteringIsAppliedOnDemand() {
 
 void testHtmlViewportUnitsAndEditsDuringResize() {
   DocumentSession session;
-  session.setMarkdownText("first paragraph\n\n<div style=\"height:20vh\">HTML</div>\n\nlast paragraph", false);
+  session.setMarkdownText("first paragraph\n\n<div style=\"height:20v&#104;\">HTML</div>\n\nlast paragraph", false);
   auto theme = resizeTheme();
   theme.updateForViewport(1200, 700);
   DocumentLayout layout;
@@ -112,6 +113,43 @@ void testHtmlViewportUnitsAndEditsDuringResize() {
   DocumentLayout fresh;
   fresh.rebuild(session.document(), theme, 1200);
   require(qAbs(layout.totalHeight() - fresh.totalHeight()) < .01, "edited resize geometry must match fresh layout");
+}
+
+void testHtmlResizeInvalidatesOnlyViewportStyles() {
+  for (int scenario = 0; scenario < 3; ++scenario) {
+    const bool dynamic = scenario != 0;
+    DocumentSession session;
+    session.setMarkdownText(scenario == 0 ? "before <kbd>static</kbd> after"
+                            : scenario == 1 ? "before <span style=\"font-size:5vh\"><em>dynamic</em></span> after"
+                                            : "before <span style=\"display:inline-block;font-size:5vh\">dynamic</span> after", false);
+    auto theme = resizeTheme();
+    theme.updateForViewport(1200, 700);
+    DocumentLayout layout;
+    layout.rebuild(session.document(), theme, 1200, {}, {}, DocumentLayout::BuildPolicy::Lazy);
+    layout.buildAll(theme);
+    const auto& node = *session.document().root().children().front();
+    const auto* snapshot = theme.elementStyleForNode(node, "p");
+    const auto* element = theme.cssElementForNode(node);
+    const bool changed = theme.updateForViewport(1200, 1000);
+    require(!changed, "inline HTML does not change theme projections");
+    require(layout.relayoutForViewportWidth(theme, 1200, changed), "HTML resize remains incremental");
+    if (!dynamic) require(!layout.hasPendingViewportEstimates(), "static HTML needs no reflow when only height changes");
+    layout.buildAll(theme);
+    if (!dynamic) {
+      require(theme.elementStyleForNode(node, "p") == snapshot && theme.cssElementForNode(node) == element,
+              "ordinary HTML retains the live Markdown style cache");
+    } else {
+      const auto offset = session.markdownText().indexOf(QStringLiteral("dynamic"));
+      const qreal fontSize = theme.inlineStyleForNode(node, offset).text.fontSizePx;
+      require(qAbs(fontSize - 50) < .01, "viewport font inheritance through an inline child is refreshed");
+    }
+    const qreal height = layout.totalHeight();
+    auto freshTheme = resizeTheme();
+    freshTheme.updateForViewport(1200, 1000);
+    DocumentLayout fresh;
+    fresh.rebuild(session.document(), freshTheme, 1200);
+    require(qAbs(height - fresh.totalHeight()) < .01, "HTML viewport resize agrees with a fresh layout");
+  }
 }
 
 void testResizeKeepsReadingPositionWithOffscreenCaret() {
@@ -162,15 +200,53 @@ void benchmarkLargeResize() {
   std::cout << "[resize-bench] mode=" << (fullRebuild ? "full" : "incremental") << " blocks=" << layout.slotCount()
             << " frames=24 totalMs=" << timer.elapsed() << '\n';
 }
+void benchmarkEditorResize() {
+  if (!qEnvironmentVariableIsSet("MUFFIN_RESIZE_VIEW_BENCH")) return;
+  QFile file(qEnvironmentVariable("MUFFIN_RESIZE_DOCUMENT"));
+  require(file.open(QIODevice::ReadOnly), "open resize benchmark document");
+  DocumentSession session;
+  session.setMarkdownText(QString::fromUtf8(file.readAll()), false);
+  const auto cssPath = qEnvironmentVariable("MUFFIN_RESIZE_THEME");
+  auto theme = cssPath.isEmpty() ? resizeTheme() : RenderTheme::fromDefinition(ThemeDefinition::fromCss(cssPath, "resize-benchmark"));
+  EditorView view;
+  view.resize(1000, 700);
+  view.setTheme(theme);
+  view.setDocument(session.document());
+  view.show();
+  QApplication::processEvents();
+  if (!session.document().root().children().empty())
+    view.setCursorPosition(inlineCursor(session.document().root().children().front()->id(), 0, 0));
+  QVector<qreal> resizeMs, frameMs;
+  QElapsedTimer timer;
+  const int frames = qEnvironmentVariableIntValue("MUFFIN_RESIZE_FRAMES");
+  for (int i = 0; i < (frames > 0 ? frames : 40); ++i) {
+    timer.start();
+    view.resize(700 + (i % 20) * 10, 700 + (i % 3));
+    resizeMs.append(timer.nsecsElapsed() / 1000000.);
+    QApplication::processEvents();
+    view.viewport()->repaint();
+    frameMs.append(timer.nsecsElapsed() / 1000000.);
+  }
+  const auto report = [&](QVector<qreal> values, const char* phase) {
+    std::sort(values.begin(), values.end());
+    std::cout << "[resize-view-bench] " << phase << " theme=" << qPrintable(cssPath)
+              << " p50Ms=" << values[values.size() / 2] << " p95Ms=" << values[values.size() * 95 / 100]
+              << " maxMs=" << values.back() << '\n';
+  };
+  report(resizeMs, "resize"); report(frameMs, "frame");
+}
 }  // namespace
 
 int main(int argc, char** argv) {
-  if (qgetenv("QT_QPA_PLATFORM").isEmpty()) qputenv("QT_QPA_PLATFORM", "offscreen");
+  if (qgetenv("QT_QPA_PLATFORM").isEmpty())
+    qputenv("QT_QPA_PLATFORM", qEnvironmentVariableIsSet("MUFFIN_RESIZE_VIEW_BENCH") ? "minimal" : "offscreen");
   QApplication app(argc, argv);
   runTest("lazy resize matches fresh layout", testLazyResizeRetainsIndicesAndMatchesFreshLayout);
   runTest("centering on demand", testCenteringIsAppliedOnDemand);
   runTest("HTML viewport and edits", testHtmlViewportUnitsAndEditsDuringResize);
+  runTest("HTML viewport style dependencies", testHtmlResizeInvalidatesOnlyViewportStyles);
   runTest("resize reading anchor", testResizeKeepsReadingPositionWithOffscreenCaret);
   benchmarkLargeResize();
+  benchmarkEditorResize();
   return 0;
 }

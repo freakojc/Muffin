@@ -632,19 +632,33 @@ bool EditorView::viewportEvent(QEvent* event) {
 }
 
 void EditorView::resizeEvent(QResizeEvent* event) {
+  PerfTimer perf("view.resize");
   QAbstractScrollArea::resizeEvent(event);
-  const bool stylesChanged = theme_.updateForViewport(viewport()->width(), viewport()->height());
+  bool stylesChanged;
+  {
+    PerfTimer step("view.resize.theme");
+    stylesChanged = theme_.updateForViewport(viewport()->width(), viewport()->height());
+  }
   bool relayouted = false;
   if (layout_ && document_) {
     ScopedViewportPin pin(*this);
     layout_->setEditingHtmlBlock(editingHtmlBlockId_);
-    relayouted = layout_->relayoutForViewportWidth(theme_, viewport()->width(), stylesChanged);
+    {
+      PerfTimer step("view.resize.relayout");
+      relayouted = layout_->relayoutForViewportWidth(theme_, viewport()->width(), stylesChanged);
+    }
     if (relayouted) {
       // Measure the screen, retaining the document's stable slot/index tree.
       // Offscreen measurements from the old width remain temporary estimates.
       const auto range = layout_->slotRangeOverlappingY(scrollY(), scrollY() + viewport()->height());
-      if (range.first >= 0) layout_->ensureBuilt(range.first, range.second, theme_);
-      updateCursorHitFromPosition();
+      {
+        PerfTimer step("view.resize.visible");
+        if (range.first >= 0) layout_->ensureBuilt(range.first, range.second, theme_);
+      }
+      {
+        PerfTimer step("view.resize.cursor");
+        updateCursorHitFromPosition();
+      }
       viewport()->update();
     }
   }

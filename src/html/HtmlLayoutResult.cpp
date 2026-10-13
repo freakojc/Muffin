@@ -25,6 +25,15 @@ QString HtmlLayoutResult::error() const { return error_; }
 QString HtmlLayoutResult::baseDirectory() const { return baseDirectory_; }
 const HtmlBox* HtmlLayoutResult::root() const { return root_.get(); }
 
+bool HtmlLayoutResult::hasViewportUnits() const {
+  const auto visit = [](const auto& self, const HtmlBox& box) -> bool {
+    if (CssThemeParser::usesViewportUnits(box.cssInlineStyle)) return true;
+    return std::any_of(box.children().begin(), box.children().end(),
+                       [&](const auto& child) { return self(self, *child); });
+  };
+  return root_ && visit(visit, *root_);
+}
+
 bool HtmlLayoutResult::hasVisibleContent() const {
   if (!root_) {
     return false;

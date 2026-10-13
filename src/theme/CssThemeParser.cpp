@@ -773,19 +773,22 @@ bool CssThemeSheet::sameActiveRules(const CssEnvironment& before, const CssEnvir
   return true;
 }
 
-bool CssThemeSheet::hasViewportUnits() const {
+bool CssThemeParser::usesViewportUnits(const QString& value) {
   // Conservative: quoted strings and inactive declarations may also match.
-  // Custom properties must be included before var() substitution.
   static const QRegularExpression units(QStringLiteral("[0-9.](?:vw|vh|vmin|vmax)\\b"), QRegularExpression::CaseInsensitiveOption);
+  return units.match(value).hasMatch();
+}
+
+bool CssThemeSheet::hasViewportUnits() const {
   for (auto it = variables_.cbegin(); it != variables_.cend(); ++it)
-    if (units.match(it.value()).hasMatch()) return true;
+    if (CssThemeParser::usesViewportUnits(it.value())) return true;
   for (const auto& rule : rules_)
     for (const auto& declaration : rule.declarations)
-      if (units.match(declaration.value).hasMatch()) return true;
+      if (CssThemeParser::usesViewportUnits(declaration.value)) return true;
   for (const auto& animation : keyframes_)
     for (const auto& stop : animation.stops)
       for (const auto& declaration : stop.declarations)
-        if (units.match(declaration.value).hasMatch()) return true;
+        if (CssThemeParser::usesViewportUnits(declaration.value)) return true;
   return false;
 }
 

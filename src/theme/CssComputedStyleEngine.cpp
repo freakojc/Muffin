@@ -561,6 +561,15 @@ CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEn
   // parsedSelectors_ / ruleSelectorRange_ instead of re-running parseSelector
   // (regex + char walk) on every node × every ancestor level × every rule.
   const auto& rules = sheet_.rules();
+  const auto usesViewport = [](const auto& declarations) {
+    return std::any_of(declarations.begin(), declarations.end(), [](const auto& declaration) {
+      return CssThemeParser::usesViewportUnits(declaration.value);
+    });
+  };
+  for (auto it = sheet_.variables().cbegin(); it != sheet_.variables().cend(); ++it)
+    viewportUnits_ = viewportUnits_ || CssThemeParser::usesViewportUnits(it.value());
+  for (const auto& animation : sheet_.keyframes()) for (const auto& stop : animation.stops)
+    viewportUnits_ = viewportUnits_ || usesViewport(stop.declarations);
   qsizetype totalSelectors = 0;
   for (const CssRule& rule : rules) { totalSelectors += rule.selectors.size(); }
   parsedSelectors_.reserve(static_cast<std::size_t>(totalSelectors));
@@ -573,6 +582,10 @@ CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEn
       const bool supported = std::none_of(ps.parts.cbegin(), ps.parts.cend(),
                                           [](const SelectorPart& part) { return part.simple.unsupported; });
       if (!rule.darkScope && ps.valid && supported && !ps.exportOnly && !ps.editorOnly) {
+        // Export-only vh/vw declarations cannot affect the editor. In
+        // particular, Typora export page heights must not invalidate every
+        // paragraph and animation each time the native window changes size.
+        viewportUnits_ = viewportUnits_ || usesViewport(rule.declarations);
         const auto& subject = ps.parts.back().simple;
         if (subject.pseudoElement == QLatin1String("before") || subject.pseudoElement == QLatin1String("after")) {
           const auto key = qMakePair(subject.tag == QLatin1String("*") ? QString() : subject.tag, subject.id);

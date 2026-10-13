@@ -369,6 +369,7 @@ void testEnvironmentSnapshots() {
   CssElement p;
   p.tag = "p";
   p.cacheId = 7;
+  require(engine.hasViewportUnits(), "viewport custom properties are document dependencies");
   p.childIndex = 1;
   require(qAbs(engine.styleFor(p).length("width").px - 42) < .01, "initial viewport-unit value");
   environment.viewportWidth = 720;
@@ -388,6 +389,17 @@ void testEnvironmentSnapshots() {
           "newly active structural rules compile and invalidate values");
   require(!engine.selectorFeatures().hasStructuralRules && !engine.styleFor(p).hasProperty("color"),
           "new media state does not mutate the original engine");
+  CssComputedStyleEngine staticEngine(CssThemeParser::parse(
+      "p{color:red}.typora-export #write{min-height:100vh}.md-search-panel{width:50vw}", {}), environment);
+  require(!staticEngine.hasViewportUnits(), "export and application chrome do not affect document styles");
+  const auto generation = staticEngine.generation();
+  const auto cached = staticEngine.styleFor(p);
+  require(qAbs(staticEngine.styleFor(p, {}, inlineStyle).length("height").px - 60) < .01, "initial inline viewport value");
+  staticEngine.updateViewportSize(1000, 800);
+  require(staticEngine.generation() == generation && staticEngine.styleFor(p) == cached,
+          "static document values remain cached across viewport changes");
+  require(qAbs(staticEngine.styleFor(p, {}, inlineStyle).length("height").px - 80) < .01,
+          "inline value cache observes the updated viewport");
 }
 
 void testModernMediaConditions() {

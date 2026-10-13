@@ -197,6 +197,8 @@ const CssElement* NodeCssElementBuilder::buildInline(const MarkdownNode& owner, 
                 child->classes = box.cssClasses;
                 if (!box.href().isEmpty()) child->attributes.insert(QStringLiteral("href"), box.href());
                 child->inlineDeclarations = CssThemeParser::parseDeclarations(box.cssInlineStyle);
+                for (const auto& declaration : child->inlineDeclarations)
+                  inlineViewportUnits_ = inlineViewportUnits_ || CssThemeParser::usesViewportUnits(declaration.value);
                 element = child;
                 const auto tag = child->tag;
                 if (tag != "br" && tag != "img" && tag != "input" && tag != "hr" && !markup.endsWith(QStringLiteral("/>")))
