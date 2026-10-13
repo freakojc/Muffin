@@ -1,4 +1,5 @@
 #include "render/BlockLayout.h"
+#include "render/CssPaintAnimation.h"
 #include "render/RenderMetrics.h"
 
 #include "blocks/code/CodeFenceScrollController.h"
@@ -304,6 +305,9 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
   int pseudoIndex = 0;
   for (const auto& name : {QStringLiteral("before"), QStringLiteral("after")}) {
     PositionedPseudoFragment fragment;
+    fragment.recipe = theme.paintRecipeForElement(*origin, name);
+    fragment.containing = containing;
+    fragment.identity = name;
     bool present = false;
     for (int stateIndex = 0; stateIndex < 4; ++stateIndex) {
       CssElementState state; state.hover = stateIndex & 1; state.focus = stateIndex & 2;
@@ -349,6 +353,11 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
         staticOrigin = caret.topLeft() + inlineTextOrigin() - rect_.topLeft();
       }
       const auto rect = positionGeneratedContent(v, containing, QRectF(staticOrigin, QSizeF(v.width, v.height)), zoom);
+      if (stateIndex == 0) {
+        fragment.untransformedRect = positionGeneratedContent(v, containing, QRectF(staticOrigin, QSizeF(v.width, v.height)), zoom, false);
+        int side = 0;
+        for (const auto& property : {"top", "right", "bottom", "left"}) fragment.anchors[side++] = rule->computed->length(property);
+      }
       auto& box = fragment.boxes[stateIndex];
       box = LayoutBox::place(v.style.key, v.style, v.used, rect, v.font);
       if (v.icon && rule->svgFromMask) box.style.paint.backgroundColor = QColor();
@@ -363,7 +372,8 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
   }
 }
 
-void BlockLayout::paintPositionedPseudos(QPainter& painter, QPointF origin, qreal hover, qreal focus) const {
+void BlockLayout::paintPositionedPseudos(QPainter& painter, QPointF origin, qreal hover, qreal focus,
+                                        CssPaintContext* context, qreal zoom) const {
   const auto blend = [](const QRectF& a, const QRectF& b, qreal phase) {
     return QRectF(a.topLeft() + (b.topLeft() - a.topLeft()) * phase,
                   a.size() + (b.size() - a.size()) * phase);
@@ -378,15 +388,55 @@ void BlockLayout::paintPositionedPseudos(QPainter& painter, QPointF origin, qrea
     if (!snapshot.valid) continue;
     // Animation interpolates already laid-out endpoints; no CSS is evaluated here.
     auto box = LayoutBox::place(snapshot.hostKey, snapshot.style, snapshot.usedBox, geometry(fragment.boxes), snapshot.font);
-    paintLayoutBox(painter, box, origin);
+    if (context) {
+      auto style = fragment.recipe ? context->sample(*fragment.recipe, id_.toString() + "::" + fragment.identity,
+                                  state | (hover > .5 && context->pressed ? 4 : 0)) : snapshot.style;
+      auto rect = fragment.untransformedRect;
+      const auto inset = LayoutBox::insets(snapshot.usedBox);
+      const auto size = [&](const CssLengthPercentage& value, qreal basis, qreal extra, qreal fallback) {
+        return value.status == CssLengthStatus::Valid ? qMax<qreal>(0, value.px * zoom + value.fraction * basis + extra) : fallback;
+      };
+      rect.setWidth(size(style.box.widthLength, fragment.containing.width(), style.box.borderBox ? 0 : inset.left() + inset.right(), rect.width()));
+      rect.setHeight(size(style.box.heightLength, fragment.containing.height(), style.box.borderBox ? 0 : inset.top() + inset.bottom(), rect.height()));
+      const auto anchor = [&](int index, qreal basis) { return fragment.anchors[index].px * zoom + fragment.anchors[index].fraction * basis; };
+      if (fragment.anchors[3].status == CssLengthStatus::Valid) rect.moveLeft(fragment.containing.left() + anchor(3, fragment.containing.width()) + snapshot.usedBox.margin.left());
+      else if (fragment.anchors[1].status == CssLengthStatus::Valid) rect.moveRight(fragment.containing.right() - anchor(1, fragment.containing.width()) - snapshot.usedBox.margin.right());
+      if (fragment.anchors[0].status == CssLengthStatus::Valid) rect.moveTop(fragment.containing.top() + anchor(0, fragment.containing.height()) + snapshot.usedBox.margin.top());
+      else if (fragment.anchors[2].status == CssLengthStatus::Valid) rect.moveBottom(fragment.containing.bottom() - anchor(2, fragment.containing.height()) - snapshot.usedBox.margin.bottom());
+      auto used = snapshot.usedBox; used.borderRadius = style.box.borderRadius * zoom;
+      box = LayoutBox::place(snapshot.hostKey, std::move(style), used, rect, snapshot.font);
+    }
     const auto& rule = fragment.rules[state];
-    painter.save(); painter.setOpacity(painter.opacity() * rule.opacity);
-    if (!rule.svgData.isEmpty()) {
-      painter.setClipRect(box.contentBox.translated(origin), Qt::IntersectClip);
-      auto icon = fragment.icons[state]; icon.translate(box.contentBox.topLeft() - snapshot.contentBox.topLeft() + origin);
-      DecorationPainter::paintIcon(painter, rule.svgData, icon, rule.svgFromMask ? rule.maskTint : rule.color, rule.svgFromMask);
-    } else if (fragment.texts[state]) fragment.texts[state]->draw(&painter, box.inlineTextOrigin + origin);
-    painter.restore();
+    auto paint = box.style.paint;
+    if (!context) {
+      paintLayoutBox(painter, box, origin);
+      painter.save(); painter.setOpacity(painter.opacity() * rule.opacity);
+      if (!rule.svgData.isEmpty()) {
+        painter.setClipRect(box.contentBox.translated(origin), Qt::IntersectClip);
+        auto icon = fragment.icons[state]; icon.translate(box.contentBox.topLeft() - snapshot.contentBox.topLeft() + origin);
+        DecorationPainter::paintIcon(painter, rule.svgData, icon, rule.svgFromMask ? rule.maskTint : rule.color, rule.svgFromMask);
+      } else if (fragment.texts[state]) fragment.texts[state]->draw(&painter, box.inlineTextOrigin + origin);
+      painter.restore();
+      continue;
+    }
+    paintCssElement(painter, box.borderBox.translated(origin), box.visualOverflow.translated(origin), paint, zoom, context,
+        [&](QPainter& target, const ThemeElementPaintStyle& unfiltered) {
+      auto style = box.style; style.paint = unfiltered;
+      const auto maskTint = style.paint.backgroundColor;
+      if (rule.svgFromMask) style.paint.backgroundColor = {};
+      paintLayoutBox(target, box, origin, &style);
+      if (!rule.svgData.isEmpty()) {
+        target.save(); target.setClipRect(box.contentBox.translated(origin), Qt::IntersectClip);
+        auto icon = fragment.icons[state]; icon.translate(box.contentBox.topLeft() - snapshot.contentBox.topLeft() + origin);
+        DecorationPainter::paintIcon(target, rule.svgData, icon,
+            rule.svgFromMask ? maskTint.isValid() ? maskTint : rule.maskTint : style.paint.color, rule.svgFromMask);
+        target.restore();
+      } else if (fragment.texts[state]) {
+        QTextCharFormat format; format.setForeground(style.paint.color);
+        fragment.texts[state]->draw(&target, box.inlineTextOrigin + origin,
+                                   {{0, int(fragment.texts[state]->text().size()), format}});
+      }
+    });
   }
 }
 
@@ -998,6 +1048,20 @@ const std::vector<BlockLayout::TableRowLayout>& BlockLayout::tableRows() const {
 
 void BlockLayout::paint(QPainter& painter, const RenderTheme& theme, qreal scrollY, const CodeFenceScrollController* scroll, BlockPaintState hover) const {
   painter.save();
+  ThemeElementStyle sampled = cssBoxGeometry_.style;
+  if (hover.css) {
+    const auto rect = cssBoxGeometry_.borderBox.translated(0, -scrollY);
+    const bool over = hover.css->pointer && rect.contains(painter.worldTransform().inverted().map(*hover.css->pointer));
+    const bool focused = hover.css->focusedAncestors.contains(id_) || hover.focusedNode == id_;
+    hover.hoverActive = over; hover.hoverPhase = over ? 1 : 0;
+    hover.focusActive = focused; hover.focusPhase = focused ? 1 : 0;
+    const int bits = (over ? 1 : 0) | (focused ? 2 : 0) | (over && hover.css->pressed ? 4 : 0);
+    if (cssBoxGeometry_.paintRecipe) sampled = hover.css->sample(*cssBoxGeometry_.paintRecipe, id_.toString(), bits);
+  }
+  paintCssElement(painter, cssBoxGeometry_.borderBox.translated(0, -scrollY), visualOverflowRect().translated(0, -scrollY),
+      sampled.paint, theme.zoomPercent() / 100., hover.css, [&](QPainter& target, const ThemeElementPaintStyle& paint) {
+    auto style = sampled; style.paint = paint;
+    hover.hostStyle = hover.css || sampled.paint.opacity != 1 || sampled.paint.filterPresent ? &style : nullptr;
   const auto& overflow = cssBoxGeometry_.style.layout;
   if (cssBoxGeometry_.valid && (overflow.clipsX() || overflow.clipsY())) {
     auto clip = cssBoxGeometry_.paddingBox.translated(0, -scrollY);
@@ -1007,20 +1071,21 @@ void BlockLayout::paint(QPainter& painter, const RenderTheme& theme, qreal scrol
     // and shadow. paintSelf paints the part inside this clip below. Paint the
     // complementary area once, preserving translucent decoration opacity.
     QPainterPath visible, content;
-    visible.addRect(painter.hasClipping() ? painter.clipBoundingRect()
-                                         : painter.combinedTransform().inverted().mapRect(QRectF(painter.viewport())));
+    visible.addRect(target.hasClipping() ? target.clipBoundingRect()
+                                         : target.combinedTransform().inverted().mapRect(QRectF(target.viewport())));
     content.addRect(clip);
-    painter.save();
-    painter.setClipPath(visible.subtracted(content), Qt::IntersectClip);
-    paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY));
-    painter.restore();
-    painter.setClipRect(clip, Qt::IntersectClip);
+    target.save();
+    target.setClipPath(visible.subtracted(content), Qt::IntersectClip);
+    paintLayoutBox(target, cssBoxGeometry_, QPointF(0, -scrollY), hover.hostStyle);
+    target.restore();
+    target.setClipRect(clip, Qt::IntersectClip);
   }
-  paintSelf(painter, theme, scrollY, scroll, hover);
+  paintSelf(target, theme, scrollY, scroll, hover);
   for (size_t i = 0; i < children_.size(); ++i) {
     const auto& child = children_[formattingPaintOrder_.empty() ? i : formattingPaintOrder_[i]];
-    child->paint(painter, theme, scrollY, scroll, hover);
+    child->paint(target, theme, scrollY, scroll, hover);
   }
+  });
   painter.restore();
 }
 
@@ -1116,7 +1181,7 @@ void BlockLayout::paintSelf(QPainter& painter, const RenderTheme& theme, qreal s
       }
       break;
     case BlockType::BlockQuote:
-      paintBlockQuote(painter, theme, viewRect, scrollY);
+      paintBlockQuote(painter, theme, viewRect, scrollY, hover);
       break;
     case BlockType::FrontMatter:
     case BlockType::CodeFence:
@@ -1125,22 +1190,22 @@ void BlockLayout::paintSelf(QPainter& painter, const RenderTheme& theme, qreal s
       else {
         const QRectF codeRect =
             mermaidCodeFenceRect(theme).translated(0, -scrollY);
-        paintCodeFence(painter, theme, codeRect, scroll);
+        paintCodeFence(painter, theme, codeRect, scroll, hover);
         if (hasMermaidDiagnostic())
           paintMermaidDiagnostic(painter, theme, viewRect);
       }
       break;
     case BlockType::MathBlock:
-      paintMathBlock(painter, theme, viewRect, scrollY);
+      paintMathBlock(painter, theme, viewRect, scrollY, hover);
       break;
     case BlockType::HtmlBlock:
-      paintHtmlBlock(painter, theme, viewRect);
+      paintHtmlBlock(painter, theme, viewRect, hover);
       break;
     case BlockType::ThematicBreak:
       paintThematicBreak(painter, theme, viewRect);
       break;
     case BlockType::Table:
-      paintTable(painter, theme, scrollY);
+      paintTable(painter, theme, scrollY, hover);
       break;
     case BlockType::LinkDefinition:
     case BlockType::FootnoteDefinition:
@@ -1148,21 +1213,18 @@ void BlockLayout::paintSelf(QPainter& painter, const RenderTheme& theme, qreal s
       break;
     default:
       if (cssBoxGeometry_.valid && cssBoxGeometry_.style.layout.establishesFormattingContext())
-        paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY));
+        paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), hover.hostStyle);
       break;
   }
   paintPositionedPseudos(painter, rect_.topLeft() + QPointF(0, -scrollY),
-      hover.hoverActive ? hover.hoverPhase : 0, hover.focusActive ? hover.focusPhase : 0);
+      hover.hoverActive ? hover.hoverPhase : 0, hover.focusActive ? hover.focusPhase : 0, hover.css, theme.zoomPercent() / 100.);
 }
 
 void BlockLayout::paintInlineBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState hover) const {
   if (inlineLayout_) {
-    paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY));
-    // CSS `:hover`/`:focus { color }` on a heading (phycat h1 → accent) is baked
-    // into the inline layout at build time (it knows which runs inherit the
-    // colour); paint just needs the shared hover + focus phases, blended there.
-    // Box-shadow glow / bg / scale effects still use their own DecorationPainter
-    // paths below.
+    paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), hover.hostStyle);
+    // Text and decorations consume the same sampled style, while the immutable
+    // layout retains caret, selection and line geometry.
     const qreal hoverPhase = hover.hoverActive ? hover.hoverPhase : 0.0;
     const qreal focusPhase = hover.focusActive ? hover.focusPhase : 0.0;
     if (hasListMarker()) {
@@ -1208,10 +1270,12 @@ void BlockLayout::paintInlineBlock(QPainter& painter, const RenderTheme& theme, 
         paintUnorderedListMarker(painter, listMarkerKind_, markerCenter, metrics.height(), markerColor);
       }
       painter.restore();
-      inlineLayout_->paint(painter, QPointF(contentX, viewRect.top()), hoverPhase, focusPhase);
+      inlineLayout_->paint(painter, QPointF(contentX, viewRect.top()), hoverPhase, focusPhase, hover.css, id_.toString(),
+                           hover.focusedNode == id_ ? hover.focusSourceOffset - contentSourceStart_ : -1, hover.hostStyle);
     } else {
       const QPointF textOrigin = inlineTextOrigin() + QPointF(0, -scrollY);
-      inlineLayout_->paint(painter, textOrigin, hoverPhase, focusPhase);
+      inlineLayout_->paint(painter, textOrigin, hoverPhase, focusPhase, hover.css, id_.toString(),
+                           hover.focusedNode == id_ ? hover.focusSourceOffset - contentSourceStart_ : -1, hover.hostStyle);
     }
     if (!placeholderText_.isEmpty()) {
       painter.save();
@@ -1228,7 +1292,7 @@ void BlockLayout::paintInlineBlock(QPainter& painter, const RenderTheme& theme, 
   }
 }
 
-void BlockLayout::paintBlockQuote(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY) const {
+void BlockLayout::paintBlockQuote(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState state) const {
   painter.save();
   painter.setPen(Qt::NoPen);
   if (alertKind_ != AlertKind::None) {
@@ -1243,14 +1307,14 @@ void BlockLayout::paintBlockQuote(QPainter& painter, const RenderTheme& theme, Q
     painter.drawRoundedRect(QRectF(viewRect.left(), viewRect.top() + 3.0, 4.0, viewRect.height() - 6.0),
                             2.0, 2.0);
   } else {
-    paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY));
+    paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), state.hostStyle);
   }
   painter.restore();
 }
 
-void BlockLayout::paintMathBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY) const {
+void BlockLayout::paintMathBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState state) const {
   painter.save();
-  paintLayoutBox(painter, cssBoxGeometry_, viewRect.topLeft() - rect_.topLeft());
+  paintLayoutBox(painter, cssBoxGeometry_, viewRect.topLeft() - rect_.topLeft(), state.hostStyle);
   if (literalEditing_) {
     const QRectF sourceRect = mathEditorSourceRect(theme).translated(0, -scrollY);
     const QRectF previewRect = mathPreviewContentRect(theme).translated(0, -scrollY);
@@ -1301,7 +1365,7 @@ void BlockLayout::paintMermaidDiagram(QPainter& painter, const RenderTheme& them
                                       BlockPaintState state) const {
   if (!mermaidScene_) return;
   painter.save();
-  paintLayoutBox(painter, cssBoxGeometry_, viewRect.topLeft() - rect_.topLeft());
+  paintLayoutBox(painter, cssBoxGeometry_, viewRect.topLeft() - rect_.topLeft(), state.hostStyle);
   // Scale the scene's natural size to fit the content width (never upscale beyond 1:1),
   // then center it in the code box — mirrors paintMathBlock's centered layout.
   const QRectF content = viewRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox));
@@ -1509,10 +1573,10 @@ BlockLayout::MermaidInteractionHit BlockLayout::mermaidInteractionAt(
   return result;
 }
 
-void BlockLayout::paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect) const {
+void BlockLayout::paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, BlockPaintState state) const {
   if (literalEditing_) {
     painter.save();
-    paintLayoutBox(painter, cssBoxGeometry_, viewRect.topLeft() - rect_.topLeft());
+    paintLayoutBox(painter, cssBoxGeometry_, viewRect.topLeft() - rect_.topLeft(), state.hostStyle);
     // HTML literal source always wraps (unlike code fences, which honour
     // markdown/codeBlockWrap and gain a horizontal scrollbar instead). This
     // must match the build/estimate/selection/hit-test paths, all of which
@@ -1572,11 +1636,11 @@ QRectF BlockLayout::mathPreviewContentRect(const RenderTheme& theme) const {
                 qMax<qreal>(1.0, rect_.bottom() - padding.bottom() - previewTop));
 }
 
-void BlockLayout::paintCodeFence(QPainter& painter, const RenderTheme& theme, QRectF viewRect, const CodeFenceScrollController* scroll) const {
+void BlockLayout::paintCodeFence(QPainter& painter, const RenderTheme& theme, QRectF viewRect, const CodeFenceScrollController* scroll, BlockPaintState state) const {
   painter.save();
   auto sourceBox = cssBoxGeometry_;
   sourceBox.borderBox = viewRect;
-  paintLayoutBox(painter, sourceBox);
+  paintLayoutBox(painter, sourceBox, {}, state.hostStyle);
   // literalContentRect is document-space (rect_-based); shift it into view space the same way the
   // caller built viewRect (rect_.translated(0, -scrollY)) so the code text lands inside the box.
   const QRectF contentRect = literalContentRect(theme).translated(0, viewRect.top() - rect_.top());
@@ -1670,14 +1734,15 @@ void BlockLayout::paintCodeLineNumbers(QPainter& painter, const RenderTheme& the
   }
 }
 
-void BlockLayout::paintTable(QPainter& painter, const RenderTheme& theme, qreal scrollY) const {
+void BlockLayout::paintTable(QPainter& painter, const RenderTheme& theme, qreal scrollY, BlockPaintState state) const {
   painter.save();
-  paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY));
+  paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), state.hostStyle);
   for (const TableRowLayout& row : tableRows_) {
     paintLayoutBox(painter, row.box, QPointF(0, -scrollY));
     for (const TableCellLayout& cell : row.cells) {
       paintLayoutBox(painter, cell.box, QPointF(0, -scrollY));
-      cell.text.paint(painter, cell.textOrigin() + QPointF(0, -scrollY));
+      cell.text.paint(painter, cell.textOrigin() + QPointF(0, -scrollY), 0, 0, state.css,
+                      cell.nodeId.toString(), state.focusedNode == cell.nodeId ? state.focusSourceOffset - cell.contentSourceStart : -1);
     }
   }
   painter.restore();

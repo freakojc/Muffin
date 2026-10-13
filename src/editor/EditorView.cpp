@@ -8,9 +8,6 @@
 #include "editor/EditorKeyRouting.h"
 #include "editor/EditorViewGeometry.h"
 #include "editor/HtmlBlockHoverController.h"
-#include "editor/HoverAnimator.h"
-#include "editor/FocusAnimator.h"
-#include "editor/KeyframeAnimator.h"
 #include "editor/ResourceUrl.h"
 #include "editor/TableToolbar.h"
 #include "io/FilePathOps.h"
@@ -59,15 +56,6 @@ namespace {
 
 Q_LOGGING_CATEGORY(viewPerf, "muffin.perf", QtWarningMsg)
 
-// Map a block to its CSS host key for decoration/hover lookup ("" → none).
-QString hostKeyForBlock(const BlockLayout& block) {
-  switch (block.type()) {
-    case BlockType::Heading: return QStringLiteral("h%1").arg(block.headingLevel());
-    case BlockType::BlockQuote: return QStringLiteral("blockquote");
-    default: return QString();
-  }
-}
-
 bool sameCursorPosition(const CursorPosition& a, const CursorPosition& b) {
   return a.blockId == b.blockId && a.text.nodeId == b.text.nodeId && a.text.textOffset == b.text.textOffset &&
          a.text.sourceOffset == b.text.sourceOffset && a.text.inMeta == b.text.inMeta;
@@ -114,12 +102,10 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
   viewport()->setAcceptDrops(true);
   setBackgroundRole(QPalette::Base);
   applyScrollBarStyle();
-  hoverAnimator_ = new HoverAnimator(this);
-  hoverAnimator_->repaintBlock = [this](NodeId id) { repaintHoverBlock(id); };
-  focusAnimator_ = new FocusAnimator(this);
-  focusAnimator_->repaintBlock = [this](NodeId id) { repaintFocusBlock(id); };
-  keyframeAnimator_ = new KeyframeAnimator(this);
-  keyframeAnimator_->repaintAnimated = [this]() { repaintAnimatedBlocks(); };
+  cssPaintClock_.start();
+  cssPaintTimer_ = new QTimer(this);
+  cssPaintTimer_->setInterval(16);
+  connect(cssPaintTimer_, &QTimer::timeout, viewport(), qOverload<>(&QWidget::update));
   mermaidAnimationTimer_ = new QTimer(this);
   mermaidAnimationTimer_->setInterval(33);
   QObject::connect(mermaidAnimationTimer_, &QTimer::timeout, this,
@@ -230,6 +216,10 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
   connect(verticalScrollBar(), &QScrollBar::sliderPressed, this, [this] {
     stopScrollAnimation();
   });
+
+  viewportEstimateTimer_ = new QTimer(this);
+  viewportEstimateTimer_->setSingleShot(true);
+  connect(viewportEstimateTimer_, &QTimer::timeout, this, &EditorView::refreshViewportEstimates);
 }
 
 void EditorView::queueResourceRefresh() {
@@ -262,6 +252,8 @@ void EditorView::queueResourceRefresh() {
 }
 
 void EditorView::setDocument(const MarkdownDocument& document, QString documentPath) {
+  cssPaintContext_.clear();
+  cssPaintTimer_->stop();
   if (document_ != &document || documentPath_ != documentPath)
     openSequenceMenus_.clear();
   document_ = &document;
@@ -448,6 +440,8 @@ void EditorView::setContentWidthPx(int px) {
 }
 
 void EditorView::setTheme(RenderTheme theme) {
+  cssPaintContext_.clear();
+  cssPaintTimer_->stop();
   const int zoom = theme_.zoomPercent();
   const int fontSize = theme_.fontSizePx();
   const int contentWidth = theme_.contentWidthPx();
@@ -455,7 +449,6 @@ void EditorView::setTheme(RenderTheme theme) {
   theme_.setZoomPercent(zoom);
   theme_.setFontSizePx(fontSize);
   theme_.setContentWidthPx(contentWidth);
-  if (keyframeAnimator_) { keyframeAnimator_->setTheme(theme_); }
   applyScrollBarStyle();
   viewport()->setPalette(QPalette(theme_.backgroundColor()));
   rebuildLayout();
@@ -474,7 +467,6 @@ void EditorView::setCursorHit(HitTestResult hit) {
   ensureCodeFenceCursorVisible();
   ensureCursorVisible();
   updateTableToolbar();
-  updateBlockFocus();
 }
 
 void EditorView::setCursorPosition(CursorPosition position) {
@@ -490,10 +482,6 @@ void EditorView::setCursorPosition(CursorPosition position) {
   {
     PerfTimer t("view.setSelection.updateTableToolbar");
     updateTableToolbar();
-  }
-  {
-    PerfTimer t("view.setSelection.updateBlockFocus");
-    updateBlockFocus();
   }
   resetCaretBlink();
   ensureCursorVisible();
@@ -525,7 +513,6 @@ void EditorView::applySelectionRange(SelectionRange selection) {
   const SelectionRange previousSelection = selection_;
   selection_ = selection;
   cursorPosition_ = selection.focus;
-  updateBlockFocus();
   if (dragState_ == DragState::Dragging) {
     cursorVisible_ = false;
     cursorTimer_->stop();
@@ -561,7 +548,6 @@ void EditorView::clearCursor() {
   dragState_ = DragState::Idle;
   updateCodeLanguageEditor();
   updateTableToolbar();
-  updateBlockFocus();
   viewport()->update();
 }
 
@@ -590,10 +576,12 @@ void EditorView::changeEvent(QEvent* event) {
 }
 
 bool EditorView::event(QEvent* event) {
+  if (event->type() == QEvent::Hide && cssPaintTimer_) cssPaintTimer_->stop();
   if (event->type() == QEvent::Leave) {
+    cssPaintContext_.pointer.reset();
+    cssPaintContext_.pressed = false;
+    viewport()->update();
     clearHtmlHover();
-    hoveredBlockId_ = NodeId();
-    if (hoverAnimator_) { hoverAnimator_->setHovered(NodeId(), 0.0); }
     viewport()->setToolTip(QString());
   }
   if (event->type() == QEvent::KeyPress || event->type() == QEvent::ShortcutOverride) {
@@ -634,29 +622,57 @@ bool EditorView::event(QEvent* event) {
   return QAbstractScrollArea::event(event);
 }
 
+bool EditorView::viewportEvent(QEvent* event) {
+  if (event->type() == QEvent::Leave) {
+    cssPaintContext_.pointer.reset();
+    cssPaintContext_.pressed = false;
+    viewport()->update();
+  }
+  return QAbstractScrollArea::viewportEvent(event);
+}
+
 void EditorView::resizeEvent(QResizeEvent* event) {
   QAbstractScrollArea::resizeEvent(event);
   const bool stylesChanged = theme_.updateForViewport(viewport()->width(), viewport()->height());
   bool relayouted = false;
-  if (layout_ && document_ && !stylesChanged) {
+  if (layout_ && document_) {
+    ScopedViewportPin pin(*this);
     layout_->setEditingHtmlBlock(editingHtmlBlockId_);
-    const int oldValue = verticalScrollBar()->value();
-    relayouted = layout_->relayoutForViewportWidth(theme_, viewport()->width());
+    relayouted = layout_->relayoutForViewportWidth(theme_, viewport()->width(), stylesChanged);
     if (relayouted) {
-      updateScrollBars();
-      verticalScrollBar()->setValue(qBound(verticalScrollBar()->minimum(), oldValue, verticalScrollBar()->maximum()));
+      // Measure the screen, retaining the document's stable slot/index tree.
+      // Offscreen measurements from the old width remain temporary estimates.
+      const auto range = layout_->slotRangeOverlappingY(scrollY(), scrollY() + viewport()->height());
+      if (range.first >= 0) layout_->ensureBuilt(range.first, range.second, theme_);
       updateCursorHitFromPosition();
       viewport()->update();
     }
   }
   if (!relayouted) {
-    rebuildLayout();
+    rebuildLayout(true);
   }
+  // New resize events supersede unfinished estimate work. No full-document pass
+  // runs in the native resize handler, or in one long pause after mouse release.
+  if (layout_ && layout_->hasPendingViewportEstimates()) viewportEstimateTimer_->start(80);
   updateCodeLanguageEditor();
   updateTableToolbar();
   if (typewriterMode_ && cursorHit_.isValid()) {
     scrollToCursorCentered();
   }
+}
+
+void EditorView::refreshViewportEstimates() {
+  if (!document_ || loading_ || !layout_ || !layout_->hasPendingViewportEstimates()) return;
+  {
+    ScopedViewportPin pin(*this);
+    layout_->refreshViewportEstimates(theme_);
+  }
+  ensureVisibleBuilt();
+  updateCursorHitFromPosition();
+  updateCodeLanguageEditor();
+  updateTableToolbar();
+  viewport()->update();
+  if (layout_->hasPendingViewportEstimates()) viewportEstimateTimer_->start(8);
 }
 
 void EditorView::wheelEvent(QWheelEvent* event) {
@@ -677,6 +693,9 @@ void EditorView::wheelEvent(QWheelEvent* event) {
 }
 
 void EditorView::mousePressEvent(QMouseEvent* event) {
+  cssPaintContext_.pointer = event->position();
+  cssPaintContext_.pressed = event->buttons().testFlag(Qt::LeftButton);
+  viewport()->update();
   PerfTimer perf("view.mousePress");
   if (event->button() == Qt::LeftButton) {
     setFocus(Qt::MouseFocusReason);
@@ -791,6 +810,9 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
 }
 
 void EditorView::mouseMoveEvent(QMouseEvent* event) {
+  cssPaintContext_.pointer = event->position();
+  cssPaintContext_.pressed = event->buttons().testFlag(Qt::LeftButton);
+  viewport()->update();
   PerfTimer perf("view.mouseMove");
   if (codeFenceScrollDragId_.isValid() && (event->buttons() & Qt::LeftButton)) {
     dragCodeFenceScrollBarTo(codeFenceScrollDragId_, event->position());
@@ -826,12 +848,14 @@ void EditorView::mouseMoveEvent(QMouseEvent* event) {
     }
   }
   updateHtmlHover(event->position());
-  updateBlockHover(event->position());
   updateMouseCursor(event->position());
   QAbstractScrollArea::mouseMoveEvent(event);
 }
 
 void EditorView::mouseReleaseEvent(QMouseEvent* event) {
+  cssPaintContext_.pointer = event->position();
+  cssPaintContext_.pressed = false;
+  viewport()->update();
   if (event->button() == Qt::LeftButton && codeFenceScrollDragId_.isValid()) {
     codeFenceScrollDragId_ = NodeId();
     event->accept();
@@ -1186,7 +1210,7 @@ QVariant EditorView::inputMethodQuery(Qt::InputMethodQuery query) const {
   }
 }
 
-void EditorView::rebuildLayout() {
+void EditorView::rebuildLayout(bool preserveViewport) {
   theme_.updateForViewport(viewport()->width(), viewport()->height());
   PerfTimer perf("view.rebuildLayout");
   if (!layout_) {
@@ -1235,7 +1259,7 @@ void EditorView::rebuildLayout() {
   }
   updateCodeLanguageEditor();
   updateTableToolbar();
-  if (cursorPosition_.isValid()) {
+  if (cursorPosition_.isValid() && !preserveViewport) {
     ensureCursorVisible();
   }
   viewport()->update();
@@ -1414,125 +1438,16 @@ void EditorView::clearHtmlHover() {
   }
 }
 
-void EditorView::updateBlockHover(QPointF viewportPos) {
-  if (!layout_ || !hoverAnimator_) { return; }
-  const QPointF documentPos(viewportPos.x(), viewportPos.y() + scrollY());
-  const HitTestResult hit = hitTest(viewportPos);
-  NodeId next = hit.isValid() ? layout_->topLevelBlockIdFor(hit.blockId) : NodeId();
-  if (next.isValid()) {
-    if (const BlockLayout* blk = layout_->blockIfPromoted(next)) {
-      const QString host = hostKeyForBlock(*blk);
-      if (!host.isEmpty() && !blk->cssBorderBox().contains(documentPos)) {
-        next = NodeId();
-      }
-    }
-  }
-  if (next == hoveredBlockId_) { return; }
-  hoveredBlockId_ = next;
-  // Drive the animator only for hosts that actually declare a hover glow.
-  qreal duration = 0.0;
-  if (next.isValid()) {
-    if (const BlockLayout* blk = layout_->blockIfPromoted(next)) {
-      duration = hoverTransitionMs(hostKeyForBlock(*blk));
-    }
-  }
-  hoverAnimator_->setHovered(next, duration);
-}
-
-void EditorView::repaintHoverBlock(NodeId blockId) {
-  PerfTimer perf("view.repaintHover");
-  if (!layout_ || !blockId.isValid()) { return; }
-  const BlockLayout* blk = layout_->blockIfPromoted(blockId);
-  if (!blk) { return; }
-  const QRectF r = blk->visualOverflowRect().translated(0, -scrollY()).adjusted(-2, -2, 2, 2);
-  viewport()->update(r.toAlignedRect());
-}
-
-qreal EditorView::hoverTransitionMs(const QString& host) const {
-  if (host.isEmpty()) { return 0.0; }
-  for (const TransitionSpec& t : theme_.decorations().transitions) {
-    if (t.host == host) { return t.durationMs; }
-  }
-  return 0.0;
-}
-
-void EditorView::updateBlockFocus() {
-  if (!layout_ || !focusAnimator_) { return; }
-  // The focused top-level block is the one holding the caret (mirrors focus-mode's
-  // activeTopLevel derivation). Scoped to headings/blockquotes — the only hosts
-  // with a CSS :focus style — so focusing body text does not light up a paragraph.
-  NodeId next;
-  if (cursorPosition_.isValid()) {
-    next = layout_->topLevelBlockIdFor(cursorPosition_.blockId);
-    if (next.isValid()) {
-      if (const BlockLayout* blk = layout_->blockIfPromoted(next)) {
-        if (hostKeyForBlock(*blk).isEmpty()) { next = NodeId(); }
-      }
-    }
-  }
-  if (next == focusedBlockId_) { return; }
-  focusedBlockId_ = next;
-  qreal duration = 0.0;
-  if (next.isValid()) {
-    if (const BlockLayout* blk = layout_->blockIfPromoted(next)) {
-      duration = focusTransitionMs(hostKeyForBlock(*blk));
-    }
-  }
-  focusAnimator_->setFocused(next, duration);
-}
-
-void EditorView::repaintFocusBlock(NodeId blockId) {
-  PerfTimer perf("view.repaintFocus");
-  if (!layout_ || !blockId.isValid()) { return; }
-  const BlockLayout* blk = layout_->blockIfPromoted(blockId);
-  if (!blk) { return; }
-  const QRectF r = blk->visualOverflowRect().translated(0, -scrollY()).adjusted(-2, -2, 2, 2);
-  viewport()->update(r.toAlignedRect());
-}
-
-qreal EditorView::focusTransitionMs(const QString& host) const {
-  // Transitions are host-keyed (not state-keyed), so a `transition` on `h1` applies
-  // to both :hover and :focus — the fade duration is shared.
-  if (host.isEmpty()) { return 0.0; }
-  for (const TransitionSpec& t : theme_.decorations().transitions) {
-    if (t.host == host) { return t.durationMs; }
-  }
-  return 0.0;
-}
-
-void EditorView::repaintAnimatedBlocks() {
-  PerfTimer perf("view.repaintAnim");
-  if (!layout_ || !keyframeAnimator_) { return; }
-  const QRectF visible = documentViewportRect();
-  const QVector<const BlockLayout*> blocks = layout_->visibleBlocks(visible.adjusted(0, -40, 0, 40), theme_);
-  QRectF dirty;
-  for (const BlockLayout* blk : blocks) {
-    const QString host = hostKeyForBlock(*blk);
-    if (!host.isEmpty() && keyframeAnimator_->sampleFor(host)) {
-      dirty = dirty.isNull() ? blk->rect() : dirty.united(blk->rect());
-    }
-  }
-  if (!dirty.isNull()) { viewport()->update(dirty.translated(0, -scrollY()).adjusted(-24, -24, 24, 24).toAlignedRect()); }
-}
-
 void EditorView::repaintAnimatedMermaidBlocks() {
   PerfTimer perf("view.repaintMermaidAnim");
-  if (!layout_ || !mermaidAnimationTimer_ ||
-      !mermaidAnimationTimer_->isActive()) {
-    return;
-  }
-  const QRectF visible = documentViewportRect();
-  const QVector<const BlockLayout*> blocks =
-      layout_->visibleBlocks(visible.adjusted(0, -40, 0, 40), theme_);
+  if (!layout_ || !mermaidAnimationTimer_ || !mermaidAnimationTimer_->isActive()) return;
+  const auto blocks = layout_->visibleBlocks(documentViewportRect().adjusted(0, -40, 0, 40), theme_);
   QRectF dirty;
-  for (const BlockLayout* block : blocks) {
+  for (const auto* block : blocks) {
     if (!block || !block->hasAnimatedMermaid()) continue;
     dirty = dirty.isNull() ? block->rect() : dirty.united(block->rect());
   }
-  if (!dirty.isNull()) {
-    viewport()->update(
-        dirty.translated(0, -scrollY()).adjusted(-2, -2, 2, 2).toAlignedRect());
-  }
+  if (!dirty.isNull()) viewport()->update(dirty.translated(0, -scrollY()).adjusted(-2, -2, 2, 2).toAlignedRect());
 }
 
 void EditorView::updateMermaidAnimationDriver(bool hasVisibleAnimation) {

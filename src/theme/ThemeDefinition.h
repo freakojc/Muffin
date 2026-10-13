@@ -19,6 +19,7 @@ namespace muffin {
 
 class CssThemeSheet;  // forward-decl; full type lives in CssThemeParser.h
 class CssComputedStyle;
+struct CssPaintRecipe;
 
 // Every colour the UI can theme, in one place. This is the single source of
 // truth that the editor (via RenderTheme), the chrome (menu bar, sidebar,
@@ -223,10 +224,12 @@ struct ThemeBlockSpacing {
 // paint time (gradients are rect-relative). kind=None ⇒ no gradient; the field is
 // optional on every decoration that holds one.
 struct GradientStop {
+  bool operator==(const GradientStop&) const = default;
   CssLengthPercentage position;  // Missing = distribute at used-value time
   QColor color;
 };
 struct GradientSpec {
+  bool operator==(const GradientSpec&) const = default;
   enum class Kind { None, Linear, Radial, Conic };
   Kind kind = Kind::None;
   std::vector<GradientStop> stops;
@@ -433,9 +436,18 @@ struct ThemeElementBoxStyle {
 };
 
 struct ThemeElementPaintStyle {
+  bool operator==(const ThemeElementPaintStyle&) const = default;
   QColor color;
   QColor backgroundColor;
   GradientSpec backgroundImage;
+  // Percent positions are relative to the remaining space after sizing the
+  // image, rather than to the box itself (CSS Backgrounds used values).
+  CssLengthPercentage backgroundPositionX{CssLengthStatus::Valid, 0, 0, true};
+  CssLengthPercentage backgroundPositionY{CssLengthStatus::Valid, 0, 0, true};
+  CssLengthPercentage backgroundSizeX, backgroundSizeY;  // missing = auto
+  bool backgroundRepeatX = true, backgroundRepeatY = true;
+  QString backgroundOrigin = QStringLiteral("padding-box");
+  QString backgroundClip = QStringLiteral("border-box");
   QColor boxShadowColor;
   qreal boxShadowOffsetX = 0;
   qreal boxShadowOffsetY = 0;
@@ -443,6 +455,14 @@ struct ThemeElementPaintStyle {
   qreal boxShadowBlur = 0.0;
   qreal opacity = 1.0;
   qreal transformScale = 1.0;
+  struct Transform {
+    bool operator==(const Transform&) const = default;
+    enum class Kind { Translate, Scale, Rotate };
+    Kind kind = Kind::Translate;
+    CssLengthPercentage x, y;
+    qreal angle = 0;
+  };
+  std::vector<Transform> transforms;
   // CSS `filter:` applied to the element's own background box (subtree content is
   // not filtered). Defaults leave the image unchanged; present ⇒ any filter set.
   qreal filterBlur = 0.0;
@@ -472,6 +492,7 @@ struct ThemeElementPaintStyle {
 // comma list is honoured (multiple shadows are rare in themes). present ⇒ the
 // theme declared one with a valid colour.
 struct TextShadow {
+  bool operator==(const TextShadow&) const = default;
   QPointF offset;
   qreal blur = 0.0;
   QColor color;
@@ -498,6 +519,8 @@ struct ThemeElementTextStyle {
   // header free of a projection include.
   int textTransform = 0;
   TextShadow textShadow;  // CSS `text-shadow` on the element; present=false ⇒ none
+  qreal strokeWidth = 0;
+  QColor strokeColor;
 };
 
 struct ThemeElementStyle {
@@ -507,6 +530,8 @@ struct ThemeElementStyle {
   ThemeElementPaintStyle paint;
   ThemeElementTextStyle text;
   CssLayoutStyle layout;
+  bool cloneInlineDecoration = false;
+  std::shared_ptr<const CssPaintRecipe> paintRecipe;
 };
 
 // A complete, serializable theme. Built-in themes are produced by builtIns();

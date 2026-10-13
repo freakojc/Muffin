@@ -58,6 +58,10 @@ inline QColor cssColor(const QString& literal) {
 // shorthand parsing. Defined in CssValueParser.cpp.
 QStringList splitTopLevelSpaces(const QString& text);
 
+// One background/mask position layer, retaining percentages until geometry is
+// known. Supports keyword pairs and edge offsets (right 4px bottom 2px).
+QPair<CssLengthPercentage, CssLengthPercentage> parseCssPosition(const QString& value, const CssLengthContext& context = {});
+
 // Resolve a CSS colour value (var()/color-mix()/rgb()/rgba()/hsl()/hsla()/#hex/named) → QColor.
 // The full funnel every theme colour read routes through; returns invalid for unresolvable
 // input (and logs the offending value to themeWarn when that category is enabled).

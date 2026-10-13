@@ -397,6 +397,35 @@ ThemeElementStyle makeElementStyleForComputed(const QString& key, const CssCompu
   out.paint.backgroundColor = styleColor(bgProps);
   out.paint.backgroundImage = parseGradientSpec(style.rawValue(QStringLiteral("background-image")), style.customProperties(),
                                                {emPx, bodyPx, emPx * .5, emPx * .5, style.viewportPx});
+  const CssLengthContext paintContext{emPx, bodyPx, emPx * .5, emPx * .5, style.viewportPx};
+  const auto position = parseCssPosition(style.resolvedValue("background-position"), paintContext);
+  out.paint.backgroundPositionX = position.first;
+  out.paint.backgroundPositionY = position.second;
+  for (const auto& axis : {QStringLiteral("x"), QStringLiteral("y")}) {
+    const auto value = style.resolvedValue("background-position-" + axis);
+    if (!value.isEmpty()) {
+      const auto parsed = parseCssPosition(axis == "x" ? value + " top" : "left " + value, paintContext);
+      (axis == "x" ? out.paint.backgroundPositionX : out.paint.backgroundPositionY) = axis == "x" ? parsed.first : parsed.second;
+    }
+  }
+  const auto size = splitTopLevelSpaces(style.resolvedValue("background-size"));
+  if (!size.isEmpty()) out.paint.backgroundSizeX = parseCssLengthPercentage(QStringView(size[0]), paintContext);
+  if (size.size() > 1) out.paint.backgroundSizeY = parseCssLengthPercentage(QStringView(size[1]), paintContext);
+  const auto repeat = splitTopLevelSpaces(style.resolvedValue("background-repeat").toLower());
+  if (!repeat.isEmpty()) {
+    out.paint.backgroundRepeatX = repeat[0] != "no-repeat" && repeat[0] != "repeat-y";
+    out.paint.backgroundRepeatY = repeat.size() > 1 ? repeat[1] != "no-repeat" : repeat[0] != "no-repeat" && repeat[0] != "repeat-x";
+  }
+  if (style.hasProperty("background-origin")) out.paint.backgroundOrigin = style.resolvedValue("background-origin");
+  if (style.hasProperty("background-clip")) out.paint.backgroundClip = style.resolvedValue("background-clip");
+  out.cloneInlineDecoration = style.resolvedValue("box-decoration-break") == "clone" ||
+                              style.resolvedValue("-webkit-box-decoration-break") == "clone";
+  bool opacityOk = false;
+  auto opacity = style.resolvedValue("opacity");
+  const bool opacityPercent = opacity.endsWith('%');
+  if (opacityPercent) opacity.chop(1);
+  const auto alpha = opacity.toDouble(&opacityOk);
+  if (opacityOk) out.paint.opacity = qBound<qreal>(0, opacityPercent ? alpha / 100 : alpha, 1);
   const QString shadow = style.rawValue(QStringLiteral("box-shadow"));
   if (!shadow.isEmpty() && !shadow.contains(QStringLiteral("none"))) {
     const auto parsed = parseFirstBoxShadow(shadow, style.customProperties(), emPx);
@@ -407,12 +436,36 @@ ThemeElementStyle makeElementStyleForComputed(const QString& key, const CssCompu
     out.paint.boxShadowSpread = parsed.spread;
   }
   const QString transform = style.resolvedValue(QStringLiteral("transform")).trimmed().toLower();
-  static const QRegularExpression scaleRe(QStringLiteral("scale\\(([^)]+)\\)"));
-  const QRegularExpressionMatch scaleMatch = scaleRe.match(transform);
-  if (scaleMatch.hasMatch()) {
-    bool ok = false;
-    const qreal s = scaleMatch.captured(1).trimmed().toDouble(&ok);
-    if (ok && s > 0.0) { out.paint.transformScale = s; }
+  static const QRegularExpression transformRe(QStringLiteral(R"((translate[xy]?|scale[xy]?|rotate)\(([^()]*(?:\([^()]*\)[^()]*)*)\))"));
+  auto transforms = transformRe.globalMatch(transform);
+  while (transforms.hasNext()) {
+    const auto m = transforms.next();
+    auto args = m.captured(2); args.replace(',', ' ');
+    const auto parts = splitTopLevelSpaces(args);
+    if (parts.isEmpty()) continue;
+    ThemeElementPaintStyle::Transform t;
+    const auto name = m.captured(1);
+    if (name.startsWith("translate")) {
+      t.x = parseCssLengthPercentage(QStringView(parts[0]), paintContext);
+      if (name == "translatey") { t.y = t.x; t.x = {}; }
+      else if (parts.size() > 1) t.y = parseCssLengthPercentage(QStringView(parts[1]), paintContext);
+    } else if (name.startsWith("scale")) {
+      t.kind = ThemeElementPaintStyle::Transform::Kind::Scale;
+      bool ok = false; const qreal x = parts[0].toDouble(&ok);
+      if (!ok) continue;
+      t.x = {CssLengthStatus::Valid, name == "scaley" ? 1 : x};
+      t.y = {CssLengthStatus::Valid, name == "scalex" ? 1 : parts.size() > 1 ? parts[1].toDouble() : x};
+      if (name == "scale") out.paint.transformScale = x;  // compatibility projection
+    } else {
+      t.kind = ThemeElementPaintStyle::Transform::Kind::Rotate;
+      auto angle = parts[0]; qreal factor = 1;
+      if (angle.endsWith("turn")) { angle.chop(4); factor = 360; }
+      else if (angle.endsWith("grad")) { angle.chop(4); factor = .9; }
+      else if (angle.endsWith("rad")) { angle.chop(3); factor = 180 / M_PI; }
+      else if (angle.endsWith("deg")) angle.chop(3);
+      t.angle = angle.toDouble() * factor;
+    }
+    out.paint.transforms.push_back(t);
   }
   // CSS `filter:` — a space-separated list of filter functions applied to the
   // element's background box. Supports blur/brightness/contrast/grayscale/sepia/
@@ -504,17 +557,27 @@ ThemeElementStyle makeElementStyleForComputed(const QString& key, const CssCompu
     const QString first = CssThemeParser::splitTopLevelCommas(tsRaw).first().trimmed();
     const QColor sc = extractColor(first, style.customProperties());
     if (sc.isValid()) {
-      static const QRegularExpression lenRe(QStringLiteral("([+-]?\\d*\\.?\\d+)\\s*(px|em|rem|pt)?"));
-      auto it = lenRe.globalMatch(first);
       qreal nums[3] = {0, 0, 0};
       int count = 0;
-      while (it.hasNext() && count < 3) { nums[count++] = it.next().captured(1).toDouble(); }
+      for (const auto& token : splitTopLevelSpaces(first)) {
+        const auto length = parseCssLengthPercentage(QStringView(token), paintContext);
+        if (length.status == CssLengthStatus::Valid && !length.hasPercentage && count < 3) nums[count++] = length.px;
+      }
       out.text.textShadow.offset = QPointF(nums[0], nums[1]);
       out.text.textShadow.blur = count >= 3 ? nums[2] : 0.0;
       out.text.textShadow.color = sc;
       out.text.textShadow.present = true;
     }
   }
+  const auto stroke = splitTopLevelSpaces(style.resolvedValue("-webkit-text-stroke"));
+  out.text.strokeColor = out.paint.color;
+  for (const auto& token : stroke) {
+    const auto length = parseCssLengthPercentage(QStringView(token), paintContext);
+    if (length.status == CssLengthStatus::Valid) out.text.strokeWidth = qMax<qreal>(0, length.px);
+    else if (const auto color = extractColor(token, style.customProperties()); color.isValid()) out.text.strokeColor = color;
+  }
+  if (style.hasProperty("-webkit-text-stroke-width")) out.text.strokeWidth = qMax<qreal>(0, style.length("-webkit-text-stroke-width").px);
+  if (style.hasProperty("-webkit-text-stroke-color")) out.text.strokeColor = extractColor(style.resolvedValue("-webkit-text-stroke-color"), style.customProperties());
   const ParsedFontWeight fw = parseFontWeight(style.rawValue(QStringLiteral("font-weight")), style.customProperties());
   if (fw.present) { out.text.fontWeight = fw.weight; out.text.fontWeightSet = true; }
   const ParsedItalic fs = parseFontItalic(style.rawValue(QStringLiteral("font-style")), style.customProperties());

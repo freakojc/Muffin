@@ -103,6 +103,8 @@ public:
  // Node-resolved immutable snapshots, cached by generation and object identity.
  QFont fontForStyle(const ThemeElementStyle& style, QFont fallback) const;
  ThemeElementStyle inlineStyleForNode(const MarkdownNode& owner, qsizetype sourceOffset) const;
+ ThemeElementStyle styleForElement(const CssElement& element) const;
+ std::shared_ptr<const CssPaintRecipe> paintRecipeForElement(const CssElement& element, const QString& pseudo = {}) const;
  const CssElement* cssElementForNode(const MarkdownNode& node) const;
  const CssElement* cssParentForInlineHtml(const MarkdownNode& owner, qsizetype sourceOffset) const;
  const ThemeElementStyle* elementStyleForNode(const MarkdownNode& node, const QString& key) const;
@@ -232,6 +234,7 @@ private:
  mutable std::shared_ptr<NodeCssElementBuilder> styleTree_;
  mutable QHash<QString, std::shared_ptr<const ThemeElementStyle>> nodeStyleCache_;
  mutable QHash<QString, std::optional<PseudoElementRule>> pseudoStyleCache_;
+ mutable QHash<QString, std::shared_ptr<const CssPaintRecipe>> paintRecipeCache_;
  mutable quint64 styleGeneration_ = 1;
  // Prototype (load-time) QFont per element key, used by the Lazy estimate path so it doesn't
  // rebuild a QFont per block (~80µs each on Windows). Cleared by invalidateDocumentStyles() since

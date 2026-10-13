@@ -129,6 +129,10 @@ public:
     // editor animation clock in seconds.
     qreal mermaidAnimationTimeSeconds = -1.0;
     const QSet<QString>* openSequenceMenus = nullptr;
+    CssPaintContext* css = nullptr;
+    NodeId focusedNode;
+    qsizetype focusSourceOffset = -1;
+    const ThemeElementStyle* hostStyle = nullptr;
   };
 
   explicit BlockLayout(NodeId id = {});
@@ -308,7 +312,7 @@ public:
   void paint(QPainter& painter, const RenderTheme& theme, qreal scrollY,
              const CodeFenceScrollController* scroll = nullptr,
              BlockPaintState hover =
-                 BlockPaintState{false, 0.0, false, 0.0, -1.0, nullptr}) const;
+                 BlockPaintState{false, 0.0, false, 0.0, -1.0, nullptr, nullptr, NodeId(), -1, nullptr}) const;
   bool intersects(const QRectF& documentViewport) const;
   bool containsNode(NodeId id) const;
   bool containsInteractiveContent(QPointF documentPos, const RenderTheme& theme) const;
@@ -332,17 +336,22 @@ private:
     std::array<PseudoElementRule, 4> rules;
     std::array<QRectF, 4> icons;
     std::array<std::shared_ptr<TextLayout>, 4> texts;
+    std::shared_ptr<const CssPaintRecipe> recipe;
+    QRectF containing, untransformedRect;
+    std::array<CssLengthPercentage, 4> anchors;  // top, right, bottom, left
+    QString identity;
   };
   std::vector<PositionedPseudoFragment> positionedPseudos_;
   std::array<quint64, 8> positionedPseudoFingerprints_{};
   bool generatedContentLaidOut_ = false;
-  void paintPositionedPseudos(QPainter& painter, QPointF origin, qreal hover, qreal focus) const;
+  void paintPositionedPseudos(QPainter& painter, QPointF origin, qreal hover, qreal focus,
+                             CssPaintContext* context, qreal zoom) const;
   void paintSelf(QPainter& painter, const RenderTheme& theme, qreal scrollY, const CodeFenceScrollController* scroll, BlockPaintState hover) const;
   // per-type paint dispatch targets (paintSelf switches over these). viewRect is the
   // scrollY-translated block rect computed once in paintSelf.
   void paintInlineBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState hover) const;
-  void paintBlockQuote(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY) const;
-  void paintMathBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY) const;
+  void paintBlockQuote(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState state) const;
+  void paintMathBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState state) const;
   void paintMermaidDiagram(QPainter& painter, const RenderTheme& theme,
                            QRectF viewRect, BlockPaintState state) const;
   void paintMermaidDiagnostic(QPainter& painter, const RenderTheme& theme, QRectF viewRect) const;
@@ -359,9 +368,9 @@ private:
   MermaidInteractionHit mermaidInteractionAt(
       QPointF documentPos, const RenderTheme& theme,
       const QSet<QString>* openSequenceMenus) const;
-  void paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect) const;
+  void paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, BlockPaintState state) const;
   void paintThematicBreak(QPainter& painter, const RenderTheme& theme, QRectF viewRect) const;
-  void paintTable(QPainter& painter, const RenderTheme& theme, qreal scrollY) const;
+  void paintTable(QPainter& painter, const RenderTheme& theme, qreal scrollY, BlockPaintState state) const;
   HitTestResult hitSelf(
       QPointF documentPos, const RenderTheme& theme,
       const CodeFenceScrollController* scroll,
@@ -372,7 +381,7 @@ private:
   QRectF mathEditorSourceRect(const RenderTheme& theme) const;
   const LiteralTextLayout& sourceTextLayout(qreal width, bool wrap) const;
   QRectF mathPreviewContentRect(const RenderTheme& theme) const;
-  void paintCodeFence(QPainter& painter, const RenderTheme& theme, QRectF viewRect, const CodeFenceScrollController* scroll) const;
+  void paintCodeFence(QPainter& painter, const RenderTheme& theme, QRectF viewRect, const CodeFenceScrollController* scroll, BlockPaintState state) const;
   void paintLiteralSource(QPainter& painter, const RenderTheme& theme, QRectF contentRect, const QVector<CodeHighlightSpan>& spans) const;
   void paintCodeLineNumbers(QPainter& painter, const RenderTheme& theme, const QRectF& codeRect) const;
   void paintCodeFenceScrollBar(QPainter& painter, const RenderTheme& theme, QRectF contentRect, qreal offset, qreal maxLineWidth) const;

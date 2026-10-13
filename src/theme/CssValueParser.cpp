@@ -18,6 +18,44 @@
 
 namespace muffin {
 
+QPair<CssLengthPercentage, CssLengthPercentage> parseCssPosition(const QString& value, const CssLengthContext& context) {
+  const auto percentage = [](qreal n) { return CssLengthPercentage{CssLengthStatus::Valid, 0, n, true}; };
+  auto parts = splitTopLevelSpaces(value.trimmed().toLower());
+  if (parts.isEmpty()) return {percentage(0), percentage(0)};
+  const auto horizontal = [](const QString& v) { return v == "left" || v == "right"; };
+  const auto vertical = [](const QString& v) { return v == "top" || v == "bottom"; };
+  const auto axis = [&](const QString& v) {
+    if (v == "center") return percentage(.5);
+    if (v == "right" || v == "bottom") return percentage(1);
+    if (v == "left" || v == "top") return percentage(0);
+    const auto n = parseCssLengthPercentage(QStringView(v), context);
+    return n.status == CssLengthStatus::Valid ? n : percentage(0);
+  };
+  if (parts.size() >= 3) {
+    auto x = percentage(.5), y = percentage(.5);
+    for (int i = 0; i < parts.size(); ++i) {
+      const auto edge = parts[i];
+      auto n = axis(edge);
+      if ((horizontal(edge) || vertical(edge)) && i + 1 < parts.size()) {
+        auto offset = parseCssLengthPercentage(QStringView(parts[i + 1]), context);
+        if (offset.status == CssLengthStatus::Valid) {
+          ++i;
+          const bool reverse = edge == "right" || edge == "bottom";
+          n.px += reverse ? -offset.px : offset.px;
+          n.fraction += reverse ? -offset.fraction : offset.fraction;
+          n.hasPercentage = n.hasPercentage || offset.hasPercentage;
+        }
+      }
+      if (vertical(edge)) y = n; else x = n;
+    }
+    return {x, y};
+  }
+  if (parts.size() == 1) return vertical(parts[0]) ? qMakePair(percentage(.5), axis(parts[0]))
+                                                                : qMakePair(axis(parts[0]), percentage(.5));
+  if (vertical(parts[0]) || horizontal(parts[1])) std::swap(parts[0], parts[1]);
+  return {axis(parts[0]), axis(parts[1])};
+}
+
 Q_LOGGING_CATEGORY(themeWarn, "muffin.theme.warn", QtCriticalMsg)
 
 namespace {

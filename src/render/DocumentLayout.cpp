@@ -309,6 +309,8 @@ void DocumentLayout::rebuild(
   layoutIndex_.clear();
   nestedToTopLevel_.clear();
   nestedIdsByTopLevel_.clear();
+  ++viewportGeneration_;
+  hasHtmlContent_ = false;
 
   const PageMetrics metrics = pageMetricsFor(theme, viewportWidth);
   pageOuterLeft_ = metrics.outerLeft;
@@ -364,6 +366,8 @@ void DocumentLayout::rebuild(
       slot.top = block->rect().top();
       slot.height = block->height();
       slot.measured = true;
+      slot.detailLeft = pageLeft_;
+      slot.viewportGeneration = viewportGeneration_;
       indexLayoutBlock(*block);
       slot.detail = std::move(block);
       slots_.push_back(std::move(slot));
@@ -384,6 +388,7 @@ void DocumentLayout::rebuild(
       slot.top = cursorY;
       slot.height = est.height;
       slot.measured = false;
+      slot.viewportGeneration = viewportGeneration_;
       cursorY += est.height;
       previous = child.get();
       slots_.push_back(std::move(slot));
@@ -412,6 +417,8 @@ void DocumentLayout::rebuild(
       slot.top = cursorY;
       slot.height = block->height();
       slot.measured = true;
+      slot.detailLeft = pageLeft_;
+      slot.viewportGeneration = viewportGeneration_;
       cursorY = block->rect().bottom();
       previous = child.get();
       indexLayoutBlock(*block);
@@ -433,6 +440,7 @@ void DocumentLayout::rebuild(
     slots_.at(static_cast<size_t>(i)).positionToken = positionTokens.at(i);
   }
   buildNestedIndex(document);
+  viewportEstimateCursor_ = static_cast<qsizetype>(slots_.size());
   recomputeTotalHeight(theme);
 
   if (renderLayoutDebugLog().isDebugEnabled() && slots_.size() >= 5) {
@@ -487,41 +495,75 @@ CodeFenceScrollController* DocumentLayout::codeFenceScroll() const {
   return codeFenceScroll_;
 }
 
-bool DocumentLayout::relayoutForViewportWidth(const RenderTheme& theme, qreal viewportWidth) {
+bool DocumentLayout::relayoutForViewportWidth(const RenderTheme& theme, qreal viewportWidth, bool stylesChanged) {
   if (!document_ || slots_.empty()) {
     return false;
   }
   const PageMetrics metrics = pageMetricsFor(theme, viewportWidth);
-  if (!qFuzzyCompare(metrics.contentWidth + 1.0, pageWidth_ + 1.0)) {
-    return false;
-  }
   const auto environment = theme.documentCssEnvironment();
   const QSizeF cssViewport(environment.viewportWidth, environment.viewportHeight);
-  if (cssViewport != cssViewport_) {
-    // Inline HTML may contain viewport units absent from the theme sheet.
-    // Conservatively rebuild materialized HTML; unbuilt slots resolve against
-    // the current environment on promotion. Plain prose keeps the fast path.
-    for (const auto* block : layoutIndex_)
-      if (block->htmlLayout() || (block->inlineLayout() && block->inlineLayout()->hasHtmlContent())) return false;
+  const bool reflow = stylesChanged || !qFuzzyCompare(metrics.contentWidth + 1.0, pageWidth_ + 1.0) ||
+                      (hasHtmlContent_ && cssViewport != cssViewport_);
+  if (reflow) {
+    const auto* rootStyle = theme.elementStyle(QStringLiteral("#write"));
+    // A root flex/grid needs all sibling allocations together. Export/eager
+    // layouts likewise retain their exact full-document geometry contract.
+    if (buildPolicy_ != BuildPolicy::Lazy || formattingRoot_ ||
+        (rootStyle && rootStyle->layout.establishesFormattingContext())) return false;
+    ++viewportGeneration_;
+    viewportEstimateCursor_ = 0;
+    theme.invalidateDocumentStyles();
+    configureBuilder(selection_);
+    if (stylesChanged) recomputeHeadingCounters(*document_, theme);
   }
   cssViewport_ = cssViewport;
   viewportWidth_ = viewportWidth;
   pageOuterLeft_ = metrics.outerLeft;
   pageOuterWidth_ = metrics.outerWidth;
-  const qreal dx = metrics.contentLeft - pageLeft_;
-  if (qFuzzyIsNull(dx)) {
-    pageLeft_ = metrics.contentLeft;
-    pageWidth_ = metrics.contentWidth;
-    return true;
-  }
   pageLeft_ = metrics.contentLeft;
   pageWidth_ = metrics.contentWidth;
-  for (BlockSlot& slot : slots_) {
-    if (slot.detail) {
-      slot.detail->translate(dx, 0);
-    }
-  }
+  // Absolute X/Y translations are applied on access, just like suffix shifts.
+  // Neither centering nor rewrapping walks the full slot vector here.
   return true;
+}
+
+bool DocumentLayout::hasPendingViewportEstimates() const {
+  return viewportEstimateCursor_ < static_cast<qsizetype>(slots_.size());
+}
+
+void DocumentLayout::refreshViewportEstimates(const RenderTheme& theme, int maxBlocks, int budgetMs) {
+  if (!document_ || !hasPendingViewportEstimates()) return;
+  QElapsedTimer timer;
+  timer.start();
+  const auto& children = document_->root().children();
+  int processed = 0;
+  while (hasPendingViewportEstimates() && processed < maxBlocks) {
+    const qsizetype i = viewportEstimateCursor_++;
+    auto& slot = slots_[static_cast<size_t>(i)];
+    const auto& node = *children[static_cast<size_t>(i)];
+    const bool currentDetail = slot.detail && slot.viewportGeneration == viewportGeneration_;
+    const qreal newTop = i > 0
+        ? slotTop(i - 1) + slotHeight(i - 1) +
+              spacingBetweenBlocks(*children[static_cast<size_t>(i - 1)], node, theme, !currentDetail, pageWidth_)
+        : theme.pageMargin().top() + theme.pagePadding().top() +
+              spacingBeforeBlock(node, theme, 0, !currentDetail, pageWidth_);
+    const qreal topDelta = newTop - slotTop(i);
+    shiftSuffixFrom(i, topDelta);
+    if (slot.viewportGeneration != viewportGeneration_) {
+      if (slot.detail) {
+        removeLayoutIndexFor(*slot.detail);
+        slot.detail.reset();
+      }
+      const qreal oldHeight = slot.height;
+      slot.height = builder_.estimateHeight(node, theme, pageWidth_).height;
+      slot.measured = false;
+      slot.viewportGeneration = viewportGeneration_;
+      shiftSuffixFrom(i + 1, slot.height - oldHeight);
+    }
+    ++processed;
+    if (timer.elapsed() >= budgetMs) break;
+  }
+  recomputeTotalHeight(theme);
 }
 
 DocumentLayout::BlockRebuildResult DocumentLayout::rebuildBlock(
@@ -604,6 +646,8 @@ DocumentLayout::BlockRebuildResult DocumentLayout::rebuildBlock(
 
   slot.height = replacement->height();
   slot.measured = true;
+  slot.detailLeft = pageLeft_;
+  slot.viewportGeneration = viewportGeneration_;
   slot.top = replacement->rect().top() - currentShift;
   slot.detailShift = currentShift;
   indexLayoutBlock(*replacement);
@@ -762,6 +806,8 @@ DocumentLayout::RangeRebuildResult DocumentLayout::rebuildTopLevelRange(
     replacementPositions = LayoutPositionIndex::merge(
         std::move(replacementPositions), std::move(positionToken));
     slot.measured = true;
+    slot.detailLeft = pageLeft_;
+    slot.viewportGeneration = viewportGeneration_;
     indexLayoutBlock(*block);
     slot.detail = std::move(block);
     previousNode = &node;
@@ -807,8 +853,10 @@ DocumentLayout::RangeRebuildResult DocumentLayout::rebuildTopLevelRange(
   }
 
   // Erase the old slice, insert the replacements.
+  const bool estimatesPending = hasPendingViewportEstimates();
   slots_.erase(slots_.begin() + range.first, slots_.begin() + range.first + range.oldCount);
   slots_.insert(slots_.begin() + range.first, std::make_move_iterator(replacements.begin()), std::make_move_iterator(replacements.end()));
+  viewportEstimateCursor_ = estimatesPending ? 0 : static_cast<qsizetype>(slots_.size());
   positionIndex_.replace(range.first, range.oldCount, std::move(replacementPositions));
 
   // Index only the replacement subtrees. Stable position tokens keep every unchanged suffix id
@@ -855,7 +903,7 @@ QRectF DocumentLayout::refreshDependentStyles(const MarkdownDocument& document, 
   // on promotion; this keeps dependency propagation bounded by visible detail.
   for (qsizetype i = 0; i < static_cast<qsizetype>(slots_.size()); ++i) {
     auto& slot = slots_[static_cast<size_t>(i)];
-    if (!slot.detail || slot.detail->stylesMatch(theme, document)) continue;
+    if (!slot.detail || slot.viewportGeneration != viewportGeneration_ || slot.detail->stylesMatch(theme, document)) continue;
     const auto result = rebuildBlock(slot.nodeId, document, theme, selection);
     dirty = dirty.united(result.oldRect).united(result.newRect).united(result.shiftedRect);
   }
@@ -983,7 +1031,7 @@ void DocumentLayout::ensureBuilt(qsizetype first, qsizetype last, const RenderTh
   first = qBound(qsizetype(0), first, static_cast<qsizetype>(slots_.size()) - 1);
   last = qBound(qsizetype(0), last, static_cast<qsizetype>(slots_.size()) - 1);
   for (qsizetype i = first; i <= last; ++i) {
-    if (!slots_.at(static_cast<size_t>(i)).detail) {
+    if (!slots_.at(static_cast<size_t>(i)).detail || slots_.at(static_cast<size_t>(i)).viewportGeneration != viewportGeneration_) {
       promoteSlot(i, theme);
     } else {
       ensureSlotDetailPosition(i);
@@ -993,7 +1041,7 @@ void DocumentLayout::ensureBuilt(qsizetype first, qsizetype last, const RenderTh
 
 void DocumentLayout::buildAll(const RenderTheme& theme) {
   for (qsizetype i = 0; i < static_cast<qsizetype>(slots_.size()); ++i) {
-    if (!slots_.at(static_cast<size_t>(i)).detail) {
+    if (!slots_.at(static_cast<size_t>(i)).detail || slots_.at(static_cast<size_t>(i)).viewportGeneration != viewportGeneration_) {
       promoteSlot(i, theme);
     } else {
       ensureSlotDetailPosition(i);
@@ -1004,7 +1052,7 @@ void DocumentLayout::buildAll(const RenderTheme& theme) {
 QVector<NodeId> DocumentLayout::promotedTopLevelIds() const {
   QVector<NodeId> ids;
   for (const BlockSlot& slot : slots_) {
-    if (slot.detail) {
+    if (slot.detail && slot.viewportGeneration == viewportGeneration_) {
       ids.append(slot.nodeId);
     }
   }
@@ -1016,7 +1064,7 @@ QVector<const BlockLayout*> DocumentLayout::promotedBlocks() const {
   for (qsizetype i = 0; i < static_cast<qsizetype>(slots_.size()); ++i) {
     ensureSlotDetailPosition(i);
     const BlockSlot& slot = slots_.at(static_cast<size_t>(i));
-    if (slot.detail) {
+    if (slot.detail && slot.viewportGeneration == viewportGeneration_) {
       result.push_back(slot.detail.get());
     }
   }
@@ -1060,7 +1108,7 @@ const BlockLayout* DocumentLayout::block(NodeId id, const RenderTheme& theme) {
   if (index < 0 || index >= static_cast<qsizetype>(slots_.size())) {
     return nullptr;
   }
-  if (!slots_.at(static_cast<size_t>(index)).detail) {
+  if (!slots_.at(static_cast<size_t>(index)).detail || slots_.at(static_cast<size_t>(index)).viewportGeneration != viewportGeneration_) {
     promoteSlot(index, theme);
   } else {
     ensureSlotDetailPosition(index);
@@ -1070,6 +1118,7 @@ const BlockLayout* DocumentLayout::block(NodeId id, const RenderTheme& theme) {
 
 const BlockLayout* DocumentLayout::blockIfPromoted(NodeId id) const {
   const qsizetype index = topLevelIndexFor(id);
+  if (index < 0 || slots_[static_cast<size_t>(index)].viewportGeneration != viewportGeneration_) return nullptr;
   if (index >= 0) {
     ensureSlotDetailPosition(index);
   }
@@ -1192,6 +1241,7 @@ const MarkdownNode* DocumentLayout::topLevelBlockFor(NodeId id, const MarkdownDo
 }
 
 void DocumentLayout::indexLayoutBlock(const BlockLayout& block) {
+  hasHtmlContent_ = hasHtmlContent_ || block.htmlLayout() || (block.inlineLayout() && block.inlineLayout()->hasHtmlContent());
   if (block.nodeId().isValid()) {
     layoutIndex_.insert(block.nodeId(), &block);
   }
@@ -1282,7 +1332,7 @@ void DocumentLayout::recomputeHeadingCounters(const MarkdownDocument& document, 
   // Document-order DFS so headings nested in blockquotes/lists still count, matching
   // CSS counter semantics. A heading first applies its host's reset+increment, then
   // resolves ::before and ::after in generation order against current values.
-  const std::function<void(const MarkdownNode&)> walk = [&](const MarkdownNode& node) {
+  const auto resolveHeading = [&](const MarkdownNode& node) {
     if (node.type() == BlockType::Heading && node.headingLevel() >= 1 && node.headingLevel() <= 6) {
       const QString host = QStringLiteral("h%1").arg(node.headingLevel());
       applyHost(host);
@@ -1305,10 +1355,13 @@ void DocumentLayout::recomputeHeadingCounters(const MarkdownDocument& document, 
         }
       }
     }
-    for (const auto& child : node.children()) { walk(*child); }
   };
 
-  for (const auto& child : document.root().children()) { walk(*child); }
+  // The outline already includes nested headings in document order. Do not walk
+  // every prose/list node when a responsive theme changes during resizing.
+  for (const auto& entry : document.outline()) {
+    if (const auto* node = document.node(entry.nodeId)) resolveHeading(*node);
+  }
 }
 
 qreal DocumentLayout::slotShift(qsizetype index) const {
@@ -1328,10 +1381,12 @@ void DocumentLayout::ensureSlotDetailPosition(qsizetype index) const {
   }
   const qreal shift = slotShift(index);
   const qreal delta = shift - slot.detailShift;
-  if (!qFuzzyIsNull(delta)) {
-    slot.detail->translateY(delta);
+  const qreal dx = pageLeft_ - slot.detailLeft;
+  if (!qFuzzyIsNull(delta) || !qFuzzyIsNull(dx)) {
+    slot.detail->translate(dx, delta);
   }
   slot.detailShift = shift;
+  slot.detailLeft = pageLeft_;
 }
 
 DocumentLayout::ResourceRefreshResult DocumentLayout::refreshResources(const RenderTheme& theme, SelectionRange selection) {
@@ -1342,7 +1397,7 @@ DocumentLayout::ResourceRefreshResult DocumentLayout::refreshResources(const Ren
   bool fontsChanged = false;
   for (qsizetype i = 0; i < qsizetype(slots_.size()); ++i) {
     auto& slot = slots_[size_t(i)];
-    if (slot.detail && !LayoutResources::instance().matches(slot.detail->reuse.resources)) {
+    if (slot.detail && slot.viewportGeneration == viewportGeneration_ && !LayoutResources::instance().matches(slot.detail->reuse.resources)) {
       const auto font = slot.detail->reuse.resources.constFind(LayoutResources::fontKey());
       if (font != slot.detail->reuse.resources.cend() &&
           font->geometry != LayoutResources::instance().read(LayoutResources::fontKey()).geometry)
@@ -1430,9 +1485,13 @@ qreal DocumentLayout::promoteSlot(qsizetype index, const RenderTheme& theme) {
     return 0.0;
   }
   BlockSlot& slot = slots_.at(static_cast<size_t>(index));
-  if (slot.detail) {
+  if (slot.detail && slot.viewportGeneration == viewportGeneration_) {
     ensureSlotDetailPosition(index);
     return 0.0;  // already promoted
+  }
+  if (slot.detail) {
+    removeLayoutIndexFor(*slot.detail);
+    slot.detail.reset();
   }
   const auto& children = document_->root().children();
   const MarkdownNode& node = *children.at(static_cast<size_t>(index));
@@ -1449,6 +1508,8 @@ qreal DocumentLayout::promoteSlot(qsizetype index, const RenderTheme& theme) {
   auto built = builder_.build(node, theme, pageLeft_, newTop, pageWidth_);
   slot.height = built->height();
   slot.measured = true;
+  slot.detailLeft = pageLeft_;
+  slot.viewportGeneration = viewportGeneration_;
   slot.top = built->rect().top() - currentShift;
   slot.detailShift = currentShift;
   indexLayoutBlock(*built);

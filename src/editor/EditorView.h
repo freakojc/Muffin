@@ -5,6 +5,7 @@
 #include "Export.h"
 #include "mermaid/editor/MermaidRenderCache.h"
 #include "render/DocumentLayout.h"
+#include "render/CssPaintAnimation.h"
 #include "theme/RenderTheme.h"
 
 #include <QAbstractScrollArea>
@@ -127,6 +128,7 @@ protected:
   void mousePressEvent(QMouseEvent* event) override;
   void mouseDoubleClickEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
+  bool viewportEvent(QEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
   void contextMenuEvent(QContextMenuEvent* event) override;
   void focusInEvent(QFocusEvent* event) override;
@@ -146,7 +148,8 @@ private:
     bool isValid() const { return blockId.isValid() && !viewportRect.isEmpty() && level >= 3 && level <= 6; }
   };
 
-  void rebuildLayout();
+  void rebuildLayout(bool preserveViewport = false);
+  void refreshViewportEstimates();
   void queueResourceRefresh();
   void updateScrollBars();
   // Lazy-layout: promote the visible window (+buffer) to full detail, pinning the scrollbar so
@@ -254,15 +257,6 @@ private:
   QRectF headingBadgeViewportRectForBlock(NodeId blockId) const;
   QRectF htmlHoverButtonViewportRect() const;
   void updateHtmlHover(QPointF viewportPos);
-  void updateBlockHover(QPointF viewportPos);
-  void repaintHoverBlock(NodeId blockId);
-  qreal hoverTransitionMs(const QString& host) const;
-  // CSS `:focus` (the top-level block holding the caret): drive a FocusAnimator
-  // whose phase feeds the focus glow/bg/scale/text-recolour, parallel to hover.
-  void updateBlockFocus();
-  void repaintFocusBlock(NodeId blockId);
-  qreal focusTransitionMs(const QString& host) const;
-  void repaintAnimatedBlocks();
   void repaintAnimatedMermaidBlocks();
   void updateMermaidAnimationDriver(bool hasVisibleAnimation);
   void clearHtmlHover();
@@ -334,12 +328,11 @@ private:
   muffin::mermaid::editor::MermaidRenderCache mermaidCache_;
   NodeId codeFenceScrollDragId_;  // block being horizontally dragged via its scrollbar (invalid when idle)
   HtmlBlockHoverController htmlHover_;
-  class HoverAnimator* hoverAnimator_ = nullptr;
-  NodeId hoveredBlockId_;  // top-level block under the cursor (for CSS :hover glow)
-  class FocusAnimator* focusAnimator_ = nullptr;
-  NodeId focusedBlockId_;  // top-level block holding the caret (for CSS :focus)
-  class KeyframeAnimator* keyframeAnimator_ = nullptr;
+  CssPaintContext cssPaintContext_;
+  QElapsedTimer cssPaintClock_;
+  QTimer* cssPaintTimer_ = nullptr;
   QTimer* mermaidAnimationTimer_ = nullptr;
+  QTimer* viewportEstimateTimer_ = nullptr;
   QElapsedTimer mermaidAnimationClock_;
   QHash<NodeId, QSet<QString>> openSequenceMenus_;
   // True while a ScopedViewportPin (or restoreViewportAnchor) is reconciling the scrollbar, so the

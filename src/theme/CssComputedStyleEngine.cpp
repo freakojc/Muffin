@@ -330,13 +330,22 @@ ParsedSelector parseSelector(const QString& selector) {
   return parsed;
 }
 
-bool stateMatches(const SimpleSelector& simple, const CssElementState& state) {
+bool stateMatches(const SimpleSelector& simple, const CssElementState& state, const CssElement& element) {
   if (simple.unsupported) { return false; }
   if (simple.hover && !state.hover) { return false; }
   if (simple.focus && !state.focus) { return false; }
   if (simple.active && !state.active) { return false; }
   if (simple.visited && !state.visited) { return false; }
   if (simple.mdFocus && !state.mdFocus) { return false; }
+  if (state.subject) {
+    const auto* origin = element.originatingElement ? element.originatingElement : &element;
+    if (simple.focus && origin != state.subject) return false;
+    if (simple.hover || simple.active || simple.mdFocus) {
+      auto* descendant = state.subject;
+      while (descendant && descendant != origin) descendant = descendant->parent;
+      if (!descendant) return false;
+    }
+  }
   return true;
 }
 
@@ -367,7 +376,7 @@ bool hasClass(const CssElement& element, const QString& className, bool directCh
 }
 
 bool simpleMatches(const SimpleSelector& simple, const CssElement& element, const CssElementState& state) {
-  if (!stateMatches(simple, state)) { return false; }
+  if (!stateMatches(simple, state, element)) { return false; }
   const auto& subject = element.originatingElement ? *element.originatingElement : element;
   for (const auto& group : simple.alternatives) {
     if (std::none_of(group.begin(), group.end(), [&](const auto& selector) { return selectorMatches(selector, subject, state); }))
@@ -570,7 +579,9 @@ CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEn
           auto& candidates = selectorFeatures_.generatedPseudoSubjects[subject.pseudoElement];
           if (!candidates.contains(key)) candidates.push_back(key);
         }
+        bool interactive = ps.interactive;
         std::function<void(const ParsedSelector&)> features = [&](const ParsedSelector& selector) {
+          interactive = interactive || selector.interactive;
           for (const SelectorPart& part : selector.parts) {
             const SimpleSelector& simple = part.simple;
             selectorFeatures_.hasStructuralRules = selectorFeatures_.hasStructuralRules || simple.firstChild || simple.lastChild ||
@@ -584,6 +595,8 @@ CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEn
           }
         };
         features(ps);
+        if (interactive) selectorFeatures_.interactiveSubjects.insert(
+            (subject.tag == QLatin1String("*") ? QString() : subject.tag) + '/' + subject.pseudoElement);
       }
       parsedSelectors_.push_back(std::move(ps));
     }
@@ -613,6 +626,40 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
   const QStringList sides{QStringLiteral("top"), QStringLiteral("right"), QStringLiteral("bottom"), QStringLiteral("left")};
   const bool wide = value == QStringLiteral("inherit") || value == QStringLiteral("initial") || value == QStringLiteral("unset") ||
                     value == QLatin1String("revert") || value == QLatin1String("revert-layer");
+  if (property == "transition" || property == "animation") {
+    const bool animation = property == "animation";
+    const QStringList fields = animation
+        ? QStringList{"name", "duration", "timing-function", "delay", "iteration-count", "direction", "fill-mode", "play-state"}
+        : QStringList{"property", "duration", "timing-function", "delay"};
+    if (wide) { for (const auto& field : fields) add(property + '-' + field, value); return result; }
+    QVector<QStringList> columns(fields.size());
+    for (const auto& layer : CssThemeParser::splitTopLevelCommas(value)) {
+      QStringList values = animation ? QStringList{"none", "0s", "ease", "0s", "1", "normal", "none", "running"}
+                                     : QStringList{"all", "0s", "ease", "0s"};
+      int times = 0;
+      for (const auto& token : splitTopLevelSpaces(layer)) {
+        const auto lower = token.toLower();
+        if (lower.endsWith('s')) {
+          auto number = lower; number.chop(lower.endsWith("ms") ? 2 : 1);
+          bool ok = false; number.toDouble(&ok);
+          if (ok) { if (times >= 2) return {}; values[times++ == 0 ? 1 : 3] = token; continue; }
+        }
+        if (QStringList{"linear", "ease", "ease-in", "ease-out", "ease-in-out", "step-start", "step-end"}.contains(lower) ||
+            lower.startsWith("cubic-bezier(") || lower.startsWith("steps(")) values[2] = token;
+        else if (animation && QStringList{"normal", "reverse", "alternate", "alternate-reverse"}.contains(lower)) values[5] = token;
+        else if (animation && QStringList{"forwards", "backwards", "both"}.contains(lower)) values[6] = token;
+        else if (animation && (lower == "running" || lower == "paused")) values[7] = token;
+        else {
+          bool numeric = false; token.toDouble(&numeric);
+          if (animation && (numeric || lower == "infinite")) values[4] = token;
+          else values[0] = token;
+        }
+      }
+      for (int i = 0; i < fields.size(); ++i) columns[i].append(values[i]);
+    }
+    for (int i = 0; i < fields.size(); ++i) add(property + '-' + fields[i], columns[i].join(','));
+    return result;
+  }
   if (property == "grid-column" || property == "grid-row" || property == "grid-area") {
     const QStringList fields = property == "grid-area" ? QStringList{"grid-row-start", "grid-column-start", "grid-row-end", "grid-column-end"}
                                                       : QStringList{property + "-start", property + "-end"};
@@ -714,7 +761,7 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
         property == QLatin1String("font")
             ? QStringList{"font-size", "font-family", "line-height", "font-style", "font-weight", "font-variant", "font-stretch"}
         : property == QLatin1String("background")
-            ? QStringList{"background-color",  "background-image",  "background-position", "background-size",
+            ? QStringList{"background-color",  "background-image",  "background-position", "background-position-x", "background-position-y", "background-size",
                           "background-repeat", "background-origin", "background-clip",     "background-attachment"}
         : property == QLatin1String("list-style")
             ? QStringList{"list-style-type", "list-style-position", "list-style-image"}
@@ -812,23 +859,67 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
     add(QStringLiteral("text-decoration-style"), style);
     add(QStringLiteral("text-decoration-color"), color);
     add(QStringLiteral("text-decoration-thickness"), thickness);
+  } else if (property == QStringLiteral("background-position")) {
+    // Store axes as well, so a later shorthand resets an earlier longhand.
+    auto parts = splitTopLevelSpaces(value);
+    if (parts.size() <= 2 && !parts.isEmpty()) {
+      if (parts.size() == 1) parts << "center";
+      if (parts[0] == "top" || parts[0] == "bottom" || parts[1] == "left" || parts[1] == "right") std::swap(parts[0], parts[1]);
+      add("background-position-x", parts[0]);
+      add("background-position-y", parts[1]);
+    } else {
+      // The mapper resolves the edge-offset grammar from the original value.
+      add("background-position-x", "initial");
+      add("background-position-y", "initial");
+    }
   } else if (property == QStringLiteral("background")) {
     add(QStringLiteral("background-color"), QStringLiteral("transparent"));
     add(QStringLiteral("background-image"), QStringLiteral("none"));
     add(QStringLiteral("background-position"), QStringLiteral("0% 0%"));
+    add(QStringLiteral("background-position-x"), QStringLiteral("0%"));
+    add(QStringLiteral("background-position-y"), QStringLiteral("0%"));
     add(QStringLiteral("background-size"), QStringLiteral("auto"));
     add(QStringLiteral("background-repeat"), QStringLiteral("repeat"));
     add(QStringLiteral("background-origin"), QStringLiteral("padding-box"));
     add(QStringLiteral("background-clip"), QStringLiteral("border-box"));
     add(QStringLiteral("background-attachment"), QStringLiteral("scroll"));
-    for (const QString& part : splitTopLevelSpaces(value)) {
+    QString separated;
+    int depth = 0;
+    for (const auto ch : value) {
+      if (ch == '(') ++depth;
+      if (ch == ')') --depth;
+      separated += ch == '/' && depth == 0 ? QStringLiteral(" / ") : QString(ch);
+    }
+    QStringList position, size, repeats, boxes;
+    bool sizing = false;
+    for (const QString& part : splitTopLevelSpaces(separated)) {
+      const auto lower = part.toLower();
+      if (part == "/") { sizing = true; continue; }
       if (isCssColorValue(part)) {
         add(QStringLiteral("background-color"), part);
+        continue;
       }
       if (part.contains(QStringLiteral("gradient("), Qt::CaseInsensitive) || part.startsWith(QStringLiteral("url("), Qt::CaseInsensitive)) {
         add(QStringLiteral("background-image"), part);
+      } else if (QStringList{"repeat", "no-repeat", "repeat-x", "repeat-y", "space", "round"}.contains(lower)) repeats << lower;
+      else if (QStringList{"border-box", "padding-box", "content-box"}.contains(lower)) boxes << lower;
+      else if (QStringList{"scroll", "fixed", "local"}.contains(lower)) add("background-attachment", lower);
+      else if (lower != "none") (sizing ? size : position) << part;
+    }
+    if (!position.isEmpty()) {
+      add("background-position", position.join(' '));
+      if (position.size() == 1) position << "center";
+      if (position.size() == 2) {
+        if (position[0] == "top" || position[0] == "bottom" || position[1] == "left" || position[1] == "right")
+          std::swap(position[0], position[1]);
+        add("background-position-x", position[0]); add("background-position-y", position[1]);
+      } else {
+        add("background-position-x", "initial"); add("background-position-y", "initial");
       }
     }
+    if (!size.isEmpty()) add("background-size", size.join(' '));
+    if (!repeats.isEmpty()) add("background-repeat", repeats.join(' '));
+    if (!boxes.isEmpty()) { add("background-origin", boxes[0]); add("background-clip", boxes.size() > 1 ? boxes[1] : boxes[0]); }
   }
   return result;
 }
@@ -1253,6 +1344,20 @@ quint64 CssComputedStyle::fingerprint() const {
   return result;
 }
 
+CssComputedStyle cssKeyframeStyle(CssComputedStyle base, const std::vector<CssDeclaration>& declarations) {
+  for (const auto& declaration : declarations) {
+    if (declaration.important) continue;
+    for (const auto& expanded : expandDeclaration(declaration, base.customProperties_)) {
+      if (expanded.property.startsWith("--")) base.customProperties_[expanded.property] = expanded.value;
+      else {
+        base.properties_[expanded.property] = expanded.value;
+        base.computedLengths_.remove(expanded.property);
+      }
+    }
+  }
+  return base;
+}
+
 CssComputedStyle CssComputedStyleEngine::parentStyleFor(const CssElement* parent) const {
   if (parent) return styleFor(*parent);
   CssComputedStyle initial;
@@ -1273,7 +1378,7 @@ CssComputedStyle CssComputedStyleEngine::styleFor(const CssElement& element, con
                                                   const std::vector<CssDeclaration>& inlineDeclarations,
                                                   const std::vector<CssDeclaration>& presentationDeclarations) const {
   const bool cacheable =
-      element.cacheId != 0 && inlineDeclarations.empty() && presentationDeclarations.empty() && element.inlineDeclarations.empty();
+      element.cacheId != 0 && !state.subject && inlineDeclarations.empty() && presentationDeclarations.empty() && element.inlineDeclarations.empty();
   const quint8 cacheKey = static_cast<quint8>(static_cast<int>(state.hover) | (state.focus << 1) | (state.active << 2) |
                                               (state.visited << 3) | (state.mdFocus << 4));
   if (cacheable) {
@@ -1284,7 +1389,8 @@ CssComputedStyle CssComputedStyleEngine::styleFor(const CssElement& element, con
     }
   }
   const auto* inheritanceParent = element.originatingElement ? element.originatingElement : element.parent;
-  CssComputedStyle parent = element.originatingElement ? styleFor(*element.originatingElement, state) : parentStyleFor(inheritanceParent);
+  CssComputedStyle parent = inheritanceParent && state.subject ? styleFor(*inheritanceParent, state)
+      : element.originatingElement ? styleFor(*element.originatingElement, state) : parentStyleFor(inheritanceParent);
   if (!inheritanceParent && element.tag.compare(QLatin1String("html"), Qt::CaseInsensitive) == 0) parent.customProperties_.clear();
   CssComputedStyle style;
   style.customProperties_ = parent.customProperties_;

@@ -5,11 +5,16 @@
 #include "render/TextLayout.h"
 #include <QRectF>
 #include <QHash>
+#include <QTransform>
 #include <memory>
+#include <functional>
 
 class QPainter;
 
 namespace muffin {
+
+struct CssPaintRecipe;
+class CssPaintContext;
 
 // Used values and geometry belong to the layout snapshot. Painting and input
 // must not query CSS again or reconstruct content coordinates from theme tokens.
@@ -27,6 +32,7 @@ struct LayoutBox {
   QPointF inlineTextOrigin;
   QRectF visualOverflow;
   bool valid = false;
+  std::shared_ptr<const CssPaintRecipe> paintRecipe;
 
   static QMarginsF borders(const ThemeElementBoxStyle& box) {
     return QMarginsF(box.borderLeftWidth, box.borderTopWidth, box.borderRightWidth, box.borderBottomWidth);
@@ -38,13 +44,15 @@ struct LayoutBox {
   static LayoutBox inlineFragment(const LayoutBox& run, qreal left, qreal right, qreal baseline,
                                    bool first, bool last) {
     auto used = run.usedBox;
-    if (!first) { used.padding.setLeft(0); used.borderLeftWidth = 0; }
-    if (!last) { used.padding.setRight(0); used.borderRightWidth = 0; }
+    if (!first && !run.style.cloneInlineDecoration) { used.padding.setLeft(0); used.borderLeftWidth = 0; }
+    if (!last && !run.style.cloneInlineDecoration) { used.padding.setRight(0); used.borderRightWidth = 0; }
     const auto inset = insets(used);
     const TextFontMetrics metrics(run.font);
     const QRectF rect(qMin(left, right) - inset.left(), baseline - metrics.ascent() - inset.top(),
                       qAbs(right - left) + inset.left() + inset.right(), metrics.height() + inset.top() + inset.bottom());
-    return place(run.hostKey, run.style, used, rect, run.font);
+    auto fragment = place(run.hostKey, run.style, used, rect, run.font);
+    fragment.paintRecipe = run.paintRecipe;
+    return fragment;
   }
   static qreal borderWidth(const ThemeElementBoxStyle& box, qreal containingWidth, qreal intrinsicWidth = -1) {
     const auto inset = insets(box);
@@ -70,6 +78,7 @@ struct LayoutBox {
     LayoutBox box;
     box.hostKey = std::move(key);
     box.style = std::move(style);
+    box.paintRecipe = box.style.paintRecipe;
     box.usedBox = std::move(used);
     box.font = std::move(font);
     box.flowRect = box.borderBox = rect;
@@ -83,7 +92,13 @@ struct LayoutBox {
   }
 };
 
-void paintLayoutBox(QPainter& painter, const LayoutBox& box, QPointF offset = {});
+void paintLayoutBox(QPainter& painter, const LayoutBox& box, QPointF offset = {}, const ThemeElementStyle* style = nullptr);
+QTransform elementPaintTransform(const ThemeElementPaintStyle& style, const QRectF& rect, qreal zoom = 1);
+// Wrap the complete painted element so opacity and filters composite its
+// background and glyphs together. The callback receives neutral layer effects.
+void paintCssElement(QPainter& painter, QRectF borderBox, QRectF visualBounds, const ThemeElementPaintStyle& style,
+                     qreal zoom, CssPaintContext* context,
+                     const std::function<void(QPainter&, const ThemeElementPaintStyle&)>& contents);
 
 // One immutable used-style snapshot can serve every equivalent inline run in a
 // layout generation. Positioned fragments keep their own geometry separately.
@@ -92,7 +107,7 @@ class LayoutStyleCache {
   std::shared_ptr<const LayoutBox> snapshot(const ThemeElementStyle& style, const ThemeElementBoxStyle& used, const QFont& font,
                                             qreal containingWidth) {
     const auto key = style.key + QLatin1Char('/') + QString::number(style.fingerprint) + QLatin1Char('/') + font.key() + QLatin1Char('/') +
-                     QString::number(containingWidth, 'g', 17);
+                     QString::number(containingWidth, 'g', 17) + '/' + QString::number(reinterpret_cast<quintptr>(style.paintRecipe.get()));
     if (const auto found = entries_.constFind(key); found != entries_.cend()) return found.value();
     auto value = std::make_shared<const LayoutBox>(LayoutBox::place(style.key, style, used, {}, font));
     entries_.insert(key, value);

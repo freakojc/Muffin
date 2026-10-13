@@ -492,9 +492,10 @@ void responsiveResize() {
       }
       if (width == 850) {
         require(!changed, "ordinary resize reuses theme projections");
-        require(translated == source.startsWith('#'), "HTML content conservatively recomputes its own viewport styles");
-        if (translated) require(layout.block(id) == previous, "unchanged column reuses native layout objects");
+        require(translated, "lazy resize retains the document index, including HTML viewport styles");
+        if (source.startsWith('#')) require(layout.block(id) == previous, "unchanged column reuses native layout objects");
       }
+      layout.buildAll(theme);  // lazy viewport invalidation measures detail on demand
       sameFresh(layout, session, theme, width);
       const auto* paragraph = layout.block(session.document().root().children().back()->id());
       const auto caret = paragraph->inlineLayout()->cursorRect(1).translated(paragraph->inlineTextOrigin());

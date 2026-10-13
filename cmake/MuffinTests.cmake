@@ -356,6 +356,13 @@ set_tests_properties(MuffinFractionalLiteralEditingGeometryTest PROPERTIES
 muffin_add_test(NAME MuffinEditorViewTaskCheckboxTest SOURCE tests/render/EditorViewTaskCheckboxTest.cpp LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinEditorViewSelectionTest  SOURCE tests/render/EditorViewSelectionTest.cpp  LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinEditorViewLayoutTest     SOURCE tests/render/EditorViewLayoutTest.cpp     LINK MuffinUi RESOURCE_LOCK)
+muffin_add_test(NAME MuffinViewportResizeTest SOURCE tests/render/ViewportResizeTest.cpp LINK MuffinUi RESOURCE_LOCK)
+muffin_add_test(NAME MuffinCssPaintInteractionTest SOURCE tests/render/CssPaintInteractionTest.cpp LINK MuffinUi RESOURCE_LOCK)
+set_property(TEST MuffinViewportResizeTest APPEND PROPERTY ENVIRONMENT_MODIFICATION "MUFFIN_TEXT_LAYOUT_BACKEND=set:native")
+add_test(NAME MuffinLazyViewportResizeTest COMMAND $<TARGET_FILE:MuffinViewportResizeTest>)
+set_tests_properties(MuffinLazyViewportResizeTest PROPERTIES
+  ENVIRONMENT_MODIFICATION "${MUFFIN_TEST_ENVIRONMENT_MODIFICATIONS};QT_QPA_PLATFORM=set:minimal;MUFFIN_TEXT_LAYOUT_BACKEND=set:fractional"
+  RESOURCE_LOCK MuffinQtGui)
 
 # --- editor input / controller ---
 muffin_add_test(NAME MuffinEditorCoreTest              SOURCE tests/editor/EditorCoreTest.cpp              LINK MuffinUi RESOURCE_LOCK)
@@ -464,7 +471,7 @@ endif()
 # runtime/font environment, so these exercise actual editor paths in CI.
 foreach(_text_test MuffinVirtualSourceEditTest MuffinEditorCodeFenceSelectionTest
                    MuffinEditorViewHitTestTest MuffinRenderHeadingPseudoTest
-                   MuffinRenderLinkBeforeFlowTest)
+                   MuffinRenderLinkBeforeFlowTest MuffinCssPaintInteractionTest)
   string(REGEX REPLACE "^Muffin" "MuffinFractional" _text_variant "${_text_test}")
   add_test(NAME ${_text_variant} COMMAND $<TARGET_FILE:${_text_test}>)
   get_property(_text_environment TEST ${_text_test} PROPERTY ENVIRONMENT_MODIFICATION)

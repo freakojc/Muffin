@@ -17,6 +17,7 @@
 #include <QImage>
 #include <QPair>
 #include <QPointF>
+#include <QPainterPath>
 #include <QRectF>
 #include <QSizeF>
 #include <QStringView>
@@ -31,6 +32,8 @@
 class QPainter;
 
 namespace muffin {
+
+class CssPaintContext;
 
 class InlineLayout {
 public:
@@ -123,7 +126,9 @@ public:
   // broken in this Qt build. Only the runs that inherit the element colour are
   // recoloured; links/code/del/kbd keep their own colours, so the recolour never
   // bleeds into styled spans.
-  void paint(QPainter& painter, QPointF origin, qreal hoverPhase = 0.0, qreal focusPhase = 0.0) const;
+  void paint(QPainter& painter, QPointF origin, qreal hoverPhase = 0.0, qreal focusPhase = 0.0,
+             CssPaintContext* context = nullptr, const QString& identity = {}, qsizetype focusSourceOffset = -1,
+             const ThemeElementStyle* hostStyle = nullptr) const;
   qsizetype hitTestTextOffset(QPointF localPos) const;
   qsizetype hitTestSourceOffset(QPointF localPos) const;
   QRectF hitTestCursorRect(QPointF localPos) const;
@@ -231,6 +236,7 @@ private:
     bool before = false;
     qsizetype visibleAnchor = 0;
     QString href;
+    qsizetype hostRangeStart = -1, hostRangeEnd = -1;
     Kind kind = Kind::Shape;
     QString text;
     PseudoElementRule rule;
@@ -275,10 +281,12 @@ private:
   void paintTextLayoutHtmlKeyboardSpans(QPainter& painter, QPointF origin) const;
   // Offscreen-render the text as an alpha mask, recolour to the shadow colour,
   // blur, and composite at origin + offset (behind the crisp text).
-  void paintTextShadow(QPainter& painter, QPointF origin) const;
+  void paintTextShadow(QPainter& painter, QPointF origin, const TextShadow& shadow, const QVector<QRectF>& rects = {},
+                       const QVector<QTextLayout::FormatRange>& formats = {}) const;
   void paintTextLayoutMathAtoms(QPainter& painter, QPointF origin) const;
   void paintTextLayoutImageAtoms(QPainter& painter, QPointF origin) const;
-  void paintGeneratedPseudoAtoms(QPainter& painter, QPointF origin) const;
+  void paintGeneratedPseudoAtoms(QPainter& painter, QPointF origin, CssPaintContext* context, const QString& identity,
+                                 qreal hoverPhase, qreal focusPhase) const;
   void paintImagePreview(QPainter& painter, QPointF origin) const;
   QVector<QTextLayout::FormatRange> textLayoutFormats(const RenderTheme& theme, const QFont& baseFont, const QString& layoutText) const;
   qsizetype visibleOffsetForDisplayOffset(qsizetype displayOffset) const;
@@ -311,6 +319,15 @@ private:
   QVector<LayoutBox> inlineBoxes_;
   QVector<QRectF> lineBoxes_;
   QHash<qsizetype, std::shared_ptr<const LayoutBox>> spanStyles_;
+  struct ElementRun {
+    qsizetype start = 0, end = 0, sourceStart = 0, sourceEnd = 0;
+    int parent = -1;
+    QString identity;
+    std::shared_ptr<const LayoutBox> style;
+    QVector<int> fragments;
+    QPainterPath contentPath;
+  };
+  QVector<ElementRun> elementRuns_;
   void buildInlineBoxes();
   QVector<GeneratedPseudoAtom> generatedPseudoAtoms_;
   struct InlinePseudoFingerprint {

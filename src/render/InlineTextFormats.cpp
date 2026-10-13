@@ -113,9 +113,11 @@ private:
     const auto computedRun = input_.spanStyles.constFind(span.displayStart);
     if (computedRun != input_.spanStyles.cend() && span.kind == InlineSpanKind::Text && span.type != InlineType::InlineMath) {
       const auto& run = *computedRun.value();
+      if (span.highlight) format.clearBackground();  // painted by the semantic mark box
       format.setFont(run.font);
       applyLetterSpacing(format, run.font);
       const auto& textStyle = run.style.text;
+      if (textStyle.strokeWidth > 0) format.setTextOutline(QPen(textStyle.strokeColor, textStyle.strokeWidth * input_.theme.zoomPercent() / 100.));
       format.setFontUnderline(textStyle.decorationLines & 1);
       format.setFontOverline(textStyle.decorationLines & 2);
       format.setFontStrikeOut(textStyle.decorationLines & 4);

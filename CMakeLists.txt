@@ -1278,6 +1278,8 @@ set(MUFFIN_UI_SOURCES
   src/render/LiteralTextLayout.h
   src/render/LayoutBox.h
   src/render/LayoutBox.cpp
+  src/render/CssPaintAnimation.cpp
+  src/render/CssPaintAnimation.h
   src/render/CssFormattingContext.cpp
   src/render/CssFormattingContext.h
   src/render/CssGridLayout.cpp

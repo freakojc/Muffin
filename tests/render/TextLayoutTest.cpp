@@ -503,10 +503,13 @@ void testThemeTypography() {
           require(text->hitTestTextOffset({caret.x(), caret.center().y()}) == j, context + " caret/click");
         }
         const auto components = expectedBlock["components"].toArray();
-        // Heading inline boxes also contain generated counter text. DOM
-        // querySelectorAll returns only the authored code/keyboard elements.
+        // The semantic box list also contains emphasis/link ancestors and
+        // generated counters. Match the browser's authored code/kbd query.
+        QVector<const LayoutBox*> componentBoxes;
+        for (const auto& inlineBox : text->inlineBoxes())
+          if (inlineBox.hostKey == "code" || inlineBox.hostKey == "kbd") componentBoxes.append(&inlineBox);
         if (session.document().root().children()[i]->type() == BlockType::Paragraph)
-          require(components.size() == text->inlineBoxes().size(), context + " authored component count");
+          require(components.size() == componentBoxes.size(), context + " authored component count");
         for (int j = 0; j < components.size(); ++j) {
           // CoreText's fractional ascent/descent for the bundled Abyss face
           // differs slightly from Chromium's browser fixture. Keep geometry
@@ -516,7 +519,8 @@ void testThemeTypography() {
 #else
           const qreal componentHeightTolerance = 1.2;
 #endif
-          box(text->inlineBoxes()[j].borderBox.translated(block->inlineTextOrigin()), components[j].toObject()["border"].toArray(), " component",
+          require(j < componentBoxes.size(), context + " authored component exists");
+          box(componentBoxes[j]->borderBox.translated(block->inlineTextOrigin()), components[j].toObject()["border"].toArray(), " component",
               componentHeightTolerance);
         }
       }

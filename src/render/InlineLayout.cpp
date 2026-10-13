@@ -1,4 +1,7 @@
 #include "render/InlineLayout.h"
+#include "render/CssPaintAnimation.h"
+#include "render/Filter.h"
+#include <QPainterPath>
 #include "render/CssFormattingContext.h"
 #include "render/CssSizing.h"
 #include "render/GeneratedContent.h"
@@ -217,13 +220,38 @@ void InlineLayout::build(
                                  options.pendingPrefixLength, options.smartPunct, options.breakOnSingleNewline, options.textTransform,
                                  options.renderEmoji, std::move(htmlPalette));
   spanStyles_.clear();
+  elementRuns_.clear();
   styleSourceBase_ = qMax<qsizetype>(0, options.sourceBase);
   if (options.styleNode) {
+    QHash<const CssElement*, int> runs;
+    const auto* owner = theme.cssElementForNode(*options.styleNode);
     for (const auto& span : projection_.spans()) {
       if (span.kind != InlineSpanKind::Text && span.type != InlineType::Image) continue;
       const auto style = theme.inlineStyleForNode(*options.styleNode, span.contentSourceStart + qMax<qsizetype>(0, options.sourceBase));
       const QFont fallback = span.type == InlineType::Code ? codeStyle_->font : baseFont;
       spanStyles_.insert(span.displayStart, sharedSnapshot(style, theme.fontForStyle(style, fallback)));
+      if (span.kind != InlineSpanKind::Text || span.displayEnd <= span.displayStart) continue;
+      QVector<const CssElement*> ancestors;
+      for (auto* element = theme.cssInlineElement(*options.styleNode, span.contentSourceStart + styleSourceBase_);
+           element && element != owner; element = element->parent) ancestors.prepend(element);
+      int parentRun = -1;
+      for (const auto* element : ancestors) {
+        auto found = runs.constFind(element);
+        if (found == runs.cend()) {
+          const auto css = theme.styleForElement(*element);
+          ElementRun run;
+          run.parent = parentRun;
+          run.start = span.displayStart; run.end = span.displayEnd;
+          run.sourceStart = span.contentSourceStart; run.sourceEnd = span.contentSourceEnd;
+          run.identity = element->tag + '/' + QString::number(span.contentSourceStart) + '/' + QString::number(ancestors.indexOf(element));
+          run.style = sharedSnapshot(css, theme.fontForStyle(css, fallback));
+          runs.insert(element, elementRuns_.size()); elementRuns_.push_back(std::move(run));
+        } else {
+          auto& run = elementRuns_[found.value()];
+          run.end = qMax(run.end, span.displayEnd); run.sourceEnd = qMax(run.sourceEnd, span.contentSourceEnd);
+        }
+        parentRun = runs.value(element);
+      }
     }
   }
   buildOffsetMapFromProjection();
@@ -316,38 +344,90 @@ qreal InlineLayout::lastLineBaselineY() const {
   return line.y() + line.ascent();
 }
 
-void InlineLayout::paint(QPainter& painter, QPointF origin, qreal hoverPhase, qreal focusPhase) const {
+void InlineLayout::paint(QPainter& painter, QPointF origin, qreal hoverPhase, qreal focusPhase,
+                         CssPaintContext* context, const QString& identity, qsizetype focusSourceOffset,
+                         const ThemeElementStyle* hostStyle) const {
   if (!textLayout_) {
     return;
   }
 
   painter.save();
   paintTextLayoutHtmlBackgrounds(painter, origin);
-  paintTextLayoutCodeSpans(painter, origin);
-  paintTextLayoutInlineDecorations(painter, origin);
-  paintTextLayoutHtmlKeyboardSpans(painter, origin);
+  QHash<int, ThemeElementStyle> animated;
+  bool compositeInline = false;
+  QVector<QTextLayout::FormatRange> selections;
+  for (const auto& run : elementRuns_) {
+    if (!context || !run.style->paintRecipe) continue;
+    bool hover = false;
+    for (const int index : run.fragments)
+      hover = hover || (context->pointer && inlineBoxes_[index].borderBox.translated(origin).contains(
+          painter.worldTransform().inverted().map(*context->pointer)));
+    const bool focus = focusSourceOffset >= run.sourceStart && focusSourceOffset <= run.sourceEnd;
+    const int state = (hover ? 1 : 0) | (focus ? 2 : 0) | (hover && context->pressed ? 4 : 0);
+    const auto style = context->sample(*run.style->paintRecipe, identity + "/inline/" + run.identity, state);
+    for (const int index : run.fragments) animated.insert(index, style);
+  }
+  for (const auto& span : projection_.spans()) {
+    if (span.kind != InlineSpanKind::Text || span.displayEnd <= span.displayStart) continue;
+    const auto snapshot = spanStyles_.value(span.displayStart);
+    if (!snapshot) continue;
+    auto color = snapshot->style.paint.color;
+    qreal strokeWidth = snapshot->style.text.strokeWidth;
+    auto strokeColor = snapshot->style.text.strokeColor;
+    bool changed = false;
+    if (hostStyle && color == baseRunColor_ && hostStyle->paint.color.isValid()) color = hostStyle->paint.color;
+    for (const auto& run : elementRuns_) {
+      if (span.displayStart < run.start || span.displayEnd > run.end) continue;
+      const auto found = run.fragments.isEmpty() ? animated.cend() : animated.constFind(run.fragments.front());
+      const auto& style = found == animated.cend() ? run.style->style : found.value();
+      if (snapshot->style.paint.color == run.style->style.paint.color && style.paint.color != run.style->style.paint.color) {
+        color = style.paint.color; changed = true;
+      }
+      if (style.text.strokeWidth != run.style->style.text.strokeWidth || style.text.strokeColor != run.style->style.text.strokeColor) {
+        strokeWidth = style.text.strokeWidth; strokeColor = style.text.strokeColor; changed = true;
+      }
+    }
+    if (!changed) continue;
+    QTextCharFormat format; format.setForeground(color);
+    format.setTextOutline(strokeWidth > 0 ? QPen(strokeColor, strokeWidth * zoomScale_) : QPen(Qt::NoPen));
+    const auto range = layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
+    if (range.valid) selections.append({toLayoutOffset(range.start), int(toLayoutOffset(range.end) - toLayoutOffset(range.start)), format});
+  }
+  for (const auto& run : elementRuns_) {
+    const auto found = run.fragments.isEmpty() ? animated.cend() : animated.constFind(run.fragments.front());
+    const auto& paint = found == animated.cend() ? run.style->style.paint : found->paint;
+    compositeInline = compositeInline || paint.opacity != 1 || hasElementFilter(paint) || !paint.transforms.empty();
+  }
+  if (!compositeInline) for (int i = 0; i < inlineBoxes_.size(); ++i) {
+    const auto found = animated.constFind(i);
+    paintLayoutBox(painter, inlineBoxes_[i], origin, found == animated.cend() ? nullptr : &found.value());
+  }
+  if (elementRuns_.isEmpty()) paintTextLayoutInlineDecorations(painter, origin);
   // CSS `text-shadow`: render the laid-out text to an offscreen image, recolour it
   // to the shadow colour (alpha mask), blur, and composite behind the crisp text.
-  if (textShadow_.present && textShadow_.color.isValid() && textLayout_) {
-    paintTextShadow(painter, origin);
+  const auto shadow = hostStyle ? hostStyle->text.textShadow : textShadow_;
+  if (!compositeInline && shadow.present && shadow.color.isValid()) paintTextShadow(painter, origin, shadow);
+  if (!compositeInline) for (const auto& run : elementRuns_) {
+    const auto style = run.fragments.isEmpty() ? animated.cend() : animated.constFind(run.fragments.front());
+    const auto& shadow = style == animated.cend() ? run.style->style.text.textShadow : style->text.textShadow;
+    // Inherited text shadows are drawn once by the host. A run draws its own
+    // shadow only when it differs from that inherited value.
+    if (shadow.present && shadow != (hostStyle ? hostStyle->text.textShadow : textShadow_)) {
+      const auto range = layoutDisplayRangeForProjectionRange(run.start, run.end);
+      if (range.valid) paintTextShadow(painter, origin, shadow, selectionRectsForDisplayOffsets(range.start, range.end));
+    }
   }
-  // CSS `:hover`/`:focus { color }` recolours only the runs that inherit the element
-  // colour (pre-computed in hoverRecolourRanges_), animated by the HoverAnimator/
-  // FocusAnimator phases. Applied as foreground-only `selection`s passed to draw() —
-  // a draw-time override of the foreground that needs NO setFormats() (broken after
-  // endLayout in this Qt build) and NO second render, so glyph edges stay crisp and
-  // styled spans (links/code/del/kbd) keep their own colours. The selection replaces
-  // (not blends) the per-run colour, so the target is the lerped colour: focus is
-  // applied first (base→focus), then hover on top (→hover) — the two orthogonal
-  // states compose, with hover visually winning when both are at full phase.
+  // Foreground and stroke overrides reuse the shaped text. Paint changes cannot
+  // change wrapping, hit testing or caret geometry. Legacy phase callers still
+  // work; the editor supplies the sampled element style.
   const bool hasFocus = focusTextColor_.isValid() && focusPhase > 0.0;
   const bool hasHover = hoverTextColor_.isValid() && hoverPhase > 0.0;
-  if ((hasFocus || hasHover) && !hoverRecolourRanges_.isEmpty()) {
+  if ((hostStyle && hostStyle->paint.color.isValid()) || ((hasFocus || hasHover) && !hoverRecolourRanges_.isEmpty())) {
     QColor target = baseRunColor_;
     if (hasFocus) { target = lerpColor(target, focusTextColor_, qBound(0.0, focusPhase, 1.0)); }
     if (hasHover) { target = lerpColor(target, hoverTextColor_, qBound(0.0, hoverPhase, 1.0)); }
-    QVector<QTextLayout::FormatRange> selections;
-    selections.reserve(hoverRecolourRanges_.size());
+    if (hostStyle && hostStyle->paint.color.isValid()) target = hostStyle->paint.color;
+    QVector<QTextLayout::FormatRange> hostSelections;
     for (const QPair<int, int>& range : hoverRecolourRanges_) {
       QTextCharFormat format;
       format.setForeground(target);
@@ -355,17 +435,86 @@ void InlineLayout::paint(QPainter& painter, QPointF origin, qreal hoverPhase, qr
       selection.start = range.first;
       selection.length = range.second - range.first;
       selection.format = format;
-      selections.append(selection);
+      hostSelections.append(selection);
     }
-    textLayout_->draw(&painter, origin, selections);
-  } else {
-    textLayout_->draw(&painter, origin);
+    hostSelections.append(selections); selections = std::move(hostSelections);
   }
-  paintTextLayoutMathAtoms(painter, origin);
-  paintTextLayoutImageAtoms(painter, origin);
-  for (const auto& atom : htmlAtoms_)
-    atom.layout->paintBoxFragment(painter, *atom.layout->root()->children().front(), origin + atom.rect.topLeft() - atom.crop.topLeft());
-  paintGeneratedPseudoAtoms(painter, origin);
+  const auto content = [&](QPainter& target, const QVector<QTextLayout::FormatRange>& formats) {
+    textLayout_->draw(&target, origin, formats);
+    paintTextLayoutMathAtoms(target, origin);
+    paintTextLayoutImageAtoms(target, origin);
+    for (const auto& atom : htmlAtoms_)
+      atom.layout->paintBoxFragment(target, *atom.layout->root()->children().front(), origin + atom.rect.topLeft() - atom.crop.topLeft());
+    paintGeneratedPseudoAtoms(target, origin, context, identity, hoverPhase, focusPhase);
+  };
+  if (!compositeInline) content(painter, selections);
+  else {
+    // Each semantic inline owns its fragments and descendants. Composite them
+    // together, so opacity/filter/transform affect glyphs and background once,
+    // including nested elements and fragments on multiple visual lines.
+    QVector<QPainterPath> ranges(elementRuns_.size());
+    QSet<int> semanticBoxes;
+    for (int i = 0; i < elementRuns_.size(); ++i) {
+      const auto& run = elementRuns_[i];
+      ranges[i] = run.contentPath.translated(origin);
+      for (const int index : run.fragments) semanticBoxes.insert(index);
+    }
+    for (int i = 0; i < inlineBoxes_.size(); ++i)
+      if (!semanticBoxes.contains(i)) paintLayoutBox(painter, inlineBoxes_[i], origin);
+    std::function<void(QPainter&, int, const TextShadow&)> paintRun;
+    paintRun = [&](QPainter& target, int index, const TextShadow& inheritedShadow) {
+      const auto draw = [&](QPainter& layer, const ThemeElementPaintStyle& neutral) {
+        QPainterPath own;
+        auto ownFormats = selections;
+        const auto hide = [&](int start, int end) {
+          if (end <= start) return;
+          QTextCharFormat format; format.setForeground(Qt::transparent); format.setTextOutline(QPen(Qt::NoPen));
+          format.setFontUnderline(false); format.setFontOverline(false); format.setFontStrikeOut(false);
+          ownFormats.append({start, end - start, format});
+        };
+        TextShadow currentShadow = inheritedShadow;
+        if (index < 0) own.addRect(visualTextBounds().united(QRectF(QPointF(), size_)).translated(origin));
+        else {
+          const auto& run = elementRuns_[index];
+          const auto found = run.fragments.isEmpty() ? animated.cend() : animated.constFind(run.fragments.front());
+          auto style = found == animated.cend() ? run.style->style : found.value();
+          style.paint = neutral;
+          currentShadow = style.text.textShadow;
+          for (const int fragment : run.fragments) paintLayoutBox(layer, inlineBoxes_[fragment], origin, &style);
+          own = ranges[index];
+          const auto range = layoutDisplayRangeForProjectionRange(run.start, run.end);
+          if (range.valid) {
+            hide(0, toLayoutOffset(range.start));
+            hide(toLayoutOffset(range.end), textLayout_->text().size());
+          }
+        }
+        for (int child = 0; child < elementRuns_.size(); ++child) if (elementRuns_[child].parent == index) {
+          own = own.subtracted(ranges[child]);
+          const auto range = layoutDisplayRangeForProjectionRange(elementRuns_[child].start, elementRuns_[child].end);
+          if (range.valid) hide(toLayoutOffset(range.start), toLayoutOffset(range.end));
+        }
+        layer.save(); layer.setClipPath(own, Qt::IntersectClip);
+        if (currentShadow.present && currentShadow.color.isValid()) paintTextShadow(layer, origin, currentShadow, {}, ownFormats);
+        content(layer, ownFormats);
+        layer.restore();
+        for (int child = 0; child < elementRuns_.size(); ++child)
+          if (elementRuns_[child].parent == index) paintRun(layer, child, currentShadow);
+      };
+      if (index < 0) draw(target, {});
+      else {
+        const auto& run = elementRuns_[index];
+        const auto found = run.fragments.isEmpty() ? animated.cend() : animated.constFind(run.fragments.front());
+        const auto& style = found == animated.cend() ? run.style->style : found.value();
+        QRectF border, visual;
+        for (const int fragment : run.fragments) {
+          border = border.united(inlineBoxes_[fragment].borderBox.translated(origin));
+          visual = visual.united(inlineBoxes_[fragment].visualOverflow.translated(origin));
+        }
+        paintCssElement(target, border, visual.united(ranges[index].boundingRect()), style.paint, zoomScale_, context, draw);
+      }
+    };
+    paintRun(painter, -1, shadow);
+  }
   paintImagePreview(painter, origin);
   painter.restore();
 }
@@ -828,18 +977,50 @@ void InlineLayout::paintTextLayoutHtmlKeyboardSpans(QPainter& painter, QPointF o
 void InlineLayout::buildInlineBoxes() {
   inlineBoxes_.clear();
   if (!textLayout_) return;
-  const auto add = [&](qsizetype start, qsizetype end, const LayoutBox& style) {
+  const auto composite = [](const ThemeElementStyle& style) {
+    return style.paint.opacity != 1 || hasElementFilter(style.paint) || !style.paint.transforms.empty();
+  };
+  const bool needsInkBounds = std::any_of(elementRuns_.cbegin(), elementRuns_.cend(), [&](const auto& run) {
+    return composite(run.style->style) || (run.style->paintRecipe &&
+        std::any_of(run.style->paintRecipe->states.cbegin(), run.style->paintRecipe->states.cend(), composite));
+  });
+  const auto add = [&](qsizetype start, qsizetype end, const LayoutBox& style, QVector<int>* fragments = nullptr) {
     for (int i = 0; i < textLayout_->lineCount(); ++i) {
       const auto line = textLayout_->lineAt(i);
       const int first = qMax(line.textStart(), toLayoutOffset(start));
       const int last = qMin(line.textStart() + line.textLength(), toLayoutOffset(end));
       if (first >= last) continue;
       const qreal left = line.cursorToX(first), right = line.cursorToX(last);
+      if (fragments) fragments->push_back(inlineBoxes_.size());
       inlineBoxes_.push_back(LayoutBox::inlineFragment(style, left, right, line.y() + line.ascent(),
                                                        first == toLayoutOffset(start), last == toLayoutOffset(end)));
     }
   };
-  for (const auto& span : projection_.spans()) {
+  for (auto& run : elementRuns_) {
+    run.fragments.clear();
+    run.contentPath = {};
+    const auto range = layoutDisplayRangeForProjectionRange(run.start, run.end);
+    if (range.valid) {
+      add(range.start, range.end, *run.style, &run.fragments);
+      run.contentPath.setFillRule(Qt::WindingFill);
+      for (const auto& rect : selectionRectsForDisplayOffsets(range.start, range.end)) run.contentPath.addRect(rect);
+      if (!needsInkBounds) continue;
+      for (int i = 0; i < textLayout_->lineCount(); ++i) {
+        const auto line = textLayout_->lineAt(i);
+        const int first = qMax(line.textStart(), toLayoutOffset(range.start));
+        const int last = qMin(line.textStart() + line.textLength(), toLayoutOffset(range.end));
+        if (first >= last) continue;
+        for (const auto& glyphRun : line.glyphRuns(first, last - first)) {
+          const auto glyphs = glyphRun.glyphIndexes();
+          const auto positions = glyphRun.positions();
+          const auto font = glyphRun.rawFont();
+          for (int glyph = 0; glyph < glyphs.size(); ++glyph)
+            run.contentPath.addRect(font.boundingRect(glyphs[glyph]).translated(positions[glyph]).adjusted(-1, -1, 1, 1));
+        }
+      }
+    }
+  }
+  if (elementRuns_.isEmpty()) for (const auto& span : projection_.spans()) {
     if (span.type != InlineType::Code || span.kind != InlineSpanKind::Text) continue;
     const auto range = layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
     if (range.valid) add(range.start, range.end, *spanStyles_.value(span.displayStart, codeStyle_));
@@ -865,7 +1046,11 @@ void InlineLayout::buildInlineBoxSpacing() {
     if (inset.left() > 0) edges.push_back({start, inset.left()});
     if (inset.right() > 0) edges.push_back({end, inset.right()});
   };
-  for (const auto& span : projection_.spans()) {
+  for (const auto& run : elementRuns_) {
+    const auto range = layoutDisplayRangeForProjectionRange(run.start, run.end);
+    if (range.valid) addBox(range.start, range.end, *run.style);
+  }
+  if (elementRuns_.isEmpty()) for (const auto& span : projection_.spans()) {
     if (span.type != InlineType::Code || span.kind != InlineSpanKind::Text) continue;
     const auto range = layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
     if (range.valid) addBox(range.start, range.end, *spanStyles_.value(span.displayStart, codeStyle_));
@@ -1000,7 +1185,8 @@ void InlineLayout::buildGeneratedPseudoAtoms(const RenderTheme& theme, const QFo
   pseudoBeforeFingerprint_ = options.pseudoBefore && options.pseudoBefore->computed ? options.pseudoBefore->computed->fingerprint() : 0;
   pseudoAfterFingerprint_ = options.pseudoAfter && options.pseudoAfter->computed ? options.pseudoAfter->computed->fingerprint() : 0;
   const auto add = [&](const PseudoElementRule* rule, const QString& resolvedText, bool before,
-                       qsizetype projectionAnchor, qsizetype visibleAnchor, const QString& href = QString()) {
+                       qsizetype projectionAnchor, qsizetype visibleAnchor, const QString& href = QString(),
+                       const CssElement* origin = nullptr, qsizetype hostStart = -1, qsizetype hostEnd = -1) {
     if (!rule || rule->absolute) return;
     const auto value = generatedContentStyle(theme, *rule, baseFont, {width, -1}, resolvedText);
     if (!value) return;
@@ -1017,7 +1203,11 @@ void InlineLayout::buildGeneratedPseudoAtoms(const RenderTheme& theme, const QFo
           projectionAnchor, visibleAnchor, href);
     }
     auto& atom = generatedPseudoAtoms_.last();
-    atom.box = LayoutBox::place(v.style.key, v.style, v.used, {}, v.font);
+    auto style = v.style;
+    if (!origin && options.styleNode) origin = theme.cssElementForNode(*options.styleNode);
+    if (origin) style.paintRecipe = theme.paintRecipeForElement(*origin, rule->pseudo);
+    atom.box = LayoutBox::place(v.style.key, std::move(style), v.used, {}, v.font);
+    atom.hostRangeStart = hostStart; atom.hostRangeEnd = hostEnd;
     if (v.icon && rule->svgFromMask) atom.box.style.paint.backgroundColor = QColor();
   };
 
@@ -1080,7 +1270,7 @@ void InlineLayout::buildGeneratedPseudoAtoms(const RenderTheme& theme, const QFo
       const auto anchor = before ? link.start : link.end;
       const auto local = layoutDisplayOffsetForProjectionOffset(anchor,
           before ? InlineProjectionBias::Forward : InlineProjectionBias::Backward);
-      add(rule ? &*rule : nullptr, {}, before, anchor, visibleOffsetForDisplayOffset(local), link.href);
+      add(rule ? &*rule : nullptr, {}, before, anchor, visibleOffsetForDisplayOffset(local), link.href, link.origin, link.start, link.end);
     }
   }
   add(options.pseudoBefore ? &*options.pseudoBefore : nullptr, options.pseudoBeforeText, true, 0, 0);
@@ -1725,30 +1915,39 @@ void InlineLayout::computeHoverRecolourRanges(const QVector<QTextLayout::FormatR
   }
 }
 
-void InlineLayout::paintTextShadow(QPainter& painter, QPointF origin) const {
+void InlineLayout::paintTextShadow(QPainter& painter, QPointF origin, const TextShadow& textShadow, const QVector<QRectF>& rects,
+                                  const QVector<QTextLayout::FormatRange>& formats) const {
   if (!textLayout_ || size_.width() <= 0 || size_.height() <= 0) { return; }
-  const qreal blur = qMax(qreal(0.0), textShadow_.blur);
-  const qreal maxOff = qMax(qAbs(textShadow_.offset.x()), qAbs(textShadow_.offset.y()));
+  const qreal blur = qMax(qreal(0.0), textShadow.blur * zoomScale_);
+  const qreal maxOff = qMax(qAbs(textShadow.offset.x()), qAbs(textShadow.offset.y())) * zoomScale_;
   const int pad = qCeil(blur + maxOff + 2.0);
   const QSize size(qCeil(size_.width()) + pad * 2, qCeil(size_.height()) + pad * 2);
 
   // Render the text once as an alpha mask (only its coverage shape matters).
   QImage mask(size, QImage::Format_ARGB32_Premultiplied);
   mask.fill(Qt::transparent);
-  { QPainter mp(&mask); mp.setRenderHint(QPainter::TextAntialiasing, true); textLayout_->draw(&mp, QPointF(pad, pad)); }
+  { QPainter mp(&mask);
+    mp.setRenderHint(QPainter::TextAntialiasing, true);
+    if (!rects.isEmpty()) {
+      QPainterPath clip;
+      for (const auto& rect : rects) clip.addRect(rect.translated(pad, pad).adjusted(-1, 0, 1, 0));
+      mp.setClipPath(clip);
+    }
+    textLayout_->draw(&mp, QPointF(pad, pad), formats);
+  }
 
   // Recolour the mask's alpha to the shadow colour: fill the colour, then keep it
   // only where the mask had coverage (DestinationIn).
   QImage shadow(size, QImage::Format_ARGB32_Premultiplied);
   shadow.fill(Qt::transparent);
   { QPainter sp(&shadow);
-    sp.fillRect(shadow.rect(), textShadow_.color);
+    sp.fillRect(shadow.rect(), textShadow.color);
     sp.setCompositionMode(QPainter::CompositionMode_DestinationIn);
     sp.drawImage(0, 0, mask);
   }
   if (blur > 0.0) { boxBlur(shadow, qMax(1, qRound(blur))); }
-  painter.drawImage(QPointF(origin.x() - pad + textShadow_.offset.x(),
-                            origin.y() - pad + textShadow_.offset.y()), shadow);
+  painter.drawImage(QPointF(origin.x() - pad + textShadow.offset.x() * zoomScale_,
+                            origin.y() - pad + textShadow.offset.y() * zoomScale_), shadow);
 }
 
 void InlineLayout::paintTextLayoutMathAtoms(QPainter& painter, QPointF origin) const {
@@ -1817,7 +2016,8 @@ void InlineLayout::paintTextLayoutImageAtoms(QPainter& painter, QPointF origin) 
   }
 }
 
-void InlineLayout::paintGeneratedPseudoAtoms(QPainter& painter, QPointF origin) const {
+void InlineLayout::paintGeneratedPseudoAtoms(QPainter& painter, QPointF origin, CssPaintContext* context, const QString& identity,
+                                             qreal hoverPhase, qreal focusPhase) const {
   if (!textLayout_) return;
   for (const GeneratedPseudoAtom& atom : generatedPseudoAtoms_) {
     if (atom.kind == GeneratedPseudoAtom::Kind::Text) continue;
@@ -1828,15 +2028,42 @@ void InlineLayout::paintGeneratedPseudoAtoms(QPainter& painter, QPointF origin) 
       const int lineStart = line.textStart();
       const int lineEnd = lineStart + line.textLength();
       if (start < lineStart || start >= lineEnd) continue;
-      paintLayoutBox(painter, atom.box, origin);
-      if (atom.kind == GeneratedPseudoAtom::Kind::Icon) {
-        const QColor tint = atom.rule.svgFromMask ? atom.rule.maskTint : atom.rule.color;
-        painter.save();
-        painter.setOpacity(painter.opacity() * atom.rule.opacity);
-        painter.setClipRect(atom.box.contentBox.translated(origin), Qt::IntersectClip);
-        DecorationPainter::paintIcon(painter, atom.rule.svgData, atom.iconRect.translated(origin), tint, atom.rule.svgFromMask);
-        painter.restore();
+      auto style = atom.box.style;
+      if (!context) {
+        paintLayoutBox(painter, atom.box, origin);
+        if (atom.kind == GeneratedPseudoAtom::Kind::Icon) {
+          const QColor tint = atom.rule.svgFromMask ? atom.rule.maskTint : atom.rule.color;
+          painter.save(); painter.setOpacity(painter.opacity() * atom.rule.opacity);
+          painter.setClipRect(atom.box.contentBox.translated(origin), Qt::IntersectClip);
+          DecorationPainter::paintIcon(painter, atom.rule.svgData, atom.iconRect.translated(origin), tint, atom.rule.svgFromMask);
+          painter.restore();
+        }
+        break;
       }
+      if (context && atom.box.paintRecipe) {
+        bool over = hoverPhase > .5;
+        if (atom.hostRangeStart >= 0) {
+          over = false;
+          const auto range = layoutDisplayRangeForProjectionRange(atom.hostRangeStart, atom.hostRangeEnd);
+          if (range.valid && context->pointer) for (const auto& rect : selectionRectsForDisplayOffsets(range.start, range.end))
+            over = over || rect.translated(origin).contains(painter.worldTransform().inverted().map(*context->pointer));
+        }
+        const int state = (over ? 1 : 0) | (focusPhase > .5 ? 2 : 0) | (over && context->pressed ? 4 : 0);
+        style = context->sample(*atom.box.paintRecipe, identity + "/pseudo/" + QString::number(atom.rangeStart), state);
+      }
+      paintCssElement(painter, atom.box.borderBox.translated(origin), atom.box.visualOverflow.translated(origin), style.paint,
+          zoomScale_, context, [&](QPainter& target, const ThemeElementPaintStyle& paint) {
+        auto unfiltered = style; unfiltered.paint = paint;
+        const auto tint = paint.backgroundColor;
+        if (atom.rule.svgFromMask) unfiltered.paint.backgroundColor = {};
+        paintLayoutBox(target, atom.box, origin, &unfiltered);
+        if (atom.kind == GeneratedPseudoAtom::Kind::Icon) {
+          target.save(); target.setClipRect(atom.box.contentBox.translated(origin), Qt::IntersectClip);
+          DecorationPainter::paintIcon(target, atom.rule.svgData, atom.iconRect.translated(origin),
+              atom.rule.svgFromMask ? tint.isValid() ? tint : atom.rule.maskTint : paint.color, atom.rule.svgFromMask);
+          target.restore();
+        }
+      });
       break;
     }
   }

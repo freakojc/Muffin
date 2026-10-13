@@ -36,6 +36,11 @@ void near(qreal actual, qreal expected, const char* message) {
     require(false, message);
   }
 }
+QVector<const muffin::LayoutBox*> boxesForTag(const muffin::InlineLayout& text, const QString& tag) {
+  QVector<const muffin::LayoutBox*> result;
+  for (const auto& box : text.inlineBoxes()) if (box.hostKey == tag) result.append(&box);
+  return result;
+}
 void testCascadeAndInheritance() {
   const auto sheet =
       muffin::CssThemeParser::parse(QStringLiteral("html{font-size:16px} body{font-size:125%;color:#123456;line-height:1.5em}"
@@ -306,8 +311,9 @@ void testUnifiedHeadingSnapshotAndLazyLayout() {
     if (previousHeight) require(heading->height() > previousHeight, "font CSS change updates wrapping and flow height together");
     previousHeight = heading->height();
     const auto* paragraph = eager.block(document.document().root().children()[1]->id());
-    require(!paragraph->inlineLayout()->inlineBoxes().isEmpty(), "contextual code produces a saved inline box");
-    const auto& code = paragraph->inlineLayout()->inlineBoxes().front();
+    const auto codeBoxes = boxesForTag(*paragraph->inlineLayout(), "code");
+    require(codeBoxes.size() == 1, "contextual code produces one saved inline box alongside its strong parent");
+    const auto& code = *codeBoxes.front();
     near(code.font.pointSizeF() * 96 / 72, 11, "inline code inherits through the real strong parent");
     near(code.usedBox.padding.left(), 5, "inline code keeps asymmetric left padding");
     near(code.usedBox.padding.right(), 9, "inline code keeps asymmetric right padding");
@@ -342,8 +348,9 @@ void testInlineHtmlUsesActualBoxAndFont() {
   layout.rebuild(document.document(), theme, 800);
   const auto* paragraph = layout.block(document.document().root().children().front()->id());
   const auto* text = paragraph->inlineLayout();
-  require(text->inlineBoxes().size() == 1, "nested spans share one keyboard box and reserve its padding once");
-  const auto& box = text->inlineBoxes().front();
+  const auto keyboardBoxes = boxesForTag(*text, "kbd");
+  require(keyboardBoxes.size() == 1, "nested spans share one keyboard box and reserve its padding once");
+  const auto& box = *keyboardBoxes.front();
   near(box.font.pointSizeF() * 96 / 72, 20, "HTML inline font wins over the theme keyboard prototype");
   near(box.usedBox.padding.left(), 7, "HTML inline padding controls the saved keyboard box");
   near(box.borderBox.width() - box.contentBox.width(), 16, "keyboard border and padding occupy actual text advance");
@@ -368,9 +375,10 @@ void testInlineHtmlUsesActualBoxAndFont() {
   muffin::DocumentLayout nestedLayout;
   nestedLayout.rebuild(nested.document(), nestedTheme, 800);
   const auto* nestedText = nestedLayout.block(nested.document().root().children().front()->id())->inlineLayout();
-  require(nestedText->inlineBoxes().size() == 1, "Markdown and HTML share the same semantic ancestry");
-  near(nestedText->inlineBoxes().front().usedBox.padding.left(), 19, "direct-child CSS crosses the Markdown/HTML boundary");
-  near(nestedText->inlineBoxes().front().font.pointSizeF() * 96 / 72, 23, "contextual HTML font comes from its actual Markdown parent");
+  const auto nestedKeyboardBoxes = boxesForTag(*nestedText, "kbd");
+  require(nestedKeyboardBoxes.size() == 1, "Markdown and HTML share the same semantic ancestry");
+  near(nestedKeyboardBoxes.front()->usedBox.padding.left(), 19, "direct-child CSS crosses the Markdown/HTML boundary");
+  near(nestedKeyboardBoxes.front()->font.pointSizeF() * 96 / 72, 23, "contextual HTML font comes from its actual Markdown parent");
   near(nestedLayout.block(nested.document().root().children().front()->id())->cssBoxGeometry().usedBox.padding.top(), 5,
        "has selectors see embedded HTML classes");
   bool sawNormal = false, sawClear = false;

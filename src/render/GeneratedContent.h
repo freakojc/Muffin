@@ -69,7 +69,8 @@ inline std::optional<GeneratedContentStyle> generatedContentStyle(const RenderTh
   return value;
 }
 
-inline QRectF positionGeneratedContent(const GeneratedContentStyle& value, const QRectF& containing, QRectF box, qreal zoom) {
+inline QRectF positionGeneratedContent(const GeneratedContentStyle& value, const QRectF& containing, QRectF box, qreal zoom,
+                                       bool translate = true) {
   if (!value.rule.computed) return box;
   const auto& style = *value.rule.computed;
   const auto used = [&](const char* name, qreal basis) {
@@ -85,6 +86,7 @@ inline QRectF positionGeneratedContent(const GeneratedContentStyle& value, const
     box.moveTop(containing.top() + used("top", containing.height()) + value.used.margin.top());
   else if (valid("bottom"))
     box.moveBottom(containing.bottom() - used("bottom", containing.height()) - value.used.margin.bottom());
+  if (!translate) return box;
   const CssLengthContext context{style.fontSizePx * style.textScale, style.rootFontSizePx * style.textScale, style.fontSizePx * .5,
                                  style.fontSizePx * .5, style.viewportPx};
   static const QRegularExpression translations(QStringLiteral(R"(translate(x|y)?\(([^()]*(?:\([^()]*\)[^()]*)*)\))"));

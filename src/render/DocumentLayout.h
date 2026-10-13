@@ -64,6 +64,9 @@ class DocumentLayout {
     // The slot itself keeps an unshifted base top; suffix shifts stay lazy until the
     // block is painted, hit-tested, or otherwise exposed.
     qreal detailShift = 0.0;
+    qreal detailLeft = 0.0;
+    // Viewport changes invalidate measurements, not document identity/order.
+    quint64 viewportGeneration = 0;
     bool measured = false;
     std::unique_ptr<BlockLayout> detail;
   };
@@ -95,7 +98,11 @@ class DocumentLayout {
   // Forward the active IME composition to the builder (spliced into the caret block's inline layout).
   void setPreedit(QString text, QVector<QTextLayout::FormatRange> formats, int cursor);
   CodeFenceScrollController* codeFenceScroll() const;
-  bool relayoutForViewportWidth(const RenderTheme& theme, qreal viewportWidth);
+  bool relayoutForViewportWidth(const RenderTheme& theme, qreal viewportWidth, bool stylesChanged = false);
+  // Re-estimate offscreen heights in bounded idle slices after a viewport change.
+  // Visible blocks are measured immediately by ensureBuilt; indices stay intact.
+  bool hasPendingViewportEstimates() const;
+  void refreshViewportEstimates(const RenderTheme& theme, int maxBlocks = 256, int budgetMs = 4);
   BlockRebuildResult rebuildBlock(NodeId blockId, const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection);
   RangeRebuildResult rebuildTopLevelRange(TopLevelRangeChange range, const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection);
 
@@ -180,6 +187,9 @@ class DocumentLayout {
   int preeditCursor_ = -1;
   qreal viewportWidth_ = 0;
   QSizeF cssViewport_;
+  quint64 viewportGeneration_ = 1;
+  qsizetype viewportEstimateCursor_ = 0;
+  bool hasHtmlContent_ = false;
   BuildPolicy buildPolicy_ = BuildPolicy::Eager;
 
   std::vector<BlockSlot> slots_;

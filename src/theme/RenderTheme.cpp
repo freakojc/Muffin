@@ -1,4 +1,5 @@
 #include "theme/RenderTheme.h"
+#include "render/CssPaintAnimation.h"
 
 #include "theme/FontRendering.h"
 
@@ -461,7 +462,7 @@ ThemeElementStyle RenderTheme::inlineStyleForNode(const MarkdownNode& owner, qsi
   if (!styleEngine_) return {};
   if (!styleTree_) styleTree_ = std::make_shared<NodeCssElementBuilder>(hasNthOfType_);
   const auto* element = styleTree_->buildInline(owner, offset);
-  auto resolved = projectStyle(element->tag, styleEngine_->styleFor(*element));
+  auto resolved = styleForElement(*element);
   const auto* block = styleTree_->build(owner);
   for (const auto* parent = element == block ? nullptr : element->parent; parent; parent = parent == block ? nullptr : parent->parent) {
     const auto inheritedLine = projectStyle(parent->tag, styleEngine_->styleFor(*parent)).text;
@@ -476,6 +477,38 @@ ThemeElementStyle RenderTheme::inlineStyleForNode(const MarkdownNode& owner, qsi
   resolved.fingerprint ^=
       qHashMulti(size_t(0), resolved.text.decorationLines, resolved.text.underlineStyle, resolved.text.decorationColor.rgba());
   return resolved;
+}
+
+ThemeElementStyle RenderTheme::styleForElement(const CssElement& element) const {
+  if (!styleEngine_) return {};
+  auto style = projectStyle(element.tag, styleEngine_->styleFor(element));
+  style.paintRecipe = paintRecipeForElement(element);
+  return style;
+}
+
+std::shared_ptr<const CssPaintRecipe> RenderTheme::paintRecipeForElement(const CssElement& origin, const QString& pseudo) const {
+  if (!styleEngine_ || !sourceSheet_) return {};
+  const auto key = QString::number(origin.cacheId) + '/' + pseudo;
+  if (origin.cacheId) {
+    const auto found = paintRecipeCache_.constFind(key);
+    if (found != paintRecipeCache_.cend()) return found.value();
+  }
+  CssElement element = origin;
+  if (!pseudo.isEmpty()) {
+    element.cacheId = 0;  // this temporary pseudo must not alias its origin's cached style
+    element.inlineDeclarations.clear(); element.pseudoElement = pseudo; element.originatingElement = &origin;
+  }
+  const auto computed = styleEngine_->styleFor(element);
+  if (!styleEngine_->mayHaveInteractiveStyle(element) && computed.resolvedValue("animation").isEmpty() &&
+      computed.resolvedValue("animation-name").isEmpty()) {
+    if (origin.cacheId) paintRecipeCache_.insert(key, {});
+    return {};
+  }
+  const auto recipe = compileCssPaintRecipe(origin.tag + (pseudo.isEmpty() ? QString() : "::" + pseudo),
+      [&](CssElementState state) { state.subject = &origin; return styleEngine_->styleFor(pseudo.isEmpty() ? origin : element, state); },
+      *sourceSheet_, documentCssEnvironment().reducedMotion);
+  if (origin.cacheId) paintRecipeCache_.insert(key, recipe);
+  return recipe;
 }
 
 const CssElement* RenderTheme::cssParentForInlineHtml(const MarkdownNode& owner, qsizetype offset) const {
@@ -509,6 +542,7 @@ const ThemeElementStyle* RenderTheme::elementStyleForNode(const MarkdownNode& no
   state.hover = key.endsWith(QStringLiteral(":hover"));
   state.focus = key.endsWith(QStringLiteral(":focus"));
   ThemeElementStyle resolved = projectStyle(key, styleEngine_->styleFor(*element, state));
+  if (!state.hover && !state.focus) resolved.paintRecipe = paintRecipeForElement(*element);
   resolved.key = key;
   const auto snapshot = std::make_shared<const ThemeElementStyle>(std::move(resolved));
   nodeStyleCache_.insert(cacheKey, snapshot);
@@ -567,6 +601,7 @@ std::optional<PseudoElementRule> RenderTheme::pseudoForElement(const CssElement&
 void RenderTheme::invalidateDocumentStyles() const {
   nodeStyleCache_.clear();
   pseudoStyleCache_.clear();
+  paintRecipeCache_.clear();
   ++styleGeneration_;
   if (styleEngine_) styleEngine_->clearCache();
   prototypeFontCache_.clear();

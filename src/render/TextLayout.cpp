@@ -37,6 +37,9 @@ QList<QTextLayout::FormatRange> deviceFormats(QList<QTextLayout::FormatRange> fo
   if (backend == TextBackend::Native) return formats;
   for (auto& range : formats) {
     auto& format = range.format;
+    if (format.hasProperty(QTextFormat::TextOutline)) {
+      auto pen = format.textOutline(); pen.setWidthF(pen.widthF() * textBackendScale(backend)); format.setTextOutline(pen);
+    }
     if (format.hasProperty(QTextFormat::FontPixelSize)) {
       format.setFontPointSize(format.doubleProperty(QTextFormat::FontPixelSize) * .75);
       format.clearProperty(QTextFormat::FontPixelSize);

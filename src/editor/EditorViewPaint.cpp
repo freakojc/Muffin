@@ -3,13 +3,11 @@
 #include "blocks/code/CodeFenceScrollController.h"
 #include "diagnostics/ScopedPerfProbe.h"
 #include "editor/EditorViewGeometry.h"
-#include "editor/FocusAnimator.h"
-#include "editor/HoverAnimator.h"
 #include "editor/HtmlBlockHoverController.h"
-#include "editor/KeyframeAnimator.h"
 #include "render/BlockLayout.h"
 #include "render/DecorationPainter.h"
 #include "render/DocumentLayout.h"
+#include "document/MarkdownDocument.h"
 
 #include <QColor>
 #include <QCoreApplication>
@@ -20,6 +18,7 @@
 #include <QPainter>
 #include <QPen>
 #include <QSet>
+#include <QTimer>
 
 #include <algorithm>
 
@@ -42,19 +41,6 @@ QColor selectionOverlayColor(const RenderTheme& theme) {
     color.setAlphaF(0.5);
   }
   return color;
-}
-
-// Map a block to its CSS host key for decoration/hover lookup ("" → none).
-// Duplicated from EditorView.cpp's anonymous namespace: both TUs are part of the
-// same EditorView class, and `muffin.perf` is a per-TU category registered by name
-// so logging rules apply uniformly. The alternative (a shared internal header)
-// isn't worth it for two trivial helpers — revisit if a third TU needs them.
-QString hostKeyForBlock(const BlockLayout& block) {
-  switch (block.type()) {
-    case BlockType::Heading: return QStringLiteral("h%1").arg(block.headingLevel());
-    case BlockType::BlockQuote: return QStringLiteral("blockquote");
-    default: return QString();
-  }
 }
 
 struct PerfTimer : diag::ScopedPerfProbe {
@@ -166,21 +152,16 @@ void EditorView::paintEvent(QPaintEvent* event) {
   const QRect dirtyBounds = dirtyRegion.boundingRect().intersected(viewport()->rect());
   const QRectF dirtyDocument = QRectF(dirtyBounds).translated(0, scrollY());
   const QVector<const BlockLayout*> blocks =
-      layout_->visibleBlocks(dirtyDocument.intersected(visible).adjusted(0, -80, 0, 80), theme_);
+      layout_->visibleBlocks((cssPaintTimer_->isActive() ? visible : dirtyDocument.intersected(visible)).adjusted(0, -80, 0, 80), theme_);
   const NodeId activeTopLevel =
       (focusMode_ && cursorPosition_.isValid()) ? layout_->topLevelBlockIdFor(cursorPosition_.blockId) : NodeId();
 
-  // Tell the keyframe driver which animated hosts are visible (it filters to
-  // infinite animations and starts/stops its timer accordingly).
-  if (keyframeAnimator_ && keyframeAnimator_->hasAnimations()) {
-    QSet<QString> visibleHosts;
-    const QVector<const BlockLayout*> animationBlocks =
-        layout_->visibleBlocks(visible.adjusted(0, -80, 0, 80), theme_);
-    for (const BlockLayout* b : animationBlocks) {
-      const QString h = hostKeyForBlock(*b);
-      if (!h.isEmpty()) { visibleHosts.insert(h); }
-    }
-    keyframeAnimator_->setVisibleHosts(visibleHosts);
+  cssPaintContext_.timeMs = cssPaintClock_.elapsed();
+  cssPaintContext_.needsFrame = false;
+  cssPaintContext_.focusedAncestors.clear();
+  if (document_ && cursorPosition_.isValid()) {
+    const auto focused = cursorPosition_.text.nodeId.isValid() ? cursorPosition_.text.nodeId : cursorPosition_.blockId;
+    for (auto* node = document_->node(focused); node; node = node->parent()) cssPaintContext_.focusedAncestors.insert(node->id());
   }
 
   const QVector<const BlockLayout*> animationBlocks =
@@ -200,74 +181,12 @@ void EditorView::paintEvent(QPaintEvent* event) {
     const auto openMenuIt = openSequenceMenus_.constFind(block->nodeId());
     const QSet<QString>* openMenus = openMenuIt == openSequenceMenus_.cend()
         ? nullptr : &openMenuIt.value();
-    const QString host = hostKeyForBlock(*block);
-    const AnimatedSample* anim = (keyframeAnimator_ && !host.isEmpty()) ? keyframeAnimator_->sampleFor(host) : nullptr;
-    const bool hoverActive = hoverAnimator_ && block->nodeId() == hoverAnimator_->animatedBlockId() && hoverAnimator_->phase() > 0.0;
-    const auto fragment = block->cssBoxGeometry();
-    const ThemeElementPaintStyle* hoverStyle = (!host.isEmpty() && hoverActive) ? &fragment.hoverPaint : nullptr;
-    // CSS :focus — the top-level block holding the caret. Parallel to hover; the
-    // two are orthogonal (a block can be both hovered and focused).
-    const bool focusActive = focusAnimator_ && block->nodeId() == focusAnimator_->animatedBlockId() && focusAnimator_->phase() > 0.0;
-    const ThemeElementPaintStyle* focusStyle = (!host.isEmpty() && focusActive) ? &fragment.focusPaint : nullptr;
-    const QRectF cssBox = block->cssBorderBox().translated(0, -scrollY());
-    // CSS :focus glow/bg, painted UNDER hover so hover wins on overlap.
-    if (focusActive && !host.isEmpty() && focusStyle) {
-      if (focusStyle->boxShadowColor.isValid() && focusStyle->boxShadowBlur > 0.0) {
-        DecorationPainter::paintGlow(painter, cssBox, focusStyle->boxShadowColor, focusStyle->boxShadowBlur, focusAnimator_->phase());
-      }
-      if (focusStyle->backgroundColor.isValid()) {
-        QColor tint = focusStyle->backgroundColor;
-        tint.setAlphaF(tint.alphaF() * focusAnimator_->phase());
-        painter.fillRect(cssBox, tint);
-      }
-    }
-    // CSS :hover paint diff from the computed hover style. Prefer the element-style
-    // path; legacy HoverEffect remains as fallback for themes not yet represented.
-    if (hoverActive && !host.isEmpty()) {
-      if (hoverStyle && hoverStyle->boxShadowColor.isValid() && hoverStyle->boxShadowBlur > 0.0) {
-        DecorationPainter::paintGlow(painter, cssBox, hoverStyle->boxShadowColor, hoverStyle->boxShadowBlur, hoverAnimator_->phase());
-      } else {
-        DecorationPainter::paintBlockHoverGlow(painter, theme_, host, cssBox, hoverAnimator_->phase());
-      }
-      if (hoverStyle && hoverStyle->backgroundColor.isValid()) {
-        QColor tint = hoverStyle->backgroundColor;
-        tint.setAlphaF(tint.alphaF() * hoverAnimator_->phase());
-        painter.fillRect(cssBox, tint);
-      }
-    }
-    // @keyframes glow (colour/blur from the sampled frame).
-    if (anim && anim->hasGlow) {
-      DecorationPainter::paintGlow(painter, block->rect().translated(0, -scrollY()), anim->glowColor, anim->glowBlur, 1.0);
-    }
-    // transform:scale() on :hover/:focus. When both are active, hover wins (it is
-    // the more transient interaction); themes rarely declare scale on both.
-    const qreal hoverScale = hoverStyle ? (1.0 + (hoverStyle->transformScale - 1.0) * hoverAnimator_->phase()) : 1.0;
-    const qreal focusScale = focusStyle ? (1.0 + (focusStyle->transformScale - 1.0) * focusAnimator_->phase()) : 1.0;
-    const qreal stateScale = qAbs(hoverScale - 1.0) > 0.001 ? hoverScale : focusScale;
-    const bool stateWrap = qAbs(stateScale - 1.0) > 0.001;
-    const bool wrap = stateWrap || (anim && (anim->hasOpacity || (anim->hasScale && qAbs(anim->scale - 1.0) > 0.001)));
-    if (wrap) {
-      painter.save();
-      if (anim && anim->hasOpacity) { painter.setOpacity(anim->opacity); }
-      if (anim && anim->hasScale) {
-        const QRectF br = block->rect().translated(0, -scrollY());
-        const QPointF c = br.center();
-        painter.translate(c);
-        painter.scale(anim->scale, anim->scale);
-        painter.translate(-c);
-      }
-      if (stateWrap) {
-        const QPointF c = cssBox.center();
-        painter.translate(c);
-        painter.scale(stateScale, stateScale);
-        painter.translate(-c);
-      }
-    }
-    const BlockLayout::BlockPaintState blockState{
-        hoverActive, hoverAnimator_ ? hoverAnimator_->phase() : 0.0,
-        focusActive, focusAnimator_ ? focusAnimator_->phase() : 0.0,
-        block->hasAnimatedMermaid() ? mermaidAnimationTime : -1.0,
-        openMenus};
+    BlockLayout::BlockPaintState blockState;
+    blockState.css = &cssPaintContext_;
+    blockState.focusedNode = cursorPosition_.text.nodeId.isValid() ? cursorPosition_.text.nodeId : cursorPosition_.blockId;
+    blockState.focusSourceOffset = cursorPosition_.text.sourceOffset;
+    blockState.mermaidAnimationTimeSeconds = block->hasAnimatedMermaid() ? mermaidAnimationTime : -1;
+    blockState.openSequenceMenus = openMenus;
     if (focusMode_ && activeTopLevel.isValid() && block->nodeId() != activeTopLevel) {
       painter.save();
       painter.setOpacity(0.35);
@@ -276,8 +195,10 @@ void EditorView::paintEvent(QPaintEvent* event) {
     } else {
       block->paint(painter, theme_, scrollY(), codeFenceScroll_, blockState);
     }
-    if (wrap) { painter.restore(); }
   }
+  if (cssPaintContext_.needsFrame && isVisible()) {
+    if (!cssPaintTimer_->isActive()) cssPaintTimer_->start();
+  } else cssPaintTimer_->stop();
   paintSelection(painter);
   paintCurrentTableCell(painter);
   paintHtmlHoverOverlay(painter);

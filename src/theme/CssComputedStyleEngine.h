@@ -90,6 +90,9 @@ struct CssElementState {
   bool active = false;
   bool visited = false;
   bool mdFocus = false;
+  // When supplied, state belongs to this semantic element. Hover also matches
+  // its ancestors; focus/active do not accidentally match unrelated siblings.
+  const CssElement* subject = nullptr;
 };
 
 class CssComputedStyle {
@@ -182,6 +185,7 @@ struct CssSelectorFeatures {
   bool needsTypeIndex = false;
   // Conservative rightmost tag/id subjects, derived from compiled selectors.
   QHash<QString, QVector<QPair<QString, QString>>> generatedPseudoSubjects;
+  QSet<QString> interactiveSubjects;
 };
 
 class CssComputedStyleEngine {
@@ -199,6 +203,10 @@ public:
  CssComputedStyle styleFor(const CssElement& element, const CssElementState& state, const std::vector<CssDeclaration>& inlineDeclarations,
                            const std::vector<CssDeclaration>& presentationDeclarations) const;
  const CssSelectorFeatures& selectorFeatures() const { return selectorFeatures_; }
+ bool mayHaveInteractiveStyle(const CssElement& element) const {
+   return selectorFeatures_.interactiveSubjects.contains(element.tag.toLower() + '/' + element.pseudoElement) ||
+          selectorFeatures_.interactiveSubjects.contains('/' + element.pseudoElement);
+ }
  bool mayGeneratePseudo(const CssElement& origin, const QString& pseudo) const {
    const auto candidates = selectorFeatures_.generatedPseudoSubjects.constFind(pseudo);
    if (candidates == selectorFeatures_.generatedPseudoSubjects.cend()) return false;
@@ -248,5 +256,9 @@ private:
  mutable QHash<QString, std::vector<std::size_t>> ruleCandidates_;
  mutable quint64 generation_ = 1;
 };
+
+// Keyframe declarations use the same shorthand expansion as the cascade, but
+// do not run selectors again. Important declarations are invalid in keyframes.
+CssComputedStyle cssKeyframeStyle(CssComputedStyle base, const std::vector<CssDeclaration>& declarations);
 
 }  // namespace muffin
