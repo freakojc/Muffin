@@ -342,6 +342,10 @@ endforeach()
 # editor's layout device. Its JSON and raster output belong in build/.
 add_executable(MuffinFontBackendProbe EXCLUDE_FROM_ALL scripts/font_backend_probe.cpp)
 target_link_libraries(MuffinFontBackendProbe PRIVATE MuffinUi)
+add_executable(MuffinThemePerformanceProbe EXCLUDE_FROM_ALL scripts/theme_performance_probe.cpp ${MUFFIN_THEMES_QRC})
+target_link_libraries(MuffinThemePerformanceProbe PRIVATE MuffinUi)
+muffin_use_theme_fonts(MuffinThemePerformanceProbe)
+target_compile_definitions(MuffinThemePerformanceProbe PRIVATE MUFFIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 muffin_add_test(NAME MuffinHighDpiCssEffectsCompatibilityTest SOURCE tests/theme/CssEffectsCompatibilityTest.cpp LINK MuffinUi
   FIXTURE tests/fixtures/theme/effects-browser.json RESOURCE_LOCK)
 set_property(TEST MuffinHighDpiCssEffectsCompatibilityTest APPEND PROPERTY ENVIRONMENT_MODIFICATION "QT_SCALE_FACTOR=set:1.25")
@@ -474,6 +478,84 @@ muffin_add_test(NAME MuffinDocumentTabsTest SOURCE tests/app/DocumentTabsTest.cp
   RESOURCE_LOCK)
 target_compile_definitions(MuffinDocumentTabsTest PRIVATE MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}")
 
+# Manual native-window benchmark. It exercises the actual app bindings but is
+# excluded from normal builds/CTest: desktop exposure and latency are diagnostic.
+add_executable(MuffinDelimiterPerformanceProbe EXCLUDE_FROM_ALL scripts/delimiter_performance_probe.cpp)
+target_link_libraries(MuffinDelimiterPerformanceProbe PRIVATE MuffinCore)
+add_executable(MuffinAstPerformanceProbe EXCLUDE_FROM_ALL scripts/ast_performance_probe.cpp)
+target_link_libraries(MuffinAstPerformanceProbe PRIVATE MuffinCore)
+add_executable(MuffinTexturePhaseProbe EXCLUDE_FROM_ALL scripts/texture_phase_probe.cpp ${MUFFIN_THEMES_QRC})
+target_link_libraries(MuffinTexturePhaseProbe PRIVATE MuffinUi)
+add_executable(MuffinCmarkPerformanceProbe EXCLUDE_FROM_ALL
+  scripts/cmark_performance_probe.cpp scripts/cmark_stage_profile.c scripts/cmark_autolink_profile.c)
+# Only the standalone diagnostic sees these two coarse phase hooks. The
+# application's ordinary cmark archive remains uninstrumented.
+set(_cmark_blocks_path "${CMAKE_CURRENT_SOURCE_DIR}/third_party/cmark-gfm/src/blocks.c")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_cmark_blocks_path}")
+file(READ "${_cmark_blocks_path}" _cmark_profiled_blocks)
+foreach(_cmark_phase inlines footnotes)
+  if(_cmark_phase STREQUAL "inlines")
+    set(_cmark_call "process_inlines(parser, parser->refmap, parser->options);")
+    set(_cmark_stage 0)
+  else()
+    set(_cmark_call "process_footnotes(parser);")
+    set(_cmark_stage 1)
+  endif()
+  string(FIND "${_cmark_profiled_blocks}" "${_cmark_call}" _cmark_call_at)
+  if(_cmark_call_at LESS 0)
+    message(FATAL_ERROR "cmark diagnostic hook needs updating: ${_cmark_phase}")
+  endif()
+  string(REPLACE "${_cmark_call}"
+    "{ muffin_probe_stage_begin(${_cmark_stage}); ${_cmark_call} muffin_probe_stage_end(${_cmark_stage}); }"
+    _cmark_profiled_blocks "${_cmark_profiled_blocks}")
+endforeach()
+file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/cmark-profiled-blocks.inc" CONTENT "${_cmark_profiled_blocks}")
+unset(_cmark_profiled_blocks)
+set(_cmark_autolink_path "${CMAKE_CURRENT_SOURCE_DIR}/third_party/cmark-gfm/extensions/autolink.c")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_cmark_autolink_path}")
+file(READ "${_cmark_autolink_path}" _cmark_profiled_autolink)
+foreach(_cmark_hook "postprocess_text(parser, node);" "node = cmark_iter_get_node(iter);")
+  string(FIND "${_cmark_profiled_autolink}" "${_cmark_hook}" _cmark_hook_at)
+  if(_cmark_hook_at LESS 0)
+    message(FATAL_ERROR "cmark autolink diagnostic hook needs updating: ${_cmark_hook}")
+  endif()
+endforeach()
+string(REPLACE "postprocess_text(parser, node);" "muffin_autolink_text(parser, node);"
+  _cmark_profiled_autolink "${_cmark_profiled_autolink}")
+string(REPLACE "node = cmark_iter_get_node(iter);" "node = cmark_iter_get_node(iter); muffin_autolink_visit();"
+  _cmark_profiled_autolink "${_cmark_profiled_autolink}")
+string(REPLACE "cmark_chunk *literal = &node->as.literal;"
+  "cmark_chunk *literal = &node->as.literal; muffin_autolink_visit();"
+  _cmark_profiled_autolink "${_cmark_profiled_autolink}")
+file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/cmark-profiled-autolink.inc" CONTENT "${_cmark_profiled_autolink}")
+unset(_cmark_profiled_autolink)
+target_link_libraries(MuffinCmarkPerformanceProbe PRIVATE Qt6::Core libcmark-gfm-extensions_static libcmark-gfm_static)
+target_compile_definitions(MuffinCmarkPerformanceProbe PRIVATE CMARK_GFM_STATIC_DEFINE CMARK_GFM_EXTENSIONS_STATIC_DEFINE)
+target_include_directories(MuffinCmarkPerformanceProbe PRIVATE
+  third_party/cmark-gfm/src third_party/cmark-gfm/extensions ${CMAKE_CURRENT_BINARY_DIR}/third_party/cmark-gfm/src
+  ${CMAKE_CURRENT_BINARY_DIR})
+add_executable(MuffinCmarkArchiveProbe EXCLUDE_FROM_ALL scripts/cmark_performance_probe.cpp)
+target_link_libraries(MuffinCmarkArchiveProbe PRIVATE Qt6::Core libcmark-gfm-extensions_static libcmark-gfm_static)
+target_compile_definitions(MuffinCmarkArchiveProbe PRIVATE
+  CMARK_GFM_STATIC_DEFINE CMARK_GFM_EXTENSIONS_STATIC_DEFINE MUFFIN_CMARK_ARCHIVE_CONTROL)
+target_include_directories(MuffinCmarkArchiveProbe PRIVATE
+  third_party/cmark-gfm/src third_party/cmark-gfm/extensions ${CMAKE_CURRENT_BINARY_DIR}/third_party/cmark-gfm/src)
+add_executable(MuffinCmarkFootnoteProbe EXCLUDE_FROM_ALL scripts/cmark_footnote_probe.cpp)
+target_link_libraries(MuffinCmarkFootnoteProbe PRIVATE Qt6::Core libcmark-gfm-extensions_static libcmark-gfm_static)
+target_compile_definitions(MuffinCmarkFootnoteProbe PRIVATE CMARK_GFM_STATIC_DEFINE CMARK_GFM_EXTENSIONS_STATIC_DEFINE)
+target_include_directories(MuffinCmarkFootnoteProbe PRIVATE
+  third_party/cmark-gfm/src third_party/cmark-gfm/extensions ${CMAKE_CURRENT_BINARY_DIR}/third_party/cmark-gfm/src)
+add_executable(MuffinCmarkAutolinkProbe EXCLUDE_FROM_ALL scripts/cmark_autolink_probe.cpp)
+target_link_libraries(MuffinCmarkAutolinkProbe PRIVATE Qt6::Core libcmark-gfm-extensions_static libcmark-gfm_static)
+target_compile_definitions(MuffinCmarkAutolinkProbe PRIVATE CMARK_GFM_STATIC_DEFINE CMARK_GFM_EXTENSIONS_STATIC_DEFINE)
+target_include_directories(MuffinCmarkAutolinkProbe PRIVATE
+  third_party/cmark-gfm/src third_party/cmark-gfm/extensions ${CMAKE_CURRENT_BINARY_DIR}/third_party/cmark-gfm/src)
+add_executable(MuffinGuiPerformanceProbe EXCLUDE_FROM_ALL
+  scripts/gui_performance_probe.cpp ${_tab_test_app_sources}
+  src/icons.qrc src/translations.qrc ${MUFFIN_THEMES_QRC} ${MUFFIN_HELP_QRC} ${MUFFIN_EMOJI_QRC})
+target_link_libraries(MuffinGuiPerformanceProbe PRIVATE MuffinUi Qt6::Test Qt6::Svg Qt6::PrintSupport)
+target_compile_definitions(MuffinGuiPerformanceProbe PRIVATE
+  MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}" MUFFIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
 if(APPLE)
   # Conan's ICU 74 archive overrides Apple's ICU data in CoreFoundation.

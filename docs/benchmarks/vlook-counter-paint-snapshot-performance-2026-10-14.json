@@ -1,0 +1,2658 @@
+{
+  "date": "2026-10-14",
+  "cpu": "Intel Core i7-10700 (8 cores, 16 threads)",
+  "environment": "Windows, Conan Release, Qt offscreen, QT_FONT_DPI=96, default Windows text backend, 960x900 DPR1",
+  "css_sha256": "dc9ce7c464f4ddf8644040fb77c7c7e408a70f1bee3ba2c9f9a8ac746901f3cc",
+  "methodology": "One sequential fresh-process sample per size, without a concurrent build/test. Same fixed CSS and workload as round 9. Stage exclusive times exclude nested scopes. Working-set measurements are point-in-time, not peak. This diagnostic is not a statistical latency guarantee or a full GUI benchmark.",
+  "baseline_file": "vlook-css-interaction-performance-2026-10-14.json",
+  "scope": "Counter candidate filtering, immutable counter programs with scope-state memoization and exact selector dependency inputs, negative sibling tag probes, bounded shadow rasters, and temporary prototype cache lifetimes.",
+  "edit_stages": {
+    "edit": "Original baseline stage: inserts Edited inside the initial heading title, then applies the local range/block rebuild.",
+    "edit_plain": "New stage, after edit: inserts Plain edit inside the first paragraph. No old baseline sample exists for this stage.",
+    "edit_numbering": "New stage, after edit_plain: inserts a new h1 at the beginning and propagates subsequent counter values. No old baseline sample exists for this stage."
+  },
+  "before": [
+    {
+      "MiB": 1,
+      "blocks": 978,
+      "characters": 1049351,
+      "measurements": [
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "parse",
+          "wall_ms": 186.448,
+          "working_set_bytes": 57819136
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 845,
+            "exclusive_ms": 134.9962,
+            "work": 427
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "theme_load",
+          "wall_ms": 214.7833,
+          "working_set_bytes": 68251648
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 2738,
+            "exclusive_ms": 818.9709,
+            "work": 2738
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "theme_snapshot",
+          "wall_ms": 892.2731,
+          "working_set_bytes": 80437248
+        },
+        {
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 95.3711,
+            "work": 22
+          },
+          "css": {
+            "calls": 131,
+            "exclusive_ms": 27.5851,
+            "work": 66
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 293.6523,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "theme_switch_lazy",
+          "wall_ms": 416.6166,
+          "working_set_bytes": 118235136
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 4992,
+            "exclusive_ms": 287.6934,
+            "work": 1263
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 57.7198,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "first_viewport_layout",
+          "wall_ms": 345.421,
+          "working_set_bytes": 131563520
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 1629,
+            "exclusive_ms": 83.8022,
+            "work": 410
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 12.9521,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 90.141,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "stage": "first_viewport_paint",
+          "wall_ms": 188.7818,
+          "working_set_bytes": 136982528
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 0.0003,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 86.8877,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "stage": "warm_viewport_paint",
+          "wall_ms": 87.6806,
+          "working_set_bytes": 136982528
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 747,
+            "exclusive_ms": 0.1128,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 16.453,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "cursor_block",
+          "wall_ms": 16.5702,
+          "working_set_bytes": 137515008
+        },
+        {
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 98.9486,
+            "work": 22
+          },
+          "css": {
+            "calls": 4430,
+            "exclusive_ms": 405.6523,
+            "work": 1724
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 41.6803,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "edit",
+          "wall_ms": 546.3991,
+          "working_set_bytes": 137711616
+        }
+      ],
+      "theme": "G:/github/Muffin/tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css",
+      "viewport": "960x900 DPR1"
+    },
+    {
+      "MiB": 10,
+      "blocks": 9759,
+      "characters": 10486817,
+      "measurements": [
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "parse",
+          "wall_ms": 1911.4879,
+          "working_set_bytes": 371838976
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 845,
+            "exclusive_ms": 122.7782,
+            "work": 427
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "theme_load",
+          "wall_ms": 195.4502,
+          "working_set_bytes": 390787072
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 2738,
+            "exclusive_ms": 840.7506,
+            "work": 2738
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "theme_snapshot",
+          "wall_ms": 916.7972,
+          "working_set_bytes": 399179776
+        },
+        {
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 1034.6104,
+            "work": 178
+          },
+          "css": {
+            "calls": 1067,
+            "exclusive_ms": 449.0475,
+            "work": 534
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 299.4155,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "theme_switch_lazy",
+          "wall_ms": 1783.0813,
+          "working_set_bytes": 438128640
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 4992,
+            "exclusive_ms": 272.2901,
+            "work": 1263
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 55.2746,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "first_viewport_layout",
+          "wall_ms": 327.5777,
+          "working_set_bytes": 452366336
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 1629,
+            "exclusive_ms": 85.8385,
+            "work": 410
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 13.4148,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 90.2902,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "stage": "first_viewport_paint",
+          "wall_ms": 190.4233,
+          "working_set_bytes": 456822784
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 0.0004,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 88.7006,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "stage": "warm_viewport_paint",
+          "wall_ms": 89.556,
+          "working_set_bytes": 456822784
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 747,
+            "exclusive_ms": 0.1435,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 17.2474,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "cursor_block",
+          "wall_ms": 17.3963,
+          "working_set_bytes": 456531968
+        },
+        {
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 1031.4129,
+            "work": 178
+          },
+          "css": {
+            "calls": 5366,
+            "exclusive_ms": 763.1565,
+            "work": 2192
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 39.9794,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "edit",
+          "wall_ms": 1834.6646,
+          "working_set_bytes": 458514432
+        }
+      ],
+      "theme": "G:/github/Muffin/tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css",
+      "viewport": "960x900 DPR1"
+    },
+    {
+      "MiB": 30,
+      "blocks": 29274,
+      "characters": 31458260,
+      "measurements": [
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "parse",
+          "wall_ms": 5712.1549,
+          "working_set_bytes": 1074692096
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 845,
+            "exclusive_ms": 126.9486,
+            "work": 427
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "theme_load",
+          "wall_ms": 202.5844,
+          "working_set_bytes": 1092964352
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 2738,
+            "exclusive_ms": 839.1857,
+            "work": 2738
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "theme_snapshot",
+          "wall_ms": 916.2316,
+          "working_set_bytes": 1100001280
+        },
+        {
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 2961.6559,
+            "work": 527
+          },
+          "css": {
+            "calls": 3161,
+            "exclusive_ms": 3338.3775,
+            "work": 1581
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 323.1471,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "theme_switch_lazy",
+          "wall_ms": 6623.1918,
+          "working_set_bytes": 1155293184
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 4992,
+            "exclusive_ms": 309.4899,
+            "work": 1263
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 65.856,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "first_viewport_layout",
+          "wall_ms": 375.3691,
+          "working_set_bytes": 1168953344
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 1629,
+            "exclusive_ms": 133.0386,
+            "work": 410
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 20.701,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 94.0002,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "stage": "first_viewport_paint",
+          "wall_ms": 248.6887,
+          "working_set_bytes": 1174839296
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 0.0004,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 88.057,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "stage": "warm_viewport_paint",
+          "wall_ms": 89.5446,
+          "working_set_bytes": 1174839296
+        },
+        {
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 747,
+            "exclusive_ms": 0.1362,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 16.9282,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "cursor_block",
+          "wall_ms": 17.0685,
+          "working_set_bytes": 1175089152
+        },
+        {
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 2948.7604,
+            "work": 527
+          },
+          "css": {
+            "calls": 7460,
+            "exclusive_ms": 4155.532,
+            "work": 3239
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 46.4274,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "stage": "edit",
+          "wall_ms": 7150.8758,
+          "working_set_bytes": 1177477120
+        }
+      ],
+      "theme": "G:/github/Muffin/tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css",
+      "viewport": "960x900 DPR1"
+    }
+  ],
+  "after": [
+    {
+      "MiB": 1,
+      "blocks": 979,
+      "characters": 1049382,
+      "measurements": [
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "parse",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 199.2129,
+          "working_set_bytes": 57786368
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 845,
+            "exclusive_ms": 131.0652,
+            "work": 427
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "theme_load",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 221.4363,
+          "working_set_bytes": 68120576
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 845,
+            "exclusive_ms": 139.6153,
+            "work": 427
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "theme_snapshot",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 218.3522,
+          "working_set_bytes": 81453056
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 25.7633,
+            "work": 22
+          },
+          "css": {
+            "calls": 131,
+            "exclusive_ms": 20.1947,
+            "work": 66
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 291.0471,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "theme_switch_lazy",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 337.0136,
+          "working_set_bytes": 121942016
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 4996,
+            "exclusive_ms": 364.8426,
+            "work": 1263
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 66.5552,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "first_viewport_layout",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 431.4059,
+          "working_set_bytes": 135540736
+        },
+        {
+          "background": {
+            "calls": 487,
+            "exclusive_ms": 2.2334,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 1629,
+            "exclusive_ms": 149.4894,
+            "work": 410
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 21.6908,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 1.2364,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "shadow": {
+            "calls": 487,
+            "exclusive_ms": 141.6904,
+            "work": 905404
+          },
+          "stage": "first_viewport_paint",
+          "text": {
+            "calls": 8,
+            "exclusive_ms": 5.4659,
+            "work": 0
+          },
+          "wall_ms": 324.187,
+          "working_set_bytes": 144437248
+        },
+        {
+          "background": {
+            "calls": 487,
+            "exclusive_ms": 2.2778,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 0.0008,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 1.6523,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "shadow": {
+            "calls": 487,
+            "exclusive_ms": 0.8332,
+            "work": 0
+          },
+          "stage": "warm_viewport_paint",
+          "text": {
+            "calls": 8,
+            "exclusive_ms": 5.0104,
+            "work": 0
+          },
+          "wall_ms": 10.7064,
+          "working_set_bytes": 144437248
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 747,
+            "exclusive_ms": 0.1652,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 17.6086,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "cursor_block",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 17.778,
+          "working_set_bytes": 145018880
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 1.1777,
+            "work": 5
+          },
+          "css": {
+            "calls": 4315,
+            "exclusive_ms": 449.7346,
+            "work": 1668
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 45.9769,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "edit",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 496.9792,
+          "working_set_bytes": 144801792
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 0.2428,
+            "work": 4
+          },
+          "css": {
+            "calls": 5098,
+            "exclusive_ms": 421.1623,
+            "work": 1664
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 50.4702,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "edit_plain",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 472.1956,
+          "working_set_bytes": 144662528
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 21.977,
+            "work": 23
+          },
+          "css": {
+            "calls": 4369,
+            "exclusive_ms": 391.5304,
+            "work": 1689
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 41.292,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "edit_numbering",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 454.8775,
+          "working_set_bytes": 145489920
+        }
+      ],
+      "theme": "G:/github/Muffin/tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css",
+      "viewport": "960x900 DPR1"
+    },
+    {
+      "MiB": 10,
+      "blocks": 9760,
+      "characters": 10486848,
+      "measurements": [
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "parse",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 1880.3253,
+          "working_set_bytes": 372838400
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 845,
+            "exclusive_ms": 126.562,
+            "work": 427
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "theme_load",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 197.1058,
+          "working_set_bytes": 390615040
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 845,
+            "exclusive_ms": 130.4411,
+            "work": 427
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "theme_snapshot",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 203.1891,
+          "working_set_bytes": 400429056
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 251.2792,
+            "work": 178
+          },
+          "css": {
+            "calls": 1067,
+            "exclusive_ms": 83.6504,
+            "work": 534
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 295.6543,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "theme_switch_lazy",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 630.5926,
+          "working_set_bytes": 478728192
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 4996,
+            "exclusive_ms": 275.2593,
+            "work": 1263
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 56.3154,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "first_viewport_layout",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 331.5878,
+          "working_set_bytes": 493322240
+        },
+        {
+          "background": {
+            "calls": 487,
+            "exclusive_ms": 1.42,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 1629,
+            "exclusive_ms": 85.0273,
+            "work": 410
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 13.6141,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 0.9772,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "shadow": {
+            "calls": 487,
+            "exclusive_ms": 77.9109,
+            "work": 905404
+          },
+          "stage": "first_viewport_paint",
+          "text": {
+            "calls": 8,
+            "exclusive_ms": 4.8465,
+            "work": 0
+          },
+          "wall_ms": 184.6286,
+          "working_set_bytes": 502276096
+        },
+        {
+          "background": {
+            "calls": 487,
+            "exclusive_ms": 1.3711,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 0.0003,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 0.9904,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "shadow": {
+            "calls": 487,
+            "exclusive_ms": 0.5225,
+            "work": 0
+          },
+          "stage": "warm_viewport_paint",
+          "text": {
+            "calls": 8,
+            "exclusive_ms": 3.8113,
+            "work": 0
+          },
+          "wall_ms": 7.4523,
+          "working_set_bytes": 502276096
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 747,
+            "exclusive_ms": 0.173,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 16.6853,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "cursor_block",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 16.8629,
+          "working_set_bytes": 502476800
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 3.0194,
+            "work": 5
+          },
+          "css": {
+            "calls": 4315,
+            "exclusive_ms": 415.8771,
+            "work": 1668
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 43.6095,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "edit",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 462.6255,
+          "working_set_bytes": 499384320
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 1.8449,
+            "work": 4
+          },
+          "css": {
+            "calls": 5098,
+            "exclusive_ms": 367.5603,
+            "work": 1664
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 45.9628,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "edit_plain",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 415.6288,
+          "working_set_bytes": 500322304
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 168.9286,
+            "work": 179
+          },
+          "css": {
+            "calls": 4369,
+            "exclusive_ms": 361.2419,
+            "work": 1689
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 38.29,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "edit_numbering",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 568.5913,
+          "working_set_bytes": 503095296
+        }
+      ],
+      "theme": "G:/github/Muffin/tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css",
+      "viewport": "960x900 DPR1"
+    },
+    {
+      "MiB": 30,
+      "blocks": 29275,
+      "characters": 31458291,
+      "measurements": [
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "parse",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 5737.3434,
+          "working_set_bytes": 1073258496
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 845,
+            "exclusive_ms": 136.132,
+            "work": 427
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "theme_load",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 214.2573,
+          "working_set_bytes": 1091465216
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 845,
+            "exclusive_ms": 145.3503,
+            "work": 427
+          },
+          "layout": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "theme_snapshot",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 229.3354,
+          "working_set_bytes": 1099988992
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 766.5796,
+            "work": 527
+          },
+          "css": {
+            "calls": 3161,
+            "exclusive_ms": 246.5911,
+            "work": 1581
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 311.827,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "theme_switch_lazy",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 1325.0077,
+          "working_set_bytes": 1275740160
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 4996,
+            "exclusive_ms": 273.6359,
+            "work": 1263
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 57.4688,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "first_viewport_layout",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 331.1236,
+          "working_set_bytes": 1289510912
+        },
+        {
+          "background": {
+            "calls": 487,
+            "exclusive_ms": 1.4413,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 1629,
+            "exclusive_ms": 91.4156,
+            "work": 410
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 15.552,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 1.1215,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "shadow": {
+            "calls": 487,
+            "exclusive_ms": 80.8662,
+            "work": 905404
+          },
+          "stage": "first_viewport_paint",
+          "text": {
+            "calls": 8,
+            "exclusive_ms": 4.9381,
+            "work": 0
+          },
+          "wall_ms": 196.3037,
+          "working_set_bytes": 1297702912
+        },
+        {
+          "background": {
+            "calls": 487,
+            "exclusive_ms": 1.455,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 0.0003,
+            "work": 0
+          },
+          "paint": {
+            "calls": 495,
+            "exclusive_ms": 0.9353,
+            "work": 0
+          },
+          "raster_allocated_pixels": 50,
+          "raster_largest_surface_pixels": 25,
+          "shadow": {
+            "calls": 487,
+            "exclusive_ms": 0.5577,
+            "work": 0
+          },
+          "stage": "warm_viewport_paint",
+          "text": {
+            "calls": 8,
+            "exclusive_ms": 3.9568,
+            "work": 0
+          },
+          "wall_ms": 7.738,
+          "working_set_bytes": 1297702912
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "css": {
+            "calls": 747,
+            "exclusive_ms": 0.1288,
+            "work": 0
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 16.669,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "cursor_block",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 16.8021,
+          "working_set_bytes": 1298366464
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 7.0737,
+            "work": 5
+          },
+          "css": {
+            "calls": 4315,
+            "exclusive_ms": 358.7116,
+            "work": 1668
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 44.9074,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "edit",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 410.9041,
+          "working_set_bytes": 1297473536
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 5.5425,
+            "work": 4
+          },
+          "css": {
+            "calls": 5098,
+            "exclusive_ms": 350.8098,
+            "work": 1664
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 44.5424,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "edit_plain",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 401.3999,
+          "working_set_bytes": 1297502208
+        },
+        {
+          "background": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "counters": {
+            "calls": 1,
+            "exclusive_ms": 509.3962,
+            "work": 528
+          },
+          "css": {
+            "calls": 4369,
+            "exclusive_ms": 357.066,
+            "work": 1689
+          },
+          "layout": {
+            "calls": 1,
+            "exclusive_ms": 40.6491,
+            "work": 0
+          },
+          "paint": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "raster_allocated_pixels": 0,
+          "raster_largest_surface_pixels": 0,
+          "shadow": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "stage": "edit_numbering",
+          "text": {
+            "calls": 0,
+            "exclusive_ms": 0,
+            "work": 0
+          },
+          "wall_ms": 907.2588,
+          "working_set_bytes": 1298640896
+        }
+      ],
+      "theme": "G:/github/Muffin/tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css",
+      "viewport": "960x900 DPR1"
+    }
+  ],
+  "initial_paint_profile_1MiB": {
+    "MiB": 1,
+    "blocks": 979,
+    "characters": 1049382,
+    "measurements": [
+      {
+        "background": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "counters": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "css": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "layout": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "paint": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "raster_allocated_pixels": 0,
+        "raster_largest_surface_pixels": 0,
+        "shadow": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "stage": "parse",
+        "text": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "wall_ms": 252.2802,
+        "working_set_bytes": 57647104
+      },
+      {
+        "background": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "counters": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "css": {
+          "calls": 845,
+          "exclusive_ms": 166.2201,
+          "work": 427
+        },
+        "layout": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "paint": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "raster_allocated_pixels": 0,
+        "raster_largest_surface_pixels": 0,
+        "shadow": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "stage": "theme_load",
+        "text": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "wall_ms": 252.3043,
+        "working_set_bytes": 67899392
+      },
+      {
+        "background": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "counters": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "css": {
+          "calls": 2738,
+          "exclusive_ms": 1221.4745,
+          "work": 2738
+        },
+        "layout": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "paint": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "raster_allocated_pixels": 0,
+        "raster_largest_surface_pixels": 0,
+        "shadow": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "stage": "theme_snapshot",
+        "text": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "wall_ms": 1320.276,
+        "working_set_bytes": 80314368
+      },
+      {
+        "background": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "counters": {
+          "calls": 1,
+          "exclusive_ms": 18.5249,
+          "work": 22
+        },
+        "css": {
+          "calls": 131,
+          "exclusive_ms": 40.9704,
+          "work": 66
+        },
+        "layout": {
+          "calls": 1,
+          "exclusive_ms": 308.8229,
+          "work": 0
+        },
+        "paint": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "raster_allocated_pixels": 0,
+        "raster_largest_surface_pixels": 0,
+        "shadow": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "stage": "theme_switch_lazy",
+        "text": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "wall_ms": 368.3275,
+        "working_set_bytes": 121196544
+      },
+      {
+        "background": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "counters": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "css": {
+          "calls": 4996,
+          "exclusive_ms": 297.9071,
+          "work": 1263
+        },
+        "layout": {
+          "calls": 1,
+          "exclusive_ms": 57.5331,
+          "work": 0
+        },
+        "paint": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "raster_allocated_pixels": 0,
+        "raster_largest_surface_pixels": 0,
+        "shadow": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "stage": "first_viewport_layout",
+        "text": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "wall_ms": 355.4473,
+        "working_set_bytes": 135110656
+      },
+      {
+        "background": {
+          "calls": 487,
+          "exclusive_ms": 1.9738,
+          "work": 0
+        },
+        "counters": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "css": {
+          "calls": 1629,
+          "exclusive_ms": 83.4105,
+          "work": 410
+        },
+        "layout": {
+          "calls": 1,
+          "exclusive_ms": 13.36,
+          "work": 0
+        },
+        "paint": {
+          "calls": 495,
+          "exclusive_ms": 1.1773,
+          "work": 0
+        },
+        "raster_allocated_pixels": 50,
+        "raster_largest_surface_pixels": 25,
+        "shadow": {
+          "calls": 487,
+          "exclusive_ms": 97.9916,
+          "work": 0
+        },
+        "stage": "first_viewport_paint",
+        "text": {
+          "calls": 8,
+          "exclusive_ms": 4.8437,
+          "work": 0
+        },
+        "wall_ms": 206.7273,
+        "working_set_bytes": 140328960
+      },
+      {
+        "background": {
+          "calls": 487,
+          "exclusive_ms": 1.9438,
+          "work": 0
+        },
+        "counters": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "css": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "layout": {
+          "calls": 1,
+          "exclusive_ms": 0.0004,
+          "work": 0
+        },
+        "paint": {
+          "calls": 495,
+          "exclusive_ms": 0.998,
+          "work": 0
+        },
+        "raster_allocated_pixels": 50,
+        "raster_largest_surface_pixels": 25,
+        "shadow": {
+          "calls": 487,
+          "exclusive_ms": 74.4394,
+          "work": 0
+        },
+        "stage": "warm_viewport_paint",
+        "text": {
+          "calls": 8,
+          "exclusive_ms": 3.8473,
+          "work": 0
+        },
+        "wall_ms": 82.2696,
+        "working_set_bytes": 140328960
+      },
+      {
+        "background": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "counters": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "css": {
+          "calls": 747,
+          "exclusive_ms": 0.1127,
+          "work": 0
+        },
+        "layout": {
+          "calls": 1,
+          "exclusive_ms": 15.9612,
+          "work": 0
+        },
+        "paint": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "raster_allocated_pixels": 0,
+        "raster_largest_surface_pixels": 0,
+        "shadow": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "stage": "cursor_block",
+        "text": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "wall_ms": 16.0771,
+        "working_set_bytes": 140877824
+      },
+      {
+        "background": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "counters": {
+          "calls": 1,
+          "exclusive_ms": 0.2402,
+          "work": 5
+        },
+        "css": {
+          "calls": 4315,
+          "exclusive_ms": 359.8051,
+          "work": 1668
+        },
+        "layout": {
+          "calls": 1,
+          "exclusive_ms": 39.0449,
+          "work": 0
+        },
+        "paint": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "raster_allocated_pixels": 0,
+        "raster_largest_surface_pixels": 0,
+        "shadow": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "stage": "edit",
+        "text": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "wall_ms": 399.1823,
+        "working_set_bytes": 140939264
+      },
+      {
+        "background": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "counters": {
+          "calls": 1,
+          "exclusive_ms": 0.2308,
+          "work": 4
+        },
+        "css": {
+          "calls": 5098,
+          "exclusive_ms": 407.8763,
+          "work": 1664
+        },
+        "layout": {
+          "calls": 1,
+          "exclusive_ms": 50.3706,
+          "work": 0
+        },
+        "paint": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "raster_allocated_pixels": 0,
+        "raster_largest_surface_pixels": 0,
+        "shadow": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "stage": "edit_plain",
+        "text": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "wall_ms": 458.7423,
+        "working_set_bytes": 140931072
+      },
+      {
+        "background": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "counters": {
+          "calls": 1,
+          "exclusive_ms": 5.8404,
+          "work": 23
+        },
+        "css": {
+          "calls": 4474,
+          "exclusive_ms": 438.9783,
+          "work": 1737
+        },
+        "layout": {
+          "calls": 1,
+          "exclusive_ms": 42.9497,
+          "work": 0
+        },
+        "paint": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "raster_allocated_pixels": 0,
+        "raster_largest_surface_pixels": 0,
+        "shadow": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "stage": "edit_numbering",
+        "text": {
+          "calls": 0,
+          "exclusive_ms": 0,
+          "work": 0
+        },
+        "wall_ms": 487.8452,
+        "working_set_bytes": 141963264
+      }
+    ],
+    "theme": "G:/github/Muffin/tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css",
+    "viewport": "960x900 DPR1"
+  }
+}

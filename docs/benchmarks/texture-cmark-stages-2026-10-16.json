@@ -1,0 +1,3600 @@
+{
+  "texture_before": {
+    "cases": [
+      {
+        "height": 1000,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": false
+      },
+      {
+        "height": 1000,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": true
+      },
+      {
+        "height": 32767,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "507090cfbeb6051f985969f0d0f52eab2f04475f861276557b49eaa5a03e71b3",
+        "split": false
+      },
+      {
+        "height": 32767,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "507090cfbeb6051f985969f0d0f52eab2f04475f861276557b49eaa5a03e71b3",
+        "split": true
+      },
+      {
+        "height": 65535,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "5f8ba9058032f83fd6c3dd485b1ee1805407a0a18d350e1a770d236179bc64b3",
+        "split": false
+      },
+      {
+        "height": 65535,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "5f8ba9058032f83fd6c3dd485b1ee1805407a0a18d350e1a770d236179bc64b3",
+        "split": true
+      },
+      {
+        "height": 1000000,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "3df0931c3d50727e12d597ead861b5b87c538b19dae321fbc93f6c794e9d689b",
+        "split": false
+      },
+      {
+        "height": 1000000,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "3df0931c3d50727e12d597ead861b5b87c538b19dae321fbc93f6c794e9d689b",
+        "split": true
+      },
+      {
+        "height": 1000020,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "ea9bddb0c9f13a0743fe6ce7e1c8ec48423d85a883864ac92169126d9432c9bd",
+        "split": false
+      },
+      {
+        "height": 1000020,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "ea9bddb0c9f13a0743fe6ce7e1c8ec48423d85a883864ac92169126d9432c9bd",
+        "split": true
+      },
+      {
+        "height": 1000040,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": false
+      },
+      {
+        "height": 1000040,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": true
+      },
+      {
+        "height": 10000000,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "3df0931c3d50727e12d597ead861b5b87c538b19dae321fbc93f6c794e9d689b",
+        "split": false
+      },
+      {
+        "height": 10000000,
+        "offset_y": 0,
+        "same_as_reference": false,
+        "sha256": "3df0931c3d50727e12d597ead861b5b87c538b19dae321fbc93f6c794e9d689b",
+        "split": true
+      },
+      {
+        "height": 1000,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": false
+      },
+      {
+        "height": 1000,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": true
+      },
+      {
+        "height": 32767,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "c36a4942681f6cde87601ad734e77a4410baf4f77b1a8ee2a1a46e5404b2da42",
+        "split": false
+      },
+      {
+        "height": 32767,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "c36a4942681f6cde87601ad734e77a4410baf4f77b1a8ee2a1a46e5404b2da42",
+        "split": true
+      },
+      {
+        "height": 65535,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "3ce439e7afa237a89080de312300caab3f702e439fd71fc5680f7c8fdb9ec7f5",
+        "split": false
+      },
+      {
+        "height": 65535,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "3ce439e7afa237a89080de312300caab3f702e439fd71fc5680f7c8fdb9ec7f5",
+        "split": true
+      },
+      {
+        "height": 1000000,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "2a3550aae53a53c4e4812d1df5e070529db13cb714f2fb78be32f783a5a019d9",
+        "split": false
+      },
+      {
+        "height": 1000000,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "2a3550aae53a53c4e4812d1df5e070529db13cb714f2fb78be32f783a5a019d9",
+        "split": true
+      },
+      {
+        "height": 1000020,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "e29e56d071d9c52c407937b02f9c4a65074bdae51db06af809cdea48d5a9b557",
+        "split": false
+      },
+      {
+        "height": 1000020,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "e29e56d071d9c52c407937b02f9c4a65074bdae51db06af809cdea48d5a9b557",
+        "split": true
+      },
+      {
+        "height": 1000040,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": false
+      },
+      {
+        "height": 1000040,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": true
+      },
+      {
+        "height": 10000000,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "2a3550aae53a53c4e4812d1df5e070529db13cb714f2fb78be32f783a5a019d9",
+        "split": false
+      },
+      {
+        "height": 10000000,
+        "offset_y": 30,
+        "same_as_reference": false,
+        "sha256": "2a3550aae53a53c4e4812d1df5e070529db13cb714f2fb78be32f783a5a019d9",
+        "split": true
+      }
+    ],
+    "layers": [
+      {
+        "image_height": 120,
+        "image_width": 120,
+        "position_x_fraction": 0,
+        "position_x_px": 0,
+        "position_y_fraction": 0.5,
+        "position_y_px": 0
+      },
+      {
+        "image_height": 0,
+        "image_width": 0,
+        "position_x_fraction": 0,
+        "position_x_px": 0,
+        "position_y_fraction": 0.5,
+        "position_y_px": 0
+      }
+    ],
+    "method": "Real VLOOK #write style; isolated QImage raster, no GUI latency measurement.",
+    "qpa": "offscreen"
+  },
+  "texture_after": {
+    "cases": [
+      {
+        "height": 1000,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": false
+      },
+      {
+        "height": 1000,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": true
+      },
+      {
+        "height": 32767,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": false
+      },
+      {
+        "height": 32767,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": true
+      },
+      {
+        "height": 65535,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": false
+      },
+      {
+        "height": 65535,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": true
+      },
+      {
+        "height": 1000000,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": false
+      },
+      {
+        "height": 1000000,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": true
+      },
+      {
+        "height": 1000020,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": false
+      },
+      {
+        "height": 1000020,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": true
+      },
+      {
+        "height": 1000040,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": false
+      },
+      {
+        "height": 1000040,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": true
+      },
+      {
+        "height": 10000000,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": false
+      },
+      {
+        "height": 10000000,
+        "offset_y": 0,
+        "same_as_reference": true,
+        "sha256": "fb9aa51253a359e0eadf6de58f709ce9d08b12891ab7e8c5669497f06b9b4304",
+        "split": true
+      },
+      {
+        "height": 1000,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": false
+      },
+      {
+        "height": 1000,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": true
+      },
+      {
+        "height": 32767,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": false
+      },
+      {
+        "height": 32767,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": true
+      },
+      {
+        "height": 65535,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": false
+      },
+      {
+        "height": 65535,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": true
+      },
+      {
+        "height": 1000000,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": false
+      },
+      {
+        "height": 1000000,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": true
+      },
+      {
+        "height": 1000020,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": false
+      },
+      {
+        "height": 1000020,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": true
+      },
+      {
+        "height": 1000040,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": false
+      },
+      {
+        "height": 1000040,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": true
+      },
+      {
+        "height": 10000000,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": false
+      },
+      {
+        "height": 10000000,
+        "offset_y": 30,
+        "same_as_reference": true,
+        "sha256": "8641ab1adc1d0d3cbd42e47ca88263211e3737fa00af87dd4c67dfa93e5d272f",
+        "split": true
+      }
+    ],
+    "editor_cycles": [
+      {
+        "cycle": 0,
+        "first_block": [
+          40,
+          130,
+          992,
+          53
+        ],
+        "same_as_first": true,
+        "scroll_y": 0,
+        "total_height": 2375959.78125
+      },
+      {
+        "cycle": 1,
+        "first_block": [
+          40,
+          130,
+          992,
+          53
+        ],
+        "same_as_first": true,
+        "scroll_y": 0,
+        "total_height": 2375959.78125
+      },
+      {
+        "cycle": 2,
+        "first_block": [
+          40,
+          130,
+          992,
+          53
+        ],
+        "same_as_first": true,
+        "scroll_y": 0,
+        "total_height": 2375959.78125
+      },
+      {
+        "cycle": 3,
+        "first_block": [
+          40,
+          130,
+          992,
+          53
+        ],
+        "same_as_first": true,
+        "scroll_y": 0,
+        "total_height": 2375959.78125
+      },
+      {
+        "cycle": 4,
+        "first_block": [
+          40,
+          130,
+          992,
+          53
+        ],
+        "same_as_first": true,
+        "scroll_y": 0,
+        "total_height": 2375959.78125
+      },
+      {
+        "cycle": 5,
+        "first_block": [
+          40,
+          130,
+          992,
+          53
+        ],
+        "same_as_first": true,
+        "scroll_y": 0,
+        "total_height": 2375959.78125
+      },
+      {
+        "cycle": 6,
+        "first_block": [
+          40,
+          130,
+          992,
+          53
+        ],
+        "same_as_first": true,
+        "scroll_y": 0,
+        "total_height": 2375959.78125
+      },
+      {
+        "cycle": 7,
+        "first_block": [
+          40,
+          130,
+          992,
+          53
+        ],
+        "same_as_first": true,
+        "scroll_y": 0,
+        "total_height": 2375959.78125
+      }
+    ],
+    "layers": [
+      {
+        "image_height": 120,
+        "image_width": 120,
+        "position_x_fraction": 0,
+        "position_x_px": 0,
+        "position_y_fraction": 0,
+        "position_y_px": 0
+      },
+      {
+        "image_height": 0,
+        "image_width": 0,
+        "position_x_fraction": 0,
+        "position_x_px": 0,
+        "position_y_fraction": 0,
+        "position_y_px": 0
+      }
+    ],
+    "method": "Real VLOOK #write style; isolated QImage raster, no GUI latency measurement.",
+    "qpa": "windows"
+  },
+  "browser": {
+    "browser": "148.0.7778.96",
+    "cases": [
+      {
+        "height": 1000000,
+        "position": "0% 0%, 0% 0%",
+        "screenshot": "build\\texture-browser\\browser-1000000.png"
+      },
+      {
+        "height": 1000020,
+        "position": "0% 0%, 0% 0%",
+        "screenshot": "build\\texture-browser\\browser-1000020.png"
+      },
+      {
+        "height": 1000040,
+        "position": "0% 0%, 0% 0%",
+        "screenshot": "build\\texture-browser\\browser-1000040.png"
+      }
+    ]
+  },
+  "cmark": {
+    "complete": true,
+    "records": [
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-full-Archive-off-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.7556,
+          "finish_ms": 65.329,
+          "footnotes_ms": 0,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 13.4559,
+          "setup_ms": 0.0351,
+          "text_chars": 1049622,
+          "total_ms": 67.1197,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-full-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 14.1382,
+          "consolidate_ms": 8.9669,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.2955,
+          "finish_ms": 69.1863,
+          "footnotes_ms": 15.2806,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 985,
+          "inline_ms": 30.7178,
+          "inline_walk_ms": 30.7934,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 14.6511,
+          "setup_ms": 0.0465,
+          "text_chars": 1049622,
+          "total_ms": 70.5283,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-full-Performance-off-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.2751,
+          "finish_ms": 66.7325,
+          "footnotes_ms": 0,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 13.6407,
+          "setup_ms": 0.0368,
+          "text_chars": 1049622,
+          "total_ms": 68.0444,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-no-autolink-Archive-off-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.2597,
+          "finish_ms": 48.7458,
+          "footnotes_ms": 0,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 13.8268,
+          "setup_ms": 0.0359,
+          "text_chars": 1049622,
+          "total_ms": 50.0414,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-no-autolink-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 11.9936,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.2949,
+          "finish_ms": 57.81,
+          "footnotes_ms": 15.8768,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 985,
+          "inline_ms": 29.8526,
+          "inline_walk_ms": 29.9328,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 15.5336,
+          "setup_ms": 0.042,
+          "text_chars": 1049622,
+          "total_ms": 59.1469,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-full-Archive-off-r1.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 14.0115,
+          "finish_ms": 659.1649,
+          "footnotes_ms": 0,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 158.451,
+          "setup_ms": 0.038,
+          "text_chars": 10486005,
+          "total_ms": 673.2144,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-full-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 144.617,
+          "consolidate_ms": 73.0545,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 13.7414,
+          "finish_ms": 673.1658,
+          "footnotes_ms": 150.8326,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 9766,
+          "inline_ms": 303.7857,
+          "inline_walk_ms": 304.655,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 127.9464,
+          "setup_ms": 0.0397,
+          "text_chars": 10486005,
+          "total_ms": 686.9469,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-full-Performance-off-r1.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 12.8783,
+          "finish_ms": 649.3288,
+          "footnotes_ms": 0,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 145.1606,
+          "setup_ms": 0.0362,
+          "text_chars": 10486005,
+          "total_ms": 662.2433,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-no-autolink-Archive-off-r1.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 12.7262,
+          "finish_ms": 469.2449,
+          "footnotes_ms": 0,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 125.4155,
+          "setup_ms": 0.0392,
+          "text_chars": 10486005,
+          "total_ms": 482.0103,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-no-autolink-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 68.8477,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 12.2845,
+          "finish_ms": 456.8341,
+          "footnotes_ms": 127.2344,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 9766,
+          "inline_ms": 260.0391,
+          "inline_walk_ms": 260.7458,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 131.0624,
+          "setup_ms": 0.0404,
+          "text_chars": 10486005,
+          "total_ms": 469.159,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-full-Archive-off-r1.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 41.1347,
+          "finish_ms": 1964.2768,
+          "footnotes_ms": 0,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 419.3684,
+          "setup_ms": 0.0437,
+          "text_chars": 31457448,
+          "total_ms": 2005.4552,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-full-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 451.2544,
+          "consolidate_ms": 221.5188,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 38.4388,
+          "finish_ms": 1911.407,
+          "footnotes_ms": 412.6723,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 29281,
+          "inline_ms": 823.8287,
+          "inline_walk_ms": 825.9551,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 451.1885,
+          "setup_ms": 0.0429,
+          "text_chars": 31457448,
+          "total_ms": 1949.8887,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-full-Performance-off-r1.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 38.8396,
+          "finish_ms": 2040.3066,
+          "footnotes_ms": 0,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 387.2668,
+          "setup_ms": 0.0435,
+          "text_chars": 31457448,
+          "total_ms": 2079.1897,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-no-autolink-Archive-off-r1.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 40.5113,
+          "finish_ms": 1369.9174,
+          "footnotes_ms": 0,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 385.995,
+          "setup_ms": 0.038,
+          "text_chars": 31457448,
+          "total_ms": 1410.4667,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-no-autolink-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 227.9593,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 37.7526,
+          "finish_ms": 1500.1973,
+          "footnotes_ms": 452.0571,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 29281,
+          "inline_ms": 817.7137,
+          "inline_walk_ms": 820.1753,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 389.993,
+          "setup_ms": 0.0396,
+          "text_chars": 31457448,
+          "total_ms": 1537.9895000000001,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-plain-full-Archive-off-r1.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 36.8147,
+          "finish_ms": 303.3583,
+          "footnotes_ms": 0,
+          "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 43.4225,
+          "setup_ms": 0.0538,
+          "text_chars": 31457934,
+          "total_ms": 340.22679999999997,
+          "tree": {
+            "nodes": 51319,
+            "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+          },
+          "utf8_bytes": 31457934,
+          "workload": "plain"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-plain-full-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 13.6075,
+          "consolidate_ms": 77.8781,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 36.1697,
+          "finish_ms": 302.9889,
+          "footnotes_ms": 82.4561,
+          "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 25659,
+          "inline_ms": 127.4804,
+          "inline_walk_ms": 129.0402,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 47.8765,
+          "setup_ms": 0.0401,
+          "text_chars": 31457934,
+          "total_ms": 339.19870000000003,
+          "tree": {
+            "nodes": 51319,
+            "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+          },
+          "utf8_bytes": 31457934,
+          "workload": "plain"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-full-Archive-off-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 24.7421,
+          "finish_ms": 72.2349,
+          "footnotes_ms": 0,
+          "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 20.0164,
+          "setup_ms": 0.0362,
+          "text_chars": 1048976,
+          "total_ms": 97.0132,
+          "tree": {
+            "nodes": 185554,
+            "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-full-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 20.3564,
+          "consolidate_ms": 7.478,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 26.1676,
+          "finish_ms": 74.8696,
+          "footnotes_ms": 20.5799,
+          "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 39584,
+          "inline_ms": 22.4216,
+          "inline_walk_ms": 26.4494,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 21.3345,
+          "setup_ms": 0.039,
+          "text_chars": 1048976,
+          "total_ms": 101.0762,
+          "tree": {
+            "nodes": 185554,
+            "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-no-autolink-Archive-off-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 24.4202,
+          "finish_ms": 46.6463,
+          "footnotes_ms": 0,
+          "html_sha256": "47fb4ed2706120c941e55548b239f629e2cfe67b5d476117f76a999c6f13498a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 16.2478,
+          "setup_ms": 0.0342,
+          "text_chars": 1048976,
+          "total_ms": 71.10069999999999,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "d11c9b3cb82af7167e0f402afb2b57b0a48ba1527e175ecc8fac16e293cc809b"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-no-autolink-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 6.3868,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 24.3438,
+          "finish_ms": 50.2854,
+          "footnotes_ms": 19.6807,
+          "html_sha256": "47fb4ed2706120c941e55548b239f629e2cfe67b5d476117f76a999c6f13498a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 39584,
+          "inline_ms": 19.9263,
+          "inline_walk_ms": 24.211,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 17.8257,
+          "setup_ms": 0.0351,
+          "text_chars": 1048976,
+          "total_ms": 74.6643,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "d11c9b3cb82af7167e0f402afb2b57b0a48ba1527e175ecc8fac16e293cc809b"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-none-Archive-off-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [],
+          "feed_ms": 16.4758,
+          "finish_ms": 54.1254,
+          "footnotes_ms": 0,
+          "html_sha256": "1827dc69da575f33581b32a41e4844b13a44707e1e072ae6adb064a473d17fd6",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "none",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 17.9413,
+          "setup_ms": 0.006,
+          "text_chars": 1048976,
+          "total_ms": 70.6072,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "5cd21f4606e69595bc332c77823b08cc7d099264582f8c85d5a76252c6f64ac9"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 1,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-none-Performance-stages-r1.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 11.418,
+          "extensions": [],
+          "feed_ms": 18.758,
+          "finish_ms": 62.3935,
+          "footnotes_ms": 25.0938,
+          "html_sha256": "1827dc69da575f33581b32a41e4844b13a44707e1e072ae6adb064a473d17fd6",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 34636,
+          "inline_ms": 22.0948,
+          "inline_walk_ms": 25.8748,
+          "mode": "none",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 19.9531,
+          "setup_ms": 0.0081,
+          "text_chars": 1048976,
+          "total_ms": 81.1596,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "5cd21f4606e69595bc332c77823b08cc7d099264582f8c85d5a76252c6f64ac9"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-none-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 8.4748,
+          "extensions": [],
+          "feed_ms": 18.8337,
+          "finish_ms": 57.0516,
+          "footnotes_ms": 21.4731,
+          "html_sha256": "1827dc69da575f33581b32a41e4844b13a44707e1e072ae6adb064a473d17fd6",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 34636,
+          "inline_ms": 23.0588,
+          "inline_walk_ms": 27.099,
+          "mode": "none",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 20.5048,
+          "setup_ms": 0.0115,
+          "text_chars": 1048976,
+          "total_ms": 75.8968,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "5cd21f4606e69595bc332c77823b08cc7d099264582f8c85d5a76252c6f64ac9"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-none-Archive-off-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [],
+          "feed_ms": 16.7969,
+          "finish_ms": 52.9792,
+          "footnotes_ms": 0,
+          "html_sha256": "1827dc69da575f33581b32a41e4844b13a44707e1e072ae6adb064a473d17fd6",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "none",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 17.6886,
+          "setup_ms": 0.0062,
+          "text_chars": 1048976,
+          "total_ms": 69.78229999999999,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "5cd21f4606e69595bc332c77823b08cc7d099264582f8c85d5a76252c6f64ac9"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-no-autolink-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 7.1889,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 25.0032,
+          "finish_ms": 49.4487,
+          "footnotes_ms": 19.4451,
+          "html_sha256": "47fb4ed2706120c941e55548b239f629e2cfe67b5d476117f76a999c6f13498a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 39584,
+          "inline_ms": 18.6614,
+          "inline_walk_ms": 22.8081,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 17.7447,
+          "setup_ms": 0.1186,
+          "text_chars": 1048976,
+          "total_ms": 74.57050000000001,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "d11c9b3cb82af7167e0f402afb2b57b0a48ba1527e175ecc8fac16e293cc809b"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-no-autolink-Archive-off-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 24.4171,
+          "finish_ms": 47.8594,
+          "footnotes_ms": 0,
+          "html_sha256": "47fb4ed2706120c941e55548b239f629e2cfe67b5d476117f76a999c6f13498a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 19.7619,
+          "setup_ms": 0.0365,
+          "text_chars": 1048976,
+          "total_ms": 72.313,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "d11c9b3cb82af7167e0f402afb2b57b0a48ba1527e175ecc8fac16e293cc809b"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-full-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 20.9643,
+          "consolidate_ms": 8.363,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 25.1703,
+          "finish_ms": 76.8252,
+          "footnotes_ms": 20.4866,
+          "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 39584,
+          "inline_ms": 22.7881,
+          "inline_walk_ms": 27.0062,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 19.84,
+          "setup_ms": 0.0376,
+          "text_chars": 1048976,
+          "total_ms": 102.03309999999999,
+          "tree": {
+            "nodes": 185554,
+            "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-full-Archive-off-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 26.0126,
+          "finish_ms": 83.0852,
+          "footnotes_ms": 0,
+          "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 19.9227,
+          "setup_ms": 0.0346,
+          "text_chars": 1048976,
+          "total_ms": 109.1324,
+          "tree": {
+            "nodes": 185554,
+            "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-plain-full-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 13.7233,
+          "consolidate_ms": 76.0908,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 36.8255,
+          "finish_ms": 326.8171,
+          "footnotes_ms": 82.4172,
+          "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 25659,
+          "inline_ms": 152.3427,
+          "inline_walk_ms": 154.5786,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 41.6798,
+          "setup_ms": 0.0389,
+          "text_chars": 31457934,
+          "total_ms": 363.68149999999997,
+          "tree": {
+            "nodes": 51319,
+            "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+          },
+          "utf8_bytes": 31457934,
+          "workload": "plain"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-plain-full-Archive-off-r2.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 37.1693,
+          "finish_ms": 307.4003,
+          "footnotes_ms": 0,
+          "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 40.1582,
+          "setup_ms": 0.0411,
+          "text_chars": 31457934,
+          "total_ms": 344.6107,
+          "tree": {
+            "nodes": 51319,
+            "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+          },
+          "utf8_bytes": 31457934,
+          "workload": "plain"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-no-autolink-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 235.4958,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 39,
+          "finish_ms": 1498.0187,
+          "footnotes_ms": 455.75,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 29281,
+          "inline_ms": 804.2749,
+          "inline_walk_ms": 806.7652,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 417.2932,
+          "setup_ms": 0.0493,
+          "text_chars": 31457448,
+          "total_ms": 1537.068,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-no-autolink-Archive-off-r2.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 37.4275,
+          "finish_ms": 1377.6079,
+          "footnotes_ms": 0,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 401.5552,
+          "setup_ms": 0.0387,
+          "text_chars": 31457448,
+          "total_ms": 1415.0741,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-full-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 652.8802,
+          "consolidate_ms": 227.3234,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 40.028,
+          "finish_ms": 2202.0108,
+          "footnotes_ms": 432.463,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 29281,
+          "inline_ms": 886.7937,
+          "inline_walk_ms": 889.3364,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 496.7676,
+          "setup_ms": 0.0409,
+          "text_chars": 31457448,
+          "total_ms": 2242.0797000000002,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-full-Archive-off-r2.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 42.8114,
+          "finish_ms": 2111.4265,
+          "footnotes_ms": 0,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 425.0042,
+          "setup_ms": 0.058,
+          "text_chars": 31457448,
+          "total_ms": 2154.2959,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-no-autolink-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 80.0504,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 13.404,
+          "finish_ms": 497.9898,
+          "footnotes_ms": 136.2095,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 9766,
+          "inline_ms": 280.8621,
+          "inline_walk_ms": 281.7222,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 133.645,
+          "setup_ms": 0.0445,
+          "text_chars": 10486005,
+          "total_ms": 511.4383,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-no-autolink-Archive-off-r2.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 12.0973,
+          "finish_ms": 503.0117,
+          "footnotes_ms": 0,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 139.4915,
+          "setup_ms": 0.0388,
+          "text_chars": 10486005,
+          "total_ms": 515.1478000000001,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-full-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 179.6078,
+          "consolidate_ms": 82.53,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 12.3103,
+          "finish_ms": 719.7997,
+          "footnotes_ms": 173.7073,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 9766,
+          "inline_ms": 283.1153,
+          "inline_walk_ms": 283.9467,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 158.758,
+          "setup_ms": 0.043,
+          "text_chars": 10486005,
+          "total_ms": 732.153,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-full-Archive-off-r2.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 17.2307,
+          "finish_ms": 699.4676,
+          "footnotes_ms": 0,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 163.9098,
+          "setup_ms": 0.0429,
+          "text_chars": 10486005,
+          "total_ms": 716.7411999999999,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-no-autolink-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 8.6023,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.3279,
+          "finish_ms": 49.943,
+          "footnotes_ms": 14.08,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 985,
+          "inline_ms": 27.1746,
+          "inline_walk_ms": 27.2552,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 14.3772,
+          "setup_ms": 0.0374,
+          "text_chars": 1049622,
+          "total_ms": 51.308299999999996,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-no-autolink-Archive-off-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.3551,
+          "finish_ms": 49.9377,
+          "footnotes_ms": 0,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 13.5081,
+          "setup_ms": 0.038,
+          "text_chars": 1049622,
+          "total_ms": 51.330799999999996,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-full-Performance-stages-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 17.5752,
+          "consolidate_ms": 7.2601,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.2641,
+          "finish_ms": 67.4585,
+          "footnotes_ms": 14.7646,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 985,
+          "inline_ms": 27.783,
+          "inline_walk_ms": 27.8517,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 19.664,
+          "setup_ms": 0.0357,
+          "text_chars": 1049622,
+          "total_ms": 68.7583,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 2,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-full-Archive-off-r2.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.546,
+          "finish_ms": 83.3436,
+          "footnotes_ms": 0,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 17.5508,
+          "setup_ms": 0.0496,
+          "text_chars": 1049622,
+          "total_ms": 84.9392,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-full-Archive-off-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.5018,
+          "finish_ms": 84.2504,
+          "footnotes_ms": 0,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 17.6711,
+          "setup_ms": 0.0415,
+          "text_chars": 1049622,
+          "total_ms": 85.7937,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-full-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 18.776,
+          "consolidate_ms": 10.8643,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.4233,
+          "finish_ms": 78.6063,
+          "footnotes_ms": 17.0306,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 985,
+          "inline_ms": 31.827,
+          "inline_walk_ms": 31.9285,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 16.0256,
+          "setup_ms": 0.042,
+          "text_chars": 1049622,
+          "total_ms": 80.0716,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-no-autolink-Archive-off-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.912,
+          "finish_ms": 56.6972,
+          "footnotes_ms": 0,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 14.4695,
+          "setup_ms": 0.0477,
+          "text_chars": 1049622,
+          "total_ms": 58.6569,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-gui-no-autolink-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 7.2905,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 1.5705,
+          "finish_ms": 48.4269,
+          "footnotes_ms": 13.3974,
+          "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 985,
+          "inline_ms": 27.6346,
+          "inline_walk_ms": 27.733,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 13.2164,
+          "setup_ms": 0.0371,
+          "text_chars": 1049622,
+          "total_ms": 50.0345,
+          "tree": {
+            "nodes": 128588,
+            "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+          },
+          "utf8_bytes": 1049632,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-full-Archive-off-r3.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 12.2475,
+          "finish_ms": 727.1231,
+          "footnotes_ms": 0,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 137.3694,
+          "setup_ms": 0.0372,
+          "text_chars": 10486005,
+          "total_ms": 739.4078000000001,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-full-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 188.7921,
+          "consolidate_ms": 81.7744,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 12.1039,
+          "finish_ms": 728.5835,
+          "footnotes_ms": 160.095,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 9766,
+          "inline_ms": 297.0632,
+          "inline_walk_ms": 297.914,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 173.5299,
+          "setup_ms": 0.041,
+          "text_chars": 10486005,
+          "total_ms": 740.7284,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-no-autolink-Archive-off-r3.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 12.0984,
+          "finish_ms": 519.0594,
+          "footnotes_ms": 0,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 138.357,
+          "setup_ms": 0.0379,
+          "text_chars": 10486005,
+          "total_ms": 531.1957,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\10MiB-gui-no-autolink-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 10,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 94.4382,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 13.5742,
+          "finish_ms": 529.0072,
+          "footnotes_ms": 148.6765,
+          "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 9766,
+          "inline_ms": 284.9843,
+          "inline_walk_ms": 285.8866,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 141.7171,
+          "setup_ms": 0.0411,
+          "text_chars": 10486005,
+          "total_ms": 542.6225000000001,
+          "tree": {
+            "nodes": 1284518,
+            "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+          },
+          "utf8_bytes": 10486015,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-full-Archive-off-r3.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 40.958,
+          "finish_ms": 2203.8086,
+          "footnotes_ms": 0,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 496.8229,
+          "setup_ms": 0.0423,
+          "text_chars": 31457448,
+          "total_ms": 2244.8089,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-full-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 483.6882,
+          "consolidate_ms": 405.6822,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 43.1494,
+          "finish_ms": 2384.1315,
+          "footnotes_ms": 498.0087,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 29281,
+          "inline_ms": 993.4568,
+          "inline_walk_ms": 996.7467,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 424.0921,
+          "setup_ms": 0.0444,
+          "text_chars": 31457448,
+          "total_ms": 2427.3253,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-no-autolink-Archive-off-r3.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 40.0139,
+          "finish_ms": 1453.6134,
+          "footnotes_ms": 0,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 455.3484,
+          "setup_ms": 0.0453,
+          "text_chars": 31457448,
+          "total_ms": 1493.6725999999999,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-gui-no-autolink-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 272.1085,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 46.572,
+          "finish_ms": 1800.4494,
+          "footnotes_ms": 513.1389,
+          "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 29281,
+          "inline_ms": 1011.7238,
+          "inline_walk_ms": 1015.196,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 629.106,
+          "setup_ms": 0.0495,
+          "text_chars": 31457448,
+          "total_ms": 1847.0709,
+          "tree": {
+            "nodes": 3853460,
+            "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+          },
+          "utf8_bytes": 31457458,
+          "workload": "gui"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-plain-full-Archive-off-r3.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 50.0809,
+          "finish_ms": 411.3663,
+          "footnotes_ms": 0,
+          "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 60.4597,
+          "setup_ms": 0.0571,
+          "text_chars": 31457934,
+          "total_ms": 461.5043,
+          "tree": {
+            "nodes": 51319,
+            "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+          },
+          "utf8_bytes": 31457934,
+          "workload": "plain"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\30MiB-plain-full-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 30,
+          "autolink_postprocess_ms": 19.235,
+          "consolidate_ms": 103.3519,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 49.0263,
+          "finish_ms": 416.7311,
+          "footnotes_ms": 119.3702,
+          "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 25659,
+          "inline_ms": 172.3643,
+          "inline_walk_ms": 174.7643,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 48.2308,
+          "setup_ms": 0.052,
+          "text_chars": 31457934,
+          "total_ms": 465.80940000000004,
+          "tree": {
+            "nodes": 51319,
+            "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+          },
+          "utf8_bytes": 31457934,
+          "workload": "plain"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-full-Archive-off-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 31.8831,
+          "finish_ms": 102.2388,
+          "footnotes_ms": 0,
+          "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "full",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 43.1884,
+          "setup_ms": 0.0575,
+          "text_chars": 1048976,
+          "total_ms": 134.1794,
+          "tree": {
+            "nodes": 185554,
+            "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-full-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 37.23,
+          "consolidate_ms": 13.4866,
+          "extensions": [
+            "table",
+            "autolink",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 36.1029,
+          "finish_ms": 119.9955,
+          "footnotes_ms": 27.7476,
+          "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 39584,
+          "inline_ms": 34.5075,
+          "inline_walk_ms": 41.5239,
+          "mode": "full",
+          "postprocess_calls": 1,
+          "profiling": true,
+          "release_ms": 27.6781,
+          "setup_ms": 0.0449,
+          "text_chars": 1048976,
+          "total_ms": 156.1433,
+          "tree": {
+            "nodes": 185554,
+            "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-no-autolink-Archive-off-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 37.4766,
+          "finish_ms": 54.8252,
+          "footnotes_ms": 0,
+          "html_sha256": "47fb4ed2706120c941e55548b239f629e2cfe67b5d476117f76a999c6f13498a",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 17.6875,
+          "setup_ms": 0.0594,
+          "text_chars": 1048976,
+          "total_ms": 92.3612,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "d11c9b3cb82af7167e0f402afb2b57b0a48ba1527e175ecc8fac16e293cc809b"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-no-autolink-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 7.3592,
+          "extensions": [
+            "table",
+            "tasklist",
+            "math"
+          ],
+          "feed_ms": 28.9526,
+          "finish_ms": 61.0414,
+          "footnotes_ms": 24.8823,
+          "html_sha256": "47fb4ed2706120c941e55548b239f629e2cfe67b5d476117f76a999c6f13498a",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 39584,
+          "inline_ms": 23.2437,
+          "inline_walk_ms": 28.7935,
+          "mode": "no-autolink",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 21.558,
+          "setup_ms": 0.0389,
+          "text_chars": 1048976,
+          "total_ms": 90.03290000000001,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "d11c9b3cb82af7167e0f402afb2b57b0a48ba1527e175ecc8fac16e293cc809b"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Archive",
+        "profiling": "off",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-none-Archive-off-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 0,
+          "extensions": [],
+          "feed_ms": 19.377,
+          "finish_ms": 58.4358,
+          "footnotes_ms": 0,
+          "html_sha256": "1827dc69da575f33581b32a41e4844b13a44707e1e072ae6adb064a473d17fd6",
+          "implementation": "ordinary_archive",
+          "inline_calls": 0,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "mode": "none",
+          "postprocess_calls": 0,
+          "profiling": false,
+          "release_ms": 20.4042,
+          "setup_ms": 0.0105,
+          "text_chars": 1048976,
+          "total_ms": 77.8233,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "5cd21f4606e69595bc332c77823b08cc7d099264582f8c85d5a76252c6f64ac9"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      },
+      {
+        "repeat": 3,
+        "implementation": "Performance",
+        "profiling": "stages",
+        "path": "G:\\github\\Muffin\\build\\cmark-stages-final\\1MiB-extensions-none-Performance-stages-r3.json",
+        "raw": {
+          "MiB": 1,
+          "autolink_postprocess_ms": 0,
+          "consolidate_ms": 12.1263,
+          "extensions": [],
+          "feed_ms": 18.8319,
+          "finish_ms": 66.2519,
+          "footnotes_ms": 24.184,
+          "html_sha256": "1827dc69da575f33581b32a41e4844b13a44707e1e072ae6adb064a473d17fd6",
+          "implementation": "diagnostic_block_object",
+          "inline_calls": 34636,
+          "inline_ms": 25.6,
+          "inline_walk_ms": 29.935,
+          "mode": "none",
+          "postprocess_calls": 0,
+          "profiling": true,
+          "release_ms": 20.2325,
+          "setup_ms": 0.0079,
+          "text_chars": 1048976,
+          "total_ms": 85.0917,
+          "tree": {
+            "nodes": 163288,
+            "sha256": "5cd21f4606e69595bc332c77823b08cc7d099264582f8c85d5a76252c6f64ac9"
+          },
+          "utf8_bytes": 1073716,
+          "workload": "extensions"
+        }
+      }
+    ],
+    "summaries": [
+      {
+        "mib": 1,
+        "workload": "gui",
+        "mode": "full",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0415,
+            "feed_ms": 1.546,
+            "finish_ms": 83.3436,
+            "total_ms": 84.9392,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 17.5508
+          },
+          "total_samples_ms": [
+            67.1197,
+            84.9392,
+            85.7937
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.042,
+            "feed_ms": 1.2955,
+            "finish_ms": 69.1863,
+            "total_ms": 70.5283,
+            "inline_ms": 30.7178,
+            "inline_walk_ms": 30.7934,
+            "footnotes_ms": 15.2806,
+            "consolidate_ms": 8.9669,
+            "autolink_postprocess_ms": 17.5752,
+            "release_ms": 16.0256
+          },
+          "total_samples_ms": [
+            70.5283,
+            68.7583,
+            80.0716
+          ]
+        },
+        "Performance_off": {
+          "n": 1,
+          "medians_ms": {
+            "setup_ms": 0.0368,
+            "feed_ms": 1.2751,
+            "finish_ms": 66.7325,
+            "total_ms": 68.0444,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 13.6407
+          },
+          "total_samples_ms": [
+            68.0444
+          ]
+        }
+      },
+      {
+        "mib": 1,
+        "workload": "gui",
+        "mode": "no-autolink",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.038,
+            "feed_ms": 1.3551,
+            "finish_ms": 49.9377,
+            "total_ms": 51.330799999999996,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 13.8268
+          },
+          "total_samples_ms": [
+            50.0414,
+            51.330799999999996,
+            58.6569
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0374,
+            "feed_ms": 1.3279,
+            "finish_ms": 49.943,
+            "total_ms": 51.308299999999996,
+            "inline_ms": 27.6346,
+            "inline_walk_ms": 27.733,
+            "footnotes_ms": 14.08,
+            "consolidate_ms": 8.6023,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 14.3772
+          },
+          "total_samples_ms": [
+            59.1469,
+            51.308299999999996,
+            50.0345
+          ]
+        }
+      },
+      {
+        "mib": 10,
+        "workload": "gui",
+        "mode": "full",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.038,
+            "feed_ms": 14.0115,
+            "finish_ms": 699.4676,
+            "total_ms": 716.7411999999999,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 158.451
+          },
+          "total_samples_ms": [
+            673.2144,
+            716.7411999999999,
+            739.4078000000001
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.041,
+            "feed_ms": 12.3103,
+            "finish_ms": 719.7997,
+            "total_ms": 732.153,
+            "inline_ms": 297.0632,
+            "inline_walk_ms": 297.914,
+            "footnotes_ms": 160.095,
+            "consolidate_ms": 81.7744,
+            "autolink_postprocess_ms": 179.6078,
+            "release_ms": 158.758
+          },
+          "total_samples_ms": [
+            686.9469,
+            732.153,
+            740.7284
+          ]
+        },
+        "Performance_off": {
+          "n": 1,
+          "medians_ms": {
+            "setup_ms": 0.0362,
+            "feed_ms": 12.8783,
+            "finish_ms": 649.3288,
+            "total_ms": 662.2433,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 145.1606
+          },
+          "total_samples_ms": [
+            662.2433
+          ]
+        }
+      },
+      {
+        "mib": 10,
+        "workload": "gui",
+        "mode": "no-autolink",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0388,
+            "feed_ms": 12.0984,
+            "finish_ms": 503.0117,
+            "total_ms": 515.1478000000001,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 138.357
+          },
+          "total_samples_ms": [
+            482.0103,
+            515.1478000000001,
+            531.1957
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0411,
+            "feed_ms": 13.404,
+            "finish_ms": 497.9898,
+            "total_ms": 511.4383,
+            "inline_ms": 280.8621,
+            "inline_walk_ms": 281.7222,
+            "footnotes_ms": 136.2095,
+            "consolidate_ms": 80.0504,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 133.645
+          },
+          "total_samples_ms": [
+            469.159,
+            511.4383,
+            542.6225000000001
+          ]
+        }
+      },
+      {
+        "mib": 30,
+        "workload": "gui",
+        "mode": "full",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0437,
+            "feed_ms": 41.1347,
+            "finish_ms": 2111.4265,
+            "total_ms": 2154.2959,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 425.0042
+          },
+          "total_samples_ms": [
+            2005.4552,
+            2154.2959,
+            2244.8089
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0429,
+            "feed_ms": 40.028,
+            "finish_ms": 2202.0108,
+            "total_ms": 2242.0797000000002,
+            "inline_ms": 886.7937,
+            "inline_walk_ms": 889.3364,
+            "footnotes_ms": 432.463,
+            "consolidate_ms": 227.3234,
+            "autolink_postprocess_ms": 483.6882,
+            "release_ms": 451.1885
+          },
+          "total_samples_ms": [
+            1949.8887,
+            2242.0797000000002,
+            2427.3253
+          ]
+        },
+        "Performance_off": {
+          "n": 1,
+          "medians_ms": {
+            "setup_ms": 0.0435,
+            "feed_ms": 38.8396,
+            "finish_ms": 2040.3066,
+            "total_ms": 2079.1897,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 387.2668
+          },
+          "total_samples_ms": [
+            2079.1897
+          ]
+        }
+      },
+      {
+        "mib": 30,
+        "workload": "gui",
+        "mode": "no-autolink",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0387,
+            "feed_ms": 40.0139,
+            "finish_ms": 1377.6079,
+            "total_ms": 1415.0741,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 401.5552
+          },
+          "total_samples_ms": [
+            1410.4667,
+            1415.0741,
+            1493.6725999999999
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0493,
+            "feed_ms": 39,
+            "finish_ms": 1500.1973,
+            "total_ms": 1537.9895000000001,
+            "inline_ms": 817.7137,
+            "inline_walk_ms": 820.1753,
+            "footnotes_ms": 455.75,
+            "consolidate_ms": 235.4958,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 417.2932
+          },
+          "total_samples_ms": [
+            1537.9895000000001,
+            1537.068,
+            1847.0709
+          ]
+        }
+      },
+      {
+        "mib": 30,
+        "workload": "plain",
+        "mode": "full",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0538,
+            "feed_ms": 37.1693,
+            "finish_ms": 307.4003,
+            "total_ms": 344.6107,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 43.4225
+          },
+          "total_samples_ms": [
+            340.22679999999997,
+            344.6107,
+            461.5043
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0401,
+            "feed_ms": 36.8255,
+            "finish_ms": 326.8171,
+            "total_ms": 363.68149999999997,
+            "inline_ms": 152.3427,
+            "inline_walk_ms": 154.5786,
+            "footnotes_ms": 82.4561,
+            "consolidate_ms": 77.8781,
+            "autolink_postprocess_ms": 13.7233,
+            "release_ms": 47.8765
+          },
+          "total_samples_ms": [
+            339.19870000000003,
+            363.68149999999997,
+            465.80940000000004
+          ]
+        }
+      },
+      {
+        "mib": 1,
+        "workload": "extensions",
+        "mode": "full",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0362,
+            "feed_ms": 26.0126,
+            "finish_ms": 83.0852,
+            "total_ms": 109.1324,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 20.0164
+          },
+          "total_samples_ms": [
+            97.0132,
+            109.1324,
+            134.1794
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.039,
+            "feed_ms": 26.1676,
+            "finish_ms": 76.8252,
+            "total_ms": 102.03309999999999,
+            "inline_ms": 22.7881,
+            "inline_walk_ms": 27.0062,
+            "footnotes_ms": 20.5799,
+            "consolidate_ms": 8.363,
+            "autolink_postprocess_ms": 20.9643,
+            "release_ms": 21.3345
+          },
+          "total_samples_ms": [
+            101.0762,
+            102.03309999999999,
+            156.1433
+          ]
+        }
+      },
+      {
+        "mib": 1,
+        "workload": "extensions",
+        "mode": "no-autolink",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0365,
+            "feed_ms": 24.4202,
+            "finish_ms": 47.8594,
+            "total_ms": 72.313,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 17.6875
+          },
+          "total_samples_ms": [
+            71.10069999999999,
+            72.313,
+            92.3612
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0389,
+            "feed_ms": 25.0032,
+            "finish_ms": 50.2854,
+            "total_ms": 74.6643,
+            "inline_ms": 19.9263,
+            "inline_walk_ms": 24.211,
+            "footnotes_ms": 19.6807,
+            "consolidate_ms": 7.1889,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 17.8257
+          },
+          "total_samples_ms": [
+            74.6643,
+            74.57050000000001,
+            90.03290000000001
+          ]
+        }
+      },
+      {
+        "mib": 1,
+        "workload": "extensions",
+        "mode": "none",
+        "Archive_off": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0062,
+            "feed_ms": 16.7969,
+            "finish_ms": 54.1254,
+            "total_ms": 70.6072,
+            "inline_ms": 0,
+            "inline_walk_ms": 0,
+            "footnotes_ms": 0,
+            "consolidate_ms": 0,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 17.9413
+          },
+          "total_samples_ms": [
+            70.6072,
+            69.78229999999999,
+            77.8233
+          ]
+        },
+        "Performance_stages": {
+          "n": 3,
+          "medians_ms": {
+            "setup_ms": 0.0081,
+            "feed_ms": 18.8319,
+            "finish_ms": 62.3935,
+            "total_ms": 81.1596,
+            "inline_ms": 23.0588,
+            "inline_walk_ms": 27.099,
+            "footnotes_ms": 24.184,
+            "consolidate_ms": 11.418,
+            "autolink_postprocess_ms": 0,
+            "release_ms": 20.2325
+          },
+          "total_samples_ms": [
+            81.1596,
+            75.8968,
+            85.0917
+          ]
+        }
+      }
+    ],
+    "pinned_sha256": {
+      "G:\\github\\Muffin\\build\\Release\\MuffinCmarkPerformanceProbe.exe": "b6bc86b97d50f9d395a8fd9bb474b2a03446b51b8e588130cd1c9e0e7e773f13",
+      "G:\\github\\Muffin\\build\\Release\\MuffinCmarkArchiveProbe.exe": "de3d41b8216ccfa8f3e21ef87fa7548b5d7b5aa9418ddc107cb552ad0d4c8655",
+      "G:\\github\\Muffin\\build\\cmark-profiled-blocks.inc": "9c1f7ab0f7009aa0dd89fef80439e0b541bff59f9c003661f337a6239dac60bd",
+      "G:\\github\\Muffin\\scripts\\cmark_performance_probe.cpp": "07ce1c9614b647020e8fa09e16a577524317056350adda97d58ef228691aa748",
+      "G:\\github\\Muffin\\scripts\\cmark_stage_profile.c": "b33040e0254d200cc1c1d4176548fa3ba75a08e8353c3be5bfc2d9fdc3309ff4",
+      "G:\\github\\Muffin\\scripts\\cmark_stage_profile.h": "7dbd09b1354640ab9f5c6a8b89fadf7b0d1ab4ed3deb760d0692c9146c134128",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\arena.c": "aa537cfff80ac14e14afc77b6294ebe6626d56a55398dbe662b9b777649baa3b",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\blocks.c": "acd8c42eee3831524a397589f2fb1713e16ff0563a8dd111dbbc5b451632118f",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\buffer.c": "06b7681eaa86254bbf0885839d778d8eb2ba3ac40f38de23fc9a76072b83a40c",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\cmark.c": "742009085feef0181410207a87b89f7ac536b988ac11eeacf54acd8b0c3a1796",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\cmark_ctype.c": "7b493b24b0a0b68f63ec7f63f26aab6df8189ea8d1fa6dc6c8919b433b31a2dd",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\commonmark.c": "d3ee5c83c379f34f750318afa360bd4bbb52e8ccea879672b14ac74274f42e87",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\footnotes.c": "2b2a801fb4e3832362bec2286f3bb153578ec7f885091edb039d311ee76a621c",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\houdini_href_e.c": "5fd0480c74b2c944a8435700296ea8e5d4dfa06aa2a183ab5a7fccfe875b4599",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\houdini_html_e.c": "ce1b673e969065470814adbfd3071cdfcdd58c03276099cffc8a6cc4fb7d85dc",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\houdini_html_u.c": "32b8c54c05b5c63b953348ee51e24cde2b8d8d2a93374e7f3a6f8de2d3c6aa60",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\html.c": "5789459401dd5ee9ea86f89e7fd38b46ce7bdacf8f43e3e849c12157f55f8bbc",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\inlines.c": "400455a44240f2a8e6337f03cd713354454be27837c5a02365c93cf1bfbf7252",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\iterator.c": "fb105b109b8025dcbd7dbfe5fd468ed154038f87dc524d42d8f1f47710ce68ed",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\latex.c": "7d30ffc9498f15d1abe9dc5f0458f28e0a382e36e12e6624eaf36562834fcba4",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\linked_list.c": "254261fa558ed421f48388ca30fc7bc98c0dab3834be4e32db96e06272597b23",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\man.c": "5ad5476c72ed46b599be7cb3fb577a7babb1488711cee1400b30a323db8248a8",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\map.c": "bb510837ac7027158ad7d6b02f5d3e045d88cfb9b7a25711ed3757fc5b2d7587",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\node.c": "10f7034ec12ae50f3d5426fc9c9ca5e94a97d9600b6d26751d45ff4190d33855",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\plaintext.c": "bdaae2ea59f8a85441a18df57c98c5bca7c50d426981d4b6bd71445969a09ece",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\plugin.c": "6bc100778589a8858362aaa5c395a26c9610ba27f45599e74bfa267219ead4e3",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\references.c": "1f5357c2062b30f0535e94da608e7ceb1b8b4805de1c9f523c6366b9a4adb2d2",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\registry.c": "5bed547ce8c3d8ca8772ae4a262cef1198025551bd66c8444d96f45775cc16e7",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\render.c": "e9b5d3b4ad919196ff1c0ce2332cadf7313146bd0752467f2df0fe8682eedcc7",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\scanners.c": "4bf5ea2514859d6225770ce8c173ded4b228d7924412166d9bb32cc0c36df256",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\syntax_extension.c": "04c49930d4bf9eb440e0696e799784e1ef27307a6058abd858f0df99cb4749bd",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\utf8.c": "cf498664d11601aba6e74b903d974bc23ed15286461ae1b72d9484f80fc252db",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\xml.c": "dbc0921679125e181df26d10b05d08162181e3aaf4cf8096ea2af2a5b705478e",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\autolink.c": "54269c8d52f15dc03bc180d3fcf61535dde2db11fd719e12308f79ef5314af2c",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\core-extensions.c": "96396258fe33aaa9e9e62894e51d6a89a122c51b9d0373d61ab14c5dac963a76",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\ext_scanners.c": "ec569363db2f00e7806370e0efe72ff85aa367fc703fab95175ebc36e6db5097",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\math.c": "33317ea0ed182b809653533cde32d92e68d41e15b9ba80bc8dc48a8d441c8501",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\strikethrough.c": "bc8f016b7a88611c7bea41179662dff754e7b634d37dc8d68186f24781b4605e",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\table.c": "a09dfca8ce864003036c9cfbc86116eb01111483763c73c20f762b7c133dcbfc",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\tagfilter.c": "2c0a8f685acfe82003258b6850d65898a7da3ab9d4d2537cd36a0d0117fadf5e",
+      "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\tasklist.c": "d25509592848dc00fb76b29ca2db27ae4150418e9a8a01b0be0edb2474b2c98b"
+    },
+    "fingerprints_match_ordinary_archive": true,
+    "method": "Fresh processes in alternating/reversed order. Ordinary unmodified archive controls and diagnostic-only blocks.c object with two guarded generated phase hooks. Per-inline-container clocks perturb diagnostic timing; inline sums exclude traversal, inline_walk includes it. Feed includes block extension hooks; footnotes are timed directly; finish residual includes block finalization and cleanup. Autolink postprocess is timed directly; removing extensions is a diagnostic ablation, not a product proposal. Source generation, tree/HTML fingerprints and release excluded from parse timing. Same-mode fingerprints checked; different extension modes can change semantics."
+  },
+  "independent_audit": {
+    "old_height_change_reproduces_20px_phase": true,
+    "native_fixed_cases": 28,
+    "editor_repeat_cases": 8,
+    "browser_comparisons": [
+      {
+        "height": 1000000,
+        "max_channel_difference": 1,
+        "screenshot": "build\\texture-browser\\browser-1000000.png"
+      },
+      {
+        "height": 1000020,
+        "max_channel_difference": 1,
+        "screenshot": "build\\texture-browser\\browser-1000020.png"
+      },
+      {
+        "height": 1000040,
+        "max_channel_difference": 1,
+        "screenshot": "build\\texture-browser\\browser-1000040.png"
+      }
+    ],
+    "cmark_records": 63,
+    "generated_hooks_only": true,
+    "ordinary_archive_fingerprints_equal": true,
+    "image_sha256": {
+      "build\\texture-isolated\\1.00002e+06-0-0.png": "c5e89f6226c94b98b449411a68b6bbd8fec21880960ba5ca88d32ff11aed4ca1",
+      "build\\texture-isolated\\1.00002e+06-0-1.png": "c5e89f6226c94b98b449411a68b6bbd8fec21880960ba5ca88d32ff11aed4ca1",
+      "build\\texture-isolated\\1.00002e+06-30-0.png": "9c6e6f91bff9d6784ebab5667d82fadb2a97674013e7d25c7783e9583931cc54",
+      "build\\texture-isolated\\1.00002e+06-30-1.png": "9c6e6f91bff9d6784ebab5667d82fadb2a97674013e7d25c7783e9583931cc54",
+      "build\\texture-isolated\\1.00004e+06-0-0.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-isolated\\1.00004e+06-0-1.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-isolated\\1.00004e+06-30-0.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-isolated\\1.00004e+06-30-1.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-isolated\\1000-0-0.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-isolated\\1000-0-1.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-isolated\\1000-30-0.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-isolated\\1000-30-1.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-isolated\\1e+06-0-0.png": "7d45bbc26d2dc4ae6feab7d04e497c8c1e3b7509286ef965b0aaa5bb4c910d2b",
+      "build\\texture-isolated\\1e+06-0-1.png": "7d45bbc26d2dc4ae6feab7d04e497c8c1e3b7509286ef965b0aaa5bb4c910d2b",
+      "build\\texture-isolated\\1e+06-30-0.png": "d4695cd6f9efe5d57ae903c0f8ac40e02b43b098288d4f5add5613fd102314c1",
+      "build\\texture-isolated\\1e+06-30-1.png": "d4695cd6f9efe5d57ae903c0f8ac40e02b43b098288d4f5add5613fd102314c1",
+      "build\\texture-isolated\\1e+07-0-0.png": "7d45bbc26d2dc4ae6feab7d04e497c8c1e3b7509286ef965b0aaa5bb4c910d2b",
+      "build\\texture-isolated\\1e+07-0-1.png": "7d45bbc26d2dc4ae6feab7d04e497c8c1e3b7509286ef965b0aaa5bb4c910d2b",
+      "build\\texture-isolated\\1e+07-30-0.png": "d4695cd6f9efe5d57ae903c0f8ac40e02b43b098288d4f5add5613fd102314c1",
+      "build\\texture-isolated\\1e+07-30-1.png": "d4695cd6f9efe5d57ae903c0f8ac40e02b43b098288d4f5add5613fd102314c1",
+      "build\\texture-isolated\\32767-0-0.png": "059dfc429a57c415d790da64860cbd6584501e976ea7da0fc84ec6710139e567",
+      "build\\texture-isolated\\32767-0-1.png": "059dfc429a57c415d790da64860cbd6584501e976ea7da0fc84ec6710139e567",
+      "build\\texture-isolated\\32767-30-0.png": "ebe3f26a8e0426ef89809bad72188f6621202e4c26a4fb51750c7d6030bd1af6",
+      "build\\texture-isolated\\32767-30-1.png": "ebe3f26a8e0426ef89809bad72188f6621202e4c26a4fb51750c7d6030bd1af6",
+      "build\\texture-isolated\\65535-0-0.png": "e28dd67c39e49924cfcd8d05d5eca6c0b6820f64b34f94e6848791f9e19ff3cb",
+      "build\\texture-isolated\\65535-0-1.png": "e28dd67c39e49924cfcd8d05d5eca6c0b6820f64b34f94e6848791f9e19ff3cb",
+      "build\\texture-isolated\\65535-30-0.png": "be670b7c267349e3df3529d932d4ee6ab20c67fa94c495390c4108320cc7d553",
+      "build\\texture-isolated\\65535-30-1.png": "be670b7c267349e3df3529d932d4ee6ab20c67fa94c495390c4108320cc7d553",
+      "build\\texture-native-fixed\\1.00002e+06-0-0.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1.00002e+06-0-1.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1.00002e+06-30-0.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\1.00002e+06-30-1.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\1.00004e+06-0-0.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1.00004e+06-0-1.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1.00004e+06-30-0.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\1.00004e+06-30-1.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\1000-0-0.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1000-0-1.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1000-30-0.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\1000-30-1.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\1e+06-0-0.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1e+06-0-1.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1e+06-30-0.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\1e+06-30-1.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\1e+07-0-0.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1e+07-0-1.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\1e+07-30-0.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\1e+07-30-1.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\32767-0-0.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\32767-0-1.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\32767-30-0.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\32767-30-1.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\65535-0-0.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\65535-0-1.png": "ec5e9704c9f0f78f9d271677dcf6ba01d6bcb762260261f316018b0c406520a2",
+      "build\\texture-native-fixed\\65535-30-0.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\65535-30-1.png": "d55601cfa247b35c52ca666a242e688904eaf3e5481af45ae48c8eafae0738fb",
+      "build\\texture-native-fixed\\editor-cycle-0.png": "9d2285b0d47a3539a98efc8bf887e50675a86bc94492009f7eb9325065562a0e",
+      "build\\texture-native-fixed\\editor-cycle-1.png": "9d2285b0d47a3539a98efc8bf887e50675a86bc94492009f7eb9325065562a0e",
+      "build\\texture-native-fixed\\editor-cycle-2.png": "9d2285b0d47a3539a98efc8bf887e50675a86bc94492009f7eb9325065562a0e",
+      "build\\texture-native-fixed\\editor-cycle-3.png": "9d2285b0d47a3539a98efc8bf887e50675a86bc94492009f7eb9325065562a0e",
+      "build\\texture-native-fixed\\editor-cycle-4.png": "9d2285b0d47a3539a98efc8bf887e50675a86bc94492009f7eb9325065562a0e",
+      "build\\texture-native-fixed\\editor-cycle-5.png": "9d2285b0d47a3539a98efc8bf887e50675a86bc94492009f7eb9325065562a0e",
+      "build\\texture-native-fixed\\editor-cycle-6.png": "9d2285b0d47a3539a98efc8bf887e50675a86bc94492009f7eb9325065562a0e",
+      "build\\texture-native-fixed\\editor-cycle-7.png": "9d2285b0d47a3539a98efc8bf887e50675a86bc94492009f7eb9325065562a0e",
+      "build\\texture-browser\\browser-1000000.png": "21336cceeae1a870e970c013afba410780fdd310cbd3c2d0a80f8240a3b4a760",
+      "build\\texture-browser\\browser-1000020.png": "21336cceeae1a870e970c013afba410780fdd310cbd3c2d0a80f8240a3b4a760",
+      "build\\texture-browser\\browser-1000040.png": "21336cceeae1a870e970c013afba410780fdd310cbd3c2d0a80f8240a3b4a760"
+    }
+  },
+  "method": "Isolated raster and native Windows QPA EditorView hidden from the desktop; no foreground GUI latency claim. Exact native repeat pixel checks; independent browser comparison allows at most one compositing channel level. cmark stages and ordinary archive controls measured in separate alternating fresh processes; not a product optimization result.",
+  "verification": {
+    "release_build": "passed",
+    "dist": "refreshed",
+    "full_ctest": {
+      "passed": 339,
+      "failed": 0,
+      "elapsed_seconds": 573.76
+    },
+    "focused_ctest": {
+      "passed": 2,
+      "failed": 0,
+      "elapsed_seconds": 0.65
+    },
+    "independent_audit": {
+      "stable_rasters": 28,
+      "stable_editor_cycles": 8,
+      "browser_cases": 3,
+      "cmark_records": 63
+    },
+    "foreground_gui_matrix_rerun": false,
+    "product_cmark_algorithm_changed": false,
+    "syntax_and_diff_checks": "passed",
+    "source_sha256": {
+      "cmake/MuffinTests.cmake": "e4c78cc568cd57bad38af5f0f871c38872c4bde9b46b73824cd7d0b370baa2cb",
+      "src/theme/CssComputedStyleEngine.cpp": "00470912a6f6adffd643c741d8c164f9509444d49200e3d16e73e4d4f8545edc",
+      "tests/theme/CssBackgroundCompatibilityTest.cpp": "a9678985996786fb9580a8fe4628adaaeeae83b3faa5ae1c8d774f1ccb5e5f40",
+      "scripts/texture_phase_probe.cpp": "a1381e64d9038700e2b7e11aec6f35f7d4502acd5924c4dfb1053238e9a95fd1",
+      "scripts/cmark_performance_probe.cpp": "07ce1c9614b647020e8fa09e16a577524317056350adda97d58ef228691aa748",
+      "scripts/cmark_stage_profile.c": "b33040e0254d200cc1c1d4176548fa3ba75a08e8353c3be5bfc2d9fdc3309ff4",
+      "scripts/cmark_stage_profile.h": "7dbd09b1354640ab9f5c6a8b89fadf7b0d1ab4ed3deb760d0692c9146c134128",
+      "scripts/run_cmark_performance.py": "30bb37f403ebf0aabfa485f359b6d30ccf1e29f486fa500206294cb5f921b370",
+      "scripts/audit_texture_cmark.py": "03225e51b84d0c25993ad613ba3023ac87b2d475c7c8635fb46cb528b25d3301",
+      "scripts/probe_background_position.mjs": "d5ae3c0ab24dc4dc41c141d849727baed54463bdb9f58f80d5bf6c47c284a580"
+    },
+    "packaged_matches_release_sha256": {
+      "Muffin.exe": "f36d6e842e992dc39375ec086bd20430da4d7fba823cf9da1392d434b0dc2835",
+      "MuffinCore.dll": "e1557eb191ce9b45b22f772d86161c847e41a124e53ed2b2ec63c5010ac78100",
+      "MuffinUi.dll": "65ee6e385cfd09b375c149eb042e5a1e96eb27d57966e1105fd7910779bb64a8"
+    },
+    "verification_log_sha256": {
+      "build/texture-release-build.log": "b490ff42256eb7ac10fdcd264ea79103f0ffafaf2df5b6cacc5847d5a1774110",
+      "build/texture-focused-ctest.log": "18beacac9998b9d284d4c602e90d77d7a02662629fe0500cd5df2f35b26bef84",
+      "build/texture-all-ctest.log": "7aa110e041ec1c388e12206f89d020b2328fb47887694e563e8055a7ab9b2d98",
+      "build/texture-dist.log": "65d83361fe22525821e3d069e9901e22bbb9a47d1cfaadb0d118f7dba0fb3ada",
+      "build/texture-probe-build-final.log": "67b37e909a19f06221fd5c5214a3dad32cc082de39d5af319095ab2520950afb"
+    },
+    "committed": false,
+    "pushed": false
+  }
+}

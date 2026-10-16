@@ -1,0 +1,5664 @@
+{
+  "complete": true,
+  "records": [
+    {
+      "repeat": 1,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-baseline_archive-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2777,
+        "finish_ms": 60.1515,
+        "footnotes_ms": 0,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47697920,
+          "private_commit_bytes": 43134976,
+          "working_set_bytes": 47697920
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 16367616,
+          "private_commit_bytes": 9269248,
+          "working_set_bytes": 14348288
+        },
+        "profiling": false,
+        "release_ms": 12.4843,
+        "released_memory": {
+          "peak_working_set_bytes": 52682752,
+          "private_commit_bytes": 10792960,
+          "working_set_bytes": 15257600
+        },
+        "setup_ms": 0.0226,
+        "text_chars": 1049622,
+        "total_ms": 61.4518,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-baseline_stages-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 13.7925,
+        "consolidate_ms": 7.0559,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.3194,
+        "finish_ms": 59.1432,
+        "footnotes_ms": 11.4153,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 985,
+        "inline_ms": 26.8148,
+        "inline_walk_ms": 26.8749,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47779840,
+          "private_commit_bytes": 43134976,
+          "working_set_bytes": 47779840
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 16379904,
+          "private_commit_bytes": 9265152,
+          "working_set_bytes": 14372864
+        },
+        "profiling": true,
+        "release_ms": 12.7048,
+        "released_memory": {
+          "peak_working_set_bytes": 52756480,
+          "private_commit_bytes": 9920512,
+          "working_set_bytes": 15249408
+        },
+        "setup_ms": 0.0193,
+        "text_chars": 1049622,
+        "total_ms": 60.4819,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-candidate_archive-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.844,
+        "finish_ms": 53.2054,
+        "footnotes_ms": 0,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47034368,
+          "private_commit_bytes": 43069440,
+          "working_set_bytes": 47034368
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15695872,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13697024
+        },
+        "profiling": false,
+        "release_ms": 13.866,
+        "released_memory": {
+          "peak_working_set_bytes": 52043776,
+          "private_commit_bytes": 10838016,
+          "working_set_bytes": 14602240
+        },
+        "setup_ms": 0.0216,
+        "text_chars": 1049622,
+        "total_ms": 55.071,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-candidate_stages-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 14.5879,
+        "consolidate_ms": 7.97,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.266,
+        "finish_ms": 50.0229,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 985,
+        "inline_ms": 27.3959,
+        "inline_walk_ms": 27.4582,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47054848,
+          "private_commit_bytes": 43151360,
+          "working_set_bytes": 47054848
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15683584,
+          "private_commit_bytes": 9228288,
+          "working_set_bytes": 13631488
+        },
+        "profiling": true,
+        "release_ms": 13.8665,
+        "released_memory": {
+          "peak_working_set_bytes": 52064256,
+          "private_commit_bytes": 9875456,
+          "working_set_bytes": 14503936
+        },
+        "setup_ms": 0.0173,
+        "text_chars": 1049622,
+        "total_ms": 51.3062,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-baseline_archive-r1.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 11.9394,
+        "finish_ms": 636.6524,
+        "footnotes_ms": 0,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372539392,
+          "private_commit_bytes": 404582400,
+          "working_set_bytes": 372539392
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45039616,
+          "private_commit_bytes": 67014656,
+          "working_set_bytes": 41996288
+        },
+        "profiling": false,
+        "release_ms": 127.7946,
+        "released_memory": {
+          "peak_working_set_bytes": 400556032,
+          "private_commit_bytes": 69857280,
+          "working_set_bytes": 43798528
+        },
+        "setup_ms": 0.0173,
+        "text_chars": 10486005,
+        "total_ms": 648.6090999999999,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-baseline_stages-r1.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 149.8206,
+        "consolidate_ms": 76.9337,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 12.1082,
+        "finish_ms": 631.8474,
+        "footnotes_ms": 132.2141,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 9766,
+        "inline_ms": 272.1898,
+        "inline_walk_ms": 272.8726,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372527104,
+          "private_commit_bytes": 404602880,
+          "working_set_bytes": 372527104
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45072384,
+          "private_commit_bytes": 67014656,
+          "working_set_bytes": 41992192
+        },
+        "profiling": true,
+        "release_ms": 121.9665,
+        "released_memory": {
+          "peak_working_set_bytes": 400547840,
+          "private_commit_bytes": 69132288,
+          "working_set_bytes": 43843584
+        },
+        "setup_ms": 0.0166,
+        "text_chars": 10486005,
+        "total_ms": 643.9722,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-candidate_archive-r1.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 11.7503,
+        "finish_ms": 490.3889,
+        "footnotes_ms": 0,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372600832,
+          "private_commit_bytes": 404717568,
+          "working_set_bytes": 372600832
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45105152,
+          "private_commit_bytes": 67018752,
+          "working_set_bytes": 42061824
+        },
+        "profiling": false,
+        "release_ms": 136.6562,
+        "released_memory": {
+          "peak_working_set_bytes": 400334848,
+          "private_commit_bytes": 69083136,
+          "working_set_bytes": 43884544
+        },
+        "setup_ms": 0.0152,
+        "text_chars": 10486005,
+        "total_ms": 502.15439999999995,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-candidate_stages-r1.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 145.5069,
+        "consolidate_ms": 78.6669,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 12.1506,
+        "finish_ms": 503.6949,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 9766,
+        "inline_ms": 278.8278,
+        "inline_walk_ms": 279.5137,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372580352,
+          "private_commit_bytes": 404733952,
+          "working_set_bytes": 372580352
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45088768,
+          "private_commit_bytes": 67526656,
+          "working_set_bytes": 41988096
+        },
+        "profiling": true,
+        "release_ms": 123.1522,
+        "released_memory": {
+          "peak_working_set_bytes": 400334848,
+          "private_commit_bytes": 69734400,
+          "working_set_bytes": 43786240
+        },
+        "setup_ms": 0.016,
+        "text_chars": 10486005,
+        "total_ms": 515.8615,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-baseline_archive-r1.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 36.6588,
+        "finish_ms": 1827.1273,
+        "footnotes_ms": 0,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102639104,
+          "private_commit_bytes": 1183682560,
+          "working_set_bytes": 1102639104
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104980480,
+          "private_commit_bytes": 163672064,
+          "working_set_bytes": 104919040
+        },
+        "profiling": false,
+        "release_ms": 401.5875,
+        "released_memory": {
+          "peak_working_set_bytes": 1188806656,
+          "private_commit_bytes": 169091072,
+          "working_set_bytes": 108830720
+        },
+        "setup_ms": 0.0152,
+        "text_chars": 31457448,
+        "total_ms": 1863.8013,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-baseline_stages-r1.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 434.808,
+        "consolidate_ms": 220.1451,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 39.2757,
+        "finish_ms": 1912.8855,
+        "footnotes_ms": 390.7263,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 29281,
+        "inline_ms": 864.8169,
+        "inline_walk_ms": 867.2006,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102721024,
+          "private_commit_bytes": 1183830016,
+          "working_set_bytes": 1102721024
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104923136,
+          "private_commit_bytes": 163684352,
+          "working_set_bytes": 104861696
+        },
+        "profiling": true,
+        "release_ms": 391.4648,
+        "released_memory": {
+          "peak_working_set_bytes": 1189326848,
+          "private_commit_bytes": 169865216,
+          "working_set_bytes": 108867584
+        },
+        "setup_ms": 0.0177,
+        "text_chars": 31457448,
+        "total_ms": 1952.1789,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-candidate_archive-r1.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 36.5307,
+        "finish_ms": 1458.5299,
+        "footnotes_ms": 0,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102684160,
+          "private_commit_bytes": 1183760384,
+          "working_set_bytes": 1102684160
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104927232,
+          "private_commit_bytes": 163663872,
+          "working_set_bytes": 104865792
+        },
+        "profiling": false,
+        "release_ms": 380.0286,
+        "released_memory": {
+          "peak_working_set_bytes": 1189371904,
+          "private_commit_bytes": 169820160,
+          "working_set_bytes": 108810240
+        },
+        "setup_ms": 0.0147,
+        "text_chars": 31457448,
+        "total_ms": 1495.0753,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-candidate_stages-r1.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 471.8978,
+        "consolidate_ms": 240.9994,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 38.1851,
+        "finish_ms": 1555.6543,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 29281,
+        "inline_ms": 840.6805,
+        "inline_walk_ms": 842.7482,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102761984,
+          "private_commit_bytes": 1183854592,
+          "working_set_bytes": 1102761984
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104943616,
+          "private_commit_bytes": 163672064,
+          "working_set_bytes": 104882176
+        },
+        "profiling": true,
+        "release_ms": 456.3606,
+        "released_memory": {
+          "peak_working_set_bytes": 1189376000,
+          "private_commit_bytes": 169750528,
+          "working_set_bytes": 108998656
+        },
+        "setup_ms": 0.0163,
+        "text_chars": 31457448,
+        "total_ms": 1593.8556999999998,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-baseline_archive-r1.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 36.8743,
+        "finish_ms": 332.0376,
+        "footnotes_ms": 0,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376889344,
+          "private_commit_bytes": 442990592,
+          "working_set_bytes": 376889344
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 105017344,
+          "private_commit_bytes": 164749312,
+          "working_set_bytes": 104955904
+        },
+        "profiling": false,
+        "release_ms": 40.5235,
+        "released_memory": {
+          "peak_working_set_bytes": 424730624,
+          "private_commit_bytes": 165023744,
+          "working_set_bytes": 106303488
+        },
+        "setup_ms": 0.0152,
+        "text_chars": 31457934,
+        "total_ms": 368.9271,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-baseline_stages-r1.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 12.8179,
+        "consolidate_ms": 78.6877,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 35.6026,
+        "finish_ms": 313.1293,
+        "footnotes_ms": 83.9554,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 25659,
+        "inline_ms": 135.8828,
+        "inline_walk_ms": 137.6617,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376770560,
+          "private_commit_bytes": 442720256,
+          "working_set_bytes": 376770560
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104988672,
+          "private_commit_bytes": 163684352,
+          "working_set_bytes": 104927232
+        },
+        "profiling": true,
+        "release_ms": 37.02,
+        "released_memory": {
+          "peak_working_set_bytes": 425414656,
+          "private_commit_bytes": 165138432,
+          "working_set_bytes": 106377216
+        },
+        "setup_ms": 0.0162,
+        "text_chars": 31457934,
+        "total_ms": 348.7481,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-candidate_archive-r1.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 35.7349,
+        "finish_ms": 214.6126,
+        "footnotes_ms": 0,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376819712,
+          "private_commit_bytes": 442978304,
+          "working_set_bytes": 376819712
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104951808,
+          "private_commit_bytes": 164196352,
+          "working_set_bytes": 104890368
+        },
+        "profiling": false,
+        "release_ms": 45.0991,
+        "released_memory": {
+          "peak_working_set_bytes": 424652800,
+          "private_commit_bytes": 165847040,
+          "working_set_bytes": 106512384
+        },
+        "setup_ms": 0.0148,
+        "text_chars": 31457934,
+        "total_ms": 250.3623,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-candidate_stages-r1.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 12.7111,
+        "consolidate_ms": 77.2526,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 41.5981,
+        "finish_ms": 222.0554,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 25659,
+        "inline_ms": 130.4073,
+        "inline_walk_ms": 132.0828,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376639488,
+          "private_commit_bytes": 442748928,
+          "working_set_bytes": 376639488
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104972288,
+          "private_commit_bytes": 163663872,
+          "working_set_bytes": 104910848
+        },
+        "profiling": true,
+        "release_ms": 43.3212,
+        "released_memory": {
+          "peak_working_set_bytes": 425275392,
+          "private_commit_bytes": 165359616,
+          "working_set_bytes": 106614784
+        },
+        "setup_ms": 0.0247,
+        "text_chars": 31457934,
+        "total_ms": 263.6782,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-baseline_archive-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 26.931,
+        "finish_ms": 82.0397,
+        "footnotes_ms": 0,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58646528,
+          "private_commit_bytes": 54890496,
+          "working_set_bytes": 58646528
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15712256,
+          "private_commit_bytes": 9220096,
+          "working_set_bytes": 13733888
+        },
+        "profiling": false,
+        "release_ms": 30.903,
+        "released_memory": {
+          "peak_working_set_bytes": 67788800,
+          "private_commit_bytes": 11554816,
+          "working_set_bytes": 14790656
+        },
+        "setup_ms": 0.0142,
+        "text_chars": 1048976,
+        "total_ms": 108.9849,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-baseline_stages-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 22.2166,
+        "consolidate_ms": 8.9842,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 40.688,
+        "finish_ms": 102.907,
+        "footnotes_ms": 32.6212,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 39584,
+        "inline_ms": 33.1624,
+        "inline_walk_ms": 39.0792,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58630144,
+          "private_commit_bytes": 54947840,
+          "working_set_bytes": 58630144
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15708160,
+          "private_commit_bytes": 9240576,
+          "working_set_bytes": 13701120
+        },
+        "profiling": true,
+        "release_ms": 22.9025,
+        "released_memory": {
+          "peak_working_set_bytes": 67874816,
+          "private_commit_bytes": 11075584,
+          "working_set_bytes": 15028224
+        },
+        "setup_ms": 0.024,
+        "text_chars": 1048976,
+        "total_ms": 143.619,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-candidate_archive-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 30.9621,
+        "finish_ms": 102.4353,
+        "footnotes_ms": 0,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58728448,
+          "private_commit_bytes": 54968320,
+          "working_set_bytes": 58728448
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15720448,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13729792
+        },
+        "profiling": false,
+        "release_ms": 21.7031,
+        "released_memory": {
+          "peak_working_set_bytes": 67915776,
+          "private_commit_bytes": 9670656,
+          "working_set_bytes": 14389248
+        },
+        "setup_ms": 0.0184,
+        "text_chars": 1048976,
+        "total_ms": 133.4158,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-candidate_stages-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 23.955,
+        "consolidate_ms": 7.852,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 29.7372,
+        "finish_ms": 88.223,
+        "footnotes_ms": 24.3527,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 39584,
+        "inline_ms": 26.8708,
+        "inline_walk_ms": 32.0549,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58646528,
+          "private_commit_bytes": 54910976,
+          "working_set_bytes": 58646528
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15679488,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13684736
+        },
+        "profiling": true,
+        "release_ms": 20.2965,
+        "released_memory": {
+          "peak_working_set_bytes": 67915776,
+          "private_commit_bytes": 10895360,
+          "working_set_bytes": 15011840
+        },
+        "setup_ms": 0.0177,
+        "text_chars": 1048976,
+        "total_ms": 117.9779,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-baseline_archive-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.268,
+        "finish_ms": 65.1872,
+        "footnotes_ms": 0,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47194112,
+          "private_commit_bytes": 43208704,
+          "working_set_bytes": 47194112
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15704064,
+          "private_commit_bytes": 9228288,
+          "working_set_bytes": 13701120
+        },
+        "profiling": false,
+        "release_ms": 12.4993,
+        "released_memory": {
+          "peak_working_set_bytes": 52183040,
+          "private_commit_bytes": 10952704,
+          "working_set_bytes": 14557184
+        },
+        "setup_ms": 0.0146,
+        "text_chars": 1049671,
+        "total_ms": 66.4698,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-baseline_stages-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 18.2536,
+        "consolidate_ms": 7.4424,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.3762,
+        "finish_ms": 81.0057,
+        "footnotes_ms": 15.9535,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 987,
+        "inline_ms": 39.26,
+        "inline_walk_ms": 39.3503,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47095808,
+          "private_commit_bytes": 43085824,
+          "working_set_bytes": 47095808
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15712256,
+          "private_commit_bytes": 9236480,
+          "working_set_bytes": 13692928
+        },
+        "profiling": true,
+        "release_ms": 12.5009,
+        "released_memory": {
+          "peak_working_set_bytes": 50831360,
+          "private_commit_bytes": 9920512,
+          "working_set_bytes": 14618624
+        },
+        "setup_ms": 0.019,
+        "text_chars": 1049671,
+        "total_ms": 82.40090000000001,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-candidate_archive-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.358,
+        "finish_ms": 62.2351,
+        "footnotes_ms": 0,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47202304,
+          "private_commit_bytes": 43245568,
+          "working_set_bytes": 47202304
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15683584,
+          "private_commit_bytes": 9232384,
+          "working_set_bytes": 13676544
+        },
+        "profiling": false,
+        "release_ms": 12.5014,
+        "released_memory": {
+          "peak_working_set_bytes": 52195328,
+          "private_commit_bytes": 10686464,
+          "working_set_bytes": 14454784
+        },
+        "setup_ms": 0.0149,
+        "text_chars": 1049671,
+        "total_ms": 63.608000000000004,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-candidate_stages-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 15.5991,
+        "consolidate_ms": 6.9563,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2323,
+        "finish_ms": 63.6586,
+        "footnotes_ms": 13.0486,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 987,
+        "inline_ms": 27.9792,
+        "inline_walk_ms": 28.0472,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47181824,
+          "private_commit_bytes": 43233280,
+          "working_set_bytes": 47181824
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15675392,
+          "private_commit_bytes": 9216000,
+          "working_set_bytes": 13647872
+        },
+        "profiling": true,
+        "release_ms": 13.2083,
+        "released_memory": {
+          "peak_working_set_bytes": 52170752,
+          "private_commit_bytes": 10657792,
+          "working_set_bytes": 14422016
+        },
+        "setup_ms": 0.0206,
+        "text_chars": 1049671,
+        "total_ms": 64.9115,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-baseline_archive-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2589,
+        "finish_ms": 60.3336,
+        "footnotes_ms": 0,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47190016,
+          "private_commit_bytes": 43212800,
+          "working_set_bytes": 47190016
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15720448,
+          "private_commit_bytes": 9232384,
+          "working_set_bytes": 13705216
+        },
+        "profiling": false,
+        "release_ms": 12.8724,
+        "released_memory": {
+          "peak_working_set_bytes": 52178944,
+          "private_commit_bytes": 11022336,
+          "working_set_bytes": 14528512
+        },
+        "setup_ms": 0.0221,
+        "text_chars": 1049644,
+        "total_ms": 61.614599999999996,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-baseline_stages-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 14.6904,
+        "consolidate_ms": 7.5033,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.288,
+        "finish_ms": 63.5288,
+        "footnotes_ms": 13.6103,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 986,
+        "inline_ms": 27.6529,
+        "inline_walk_ms": 27.7195,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47161344,
+          "private_commit_bytes": 43208704,
+          "working_set_bytes": 47161344
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15716352,
+          "private_commit_bytes": 9760768,
+          "working_set_bytes": 13676544
+        },
+        "profiling": true,
+        "release_ms": 13.7841,
+        "released_memory": {
+          "peak_working_set_bytes": 52162560,
+          "private_commit_bytes": 10268672,
+          "working_set_bytes": 14495744
+        },
+        "setup_ms": 0.0187,
+        "text_chars": 1049644,
+        "total_ms": 64.8355,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-candidate_archive-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.333,
+        "finish_ms": 62.3294,
+        "footnotes_ms": 0,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47104000,
+          "private_commit_bytes": 43204608,
+          "working_set_bytes": 47104000
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15663104,
+          "private_commit_bytes": 9216000,
+          "working_set_bytes": 13619200
+        },
+        "profiling": false,
+        "release_ms": 13.7842,
+        "released_memory": {
+          "peak_working_set_bytes": 52129792,
+          "private_commit_bytes": 10534912,
+          "working_set_bytes": 14430208
+        },
+        "setup_ms": 0.0167,
+        "text_chars": 1049644,
+        "total_ms": 63.6791,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 1,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-candidate_stages-r1.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 14.9597,
+        "consolidate_ms": 8.0469,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2658,
+        "finish_ms": 65.3604,
+        "footnotes_ms": 14.6689,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 986,
+        "inline_ms": 27.6094,
+        "inline_walk_ms": 27.678,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47169536,
+          "private_commit_bytes": 43212800,
+          "working_set_bytes": 47169536
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15687680,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13668352
+        },
+        "profiling": true,
+        "release_ms": 12.9438,
+        "released_memory": {
+          "peak_working_set_bytes": 52203520,
+          "private_commit_bytes": 11182080,
+          "working_set_bytes": 14491648
+        },
+        "setup_ms": 0.0153,
+        "text_chars": 1049644,
+        "total_ms": 66.6415,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-candidate_stages-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 14.1638,
+        "consolidate_ms": 6.9416,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2434,
+        "finish_ms": 62.2563,
+        "footnotes_ms": 13.6815,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 986,
+        "inline_ms": 27.4003,
+        "inline_walk_ms": 27.4638,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47034368,
+          "private_commit_bytes": 43155456,
+          "working_set_bytes": 47034368
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15675392,
+          "private_commit_bytes": 9232384,
+          "working_set_bytes": 13615104
+        },
+        "profiling": true,
+        "release_ms": 12.5471,
+        "released_memory": {
+          "peak_working_set_bytes": 52023296,
+          "private_commit_bytes": 9900032,
+          "working_set_bytes": 14495744
+        },
+        "setup_ms": 0.015,
+        "text_chars": 1049644,
+        "total_ms": 63.514700000000005,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-candidate_archive-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2675,
+        "finish_ms": 63.2553,
+        "footnotes_ms": 0,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47149056,
+          "private_commit_bytes": 43200512,
+          "working_set_bytes": 47149056
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15720448,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13680640
+        },
+        "profiling": false,
+        "release_ms": 13.2723,
+        "released_memory": {
+          "peak_working_set_bytes": 52195328,
+          "private_commit_bytes": 9814016,
+          "working_set_bytes": 14475264
+        },
+        "setup_ms": 0.0146,
+        "text_chars": 1049644,
+        "total_ms": 64.5374,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-baseline_stages-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 14.3155,
+        "consolidate_ms": 7.1597,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2463,
+        "finish_ms": 61.8834,
+        "footnotes_ms": 13.4238,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 986,
+        "inline_ms": 26.908,
+        "inline_walk_ms": 26.9797,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47198208,
+          "private_commit_bytes": 43212800,
+          "working_set_bytes": 47198208
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15724544,
+          "private_commit_bytes": 9228288,
+          "working_set_bytes": 13705216
+        },
+        "profiling": true,
+        "release_ms": 13.4729,
+        "released_memory": {
+          "peak_working_set_bytes": 52248576,
+          "private_commit_bytes": 11706368,
+          "working_set_bytes": 14520320
+        },
+        "setup_ms": 0.0159,
+        "text_chars": 1049644,
+        "total_ms": 63.1456,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-baseline_archive-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2524,
+        "finish_ms": 62.0642,
+        "footnotes_ms": 0,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47095808,
+          "private_commit_bytes": 43200512,
+          "working_set_bytes": 47095808
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15679488,
+          "private_commit_bytes": 9748480,
+          "working_set_bytes": 13619200
+        },
+        "profiling": false,
+        "release_ms": 12.938,
+        "released_memory": {
+          "peak_working_set_bytes": 52129792,
+          "private_commit_bytes": 10153984,
+          "working_set_bytes": 14413824
+        },
+        "setup_ms": 0.0136,
+        "text_chars": 1049644,
+        "total_ms": 63.3302,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-candidate_stages-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 14.2185,
+        "consolidate_ms": 6.8822,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2803,
+        "finish_ms": 62.3037,
+        "footnotes_ms": 13.6191,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 987,
+        "inline_ms": 27.5149,
+        "inline_walk_ms": 27.577,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47136768,
+          "private_commit_bytes": 43208704,
+          "working_set_bytes": 47136768
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15667200,
+          "private_commit_bytes": 9748480,
+          "working_set_bytes": 13639680
+        },
+        "profiling": true,
+        "release_ms": 12.6596,
+        "released_memory": {
+          "peak_working_set_bytes": 52162560,
+          "private_commit_bytes": 10682368,
+          "working_set_bytes": 14503936
+        },
+        "setup_ms": 0.0157,
+        "text_chars": 1049671,
+        "total_ms": 63.5997,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-candidate_archive-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.3028,
+        "finish_ms": 72.5001,
+        "footnotes_ms": 0,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47161344,
+          "private_commit_bytes": 43200512,
+          "working_set_bytes": 47161344
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15704064,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13656064
+        },
+        "profiling": false,
+        "release_ms": 14.7264,
+        "released_memory": {
+          "peak_working_set_bytes": 52207616,
+          "private_commit_bytes": 10649600,
+          "working_set_bytes": 14503936
+        },
+        "setup_ms": 0.0143,
+        "text_chars": 1049671,
+        "total_ms": 73.8172,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-baseline_stages-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 15.8272,
+        "consolidate_ms": 8.0008,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2806,
+        "finish_ms": 67.531,
+        "footnotes_ms": 14.5724,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 987,
+        "inline_ms": 29.0538,
+        "inline_walk_ms": 29.125,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47132672,
+          "private_commit_bytes": 43208704,
+          "working_set_bytes": 47132672
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15687680,
+          "private_commit_bytes": 9232384,
+          "working_set_bytes": 13631488
+        },
+        "profiling": true,
+        "release_ms": 14.4979,
+        "released_memory": {
+          "peak_working_set_bytes": 52113408,
+          "private_commit_bytes": 9793536,
+          "working_set_bytes": 14434304
+        },
+        "setup_ms": 0.0166,
+        "text_chars": 1049671,
+        "total_ms": 68.82820000000001,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-baseline_archive-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.3612,
+        "finish_ms": 67.744,
+        "footnotes_ms": 0,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47206400,
+          "private_commit_bytes": 43237376,
+          "working_set_bytes": 47206400
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15691776,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13680640
+        },
+        "profiling": false,
+        "release_ms": 13.5439,
+        "released_memory": {
+          "peak_working_set_bytes": 52215808,
+          "private_commit_bytes": 9834496,
+          "working_set_bytes": 14487552
+        },
+        "setup_ms": 0.0147,
+        "text_chars": 1049671,
+        "total_ms": 69.1199,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-candidate_stages-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 22.0033,
+        "consolidate_ms": 8.2615,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 26.0242,
+        "finish_ms": 81.0308,
+        "footnotes_ms": 22.292,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 39584,
+        "inline_ms": 24.1958,
+        "inline_walk_ms": 28.4681,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58646528,
+          "private_commit_bytes": 54898688,
+          "working_set_bytes": 58646528
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15720448,
+          "private_commit_bytes": 9228288,
+          "working_set_bytes": 13729792
+        },
+        "profiling": true,
+        "release_ms": 19.3598,
+        "released_memory": {
+          "peak_working_set_bytes": 67809280,
+          "private_commit_bytes": 10993664,
+          "working_set_bytes": 15089664
+        },
+        "setup_ms": 0.0155,
+        "text_chars": 1048976,
+        "total_ms": 107.0705,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-candidate_archive-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 24.7067,
+        "finish_ms": 72.0975,
+        "footnotes_ms": 0,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58646528,
+          "private_commit_bytes": 54943744,
+          "working_set_bytes": 58646528
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15695872,
+          "private_commit_bytes": 9228288,
+          "working_set_bytes": 13717504
+        },
+        "profiling": false,
+        "release_ms": 21.1195,
+        "released_memory": {
+          "peak_working_set_bytes": 67883008,
+          "private_commit_bytes": 11173888,
+          "working_set_bytes": 15011840
+        },
+        "setup_ms": 0.0144,
+        "text_chars": 1048976,
+        "total_ms": 96.8186,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-baseline_stages-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 23.7613,
+        "consolidate_ms": 10.0757,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 26.5593,
+        "finish_ms": 87.5787,
+        "footnotes_ms": 25.1849,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 39584,
+        "inline_ms": 24.0776,
+        "inline_walk_ms": 28.5503,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58585088,
+          "private_commit_bytes": 54906880,
+          "working_set_bytes": 58585088
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15687680,
+          "private_commit_bytes": 9232384,
+          "working_set_bytes": 13660160
+        },
+        "profiling": true,
+        "release_ms": 20.8533,
+        "released_memory": {
+          "peak_working_set_bytes": 67739648,
+          "private_commit_bytes": 11456512,
+          "working_set_bytes": 14999552
+        },
+        "setup_ms": 0.022,
+        "text_chars": 1048976,
+        "total_ms": 114.16,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-baseline_archive-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 24.6543,
+        "finish_ms": 77.2507,
+        "footnotes_ms": 0,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58646528,
+          "private_commit_bytes": 54902784,
+          "working_set_bytes": 58646528
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15728640,
+          "private_commit_bytes": 9756672,
+          "working_set_bytes": 13737984
+        },
+        "profiling": false,
+        "release_ms": 19.8434,
+        "released_memory": {
+          "peak_working_set_bytes": 67883008,
+          "private_commit_bytes": 12206080,
+          "working_set_bytes": 15065088
+        },
+        "setup_ms": 0.0152,
+        "text_chars": 1048976,
+        "total_ms": 101.9202,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-candidate_stages-r2.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 15.1508,
+        "consolidate_ms": 78.1223,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 35.5295,
+        "finish_ms": 223.565,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 25659,
+        "inline_ms": 128.6209,
+        "inline_walk_ms": 130.2837,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376963072,
+          "private_commit_bytes": 442990592,
+          "working_set_bytes": 376963072
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104988672,
+          "private_commit_bytes": 164216832,
+          "working_set_bytes": 104927232
+        },
+        "profiling": true,
+        "release_ms": 37.9914,
+        "released_memory": {
+          "peak_working_set_bytes": 424730624,
+          "private_commit_bytes": 165797888,
+          "working_set_bytes": 106516480
+        },
+        "setup_ms": 0.0184,
+        "text_chars": 31457934,
+        "total_ms": 259.11289999999997,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-candidate_archive-r2.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 36.1532,
+        "finish_ms": 219.606,
+        "footnotes_ms": 0,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 377106432,
+          "private_commit_bytes": 442437632,
+          "working_set_bytes": 377106432
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104935424,
+          "private_commit_bytes": 163676160,
+          "working_set_bytes": 104873984
+        },
+        "profiling": false,
+        "release_ms": 39.555,
+        "released_memory": {
+          "peak_working_set_bytes": 425631744,
+          "private_commit_bytes": 165904384,
+          "working_set_bytes": 106520576
+        },
+        "setup_ms": 0.0154,
+        "text_chars": 31457934,
+        "total_ms": 255.7746,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-baseline_stages-r2.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 12.5641,
+        "consolidate_ms": 96.0567,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 36.3644,
+        "finish_ms": 319.0559,
+        "footnotes_ms": 83.5193,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 25659,
+        "inline_ms": 125.3116,
+        "inline_walk_ms": 126.9066,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376815616,
+          "private_commit_bytes": 442990592,
+          "working_set_bytes": 376815616
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104951808,
+          "private_commit_bytes": 163680256,
+          "working_set_bytes": 104890368
+        },
+        "profiling": true,
+        "release_ms": 38.9417,
+        "released_memory": {
+          "peak_working_set_bytes": 424681472,
+          "private_commit_bytes": 165040128,
+          "working_set_bytes": 106225664
+        },
+        "setup_ms": 0.0149,
+        "text_chars": 31457934,
+        "total_ms": 355.4352,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-baseline_archive-r2.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 36.0424,
+        "finish_ms": 314.6362,
+        "footnotes_ms": 0,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 377159680,
+          "private_commit_bytes": 442441728,
+          "working_set_bytes": 377159680
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104996864,
+          "private_commit_bytes": 164225024,
+          "working_set_bytes": 104935424
+        },
+        "profiling": false,
+        "release_ms": 41.7177,
+        "released_memory": {
+          "peak_working_set_bytes": 425734144,
+          "private_commit_bytes": 165617664,
+          "working_set_bytes": 106311680
+        },
+        "setup_ms": 0.0149,
+        "text_chars": 31457934,
+        "total_ms": 350.6935,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-candidate_stages-r2.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 436.9068,
+        "consolidate_ms": 215.1507,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 48.2246,
+        "finish_ms": 1519.0777,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 29281,
+        "inline_ms": 864.7767,
+        "inline_walk_ms": 867.0136,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102712832,
+          "private_commit_bytes": 1183850496,
+          "working_set_bytes": 1102712832
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104910848,
+          "private_commit_bytes": 164192256,
+          "working_set_bytes": 104849408
+        },
+        "profiling": true,
+        "release_ms": 396.7168,
+        "released_memory": {
+          "peak_working_set_bytes": 1188823040,
+          "private_commit_bytes": 168996864,
+          "working_set_bytes": 108916736
+        },
+        "setup_ms": 0.0167,
+        "text_chars": 31457448,
+        "total_ms": 1567.319,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-candidate_archive-r2.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 37.0305,
+        "finish_ms": 1505.1512,
+        "footnotes_ms": 0,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102823424,
+          "private_commit_bytes": 1183830016,
+          "working_set_bytes": 1102823424
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 105025536,
+          "private_commit_bytes": 164196352,
+          "working_set_bytes": 104964096
+        },
+        "profiling": false,
+        "release_ms": 403.447,
+        "released_memory": {
+          "peak_working_set_bytes": 1189855232,
+          "private_commit_bytes": 169951232,
+          "working_set_bytes": 109023232
+        },
+        "setup_ms": 0.0165,
+        "text_chars": 31457448,
+        "total_ms": 1542.1982,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-baseline_stages-r2.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 468.0841,
+        "consolidate_ms": 229.4917,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 38.3685,
+        "finish_ms": 2043.1593,
+        "footnotes_ms": 484.913,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 29281,
+        "inline_ms": 858.3856,
+        "inline_walk_ms": 860.6642,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102729216,
+          "private_commit_bytes": 1183875072,
+          "working_set_bytes": 1102729216
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104960000,
+          "private_commit_bytes": 163692544,
+          "working_set_bytes": 104898560
+        },
+        "profiling": true,
+        "release_ms": 394.5371,
+        "released_memory": {
+          "peak_working_set_bytes": 1189376000,
+          "private_commit_bytes": 168943616,
+          "working_set_bytes": 108916736
+        },
+        "setup_ms": 0.0185,
+        "text_chars": 31457448,
+        "total_ms": 2081.5463,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-baseline_archive-r2.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 40.8958,
+        "finish_ms": 1885.5169,
+        "footnotes_ms": 0,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102733312,
+          "private_commit_bytes": 1183813632,
+          "working_set_bytes": 1102733312
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104976384,
+          "private_commit_bytes": 163663872,
+          "working_set_bytes": 104914944
+        },
+        "profiling": false,
+        "release_ms": 384.2868,
+        "released_memory": {
+          "peak_working_set_bytes": 1189412864,
+          "private_commit_bytes": 169234432,
+          "working_set_bytes": 108953600
+        },
+        "setup_ms": 0.0216,
+        "text_chars": 31457448,
+        "total_ms": 1926.4343000000001,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-candidate_stages-r2.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 150.1475,
+        "consolidate_ms": 72.0767,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 12.1168,
+        "finish_ms": 494.4836,
+        "footnotes_ms": 0.0001,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 9766,
+        "inline_ms": 271.5605,
+        "inline_walk_ms": 272.2515,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372510720,
+          "private_commit_bytes": 404586496,
+          "working_set_bytes": 372510720
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45080576,
+          "private_commit_bytes": 67006464,
+          "working_set_bytes": 41975808
+        },
+        "profiling": true,
+        "release_ms": 125.6371,
+        "released_memory": {
+          "peak_working_set_bytes": 400506880,
+          "private_commit_bytes": 69054464,
+          "working_set_bytes": 43794432
+        },
+        "setup_ms": 0.0165,
+        "text_chars": 10486005,
+        "total_ms": 506.61690000000004,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-candidate_archive-r2.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 12.1217,
+        "finish_ms": 503.4221,
+        "footnotes_ms": 0,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372514816,
+          "private_commit_bytes": 404570112,
+          "working_set_bytes": 372514816
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45039616,
+          "private_commit_bytes": 67002368,
+          "working_set_bytes": 41971712
+        },
+        "profiling": false,
+        "release_ms": 123.2696,
+        "released_memory": {
+          "peak_working_set_bytes": 400494592,
+          "private_commit_bytes": 69009408,
+          "working_set_bytes": 43741184
+        },
+        "setup_ms": 0.0163,
+        "text_chars": 10486005,
+        "total_ms": 515.5601,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-baseline_stages-r2.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 153.5506,
+        "consolidate_ms": 71.4178,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 11.7717,
+        "finish_ms": 640.4748,
+        "footnotes_ms": 138.7392,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 9766,
+        "inline_ms": 276.082,
+        "inline_walk_ms": 276.7616,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372543488,
+          "private_commit_bytes": 404660224,
+          "working_set_bytes": 372543488
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45051904,
+          "private_commit_bytes": 67002368,
+          "working_set_bytes": 41938944
+        },
+        "profiling": true,
+        "release_ms": 149.2899,
+        "released_memory": {
+          "peak_working_set_bytes": 400564224,
+          "private_commit_bytes": 70033408,
+          "working_set_bytes": 43900928
+        },
+        "setup_ms": 0.0153,
+        "text_chars": 10486005,
+        "total_ms": 652.2618,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-baseline_archive-r2.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 11.9851,
+        "finish_ms": 646.5711,
+        "footnotes_ms": 0,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372580352,
+          "private_commit_bytes": 404656128,
+          "working_set_bytes": 372580352
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45056000,
+          "private_commit_bytes": 67014656,
+          "working_set_bytes": 41992192
+        },
+        "profiling": false,
+        "release_ms": 141.6469,
+        "released_memory": {
+          "peak_working_set_bytes": 400543744,
+          "private_commit_bytes": 70504448,
+          "working_set_bytes": 43937792
+        },
+        "setup_ms": 0.0153,
+        "text_chars": 10486005,
+        "total_ms": 658.5715,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-candidate_stages-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 14.7509,
+        "consolidate_ms": 6.8889,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2887,
+        "finish_ms": 48.7704,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 985,
+        "inline_ms": 27.0551,
+        "inline_walk_ms": 27.1257,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47038464,
+          "private_commit_bytes": 43057152,
+          "working_set_bytes": 47038464
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15728640,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13672448
+        },
+        "profiling": true,
+        "release_ms": 13.4898,
+        "released_memory": {
+          "peak_working_set_bytes": 50790400,
+          "private_commit_bytes": 9953280,
+          "working_set_bytes": 14614528
+        },
+        "setup_ms": 0.0153,
+        "text_chars": 1049622,
+        "total_ms": 50.074400000000004,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-candidate_archive-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2633,
+        "finish_ms": 51.8078,
+        "footnotes_ms": 0,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47050752,
+          "private_commit_bytes": 43098112,
+          "working_set_bytes": 47050752
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15679488,
+          "private_commit_bytes": 9228288,
+          "working_set_bytes": 13684736
+        },
+        "profiling": false,
+        "release_ms": 12.7471,
+        "released_memory": {
+          "peak_working_set_bytes": 52088832,
+          "private_commit_bytes": 9904128,
+          "working_set_bytes": 14557184
+        },
+        "setup_ms": 0.0156,
+        "text_chars": 1049622,
+        "total_ms": 53.0867,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-baseline_stages-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 13.2612,
+        "consolidate_ms": 6.8181,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2738,
+        "finish_ms": 60.6873,
+        "footnotes_ms": 13.2073,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 985,
+        "inline_ms": 27.3385,
+        "inline_walk_ms": 27.396,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47001600,
+          "private_commit_bytes": 43065344,
+          "working_set_bytes": 47001600
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15683584,
+          "private_commit_bytes": 9236480,
+          "working_set_bytes": 13643776
+        },
+        "profiling": true,
+        "release_ms": 13.8553,
+        "released_memory": {
+          "peak_working_set_bytes": 50765824,
+          "private_commit_bytes": 11354112,
+          "working_set_bytes": 14577664
+        },
+        "setup_ms": 0.0152,
+        "text_chars": 1049622,
+        "total_ms": 61.9763,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-baseline_archive-r2.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.5075,
+        "finish_ms": 60.1345,
+        "footnotes_ms": 0,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47005696,
+          "private_commit_bytes": 43069440,
+          "working_set_bytes": 47005696
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15671296,
+          "private_commit_bytes": 9216000,
+          "working_set_bytes": 13660160
+        },
+        "profiling": false,
+        "release_ms": 13.8236,
+        "released_memory": {
+          "peak_working_set_bytes": 52416512,
+          "private_commit_bytes": 9953280,
+          "working_set_bytes": 14594048
+        },
+        "setup_ms": 0.0203,
+        "text_chars": 1049622,
+        "total_ms": 61.6623,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-baseline_archive-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2371,
+        "finish_ms": 60.8995,
+        "footnotes_ms": 0,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47001600,
+          "private_commit_bytes": 43065344,
+          "working_set_bytes": 47001600
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15724544,
+          "private_commit_bytes": 9228288,
+          "working_set_bytes": 13672448
+        },
+        "profiling": false,
+        "release_ms": 12.6592,
+        "released_memory": {
+          "peak_working_set_bytes": 52043776,
+          "private_commit_bytes": 10838016,
+          "working_set_bytes": 14589952
+        },
+        "setup_ms": 0.0214,
+        "text_chars": 1049622,
+        "total_ms": 62.158,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-baseline_stages-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 13.7564,
+        "consolidate_ms": 7.0979,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2797,
+        "finish_ms": 62.3908,
+        "footnotes_ms": 14.6296,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 985,
+        "inline_ms": 26.8349,
+        "inline_walk_ms": 26.9013,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47095808,
+          "private_commit_bytes": 43102208,
+          "working_set_bytes": 47095808
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15724544,
+          "private_commit_bytes": 9756672,
+          "working_set_bytes": 13721600
+        },
+        "profiling": true,
+        "release_ms": 12.9092,
+        "released_memory": {
+          "peak_working_set_bytes": 52109312,
+          "private_commit_bytes": 10301440,
+          "working_set_bytes": 14630912
+        },
+        "setup_ms": 0.0145,
+        "text_chars": 1049622,
+        "total_ms": 63.685,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-candidate_archive-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.4403,
+        "finish_ms": 51.1032,
+        "footnotes_ms": 0,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47038464,
+          "private_commit_bytes": 43077632,
+          "working_set_bytes": 47038464
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15691776,
+          "private_commit_bytes": 9216000,
+          "working_set_bytes": 13660160
+        },
+        "profiling": false,
+        "release_ms": 13.4202,
+        "released_memory": {
+          "peak_working_set_bytes": 50790400,
+          "private_commit_bytes": 9879552,
+          "working_set_bytes": 14528512
+        },
+        "setup_ms": 0.0142,
+        "text_chars": 1049622,
+        "total_ms": 52.557700000000004,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-candidate_stages-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 17.1796,
+        "consolidate_ms": 7.3359,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.3107,
+        "finish_ms": 59.3611,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "0e01af66e818430b49e0707ce610aa8e5e6e26714de23ba68bc7faf69ee58a2a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 985,
+        "inline_ms": 34.7633,
+        "inline_walk_ms": 34.8396,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47030272,
+          "private_commit_bytes": 43061248,
+          "working_set_bytes": 47030272
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15708160,
+          "private_commit_bytes": 9228288,
+          "working_set_bytes": 13668352
+        },
+        "profiling": true,
+        "release_ms": 15.2204,
+        "released_memory": {
+          "peak_working_set_bytes": 50794496,
+          "private_commit_bytes": 11321344,
+          "working_set_bytes": 14635008
+        },
+        "setup_ms": 0.016,
+        "text_chars": 1049622,
+        "total_ms": 60.6878,
+        "tree": {
+          "nodes": 128588,
+          "sha256": "537b2191a6d503524d64aaafd3bb583f1d82801d13d97695d0e623903acd13b2"
+        },
+        "utf8_bytes": 1049632,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-baseline_archive-r3.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 12.4168,
+        "finish_ms": 658.2012,
+        "footnotes_ms": 0,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372490240,
+          "private_commit_bytes": 404561920,
+          "working_set_bytes": 372490240
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45064192,
+          "private_commit_bytes": 66998272,
+          "working_set_bytes": 41975808
+        },
+        "profiling": false,
+        "release_ms": 123.4154,
+        "released_memory": {
+          "peak_working_set_bytes": 400457728,
+          "private_commit_bytes": 69050368,
+          "working_set_bytes": 43773952
+        },
+        "setup_ms": 0.016,
+        "text_chars": 10486005,
+        "total_ms": 670.634,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-baseline_stages-r3.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 151.0276,
+        "consolidate_ms": 80.8181,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 11.8621,
+        "finish_ms": 648.0633,
+        "footnotes_ms": 144.5238,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 9766,
+        "inline_ms": 271.0018,
+        "inline_walk_ms": 271.6875,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372494336,
+          "private_commit_bytes": 404602880,
+          "working_set_bytes": 372494336
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45076480,
+          "private_commit_bytes": 67022848,
+          "working_set_bytes": 41967616
+        },
+        "profiling": true,
+        "release_ms": 158.0464,
+        "released_memory": {
+          "peak_working_set_bytes": 400486400,
+          "private_commit_bytes": 69140480,
+          "working_set_bytes": 43839488
+        },
+        "setup_ms": 0.018,
+        "text_chars": 10486005,
+        "total_ms": 659.9434,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-candidate_archive-r3.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 13.262,
+        "finish_ms": 512.5132,
+        "footnotes_ms": 0,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372580352,
+          "private_commit_bytes": 404692992,
+          "working_set_bytes": 372580352
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45080576,
+          "private_commit_bytes": 67010560,
+          "working_set_bytes": 42037248
+        },
+        "profiling": false,
+        "release_ms": 131.3684,
+        "released_memory": {
+          "peak_working_set_bytes": 400359424,
+          "private_commit_bytes": 69079040,
+          "working_set_bytes": 43814912
+        },
+        "setup_ms": 0.0153,
+        "text_chars": 10486005,
+        "total_ms": 525.7905,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\10MiB-gui-candidate_stages-r3.json",
+      "raw": {
+        "MiB": 10,
+        "autolink_postprocess_ms": 174.4181,
+        "consolidate_ms": 76.6818,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 12.2344,
+        "finish_ms": 538.1304,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "35f0f619274875517ee82d27216a11417f0aa51a0648e2a83fa591e95bdb2a6a",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 9766,
+        "inline_ms": 286.2212,
+        "inline_walk_ms": 287.0234,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 372375552,
+          "private_commit_bytes": 404516864,
+          "working_set_bytes": 372375552
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 45035520,
+          "private_commit_bytes": 67006464,
+          "working_set_bytes": 41963520
+        },
+        "profiling": true,
+        "release_ms": 133.6191,
+        "released_memory": {
+          "peak_working_set_bytes": 399745024,
+          "private_commit_bytes": 70053888,
+          "working_set_bytes": 43978752
+        },
+        "setup_ms": 0.019,
+        "text_chars": 10486005,
+        "total_ms": 550.3838000000001,
+        "tree": {
+          "nodes": 1284518,
+          "sha256": "3f63a51056419ebd790461ef04d7393cfcdaaf4a98634eec1b8fcfeaf4bac5e6"
+        },
+        "utf8_bytes": 10486015,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-baseline_archive-r3.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 37.7192,
+        "finish_ms": 2003.7888,
+        "footnotes_ms": 0,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102737408,
+          "private_commit_bytes": 1183838208,
+          "working_set_bytes": 1102737408
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104972288,
+          "private_commit_bytes": 163684352,
+          "working_set_bytes": 104910848
+        },
+        "profiling": false,
+        "release_ms": 382.1494,
+        "released_memory": {
+          "peak_working_set_bytes": 1189400576,
+          "private_commit_bytes": 168775680,
+          "working_set_bytes": 108789760
+        },
+        "setup_ms": 0.0176,
+        "text_chars": 31457448,
+        "total_ms": 2041.5256,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-baseline_stages-r3.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 425.5364,
+        "consolidate_ms": 219.007,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 37.1383,
+        "finish_ms": 1913.7586,
+        "footnotes_ms": 443.0155,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 29281,
+        "inline_ms": 824.1705,
+        "inline_walk_ms": 826.1938,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102807040,
+          "private_commit_bytes": 1183805440,
+          "working_set_bytes": 1102807040
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 105005056,
+          "private_commit_bytes": 164188160,
+          "working_set_bytes": 104943616
+        },
+        "profiling": true,
+        "release_ms": 423.7638,
+        "released_memory": {
+          "peak_working_set_bytes": 1189859328,
+          "private_commit_bytes": 169824256,
+          "working_set_bytes": 109027328
+        },
+        "setup_ms": 0.0162,
+        "text_chars": 31457448,
+        "total_ms": 1950.9131,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-candidate_archive-r3.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 38.3976,
+        "finish_ms": 1560.9356,
+        "footnotes_ms": 0,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102782464,
+          "private_commit_bytes": 1183862784,
+          "working_set_bytes": 1102782464
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104972288,
+          "private_commit_bytes": 163667968,
+          "working_set_bytes": 104910848
+        },
+        "profiling": false,
+        "release_ms": 383.9728,
+        "released_memory": {
+          "peak_working_set_bytes": 1189429248,
+          "private_commit_bytes": 169754624,
+          "working_set_bytes": 108920832
+        },
+        "setup_ms": 0.0237,
+        "text_chars": 31457448,
+        "total_ms": 1599.3569,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-gui-candidate_stages-r3.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 449.6714,
+        "consolidate_ms": 221.4721,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 37.6113,
+        "finish_ms": 1517.7288,
+        "footnotes_ms": 0.0005,
+        "html_sha256": "e0ef6f0924041f3f855f61506278a08eacb3002a339abad43d4bb2a4579178fd",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 29281,
+        "inline_ms": 844.5163,
+        "inline_walk_ms": 846.5773,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 1102766080,
+          "private_commit_bytes": 1183801344,
+          "working_set_bytes": 1102766080
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104960000,
+          "private_commit_bytes": 164192256,
+          "working_set_bytes": 104898560
+        },
+        "profiling": true,
+        "release_ms": 396.4639,
+        "released_memory": {
+          "peak_working_set_bytes": 1189441536,
+          "private_commit_bytes": 168873984,
+          "working_set_bytes": 108867584
+        },
+        "setup_ms": 0.0157,
+        "text_chars": 31457448,
+        "total_ms": 1555.3558,
+        "tree": {
+          "nodes": 3853460,
+          "sha256": "34fad635a03a9872763fce639762fff6cdfe73142921759c706f1ac13d1f3ddc"
+        },
+        "utf8_bytes": 31457458,
+        "workload": "gui"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-baseline_archive-r3.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 35.9949,
+        "finish_ms": 303.5309,
+        "footnotes_ms": 0,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376741888,
+          "private_commit_bytes": 442707968,
+          "working_set_bytes": 376741888
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104972288,
+          "private_commit_bytes": 164220928,
+          "working_set_bytes": 104910848
+        },
+        "profiling": false,
+        "release_ms": 39.8056,
+        "released_memory": {
+          "peak_working_set_bytes": 425369600,
+          "private_commit_bytes": 165093376,
+          "working_set_bytes": 106311680
+        },
+        "setup_ms": 0.0153,
+        "text_chars": 31457934,
+        "total_ms": 339.5411,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-baseline_stages-r3.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 14.5927,
+        "consolidate_ms": 82.2622,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 37.5529,
+        "finish_ms": 334.4108,
+        "footnotes_ms": 104.4844,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 25659,
+        "inline_ms": 131.3145,
+        "inline_walk_ms": 133.0627,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376819712,
+          "private_commit_bytes": 443006976,
+          "working_set_bytes": 376819712
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104947712,
+          "private_commit_bytes": 163700736,
+          "working_set_bytes": 104886272
+        },
+        "profiling": true,
+        "release_ms": 39.5329,
+        "released_memory": {
+          "peak_working_set_bytes": 424673280,
+          "private_commit_bytes": 165810176,
+          "working_set_bytes": 106471424
+        },
+        "setup_ms": 0.0195,
+        "text_chars": 31457934,
+        "total_ms": 371.9832,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-candidate_archive-r3.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 38.6394,
+        "finish_ms": 215.6892,
+        "footnotes_ms": 0,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376696832,
+          "private_commit_bytes": 442712064,
+          "working_set_bytes": 376696832
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104906752,
+          "private_commit_bytes": 163659776,
+          "working_set_bytes": 104845312
+        },
+        "profiling": false,
+        "release_ms": 36.3482,
+        "released_memory": {
+          "peak_working_set_bytes": 425275392,
+          "private_commit_bytes": 165113856,
+          "working_set_bytes": 106299392
+        },
+        "setup_ms": 0.0159,
+        "text_chars": 31457934,
+        "total_ms": 254.3445,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\30MiB-plain-candidate_stages-r3.json",
+      "raw": {
+        "MiB": 30,
+        "autolink_postprocess_ms": 15.2261,
+        "consolidate_ms": 74.1767,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 37.5715,
+        "finish_ms": 221.6578,
+        "footnotes_ms": 0.0002,
+        "html_sha256": "d9142b8e81daa85b90e9f40b8ee33794bbf99fcad5c3d9f9f6de3652a0ed4c59",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 25659,
+        "inline_ms": 130.675,
+        "inline_walk_ms": 132.2478,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 376799232,
+          "private_commit_bytes": 442986496,
+          "working_set_bytes": 376799232
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 104931328,
+          "private_commit_bytes": 164216832,
+          "working_set_bytes": 104869888
+        },
+        "profiling": true,
+        "release_ms": 37.7543,
+        "released_memory": {
+          "peak_working_set_bytes": 424677376,
+          "private_commit_bytes": 165031936,
+          "working_set_bytes": 106225664
+        },
+        "setup_ms": 0.0169,
+        "text_chars": 31457934,
+        "total_ms": 259.2462,
+        "tree": {
+          "nodes": 51319,
+          "sha256": "07afd313c1ec7df8a9189f23800598017cb19040c7954efc37c0f49ec9776d92"
+        },
+        "utf8_bytes": 31457934,
+        "workload": "plain"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-baseline_archive-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 25.2448,
+        "finish_ms": 75.7627,
+        "footnotes_ms": 0,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58662912,
+          "private_commit_bytes": 54947840,
+          "working_set_bytes": 58662912
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15728640,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13713408
+        },
+        "profiling": false,
+        "release_ms": 21.794,
+        "released_memory": {
+          "peak_working_set_bytes": 67895296,
+          "private_commit_bytes": 12083200,
+          "working_set_bytes": 15069184
+        },
+        "setup_ms": 0.0155,
+        "text_chars": 1048976,
+        "total_ms": 101.023,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-baseline_stages-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 24.8226,
+        "consolidate_ms": 8.1891,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 25.1427,
+        "finish_ms": 84.2064,
+        "footnotes_ms": 22.6455,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 39584,
+        "inline_ms": 24.1212,
+        "inline_walk_ms": 28.5427,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58630144,
+          "private_commit_bytes": 54956032,
+          "working_set_bytes": 58630144
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15708160,
+          "private_commit_bytes": 9244672,
+          "working_set_bytes": 13701120
+        },
+        "profiling": true,
+        "release_ms": 19.5818,
+        "released_memory": {
+          "peak_working_set_bytes": 67833856,
+          "private_commit_bytes": 11337728,
+          "working_set_bytes": 15011840
+        },
+        "setup_ms": 0.0152,
+        "text_chars": 1048976,
+        "total_ms": 109.3643,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-candidate_archive-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 28.1305,
+        "finish_ms": 72.3626,
+        "footnotes_ms": 0,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58675200,
+          "private_commit_bytes": 54935552,
+          "working_set_bytes": 58675200
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15740928,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13754368
+        },
+        "profiling": false,
+        "release_ms": 20.3586,
+        "released_memory": {
+          "peak_working_set_bytes": 67870720,
+          "private_commit_bytes": 11317248,
+          "working_set_bytes": 15052800
+        },
+        "setup_ms": 0.0141,
+        "text_chars": 1048976,
+        "total_ms": 100.5072,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-extensions-candidate_stages-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 23.3184,
+        "consolidate_ms": 12.6127,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 24.7926,
+        "finish_ms": 84.3838,
+        "footnotes_ms": 22.1925,
+        "html_sha256": "06319e0259c8ff30ee42ed1eaa6238d25552ecaebc4ebeb7d4a7dfaa62ddbe2f",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 39584,
+        "inline_ms": 22.423,
+        "inline_walk_ms": 26.2533,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 58613760,
+          "private_commit_bytes": 54919168,
+          "working_set_bytes": 58613760
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15708160,
+          "private_commit_bytes": 9216000,
+          "working_set_bytes": 13680640
+        },
+        "profiling": true,
+        "release_ms": 19.2287,
+        "released_memory": {
+          "peak_working_set_bytes": 67870720,
+          "private_commit_bytes": 10805248,
+          "working_set_bytes": 14745600
+        },
+        "setup_ms": 0.014,
+        "text_chars": 1048976,
+        "total_ms": 109.1904,
+        "tree": {
+          "nodes": 185554,
+          "sha256": "a35ffb7cef2d0418176b2689e6efb09e8c3fde75b9bc06a7a0ad3eea2c1dbfad"
+        },
+        "utf8_bytes": 1073716,
+        "workload": "extensions"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-baseline_archive-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.3038,
+        "finish_ms": 62.6813,
+        "footnotes_ms": 0,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47206400,
+          "private_commit_bytes": 43212800,
+          "working_set_bytes": 47206400
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15736832,
+          "private_commit_bytes": 9236480,
+          "working_set_bytes": 13701120
+        },
+        "profiling": false,
+        "release_ms": 13.0197,
+        "released_memory": {
+          "peak_working_set_bytes": 52633600,
+          "private_commit_bytes": 11104256,
+          "working_set_bytes": 14581760
+        },
+        "setup_ms": 0.0158,
+        "text_chars": 1049671,
+        "total_ms": 64.0009,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-baseline_stages-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 15.486,
+        "consolidate_ms": 9.4808,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2783,
+        "finish_ms": 73.0392,
+        "footnotes_ms": 14.56,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 987,
+        "inline_ms": 33.4272,
+        "inline_walk_ms": 33.5062,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47120384,
+          "private_commit_bytes": 43220992,
+          "working_set_bytes": 47120384
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15679488,
+          "private_commit_bytes": 9764864,
+          "working_set_bytes": 13619200
+        },
+        "profiling": true,
+        "release_ms": 12.7605,
+        "released_memory": {
+          "peak_working_set_bytes": 52109312,
+          "private_commit_bytes": 9846784,
+          "working_set_bytes": 14446592
+        },
+        "setup_ms": 0.0162,
+        "text_chars": 1049671,
+        "total_ms": 74.3337,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-candidate_archive-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2745,
+        "finish_ms": 62.6728,
+        "footnotes_ms": 0,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47194112,
+          "private_commit_bytes": 43204608,
+          "working_set_bytes": 47194112
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15732736,
+          "private_commit_bytes": 9216000,
+          "working_set_bytes": 13692928
+        },
+        "profiling": false,
+        "release_ms": 12.8614,
+        "released_memory": {
+          "peak_working_set_bytes": 52191232,
+          "private_commit_bytes": 10665984,
+          "working_set_bytes": 14548992
+        },
+        "setup_ms": 0.0134,
+        "text_chars": 1049671,
+        "total_ms": 63.9607,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-footnote-candidate_stages-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 15.0497,
+        "consolidate_ms": 7.7856,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2714,
+        "finish_ms": 66.3783,
+        "footnotes_ms": 13.4882,
+        "html_sha256": "cf40ebf0cf1fffc994bc8ad70310a8885cee8ceae920790de10e9cc5bc096645",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 987,
+        "inline_ms": 29.9707,
+        "inline_walk_ms": 30.0494,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47169536,
+          "private_commit_bytes": 43237376,
+          "working_set_bytes": 47169536
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15712256,
+          "private_commit_bytes": 9744384,
+          "working_set_bytes": 13660160
+        },
+        "profiling": true,
+        "release_ms": 13.2262,
+        "released_memory": {
+          "peak_working_set_bytes": 52199424,
+          "private_commit_bytes": 10674176,
+          "working_set_bytes": 14524416
+        },
+        "setup_ms": 0.0151,
+        "text_chars": 1049671,
+        "total_ms": 67.6648,
+        "tree": {
+          "nodes": 128598,
+          "sha256": "3896cd9d4e9600ac0116719a0f03f3d643c4bcb1db4e7c12bea6a28474ca4a91"
+        },
+        "utf8_bytes": 1049681,
+        "workload": "gui-footnote"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-baseline_archive-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.396,
+        "finish_ms": 68.8054,
+        "footnotes_ms": 0,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47218688,
+          "private_commit_bytes": 43220992,
+          "working_set_bytes": 47218688
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15736832,
+          "private_commit_bytes": 9236480,
+          "working_set_bytes": 13737984
+        },
+        "profiling": false,
+        "release_ms": 14.1843,
+        "released_memory": {
+          "peak_working_set_bytes": 52215808,
+          "private_commit_bytes": 10547200,
+          "working_set_bytes": 14548992
+        },
+        "setup_ms": 0.0154,
+        "text_chars": 1049644,
+        "total_ms": 70.2168,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "baseline_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-baseline_stages-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 16.2465,
+        "consolidate_ms": 8.5035,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2559,
+        "finish_ms": 66.6141,
+        "footnotes_ms": 14.2221,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 986,
+        "inline_ms": 27.5648,
+        "inline_walk_ms": 27.6357,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47149056,
+          "private_commit_bytes": 43204608,
+          "working_set_bytes": 47149056
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15695872,
+          "private_commit_bytes": 9248768,
+          "working_set_bytes": 13676544
+        },
+        "profiling": true,
+        "release_ms": 14.1785,
+        "released_memory": {
+          "peak_working_set_bytes": 52170752,
+          "private_commit_bytes": 10211328,
+          "working_set_bytes": 14495744
+        },
+        "setup_ms": 0.016,
+        "text_chars": 1049644,
+        "total_ms": 67.886,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_archive",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-candidate_archive-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 0,
+        "consolidate_ms": 0,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2685,
+        "finish_ms": 75.6578,
+        "footnotes_ms": 0,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "ordinary_archive",
+        "inline_calls": 0,
+        "inline_ms": 0,
+        "inline_walk_ms": 0,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47206400,
+          "private_commit_bytes": 43245568,
+          "working_set_bytes": 47206400
+        },
+        "postprocess_calls": 0,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15745024,
+          "private_commit_bytes": 9248768,
+          "working_set_bytes": 13721600
+        },
+        "profiling": false,
+        "release_ms": 13.3156,
+        "released_memory": {
+          "peak_working_set_bytes": 52207616,
+          "private_commit_bytes": 10768384,
+          "working_set_bytes": 14565376
+        },
+        "setup_ms": 0.0158,
+        "text_chars": 1049644,
+        "total_ms": 76.9421,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    },
+    {
+      "repeat": 3,
+      "variant": "candidate_stages",
+      "path": "G:\\github\\Muffin\\build\\footnote-performance\\1MiB-gui-undefined-candidate_stages-r3.json",
+      "raw": {
+        "MiB": 1,
+        "autolink_postprocess_ms": 14.9132,
+        "consolidate_ms": 7.7046,
+        "extensions": [
+          "table",
+          "autolink",
+          "tasklist",
+          "math"
+        ],
+        "feed_ms": 1.2456,
+        "finish_ms": 62.4714,
+        "footnotes_ms": 13.0881,
+        "html_sha256": "1d5c4d3b11646f3daceda8dd80b95403cd1a843a2a969a8b7b0b180a6183e2d4",
+        "implementation": "diagnostic_block_object",
+        "inline_calls": 986,
+        "inline_ms": 26.6897,
+        "inline_walk_ms": 26.7596,
+        "mode": "full",
+        "parsed_memory": {
+          "peak_working_set_bytes": 47128576,
+          "private_commit_bytes": 43200512,
+          "working_set_bytes": 47128576
+        },
+        "postprocess_calls": 1,
+        "prepared_memory": {
+          "peak_working_set_bytes": 15687680,
+          "private_commit_bytes": 9224192,
+          "working_set_bytes": 13651968
+        },
+        "profiling": true,
+        "release_ms": 12.4489,
+        "released_memory": {
+          "peak_working_set_bytes": 52174848,
+          "private_commit_bytes": 9830400,
+          "working_set_bytes": 14458880
+        },
+        "setup_ms": 0.0164,
+        "text_chars": 1049644,
+        "total_ms": 63.7334,
+        "tree": {
+          "nodes": 128590,
+          "sha256": "570de12c7438e4928c8e02257fc725fffdf65ddd79f1b5ec25fb4e674412be5c"
+        },
+        "utf8_bytes": 1049654,
+        "workload": "gui-undefined"
+      }
+    }
+  ],
+  "summaries": [
+    {
+      "mib": 1,
+      "workload": "gui",
+      "baseline_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0214,
+          "feed_ms": 1.2777,
+          "finish_ms": 60.1515,
+          "total_ms": 61.6623,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 12.6592
+        },
+        "total_samples_ms": [
+          61.4518,
+          61.6623,
+          62.158
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15724544,
+            "private_commit_bytes": 9228288,
+            "working_set_bytes": 13672448
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47005696,
+            "private_commit_bytes": 43069440,
+            "working_set_bytes": 47005696
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52416512,
+            "private_commit_bytes": 10792960,
+            "working_set_bytes": 14594048
+          }
+        }
+      },
+      "baseline_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0152,
+          "feed_ms": 1.2797,
+          "finish_ms": 60.6873,
+          "total_ms": 61.9763,
+          "inline_ms": 26.8349,
+          "inline_walk_ms": 26.9013,
+          "footnotes_ms": 13.2073,
+          "consolidate_ms": 7.0559,
+          "autolink_postprocess_ms": 13.7564,
+          "release_ms": 12.9092
+        },
+        "total_samples_ms": [
+          60.4819,
+          61.9763,
+          63.685
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15724544,
+            "private_commit_bytes": 9265152,
+            "working_set_bytes": 13721600
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47095808,
+            "private_commit_bytes": 43102208,
+            "working_set_bytes": 47095808
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52109312,
+            "private_commit_bytes": 10301440,
+            "working_set_bytes": 14630912
+          }
+        }
+      },
+      "candidate_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0156,
+          "feed_ms": 1.4403,
+          "finish_ms": 51.8078,
+          "total_ms": 53.0867,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 13.4202
+        },
+        "total_samples_ms": [
+          55.071,
+          53.0867,
+          52.557700000000004
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15691776,
+            "private_commit_bytes": 9224192,
+            "working_set_bytes": 13684736
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47038464,
+            "private_commit_bytes": 43077632,
+            "working_set_bytes": 47038464
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52043776,
+            "private_commit_bytes": 9904128,
+            "working_set_bytes": 14557184
+          }
+        }
+      },
+      "candidate_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.016,
+          "feed_ms": 1.2887,
+          "finish_ms": 50.0229,
+          "total_ms": 51.3062,
+          "inline_ms": 27.3959,
+          "inline_walk_ms": 27.4582,
+          "footnotes_ms": 0.0002,
+          "consolidate_ms": 7.3359,
+          "autolink_postprocess_ms": 14.7509,
+          "release_ms": 13.8665
+        },
+        "total_samples_ms": [
+          51.3062,
+          50.074400000000004,
+          60.6878
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15708160,
+            "private_commit_bytes": 9228288,
+            "working_set_bytes": 13668352
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47038464,
+            "private_commit_bytes": 43061248,
+            "working_set_bytes": 47038464
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 50794496,
+            "private_commit_bytes": 9953280,
+            "working_set_bytes": 14614528
+          }
+        }
+      }
+    },
+    {
+      "mib": 10,
+      "workload": "gui",
+      "baseline_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.016,
+          "feed_ms": 11.9851,
+          "finish_ms": 646.5711,
+          "total_ms": 658.5715,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 127.7946
+        },
+        "total_samples_ms": [
+          648.6090999999999,
+          658.5715,
+          670.634
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 45056000,
+            "private_commit_bytes": 67014656,
+            "working_set_bytes": 41992192
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 372539392,
+            "private_commit_bytes": 404582400,
+            "working_set_bytes": 372539392
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 400543744,
+            "private_commit_bytes": 69857280,
+            "working_set_bytes": 43798528
+          }
+        }
+      },
+      "baseline_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0166,
+          "feed_ms": 11.8621,
+          "finish_ms": 640.4748,
+          "total_ms": 652.2618,
+          "inline_ms": 272.1898,
+          "inline_walk_ms": 272.8726,
+          "footnotes_ms": 138.7392,
+          "consolidate_ms": 76.9337,
+          "autolink_postprocess_ms": 151.0276,
+          "release_ms": 149.2899
+        },
+        "total_samples_ms": [
+          643.9722,
+          652.2618,
+          659.9434
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 45072384,
+            "private_commit_bytes": 67014656,
+            "working_set_bytes": 41967616
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 372527104,
+            "private_commit_bytes": 404602880,
+            "working_set_bytes": 372527104
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 400547840,
+            "private_commit_bytes": 69140480,
+            "working_set_bytes": 43843584
+          }
+        }
+      },
+      "candidate_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0153,
+          "feed_ms": 12.1217,
+          "finish_ms": 503.4221,
+          "total_ms": 515.5601,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 131.3684
+        },
+        "total_samples_ms": [
+          502.15439999999995,
+          515.5601,
+          525.7905
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 45080576,
+            "private_commit_bytes": 67010560,
+            "working_set_bytes": 42037248
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 372580352,
+            "private_commit_bytes": 404692992,
+            "working_set_bytes": 372580352
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 400359424,
+            "private_commit_bytes": 69079040,
+            "working_set_bytes": 43814912
+          }
+        }
+      },
+      "candidate_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0165,
+          "feed_ms": 12.1506,
+          "finish_ms": 503.6949,
+          "total_ms": 515.8615,
+          "inline_ms": 278.8278,
+          "inline_walk_ms": 279.5137,
+          "footnotes_ms": 0.0002,
+          "consolidate_ms": 76.6818,
+          "autolink_postprocess_ms": 150.1475,
+          "release_ms": 125.6371
+        },
+        "total_samples_ms": [
+          515.8615,
+          506.61690000000004,
+          550.3838000000001
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 45080576,
+            "private_commit_bytes": 67006464,
+            "working_set_bytes": 41975808
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 372510720,
+            "private_commit_bytes": 404586496,
+            "working_set_bytes": 372510720
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 400334848,
+            "private_commit_bytes": 69734400,
+            "working_set_bytes": 43794432
+          }
+        }
+      }
+    },
+    {
+      "mib": 30,
+      "workload": "gui",
+      "baseline_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0176,
+          "feed_ms": 37.7192,
+          "finish_ms": 1885.5169,
+          "total_ms": 1926.4343000000001,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 384.2868
+        },
+        "total_samples_ms": [
+          1863.8013,
+          1926.4343000000001,
+          2041.5256
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 104976384,
+            "private_commit_bytes": 163672064,
+            "working_set_bytes": 104914944
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 1102733312,
+            "private_commit_bytes": 1183813632,
+            "working_set_bytes": 1102733312
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 1189400576,
+            "private_commit_bytes": 169091072,
+            "working_set_bytes": 108830720
+          }
+        }
+      },
+      "baseline_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0177,
+          "feed_ms": 38.3685,
+          "finish_ms": 1913.7586,
+          "total_ms": 1952.1789,
+          "inline_ms": 858.3856,
+          "inline_walk_ms": 860.6642,
+          "footnotes_ms": 443.0155,
+          "consolidate_ms": 220.1451,
+          "autolink_postprocess_ms": 434.808,
+          "release_ms": 394.5371
+        },
+        "total_samples_ms": [
+          1952.1789,
+          2081.5463,
+          1950.9131
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 104960000,
+            "private_commit_bytes": 163692544,
+            "working_set_bytes": 104898560
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 1102729216,
+            "private_commit_bytes": 1183830016,
+            "working_set_bytes": 1102729216
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 1189376000,
+            "private_commit_bytes": 169824256,
+            "working_set_bytes": 108916736
+          }
+        }
+      },
+      "candidate_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0165,
+          "feed_ms": 37.0305,
+          "finish_ms": 1505.1512,
+          "total_ms": 1542.1982,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 383.9728
+        },
+        "total_samples_ms": [
+          1495.0753,
+          1542.1982,
+          1599.3569
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 104972288,
+            "private_commit_bytes": 163667968,
+            "working_set_bytes": 104910848
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 1102782464,
+            "private_commit_bytes": 1183830016,
+            "working_set_bytes": 1102782464
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 1189429248,
+            "private_commit_bytes": 169820160,
+            "working_set_bytes": 108920832
+          }
+        }
+      },
+      "candidate_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0163,
+          "feed_ms": 38.1851,
+          "finish_ms": 1519.0777,
+          "total_ms": 1567.319,
+          "inline_ms": 844.5163,
+          "inline_walk_ms": 846.5773,
+          "footnotes_ms": 0.0002,
+          "consolidate_ms": 221.4721,
+          "autolink_postprocess_ms": 449.6714,
+          "release_ms": 396.7168
+        },
+        "total_samples_ms": [
+          1593.8556999999998,
+          1567.319,
+          1555.3558
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 104943616,
+            "private_commit_bytes": 164192256,
+            "working_set_bytes": 104882176
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 1102761984,
+            "private_commit_bytes": 1183850496,
+            "working_set_bytes": 1102761984
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 1189376000,
+            "private_commit_bytes": 168996864,
+            "working_set_bytes": 108916736
+          }
+        }
+      }
+    },
+    {
+      "mib": 30,
+      "workload": "plain",
+      "baseline_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0152,
+          "feed_ms": 36.0424,
+          "finish_ms": 314.6362,
+          "total_ms": 350.6935,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 40.5235
+        },
+        "total_samples_ms": [
+          368.9271,
+          350.6935,
+          339.5411
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 104996864,
+            "private_commit_bytes": 164225024,
+            "working_set_bytes": 104935424
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 376889344,
+            "private_commit_bytes": 442707968,
+            "working_set_bytes": 376889344
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 425369600,
+            "private_commit_bytes": 165093376,
+            "working_set_bytes": 106311680
+          }
+        }
+      },
+      "baseline_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0162,
+          "feed_ms": 36.3644,
+          "finish_ms": 319.0559,
+          "total_ms": 355.4352,
+          "inline_ms": 131.3145,
+          "inline_walk_ms": 133.0627,
+          "footnotes_ms": 83.9554,
+          "consolidate_ms": 82.2622,
+          "autolink_postprocess_ms": 12.8179,
+          "release_ms": 38.9417
+        },
+        "total_samples_ms": [
+          348.7481,
+          355.4352,
+          371.9832
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 104951808,
+            "private_commit_bytes": 163684352,
+            "working_set_bytes": 104890368
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 376815616,
+            "private_commit_bytes": 442990592,
+            "working_set_bytes": 376815616
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 424681472,
+            "private_commit_bytes": 165138432,
+            "working_set_bytes": 106377216
+          }
+        }
+      },
+      "candidate_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0154,
+          "feed_ms": 36.1532,
+          "finish_ms": 215.6892,
+          "total_ms": 254.3445,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 39.555
+        },
+        "total_samples_ms": [
+          250.3623,
+          255.7746,
+          254.3445
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 104935424,
+            "private_commit_bytes": 163676160,
+            "working_set_bytes": 104873984
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 376819712,
+            "private_commit_bytes": 442712064,
+            "working_set_bytes": 376819712
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 425275392,
+            "private_commit_bytes": 165847040,
+            "working_set_bytes": 106512384
+          }
+        }
+      },
+      "candidate_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0184,
+          "feed_ms": 37.5715,
+          "finish_ms": 222.0554,
+          "total_ms": 259.2462,
+          "inline_ms": 130.4073,
+          "inline_walk_ms": 132.0828,
+          "footnotes_ms": 0.0002,
+          "consolidate_ms": 77.2526,
+          "autolink_postprocess_ms": 15.1508,
+          "release_ms": 37.9914
+        },
+        "total_samples_ms": [
+          263.6782,
+          259.11289999999997,
+          259.2462
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 104972288,
+            "private_commit_bytes": 164216832,
+            "working_set_bytes": 104910848
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 376799232,
+            "private_commit_bytes": 442986496,
+            "working_set_bytes": 376799232
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 424730624,
+            "private_commit_bytes": 165359616,
+            "working_set_bytes": 106516480
+          }
+        }
+      }
+    },
+    {
+      "mib": 1,
+      "workload": "extensions",
+      "baseline_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0152,
+          "feed_ms": 25.2448,
+          "finish_ms": 77.2507,
+          "total_ms": 101.9202,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 21.794
+        },
+        "total_samples_ms": [
+          108.9849,
+          101.9202,
+          101.023
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15728640,
+            "private_commit_bytes": 9224192,
+            "working_set_bytes": 13733888
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 58646528,
+            "private_commit_bytes": 54902784,
+            "working_set_bytes": 58646528
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 67883008,
+            "private_commit_bytes": 12083200,
+            "working_set_bytes": 15065088
+          }
+        }
+      },
+      "baseline_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.022,
+          "feed_ms": 26.5593,
+          "finish_ms": 87.5787,
+          "total_ms": 114.16,
+          "inline_ms": 24.1212,
+          "inline_walk_ms": 28.5503,
+          "footnotes_ms": 25.1849,
+          "consolidate_ms": 8.9842,
+          "autolink_postprocess_ms": 23.7613,
+          "release_ms": 20.8533
+        },
+        "total_samples_ms": [
+          143.619,
+          114.16,
+          109.3643
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15708160,
+            "private_commit_bytes": 9240576,
+            "working_set_bytes": 13701120
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 58630144,
+            "private_commit_bytes": 54947840,
+            "working_set_bytes": 58630144
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 67833856,
+            "private_commit_bytes": 11337728,
+            "working_set_bytes": 15011840
+          }
+        }
+      },
+      "candidate_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0144,
+          "feed_ms": 28.1305,
+          "finish_ms": 72.3626,
+          "total_ms": 100.5072,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 21.1195
+        },
+        "total_samples_ms": [
+          133.4158,
+          96.8186,
+          100.5072
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15720448,
+            "private_commit_bytes": 9224192,
+            "working_set_bytes": 13729792
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 58675200,
+            "private_commit_bytes": 54943744,
+            "working_set_bytes": 58675200
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 67883008,
+            "private_commit_bytes": 11173888,
+            "working_set_bytes": 15011840
+          }
+        }
+      },
+      "candidate_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0155,
+          "feed_ms": 26.0242,
+          "finish_ms": 84.3838,
+          "total_ms": 109.1904,
+          "inline_ms": 24.1958,
+          "inline_walk_ms": 28.4681,
+          "footnotes_ms": 22.292,
+          "consolidate_ms": 8.2615,
+          "autolink_postprocess_ms": 23.3184,
+          "release_ms": 19.3598
+        },
+        "total_samples_ms": [
+          117.9779,
+          107.0705,
+          109.1904
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15708160,
+            "private_commit_bytes": 9224192,
+            "working_set_bytes": 13684736
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 58646528,
+            "private_commit_bytes": 54910976,
+            "working_set_bytes": 58646528
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 67870720,
+            "private_commit_bytes": 10895360,
+            "working_set_bytes": 15011840
+          }
+        }
+      }
+    },
+    {
+      "mib": 1,
+      "workload": "gui-footnote",
+      "baseline_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0147,
+          "feed_ms": 1.3038,
+          "finish_ms": 65.1872,
+          "total_ms": 66.4698,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 13.0197
+        },
+        "total_samples_ms": [
+          66.4698,
+          69.1199,
+          64.0009
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15704064,
+            "private_commit_bytes": 9228288,
+            "working_set_bytes": 13701120
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47206400,
+            "private_commit_bytes": 43212800,
+            "working_set_bytes": 47206400
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52215808,
+            "private_commit_bytes": 10952704,
+            "working_set_bytes": 14557184
+          }
+        }
+      },
+      "baseline_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0166,
+          "feed_ms": 1.2806,
+          "finish_ms": 73.0392,
+          "total_ms": 74.3337,
+          "inline_ms": 33.4272,
+          "inline_walk_ms": 33.5062,
+          "footnotes_ms": 14.5724,
+          "consolidate_ms": 8.0008,
+          "autolink_postprocess_ms": 15.8272,
+          "release_ms": 12.7605
+        },
+        "total_samples_ms": [
+          82.40090000000001,
+          68.82820000000001,
+          74.3337
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15687680,
+            "private_commit_bytes": 9236480,
+            "working_set_bytes": 13631488
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47120384,
+            "private_commit_bytes": 43208704,
+            "working_set_bytes": 47120384
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52109312,
+            "private_commit_bytes": 9846784,
+            "working_set_bytes": 14446592
+          }
+        }
+      },
+      "candidate_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0143,
+          "feed_ms": 1.3028,
+          "finish_ms": 62.6728,
+          "total_ms": 63.9607,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 12.8614
+        },
+        "total_samples_ms": [
+          63.608000000000004,
+          73.8172,
+          63.9607
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15704064,
+            "private_commit_bytes": 9224192,
+            "working_set_bytes": 13676544
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47194112,
+            "private_commit_bytes": 43204608,
+            "working_set_bytes": 47194112
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52195328,
+            "private_commit_bytes": 10665984,
+            "working_set_bytes": 14503936
+          }
+        }
+      },
+      "candidate_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0157,
+          "feed_ms": 1.2714,
+          "finish_ms": 63.6586,
+          "total_ms": 64.9115,
+          "inline_ms": 27.9792,
+          "inline_walk_ms": 28.0472,
+          "footnotes_ms": 13.4882,
+          "consolidate_ms": 6.9563,
+          "autolink_postprocess_ms": 15.0497,
+          "release_ms": 13.2083
+        },
+        "total_samples_ms": [
+          64.9115,
+          63.5997,
+          67.6648
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15675392,
+            "private_commit_bytes": 9744384,
+            "working_set_bytes": 13647872
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47169536,
+            "private_commit_bytes": 43233280,
+            "working_set_bytes": 47169536
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52170752,
+            "private_commit_bytes": 10674176,
+            "working_set_bytes": 14503936
+          }
+        }
+      }
+    },
+    {
+      "mib": 1,
+      "workload": "gui-undefined",
+      "baseline_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0154,
+          "feed_ms": 1.2589,
+          "finish_ms": 62.0642,
+          "total_ms": 63.3302,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 12.938
+        },
+        "total_samples_ms": [
+          61.614599999999996,
+          63.3302,
+          70.2168
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15720448,
+            "private_commit_bytes": 9236480,
+            "working_set_bytes": 13705216
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47190016,
+            "private_commit_bytes": 43212800,
+            "working_set_bytes": 47190016
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52178944,
+            "private_commit_bytes": 10547200,
+            "working_set_bytes": 14528512
+          }
+        }
+      },
+      "baseline_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.016,
+          "feed_ms": 1.2559,
+          "finish_ms": 63.5288,
+          "total_ms": 64.8355,
+          "inline_ms": 27.5648,
+          "inline_walk_ms": 27.6357,
+          "footnotes_ms": 13.6103,
+          "consolidate_ms": 7.5033,
+          "autolink_postprocess_ms": 14.6904,
+          "release_ms": 13.7841
+        },
+        "total_samples_ms": [
+          64.8355,
+          63.1456,
+          67.886
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15716352,
+            "private_commit_bytes": 9248768,
+            "working_set_bytes": 13676544
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47161344,
+            "private_commit_bytes": 43208704,
+            "working_set_bytes": 47161344
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52170752,
+            "private_commit_bytes": 10268672,
+            "working_set_bytes": 14495744
+          }
+        }
+      },
+      "candidate_archive": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0158,
+          "feed_ms": 1.2685,
+          "finish_ms": 63.2553,
+          "total_ms": 64.5374,
+          "inline_ms": 0,
+          "inline_walk_ms": 0,
+          "footnotes_ms": 0,
+          "consolidate_ms": 0,
+          "autolink_postprocess_ms": 0,
+          "release_ms": 13.3156
+        },
+        "total_samples_ms": [
+          63.6791,
+          64.5374,
+          76.9421
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15720448,
+            "private_commit_bytes": 9224192,
+            "working_set_bytes": 13680640
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47149056,
+            "private_commit_bytes": 43204608,
+            "working_set_bytes": 47149056
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52195328,
+            "private_commit_bytes": 10534912,
+            "working_set_bytes": 14475264
+          }
+        }
+      },
+      "candidate_stages": {
+        "n": 3,
+        "medians_ms": {
+          "setup_ms": 0.0153,
+          "feed_ms": 1.2456,
+          "finish_ms": 62.4714,
+          "total_ms": 63.7334,
+          "inline_ms": 27.4003,
+          "inline_walk_ms": 27.4638,
+          "footnotes_ms": 13.6815,
+          "consolidate_ms": 7.7046,
+          "autolink_postprocess_ms": 14.9132,
+          "release_ms": 12.5471
+        },
+        "total_samples_ms": [
+          66.6415,
+          63.514700000000005,
+          63.7334
+        ],
+        "memory_medians_bytes": {
+          "prepared_memory": {
+            "peak_working_set_bytes": 15687680,
+            "private_commit_bytes": 9224192,
+            "working_set_bytes": 13651968
+          },
+          "parsed_memory": {
+            "peak_working_set_bytes": 47128576,
+            "private_commit_bytes": 43200512,
+            "working_set_bytes": 47128576
+          },
+          "released_memory": {
+            "peak_working_set_bytes": 52174848,
+            "private_commit_bytes": 9900032,
+            "working_set_bytes": 14491648
+          }
+        }
+      }
+    }
+  ],
+  "pinned_sha256": {
+    "G:\\github\\Muffin\\build\\footnote-baseline\\MuffinCmarkArchiveProbe.exe": "7103ed8deb4587e3408ab2539294910d8a0f63a03fc4b25607716a8d46849030",
+    "G:\\github\\Muffin\\build\\footnote-baseline\\MuffinCmarkPerformanceProbe.exe": "3ae285600cca2c2543e2c7d631ecff725aed0bd4575248160e1516208cb5e3ed",
+    "G:\\github\\Muffin\\build\\Release\\MuffinCmarkArchiveProbe.exe": "c402b57e706e81c439bbe1f85062446aec1cf9ffe109386032972f75ead62b27",
+    "G:\\github\\Muffin\\build\\Release\\MuffinCmarkPerformanceProbe.exe": "8e4941d5b05bcb3697077f4c7dfb76718f299e387daec1256b1a6d1210c837c4",
+    "G:\\github\\Muffin\\scripts\\cmark_performance_probe.cpp": "6007b7878f752ac675b4c754c0ec323b1bdf21ecf0791ede8d83a17e1326595d",
+    "G:\\github\\Muffin\\scripts\\cmark_stage_profile.c": "b33040e0254d200cc1c1d4176548fa3ba75a08e8353c3be5bfc2d9fdc3309ff4",
+    "G:\\github\\Muffin\\scripts\\cmark_stage_profile.h": "7dbd09b1354640ab9f5c6a8b89fadf7b0d1ab4ed3deb760d0692c9146c134128",
+    "G:\\github\\Muffin\\build\\cmark-profiled-blocks.inc": "385d67bbd3770ae340fd1184c17ff24b3989b012a775beb59be532caf738ec45",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\parser.h": "57d5ae0ad15f2ce45849a6a6bd145fccbef810db703f595340c17eb370c9c7c8",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\arena.c": "aa537cfff80ac14e14afc77b6294ebe6626d56a55398dbe662b9b777649baa3b",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\blocks.c": "99a0b6aca6430ba116942a67667eb91aeda2186988b0948f19df9c7c28e2d8ff",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\buffer.c": "06b7681eaa86254bbf0885839d778d8eb2ba3ac40f38de23fc9a76072b83a40c",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\cmark.c": "742009085feef0181410207a87b89f7ac536b988ac11eeacf54acd8b0c3a1796",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\cmark_ctype.c": "7b493b24b0a0b68f63ec7f63f26aab6df8189ea8d1fa6dc6c8919b433b31a2dd",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\commonmark.c": "d3ee5c83c379f34f750318afa360bd4bbb52e8ccea879672b14ac74274f42e87",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\footnotes.c": "2b2a801fb4e3832362bec2286f3bb153578ec7f885091edb039d311ee76a621c",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\houdini_href_e.c": "5fd0480c74b2c944a8435700296ea8e5d4dfa06aa2a183ab5a7fccfe875b4599",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\houdini_html_e.c": "ce1b673e969065470814adbfd3071cdfcdd58c03276099cffc8a6cc4fb7d85dc",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\houdini_html_u.c": "32b8c54c05b5c63b953348ee51e24cde2b8d8d2a93374e7f3a6f8de2d3c6aa60",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\html.c": "5789459401dd5ee9ea86f89e7fd38b46ce7bdacf8f43e3e849c12157f55f8bbc",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\inlines.c": "6fe425e4bf07c10000529f47dbf628b42b0e47d5ddba2fac77c771ce5e398e0e",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\iterator.c": "fb105b109b8025dcbd7dbfe5fd468ed154038f87dc524d42d8f1f47710ce68ed",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\latex.c": "7d30ffc9498f15d1abe9dc5f0458f28e0a382e36e12e6624eaf36562834fcba4",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\linked_list.c": "254261fa558ed421f48388ca30fc7bc98c0dab3834be4e32db96e06272597b23",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\man.c": "5ad5476c72ed46b599be7cb3fb577a7babb1488711cee1400b30a323db8248a8",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\map.c": "bb510837ac7027158ad7d6b02f5d3e045d88cfb9b7a25711ed3757fc5b2d7587",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\node.c": "10f7034ec12ae50f3d5426fc9c9ca5e94a97d9600b6d26751d45ff4190d33855",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\plaintext.c": "bdaae2ea59f8a85441a18df57c98c5bca7c50d426981d4b6bd71445969a09ece",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\plugin.c": "6bc100778589a8858362aaa5c395a26c9610ba27f45599e74bfa267219ead4e3",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\references.c": "1f5357c2062b30f0535e94da608e7ceb1b8b4805de1c9f523c6366b9a4adb2d2",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\registry.c": "5bed547ce8c3d8ca8772ae4a262cef1198025551bd66c8444d96f45775cc16e7",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\render.c": "e9b5d3b4ad919196ff1c0ce2332cadf7313146bd0752467f2df0fe8682eedcc7",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\scanners.c": "4bf5ea2514859d6225770ce8c173ded4b228d7924412166d9bb32cc0c36df256",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\syntax_extension.c": "04c49930d4bf9eb440e0696e799784e1ef27307a6058abd858f0df99cb4749bd",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\utf8.c": "cf498664d11601aba6e74b903d974bc23ed15286461ae1b72d9484f80fc252db",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\src\\xml.c": "dbc0921679125e181df26d10b05d08162181e3aaf4cf8096ea2af2a5b705478e",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\autolink.c": "54269c8d52f15dc03bc180d3fcf61535dde2db11fd719e12308f79ef5314af2c",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\core-extensions.c": "96396258fe33aaa9e9e62894e51d6a89a122c51b9d0373d61ab14c5dac963a76",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\ext_scanners.c": "ec569363db2f00e7806370e0efe72ff85aa367fc703fab95175ebc36e6db5097",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\math.c": "33317ea0ed182b809653533cde32d92e68d41e15b9ba80bc8dc48a8d441c8501",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\strikethrough.c": "bc8f016b7a88611c7bea41179662dff754e7b634d37dc8d68186f24781b4605e",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\table.c": "a09dfca8ce864003036c9cfbc86116eb01111483763c73c20f762b7c133dcbfc",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\tagfilter.c": "2c0a8f685acfe82003258b6850d65898a7da3ab9d4d2537cd36a0d0117fadf5e",
+    "G:\\github\\Muffin\\third_party\\cmark-gfm\\extensions\\tasklist.c": "d25509592848dc00fb76b29ca2db27ae4150418e9a8a01b0be0edb2474b2c98b"
+  },
+  "baseline_pins": {
+    "build/Release/MuffinCmarkArchiveProbe.exe": "7103ed8deb4587e3408ab2539294910d8a0f63a03fc4b25607716a8d46849030",
+    "build/Release/MuffinCmarkPerformanceProbe.exe": "3ae285600cca2c2543e2c7d631ecff725aed0bd4575248160e1516208cb5e3ed",
+    "build/Release/MuffinCmarkFootnoteProbe.exe": "df61d1147bacf7173e96c5aed2fd2890e8b6e5fe3cd7ac22f91f176957871ff1",
+    "third_party/cmark-gfm/src/blocks.c": "acd8c42eee3831524a397589f2fb1713e16ff0563a8dd111dbbc5b451632118f",
+    "third_party/cmark-gfm/src/inlines.c": "400455a44240f2a8e6337f03cd713354454be27837c5a02365c93cf1bfbf7252",
+    "third_party/cmark-gfm/src/parser.h": "42bd3d176946e6e4fe7dbbcdd62fd01885da92d2f69db2287664f5cd9374c3eb",
+    "build/cmark-profiled-blocks.inc": "9c1f7ab0f7009aa0dd89fef80439e0b541bff59f9c003661f337a6239dac60bd",
+    "git_head": "15930bdd209a71a74ada0b65360d52240be56d6a"
+  },
+  "fingerprints_match": true,
+  "method": "Three or more fresh-process repeats; variants and cases reverse every second round. All production extensions and footnotes remain enabled. Ordinary-archive timing is the performance comparison; separately instrumented stages identify costs. Source preparation, fingerprints/HTML and destruction are outside parse timing; destruction is reported separately. Memory is OS sampling, not allocation attribution or a leak test. No GUI timing claims.",
+  "audit": {
+    "raw_records": 84,
+    "semantic_snapshots": 636,
+    "stable_original_runs": 3,
+    "generated_hooks_only": true,
+    "pinned_sources_and_binaries_match": true,
+    "comparisons": [
+      {
+        "mib": 1,
+        "workload": "gui",
+        "before_ms": 61.6623,
+        "after_ms": 53.0867,
+        "reduction_ms": 8.575600000000001,
+        "reduction_percent": 13.907363170040691
+      },
+      {
+        "mib": 10,
+        "workload": "gui",
+        "before_ms": 658.5715,
+        "after_ms": 515.5601,
+        "reduction_ms": 143.01139999999998,
+        "reduction_percent": 21.715394607874767
+      },
+      {
+        "mib": 30,
+        "workload": "gui",
+        "before_ms": 1926.4343000000001,
+        "after_ms": 1542.1982,
+        "reduction_ms": 384.2361000000001,
+        "reduction_percent": 19.945455705393123
+      },
+      {
+        "mib": 30,
+        "workload": "plain",
+        "before_ms": 350.6935,
+        "after_ms": 254.3445,
+        "reduction_ms": 96.34899999999996,
+        "reduction_percent": 27.473848246403186
+      },
+      {
+        "mib": 1,
+        "workload": "extensions",
+        "before_ms": 101.9202,
+        "after_ms": 100.5072,
+        "reduction_ms": 1.4129999999999967,
+        "reduction_percent": 1.386378755143727
+      },
+      {
+        "mib": 1,
+        "workload": "gui-footnote",
+        "before_ms": 66.4698,
+        "after_ms": 63.9607,
+        "reduction_ms": 2.5091000000000037,
+        "reduction_percent": 3.774796975468564
+      },
+      {
+        "mib": 1,
+        "workload": "gui-undefined",
+        "before_ms": 63.3302,
+        "after_ms": 64.5374,
+        "reduction_ms": -1.2072000000000074,
+        "reduction_percent": -1.9061995698734686
+      }
+    ]
+  },
+  "semantic_oracle_provenance": {
+    "implementation": "Ordinary vendored archive before the footnote fast path",
+    "git_head": "15930bdd209a71a74ada0b65360d52240be56d6a",
+    "blocks_sha256": "acd8c42eee3831524a397589f2fb1713e16ff0563a8dd111dbbc5b451632118f",
+    "inlines_sha256": "400455a44240f2a8e6337f03cd713354454be27837c5a02365c93cf1bfbf7252",
+    "inputs_sha256": "9cc78516b55eb1236fd6a3dc85e421d7a78ff52b2b7d57b29876855f284b3e1d",
+    "probe_sha256": "df61d1147bacf7173e96c5aed2fd2890e8b6e5fe3cd7ac22f91f176957871ff1",
+    "stable_original_runs": 3
+  },
+  "known_original_instability": {
+    "input_path": "G:\\github\\Muffin\\build\\footnote-baseline\\oracle-initial-inputs.json",
+    "initial_oracle_path": "G:\\github\\Muffin\\build\\footnote-baseline\\oracle-initial.json",
+    "original_repeat_mismatch_counts": [
+      33,
+      30
+    ],
+    "example": {
+      "name": "mixed-000",
+      "source": "[&#94;a] &amp; [^b].\n\n[^b]: Other [^a].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a] [^missing].\n\n[&#94;a] &amp; [^b].\n\n[^b]: Other [^a].\n\n> quote [^b]\n\n",
+      "enabled": true,
+      "byte_chunks": false,
+      "original_results": [
+        {
+          "definitions": 1,
+          "html": "<p>[^",
+          "references": 3,
+          "tree_sha256": "da5fb9accab9d3d0d05f120064dc20200d2deaf36bfc8049d2f4afb54127e0fa"
+        },
+        {
+          "definitions": 1,
+          "html": "<p>[^",
+          "references": 3,
+          "tree_sha256": "da5fb9accab9d3d0d05f120064dc20200d2deaf36bfc8049d2f4afb54127e0fa"
+        },
+        {
+          "definitions": 1,
+          "html": "<p>[^",
+          "references": 3,
+          "tree_sha256": "4bce5fa0508adaef75c3f862eb40d219f956f2a53c6c7e8a468b73393033cc56"
+        }
+      ]
+    },
+    "scope": "Encoded caret as the footnote opener is unstable in the frozen original too. Kept separately, not counted as passing. Not fixed by this change."
+  },
+  "verification": {
+    "release_build": "passed",
+    "full_ctest": {
+      "passed": 339,
+      "failed": 0,
+      "elapsed_seconds": 494.65
+    },
+    "focused_ctest": {
+      "passed": 5,
+      "failed": 0,
+      "elapsed_seconds": 3.62
+    },
+    "dist": "refreshed",
+    "packaged_matches_release_sha256": {
+      "Muffin.exe": "f36d6e842e992dc39375ec086bd20430da4d7fba823cf9da1392d434b0dc2835",
+      "MuffinCore.dll": "7a9dd35b96a25dc8f9730c6298809b64661c7df40ea3063955bcf1188a02f666",
+      "MuffinUi.dll": "0203b228b00e6509fce80501e5f0f9dd2aca038c6ee7f19614b6b9fc199fab0a"
+    },
+    "semantic_snapshots": 636,
+    "stable_original_runs": 3,
+    "performance_records": 84,
+    "foreground_gui_matrix_rerun": false,
+    "checks": {
+      "independent_audit": "passed",
+      "python_syntax": "passed",
+      "cpp_format": "passed",
+      "git_diff_check": "passed"
+    },
+    "source_sha256": {
+      ".gitattributes": "28d79b9613ab9102724bdc67e616ec584c1ff038fbf0e76395a7953224b13901",
+      "cmake/MuffinTests.cmake": "6033864f95fce980fbadfce3cfc8448ac85de8130a35a06d4cec2df67b35b2c1",
+      "third_party/cmark-gfm/src/parser.h": "57d5ae0ad15f2ce45849a6a6bd145fccbef810db703f595340c17eb370c9c7c8",
+      "third_party/cmark-gfm/src/blocks.c": "99a0b6aca6430ba116942a67667eb91aeda2186988b0948f19df9c7c28e2d8ff",
+      "third_party/cmark-gfm/src/inlines.c": "6fe425e4bf07c10000529f47dbf628b42b0e47d5ddba2fac77c771ce5e398e0e",
+      "third_party/cmark-gfm/MUFFIN-PATCHES.md": "00c03fed951882c78a561a770b58a8d803c1d6ab44354d2b565bf8e1315543a6",
+      "tests/parser/ParserDefinitionTest.cpp": "a0132c74a05fc0a520ec22fa2352c60e8226c1e3361d0813e322f276a3ba54fc",
+      "tests/parser/CmarkFootnoteSnapshot.h": "0b2fc2f64666258c8a95629075f85495c86f35b525779d7558d90abf5271ff7d",
+      "tests/parser/CmarkFootnoteCompatibility.cpp": "be67d72a346db0fea9473da1677c6beb22e56f422c499ea7a0f03b7da04c6f98",
+      "tests/fixtures/parser/cmark-footnote-inputs.json": "9cc78516b55eb1236fd6a3dc85e421d7a78ff52b2b7d57b29876855f284b3e1d",
+      "tests/fixtures/parser/cmark-footnote-oracle.json": "31ee3c9c62d3af5aeb77efce2fb3a69e8044374b3eeb7c02fed1feb5eecb64ab",
+      "scripts/cmark_performance_probe.cpp": "6007b7878f752ac675b4c754c0ec323b1bdf21ecf0791ede8d83a17e1326595d",
+      "scripts/cmark_footnote_probe.cpp": "dc1a679c1361d747b36c32a0bd1e92684bdbf037746acf261075fe3d7b9249a8",
+      "scripts/run_cmark_footnote_performance.py": "e9ecdbb63f85ec32f18ae667e83a83b8c0ecd35ea5a97c9b2a6472603f45cb81",
+      "scripts/audit_cmark_footnote_performance.py": "01f20dd137ca52d5dba669ed46f3f2de373d52cd2b242ebe23eb85d8218df6db",
+      "docs/benchmarks/cmark-footnote-fast-path-2026-10-17.md": "7615a5dc78b03abf5b9d33a6ae85754cf4fe350f272bbde3bc869efab59848a3",
+      "docs/theme-typora-compatibility-plan.zh.md": "12b62d32b0fe70b51067d01a066c0b05afe16e66512d5fc0d99a21525e7dc756"
+    },
+    "log_sha256": {
+      "build/footnote-release-build-final.log": "3f69191727bb2aa78d05cdbe8233a06f1e6c52f324d51487429d380fd2f10cb8",
+      "build/footnote-focused-ctest-final.log": "31b6fe899acaff31d83f40fcaf2ef45008236a5e52ccc65b1199ebd217ceee38",
+      "build/footnote-all-ctest.log": "18c6e7e1c9f97f144246446c95a0b152394627311193c8bd9bcaff447444aff9",
+      "build/footnote-dist.log": "eb38a27fcf731db44d283490ad69bf562c0ed37ad03cb2158f7b594dcbaad7b6",
+      "build/footnote-candidate-probes-build.log": "6e4a219fde66b8de77e44a1bb9c688669e0cbdc3e93a4a1dd36fe4a5f2c9d91d",
+      "build/footnote-performance.log": "ae1489e3b33286908f6c52ebdeba856feabb27ed42e5bb457d86924a3156a216"
+    },
+    "committed": false,
+    "pushed": false
+  }
+}

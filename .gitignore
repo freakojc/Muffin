@@ -113,3 +113,7 @@ installer/ba/bin/
 installer/ba/obj/
 installer/*.wixpdb
 installer/*.exe
+
+# Python benchmark caches
+__pycache__/
+*.py[cod]
