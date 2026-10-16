@@ -163,6 +163,7 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
         mask.setDevicePixelRatio(dpr);
         mask.fill(Qt::transparent);
         QPainter target(&mask);
+        target.setRenderHint(QPainter::Antialiasing);
         target.setRenderHint(QPainter::TextAntialiasing);
         target.translate(-local);
         // Let QTextLayout skip unrelated lines as well as clipping the pixels.

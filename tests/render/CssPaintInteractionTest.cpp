@@ -528,19 +528,29 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
   TextShadowPainter shadows;
   const auto equivalent = [outlined](const QImage& a, const QImage& b) {
     if (a == b) return true;
-    if (!outlined || a.size() != b.size()) return false;
+    if (a.size() != b.size()) return false;
+    int maximum = 0, different = 0;
+    QRect differences;
     // Qt's path stroker can differ by one premultiplied component after an
     // integer translation. Unoutlined glyphs still require exact equality.
     for (int y = 0; y < a.height(); ++y) for (int x = 0; x < a.width(); ++x) {
       const auto left = a.pixel(x, y), right = b.pixel(x, y);
-      if (qAbs(qAlpha(left) - qAlpha(right)) > 1 || qAbs(qRed(left) - qRed(right)) > 1 ||
-          qAbs(qGreen(left) - qGreen(right)) > 1 || qAbs(qBlue(left) - qBlue(right)) > 1) return false;
+      if (left != right) {
+        ++different;
+        differences = differences.united(QRect(x, y, 1, 1));
+      }
+      maximum = qMax(maximum, qMax(qMax(qAbs(qAlpha(left) - qAlpha(right)), qAbs(qRed(left) - qRed(right))),
+                                  qMax(qAbs(qGreen(left) - qGreen(right)), qAbs(qBlue(left) - qBlue(right)))));
     }
-    return true;
+    if (outlined && maximum <= 1) return true;
+    a.save("resource-pixels-text-shadow-actual.png");
+    b.save("resource-pixels-text-shadow-expected.png");
+    qWarning() << "Shadow comparison differing pixels/max component/extent" << different << maximum << differences;
+    return false;
   };
   const auto render = [&](bool reference, qreal dpr, QVector<QRectF> rects, TextShadow shadow,
                           const QList<TextLayout::FormatRange>& overrides, QPointF origin = QPointF(60, 40),
-                          QRectF painterClip = {}) {
+                          QRectF painterClip = {}, int pad = 48) {
     QImage image(QSize(400, 350) * dpr, QImage::Format_ARGB32_Premultiplied);
     image.setDevicePixelRatio(dpr);
     image.fill(Qt::transparent);
@@ -551,12 +561,12 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
     else {
       // Independent full-surface oracle: no sparse bounds or cache, generous
       // transparent margins, same convolution and source clipping semantics.
-      constexpr int pad = 48;
       QImage mask(QSize(350, 350) * dpr, QImage::Format_ARGB32_Premultiplied);
       mask.setDevicePixelRatio(dpr);
       mask.fill(Qt::transparent);
       {
         QPainter source(&mask);
+        source.setRenderHint(QPainter::Antialiasing);
         source.setRenderHint(QPainter::TextAntialiasing);
         source.translate(pad, pad);
         text.draw(&source, {}, overrides);
@@ -634,7 +644,23 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
   hidden.setForeground(Qt::transparent);
   hidden.setFontUnderline(false);
   const QList<TextLayout::FormatRange> overrides{{0, 5, hidden}};
-  require(equivalent(render(false, 1, clips, shadow, overrides), render(true, 1, clips, shadow, overrides)),
+  const auto overrideActual = render(false, 1, clips, shadow, overrides);
+  const auto overrideExpected = render(true, 1, clips, shadow, overrides);
+  if (!equivalent(overrideActual, overrideExpected)) {
+    const auto maxAlphaDifference = [](const QImage& a, const QImage& b) {
+      int delta = 0;
+      for (int y = 0; y < a.height(); ++y) for (int x = 0; x < a.width(); ++x)
+        delta = qMax(delta, qAbs(qAlpha(a.pixel(x, y)) - qAlpha(b.pixel(x, y))));
+      return delta;
+    };
+    for (const int padding : {32, 64, 96}) {
+      const auto alternate = render(true, 1, clips, shadow, overrides, {60, 40}, {}, padding);
+      alternate.save(QString("resource-pixels-shadow-oracle-%1.png").arg(padding));
+      qWarning() << "Full-canvas oracle padding/reference alpha delta/sparse alpha delta" << padding
+                 << maxAlphaDifference(alternate, overrideExpected) << maxAlphaDifference(alternate, overrideActual);
+    }
+  }
+  require(equivalent(overrideActual, overrideExpected),
           "foreground/alpha overrides isolate cached shadow masks");
   auto overlapping = clips;
   overlapping.append(clips.front().adjusted(20, 0, 20, 0));
