@@ -6,6 +6,7 @@
 #include "document/DocumentSession.h"
 #include "editor/EditorController.h"
 #include "io/FileController.h"
+#include "theme/RenderTheme.h"
 
 #include <QWidget>
 #include <memory>
@@ -51,6 +52,8 @@ public:
   QString lastFindText;
   qsizetype lastFindOffset = -1;
   bool renderViewDirty = false;
+  // Keep only the latest snapshot until this document becomes active.
+  std::optional<RenderTheme> pendingTheme;
   bool wordCountDirty = true;
   bool outlineDirty = true;
   quint64 sidebarOutlineRevision = 0;

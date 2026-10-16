@@ -1,4 +1,5 @@
 #include "app/DraftRecovery.h"
+#include "app/DraftSnapshotWriter.h"
 #include "document/DocumentSession.h"
 
 #include <QCoreApplication>
@@ -11,6 +12,9 @@
 
 #include <cstdlib>
 #include <utility>
+#include <future>
+#include <atomic>
+
 
 // Exercises DraftRecovery's pure data I/O against a temp directory: snapshot →
 // pendingDrafts → loadDraft → markClean/discard, plus the untitled-key and
@@ -128,6 +132,122 @@ void testEmptyTextIsRecoverable() {
   bool loaded = false;
   require(recovery.loadDraft(pending.first(), &loaded).isEmpty() && loaded,
           QStringLiteral("Reading an empty draft must succeed"));
+}
+
+void testBackgroundSnapshotsOwnTextCoalesceAndClean() {
+  QTemporaryDir dir;
+  DraftRecovery recovery(dir.path());
+  std::promise<void> started, release;
+  const auto gate = release.get_future().share();
+  std::atomic<int> calls{0};
+  QStringList seen;
+  DraftSnapshotWriter writer(dir.path(), [&](const PieceTable& text, const QString& path, const QString& key) {
+    if (++calls == 1) { started.set_value(); gate.wait(); }
+    seen.append(text.toString());
+    return recovery.snapshot(text.toString(), path, key);
+  });
+  int completions = 0;
+  QObject::connect(&writer, &DraftSnapshotWriter::snapshotFinished, &writer,
+                   [&](const QString&, quint64, bool saved) { require(saved, "background write failed"); ++completions; });
+  const QString key = DraftRecovery::createDraftKey();
+  {
+    DocumentSession session;
+    session.setMarkdownText(QStringLiteral("original **中文**"), true);
+    require(writer.request(session, key), "first request accepted");
+    require(started.get_future().wait_for(std::chrono::seconds(5)) == std::future_status::ready,
+            "background worker did not start");
+    require(writer.queueStats().running == 1 && writer.queueStats().pending == 0 &&
+                writer.queueStats().runningCodeUnits == session.markdownText().size(),
+            "running snapshot accounting must not copy or omit its text");
+    require(!writer.request(session, key), "same in-flight revision must not enqueue twice");
+    require(session.applyTextDelta(0, 8, QStringLiteral("second"), true), "edit while snapshot is running");
+    require(writer.request(session, key), "new revision accepted");
+    require(writer.queueStats().pending == 1 &&
+                writer.queueStats().pendingCodeUnits == session.markdownText().size(),
+            "pending snapshot accounting must track the coalesced revision");
+    session.setMarkdownText(QString(), true);
+    require(writer.request(session, key), "intentional empty revision replaces pending request");
+    // Session destruction must not affect either detached request.
+  }
+  release.set_value();
+  writer.waitForDone();
+  require(writer.queueStats().running == 0 && writer.queueStats().pending == 0 &&
+              writer.queueStats().runningCodeUnits == 0 && writer.queueStats().pendingCodeUnits == 0,
+          "drained queue must retain no pending or running text accounting");
+  QCoreApplication::processEvents();
+  require(seen == QStringList{QStringLiteral("original **中文**"), QString()}, "snapshot isolation or coalescing failed");
+  require(completions == 2, "successful revisions must be acknowledged after commit");
+  const auto drafts = recovery.pendingDrafts();
+  require(drafts.size() == 1 && drafts.first().charCount == 0, "latest empty draft must win");
+  writer.markClean({}, key);
+  writer.waitForDone();
+  require(recovery.pendingDrafts().isEmpty(), "cleanup barrier must remove committed draft");
+}
+
+void testCleanInvalidatesRunningAndQueuedCompletions() {
+  QTemporaryDir dir;
+  DraftRecovery recovery(dir.path());
+  std::promise<void> started, release;
+  const auto gate = release.get_future().share();
+  std::atomic<int> calls{0};
+  DocumentSession session;
+  const auto key = DraftRecovery::createDraftKey();
+  int completions = 0;
+  {
+    DraftSnapshotWriter writer(dir.path(), [&](const PieceTable& text, const QString& path, const QString& identity) {
+      if (++calls == 1) { started.set_value(); gate.wait(); }
+      return recovery.snapshot(text.toString(), path, identity);
+    });
+    QObject::connect(&writer, &DraftSnapshotWriter::snapshotFinished, &writer,
+                     [&](const QString&, quint64, bool) { ++completions; });
+    session.setMarkdownText(QStringLiteral("old"), true);
+    writer.request(session, key);
+    require(started.get_future().wait_for(std::chrono::seconds(5)) == std::future_status::ready, "worker starts");
+    session.setMarkdownText(QStringLiteral("queued stale"), true);
+    writer.request(session, key);
+    writer.markClean({}, key); // returns even while disk write is blocked
+    release.set_value();
+    writer.waitForDone();
+    QCoreApplication::processEvents();
+    require(calls == 1 && completions == 0 && recovery.pendingDrafts().isEmpty(),
+            "clean must cancel pending revision and stale completion, then remove in-flight write");
+    session.setMarkdownText(QStringLiteral("fresh edit"), true);
+    writer.request(session, key);
+    writer.waitForDone();
+    // Invalidate a success already posted to the GUI queue.
+    writer.markClean({}, key);
+    QCoreApplication::processEvents();
+    require(completions == 0, "a queued obsolete success must not acknowledge a new generation");
+    session.setMarkdownText(QStringLiteral("newest"), true);
+    writer.request(session, key);
+    // Destructor must drain the cleanup before this final request, even without a GUI event loop.
+  }
+  const auto drafts = recovery.pendingDrafts();
+  require(drafts.size() == 1 && recovery.loadDraft(drafts.first()) == "newest",
+          "shutdown must drain latest request after clean barrier");
+}
+
+void testBackgroundFailureRetriesAndBusySessionsAreSkipped() {
+  QTemporaryDir dir;
+  std::atomic<int> calls{0};
+  DocumentSession session;
+  DraftSnapshotWriter writer(dir.path(), [&](const PieceTable&, const QString&, const QString&) { return ++calls > 1; });
+  const auto key = DraftRecovery::createDraftKey();
+  QVector<bool> results;
+  QObject::connect(&writer, &DraftSnapshotWriter::snapshotFinished, &writer,
+                   [&](const QString&, quint64, bool saved) { results.append(saved); });
+  require(!writer.request(session, key), "clean session skipped");
+  session.setMarkdownText(QStringLiteral("dirty"), true);
+  writer.request(session, key);
+  writer.waitForDone();
+  QCoreApplication::processEvents();
+  require(results == QVector<bool>{false}, "failure must be reported, not acknowledged as success");
+  require(writer.request(session, key), "failed revision can be retried");
+  writer.waitForDone();
+  QCoreApplication::processEvents();
+  require(results == QVector<bool>({false, true}), "retry succeeds");
+  session.openDocumentAsync(QStringLiteral("new document"));
+  require(!writer.request(session, key), "transitional async-open state must not be captured");
 }
 
 void testClearedDocumentReplacesPreviousSnapshot() {
@@ -269,6 +389,9 @@ void testPruneLeavesUntitledAndStrayFiles() {
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
+  testBackgroundSnapshotsOwnTextCoalesceAndClean();
+  testCleanInvalidatesRunningAndQueuedCompletions();
+  testBackgroundFailureRetriesAndBusySessionsAreSkipped();
   testAsyncOpenNeverSnapshotsPreviousDocument();
   testEmptyDirectoryHasNoDrafts();
   testSnapshotRoundTrips();

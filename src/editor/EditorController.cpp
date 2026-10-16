@@ -866,29 +866,10 @@ bool isSpanUnderlined(const InlineProjectionSpan& span, const InlineProjection& 
 
 }  // namespace
 
-CursorFormatState EditorController::queryCursorFormatState() const {
+namespace {
+CursorFormatState cursorFormatsForContext(const BlockEditContext& context, const SelectionRange& sel) {
   CursorFormatState state;
-  if (!session_ || !selection_.hasCursor()) {
-    return state;
-  }
-
-  const SelectionRange sel = selection_.selection();
-
-  // Multi-block selection: no inline format applies uniformly across paragraphs. Cross-cell
-  // table selections are equally non-uniform (two cells share a blockId but not a text node, so
-  // their offsets are not comparable) — treated as multi-block here.
-  if (!sel.isCollapsed() && (!sel.isSingleBlock() || !sel.isSingleTextNode())) {
-    return state;
-  }
-
-  BlockEditContextResolver resolver(
-      const_cast<DocumentSession*>(session_),
-      const_cast<SelectionController*>(&selection_));
-  BlockEditContext context;
-  if (!resolver.current(context) || !context.inlineProjection.isValid()) {
-    return state;
-  }
-
+  if (!sel.isCollapsed() && (!sel.isSingleBlock() || !sel.isSingleTextNode())) return state;
   const auto& spans = context.inlineProjection.spans();
 
   if (sel.isCollapsed()) {
@@ -983,6 +964,17 @@ CursorFormatState EditorController::queryCursorFormatState() const {
   }
 
   return state;
+}
+
+}  // namespace
+
+CursorFormatState EditorController::queryCursorFormatState() const {
+  if (!session_ || !selection_.hasCursor()) return {};
+  const auto sel = selection_.selection();
+  if (!sel.isCollapsed() && (!sel.isSingleBlock() || !sel.isSingleTextNode())) return {};
+  BlockEditContext context;
+  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+  return resolver.current(context) && context.inlineProjection.isValid() ? cursorFormatsForContext(context, sel) : CursorFormatState{};
 }
 
 bool EditorController::selectWordAtCursor(const BlockEditContext& context) {
@@ -1223,7 +1215,8 @@ const InlineProjectionSpan* imageAtomSpanAtCursor(const BlockEditContext& contex
 // has no inline projection — so imageAtomSpanAtCursor (paragraph inline projection) never sees it.
 // Resolve such an image straight from the block's source text: find the <img ...> tag and return its
 // absolute source range. Returns false when the block holds no <img> tag.
-bool htmlBlockImageRange(const MarkdownNode& block, const QString& markdown,
+template <typename Text>
+bool htmlBlockImageRange(const MarkdownNode& block, const Text& markdown,
                          qsizetype& outStart, qsizetype& outEnd) {
   const SourceRange range = block.sourceRange();
   const QString blockText = markdown.mid(range.byteStart, range.byteEnd - range.byteStart);
@@ -1255,7 +1248,7 @@ MarkdownNode* EditorController::htmlImageBlockAtCursor() const {
     return nullptr;
   }
   qsizetype start = 0, end = 0;
-  return htmlBlockImageRange(*block, session_->markdownText().toString(), start, end) ? block : nullptr;
+  return htmlBlockImageRange(*block, session_->markdownText(), start, end) ? block : nullptr;
 }
 
 QString EditorController::imageSrcAtCursor() const {
@@ -1275,11 +1268,31 @@ QString EditorController::imageSrcAtCursor() const {
   // Standalone <img> HTML block (cmark parses a line-leading <img> as an HtmlBlock, not inline).
   if (MarkdownNode* block = htmlImageBlockAtCursor()) {
     qsizetype start = 0, end = 0;
-    if (htmlBlockImageRange(*block, session_->markdownText().toString(), start, end)) {
+    if (htmlBlockImageRange(*block, session_->markdownText(), start, end)) {
       return image_syntax::parse(session_->markdownText().mid(start, end - start)).src;
     }
   }
   return {};
+}
+
+CursorCommandState EditorController::queryCursorCommandState() const {
+  CursorCommandState state;
+  if (!session_ || !selection_.hasCursor()) return state;
+  BlockEditContext context;
+  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+  if (resolver.current(context) && context.inlineProjection.isValid()) {
+    state.formats = cursorFormatsForContext(context, selection_.selection());
+    if (const auto* image = imageAtomSpanAtCursor(context)) state.imageSource = image->href;
+  }
+  // The image fallback is shared with imageSrcAtCursor, including HTML blocks.
+  if (state.imageSource.isEmpty()) {
+    if (MarkdownNode* block = htmlImageBlockAtCursor()) {
+      qsizetype start = 0, end = 0;
+      if (htmlBlockImageRange(*block, session_->markdownText(), start, end))
+        state.imageSource = image_syntax::parse(session_->markdownText().mid(start, end - start)).src;
+    }
+  }
+  return state;
 }
 
 bool EditorController::imageSourceRangeAtCursor(qsizetype& outStart, qsizetype& outEnd) const {
@@ -1321,7 +1334,7 @@ bool EditorController::imageSourceRangeAtCursor(qsizetype& outStart, qsizetype& 
   }
   // Standalone <img> HTML block (HtmlBlock — no inline projection).
   if (MarkdownNode* block = htmlImageBlockAtCursor()) {
-    return htmlBlockImageRange(*block, session_->markdownText().toString(), outStart, outEnd);
+    return htmlBlockImageRange(*block, session_->markdownText(), outStart, outEnd);
   }
   return false;
 }

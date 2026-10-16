@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "app/LanguageManager.h"
 #include "app/MarkdownSettings.h"
@@ -104,6 +105,13 @@ muffin::MainWindow::MainWindow(QWidget* parent)
   setupMenuBar();
   setupStatusBar();
   setupConnections();
+  connect(&draftWriter_, &DraftSnapshotWriter::snapshotFinished, this,
+          [this](const QString& key, quint64 revision, bool saved) {
+    if (!saved) return;
+    for (auto* document : documentTabs())
+      if (document->draftKey == key && document->session.document().isModified())
+        document->lastDraftSnapshotRevision = qMax(document->lastDraftSnapshotRevision, revision);
+  });
   updateTitle();
   loadAppearanceSettings();
   showBlockSourceEnabled_ = QSettings().value(QStringLiteral("editor/showBlockSource"), false).toBool();
@@ -115,6 +123,10 @@ muffin::MainWindow::MainWindow(QWidget* parent)
 }
 
 muffin::MainWindow::~MainWindow() {
+  for (auto* document : documentTabs())
+    if (!document->session.document().isModified())
+      draftWriter_.markClean(document->session.filePath(), document->draftKey);
+  draftWriter_.waitForDone();
   // Destroy pages while shared window services (drafts, commands, emoji provider) still exist.
   disconnect(tabs_, nullptr, this, nullptr);
   tabs_->tabBar()->removeEventFilter(this);
@@ -139,7 +151,7 @@ void muffin::MainWindow::closeEvent(QCloseEvent* event) {
   for (DocumentTab* document : documentTabs()) {
     document->autoSaveTimer->stop();
     document->draftTimer->stop();
-    drafts_.markClean(document->session.filePath(), document->draftKey);
+    clearDraftSnapshot(document->session.filePath(), document->draftKey);
   }
   event->accept();
 }
@@ -454,6 +466,8 @@ void muffin::MainWindow::refreshSidebarDocumentInfo() {
 }
 
 void muffin::MainWindow::refreshSidebarOutline() {
+  static const QLoggingCategory category("muffin.perf.detail", QtWarningMsg);
+  muffin::diag::ScopedPerfProbe perf("main.outline", category);
   const QAction* sidebarAction = commands_.action(QStringLiteral("view.sidebar"));
   if (!sidebar_ || !tab_->outlineDirty || !sidebarAction || !sidebarAction->isChecked() ||
       sidebar_->panel() != SidebarWidget::Panel::Outline) {
@@ -545,6 +559,7 @@ void muffin::MainWindow::updateViewMode() {
       tab_->renderViewDirty = false;
     }
     // Source → Render: scroll to the block at the source cursor position
+    tab_->renderView->refreshPendingResources();
     const qsizetype sourcePos = tab_->editor->cursorPosition();
     MarkdownNode* block = tab_->session.document().topLevelBlockAtOffset(sourcePos);
     if (block) {
@@ -822,12 +837,24 @@ void muffin::MainWindow::saveAppearanceTypewriterMode(bool enabled) const {
 }
 
 void muffin::MainWindow::applyTheme(QString name) {
-  const RenderTheme theme = themeManager_.currentTheme(zoomPercent_, fontSizePx_);
+  static const QLoggingCategory themePerf("muffin.perf.detail", QtWarningMsg);
+  muffin::diag::ScopedPerfProbe perf("theme.apply", themePerf);
+  const RenderTheme theme = [&] {
+    muffin::diag::ScopedPerfProbe snapshotPerf("theme.snapshot", themePerf);
+    return themeManager_.currentTheme(zoomPercent_, fontSizePx_);
+  }();
   const ThemeDefinition def = themeManager_.definition(name);
   for (DocumentTab* document : documentTabs()) {
+    if (document != tab_) {
+      document->pendingTheme = theme;
+      continue;
+    }
+    document->pendingTheme.reset();
+    muffin::diag::ScopedPerfProbe viewsPerf("theme.activeViews", themePerf);
     document->renderView->setTheme(theme);
     document->editor->setTheme(theme);
   }
+  muffin::diag::ScopedPerfProbe chromePerf("theme.chrome", themePerf);
   if (sidebar_) {
     sidebar_->applyTheme(def);
   }

@@ -3,6 +3,9 @@
 #include "editor/EditorView.h"
 #include "editor/SourceEditorWidget.h"
 #include "editor/VirtualSourceEdit.h"
+#include "render/BlockLayout.h"
+#include "render/ImageLoader.h"
+#include "render/LayoutResources.h"
 
 #include "../TestUtils.h"
 
@@ -164,6 +167,89 @@ void tabBarOnlyForMultipleDocuments() {
   }
 }
 
+void formatActionsFollowSelectionAndDocumentChanges() {
+  Fixture f;
+  auto* document = f.current();
+  const QString text = QStringLiteral("**bold** *italic* <u>under</u> `code` $x$ ~~strike~~ plain\n");
+  document->session.setMarkdownText(text, true);
+  auto* paragraph = document->session.document().root().children().front().get();
+  const QStringList names{"Bold", "Italic", "Underline", "Inline Code", "Inline Formula", "Strikethrough"};
+  const QStringList tokens{"bold", "italic", "under", "code", "x", "strike", "plain"};
+  auto at = [&](const QString& token) {
+    CursorPosition position;
+    position.blockId = position.text.nodeId = paragraph->id();
+    position.text.sourceOffset = text.indexOf(token) + 1;
+    position.text.textOffset = position.text.sourceOffset;
+    document->editorController.selection().setCursorPosition(position);
+    QApplication::processEvents();
+  };
+  for (int i = 0; i < tokens.size(); ++i) {
+    at(tokens[i]);
+    const auto expected = document->renderCommands.currentInlineFormats();
+    const bool checked[]{expected.bold, expected.italic, expected.underline, expected.code, expected.inlineMath, expected.strikethrough};
+    for (int j = 0; j < names.size(); ++j)
+      require(action(f.window, names[j])->isChecked() == checked[j], "format menu must match current selection snapshot");
+  }
+  at("bold");
+  auto* second = f.open(f.file("plain.md", "plain second document\n"));
+  CursorPosition plain;
+  plain.blockId = plain.text.nodeId = second->session.document().root().children().front()->id();
+  second->editorController.selection().setCursorPosition(plain);
+  QApplication::processEvents();
+  for (const auto& name : names) require(!action(f.window, name)->isChecked(), "format snapshot must not leak across tabs");
+  f.tabs->setCurrentWidget(document);
+  QApplication::processEvents();
+  require(action(f.window, "Bold")->isChecked(), "reactivating tab refreshes formatting");
+}
+
+void sharedCursorQueriesMatchIndependentQueries() {
+  Fixture f;
+  auto* document = f.current();
+  const QStringList sources{
+      "**bold** *italic* <u>under</u> `code` $x$ ~~strike~~ plain\n",
+      "prefix ![alt](image.png) and <img src=\"other.png\"> suffix\n",
+      "<img src=\"standalone.png\">\n",
+      "- **nested** ![alt](list.png)\n",
+      "| A | B |\n|---|---|\n| **bold** | ![alt](cell.png) |\n",
+      "```cpp\ntext\n```\n"};
+  bool sawImage = false, sawBold = false;
+  for (const auto& source : sources) {
+    document->session.setMarkdownText(source, true);
+    document->editorController.selection().clear();
+    require(document->renderCommands.currentCursorState().imageSource.isEmpty(), "empty cursor has no image");
+    const auto& children = document->session.document().root().children();
+    require(!children.empty(), "cursor query fixture has a block");
+    auto* block = children.front().get();
+    for (qsizetype offset = 0; offset < source.size(); ++offset) {
+      CursorPosition cursor;
+      cursor.blockId = cursor.text.nodeId = block->id();
+      cursor.text.sourceOffset = offset;
+      cursor.text.textOffset = offset;
+      document->editorController.selection().setCursorPosition(cursor);
+      const auto shared = document->renderCommands.currentCursorState();
+      sawImage |= !shared.imageSource.isEmpty();
+      sawBold |= shared.formats.bold;
+      const auto formats = document->renderCommands.currentInlineFormats();
+      require(shared.formats.bold == formats.bold && shared.formats.italic == formats.italic &&
+                  shared.formats.underline == formats.underline && shared.formats.code == formats.code &&
+                  shared.formats.strikethrough == formats.strikethrough && shared.formats.inlineMath == formats.inlineMath,
+              "shared formats match individual query at each source position");
+      require(shared.imageSource == document->renderCommands.imageSrcAtCursor(), "shared image query matches individual query");
+    }
+    auto range = document->editorController.selection().selection();
+    range.anchor.text.textOffset = 0;
+    range.anchor.text.sourceOffset = 0;
+    document->editorController.selection().setSelection(range);
+    const auto shared = document->renderCommands.currentCursorState();
+    const auto formats = document->renderCommands.currentInlineFormats();
+    require(shared.formats.bold == formats.bold && shared.formats.italic == formats.italic &&
+                shared.formats.underline == formats.underline && shared.formats.code == formats.code &&
+                shared.formats.strikethrough == formats.strikethrough && shared.formats.inlineMath == formats.inlineMath,
+            "selection queries retain independent format semantics");
+  }
+  require(sawImage && sawBold, "query fixtures exercise images and formatted spans");
+}
+
 void retainsDocumentsAndRenderState() {
   Fixture f;
   const QString original = QStringLiteral("# First\n\n") + QStringLiteral("A paragraph of text.\n\n").repeated(180);
@@ -303,6 +389,8 @@ void backgroundLoadingAndPersistence() {
   QMetaObject::invokeMethod(a->draftTimer, "timeout", Qt::DirectConnection);
   QMetaObject::invokeMethod(b->draftTimer, "timeout", Qt::DirectConnection);
   DraftRecovery recovery;
+  waitUntil([&] { return a->lastDraftSnapshotRevision == a->session.document().revision() &&
+                         b->lastDraftSnapshotRevision == b->session.document().revision(); }, "background drafts committed");
   const auto drafts = recovery.pendingDrafts();
   require(drafts.size() == 2 && a->draftKey != b->draftKey, "each tab has its own recovery snapshot");
   {
@@ -310,12 +398,13 @@ void backgroundLoadingAndPersistence() {
     QMetaObject::invokeMethod(a->autoSaveTimer, "timeout", Qt::DirectConnection);
     require(contents(first) == QStringLiteral("Dirty A\n"), "background autosave writes A");
     require(b->session.document().isModified() && contents(second).contains(QStringLiteral("Small")), "autosave leaves B unsaved");
-    require(recovery.pendingDrafts().size() == 1, "saving A leaves B recovery snapshot");
+    waitUntil([&] { return recovery.pendingDrafts().size() == 1; }, "saving A leaves B recovery snapshot");
   }
   a->session.setMarkdownText(QStringLiteral("Save All A\n"), true);
   action(f.window, QStringLiteral("Save All Open Files..."))->trigger();
   require(contents(first) == QStringLiteral("Save All A\n") && contents(second) == QStringLiteral("Dirty B\n"), "Save All includes inactive tabs");
-  require(f.current() == b && recovery.pendingDrafts().isEmpty(), "Save All retains active tab and clears saved drafts");
+  require(f.current() == b, "Save All retains active tab");
+  waitUntil([&] { return recovery.pendingDrafts().isEmpty(); }, "Save All clears saved drafts asynchronously");
 
   // Closing an in-flight parse must not leave a worker referring to a destroyed session.
   const QString closing = f.file(QStringLiteral("closing.md"), QStringLiteral("Closing worker.\n\n").repeated(20000));
@@ -431,6 +520,103 @@ void renameFolderAndTranslateTabs() {
   }
 }
 
+void hiddenTabsDeferThemeChanges() {
+  Fixture f;
+  auto* a = f.open(f.file("theme-a.md", "# A\n\ntext\n"));
+  auto* b = f.open(f.file("theme-b.md", "# B\n\ntext\n"));
+  const auto previous = a->renderView->theme().backgroundColor();
+  const auto revision = a->session.document().revision();
+  const auto cursor = a->renderView->cursorPosition();
+  action(f.window, QStringLiteral("Night"))->trigger();
+  require(a->pendingTheme.has_value() && !b->pendingTheme, "only hidden tab defers theme application");
+  require(a->renderView->theme().backgroundColor() == previous, "hidden editor retains previous layout snapshot");
+  const auto first = a->pendingTheme->backgroundColor();
+  action(f.window, QStringLiteral("GitHub"))->trigger();
+  require(a->pendingTheme && a->pendingTheme->backgroundColor() != first, "repeated changes coalesce to latest theme");
+  const auto expected = b->renderView->theme().backgroundColor();
+  f.tabs->setCurrentWidget(a);
+  require(!a->pendingTheme && a->renderView->theme().backgroundColor() == expected, "activation applies latest snapshot once");
+  require(a->session.document().revision() == revision && a->renderView->cursorPosition().text.nodeId == cursor.text.nodeId,
+          "deferred theme preserves document and cursor identity");
+}
+
+void hiddenTabsMergeThemeAndResourceChanges() {
+  Fixture f;
+  auto& loader = ImageLoader::instance();
+  auto& resources = LayoutResources::instance();
+  const QString url = "https://example.invalid/tab-resource.png";
+  const auto store = [&](int height) {
+    QImage image(60, height, QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::blue);
+    loader.store(url, image);
+  };
+  store(30);
+  auto* a = f.open(f.file(
+      "resources-a.md", "![image](" + url + ")\n\n" + QString("Text with **bold** and wrapping words. ").repeated(30)));
+  const auto imageId = a->session.document().root().children()[0]->id();
+  const auto textId = a->session.document().root().children()[1]->id();
+  CursorPosition cursor;
+  cursor.blockId = cursor.text.nodeId = textId;
+  cursor.text.textOffset = 5;
+  cursor.text.sourceOffset = a->session.document().root().children()[1]->sourceRange().byteStart + 5;
+  a->editorController.selection().setCursorPosition(cursor);
+  auto* b = f.open(f.file("resources-b.md", "# Active\n\nsecond tab"));
+  const auto oldHeight = a->renderView->nodeRect(imageId).height();
+  const auto oldFont = a->renderView->blockLayoutForNode(textId)->reuse.resources.value(LayoutResources::fontKey());
+  action(f.window, QStringLiteral("Night"))->trigger();
+  store(90);
+  resources.publish(LayoutResources::fontKey(), "tab-hidden-font-generation-1");
+  action(f.window, QStringLiteral("GitHub"))->trigger();
+  store(170);
+  resources.publish(LayoutResources::fontKey(), "tab-hidden-font-generation-2");
+  QApplication::processEvents();
+  require(a->pendingTheme.has_value() && !a->renderView->isVisible(), "resource changes leave hidden theme deferred");
+  require(a->renderView->nodeRect(imageId).height() == oldHeight &&
+              a->renderView->blockLayoutForNode(textId)->reuse.resources.value(LayoutResources::fontKey()) == oldFont,
+          "hidden tabs retain geometry and font dependencies across repeated resource and theme changes");
+  const auto revision = a->session.document().revision();
+  f.tabs->setCurrentWidget(a);
+  require(!a->pendingTheme && a->renderView->theme().backgroundColor() == b->renderView->theme().backgroundColor(),
+          "activation installs the newest deferred theme");
+  require(a->renderView->nodeRect(imageId).height() >= 170 &&
+              a->renderView->blockLayoutForNode(textId)->reuse.resources.value(LayoutResources::fontKey()) ==
+                  resources.read(LayoutResources::fontKey()),
+          "activation merges latest font and image resources before returning");
+  const auto* activated = a->renderView->blockLayoutForNode(textId);
+  QApplication::processEvents();
+  require(a->renderView->blockLayoutForNode(textId) == activated,
+          "queued show refresh does not discard the already current themed layout");
+  // Let Qt settle the theme's scrollbar/style geometry before comparing views.
+  const auto caret = a->renderView->effectiveCursorRect();
+  const auto hit = a->renderView->hitTest(a->renderView->mapDocumentToViewport(caret.center()));
+  EditorView fresh;
+  fresh.resize(a->renderView->size());
+  fresh.setTheme(a->renderView->theme());
+  fresh.setDocument(a->session.document(), a->session.filePath());
+  fresh.show();
+  fresh.setCursorPosition(cursor);
+  QApplication::processEvents();
+  require(fresh.viewport()->size() == a->renderView->viewport()->size() && fresh.effectiveCursorRect() == caret,
+          "activated layout and font metrics agree with a newly built view");
+  const auto expectedHit = fresh.hitTest(fresh.mapDocumentToViewport(fresh.effectiveCursorRect().center()));
+  require(hit.blockId == textId && hit.sourceOffset == expectedHit.sourceOffset &&
+              hit.sourceOffset == cursor.text.sourceOffset &&
+              a->renderView->cursorPosition().text.sourceOffset == cursor.text.sourceOffset &&
+              a->session.document().revision() == revision,
+          "coalesced activation preserves source cursor and fresh-view hit coordinates");
+  fresh.hide();
+
+  // The rendered view can also be hidden inside the active tab's source stack.
+  action(f.window, QStringLiteral("Source Code Mode"))->trigger();
+  require(!a->renderView->isVisible(), "source mode hides rendered resources");
+  store(220);
+  QApplication::processEvents();
+  require(a->renderView->nodeRect(imageId).height() < 220, "source mode also defers image reflow");
+  action(f.window, QStringLiteral("Source Code Mode"))->trigger();
+  require(a->renderView->nodeRect(imageId).height() >= 220,
+          "return to rendered mode consumes resources before scrolling");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -452,11 +638,15 @@ int main(int argc, char** argv) {
   QSettings().setValue(QStringLiteral("files/autoSave"), false);
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
   runTest("tabBarOnlyForMultipleDocuments", tabBarOnlyForMultipleDocuments);
+  runTest("formatActionsFollowSelectionAndDocumentChanges", formatActionsFollowSelectionAndDocumentChanges);
+  runTest("sharedCursorQueriesMatchIndependentQueries", sharedCursorQueriesMatchIndependentQueries);
   runTest("retainsDocumentsAndRenderState", retainsDocumentsAndRenderState);
   runTest("sourceStateAndKeyboardNavigation", sourceStateAndKeyboardNavigation);
   runTest("closesWithSaveDiscardAndCancel", closesWithSaveDiscardAndCancel);
   runTest("backgroundLoadingAndPersistence", backgroundLoadingAndPersistence);
   runTest("openFailuresAndConflictingSaveAs", openFailuresAndConflictingSaveAs);
   runTest("renameFolderAndTranslateTabs", renameFolderAndTranslateTabs);
+  runTest("hiddenTabsDeferThemeChanges", hiddenTabsDeferThemeChanges);
+  runTest("hiddenTabsMergeThemeAndResourceChanges", hiddenTabsMergeThemeAndResourceChanges);
   return 0;
 }

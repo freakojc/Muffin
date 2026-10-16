@@ -228,6 +228,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
     } else {
       tab->draftTimer->stop();
       tab->lastDraftSnapshotRevision = 0;
+      clearDraftSnapshot(tab->session.filePath(), tab->draftKey);
     }
   });
   connect(tab->autoSaveTimer, &QTimer::timeout, tab, [this, tab] { performAutoSave(tab); });
@@ -246,7 +247,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
     }
   });
   connect(&tab->fileController, &FileController::documentBecameClean, tab,
-          [this, tab](const QString& path) { drafts_.markClean(path, tab->draftKey); });
+          [this, tab](const QString& path) { clearDraftSnapshot(path, tab->draftKey); });
   connect(&tab->session, &DocumentSession::parseBusy, tab, [tab](bool busy) {
     tab->renderView->setLoading(busy);
     tab->editor->setReadOnly(busy);

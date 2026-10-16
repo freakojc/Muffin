@@ -1,4 +1,5 @@
 #include "app/RenderCommandFacade.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "document/ImageSyntaxOps.h"
 #include "document/MarkdownNode.h"
@@ -11,6 +12,7 @@ namespace muffin {
 namespace {
 
 Q_LOGGING_CATEGORY(renderCommandLog, "muffin.renderCommands", QtWarningMsg)
+Q_LOGGING_CATEGORY(renderCommandDetailPerf, "muffin.perf.detail", QtWarningMsg)
 
 }  // namespace
 
@@ -388,10 +390,16 @@ bool RenderCommandFacade::convertImageAtCursorToMarkdown() {
 }
 
 CursorFormatState RenderCommandFacade::currentInlineFormats() const {
+  diag::ScopedPerfProbe perf("main.inlineFormatQuery", renderCommandDetailPerf());
   if (!canRun()) {
     return {};
   }
   return editorController_.queryCursorFormatState();
+}
+
+CursorCommandState RenderCommandFacade::currentCursorState() const {
+  diag::ScopedPerfProbe perf("main.cursorCommandQuery", renderCommandDetailPerf());
+  return canRun() ? editorController_.queryCursorCommandState() : CursorCommandState{};
 }
 
 }  // namespace muffin

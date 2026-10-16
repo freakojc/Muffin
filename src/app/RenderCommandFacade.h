@@ -18,6 +18,12 @@ struct CursorFormatState {
   bool inlineMath = false;
 };
 
+// Values for one command refresh, resolved from a single editing projection.
+struct CursorCommandState {
+  CursorFormatState formats;
+  QString imageSource;
+};
+
 class EditorController;
 
 class RenderCommandFacade final {
@@ -112,6 +118,7 @@ public:
   bool convertImageAtCursorToMarkdown();
 
   CursorFormatState currentInlineFormats() const;
+  CursorCommandState currentCursorState() const;
 
 private:
   bool canRun() const;

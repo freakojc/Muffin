@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "app/MarkdownSettings.h"
 #include "app/PreferencesDialog.h"
@@ -49,6 +50,7 @@
 #include <algorithm>
 
 namespace {
+Q_LOGGING_CATEGORY(fileOpsPerf, "muffin.perf.detail", QtWarningMsg)
 
 QString elidedPath(const QString& path) {
   const QString nativePath = QDir::toNativeSeparators(path);
@@ -454,7 +456,7 @@ void muffin::MainWindow::revealCurrentFile() {
 bool muffin::MainWindow::saveCurrentDocument() {
   if (tab_->fileController.save(tab_->session, this) == SaveOutcome::Saved) {
     addRecentFile(tab_->session.filePath());
-    drafts_.markClean(tab_->session.filePath(), tab_->draftKey);
+    clearDraftSnapshot(tab_->session.filePath(), tab_->draftKey);
     return true;
   }
   return false;
@@ -476,25 +478,23 @@ void muffin::MainWindow::performAutoSave(DocumentTab* tab) {
   }
   const SaveOutcome outcome = tab->fileController.save(tab->session, this);
   if (outcome == SaveOutcome::Saved) {
-    drafts_.markClean(tab->session.filePath(), tab->draftKey);
+    clearDraftSnapshot(tab->session.filePath(), tab->draftKey);
   } else if (outcome == SaveOutcome::SkippedBusy) {
     tab->autoSaveTimer->start();  // async parse still in flight — retry once it settles
   }
 }
 
 void muffin::MainWindow::snapshotDraft(DocumentTab* tab) {
+  muffin::diag::ScopedPerfProbe perf("main.snapshotDraft", fileOpsPerf());
   // Persist a recovery snapshot while the document has unsaved content, so a
   // crash or forced exit can be restored on the next launch. Cleared on save.
   if (!tab->session.document().isModified()) {
     return;
   }
-  // Gate by revision (not a full-text compare) so the heartbeat is cheap when idle, and snapshot
-  // only when content actually changed. snapshot() takes the text by const-ref and does the UTF-8
-  // encode + sync write internally — no 50MB copy/compare here on every fire.
+  // Only a successful worker completion advances the acknowledged revision.
+  // The writer coalesces pending revisions and captures independent buffers.
   const quint64 revision = tab->session.document().revision();
-  if (revision != tab->lastDraftSnapshotRevision && drafts_.snapshotSession(tab->session, tab->draftKey)) {
-    tab->lastDraftSnapshotRevision = revision;
-  }
+  if (revision != tab->lastDraftSnapshotRevision) draftWriter_.request(tab->session, tab->draftKey);
   // Heartbeat: re-arm for as long as the document stays dirty. modifiedChanged
   // only fires on the clean↔dirty transition, so without this re-arm a single
   // snapshot would be taken seconds into an edit session and never refreshed —
@@ -502,6 +502,10 @@ void muffin::MainWindow::snapshotDraft(DocumentTab* tab) {
   // keeps the heartbeat's cost to a revision read when the user pauses. The
   // interval scales with document size so the encode+write doesn't hitch typing.
   tab->draftTimer->start(draftSnapshotIntervalMs(tab));
+}
+
+void muffin::MainWindow::clearDraftSnapshot(const QString& path, const QString& key) {
+  draftWriter_.markClean(path, key);
 }
 
 bool muffin::MainWindow::offerDraftRecovery() {
@@ -1075,7 +1079,7 @@ void muffin::MainWindow::deleteFile() {
     }
   }
 
-  drafts_.markClean(filePath, tab_->draftKey);
+  clearDraftSnapshot(filePath, tab_->draftKey);
   tab_->session.document().setModified(false);
   closeTab(tabs_->indexOf(tab_));
 
@@ -1321,7 +1325,7 @@ void muffin::MainWindow::deletePath(QString path) {
 
   for (DocumentTab* document : affected) {
     document->session.document().setModified(false);
-    drafts_.markClean(document->session.filePath(), document->draftKey);
+    clearDraftSnapshot(document->session.filePath(), document->draftKey);
     closeTab(tabs_->indexOf(document));
   }
   QStringList recent = recentFiles();
@@ -1397,6 +1401,6 @@ bool muffin::MainWindow::maybeSaveChanges() {
   }
   // Discard: the user explicitly abandoned the unsaved work — drop its recovery
   // draft so the next launch doesn't offer to restore what was just thrown away.
-  drafts_.markClean(tab_->session.filePath(), tab_->draftKey);
+  clearDraftSnapshot(tab_->session.filePath(), tab_->draftKey);
   return true;
 }

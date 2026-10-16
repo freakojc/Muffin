@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "document/MarkdownNode.h"
 #include "document/ImageSyntaxOps.h"
@@ -22,6 +23,7 @@
 #include <QTimer>
 
 namespace {
+Q_LOGGING_CATEGORY(actionsPerf, "muffin.perf.detail", QtWarningMsg)
 
 QString zoneName(muffin::HitTestResult::Zone zone) {
   switch (zone) {
@@ -144,6 +146,7 @@ void muffin::MainWindow::scheduleWordCountUpdate() {
 }
 
 void muffin::MainWindow::updateWordCountNow() {
+  muffin::diag::ScopedPerfProbe perf("main.wordCount", actionsPerf());
   if (!statusBar_ || !tab_->wordCountDirty) {
     return;
   }

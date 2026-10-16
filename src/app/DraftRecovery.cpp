@@ -1,4 +1,5 @@
 #include "app/DraftRecovery.h"
+#include "diagnostics/ScopedPerfProbe.h"
 #include "document/DocumentSession.h"
 
 #include <QCryptographicHash>
@@ -17,6 +18,7 @@
 #include <algorithm>
 
 namespace {
+Q_LOGGING_CATEGORY(draftPerf, "muffin.perf.detail", QtWarningMsg)
 
 // True for names produced by DraftRecovery::keyFor(): "untitled" or a 16-char
 // lowercase hex digest. pruneOrphaned() only touches files whose stem matches,
@@ -78,6 +80,7 @@ QString DraftRecovery::metaPath(const QString& key) const {
 
 bool DraftRecovery::snapshot(const QString& markdownText, const QString& sourceFilePath,
                              const QString& draftKey) {
+  muffin::diag::ScopedPerfProbe perf("draft.writeSnapshot", draftPerf());
   if (directory_.isEmpty() || !QDir().mkpath(directory_)) {
     return false;
   }
@@ -87,9 +90,17 @@ bool DraftRecovery::snapshot(const QString& markdownText, const QString& sourceF
   // atomic on its own). pendingDrafts() only lists a draft when its .md survives.
   QSaveFile content(draftPath(key));
   if (!content.open(QIODevice::WriteOnly)) { return false; }
-  const QByteArray bytes = markdownText.toUtf8();
-  if (content.write(bytes) != bytes.size() || !content.commit()) { return false; }
+  const QByteArray bytes = [&] {
+    muffin::diag::ScopedPerfProbe perf("draft.encodeUtf8", draftPerf());
+    return markdownText.toUtf8();
+  }();
+  const bool contentSaved = [&] {
+    muffin::diag::ScopedPerfProbe perf("draft.commitContent", draftPerf());
+    return content.write(bytes) == bytes.size() && content.commit();
+  }();
+  if (!contentSaved) { return false; }
 
+  muffin::diag::ScopedPerfProbe metadataPerf("draft.commitMetadata", draftPerf());
   QJsonObject meta;
   meta[QStringLiteral("sourcePath")] = sourceFilePath;
   meta[QStringLiteral("timestamp")] = QDateTime::currentMSecsSinceEpoch();
@@ -181,8 +192,13 @@ void DraftRecovery::pruneOrphaned() {
 }  // namespace muffin
 
 bool muffin::DraftRecovery::snapshotSession(const DocumentSession& session, const QString& draftKey) {
+  muffin::diag::ScopedPerfProbe perf("draft.snapshotSession", draftPerf());
   if (session.isAsyncParseInProgress() || !session.document().isModified()) {
     return false;
   }
-  return snapshot(session.markdownText().toString(), session.filePath(), draftKey);
+  const QString text = [&] {
+    muffin::diag::ScopedPerfProbe perf("draft.materialize", draftPerf());
+    return session.markdownText().toString();
+  }();
+  return snapshot(text, session.filePath(), draftKey);
 }

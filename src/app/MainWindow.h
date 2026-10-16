@@ -11,6 +11,7 @@
 #include "editor/EmojiProvider.h"
 #include "io/FileController.h"
 #include "app/DraftRecovery.h"
+#include "app/DraftSnapshotWriter.h"
 #include "export/ExportFormat.h"
 #include "theme/ThemeManager.h"
 
@@ -33,6 +34,7 @@ class QVariantAnimation;
 class QPropertyAnimation;
 
 namespace muffin {
+namespace diag { struct MemoryAccounting; }
 
 class EditorView;
 class FindBarWidget;
@@ -40,6 +42,7 @@ class SourceEditorWidget;
 class StatusBarWidget;
 
 class MainWindow final : public QMainWindow {
+  friend struct diag::MemoryAccounting;
   Q_OBJECT
 
   // The command declaration table (CommandDeclarations.cpp) defines every
@@ -85,6 +88,7 @@ public:
   bool commandInTableCell() const;
   bool commandOnImage() const;
   bool commandOnLocalImage() const;
+  CursorFormatState commandInlineFormats() const;
 
 protected:
   bool eventFilter(QObject* watched, QEvent* event) override;
@@ -309,6 +313,7 @@ private:
     bool inTableCell = false;
     bool onImage = false;
     bool onLocalImage = false;
+    CursorFormatState inlineFormats;
   };
   CommandContextSnapshot captureCommandContext() const;
 
@@ -324,6 +329,7 @@ private:
                          bool regularExpression, bool caseSensitive);
   void performAutoSave(DocumentTab* tab);
   void snapshotDraft(DocumentTab* tab);
+  void clearDraftSnapshot(const QString& path, const QString& key);
   // Crash-recovery heartbeat interval, scaled by document length: floor 3s, then +1s per ~2k
   // characters. The length is QString::size() — UTF-16 CODE UNITS, not on-disk bytes — so a
   // CJK-heavy doc (1 code unit per char but 3 UTF-8 bytes) scales by its character count, not byte
@@ -333,6 +339,7 @@ private:
   bool restoreDraft(const DraftRecovery::PendingDraft& draft);
 
   DraftRecovery drafts_;
+  DraftSnapshotWriter draftWriter_;
   QTabWidget* tabs_ = nullptr;
   DocumentTab* tab_ = nullptr;
   bool suppressSaveOnTabSwitch_ = false;

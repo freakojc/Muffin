@@ -934,6 +934,8 @@ set(MUFFIN_CORE_SOURCES
   src/parser/MarkdownSerializer.h
   src/app/DraftRecovery.cpp
   src/app/DraftRecovery.h
+  src/app/DraftSnapshotWriter.cpp
+  src/app/DraftSnapshotWriter.h
 )
 
 add_library(MuffinCore ${MUFFIN_LIB_TYPE}

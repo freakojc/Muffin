@@ -206,6 +206,12 @@ void muffin::MainWindow::activateTab(int index) {
     tab_->fileController.save(tab_->session, this);
   }
   tab_ = next;
+  if (tab_->pendingTheme) {
+    auto theme = std::move(*tab_->pendingTheme);
+    tab_->pendingTheme.reset();
+    tab_->renderView->setTheme(theme);
+    tab_->editor->setTheme(theme);
+  }
   wordCountTimer_->stop();
   outlineTimer_->stop();
   tab_->outlineDirty = true;  // the shared sidebar last displayed another tab
@@ -219,6 +225,7 @@ void muffin::MainWindow::activateTab(int index) {
     tab_->renderView->setDocument(tab_->session.document(), tab_->session.filePath());
     tab_->renderViewDirty = false;
   }
+  tab_->renderView->refreshPendingResources();
   updateTitle();
   updateStatus();
   updateAllActions();

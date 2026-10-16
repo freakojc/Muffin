@@ -71,6 +71,7 @@ public:
   // path. Returns false on the trailing caret to avoid deleting the last block.
   bool selectCurrentBlockForRemoval();
   CursorFormatState queryCursorFormatState() const;
+  CursorCommandState queryCursorCommandState() const;
   bool moveBlockUp();
   bool moveBlockDown();
   void clearHistoryAndSelection();

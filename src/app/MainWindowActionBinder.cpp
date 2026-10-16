@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "editor/SourceEditorWidget.h"
 
@@ -8,11 +9,13 @@
 #include <QLoggingCategory>
 #include <QMenu>
 #include <QSettings>
+#include <QScopedValueRollback>
 #include <QTimer>
 
 namespace muffin {
 
 Q_LOGGING_CATEGORY(actionProbe, "muffin.perf", QtWarningMsg)
+Q_LOGGING_CATEGORY(actionDetailProbe, "muffin.perf.detail", QtWarningMsg)
 
 // Every command's handler comes from the declaration table (CommandDeclarations.cpp);
 // bindCommands just wires each one to its id. The handler is captured by value —
@@ -96,6 +99,7 @@ bool MainWindow::commandOnLocalImage() const {
 }
 
 MainWindow::CommandContextSnapshot MainWindow::captureCommandContext() const {
+  diag::ScopedPerfProbe perf("main.captureCommandContext", actionDetailProbe());
   CommandContextSnapshot snapshot;
   const bool sourceMode = tab_->backend->isSourceMode();
   snapshot.hasCursor = sourceMode || tab_->editorController.selection().hasCursor();
@@ -108,18 +112,27 @@ MainWindow::CommandContextSnapshot MainWindow::captureCommandContext() const {
   snapshot.onEditableParagraph = tab_->renderCommands.isOnEditableParagraphBlock();
   snapshot.headingLevel = tab_->renderCommands.currentHeadingLevel();
   snapshot.inlineFormatEnabled = tab_->renderCommands.isInlineFormatEnabled();
+  const auto cursorState = tab_->renderCommands.currentCursorState();
+  if (snapshot.inlineFormatEnabled) snapshot.inlineFormats = cursorState.formats;
   snapshot.inTableCell = tab_->renderCommands.hasCurrentTableCell();
-  snapshot.onImage = tab_->renderCommands.isOnImage();
+  snapshot.onImage = !cursorState.imageSource.isEmpty();
   if (snapshot.onImage) {
-    const QString src = tab_->renderCommands.imageSrcAtCursor();
-    snapshot.onLocalImage = !src.isEmpty() && QFileInfo(src).isFile();
+    snapshot.onLocalImage = QFileInfo(cursorState.imageSource).isFile();
   }
   return snapshot;
+}
+
+CursorFormatState MainWindow::commandInlineFormats() const {
+  return commandContextSnapshotActive_ ? commandContextSnapshot_.inlineFormats : tab_->renderCommands.currentInlineFormats();
 }
 
 // ---- action state refresh (table-driven) -----------------------------------
 
 void MainWindow::updateActionsForCategory(CommandCategory category) {
+  const bool needsContext = category != CommandCategory::File && category != CommandCategory::Theme;
+  const QScopedValueRollback<CommandContextSnapshot> context(
+      commandContextSnapshot_, needsContext ? captureCommandContext() : commandContextSnapshot_);
+  const QScopedValueRollback<bool> active(commandContextSnapshotActive_, needsContext);
   for (const CommandDeclaration& decl : commandDeclarations()) {
     if (decl.category != category) {
       continue;
@@ -186,8 +199,10 @@ void MainWindow::updateFormatActions() { updateActionsForCategory(CommandCategor
 void MainWindow::updateThemeActions() { updateActionsForCategory(CommandCategory::Theme); }
 
 void MainWindow::updateContextActions() {
+  diag::ScopedPerfProbe perf("main.contextActions", actionDetailProbe());
   commandContextSnapshot_ = captureCommandContext();
   commandContextSnapshotActive_ = true;
+  diag::ScopedPerfProbe predicatesPerf("main.actionPredicates", actionDetailProbe());
   for (const CommandDeclaration& decl : commandDeclarations()) {
     switch (decl.category) {
       case CommandCategory::Edit:
@@ -222,9 +237,16 @@ void MainWindow::scheduleEditorStateRefresh() {
   }
   editorStateRefreshScheduled_ = true;
   QTimer::singleShot(0, this, [this] {
+    diag::ScopedPerfProbe perf("main.editorState", actionDetailProbe());
     editorStateRefreshScheduled_ = false;
-    updateBlockSourceLabel(tab_->editorController.selection().currentHit());
-    updateStatus();
+    {
+      diag::ScopedPerfProbe labelPerf("main.blockSourceLabel", actionDetailProbe());
+      updateBlockSourceLabel(tab_->editorController.selection().currentHit());
+    }
+    {
+      diag::ScopedPerfProbe statusPerf("main.status", actionDetailProbe());
+      updateStatus();
+    }
     updateContextActions();
   });
 }
