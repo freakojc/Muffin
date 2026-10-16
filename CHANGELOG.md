@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-10-17
+
+### Added
+
+- Extend imported theme support with Typora-compatible content nodes and Markdown semantic classes, `@supports` queries, generated content and scoped CSS counters.
+- Support layered background resources, `space`/`round` tiling, blend modes, masks, filters and bounded positioning through shared native rendering. Add a theme compatibility report tool and pinned VLOOK/browser regression fixtures.
+- Map local `@font-face` aliases, weights, italic faces and ordered multilingual fallbacks to isolated font identities, with fixed-font geometry coverage.
+
+### Changed
+
+- Reuse computed styles, interaction recipes, counter state and text layout during editing, resizing and theme changes. Defer hidden-tab theme and resource refreshes and merge them when the tab is activated.
+- Preserve sharp glow and distant shadow effects while cropping transparent regions and caching static results.
+- Share theme validation, variable calculations and font/resource SHA-256 work. Windows file and memory digests use the system backend with a Qt fallback.
+- Write ordered recovery drafts asynchronously and share cursor-format queries during command refreshes.
+- Prepare large-document ASTs, shared source text and indexes off the GUI thread. Reduce inline literal copies, coordinate scans and delimiter compaction while preserving decoded entities and escapes.
+- Skip redundant footnote work for documents without footnotes and fuse autolink email candidate processing with text consolidation, backed by fixed upstream AST, HTML and source-coordinate oracles.
+
+### Fixed
+
+- Keep Mermaid font metrics deterministic when imported themes register fonts with overlapping family names.
+- Refresh pending fonts and layout correctly when returning to a hidden document tab.
+- Resolve CSS-wide background positions on both axes, preventing VLOOK grid textures from shifting as estimated document height changes.
+
 ## [0.7.0] - 2026-10-12
 
 ### Added
@@ -675,7 +698,8 @@ An internal-architecture release. No user-visible behavior changes — every edi
 - **List indentation** - Fixed list item indent/outdent logic
 - **Cross-platform build** - Added `libxcb-util-dev` dependency for Linux CI and offscreen rendering environment for macOS tests
 
-[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.1
 [0.7.0]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.0
 [0.6.6]: https://github.com/jstzwj/Muffin/releases/tag/v0.6.6
 [0.6.0]: https://github.com/jstzwj/Muffin/releases/tag/v0.6.0
