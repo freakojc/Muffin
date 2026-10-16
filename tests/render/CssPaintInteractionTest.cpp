@@ -569,7 +569,28 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
         source.setRenderHint(QPainter::Antialiasing);
         source.setRenderHint(QPainter::TextAntialiasing);
         source.translate(pad, pad);
-        text.draw(&source, {}, overrides);
+        if (overrides.isEmpty()) text.draw(&source, {});
+        else {
+          // Independent full-canvas reference with overrides resolved as
+          // character formats. Qt selection painting itself clips the final
+          // decoration to boundingRect(), which is not the CSS text mask.
+          TextLayout formatted(text.text(), text.font(), text.backend());
+          formatted.setTextOption(text.textOption());
+          auto formats = text.formats();
+          formats.append(overrides);
+          formatted.setFormats(formats);
+          formatted.beginLayout();
+          for (int i = 0; i < text.lineCount(); ++i) {
+            auto line = formatted.createLine();
+            require(line.isValid(), "paint-only mask formats retain lines");
+            line.setLineWidth(text.lineAt(i).width());
+            line.setPosition(text.lineAt(i).position());
+            require(line.textStart() == text.lineAt(i).textStart() && line.textLength() == text.lineAt(i).textLength(),
+                    "paint-only mask formats retain shaping and source coordinates");
+          }
+          formatted.endLayout();
+          formatted.draw(&source, {});
+        }
       }
       if (!rects.isEmpty()) {
         QImage coverage(mask.size(), QImage::Format_ARGB32_Premultiplied);

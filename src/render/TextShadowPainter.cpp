@@ -48,6 +48,51 @@ QVector<QRect> islands(const QRegion& region, int halo) {
   }
   return result;
 }
+
+// QTextLayout::draw(selections) clips the unselected text to boundingRect().
+// That rectangle can cut the final underline's antialiasing coverage, and its
+// transformed edge differs between a sparse surface and a full canvas. For
+// disjoint paint-only overrides, resolve formats before drawing instead. No
+// font/shaping property changes, and the original line geometry is retained.
+std::unique_ptr<TextLayout> shadowTextWithFormats(const TextLayout& source,
+                                                 const QList<TextLayout::FormatRange>& overrides) {
+  if (overrides.isEmpty()) return {};
+  for (int i = 0; i < overrides.size(); ++i) {
+    const auto& range = overrides[i];
+    for (const auto property : range.format.properties().keys())
+      if (property != QTextFormat::ForegroundBrush && property != QTextFormat::FontUnderline &&
+          property != QTextFormat::FontOverline && property != QTextFormat::FontStrikeOut &&
+          property != QTextFormat::TextUnderlineStyle && property != QTextFormat::TextUnderlineColor &&
+          property != QTextFormat::TextOutline)
+        return {};
+    for (int j = 0; j < i; ++j)
+      if (range.start < overrides[j].start + overrides[j].length &&
+          overrides[j].start < range.start + range.length)
+        return {};
+  }
+  auto text = std::make_unique<TextLayout>(source.text(), source.font(), source.backend());
+  text->setTextOption(source.textOption());
+  auto formats = source.formats();
+  formats.append(overrides);
+  text->setFormats(formats);
+  text->beginLayout();
+  for (int i = 0; i < source.lineCount(); ++i) {
+    auto line = text->createLine();
+    const auto original = source.lineAt(i);
+    if (!line.isValid()) {
+      text->endLayout();
+      return {};
+    }
+    line.setLineWidth(original.width());
+    line.setPosition(original.position());
+    if (line.textStart() != original.textStart() || line.textLength() != original.textLength()) {
+      text->endLayout();
+      return {};
+    }
+  }
+  text->endLayout();
+  return text;
+}
 }  // namespace
 
 struct TextShadowPainter::Owner {
@@ -131,6 +176,8 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
     for (const auto& format : formats) stream << format.start << format.length << format.format;
   }
   if (!owner_) owner_ = std::make_shared<Owner>();
+  std::unique_ptr<TextLayout> formattedText;
+  bool preparedFormats = false;
   for (auto area : islands(source, halo)) {
     ++stats.requests;
     if (!area.intersects(demand)) {
@@ -155,6 +202,10 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
       stats.rasterizedPixels += pixels;
       stats.largestSurfacePixels = qMax(stats.largestSurfacePixels, pixels);
       const QPointF local = QPointF(area.topLeft()) / dpr;
+      if (!preparedFormats) {
+        formattedText = shadowTextWithFormats(text, formats);
+        preparedFormats = true;
+      }
       QImage mask;
       {
         diag::ScopedPerfProbe maskPerf("paint.shadowMask", shadowPerf());
@@ -170,7 +221,10 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
         // Keep those paths independent of the sparse surface when applying
         // foreground overrides; the paint device still clips raster work.
         // Static text can use the bounds to skip unrelated visual lines.
-        text.draw(&target, {}, formats, formats.isEmpty() ? QRectF(local, QSizeF(area.size()) / dpr) : QRectF());
+        if (formattedText)
+          formattedText->draw(&target, {}, {}, QRectF(local, QSizeF(area.size()) / dpr));
+        else
+          text.draw(&target, {}, formats, formats.isEmpty() ? QRectF(local, QSizeF(area.size()) / dpr) : QRectF());
       }
       if (!rects.isEmpty()) {
         // Apply coverage once to the composed text, in device coordinates.
