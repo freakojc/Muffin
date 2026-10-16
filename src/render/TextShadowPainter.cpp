@@ -193,6 +193,12 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
           coverage.drawImage(QPointF(), raster);
         }
       }
+      const bool traceRaster = !formats.isEmpty() && qEnvironmentVariableIsSet("MUFFIN_SHADOW_RASTER_TRACE");
+      if (traceRaster) {
+        const auto name = QString("resource-pixels-sparse-%1-%2").arg(area.x()).arg(area.y());
+        mask.save(name + "-mask.png");
+        qWarning() << "Sparse source area" << area;
+      }
       {
         diag::ScopedPerfProbe tintPerf("paint.shadowTint", shadowPerf());
         raster = QImage(area.size(), QImage::Format_ARGB32_Premultiplied);
@@ -204,6 +210,8 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
         target.setCompositionMode(QPainter::CompositionMode_DestinationIn);
         target.drawImage(QPointF(), mask);
       }
+      if (traceRaster)
+        raster.save(QString("resource-pixels-sparse-%1-%2-tint.png").arg(area.x()).arg(area.y()));
       if (radius) {
         diag::ScopedPerfProbe blurPerf("paint.shadowBlur", shadowPerf());
         boxBlur(raster, radius, blurPasses);

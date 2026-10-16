@@ -586,6 +586,7 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
         clipPainter.setCompositionMode(QPainter::CompositionMode_DestinationIn);
         clipPainter.drawImage(QPointF(), coverage);
       }
+      if (!overrides.isEmpty()) mask.save(QString("resource-pixels-oracle-%1-mask.png").arg(pad));
       QImage glow(mask.size(), QImage::Format_ARGB32_Premultiplied);
       glow.setDevicePixelRatio(dpr);
       glow.fill(Qt::transparent);
@@ -595,6 +596,7 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
         tint.setCompositionMode(QPainter::CompositionMode_DestinationIn);
         tint.drawImage(QPointF(), mask);
       }
+      if (!overrides.isEmpty()) glow.save(QString("resource-pixels-oracle-%1-tint.png").arg(pad));
       if (shadow.blur > 0) boxBlur(glow, qMax(1, qRound(shadow.blur * dpr)));
       // Anchor once on the device grid, independent of canvas padding. This
       // avoids Qt's asymmetric half-pixel image rounding on either side of 0.
@@ -644,7 +646,11 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
   hidden.setForeground(Qt::transparent);
   hidden.setFontUnderline(false);
   const QList<TextLayout::FormatRange> overrides{{0, 5, hidden}};
+  const auto oldTrace = qgetenv("MUFFIN_SHADOW_RASTER_TRACE");
+  qputenv("MUFFIN_SHADOW_RASTER_TRACE", "1");
   const auto overrideActual = render(false, 1, clips, shadow, overrides);
+  if (oldTrace.isNull()) qunsetenv("MUFFIN_SHADOW_RASTER_TRACE");
+  else qputenv("MUFFIN_SHADOW_RASTER_TRACE", oldTrace);
   const auto overrideExpected = render(true, 1, clips, shadow, overrides);
   if (!equivalent(overrideActual, overrideExpected)) {
     const auto maxAlphaDifference = [](const QImage& a, const QImage& b) {
