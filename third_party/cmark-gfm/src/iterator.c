@@ -93,6 +93,12 @@ cmark_event_type cmark_iter_get_event_type(cmark_iter *iter) {
 cmark_node *cmark_iter_get_root(cmark_iter *iter) { return iter->root; }
 
 void cmark_consolidate_text_nodes(cmark_node *root) {
+  cmark_consolidate_text_nodes_with_callback(root, NULL, NULL);
+}
+
+void cmark_consolidate_text_nodes_with_callback(cmark_node *root,
+                                               cmark_consolidated_text_func callback,
+                                               void *user_data) {
   if (root == NULL) {
     return;
   }
@@ -100,6 +106,7 @@ void cmark_consolidate_text_nodes(cmark_node *root) {
   cmark_strbuf buf = CMARK_BUF_INIT(iter->mem);
   cmark_event_type ev_type;
   cmark_node *cur, *tmp, *next;
+  bool in_link = false;
 
   while ((ev_type = cmark_iter_next(iter)) != CMARK_EVENT_DONE) {
     cur = cmark_iter_get_node(iter);
@@ -118,6 +125,13 @@ void cmark_consolidate_text_nodes(cmark_node *root) {
       }
       cmark_chunk_free(iter->mem, &cur->as.literal);
       cur->as.literal = cmark_chunk_buf_detach(&buf);
+    }
+    if (callback) {
+      if (cur->type == CMARK_NODE_LINK) {
+        in_link = ev_type == CMARK_EVENT_ENTER;
+      } else if (!in_link && ev_type == CMARK_EVENT_ENTER && cur->type == CMARK_NODE_TEXT) {
+        callback(cur, user_data);
+      }
     }
   }
 

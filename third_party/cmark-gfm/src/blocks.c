@@ -24,6 +24,7 @@
 #include "houdini.h"
 #include "buffer.h"
 #include "footnotes.h"
+#include "iterator.h"
 
 #define CODE_INDENT 4
 #define TAB_STOP 4
@@ -469,6 +470,11 @@ static int sort_footnote_by_ix(const void *_a, const void *_b) {
 }
 
 static void process_footnotes(cmark_parser *parser) {
+  /* No footnote nodes were created, so both tree walks would be no-ops.
+   * References alone still need processing: unresolved ones become text. */
+  if (!parser->has_footnotes)
+    return;
+
   // * Collect definitions in a map.
   // * Iterate the references in the document in order, assigning indices to
   //   definitions in the order they're seen.
@@ -1244,6 +1250,7 @@ static void open_new_blocks(cmark_parser *parser, cmark_node **container,
 
       S_advance_offset(parser, input, parser->first_nonspace + matched - parser->offset, false);
       *container = add_child(parser, *container, CMARK_NODE_FOOTNOTE_DEFINITION, parser->first_nonspace + matched + 1);
+      parser->has_footnotes = true;
       (*container)->as.literal = c;
 
       (*container)->internal_offset = matched;
@@ -1533,9 +1540,20 @@ finished:
   cmark_strbuf_clear(&parser->curline);
 }
 
+typedef struct {
+  cmark_parser *parser;
+  cmark_syntax_extension *extension;
+} text_postprocess_context;
+
+static void postprocess_consolidated_text(cmark_node *text, void *user_data) {
+  text_postprocess_context *context = (text_postprocess_context *)user_data;
+  context->extension->postprocess_text_func(context->extension, context->parser, text);
+}
+
 cmark_node *cmark_parser_finish(cmark_parser *parser) {
   cmark_node *res;
   cmark_llist *extensions;
+  cmark_syntax_extension *text_extension = NULL;
 
   /* Parser was already finished once */
   if (parser->root == NULL)
@@ -1548,7 +1566,23 @@ cmark_node *cmark_parser_finish(cmark_parser *parser) {
 
   finalize_document(parser);
 
-  cmark_consolidate_text_nodes(parser->root);
+  /* Only the first postprocessor can consume the core's consolidation pass.
+   * An earlier extension may change the tree; preserve the fallback and
+   * ordering for every later extension. No extension name checks are needed. */
+  for (extensions = parser->syntax_extensions; extensions; extensions = extensions->next) {
+    cmark_syntax_extension *ext = (cmark_syntax_extension *)extensions->data;
+    if (ext->postprocess_func) {
+      if (ext->postprocess_text_func)
+        text_extension = ext;
+      break;
+    }
+  }
+  if (text_extension) {
+    text_postprocess_context context = {parser, text_extension};
+    cmark_consolidate_text_nodes_with_callback(parser->root, postprocess_consolidated_text, &context);
+  } else {
+    cmark_consolidate_text_nodes(parser->root);
+  }
 
   cmark_strbuf_free(&parser->curline);
   cmark_strbuf_free(&parser->linebuf);
@@ -1561,6 +1595,12 @@ cmark_node *cmark_parser_finish(cmark_parser *parser) {
 
   for (extensions = parser->syntax_extensions; extensions; extensions = extensions->next) {
     cmark_syntax_extension *ext = (cmark_syntax_extension *) extensions->data;
+    if (ext == text_extension) {
+      /* Consume exactly this attachment, even if the same extension object
+       * appears again after a tree-mutating postprocessor. */
+      text_extension = NULL;
+      continue;
+    }
     if (ext->postprocess_func) {
       cmark_node *processed = ext->postprocess_func(ext, parser, parser->root);
       if (processed)
@@ -1616,6 +1656,8 @@ cmark_node *cmark_parser_add_child(cmark_parser *parser,
                                    cmark_node   *parent,
                                    cmark_node_type block_type,
                                    int start_column) {
+  if (block_type == CMARK_NODE_FOOTNOTE_DEFINITION || block_type == CMARK_NODE_FOOTNOTE_REFERENCE)
+    parser->has_footnotes = true;
   return add_child(parser, parent, block_type, start_column);
 }
 

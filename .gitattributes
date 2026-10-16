@@ -6,3 +6,6 @@ tests/fixtures/mermaid/**/*.json -text
 tests/fixtures/theme/wpt/upstream/** -text
 # VLOOK regression tests verify the original theme's SHA-256 bytes.
 tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css -text
+# Footnote regression inputs are byte-hashed against the original cmark oracle.
+tests/fixtures/parser/cmark-footnote-*.json -text whitespace=cr-at-eol
+tests/fixtures/parser/cmark-autolink-*.json -text whitespace=cr-at-eol

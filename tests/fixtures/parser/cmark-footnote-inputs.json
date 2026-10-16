@@ -1,0 +1,638 @@
+[
+  {
+    "name": "plain",
+    "source": "Plain **bold** and [link](https://example.com).\n"
+  },
+  {
+    "name": "empty",
+    "source": ""
+  },
+  {
+    "name": "normal",
+    "source": "Text [^a].\n\n[^a]: Note.\n"
+  },
+  {
+    "name": "undefined",
+    "source": "Before [^missing] after.\n"
+  },
+  {
+    "name": "undefined-emphasis",
+    "source": "Before [^**missing**] and [^www.example.com] after.\n"
+  },
+  {
+    "name": "unused-definition",
+    "source": "[^unused]: hidden\n\nVisible.\n"
+  },
+  {
+    "name": "reference-order",
+    "source": "[^b] then [^a] then [^b].\n\n[^a]: A\n\n[^b]: B\n"
+  },
+  {
+    "name": "duplicate-definition",
+    "source": "See [^a].\n\n[^a]: first\n\n[^a]: second\n"
+  },
+  {
+    "name": "case-labels",
+    "source": "[^A] [^a] [^中文].\n\n[^a]: one\n\n[^中文]: 两个\n"
+  },
+  {
+    "name": "multiline",
+    "source": "[^a].\n\n[^a]: first\n    second **bold**\n\n    continuation.\n"
+  },
+  {
+    "name": "nested-list",
+    "source": "- Item [^a]\n  - Nested [^b]\n\n[^a]: - List\n      - nested\n\n[^b]: B\n"
+  },
+  {
+    "name": "quote",
+    "source": "> See [^a].\n>\n> [^a]: Quoted note.\n"
+  },
+  {
+    "name": "footnote-in-footnote",
+    "source": "[^a]\n\n[^a]: Contains [^b].\n\n[^b]: B\n"
+  },
+  {
+    "name": "self-reference",
+    "source": "[^a]\n\n[^a]: Self [^a].\n"
+  },
+  {
+    "name": "unreferenced-nested",
+    "source": "[^unused]: Contains [^missing].\n\nplain\n"
+  },
+  {
+    "name": "table",
+    "source": "| Ref | Text |\n|---|---|\n| [^a] | [^missing] |\n\n[^a]: A\n"
+  },
+  {
+    "name": "task",
+    "source": "- [x] Task [^a].\n\n[^a]: A\n"
+  },
+  {
+    "name": "math",
+    "source": "$[^math]$ and [^a].\n\n$$\n[^not-a-definition]: math\n$$\n\n[^a]: A\n"
+  },
+  {
+    "name": "fenced",
+    "source": "```md\n[^a]: no\n[^a]\n```\n\nplain\n"
+  },
+  {
+    "name": "indented",
+    "source": "    [^a]: no\n    [^a]\n\nplain\n"
+  },
+  {
+    "name": "inline-code",
+    "source": "`[^a]` and \\[^escaped] and [^].\n"
+  },
+  {
+    "name": "html",
+    "source": "<pre>\n[^a]: no\n[^a]\n</pre>\n\nplain\n"
+  },
+  {
+    "name": "html-inline",
+    "source": "<span>[^a]</span>\n\n[^a]: A\n"
+  },
+  {
+    "name": "entities-in-notes",
+    "source": "[^a] &#94; [^a]\n\n[^a]: A &amp; B\n"
+  },
+  {
+    "name": "link",
+    "source": "[^a](https://example.com) and [^b][ref].\n\n[ref]: https://example.com\n"
+  },
+  {
+    "name": "image",
+    "source": "![^a](image.png) and ![^b]\n\n[^b]: B\n"
+  },
+  {
+    "name": "crlf",
+    "source": "See [^a].\r\n\r\n[^a]: first\r\n    second\r\n"
+  },
+  {
+    "name": "no-final-newline",
+    "source": "See [^a].\n\n[^a]: last"
+  },
+  {
+    "name": "brackets",
+    "source": "[[^a]] [^a][^missing] [^a b] [^a\\]b].\n\n[^a]: A\n\n[^a b]: space\n"
+  },
+  {
+    "name": "heading",
+    "source": "# Heading [^a]\n\n[^a]: A\n"
+  },
+  {
+    "name": "defs-before-ref",
+    "source": "[^b]: B\n\n[^a]: A\n\nSee [^a] [^b].\n"
+  },
+  {
+    "name": "mixed-000",
+    "source": "[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a] [^missing].\n\n[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-001",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n[^a] [^missing].\n\n> quote [^b]\n\n- [x] task [^a]\n\n`[^code]` \\[^escaped].\n\n[^a]: Note **bold**.\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-002",
+    "source": "[^a] &#94; &amp; [^b].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^b]: Other [^a].\n\n[^b]: Other [^a].\n\n`[^code]` \\[^escaped].\n\n[^b]: Other [^a].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-003",
+    "source": "[^b]: Other [^a].\n\n- [x] task [^a]\n\n[^a]: Note **bold**.\n\nText **bold** and 中文.\n\n[^a] &#94; &amp; [^b].\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-004",
+    "source": "[^a] [^missing].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-005",
+    "source": "Text **bold** and 中文.\n\n[^b]: Other [^a].\n\n[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\n`[^code]` \\[^escaped].\n\n> quote [^b]\n\n`[^code]` \\[^escaped].\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-006",
+    "source": "[^a] [^missing].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-007",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-008",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-009",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-010",
+    "source": "`[^code]` \\[^escaped].\n\n[^a] &#94; &amp; [^b].\n\n[^a]: Note **bold**.\n\nText **bold** and 中文.\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-011",
+    "source": "[^a]: Note **bold**.\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-012",
+    "source": "[^a]: Note **bold**.\n\n[^a]: Note **bold**.\n\n[^a] [^missing].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a] [^missing].\n\n`[^code]` \\[^escaped].\n\nText **bold** and 中文.\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-013",
+    "source": "Text **bold** and 中文.\n\n[^a] [^missing].\n\nText **bold** and 中文.\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-014",
+    "source": "> quote [^b]\n\nText **bold** and 中文.\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-015",
+    "source": "Text **bold** and 中文.\n\n[^b]: Other [^a].\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-016",
+    "source": "- [x] task [^a]\n\n> quote [^b]\n\n[^a]: Note **bold**.\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-017",
+    "source": "Text **bold** and 中文.\n\n[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\n[^b]: Other [^a].\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-018",
+    "source": "[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\n[^b]: Other [^a].\n\n> quote [^b]\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-019",
+    "source": "[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-020",
+    "source": "`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-021",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n> quote [^b]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a] &#94; &amp; [^b].\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-022",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-023",
+    "source": "Text **bold** and 中文.\n\n[^a] [^missing].\n\nText **bold** and 中文.\n\nText **bold** and 中文.\n\n- [x] task [^a]\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-024",
+    "source": "[^a] [^missing].\n\n[^a] [^missing].\n\nText **bold** and 中文.\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-025",
+    "source": "> quote [^b]\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-026",
+    "source": "Text **bold** and 中文.\n\n[^a] [^missing].\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-027",
+    "source": "[^a] &#94; &amp; [^b].\n\n[^a] [^missing].\n\n`[^code]` \\[^escaped].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n- [x] task [^a]\n\n> quote [^b]\n\n[^b]: Other [^a].\n\n"
+  },
+  {
+    "name": "mixed-028",
+    "source": "[^b]: Other [^a].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^b]: Other [^a].\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-029",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-030",
+    "source": "[^a] &#94; &amp; [^b].\n\n[^a] &#94; &amp; [^b].\n\n[^a] &#94; &amp; [^b].\n\n> quote [^b]\n\n`[^code]` \\[^escaped].\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-031",
+    "source": "[^a] &#94; &amp; [^b].\n\n[^a] &#94; &amp; [^b].\n\n[^a] &#94; &amp; [^b].\n\nText **bold** and 中文.\n\n[^b]: Other [^a].\n\n[^b]: Other [^a].\n\nText **bold** and 中文.\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-032",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-033",
+    "source": "Text **bold** and 中文.\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-034",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^b]: Other [^a].\n\n> quote [^b]\n\n> quote [^b]\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-035",
+    "source": "[^b]: Other [^a].\n\n[^b]: Other [^a].\n\n"
+  },
+  {
+    "name": "mixed-036",
+    "source": "> quote [^b]\n\n> quote [^b]\n\n- [x] task [^a]\n\n[^a] &#94; &amp; [^b].\n\n> quote [^b]\n\n[^a] [^missing].\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-037",
+    "source": "[^b]: Other [^a].\n\n[^a] [^missing].\n\n[^a] &#94; &amp; [^b].\n\n> quote [^b]\n\n[^a] [^missing].\n\n> quote [^b]\n\n- [x] task [^a]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-038",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-039",
+    "source": "> quote [^b]\n\n[^a]: Note **bold**.\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-040",
+    "source": "- [x] task [^a]\n\n[^b]: Other [^a].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a] &#94; &amp; [^b].\n\n[^a] [^missing].\n\n- [x] task [^a]\n\n[^a] &#94; &amp; [^b].\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-041",
+    "source": "- [x] task [^a]\n\n- [x] task [^a]\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-042",
+    "source": "[^b]: Other [^a].\n\n- [x] task [^a]\n\n> quote [^b]\n\n`[^code]` \\[^escaped].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-043",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-044",
+    "source": "[^a]: Note **bold**.\n\n`[^code]` \\[^escaped].\n\n- [x] task [^a]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-045",
+    "source": "> quote [^b]\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-046",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n- [x] task [^a]\n\n> quote [^b]\n\n> quote [^b]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n[^a] &#94; &amp; [^b].\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-047",
+    "source": "`[^code]` \\[^escaped].\n\n`[^code]` \\[^escaped].\n\n[^a]: Note **bold**.\n\n[^b]: Other [^a].\n\n[^a] [^missing].\n\n[^a]: Note **bold**.\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-048",
+    "source": "[^a] [^missing].\n\n[^b]: Other [^a].\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-049",
+    "source": "[^a]: Note **bold**.\n\n- [x] task [^a]\n\n[^a] [^missing].\n\n[^b]: Other [^a].\n\n[^a]: Note **bold**.\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-050",
+    "source": "[^b]: Other [^a].\n\n"
+  },
+  {
+    "name": "mixed-051",
+    "source": "> quote [^b]\n\n[^b]: Other [^a].\n\n[^a] [^missing].\n\nText **bold** and 中文.\n\n[^a] [^missing].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-052",
+    "source": "[^b]: Other [^a].\n\n[^a]: Note **bold**.\n\n[^b]: Other [^a].\n\n[^a] [^missing].\n\n`[^code]` \\[^escaped].\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-053",
+    "source": "> quote [^b]\n\n- [x] task [^a]\n\n`[^code]` \\[^escaped].\n\n> quote [^b]\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-054",
+    "source": "[^a] &#94; &amp; [^b].\n\n`[^code]` \\[^escaped].\n\n`[^code]` \\[^escaped].\n\n[^a] &#94; &amp; [^b].\n\nText **bold** and 中文.\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-055",
+    "source": "- [x] task [^a]\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-056",
+    "source": "> quote [^b]\n\n- [x] task [^a]\n\n`[^code]` \\[^escaped].\n\n`[^code]` \\[^escaped].\n\n[^a] [^missing].\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-057",
+    "source": "[^a]: Note **bold**.\n\n[^a] &#94; &amp; [^b].\n\n- [x] task [^a]\n\n- [x] task [^a]\n\nText **bold** and 中文.\n\n- [x] task [^a]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-058",
+    "source": "Text **bold** and 中文.\n\n[^a]: Note **bold**.\n\n- [x] task [^a]\n\n[^b]: Other [^a].\n\n"
+  },
+  {
+    "name": "mixed-059",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n- [x] task [^a]\n\n> quote [^b]\n\n[^a] [^missing].\n\n[^a] [^missing].\n\n[^a]: Note **bold**.\n\n[^b]: Other [^a].\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-060",
+    "source": "Text **bold** and 中文.\n\n`[^code]` \\[^escaped].\n\n[^a] &#94; &amp; [^b].\n\n[^a] [^missing].\n\n[^a] &#94; &amp; [^b].\n\n[^a] &#94; &amp; [^b].\n\n`[^code]` \\[^escaped].\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-061",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-062",
+    "source": "- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-063",
+    "source": "[^a] [^missing].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-064",
+    "source": "Text **bold** and 中文.\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-065",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n- [x] task [^a]\n\n- [x] task [^a]\n\n[^a] &#94; &amp; [^b].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n> quote [^b]\n\n> quote [^b]\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-066",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n[^a]: Note **bold**.\n\n[^a] &#94; &amp; [^b].\n\n- [x] task [^a]\n\n[^b]: Other [^a].\n\n[^b]: Other [^a].\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-067",
+    "source": "> quote [^b]\n\n[^b]: Other [^a].\n\n> quote [^b]\n\n`[^code]` \\[^escaped].\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-068",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-069",
+    "source": "Text **bold** and 中文.\n\n> quote [^b]\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-070",
+    "source": "[^a]: Note **bold**.\n\n[^b]: Other [^a].\n\n"
+  },
+  {
+    "name": "mixed-071",
+    "source": "`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-072",
+    "source": "[^a] [^missing].\n\n`[^code]` \\[^escaped].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-073",
+    "source": "[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-074",
+    "source": "- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-075",
+    "source": "[^b]: Other [^a].\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-076",
+    "source": "[^a] [^missing].\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-077",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\nText **bold** and 中文.\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-078",
+    "source": "> quote [^b]\n\n- [x] task [^a]\n\n> quote [^b]\n\n[^a]: Note **bold**.\n\n- [x] task [^a]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a] [^missing].\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-079",
+    "source": "[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-080",
+    "source": "[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-081",
+    "source": "[^a]: Note **bold**.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n`[^code]` \\[^escaped].\n\n[^a] [^missing].\n\n[^b]: Other [^a].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-082",
+    "source": "[^a] [^missing].\n\n[^a] [^missing].\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-083",
+    "source": "[^a]: Note **bold**.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n- [x] task [^a]\n\n> quote [^b]\n\n`[^code]` \\[^escaped].\n\n[^b]: Other [^a].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-084",
+    "source": "[^b]: Other [^a].\n\n[^a] &#94; &amp; [^b].\n\n> quote [^b]\n\n[^a]: Note **bold**.\n\n[^a] [^missing].\n\n[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-085",
+    "source": "Text **bold** and 中文.\n\n[^a] &#94; &amp; [^b].\n\n[^a] [^missing].\n\n[^a] [^missing].\n\nText **bold** and 中文.\n\n[^a] &#94; &amp; [^b].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-086",
+    "source": "> quote [^b]\n\n[^a]: Note **bold**.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-087",
+    "source": "> quote [^b]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n> quote [^b]\n\n[^b]: Other [^a].\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-088",
+    "source": "[^a]: Note **bold**.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-089",
+    "source": "[^b]: Other [^a].\n\n[^b]: Other [^a].\n\n[^b]: Other [^a].\n\n`[^code]` \\[^escaped].\n\nText **bold** and 中文.\n\n[^a] &#94; &amp; [^b].\n\n[^a]: Note **bold**.\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-090",
+    "source": "> quote [^b]\n\n> quote [^b]\n\n- [x] task [^a]\n\n> quote [^b]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n- [x] task [^a]\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-091",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-092",
+    "source": "[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-093",
+    "source": "[^a]: Note **bold**.\n\n> quote [^b]\n\n[^b]: Other [^a].\n\n`[^code]` \\[^escaped].\n\n`[^code]` \\[^escaped].\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-094",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-095",
+    "source": "[^a] &#94; &amp; [^b].\n\n[^a]: Note **bold**.\n\nText **bold** and 中文.\n\n- [x] task [^a]\n\n`[^code]` \\[^escaped].\n\n[^a] &#94; &amp; [^b].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-096",
+    "source": "[^a]: Note **bold**.\n\n[^a] [^missing].\n\n[^a] [^missing].\n\nText **bold** and 中文.\n\n[^a]: Note **bold**.\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-097",
+    "source": "Text **bold** and 中文.\n\n[^a]: Note **bold**.\n\n- [x] task [^a]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-098",
+    "source": "Text **bold** and 中文.\n\nText **bold** and 中文.\n\n`[^code]` \\[^escaped].\n\nText **bold** and 中文.\n\n`[^code]` \\[^escaped].\n\n[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\n"
+  },
+  {
+    "name": "mixed-099",
+    "source": "[^b]: Other [^a].\n\n- [x] task [^a]\n\n[^a] [^missing].\n\n> quote [^b]\n\n[^a] [^missing].\n\n[^b]: Other [^a].\n\n[^a] &#94; &amp; [^b].\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-100",
+    "source": "`[^code]` \\[^escaped].\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-101",
+    "source": "> quote [^b]\n\n- [x] task [^a]\n\nText **bold** and 中文.\n\n[^a]: Note **bold**.\n\n> quote [^b]\n\n- [x] task [^a]\n\n[^a] [^missing].\n\n[^a] &#94; &amp; [^b].\n\n"
+  },
+  {
+    "name": "mixed-102",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n> quote [^b]\n\n- [x] task [^a]\n\n- [x] task [^a]\n\n[^b]: Other [^a].\n\n[^a] [^missing].\n\n[^b]: Other [^a].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-103",
+    "source": "[^a] [^missing].\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-104",
+    "source": "[^a] [^missing].\n\n[^a] [^missing].\n\n> quote [^b]\n\n> quote [^b]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n`[^code]` \\[^escaped].\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-105",
+    "source": "[^a] &#94; &amp; [^b].\n\n[^a] &#94; &amp; [^b].\n\n[^a] [^missing].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-106",
+    "source": "[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-107",
+    "source": "> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-108",
+    "source": "[^a]: Note **bold**.\n\n`[^code]` \\[^escaped].\n\n[^a] &#94; &amp; [^b].\n\n[^a] &#94; &amp; [^b].\n\n`[^code]` \\[^escaped].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-109",
+    "source": "[^a] &#94; &amp; [^b].\n\n- [x] task [^a]\n\n> quote [^b]\n\n[^a] &#94; &amp; [^b].\n\n`[^code]` \\[^escaped].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-110",
+    "source": "- [x] task [^a]\n\n[^a] &#94; &amp; [^b].\n\n`[^code]` \\[^escaped].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-111",
+    "source": "- [x] task [^a]\n\n[^a] [^missing].\n\n[^b]: Other [^a].\n\n[^a] &#94; &amp; [^b].\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-112",
+    "source": "- [x] task [^a]\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-113",
+    "source": "- [x] task [^a]\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a] &#94; &amp; [^b].\n\n`[^code]` \\[^escaped].\n\n[^a]: Note **bold**.\n\n- [x] task [^a]\n\n[^a]: Note **bold**.\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-114",
+    "source": "- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-115",
+    "source": "`[^code]` \\[^escaped].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n"
+  },
+  {
+    "name": "mixed-116",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n[^b]: Other [^a].\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-117",
+    "source": "`[^code]` \\[^escaped].\n\n- [x] task [^a]\n\n[^a] &#94; &amp; [^b].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-118",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n- [x] task [^a]\n\nText **bold** and 中文.\n\n[^a]: Note **bold**.\n\n"
+  },
+  {
+    "name": "mixed-119",
+    "source": "[^b]: Other [^a].\n\n> quote [^b]\n\n[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n[^a]: Note **bold**.\n\n`[^code]` \\[^escaped].\n\n"
+  },
+  {
+    "name": "mixed-120",
+    "source": "[^b]: Other [^a].\n\n- [x] task [^a]\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-121",
+    "source": "[^a] &#94; &amp; [^b].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\n[^a]: Note **bold**.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n"
+  },
+  {
+    "name": "mixed-122",
+    "source": "| a | b |\n|---|---|\n| [^a] | x |\n\n[^b]: Other [^a].\n\n- [x] task [^a]\n\n[^a] &#94; &amp; [^b].\n\n[^b]: Other [^a].\n\n- [x] task [^a]\n\n[^a] [^missing].\n\n[^b]: Other [^a].\n\n"
+  },
+  {
+    "name": "mixed-123",
+    "source": "[^b]: Other [^a].\n\n[^b]: Other [^a].\n\n- [x] task [^a]\n\n"
+  },
+  {
+    "name": "mixed-124",
+    "source": "- [x] task [^a]\n\nText **bold** and 中文.\n\n- [x] task [^a]\n\nText **bold** and 中文.\n\n`[^code]` \\[^escaped].\n\n[^a] &#94; &amp; [^b].\n\n- [x] task [^a]\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-125",
+    "source": "[^a]: Note **bold**.\n\n[^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-126",
+    "source": "[^a] &#94; &amp; [^b].\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\n[^a]: Note **bold**.\n\n- [x] task [^a]\n\n[^a] [^missing].\n\n> quote [^b]\n\n"
+  },
+  {
+    "name": "mixed-127",
+    "source": "`[^code]` \\[^escaped].\n\n[^a]: Note **bold**.\n\n| a | b |\n|---|---|\n| [^a] | x |\n\nText **bold** and 中文.\n\nText **bold** and 中文.\n\n"
+  }
+]

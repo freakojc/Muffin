@@ -1,5 +1,6 @@
 #include "autolink.h"
 #include <parser.h>
+#include <syntax_extension.h>
 #include <string.h>
 #include <utf8.h>
 #include <stddef.h>
@@ -319,6 +320,13 @@ static bool validate_protocol(const char protocol[], uint8_t *data, size_t rewin
 }
 
 static void postprocess_text(cmark_parser *parser, cmark_node *text) {
+  /* An email requires '@' in the decoded, consolidated literal. Avoid
+   * detaching/copying ordinary text, including entity-decoded candidates. */
+  if (text->as.literal.len == 0 ||
+      memchr(text->as.literal.data, '@', text->as.literal.len) == NULL) {
+    cmark_chunk_to_cstr(parser->mem, &text->as.literal);
+    return;
+  }
   size_t start = 0;
   size_t offset = 0;
   // `text` is going to be split into a list of nodes containing shorter segments
@@ -459,6 +467,16 @@ found_at:
   cmark_chunk_free(parser->mem, &detached_chunk);
 }
 
+static void postprocess_consolidated_text(cmark_syntax_extension *ext, cmark_parser *parser, cmark_node *node) {
+  cmark_chunk *literal = &node->as.literal;
+  if (literal->len > 0 && memchr(literal->data, '@', literal->len))
+    postprocess_text(parser, node);
+  else
+    /* Preserve the original ownership contract. A later get_literal() must
+     * not pay for allocations that were merely moved out of parse timing. */
+    cmark_chunk_to_cstr(parser->mem, literal);
+}
+
 static cmark_node *postprocess(cmark_syntax_extension *ext, cmark_parser *parser, cmark_node *root) {
   cmark_iter *iter;
   cmark_event_type ev;
@@ -498,6 +516,7 @@ cmark_syntax_extension *create_autolink_extension(void) {
 
   cmark_syntax_extension_set_match_inline_func(ext, match);
   cmark_syntax_extension_set_postprocess_func(ext, postprocess);
+  ext->postprocess_text_func = postprocess_consolidated_text;
 
   cmark_mem *mem = cmark_get_default_mem_allocator();
   special_chars = cmark_llist_append(mem, special_chars, (void *)':');

@@ -1,0 +1,870 @@
+[
+  {
+    "name": "empty",
+    "source": ""
+  },
+  {
+    "name": "plain",
+    "source": "Plain **bold**, *italic*, `code` and [Muffin](https://example.com).\n"
+  },
+  {
+    "name": "inline-000",
+    "source": "a@example.com\n"
+  },
+  {
+    "name": "inline-001",
+    "source": "one@example.com two@example.org\n"
+  },
+  {
+    "name": "inline-002",
+    "source": "mailto:a@example.com\n"
+  },
+  {
+    "name": "inline-003",
+    "source": "xmpp:a@example.com/resource\n"
+  },
+  {
+    "name": "inline-004",
+    "source": "HTTP://example.com\n"
+  },
+  {
+    "name": "inline-005",
+    "source": "https://example.com\n"
+  },
+  {
+    "name": "inline-006",
+    "source": "ftp://example.com/file\n"
+  },
+  {
+    "name": "inline-007",
+    "source": "www.example.com\n"
+  },
+  {
+    "name": "inline-008",
+    "source": "WWW.example.com\n"
+  },
+  {
+    "name": "inline-009",
+    "source": "https://localhost\n"
+  },
+  {
+    "name": "inline-010",
+    "source": "https://example.com/path_(one))\n"
+  },
+  {
+    "name": "inline-011",
+    "source": "https://example.com?x=1&y=2\n"
+  },
+  {
+    "name": "inline-012",
+    "source": "https://example.com/path; https://example.com/path&nbsp;\n"
+  },
+  {
+    "name": "inline-013",
+    "source": "www._example.com www.a_b.example.com\n"
+  },
+  {
+    "name": "inline-014",
+    "source": "www.a._example.com www.example._com\n"
+  },
+  {
+    "name": "inline-015",
+    "source": "https://example.com/#a@example.org\n"
+  },
+  {
+    "name": "inline-016",
+    "source": "a.b+c-d_e@example.com\n"
+  },
+  {
+    "name": "inline-017",
+    "source": "a+tag@example.co.uk\n"
+  },
+  {
+    "name": "inline-018",
+    "source": ".a@example.com\n"
+  },
+  {
+    "name": "inline-019",
+    "source": "a..b@example.com\n"
+  },
+  {
+    "name": "inline-020",
+    "source": "a@example.c\n"
+  },
+  {
+    "name": "inline-021",
+    "source": "a@example.123\n"
+  },
+  {
+    "name": "inline-022",
+    "source": "a@example.com.\n"
+  },
+  {
+    "name": "inline-023",
+    "source": "a@localhost\n"
+  },
+  {
+    "name": "inline-024",
+    "source": "a@b\n"
+  },
+  {
+    "name": "inline-025",
+    "source": "@example.com\n"
+  },
+  {
+    "name": "inline-026",
+    "source": "a@@example.com\n"
+  },
+  {
+    "name": "inline-027",
+    "source": "@@@\n"
+  },
+  {
+    "name": "inline-028",
+    "source": "a@a@b.com\n"
+  },
+  {
+    "name": "inline-029",
+    "source": "MAILTO:a@example.com\n"
+  },
+  {
+    "name": "inline-030",
+    "source": "xmailto:a@example.com\n"
+  },
+  {
+    "name": "inline-031",
+    "source": "mailto:a@example.com?subject=hi\n"
+  },
+  {
+    "name": "inline-032",
+    "source": "xmpp:a@example.com/a/b\n"
+  },
+  {
+    "name": "inline-033",
+    "source": "(a@example.com)\n"
+  },
+  {
+    "name": "inline-034",
+    "source": "<a@example.com>\n"
+  },
+  {
+    "name": "inline-035",
+    "source": "[a@example.com]\n"
+  },
+  {
+    "name": "inline-036",
+    "source": "a&#64;example.com\n"
+  },
+  {
+    "name": "inline-037",
+    "source": "a&#x40;example.com\n"
+  },
+  {
+    "name": "inline-038",
+    "source": "a&commat;example.com\n"
+  },
+  {
+    "name": "inline-039",
+    "source": "a@exa&#109;ple.com\n"
+  },
+  {
+    "name": "inline-040",
+    "source": "a@example&#46;com\n"
+  },
+  {
+    "name": "inline-041",
+    "source": "a\\.b@example.com\n"
+  },
+  {
+    "name": "inline-042",
+    "source": "a\\@example.com\n"
+  },
+  {
+    "name": "inline-043",
+    "source": "a&amp;b@example.com\n"
+  },
+  {
+    "name": "inline-044",
+    "source": "a@example.com &amp; b@example.org\n"
+  },
+  {
+    "name": "inline-045",
+    "source": "**a@example.com**\n"
+  },
+  {
+    "name": "inline-046",
+    "source": "*a@example.com*\n"
+  },
+  {
+    "name": "inline-047",
+    "source": "~~a@example.com~~\n"
+  },
+  {
+    "name": "inline-048",
+    "source": "a**b**@example.com\n"
+  },
+  {
+    "name": "inline-049",
+    "source": "a@**example**.com\n"
+  },
+  {
+    "name": "inline-050",
+    "source": "a@example.**com**\n"
+  },
+  {
+    "name": "inline-051",
+    "source": "`a@example.com`\n"
+  },
+  {
+    "name": "inline-052",
+    "source": "[a@example.com](https://example.org)\n"
+  },
+  {
+    "name": "inline-053",
+    "source": "[text](mailto:a@example.com)\n"
+  },
+  {
+    "name": "inline-054",
+    "source": "![a@example.com](image.png)\n"
+  },
+  {
+    "name": "inline-055",
+    "source": "<span>a@example.com</span>\n"
+  },
+  {
+    "name": "inline-056",
+    "source": "<a href=\"/\">a@example.com</a>\n"
+  },
+  {
+    "name": "inline-057",
+    "source": "$a@example.com$\n"
+  },
+  {
+    "name": "inline-058",
+    "source": "中文 a@example.com 文字\n"
+  },
+  {
+    "name": "inline-059",
+    "source": "邮箱@example.com\n"
+  },
+  {
+    "name": "inline-060",
+    "source": "a@中文.com\n"
+  },
+  {
+    "name": "inline-061",
+    "source": "a@example.com，后续\n"
+  },
+  {
+    "name": "inline-062",
+    "source": "https://例子.测试/path\n"
+  },
+  {
+    "name": "inline-063",
+    "source": "https://example.com/中文\n"
+  },
+  {
+    "name": "inline-064",
+    "source": "a@example.com! a@example.com? a@example.com; a@example.com:\n"
+  },
+  {
+    "name": "inline-065",
+    "source": "a@example.com\nnext@example.org\n"
+  },
+  {
+    "name": "inline-066",
+    "source": "a@\nexample.com\n"
+  },
+  {
+    "name": "inline-067",
+    "source": "a@example.\ncom\n"
+  },
+  {
+    "name": "inline-068",
+    "source": "a@example.com\tother@example.org\n"
+  },
+  {
+    "name": "inline-069",
+    "source": "a@example.com\r\nother@example.org\n"
+  },
+  {
+    "name": "inline-070",
+    "source": "a@example.com\u0000b@example.org\n"
+  },
+  {
+    "name": "inline-071",
+    "source": "before [^a] and a@example.com.\n\n[^a]: note@example.com\n"
+  },
+  {
+    "name": "inline-072",
+    "source": "[^missing@example.com]\n"
+  },
+  {
+    "name": "inline-073",
+    "source": "a@example.com\n"
+  },
+  {
+    "name": "block-000",
+    "source": "# Heading a@example.com\n"
+  },
+  {
+    "name": "block-001",
+    "source": "> a@example.com\n"
+  },
+  {
+    "name": "block-002",
+    "source": "- a@example.com\n  - other@example.org\n"
+  },
+  {
+    "name": "block-003",
+    "source": "- [x] a@example.com\n- [ ] other@example.org\n"
+  },
+  {
+    "name": "block-004",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | `code@example.com` |\n"
+  },
+  {
+    "name": "block-005",
+    "source": "```text\na@example.com\nhttps://example.com\n```\n"
+  },
+  {
+    "name": "block-006",
+    "source": "    a@example.com\n    https://example.com\n"
+  },
+  {
+    "name": "block-007",
+    "source": "<pre>\na@example.com\n</pre>\n"
+  },
+  {
+    "name": "block-008",
+    "source": "$$\na@example.com\n$$\n"
+  },
+  {
+    "name": "block-009",
+    "source": "[ref]: https://example.com \"a@example.org\"\n\n[a@example.org][ref]\n"
+  },
+  {
+    "name": "block-010",
+    "source": "[^a]: footnote@example.com\n\nReference [^a].\n"
+  },
+  {
+    "name": "block-011",
+    "source": "[^a]: unused@example.com\n\nplain\n"
+  },
+  {
+    "name": "block-012",
+    "source": "[^a]: a@example.com [^b]\n\n[^b]: b@example.com\n\n[^a]\n"
+  },
+  {
+    "name": "mixed-000",
+    "source": "> quote@example.com\n\nplain **bold**.\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-001",
+    "source": "`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-002",
+    "source": "a@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nx&#64;example.org\n\n- [x] task@example.com\n\nReference [^a] [^missing].\n\na@example.com\n\n`code@example.com`\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-003",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n- [x] task@example.com\n\na@example.com\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-004",
+    "source": "[^a]: footnote@example.com\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-005",
+    "source": "Reference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-006",
+    "source": "> quote@example.com\n\n[a@example.com](https://example.com)\n\n`code@example.com`\n\nReference [^a] [^missing].\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nplain **bold**.\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-007",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-008",
+    "source": "`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-009",
+    "source": "Reference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-010",
+    "source": "a@example.com\n\nReference [^a] [^missing].\n\nplain **bold**.\n\nReference [^a] [^missing].\n\nwww.example.com and https://example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nplain **bold**.\n\n"
+  },
+  {
+    "name": "mixed-011",
+    "source": "[a@example.com](https://example.com)\n\n> quote@example.com\n\n[a@example.com](https://example.com)\n\n[^a]: footnote@example.com\n\n[a@example.com](https://example.com)\n\n"
+  },
+  {
+    "name": "mixed-012",
+    "source": "Reference [^a] [^missing].\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nx&#64;example.org\n\n[a@example.com](https://example.com)\n\n- [x] task@example.com\n\n"
+  },
+  {
+    "name": "mixed-013",
+    "source": "- [x] task@example.com\n\nplain **bold**.\n\n"
+  },
+  {
+    "name": "mixed-014",
+    "source": "plain **bold**.\n\nplain **bold**.\n\n[^a]: footnote@example.com\n\na@example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-015",
+    "source": "a@example.com\n\n`code@example.com`\n\nplain **bold**.\n\na@example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nReference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-016",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nplain **bold**.\n\nwww.example.com and https://example.com\n\nwww.example.com and https://example.com\n\n[^a]: footnote@example.com\n\nplain **bold**.\n\n- [x] task@example.com\n\n"
+  },
+  {
+    "name": "mixed-017",
+    "source": "> quote@example.com\n\n[^a]: footnote@example.com\n\n`code@example.com`\n\n`code@example.com`\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-018",
+    "source": "[a@example.com](https://example.com)\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n- [x] task@example.com\n\nx&#64;example.org\n\n"
+  },
+  {
+    "name": "mixed-019",
+    "source": "Reference [^a] [^missing].\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-020",
+    "source": "[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-021",
+    "source": "plain **bold**.\n\nplain **bold**.\n\nplain **bold**.\n\nx&#64;example.org\n\nplain **bold**.\n\n"
+  },
+  {
+    "name": "mixed-022",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\na@example.com\n\nwww.example.com and https://example.com\n\na@example.com\n\n> quote@example.com\n\n- [x] task@example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-023",
+    "source": "- [x] task@example.com\n\n[^a]: footnote@example.com\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-024",
+    "source": "a@example.com\n\n[^a]: footnote@example.com\n\nx&#64;example.org\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-025",
+    "source": "a@example.com\n\n> quote@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nReference [^a] [^missing].\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-026",
+    "source": "www.example.com and https://example.com\n\n> quote@example.com\n\n[^a]: footnote@example.com\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-027",
+    "source": "[a@example.com](https://example.com)\n\n- [x] task@example.com\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-028",
+    "source": "[^a]: footnote@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nReference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-029",
+    "source": "[a@example.com](https://example.com)\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\na@example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nx&#64;example.org\n\n"
+  },
+  {
+    "name": "mixed-030",
+    "source": "> quote@example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-031",
+    "source": "> quote@example.com\n\n[^a]: footnote@example.com\n\nwww.example.com and https://example.com\n\nReference [^a] [^missing].\n\nplain **bold**.\n\n[^a]: footnote@example.com\n\na@example.com\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-032",
+    "source": "[a@example.com](https://example.com)\n\na@example.com\n\nReference [^a] [^missing].\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nwww.example.com and https://example.com\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-033",
+    "source": "x&#64;example.org\n\n"
+  },
+  {
+    "name": "mixed-034",
+    "source": "[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-035",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n- [x] task@example.com\n\nReference [^a] [^missing].\n\nplain **bold**.\n\n[a@example.com](https://example.com)\n\n`code@example.com`\n\nx&#64;example.org\n\n[a@example.com](https://example.com)\n\n"
+  },
+  {
+    "name": "mixed-036",
+    "source": "- [x] task@example.com\n\nwww.example.com and https://example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nplain **bold**.\n\n`code@example.com`\n\n- [x] task@example.com\n\n- [x] task@example.com\n\n"
+  },
+  {
+    "name": "mixed-037",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\na@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-038",
+    "source": "x&#64;example.org\n\nwww.example.com and https://example.com\n\n- [x] task@example.com\n\n"
+  },
+  {
+    "name": "mixed-039",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-040",
+    "source": "[a@example.com](https://example.com)\n\nx&#64;example.org\n\nReference [^a] [^missing].\n\n[^a]: footnote@example.com\n\nwww.example.com and https://example.com\n\nplain **bold**.\n\nx&#64;example.org\n\n"
+  },
+  {
+    "name": "mixed-041",
+    "source": "x&#64;example.org\n\n`code@example.com`\n\n`code@example.com`\n\nwww.example.com and https://example.com\n\n- [x] task@example.com\n\n[^a]: footnote@example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n[a@example.com](https://example.com)\n\n"
+  },
+  {
+    "name": "mixed-042",
+    "source": "plain **bold**.\n\na@example.com\n\nx&#64;example.org\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-043",
+    "source": "> quote@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nx&#64;example.org\n\nReference [^a] [^missing].\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-044",
+    "source": "`code@example.com`\n\nwww.example.com and https://example.com\n\n[a@example.com](https://example.com)\n\nReference [^a] [^missing].\n\na@example.com\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-045",
+    "source": "Reference [^a] [^missing].\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-046",
+    "source": "`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-047",
+    "source": "[a@example.com](https://example.com)\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nReference [^a] [^missing].\n\nx&#64;example.org\n\nx&#64;example.org\n\n> quote@example.com\n\n- [x] task@example.com\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-048",
+    "source": "- [x] task@example.com\n\nx&#64;example.org\n\n[^a]: footnote@example.com\n\nplain **bold**.\n\n"
+  },
+  {
+    "name": "mixed-049",
+    "source": "www.example.com and https://example.com\n\n[a@example.com](https://example.com)\n\nx&#64;example.org\n\nwww.example.com and https://example.com\n\n`code@example.com`\n\n> quote@example.com\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-050",
+    "source": "[^a]: footnote@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nx&#64;example.org\n\na@example.com\n\n> quote@example.com\n\nwww.example.com and https://example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-051",
+    "source": "[^a]: footnote@example.com\n\n`code@example.com`\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-052",
+    "source": "[^a]: footnote@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nReference [^a] [^missing].\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nReference [^a] [^missing].\n\n`code@example.com`\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-053",
+    "source": "plain **bold**.\n\nx&#64;example.org\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-054",
+    "source": "a@example.com\n\nx&#64;example.org\n\n"
+  },
+  {
+    "name": "mixed-055",
+    "source": "plain **bold**.\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-056",
+    "source": "`code@example.com`\n\n[a@example.com](https://example.com)\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-057",
+    "source": "[^a]: footnote@example.com\n\na@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-058",
+    "source": "> quote@example.com\n\nReference [^a] [^missing].\n\nplain **bold**.\n\n"
+  },
+  {
+    "name": "mixed-059",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\na@example.com\n\na@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nReference [^a] [^missing].\n\na@example.com\n\na@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-060",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nwww.example.com and https://example.com\n\nwww.example.com and https://example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n[a@example.com](https://example.com)\n\n"
+  },
+  {
+    "name": "mixed-061",
+    "source": "[^a]: footnote@example.com\n\nwww.example.com and https://example.com\n\nwww.example.com and https://example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-062",
+    "source": "www.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-063",
+    "source": "- [x] task@example.com\n\n`code@example.com`\n\n[^a]: footnote@example.com\n\nplain **bold**.\n\n- [x] task@example.com\n\n> quote@example.com\n\n`code@example.com`\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-064",
+    "source": "[a@example.com](https://example.com)\n\n[^a]: footnote@example.com\n\nwww.example.com and https://example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-065",
+    "source": "`code@example.com`\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-066",
+    "source": "`code@example.com`\n\n- [x] task@example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nwww.example.com and https://example.com\n\nplain **bold**.\n\n[a@example.com](https://example.com)\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-067",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-068",
+    "source": "[a@example.com](https://example.com)\n\nx&#64;example.org\n\n[a@example.com](https://example.com)\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-069",
+    "source": "a@example.com\n\n> quote@example.com\n\nwww.example.com and https://example.com\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-070",
+    "source": "www.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-071",
+    "source": "`code@example.com`\n\nReference [^a] [^missing].\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nplain **bold**.\n\n[a@example.com](https://example.com)\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n[a@example.com](https://example.com)\n\n"
+  },
+  {
+    "name": "mixed-072",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\n> quote@example.com\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-073",
+    "source": "Reference [^a] [^missing].\n\nReference [^a] [^missing].\n\n[^a]: footnote@example.com\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-074",
+    "source": "`code@example.com`\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nx&#64;example.org\n\n`code@example.com`\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-075",
+    "source": "www.example.com and https://example.com\n\nx&#64;example.org\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-076",
+    "source": "x&#64;example.org\n\nwww.example.com and https://example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nwww.example.com and https://example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-077",
+    "source": "plain **bold**.\n\nReference [^a] [^missing].\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-078",
+    "source": "x&#64;example.org\n\nReference [^a] [^missing].\n\n[a@example.com](https://example.com)\n\n"
+  },
+  {
+    "name": "mixed-079",
+    "source": "Reference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-080",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-081",
+    "source": "www.example.com and https://example.com\n\n[^a]: footnote@example.com\n\nReference [^a] [^missing].\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nwww.example.com and https://example.com\n\nx&#64;example.org\n\n"
+  },
+  {
+    "name": "mixed-082",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\nReference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-083",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-084",
+    "source": "`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-085",
+    "source": "> quote@example.com\n\n> quote@example.com\n\nReference [^a] [^missing].\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-086",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n`code@example.com`\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-087",
+    "source": "Reference [^a] [^missing].\n\n[a@example.com](https://example.com)\n\n[^a]: footnote@example.com\n\n> quote@example.com\n\n[a@example.com](https://example.com)\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-088",
+    "source": "Reference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-089",
+    "source": "[^a]: footnote@example.com\n\n[a@example.com](https://example.com)\n\n- [x] task@example.com\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-090",
+    "source": "a@example.com\n\n- [x] task@example.com\n\n> quote@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n- [x] task@example.com\n\n"
+  },
+  {
+    "name": "mixed-091",
+    "source": "> quote@example.com\n\n[^a]: footnote@example.com\n\n- [x] task@example.com\n\n[a@example.com](https://example.com)\n\n"
+  },
+  {
+    "name": "mixed-092",
+    "source": "[a@example.com](https://example.com)\n\nwww.example.com and https://example.com\n\n[a@example.com](https://example.com)\n\nx&#64;example.org\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-093",
+    "source": "plain **bold**.\n\n"
+  },
+  {
+    "name": "mixed-094",
+    "source": "Reference [^a] [^missing].\n\n> quote@example.com\n\nReference [^a] [^missing].\n\n`code@example.com`\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-095",
+    "source": "plain **bold**.\n\na@example.com\n\n[^a]: footnote@example.com\n\nplain **bold**.\n\na@example.com\n\n- [x] task@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-096",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\nwww.example.com and https://example.com\n\na@example.com\n\n`code@example.com`\n\n[a@example.com](https://example.com)\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n- [x] task@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-097",
+    "source": "x&#64;example.org\n\na@example.com\n\n[a@example.com](https://example.com)\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n- [x] task@example.com\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-098",
+    "source": "plain **bold**.\n\nwww.example.com and https://example.com\n\nwww.example.com and https://example.com\n\n[^a]: footnote@example.com\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-099",
+    "source": "x&#64;example.org\n\nReference [^a] [^missing].\n\n[^a]: footnote@example.com\n\nReference [^a] [^missing].\n\n- [x] task@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n> quote@example.com\n\nplain **bold**.\n\n"
+  },
+  {
+    "name": "mixed-100",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n"
+  },
+  {
+    "name": "mixed-101",
+    "source": "a@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-102",
+    "source": "`code@example.com`\n\nx&#64;example.org\n\n[a@example.com](https://example.com)\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-103",
+    "source": "[^a]: footnote@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nx&#64;example.org\n\nx&#64;example.org\n\n[^a]: footnote@example.com\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-104",
+    "source": "a@example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n[^a]: footnote@example.com\n\n> quote@example.com\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-105",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n[^a]: footnote@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\nx&#64;example.org\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-106",
+    "source": "a@example.com\n\n- [x] task@example.com\n\n"
+  },
+  {
+    "name": "mixed-107",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-108",
+    "source": "www.example.com and https://example.com\n\n[a@example.com](https://example.com)\n\n`code@example.com`\n\na@example.com\n\n`code@example.com`\n\nReference [^a] [^missing].\n\nplain **bold**.\n\n"
+  },
+  {
+    "name": "mixed-109",
+    "source": "x&#64;example.org\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nReference [^a] [^missing].\n\na@example.com\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-110",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\nx&#64;example.org\n\n- [x] task@example.com\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n- [x] task@example.com\n\nx&#64;example.org\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\nReference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-111",
+    "source": "x&#64;example.org\n\na@example.com\n\n`code@example.com`\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-112",
+    "source": "> quote@example.com\n\n`code@example.com`\n\na@example.com\n\n"
+  },
+  {
+    "name": "mixed-113",
+    "source": "**a@example.com**, invalid@@@ and _b@example.org_.\n\nplain **bold**.\n\n[a@example.com](https://example.com)\n\n`code@example.com`\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-114",
+    "source": "Reference [^a] [^missing].\n\nwww.example.com and https://example.com\n\nx&#64;example.org\n\nwww.example.com and https://example.com\n\n> quote@example.com\n\n"
+  },
+  {
+    "name": "mixed-115",
+    "source": "[a@example.com](https://example.com)\n\nReference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-116",
+    "source": "plain **bold**.\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n[a@example.com](https://example.com)\n\n- [x] task@example.com\n\n`code@example.com`\n\n[^a]: footnote@example.com\n\na@example.com\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-117",
+    "source": "[a@example.com](https://example.com)\n\n> quote@example.com\n\n`code@example.com`\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n`code@example.com`\n\nReference [^a] [^missing].\n\n`code@example.com`\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-118",
+    "source": "- [x] task@example.com\n\nReference [^a] [^missing].\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  },
+  {
+    "name": "mixed-119",
+    "source": "[a@example.com](https://example.com)\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-120",
+    "source": "a@example.com\n\n`code@example.com`\n\na@example.com\n\nplain **bold**.\n\n`code@example.com`\n\n`code@example.com`\n\n"
+  },
+  {
+    "name": "mixed-121",
+    "source": "x&#64;example.org\n\n"
+  },
+  {
+    "name": "mixed-122",
+    "source": "- [x] task@example.com\n\n[^a]: footnote@example.com\n\na@example.com\n\n`code@example.com`\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n> quote@example.com\n\n[a@example.com](https://example.com)\n\nplain **bold**.\n\n"
+  },
+  {
+    "name": "mixed-123",
+    "source": "`code@example.com`\n\n| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-124",
+    "source": "www.example.com and https://example.com\n\n[^a]: footnote@example.com\n\na@example.com\n\n[^a]: footnote@example.com\n\n"
+  },
+  {
+    "name": "mixed-125",
+    "source": "x&#64;example.org\n\nReference [^a] [^missing].\n\n"
+  },
+  {
+    "name": "mixed-126",
+    "source": "> quote@example.com\n\nx&#64;example.org\n\nwww.example.com and https://example.com\n\n"
+  },
+  {
+    "name": "mixed-127",
+    "source": "| a | b |\n|---|---|\n| a&#64;example.com | x |\n\n- [x] task@example.com\n\nReference [^a] [^missing].\n\n> quote@example.com\n\n- [x] task@example.com\n\n**a@example.com**, invalid@@@ and _b@example.org_.\n\n"
+  }
+]

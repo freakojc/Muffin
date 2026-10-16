@@ -50,6 +50,9 @@ struct cmark_parser {
   cmark_llist *syntax_extensions;
   cmark_llist *inline_syntax_extensions;
   cmark_ispunct_func backslash_ispunct;
+  /* Set when a footnote definition or reference is created. Conservative if
+   * that node is later removed; reset with the rest of the document state. */
+  bool has_footnotes;
 };
 
 #ifdef __cplusplus

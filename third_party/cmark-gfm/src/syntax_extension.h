@@ -29,6 +29,10 @@ struct cmark_syntax_extension {
   cmark_opaque_alloc_func         opaque_alloc_func;
   cmark_opaque_free_func          opaque_free_func;
   cmark_commonmark_escape_func    commonmark_escape_func;
+  /* Optional private fast path for the first postprocessor. It entirely
+   * replaces postprocess_func by visiting consolidated text outside links.
+   * Later postprocessors always use their ordinary whole-tree fallback. */
+  void (*postprocess_text_func)(cmark_syntax_extension *, cmark_parser *, cmark_node *);
 };
 
 #endif

@@ -1254,6 +1254,7 @@ noMatch:
       subj->pos = initial_pos;
 
       cmark_node *fnref = make_simple(subj->mem, CMARK_NODE_FOOTNOTE_REFERENCE);
+      parser->has_footnotes = true;
 
       // the start and end of the footnote ref is the opening and closing brace
       // i.e. the subject's current position, and the opener's start_column

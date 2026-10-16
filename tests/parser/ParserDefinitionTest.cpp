@@ -9,6 +9,9 @@
 
 using namespace muffin;
 
+void testCmarkFootnoteCompatibility(const QString& oraclePath);
+void testCmarkAutolinkCompatibility(const QString& footnoteOraclePath);
+
 void testDefinitionBlocks() {
   CmarkGfmParser parser;
   ParseOptions options;
@@ -375,6 +378,9 @@ void testTableCellSourceRangesWithoutOuterPipes() {
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
+  require(argc == 2, QStringLiteral("Missing cmark footnote oracle path"));
+  testCmarkFootnoteCompatibility(QString::fromLocal8Bit(argv[1]));
+  testCmarkAutolinkCompatibility(QString::fromLocal8Bit(argv[1]));
   testDefinitionBlocks();
   testInvalidDefinitionLikeParagraphsStayParagraphs();
   testDefinitionSerializationPreservesSourceShape();
