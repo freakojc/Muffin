@@ -109,6 +109,8 @@ struct CssPixelFont {
 };
 CssPixelFont makeCssPixelFont(const QString& family, qreal pixelSize);
 CssPixelFont makeUnhintedCssPixelFont(const QString& family, qreal pixelSize);
+// CSS order with bundled family names mapped to their private registrations.
+QStringList cssFamilyList(const QString& expression);
 
 // Replicates upstream parseFontSize()[0] ?? 2 (pieDiagram-ENE6RG2P.mjs:157):
 // parseInt(value, 10) of the LEADING integer (truncates decimals, ignores any

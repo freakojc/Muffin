@@ -151,6 +151,8 @@ public:
   void setRect(QRectF rect);
   void setCssBoxGeometry(CssBoxGeometry geometry);
   CssBoxGeometry cssBoxGeometry() const;
+  void setOuterCssBox(CssBoxGeometry box) { outerCssBox_ = std::move(box); }
+  const std::optional<CssBoxGeometry>& outerCssBox() const { return outerCssBox_; }
   int formattingOrder() const { return cssBoxGeometry_.style.layout.order; }
   QRectF cssBorderBox() const;
   QPointF inlineTextOrigin() const;
@@ -277,6 +279,7 @@ public:
   bool taskChecked() const;
   // GitHub-style alert kind for a blockquote rendered as a themed card; None for a plain quote.
   void setAlertKind(AlertKind kind);
+  void setAlertThemed(bool themed) { alertThemed_ = themed; }
   AlertKind alertKind() const;
   // A `[TOC]` paragraph rendered as a generated indented link list of the document's
   // headings. While the caret is NOT in the block it shows the preview (isToc() true);
@@ -333,6 +336,8 @@ public:
   QVector<QRectF> selectionRectsSelfForOffsets(qsizetype startOffset, qsizetype endOffset, const RenderTheme& theme) const;
 
 private:
+  bool alertThemed_ = false;
+  std::optional<CssBoxGeometry> outerCssBox_;
   SelectionRange layoutSelection_;
   struct PositionedPseudoFragment {
     std::array<LayoutBox, 4> boxes;
@@ -340,7 +345,8 @@ private:
     std::array<QRectF, 4> icons;
     std::array<std::shared_ptr<TextLayout>, 4> texts;
     std::shared_ptr<const CssPaintRecipe> recipe;
-    QRectF containing, untransformedRect;
+    QRectF containing;
+    std::array<QRectF,4> untransformedRects;
     std::array<CssLengthPercentage, 4> anchors;  // top, right, bottom, left
     QString identity;
   };

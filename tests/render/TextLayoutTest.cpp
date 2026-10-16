@@ -14,6 +14,7 @@
 #include "diagnostics/ProcessMemory.h"
 #include "document/DocumentSession.h"
 #include "html/HtmlRenderer.h"
+#include "mermaid/MermaidFontRegistry.h"
 #include "render/CssFormattingContext.h"
 #include "render/DocumentLayout.h"
 #include "render/InlineFormatting.h"
@@ -415,7 +416,7 @@ void testSharedDocumentFallbackStack() {
   require(!resolvedFamilies.isEmpty() &&
               resolvedFamilies.front().compare(latin, Qt::CaseInsensitive) == 0,
           "shared CSS fallback keeps the declared Latin family first");
-  require(resolvedFamilies.contains(QStringLiteral("Noto Sans CJK SC"), Qt::CaseInsensitive),
+  require(resolvedFamilies.contains(mermaid::MermaidFontRegistry::bundledFamily("Noto Sans CJK SC"), Qt::CaseInsensitive),
           "shared CSS fallback registers the bundled CJK face");
 
   QFont font;
@@ -438,7 +439,13 @@ void testSharedDocumentFallbackStack() {
             "shared fractional layout has no missing CJK glyphs");
     // Compare the font identity rather than a platform's localized family
     // label; this remains strict on CoreText as well as DirectWrite/FreeType.
-    require(run.rawFont().fontTable("head") == expectedFace.fontTable("head"),
+    auto actualHead = run.rawFont().fontTable("head");
+    auto expectedHead = expectedFace.fontTable("head");
+    // Private registration changes the SFNT checksum to cover the new names.
+    // Every other head byte and the glyph advances must remain identical.
+    actualHead.replace(8, 4, QByteArray(4, '\0'));
+    expectedHead.replace(8, 4, QByteArray(4, '\0'));
+    require(actualHead == expectedHead && run.rawFont().fontTable("hmtx") == expectedFace.fontTable("hmtx"),
             "shared fractional layout selects the bundled CJK face; actual=" + family);
   }
 

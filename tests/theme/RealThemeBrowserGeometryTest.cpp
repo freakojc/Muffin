@@ -73,9 +73,12 @@ void testRealThemeBrowserGeometry() {
         require(text->hitTestTextOffset({caret.left(), caret.center().y()}) == j, context + " click/caret round trip");
       }
       const auto components = expectedBlock["components"].toArray();
-      require(text->inlineBoxes().size() == components.size(), context + " component count");
+      QVector<const LayoutBox*> componentBoxes;
+      for (const auto& box : text->inlineBoxes())
+        if (box.hostKey == "code" || box.hostKey == "kbd") componentBoxes.push_back(&box);
+      require(componentBoxes.size() == components.size(), context + " code/keyboard component count");
       for (int j = 0; j < components.size(); ++j)
-        boxNear(text->inlineBoxes()[j].borderBox.translated(block->inlineTextOrigin()), components[j].toObject()["border"].toArray(),
+        boxNear(componentBoxes[j]->borderBox.translated(block->inlineTextOrigin()), components[j].toObject()["border"].toArray(),
                 context + " component box");
     }
     const auto compare = [&] {

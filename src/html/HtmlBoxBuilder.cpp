@@ -5,6 +5,7 @@
 
 #include <lexbor/dom/interfaces/document.h>
 #include <lexbor/dom/interfaces/element.h>
+#include <lexbor/dom/interfaces/attr.h>
 #include <lexbor/dom/interfaces/text.h>
 #include <lexbor/html/html.h>
 
@@ -112,6 +113,13 @@ std::unique_ptr<HtmlBox> HtmlBoxBuilder::buildNode(void* nodePtr) {
     };
     box->cssId = attribute("id", 2);
     box->cssClasses = attribute("class", 5).split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    for (auto* attr = lxb_dom_element_first_attribute(element); attr; attr = lxb_dom_element_next_attribute(attr)) {
+      size_t nameLength = 0, valueLength = 0;
+      const auto* name = lxb_dom_attr_qualified_name(attr, &nameLength);
+      const auto* value = lxb_dom_attr_value(attr, &valueLength);
+      box->cssAttributes.insert(QString::fromUtf8(reinterpret_cast<const char*>(name), static_cast<int>(nameLength)).toLower(),
+                               value ? QString::fromUtf8(reinterpret_cast<const char*>(value), static_cast<int>(valueLength)) : QString());
+    }
     size_t styleLen = 0;
     const lxb_char_t* styleAttr = lxb_dom_element_get_attribute(
         element, reinterpret_cast<const lxb_char_t*>("style"), 5, &styleLen);

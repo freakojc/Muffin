@@ -16,17 +16,7 @@ namespace muffin::mermaid::architecture {
 namespace {
 
 QStringList fontFamilies(const QString& expression) {
-  QStringList result;
-  for (QString item : expression.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
-    item = item.trimmed();
-    if (item.size() >= 2 &&
-        ((item.front() == QLatin1Char('"') && item.back() == QLatin1Char('"')) ||
-         (item.front() == QLatin1Char('\'') && item.back() == QLatin1Char('\''))))
-      item = item.mid(1, item.size() - 2);
-    if (!item.isEmpty()) result.append(item);
-  }
-  if (result.isEmpty()) result.append(QStringLiteral("Noto Sans"));
-  return result;
+  return editor::cssFamilyList(expression);
 }
 
 qreal configNumber(const QJsonValue& value, qreal fallback) {

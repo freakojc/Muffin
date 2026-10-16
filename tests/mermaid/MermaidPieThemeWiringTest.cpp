@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
   const qreal diag = 500.0;  // test SVG diagonal for stroke-width %
   // Shared Noto Sans @16 metrics for independently re-deriving ex/ch expectations
   // (sub-px root, capped root). Hoisted so the per-section blocks don't shadow it.
-  QFont refFont(QStringLiteral("Noto Sans"));
+  QFont refFont(MermaidFontRegistry::bundledFamily(QStringLiteral("Noto Sans")));
   refFont.setPixelSize(16);
   const QFontMetricsF refM(refFont);
   // cssStrokeWidthPx: px/unitless==px, em x16, pt x4/3, vw/vh of 800x600, ex/ch

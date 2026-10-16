@@ -15,6 +15,13 @@ namespace muffin {
 // rules, #write texture overlay) against the host layout's box geometry.
 namespace DecorationPainter {
 
+struct BoxShadowRasterStats {
+  quint64 requests = 0, hits = 0, misses = 0, maskPixels = 0, largestMaskPixels = 0, outputPixels = 0;
+  qsizetype cacheBytes = 0, cacheEntries = 0;
+};
+BoxShadowRasterStats boxShadowRasterStats();
+void resetBoxShadowRasterStats();
+
 // True when the host declares a background gradient (lets e.g. the thematic-break
 // painter swap its plain line for a gradient bar).
 bool hasElementBackground(const RenderTheme& theme, const QString& host);

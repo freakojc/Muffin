@@ -1,4 +1,5 @@
 #include "render/BlockHeightEstimator.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "render/BlockLayout.h"
 #include "render/BlockLayoutRules.h"
@@ -25,6 +26,7 @@ void BlockHeightEstimator::beginPass(quint64 fontGeneration, bool codeBlockWrap,
 }
 
 namespace {
+Q_LOGGING_CATEGORY(estimateDetailPerf, "muffin.perf.detail", QtWarningMsg)
 
 // Estimate wrapped line count from plain text and an average characters-per-line capacity,
 // respecting explicit newlines (a trailing '\n' yields one extra line, matching TextLayout).
@@ -87,6 +89,7 @@ qreal BlockHeightEstimator::avgCharWidthForText(QStringView text, const QFont& f
     wideAdvance = it.value().first;
     narrowAdvance = it.value().second;
   } else {
+    diag::ScopedPerfProbe perf("estimate.fontAdvance", estimateDetailPerf());
     const TextFontMetrics metrics(font);
     // One representative wide (fullwidth/CJK) glyph and an ASCII average; cached per font so the
     // estimate pass never measures full block text.
@@ -134,6 +137,7 @@ qreal BlockHeightEstimator::cachedEstimateLineHeight(const RenderTheme& theme, c
   if (it != lineHeightCache_.constEnd()) {
     return it.value();
   }
+  diag::ScopedPerfProbe perf("estimate.lineHeight", estimateDetailPerf());
   const qreal h = estimateLineHeightForElement(theme, elementKey);
   lineHeightCache_.insert(cacheKey, h);
   return h;

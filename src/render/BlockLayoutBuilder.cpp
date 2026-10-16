@@ -4,6 +4,7 @@
 #include "theme/NodeCssElement.h"
 #include "render/LayoutBox.h"
 #include "render/RenderMetrics.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "blocks/code/CodeFenceScrollController.h"
 #include "blocks/html/HtmlSanitizer.h"
@@ -38,6 +39,7 @@ using namespace layout_rules;
 namespace {
 
 Q_LOGGING_CATEGORY(blockBuildPerf, "muffin.perf", QtWarningMsg)
+Q_LOGGING_CATEGORY(blockBuildDetailPerf, "muffin.perf.detail", QtWarningMsg)
 
 bool isOrderedListStyle(const QString& style) {
   static const QSet<QString> ordered = {
@@ -53,13 +55,15 @@ bool isOrderedListStyle(const QString& style) {
 // conversion. Read at build time so a menu/preference toggle + refreshVisibleBlocks re-renders
 // without a reparse. Mirrors how the input path (InputController) interprets the same keys.
 SmartPunctRenderOptions smartPunctRenderOptions() {
+  diag::ScopedPerfProbe perf("block.smartPunctSettings", blockBuildDetailPerf());
+  QSettings settings;
   SmartPunctRenderOptions opts;
-  const bool rendering = QSettings().value(QStringLiteral("markdown/convertOnRendering"), false).toBool();
-  opts.convertQuotes = rendering && QSettings().value(QStringLiteral("markdown/smartQuotes"), false).toBool();
-  opts.convertDashes = rendering && QSettings().value(QStringLiteral("markdown/smartDashes"), false).toBool();
+  const bool rendering = settings.value(QStringLiteral("markdown/convertOnRendering"), false).toBool();
+  opts.convertQuotes = rendering && settings.value(QStringLiteral("markdown/smartQuotes"), false).toBool();
+  opts.convertDashes = rendering && settings.value(QStringLiteral("markdown/smartDashes"), false).toBool();
   opts.convertEllipsis = opts.convertDashes;  // ellipsis rides on Smart Dashes, matching other editors
-  opts.doubleQuoteStyle = QSettings().value(QStringLiteral("markdown/doubleQuoteStyle"), 0).toInt();
-  opts.singleQuoteStyle = QSettings().value(QStringLiteral("markdown/singleQuoteStyle"), 0).toInt();
+  opts.doubleQuoteStyle = settings.value(QStringLiteral("markdown/doubleQuoteStyle"), 0).toInt();
+  opts.singleQuoteStyle = settings.value(QStringLiteral("markdown/singleQuoteStyle"), 0).toInt();
   return opts;
 }
 
@@ -389,6 +393,7 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::build(const MarkdownNode& node,
 
 std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFresh(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
                                                             qreal width, int depth) {
+  diag::ScopedPerfProbe perf("block.buildFresh", blockBuildDetailPerf());
   const auto build = [&]() -> std::unique_ptr<BlockLayout> {
     const auto key = cssTagForNode(node);
     const auto* style = key.isEmpty() ? nullptr : theme.elementStyleForNode(node, key);
@@ -427,8 +432,10 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFresh(const MarkdownNode& 
   };
   auto result = build();
   if (result) result->setLayoutSelection(selection_);
-  if (result && result->rect().width() > 0)
+  if (result && result->rect().width() > 0) {
+    diag::ScopedPerfProbe generatedPerf("block.generatedContent", blockBuildDetailPerf());
     result->layoutGeneratedContent(node, theme, headingCounterText_ ? headingCounterText_->value(node.id()) : QPair<QString, QString>());
+  }
   return result;
 }
 
@@ -439,6 +446,7 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
     qreal y,
     qreal width,
     int depth) {
+  diag::ScopedPerfProbe perf("block.paragraph", blockBuildDetailPerf());
   auto layout = std::make_unique<BlockLayout>(node.id());
   layout->setType(node.type());
   layout->setDepth(depth);
@@ -495,7 +503,10 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
   // stays identical — this base MUST match what is stored on the layout (contentSourceStart).
   const qsizetype contentStart = sourceContentStartForEditableNode(node);
   const qsizetype projectionBase = contentStart;
-  QString editableSource = sourceTextForEditableNode(node);
+  QString editableSource = [&] {
+    diag::ScopedPerfProbe sourcePerf("block.source", blockBuildDetailPerf());
+    return sourceTextForEditableNode(node);
+  }();
   InlineLayout::BuildOptions options;
   options.documentPath = documentPath_;
   options.projectionState = InlineProjectionState::forSelection(selection_, node.id(), projectionBase);
@@ -504,15 +515,44 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
   // top-level block's byteStart). localRange then yields the same content-local spans as before.
   // projectionBase (setContentSourceStart / forSelection) stays ABSOLUTE — cursor math is absolute.
   options.sourceBase = projectionBase - node.topLevelBlock()->sourceRange().byteStart;
+  if (isInsideBlockquote(node)) {
+    // Only hide continuation prefixes outside parser-provided inline ranges.
+    qsizetype candidate = 0;
+    for (qsizetype line = editableSource.indexOf('\n'); line >= 0; line = editableSource.indexOf('\n', line + 1)) {
+      qsizetype end = line + 1;
+      while (end < editableSource.size() && (editableSource[end] == ' ' || editableSource[end] == '\t')) ++end;
+      bool quote = false;
+      while (end < editableSource.size() && editableSource[end] == '>') {
+        quote = true; ++end;
+        if (end < editableSource.size() && editableSource[end] == ' ') ++end;
+      }
+      if (!quote) continue;
+      while (candidate < node.inlines().size() && (node.inlines()[candidate].sourceEnd() <= options.sourceBase + line + 1 ||
+          node.inlines()[candidate].type() == InlineType::SoftBreak || node.inlines()[candidate].type() == InlineType::LineBreak)) ++candidate;
+      const bool parsedText = candidate < node.inlines().size() && node.inlines()[candidate].sourceStart() < options.sourceBase + end;
+      if (!parsedText) options.sourceReplacements.push_back({{line + 1, end}, {}});
+    }
+    const auto* parent = node.parent();
+    if (parent && parent->alertKind() != AlertKind::None && !parent->children().empty() && parent->children().front().get() == &node &&
+        !node.inlines().isEmpty()) {
+      const auto marker = node.inlines().front().text();
+      if (marker.startsWith("[!") && marker.endsWith(']')) {
+        const auto start = node.inlines().front().sourceStart() - options.sourceBase;
+        options.sourceReplacements.push_back({{start, start + marker.size()}, marker.mid(2, marker.size() - 3), true});
+        options.breakOnSingleNewline = true;
+      }
+    }
+  }
   options.pendingPrefixLength = pendingPrefixLengthFor(node, editableSource);
   options.isMisspelled = spellMisspelledPredicate();
   options.smartPunct = smartPunctRenderOptions();
-  options.breakOnSingleNewline = breakOnSingleNewline_;
+  options.breakOnSingleNewline = options.breakOnSingleNewline || breakOnSingleNewline_;
   options.renderEmoji = renderEmoji_;
   options.styleNode = &node;
   options.pseudoBefore = theme.pseudoForNode(node, QStringLiteral("before"));
   options.pseudoAfter = theme.pseudoForNode(node, QStringLiteral("after"));
   options.pseudoBeforeText = layout->headingBeforeText();
+  if (headingCounterText_) options.pseudoBeforeText = headingCounterText_->value(node.id()).first;
   if (headingCounterText_) options.pseudoAfterText = headingCounterText_->value(node.id()).second;
   if (resolvedStyle) {
     options.anywhereMinimum = resolvedStyle->layout.overflowWrap == "anywhere" || resolvedStyle->layout.wordBreak == "break-all";
@@ -530,6 +570,7 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
   options.textTransform = static_cast<TextTransform>(theme.textTransformForElement(elementKey, &node));
   options.textShadow = theme.textShadowForElement(elementKey, &node);
   {
+    diag::ScopedPerfProbe inlinePerf("block.inline", blockBuildDetailPerf());
     BuildAccumTimer t(inlineLayoutNs_, perfEnabled_);
     applyPreedit(options);
     inlineLayout->build(node.inlines(), editableSource, theme, intrinsic ? 1e6 : textWidth, font, options);
@@ -549,6 +590,7 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
                         options);
   }
   if (usedBox.marginLeftAuto) x += qMax<qreal>(0, availableWidth - width) / (usedBox.marginRightAuto ? 2 : 1);
+  diag::ScopedPerfProbe geometryPerf("block.geometry", blockBuildDetailPerf());
   const qreal height = LayoutBox::borderHeight(usedBox, inlineLayout->height());
   layout->setContentSourceStart(projectionBase);
   const QRectF flowRect(x, y, width, height);
@@ -644,6 +686,7 @@ QPair<quint64, quint64> BlockLayoutBuilder::finishFormattingPass() {
 }
 
 QByteArray BlockLayoutBuilder::formattingSignature(const MarkdownNode& node, const RenderTheme& theme) {
+  diag::ScopedPerfProbe perf("block.formattingSignature", blockBuildDetailPerf());
   if (const auto cached = formattingCache_.signature(node.id())) return *cached;
   // Generated outlines have a separate document-wide dependency.
   if (sourceTextForEditableNode(node).trimmed() == "[TOC]") return {};
@@ -672,9 +715,14 @@ QByteArray BlockLayoutBuilder::formattingSignature(const MarkdownNode& node, con
     for (const auto& format : preeditFormats_) stream << format.start << format.length << format.format;
   }
   if (headingCounterText_) stream << headingCounterText_->value(node.id());
+  stream << theme.generatedCounterFingerprint(node.id());
   if (node.type() == BlockType::ListItem) {
     const auto marker = listMarkerLayout(node, theme);
     stream << int(marker.marker.kind) << marker.marker.text << marker.contentIndent;
+  }
+  if (node.type() == BlockType::Table) {
+    const auto* wrapper = theme.elementStyleForNode(node, QStringLiteral(".table-figure"));
+    stream << (wrapper ? wrapper->fingerprint : quint64(0));
   }
   if (formattingCache_.isDirty(node.id())) stream << formattingCache_.pass();
   stream << editingHtmlBlockId_.toString() << mermaidSyncMode_;
@@ -863,6 +911,16 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildContainer(
   layout->setType(node.type());
   layout->setDepth(depth);
   layout->setAlertKind(node.alertKind());
+  if (node.alertKind() != AlertKind::None) {
+    auto plain = *theme.cssElementForNode(node);
+    plain.cacheId = 0;
+    plain.classes.removeIf([](const auto& name) { return name == "md-alert" || name.startsWith("md-alert-"); });
+    const auto ordinary = theme.styleForElement(plain);
+    const auto* styled = theme.elementStyleForNode(node, QStringLiteral("blockquote"));
+    layout->setAlertThemed(styled && (styled->paint != ordinary.paint ||
+        styled->box.borderLeftColor != ordinary.box.borderLeftColor || styled->box.borderTopColor != ordinary.box.borderTopColor ||
+        styled->box.borderLeftWidth != ordinary.box.borderLeftWidth || styled->box.borderTopWidth != ordinary.box.borderTopWidth));
+  }
 
   const bool quoteBox = node.type() == BlockType::BlockQuote;
   const ThemeElementBoxStyle qbox = quoteBox ? theme.elementBoxStyle(QStringLiteral("blockquote"), &node, width) : ThemeElementBoxStyle{};
@@ -1222,9 +1280,21 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTable(
   layout->setType(BlockType::Table);
   layout->setDepth(depth);
 
+  const auto* wrapperStyle = theme.elementStyleForNode(node, QStringLiteral(".table-figure"));
+  const auto wrapperBox = theme.elementBoxStyle(QStringLiteral(".table-figure"), &node, width);
+  const auto wrapperInsets = LayoutBox::insets(wrapperBox);
+  const qreal wrapperWidth = LayoutBox::borderWidth(wrapperBox, qMax<qreal>(1, width - wrapperBox.margin.left() - wrapperBox.margin.right()));
+  const QPointF wrapperOrigin(x + wrapperBox.margin.left(), y);
+  x = wrapperOrigin.x() + wrapperInsets.left();
+  y += wrapperInsets.top();
+  width = qMax<qreal>(1, wrapperWidth - wrapperInsets.left() - wrapperInsets.right());
+
   const QString tableKey = QStringLiteral("table");
   const auto* tableStyle = theme.elementStyleForNode(node, tableKey);
   const auto tableBox = boxFor(node, theme, tableKey, width);
+  const qreal innerTopMargin = qFuzzyIsNull(wrapperInsets.top()) ? 0 : tableBox.margin.top();
+  const qreal innerBottomMargin = qFuzzyIsNull(wrapperInsets.bottom()) ? 0 : tableBox.margin.bottom();
+  y += innerTopMargin;
   const auto tableInsets = LayoutBox::insets(tableBox);
   const qreal availableWidth = qMax<qreal>(1, width - tableBox.margin.left() - tableBox.margin.right());
   x += tableBox.margin.left();
@@ -1328,8 +1398,12 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTable(
     ++rowIndex;
   }
 
-  layout->setRect(QRectF(x, y, width, LayoutBox::borderHeight(tableBox, cursorY - y - tableInsets.top())));
-  layout->setCssBoxGeometry(LayoutBox::place(tableKey, tableStyle ? *tableStyle : ThemeElementStyle{}, tableBox, layout->rect()));
+  const QRectF tableRect(x, y, width, LayoutBox::borderHeight(tableBox, cursorY - y - tableInsets.top()));
+  const qreal wrapperHeight = LayoutBox::borderHeight(wrapperBox, tableRect.height() + innerTopMargin + innerBottomMargin);
+  layout->setRect(QRectF(wrapperOrigin, QSizeF(wrapperWidth, wrapperHeight)));
+  layout->setCssBoxGeometry(LayoutBox::place(tableKey, tableStyle ? *tableStyle : ThemeElementStyle{}, tableBox, tableRect));
+  layout->setOuterCssBox(LayoutBox::place(QStringLiteral(".table-figure"), wrapperStyle ? *wrapperStyle : ThemeElementStyle{},
+                                         wrapperBox, layout->rect(), theme.paragraphFont()));
   layout->setTableRows(std::move(rows));
   return layout;
 }
@@ -1634,7 +1708,10 @@ BlockLayoutBuilder::ResolvedMarker BlockLayoutBuilder::resolveListMarker(
       }
       return levels;
     };
-    const QString text = resolveContentTokens(contentTokens, value, chain);
+    const auto* origin = theme.cssElementForNode(itemNode);
+    const QString text = resolveContentTokens(contentTokens, value, chain, [origin](const QString& name) -> std::optional<QString> {
+      return origin->attributes.contains(name) ? std::optional<QString>(origin->attributes.value(name)) : std::nullopt;
+    });
     return {text.isEmpty() ? BlockLayout::ListMarkerKind::None : BlockLayout::ListMarkerKind::OrderedText, text};
   }
   QString styleType;

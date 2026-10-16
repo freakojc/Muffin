@@ -45,7 +45,7 @@ QRectF textBounds(const QString& text, const QString& family, qreal fontSize,
     if (!item.isEmpty()) families.append(item);
   }
   QFont font = cssFont.font;
-  if (!families.isEmpty()) font.setFamilies(families);
+  if (!families.isEmpty()) font.setFamilies(editor::cssFamilyList(family));
   if (bold) font.setWeight(QFont::Bold);
   // getComputedTextLength parity: the browser's LayoutUnit-quantized design
   // advance, not TextFontMetrics's hinted per-glyph sum (which drifts ~0.05px

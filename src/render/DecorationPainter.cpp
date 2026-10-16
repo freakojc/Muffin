@@ -1,4 +1,6 @@
 #include "render/DecorationPainter.h"
+#include "diagnostics/ThemePerformance.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "render/Blur.h"
 #include "theme/CssThemeMapper.h"
@@ -6,9 +8,11 @@
 #include "theme/CssValueParser.h"
 #include "render/Filter.h"
 #include "render/GradientPainter.h"
+#include "render/GeneratedContent.h"
 #include "theme/ThemeDefinition.h"
 
 #include <QBrush>
+#include <QCache>
 #include "render/TextLayout.h"
 #include <QHash>
 #include <QImage>
@@ -23,11 +27,92 @@
 
 #include <memory>
 #include <cmath>
+#include <algorithm>
+#include <cstring>
 
 namespace muffin {
 namespace DecorationPainter {
 
 namespace {
+Q_LOGGING_CATEGORY(effectPerf, "muffin.perf.paint", QtWarningMsg)
+
+struct ShadowRasterKey {
+  QRectF core;
+  QSize size;
+  qreal radius;
+  int blur;
+  QColor color;
+  bool operator==(const ShadowRasterKey&) const = default;
+  friend size_t qHash(const ShadowRasterKey& key, size_t seed = 0) {
+    return qHashMulti(seed, key.core.x(), key.core.y(), key.core.width(), key.core.height(), key.size.width(),
+                      key.size.height(), key.radius, key.blur, key.color.rgba());
+  }
+};
+thread_local QCache<ShadowRasterKey, QImage> shadows(16 * 1024);
+thread_local BoxShadowRasterStats boxStats;
+
+// A rounded rectangle's middle columns/rows are identical once outside the
+// corners and the complete convolution support. Keep one of each, convolve
+// the compact mask, then restore those constant runs without interpolation.
+// The final image/cache and the caller's one-image compositing stay unchanged.
+struct ConstantRun {
+  int start = 0, removed = 0;
+  int source(int position) const {
+    return position < start ? position : position < start + removed + 1 ? start : position - removed;
+  }
+};
+ConstantRun constantRun(qreal first, qreal last, int extent) {
+  const int begin = qBound(0, qCeil(first), extent);
+  const int end = qBound(begin, qFloor(last), extent);
+  return {begin, qMax(0, end - begin - 1)};
+}
+QImage rasterizeShadow(const ShadowRasterKey& key) {
+  const qreal guardX = qMin(key.radius, key.core.width() / 2) + 3 * key.blur + 2;
+  const qreal guardY = qMin(key.radius, key.core.height() / 2) + 3 * key.blur + 2;
+  const auto x = constantRun(key.core.left() + guardX, key.core.right() - guardX, key.size.width());
+  const auto y = constantRun(key.core.top() + guardY, key.core.bottom() - guardY, key.size.height());
+  const QSize compactSize(key.size.width() - x.removed, key.size.height() - y.removed);
+  if (effectPerf().isDebugEnabled())
+    qCDebug(effectPerf).noquote().nospace()
+        << "paint.boxCompact " << compactSize.width() << ' ' << compactSize.height();
+  boxStats.maskPixels += quint64(compactSize.width()) * compactSize.height();
+  boxStats.largestMaskPixels = qMax(boxStats.largestMaskPixels, quint64(compactSize.width()) * compactSize.height());
+  boxStats.outputPixels += quint64(key.size.width()) * key.size.height();
+  QImage compact(compactSize, QImage::Format_ARGB32_Premultiplied);
+  if (compact.isNull()) return {};
+  compact.fill(Qt::transparent);
+  {
+    diag::ScopedPerfProbe perf("paint.boxMask", effectPerf());
+    QPainter painter(&compact);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(key.color);
+    painter.drawRoundedRect(QRectF(key.core.topLeft(), key.core.size() - QSizeF(x.removed, y.removed)), key.radius,
+                            key.radius);
+  }
+  countThemePerformanceWork(ThemePerfStage::Shadow, quint64(compact.width()) * compact.height());
+  {
+    diag::ScopedPerfProbe perf("paint.boxBlur", effectPerf());
+    boxBlur(compact, key.blur);
+  }
+  if (!x.removed && !y.removed) return compact;
+  diag::ScopedPerfProbe perf("paint.boxExpand", effectPerf());
+  QImage result(key.size, QImage::Format_ARGB32_Premultiplied);
+  if (result.isNull()) return {};
+  for (int row = 0; row < result.height(); ++row) {
+    auto* out = reinterpret_cast<QRgb*>(result.scanLine(row));
+    const auto* in = reinterpret_cast<const QRgb*>(compact.constScanLine(y.source(row)));
+    if (!x.removed)
+      std::memcpy(out, in, size_t(result.width()) * sizeof(QRgb));
+    else {
+      std::memcpy(out, in, size_t(x.start) * sizeof(QRgb));
+      std::fill_n(out + x.start, x.removed + 1, in[x.start]);
+      std::memcpy(out + x.start + x.removed + 1, in + x.start + 1,
+                  size_t(compact.width() - x.start - 1) * sizeof(QRgb));
+    }
+  }
+  return result;
+}
 
 // Process-wide SVG cache keyed by SVG byte data (content-addressed; themes share).
 std::shared_ptr<QSvgRenderer> svgIcon(const QByteArray& data) {
@@ -96,6 +181,14 @@ const HoverEffect* hoverEffectFor(const RenderTheme& theme, const QString& host)
 
 }  // namespace
 
+BoxShadowRasterStats boxShadowRasterStats() {
+  auto result = boxStats;
+  result.cacheBytes = shadows.totalCost() * 1024;
+  result.cacheEntries = shadows.size();
+  return result;
+}
+void resetBoxShadowRasterStats() { boxStats = {}; }
+
 void paintIcon(QPainter& painter, const QByteArray& svgData, const QRectF& target, const QColor& tint, bool recolour) {
   const auto icon = svgIcon(svgData);
   if (!icon) {
@@ -145,6 +238,17 @@ void paintWriteTexture(QPainter& painter, const RenderTheme& theme, const QRectF
   }
   if (rule->computed && (rule->computed->resolvedValue("content") == "none" ||
       rule->computed->resolvedValue("content") == "normal" || rule->computed->resolvedValue("display") == "none")) return;
+  if (rule->computed) {
+    const auto generated=generatedContentStyle(theme,*rule,theme.paragraphFont(),pageRect.size());
+    if (!generated) return;
+    const auto rect=positionGeneratedContent(*generated,pageRect,QRectF(pageRect.topLeft(),QSizeF(generated->width,generated->height)),theme.zoomPercent()/100.,false);
+    const auto box=LayoutBox::place("#write::before",generated->style,generated->used,rect,generated->font);
+    paintCssElement(painter,rect,box.visualOverflow,box.style.paint,theme.zoomPercent()/100.,nullptr,
+        [&](QPainter& target,const auto& neutral) {
+      auto style=box.style;style.paint=neutral;paintLayoutBox(target,box,{},&style);
+    },&box);
+    return;
+  }
   // A #write::before texture is a MASK — either a gradient mask (maskPattern) or
   // an SVG url() mask (svgData). Both supply shape; the ::before background-colour
   // (maskTint) supplies the visible colour, painted at the rule's opacity. The old
@@ -206,8 +310,10 @@ void paintGlow(QPainter& painter, const QRectF& rect, const QColor& color, qreal
   painter.restore();
 }
 
-void paintBoxShadow(QPainter& painter, const QRectF& rect, qreal borderRadius, const QColor& color, qreal offsetX, qreal offsetY,
-                    qreal blur, qreal spread) {
+void paintBoxShadow(QPainter& painter, const QRectF& rect, qreal borderRadius, const QColor& color, qreal offsetX,
+                    qreal offsetY, qreal blur, qreal spread) {
+  ThemePerfScope performance(ThemePerfStage::Shadow);
+  diag::ScopedPerfProbe boxPerf("paint.boxShadow", effectPerf());
   if (!color.isValid()) {
     return;
   }
@@ -241,29 +347,55 @@ void paintBoxShadow(QPainter& painter, const QRectF& rect, qreal borderRadius, c
   // can differ by 1e-13 at a coverage boundary; normalize only the raster mask,
   // without changing the shared layout/caret geometry or relaxing pixel tests.
   const auto snap = [](qreal value) { return std::round(value * 256) / 256; };
-  const QRectF rasterCore(QPointF(snap(core.left()), snap(core.top())), QPointF(snap(core.right()), snap(core.bottom())));
+  const QRectF rasterCore(QPointF(snap(core.left()), snap(core.top())),
+                          QPointF(snap(core.right()), snap(core.bottom())));
   QRectF paintBounds = rasterCore.adjusted(-blurExtent, -blurExtent, blurExtent, blurExtent);
+  // An implicit device clip is not included in clipBoundingRect(). A page
+  // shadow must allocate only the visible strip, even in a very tall document.
+  const auto visible = cssPaintDeviceBounds(painter);
+  paintBounds = paintBounds.intersected(visible.adjusted(-blurExtent, -blurExtent, blurExtent, blurExtent));
   if (painter.hasClipping()) {
-    paintBounds = paintBounds.intersected(painter.clipBoundingRect().adjusted(-blurExtent, -blurExtent, blurExtent, blurExtent));
+    paintBounds =
+        paintBounds.intersected(painter.clipBoundingRect().adjusted(-blurExtent, -blurExtent, blurExtent, blurExtent));
   }
   const QRect imageBounds = paintBounds.toAlignedRect();
   if (imageBounds.isEmpty()) {
     return;
   }
 
-  QImage shadow(imageBounds.size(), QImage::Format_ARGB32_Premultiplied);
-  shadow.fill(Qt::transparent);
-  {
-    QPainter maskPainter(&shadow);
-    maskPainter.setRenderHint(QPainter::Antialiasing, true);
-    maskPainter.translate(-imageBounds.topLeft());
-    maskPainter.setPen(Qt::NoPen);
-    maskPainter.setBrush(color);
-    maskPainter.drawRoundedRect(rasterCore, coreRadius, coreRadius);
+  // Translation-independent, exact raster inputs. The visible region and
+  // subpixel phase remain part of the key, so scrolling/clipping cannot reuse
+  // a different edge mask. Bound retained surfaces to 16 MiB per paint thread.
+  // Lazy page height can change while offscreen blocks acquire real geometry.
+  // Edges beyond this raster and its corner guard cannot affect any mask pixel;
+  // normalize them so a distant page bottom does not evict the visible shadow.
+  const qreal cornerGuard = coreRadius * 2 + 4;
+  const QRectF localCoverage(-cornerGuard, -cornerGuard, imageBounds.width() + 2 * cornerGuard,
+                             imageBounds.height() + 2 * cornerGuard);
+  const ShadowRasterKey key{rasterCore.translated(-imageBounds.topLeft()).intersected(localCoverage),
+                            imageBounds.size(), coreRadius, blurRadius, color};
+  QImage shadow;
+  ++boxStats.requests;
+  const auto* cached = shadows.object(key);
+  if (effectPerf().isDebugEnabled())
+    qCDebug(effectPerf).noquote().nospace()
+        << "paint.boxRaster " << imageBounds.width() << ' ' << imageBounds.height() << ' ' << blurRadius << ' '
+        << key.core.x() << ' ' << key.core.y() << ' ' << key.core.width() << ' ' << key.core.height() << ' '
+        << coreRadius << ' ' << int(cached != nullptr);
+  if (cached) {
+    shadow = *cached;
+    ++boxStats.hits;
+  } else {
+    ++boxStats.misses;
+    diag::ScopedPerfProbe rasterPerf("paint.boxRasterize", effectPerf());
+    shadow = rasterizeShadow(key);
+    if (shadow.isNull()) return;
+    const auto kib = (shadow.sizeInBytes() + 1023) / 1024;
+    if (kib <= shadows.maxCost()) shadows.insert(key, new QImage(shadow), int(kib));
   }
-  boxBlur(shadow, blurRadius);
 
   painter.save();
+  diag::ScopedPerfProbe blitPerf("paint.boxBlit", effectPerf());
   painter.drawImage(imageBounds.topLeft(), shadow);
   painter.restore();
 }

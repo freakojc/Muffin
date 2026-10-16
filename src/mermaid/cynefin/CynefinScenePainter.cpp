@@ -136,18 +136,8 @@ void paintRect(QPainter &painter, const CynefinRectGeometry &rect,
     painter.drawRect(rect.rect);
 }
 
-QStringList cssFontFamilies(const QString &expression) {
-  QStringList result;
-  for (QString family : expression.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
-    family = family.trimmed();
-    if (family.size() >= 2 &&
-        ((family.front() == QLatin1Char('"') && family.back() == QLatin1Char('"')) ||
-         (family.front() == QLatin1Char('\'') && family.back() == QLatin1Char('\''))))
-      family = family.mid(1, family.size() - 2);
-    if (!family.isEmpty()) result.append(family);
-  }
-  if (result.isEmpty()) result.append(QStringLiteral("Noto Sans"));
-  return result;
+QStringList cssFontFamilies(const QString& expression) {
+  return editor::cssFamilyList(expression);
 }
 
 void paintText(QPainter &painter, const CynefinScene &scene,

@@ -353,7 +353,7 @@
       "id": "link-structural",
       "width": 130,
       "markdown": "[first](https://one.test) [second](https://two.test)",
-      "css": "html,body{margin:0}#write{width:130px;padding:0;margin:0;max-width:none;font-family:MuffinFixtureSans;font-size:16px;line-height:24px}p,h4{margin:0;font-weight:400;font-size:16px;line-height:24px}strong{font-weight:700}a{font-size:20px}a:first-of-type::before{content:\"\";display:inline-block;width:12px;height:12px;margin-right:8px;background:red}a:nth-of-type(2)::after{content:\" end\";font-size:50%;color:blue}",
+      "css": "html,body{margin:0}#write{width:130px;padding:0;margin:0;max-width:none;font-family:MuffinFixtureSans;font-size:16px;line-height:24px}p,h4{margin:0;font-weight:400;font-size:16px;line-height:24px}strong{font-weight:700}a{font-size:20px}span[md-inline=link]:first-of-type>a::before{content:\"\";display:inline-block;width:12px;height:12px;margin-right:8px;background:red}span[md-inline=link]:nth-of-type(2)>a::after{content:\" end\";font-size:50%;color:blue}",
       "expected": {
         "height": 54,
         "characters": [

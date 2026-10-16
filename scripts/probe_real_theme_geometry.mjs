@@ -24,7 +24,7 @@ try {
     const css = read(`resources/themes/${theme}.css`) + '\n' + fixedFontCss;
     for (const width of [720, 960, 1440]) {
       const page = await browser.newPage({viewport:{width,height:1000},deviceScaleFactor:1});
-      await page.setContent(`<!doctype html><style>${font.css}${base}${css}</style><div id="write"><h1>Title</h1><p>Intro text with <code>code</code> and <kbd>Ctrl</kbd>.</p><h2>Section</h2><p>A second paragraph.</p></div>`);
+      await page.setContent(`<!doctype html><style>${font.css}${base}${css}</style><content><div id="write"><h1>Title</h1><p>Intro text with <span md-inline="code"><code>code</code></span> and <kbd>Ctrl</kbd>.</p><h2>Section</h2><p>A second paragraph.</p></div></content>`);
       await loadBrowserLayoutFont(page,font);
       const expected = await page.evaluate(() => {
         const rect = r => [r.x,r.y,r.width,r.height];

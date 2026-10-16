@@ -289,44 +289,48 @@ void HtmlLayoutResult::paintBox(QPainter& painter, const HtmlBox& box, QPointF o
   const QPointF boxOrigin = origin + QPointF(geo.left, geo.top);
   const QRectF boxRect(boxOrigin, QSizeF(geo.width, geo.height));
 
+  const auto scale=box.layoutBox.style.text.fontSizePx>0 ? box.layoutBox.font.pointSizeF()*96/72/box.layoutBox.style.text.fontSizePx : 1;
+  paintCssElement(painter,boxRect,box.layoutBox.visualOverflow.translated(origin),box.layoutBox.style.paint,scale,nullptr,
+      [&](QPainter& target,const ThemeElementPaintStyle& neutral) {
   // Content area (inside border + padding)
   const QRectF contentRect = box.layoutBox.contentBox.translated(origin);
 
-  paintLayoutBox(painter, box.layoutBox, origin);
-  painter.save();
-  const auto restorePainter = qScopeGuard([&] { painter.restore(); });
+  auto style=box.layoutBox.style;style.paint=neutral;
+  paintLayoutBox(target,box.layoutBox,origin,&style);
+  target.save();
+  const auto restorePainter = qScopeGuard([&] { target.restore(); });
   const auto& overflow = box.style().computed.layout;
   if (overflow.clipsX() || overflow.clipsY()) {
     auto clip = box.layoutBox.paddingBox.translated(origin);
     if (!overflow.clipsX()) clip.setLeft(-1e9), clip.setRight(1e9);
     if (!overflow.clipsY()) clip.setTop(-1e9), clip.setBottom(1e9);
-    painter.setClipRect(clip, Qt::IntersectClip);
+    target.setClipRect(clip, Qt::IntersectClip);
   }
 
   if (box.tag() == HtmlTag::ListItem && !box.listMarker().isEmpty()) {
-    paintListMarker(painter, box, contentRect);
+    paintListMarker(target, box, contentRect);
   }
 
   // Paint content based on tag
   switch (box.tag()) {
     case HtmlTag::Hr:
-      paintHr(painter, box, contentRect);
+      paintHr(target, box, contentRect);
       break;
 
     case HtmlTag::Image:
-      paintImage(painter, box, contentRect.topLeft());
+      paintImage(target, box, contentRect.topLeft());
       break;
 
     case HtmlTag::Details:
       // Only paint summary when collapsed; paint all children when open
       if (box.detailsOpen()) {
         for (const auto& child : box.children()) {
-          paintBox(painter, *child, boxOrigin);
+          paintBox(target, *child, boxOrigin);
         }
       } else {
         for (const auto& child : box.children()) {
           if (child->tag() == HtmlTag::Summary) {
-            paintBox(painter, *child, boxOrigin);
+            paintBox(target, *child, boxOrigin);
           }
         }
       }
@@ -334,16 +338,17 @@ void HtmlLayoutResult::paintBox(QPainter& painter, const HtmlBox& box, QPointF o
 
     default:
       if (box.ownsTextLayout()) {
-        paintInlineContent(painter, box, contentRect.topLeft());
+        paintInlineContent(target, box, contentRect.topLeft());
         break;
       }
 
       for (size_t i = 0; i < box.children().size(); ++i) {
         const auto index = box.formattingPaintOrder.empty() ? i : box.formattingPaintOrder[i];
-        paintBox(painter, *box.children()[index], boxOrigin);
+        paintBox(target, *box.children()[index], boxOrigin);
       }
       break;
   }
+  },&box.layoutBox);
 }
 
 void HtmlLayoutResult::paintInlineContent(QPainter& painter, const HtmlBox& box, QPointF origin) const {

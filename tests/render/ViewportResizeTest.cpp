@@ -5,8 +5,43 @@
 #include <QElapsedTimer>
 #include <QScrollBar>
 #include <QFile>
+#include <QPaintEvent>
 
 namespace {
+void testOpaqueViewportSkipsParentPaintAndTracksTheme() {
+  struct Parent : QWidget {
+    int paints = 0;
+    void paintEvent(QPaintEvent* event) override { ++paints; QWidget::paintEvent(event); }
+  } parent;
+  parent.resize(840, 640);
+  EditorView view(&parent);
+  view.setGeometry(10, 10, 800, 600);
+  DocumentSession session;
+  session.setMarkdownText("ordinary paragraph\n", false);
+  view.setDocument(session.document());
+  const auto definition = CssThemeMapper::fromCss(
+      "html,body{background:#123456}#write{background:transparent}"
+      "@media(max-width:600px){html,body{background:rgba(20,40,60,.5)}}", "opacity", {});
+  view.setTheme(RenderTheme::fromDefinition(definition));
+  parent.show();
+  QApplication::processEvents();
+  require(view.viewport()->testAttribute(Qt::WA_OpaquePaintEvent), "solid viewport background is opaque");
+  const auto image = view.viewport()->grab().toImage();
+  require(image.pixelColor(image.width() - 8, image.height() - 8) == QColor("#123456"),
+          "opaque viewport still paints its complete dirty background");
+  parent.paints = 0;
+  view.viewport()->update(QRect(8, 8, 2, 20));
+  QApplication::processEvents();
+  require(parent.paints == 0, "caret-size update must not repaint the parent under an opaque viewport");
+  view.resize(500, 600);
+  QApplication::processEvents();
+  require(view.theme().viewportBackgroundColor().alpha() < 255 && !view.viewport()->testAttribute(Qt::WA_OpaquePaintEvent),
+          "responsive translucent background restores parent composition");
+  view.resize(800, 600);
+  QApplication::processEvents();
+  require(view.viewport()->testAttribute(Qt::WA_OpaquePaintEvent), "returning to a solid media bucket restores opacity");
+}
+
 RenderTheme resizeTheme() {
   return RenderTheme::fromDefinition(CssThemeMapper::fromCss(
       QStringLiteral("#write { max-width:900px; padding:20px } p { font-size:16px; margin:12px 0 } "
@@ -177,6 +212,68 @@ void testResizeKeepsReadingPositionWithOffscreenCaret() {
           "idle height estimation must preserve the same reading anchor");
 }
 
+void testBudgetedPrefetchAndEviction() {
+  DocumentSession session;
+  session.setMarkdownText(QString("A **bold** *em* paragraph with words for wrapping. ").repeated(3).append("\n\n").repeated(160), false);
+  auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
+      "p{margin:12px 0}p:nth-child(3n){margin-top:19px}strong:hover{color:red}em:focus{color:blue}"
+      "p::before{content:counter(n) '. ';counter-increment:n}", "eviction", {}));
+  DocumentLayout layout;
+  layout.rebuild(session.document(), theme, 700, {}, {}, DocumentLayout::BuildPolicy::Lazy);
+  require(!layout.prefetch(0, 20, theme, 1, 1000) && layout.residentDetailCount() == 1,
+          "idle promotion must respect its block budget");
+  require(layout.prefetch(0, 0, theme, 1), "an already built range is complete");
+  layout.buildAll(theme);
+  const qreal total = layout.totalHeight(), top = layout.slotTop(100);
+  const auto& nodes = session.document().root().children();
+  const NodeId caret = nodes.front()->id();
+  {
+    auto snapshot = theme;
+    const auto* inlineElement = snapshot.cssInlineElement(*nodes[30], 4, "strong");
+    const auto count = snapshot.styleCacheStats().elements;
+    theme.releaseInlineStyles({nodes[30]->id()});
+    require(inlineElement && snapshot.styleCacheStats().elements == count &&
+                snapshot.cssInlineElement(*nodes[30], 4, "strong") == inlineElement,
+            "retained theme snapshots keep their inline pointers valid");
+  }
+  const auto before = theme.styleCacheStats().elements;
+  const auto evicted = layout.trimDetails(100, 103, theme, {caret}, 8);
+  require(evicted == layout.slotCount() - 8 && layout.residentDetailCount() == 8,
+          QString("far detail residency must be bounded: slots=%1 evicted=%2 retained=%3")
+              .arg(layout.slotCount()).arg(evicted).arg(layout.residentDetailCount()));
+  require(layout.blockIfPromoted(caret) && layout.blockIfPromoted(nodes[101]->id()) && !layout.blockIfPromoted(nodes[30]->id()),
+          "only unprotected distant geometry is released");
+  require(qAbs(total - layout.totalHeight()) < .01 && qAbs(top - layout.slotTop(100)) < .01,
+          "eviction must retain measured heights and position tokens");
+  require(theme.styleCacheStats().elements < before / 2, "evicted inline semantic views must be released with layout detail");
+  for (int i = 0; i < 3; ++i) {
+    layout.ensureBuilt(0, 20, theme);
+    layout.trimDetails(0, 4, theme, {caret}, 8);
+    layout.ensureBuilt(100, 120, theme);
+    layout.trimDetails(100, 103, theme, {caret}, 8);
+  }
+  const auto offset = nodes[30]->sourceRange().byteStart + 2;
+  require(session.applyTextDelta(offset, 0, "new ", true), "edit an evicted block");
+  require(layout.rebuildTopLevelRange(session.lastLocalTopLevelRangeChange(), session.document(), theme, {}).rebuilt,
+          "local edits must rebind retained navigation after eviction");
+  layout.buildAll(theme);
+  auto freshTheme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
+      "p{margin:12px 0}p:nth-child(3n){margin-top:19px}strong:hover{color:red}em:focus{color:blue}"
+      "p::before{content:counter(n) '. ';counter-increment:n}", "eviction", {}));
+  DocumentLayout fresh;
+  fresh.rebuild(session.document(), freshTheme, 700);
+  require(qAbs(layout.totalHeight() - fresh.totalHeight()) < .01, "rebuilt evicted geometry must match full layout");
+  for (const auto& node : session.document().root().children()) {
+    const auto* actual = layout.block(node->id());
+    const auto* expected = fresh.block(node->id());
+    require(actual && expected && qAbs(actual->rect().top() - expected->rect().top()) < .01 &&
+                qAbs(actual->height() - expected->height()) < .01,
+            "revisiting evicted blocks must preserve structural spacing and counter geometry");
+    require(theme.pseudoForNode(*node, "before")->content == freshTheme.pseudoForNode(*node, "before")->content,
+            "counter results must survive inline/pseudo eviction");
+  }
+}
+
 void benchmarkLargeResize() {
   if (!qEnvironmentVariableIsSet("MUFFIN_RESIZE_BENCH")) return;
   DocumentSession session;
@@ -246,6 +343,8 @@ int main(int argc, char** argv) {
   runTest("HTML viewport and edits", testHtmlViewportUnitsAndEditsDuringResize);
   runTest("HTML viewport style dependencies", testHtmlResizeInvalidatesOnlyViewportStyles);
   runTest("resize reading anchor", testResizeKeepsReadingPositionWithOffscreenCaret);
+  runTest("budgeted prefetch and eviction", testBudgetedPrefetchAndEviction);
+  runTest("viewport opacity and parent paint", testOpaqueViewportSkipsParentPaintAndTracksTheme);
   benchmarkLargeResize();
   benchmarkEditorResize();
   return 0;

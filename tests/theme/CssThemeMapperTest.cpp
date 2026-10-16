@@ -141,8 +141,8 @@ void testSampleTheme() {
   require(d.colors.headingAccentColor.name(QColor::HexRgb) == QStringLiteral("#ff7096"),
           QStringLiteral("h2 accent bar colour from border-left via var()"));
 
-  require(d.typography.bodyFont.startsWith(QStringLiteral("iA Writer Quattro")), QStringLiteral("body font stack should preserve first family"));
-  require(d.typography.codeFont.startsWith(QStringLiteral("JetBrains Mono")), QStringLiteral("code font stack should preserve first family"));
+  require(d.typography.bodyFont.section('\n',0,0) == QStringLiteral("\"iA Writer Quattro\""), QStringLiteral("body font stack should preserve first family and quotes"));
+  require(d.typography.codeFont.section('\n',0,0) == QStringLiteral("\"JetBrains Mono\""), QStringLiteral("code font stack should preserve first family and quotes"));
   require(qAbs(d.typography.bodySizePt - 12.0) < 0.01, QStringLiteral("16px body → 12pt"));
   require(qAbs(d.typography.lineHeight - 1.7) < 0.001, QStringLiteral("line-height multiplier"));
 
@@ -222,15 +222,13 @@ void testHeadingFontSizeEmUsesInheritedFontButBoxEmUsesHeadingFont() {
 }
 
 void testNumericFontWeightMapsToQtEnum() {
-  // CSS numeric font-weights (100-900) must MAP onto Qt's QFont::Weight enum scale, not
-  // clamp to Black. Previously qBound(0, numeric, 87) collapsed almost every numeric weight
-  // to QFont::Black (e.g. `font-weight: 400` rendered as Black).
+  // Qt 6 uses CSS weights directly, including values between named steps.
   const QString css = QStringLiteral(
       "h1 { font-weight: 400; }"   // → Normal
       "h2 { font-weight: 700; }"   // → Bold
       "h3 { font-weight: 300; }"   // → Light
       "h4 { font-weight: 900; }"   // → Black
-      "h5 { font-weight: 760; }"); // snaps to nearest step 800 → ExtraBold
+      "h5 { font-weight: 760; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("weights"), QString());
   require(d.typography.headingFontWeight[0] == QFont::Normal,
           QStringLiteral("font-weight:400 should map to Normal, not Black"));
@@ -240,8 +238,8 @@ void testNumericFontWeightMapsToQtEnum() {
           QStringLiteral("font-weight:300 should map to Light"));
   require(d.typography.headingFontWeight[3] == QFont::Black,
           QStringLiteral("font-weight:900 should map to Black"));
-  require(d.typography.headingFontWeight[4] == QFont::ExtraBold,
-          QStringLiteral("font-weight:760 should snap to 800 → ExtraBold"));
+  require(d.typography.headingFontWeight[4] == 760,
+          QStringLiteral("font-weight:760 retains its CSS numeric value"));
 }
 
 void testMistBlueFixture(const QString& path) {
@@ -270,7 +268,7 @@ void testMistBlueFixture(const QString& path) {
   require(d.colors.codeBackground.red() == 226, QStringLiteral("inline code bg via var(--code-bg)"));
   require(d.colors.codeBlockBackground.red() == 224, QStringLiteral("fenced code bg via var(--code-block-bg)"));
   // p,li { font-family: var(--font-writing) } comes after html,body { var(--font-sans) } → writing wins.
-  require(d.typography.bodyFont.startsWith(QStringLiteral("LXGW WenKai")), QStringLiteral("body font should be the writing stack, not sans"));
+  require(d.typography.bodyFont.section('\n',0,0) == QStringLiteral("\"LXGW WenKai\""), QStringLiteral("body font should preserve the quoted writing family"));
   require(qAbs(d.typography.bodySizePt - 12.0) < 0.01, QStringLiteral("body 16px should map to 12pt"));
   require(qAbs(d.typography.lineHeight - 1.78) < 0.001, QStringLiteral("body line-height should map"));
   require(qAbs(d.typography.headingSizePt[0] - 25.2) < 0.01, QStringLiteral("h1 2.1rem should map to 25.2pt"));
@@ -1093,8 +1091,10 @@ void testWriteBeforeSvgMaskCapture() {
   }
   require(rule != nullptr, QStringLiteral("#write::before rule should be captured for an SVG mask"));
   require(rule->maskPattern.kind == GradientSpec::Kind::None, QStringLiteral("SVG url() mask is not a gradient"));
-  require(!rule->svgData.isEmpty(), QStringLiteral("SVG mask should decode into svgData (painter's svg branch)"));
-  require(rule->svgFromMask, QStringLiteral("svgFromMask true — mask came from mask-image"));
+  const auto projected=CssThemeMapper::projectComputedStyle("#write::before",*rule->computed);
+  require(projected.paint.maskLayers.size()==1 && projected.paint.maskLayers.front().image.resource,
+          QStringLiteral("SVG mask resolves through shared mask image resources"));
+  require(rule->svgData.isEmpty() && !rule->svgFromMask,QStringLiteral("live masks do not duplicate the legacy icon painter"));
   require(rule->maskTint == QColor(QStringLiteral("#bd93f9")), QStringLiteral("texture tint from background-color"));
   require(qAbs(rule->maskTile.width() - 20.0) < 0.01 && qAbs(rule->maskTile.height() - 20.0) < 0.01,
           QStringLiteral("mask-size 20px 20px captured"));
@@ -1138,8 +1138,9 @@ void testLinkBeforeMaskIconAndMarkGradient() {
     if (r.host == QStringLiteral("a") && r.pseudo == QStringLiteral("before")) { link = &r; }
   }
   require(link != nullptr, QStringLiteral("a::before rule should be captured"));
-  require(!link->svgData.isEmpty(), QStringLiteral("a::before SVG should decode from the mask data URI"));
-  require(link->svgFromMask, QStringLiteral("a::before svgFromMask should be true (mask source)"));
+  const auto projected=CssThemeMapper::projectComputedStyle("a::before",*link->computed);
+  require(projected.paint.maskLayers.size()==1 && projected.paint.maskLayers.front().image.resource,
+          QStringLiteral("inline pseudo SVG uses the shared mask compositor"));
   require(link->backgroundColor == QColor(QStringLiteral("#00f3ff")), QStringLiteral("a::before background-color tint captured"));
   bool markLinear = false;
   for (const ElementBackground& eb : d.decorations.backgrounds) {

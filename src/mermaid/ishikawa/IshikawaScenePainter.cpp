@@ -16,19 +16,7 @@ namespace muffin::mermaid::ishikawa {
 namespace {
 
 QStringList cssFontFamilies(const QString& expression) {
-  QStringList result;
-  for (QString family : expression.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
-    family = family.trimmed();
-    if (family.size() >= 2 &&
-        ((family.front() == QLatin1Char('"') &&
-          family.back() == QLatin1Char('"')) ||
-         (family.front() == QLatin1Char('\'') &&
-          family.back() == QLatin1Char('\''))))
-      family = family.mid(1, family.size() - 2);
-    if (!family.isEmpty()) result.append(family);
-  }
-  if (result.isEmpty()) result.append(QStringLiteral("Noto Sans"));
-  return result;
+  return editor::cssFamilyList(expression);
 }
 
 editor::CssPixelFont textFont(const IshikawaScene& scene,

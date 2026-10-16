@@ -1,4 +1,5 @@
 #include "editor/EditorView.h"
+#include "diagnostics/ViewportUpdate.h"
 
 #include "diagnostics/ScopedPerfProbe.h"
 
@@ -91,6 +92,7 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
   setAttribute(Qt::WA_InputMethodEnabled, true);
   viewport()->setMouseTracking(true);
   viewport()->setAutoFillBackground(false);
+  syncViewportBackground();
   layout_->setMermaidRenderCache(&mermaidCache_);
   connect(&LayoutResources::instance(), &LayoutResources::resourceChanged, this, [this](const QString&) { queueResourceRefresh(); });
   // Enable external drag-and-drop. acceptDrops defaults to false, so without
@@ -104,8 +106,9 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
   applyScrollBarStyle();
   cssPaintClock_.start();
   cssPaintTimer_ = new QTimer(this);
+  cssPaintTimer_->setObjectName(QStringLiteral("cssAnimation"));
   cssPaintTimer_->setInterval(16);
-  connect(cssPaintTimer_, &QTimer::timeout, viewport(), qOverload<>(&QWidget::update));
+  connect(cssPaintTimer_, &QTimer::timeout, this, [this] { diag::updateViewport(viewport()); });
   mermaidAnimationTimer_ = new QTimer(this);
   mermaidAnimationTimer_->setInterval(33);
   QObject::connect(mermaidAnimationTimer_, &QTimer::timeout, this,
@@ -117,19 +120,20 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
   QObject::connect(loadingTimer_, &QTimer::timeout, this, [this] {
     loadingPhase_ += 1.0 / 36.0;  // ~1.2 s per revolution at 30 fps
     if (loadingPhase_ >= 1.0) loadingPhase_ -= 1.0;
-    viewport()->update();
+    diag::updateViewport(viewport());
   });
   // Caret blink, unified with the source editor's cadence (cursorFlashTime/2). The timer only
   // runs while focused with an active caret and no composition; each toggle dirties nothing but
   // the caret rect. Offscreen tests never gain focus, so the caret stays deterministically on.
   cursorTimer_ = new QTimer(this);
+  cursorTimer_->setObjectName(QStringLiteral("caretBlink"));
   cursorTimer_->setInterval(qMax(0, QApplication::cursorFlashTime() / 2));
   QObject::connect(cursorTimer_, &QTimer::timeout, this, [this] {
     caretBlinkOn_ = !caretBlinkOn_;
     QRect dirty = uniteDocumentRectDirty({}, lastPaintedCaretDocumentRect_, scrollY(), viewport()->size());
     dirty = uniteDocumentRectDirty(dirty, effectiveCursorRect(), scrollY(), viewport()->size());
     if (!dirty.isEmpty()) {
-      viewport()->update(dirty);
+      diag::updateViewport(viewport(), dirty);
     }
   });
   // Selection drag auto-scroll: while the mouse is held beyond the viewport's edge, scroll by a
@@ -218,37 +222,56 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
   });
 
   viewportEstimateTimer_ = new QTimer(this);
+  viewportEstimateTimer_->setObjectName(QStringLiteral("viewportEstimates"));
   viewportEstimateTimer_->setSingleShot(true);
   connect(viewportEstimateTimer_, &QTimer::timeout, this, &EditorView::refreshViewportEstimates);
+  viewportPrefetchTimer_ = new QTimer(this);
+  viewportPrefetchTimer_->setObjectName(QStringLiteral("viewportPrefetch"));
+  viewportPrefetchTimer_->setSingleShot(true);
+  connect(viewportPrefetchTimer_, &QTimer::timeout, this, &EditorView::prefetchViewport);
 }
 
 void EditorView::queueResourceRefresh() {
-  if (resourceRefreshPending_) return;
-  resourceRefreshPending_ = true;
-  // Coalesce resources completed during one event-loop turn. The dependency
-  // snapshots select affected promoted blocks; offscreen blocks read current
-  // resources when promoted, without rebuilding stale documents during open.
+  resourcesDirty_ = true;
+  scheduleResourceRefresh();
+}
+
+void EditorView::scheduleResourceRefresh() {
+  if (!resourcesDirty_ || resourceRefreshQueued_ || !isVisible() || loading_ || !document_ || !layout_) return;
+  resourceRefreshQueued_ = true;
+  // Show must not synchronously rebuild the old theme: QStackedWidget shows a
+  // page before currentChanged lets its owner install the deferred snapshot.
+  // Keep one callback at most, and recheck visibility when it is dispatched.
   QTimer::singleShot(0, this, [this] {
-    resourceRefreshPending_ = false;
-    if (!document_ || loading_ || !layout_) return;
-    const auto previousScroll = scrollY();
-    DocumentLayout::ResourceRefreshResult result;
-    {
-      ScopedViewportPin pin(*this);
-      result = layout_->refreshResources(theme_, selection_);
-    }
-    if (!result.updatedBlocks) return;
-    updateCursorHitFromPosition();
-    updateTableToolbar();
-    if (previousScroll != scrollY()) {
-      viewport()->update();
-    } else {
-      auto dirty = result.dirty.translated(0, -scrollY()).adjusted(-3, -3, 3, 3).toAlignedRect();
-      dirty = uniteDocumentRectDirty(dirty, lastPaintedCaretDocumentRect_, scrollY(), viewport()->size());
-      dirty = uniteDocumentRectDirty(dirty, effectiveCursorRect(), scrollY(), viewport()->size());
-      viewport()->update(dirty);
-    }
+    resourceRefreshQueued_ = false;
+    refreshPendingResources();
   });
+}
+
+void EditorView::refreshPendingResources() {
+  if (!resourcesDirty_ || !isVisible() || loading_ || !document_ || !layout_) return;
+  PerfTimer perf("view.refreshResources");
+  // A resource can finish while rebuilding (e.g. first diagram/font use). Clear
+  // before work so a new notification survives and schedules another pass.
+  resourcesDirty_ = false;
+  const auto previousScroll = scrollY();
+  DocumentLayout::ResourceRefreshResult result;
+  {
+    ScopedViewportPin pin(*this);
+    result = layout_->refreshResources(theme_, selection_);
+  }
+  if (!result.updatedBlocks) return;
+  blockBuiltAt_.clear();
+  updateCursorHitFromPosition();
+  updateTableToolbar();
+  if (previousScroll != scrollY()) {
+    diag::updateViewport(viewport());
+  } else {
+    auto dirty = result.dirty.translated(0, -scrollY()).adjusted(-3, -3, 3, 3).toAlignedRect();
+    dirty = uniteDocumentRectDirty(dirty, lastPaintedCaretDocumentRect_, scrollY(), viewport()->size());
+    dirty = uniteDocumentRectDirty(dirty, effectiveCursorRect(), scrollY(), viewport()->size());
+    diag::updateViewport(viewport(), dirty);
+  }
 }
 
 void EditorView::setDocument(const MarkdownDocument& document, QString documentPath) {
@@ -273,7 +296,7 @@ void EditorView::setLoading(bool loading) {
       loadingTimer_->stop();
       queueResourceRefresh();  // Also consume deferred updates if an open was cancelled.
     }
-    viewport()->update();
+    diag::updateViewport(viewport());
   }
 }
 
@@ -325,7 +348,7 @@ bool EditorView::refreshBlock(NodeId blockId, const MarkdownDocument& document) 
   if (dirty.isEmpty()) {
     dirty = viewport()->rect();
   }
-  viewport()->update(dirty);
+  diag::updateViewport(viewport(), dirty);
   return true;
 }
 
@@ -382,7 +405,7 @@ bool EditorView::refreshBlocksInternal(
   // new position (to draw) and the previous one (to erase the ghost on move).
   dirty = uniteDocumentRectDirty(dirty, effectiveCursorRect(), scrollY(), viewport()->size());
   dirty = uniteDocumentRectDirty(dirty, lastPaintedCaretDocumentRect_, scrollY(), viewport()->size());
-  viewport()->update(dirty.isEmpty() ? viewport()->rect() : dirty);
+  diag::updateViewport(viewport(), dirty.isEmpty() ? viewport()->rect() : dirty);
   return true;
 }
 
@@ -418,14 +441,14 @@ bool EditorView::refreshTopLevelRange(TopLevelRangeChange range, const MarkdownD
   // pixels survive as a ghost.
   dirty = uniteDocumentRectDirty(dirty, effectiveCursorRect(), scrollY(), viewport()->size());
   dirty = uniteDocumentRectDirty(dirty, lastPaintedCaretDocumentRect_, scrollY(), viewport()->size());
-  viewport()->update(dirty.isEmpty() ? viewport()->rect() : dirty);
+  diag::updateViewport(viewport(), dirty.isEmpty() ? viewport()->rect() : dirty);
   return true;
 }
 
 void EditorView::setZoomPercent(int percent) {
   theme_.setZoomPercent(percent);
   applyScrollBarStyle();
-  viewport()->setPalette(QPalette(theme_.backgroundColor()));
+  syncViewportBackground();
   rebuildLayout();
 }
 
@@ -439,18 +462,27 @@ void EditorView::setContentWidthPx(int px) {
   rebuildLayout();
 }
 
+void EditorView::syncViewportBackground() {
+  viewport()->setPalette(QPalette(theme_.backgroundColor()));
+  // paintEvent fills every dirty pixel before drawing the page. Solid themes
+  // need no repeated paint of the splitter/stack/window below a caret update.
+  viewport()->setAttribute(Qt::WA_OpaquePaintEvent, theme_.viewportBackgroundColor().alpha() == 255);
+}
+
 void EditorView::setTheme(RenderTheme theme) {
+  PerfTimer perf("theme.setView");
   cssPaintContext_.clear();
   cssPaintTimer_->stop();
   const int zoom = theme_.zoomPercent();
   const int fontSize = theme_.fontSizePx();
   const int contentWidth = theme_.contentWidthPx();
+  theme.reuseDocumentSemantics(theme_);
   theme_ = std::move(theme);
   theme_.setZoomPercent(zoom);
   theme_.setFontSizePx(fontSize);
   theme_.setContentWidthPx(contentWidth);
   applyScrollBarStyle();
-  viewport()->setPalette(QPalette(theme_.backgroundColor()));
+  syncViewportBackground();
   rebuildLayout();
 }
 
@@ -516,7 +548,7 @@ void EditorView::applySelectionRange(SelectionRange selection) {
   if (dragState_ == DragState::Dragging) {
     cursorVisible_ = false;
     cursorTimer_->stop();
-    viewport()->update();
+    diag::updateViewport(viewport());
     updateTableToolbar();
     return;
   }
@@ -548,7 +580,7 @@ void EditorView::clearCursor() {
   dragState_ = DragState::Idle;
   updateCodeLanguageEditor();
   updateTableToolbar();
-  viewport()->update();
+  diag::updateViewport(viewport());
 }
 
 void EditorView::setCodeLanguageSuggestions(QStringList languages) {
@@ -559,7 +591,7 @@ void EditorView::setCodeLanguageSuggestions(QStringList languages) {
 
 void EditorView::setFocusMode(bool enabled) {
   focusMode_ = enabled;
-  viewport()->update();
+  diag::updateViewport(viewport());
 }
 
 void EditorView::retranslateAccessibility() {
@@ -576,11 +608,13 @@ void EditorView::changeEvent(QEvent* event) {
 }
 
 bool EditorView::event(QEvent* event) {
+  if (event->type() == QEvent::Show) scheduleResourceRefresh();
   if (event->type() == QEvent::Hide && cssPaintTimer_) cssPaintTimer_->stop();
+  if (event->type() == QEvent::Hide && viewportPrefetchTimer_) viewportPrefetchTimer_->stop();
   if (event->type() == QEvent::Leave) {
     cssPaintContext_.pointer.reset();
     cssPaintContext_.pressed = false;
-    viewport()->update();
+    diag::updateViewport(viewport());
     clearHtmlHover();
     viewport()->setToolTip(QString());
   }
@@ -626,7 +660,7 @@ bool EditorView::viewportEvent(QEvent* event) {
   if (event->type() == QEvent::Leave) {
     cssPaintContext_.pointer.reset();
     cssPaintContext_.pressed = false;
-    viewport()->update();
+    diag::updateViewport(viewport());
   }
   return QAbstractScrollArea::viewportEvent(event);
 }
@@ -638,6 +672,7 @@ void EditorView::resizeEvent(QResizeEvent* event) {
   {
     PerfTimer step("view.resize.theme");
     stylesChanged = theme_.updateForViewport(viewport()->width(), viewport()->height());
+    if (stylesChanged) syncViewportBackground();
   }
   bool relayouted = false;
   if (layout_ && document_) {
@@ -659,7 +694,7 @@ void EditorView::resizeEvent(QResizeEvent* event) {
         PerfTimer step("view.resize.cursor");
         updateCursorHitFromPosition();
       }
-      viewport()->update();
+      diag::updateViewport(viewport());
     }
   }
   if (!relayouted) {
@@ -685,7 +720,7 @@ void EditorView::refreshViewportEstimates() {
   updateCursorHitFromPosition();
   updateCodeLanguageEditor();
   updateTableToolbar();
-  viewport()->update();
+  diag::updateViewport(viewport());
   if (layout_->hasPendingViewportEstimates()) viewportEstimateTimer_->start(8);
 }
 
@@ -709,7 +744,7 @@ void EditorView::wheelEvent(QWheelEvent* event) {
 void EditorView::mousePressEvent(QMouseEvent* event) {
   cssPaintContext_.pointer = event->position();
   cssPaintContext_.pressed = event->buttons().testFlag(Qt::LeftButton);
-  viewport()->update();
+  diag::updateViewport(viewport());
   PerfTimer perf("view.mousePress");
   if (event->button() == Qt::LeftButton) {
     setFocus(Qt::MouseFocusReason);
@@ -770,7 +805,7 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
       if (openMenus.isEmpty()) openSequenceMenus_.remove(hostId);
       if (layout_) {
         if (const BlockLayout* block = layout_->blockIfPromoted(hostId)) {
-          viewport()->update(
+          diag::updateViewport(viewport(),
               block->rect().translated(0, -scrollY()).toAlignedRect());
         }
       }
@@ -826,7 +861,7 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
 void EditorView::mouseMoveEvent(QMouseEvent* event) {
   cssPaintContext_.pointer = event->position();
   cssPaintContext_.pressed = event->buttons().testFlag(Qt::LeftButton);
-  viewport()->update();
+  diag::updateViewport(viewport());
   PerfTimer perf("view.mouseMove");
   if (codeFenceScrollDragId_.isValid() && (event->buttons() & Qt::LeftButton)) {
     dragCodeFenceScrollBarTo(codeFenceScrollDragId_, event->position());
@@ -869,7 +904,7 @@ void EditorView::mouseMoveEvent(QMouseEvent* event) {
 void EditorView::mouseReleaseEvent(QMouseEvent* event) {
   cssPaintContext_.pointer = event->position();
   cssPaintContext_.pressed = false;
-  viewport()->update();
+  diag::updateViewport(viewport());
   if (event->button() == Qt::LeftButton && codeFenceScrollDragId_.isValid()) {
     codeFenceScrollDragId_ = NodeId();
     event->accept();
@@ -1023,7 +1058,7 @@ void EditorView::focusInEvent(QFocusEvent* event) {
     resetComposition();
   }
   resetCaretBlink();
-  viewport()->update();
+  diag::updateViewport(viewport());
 }
 
 void EditorView::focusOutEvent(QFocusEvent* event) {
@@ -1164,7 +1199,7 @@ void EditorView::inputMethodEvent(QInputMethodEvent* event) {
     } else {
       QRect dirty = uniteDocumentRectDirty({}, lastPaintedCaretDocumentRect_, scrollY(), viewport()->size());
       dirty = uniteDocumentRectDirty(dirty, effectiveCursorRect(), scrollY(), viewport()->size());
-      viewport()->update(dirty.isEmpty() ? viewport()->rect() : dirty);
+      diag::updateViewport(viewport(), dirty.isEmpty() ? viewport()->rect() : dirty);
     }
   }
   event->accept();
@@ -1225,7 +1260,12 @@ QVariant EditorView::inputMethodQuery(Qt::InputMethodQuery query) const {
 }
 
 void EditorView::rebuildLayout(bool preserveViewport) {
+  // A full theme/document rebuild consumes the current resource versions. Any
+  // notification raised during the rebuild marks the new layout dirty again.
+  resourcesDirty_ = false;
+  blockBuiltAt_.clear();
   theme_.updateForViewport(viewport()->width(), viewport()->height());
+  syncViewportBackground();
   PerfTimer perf("view.rebuildLayout");
   if (!layout_) {
     layout_ = std::make_unique<DocumentLayout>();
@@ -1276,7 +1316,7 @@ void EditorView::rebuildLayout(bool preserveViewport) {
   if (cursorPosition_.isValid() && !preserveViewport) {
     ensureCursorVisible();
   }
-  viewport()->update();
+  diag::updateViewport(viewport());
 }
 
 bool EditorView::refreshVisibleBlocks(const MarkdownDocument& document) {
@@ -1342,24 +1382,24 @@ void EditorView::refreshInlineProjectionForSelectionChange(SelectionRange previo
                                    .toAlignedRect()
                                & viewport()->rect();
     if (!viewportRect.isEmpty()) {
-      viewport()->update(viewportRect);
+      diag::updateViewport(viewport(), viewportRect);
     }
   }
 
   if (!refreshed) {
     updateCursorHitFromPosition();
     cursorVisible_ = selection_.isCollapsed() && cursorHit_.isValid();
-    viewport()->update();
+    diag::updateViewport(viewport());
   } else {
     cursorVisible_ = selection_.isCollapsed() && cursorHit_.isValid();
     if (scrolled) {
-      viewport()->update();  // content shifted under a new scroll offset — repaint coherently
+      diag::updateViewport(viewport());  // content shifted under a new scroll offset — repaint coherently
     }
     // Erase old heading badge if cursor moved away from a heading block
     if (previousSelection.focus.blockId != cursorPosition_.blockId) {
       const QRectF oldBadge = headingBadgeViewportRectForBlock(previousSelection.focus.blockId);
       if (!oldBadge.isEmpty()) {
-        viewport()->update(oldBadge.adjusted(-2, -2, 2, 2).toAlignedRect());
+        diag::updateViewport(viewport(), oldBadge.adjusted(-2, -2, 2, 2).toAlignedRect());
       }
     }
   }
@@ -1438,17 +1478,17 @@ void EditorView::updateHtmlHover(QPointF viewportPos) {
   const NodeId next = hit.isValid() && hit.zone == HitTestResult::Zone::Html ? hit.blockId : NodeId();
   const HtmlBlockHoverController::Dirty dirty = htmlHover_.setHoveredBlock(next, htmlHoverInputs());
   if (!dirty.oldRect.isEmpty()) {
-    viewport()->update(dirty.oldRect);
+    diag::updateViewport(viewport(), dirty.oldRect);
   }
   if (!dirty.newRect.isEmpty()) {
-    viewport()->update(dirty.newRect);
+    diag::updateViewport(viewport(), dirty.newRect);
   }
 }
 
 void EditorView::clearHtmlHover() {
   const HtmlBlockHoverController::Dirty dirty = htmlHover_.clear(htmlHoverInputs());
   if (!dirty.oldRect.isEmpty()) {
-    viewport()->update(dirty.oldRect);
+    diag::updateViewport(viewport(), dirty.oldRect);
   }
 }
 
@@ -1461,7 +1501,7 @@ void EditorView::repaintAnimatedMermaidBlocks() {
     if (!block || !block->hasAnimatedMermaid()) continue;
     dirty = dirty.isNull() ? block->rect() : dirty.united(block->rect());
   }
-  if (!dirty.isNull()) viewport()->update(dirty.translated(0, -scrollY()).adjusted(-2, -2, 2, 2).toAlignedRect());
+  if (!dirty.isNull()) diag::updateViewport(viewport(), dirty.translated(0, -scrollY()).adjusted(-2, -2, 2, 2).toAlignedRect());
 }
 
 void EditorView::updateMermaidAnimationDriver(bool hasVisibleAnimation) {

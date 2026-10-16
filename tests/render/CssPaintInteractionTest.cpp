@@ -1,9 +1,11 @@
 #include "document/DocumentSession.h"
+#include "diagnostics/ThemePerformance.h"
 #include "document/MarkdownDocument.h"
 #include "render/CssPaintAnimation.h"
 #include "render/DocumentLayout.h"
 #include "render/BlockLayout.h"
 #include "render/InlineLayout.h"
+#include "render/Blur.h"
 #include "theme/CssThemeMapper.h"
 #include "theme/CssValueParser.h"
 #include "../TestUtils.h"
@@ -61,7 +63,7 @@ void testPerPropertyTransitionsAndReversal() {
   context.timeMs = 50;
   auto mid = context.sample(*motion, "one", 1);
   require(mid.paint.color.red() >= 126 && mid.paint.color.red() <= 129, "color should have its own duration");
-  require(approximately(mid.paint.backgroundPositionX.fraction, 0), "background transition should honor its own delay");
+  require(approximately(mid.paint.backgroundLayers.front().positionX.fraction, 0), "background transition should honor its own delay");
   const auto reversed = context.sample(*motion, "one", 0);
   require(reversed.paint.color == mid.paint.color, "interrupting a transition must start from its current value");
   context.timeMs = 100;
@@ -73,7 +75,7 @@ void testPerPropertyTransitionsAndReversal() {
   context.timeMs = 1100; context.sample(*motion, "one", 1);
   context.timeMs = 1300;
   mid = context.sample(*motion, "one", 1);
-  require(approximately(mid.paint.backgroundPositionX.fraction, .25), "position should advance independently after its delay");
+  require(approximately(mid.paint.backgroundLayers.front().positionX.fraction, .25), "position should advance independently after its delay");
   require(approximately(cssTimingProgress(.5, "ease"), .8024, .001), "ease must solve CSS cubic-bezier rather than approximate it with a power curve");
   require(approximately(cssTimingProgress(.4, "steps(4,end)"), .25), "step timing must use discrete intervals");
 }
@@ -83,7 +85,7 @@ void testKeyframesAndIdle() {
   CssPaintContext context; context.timeMs = 0; context.sample(*motion, "stitch", 1);
   context.timeMs = 125; context.needsFrame = false;
   const auto frame = context.sample(*motion, "stitch", 1);
-  require(approximately(frame.paint.backgroundPositionX.px, 1.5) && approximately(frame.paint.backgroundPositionY.fraction, 1),
+  require(approximately(frame.paint.backgroundLayers.front().positionX.px, 1.5) && approximately(frame.paint.backgroundLayers.front().positionY.fraction, 1),
           "keyframes should animate one background axis without destroying the other");
   require(context.needsFrame, "visible infinite animations should request another frame");
   context.needsFrame = false; context.sample(*motion, "stitch", 0);
@@ -263,7 +265,7 @@ void testMotionShorthandCascadeAndKeyframeExpansion() {
   context.clear(); context.timeMs = 0; context.sample(*expanded, "slide", 0);
   context.timeMs = 500;
   const auto mid = context.sample(*expanded, "slide", 0);
-  require(approximately(mid.paint.backgroundPositionX.fraction, .5) && approximately(mid.paint.backgroundPositionY.fraction, .5),
+  require(approximately(mid.paint.backgroundLayers.front().positionX.fraction, .5) && approximately(mid.paint.backgroundLayers.front().positionY.fraction, .5),
           "keyframe shorthand must expand both axes through the common declaration pipeline");
 }
 void testElementCompositingAndPointerCoordinates() {
@@ -314,6 +316,623 @@ void testPseudoFilterAffectsGlyphs() {
   context.pointer = block->cssBorderBox().center(); redPixels(); context.timeMs = 250;
   require(redPixels() > 10, "hover filter animation should restore the pseudo glyph's color");
 }
+void testFlowPseudoEffectsAndOrderedAnimation() {
+ DocumentSession session;session.setMarkdownText("Body",false);
+ QRectF pseudoBounds;
+ const auto render=[&](const QString& effect) {
+  const auto theme=RenderTheme::fromDefinition(CssThemeMapper::fromCss("#write{margin:0;padding:10px}p{color:black}p::before{content:'MMMM';font-size:24px;color:red;background:blue;"+effect+"}","flow-effects",{}));
+  DocumentLayout layout;layout.rebuild(session.document(),theme,500);
+  const auto* block=layout.block(session.document().root().children().front()->id());
+  pseudoBounds={};for(const auto& rect:block->inlineLayout()->generatedPseudoRects())pseudoBounds=pseudoBounds.united(rect.translated(block->inlineTextOrigin()));
+  QImage image(500,100,QImage::Format_ARGB32_Premultiplied);image.fill(Qt::white);
+  QPainter painter(&image);layout.block(session.document().root().children().front()->id())->paint(painter,theme,0);painter.end();return image;
+ };
+ const auto normal=render({}),gray=render("filter:grayscale(1)"),masked=render("mask-image:linear-gradient(transparent,transparent)");
+ int red=0,grayRed=0,maskColor=0;
+ for(int y=0;y<100;++y)for(int x=0;x<500;++x) {
+  if(!pseudoBounds.contains(QPointF(x,y)))continue;
+  const auto count=[&](const QImage& image){const auto c=image.pixelColor(x,y);return c.red()>c.green()+30 || c.blue()>c.green()+30;};
+  red+=count(normal);grayRed+=count(gray);maskColor+=count(masked);
+ }
+ if(!(red>100 && grayRed==0 && maskColor==0)) {
+  std::fprintf(stderr,"pseudo effect pixels: normal=%d grayscale=%d mask=%d\n",red,grayRed,maskColor);
+  normal.save("pseudo-normal.png");gray.save("pseudo-gray.png");masked.save("pseudo-mask.png");
+ }
+ require(red>100 && grayRed==0 && maskColor==0,"normal-flow text pseudos composite glyphs/backgrounds through filters and masks");
+ auto from=projected("em{filter:brightness(.5) contrast(2)}"),to=projected("em{filter:brightness(1)}"),mid=to;
+ interpolateCssPaintProperty(mid,from,to,"filter",.5);
+ require(mid.paint.filters.size()==2 && approximately(mid.paint.filters[0].value,.75) && approximately(mid.paint.filters[1].value,1.5),"filter interpolation pads omitted tail functions with their identity");
+ to=projected("em{filter:contrast(2) brightness(.5)}");
+ interpolateCssPaintProperty(mid,from,to,"filter",.25);
+ require(mid.paint.filters==from.paint.filters,"incompatible filter function ordering interpolates discretely");
+}
+void testScopedStateCacheAndFunctionalSelectors() {
+  const auto sheet = CssThemeParser::parse(
+      "html{--ink:black}p:hover{--ink:red}strong{color:var(--ink)}"
+      "p:hover > strong{background:blue}strong:not(:hover){border-top-color:green}"
+      "strong:is(:hover,:focus){color:yellow}strong:where(:active){opacity:.5}"
+      "strong:hover + strong{outline-color:purple}strong:visited{text-decoration-color:orange}", {});
+  CssComputedStyleEngine engine(sheet);
+  CssElement html; html.tag = "html"; html.cacheId = nextCssElementIdentity();
+  CssElement p; p.tag = "p"; p.parent = &html; p.cacheId = nextCssElementIdentity();
+  CssElement first; first.tag = "strong"; first.parent = &p; first.cacheId = nextCssElementIdentity();
+  CssElement second = first; second.cacheId = nextCssElementIdentity(); second.previousSibling = &first;
+  first.nextSibling = &second;
+  CssElementState state; state.subject = &first; state.hover = true;
+  const auto hovered = engine.styleFor(first, state);
+  require(hovered.rawValue("color") == "yellow" && hovered.rawValue("background-color") == "blue",
+          "functional and ancestor state selectors must match the actual hovered subject");
+  const auto sibling = engine.styleFor(second, state);
+  require(sibling.rawValue("color") == "red" && sibling.rawValue("border-top-color") == "green" &&
+              sibling.rawValue("outline-color") == "purple",
+          "a scoped sibling combinator must see the hovered sibling and inherit its hovered parent");
+  state.subject = &second;
+  require(engine.styleFor(second, state).rawValue("outline-color").isEmpty(), "a cached sibling state must not leak");
+  state.hover = false; state.focus = true;
+  require(engine.styleFor(second, state).rawValue("color") == "yellow" &&
+              engine.styleFor(first, state).rawValue("color") == "black",
+          "nested focus selectors and inherited custom properties must stay subject-specific");
+  state.focus = false; state.active = true;
+  require(engine.styleFor(second, state).rawValue("opacity") == ".5", "nested active selectors must remain dynamic");
+  state.active = false; state.visited = true;
+  require(engine.styleFor(second, state).rawValue("text-decoration-color") == "orange", "visited must have a distinct cache result");
+  state.visited = false; state.hover = true;
+  const auto expected = engine.styleFor(second, state);
+  enableThemePerformance(true); resetThemePerformance();
+  for (int i = 0; i < 50; ++i) require(engine.styleFor(second, state) == expected, "warm state queries must be stable");
+  const auto work = themePerformanceSamples()[size_t(ThemePerfStage::Css)].work;
+  enableThemePerformance(false);
+  require(work == 0, "warm scoped states must reuse both ancestor and subject computed values");
+
+  CssElement third = second; third.cacheId = nextCssElementIdentity(); third.previousSibling = &second;
+  state.subject = &third;
+  enableThemePerformance(true); resetThemePerformance();
+  engine.styleFor(third, state);
+  const auto sharedWork = themePerformanceSamples()[size_t(ThemePerfStage::Css)].work;
+  enableThemePerformance(false);
+  require(sharedWork <= 1, "changing the subject must share equivalent ancestor states");
+  engine.clearCache();
+  require(engine.styleFor(second, CssElementState{}).rawValue("color") == "black", "clearing snapshots must restore base state");
+  CssElement temporary; temporary.tag = "strong"; temporary.parent = &p;
+  const auto plain = engine.styleFor(temporary);
+  temporary.inlineDeclarations.push_back({"color", "purple"});
+  require(plain.rawValue("color") == "black" && engine.styleFor(temporary).rawValue("color") == "purple",
+          "temporary elements and caller declarations must bypass identity caches");
+}
+
+void testStructuralInteractionDependencies() {
+  const auto sheet = CssThemeParser::parse(
+      ".panel:hover strong{color:red}strong.special:focus{color:blue}"
+      "strong[data-kind=hot]:active{color:green}strong:not(.excluded):not(:hover){opacity:.8}"
+      "strong:is(.special:focus,.hot:active){background:yellow}", {});
+  CssComputedStyleEngine engine(sheet);
+  CssElement p; p.tag = "p"; p.cacheId = nextCssElementIdentity();
+  CssElement strong; strong.tag = "strong"; strong.classes << "excluded";
+  strong.parent = &p; strong.cacheId = nextCssElementIdentity();
+  require(engine.interactiveStateMask(strong) == 0, "unrelated classes, ancestors and attributes must not create state work");
+  strong.classes.clear(); engine.clearCache();
+  require(engine.interactiveStateMask(strong) == 1, "dynamic exclusions must survive structural candidate filtering");
+  strong.classes << "special"; strong.attributes.insert("data-kind", "hot"); engine.clearCache();
+  require(engine.interactiveStateMask(strong) == 7, "nested alternatives and attribute states must contribute their dependencies");
+  const auto inheritedSheet = CssThemeParser::parse("p:hover{color:red}strong::before{content:'x'}", {});
+  CssComputedStyleEngine inherited(inheritedSheet);
+  CssElement pseudo = strong; pseudo.cacheId = nextCssElementIdentity(); pseudo.pseudoElement = "before";
+  pseudo.originatingElement = &strong;
+  require(inherited.interactiveStateMask(pseudo) == 1, "pseudos must include inherited ancestor state dependencies");
+  CssElementState hover; hover.hover = true; hover.subject = &strong;
+  require(inherited.styleFor(pseudo, hover).rawValue("color") == "red", "pseudo inherited state must use the host identity");
+  const auto responsiveSheet = CssThemeParser::parse("strong:hover{color:red}@media(min-width:700px){strong:focus{color:blue}}", {});
+  CssEnvironment environment; environment.viewportWidth = 600;
+  CssComputedStyleEngine responsive(responsiveSheet, environment);
+  require(responsive.interactiveStateMask(strong) == 1, "inactive media rules must not contribute dependencies");
+  environment.viewportWidth = 900;
+  require(responsive.withEnvironment(environment)->interactiveStateMask(strong) == 3 &&
+              responsive.interactiveStateMask(strong) == 1, "new media snapshots must isolate dependency caches");
+}
+
+void testReducedRecipeStateCombinations() {
+  const QStringList examples{
+      "em:hover{color:red}", "em:focus{color:red}", "em:active{opacity:.5}",
+      "em:hover:focus{color:red}em:active{opacity:.5}", "em:not(:hover){color:red}",
+      "em:is(:hover,:focus){color:red}",
+      "@keyframes pulse{to{opacity:.5}}em{animation:pulse 1s linear infinite}"};
+  for (const auto& css : examples) {
+    const auto sheet = CssThemeParser::parse(css, {});
+    CssComputedStyleEngine engine(sheet);
+    CssElement element; element.tag = "em"; element.cacheId = nextCssElementIdentity();
+    auto resolve = [&](CssElementState state) { state.subject = &element; return engine.styleFor(element, state); };
+    const auto full = compileCssPaintRecipe("em", resolve, sheet);
+    const auto reduced = compileCssPaintRecipe("em", resolve, sheet, false, engine.interactiveStateMask(element));
+    require(full && reduced && full->fingerprint == reduced->fingerprint, "state pruning must preserve recipe identity");
+    for (int bits = 0; bits < 8; ++bits) {
+      require(full->states[bits].paint.color == reduced->states[bits].paint.color &&
+                  full->states[bits].paint.opacity == reduced->states[bits].paint.opacity &&
+                  full->animations[bits].size() == reduced->animations[bits].size(),
+              "all eight runtime states must retain the same paint and animation values");
+    }
+  }
+}
+void testUnchangedHostColorUsesShapedFormats() {
+  DocumentSession session;
+  const QString markdown = QStringLiteral("Plain 中文 **bold** *italic* ~~strike~~ `code` and [Muffin](https://example.com). ").repeated(3);
+  session.setMarkdownText(markdown, false);
+  const auto& node = *session.document().root().children().front();
+  const auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
+      "p{font-size:18px;color:#245678}p:hover{color:#c82438}"
+      "a{color:#109040}code{color:#8040b0}del{color:#603020}", "paint-delta", {}));
+  auto host = *theme.elementStyleForNode(node, "p");
+  InlineLayout layout;
+  InlineLayout::BuildOptions options;
+  options.styleNode = &node;
+  options.baseTextColor = host.paint.color;
+  options.hoverTextColor = QColor("#c82438");
+  layout.build(node.inlines(), theme, 420, theme.paragraphFont(), options);
+  const auto caret = layout.cursorRectForSourceOffset(12);
+  const auto render = [&](qreal hover, const ThemeElementStyle* sampled) {
+    QImage image(460, 260, QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::white);
+    QPainter painter(&image);
+    layout.paint(painter, {10, 10}, hover, 0, nullptr, "paragraph", -1, sampled);
+    return image;
+  };
+  const auto reference = render(0, nullptr);
+  enableThemePerformance(true);
+  resetThemePerformance();
+  const auto idle = render(0, &host);
+  const auto work = themeTextPaintStats();
+  enableThemePerformance(false);
+  require(work.calls > 0 && work.selectionRanges == 0,
+          "unchanged host color must reuse shaped formats without dynamic foreground passes");
+  require(idle == reference, "idle host sampling must retain exact static text pixels");
+  for (const qreal phase : {.25, .5, 1.0}) {
+    const auto from = options.baseTextColor, to = options.hoverTextColor;
+    host.paint.color = QColor(qRound(from.red() + (to.red() - from.red()) * phase),
+                              qRound(from.green() + (to.green() - from.green()) * phase),
+                              qRound(from.blue() + (to.blue() - from.blue()) * phase));
+    const auto expected = render(phase, nullptr);
+    require(render(0, &host) == expected && expected != idle,
+            "actual host animation must retain legacy recoloring, explicit inline colors and wrapping");
+  }
+  host.paint.color = options.baseTextColor;
+  require(render(0, &host) == idle && layout.cursorRectForSourceOffset(12) == caret,
+          "returning to the base color must restore exact pixels without changing caret geometry");
+}
+
+void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
+  QFont font("Arial");
+  font.setPointSizeF(16);
+  font.setItalic(true);
+  TextLayout text("Glow text on two lines with enough words to wrap around", font);
+  QTextOption option;
+  option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+  text.setTextOption(option);
+  QTextCharFormat decoration;
+  decoration.setForeground(QColor(30, 80, 130, 180));
+  decoration.setFontUnderline(true);
+  if (outlined) decoration.setTextOutline(QPen(QColor(40, 20, 60, 180), 1));
+  text.setFormats({{0, int(text.text().size()), decoration}});
+  text.beginLayout();
+  qreal y = 0;
+  for (auto line = text.createLine(); line.isValid(); line = text.createLine()) {
+    line.setLineWidth(180);
+    line.setPosition({0, y});
+    y += 66;
+  }
+  text.endLayout();
+  QVector<QRectF> clips;
+  for (int i = 0; i < text.lineCount(); ++i) {
+    const auto line = text.lineAt(i);
+    clips.append(QRectF(line.x() + 4, line.y(), qMin<qreal>(80, line.naturalTextWidth()), line.height()));
+  }
+  TextShadowPainter shadows;
+  const auto equivalent = [outlined](const QImage& a, const QImage& b) {
+    if (a == b) return true;
+    if (!outlined || a.size() != b.size()) return false;
+    // Qt's path stroker can differ by one premultiplied component after an
+    // integer translation. Unoutlined glyphs still require exact equality.
+    for (int y = 0; y < a.height(); ++y) for (int x = 0; x < a.width(); ++x) {
+      const auto left = a.pixel(x, y), right = b.pixel(x, y);
+      if (qAbs(qAlpha(left) - qAlpha(right)) > 1 || qAbs(qRed(left) - qRed(right)) > 1 ||
+          qAbs(qGreen(left) - qGreen(right)) > 1 || qAbs(qBlue(left) - qBlue(right)) > 1) return false;
+    }
+    return true;
+  };
+  const auto render = [&](bool reference, qreal dpr, QVector<QRectF> rects, TextShadow shadow,
+                          const QList<TextLayout::FormatRange>& overrides, QPointF origin = QPointF(60, 40),
+                          QRectF painterClip = {}) {
+    QImage image(QSize(400, 350) * dpr, QImage::Format_ARGB32_Premultiplied);
+    image.setDevicePixelRatio(dpr);
+    image.fill(Qt::transparent);
+    QPainter target(&image);
+    if (!painterClip.isEmpty()) target.setClipRect(painterClip);
+    if (!reference)
+      shadows.paint(target, text, origin, shadow, 1, rects, overrides);
+    else {
+      // Independent full-surface oracle: no sparse bounds or cache, generous
+      // transparent margins, same convolution and source clipping semantics.
+      constexpr int pad = 48;
+      QImage mask(QSize(350, 350) * dpr, QImage::Format_ARGB32_Premultiplied);
+      mask.setDevicePixelRatio(dpr);
+      mask.fill(Qt::transparent);
+      {
+        QPainter source(&mask);
+        source.setRenderHint(QPainter::TextAntialiasing);
+        source.translate(pad, pad);
+        if (!rects.isEmpty()) {
+          QPainterPath clip;
+          for (auto rect : rects) clip.addRect(rect.adjusted(-1, 0, 1, 0));
+          source.setClipPath(clip);
+        }
+        text.draw(&source, {}, overrides);
+      }
+      QImage glow(mask.size(), QImage::Format_ARGB32_Premultiplied);
+      glow.setDevicePixelRatio(dpr);
+      glow.fill(Qt::transparent);
+      {
+        QPainter tint(&glow);
+        tint.fillRect(QRectF({}, QSizeF(glow.size()) / dpr), shadow.color);
+        tint.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+        tint.drawImage(QPointF(), mask);
+      }
+      if (shadow.blur > 0) boxBlur(glow, qMax(1, qRound(shadow.blur * dpr)));
+      // Anchor once on the device grid, independent of canvas padding. This
+      // avoids Qt's asymmetric half-pixel image rounding on either side of 0.
+      const auto position = (origin + shadow.offset) * dpr;
+      const QPointF anchor(std::floor(position.x() + .5) / dpr, std::floor(position.y() + .5) / dpr);
+      target.drawImage(anchor - QPointF(pad, pad), glow);
+    }
+    return image;
+  };
+  for (qreal dpr : {1., 1.5, 2.})
+    for (qreal blur : {0., 2., 5.})
+      for (bool host : {false, true}) {
+        TextShadow shadow;
+        shadow.present = true;
+        shadow.color = QColor(0, 190, 230, 120);
+        shadow.offset = {3.5, -2.25};
+        shadow.blur = blur;
+        const auto rects = host ? QVector<QRectF>{} : clips;
+        const auto expected = render(true, dpr, rects, shadow, {});
+        const auto actual = render(false, dpr, rects, shadow, {});
+        require(
+            equivalent(actual, expected),
+            QString("sparse glow preserves full-canvas pixels: dpr=%1 blur=%2 host=%3 outlined=%4").arg(dpr).arg(blur).arg(host).arg(outlined));
+        resetTextShadowRasterStats();
+        require(render(false, dpr, rects, shadow, {}) == actual && textShadowRasterStats().hits > 0 &&
+                    textShadowRasterStats().rasterizedPixels == 0,
+                "static glow reuses raster while retaining exact pixels");
+      }
+  TextShadow shadow;
+  shadow.present = true;
+  shadow.color = QColor(210, 30, 70, 180);
+  shadow.blur = 3;
+  QTextCharFormat hidden;
+  hidden.setForeground(Qt::transparent);
+  hidden.setFontUnderline(false);
+  const QList<TextLayout::FormatRange> overrides{{0, 5, hidden}};
+  require(equivalent(render(false, 1, clips, shadow, overrides), render(true, 1, clips, shadow, overrides)),
+          "foreground/alpha overrides isolate cached shadow masks");
+  auto overlapping = clips;
+  overlapping.append(clips.front().adjusted(20, 0, 20, 0));
+  require(equivalent(render(false, 1, overlapping, shadow, {}), render(true, 1, overlapping, shadow, {})),
+          "overlapping source clips blur once without doubling translucent glow");
+  for (qreal dpr : {1., 1.5, 2.}) {
+    shadow.offset = {3.5, -2.25};
+    require(equivalent(render(false, dpr, {}, shadow, {}, {-10, 40}), render(true, dpr, {}, shadow, {}, {-10, 40})),
+            "scrolling across the canvas origin retains full-canvas pixels");
+    shadow.offset = {-210, 0};
+    require(equivalent(render(false, dpr, clips, shadow, {}, {250, 40}), render(true, dpr, clips, shadow, {}, {250, 40})),
+            "offset glow entering the viewport is not culled with its source");
+  }
+  const QVector<QRectF> hugeClip{{0, 0, 2000, 2000}};
+  const QRectF dirty{90, 60, 100, 90};
+  shadow.offset = {};
+  const auto expectedClipped = render(true, 2, hugeClip, shadow, {}, {60, 40}, dirty);
+  resetTextShadowRasterStats();
+  require(equivalent(render(false, 2, hugeClip, shadow, {}, {60, 40}, dirty), expectedClipped) &&
+              textShadowRasterStats().largestSurfacePixels < 100000,
+          "large masks retain only the dirty area and complete convolution support");
+  resetTextShadowRasterStats();
+  render(false, 1, clips, shadow, {}, {2000, 2000});
+  require(textShadowRasterStats().culled > 0 && textShadowRasterStats().misses == 0,
+          "offscreen glow skips rasterization using its complete offset and halo");
+}
+
+void testSparseTextShadowMatchesFullCanvas() {
+  checkSparseTextShadowMatchesFullCanvas(false);
+  checkSparseTextShadowMatchesFullCanvas(true);
+}
+
+void testRightAlignedTextShadow() {
+  QFont font("Arial"); font.setPointSizeF(20);
+  TextLayout text("Heading", font);
+  QTextOption option; option.setAlignment(Qt::AlignRight); text.setTextOption(option);
+  text.beginLayout(); auto line = text.createLine(); line.setLineWidth(835); line.setPosition({0, 0}); text.endLayout();
+  require(line.naturalTextRect().left() > 600 && line.naturalTextWidth() < 200,
+          "fixture separates actual glyph position from intrinsic width");
+  QImage expected(960, 120, QImage::Format_ARGB32_Premultiplied); expected.fill(Qt::transparent);
+  { QPainter painter(&expected); painter.setRenderHint(QPainter::TextAntialiasing); text.draw(&painter, {41, 41}); }
+  TextShadow shadow; shadow.present = true; shadow.offset = {1, 1}; shadow.color = Qt::black;
+  QImage actual(expected.size(), expected.format()); actual.fill(Qt::transparent);
+  { QPainter painter(&actual); TextShadowPainter shadows; shadows.paint(painter, text, {40, 40}, shadow, 1); }
+  require(actual == expected, "right-aligned host shadow must cover the glyph position, not just intrinsic width");
+}
+
+void testTextShadowLifetimeAndBudget() {
+  const auto before = textShadowRasterStats().cacheBytes;
+  {
+    QVector<std::shared_ptr<TextShadowPainter>> owners;
+    QFont font("Arial");
+    font.setPointSizeF(14);
+    TextLayout text("cached glow", font);
+    text.beginLayout();
+    auto line = text.createLine();
+    line.setLineWidth(300);
+    line.setPosition({0, 0});
+    text.endLayout();
+    QImage image(440, 260, QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::transparent);
+    QPainter painter(&image);
+    TextShadow shadow;
+    shadow.present = true;
+    shadow.color = Qt::cyan;
+    shadow.blur = 4;
+    const QVector<QRectF> clip{{0, 0, 300, 120}};
+    for (int i = 0; i < 120; ++i) {
+      auto owner = std::make_shared<TextShadowPainter>();
+      owner->paint(painter, text, {20, 20}, shadow, 1, clip);
+      owners.append(owner);
+    }
+    require(textShadowRasterStats().cacheBytes <= 16 * 1024 * 1024 && textShadowRasterStats().cacheEntries <= 512,
+            "all layouts share a bounded raster memory budget");
+    resetTextShadowRasterStats();
+    owners.back()->reset();
+    owners.back()->paint(painter, text, {20, 20}, shadow, 1, clip);
+    require(textShadowRasterStats().misses == 1, "layout reset retires its previous raster entries");
+  }
+  require(textShadowRasterStats().cacheBytes == before,
+          "destroyed layouts immediately release their remaining rasters");
+}
+
+void testInlineShadowInvalidation() {
+  InlineLayout retained;
+  DocumentSession session;
+  const QString markdown = "**glowing *nested* words** and **a second long glowing phrase**";
+  const QString css =
+      "p{font-family:Arial;font-size:18px;color:#345678}"
+      "strong{text-shadow:0 0 2px rgba(0,190,230,.6)}"
+      "strong:hover{text-shadow:3px -1px 4px rgba(230,30,70,.7);transition:text-shadow 100ms linear}";
+  const auto check = [&](QString source, QString rules, qreal width, int zoom, bool markers) {
+    session.setMarkdownText(source, false);
+    const auto& node = *session.document().root().children().front();
+    const auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(rules, "shadow-invalidation", {}), zoom);
+    InlineLayout::BuildOptions options;
+    options.styleNode = &node;
+    options.projectionState.revealMarkdownMarkers = markers;
+    retained.build(node.inlines(), theme, width, theme.paragraphFont(), options);
+    const auto render = [&](const InlineLayout& layout, CssPaintContext* context = nullptr) {
+      QImage image(600, 500, QImage::Format_ARGB32_Premultiplied);
+      image.fill(Qt::white);
+      QPainter painter(&image);
+      layout.paint(painter, {40, 40}, 0, 0, context, "paragraph");
+      return image;
+    };
+    resetTextShadowRasterStats();
+    const auto cold = render(retained);
+    require(textShadowRasterStats().misses > 0, "rebuilt projection must produce new shadow rasters");
+    resetTextShadowRasterStats();
+    require(
+        render(retained) == cold && textShadowRasterStats().hits > 0 && textShadowRasterStats().rasterizedPixels == 0,
+        "retained inline shadow reuses static rasters");
+    InlineLayout fresh;
+    fresh.build(node.inlines(), theme, width, theme.paragraphFont(), options);
+    require(render(fresh) == cold && retained.cursorRectForSourceOffset(8) == fresh.cursorRectForSourceOffset(8) &&
+                retained.hitTestSourceOffset({40, 10}) == fresh.hitTestSourceOffset({40, 10}),
+            "edit, font, theme, zoom, wrap and marker changes match a fresh layout and caret");
+    CssPaintContext context;
+    context.timeMs = 0;
+    render(retained, &context);
+    for (const auto& box : retained.inlineBoxes())
+      if (box.hostKey == "strong") {
+        context.pointer = box.borderBox.center() + QPointF(40, 40);
+        break;
+      }
+    context.timeMs = 100;
+    render(retained, &context);
+    context.timeMs = 150;
+    const auto animated = render(retained, &context);
+    resetTextShadowRasterStats();
+    require(render(retained, &context) == animated && textShadowRasterStats().rasterizedPixels == 0,
+            "identical animation samples reuse their raster without stale pixels");
+    context.timeMs = 200;
+    require(render(retained, &context) != cold &&
+                retained.cursorRectForSourceOffset(8) == fresh.cursorRectForSourceOffset(8),
+            "hover glow remains visible and does not affect caret geometry");
+    return cold;
+  };
+  const auto initial = check(markdown, css, 320, 100, false);
+  require(check(markdown, css, 90, 100, false) != initial, "wrapping changes shadow placement");
+  require(check(markdown, css, 320, 125, false) != initial, "zoom changes the shaped shadow source");
+  require(check(markdown, css, 320, 100, true) != initial, "revealed Markdown changes the shaped shadow source");
+  require(check("prefix " + markdown, css, 320, 100, false) != initial, "text edits change shadow placement");
+  require(check(markdown, css + "strong{font-size:26px;text-shadow:1px 2px 3px magenta}", 320, 100, false) != initial,
+          "theme replacement retires old fonts and glow colors");
+  require(check(markdown, css, 320, 100, false) == initial, "switching back restores exact original glow");
+}
+
+void testCrossElementFinalStylesAndRecipes() {
+  const auto sheet = CssThemeParser::parse(
+      "html{--ink:black}p:hover{--ink:red}strong{color:var(--ink)}strong:focus{color:blue}"
+      "strong:nth-child(2){background:yellow}strong[data-kind=hot]{border-color:green}", {});
+  CssComputedStyleEngine engine(sheet);
+  CssElement html; html.tag = "html"; html.cacheId = nextCssElementIdentity();
+  CssElement parent; parent.tag = "p"; parent.parent = &html; parent.cacheId = nextCssElementIdentity();
+  CssElement first; first.tag = "strong"; first.parent = &parent; first.cacheId = nextCssElementIdentity();
+  std::array<CssComputedStyle, 8> expected;
+  for (int bits = 0; bits < 8; ++bits) {
+    CssElementState state; state.subject = &first; state.hover = bits & 1; state.focus = bits & 2; state.active = bits & 4;
+    expected[bits] = engine.styleFor(first, state);
+  }
+  enableThemePerformance(true); resetThemePerformance();
+  for (int i = 0; i < 80; ++i) {
+    CssElement next = first; next.cacheId = nextCssElementIdentity();
+    for (int bits = 0; bits < 8; ++bits) {
+      CssElementState state; state.subject = &next; state.hover = bits & 1; state.focus = bits & 2; state.active = bits & 4;
+      require(engine.styleFor(next, state) == expected[bits], "equivalent subjects share complete computed values");
+    }
+  }
+  const auto work = themePerformanceSamples()[size_t(ThemePerfStage::Css)].work;
+  enableThemePerformance(false);
+  require(work == 0, "new element identities must not repeat equivalent final CSS calculations");
+  CssElement different = first; different.cacheId = nextCssElementIdentity(); different.childIndex = 1;
+  different.attributes.insert("data-kind", "hot");
+  require(engine.styleFor(different).rawValue("background-color") == "yellow" &&
+              engine.styleFor(different).rawValue("border-top-color") == "green",
+          "structural and attribute match differences must isolate final results");
+
+  DocumentSession session;
+  session.setMarkdownText("**one**\n\n**two**", false);
+  auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss("strong:hover{color:red;transition:color .2s}", "shared", {}));
+  const auto* a = theme.cssInlineElement(*session.document().root().children()[0], 2, "strong");
+  const auto* b = theme.cssInlineElement(*session.document().root().children()[1], 2, "strong");
+  const auto left = theme.paintRecipeForElement(*a), right = theme.paintRecipeForElement(*b);
+  require(left && left == right, "equivalent inline elements share one immutable paint recipe");
+  CssPaintContext context; context.timeMs = 0;
+  context.sample(*left, "first", 0); context.sample(*right, "second", 0);
+  context.sample(*left, "first", 1); context.timeMs = 100;
+  require(context.sample(*left, "first", 1).paint.color != context.sample(*right, "second", 0).paint.color,
+          "shared recipe values must retain independent element timelines");
+}
+
+void testInlineStyleLifetimeAndThemeChanges() {
+  const QString css = "p{color:#123456;text-decoration:underline}strong{font-size:21px}"
+      "strong:hover{color:red;transition:color .2s}span.hot{color:red}span.cold{color:blue}"
+      "@media(max-width:600px){strong{font-size:11px;color:green}}";
+  const auto definition = CssThemeMapper::fromCss(css, "inline-lifetime", {});
+  auto theme = RenderTheme::fromDefinition(definition);
+  theme.updateForViewport(800, 600);
+  DocumentSession session;
+  session.setMarkdownText("plain **bold** and *italic*\n\n", false);
+  theme.resolveDocumentCounters(session.document());
+  const auto query = [&](qsizetype offset) {
+    return theme.inlineStyleForNode(*session.document().root().children()[0], offset);
+  };
+  const auto initial = query(9);
+  require(initial.text.fontSizePx == 21 && initial.text.decorationLines && initial.paintRecipe,
+          "inline snapshot retains inherited decoration, typography and interactive recipe");
+  require(query(10).fingerprint == initial.fingerprint && query(10).paintRecipe == initial.paintRecipe,
+          "different offsets in the same inline retain complete values");
+  theme.releaseInlineStyles({session.document().root().children()[0]->id()});
+  require(query(9).fingerprint == initial.fingerprint,
+          "retired inline views rebuild equivalent styles without stale identities");
+  require(session.applyTextDelta(0, 0, "X", true), "plain replacement applies");
+  theme.invalidateDocumentStyles(session.lastLocalTopLevelRangeChange(), &session.document());
+  require(theme.hasLocalStyleChange(), "text-only replacement preserves CSS topology");
+  theme.resolveDocumentCounters(session.document());
+  require(query(10).fingerprint == initial.fingerprint,
+          "rebinding text-only replacement preserves the correct inline snapshot");
+  theme.updateForViewport(500, 600);
+  const auto narrow = query(10);
+  require(narrow.text.fontSizePx == 11 && narrow.paint.color == QColor("green") &&
+              narrow.fingerprint != initial.fingerprint,
+          "media changes retire cached colors, font metrics and recipes");
+  theme.updateForViewport(800, 600);
+  require(query(10).fingerprint == initial.fingerprint, "returning to a media bucket restores the original style");
+
+  session.setMarkdownText("<span class='hot'>value</span>\n", false);
+  theme.invalidateDocumentStyles();
+  theme.resolveDocumentCounters(session.document());
+  require(query(19).paint.color == QColor("red"), "authored HTML starts with its current class style");
+  require(session.applyTextDelta(13, 3, "cold", true), "HTML class edit applies");
+  theme.invalidateDocumentStyles(session.lastLocalTopLevelRangeChange(), &session.document());
+  theme.resolveDocumentCounters(session.document());
+  require(!theme.hasLocalStyleChange() && query(20).paint.color == QColor("blue"),
+          "attribute edits invalidate final inline values even with the same source position");
+  theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss("span{font-size:25px;color:purple}", "other", {}));
+  theme.updateForViewport(800, 600);
+  require(query(20).text.fontSizePx == 25 && query(20).paint.color == QColor("purple"),
+          "theme replacement cannot retain the old theme's color or font");
+}
+
+void testSharedSelectorPrefixesKeepContext() {
+  const auto sheet = CssThemeParser::parse(
+      ".wrap > p > strong{color:red}.wrap p[data-mode=hot] > strong{color:blue}"
+      ".wrap p:nth-child(2) strong{background:yellow}.wrap p:has(em) strong{border-color:green}"
+      ".wrap > h1 + p strong{outline-color:purple}"
+      "p > :is(strong,em):not([data-skip]){letter-spacing:2px}"
+      ".wrap:hover p > strong{background:cyan}p > strong:focus{color:orange}", {});
+  CssComputedStyleEngine engine(sheet);
+  CssElement root; root.tag = "div"; root.classes << "wrap"; root.cacheId = nextCssElementIdentity();
+  CssElement heading; heading.tag = "h1"; heading.parent = &root; heading.cacheId = nextCssElementIdentity();
+  CssElement paragraph; paragraph.tag = "p"; paragraph.parent = &root; paragraph.cacheId = nextCssElementIdentity();
+  paragraph.childIndex = 1; paragraph.previousSibling = &heading; paragraph.hasDescendantTags << "em";
+  paragraph.attributes["data-mode"] = "cold";
+  CssElement leaf; leaf.tag = "strong"; leaf.parent = &paragraph;
+  const auto verify = [&] {
+    for (int i = 0; i < 32; ++i) {
+      leaf.cacheId = nextCssElementIdentity(); leaf.attributes.clear();
+      if (i % 2) leaf.attributes["data-skip"] = "yes";
+      CssComputedStyleEngine reference(sheet);
+      for (int bits = 0; bits < 4; ++bits) {
+        CssElementState state; state.subject = bits & 1 ? &root : &leaf;
+        state.hover = bits & 1; state.focus = bits & 2;
+        require(engine.styleFor(leaf, state) == reference.styleFor(leaf, state),
+                "shared prefixes retain ancestor attributes, positions, descendants, sibling and scoped states");
+      }
+    }
+  };
+  verify();
+  auto style = engine.styleFor(leaf);
+  require(style.rawValue("color") == "red" && style.rawValue("background-color") == "yellow" &&
+              style.rawValue("border-top-color") == "green" && style.rawValue("outline-color") == "purple",
+          "mixed ancestor and sibling prefix predicates apply");
+  paragraph.attributes["data-mode"] = "hot";
+  heading.tag = "h2";
+  paragraph.hasDescendantTags.clear();
+  engine.clearCache();
+  verify();
+  style = engine.styleFor(leaf);
+  require(style.rawValue("color") == "blue" && style.rawValue("border-top-color").isEmpty() &&
+              style.rawValue("outline-color").isEmpty(), "structural invalidation retires all dependent prefix results");
+  root.classes.clear();
+  engine.clearCache();
+  verify();
+  require(engine.styleFor(leaf).rawValue("color").isEmpty(), "removing an ancestor class cannot reuse its old prefix");
+}
+
+void testSubjectCandidateIndexKeepsContext() {
+  const auto sheet = CssThemeParser::parse(
+      "strong{color:black}strong[data-kind=hot]{color:red}strong[data-kind=cold]{color:blue}"
+      ":is(p:hover > strong,.absent):not(:focus){background:yellow}"
+      "strong:focus{background:green}strong:nth-child(2){opacity:.5}"
+      "strong + :where(em,strong){border-color:purple}"
+      "[id=chosen][class~=special]{outline-color:orange}"
+      ":is(strong,em)::before{content:'before'}", {});
+  CssComputedStyleEngine engine(sheet);
+  CssElement p; p.tag = "p";
+  CssElement first; first.tag = "strong"; first.parent = &p; first.childIndex = 0;
+  first.attributes.insert("DATA-KIND", "hot");
+  CssElement next = first; next.previousSibling = &first; next.childIndex = 1;
+  next.attributes["DATA-KIND"] = "cold";
+  require(engine.styleFor(first).rawValue("color") == "red" && engine.styleFor(next).rawValue("color") == "blue",
+          "metadata groups must defer attribute values and preserve case-insensitive names");
+  require(engine.styleFor(next).rawValue("opacity") == ".5" &&
+              engine.styleFor(next).rawValue("border-top-color") == "purple",
+          "index candidates must preserve position and sibling predicates");
+  CssElementState state; state.subject = &next; state.hover = true;
+  require(engine.styleFor(next, state).rawValue("background-color") == "yellow",
+          "nested functional alternatives must retain ancestor interaction states");
+  state.focus = true;
+  require(engine.styleFor(next, state).rawValue("background-color") == "green",
+          "dynamic negations must remain in the complete state matcher");
+  next.id = "chosen"; next.classes << "special";
+  require(engine.styleFor(next).rawValue("outline-color") == "orange",
+          "virtual ID and class attributes must survive subject filtering");
+  CssElement pseudo = next; pseudo.pseudoElement = "before"; pseudo.originatingElement = &next;
+  require(engine.styleFor(pseudo).rawValue("content") == "'before'",
+          "functional pseudo subjects must match the originating element");
+}
+
 }  // namespace
 int main(int argc, char** argv) {
   QApplication::setAttribute(Qt::AA_Use96Dpi);
@@ -323,6 +942,18 @@ int main(int argc, char** argv) {
   runTest("keyframes and idle", testKeyframesAndIdle);
   runTest("paused animation and sparse tracks", testPausedAnimationAndSparseTracks);
   runTest("scoped selector state", testScopedSelectorState);
+  runTest("cross-element final styles and recipes", testCrossElementFinalStylesAndRecipes);
+  runTest("inline style lifetime and theme changes", testInlineStyleLifetimeAndThemeChanges);
+  runTest("shared selector prefixes keep context", testSharedSelectorPrefixesKeepContext);
+  runTest("unchanged host color uses shaped formats", testUnchangedHostColorUsesShapedFormats);
+  runTest("sparse text shadow matches full canvas", testSparseTextShadowMatchesFullCanvas);
+  runTest("right-aligned text shadow", testRightAlignedTextShadow);
+  runTest("text shadow lifetime and budget", testTextShadowLifetimeAndBudget);
+  runTest("inline shadow invalidation", testInlineShadowInvalidation);
+  runTest("subject candidate index preserves context", testSubjectCandidateIndexKeepsContext);
+  runTest("scoped state cache and functional selectors", testScopedStateCacheAndFunctionalSelectors);
+  runTest("structural interaction dependencies", testStructuralInteractionDependencies);
+  runTest("reduced recipe state combinations", testReducedRecipeStateCombinations);
   runTest("inline fragments and precise hover", testInlineFragmentsAndPreciseHover);
   runTest("nested wrapped backgrounds", testNestedWrappedInlineBackgrounds);
   runTest("inline compositing and interaction states", testInlineCompositeAndInteractionStates);
@@ -330,5 +961,6 @@ int main(int argc, char** argv) {
   runTest("motion shorthand cascade and keyframe expansion", testMotionShorthandCascadeAndKeyframeExpansion);
   runTest("element compositing and pointer coordinates", testElementCompositingAndPointerCoordinates);
   runTest("pseudo filter affects glyphs", testPseudoFilterAffectsGlyphs);
+  runTest("flow pseudo effects and ordered animation",testFlowPseudoEffectsAndOrderedAnimation);
   return 0;
 }

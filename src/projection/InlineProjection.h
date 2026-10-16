@@ -124,13 +124,23 @@ enum class TextTransform {
   Capitalize,
 };
 
+// Display replacements retain source coordinates for editing and selection.
+// Used for block syntax that shares a paragraph's source, such as alert titles
+// and continuation quote prefixes. Empty text hides only the specified range.
+struct InlineSourceReplacement {
+  InlineRange source;
+  QString text;
+  bool revealAtCursor = false;
+};
+
 class InlineProjection {
 public:
   InlineProjection() = default;
   InlineProjection(const QVector<InlineNode>& inlines, QString sourceText, InlineProjectionState state = {}, qsizetype sourceBase = -1,
                    qreal baseFontSize = 16.0, qsizetype pendingPrefixLength = 0, SmartPunctRenderOptions smartPunct = {},
                    bool breakOnSingleNewline = false, TextTransform textTransform = TextTransform::None, bool renderEmoji = true,
-                   html::HtmlColorPalette htmlPalette = html::HtmlColorPalette::defaultLight());
+                   html::HtmlColorPalette htmlPalette = html::HtmlColorPalette::defaultLight(),
+                   QVector<InlineSourceReplacement> replacements = {});
 
   bool isValid() const;
   QString sourceText() const;
@@ -167,6 +177,7 @@ private:
     bool revealed;
   };
   struct BuildState {
+    QVector<InlineSourceReplacement> replacements;
     const QString* sourceText = nullptr;
     qsizetype sourceBase = -1;
     InlineProjectionState projectionState;

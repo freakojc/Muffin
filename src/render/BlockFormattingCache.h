@@ -54,6 +54,8 @@ private:
   QSet<NodeId> dirty_;
   quint64 pass_ = 0;
   QByteArray themeSignature_;
+  std::shared_ptr<const CssThemeSheet> signatureSheet_;
+  quint64 signatureRevision_ = 0;
 };
 
 }  // namespace muffin

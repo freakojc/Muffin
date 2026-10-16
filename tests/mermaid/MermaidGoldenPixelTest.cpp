@@ -661,7 +661,8 @@ int main(int argc, char** argv) {
                                 QStringLiteral("Noto Sans CJK SC"),
                                 QStringLiteral("Noto Sans Arabic"),
                                 QStringLiteral("Noto Sans Hebrew")})
-    require(bundledFamilies.contains(family),
+    require(!MermaidFontRegistry::bundledFamily(family).isEmpty() &&
+                bundledFamilies.contains(MermaidFontRegistry::bundledFamily(family)),
             QStringLiteral("Bundled Mermaid font family is unavailable: %1").arg(family));
   require(neoShapes.size() == 48,
           QStringLiteral("Golden-pixel neo shape coverage regressed: %1/48").arg(neoShapes.size()));

@@ -199,16 +199,33 @@ void interpolateCssPaintProperty(ThemeElementStyle& r, const ThemeElementStyle& 
   auto& v = r.paint; const auto& x = a.paint; const auto& y = b.paint;
   if (p == "color") v.color = mix(x.color, y.color, t);
   else if (p == "background-color") v.backgroundColor = mix(x.backgroundColor, y.backgroundColor, t);
-  else if (p == "background-position-x") v.backgroundPositionX = mix(x.backgroundPositionX, y.backgroundPositionX, t);
-  else if (p == "background-position-y") v.backgroundPositionY = mix(x.backgroundPositionY, y.backgroundPositionY, t);
-  else if (p == "background-size") { v.backgroundSizeX = mix(x.backgroundSizeX, y.backgroundSizeX, t); v.backgroundSizeY = mix(x.backgroundSizeY, y.backgroundSizeY, t); }
-  else if (p == "background-image") {
-    v.backgroundImage = t < .5 ? x.backgroundImage : y.backgroundImage;
-    if (x.backgroundImage.kind == y.backgroundImage.kind && x.backgroundImage.stops.size() == y.backgroundImage.stops.size()) {
-      v.backgroundImage.angleDeg = mix(x.backgroundImage.angleDeg, y.backgroundImage.angleDeg, t);
-      for (size_t i = 0; i < v.backgroundImage.stops.size(); ++i) {
-        v.backgroundImage.stops[i].color = mix(x.backgroundImage.stops[i].color, y.backgroundImage.stops[i].color, t);
-        v.backgroundImage.stops[i].position = mix(x.backgroundImage.stops[i].position, y.backgroundImage.stops[i].position, t);
+  else if (p == "background-position-x" || p == "background-position-y" || p == "background-size" || p == "background-image") {
+    if (p == "background-image" && x.backgroundLayers.size() != y.backgroundLayers.size()) {
+      v.backgroundLayers = t < .5 ? x.backgroundLayers : y.backgroundLayers;
+      return;
+    }
+    const ThemeBackgroundLayer empty;
+    for (size_t index = 0; index < v.backgroundLayers.size(); ++index) {
+      const auto& first = x.backgroundLayers.empty() ? empty : x.backgroundLayers[index % x.backgroundLayers.size()];
+      const auto& last = y.backgroundLayers.empty() ? empty : y.backgroundLayers[index % y.backgroundLayers.size()];
+      auto& layer = v.backgroundLayers[index];
+      if (p == "background-position-x") layer.positionX = mix(first.positionX, last.positionX, t);
+      else if (p == "background-position-y") layer.positionY = mix(first.positionY, last.positionY, t);
+      else if (p == "background-size") {
+        layer.sizeMode = t < .5 ? first.sizeMode : last.sizeMode;
+        layer.sizeX = mix(first.sizeX, last.sizeX, t); layer.sizeY = mix(first.sizeY, last.sizeY, t);
+      } else {
+        layer.image = t < .5 ? first.image : last.image;
+        layer.bitmap = t < .5 ? first.bitmap : last.bitmap;
+        layer.resource = t < .5 ? first.resource : last.resource;
+        if (first.image.kind != GradientSpec::Kind::None && first.image.kind == last.image.kind &&
+            first.image.stops.size() == last.image.stops.size()) {
+          layer.image.angleDeg = mix(first.image.angleDeg, last.image.angleDeg, t);
+          for (size_t stop = 0; stop < layer.image.stops.size(); ++stop) {
+            layer.image.stops[stop].color = mix(first.image.stops[stop].color, last.image.stops[stop].color, t);
+            layer.image.stops[stop].position = mix(first.image.stops[stop].position, last.image.stops[stop].position, t);
+          }
+        }
       }
     }
   } else if (p == "opacity") v.opacity = mix(x.opacity, y.opacity, t);
@@ -240,6 +257,16 @@ void interpolateCssPaintProperty(ThemeElementStyle& r, const ThemeElementStyle& 
   } else if (p == "-webkit-text-stroke") {
     r.text.strokeWidth = mix(a.text.strokeWidth, b.text.strokeWidth, t); r.text.strokeColor = mix(a.text.strokeColor, b.text.strokeColor, t);
   } else if (p == "filter") {
+    const auto length=qMax(x.filters.size(),y.filters.size());
+    v.filters.clear();bool compatible=true;
+    for(size_t i=0;i<length;++i) {
+      const auto first=i<x.filters.size()?x.filters[i]:identityCssFilter(y.filters[i].kind);
+      const auto last=i<y.filters.size()?y.filters[i]:identityCssFilter(x.filters[i].kind);
+      if(first.kind!=last.kind) {compatible=false;break;}
+      auto op=first;op.value=mix(first.value,last.value,t);op.offset=first.offset+(last.offset-first.offset)*t;op.color=mix(first.color,last.color,t);
+      v.filters.push_back(op);
+    }
+    if(!compatible)v.filters=t<.5?x.filters:y.filters;
     v.filterPresent = x.filterPresent || y.filterPresent;
     v.filterBlur = mix(x.filterBlur, y.filterBlur, t); v.filterBrightness = mix(x.filterBrightness, y.filterBrightness, t);
     v.filterContrast = mix(x.filterContrast, y.filterContrast, t); v.filterGrayscale = mix(x.filterGrayscale, y.filterGrayscale, t);
@@ -254,15 +281,26 @@ void interpolateCssPaintProperty(ThemeElementStyle& r, const ThemeElementStyle& 
 }
 
 std::shared_ptr<const CssPaintRecipe> compileCssPaintRecipe(const QString& key,
-    const std::function<CssComputedStyle(CssElementState)>& resolve, const CssThemeSheet& sheet, bool reducedMotion) {
+    const std::function<CssComputedStyle(CssElementState)>& resolve, const CssThemeSheet& sheet, bool reducedMotion,
+    quint8 stateMask) {
   auto recipe = std::make_shared<CssPaintRecipe>();
+  std::array<quint64, 8> fingerprints{};
   bool changes = false;
   for (int bits = 0; bits < 8; ++bits) {
-    CssElementState state; state.hover = bits & 1; state.focus = bits & 2; state.mdFocus = state.focus; state.active = bits & 4;
-    const auto computed = resolve(state);
-    recipe->states[bits] = CssThemeMapper::projectComputedStyle(key, computed);
-    recipe->fingerprint = qHashMulti(size_t(recipe->fingerprint), computed.fingerprint());
-    if (!reducedMotion) { recipe->transitions[bits] = transitions(computed); recipe->animations[bits] = animations(key, computed, sheet); }
+    const int canonical = bits & stateMask;
+    if (canonical != bits) {
+      recipe->states[bits] = recipe->states[canonical];
+      recipe->transitions[bits] = recipe->transitions[canonical];
+      recipe->animations[bits] = recipe->animations[canonical];
+      fingerprints[bits] = fingerprints[canonical];
+    } else {
+      CssElementState state; state.hover = bits & 1; state.focus = bits & 2; state.mdFocus = state.focus; state.active = bits & 4;
+      const auto computed = resolve(state);
+      recipe->states[bits] = CssThemeMapper::projectComputedStyle(key, computed);
+      fingerprints[bits] = computed.fingerprint();
+      if (!reducedMotion) { recipe->transitions[bits] = transitions(computed); recipe->animations[bits] = animations(key, computed, sheet); }
+    }
+    recipe->fingerprint = qHashMulti(size_t(recipe->fingerprint), fingerprints[bits]);
     changes = changes || !recipe->animations[bits].isEmpty() || recipe->states[bits].layout.display != recipe->states[0].layout.display;
     for (const auto& property : properties()) changes = changes || !equalProperty(recipe->states[bits], recipe->states[0], property);
   }

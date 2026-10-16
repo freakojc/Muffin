@@ -639,8 +639,24 @@ set(MUFFIN_CORE_SOURCES
   src/theme/CssValueParser.h
   src/theme/ThemeFontDecoder.cpp
   src/theme/ThemeFontDecoder.h
+  src/theme/ThemeResourceDigest.cpp
+  src/theme/ThemeResourceDigest.h
+  src/theme/FontMetricsPolicy.cpp
+  src/theme/FontMetricsPolicy.h
+  src/diagnostics/ThemePerformance.cpp
+  src/diagnostics/ThemePerformance.h
   src/theme/CssComputedStyleEngine.cpp
   src/theme/CssComputedStyleEngine.h
+  src/theme/CssContent.cpp
+  src/theme/CssContent.h
+  src/theme/CssCompatibilityReport.cpp
+  src/theme/CssCompatibilityReport.h
+  src/theme/CssImageResources.cpp
+  src/theme/CssImageResources.h
+  src/theme/CssBlendMode.cpp
+  src/theme/CssBlendMode.h
+  src/theme/CssFilter.cpp
+  src/theme/CssFilter.h
   src/theme/CssLayoutStyle.cpp
   src/theme/CssLayoutStyle.h
   src/theme/CssGridStyle.cpp
@@ -1278,6 +1294,8 @@ set(MUFFIN_UI_SOURCES
   src/render/LiteralTextLayout.h
   src/render/LayoutBox.h
   src/render/LayoutBox.cpp
+  src/render/CssBackgroundPainter.cpp
+  src/render/CssBackgroundPainter.h
   src/render/CssPaintAnimation.cpp
   src/render/CssPaintAnimation.h
   src/render/CssFormattingContext.cpp
@@ -1298,6 +1316,8 @@ set(MUFFIN_UI_SOURCES
   src/render/GradientPainter.h
   src/render/Blur.cpp
   src/render/Blur.h
+  src/render/TextShadowPainter.cpp
+  src/render/TextShadowPainter.h
   src/render/Filter.cpp
   src/render/Filter.h
   src/render/DecorationPainter.cpp
@@ -1321,6 +1341,7 @@ set(MUFFIN_UI_SOURCES
   src/theme/FontRendering.cpp
   src/theme/FontRendering.h
   src/theme/RenderTheme.cpp
+  src/theme/DocumentCounterCache.cpp
   src/theme/RenderTheme.h
   src/theme/ThemeDefinition.cpp
   src/theme/ThemeDefinition.h
@@ -1340,8 +1361,7 @@ set(MUFFIN_UI_SOURCES
   src/theme/LegacyThemeAdapter.h
   src/theme/NodeCssElement.cpp
   src/theme/NodeCssElement.h
-  src/theme/CssContent.cpp
-  src/theme/CssContent.h
+  src/theme/MarkdownAlertIcon.h
 )
 
 add_library(MuffinUi ${MUFFIN_LIB_TYPE}
@@ -1398,6 +1418,10 @@ target_include_directories(MuffinUi
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+
+if(WIN32)
+  target_link_libraries(MuffinCore PRIVATE bcrypt)
+endif()
 
 if(MUFFIN_LIB_TYPE STREQUAL "SHARED")
   target_compile_definitions(MuffinCore PRIVATE MUFFIN_CORE_LIBRARY)
@@ -1487,6 +1511,11 @@ target_compile_definitions(muffin-mmdc
 )
 
 set(MUFFIN_APP_ICONS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources/app-icons")
+
+# Opt-in offline developer diagnostic. Does not launch the editor or register
+# theme fonts, and is deliberately outside the distributable app bundle.
+add_executable(muffin-theme-report EXCLUDE_FROM_ALL src/tools/theme_report_main.cpp)
+target_link_libraries(muffin-theme-report PRIVATE MuffinCore Qt6::Core)
 
 if(WIN32)
   set_target_properties(Muffin PROPERTIES WIN32_EXECUTABLE TRUE)

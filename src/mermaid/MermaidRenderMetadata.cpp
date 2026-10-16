@@ -1,4 +1,5 @@
 #include "mermaid/MermaidRenderMetadata.h"
+#include "mermaid/MermaidFontRegistry.h"
 
 #include "mermaid/flowchart/FlowLabel.h"
 #include "mermaid/theme/MermaidColor.h"
@@ -20,6 +21,7 @@ QString singleLineTitle(QString title) {
 
 QFont titleFont(const MermaidRenderMetadata& metadata) {
   QFont font(metadata.fontFamily);
+  MermaidFontRegistry::configureFont(font, metadata.fontFamily);
   setTextPixelSize(font, metadata.titleFontSize);
   font.setWeight(QFont::Normal);
   return font;

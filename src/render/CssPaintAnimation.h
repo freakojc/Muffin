@@ -37,7 +37,7 @@ struct CssPaintRecipe {
 
 std::shared_ptr<const CssPaintRecipe> compileCssPaintRecipe(
     const QString& key, const std::function<CssComputedStyle(CssElementState)>& resolve,
-    const CssThemeSheet& sheet, bool reducedMotion = false);
+    const CssThemeSheet& sheet, bool reducedMotion = false, quint8 stateMask = 7);
 qreal cssTimingProgress(qreal progress, const QString& easing);
 void interpolateCssPaintProperty(ThemeElementStyle& result, const ThemeElementStyle& from,
                                  const ThemeElementStyle& to, const QString& property, qreal progress);

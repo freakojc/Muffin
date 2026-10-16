@@ -1,4 +1,5 @@
 #include "mermaid/text/LabelText.h"
+#include "mermaid/MermaidFontRegistry.h"
 
 #include <QRegularExpression>
 
@@ -33,7 +34,7 @@ QStringList cssFontFamilies(const QString& expression) {
       result.append(family);
     }
   }
-  return result;
+  return MermaidFontRegistry::resolveFamilies(result);
 }
 
 }  // namespace muffin::mermaid::text

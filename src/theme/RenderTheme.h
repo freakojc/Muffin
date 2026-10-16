@@ -2,6 +2,7 @@
 
 #include "document/MarkdownTypes.h"
 #include "document/NodeId.h"
+#include "document/TopLevelRangeChange.h"
 #include "render/CodeHighlight.h"
 #include "theme/ThemeDefinition.h"
 #include "theme/CssComputedStyleEngine.h"
@@ -11,19 +12,26 @@
 #include <QHash>
 #include <QMarginsF>
 #include <Qt>
+#include <array>
 
 namespace muffin {
+namespace diag { struct MemoryAccounting; }
 
 class MarkdownNode;
+class MarkdownDocument;
 class CssComputedStyleEngine;
 class CssComputedStyle;
 class CssThemeSheet;
 class NodeCssElementBuilder;  // sparse live-tree adapter for structural selectors
+class DocumentCounterCache;
+struct DocumentCounterStats;
+struct CssInlineImage;
 struct CssElement;
 struct CssEnvironment;
 struct ThemeElementStyle;
 
 class RenderTheme {
+  friend struct diag::MemoryAccounting;
 public:
  RenderTheme();
  static RenderTheme defaultTheme(int zoomPercent = 100);
@@ -38,6 +46,10 @@ public:
  // themes (loaded from JSON by ThemeManager) drive the editor through the same
  // path as the built-ins — no separate code path for custom themes.
  static RenderTheme fromDefinition(const ThemeDefinition& definition, int zoomPercent = 100, int fontSizePx = 16);
+ // Fork a document-free prototype, sharing only prepared viewport projections.
+ RenderTheme detachedPrototype() const;
+ // Carry exact semantic shapes across theme changes; never carries CSS results.
+ void reuseDocumentSemantics(const RenderTheme& previous);
 
  int zoomPercent() const;
  void setZoomPercent(int percent);
@@ -104,6 +116,8 @@ public:
  QFont fontForStyle(const ThemeElementStyle& style, QFont fallback) const;
  ThemeElementStyle inlineStyleForNode(const MarkdownNode& owner, qsizetype sourceOffset) const;
  ThemeElementStyle styleForElement(const CssElement& element) const;
+ CssComputedStyle computedStyleForElement(const CssElement& element) const;
+ QVector<CssInlineImage> cssInlineImages(const MarkdownNode& owner) const;
  std::shared_ptr<const CssPaintRecipe> paintRecipeForElement(const CssElement& element, const QString& pseudo = {}) const;
  const CssElement* cssElementForNode(const MarkdownNode& node) const;
  const CssElement* cssParentForInlineHtml(const MarkdownNode& owner, qsizetype sourceOffset) const;
@@ -111,11 +125,23 @@ public:
  std::optional<PseudoElementRule> pseudoForNode(const MarkdownNode& node, const QString& pseudo) const;
  std::optional<PseudoElementRule> pseudoForElement(const CssElement& origin, const QString& pseudo,
                                                  CssElementState state = {}) const;
+ QHash<NodeId,QPair<QString,QString>> resolveDocumentCounters(const MarkdownDocument& document) const;
+ quint64 generatedCounterFingerprint(NodeId node) const { return counterFingerprints_.value(node); }
+ bool hasGeneratedCounters() const { return !counterChains_.isEmpty(); }
+ DocumentCounterStats documentCounterStats() const;
+ struct StyleCacheStats {
+   qsizetype elements = 0, nodeStyles = 0, recipes = 0, sharedRecipes = 0;
+   CssComputedStyleEngine::CacheStats engine;
+ };
+ StyleCacheStats styleCacheStats() const;
+ void releaseInlineStyles(const QSet<NodeId>& topLevelIds) const;
  const CssElement* cssInlineElement(const MarkdownNode& owner, qsizetype sourceOffset, const QString& tag = {}) const;
  const CssElement* cssLinkInSourceRange(const MarkdownNode& owner, qsizetype start, qsizetype end, const QString& href) const;
- // Drop resolved styles and the sparse live-tree adapter. Recreating the adapter
- // is proportional to the selector paths queried, so every edit gets fresh data.
- void invalidateDocumentStyles() const;
+ // Preserve identities/recipes when a precise edit has identical CSS semantics;
+ // otherwise invalidate the document style snapshot and its sparse adapter.
+ void invalidateDocumentStyles(TopLevelRangeChange change = {}, const MarkdownDocument* document = nullptr) const;
+ // Last replacement preserved all CSS-visible topology and attributes.
+ bool hasLocalStyleChange() const { return localStyleChange_; }
  // Keep static Markdown snapshots when only embedded HTML's viewport changes.
  void invalidateInlineViewportStyles() const;
  bool hasInlineViewportUnits() const;
@@ -232,15 +258,39 @@ private:
  bool viewportUnits_ = false;
  bool percentagePageBox_ = false;
  std::shared_ptr<CssComputedStyleEngine> styleEngine_;
+ struct ProjectionCache;
+ std::shared_ptr<ProjectionCache> projectionCache_;
  // Sparse live-node adapter for structural selector navigation. Shared (not unique)
  // so RenderTheme remains copyable; reset with the computed style cache on edits.
  mutable std::shared_ptr<NodeCssElementBuilder> styleTree_;
  mutable QHash<QString, std::shared_ptr<const ThemeElementStyle>> nodeStyleCache_;
+ // Bounded final inline snapshots. Identity keys contain no AST pointers and
+ // are retired with the sparse adapter; theme/environment invalidation clears
+ // them together with the computed styles.
+ mutable QHash<quint64, ThemeElementStyle> elementStyleCache_;
+ mutable QHash<QPair<quint64, quint64>, ThemeElementStyle> inlineStyleCache_;
  mutable QHash<QString, std::optional<PseudoElementRule>> pseudoStyleCache_;
+ mutable QHash<QString,QHash<QString,QVector<int>>> counterChains_;
+ mutable QHash<NodeId,quint64> counterFingerprints_;
+ mutable const MarkdownDocument* counterDocument_ = nullptr;
+ mutable quint64 counterRevision_ = 0;
+ mutable QHash<NodeId,QPair<QString,QString>> counterText_;
+ mutable std::shared_ptr<DocumentCounterCache> counterCache_;
+ mutable std::shared_ptr<const DocumentCounterCache> semanticSeed_;
+ mutable const MarkdownDocument* semanticDocument_ = nullptr;
+ mutable quint64 semanticRevision_ = 0;
+ mutable TopLevelRangeChange counterChange_;
+ mutable bool localStyleChange_ = false;
  mutable QHash<QString, std::shared_ptr<const CssPaintRecipe>> paintRecipeCache_;
- mutable quint64 styleGeneration_ = 1;
+ struct SharedPaintRecipe {
+   QString key;
+   std::array<CssComputedStyle, 8> states;
+   std::shared_ptr<const CssPaintRecipe> recipe;
+ };
+ mutable QHash<quint64, std::vector<SharedPaintRecipe>> sharedPaintRecipes_;
+ mutable qsizetype sharedPaintRecipeCount_ = 0;
  // Prototype (load-time) QFont per element key, used by the Lazy estimate path so it doesn't
- // rebuild a QFont per block (~80µs each on Windows). Cleared by invalidateDocumentStyles() since
+ // rebuild a QFont per block (~80µs each on Windows). Cleared by structural invalidation since
  // zoom/fontSize can change between rebuilds.
  mutable QHash<QString, QFont> prototypeFontCache_;
  ThemeElementStyle projectStyle(const QString& key, const CssComputedStyle& computed) const;

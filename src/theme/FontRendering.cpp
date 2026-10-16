@@ -1,18 +1,15 @@
 #include "theme/FontRendering.h"
-#include "render/TextLayout.h"
 
 #include <QFontDatabase>
 #include <QGuiApplication>
-#include <QRawFont>
 #include <QSet>
-#include <QtEndian>
 #include <QtGlobal>
-#include <cmath>
 #include <initializer_list>
 
-static void initMermaidFontsResource() {
-  Q_INIT_RESOURCE(mermaid_fonts);
-}
+#include "mermaid/MermaidFontRegistry.h"
+#include "render/TextLayout.h"
+#include "theme/CssContent.h"
+#include "theme/FontMetricsPolicy.h"
 
 void muffin::font_rendering::configureForScreen(QFont& font) {
 #if defined(Q_OS_WIN)
@@ -29,44 +26,10 @@ void muffin::font_rendering::configureForScreen(QFont& font) {
 void muffin::font_rendering::configureCssFont(QFont& font, qreal letterSpacing, qreal wordSpacing) {
   configureCssFont(font, letterSpacing, wordSpacing, documentTextBackend());
 }
-void muffin::font_rendering::configureCssFont(QFont& font, qreal letterSpacing, qreal wordSpacing, TextBackend backend) {
+void muffin::font_rendering::configureCssFont(QFont& font, qreal letterSpacing, qreal wordSpacing,
+                                              TextBackend backend) {
   configureForScreen(font);
-  qreal correction = 0;
-#if defined(Q_OS_WIN)
-  // DirectWrite's synthetic bold adds an advance to ink glyphs, while browser
-  // emboldening preserves the original advances. Measure the simulation rather
-  // than assuming a particular family or a fixed percentage of the font size.
-  if (font.weight() >= QFont::DemiBold) {
-    const auto bold = QRawFont::fromFont(font);
-    const auto os2 = bold.fontTable("OS/2");
-    if (bold.isValid() && os2.size() >= 6 && bold.fontTable("fvar").isEmpty()) {
-      const auto faceWeight = qFromBigEndian<quint16>(os2.constData() + 4);
-      if (faceWeight >= 1 && faceWeight < QFont::DemiBold && faceWeight < font.weight()) {
-        auto originalFont = font;
-        originalFont.setWeight(static_cast<QFont::Weight>(faceWeight));
-        const auto original = QRawFont::fromFont(originalFont);
-        const auto glyphs = bold.glyphIndexesForString(QStringLiteral("HMn "));
-        if (original.isValid() && bold.familyName() == original.familyName() && bold.fontTable("head") == original.fontTable("head") &&
-            glyphs.size() == 4 && !glyphs.contains(0)) {
-          const auto simulated = bold.advancesForGlyphIndexes(glyphs);
-          const auto unsimulated = original.advancesForGlyphIndexes(glyphs);
-          qreal minimum = 1e6, maximum = 0, sum = 0;
-          for (int i = 0; i < 3; ++i) {
-            const qreal delta = simulated[i].x() - unsimulated[i].x();
-            minimum = qMin(minimum, delta);
-            maximum = qMax(maximum, delta);
-            sum += delta;
-          }
-          // Only compensate the verified uniform simulation. Real bold faces,
-          // variable axes and nonuniform design changes keep their own metrics.
-          if (minimum > 1.0 / 64 && maximum - minimum <= 2.0 / 64 && maximum < bold.pixelSize() / 10 &&
-              qAbs(simulated[3].x() - unsimulated[3].x()) <= 1.0 / 64)
-            correction = std::round(sum / 3 * 64) / 64;
-        }
-      }
-    }
-  }
-#endif
+  const qreal correction = syntheticBoldAdvanceCorrection(font);
   setTextLetterSpacing(font, letterSpacing - correction, backend);
   // Whitespace isn't emboldened, so cancel the letter correction on spaces.
   font.setWordSpacing(wordSpacing + correction);
@@ -75,30 +38,8 @@ void muffin::font_rendering::configureCssFont(QFont& font, qreal letterSpacing, 
 namespace muffin::font_rendering {
 namespace {
 QHash<QString, QString> defaultFamilies;
-QStringList& bundledFallbackFamilies() {
-  static QStringList families;
-  static const bool initialized = [] {
-    initMermaidFontsResource();
-    const QStringList resources = {
-        QStringLiteral(":/mermaid/fonts/NotoSans-Regular.ttf"),
-        QStringLiteral(":/mermaid/fonts/NotoSansCJKsc-Regular.otf"),
-        QStringLiteral(":/mermaid/fonts/NotoSansArabic-Regular.ttf"),
-        QStringLiteral(":/mermaid/fonts/NotoSansHebrew-Regular.ttf"),
-    };
-    QSet<QString> seen;
-    for (const QString& resource : resources) {
-      const int id = QFontDatabase::addApplicationFont(resource);
-      if (id < 0) continue;
-      for (const QString& family : QFontDatabase::applicationFontFamilies(id)) {
-        if (!seen.contains(family)) {
-          seen.insert(family);
-          families.append(family);
-        }
-      }
-    }
-    return true;
-  }();
-  Q_UNUSED(initialized);
+const QStringList& bundledFallbackFamilies() {
+  static const QStringList families = mermaid::MermaidFontRegistry::familyStack();
   return families;
 }
 const QStringList& availableDocumentFamilies() {
@@ -206,7 +147,18 @@ QStringList splitCssFamilyExpression(const QString& raw) {
   QStringList result;
   QString token;
   QChar quote;
+  bool escaped = false;
   for (const QChar character : raw) {
+    if (escaped) {
+      token.append(character);
+      escaped = false;
+      continue;
+    }
+    if (character == '\\') {
+      token.append(character);
+      escaped = true;
+      continue;
+    }
     if (quote.isNull() && (character == QLatin1Char(',') || character == QLatin1Char('\n'))) {
       const QString value = token.trimmed();
       if (!value.isEmpty()) result.append(value);
@@ -268,29 +220,23 @@ QStringList cssFamilyList(const QString& raw, const QString& platformTail, const
   // ordinary CSS use comma-separated stacks. Parse both forms here so every
   // renderer applies the same ordering and quote handling.
   QStringList requested = splitCssFamilyExpression(raw);
-  for (QString& f : requested) {
-    f = f.trimmed();
-    if (f.size() >= 2 && ((f.front() == QLatin1Char('\'') && f.back() == QLatin1Char('\'')) ||
-                          (f.front() == QLatin1Char('"') && f.back() == QLatin1Char('"')))) {
-      f = f.mid(1, f.size() - 2).trimmed();
-    }
-  }
-  requested.removeAll(QString());
-
-  QStringList genericTail;
-  if (!requested.isEmpty()) {
-    const QString last = requested.last().toLower();
-    if (last == QStringLiteral("serif") || last == QStringLiteral("sans-serif") || last == QStringLiteral("monospace")) {
-      genericTail.append(genericFamilyTail(requested.takeLast()));
-    }
-  }
 
   // Register the deterministic application faces before taking the family
   // snapshot. Otherwise a first CSS lookup can cache a system-only list.
   bundledFallbackFamilies();
   const QStringList& availableFamilies = availableDocumentFamilies();
   QStringList out;
-  for (const QString& family : requested) {
+  for (const QString& token : requested) {
+    const bool quoted =
+        token.size() >= 2 && (token.front() == '\'' || token.front() == '"') && token.front() == token.back();
+    QString family = token;
+    if (quoted || token.contains('\\')) {
+      const auto decoded = parseContentTokens(quoted ? token : '"' + token + '"');
+      if (decoded.size() != 1) continue;
+      family = decoded.front().text;
+    }
+    if (!quoted) family = family.simplified();
+    if (family.isEmpty()) continue;
     // @font-face: a CSS theme may declare `font-family: CascadiaCode` while the
     // font file's internal name (what QFontDatabase registers) is "Cascadia Code",
     // or `"LXGW WenKai"` whose internal name is 霞鹜文楷. Substitute the declared
@@ -298,7 +244,13 @@ QStringList cssFamilyList(const QString& raw, const QString& platformTail, const
     QString resolved = family;
     if (const QString alias = aliases.value(family.toLower()); !alias.isEmpty()) {
       resolved = alias;
+    } else if (const auto bundled = mermaid::MermaidFontRegistry::bundledFamily(family); !bundled.isEmpty()) {
+      resolved = bundled;
     }
+    if (!quoted &&
+        (family.compare("serif", Qt::CaseInsensitive) == 0 || family.compare("sans-serif", Qt::CaseInsensitive) == 0 ||
+         family.compare("monospace", Qt::CaseInsensitive) == 0))
+      resolved = genericFamilyTail(family);
     resolved = platformCssFamilyAlias(resolved, availableFamilies);
     // Keep unresolved CSS names in their declared order. Qt's font matcher owns
     // platform aliases/substitutions (for example CSS `Times` -> Times New Roman
@@ -308,9 +260,6 @@ QStringList cssFamilyList(const QString& raw, const QString& platformTail, const
     if (!out.contains(resolved, Qt::CaseInsensitive)) {
       out << resolved;
     }
-  }
-  for (const QString& family : genericTail) {
-    if (!out.contains(family, Qt::CaseInsensitive)) out << family;
   }
   for (QString family : splitCssFamilyExpression(platformTail)) {
     family = family.trimmed();

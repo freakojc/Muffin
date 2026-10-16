@@ -1,4 +1,5 @@
 #include "editor/BlockEditContext.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "document/BlockPredicates.h"
 #include "document/DocumentSession.h"
@@ -12,19 +13,22 @@
 
 namespace muffin {
 namespace {
+Q_LOGGING_CATEGORY(contextDetailPerf, "muffin.perf.detail", QtWarningMsg)
 
 // markdown/* smart punctuation for the render path (Convert on Rendering). Mirrors the same-named
 // helper in BlockLayoutBuilder.cpp so the editing projection and the painted projection apply the
 // identical conversion — and thus agree on folded-token boundaries (so backspace/delete/cursor act
 // on the whole source token, not a single dash).
 SmartPunctRenderOptions smartPunctRenderOptions() {
+  diag::ScopedPerfProbe perf("context.smartPunctSettings", contextDetailPerf());
+  QSettings settings;
   SmartPunctRenderOptions opts;
-  const bool rendering = QSettings().value(QStringLiteral("markdown/convertOnRendering"), false).toBool();
-  opts.convertQuotes = rendering && QSettings().value(QStringLiteral("markdown/smartQuotes"), false).toBool();
-  opts.convertDashes = rendering && QSettings().value(QStringLiteral("markdown/smartDashes"), false).toBool();
+  const bool rendering = settings.value(QStringLiteral("markdown/convertOnRendering"), false).toBool();
+  opts.convertQuotes = rendering && settings.value(QStringLiteral("markdown/smartQuotes"), false).toBool();
+  opts.convertDashes = rendering && settings.value(QStringLiteral("markdown/smartDashes"), false).toBool();
   opts.convertEllipsis = opts.convertDashes;
-  opts.doubleQuoteStyle = QSettings().value(QStringLiteral("markdown/doubleQuoteStyle"), 0).toInt();
-  opts.singleQuoteStyle = QSettings().value(QStringLiteral("markdown/singleQuoteStyle"), 0).toInt();
+  opts.doubleQuoteStyle = settings.value(QStringLiteral("markdown/doubleQuoteStyle"), 0).toInt();
+  opts.singleQuoteStyle = settings.value(QStringLiteral("markdown/singleQuoteStyle"), 0).toInt();
   return opts;
 }
 
@@ -95,6 +99,7 @@ bool BlockEditContextResolver::forBlock(NodeId blockId, BlockEditContext& contex
 }
 
 bool BlockEditContextResolver::fill(MarkdownNode& displayNode, BlockEditContext& context) const {
+  diag::ScopedPerfProbe perf("context.fill", contextDetailPerf());
   if (!session_) {
     return false;
   }

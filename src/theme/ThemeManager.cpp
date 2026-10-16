@@ -1,9 +1,10 @@
 #include "theme/ThemeManager.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "theme/CssThemeParser.h"
+#include "theme/ThemeResourceDigest.h"
 
 #include <QDir>
-#include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
@@ -16,31 +17,26 @@
 namespace muffin {
 
 namespace {
-
-QByteArray sourceDigest(const QString& path) {
-  QFile file(path);
-  if (!file.open(QIODevice::ReadOnly)) return {};  // An absent/unreadable dependency is part of the manifest.
-  QCryptographicHash hash(QCryptographicHash::Sha256);
-  hash.addData(&file);
-  return hash.result();
-}
+Q_LOGGING_CATEGORY(managerLoadPerf, "muffin.perf.detail", QtWarningMsg)
 
 QHash<QString, QByteArray> sourceManifest(const QString& path) {
+  diag::ScopedPerfProbe perf("theme.sourceManifest", managerLoadPerf());
   QHash<QString, QByteArray> sources;
-  sources.insert(path, sourceDigest(path));
+  sources.insert(path, themeResourceDigest(path));
   if (path.endsWith(QLatin1String(".css"), Qt::CaseInsensitive)) {
     QFile file(path);
     if (file.open(QIODevice::ReadOnly))
       for (const auto& dependency : CssThemeParser::localResourcePaths(
                QString::fromUtf8(file.readAll()), QFileInfo(path).absolutePath(), true))
-        sources.insert(dependency, sourceDigest(dependency));
+        sources.insert(dependency, themeResourceDigest(dependency));
   }
   return sources;
 }
 
 bool sourcesUnchanged(const QHash<QString, QByteArray>& sources) {
+  diag::ScopedPerfProbe perf("theme.revalidateSources", managerLoadPerf());
   for (auto it = sources.cbegin(); it != sources.cend(); ++it)
-    if (sourceDigest(it.key()) != it.value()) return false;
+    if (themeResourceDigest(it.key()) != it.value()) return false;
   return true;
 }
 
@@ -124,6 +120,18 @@ QString flattenCssImports(const QString& text, const QString& baseDir, QSet<QStr
 
 }  // namespace
 
+struct ThemeManager::DefinitionReadScope {
+  explicit DefinitionReadScope(ThemeManager& manager) : owner(manager), previous(manager.readScope_) {
+    manager.readScope_ = this;
+  }
+  ~DefinitionReadScope() { owner.readScope_ = previous; }
+  DefinitionReadScope(const DefinitionReadScope&) = delete;
+  DefinitionReadScope& operator=(const DefinitionReadScope&) = delete;
+  ThemeManager& owner;
+  DefinitionReadScope* previous;
+  QHash<QString, ThemeDefinition> definitions;
+};
+
 QString ThemeManager::themesDirectory() {
   return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
          + QStringLiteral("/themes");
@@ -169,6 +177,7 @@ ThemeManager::ThemeManager(const QString& themeDirectory, QObject* parent) : QOb
 }
 
 void ThemeManager::loadDefinitions() {
+  prepared_.clear();
   // Only discover names here. CSS parsing, JSON decoding and font registration
   // happen on selection, never while enumerating a directory/menu.
   themes_ = ThemeDefinition::builtInDescriptors();
@@ -232,7 +241,15 @@ RenderTheme ThemeManager::currentTheme(int zoomPercent, int fontSizePx) const {
   // Build the editor theme from the same definition the chrome reads, so a
   // custom (JSON) theme drives the document through the exact same path as a
   // built-in. fromDefinition reproduces the five built-in factories bit-for-bit.
-  return RenderTheme::fromDefinition(definition(currentThemeName_), zoomPercent, fontSizePx);
+  const auto d = definition(currentThemeName_);
+  const auto revision = d.sourceSheet ? d.sourceSheet->revision() : 0;
+  const auto key = currentThemeName_ + '/' + QString::number(zoomPercent) + '/' + QString::number(fontSizePx);
+  auto* cached = prepared_.object(key);
+  if (!cached || cached->source != d.sourceSheet || cached->revision != revision) {
+    cached = new PreparedTheme{d.sourceSheet, revision, RenderTheme::fromDefinition(d, zoomPercent, fontSizePx)};
+    prepared_.insert(key, cached);
+  }
+  return cached->theme.detachedPrototype();
 }
 
 QStringList ThemeManager::availableThemes() const {
@@ -250,11 +267,20 @@ const std::vector<ThemeDescriptor>& ThemeManager::themes() const {
 
 ThemeDefinition ThemeManager::loadDefinition(const QString& id, bool revalidate, bool* changed) const {
   if (changed) *changed = false;
+  if (readScope_) {
+    const auto found = readScope_->definitions.constFind(id);
+    if (found != readScope_->definitions.cend()) return *found;
+  }
+  const auto remember = [&](ThemeDefinition definition) {
+    if (readScope_) readScope_->definitions.insert(id, definition);
+    return definition;
+  };
   const auto source = sourcePaths_.constFind(id);
-  if (source == sourcePaths_.cend()) return ThemeDefinition::builtIn(id).value_or(ThemeDefinition{});
+  if (source == sourcePaths_.cend()) return remember(ThemeDefinition::builtIn(id).value_or(ThemeDefinition{}));
   if (const auto* cached = loaded_.object(id); cached && (!revalidate || sourcesUnchanged(cached->sources)))
-    return cached->definition;
+    return remember(cached->definition);
   loaded_.remove(id);
+  prepared_.clear();
   if (changed) *changed = true;
   const auto sources = sourceManifest(*source);
   ThemeDefinition d;
@@ -267,20 +293,20 @@ ThemeDefinition ThemeManager::loadDefinition(const QString& id, bool revalidate,
       if (json.isObject()) d = ThemeDefinition::fromJson(json.object(), id);
     }
   }
-  if (!d.valid()) return d;
+  if (!d.valid()) return remember(std::move(d));
   for (auto& descriptor : themes_)
     if (descriptor.id == id) descriptor.label = d.label;
   // If an editor replaced a file during loading, don't cache a definition
   // under a manifest from a different version. The next request retries.
   if (sourcesUnchanged(sources)) loaded_.insert(id, new CachedTheme{d, sources});
-  return d;
+  return remember(std::move(d));
 }
 
 ThemeDefinition ThemeManager::definition(const QString& name) const {
-  // Public definition reads are the cache validity boundary. This keeps an
-  // editor that is already open correct when a theme file is edited externally;
-  // the digest is cheap compared with parsing and is only taken for the chosen
-  // theme (never for the whole directory).
+  // Public reads revalidate contents, except inside a synchronous selection
+  // operation: its editor/chrome consumers share the same verified snapshot.
+  // The scope ends before returning to the caller/event loop, so the next
+  // independent read still observes same-size, same-timestamp file changes.
   auto d = loadDefinition(name.toLower(), true);
   if (d.valid()) return d;
   // Unknown name — fall back to github rather than an empty definition.
@@ -292,6 +318,11 @@ ThemeDefinition ThemeManager::currentDefinition() const {
 }
 
 bool ThemeManager::setTheme(QString name) {
+  DefinitionReadScope operation(*this);
+  return selectTheme(std::move(name));
+}
+
+bool ThemeManager::selectTheme(QString name) {
   name = name.toLower();
   bool found = false;
   for (const auto& d : themes_) {
@@ -314,9 +345,10 @@ bool ThemeManager::setTheme(QString name) {
 }
 
 void ThemeManager::reloadCustomThemes() {
+  DefinitionReadScope operation(*this);
   loadDefinitions();
   // If the active theme was a custom one that no longer exists, fall back.
-  if (!setTheme(currentThemeName_)) setTheme(QStringLiteral("github"));
+  if (!selectTheme(currentThemeName_)) selectTheme(QStringLiteral("github"));
   emit themesChanged();
 }
 

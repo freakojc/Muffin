@@ -24,6 +24,7 @@ class QTimer;
 class QWidget;
 
 namespace muffin {
+namespace diag { struct MemoryAccounting; }
 
 class CodeFenceScrollController;
 class CodeLanguageEditor;
@@ -31,6 +32,7 @@ class MarkdownDocument;
 class TableToolbar;
 
 class MUFFIN_UI_EXPORT EditorView final : public QAbstractScrollArea {
+  friend struct diag::MemoryAccounting;
   Q_OBJECT
 
 public:
@@ -40,6 +42,9 @@ public:
   // True while an async open parse is in flight: paintEvent shows a centered loading hint instead of
   // the (stale/empty) page.
   void setLoading(bool loading);
+  // Consume coalesced resource changes only while visible and ready. Tab owners
+  // call this after applying a deferred theme/document, before querying geometry.
+  void refreshPendingResources();
   bool refreshBlock(NodeId blockId, const MarkdownDocument& document);
   bool refreshBlocks(const QVector<NodeId>& blockIds, const MarkdownDocument& document);
   // Re-runs the per-block rebuild only for currently-promoted (visible) top-level blocks — used
@@ -75,6 +80,7 @@ public:
   HitTestResult cursorHit() const { return cursorHit_; }
   CursorPosition cursorPosition() const { return cursorPosition_; }
   qreal layoutTotalHeight() const { return layout_ ? layout_->totalHeight() : 0.0; }
+  qsizetype residentLayoutCount() const { return layout_ ? layout_->residentDetailCount() : 0; }
   const RenderTheme& theme() const { return theme_; }
   void scrollToNode(NodeId id);
   void ensureCursorVisible();
@@ -139,6 +145,7 @@ protected:
   void dropEvent(QDropEvent* event) override;
 
 private:
+  void syncViewportBackground();
   void retranslateAccessibility();
   struct HeadingBadge {
     NodeId blockId;
@@ -151,10 +158,12 @@ private:
   void rebuildLayout(bool preserveViewport = false);
   void refreshViewportEstimates();
   void queueResourceRefresh();
+  void scheduleResourceRefresh();
   void updateScrollBars();
   // Lazy-layout: promote the visible window (+buffer) to full detail, pinning the scrollbar so
   // promoting blocks above the viewport doesn't shift what the user sees.
   void ensureVisibleBuilt();
+  void prefetchViewport();
   // A stable on-screen reference used to keep the viewport from jumping when a layout change moves
   // block heights. Captured as the top-level *node id* at the top of the viewport (not a slot
   // index), so it survives in-place rebuilds, structural edits AND a full re-parse/rebuild — the
@@ -321,7 +330,8 @@ private:
   // selection or a content edit still wins. Cleared on full rebuild (setDocument).
   struct BuiltStamp { SelectionRange selection; quint64 revision; };
   QHash<NodeId, BuiltStamp> blockBuiltAt_;
-  bool resourceRefreshPending_ = false;
+  bool resourcesDirty_ = false;
+  bool resourceRefreshQueued_ = false;
   CodeFenceScrollController* codeFenceScroll_ = nullptr;
   // Cached, async mermaid renderer (milestone I). Owned by the view; the layout
   // builder reads it. When a render finishes, the visible blocks are refreshed so
@@ -334,6 +344,7 @@ private:
   QTimer* cssPaintTimer_ = nullptr;
   QTimer* mermaidAnimationTimer_ = nullptr;
   QTimer* viewportEstimateTimer_ = nullptr;
+  QTimer* viewportPrefetchTimer_ = nullptr;
   QElapsedTimer mermaidAnimationClock_;
   QHash<NodeId, QSet<QString>> openSequenceMenus_;
   // True while a ScopedViewportPin (or restoreViewportAnchor) is reconciling the scrollbar, so the

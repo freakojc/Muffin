@@ -268,7 +268,7 @@ int main(int argc, char** argv) {
       "packet-beta\ntitle Fallback\n0-7: \"A\""));
   QFont fallbackMetricsFont;
   fallbackMetricsFont.setFamilies(
-      {QStringLiteral("DefinitelyMissing"), QStringLiteral("Noto Sans")});
+      {QStringLiteral("DefinitelyMissing"), MermaidFontRegistry::bundledFamily("Noto Sans")});
   fallbackMetricsFont.setPixelSize(16);
   fallbackMetricsFont.setHintingPreference(QFont::PreferNoHinting);
   const QFontMetricsF fallbackMetrics(fallbackMetricsFont);

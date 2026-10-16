@@ -7,6 +7,7 @@
 #include "render/BlockLayout.h"
 #include "render/DecorationPainter.h"
 #include "render/DocumentLayout.h"
+#include "render/LayoutBox.h"
 #include "document/MarkdownDocument.h"
 
 #include <QColor>
@@ -98,6 +99,9 @@ void EditorView::paintLoadingOverlay(QPainter& painter) const {
 }
 
 void EditorView::paintEvent(QPaintEvent* event) {
+  // Standalone views/source-mode switches may have no tab activation callback.
+  // Resolve deferred geometry before the first frame can expose stale metrics.
+  refreshPendingResources();
   PerfTimer perf("view.paint");
   const QRegion dirtyRegion = event ? event->region() : QRegion(viewport()->rect());
   if (dirtyRegion.isEmpty()) {
@@ -126,18 +130,26 @@ void EditorView::paintEvent(QPaintEvent* event) {
   const QRectF page = layout_->pageRect(theme_, viewport()->height()).translated(0, -scrollY());
   painter.save();
   painter.setRenderHint(QPainter::Antialiasing, true);
-  DecorationPainter::paintBoxShadow(
-      painter, page, theme_.pageBorderRadius(), theme_.pageShadowColor(),
-      theme_.pageShadowOffsetX(), theme_.pageShadowOffsetY(),
-      theme_.pageShadowBlur(), theme_.pageShadowSpread());
-  painter.setBrush(theme_.pageBackgroundColor());
-  if (theme_.pageBorderColor().isValid() && theme_.pageBorderWidth() > 0.0) {
-    painter.setPen(QPen(theme_.pageBorderColor(), theme_.pageBorderWidth()));
+  const auto* pageStyle = document_ ? theme_.elementStyleForNode(document_->root(), QStringLiteral("#write")) : nullptr;
+  if (pageStyle) {
+    auto background = *pageStyle;
+    background.paint.backgroundColor = theme_.pageBackgroundColor();
+    const auto used = theme_.usedBoxForStyle(background, page.width());
+    paintLayoutBox(painter, LayoutBox::place(QStringLiteral("#write"), std::move(background), used, page, theme_.paragraphFont()));
   } else {
-    painter.setPen(Qt::NoPen);
+    DecorationPainter::paintBoxShadow(
+        painter, page, theme_.pageBorderRadius(), theme_.pageShadowColor(),
+        theme_.pageShadowOffsetX(), theme_.pageShadowOffsetY(),
+        theme_.pageShadowBlur(), theme_.pageShadowSpread());
+    painter.setBrush(theme_.pageBackgroundColor());
+    if (theme_.pageBorderColor().isValid() && theme_.pageBorderWidth() > 0.0) {
+      painter.setPen(QPen(theme_.pageBorderColor(), theme_.pageBorderWidth()));
+    } else {
+      painter.setPen(Qt::NoPen);
+    }
+    const qreal radius = theme_.pageBorderRadius();
+    painter.drawRoundedRect(page, radius, radius);
   }
-  const qreal radius = theme_.pageBorderRadius();
-  painter.drawRoundedRect(page, radius, radius);
   // CSS #write::before full-page texture overlay (e.g. phycat's faint dot grid):
   // painted over the card, clipped to it, under the text.
   painter.save();

@@ -11,6 +11,10 @@
 
 namespace muffin {
 
+inline quint64 generatedContentFingerprint(const std::optional<PseudoElementRule>& rule) {
+  return rule && rule->computed ? qHashMulti(size_t(0),rule->computed->fingerprint(),rule->content) : 0;
+}
+
 // A single projection of a live computed pseudo style serves normal flow and
 // positioned fragments. Containing dimensions are supplied by layout, never paint.
 struct GeneratedContentStyle {
@@ -23,6 +27,28 @@ struct GeneratedContentStyle {
   bool icon = false, atomic = false, block = false;
 };
 
+inline QSizeF constrainedGeneratedSize(const GeneratedContentStyle& value, QSizeF containing, QSizeF intrinsic, qreal zoom) {
+  if (!value.rule.computed) return intrinsic;
+  const auto& style = *value.rule.computed;
+  const auto insets = LayoutBox::insets(value.used);
+  const auto axis = [&](const char* dimension,const char* minimum,const char* maximum,const char* start,const char* end,
+                        qreal basis,qreal size,qreal padding,qreal margins) {
+    const auto used = [&](const CssLengthPercentage& length) { return length.px*zoom+length.fraction*basis; };
+    const auto length = style.length(QLatin1String(dimension));
+    const auto a = style.length(QLatin1String(start)), b = style.length(QLatin1String(end));
+    const qreal extra = value.used.borderBox ? 0 : padding;
+    if (length.status == CssLengthStatus::Valid) size = used(length)+extra;
+    else if (value.rule.absolute && a.status == CssLengthStatus::Valid && b.status == CssLengthStatus::Valid)
+      size = basis-used(a)-used(b)-margins;
+    const auto max = style.length(QLatin1String(maximum)), min = style.length(QLatin1String(minimum));
+    if (max.status == CssLengthStatus::Valid) size = qMin(size,used(max)+extra);
+    if (min.status == CssLengthStatus::Valid) size = qMax(size,used(min)+extra);
+    return qMax(padding,size);
+  };
+  return {axis("width","min-width","max-width","left","right",containing.width(),intrinsic.width(),insets.left()+insets.right(),value.used.margin.left()+value.used.margin.right()),
+          axis("height","min-height","max-height","top","bottom",containing.height(),intrinsic.height(),insets.top()+insets.bottom(),value.used.margin.top()+value.used.margin.bottom())};
+}
+
 inline std::optional<GeneratedContentStyle> generatedContentStyle(const RenderTheme& theme, const PseudoElementRule& rule,
                                                                   const QFont& fallback, QSizeF containing, QString text = {}) {
   if (!rule.present) return {};
@@ -34,8 +60,8 @@ inline std::optional<GeneratedContentStyle> generatedContentStyle(const RenderTh
   value.rule = rule;
   value.icon = !rule.svgData.isEmpty();
   if (text.isEmpty() && !rule.content.isEmpty()) {
-    if (rule.computed) {
-      const auto tokens = parseContentTokens(rule.computed->resolvedValue("content"));
+    if (!rule.contentTokens.empty()) {
+      const auto& tokens = rule.contentTokens;
       if (std::all_of(tokens.begin(), tokens.end(), [](const auto& token) { return token.kind == ContentToken::Kind::Literal; }))
         for (const auto& token : tokens) text += token.text;
     } else
@@ -48,6 +74,9 @@ inline std::optional<GeneratedContentStyle> generatedContentStyle(const RenderTh
     value.style = CssThemeMapper::projectComputedStyle(rule.host + "::" + rule.pseudo, *rule.computed);
     value.font = theme.fontForStyle(value.style, fallback);
     value.block = rule.computed->resolvedValue("display") == "block";
+  } else {
+    value.style.paint.color=rule.color;value.style.paint.opacity=rule.opacity;
+    value.style.paint.backgroundColor=rule.backgroundColor;
   }
   value.used = theme.usedBoxForStyle(value.style, containing.width());
   const qreal zoom = theme.zoomPercent() / 100.;
@@ -66,12 +95,15 @@ inline std::optional<GeneratedContentStyle> generatedContentStyle(const RenderTh
                                        : value.icon           ? em
                                                               : 0) +
                                     extraH);
+  const auto size = constrainedGeneratedSize(value,containing,{value.width,value.height},zoom);
+  value.width = size.width(); value.height = size.height();
   return value;
 }
 
 inline QRectF positionGeneratedContent(const GeneratedContentStyle& value, const QRectF& containing, QRectF box, qreal zoom,
                                        bool translate = true) {
   if (!value.rule.computed) return box;
+  box.setSize(constrainedGeneratedSize(value,containing.size(),box.size(),zoom));
   const auto& style = *value.rule.computed;
   const auto used = [&](const char* name, qreal basis) {
     const auto v = style.length(QLatin1String(name));

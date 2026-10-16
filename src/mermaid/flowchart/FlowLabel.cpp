@@ -2295,8 +2295,8 @@ QRectF measureFlowSvgTextBounds(const FlowLabelDocument& label,
     const bool hasFallbackRun = std::any_of(
         shaped.runs.cbegin(), shaped.runs.cend(),
         [](const FlowLabelVisualRun& run) {
-          return run.fontFamily.compare(QStringLiteral("Noto Sans"),
-                                        Qt::CaseInsensitive) != 0;
+          return !run.fontFamily.startsWith(QStringLiteral("Noto Sans Muffin-"), Qt::CaseInsensitive) &&
+              run.fontFamily.compare(QStringLiteral("Noto Sans"), Qt::CaseInsensitive) != 0;
         });
     const bool hasRtlRun = std::any_of(
         shaped.runs.cbegin(), shaped.runs.cend(),

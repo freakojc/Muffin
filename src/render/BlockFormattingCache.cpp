@@ -1,4 +1,5 @@
 #include "render/BlockFormattingCache.h"
+#include "diagnostics/ScopedPerfProbe.h"
 #include "theme/CssThemeParser.h"
 
 #include <QCryptographicHash>
@@ -8,11 +9,13 @@
 #include <utility>
 
 namespace muffin {
+namespace {
+Q_LOGGING_CATEGORY(formattingDetailPerf, "muffin.perf.detail", QtWarningMsg)
+}
 
 void BlockFormattingCache::beginPass(bool incremental, QSet<NodeId> dirty) {
   ++pass_;
   signatures_.clear();
-  themeSignature_.clear();
   dirty_ = std::move(dirty);
   if (!incremental) {
     measurements_.clear();
@@ -31,13 +34,22 @@ void BlockFormattingCache::rememberSignature(NodeId id, QByteArray value) {
 }
 
 const QByteArray& BlockFormattingCache::themeSignature(const RenderTheme& theme) {
+  diag::ScopedPerfProbe perf("formatting.themeSignature", formattingDetailPerf());
+  const auto sheet = theme.documentStyleSheet();
+  const quint64 revision = sheet ? sheet->revision() : 0;
+  if (signatureSheet_ != sheet || signatureRevision_ != revision) {
+    signatureSheet_ = sheet;
+    signatureRevision_ = revision;
+    themeSignature_.clear();
+  }
   if (themeSignature_.isEmpty()) {
+    diag::ScopedPerfProbe hashPerf("formatting.hashTheme", formattingDetailPerf());
     QByteArray sheetData;
     QDataStream sheetStream(&sheetData, QIODevice::WriteOnly);
-    if (const auto sheet = theme.documentStyleSheet()) {
+    if (sheet) {
       sheetStream << quint64(sheet->rules().size());
       for (const auto& rule : sheet->rules()) {
-        sheetStream << rule.selectors << rule.mediaQueries << rule.darkScope << quint64(rule.declarations.size());
+        sheetStream << rule.selectors << rule.mediaQueries << rule.supportQueries << rule.darkScope << quint64(rule.declarations.size());
         for (const auto& declaration : rule.declarations) sheetStream << declaration.property << declaration.value << declaration.important;
       }
       auto variables = sheet->variables().keys();

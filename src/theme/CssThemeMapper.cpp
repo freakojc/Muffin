@@ -1,4 +1,6 @@
 #include "theme/CssThemeMapper.h"
+#include "diagnostics/ScopedPerfProbe.h"
+#include "theme/CssImageResources.h"
 
 #include "theme/CssCalc.h"
 #include "theme/CssContent.h"
@@ -37,6 +39,7 @@ namespace muffin {
 // parse identically in theme CSS and HTML inline styles).
 
 namespace {
+Q_LOGGING_CATEGORY(mapperLoadPerf, "muffin.perf.detail", QtWarningMsg)
 
 constexpr qreal kUnboundedPageWidth = 100000.0;
 
@@ -110,16 +113,14 @@ ParsedBoxShadow parseFirstBoxShadow(const QString& raw,
   return out;
 }
 
-// CSS font-family list, quotes stripped, joined with '\n' so RenderTheme can
-// preserve the full fallback order instead of keeping only the first family.
+// Preserve CSS quotes: a quoted generic is a literal family, and a comma can
+// be part of a quoted family name. The shared font-stack resolver owns parsing.
 QString firstFamily(const QString& value, const QHash<QString, QString>& vars) {
   const QString resolved = CssThemeParser::resolveVars(value, vars).trimmed();
   const QStringList parts = CssThemeParser::splitTopLevelCommas(resolved);
   QStringList out;
   for (const QString& p : parts) {
     QString f = p.trimmed();
-    if (f.size() >= 2 && f.front() == QLatin1Char('"') && f.back() == QLatin1Char('"')) { f = f.mid(1, f.size() - 2); }
-    if (f.size() >= 2 && f.front() == QLatin1Char('\'') && f.back() == QLatin1Char('\'')) { f = f.mid(1, f.size() - 2); }
     f = f.trimmed();
     if (!f.isEmpty()) { out << f; }
   }
@@ -149,44 +150,26 @@ Qt::Alignment parseTextAlign(const QString& raw, const QHash<QString, QString>& 
   return Qt::Alignment();
 }
 
-// Map a CSS numeric font-weight (100-900) onto Qt's QFont::Weight enum scale (0-99).
-// Qt's enum is non-linear (Thin=0, ExtraLight=12, Light=25, Normal=50, Medium, DemiBold=63,
-// Bold=75, ExtraBold=81, Black=87), so snap the CSS value to the nearest standard step and
-// return the matching QFont::Weight constant. Previously this clamped the raw CSS number into
-// [0,87], which collapsed almost every numeric weight to Black (e.g. `font-weight:400` → 87).
+// Qt 6 uses the CSS 1..1000 weight scale, including intermediate values.
 int cssWeightToQt(int cssWeight) {
-  switch (qBound(1, (cssWeight + 50) / 100, 9)) {
-    case 1: return QFont::Thin;
-    case 2: return QFont::ExtraLight;
-    case 3: return QFont::Light;
-    case 4: return QFont::Normal;
-    case 5: return QFont::Medium;
-    case 6: return QFont::DemiBold;
-    case 7: return QFont::Bold;
-    case 8: return QFont::ExtraBold;
-    case 9: return QFont::Black;
-  }
-  return QFont::Normal;
+  return qBound(1,cssWeight,1000);
 }
 
 // CSS2.1 bolder/lighter: the resulting CSS weight (100-900) given the inherited one.
 int bolderCssWeight(int inheritedCss) {
-  if (inheritedCss < 350) return 400;   // 100-300 → 400
-  if (inheritedCss < 550) return 700;   // 400-500 → 700
-  return 900;                           // 600-900 → 900
+  if (inheritedCss < 350) return 400;
+  if (inheritedCss < 550) return 700;
+  return qMax(900,inheritedCss);
 }
 int lighterCssWeight(int inheritedCss) {
-  if (inheritedCss < 550) return 100;   // 100-500 → 100
-  if (inheritedCss < 750) return 400;   // 600-700 → 400
-  return 700;                           // 800-900 → 700
+  if (inheritedCss < 550) return qMin(100,inheritedCss);
+  if (inheritedCss < 750) return 400;
+  return 700;
 }
 
 struct ParsedFontWeight { int weight = 0; bool present = false; };
-// `inheritedCssWeight` (CSS 100-900 scale) drives the relative bolder/lighter keywords.
-// It defaults to 400 (normal) because the parent's resolved weight isn't wired to the call
-// sites yet; that is correct for the only realistic case (bolder/lighter on normal text) and
-// no built-in theme uses these keywords today. Pass the real inherited weight to honour them
-// exactly on already-bold/light text.
+// Relative weights normally arrive resolved by the shared computed-style
+// engine. Keep the legacy detached mapper's default-parent behavior.
 ParsedFontWeight parseFontWeight(const QString& raw, const QHash<QString, QString>& vars,
                                  int inheritedCssWeight = 400) {
   const QString v = CssThemeParser::resolveVars(raw, vars).trimmed().toLower();
@@ -196,8 +179,8 @@ ParsedFontWeight parseFontWeight(const QString& raw, const QHash<QString, QStrin
   if (v == QStringLiteral("bolder")) { return {cssWeightToQt(bolderCssWeight(inheritedCssWeight)), true}; }
   if (v == QStringLiteral("lighter")) { return {cssWeightToQt(lighterCssWeight(inheritedCssWeight)), true}; }
   bool ok = false;
-  const int numeric = v.toInt(&ok);
-  if (ok) { return {cssWeightToQt(numeric), true}; }
+  const qreal numeric = v.toDouble(&ok);
+  if (ok && numeric>=1 && numeric<=1000) { return {cssWeightToQt(qRound(numeric)), true}; }
   return {};
 }
 
@@ -282,6 +265,66 @@ qreal CssThemeMapper::resolveLengthPx(const QString& value, const QHash<QString,
 // path (elementStyleForNode) can map a node's computed style the same way.
 // `emPx` is the box-geometry em basis; `fontSizeEmPx` (default emPx) is the
 // font-size em basis (parent computed font size); `bodyPx` resolves rem/%.
+std::vector<ThemeBackgroundLayer> projectImageLayers(const CssComputedStyle& style,const CssLengthContext& paintContext,
+    const std::function<QString(QString)>& resolve) {
+  std::vector<ThemeBackgroundLayer> layers;
+  auto imageLayers = CssThemeParser::splitTopLevelCommas(resolve("background-image"));
+  if (imageLayers.isEmpty()) imageLayers << QStringLiteral("none");  // CSS initial value also owns a layer
+  QHash<QString, QStringList> layerValues;
+  for (const auto& property : {"background-position", "background-position-x", "background-position-y", "background-size",
+                               "background-repeat", "background-origin", "background-clip", "background-blend-mode"})
+    layerValues.insert(QLatin1String(property), CssThemeParser::splitTopLevelCommas(resolve(QLatin1String(property))));
+  const auto layerValue = [&](const char* property, qsizetype index) {
+    const auto& values = layerValues.constFind(QLatin1String(property)).value();
+    return values.isEmpty() ? QString() : values[index % values.size()].trimmed();
+  };
+  // Lists cycle independently; a `none` image still occupies a CSS layer.
+  for (qsizetype index = 0; index < imageLayers.size(); ++index) {
+    ThemeBackgroundLayer layer;
+    QString image = imageLayers[index].trimmed();
+    layer.image = parseGradientSpec(image, style.customProperties(), paintContext);
+    const auto urls = CssThemeParser::resourceUrls(image);
+    if (urls.size() == 1 && style.imageResources) {
+      layer.resource = style.imageResources->load(urls.front());
+      if (layer.resource) layer.bitmap = layer.resource->bitmap;
+    }
+    const auto position = parseCssPosition(layerValue("background-position", index), paintContext);
+    layer.positionX = position.first;
+    layer.positionY = position.second;
+    for (const auto* axis : {"background-position-x", "background-position-y"}) {
+      const auto value = layerValue(axis, index);
+      if (!value.isEmpty() && value != "initial") {
+        const bool x = QLatin1String(axis) == QLatin1String("background-position-x");
+        const auto parsed = parseCssPosition(x ? value + " top" : "left " + value, paintContext);
+        (x ? layer.positionX : layer.positionY) = x ? parsed.first : parsed.second;
+      }
+    }
+    const auto sizeValue = layerValue("background-size", index).toLower();
+    if (sizeValue == "cover") layer.sizeMode = ThemeBackgroundLayer::SizeMode::Cover;
+    else if (sizeValue == "contain") layer.sizeMode = ThemeBackgroundLayer::SizeMode::Contain;
+    else {
+      const auto size = splitTopLevelSpaces(sizeValue);
+      if (!size.isEmpty()) layer.sizeX = parseCssLengthPercentage(QStringView(size[0]), paintContext);
+      if (size.size() > 1) layer.sizeY = parseCssLengthPercentage(QStringView(size[1]), paintContext);
+    }
+    const auto repeat = splitTopLevelSpaces(layerValue("background-repeat", index).toLower());
+    if (!repeat.isEmpty()) {
+      const auto mode = [](const QString& value) {
+        using Repeat = ThemeBackgroundLayer::Repeat;
+        return value == "no-repeat" ? Repeat::NoRepeat : value == "space" ? Repeat::Space : value == "round" ? Repeat::Round : Repeat::Repeat;
+      };
+      layer.repeatX = repeat[0] == "repeat-y" ? ThemeBackgroundLayer::Repeat::NoRepeat : mode(repeat[0]);
+      layer.repeatY = repeat[0] == "repeat-x" ? ThemeBackgroundLayer::Repeat::NoRepeat : mode(repeat.size() > 1 ? repeat[1] : repeat[0]);
+    }
+    layer.blendMode = parseCssBlendMode(layerValue("background-blend-mode", index)).value_or(CssBlendMode::Normal);
+    const auto origin = layerValue("background-origin", index), clip = layerValue("background-clip", index);
+    if (!origin.isEmpty()) layer.origin = origin;
+    if (!clip.isEmpty()) layer.clip = clip;
+    layers.push_back(std::move(layer));
+  }
+  return layers;
+}
+
 ThemeElementStyle makeElementStyleForComputed(const QString& key, const CssComputedStyle& style) {
   const qreal emPx = style.fontSizePx * style.textScale;
   const qreal bodyPx = style.rootFontSizePx * style.textScale;
@@ -395,29 +438,28 @@ ThemeElementStyle makeElementStyleForComputed(const QString& key, const CssCompu
   }
   out.paint.color = styleColor(colorProps);
   out.paint.backgroundColor = styleColor(bgProps);
-  out.paint.backgroundImage = parseGradientSpec(style.rawValue(QStringLiteral("background-image")), style.customProperties(),
-                                               {emPx, bodyPx, emPx * .5, emPx * .5, style.viewportPx});
   const CssLengthContext paintContext{emPx, bodyPx, emPx * .5, emPx * .5, style.viewportPx};
-  const auto position = parseCssPosition(style.resolvedValue("background-position"), paintContext);
-  out.paint.backgroundPositionX = position.first;
-  out.paint.backgroundPositionY = position.second;
-  for (const auto& axis : {QStringLiteral("x"), QStringLiteral("y")}) {
-    const auto value = style.resolvedValue("background-position-" + axis);
-    if (!value.isEmpty()) {
-      const auto parsed = parseCssPosition(axis == "x" ? value + " top" : "left " + value, paintContext);
-      (axis == "x" ? out.paint.backgroundPositionX : out.paint.backgroundPositionY) = axis == "x" ? parsed.first : parsed.second;
+  out.paint.backgroundLayers=projectImageLayers(style,paintContext,[&](const QString& property){return style.resolvedValue(property);});
+  out.paint.backgroundColorClip=out.paint.backgroundLayers.back().clip;
+  const auto maskImages=CssThemeParser::splitTopLevelCommas(style.resolvedValue("mask-image"));
+  if(std::any_of(maskImages.begin(),maskImages.end(),[](const auto& image){return image.trimmed()!="none";})) {
+    const auto layers=projectImageLayers(style,paintContext,[&](QString property) {
+      property.replace("background-","mask-");
+      if(property=="mask-blend-mode")return QString("normal");
+      if(property=="mask-position-x" || property=="mask-position-y")return QString();
+      const auto value=style.resolvedValue(property);
+      return value.isEmpty() && property=="mask-origin" ? QString("border-box") : value;
+    });
+    const auto modes=CssThemeParser::splitTopLevelCommas(style.resolvedValue("mask-mode"));
+    const auto composites=CssThemeParser::splitTopLevelCommas(style.resolvedValue("mask-composite"));
+    for(size_t i=0;i<layers.size();++i) {
+      ThemeMaskLayer layer;layer.image=layers[i];
+      layer.none=maskImages[i%maskImages.size()].trimmed()=="none";
+      layer.luminance=!modes.isEmpty() && modes[i%modes.size()].trimmed()=="luminance";
+      if(!composites.isEmpty())layer.composite=composites[i%composites.size()].trimmed();
+      out.paint.maskLayers.push_back(std::move(layer));
     }
   }
-  const auto size = splitTopLevelSpaces(style.resolvedValue("background-size"));
-  if (!size.isEmpty()) out.paint.backgroundSizeX = parseCssLengthPercentage(QStringView(size[0]), paintContext);
-  if (size.size() > 1) out.paint.backgroundSizeY = parseCssLengthPercentage(QStringView(size[1]), paintContext);
-  const auto repeat = splitTopLevelSpaces(style.resolvedValue("background-repeat").toLower());
-  if (!repeat.isEmpty()) {
-    out.paint.backgroundRepeatX = repeat[0] != "no-repeat" && repeat[0] != "repeat-y";
-    out.paint.backgroundRepeatY = repeat.size() > 1 ? repeat[1] != "no-repeat" : repeat[0] != "no-repeat" && repeat[0] != "repeat-x";
-  }
-  if (style.hasProperty("background-origin")) out.paint.backgroundOrigin = style.resolvedValue("background-origin");
-  if (style.hasProperty("background-clip")) out.paint.backgroundClip = style.resolvedValue("background-clip");
   out.cloneInlineDecoration = style.resolvedValue("box-decoration-break") == "clone" ||
                               style.resolvedValue("-webkit-box-decoration-break") == "clone";
   bool opacityOk = false;
@@ -467,63 +509,29 @@ ThemeElementStyle makeElementStyleForComputed(const QString& key, const CssCompu
     }
     out.paint.transforms.push_back(t);
   }
-  // CSS `filter:` — a space-separated list of filter functions applied to the
-  // element's background box. Supports blur/brightness/contrast/grayscale/sepia/
-  // hue-rotate/opacity (invert/saturate/drop-shadow are out of scope). A bare
-  // number is a multiplier (0..1 for grayscale/sepia, × for the rest); `%` divides.
-  {
-    const auto parseFilterList = [&](const QString& raw, qreal blurEmPx) {
-      struct P { qreal blur=0, brightness=1, contrast=1, grayscale=0, sepia=0, hue=0, opacity=1; bool present=false; } p;
-      if (raw.isEmpty() || raw.startsWith(QStringLiteral("none"))) { return p; }
-      static const QRegularExpression funcRe(QStringLiteral("(\\w+)\\(([^)]+)\\)"));
-      auto it = funcRe.globalMatch(raw);
-      const auto numOrPct = [](const QString& v, qreal dflt) -> qreal {
-        QString t = v.trimmed();
-        const bool pct = t.endsWith(QLatin1Char('%'));
-        if (pct) { t.chop(1); }
-        bool ok = false;
-        const qreal n = t.trimmed().toDouble(&ok);
-        if (!ok) { return dflt; }
-        return pct ? n / 100.0 : n;
-      };
-      while (it.hasNext()) {
-        const QRegularExpressionMatch m = it.next();
-        const QString name = m.captured(1).toLower();
-        const QString arg = m.captured(2).trimmed();
-        if (name == QStringLiteral("blur")) { p.blur = lengthToPx(arg, style.customProperties(), blurEmPx); p.present = true; }
-        else if (name == QStringLiteral("brightness")) { p.brightness = numOrPct(arg, 1.0); p.present = true; }
-        else if (name == QStringLiteral("contrast")) { p.contrast = numOrPct(arg, 1.0); p.present = true; }
-        else if (name == QStringLiteral("opacity")) { p.opacity = numOrPct(arg, 1.0); p.present = true; }
-        else if (name == QStringLiteral("grayscale")) { p.grayscale = qBound(0.0, numOrPct(arg, 1.0), 1.0); p.present = true; }
-        else if (name == QStringLiteral("sepia")) { p.sepia = qBound(0.0, numOrPct(arg, 1.0), 1.0); p.present = true; }
-      }
-      static const QRegularExpression hueRe(QStringLiteral("hue-rotate\\s*\\(\\s*([+-]?\\d*\\.?\\d+)\\s*(deg|rad|turn|grad)?\\s*\\)"),
-                                            QRegularExpression::CaseInsensitiveOption);
-      if (const QRegularExpressionMatch hm = hueRe.match(raw); hm.hasMatch()) {
-        bool ok = false; qreal n = hm.captured(1).toDouble(&ok);
-        if (ok) {
-          const QString u = hm.captured(2).toLower();
-          if (u == QStringLiteral("rad")) { n = qRadiansToDegrees(n); }
-          else if (u == QStringLiteral("turn")) { n *= 360.0; }
-          else if (u == QStringLiteral("grad")) { n *= 0.9; }
-          p.hue = n; p.present = true;
-        }
-      }
-      return p;
-    };
-    const auto f = parseFilterList(style.resolvedValue(QStringLiteral("filter")).trimmed(), emPx);
-    if (f.present) {
-      out.paint.filterBlur = f.blur; out.paint.filterBrightness = f.brightness; out.paint.filterContrast = f.contrast;
-      out.paint.filterGrayscale = f.grayscale; out.paint.filterSepia = f.sepia; out.paint.filterHueRotateDeg = f.hue;
-      out.paint.filterOpacity = f.opacity; out.paint.filterPresent = true;
+  // Preserve authored function order and repetitions. Legacy scalar views
+  // remain available to existing callers, but painting uses the ordered lists.
+  out.paint.filters = parseCssFilters(style.resolvedValue("filter"),paintContext,out.paint.color).value_or(std::vector<CssFilterOperation>{});
+  out.paint.backdropFilters = parseCssFilters(style.resolvedValue("backdrop-filter"),paintContext,out.paint.color).value_or(std::vector<CssFilterOperation>{});
+  const auto scalarViews = [](const auto& list, qreal& blur, qreal& brightness, qreal& contrast, qreal& grayscale,
+                              qreal& sepia, qreal& hue, qreal& opacity) {
+    for(const auto& op:list) switch(op.kind) {
+      case CssFilterOperation::Kind::Blur: blur=op.value;break;
+      case CssFilterOperation::Kind::Brightness: brightness=op.value;break;
+      case CssFilterOperation::Kind::Contrast: contrast=op.value;break;
+      case CssFilterOperation::Kind::Grayscale: grayscale=op.value;break;
+      case CssFilterOperation::Kind::Sepia: sepia=op.value;break;
+      case CssFilterOperation::Kind::HueRotate: hue=op.value;break;
+      case CssFilterOperation::Kind::Opacity: opacity=op.value;break;
+      default:break;
     }
-    const auto b = parseFilterList(style.resolvedValue(QStringLiteral("backdrop-filter")).trimmed(), emPx);
-    if (b.present) {
-      out.paint.backdropBlur = b.blur; out.paint.backdropBrightness = b.brightness; out.paint.backdropContrast = b.contrast;
-      out.paint.backdropGrayscale = b.grayscale; out.paint.backdropSepia = b.sepia; out.paint.backdropHueRotateDeg = b.hue;
-      out.paint.backdropOpacity = b.opacity; out.paint.backdropPresent = true;
-    }
-  }
+  };
+  auto& paint=out.paint;
+  paint.filterPresent=!paint.filters.empty();paint.backdropPresent=!paint.backdropFilters.empty();
+  scalarViews(paint.filters,paint.filterBlur,paint.filterBrightness,paint.filterContrast,paint.filterGrayscale,
+      paint.filterSepia,paint.filterHueRotateDeg,paint.filterOpacity);
+  scalarViews(paint.backdropFilters,paint.backdropBlur,paint.backdropBrightness,paint.backdropContrast,paint.backdropGrayscale,
+      paint.backdropSepia,paint.backdropHueRotateDeg,paint.backdropOpacity);
   out.text.fontFamily = firstFamily(style.rawValue(QStringLiteral("font-family")), style.customProperties());
   out.text.fontSizePx = style.hasProperty(QStringLiteral("font-size")) ? style.fontSizePx : 0.0;
   out.text.fontSizeSet = style.hasProperty(QStringLiteral("font-size"));
@@ -587,36 +595,52 @@ ThemeElementStyle makeElementStyleForComputed(const QString& key, const CssCompu
 
 ThemeDefinition CssThemeMapper::fromSheet(const CssThemeSheet& source, const QString& id, CssEnvironment environment,
                                           const CssComputedStyleEngine* computedEngine) {
+  diag::ScopedPerfProbe perf("theme.map", mapperLoadPerf());
   const CssThemeSheet sheet = documentStyleSheet(source).evaluated(environment);
   ThemeDefinition d;
   d.isBuiltIn = false;
   d.id = id.toLower();
   d.sourceSheet = std::make_shared<CssThemeSheet>(source);
-  const auto ownedEngine = computedEngine ? nullptr : std::make_unique<CssComputedStyleEngine>(documentStyleSheet(source), environment);
+  const auto ownedEngine =
+      computedEngine ? nullptr : std::make_shared<CssComputedStyleEngine>(documentStyleSheet(source), environment);
   const auto& engine = computedEngine ? *computedEngine : *ownedEngine;
-  DocumentStylePrototypes tree(!computedEngine);
+  DocumentStylePrototypes tree(true);
+  struct PrototypeCacheScope {
+    const CssComputedStyleEngine& engine;
+    const DocumentStylePrototypes& tree;
+    ~PrototypeCacheScope() { engine.forgetElements(tree.cacheIdentities()); }
+  } prototypeCacheScope{engine, tree};
   ComputedDecorationStyles styles;
-  const QStringList hosts{"html",       "body", "#write",     "p",     "blockquote", "blockquote p", "ul",    "ol",       "li",
-                          "li::marker", "pre",  ".md-fences", "code",  "pre code",   "kbd",          "a",     "mark",     "del",
-                          "em",         "hr",   "table",      "thead", "thead tr",   "th",           "tbody", "tbody tr", "td",
-                          ".MathJax",   "h1",   "h2",         "h3",    "h4",         "h5",           "h6"};
-  for (const auto& host : hosts) {
-    const auto& element = tree.element(host);
-    styles.insert(host, engine.styleFor(element));
-    CssElementState hover;
-    hover.hover = true;
-    CssElementState focus;
-    focus.focus = true;
-    styles.insert(host + QStringLiteral(":hover"), engine.styleFor(element, hover));
-    styles.insert(host + QStringLiteral(":focus"), engine.styleFor(element, focus));
-    for (const auto& pseudo : {QStringLiteral("before"), QStringLiteral("after"), QStringLiteral("selection")}) {
-      const auto key = host + QStringLiteral("::") + pseudo;
-      const auto& el = tree.element(key);
-      styles.insert(key, engine.styleFor(el));
-      styles.insert(key + QStringLiteral(":hover"), engine.styleFor(el, hover));
-      styles.insert(key + QStringLiteral(":focus"), engine.styleFor(el, focus));
+  const QStringList hosts{"html",  "body",     "#write",     "p",     "blockquote", "blockquote p", "ul",
+                          "ol",    "li",       "li::marker", "pre",   ".md-fences", "code",         "pre code",
+                          "kbd",   "a",        "mark",       "del",   "em",         "hr",           "table",
+                          "thead", "thead tr", "th",         "tbody", "tbody tr",   "td",           ".MathJax",
+                          "h1",    "h2",       "h3",         "h4",    "h5",         "h6",           ".table-figure"};
+  {
+    diag::ScopedPerfProbe stylesPerf("theme.mapStyles", mapperLoadPerf());
+    for (const auto& host : hosts) {
+      const auto& element = tree.element(host);
+      const auto ordinary = engine.styleFor(element);
+      styles.insert(host, ordinary);
+      const auto stateMask = engine.interactiveStateMask(element);
+      CssElementState hover;
+      hover.hover = true;
+      CssElementState focus;
+      focus.focus = true;
+      styles.insert(host + QStringLiteral(":hover"), stateMask & 1 ? engine.styleFor(element, hover) : ordinary);
+      styles.insert(host + QStringLiteral(":focus"), stateMask & 2 ? engine.styleFor(element, focus) : ordinary);
+      for (const auto& pseudo : {QStringLiteral("before"), QStringLiteral("after"), QStringLiteral("selection")}) {
+        const auto key = host + QStringLiteral("::") + pseudo;
+        const auto& el = tree.element(key);
+        const auto normal = engine.styleFor(el);
+        const auto mask = engine.interactiveStateMask(el);
+        styles.insert(key, normal);
+        styles.insert(key + QStringLiteral(":hover"), mask & 1 ? engine.styleFor(el, hover) : normal);
+        styles.insert(key + QStringLiteral(":focus"), mask & 2 ? engine.styleFor(el, focus) : normal);
+      }
     }
   }
+  diag::ScopedPerfProbe projectionPerf("theme.mapProjection", mapperLoadPerf());
   const auto style = [&](const QString& key) -> const CssComputedStyle& { return styles.constFind(key).value(); };
   const auto project = [&](const QString& key) { return projectComputedStyle(key, style(key)); };
   const auto color = [&](const QString& key, const char* property = "color") {
@@ -803,7 +827,7 @@ ThemeDefinition CssThemeMapper::fromSheet(const CssThemeSheet& source, const QSt
     for (const auto& rule : d.decorations.pseudos) {
       if (rule.host != host) continue;
       if (std::any_of(rule.contentTokens.begin(), rule.contentTokens.end(),
-                      [](const ContentToken& t) { return t.kind != ContentToken::Kind::Literal; }))
+                      [](const ContentToken& t) { return t.kind == ContentToken::Kind::Counter || t.kind == ContentToken::Kind::Counters; }))
         d.decorations.hasHeadingCounters = true;
     }
   }
@@ -962,6 +986,11 @@ ThemeDefinition CssThemeMapper::fromSheet(const CssThemeSheet& source, const QSt
   }
   d.hasStructuralRules = engine.selectorFeatures().hasStructuralRules;
   d.hasNthOfType = engine.selectorFeatures().needsTypeIndex;
+  if (ownedEngine) {
+    ownedEngine->clearCache();
+    d.preparedEngine = ownedEngine;
+    d.preparedSourceRevision = source.revision();
+  }
   return d;
 }
 

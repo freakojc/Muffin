@@ -6,6 +6,7 @@
 #include "render/DecorationPainter.h"
 #include "render/DocumentLayout.h"
 #include "render/BlockLayout.h"
+#include "render/BlockFormattingCache.h"
 #include "theme/CssThemeMapper.h"
 #include "theme/CssComputedStyleEngine.h"
 #include "theme/FontRendering.h"
@@ -33,6 +34,42 @@
 using namespace muffin;
 
 namespace {
+
+void testThemeSignatureRetainsSnapshotAndInvalidatesMutation() {
+  BlockFormattingCache cache;
+  auto definition = *ThemeDefinition::builtIn(QStringLiteral("github"));
+  auto sheet = std::make_shared<CssThemeSheet>(CssThemeParser::parse("p { color: red; }", {}));
+  definition.sourceSheet = sheet;
+  auto theme = RenderTheme::fromDefinition(definition);
+  cache.beginPass(false, {});
+  const QByteArray initial = cache.themeSignature(theme);
+  const char* storage = initial.constData();
+  for (int i = 0; i < 8; ++i) {
+    cache.beginPass(i % 2, {});
+    require(cache.themeSignature(theme).constData() == storage, "unchanged sheet must retain hash across full and incremental passes");
+  }
+  const auto before = sheet->revision();
+  sheet->setVariable(QStringLiteral("--tone"), QStringLiteral("blue"));
+  require(sheet->revision() != before, "CSS mutation must advance global revision");
+  cache.beginPass(true, {});
+  const auto changed = cache.themeSignature(theme);
+  require(changed != initial, "mutation through a mutable sheet alias must invalidate signature");
+  *sheet = CssThemeParser::parse("h1 { font-size: 36px; }", {});
+  cache.beginPass(true, {});
+  require(cache.themeSignature(theme) != changed, "sheet replacement in the same object must invalidate signature");
+  const auto assigned = cache.themeSignature(theme);
+  auto copied = *sheet;
+  const auto copiedRevision = copied.revision();
+  copied.addFontFace({QStringLiteral("test-face"), QStringLiteral("font.ttf")});
+  require(copied.revision() != copiedRevision && sheet->revision() == copiedRevision, "copy mutation must not alter original generation");
+  *sheet = std::move(copied);
+  cache.beginPass(true, {});
+  require(cache.themeSignature(theme) != assigned, "font-face mutation invalidates signature");
+  auto other = RenderTheme::night();
+  cache.beginPass(false, {});
+  const QByteArray otherSignature = cache.themeSignature(other);
+  require(otherSignature != cache.themeSignature(theme), "theme changes must not reuse previous stylesheet hash");
+}
 
 void testScreenFontRenderingPolicy() {
   QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
@@ -729,15 +766,15 @@ void testStructuralAdapterStaysSparseOnFlatDocuments() {
 
   NodeCssElementBuilder builder(false);
   const CssElement* target = builder.build(*root.children().at(kParagraphCount / 2));
-  require(builder.materializedElementCount() == 4,
-          QStringLiteral("building one flat node should materialize only html/body/root/target"));
+  require(builder.materializedElementCount() == 5,
+          QStringLiteral("building one flat node should materialize only html/body/content/root/target"));
 
   const CssThemeSheet sheet = CssThemeParser::parse(
       QStringLiteral("#write p + p { color:#123456; }"), QString());
   const CssComputedStyle style = CssComputedStyleEngine(sheet).styleFor(*target);
   require(style.resolvedValue(QStringLiteral("color")) == QStringLiteral("#123456"),
           QStringLiteral("sparse adapter should still resolve adjacent siblings"));
-  require(builder.materializedElementCount() == 5,
+  require(builder.materializedElementCount() == 6,
           QStringLiteral("adjacent matching should materialize only the previous sibling"));
 
   NodeCssElementBuilder generalSiblingBuilder(false);
@@ -747,7 +784,7 @@ void testStructuralAdapterStaysSparseOnFlatDocuments() {
   const CssComputedStyle generalStyle = CssComputedStyleEngine(generalSheet).styleFor(*generalTarget);
   require(generalStyle.resolvedValue(QStringLiteral("color")) == QStringLiteral("#654321"),
           QStringLiteral("sparse adapter should resolve general siblings"));
-  require(generalSiblingBuilder.materializedElementCount() == 5,
+  require(generalSiblingBuilder.materializedElementCount() == 6,
           QStringLiteral("general sibling matching should stop after the nearest match"));
 }
 
@@ -1025,6 +1062,7 @@ int main(int argc, char** argv) {
   document.setMarkdownText(markdown, std::move(parsed.root));
 
 #define RUN_TEST(test) runTest(#test, test)
+  RUN_TEST(testThemeSignatureRetainsSnapshotAndInvalidatesMutation);
   RUN_TEST(testScreenFontRenderingPolicy);
   RUN_TEST(testScreenFontRenderingReachesEveryDocumentFontPath);
   RUN_TEST(testThemeCodeFontFallbackOrder);

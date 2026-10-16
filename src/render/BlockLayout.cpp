@@ -1,4 +1,5 @@
 #include "render/BlockLayout.h"
+#include "diagnostics/ThemePerformance.h"
 #include "render/CssPaintAnimation.h"
 #include "render/RenderMetrics.h"
 
@@ -283,6 +284,7 @@ QRectF BlockLayout::cssBorderBox() const { return cssBoxGeometry_.borderBox; }
 QPointF BlockLayout::inlineTextOrigin() const { return cssBoxGeometry_.inlineTextOrigin; }
 QRectF BlockLayout::visualOverflowRect() const {
   auto bounds = cssBoxGeometry_.visualOverflow;
+  if (outerCssBox_) bounds = bounds.united(outerCssBox_->visualOverflow);
   for (const auto& pseudo : positionedPseudos_)
     for (const auto& box : pseudo.boxes)
       if (box.valid) bounds = bounds.united(box.visualOverflow.translated(rect_.topLeft()));
@@ -312,7 +314,7 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
     for (int stateIndex = 0; stateIndex < 4; ++stateIndex) {
       CssElementState state; state.hover = stateIndex & 1; state.focus = stateIndex & 2;
       const auto rule = theme.pseudoForElement(*origin, name, state);
-      positionedPseudoFingerprints_[pseudoIndex * 4 + stateIndex] = rule && rule->computed ? rule->computed->fingerprint() : 0;
+      positionedPseudoFingerprints_[pseudoIndex * 4 + stateIndex] = generatedContentFingerprint(rule);
       if (!rule || !rule->absolute || !containing.isValid()) continue;
       const auto value = generatedContentStyle(theme, *rule, cssBoxGeometry_.font, containing.size(),
           pseudoIndex == 0 ? resolvedText.first : resolvedText.second);
@@ -328,13 +330,9 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
         text->setFormats({{0, int(v.text.size()), format}});
         QTextOption option; option.setWrapMode(QTextOption::WordWrap); text->setTextOption(option);
         const auto natural = intrinsicTextWidths(*text, false, false);
-        qreal width = valid("width") ? qMax<qreal>(0, v.width - inset.left() - inset.right())
+        qreal width = valid("width") || (valid("left") && valid("right")) ? qMax<qreal>(0, v.width - inset.left() - inset.right())
             : qMin(natural.maxContent, containing.width() - inset.left() - inset.right());
-        if (!valid("width") && valid("left") && valid("right")) {
-          const auto left = rule->computed->length("left"), right = rule->computed->length("right");
-          width = containing.width() - (left.px + right.px) * zoom - (left.fraction + right.fraction) * containing.width()
-              - inset.left() - inset.right() - v.used.margin.left() - v.used.margin.right();
-        }
+        width = constrainedGeneratedSize(v,containing.size(),{width+inset.left()+inset.right(),v.height},zoom).width()-inset.left()-inset.right();
         text->beginLayout(); qreal y = 0;
         for (;;) {
           auto line = text->createLine(); if (!line.isValid()) break;
@@ -344,7 +342,7 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
         }
         text->endLayout();
         if (!valid("width")) v.width = qMax<qreal>(0, width) + inset.left() + inset.right();
-        if (!valid("height")) v.height = y + inset.top() + inset.bottom();
+        if (!valid("height") && !(valid("top") && valid("bottom"))) v.height = y + inset.top() + inset.bottom();
         fragment.texts[stateIndex] = std::move(text);
       }
       auto staticOrigin = cssBoxGeometry_.contentBox.topLeft() - rect_.topLeft();
@@ -353,8 +351,8 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
         staticOrigin = caret.topLeft() + inlineTextOrigin() - rect_.topLeft();
       }
       const auto rect = positionGeneratedContent(v, containing, QRectF(staticOrigin, QSizeF(v.width, v.height)), zoom);
+      fragment.untransformedRects[stateIndex] = positionGeneratedContent(v,containing,QRectF(staticOrigin,QSizeF(v.width,v.height)),zoom,false);
       if (stateIndex == 0) {
-        fragment.untransformedRect = positionGeneratedContent(v, containing, QRectF(staticOrigin, QSizeF(v.width, v.height)), zoom, false);
         int side = 0;
         for (const auto& property : {"top", "right", "bottom", "left"}) fragment.anchors[side++] = rule->computed->length(property);
       }
@@ -388,37 +386,34 @@ void BlockLayout::paintPositionedPseudos(QPainter& painter, QPointF origin, qrea
     if (!snapshot.valid) continue;
     // Animation interpolates already laid-out endpoints; no CSS is evaluated here.
     auto box = LayoutBox::place(snapshot.hostKey, snapshot.style, snapshot.usedBox, geometry(fragment.boxes), snapshot.font);
-    if (context) {
-      auto style = fragment.recipe ? context->sample(*fragment.recipe, id_.toString() + "::" + fragment.identity,
+    {
+      auto style = context && fragment.recipe ? context->sample(*fragment.recipe, id_.toString() + "::" + fragment.identity,
                                   state | (hover > .5 && context->pressed ? 4 : 0)) : snapshot.style;
-      auto rect = fragment.untransformedRect;
+      auto rect = blend(blend(fragment.untransformedRects[0],fragment.untransformedRects[1],hover),
+                        blend(fragment.untransformedRects[2],fragment.untransformedRects[3],hover),focus);
       const auto inset = LayoutBox::insets(snapshot.usedBox);
-      const auto size = [&](const CssLengthPercentage& value, qreal basis, qreal extra, qreal fallback) {
-        return value.status == CssLengthStatus::Valid ? qMax<qreal>(0, value.px * zoom + value.fraction * basis + extra) : fallback;
+      const auto size = [&](const CssLengthPercentage& value,const CssLengthPercentage& minimum,const CssLengthPercentage& maximum,
+                            qreal basis,qreal padding,qreal fallback) {
+        const qreal extra=style.box.borderBox?0:padding;
+        const auto used=[&](const auto& length){return length.px*zoom+length.fraction*basis+extra;};
+        auto size=value.status==CssLengthStatus::Valid?used(value):fallback;
+        if(maximum.status==CssLengthStatus::Valid)size=qMin(size,used(maximum));
+        if(minimum.status==CssLengthStatus::Valid)size=qMax(size,used(minimum));
+        return qMax(padding,size);
       };
-      rect.setWidth(size(style.box.widthLength, fragment.containing.width(), style.box.borderBox ? 0 : inset.left() + inset.right(), rect.width()));
-      rect.setHeight(size(style.box.heightLength, fragment.containing.height(), style.box.borderBox ? 0 : inset.top() + inset.bottom(), rect.height()));
-      const auto anchor = [&](int index, qreal basis) { return fragment.anchors[index].px * zoom + fragment.anchors[index].fraction * basis; };
-      if (fragment.anchors[3].status == CssLengthStatus::Valid) rect.moveLeft(fragment.containing.left() + anchor(3, fragment.containing.width()) + snapshot.usedBox.margin.left());
-      else if (fragment.anchors[1].status == CssLengthStatus::Valid) rect.moveRight(fragment.containing.right() - anchor(1, fragment.containing.width()) - snapshot.usedBox.margin.right());
-      if (fragment.anchors[0].status == CssLengthStatus::Valid) rect.moveTop(fragment.containing.top() + anchor(0, fragment.containing.height()) + snapshot.usedBox.margin.top());
-      else if (fragment.anchors[2].status == CssLengthStatus::Valid) rect.moveBottom(fragment.containing.bottom() - anchor(2, fragment.containing.height()) - snapshot.usedBox.margin.bottom());
+      rect.setWidth(size(style.box.widthLength,style.box.minWidthLength,style.box.maxWidthLength,fragment.containing.width(),inset.left()+inset.right(),rect.width()));
+      rect.setHeight(size(style.box.heightLength,style.box.minHeightLength,style.box.maxHeightLength,fragment.containing.height(),inset.top()+inset.bottom(),rect.height()));
+      // Preserve the selected state's right/bottom anchor when an animated size changes.
+      const auto& anchors = fragment.rules[state].computed;
+      if (anchors && anchors->length("left").status != CssLengthStatus::Valid && anchors->length("right").status == CssLengthStatus::Valid)
+        rect.moveRight(fragment.untransformedRects[state].right());
+      if (anchors && anchors->length("top").status != CssLengthStatus::Valid && anchors->length("bottom").status == CssLengthStatus::Valid)
+        rect.moveBottom(fragment.untransformedRects[state].bottom());
       auto used = snapshot.usedBox; used.borderRadius = style.box.borderRadius * zoom;
       box = LayoutBox::place(snapshot.hostKey, std::move(style), used, rect, snapshot.font);
     }
     const auto& rule = fragment.rules[state];
     auto paint = box.style.paint;
-    if (!context) {
-      paintLayoutBox(painter, box, origin);
-      painter.save(); painter.setOpacity(painter.opacity() * rule.opacity);
-      if (!rule.svgData.isEmpty()) {
-        painter.setClipRect(box.contentBox.translated(origin), Qt::IntersectClip);
-        auto icon = fragment.icons[state]; icon.translate(box.contentBox.topLeft() - snapshot.contentBox.topLeft() + origin);
-        DecorationPainter::paintIcon(painter, rule.svgData, icon, rule.svgFromMask ? rule.maskTint : rule.color, rule.svgFromMask);
-      } else if (fragment.texts[state]) fragment.texts[state]->draw(&painter, box.inlineTextOrigin + origin);
-      painter.restore();
-      continue;
-    }
     paintCssElement(painter, box.borderBox.translated(origin), box.visualOverflow.translated(origin), paint, zoom, context,
         [&](QPainter& target, const ThemeElementPaintStyle& unfiltered) {
       auto style = box.style; style.paint = unfiltered;
@@ -436,7 +431,7 @@ void BlockLayout::paintPositionedPseudos(QPainter& painter, QPointF origin, qrea
         fragment.texts[state]->draw(&target, box.inlineTextOrigin + origin,
                                    {{0, int(fragment.texts[state]->text().size()), format}});
       }
-    });
+    },&box);
   }
 }
 
@@ -476,7 +471,7 @@ bool BlockLayout::stylesMatch(const RenderTheme& theme, const MarkdownDocument& 
       for (int bits = 0; bits < 4; ++bits) {
         CssElementState state; state.hover = bits & 1; state.focus = bits & 2;
         const auto rule = theme.pseudoForElement(*theme.cssElementForNode(*node), pseudo, state);
-        if ((rule && rule->computed ? rule->computed->fingerprint() : quint64(0)) != positionedPseudoFingerprints_[index++]) return false;
+        if ((generatedContentFingerprint(rule)) != positionedPseudoFingerprints_[index++]) return false;
       }
   }
   const auto matches = [&](const LayoutBox& box, const MarkdownNode& owner) {
@@ -484,6 +479,7 @@ bool BlockLayout::stylesMatch(const RenderTheme& theme, const MarkdownDocument& 
     return style && style->fingerprint == box.style.fingerprint;
   };
   if (!cssBoxGeometry_.hostKey.isEmpty() && !matches(cssBoxGeometry_, *node)) return false;
+  if (outerCssBox_ && !matches(*outerCssBox_, *node)) return false;
   if (inlineLayout_) {
     const auto* owner = node;
     if (type_ == BlockType::ListItem) {
@@ -512,6 +508,11 @@ bool BlockLayout::stylesMatch(const RenderTheme& theme, const MarkdownDocument& 
 void BlockLayout::translate(qreal dx, qreal dy) {
   reuse.origin += QPointF(dx, dy);
   rect_.translate(dx, dy);
+  if (outerCssBox_) {
+    outerCssBox_->flowRect.translate(dx, dy); outerCssBox_->borderBox.translate(dx, dy);
+    outerCssBox_->paddingBox.translate(dx, dy); outerCssBox_->contentBox.translate(dx, dy);
+    outerCssBox_->visualOverflow.translate(dx, dy); outerCssBox_->inlineTextOrigin += QPointF(dx, dy);
+  }
   if (cssBoxGeometry_.valid) {
     cssBoxGeometry_.flowRect.translate(dx, dy);
     cssBoxGeometry_.borderBox.translate(dx, dy);
@@ -1074,6 +1075,7 @@ const std::vector<BlockLayout::TableRowLayout>& BlockLayout::tableRows() const {
 }
 
 void BlockLayout::paint(QPainter& painter, const RenderTheme& theme, qreal scrollY, const CodeFenceScrollController* scroll, BlockPaintState hover) const {
+  ThemePerfScope performance(ThemePerfStage::Paint);
   painter.save();
   ThemeElementStyle sampled = cssBoxGeometry_.style;
   if (hover.css) {
@@ -1088,7 +1090,7 @@ void BlockLayout::paint(QPainter& painter, const RenderTheme& theme, qreal scrol
   paintCssElement(painter, cssBoxGeometry_.borderBox.translated(0, -scrollY), visualOverflowRect().translated(0, -scrollY),
       sampled.paint, theme.zoomPercent() / 100., hover.css, [&](QPainter& target, const ThemeElementPaintStyle& paint) {
     auto style = sampled; style.paint = paint;
-    hover.hostStyle = hover.css || sampled.paint.opacity != 1 || sampled.paint.filterPresent ? &style : nullptr;
+    hover.hostStyle = hover.css || sampled.paint.opacity!=1 || sampled.paint.filterPresent || !sampled.paint.maskLayers.empty() ? &style : nullptr;
   const auto& overflow = cssBoxGeometry_.style.layout;
   if (cssBoxGeometry_.valid && (overflow.clipsX() || overflow.clipsY())) {
     auto clip = cssBoxGeometry_.paddingBox.translated(0, -scrollY);
@@ -1112,7 +1114,7 @@ void BlockLayout::paint(QPainter& painter, const RenderTheme& theme, qreal scrol
     const auto& child = children_[formattingPaintOrder_.empty() ? i : formattingPaintOrder_[i]];
     child->paint(target, theme, scrollY, scroll, hover);
   }
-  });
+  },&cssBoxGeometry_);
   painter.restore();
 }
 
@@ -1322,10 +1324,10 @@ void BlockLayout::paintInlineBlock(QPainter& painter, const RenderTheme& theme, 
 void BlockLayout::paintBlockQuote(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState state) const {
   painter.save();
   painter.setPen(Qt::NoPen);
-  if (alertKind_ != AlertKind::None) {
+  if (alertKind_ != AlertKind::None && !alertThemed_) {
     // GitHub-style alert card: tinted background (semi-transparent accent, so it adapts to the
-    // page background of any theme) with a solid accent left bar. v1 keeps the `[!KIND]` first
-    // line visible; an icon/title row is a later enhancement.
+    // page background of any theme) with a solid accent left bar. Author rules
+    // for semantic alert classes use the ordinary LayoutBox path below.
     QColor tint = theme.alertAccent(alertKind_);
     tint.setAlphaF(0.10f);
     painter.setBrush(tint);
@@ -1763,6 +1765,7 @@ void BlockLayout::paintCodeLineNumbers(QPainter& painter, const RenderTheme& the
 
 void BlockLayout::paintTable(QPainter& painter, const RenderTheme& theme, qreal scrollY, BlockPaintState state) const {
   painter.save();
+  if (outerCssBox_) paintLayoutBox(painter, *outerCssBox_, QPointF(0, -scrollY));
   paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), state.hostStyle);
   for (const TableRowLayout& row : tableRows_) {
     paintLayoutBox(painter, row.box, QPointF(0, -scrollY));

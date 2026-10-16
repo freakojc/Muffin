@@ -43,6 +43,8 @@ public:
   // or a read failure — in which case callers fall back to a default stylesheet.
   QString currentThemeCss() const;
 
+  // Synchronous selection notifications share the definition verified here.
+  // Independent/queued reads still revalidate the complete resource contents.
   bool setTheme(QString name);
 
   // Re-scan *.css/*.json filenames and revalidate the active theme. Built-in
@@ -73,6 +75,9 @@ signals:
 private:
   void loadDefinitions();
   ThemeDefinition loadDefinition(const QString& id, bool revalidate, bool* changed = nullptr) const;
+  bool selectTheme(QString name);
+  struct DefinitionReadScope;
+  DefinitionReadScope* readScope_ = nullptr;
 
   QString currentThemeName_ = QStringLiteral("github");
   QString themeDirectory_;
@@ -84,6 +89,12 @@ private:
   };
   // Bounded, process-local LRU. Runtime Qt/font objects are not serialized.
   mutable QCache<QString, CachedTheme> loaded_{8};
+  struct PreparedTheme {
+    std::shared_ptr<const CssThemeSheet> source;
+    quint64 revision;
+    RenderTheme theme;
+  };
+  mutable QCache<QString, PreparedTheme> prepared_{8};
   // id → absolute source path of the theme's *.css (":/themes/<id>.css" for
   // built-ins, the disk file for custom *.css themes). Absent for JSON-only
   // custom themes. Populated by loadDefinitions(); used by currentThemeCss().

@@ -1,4 +1,5 @@
 #include "editor/EditorView.h"
+#include "diagnostics/ViewportUpdate.h"
 
 #include "diagnostics/ScopedPerfProbe.h"
 
@@ -281,6 +282,7 @@ void EditorView::scrollContentsBy(int dx, int dy) {
   QAbstractScrollArea::scrollContentsBy(dx, dy);
   if (layout_ && document_) {
     ensureVisibleBuilt();
+    if (!inScrollBuild_ && isVisible()) viewportPrefetchTimer_->start(120);
   }
   updateCodeLanguageEditor();
   updateTableToolbar();
@@ -291,10 +293,9 @@ void EditorView::ensureVisibleBuilt() {
     return;
   }
   const QRectF vis = documentViewportRect();
-  // A pending width reflow must measure the screen, not reshape several screens
-  // of overscan on every drag step. Restore normal scroll prefetch after the
-  // bounded idle estimate pass completes.
-  const qreal buffer = layout_->hasPendingViewportEstimates() ? 80.0 : viewport()->height() * 1.5;
+  // Geometry needed by painting/hit-testing stays synchronous. Overscan is
+  // promoted separately, after scrolling settles, with a bounded idle budget.
+  const qreal buffer = 80.0;
   const QPair<qsizetype, qsizetype> range = layout_->slotRangeOverlappingY(vis.top() - buffer, vis.bottom() + buffer);
   if (range.first < 0) {
     return;
@@ -303,6 +304,35 @@ void EditorView::ensureVisibleBuilt() {
   // so the snap is absorbed entirely into the scrollbar range/value and never moves the content.
   ScopedViewportPin pin(*this);
   layout_->ensureBuilt(range.first, range.second, theme_);
+  if (isVisible() && viewportPrefetchTimer_ && !viewportPrefetchTimer_->isActive()) viewportPrefetchTimer_->start(120);
+}
+
+void EditorView::prefetchViewport() {
+  if (!layout_ || !document_ || loading_ || !isVisible() || inScrollBuild_) return;
+  if (layout_->hasPendingViewportEstimates()) {
+    viewportPrefetchTimer_->start(120);
+    return;
+  }
+  PerfTimer perf("view.prefetch");
+  bool complete = true;
+  {
+    ScopedViewportPin pin(*this);
+    const auto vis = documentViewportRect();
+    const qreal buffer = viewport()->height() * 1.5;
+    // Re-read the current viewport on every slice: scrolls, edits, resizes and
+    // theme/document changes replace the request rather than leaving old work.
+    const auto range = layout_->slotRangeOverlappingY(vis.top() - buffer, vis.bottom() + buffer);
+    {
+      PerfTimer buildPerf("view.prefetch.build");
+      complete = layout_->prefetch(range.first, range.second, theme_);
+    }
+    {
+      PerfTimer trimPerf("view.prefetch.trim");
+      layout_->trimDetails(range.first, range.second, theme_,
+                           {cursorPosition_.blockId, selection_.anchor.blockId, selection_.focus.blockId, editingHtmlBlockId_});
+    }
+  }
+  if (!complete) viewportPrefetchTimer_->start(16);
 }
 
 EditorView::ViewportAnchor EditorView::captureViewportAnchor(NodeId preferNode) const {
@@ -446,7 +476,7 @@ bool EditorView::scrollCodeFenceHorizontally(QWheelEvent* event, bool horizontal
   const qreal current = codeFenceScroll_->offsetFor(hit.blockId);
   const qreal maxOffset = qMax<qreal>(0.0, maxW - visibleW);
   codeFenceScroll_->setOffset(hit.blockId, qBound<qreal>(0.0, current - delta / 120.0 * step, maxOffset));
-  viewport()->update();
+  diag::updateViewport(viewport());
   return true;
 }
 
@@ -473,7 +503,7 @@ void EditorView::dragCodeFenceScrollBarTo(NodeId blockId, QPointF viewportPos) {
   const qreal t = qBound<qreal>(0.0, (viewportPos.x() - strip.left() - thumbW * 0.5) / trackRange, 1.0);
   const qreal maxOffset = qMax<qreal>(0.0, maxW - visibleW);
   codeFenceScroll_->setOffset(blockId, t * maxOffset);
-  viewport()->update();
+  diag::updateViewport(viewport());
 }
 
 void EditorView::ensureCodeFenceCursorVisible() {
@@ -516,7 +546,7 @@ void EditorView::ensureCodeFenceCursorVisible() {
   }
   if (next != current) {
     codeFenceScroll_->setOffset(cursorHit_.blockId, next);
-    viewport()->update();
+    diag::updateViewport(viewport());
   }
 }
 

@@ -3,6 +3,7 @@
 #include "render/InlineDisplayMap.h"
 #include "render/InlineComposition.h"
 #include "render/InlineTextFormats.h"
+#include "render/TextShadowPainter.h"
 
 #include "document/InlineNode.h"
 #include "projection/InlineProjection.h"
@@ -46,6 +47,7 @@ public:
     QString documentPath;  // resource base belongs to this layout/document, never global CWD
     qsizetype sourceBase = -1;
     qsizetype pendingPrefixLength = 0;
+    QVector<InlineSourceReplacement> sourceReplacements;
     // When set, misspelled prose words within Text spans receive a SpellCheck underline.
     // Supplied by the builder from the SpellChecker; InlineLayout itself stays free of any
     // spell-check dependency.
@@ -240,10 +242,16 @@ private:
     qsizetype visibleAnchor = 0;
     QString href;
     qsizetype hostRangeStart = -1, hostRangeEnd = -1;
+    qsizetype hostSourceStart = -1, hostSourceEnd = -1;
+    int hostRun = -1;
     Kind kind = Kind::Shape;
     QString text;
     PseudoElementRule rule;
     QFont font;
+    bool semanticImage = false;
+    bool semanticFillCurrentColor = false;
+    std::shared_ptr<const CssImageResource> imageResource;
+    QVector<int> fragments;
   };
 
   using HtmlFormatSpan = InlineHtmlFormatSpan;
@@ -262,7 +270,7 @@ private:
                                  GeneratedPseudoAtom::Kind kind, const QFont& font,
                                  qreal width, qreal height, qreal marginLeft, qreal marginRight,
                                  bool before, qsizetype projectionAnchor, qsizetype visibleAnchor,
-                                 QString href = {});
+                                 QString href = {}, qsizetype layoutPosition = -1);
   void buildMathAtoms(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width);
   void buildImageAtoms(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width, const QString& documentPath);
   QString texForInlineMathSpan(const QVector<InlineNode>& inlines, const InlineProjectionSpan& span) const;
@@ -289,7 +297,9 @@ private:
   void paintTextLayoutMathAtoms(QPainter& painter, QPointF origin) const;
   void paintTextLayoutImageAtoms(QPainter& painter, QPointF origin) const;
   void paintGeneratedPseudoAtoms(QPainter& painter, QPointF origin, CssPaintContext* context, const QString& identity,
-                                 qreal hoverPhase, qreal focusPhase) const;
+                                 qreal hoverPhase, qreal focusPhase, qsizetype focusSourceOffset) const;
+  int generatedPseudoState(const GeneratedPseudoAtom& atom, QPainter& painter, QPointF origin,
+                           const CssPaintContext& context, qreal hoverPhase, qreal focusPhase, qsizetype focusSourceOffset) const;
   void paintImagePreview(QPainter& painter, QPointF origin) const;
   QVector<QTextLayout::FormatRange> textLayoutFormats(const RenderTheme& theme, const QFont& baseFont, const QString& layoutText) const;
   qsizetype visibleOffsetForDisplayOffset(qsizetype displayOffset) const;
@@ -305,6 +315,7 @@ private:
   QVector<QRectF> selectionRectsForDisplayOffsets(qsizetype startDisplayOffset, qsizetype endDisplayOffset) const;
 
   std::unique_ptr<TextLayout> textLayout_;
+  mutable TextShadowPainter shadowPainter_;
   QSizeF size_;
 
   QColor baseTextColorOverride_;  // invalid → theme.textColor() for plain runs
@@ -325,6 +336,8 @@ private:
   struct ElementRun {
     qsizetype start = 0, end = 0, sourceStart = 0, sourceEnd = 0;
     int parent = -1;
+    int ancestorDepth = 0;
+    qsizetype paintStart = 0, paintEnd = 0;
     QString identity;
     std::shared_ptr<const LayoutBox> style;
     QVector<int> fragments;
@@ -337,8 +350,10 @@ private:
     qsizetype sourceOffset = 0;
     QString tag, pseudo;
     quint64 fingerprint = 0;
+    int ancestorDepth = -1;
   };
   QVector<InlinePseudoFingerprint> inlinePseudoFingerprints_;
+  QVector<quint64> inlineImageFingerprints_;
   quint64 pseudoBeforeFingerprint_ = 0, pseudoAfterFingerprint_ = 0;
   QVector<QTextLayout::FormatRange> generatedPseudoFormats_;
   GradientSpec markGradient_;

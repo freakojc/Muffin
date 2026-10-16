@@ -3,6 +3,7 @@
 #include "theme/ThemeDefinition.h"
 #include <QFont>
 #include "render/TextLayout.h"
+#include "render/Filter.h"
 #include <QRectF>
 #include <QHash>
 #include <QTransform>
@@ -87,6 +88,8 @@ struct LayoutBox {
     box.inlineTextOrigin = box.contentBox.topLeft();
     const qreal overflow = qMax(box.style.paint.boxShadowBlur + box.style.paint.boxShadowSpread, box.style.paint.filterBlur + 2);
     box.visualOverflow = rect.adjusted(-overflow, -overflow, overflow, overflow);
+    const auto scale=box.style.text.fontSizePx>0 && box.font.pointSizeF()>0 ? box.font.pointSizeF()*96/72/box.style.text.fontSizePx : 1;
+    box.visualOverflow=box.visualOverflow.united(rect.marginsAdded(cssFilterOutsets(box.style.paint,scale)));
     box.valid = true;
     return box;
   }
@@ -98,7 +101,8 @@ QTransform elementPaintTransform(const ThemeElementPaintStyle& style, const QRec
 // background and glyphs together. The callback receives neutral layer effects.
 void paintCssElement(QPainter& painter, QRectF borderBox, QRectF visualBounds, const ThemeElementPaintStyle& style,
                      qreal zoom, CssPaintContext* context,
-                     const std::function<void(QPainter&, const ThemeElementPaintStyle&)>& contents);
+                     const std::function<void(QPainter&, const ThemeElementPaintStyle&)>& contents,
+                     const LayoutBox* maskGeometry = nullptr);
 
 // One immutable used-style snapshot can serve every equivalent inline run in a
 // layout generation. Positioned fragments keep their own geometry separately.

@@ -1,4 +1,5 @@
 #include "theme/ThemeDefinition.h"
+#include "diagnostics/ScopedPerfProbe.h"
 #include "render/LayoutResources.h"
 #include "theme/ThemeFontDecoder.h"
 #include <QCryptographicHash>
@@ -13,12 +14,15 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QSet>
+#include <QUrl>
 #include <QStringList>
 #include <QtGlobal>
+#include <algorithm>
 
 namespace muffin {
 
 namespace {
+Q_LOGGING_CATEGORY(themeLoadPerf, "muffin.perf.detail", QtWarningMsg)
 
 QColor parseColor(const QJsonObject& colors, const char* key) {
   const QJsonValue v = colors.value(QLatin1String(key));
@@ -46,75 +50,90 @@ QString alignmentToString(Qt::Alignment alignment) {
   return QString();
 }
 
-// @font-face declared family name (lowercased) → the family name QFontDatabase
-// actually registered the font under. CSS @font-face aliases a declared name to
-// the font file regardless of the file's internal name; QFontDatabase registers
-// only the internal name. So a theme that declares `font-family: CascadiaCode`
-// (file Cascadia-Code-Regular.ttf, internal "Cascadia Code") or `"LXGW WenKai"`
-// (internal Chinese name 霞鹜文楷) would NOT resolve without this map.
-// RenderTheme's font-stack builder substitutes the declared name with the
-// registered one (ThemeDefinition::fontFamilyAlias).
+// Legacy lookup API. Rendering uses each theme snapshot's aliases instead, so
+// selecting a different theme cannot replace an existing document's fonts.
 QHash<QString, QString>& fontFaceAliases() {
   static QHash<QString, QString> map;
   return map;
 }
 
-// Register every @font-face font declared in the sheet with QFontDatabase so the
-// theme's font-family stacks resolve to the bundled typefaces (e.g. phycat's
-// LXGW WenKai / CascadiaCode). Each font's srcPath is already absolute and
-// resolved against its owning CSS file's dir (a font in an @import'd base
-// resolves against that base). Process-global side-effect, guarded by a static
-// path set so repeated loadDefinitions() calls (startup + every import) don't
-// re-register the same file — mirrors MathFontRegistry's static-loaded guard.
-// Must run before any render queries QFontDatabase::families(); ThemeManager
-// runs fromCss (and thus this) at load time, ahead of painting.
+// Register the active sheet's faces as one private family per CSS declaration
+// family. Identity includes every selected face's contents and descriptors;
+// registerPrivateFont reuses process registrations by content. Must run on the
+// GUI thread, before layout uses the new snapshot's family aliases.
 QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
+  diag::ScopedPerfProbe perf("theme.registerFonts", themeLoadPerf());
   QHash<QString, QString> aliases;
   if (!qobject_cast<QGuiApplication*>(QCoreApplication::instance())) return aliases;
   LayoutResources::instance();  // Observe font database changes before registering a face.
-  static QHash<QString, QString> registered;
-  QSet<QString> loadedFaces;
+  struct Face {
+    QString family;
+    PreparedThemeFont source;
+    int weight;
+    bool italic;
+  };
+  QHash<QString, QHash<QString, Face>> families;
   for (const CssFontFace& ff : sheet.fontFaces()) {
-    const QString faceKey = ff.family.toLower() + QLatin1Char('/') + ff.weight + QLatin1Char('/') + ff.style;
-    if (ff.srcPath.isEmpty() || loadedFaces.contains(faceKey)) {
-      continue;
-    }
-    if (!QFileInfo(ff.srcPath).isFile()) {
-      // A silently-skipped @font-face (wrong path, file not installed) makes the
-      // theme fall back to a heavier system typeface — the most common reason a
-      // theme's text looks "blacker/sharper" than in Typora. Surface it.
-      qWarning("Muffin theme: @font-face file not found for declared family \"%s\": %s",
-               qPrintable(ff.family), qPrintable(ff.srcPath));
-      continue;
-    }
-    QFile fontFile(ff.srcPath);
-    if (!fontFile.open(QIODevice::ReadOnly)) continue;
-    const QByteArray source = fontFile.readAll();
-    const QString fingerprint = QString::fromLatin1(QCryptographicHash::hash(source, QCryptographicHash::Sha256).toHex());
-    if (registered.contains(fingerprint)) {
-      aliases.insert(ff.family.toLower(), registered.value(fingerprint));
-      loadedFaces.insert(faceKey);
-      continue;
-    }
-    const QByteArray native = decodeThemeWebFont(source);
-    const int id = native.isEmpty() ? -1 : QFontDatabase::addApplicationFontFromData(native);
-    if (id < 0) {
-      qWarning("Muffin theme: QFontDatabase::addApplicationFont failed for declared family \"%s\": %s",
-               qPrintable(ff.family), qPrintable(ff.srcPath));
-      continue;
-    }
-    // Map the @font-face declared name to the family name Qt actually registered
-    // (the font's internal name, which often differs from the declared alias).
-    const QStringList fams = QFontDatabase::applicationFontFamilies(id);
-    if (!fams.isEmpty()) {
-      registered.insert(fingerprint, fams.first());
-      aliases.insert(ff.family.toLower(), fams.first());
-      loadedFaces.insert(faceKey);
-      fontFaceAliases().insert(ff.family.toLower(), fams.first());
-      qWarning("Muffin theme: registered @font-face family \"%s\" -> \"%s\" (%s)",
-               qPrintable(ff.family), qPrintable(fams.first()), qPrintable(ff.srcPath));
+    bool valid = false;
+    const auto weightText = ff.weight.trimmed().toLower();
+    const int weight = weightText == "normal" ? 400 : weightText == "bold" ? 700 : weightText.toInt(&valid);
+    if (weight < 1 || weight > 1000 || (!valid && weightText != "normal" && weightText != "bold")) continue;
+    const auto style = ff.style.trimmed().toLower();
+    if (style != "normal" && style != "italic" && style != "oblique") continue;
+    const auto family = ff.family.toLower(), faceKey = QString::number(weight) + '/' + style;
+    const auto sources = ff.sources.isEmpty() ? QStringList{ff.srcPath} : ff.sources;
+    for (const auto& target : sources) {
+      if (target.startsWith("local:")) {
+        const auto wanted = target.mid(6);
+        const auto available = QFontDatabase::families();
+        const auto found = std::find_if(available.begin(), available.end(), [&](const auto& name) {
+          return name.compare(wanted, Qt::CaseInsensitive) == 0;
+        });
+        // A local() source intentionally refers to the installed family.
+        if (found != available.end()) {
+          aliases.insert(family, *found);
+          break;
+        }
+        continue;
+      }
+      QByteArray source;
+      if (target.startsWith("data:", Qt::CaseInsensitive)) {
+        const auto comma = target.indexOf(',');
+        if (comma < 0 || target.size() - comma > 64 * 1024 * 1024 * 4 / 3) continue;
+        const auto data = target.mid(comma + 1).toUtf8();
+        source = target.left(comma).contains(";base64", Qt::CaseInsensitive)
+                     ? QByteArray::fromBase64(data, QByteArray::AbortOnBase64DecodingErrors)
+                     : QByteArray::fromPercentEncoding(data);
+      } else {
+        QFile file(target);
+        if (!file.open(QIODevice::ReadOnly) || file.size() > 64 * 1024 * 1024) continue;
+        source = file.readAll();
+      }
+      auto prepared = prepareThemeFont(source, weight, style != "normal");
+      // Corrupt candidates must not suppress later usable src fallbacks.
+      if (prepared.native.isEmpty()) continue;
+      families[family].insert(faceKey, {ff.family, std::move(prepared), weight, style != "normal"});
+      break;
     }
   }
+  for (auto it = families.cbegin(); it != families.cend(); ++it) {
+    auto keys = it->keys();
+    keys.sort();
+    diag::ScopedPerfProbe digestPerf("font.familyIdentity", themeLoadPerf());
+    QCryptographicHash digest(QCryptographicHash::Sha256);
+    digest.addData(it.key().toUtf8());
+    for (const auto& key : keys) {
+      digest.addData(key.toUtf8());
+      digest.addData(it->value(key).source.digest);
+    }
+    const auto privateFamily = "MuffinTheme-" + QString::fromLatin1(digest.result().toHex().left(24));
+    for (const auto& key : keys) {
+      const auto& face = it->value(key);
+      const auto registered = registerPrivateFont(face.source, privateFamily, face.weight, face.italic);
+      if (!registered.isEmpty()) aliases.insert(it.key(), registered);
+    }
+  }
+  for (auto it = aliases.cbegin(); it != aliases.cend(); ++it) fontFaceAliases().insert(it.key(), it.value());
   return aliases;
 }
 
@@ -471,18 +490,29 @@ ThemeDefinition ThemeDefinition::fromCss(const QString& cssPath, const QString& 
   if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
     return ThemeDefinition{};  // default-constructed → invalid (no background/text)
   }
-  const QString text = QString::fromUtf8(f.readAll());
+  const QString text = [&] {
+    diag::ScopedPerfProbe perf("theme.readCss", themeLoadPerf());
+    return QString::fromUtf8(f.readAll());
+  }();
   f.close();
   // @import urls resolve relative to the CSS file's directory. Works for both
   // filesystem paths and :/resource paths (QFile/QDir handle both).
   const QString baseDir = QFileInfo(cssPath).absolutePath();
-  const auto sheet = CssThemeParser::parse(text, baseDir);
+  const auto sheet = CssThemeParser::parse(text, baseDir, QFileInfo(cssPath).absoluteFilePath());
   // Register @font-face fonts before translation so the font-family stacks the
   // mapper reads are backed by registered typefaces by the time anything paints.
-  const auto aliases = registerThemeFonts(sheet);
+  const auto fontSheet = [&] {
+    diag::ScopedPerfProbe perf("theme.evaluateFontSheet", themeLoadPerf());
+    return sheet.evaluated({});
+  }();
+  const auto aliases = registerThemeFonts(fontSheet);
   auto definition = CssThemeMapper::fromSheet(sheet, id);
   definition.fontAliases = aliases;
   return definition;
+}
+
+QHash<QString,QString> ThemeDefinition::registerFonts(const CssThemeSheet& sheet) {
+  return registerThemeFonts(sheet);
 }
 
 QString ThemeDefinition::fontFamilyAlias(const QString& declaredName) {

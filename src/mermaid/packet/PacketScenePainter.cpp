@@ -15,17 +15,7 @@ namespace muffin::mermaid::packet {
 namespace {
 
 QStringList cssFontFamilies(const QString& expression) {
-  QStringList families;
-  for (QString family : expression.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
-    family = family.trimmed();
-    if (family.size() >= 2 &&
-        ((family.front() == QLatin1Char('"') && family.back() == QLatin1Char('"')) ||
-         (family.front() == QLatin1Char('\'') && family.back() == QLatin1Char('\''))))
-      family = family.mid(1, family.size() - 2);
-    if (!family.isEmpty()) families.append(family);
-  }
-  if (families.isEmpty()) families.append(QStringLiteral("Noto Sans"));
-  return families;
+  return editor::cssFamilyList(expression);
 }
 
 editor::CssPixelFont textFont(const PacketScene& scene, qreal size) {

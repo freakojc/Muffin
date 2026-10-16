@@ -3,6 +3,7 @@
 #include "theme/CssContent.h"
 #include "theme/CssThemeParser.h"
 #include "theme/CssValueParser.h"
+#include "theme/CssImageResources.h"
 #include "theme/ThemeDefinition.h"
 
 #include <QColor>
@@ -39,7 +40,13 @@ QByteArray decodePercentEncoding(const QString& s) {
   return out;
 }
 
-QByteArray extractDataUri(const QString& value) {
+QByteArray extractDataUri(const QString& value, const std::shared_ptr<CssImageResources>& resources) {
+  if (resources) {
+    const auto urls = CssThemeParser::resourceUrls(value);
+    if (urls.size() != 1) return {};
+    const auto image = resources->load(urls.front());
+    return image ? image->svg : QByteArray{};
+  }
   if (value.isEmpty()) { return QByteArray(); }
   static const QRegularExpression re(QStringLiteral("url\\(\\s*['\"]?(data:[^)]*)['\"]?\\s*\\)"),
                                      QRegularExpression::CaseInsensitiveOption);
@@ -120,8 +127,8 @@ std::vector<PseudoElementRule> extractPseudoRules(const ComputedDecorationStyles
     // `blockquote:before { content: ''; content: none }` and bestValue picks the later
     // `none`; without this it rendered the word "none" before every blockquote. Mirrors
     // the listMarkerContent none/normal guard below.
-    if (content.compare(QStringLiteral("none"), Qt::CaseInsensitive) == 0 ||
-        content.compare(QStringLiteral("normal"), Qt::CaseInsensitive) == 0) {
+    if (contentRaw.trimmed().compare(QStringLiteral("none"), Qt::CaseInsensitive) == 0 ||
+        contentRaw.trimmed().compare(QStringLiteral("normal"), Qt::CaseInsensitive) == 0) {
       content.clear();
     }
     rule.content = content;
@@ -129,7 +136,12 @@ std::vector<PseudoElementRule> extractPseudoRules(const ComputedDecorationStyles
     // resolved against live counter state at layout time. Pure-literal content
     // yields an all-Literal vector. Keep quotes while tokenizing so adjacent
     // CSS strings retain their authored spaces and concatenate correctly.
-    rule.contentTokens = parseContentTokens(contentRaw);
+    rule.contentTokens = parseContentTokens(CssThemeParser::resolveVars(contentRaw, vars));
+    if (!rule.contentTokens.empty() && std::all_of(rule.contentTokens.cbegin(), rule.contentTokens.cend(),
+        [](const auto& token) { return token.kind == ContentToken::Kind::Literal; })) {
+      rule.content.clear();
+      for (const auto& token : rule.contentTokens) rule.content += token.text;
+    }
     rule.color = propertyColor(sub, {QStringLiteral("color")});
     rule.backgroundColor = propertyColor(sub, {QStringLiteral("background-color"), QStringLiteral("background")});
     const QString bgImg = propertyValue(sub, {QStringLiteral("background-image"), QStringLiteral("background")});
@@ -194,9 +206,14 @@ std::vector<PseudoElementRule> extractPseudoRules(const ComputedDecorationStyles
     rule.borderBottomWidth = sub.resolvedValue(QStringLiteral("border-bottom-style")) == QStringLiteral("none")
                                  ? 0
                                  : borderWidthPx(sub.resolvedValue(QStringLiteral("border-bottom-width")), vars, emPx);
-    const QByteArray contentSvg = extractDataUri(CssThemeParser::resolveVars(contentRaw, vars));
-    const QByteArray bgSvg = extractDataUri(CssThemeParser::resolveVars(bgImg, vars));
-    const QByteArray maskSvg = extractDataUri(CssThemeParser::resolveVars(maskImg, vars));
+    const QByteArray contentSvg = extractDataUri(CssThemeParser::resolveVars(contentRaw, vars), sub.imageResources);
+    // Background SVGs now use LayoutBox's background stack (size, position,
+    // repeat, blend). Do not also paint them as content icons. Keep the legacy
+    // fallback only for integrations supplying a detached computed style.
+    const QByteArray bgSvg = sub.imageResources ? QByteArray{} : extractDataUri(CssThemeParser::resolveVars(bgImg, vars), {});
+    // Live computed styles use the shared mask compositor for the complete
+    // element. Detached legacy decoration records retain their icon fallback.
+    const QByteArray maskSvg = sub.imageResources ? QByteArray() : extractDataUri(CssThemeParser::resolveVars(maskImg, vars), {});
     rule.svgData = !contentSvg.isEmpty() ? contentSvg : (!bgSvg.isEmpty() ? bgSvg : maskSvg);
     // An icon sourced from `mask:` is an alpha shape tinted with the
     // background-color (e.g. phycat's link ::before); render recoloured, not as-is.

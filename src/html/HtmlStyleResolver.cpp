@@ -202,6 +202,7 @@ void HtmlStyleResolver::resolve(HtmlBox& root, qreal baseFontSize, const HtmlCol
         el.tag = child->cssTag;
         el.id = child->cssId;
         el.classes = child->cssClasses;
+        el.attributes = child->cssAttributes;
         el.inlineDeclarations = CssThemeParser::parseDeclarations(child->cssInlineStyle);
         el.parent = &box == &root ? element.parent : &element;
         el.childIndex = child->tag() == HtmlTag::TextRun ? -1 : childIndex++;

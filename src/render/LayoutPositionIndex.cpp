@@ -116,6 +116,16 @@ QVector<LayoutPositionToken*> LayoutPositionIndex::reset(qsizetype count) {
   return tokens;
 }
 
+void LayoutPositionIndex::clearAdjustments() {
+  const auto clear = [](const auto& self, LayoutPositionToken* node) -> void {
+    if (!node) return;
+    node->value = node->lazy = 0;
+    self(self, node->left.get());
+    self(self, node->right.get());
+  };
+  clear(clear, root_.get());
+}
+
 qsizetype LayoutPositionIndex::size() const {
   return nodeSize(root_.get());
 }

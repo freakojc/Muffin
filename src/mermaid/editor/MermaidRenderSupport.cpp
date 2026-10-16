@@ -389,6 +389,7 @@ CssLengthContext pieCssLengthContext(const QString& fontFamily, qreal emPx) {
   if (families.isEmpty()) families.append(QStringLiteral("Noto Sans"));
   QFont f(families.first());
   if (families.size() > 1) f.setFamilies(families);
+  MermaidFontRegistry::configureFont(f, fontFamily);
   f.setPixelSize(int(kReferencePx));
   const TextFontMetrics m(f);
   const qreal scale = emPx / kReferencePx;
@@ -435,7 +436,7 @@ QStringList cssFamilyList(const QString& expression) {
     if (!family.isEmpty()) result.append(family);
   }
   if (result.isEmpty()) result.append(QStringLiteral("Noto Sans"));
-  return result;
+  return MermaidFontRegistry::resolveFamilies(result);
 }
 
 QFont::Weight faceAwareMetricWeight(const QString& family,
@@ -510,6 +511,7 @@ qreal CssPixelFont::horizontalAdvance(const QString& text) const {
 CssPixelFont makeCssPixelFont(const QString& family, qreal pixelSize) {
   CssPixelFont result;
   result.font = QFont(family);
+  MermaidFontRegistry::configureFont(result.font, family);
   if (!(pixelSize > 0.0) || !std::isfinite(pixelSize)) {
     result.scale = 0.0;
     return result;
@@ -705,6 +707,7 @@ QRectF mermaidClientBox(const std::shared_ptr<const MermaidScene>& scene,
   QRectF clientBox = clientViewBox;
   if (metadata.hasVisibleTitle()) {
     QFont titleFace(metadata.fontFamily);
+    MermaidFontRegistry::configureFont(titleFace, metadata.fontFamily);
     setTextPixelSize(titleFace, metadata.titleFontSize);
     const qreal ascent = qRound(TextFontMetrics(titleFace).ascent());
     const qreal descent = qRound(TextFontMetrics(titleFace).descent());
@@ -740,6 +743,7 @@ void finalizeReadyEntry(MermaidRenderEntry& entry,
                               qMax(1, qRound(clientBox.height())));
     if (metadata.hasVisibleTitle()) {
       QFont titleFace(metadata.fontFamily);
+      MermaidFontRegistry::configureFont(titleFace, metadata.fontFamily);
       setTextPixelSize(titleFace, metadata.titleFontSize);
       const qreal ascent = TextFontMetrics(titleFace).ascent();
       const qreal bandPadding = metadata.titleBandPadding >= 0.0
@@ -764,6 +768,7 @@ void finalizeReadyEntry(MermaidRenderEntry& entry,
     // family padding above the union — a 25+19+8 = 52px strip for the
     // default state/flowchart geometry.
     QFont titleFace(metadata.fontFamily);
+    MermaidFontRegistry::configureFont(titleFace, metadata.fontFamily);
     setTextPixelSize(titleFace, metadata.titleFontSize);
     const qreal ascent = TextFontMetrics(titleFace).ascent();
     const qreal bandPadding = metadata.titleBandPadding >= 0.0

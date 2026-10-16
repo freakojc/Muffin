@@ -18,11 +18,13 @@
 #include <vector>
 
 namespace muffin {
+namespace diag { struct MemoryAccounting; }
 
 class CodeFenceScrollController;
 namespace mermaid::editor { class MermaidRenderCache; }
 
 class DocumentLayout {
+  friend struct diag::MemoryAccounting;
  public:
   // Eager (default) builds every block's full detail up front — today's behavior, used by
   // tests and print. Lazy builds only cheap estimated heights up front and promotes blocks to
@@ -130,6 +132,12 @@ class DocumentLayout {
   // {-1,-1} when nothing overlaps (e.g. empty document).
   QPair<qsizetype, qsizetype> slotRangeOverlappingY(qreal yTop, qreal yBottom) const;
   void ensureBuilt(qsizetype first, qsizetype last, const RenderTheme& theme);  // promote null-detail slots in [first,last]
+  // Idle-only prefetch. Atomic blocks may exceed the time budget; never starts
+  // more than maxBlocks promotions. Returns true when this range is complete.
+  bool prefetch(qsizetype first, qsizetype last, const RenderTheme& theme, int maxBlocks = 2, int budgetMs = 4);
+  qsizetype trimDetails(qsizetype first, qsizetype last, const RenderTheme& theme,
+                       const QVector<NodeId>& protectedIds = {}, qsizetype maxBlocks = 64);
+  qsizetype residentDetailCount() const;
   void buildAll(const RenderTheme& theme);  // promote every slot (print)
   QVector<NodeId> promotedTopLevelIds() const;  // slots currently holding full detail (spell-overlay refresh)
 
@@ -153,7 +161,7 @@ class DocumentLayout {
   QRectF refreshDependentStyles(const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection);
   bool refreshingStyles_ = false;
   bool resourceOnlyUpdate_ = false;
-  bool selectionOnlyUpdate_ = false;
+  bool stylesPrepared_ = false;
   quint64 styleDocumentRevision_ = 0;
   bool formattingRoot_ = false;
   bool incrementalFormatting_ = false;
@@ -197,6 +205,8 @@ class DocumentLayout {
   BuildPolicy buildPolicy_ = BuildPolicy::Eager;
 
   std::vector<BlockSlot> slots_;
+  quint64 indexDocumentRevision_ = 0;
+  NodeId indexDocumentRoot_;
   LayoutPositionIndex positionIndex_;               // stable slot order + lazy vertical suffix shifts
   QHash<NodeId, LayoutPositionToken*> topLevelIndex_;  // top-level node id -> stable position token
   QHash<NodeId, NodeId> nestedToTopLevel_;          // any node id -> top-level node id
@@ -204,6 +214,7 @@ class DocumentLayout {
   QHash<NodeId, QPair<QString, QString>> headingCounterText_;  // resolved before/after content in document order
   QVector<OutlineEntry> tocEntries_;                // document headings for `[TOC]` block rendering
   quint64 tocOutlineRevision_ = 0;
+  NodeId tocDocumentRoot_;
   QHash<NodeId, const BlockLayout*> layoutIndex_;   // node id -> built BlockLayout* (lazy-populated)
 
   qreal pageLeft_ = 0;       // content left

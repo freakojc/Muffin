@@ -1,9 +1,12 @@
 #pragma once
 #include "theme/CssLayoutStyle.h"
+#include "theme/CssBlendMode.h"
+#include "theme/CssFilter.h"
 
 #include "theme/CssCalc.h"
 
 #include <QColor>
+#include <QImage>
 #include <QJsonObject>
 #include <QMarginsF>
 #include <QPointF>
@@ -19,6 +22,8 @@ namespace muffin {
 
 class CssThemeSheet;  // forward-decl; full type lives in CssThemeParser.h
 class CssComputedStyle;
+class CssComputedStyleEngine;
+class CssImageResource;
 struct CssPaintRecipe;
 
 // Listing a theme must not parse its CSS or register its fonts.
@@ -251,16 +256,17 @@ struct GradientSpec {
   qreal conicStartDeg = 0.0;                    // conic: CSS `from <angle>` (0=12 o'clock, clockwise)
 };
 
-// A parsed piece of a CSS `content` value: a literal run, or a counter() call.
+// A parsed piece of a CSS `content` value: literal, counter, or string attribute.
 // `counter(name[, style])` / `counters(name, sep[, style])` are resolved at layout
 // time against the live counter state (the implicit `list-item` counter for lists;
 // the heading outline counters h1..h6 for heading ::before auto-numbering).
 struct ContentToken {
-  enum class Kind { Literal, Counter, Counters };
+  enum class Kind { Literal, Counter, Counters, Attribute };
   Kind kind = Kind::Literal;
-  QString text;    // Literal: the text; Counter/Counters: the counter name
+  QString text;    // Literal: text; Counter/Counters: counter name; Attribute: attribute name
   QString style;   // Counter/Counters: list-style-type (empty ⇒ decimal)
   QString sep;     // Counters: the separator string
+  QString fallback;  // Attribute: string fallback when the originating attribute is absent
 };
 
 struct PseudoElementRule {
@@ -269,7 +275,7 @@ struct PseudoElementRule {
   std::shared_ptr<const CssComputedStyle> computed;
   QString host;           // "h2","blockquote","a","#write","li","pre",…
   QString pseudo;         // "before" | "after"
-  QString content;        // literal text / "" / "attr(data-language)"
+  QString content;        // decoded text; live origins resolve attr() before layout
   // `content` split into tokens so heading ::before content like `counter(h1) ". "`
   // can be resolved against the live counter state at layout time (mirrors
   // ThemeDecorations::listMarkerContent). Empty for content with no counter() —
@@ -442,19 +448,41 @@ struct ThemeElementBoxStyle {
   bool widthFitContent = false;
 };
 
-struct ThemeElementPaintStyle {
-  bool operator==(const ThemeElementPaintStyle&) const = default;
-  QColor color;
-  QColor backgroundColor;
-  GradientSpec backgroundImage;
+struct ThemeBackgroundLayer {
+  bool operator==(const ThemeBackgroundLayer&) const = default;
+  GradientSpec image;
+  QImage bitmap;  // compatibility view of decoded raster sources
+  std::shared_ptr<const CssImageResource> resource;  // raster or resolution-independent SVG
   // Percent positions are relative to the remaining space after sizing the
   // image, rather than to the box itself (CSS Backgrounds used values).
-  CssLengthPercentage backgroundPositionX{CssLengthStatus::Valid, 0, 0, true};
-  CssLengthPercentage backgroundPositionY{CssLengthStatus::Valid, 0, 0, true};
-  CssLengthPercentage backgroundSizeX, backgroundSizeY;  // missing = auto
-  bool backgroundRepeatX = true, backgroundRepeatY = true;
-  QString backgroundOrigin = QStringLiteral("padding-box");
-  QString backgroundClip = QStringLiteral("border-box");
+  CssLengthPercentage positionX{CssLengthStatus::Valid, 0, 0, true};
+  CssLengthPercentage positionY{CssLengthStatus::Valid, 0, 0, true};
+  CssLengthPercentage sizeX, sizeY;  // missing = auto
+  enum class SizeMode { Explicit, Cover, Contain };
+  SizeMode sizeMode = SizeMode::Explicit;
+  enum class Repeat { Repeat, NoRepeat, Space, Round };
+  Repeat repeatX = Repeat::Repeat, repeatY = Repeat::Repeat;
+  CssBlendMode blendMode = CssBlendMode::Normal;
+  QString origin = QStringLiteral("padding-box");
+  QString clip = QStringLiteral("border-box");
+};
+
+struct ThemeMaskLayer {
+  bool operator==(const ThemeMaskLayer&) const = default;
+  ThemeBackgroundLayer image;
+  bool luminance = false;
+  bool none = false;
+  QString composite = QStringLiteral("add");
+};
+
+struct ThemeElementPaintStyle {
+  bool operator==(const ThemeElementPaintStyle&) const = default;
+  std::vector<CssFilterOperation> filters, backdropFilters;
+  std::vector<ThemeMaskLayer> maskLayers;
+  QColor color;
+  QColor backgroundColor;
+  std::vector<ThemeBackgroundLayer> backgroundLayers;  // CSS order: front to back; none retains its slot
+  QString backgroundColorClip = QStringLiteral("border-box");  // clip of the bottom image layer
   QColor boxShadowColor;
   qreal boxShadowOffsetX = 0;
   qreal boxShadowOffsetY = 0;
@@ -562,6 +590,10 @@ struct ThemeDefinition {
   bool hasNthOfType = false;
   qreal bodyFontPx = 16.0;                         // body font size in CSS px for projections
   std::shared_ptr<CssThemeSheet> sourceSheet;      // Immutable CSS, including responsive conditions.
+  // Mapping already compiled these exact source rules. Reuse its immutable
+  // template, with fresh per-document caches; reject it after source mutation.
+  std::shared_ptr<const CssComputedStyleEngine> preparedEngine;
+  quint64 preparedSourceRevision = 0;
   QHash<QString, QString> fontAliases;
   bool isBuiltIn = true;
 
@@ -592,6 +624,8 @@ struct ThemeDefinition {
   // by the font-stack builder so a declared `CascadiaCode` (internal "Cascadia
   // Code") or `"LXGW WenKai"` (internal 霞鹜文楷) resolves to the bundled font.
   static QString fontFamilyAlias(const QString& declaredName);
+  // GUI thread only; register the evaluated sheet's active local/embedded faces.
+  static QHash<QString,QString> registerFonts(const CssThemeSheet& sheet);
 
   // The built-in themes, in display order. Each carries a chrome palette that
   // matches its document palette (so e.g. the warm "newsprint" theme warms the

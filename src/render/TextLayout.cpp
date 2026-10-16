@@ -1,4 +1,5 @@
 #include "render/TextLayout.h"
+#include "diagnostics/ThemePerformance.h"
 
 #include <QImage>
 #include <QPainter>
@@ -188,6 +189,8 @@ void TextLayout::setFormats(const QList<FormatRange>& formats) {
 }
 QRectF TextLayout::boundingRect() const { return scaledRect(layout_->boundingRect(), 1 / scale_); }
 void TextLayout::draw(QPainter* painter, QPointF origin, const QList<FormatRange>& selections, QRectF clip) const {
+  ThemePerfScope performance(ThemePerfStage::Text);
+  recordThemeTextPaint(lineCount(), formats_.size(), selections.size());
   if (scale_ == 1) {
     layout_->draw(painter, origin, selections, clip);
     return;

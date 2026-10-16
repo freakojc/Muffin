@@ -210,6 +210,9 @@ muffin_add_test(NAME MuffinMermaidSequenceLabelOracleTest SOURCE tests/mermaid/M
 muffin_add_test(NAME MuffinMermaidMathFontContractTest SOURCE tests/mermaid/MermaidMathFontContractTest.cpp LINK MuffinCore EXTRA_LINK Qt6::Gui RESOURCE_LOCK)
 muffin_add_test(NAME MuffinMermaidMathMlCssBoxTest SOURCE tests/mermaid/MermaidMathMlCssBoxTest.cpp LINK MuffinCore EXTRA_LINK Qt6::Gui FIXTURE tests/fixtures/mermaid/mathml-css-box.json RESOURCE_LOCK)
 muffin_add_test(NAME MuffinMermaidMathMlOperationFuzzTest SOURCE tests/mermaid/MermaidMathMlOperationFuzzTest.cpp LINK MuffinCore EXTRA_LINK Qt6::Gui RESOURCE_LOCK)
+# This test asserts a wall-clock performance budget; other tests must not
+# consume its CPU allowance while the operation corpus is being measured.
+set_tests_properties(MuffinMermaidMathMlOperationFuzzTest PROPERTIES RUN_SERIAL TRUE)
 muffin_add_test(NAME MuffinMermaidSequenceMathCacheTest SOURCE tests/mermaid/MermaidSequenceMathCacheTest.cpp LINK MuffinCore EXTRA_LINK Qt6::Gui RESOURCE_LOCK)
 set_tests_properties(MuffinMermaidMathMlOperationFuzzTest MuffinMermaidSequenceMathCacheTest
     PROPERTIES RUN_SERIAL TRUE)
@@ -319,7 +322,8 @@ muffin_add_test(NAME MuffinCssFlexLayoutTest SOURCE tests/theme/CssFlexLayoutTes
 target_compile_definitions(MuffinCssFlexLayoutTest PRIVATE MUFFIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 muffin_add_test(NAME MuffinCssGridLayoutTest SOURCE tests/theme/CssGridLayoutTest.cpp LINK MuffinUi RESOURCE_LOCK)
 target_compile_definitions(MuffinCssGridLayoutTest PRIVATE MUFFIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-foreach(_browser_layout_test MuffinCssFlexLayoutTest MuffinCssGridLayoutTest MuffinRenderHeadingPseudoTest MuffinRenderLinkBeforeFlowTest MuffinRealThemeBrowserGeometryTest MuffinTextLayoutTest MuffinFractionalTextLayoutTest)
+muffin_add_test(NAME MuffinInlineSemanticContentTest SOURCE tests/theme/InlineSemanticContentTest.cpp LINK MuffinUi RESOURCE_LOCK)
+foreach(_browser_layout_test MuffinCssFlexLayoutTest MuffinCssGridLayoutTest MuffinRenderHeadingPseudoTest MuffinRenderLinkBeforeFlowTest MuffinRealThemeBrowserGeometryTest MuffinTextLayoutTest MuffinFractionalTextLayoutTest MuffinInlineSemanticContentTest)
   muffin_use_theme_fonts(${_browser_layout_test})
   target_compile_definitions(${_browser_layout_test} PRIVATE MUFFIN_BINARY_DIR="${CMAKE_CURRENT_BINARY_DIR}")
   target_compile_definitions(${_browser_layout_test} PRIVATE MUFFIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
@@ -334,10 +338,33 @@ endforeach()
 # editor's layout device. Its JSON and raster output belong in build/.
 add_executable(MuffinFontBackendProbe EXCLUDE_FROM_ALL scripts/font_backend_probe.cpp)
 target_link_libraries(MuffinFontBackendProbe PRIVATE MuffinUi)
+muffin_add_test(NAME MuffinHighDpiCssEffectsCompatibilityTest SOURCE tests/theme/CssEffectsCompatibilityTest.cpp LINK MuffinUi
+  FIXTURE tests/fixtures/theme/effects-browser.json RESOURCE_LOCK)
+set_property(TEST MuffinHighDpiCssEffectsCompatibilityTest APPEND PROPERTY ENVIRONMENT_MODIFICATION "QT_SCALE_FACTOR=set:1.25")
+muffin_add_test(NAME MuffinFontMappingCompatibilityTest SOURCE tests/theme/FontMappingCompatibilityTest.cpp LINK MuffinUi
+  FIXTURE tests/fixtures/theme/font-mapping-browser.json RESOURCE_LOCK)
+muffin_add_test(NAME MuffinFractionalFontMappingCompatibilityTest SOURCE tests/theme/FontMappingCompatibilityTest.cpp LINK MuffinUi
+  FIXTURE tests/fixtures/theme/font-mapping-browser.json RESOURCE_LOCK)
+foreach(_font_mapping_test MuffinFontMappingCompatibilityTest MuffinFractionalFontMappingCompatibilityTest)
+  target_compile_definitions(${_font_mapping_test} PRIVATE MUFFIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+endforeach()
+set_property(TEST MuffinFractionalFontMappingCompatibilityTest APPEND PROPERTY ENVIRONMENT_MODIFICATION "MUFFIN_TEXT_LAYOUT_BACKEND=set:fractional")
 muffin_add_test(NAME MuffinCssThemeMapperTest SOURCE tests/theme/CssThemeMapperTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} FIXTURE tests/fixtures/theme/mist-blue.css)
 muffin_add_test(NAME MuffinThemeLoadingTest SOURCE tests/theme/ThemeLoadingTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
 set_tests_properties(MuffinThemeLoadingTest PROPERTIES TIMEOUT 60)
 muffin_add_test(NAME MuffinThemeAccessibilityTest SOURCE tests/theme/ThemeAccessibilityTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC})
+muffin_add_test(NAME MuffinVlookFancyCompatibilityTest SOURCE tests/theme/VlookFancyCompatibilityTest.cpp LINK MuffinUi
+  FIXTURE tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css RESOURCE_LOCK)
+muffin_add_test(NAME MuffinCssSupportsTest SOURCE tests/theme/CssSupportsTest.cpp LINK MuffinCore)
+muffin_add_test(NAME MuffinCssCompatibilityReportTest SOURCE tests/theme/CssCompatibilityReportTest.cpp LINK MuffinCore
+  FIXTURE tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css)
+target_compile_definitions(MuffinCssCompatibilityReportTest PRIVATE MUFFIN_THEME_REPORT_PATH="$<TARGET_FILE:muffin-theme-report>")
+add_dependencies(MuffinCssCompatibilityReportTest muffin-theme-report)
+muffin_add_test(NAME MuffinThemePaintCompatibilityTest SOURCE tests/theme/ThemePaintCompatibilityTest.cpp LINK MuffinUi RESOURCE_LOCK)
+muffin_add_test(NAME MuffinCssBackgroundCompatibilityTest SOURCE tests/theme/CssBackgroundCompatibilityTest.cpp LINK MuffinUi
+  FIXTURE tests/fixtures/theme/background-browser.json EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
+muffin_add_test(NAME MuffinCssEffectsCompatibilityTest SOURCE tests/theme/CssEffectsCompatibilityTest.cpp LINK MuffinUi
+  FIXTURE tests/fixtures/theme/effects-browser.json RESOURCE_LOCK)
 
 # --- image subsystem (link MuffinUi; pure logic under QCoreApplication, no GUI lock) ---
 muffin_add_test(NAME MuffinImageInsertionPolicyTest  SOURCE tests/image/ImageInsertionPolicyTest.cpp  LINK MuffinUi)
@@ -442,6 +469,7 @@ muffin_add_test(NAME MuffinDocumentTabsTest SOURCE tests/app/DocumentTabsTest.cp
   EXTRA_SOURCES ${_tab_test_app_sources} src/icons.qrc src/translations.qrc ${MUFFIN_THEMES_QRC} ${MUFFIN_HELP_QRC} ${MUFFIN_EMOJI_QRC}
   RESOURCE_LOCK)
 target_compile_definitions(MuffinDocumentTabsTest PRIVATE MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}")
+
 muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
 if(APPLE)
   # Conan's ICU 74 archive overrides Apple's ICU data in CoreFoundation.
@@ -473,7 +501,7 @@ endif()
 # runtime/font environment, so these exercise actual editor paths in CI.
 foreach(_text_test MuffinVirtualSourceEditTest MuffinEditorCodeFenceSelectionTest
                    MuffinEditorViewHitTestTest MuffinRenderHeadingPseudoTest
-                   MuffinRenderLinkBeforeFlowTest MuffinCssPaintInteractionTest)
+                   MuffinRenderLinkBeforeFlowTest MuffinCssPaintInteractionTest MuffinInlineSemanticContentTest)
   string(REGEX REPLACE "^Muffin" "MuffinFractional" _text_variant "${_text_test}")
   add_test(NAME ${_text_variant} COMMAND $<TARGET_FILE:${_text_test}>)
   get_property(_text_environment TEST ${_text_test} PROPERTY ENVIRONMENT_MODIFICATION)

@@ -28,6 +28,8 @@ class LayoutPositionIndex {
   LayoutPositionIndex& operator=(const LayoutPositionIndex&) = delete;
 
   QVector<LayoutPositionToken*> reset(qsizetype count);
+  // Keep token identities/order when geometry changes without an AST edit.
+  void clearAdjustments();
   qsizetype size() const;
   void addSuffix(qsizetype first, qreal delta);
   qreal adjustmentFor(const LayoutPositionToken* token) const;

@@ -70,7 +70,9 @@ void glyphCoordinates() {
         painter.drawGlyphRun({13, 11}, run);
       }
     }
-    require(families.contains("Noto Sans") && families.contains("Noto Sans CJK SC"), "pinned mixed-script font fallback");
+    require(families.contains(MermaidFontRegistry::bundledFamily("Noto Sans")) &&
+                families.contains(MermaidFontRegistry::bundledFamily("Noto Sans CJK SC")),
+            "pinned mixed-script font fallback");
     const auto a = inkBounds(fromLayout), b = inkBounds(fromGlyphs);
     require(!a.isEmpty() && !b.isEmpty(), "both glyph and layout painters produce text");
     require(qAbs(a.left() - b.left()) <= 1 && qAbs(a.right() - b.right()) <= 1 &&

@@ -6,6 +6,8 @@
 #include "render/LayoutPositionIndex.h"
 #include "theme/CssThemeMapper.h"
 #include "theme/RenderTheme.h"
+#include "theme/NodeCssElement.h"
+#include "render/InlineLayout.h"
 #include "theme/ThemeDefinition.h"
 
 #include <QApplication>
@@ -140,6 +142,132 @@ void testLayoutPositionIndexPreservesLazySuffixAcrossSplice() {
           QStringLiteral("fresh layout token must start without an inherited shift"));
   require(qAbs(index.adjustmentFor(original.at(3)) - 12.5) < 0.001,
           QStringLiteral("unchanged layout suffix must retain its lazy shift through splice"));
+  index.addSuffix(1, -4.25);
+  index.clearAdjustments();
+  for (qsizetype i = 0; i < expectedOrder.size(); ++i) {
+    require(index.rank(expectedOrder[i]) == i && qFuzzyIsNull(index.adjustmentFor(expectedOrder[i])),
+            QStringLiteral("theme geometry reset preserves identities/order and clears every lazy ancestor shift"));
+  }
+  index.addSuffix(2, 7);
+  index.replace(1, 1, index.makeToken());
+  require(qAbs(index.adjustmentFor(original[4]) - 7) < .001,
+          QStringLiteral("cleared position tree still supports subsequent shifts and splices"));
+}
+
+void testExactCompactCssSemanticSignatures() {
+  const auto signature = [](const QString& markdown) {
+    DocumentSession session;
+    session.setMarkdownText(markdown, false);
+    return cssSemanticSignature(session.document().root());
+  };
+  require(signature("plain **bold** *em* [link](first)") == signature("other **text** *words* [title](first)"),
+          QStringLiteral("ordinary glyph edits preserve CSS-visible semantic shape"));
+  const QVector<QString> variants{"plain **bold** *em* [link](first)",
+                                  "plain *bold* **em** [link](first)",
+                                  "plain **bold** *em* [link](second)",
+                                  "plain **bold** *em* [link](first) <kbd>A</kbd>",
+                                  "plain **bold** *em* [link](first) <kbd class='other'>A</kbd>",
+                                  "plain **bold** *em* [link](first)\n\nsecond",
+                                  "# heading",
+                                  "## heading",
+                                  "- item",
+                                  "1. item",
+                                  "- [ ] item",
+                                  "- [x] item",
+                                  "> [!NOTE]\n> title",
+                                  "> [!TIP]\n> title",
+                                  "```cpp\ncode\n```",
+                                  "```rust\ncode\n```",
+                                  QString("[x](") + QString(127, 'a') + ")",
+                                  QString("[x](") + QString(128, 'a') + ")",
+                                  QString("[x](") + QString(16384, 'a') + ")",
+                                  QStringLiteral("[x](https://example.com/中文)")};
+  QSet<QByteArray> shapes;
+  for (const auto& variant : variants) {
+    const auto shape = signature(variant);
+    require(!shapes.contains(shape),
+            QStringLiteral("CSS attribute, nesting, enum and variable-length boundaries remain distinct: %1")
+                .arg(variant.left(120)));
+    shapes.insert(shape);
+  }
+  require(signature(QString("*x* ").repeated(127)) != signature(QString("*x* ").repeated(128)),
+          QStringLiteral("variable-length inline counts cannot alias"));
+}
+
+void testThemeRebuildReusesNavigationWithoutStaleGeometry() {
+  const QVector<ThemeDefinition> definitions{
+      CssThemeMapper::fromCss("#write{counter-reset:n}h1::before{content:counter(n);counter-increment:n}"
+                              "p{font-size:13px;margin:7px 0;color:#123456}",
+                              "first", {}),
+      CssThemeMapper::fromCss("#write{counter-reset:n 8}h1::before{content:counter(n);counter-increment:n 2}"
+                              "p{font-size:20px;margin:19px 0;color:#654321}",
+                              "second", {}),
+      CssThemeMapper::fromCss("#write{display:flex;flex-direction:column;gap:5px}p{font-size:16px}"
+                              "li::before{content:counter(n);counter-increment:n}",
+                              "formatting", {})};
+  DocumentSession session;
+  session.setMarkdownText("# Title\n\n[TOC]\n\n" + QString("paragraph **bold** words ").repeated(20) +
+                              "\n\n- parent\n  - child\n\nlast paragraph",
+                          false);
+  DocumentLayout layout;
+  auto theme = RenderTheme::fromDefinition(definitions[0]);
+  layout.rebuild(session.document(), theme, 440, {}, {}, DocumentLayout::BuildPolicy::Lazy);
+  layout.visibleBlocks({0, 0, 440, 250}, theme);  // creates lazy suffix adjustments
+  int definitionIndex = 0;
+  const auto compare = [&] {
+    auto fullTheme = RenderTheme::fromDefinition(definitions[definitionIndex]);
+    DocumentLayout full;
+    full.rebuild(session.document(), fullTheme, 440);
+    layout.buildAll(theme);
+    requireSameTopLevelLayout(layout, full, session.document(), "theme rebuild");
+    for (const auto& node : session.document().root().children()) {
+      const auto* actual = layout.block(node->id());
+      const auto* expected = full.block(node->id());
+      require(layout.topLevelIndexFor(node->id()) == node->siblingIndex(), "reused navigation retains exact ranks");
+      if (actual->inlineLayout() && expected->inlineLayout()) {
+        require(actual->inlineLayout()->displayText() == expected->inlineLayout()->displayText(),
+                "theme-generated text is fresh");
+        for (int offset : {0, 3, 15})
+          require(actual->inlineLayout()->cursorRectForSourceOffset(offset) ==
+                      expected->inlineLayout()->cursorRectForSourceOffset(offset),
+                  "font/wrap changes preserve editing coordinates relative to fresh layout");
+      }
+      if (!node->children().empty())
+        require(layout.topLevelBlockIdFor(node->children().front()->id()) == node->id(),
+                "nested navigation remains valid");
+    }
+    require(theme.resolveDocumentCounters(session.document()) == fullTheme.resolveDocumentCounters(session.document()),
+            "numbering and generated content match a full counter walk");
+  };
+  for (int i : {1, 0, 2, 1, 2, 0}) {
+    definitionIndex = i;
+    auto next = RenderTheme::fromDefinition(definitions[i]);
+    next.reuseDocumentSemantics(theme);
+    theme = std::move(next);
+    layout.rebuild(session.document(), theme, 440, {}, {}, DocumentLayout::BuildPolicy::Lazy);
+    compare();
+  }
+  require(session.applyTextDelta(0, 0, "# Inserted\n\n", true), "insert a numbered heading");
+  require(layout.rebuildTopLevelRange(session.lastLocalTopLevelRangeChange(), session.document(), theme, {}).rebuilt,
+          "local splice before theme rebuild succeeds");
+  layout.rebuild(session.document(), theme, 440, {}, {}, DocumentLayout::BuildPolicy::Lazy);
+  compare();
+  const auto oldId = session.document().root().children().front()->id();
+  session.setMarkdownText("[TOC]\n\n# Reset document\n\n- new parent\n  - new child", false);
+  layout.rebuild(session.document(), theme, 440, {}, {}, DocumentLayout::BuildPolicy::Lazy);
+  require(layout.topLevelIndexFor(oldId) < 0, "document reset rejects old navigation");
+  compare();
+  DocumentSession other;
+  other.setMarkdownText("[TOC]\n\n# Other document", false);
+  DocumentSession original;
+  original.setMarkdownText("[TOC]\n\n# Original document", false);
+  require(other.document().outlineRevision() == original.document().outlineRevision(),
+          "two documents share an outline revision");
+  layout.rebuild(original.document(), theme, 440);
+  layout.rebuild(other.document(), theme, 440);
+  const auto* toc = layout.block(other.document().root().children().front()->id());
+  require(toc && toc->isToc() && toc->tocEntries().front().target == other.document().root().children().back()->id(),
+          "outline reuse checks document identity as well as revision");
 }
 
 void testRangeRebuildAfterLazySuffixShiftMatchesFullLayout() {
@@ -151,9 +279,8 @@ void testRangeRebuildAfterLazySuffixShiftMatchesFullLayout() {
 
   const NodeId firstId = mutableBlockAt(session.document(), 0)->id();
   require(session.applyTextDelta(
-              5, 0,
-              QStringLiteral(" alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha"),
-              true, {LocalEditNodeHint{firstId, 0, BlockType::Paragraph}}),
+              5, 0, QStringLiteral(" alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha"), true,
+              {LocalEditNodeHint{firstId, 0, BlockType::Paragraph}}),
           QStringLiteral("height-changing edit should apply"));
   require(incremental.rebuildBlock(firstId, session.document(), theme, {}).rebuilt,
           QStringLiteral("height-changing block rebuild should succeed"));
@@ -349,6 +476,8 @@ int main(int argc, char** argv) {
   RUN_TEST(testIncrementalBlockRebuildContract);
   RUN_TEST(testIncrementalTopLevelRangeRebuildContract);
   RUN_TEST(testLayoutPositionIndexPreservesLazySuffixAcrossSplice);
+  RUN_TEST(testExactCompactCssSemanticSignatures);
+  RUN_TEST(testThemeRebuildReusesNavigationWithoutStaleGeometry);
   RUN_TEST(testRangeRebuildAfterLazySuffixShiftMatchesFullLayout);
   RUN_TEST(testLazyPromoteMatchesEagerGap);
   RUN_TEST(testTrailingEmptyNestedBlockquoteLineRenders);

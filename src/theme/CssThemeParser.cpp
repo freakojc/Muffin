@@ -1,4 +1,8 @@
 #include "theme/CssThemeParser.h"
+#include "diagnostics/ScopedPerfProbe.h"
+#include "theme/CssComputedStyleEngine.h"
+#include "theme/CssImageResources.h"
+#include "theme/CssContent.h"
 
 #include <QChar>
 #include <QDir>
@@ -11,10 +15,26 @@
 #include <QtGlobal>
 
 #include <algorithm>
+#include <atomic>
 #include <functional>
+#include <optional>
 
 namespace muffin {
 namespace {
+Q_LOGGING_CATEGORY(parserLoadPerf, "muffin.perf.detail", QtWarningMsg)
+
+struct SourceMap {
+  QString file;
+  std::vector<int> starts{0};
+  SourceMap(const QString& text, QString sourceFile) : file(std::move(sourceFile)) {
+    for (int i = 0; i < text.size(); ++i)
+      if (text[i] == '\n') starts.push_back(i + 1);
+  }
+  CssSourceLocation at(int offset) const {
+    const auto line = std::upper_bound(starts.begin(), starts.end(), offset) - starts.begin();
+    return {file, int(line), offset - starts[line - 1] + 1};
+  }
+};
 
 // Skip whitespace and /* ... */ comments starting at `i`. Returns the new index.
 int skipWsComments(const QString& text, int i, int n) {
@@ -121,7 +141,10 @@ QString readUrlTarget(const QString& text, int& i, int n) {
   i = skipWsComments(text, i, n);
   if (i >= n) { return {}; }
   if (text.at(i) == QLatin1Char('"') || text.at(i) == QLatin1Char('\'')) {
-    return tryReadString(text, i, n);
+    const int start = i;
+    tryReadString(text, i, n);
+    const auto tokens = parseContentTokens(text.mid(start, i - start));
+    return tokens.size() == 1 ? tokens.front().text : QString{};
   }
   // url( ... )
   const int paren = findDelim(text, i, n, QLatin1Char('('));
@@ -134,7 +157,13 @@ QString readUrlTarget(const QString& text, int& i, int n) {
   if (inner.size() >= 2 &&
       (inner.front() == QLatin1Char('"') || inner.front() == QLatin1Char('\'')) &&
       inner.front() == inner.back()) {
-    inner = inner.mid(1, inner.size() - 2);
+    const auto tokens = parseContentTokens(inner);
+    return tokens.size() == 1 ? tokens.front().text : QString{};
+  }
+  if (inner.contains('\\')) {
+    inner.replace('"', "\\\"");
+    const auto tokens = parseContentTokens('"' + inner + '"');
+    return tokens.size() == 1 ? tokens.front().text : QString{};
   }
   return inner;
 }
@@ -170,7 +199,7 @@ QString stripComments(const QString& text) {
   return out;
 }
 
-std::vector<CssDeclaration> parseDeclarationBlock(const QString& block) {
+std::vector<CssDeclaration> parseDeclarationBlock(const QString& block, const QString& baseDir = {}) {
   std::vector<CssDeclaration> out;
   // Strip comments first so a `/* note */` between two ';' cannot glue onto the
   // following declaration's property (findDelim skips comments while scanning,
@@ -187,6 +216,7 @@ std::vector<CssDeclaration> parseDeclarationBlock(const QString& block) {
     const int colon = findDelim(raw, 0, raw.size(), QLatin1Char(':'));
     if (colon <= 0) { continue; }  // need a property before the ':'
     CssDeclaration d;
+    d.resourceBaseDir = baseDir;
     d.property = raw.left(colon).trimmed();
     // Normal property names are ASCII case-insensitive; custom property names
     // (`--Name`) are case-sensitive by CSS definition.
@@ -283,13 +313,8 @@ QString unquote(const QString& s) {
 // rejects http/https.
 QStringList extractLocalUrlTargets(const QString& text, const QString& dir, bool includeMissing = false) {
   QStringList out;
-  static const QRegularExpression urlRe(QStringLiteral("url\\(\\s*([^)]*?)\\s*\\)"),
-                                        QRegularExpression::CaseInsensitiveOption);
-  auto it = urlRe.globalMatch(stripComments(text));
-  while (it.hasNext()) {
-    QString target = unquote(it.next().captured(1).trimmed());
-    if (target.startsWith(QStringLiteral("data:"), Qt::CaseInsensitive)) { continue; }
-    const QString resolved = resolveImportPath(target, dir);
+  for (const auto& target : CssThemeParser::resourceUrls(text)) {
+    const QString resolved = CssImageResources::localPath(target, dir);
     if (resolved.isEmpty()) { continue; }
     const QString canon = QDir::cleanPath(resolved);
     if (includeMissing || QFileInfo(canon).isFile()) { out << canon; }
@@ -300,7 +325,7 @@ QStringList extractLocalUrlTargets(const QString& text, const QString& dir, bool
 // Parse a @keyframes block body into stops. Body looks like:
 //   `from { opacity: 1 } 50% { opacity: .3 } to { opacity: 1 }`
 // Stop selectors may be a comma list ("0%, 50%"); positions: from=0, to=1, N%.
-std::vector<CssKeyframeStop> parseKeyframesStops(const QString& blockText) {
+std::vector<CssKeyframeStop> parseKeyframesStops(const QString& blockText, const QString& baseDir) {
   std::vector<CssKeyframeStop> stops;
   const int n = blockText.size();
   int i = 0;
@@ -312,7 +337,7 @@ std::vector<CssKeyframeStop> parseKeyframesStops(const QString& blockText) {
     const QString selText = blockText.mid(i, brace - i).trimmed();
     const int end = matchingBrace(blockText, brace, n);
     const QString declText = blockText.mid(brace + 1, (end < 0 ? n : end) - (brace + 1));
-    const std::vector<CssDeclaration> decls = parseDeclarationBlock(declText);
+    const std::vector<CssDeclaration> decls = parseDeclarationBlock(declText, baseDir);
     for (const QString& sel : CssThemeParser::splitTopLevelCommas(selText)) {
       const QString t = sel.trimmed().toLower();
       qreal pos = -1.0;
@@ -338,7 +363,8 @@ std::vector<CssKeyframeStop> parseKeyframesStops(const QString& blockText) {
 // is the owning CSS file's directory — used to resolve @font-face src url() to
 // absolute font paths (a font declared in an @import'd base must resolve
 // relative to that base, not the top file).
-void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const QString& baseDir, QStringList mediaQueries = {}) {
+void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const QString& baseDir,
+               const SourceMap& source, int sourceOffset = 0, QStringList mediaQueries = {}, QStringList supportQueries = {}) {
   const int n = text.size();
   int i = 0;
   while (i < n) {
@@ -352,10 +378,21 @@ void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const
       }
       const QString keyword = text.mid(i + 1, j - i - 1).toLower();
       int k = skipWsComments(text, j, n);
+      CssAtRule atRule;
+      atRule.keyword = keyword;
+      atRule.mediaQueries = mediaQueries;
+      atRule.supportQueries = supportQueries;
+      atRule.source = source.at(sourceOffset + i);
       if (keyword == QLatin1String("import")) {
         // already merged in the first pass; skip to ';'
         int semi = findDelim(text, k, n, QLatin1Char(';'));
-        i = (semi < 0) ? n : semi + 1;
+        if (semi < 0) semi = n;
+        atRule.prelude = text.mid(k, semi - k).trimmed();
+        int targetEnd = k;
+        atRule.resourceTarget = readUrlTarget(text, targetEnd, semi);
+        atRule.importModifiers = text.mid(targetEnd, semi - targetEnd).trimmed();
+        sheet.addAtRule(std::move(atRule));
+        i = semi + 1;
         continue;
       }
       int brace = findDelim(text, k, n, QLatin1Char('{'));
@@ -366,41 +403,58 @@ void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const
         // at-rule sitting directly before a rule would swallow that rule's '{'
         // as its body and silently drop it (e.g. losing :root variables when no
         // @font-face block happens to sit between them).
+        atRule.prelude = text.mid(k, (semi < 0 ? n : semi) - k).trimmed();
+        sheet.addAtRule(std::move(atRule));
         i = (semi < 0) ? n : semi + 1;
         continue;
       }
       int end = matchingBrace(text, brace, n);
       const QString blockText = text.mid(brace + 1, (end < 0 ? n : end) - (brace + 1));
+      atRule.prelude = text.mid(k, brace - k).trimmed();
+      if (keyword == QLatin1String("font-face")) atRule.descriptors = parseDeclarationBlock(blockText);
+      sheet.addAtRule(std::move(atRule));
       if (keyword == QLatin1String("media")) {
         QStringList conditions = mediaQueries;
         conditions.append(text.mid(k, brace - k).trimmed());
-        parseRules(blockText, sheet, false, baseDir, conditions);
-      } else if (keyword == QLatin1String("font-face")) {
-        // Capture family + local src font files so they can be registered with
-        // QFontDatabase and the theme's font-family stacks resolve to the bundled
-        // typefaces (e.g. phycat's LXGW WenKai / CascadiaCode). data:/remote src
-        // and missing files are skipped by extractLocalUrlTargets. A @font-face
-        // in an @import'd base resolves against that base's dir because parse()
-        // recurses with the sub-sheet's own baseDir.
+        parseRules(blockText, sheet, false, baseDir, source, sourceOffset + brace + 1, conditions, supportQueries);
+      } else if (keyword == QLatin1String("supports")) {
+        QStringList conditions = supportQueries;
+        conditions.append(text.mid(k, brace - k).trimmed());
+        parseRules(blockText, sheet, darkScope, baseDir, source, sourceOffset + brace + 1, mediaQueries, conditions);
+      } else if (keyword == QLatin1String("font-face") &&
+                 std::all_of(supportQueries.cbegin(), supportQueries.cend(), CssThemeSheet::supportsMatches)) {
         QString family, weight = QStringLiteral("normal"), fontStyle = QStringLiteral("normal");
+        QStringList sources;
         for (const CssDeclaration& d : parseDeclarationBlock(blockText)) {
           if (d.property == QStringLiteral("font-family") && family.isEmpty()) {
             family = unquote(d.value.trimmed());
           }
           if (d.property == QStringLiteral("font-weight")) weight = d.value;
           if (d.property == QStringLiteral("font-style")) fontStyle = d.value;
-        }
-        if (!family.isEmpty()) {
-          for (const QString& srcPath : extractLocalUrlTargets(blockText, baseDir)) {
-            sheet.addFontFace({family, srcPath, weight, fontStyle});
+          if (d.property == QStringLiteral("src")) {
+            sources.clear();
+            for (const auto& candidate : CssThemeParser::splitTopLevelCommas(d.value)) {
+              if(candidate.trimmed().startsWith("local(",Qt::CaseInsensitive)) {
+                int at=0;const auto name=readUrlTarget(candidate,at,candidate.size());
+                if(!name.isEmpty())sources.append("local:"+name);
+              } else for(const auto& target:CssThemeParser::resourceUrls(candidate)) {
+                const auto path=CssImageResources::localPath(target,baseDir);
+                if(!path.isEmpty())sources.append(path);
+                else if(target.startsWith("data:",Qt::CaseInsensitive))sources.append(target);
+              }
+            }
           }
         }
-      } else if (keyword == QLatin1String("keyframes")) {
+        if (!family.isEmpty()) {
+          if(!sources.isEmpty())sheet.addFontFace({family,sources.front(),weight,fontStyle,sources,mediaQueries});
+        }
+      } else if (keyword == QLatin1String("keyframes") &&
+                 std::all_of(supportQueries.cbegin(), supportQueries.cend(), CssThemeSheet::supportsMatches)) {
         // Capture name + stops so the mapper/sampler can animate supported
         // properties (opacity/box-shadow/transform). text between the keyword
         // and '{' is the name (e.g. `@keyframes pulse` → "pulse").
         const QString name = text.mid(k, brace - k).trimmed();
-        std::vector<CssKeyframeStop> stops = parseKeyframesStops(blockText);
+        std::vector<CssKeyframeStop> stops = parseKeyframesStops(blockText, baseDir);
         if (!name.isEmpty() && !stops.empty()) {
           sheet.addKeyframes({name, std::move(stops)});
         }
@@ -421,10 +475,10 @@ void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const
           selectors.size() == 1 && selectors.first().trimmed() == QStringLiteral(":root");
       if (isRoot) {
         std::vector<CssDeclaration> elementDecls;
-        for (const CssDeclaration& d : parseDeclarationBlock(blockText)) {
+        for (const CssDeclaration& d : parseDeclarationBlock(blockText, baseDir)) {
           if (d.property.startsWith(QLatin1String("--"))) {
-            if (mediaQueries.isEmpty()) {
-              sheet.setVariable(d.property, d.value);
+            if (mediaQueries.isEmpty() && supportQueries.isEmpty()) {
+              sheet.setVariable(d.property, CssThemeParser::resolveResourceUrls(d.value, baseDir));
             }
           }
           elementDecls.push_back(d);
@@ -439,14 +493,18 @@ void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const
           rule.declarations = std::move(elementDecls);
           rule.darkScope = darkScope;
           rule.mediaQueries = mediaQueries;
+          rule.supportQueries = supportQueries;
+          rule.source = source.at(sourceOffset + i);
           sheet.addRule(std::move(rule));
         }
       } else {
         CssRule rule;
         rule.selectors = selectors;
-        rule.declarations = parseDeclarationBlock(blockText);
+        rule.declarations = parseDeclarationBlock(blockText, baseDir);
         rule.darkScope = darkScope;
         rule.mediaQueries = mediaQueries;
+        rule.supportQueries = supportQueries;
+        rule.source = source.at(sourceOffset + i);
         sheet.addRule(std::move(rule));
       }
     }
@@ -487,7 +545,7 @@ QStringList CssThemeParser::splitTopLevelCommas(const QString& text) {
 
 namespace {
 
-CssThemeSheet parseSheetWithImports(const QString& text, const QString& baseDir, QSet<QString>& visited) {
+CssThemeSheet parseSheetWithImports(const QString& text, const QString& baseDir, QSet<QString>& visited, const QString& sourceFile) {
   CssThemeSheet sheet;
   // Imports first: their rules/variables merge under this file's so the
   // importing file wins on ties (CSS cascade for top-of-file @import).
@@ -502,20 +560,84 @@ CssThemeSheet parseSheetWithImports(const QString& text, const QString& baseDir,
     visited.insert(canon);
     QFile f(resolved);
     if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) { continue; }
-    const QString subText = QString::fromUtf8(f.readAll());
+    const QString subText = [&] {
+      diag::ScopedPerfProbe perf("theme.readImport", parserLoadPerf());
+      return QString::fromUtf8(f.readAll());
+    }();
     f.close();
-    CssThemeSheet sub = parseSheetWithImports(subText, QFileInfo(resolved).absolutePath(), visited);
+    CssThemeSheet sub = parseSheetWithImports(subText, QFileInfo(resolved).absolutePath(), visited, canon);
     sheet.mergeIn(sub);
   }
-  parseRules(text, sheet, false, baseDir);
+  parseRules(text, sheet, false, baseDir, SourceMap(text, sourceFile));
   return sheet;
 }
 
 }  // namespace
 
-CssThemeSheet CssThemeParser::parse(const QString& text, const QString& baseDir) {
+CssThemeSheet CssThemeParser::parse(const QString& text, const QString& baseDir, const QString& sourceFile) {
+  diag::ScopedPerfProbe perf("theme.parse", parserLoadPerf());
   QSet<QString> visited;
-  return parseSheetWithImports(text, baseDir, visited);
+  if (!sourceFile.isEmpty()) visited.insert(QDir::cleanPath(sourceFile));
+  return parseSheetWithImports(text, baseDir, visited, sourceFile);
+}
+
+CssThemeSheet::CssThemeSheet() : imageResources_(std::make_shared<CssImageResources>()) { touch(); }
+
+void CssThemeSheet::touch() {
+  static std::atomic<quint64> next{0};
+  revision_ = next.fetch_add(1, std::memory_order_relaxed) + 1;
+}
+
+QStringList CssThemeParser::resourceUrls(const QString& text) {
+  QStringList urls;
+  const int n = text.size();
+  for (int i = 0; i < n;) {
+    i = skipWsComments(text, i, n);
+    if (i >= n) break;
+    if (text[i] == '\'' || text[i] == '"') { tryReadString(text, i, n); continue; }
+    if (text[i].isLetter() || text[i] == '_' || text[i] == '-') {
+      const int start = i++;
+      while (i < n && (text[i].isLetterOrNumber() || text[i] == '_' || text[i] == '-')) ++i;
+      const int open = skipWsComments(text, i, n);
+      if (text.mid(start, i - start).compare("url", Qt::CaseInsensitive) == 0 && open < n && text[open] == '(') {
+        int targetEnd = start;
+        const auto url = readUrlTarget(text, targetEnd, n);
+        if (!url.isEmpty()) urls << url;
+        i = targetEnd;
+      }
+    } else ++i;
+  }
+  return urls;
+}
+
+QString CssThemeParser::resolveResourceUrls(const QString& text, const QString& baseDir) {
+  if (baseDir.isEmpty() || !text.contains("url", Qt::CaseInsensitive)) return text;
+  QString out;
+  int last = 0;
+  const int n = text.size();
+  for (int i = 0; i < n;) {
+    i = skipWsComments(text, i, n);
+    if (i >= n) break;
+    if (text[i] == '\'' || text[i] == '"') { tryReadString(text, i, n); continue; }
+    if (text[i].isLetter() || text[i] == '_' || text[i] == '-') {
+      const int start = i++;
+      while (i < n && (text[i].isLetterOrNumber() || text[i] == '_' || text[i] == '-')) ++i;
+      const int open = skipWsComments(text, i, n);
+      if (text.mid(start, i - start).compare("url", Qt::CaseInsensitive) == 0 && open < n && text[open] == '(') {
+        int end = start;
+        const auto target = readUrlTarget(text, end, n);
+        const auto path = CssImageResources::localPath(target, baseDir);
+        if (!path.isEmpty()) {
+          auto escaped = path;
+          escaped.replace('\\', "\\\\").replace('"', "\\\"");
+          out += text.mid(last, start - last) + "url(\"" + escaped + "\")";
+          last = end;
+        }
+        i = end;
+      }
+    } else ++i;
+  }
+  return out.isEmpty() ? text : out + text.mid(last);
 }
 
 std::vector<CssDeclaration> CssThemeParser::parseDeclarations(
@@ -584,7 +706,15 @@ std::optional<QString> substituteTokens(const QString& value, const VariableLook
     auto replacement = lookup(name);
     if (!replacement && comma >= 0) replacement = substituteTokens(inside.mid(comma + 1).trimmed(), lookup, depth + 1);
     if (!replacement) return std::nullopt;
+    // var() substitutes CSS tokens, not characters. Keep adjacent identifiers,
+    // numbers and dimensions separate: var(--weight)1em is `500 1em`, never
+    // `5001em`; similarly var(--number)px must not invent a dimension token.
+    const auto tokenEdge = [](QChar c) {
+      return c.isLetterOrNumber() || c == '_' || c == '-' || c == '.' || c == '#' || c == '%' || c == '\\' || c == '\'' || c == '"';
+    };
+    if (!out.isEmpty() && !replacement->isEmpty() && tokenEdge(out.back()) && tokenEdge(replacement->front())) out += ' ';
     out += *replacement;
+    if (!replacement->isEmpty() && close + 1 < value.size() && tokenEdge(replacement->back()) && tokenEdge(value[close + 1])) out += ' ';
     i = close + 1;
   }
   return out;
@@ -592,25 +722,35 @@ std::optional<QString> substituteTokens(const QString& value, const VariableLook
 }  // namespace
 
 QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QString, QString>& variables) {
-  // Most inherited maps are already computed. Return their shared Qt storage
-  // directly instead of rebuilding a dependency graph for every element.
-  bool references = false;
-  for (const auto& value : variables)
-    if (value.contains(QLatin1String("var("), Qt::CaseInsensitive)) { references = true; break; }
-  if (!references) return variables;
-
+  diag::ScopedPerfProbe perf("css.customProperties", parserLoadPerf());
   struct CachedVariables {
     QHash<QString, QString> input, output;
   };
-  // Per-thread, bounded and keyed by the full map (including fallbacks/cycles).
-  // Changes in stylesheet, scope or media input cannot reuse a stale result.
+  // Check complete inherited maps before scanning large SVG/data URI values
+  // for var(). Computed outputs are idempotent and can reuse the same storage.
   static thread_local std::vector<CachedVariables> cache;
-  for (auto it = cache.rbegin(); it != cache.rend(); ++it)
+  for (auto it = cache.rbegin(); it != cache.rend(); ++it) {
     if (it->input == variables) return it->output;
+    if (it->output == variables) return it->output;
+  }
+  const auto remember = [&](QHash<QString, QString> output) {
+    if (cache.size() == 16) cache.erase(cache.begin());
+    cache.push_back({variables, output});
+    return output;
+  };
+  bool references = false;
+  for (const auto& value : variables)
+    if (value.contains(QLatin1String("var("), Qt::CaseInsensitive)) {
+      references = true;
+      break;
+    }
+  if (!references) return remember(variables);
+
   // Find dependency cycles first, including references inside fallbacks. A
   // fallback cannot make a cyclic custom property valid.
   QHash<QString, QStringList> dependencies;
-  static const QRegularExpression reference(QStringLiteral(R"(var\(\s*(--[-\w]+))"), QRegularExpression::CaseInsensitiveOption);
+  static const QRegularExpression reference(QStringLiteral(R"(var\(\s*(--[-\w]+))"),
+                                            QRegularExpression::CaseInsensitiveOption);
   for (auto it = variables.cbegin(); it != variables.cend(); ++it) {
     const QString& value = it.value();
     for (int i = 0; i < value.size();) {
@@ -620,8 +760,12 @@ QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QStr
       }
       // Only 'v' can start var(). Avoid invoking a regex at every byte of
       // large SVG/data-URI custom properties in themes such as VLOOK.
-      if (value[i].toLower() != QLatin1Char('v')) { ++i; continue; }
-      const auto match = reference.match(value, i, QRegularExpression::NormalMatch, QRegularExpression::AnchorAtOffsetMatchOption);
+      if (value[i].toLower() != QLatin1Char('v')) {
+        ++i;
+        continue;
+      }
+      const auto match =
+          reference.match(value, i, QRegularExpression::NormalMatch, QRegularExpression::AnchorAtOffsetMatchOption);
       if (match.hasMatch()) {
         dependencies[it.key()].push_back(match.captured(1));
         i = match.capturedEnd();
@@ -658,9 +802,7 @@ QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QStr
     return value;
   };
   for (auto it = variables.cbegin(); it != variables.cend(); ++it) resolve(it.key());
-  if (cache.size() == 16) cache.erase(cache.begin());
-  cache.push_back({variables, computed});
-  return computed;
+  return remember(std::move(computed));
 }
 
 std::optional<QString> CssThemeParser::substituteVars(const QString& value, const QHash<QString, QString>& variables) {
@@ -784,15 +926,134 @@ bool CssThemeSheet::mediaMatches(const QString& raw, const CssEnvironment& env) 
   return false;
 }
 
+bool CssThemeSheet::supportsMatches(const QString& raw) {
+  // CSS Conditional Rules: and/or cannot mix at one level; not takes a single
+  // parenthesized operand. Invalid syntax stays invalid even under negation.
+  struct ConditionParser {
+    QString text;
+    qsizetype pos = 0;
+    int depth = 0;
+
+    bool whitespace() {
+      const auto start = pos;
+      while (pos < text.size() && text[pos].isSpace()) ++pos;
+      return pos != start;
+    }
+    QString word() {
+      const auto start = pos;
+      while (pos < text.size() && (text[pos].isLetter() || text[pos] == '-')) ++pos;
+      return text.mid(start, pos - start).toLower();
+    }
+    std::optional<bool> atom() {
+      whitespace();
+      if (pos >= text.size() || depth > 32) return std::nullopt;
+      const bool parenthesized = text[pos] == '(';
+      if (!parenthesized) {
+        if (word().isEmpty() || pos >= text.size() || text[pos] != '(') return std::nullopt;
+      }
+      const auto open = pos++;
+      QString closers = QStringLiteral(")");
+      QChar quote;
+      for (; pos < text.size(); ++pos) {
+        const auto c = text[pos];
+        if (c == '\\') { ++pos; continue; }
+        if (!quote.isNull()) {
+          if (c == quote) quote = {};
+          continue;
+        }
+        if (c == '\'' || c == '"') { quote = c; continue; }
+        if (c == '(' || c == '[' || c == '{') closers += c == '(' ? ')' : c == '[' ? ']' : '}';
+        else if (c == ')' || c == ']' || c == '}') {
+          if (closers.isEmpty() || c != closers.back()) return std::nullopt;
+          closers.chop(1);
+          if (closers.isEmpty()) break;
+        }
+      }
+      if (pos >= text.size() || !quote.isNull()) return std::nullopt;
+      const auto inner = text.mid(open + 1, pos - open - 1).trimmed();
+      ++pos;
+      // Unknown functional queries (selector(), font-tech(), etc.) are valid
+      // future syntax, but not advertised by this backend yet.
+      if (!parenthesized) return false;
+      const int colon = findDelim(inner, 0, inner.size(), ':');
+      if (colon >= 0) {
+        static const QRegularExpression propertyName(QStringLiteral("^(?:--[a-zA-Z0-9_-]+|-?[a-zA-Z][a-zA-Z0-9-]*)$"));
+        const QString property = inner.left(colon).trimmed();
+        if (!propertyName.match(property).hasMatch() || findDelim(inner, 0, inner.size(), ';') >= 0) return false;
+        const auto declarations = CssThemeParser::parseDeclarations(inner);
+        return declarations.size() == 1 && CssComputedStyleEngine::supportsDeclaration(declarations[0].property, declarations[0].value);
+      }
+      ConditionParser nested{inner, 0, depth + 1};
+      const auto value = nested.condition();
+      if (value) return value;
+      // An unknown parenthesized identifier is general-enclosed, not a malformed
+      // boolean expression. Unbalanced or trailing boolean tokens are rejected.
+      static const QRegularExpression future(QStringLiteral("^[a-zA-Z_-][a-zA-Z0-9_-]*$"));
+      if (future.match(inner).hasMatch()) return false;
+      return std::nullopt;
+    }
+    std::optional<bool> condition() {
+      whitespace();
+      const auto saved = pos;
+      if (word() == "not") {
+        if (!whitespace()) return std::nullopt;
+        const auto value = atom();
+        whitespace();
+        return value && pos == text.size() ? std::optional<bool>(!*value) : std::nullopt;
+      }
+      pos = saved;
+      auto result = atom();
+      if (!result) return std::nullopt;
+      QString operation;
+      for (;;) {
+        whitespace();
+        if (pos == text.size()) return result;
+        const auto op = word();
+        if ((op != "and" && op != "or") || (!operation.isEmpty() && operation != op) || !whitespace()) return std::nullopt;
+        operation = op;
+        const auto right = atom();
+        if (!right) return std::nullopt;
+        result = op == "and" ? *result && *right : *result || *right;
+      }
+    }
+  };
+  // Remove comments without changing strings, so adjacent tokens stay separate.
+  QString query;
+  QChar quote;
+  for (qsizetype i = 0; i < raw.size(); ++i) {
+    const auto c = raw[i];
+    if (c == '\\' && i + 1 < raw.size()) { query += c; query += raw[++i]; continue; }
+    if (!quote.isNull()) {
+      query += c;
+      if (c == quote) quote = {};
+    } else if (c == '\'' || c == '"') { quote = c; query += c; }
+    else if (c == '/' && i + 1 < raw.size() && raw[i + 1] == '*') {
+      const auto end = raw.indexOf(QStringLiteral("*/"), i + 2);
+      if (end < 0) return false;
+      i = end + 1;
+      query += ' ';
+    } else query += c;
+  }
+  ConditionParser parser{query};
+  return parser.condition().value_or(false);
+}
+
+bool CssFontFace::active(const CssEnvironment& environment) const {
+  return std::all_of(mediaQueries.cbegin(),mediaQueries.cend(),[&](const auto& query){return CssThemeSheet::mediaMatches(query,environment);});
+}
+
 bool CssThemeSheet::sameActiveRules(const CssEnvironment& before, const CssEnvironment& after) const {
   const auto active = [](const CssRule& rule, const CssEnvironment& env) {
     if (rule.darkScope && !env.dark) return false;
     for (const auto& query : rule.mediaQueries)
       if (!mediaMatches(query, env)) return false;
+    for (const auto& query : rule.supportQueries)
+      if (!supportsMatches(query)) return false;
     return true;
   };
   for (const auto& rule : rules_)
     if (active(rule, before) != active(rule, after)) return false;
+  for(const auto& face:fontFaces_)if(face.active(before)!=face.active(after))return false;
   return true;
 }
 
@@ -816,17 +1077,25 @@ bool CssThemeSheet::hasViewportUnits() const {
 }
 
 CssThemeSheet CssThemeSheet::evaluated(const CssEnvironment& env) const {
+  diag::ScopedPerfProbe perf("theme.evaluateSheet", parserLoadPerf());
   CssThemeSheet result;
-  result.fontFaces_ = fontFaces_;
+  result.imageResources_ = imageResources_;
+  for(const auto& face:fontFaces_)if(face.active(env))result.fontFaces_.push_back(face);
   result.keyframes_ = keyframes_;
   result.variables_ = variables_;
+  QHash<QString, bool> supportResults;
   for (const CssRule& rule : rules_) {
     bool active = !rule.darkScope || env.dark;
     for (const QString& query : rule.mediaQueries) active = active && mediaMatches(query, env);
+    for (const QString& query : rule.supportQueries) {
+      if (!supportResults.contains(query)) supportResults.insert(query, supportsMatches(query));
+      active = active && supportResults.value(query);
+    }
     if (!active) continue;
     CssRule copy = rule;
     copy.darkScope = false;
     copy.mediaQueries.clear();
+    copy.supportQueries.clear();
     result.addRule(std::move(copy));
   }
   return result;

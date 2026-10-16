@@ -1,4 +1,5 @@
 #include "projection/InlineProjection.h"
+#include "diagnostics/ScopedPerfProbe.h"
 
 #include "document/ImageSyntaxOps.h"
 #include "editor/EmojiDictionary.h"
@@ -12,6 +13,7 @@
 
 namespace muffin {
 namespace {
+Q_LOGGING_CATEGORY(projectionPerf, "muffin.perf.detail", QtWarningMsg)
 
 // CSS text-transform applied to a display-text run. Per-code-point case mapping
 // (QChar::toUpper/toLower) is length-preserving for every code point — unlike
@@ -374,6 +376,7 @@ bool InlineProjection::BuildState::shouldReveal(qsizetype sourceStart, qsizetype
 }
 
 bool InlineProjection::matchesState(const InlineProjectionState& state) const {
+  diag::ScopedPerfProbe perf("projection.matches", projectionPerf());
   return valid_ && std::all_of(revealChecks_.cbegin(), revealChecks_.cend(), [&](const auto& check) {
     return check.revealed == (state.shouldRevealSourceRange(check.sourceStart, check.sourceEnd) ||
                              state.shouldRevealVisibleRange(check.visibleStart, check.visibleEnd));
@@ -383,8 +386,9 @@ bool InlineProjection::matchesState(const InlineProjectionState& state) const {
 InlineProjection::InlineProjection(const QVector<InlineNode>& inlines, QString sourceText, InlineProjectionState projectionState,
                                    qsizetype sourceBase, qreal baseFontSize, qsizetype pendingPrefixLength,
                                    SmartPunctRenderOptions smartPunct, bool breakOnSingleNewline, TextTransform textTransform,
-                                   bool renderEmoji, html::HtmlColorPalette htmlPalette)
+                                   bool renderEmoji, html::HtmlColorPalette htmlPalette, QVector<InlineSourceReplacement> replacements)
     : sourceText_(std::move(sourceText)), visibleText_(plainTextForInlines(inlines)) {
+  diag::ScopedPerfProbe perf("projection.build", projectionPerf());
   BuildState state;
   state.sourceText = &sourceText_;
   state.sourceBase = sourceBase;
@@ -396,6 +400,12 @@ InlineProjection::InlineProjection(const QVector<InlineNode>& inlines, QString s
   state.breakOnSingleNewline = breakOnSingleNewline;
   state.textTransform = textTransform;
   state.renderEmoji = renderEmoji;
+  for (auto& replacement : replacements) {
+    const bool revealed = replacement.revealAtCursor &&
+        state.shouldReveal(replacement.source.start, replacement.source.end, -1, -1);
+    if (!revealed) state.replacements.push_back(std::move(replacement));
+  }
+  std::sort(state.replacements.begin(), state.replacements.end(), [](const auto& a, const auto& b) { return a.source.start < b.source.start; });
   QVector<HtmlInlineFormatData> htmlData;
   if (pendingPrefixLength > 0 && pendingPrefixLength <= sourceText_.size()) {
     // A still-uncommitted fence/math opener: show the marker in the muted "syntax" color the
@@ -791,6 +801,21 @@ void InlineProjection::appendTextSpan(
     QString displayText,
     bool visible,
     bool editable) {
+  if (kind == InlineSpanKind::Text && displayText.size() == sourceEnd - sourceStart) {
+    const auto found = std::lower_bound(state.replacements.cbegin(), state.replacements.cend(), sourceStart,
+        [](const auto& replacement, qsizetype offset) { return replacement.source.end <= offset; });
+    if (found != state.replacements.cend() && found->source.start < sourceEnd) {
+      const auto& replacement = *found;
+      const auto start = qMax(sourceStart, replacement.source.start), end = qMin(sourceEnd, replacement.source.end);
+      if (sourceStart < start)
+        appendTextSpan(state, type, kind, sourceStart, start, displayText.left(start - sourceStart), visible, editable);
+      appendTextSpan(state, type, replacement.text.isEmpty() ? InlineSpanKind::HiddenSyntax : kind, start, end,
+                     start, end, replacement.text, !replacement.text.isEmpty() && visible, editable);
+      if (end < sourceEnd)
+        appendTextSpan(state, type, kind, end, sourceEnd, displayText.mid(end - sourceStart), visible, editable);
+      return;
+    }
+  }
   appendTextSpan(state, type, kind, sourceStart, sourceEnd, sourceStart, sourceEnd, std::move(displayText), visible, editable);
 }
 

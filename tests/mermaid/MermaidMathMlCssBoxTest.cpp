@@ -1,4 +1,5 @@
 #include "mermaid/math/MathMlCssLayout.h"
+#include "mermaid/MermaidFontRegistry.h"
 #include "mermaid/math/MathMlCssPainter.h"
 #include "math/MathRenderer.h"
 #include "math/OpenTypeMathFont.h"
@@ -83,8 +84,15 @@ QJsonValue semanticPaintOperationJson(const QJsonValue& value) {
         (glyphRun && it.key() == QLatin1String("advance")) ||
         (assemblyPart && it.key() == QLatin1String("position")) ||
         (verticalGlyph && it.key() == QLatin1String("realizedExtent"));
-    if (!rasterOnly)
-      result.insert(it.key(), semanticPaintOperationJson(it.value()));
+    if (!rasterOnly) {
+      auto value = semanticPaintOperationJson(it.value());
+      // The golden records logical font ownership. Content-derived private
+      // names isolate system fonts without changing any geometry or glyphs.
+      if (it.key() == QLatin1String("fontFamily"))
+        for (const auto& family : {"Noto Sans", "Noto Sans CJK SC", "Noto Sans Arabic", "Noto Sans Hebrew"})
+          if (value.toString() == mermaid::MermaidFontRegistry::bundledFamily(family)) value = QString(family);
+      result.insert(it.key(), value);
+    }
   }
   return result;
 }
@@ -2234,7 +2242,7 @@ int main(int argc, char** argv) {
           const auto fallbackRun = std::find_if(
               row->glyphRuns.cbegin(), row->glyphRuns.cend(),
               [&](const math::MathCssGlyphRunOperation& run) {
-                return run.fontFamily == expectedFamily;
+                return run.fontFamily == mermaid::MermaidFontRegistry::bundledFamily(expectedFamily);
               });
           require(fallbackRun != row->glyphRuns.cend() &&
                       fallbackRun->rawFont.isValid() &&
@@ -2401,7 +2409,7 @@ int main(int argc, char** argv) {
           require(std::all_of(expectedFamilies->cbegin(),
                               expectedFamilies->cend(),
                               [&](const QString& family) {
-                                return actual.contains(family);
+                                return actual.contains(mermaid::MermaidFontRegistry::bundledFamily(family));
                               }),
                   id + QStringLiteral(" fallback family ownership drifted: ") +
                       actual.values().join(","));

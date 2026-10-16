@@ -4,3 +4,5 @@ tests/fixtures/mermaid/*.json -text
 tests/fixtures/mermaid/**/*.json -text
 # Pinned upstream sources retain the bytes recorded in upstream.json.
 tests/fixtures/theme/wpt/upstream/** -text
+# VLOOK regression tests verify the original theme's SHA-256 bytes.
+tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css -text

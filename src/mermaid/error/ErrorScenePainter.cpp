@@ -1,4 +1,5 @@
 #include "mermaid/error/ErrorScenePainter.h"
+#include "mermaid/MermaidFontRegistry.h"
 
 #include "mermaid/MermaidPaintOptions.h"
 #include "mermaid/editor/MermaidRenderSupport.h"
@@ -30,7 +31,7 @@ QStringList fontFamilies(const QString& expression) {
     if (!item.isEmpty()) result.append(item);
   }
   if (result.isEmpty()) result.append(QStringLiteral("serif"));
-  return result;
+  return MermaidFontRegistry::resolveFamilies(result);
 }
 
 // QFont family matching on the Windows/DirectWrite backend is effectively

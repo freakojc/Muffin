@@ -1,4 +1,6 @@
 #include "theme/CssComputedStyleEngine.h"
+#include "theme/DocumentStyleTree.h"
+#include "diagnostics/ThemePerformance.h"
 #include "theme/CssThemeMapper.h"
 #include "theme/ThemeFontDecoder.h"
 #include "theme/RenderTheme.h"
@@ -106,7 +108,9 @@ void testNewsprintGeometryAndFonts() {
   near(style->box.margin.top(), 60, "live heading em geometry matches browser");
   near(style->box.padding.bottom(), 24.375, "live heading padding uses own font");
   require(style->box.borderBottomColor == QColor("#c5c5c5"), "Newsprint heading border color survives shorthand");
-  require(QFontDatabase::families().contains("PT Serif"), "bundled PT Serif loaded");
+  const auto alias=theme.fontAliases().value("pt serif");
+  require(!alias.isEmpty() && QFontDatabase::families().contains(alias), "bundled PT Serif loaded in its private family");
+  require(theme.paragraphFont().families().front()==alias,"Newsprint uses its own PT Serif family");
   near(theme.codeLineHeight(), 24, "code block line height comes from document CSS");
   for (const char* filename : {"regular", "italic", "700", "700italic"}) {
     QFile file(QString(":/themes/newsprint/pt-serif-v11-latin-%1.woff2").arg(filename));
@@ -173,7 +177,7 @@ void testHtmlUsesDocumentCascade() {
   require(heading != nullptr, "HTML heading exists");
   near(heading->style().fontSize, 22.5, "HTML heading uses document computed font");
   near(heading->style().padding.bottom(), 30, "HTML inline em uses computed heading size");
-  require(heading->style().font.families().contains("PT Serif"), "HTML shares registered document family");
+  require(heading->style().font.families().front()==theme.fontAliases().value("pt serif"), "HTML shares registered private document family");
   require(heading->style().fontWeight == QFont::Normal, "HTML text measurement respects normal heading weight");
   const auto* span = find(*result.root(), muffin::html::HtmlTag::Span);
   require(span != nullptr, "HTML span exists");
@@ -371,7 +375,7 @@ void testInlineHtmlUsesActualBoxAndFont() {
       "**<kbd class='hot'>X</kbd>** and <strong style='font-weight:normal'>plain</strong> <u style='text-decoration:none'>clear</u>",
       false);
   const auto nestedTheme = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(
-      "p > strong > kbd{padding:4px 19px;font-size:23px}p:has(.hot){padding-top:5px}", "mixed-inline-tree", {}));
+      "p > span[md-inline=strong] > strong > kbd{padding:4px 19px;font-size:23px}p:has(.hot){padding-top:5px}", "mixed-inline-tree", {}));
   muffin::DocumentLayout nestedLayout;
   nestedLayout.rebuild(nested.document(), nestedTheme, 800);
   const auto* nestedText = nestedLayout.block(nested.document().root().children().front()->id())->inlineLayout();
@@ -544,6 +548,159 @@ void testResponsiveProjectionReuse() {
   require(theme.updateForViewport(1187.5, 1250), "user font size invalidates reused projections");
 }
 
+void testProjectionPrototypeCacheLifetime() {
+  const auto source = muffin::CssThemeParser::parse("#write{--ink:red}p{color:var(--ink)}p:hover{color:blue}", {});
+  muffin::CssComputedStyleEngine engine(muffin::documentStyleSheet(source));
+  muffin::DocumentStylePrototypes live(true);
+  const auto& paragraph = live.element("p");
+  const auto before = engine.styleFor(paragraph);
+  const auto first = muffin::CssThemeMapper::fromSheet(source, "prototype-first", {}, &engine);
+  const auto second = muffin::CssThemeMapper::fromSheet(source, "prototype-second", {}, &engine);
+  muffin::enableThemePerformance(true);
+  muffin::resetThemePerformance();
+  const auto after = engine.styleFor(paragraph);
+  const auto work = muffin::themePerformanceSamples()[size_t(muffin::ThemePerfStage::Css)].work;
+  muffin::enableThemePerformance(false);
+  require(before == after && work == 0, "temporary projection scopes preserve caller-owned cached styles");
+  const auto a = muffin::RenderTheme::fromDefinition(first), b = muffin::RenderTheme::fromDefinition(second);
+  require(
+      a.elementStyle("p")->paint.color == QColor(Qt::red) && b.elementStyle("p:hover")->paint.color == QColor(Qt::blue),
+      "short-lived prototype caches retain base and interaction projection semantics");
+}
+
+void testTextOnlyStyleRebinding() {
+  const auto definition = muffin::CssThemeMapper::fromCss(
+      "#write{counter-reset:n;--ink:#123456;padding:0}h1::before{counter-increment:n;content:counter(n)}"
+      "p{color:var(--ink)}strong:hover{color:red}kbd.hot{padding:3px}"
+      "#write:has(kbd.cold){--ink:blue}#write:has(a[href='other']){--ink:green}"
+      "p:has(strong)+p{margin-top:21px}",
+      "text-rebinding", {});
+  auto theme = muffin::RenderTheme::fromDefinition(definition);
+  muffin::DocumentSession session;
+  session.setMarkdownText("# Heading\n\nPlain **bold** and <kbd class='hot'>Ctrl</kbd> [link](url)\n\nUnchanged",
+                          false);
+  muffin::DocumentLayout layout;
+  layout.rebuild(session.document(), theme, 800);
+  const auto* paragraph = session.document().root().children()[1].get();
+  const auto* original = theme.elementStyleForNode(*paragraph, "p");
+  const auto identity = theme.cssElementForNode(*paragraph)->cacheId;
+  const auto* strong = theme.cssInlineElement(*paragraph, 8, "strong");
+  require(strong, "test locates the original strong element");
+  const auto strongIdentity = strong->cacheId;
+  const auto recipe = theme.paintRecipeForElement(*strong);
+  require(bool(recipe), "interactive strong element has a recipe");
+  const auto untouchedId = session.document().root().children().back()->id();
+  const auto* untouched = layout.block(untouchedId);
+  const auto counters = theme.resolveDocumentCounters(session.document());
+  for (int i = 0; i < 40; ++i) {
+    paragraph = session.document().root().children()[1].get();
+    require(session.applyTextDelta(paragraph->sourceRange().byteStart + 2, 0, "x", true), "ordinary edit applies");
+    require(layout.rebuildTopLevelRange(session.lastLocalTopLevelRangeChange(), session.document(), theme, {}).rebuilt,
+            "ordinary edit rebuilds its local range");
+    paragraph = session.document().root().children()[1].get();
+    require(theme.hasLocalStyleChange() && theme.cssElementForNode(*paragraph)->cacheId == identity &&
+                theme.elementStyleForNode(*paragraph, "p") == original,
+            "text-only edits retain edited-block CSS identity and style snapshot");
+    strong = theme.cssInlineElement(*paragraph, 8 + i + 1, "strong");
+    require(strong && strong->cacheId == strongIdentity && theme.paintRecipeForElement(*strong) == recipe,
+            "inline offsets update while CSS identity and interaction recipe are retained");
+    require(layout.block(untouchedId) == untouched && theme.resolveDocumentCounters(session.document()) == counters,
+            "text-only edits retain other block layouts and numbering");
+  }
+  const auto compareFull = [&] {
+    auto fullTheme = muffin::RenderTheme::fromDefinition(definition);
+    muffin::DocumentLayout full;
+    full.rebuild(session.document(), fullTheme, 800);
+    if (qAbs(layout.totalHeight() - full.totalHeight()) > .01) {
+      std::fprintf(stderr, "document: %s\n", qPrintable(session.document().markdownText().toString()));
+      for (const auto& node : session.document().root().children()) {
+        const auto a = layout.block(node->id())->rect(), b = full.block(node->id())->rect();
+        std::fprintf(stderr, "block %s: y=%.3f/%.3f h=%.3f/%.3f\n", qPrintable(muffin::cssTagForNode(*node)), a.y(),
+                     b.y(), a.height(), b.height());
+      }
+    }
+    near(layout.totalHeight(), full.totalHeight(), "local layout height agrees with full recomputation");
+    for (const auto& node : session.document().root().children()) {
+      const auto* actual = layout.block(node->id());
+      const auto* expected = full.block(node->id());
+      require(actual->rect() == expected->rect(), "local block geometry agrees with full recomputation");
+      require(theme.elementStyleForNode(*node, muffin::cssTagForNode(*node))->paint.color ==
+                  fullTheme.elementStyleForNode(*node, muffin::cssTagForNode(*node))->paint.color,
+              "local inherited styles agree with full recomputation");
+      if (actual->inlineLayout())
+        require(actual->inlineLayout()->visibleText() == expected->inlineLayout()->visibleText(),
+                "rebinding retains new text, rather than old AST text");
+    }
+    require(theme.resolveDocumentCounters(session.document()) == fullTheme.resolveDocumentCounters(session.document()),
+            "local generated content agrees with full recomputation");
+  };
+  compareFull();
+  for (const auto& edit :
+       {qMakePair(QString("**bold**"), QString("bold")), qMakePair(QString("class='hot'"), QString("class='cold'")),
+        qMakePair(QString("(url)"), QString("(other)")), qMakePair(QString("# Heading"), QString("## Heading"))}) {
+    const auto start = session.document().markdownText().indexOf(edit.first);
+    require(start >= 0 && session.applyTextDelta(start, edit.first.size(), edit.second, true), "semantic edit applies");
+    require(layout.rebuildTopLevelRange(session.lastLocalTopLevelRangeChange(), session.document(), theme, {}).rebuilt,
+            "semantic edit rebuilds its range");
+    require(!theme.hasLocalStyleChange(), "structure, attributes and link targets invalidate dependent styles");
+    compareFull();
+  }
+}
+
+void testTextRebindingWithoutCountersAndNestedNodes() {
+  const auto definition = muffin::CssThemeMapper::fromCss(
+      "#write{padding:0}p{color:#123456}strong:hover{color:red}li p{font-size:17px}", "plain-rebinding", {});
+  for (const auto& text : {QString("First **bold**\n\nOther"), QString("- First **bold**\n  - Nested text\n\nOther"),
+                           QString("> First **bold**\n>\n> More text\n\nOther"),
+                           QString("| A | B |\n| - | - |\n| First **bold** | Second |\n\nOther")}) {
+    auto theme = muffin::RenderTheme::fromDefinition(definition);
+    muffin::DocumentSession session;
+    session.setMarkdownText(text, false);
+    muffin::DocumentLayout layout;
+    layout.rebuild(session.document(), theme, 800);
+    const auto start = session.document().markdownText().indexOf(QStringLiteral("First"));
+    require(session.applyTextDelta(start + 2, 0, "added", true), "nested plain edit applies");
+    require(
+        layout.rebuildTopLevelRange(session.lastLocalTopLevelRangeChange(), session.document(), theme, {}).rebuilt &&
+            theme.hasLocalStyleChange(),
+        "counter-free and nested blocks use the semantic fast path");
+    auto fullTheme = muffin::RenderTheme::fromDefinition(definition);
+    muffin::DocumentLayout full;
+    full.rebuild(session.document(), fullTheme, 800);
+    near(layout.totalHeight(), full.totalHeight(), "nested rebinding agrees with full layout");
+    for (const auto& node : session.document().root().children())
+      require(layout.block(node->id())->rect() == full.block(node->id())->rect(), "nested block bounds agree");
+    auto retained = theme;
+    require(session.applyTextDelta(start + 2, 0, "x", true), "edit with retained theme applies");
+    require(
+        layout.rebuildTopLevelRange(session.lastLocalTopLevelRangeChange(), session.document(), theme, {}).rebuilt &&
+            !theme.hasLocalStyleChange(),
+        "retained theme snapshots force separate adapters");
+  }
+}
+
+void testPendingRangeKeepsStyleSnapshot() {
+  auto theme = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(
+      "#write{counter-reset:n}h1::before{counter-increment:n;content:counter(n)}", "pending-range", {}));
+  muffin::DocumentSession session;
+  session.setMarkdownText("# Heading\n\nFirst\n\nUnchanged", false);
+  muffin::DocumentLayout layout;
+  layout.rebuild(session.document(), theme, 800);
+  const auto* unaffected = session.document().root().children().back().get();
+  const auto* snapshot = theme.elementStyleForNode(*unaffected, "p");
+  require(session.applyTextDelta(0, 0, "# Inserted\n\n", true), "pending structural edit applies");
+  muffin::enableThemePerformance(true);
+  muffin::resetThemePerformance();
+  const auto stale = layout.rebuildBlock(unaffected->id(), session.document(), theme, {},
+                                         muffin::DocumentLayout::BlockUpdateReason::Selection);
+  const auto samples = muffin::themePerformanceSamples();
+  muffin::enableThemePerformance(false);
+  require(!stale.rebuilt && samples[size_t(muffin::ThemePerfStage::Counters)].calls == 0 &&
+              theme.elementStyleForNode(*unaffected, "p") == snapshot,
+          "caret requests before a pending range must not invalidate styles or traverse counters");
+  require(layout.rebuildTopLevelRange(session.lastLocalTopLevelRangeChange(), session.document(), theme, {}).rebuilt,
+          "the owning range refresh applies its structural dependencies afterwards");
+}
 }  // namespace
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
@@ -566,5 +723,9 @@ int main(int argc, char** argv) {
   testBrowserBoxReference();
   testLazyPromotionUsesLiveMargins();
   testResponsiveProjectionReuse();
+  testProjectionPrototypeCacheLifetime();
+  testTextOnlyStyleRebinding();
+  testTextRebindingWithoutCountersAndNestedNodes();
+  testPendingRangeKeepsStyleSnapshot();
   return 0;
 }

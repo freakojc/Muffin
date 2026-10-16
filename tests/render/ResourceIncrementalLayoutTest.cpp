@@ -5,6 +5,7 @@
 #include "render/LayoutResources.h"
 #include "mermaid/editor/MermaidRenderCache.h"
 #include "theme/CssThemeMapper.h"
+#include "theme/ThemeFontDecoder.h"
 #include <QApplication>
 #include <QBuffer>
 #include <QElapsedTimer>
@@ -281,6 +282,109 @@ void editorResources() {
   view.setLoading(false);
   QCoreApplication::processEvents();
   require(view.nodeRect(imageId).height() >= 240, "installed document consumes current resource versions after open");
+}
+void hiddenEditorResources() {
+  auto& loader = ImageLoader::instance();
+  auto& resources = LayoutResources::instance();
+  const QString url = "https://example.invalid/hidden-editor.png";
+  loader.store(url, image({60, 30}, Qt::red));
+  DocumentSession session;
+  session.setMarkdownText(
+      "![image](" + url + ")\n\n" +
+          QString::fromUtf8("Font fallback 中英文 **bold** *italic* and wrapping words. ").repeated(12),
+      false);
+  const auto definition = CssThemeMapper::fromCss(
+      "#write{max-width:none;padding:0;margin:0}p{font:16px MuffinDeferredFixture,monospace;margin:0}",
+      "deferred-resource-font", {});
+  const auto imageId = session.document().root().children()[0]->id();
+  const auto textId = session.document().root().children()[1]->id();
+  EditorView view;
+  view.resize(520, 400);
+  view.setTheme(RenderTheme::fromDefinition(definition));
+  view.setDocument(session.document());
+  view.show();
+  QCoreApplication::processEvents();
+  CursorPosition cursor;
+  cursor.blockId = cursor.text.nodeId = textId;
+  cursor.text.textOffset = 5;
+  cursor.text.sourceOffset = session.document().root().children()[1]->sourceRange().byteStart + 5;
+  view.setCursorPosition(cursor);
+  const auto originalHeight = view.nodeRect(imageId).height();
+  const auto originalFont = view.blockLayoutForNode(textId)->reuse.resources.value(LayoutResources::fontKey());
+
+  // Queue while visible, then hide before dispatch: that callback must preserve
+  // the invalidation without doing the hidden layout work.
+  loader.store(url, image({60, 90}, Qt::blue));
+  view.hide();
+  QCoreApplication::processEvents();
+  require(view.nodeRect(imageId).height() == originalHeight, "queued visible refresh defers if hidden before dispatch");
+  loader.store(url, image({60, 120}, Qt::green));
+  loader.store(url, image({60, 160}, Qt::blue));
+  QFile font(QStringLiteral(MUFFIN_BINARY_DIR "/theme-fonts/github/open-sans-v17-latin-ext_latin-regular.ttf"));
+  require(font.open(QIODevice::ReadOnly), "read fixed native font for deferred registration");
+  const auto native = isolateThemeFont(font.readAll(), "MuffinDeferredFixture", 400, false);
+  const int fontId = QFontDatabase::addApplicationFontFromData(native);
+  require(fontId >= 0, "register new private family while editor is hidden");
+  QCoreApplication::processEvents();
+  require(resources.read(LayoutResources::fontKey()).geometry > originalFont.geometry,
+          "actual font registration publishes a new metric generation");
+  require(view.nodeRect(imageId).height() == originalHeight &&
+              view.blockLayoutForNode(textId)->reuse.resources.value(LayoutResources::fontKey()) == originalFont,
+          "hidden image and font notifications retain old geometry and dependency snapshots");
+
+  view.show();
+  view.refreshPendingResources();  // Same synchronous barrier used by a tab owner.
+  require(view.nodeRect(imageId).height() >= 160 &&
+              view.blockLayoutForNode(textId)->reuse.resources.value(LayoutResources::fontKey()) ==
+                  resources.read(LayoutResources::fontKey()),
+          "activation consumes the latest image and font versions before geometry queries");
+  EditorView fresh;
+  fresh.resize(520, 400);
+  fresh.setTheme(RenderTheme::fromDefinition(definition));
+  fresh.setDocument(session.document());
+  fresh.show();
+  fresh.setCursorPosition(cursor);
+  QCoreApplication::processEvents();
+  sameTree(*view.blockLayoutForNode(textId), *fresh.blockLayoutForNode(textId));
+  require(view.effectiveCursorRect() == fresh.effectiveCursorRect(),
+          "deferred font metrics agree with fresh caret geometry");
+  const auto hit = view.hitTest(view.mapDocumentToViewport(view.effectiveCursorRect().center()));
+  require(hit.blockId == textId && hit.sourceOffset == cursor.text.sourceOffset,
+          "activated font fallback preserves logical source position and visible hit coordinates");
+  const auto* consumed = view.blockLayoutForNode(textId);
+  view.hide();
+  view.show();
+  QCoreApplication::processEvents();
+  require(view.blockLayoutForNode(textId) == consumed, "show without another invalidation retains measured text");
+
+  view.setLoading(true);
+  view.hide();
+  loader.store(url, image({60, 210}, Qt::red));
+  view.setLoading(false);  // Cancellation while hidden must retain the update.
+  QCoreApplication::processEvents();
+  require(view.nodeRect(imageId).height() < 210, "cancelled hidden load leaves resource work deferred");
+  view.show();
+  QCoreApplication::processEvents();
+  require(view.nodeRect(imageId).height() >= 210, "show alone consumes a deferred update after load cancellation");
+
+  loader.store(url, image({60, 250}, Qt::green));
+  view.hide();
+  view.show();
+  view.setTheme(RenderTheme::fromDefinition(definition));
+  const auto* rebuilt = view.blockLayoutForNode(textId);
+  QCoreApplication::processEvents();
+  require(view.nodeRect(imageId).height() >= 250 && view.blockLayoutForNode(textId) == rebuilt,
+          "theme rebuild consumes pending resources and queued show does not replace that layout");
+
+  auto* closing = new EditorView;
+  closing->resize(520, 400);
+  closing->setDocument(session.document());
+  closing->show();
+  loader.store(url, image({60, 280}, Qt::blue));
+  closing->hide();
+  delete closing;
+  QCoreApplication::processEvents();  // The queued callback must not outlive its receiver.
+  require(QFontDatabase::removeApplicationFont(fontId), "remove deferred registration fixture");
 }
 void nestedEdits() {
   for (const auto& display : {QString("flex"), QString("grid")}) {
@@ -617,6 +721,7 @@ int main(int argc, char** argv) {
   imageUpdates();
   asyncAndLocalImages();
   editorResources();
+  hiddenEditorResources();
   nestedEdits();
   listMarkerEdits();
   htmlResources();

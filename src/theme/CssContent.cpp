@@ -4,9 +4,30 @@
 
 #include <QChar>
 #include <QStringList>
+#include <QRegularExpression>
+#include "theme/CssValueParser.h"
 #include <QtGlobal>
+#include <algorithm>
 
 namespace muffin {
+
+std::optional<QVector<QPair<QString, int>>> parseCounterOperations(const QString& text, int defaultValue) {
+  QVector<QPair<QString,int>> result;
+  const auto parts = splitTopLevelSpaces(text.trimmed());
+  if (parts.isEmpty() || text.trimmed().compare("none", Qt::CaseInsensitive) == 0) return result;
+  static const QRegularExpression identifier(QStringLiteral("^-?(?:[_a-zA-Z\\x{0080}-\\x{FFFF}])(?:[-_a-zA-Z0-9\\x{0080}-\\x{FFFF}])*$"));
+  static const QRegularExpression integer(QStringLiteral("^[+-]?[0-9]+$"));
+  for (int i = 0; i < parts.size(); ++i) {
+    const auto name = parts[i];
+    if (!identifier.match(name).hasMatch() || QStringList{"none","initial","inherit","unset","revert","revert-layer","default"}.contains(name.toLower())) return {};
+    int value = defaultValue;
+    if (i+1 < parts.size() && integer.match(parts[i+1]).hasMatch()) {
+      bool valid = false; value = parts[++i].toInt(&valid); if (!valid) return {};
+    }
+    result.append({name,value});
+  }
+  return result;
+}
 
 QString formatCounterValue(int value, const QString& style) {
   if (value < 1) { return QString::number(value); }
@@ -26,6 +47,7 @@ QString formatCounterValue(int value, const QString& style) {
     return s;
   }
   if (style == QStringLiteral("lower-roman") || style == QStringLiteral("upper-roman")) {
+    if(value>3999)return QString::number(value);  // CSS roman systems fall back to decimal outside their range.
     static const struct { int v; const char* s; } table[] = {
         {1000, "m"}, {900, "cm"}, {500, "d"}, {400, "cd"}, {100, "c"}, {90, "xc"},
         {50, "l"}, {40, "xl"}, {10, "x"}, {9, "ix"}, {5, "v"}, {4, "iv"}, {1, "i"}};
@@ -56,102 +78,127 @@ QString formatCounterValue(int value, const QString& style) {
 
 namespace {
 
-// Read the balanced (...) argument of a `name(` function whose '(' is at index
-// `at`. Returns the inner text (trimmed).
-QString readParenArg(const QString& s, int at) {
-  int depth = 0;
-  int i = at;
-  for (; i < s.size(); ++i) {
-    if (s.at(i) == QLatin1Char('(')) { ++depth; }
-    else if (s.at(i) == QLatin1Char(')')) {
-      --depth;
-      if (depth == 0) { break; }
+// CSS strings can be adjacent, contain escaped quotes, or use hexadecimal escapes.
+QString readString(const QString& source, qsizetype& at, bool& valid) {
+  const QChar quote = source[at++];
+  QString result;
+  while (at < source.size()) {
+    QChar ch = source[at++];
+    if (ch == quote) { valid = true; return result; }
+    if (ch == '\\') {
+      if (at >= source.size()) break;
+      ch = source[at++];
+      if (ch == '\n' || ch == '\r' || ch == '\f') {
+        if (ch == '\r' && at < source.size() && source[at] == '\n') ++at;
+        continue;
+      }
+      const auto hex = [](QChar value) { return value.isDigit() && value.unicode() < 128 ||
+          (value.toLower() >= 'a' && value.toLower() <= 'f'); };
+      if (hex(ch)) {
+        QString digits(ch);
+        for (int n = 1; n < 6 && at < source.size() && hex(source[at]); ++n) digits += source[at++];
+        if (at < source.size() && source[at].isSpace()) {
+          const auto space = source[at++];
+          if (space == '\r' && at < source.size() && source[at] == '\n') ++at;
+        }
+        char32_t cp = digits.toUInt(nullptr, 16);
+        if (!cp || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff)) cp = 0xfffd;
+        result += QString::fromUcs4(&cp, 1);
+        continue;
+      }
     }
+    result += ch;
   }
-  return s.mid(at + 1, (i - at) - 1).trimmed();
+  valid = false;
+  return {};
 }
 
-QString unquote(const QString& s) {
-  QString t = s.trimmed();
-  if (t.size() >= 2 && ((t.front() == QLatin1Char('"') && t.back() == QLatin1Char('"')) ||
-                        (t.front() == QLatin1Char('\'') && t.back() == QLatin1Char('\'')))) {
-    return t.mid(1, t.size() - 2);
-  }
-  return t;
+QString unquote(const QString& source) {
+  const auto value = source.trimmed();
+  if (value.isEmpty() || (value.front() != '"' && value.front() != '\'')) return value;
+  qsizetype at = 0; bool valid = false;
+  const auto result = readString(value, at, valid);
+  return valid && at == value.size() ? result : QString();
 }
 
 }  // namespace
 
 std::vector<ContentToken> parseContentTokens(const QString& content) {
-  // CSS `content` is a whitespace-separated list of <string> and function tokens
-  // (counter()/counters()/attr()/…). Split at top-level whitespace (respecting
-  // parens and quotes), then classify each part.
   std::vector<ContentToken> out;
-  const auto addLiteral = [&out](const QString& text) {
-    out.push_back({ContentToken::Kind::Literal, text, QString(), QString()});
-  };
-  const int n = content.size();
-  int i = 0;
-  while (i < n) {
-    while (i < n && content.at(i).isSpace()) { ++i; }
-    if (i >= n) { break; }
-    const int start = i;
-    int paren = 0;
-    bool inStr = false;
-    QChar quote;
-    while (i < n) {
-      const QChar c = content.at(i);
-      if (inStr) {
-        if (c == quote) { inStr = false; }
-      } else if (c == QLatin1Char('"') || c == QLatin1Char('\'')) {
-        inStr = true; quote = c;
-      } else if (c == QLatin1Char('(')) {
-        ++paren;
-      } else if (c == QLatin1Char(')')) {
-        --paren;
-      } else if (c.isSpace() && paren == 0) {
-        break;
+  qsizetype at = 0;
+  while (at < content.size()) {
+    if (content[at].isSpace()) { ++at; continue; }
+    if (content.mid(at, 2) == "/*") {
+      const auto end = content.indexOf("*/", at + 2);
+      if (end < 0) return {};
+      at = end + 2; continue;
+    }
+    if (content[at] == '/' ) break;  // alternative accessibility text is not visual content
+    if (content[at] == '"' || content[at] == '\'') {
+      bool valid = false;
+      const auto text = readString(content, at, valid);
+      if (!valid) return {};
+      ContentToken token; token.text = text; out.push_back(std::move(token));
+      continue;
+    }
+    const auto start = at;
+    while (at < content.size() && !content[at].isSpace() && content[at] != '(' && content[at] != '"' && content[at] != '\'') ++at;
+    const auto name = content.mid(start, at - start).toLower();
+    if (at == start) return {};
+    if (at >= content.size() || content[at] != '(') {
+      if (name != "none" && name != "normal") { ContentToken t; t.text = name; out.push_back(std::move(t)); }
+      continue;
+    }
+    const auto open = at++;
+    int depth = 1;
+    while (at < content.size() && depth) {
+      if (content[at] == '"' || content[at] == '\'') {
+        bool valid = false; readString(content, at, valid);
+        if (!valid) return {};
+      } else {
+        if (content[at] == '(') ++depth;
+        if (content[at] == ')') --depth;
+        ++at;
       }
-      ++i;
     }
-    const QString part = content.mid(start, i - start);
-    if (part.trimmed().isEmpty()) { continue; }
-    if (part.size() >= 2 && ((part.front() == QLatin1Char('"') && part.back() == QLatin1Char('"')) ||
-                             (part.front() == QLatin1Char('\'') && part.back() == QLatin1Char('\'')))) {
-      addLiteral(part.mid(1, part.size() - 2));
-    } else if (part.startsWith(QStringLiteral("counters("), Qt::CaseInsensitive)) {
-      // '(' sits at start+8 ("counters" is 8 chars). splitTopLevelCommas respects
-      // quotes/parens, so a separator that itself contains a comma (e.g.
-      // counters(c, ", ")) is not split mid-string.
-      const QStringList p = CssThemeParser::splitTopLevelCommas(readParenArg(content, start + 8));
-      ContentToken t; t.kind = ContentToken::Kind::Counters;
-      if (!p.isEmpty()) { t.text = p.at(0).trimmed().toLower(); }
-      if (p.size() >= 2) { t.sep = unquote(p.at(1)); }
-      if (p.size() >= 3) { t.style = p.at(2).trimmed().toLower(); }
-      out.push_back(t);
-    } else if (part.startsWith(QStringLiteral("counter("), Qt::CaseInsensitive)) {
-      // '(' sits at start+7 ("counter" is 7 chars).
-      const QStringList p = CssThemeParser::splitTopLevelCommas(readParenArg(content, start + 7));
-      ContentToken t; t.kind = ContentToken::Kind::Counter;
-      if (!p.isEmpty()) { t.text = p.at(0).trimmed().toLower(); }
-      if (p.size() >= 2) { t.style = p.at(1).trimmed().toLower(); }
-      out.push_back(t);
-    } else {
-      addLiteral(part);
-    }
+    if (depth) return {};
+    const auto args = CssThemeParser::splitTopLevelCommas(content.mid(open + 1, at - open - 2));
+    ContentToken token;
+    if (name == "attr") {
+      if (args.isEmpty() || args.size() > 2) return {};
+      const auto descriptor = args[0].simplified().split(' ');
+      if (descriptor.isEmpty() || descriptor.size() > 2 ||
+          (descriptor.size() == 2 && descriptor[1] != "string" && descriptor[1] != "raw-string")) return {};
+      token.kind = ContentToken::Kind::Attribute;
+      token.text = descriptor[0].toLower();
+      if (token.text.isEmpty() || !std::all_of(token.text.cbegin(), token.text.cend(), [](QChar ch) {
+          return ch.isLetterOrNumber() || ch == '-' || ch == '_' || ch == ':'; })) return {};
+      if (args.size() == 2) token.fallback = unquote(args[1]);
+    } else if (name == "counter" || name == "counters") {
+      token.kind = name == "counter" ? ContentToken::Kind::Counter : ContentToken::Kind::Counters;
+      if (!args.isEmpty()) token.text = args[0].trimmed();
+      if (name == "counter" && args.size() >= 2) token.style = args[1].trimmed().toLower();
+      if (name == "counters" && args.size() >= 2) token.sep = unquote(args[1]);
+      if (name == "counters" && args.size() >= 3) token.style = args[2].trimmed().toLower();
+    } else token.text = content.mid(start, at - start);  // existing image content is handled by the icon projection
+    out.push_back(std::move(token));
   }
   return out;
 }
 
 QString resolveContentTokens(const std::vector<ContentToken>& tokens,
                              const std::function<int(const QString&)>& value,
-                             const std::function<QVector<int>(const QString&)>& chain) {
+                             const std::function<QVector<int>(const QString&)>& chain,
+                             const std::function<std::optional<QString>(const QString&)>& attribute) {
   QString out;
   for (const ContentToken& t : tokens) {
     if (t.kind == ContentToken::Kind::Literal) {
       out += t.text;
     } else if (t.kind == ContentToken::Kind::Counter) {
       out += formatCounterValue(value(t.text), t.style);
+    } else if (t.kind == ContentToken::Kind::Attribute) {
+      const auto result = attribute ? attribute(t.text) : std::nullopt;
+      out += result ? *result : t.fallback;
     } else {  // Counters
       const QVector<int> levels = chain(t.text);
       for (int li = 0; li < levels.size(); ++li) {

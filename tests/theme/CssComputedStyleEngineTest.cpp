@@ -9,6 +9,51 @@
 using namespace muffin;
 
 namespace {
+CssComputedStyle styleFor(const QString& css, const CssElement& element);
+
+void testComputedFingerprintMutationAndEviction() {
+  CssComputedStyle original;
+  original.properties_.insert("color", "red");
+  original.customProperties_.insert("--tone", "red");
+  const auto fingerprint = original.fingerprint();
+  for (int i = 0; i < 10; ++i) require(original.fingerprint() == fingerprint, "shared style fingerprint is stable");
+  const auto check = [&](const auto& mutate) {
+    auto copy = original;
+    require(copy.fingerprint() == fingerprint, "copy retains its computed fingerprint");
+    mutate(copy);
+    require(copy.fingerprint() != fingerprint && original.fingerprint() == fingerprint,
+            "mutating a copied computed value invalidates only that fingerprint");
+  };
+  check([](auto& s) { s.properties_["color"] = "blue"; });
+  check([](auto& s) { s.customProperties_["--tone"] = "blue"; });
+  check([](auto& s) { s.computedLengths_.insert("width", parseCssLengthPercentage(QStringView(u"20px"), {})); });
+  check([](auto& s) { s.fontSizePx += 1; });
+  check([](auto& s) { s.rootFontSizePx += 1; });
+  check([](auto& s) { s.textScale += .25; });
+  check([](auto& s) { s.containingWidthPx = 500; });
+  check([](auto& s) { s.viewportPx.setWidth(800); });
+  check([](auto& s) { s.viewportPx.setHeight(900); });
+  const auto grid = styleFor("div{display:grid;grid-template-columns:20px 1fr}", CssElement{.tag = "div"});
+  require(!grid.computedGridTracks_.isEmpty(), "grid fixture supplies computed tracks");
+  const auto gridHash = grid.fingerprint();
+  auto changedGrid = grid;
+  changedGrid.computedGridTracks_.clear();
+  require(changedGrid.fingerprint() != gridHash && grid.fingerprint() == gridHash, "computed track mutations detach and invalidate");
+  changedGrid = grid;
+  changedGrid.computedGridTracks_["grid-template-columns"].tracks.front().minimum.length.px += 10;
+  require(changedGrid.fingerprint() != gridHash && grid.fingerprint() == gridHash,
+          "mutating nested track values invalidates the copied style alone");
+  for (int i = 0; i < 300; ++i) {
+    auto other = original;
+    other.properties_["color"] = QString::number(i);
+    other.fingerprint();
+  }
+  require(original.fingerprint() == fingerprint, "bounded fingerprint eviction preserves results");
+  auto animation = cssKeyframeStyle(original, {{"color", "blue"}});
+  require(animation.fingerprint() != fingerprint && original.fingerprint() == fingerprint,
+          "keyframe property mutations cannot reuse the base fingerprint");
+}
+
 
 CssComputedStyle styleFor(const QString& css, const CssElement& element) {
   const CssThemeSheet sheet = CssThemeParser::parse(css, QString());
@@ -482,6 +527,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testModernMediaConditions);
   RUN_TEST(testPseudoOriginSelectorsAndStateInheritance);
   RUN_TEST(testGeneratedPseudoCandidatesAcrossMedia);
+  RUN_TEST(testComputedFingerprintMutationAndEviction);
 #undef RUN_TEST
   return 0;
 }

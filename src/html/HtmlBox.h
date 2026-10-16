@@ -241,6 +241,7 @@ public:
  QString cssTag;
  QString cssId;
  QStringList cssClasses;
+ QHash<QString, QString> cssAttributes;
  QString cssInlineStyle;
  explicit HtmlBox(HtmlTag tag);
  ~HtmlBox();
