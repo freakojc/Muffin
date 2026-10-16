@@ -15,12 +15,8 @@ project(Muffin
 set(MUFFIN_LIB_TYPE SHARED CACHE STRING "Link type of the MuffinCore/MuffinUi libraries")
 
 if(MUFFIN_LIB_TYPE STREQUAL "SHARED")
-  # The codebase has no visibility macros; Windows DLLs export nothing without
-  # this, and every consumer link would fail on unresolved symbols. (Linux and
-  # macOS export all symbols from shared libraries by default.) The generated
-  # .def carries functions only — data symbols such as the moc staticMetaObject
-  # come from the MUFFIN_*_EXPORT class attributes (see src/Export.h).
-  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  # Windows interfaces are generated from project namespaces below; exporting
+  # incidental Qt/STL instantiations can overflow MSVC's import-library limit.
   # Static archives folded into the .so/.dll (tree-sitter, nuspell, cmark, ...)
   # must be PIC on ELF: libMuffinUi.so fails to link with
   # "relocation R_X86_64_PC32 ... recompile with -fPIC" otherwise. Harmless on
@@ -1433,6 +1429,10 @@ if(MUFFIN_LIB_TYPE STREQUAL "SHARED")
   # the export macros expand to nothing.
   target_compile_definitions(MuffinCore PUBLIC MUFFIN_SHARED_LIBS)
 endif()
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/MuffinWindowsExports.cmake)
+muffin_windows_exports(MuffinCore)
+muffin_windows_exports(MuffinUi)
 
 # --- SHARED-library runtime wiring -------------------------------------------
 # Under SHARED, MuffinCore/MuffinUi travel as DLLs/.so/.dylib beside their

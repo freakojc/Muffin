@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Restrict Windows DLL exports to project interfaces and resource entry points, avoiding MSVC import-library limits on x64 and ARM64.
 - Keep Mermaid font metrics deterministic when imported themes register fonts with overlapping family names.
 - Refresh pending fonts and layout correctly when returning to a hidden document tab.
 - Resolve CSS-wide background positions on both axes, preventing VLOOK grid textures from shifting as estimated document height changes.

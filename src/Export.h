@@ -4,11 +4,10 @@
 
 // Symbol visibility for the MuffinCore / MuffinUi shared libraries.
 //
-// CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS exports every *function* symbol from the
-// DLLs, but its linker-generated .def cannot carry *data* symbols — most
-// notably the moc-generated `staticMetaObject`, which every cross-boundary
-// QObject::connect (pointer-to-member) or QMetaObject use references. The
-// Q_OBJECT classes therefore carry an explicit class-level export attribute.
+// The generated namespace .def exports project functions. Q_OBJECT classes
+// additionally carry explicit class-level visibility for staticMetaObject and
+// cross-boundary QObject::connect / QMetaObject references. Qt/STL helper
+// instantiations are not part of the DLL interface.
 // Under a STATIC MUFFIN_LIB_TYPE build (MUFFIN_SHARED_LIBS undefined) the
 // macros expand to nothing.
 #if !defined(MUFFIN_SHARED_LIBS)
