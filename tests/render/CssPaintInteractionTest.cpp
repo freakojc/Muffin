@@ -557,6 +557,7 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
       mask.fill(Qt::transparent);
       {
         QPainter source(&mask);
+        source.setRenderHint(QPainter::Antialiasing);
         source.setRenderHint(QPainter::TextAntialiasing);
         source.translate(pad, pad);
         if (!rects.isEmpty()) {

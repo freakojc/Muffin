@@ -163,6 +163,11 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
         mask.setDevicePixelRatio(dpr);
         mask.fill(Qt::transparent);
         QPainter target(&mask);
+        // QTextLayout paints outlined glyphs and their decorations as paths.
+        // Establish the path antialiasing policy before installing the source
+        // clip, so a cropped surface and a full canvas use the same clip edge
+        // coverage when QTextLayout switches to its outlined-path branch.
+        target.setRenderHint(QPainter::Antialiasing);
         target.setRenderHint(QPainter::TextAntialiasing);
         target.translate(-local);
         if (!rects.isEmpty()) target.setClipPath(sourceClip);
