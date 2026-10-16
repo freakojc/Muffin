@@ -163,16 +163,31 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
         mask.setDevicePixelRatio(dpr);
         mask.fill(Qt::transparent);
         QPainter target(&mask);
-        // QTextLayout paints outlined glyphs and their decorations as paths.
-        // Establish the path antialiasing policy before installing the source
-        // clip, so a cropped surface and a full canvas use the same clip edge
-        // coverage when QTextLayout switches to its outlined-path branch.
-        target.setRenderHint(QPainter::Antialiasing);
         target.setRenderHint(QPainter::TextAntialiasing);
         target.translate(-local);
-        if (!rects.isEmpty()) target.setClipPath(sourceClip);
         // Let QTextLayout skip unrelated lines as well as clipping the pixels.
         text.draw(&target, {}, formats, QRectF(local, QSizeF(area.size()) / dpr));
+      }
+      if (!rects.isEmpty()) {
+        // Apply coverage once to the composed text, in device coordinates.
+        // CoreText/Qt can change clip coverage when the fractional text backend
+        // temporarily scales the painter by 1/64. A separate coverage image
+        // keeps clipping independent of that glyph/outline paint transform.
+        raster = QImage(area.size(), QImage::Format_ARGB32_Premultiplied);
+        if (raster.isNull()) continue;
+        raster.fill(Qt::transparent);
+        {
+          QPainter coverage(&raster);
+          coverage.setRenderHint(QPainter::Antialiasing);
+          const auto deviceClip = QTransform::fromScale(dpr, dpr).map(sourceClip).translated(-area.topLeft());
+          coverage.fillPath(deviceClip, Qt::white);
+        }
+        {
+          QPainter coverage(&mask);
+          coverage.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+          raster.setDevicePixelRatio(dpr);
+          coverage.drawImage(QPointF(), raster);
+        }
       }
       {
         diag::ScopedPerfProbe tintPerf("paint.shadowTint", shadowPerf());

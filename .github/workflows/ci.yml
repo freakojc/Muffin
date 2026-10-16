@@ -152,13 +152,13 @@ jobs:
       - name: Configure
         run: cmake --preset ${{ matrix.configure-preset }}
 
-      - name: Build macOS file-tree integration tests
+      - name: Build macOS integration and font raster tests
         if: runner.os == 'macOS'
-        run: cmake --build --preset conan-release --target MuffinDocumentTabsTest MuffinSidebarInteractionTest
+        run: cmake --build --preset conan-release --target MuffinDocumentTabsTest MuffinSidebarInteractionTest MuffinFontMappingCompatibilityTest MuffinFractionalFontMappingCompatibilityTest MuffinCssPaintInteractionTest
 
-      - name: Test macOS file-tree integration
+      - name: Test macOS integration and font raster
         if: runner.os == 'macOS'
-        run: ctest --preset conan-release --verbose -R 'Muffin(DocumentTabs|SidebarInteraction)Test'
+        run: ctest --preset conan-release --verbose -R 'Muffin(DocumentTabs|SidebarInteraction|.*FontMappingCompatibility|.*CssPaintInteraction)Test'
 
       - name: Build
         run: cmake --build --preset conan-release

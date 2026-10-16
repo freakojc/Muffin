@@ -557,15 +557,24 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
       mask.fill(Qt::transparent);
       {
         QPainter source(&mask);
-        source.setRenderHint(QPainter::Antialiasing);
         source.setRenderHint(QPainter::TextAntialiasing);
         source.translate(pad, pad);
-        if (!rects.isEmpty()) {
-          QPainterPath clip;
-          for (auto rect : rects) clip.addRect(rect.adjusted(-1, 0, 1, 0));
-          source.setClipPath(clip);
-        }
         text.draw(&source, {}, overrides);
+      }
+      if (!rects.isEmpty()) {
+        QImage coverage(mask.size(), QImage::Format_ARGB32_Premultiplied);
+        coverage.fill(Qt::transparent);
+        {
+          QPainter clipPainter(&coverage);
+          clipPainter.setRenderHint(QPainter::Antialiasing);
+          QPainterPath clip;
+          for (auto rect : rects) clip.addRect(rect.adjusted(-1, 0, 1, 0).translated(pad, pad));
+          clipPainter.fillPath(QTransform::fromScale(dpr, dpr).map(clip), Qt::white);
+        }
+        coverage.setDevicePixelRatio(dpr);
+        QPainter clipPainter(&mask);
+        clipPainter.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+        clipPainter.drawImage(QPointF(), coverage);
       }
       QImage glow(mask.size(), QImage::Format_ARGB32_Premultiplied);
       glow.setDevicePixelRatio(dpr);
