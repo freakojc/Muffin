@@ -100,6 +100,28 @@ void isolationAndReload() {
   require(!ThemeDefinition::fromCss(path, "fallback").fontAliases.isEmpty(),
           "ordered source fallback skips missing and corrupt candidates");
 }
+void descriptorMatching() {
+  QHash<QString, QString> aliases{{"fixture", "default"}};
+  const auto add = [&](int weight, bool italic, const QString& name) {
+    aliases.insert(font_rendering::fontFaceAliasKey("Fixture", weight, italic), name);
+  };
+  add(300, false, "light");
+  add(400, false, "regular");
+  add(450, false, "middle");
+  add(600, false, "semibold");
+  add(900, false, "heavy");
+  add(400, true, "italic");
+  const auto match = [&](int weight, bool italic = false) {
+    return font_rendering::cssFamilyList("'FIXTURE'", {}, aliases, weight, italic).front();
+  };
+  require(match(450) == "middle", "exact nonstandard CSS descriptor wins over platform weight rounding");
+  require(match(425) == "middle" && match(500) == "middle", "middle CSS weights prefer 400..500 faces");
+  require(match(350) == "light" && match(550) == "semibold" && match(950) == "heavy",
+          "light and heavy CSS weights search in their specified direction");
+  require(match(900, true) == "italic", "matching style precedes matching weight");
+  aliases.remove(font_rendering::fontFaceAliasKey("Fixture", 400, true));
+  require(match(900, true) == "heavy", "missing italic face falls back to the matching normal weight");
+}
 void preparedFontChecksumsAndIdentity() {
   QFile file(QStringLiteral(MUFFIN_SOURCE_DIR "/tests/fixtures/theme/fonts/latex-regular.woff2"));
   require(file.open(QIODevice::ReadOnly), "open font checksum fixture");
@@ -264,6 +286,7 @@ int main(int argc, char** argv) {
   }
   runTest("browser font mapping", [&] { browserFonts(root); });
   runTest("isolated font reload", isolationAndReload);
+  runTest("CSS face descriptor matching", descriptorMatching);
   runTest("prepared font checksums and identity", preparedFontChecksumsAndIdentity);
   runTest("font declarations", declarations);
   runTest("conditional fonts and asset reload", conditionalFontsAndAssets);

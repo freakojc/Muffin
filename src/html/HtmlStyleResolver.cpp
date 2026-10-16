@@ -83,7 +83,8 @@ void HtmlStyleResolver::resolve(HtmlBox& root, qreal baseFontSize, const HtmlCol
         if (!style.text.fontFamily.isEmpty()) {
           const auto families = font_rendering::cssFamilyList(
               style.text.fontFamily, font_rendering::documentFallbackTail(),
-              palette.fontAliases);
+              palette.fontAliases, style.text.fontWeightSet ? style.text.fontWeight : target.font.weight(),
+              style.text.italicSet ? style.text.italic : target.font.italic());
           target.font.setFamilies(families);
           target.fontFamily = families.join(QStringLiteral(", "));
         }

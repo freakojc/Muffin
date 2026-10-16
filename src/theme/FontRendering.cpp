@@ -5,6 +5,7 @@
 #include <QSet>
 #include <QtGlobal>
 #include <initializer_list>
+#include <tuple>
 
 #include "mermaid/MermaidFontRegistry.h"
 #include "render/TextLayout.h"
@@ -215,7 +216,43 @@ QString platformCssFamilyAlias(const QString& requested, const QStringList& avai
   return requested;
 }
 
-QStringList cssFamilyList(const QString& raw, const QString& platformTail, const QHash<QString, QString>& aliases) {
+QString fontFaceAliasKey(const QString& family, int weight, bool italic) {
+  return family.toLower() + QChar(0x1f) + QString::number(weight) + '/' + (italic ? '1' : '0');
+}
+
+namespace {
+QString matchingFace(const QHash<QString, QString>& aliases, const QString& family, int weight, bool italic) {
+  if (const auto exact = aliases.constFind(fontFaceAliasKey(family, weight, italic)); exact != aliases.cend())
+    return *exact;
+  const auto prefix = family.toLower() + QChar(0x1f);
+  QString result = aliases.value(family.toLower());
+  auto best = std::tuple(2, 3, 1001);
+  for (auto face = aliases.cbegin(); face != aliases.cend(); ++face) {
+    if (!face.key().startsWith(prefix)) continue;
+    const auto descriptor = QStringView(face.key()).mid(prefix.size());
+    const auto slash = descriptor.indexOf('/');
+    if (slash < 0) continue;
+    const int candidate = descriptor.left(slash).toInt();
+    if (candidate < 1 || candidate > 1000) continue;
+    const bool candidateItalic = descriptor.mid(slash + 1) == u"1";
+    // CSS Fonts weight matching: 400..500 search upward to 500, then below
+    // the requested weight, then above 500. Other weights search outward in
+    // their preferred direction. Style matching precedes weight matching.
+    const int group = weight >= 400 && weight <= 500
+                          ? (candidate >= weight && candidate <= 500 ? 0 : candidate < weight ? 1 : 2)
+                          : (weight < 400 ? (candidate <= weight ? 0 : 1) : (candidate >= weight ? 0 : 1));
+    const auto rank = std::tuple(int(candidateItalic != italic), group, qAbs(candidate - weight));
+    if (rank < best) {
+      best = rank;
+      result = *face;
+    }
+  }
+  return result;
+}
+}  // namespace
+
+QStringList cssFamilyList(const QString& raw, const QString& platformTail, const QHash<QString, QString>& aliases,
+                          int weight, bool italic) {
   // Themes historically stored one family per newline, while Mermaid and
   // ordinary CSS use comma-separated stacks. Parse both forms here so every
   // renderer applies the same ordering and quote handling.
@@ -242,7 +279,7 @@ QStringList cssFamilyList(const QString& raw, const QString& platformTail, const
     // or `"LXGW WenKai"` whose internal name is 霞鹜文楷. Substitute the declared
     // alias with the registered name so the stack resolves to the bundled font.
     QString resolved = family;
-    if (const QString alias = aliases.value(family.toLower()); !alias.isEmpty()) {
+    if (const QString alias = matchingFace(aliases, family, weight, italic); !alias.isEmpty()) {
       resolved = alias;
     } else if (const auto bundled = mermaid::MermaidFontRegistry::bundledFamily(family); !bundled.isEmpty()) {
       resolved = bundled;

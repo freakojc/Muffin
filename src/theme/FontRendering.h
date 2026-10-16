@@ -25,6 +25,10 @@ QString codeFamily();
 // bundled Noto faces are registered lazily, so CJK/Arabic/Hebrew shaping does
 // not depend on whichever system font happens to be installed first.
 QString documentFallbackTail();
-QStringList cssFamilyList(const QString& raw, const QString& platformTail, const QHash<QString, QString>& aliases = {});
+// Descriptor keys select a single @font-face before handing it to the platform
+// matcher, which may otherwise round CSS weights (for example 450) to 400.
+QString fontFaceAliasKey(const QString& family, int weight, bool italic);
+QStringList cssFamilyList(const QString& raw, const QString& platformTail, const QHash<QString, QString>& aliases = {},
+                          int weight = 400, bool italic = false);
 
 }  // namespace muffin::font_rendering

@@ -530,13 +530,13 @@ QFont RenderTheme::fontForStyle(const ThemeElementStyle& style, QFont font) cons
   if (const auto found = computedFontCache_.constFind(cacheKey); found != computedFontCache_.cend()) return found.value();
   font.setStyleHint(style.text.fontFamily.split(QLatin1Char('\n')).contains(QStringLiteral("monospace")) ? QFont::Monospace
                                                                                                          : QFont::AnyStyle);
+  if (style.text.fontWeightSet) font.setWeight(static_cast<QFont::Weight>(style.text.fontWeight));
+  if (style.text.italicSet) font.setItalic(style.text.italic);
   if (!style.text.fontFamily.isEmpty())
     font.setFamilies(font_rendering::cssFamilyList(style.text.fontFamily,
                                                    font_rendering::documentFallbackTail(),
-                                                   fontAliases_));
+                                                   fontAliases_, font.weight(), font.italic()));
   if (style.text.fontSizeSet || style.text.fontSizePx > 0) font.setPointSizeF(qMax<qreal>(.001, scaledFont(pxToPt(style.text.fontSizePx))));
-  if (style.text.fontWeightSet) font.setWeight(static_cast<QFont::Weight>(style.text.fontWeight));
-  if (style.text.italicSet) font.setItalic(style.text.italic);
   font_rendering::configureCssFont(font, scaled(style.text.letterSpacing), scaled(style.text.wordSpacing));
   computedFontCache_.insert(cacheKey, font);
   return font;

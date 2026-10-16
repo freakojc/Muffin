@@ -2,6 +2,7 @@
 #include "diagnostics/ScopedPerfProbe.h"
 #include "render/LayoutResources.h"
 #include "theme/ThemeFontDecoder.h"
+#include "theme/FontRendering.h"
 #include <QCryptographicHash>
 #include <QGuiApplication>
 
@@ -57,8 +58,9 @@ QHash<QString, QString>& fontFaceAliases() {
   return map;
 }
 
-// Register the active sheet's faces as one private family per CSS declaration
-// family. Identity includes every selected face's contents and descriptors;
+// Register each selected face as a private family. Identity includes every
+// selected face's contents and descriptors. CSS chooses the face explicitly,
+// rather than relying on platform matchers to preserve arbitrary CSS weights;
 // registerPrivateFont reuses process registrations by content. Must run on the
 // GUI thread, before layout uses the new snapshot's family aliases.
 QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
@@ -71,6 +73,7 @@ QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
     PreparedThemeFont source;
     int weight;
     bool italic;
+    QString localFamily;
   };
   QHash<QString, QHash<QString, Face>> families;
   for (const CssFontFace& ff : sheet.fontFaces()) {
@@ -80,7 +83,7 @@ QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
     if (weight < 1 || weight > 1000 || (!valid && weightText != "normal" && weightText != "bold")) continue;
     const auto style = ff.style.trimmed().toLower();
     if (style != "normal" && style != "italic" && style != "oblique") continue;
-    const auto family = ff.family.toLower(), faceKey = QString::number(weight) + '/' + style;
+    const auto family = ff.family.toLower(), faceKey = QString::number(weight) + '/' + (style != "normal" ? '1' : '0');
     const auto sources = ff.sources.isEmpty() ? QStringList{ff.srcPath} : ff.sources;
     for (const auto& target : sources) {
       if (target.startsWith("local:")) {
@@ -91,7 +94,7 @@ QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
         });
         // A local() source intentionally refers to the installed family.
         if (found != available.end()) {
-          aliases.insert(family, *found);
+          families[family].insert(faceKey, {ff.family, {}, weight, style != "normal", *found});
           break;
         }
         continue;
@@ -112,7 +115,7 @@ QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
       auto prepared = prepareThemeFont(source, weight, style != "normal");
       // Corrupt candidates must not suppress later usable src fallbacks.
       if (prepared.native.isEmpty()) continue;
-      families[family].insert(faceKey, {ff.family, std::move(prepared), weight, style != "normal"});
+      families[family].insert(faceKey, {ff.family, std::move(prepared), weight, style != "normal", {}});
       break;
     }
   }
@@ -125,12 +128,19 @@ QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
     for (const auto& key : keys) {
       digest.addData(key.toUtf8());
       digest.addData(it->value(key).source.digest);
+      digest.addData(it->value(key).localFamily.toUtf8());
     }
     const auto privateFamily = "MuffinTheme-" + QString::fromLatin1(digest.result().toHex().left(24));
     for (const auto& key : keys) {
       const auto& face = it->value(key);
-      const auto registered = registerPrivateFont(face.source, privateFamily, face.weight, face.italic);
-      if (!registered.isEmpty()) aliases.insert(it.key(), registered);
+      const auto registered = face.localFamily.isEmpty()
+                                  ? registerPrivateFont(face.source, privateFamily + '-' + QString(key).replace('/', '-'),
+                                                        face.weight, face.italic)
+                                  : face.localFamily;
+      if (!registered.isEmpty()) {
+        aliases.insert(font_rendering::fontFaceAliasKey(it.key(), face.weight, face.italic), registered);
+        if (!aliases.contains(it.key()) || (face.weight == 400 && !face.italic)) aliases.insert(it.key(), registered);
+      }
     }
   }
   for (auto it = aliases.cbegin(); it != aliases.cend(); ++it) fontFaceAliases().insert(it.key(), it.value());
