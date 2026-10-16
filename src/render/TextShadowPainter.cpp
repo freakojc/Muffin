@@ -166,8 +166,11 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
         target.setRenderHint(QPainter::Antialiasing);
         target.setRenderHint(QPainter::TextAntialiasing);
         target.translate(-local);
-        // Let QTextLayout skip unrelated lines as well as clipping the pixels.
-        text.draw(&target, {}, formats, QRectF(local, QSizeF(area.size()) / dpr));
+        // A draw clip also changes QTextLayout's selection/exclusion paths.
+        // Keep those paths independent of the sparse surface when applying
+        // foreground overrides; the paint device still clips raster work.
+        // Static text can use the bounds to skip unrelated visual lines.
+        text.draw(&target, {}, formats, formats.isEmpty() ? QRectF(local, QSizeF(area.size()) / dpr) : QRectF());
       }
       if (!rects.isEmpty()) {
         // Apply coverage once to the composed text, in device coordinates.
