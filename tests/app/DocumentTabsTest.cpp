@@ -589,13 +589,22 @@ void hiddenTabsMergeThemeAndResourceChanges() {
   // Let Qt settle the theme's scrollbar/style geometry before comparing views.
   const auto caret = a->renderView->effectiveCursorRect();
   const auto hit = a->renderView->hitTest(a->renderView->mapDocumentToViewport(caret.center()));
-  EditorView fresh;
+  // Inherit the same window stylesheet/font environment as the tab view.
+  // A standalone macOS scroll area has different native scrollbar geometry.
+  EditorView fresh(a);
   fresh.resize(a->renderView->size());
+  fresh.setZoomPercent(a->renderView->theme().zoomPercent());
+  fresh.setFontSizePx(a->renderView->theme().fontSizePx());
+  fresh.setContentWidthPx(a->renderView->theme().contentWidthPx());
   fresh.setTheme(a->renderView->theme());
   fresh.setDocument(a->session.document(), a->session.filePath());
   fresh.show();
   fresh.setCursorPosition(cursor);
   QApplication::processEvents();
+  if (fresh.viewport()->size() != a->renderView->viewport()->size() || fresh.effectiveCursorRect() != caret) {
+    qWarning() << "Activated viewport/caret" << a->renderView->viewport()->size() << caret
+               << "fresh viewport/caret" << fresh.viewport()->size() << fresh.effectiveCursorRect();
+  }
   require(fresh.viewport()->size() == a->renderView->viewport()->size() && fresh.effectiveCursorRect() == caret,
           "activated layout and font metrics agree with a newly built view");
   const auto expectedHit = fresh.hitTest(fresh.mapDocumentToViewport(fresh.effectiveCursorRect().center()));

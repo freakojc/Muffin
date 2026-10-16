@@ -6,11 +6,9 @@
 #include "ParserTestUtils.h"
 
 #include <QCoreApplication>
+#include <QProcess>
 
 using namespace muffin;
-
-void testCmarkFootnoteCompatibility(const QString& oraclePath);
-void testCmarkAutolinkCompatibility(const QString& footnoteOraclePath);
 
 void testDefinitionBlocks() {
   CmarkGfmParser parser;
@@ -379,8 +377,15 @@ void testTableCellSourceRangesWithoutOuterPipes() {
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
   require(argc == 2, QStringLiteral("Missing cmark footnote oracle path"));
-  testCmarkFootnoteCompatibility(QString::fromLocal8Bit(argv[1]));
-  testCmarkAutolinkCompatibility(QString::fromLocal8Bit(argv[1]));
+  // Keep the raw cmark oracle in its own process. Linking another static copy
+  // beside MuffinCore lets ELF interpose public functions across separate
+  // private registries and node-type globals.
+  QProcess oracle;
+  oracle.setProcessChannelMode(QProcess::ForwardedChannels);
+  oracle.start(QStringLiteral(MUFFIN_CMARK_ORACLE_PATH), {QString::fromLocal8Bit(argv[1])});
+  require(oracle.waitForStarted() && oracle.waitForFinished(60000) && oracle.exitStatus() == QProcess::NormalExit &&
+              oracle.exitCode() == 0,
+          "Isolated cmark AST/HTML/source-coordinate oracle passes");
   testDefinitionBlocks();
   testInvalidDefinitionLikeParagraphsStayParagraphs();
   testDefinitionSerializationPreservesSourceShape();

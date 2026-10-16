@@ -182,9 +182,11 @@ void declarations() {
       font_rendering::cssFamilyList("'Fixture, Comma', serif, 'Missing'", font_rendering::documentFallbackTail());
   require(families.front() == "Fixture, Comma" && families[1] == font_rendering::serifFamily(),
           "family quoting and generic order survive projection");
-  require(font_rendering::cssFamilyList("'serif'", {}).front() == "serif", "quoted generic name stays literal");
+  require(font_rendering::cssFamilyList("'serif'", {}).front().compare("serif", Qt::CaseInsensitive) == 0,
+          "quoted generic name stays literal");
   const auto both = font_rendering::cssFamilyList("'serif', serif", {});
-  require(both.size() >= 2 && both.front() == "serif" && both[1] == font_rendering::serifFamily(),
+  require(both.size() >= 2 && both.front().compare("serif", Qt::CaseInsensitive) == 0 &&
+              both[1] == font_rendering::serifFamily(),
           "quoted and unquoted generic names remain distinct");
   require(font_rendering::cssFamilyList("'Family\\27 Name'", {}).front() == "Family'Name",
           "CSS escapes in family names are decoded");

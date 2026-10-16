@@ -228,10 +228,21 @@ muffin_add_test(NAME MuffinMermaidSequenceCoverageMatrixTest SOURCE tests/mermai
 muffin_add_test(NAME MuffinMermaidDagreCompoundTest SOURCE tests/mermaid/MermaidDagreCompoundTest.cpp LINK MuffinCore)
 muffin_add_test(NAME MuffinParserBasicTest      SOURCE tests/parser/ParserBasicTest.cpp      LINK MuffinCore)
 muffin_add_test(NAME MuffinParserDefinitionTest SOURCE tests/parser/ParserDefinitionTest.cpp LINK MuffinCore
-  EXTRA_SOURCES tests/parser/CmarkFootnoteCompatibility.cpp tests/parser/CmarkAutolinkCompatibility.cpp
-  EXTRA_LINK libcmark-gfm-extensions_static libcmark-gfm_static
   FIXTURE tests/fixtures/parser/cmark-footnote-oracle.json)
-target_compile_definitions(MuffinParserDefinitionTest PRIVATE CMARK_GFM_STATIC_DEFINE CMARK_GFM_EXTENSIONS_STATIC_DEFINE)
+add_executable(MuffinCmarkCompatibilityOracle
+  tests/parser/CmarkCompatibilityMain.cpp tests/parser/CmarkFootnoteCompatibility.cpp
+  tests/parser/CmarkAutolinkCompatibility.cpp)
+target_include_directories(MuffinCmarkCompatibilityOracle PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cmark-gfm/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cmark-gfm/extensions
+  ${CMAKE_CURRENT_BINARY_DIR}/third_party/cmark-gfm/src)
+target_link_libraries(MuffinCmarkCompatibilityOracle PRIVATE Qt6::Core
+  libcmark-gfm-extensions_static libcmark-gfm_static)
+target_compile_definitions(MuffinCmarkCompatibilityOracle PRIVATE
+  CMARK_GFM_STATIC_DEFINE CMARK_GFM_EXTENSIONS_STATIC_DEFINE)
+target_compile_definitions(MuffinParserDefinitionTest PRIVATE
+  MUFFIN_CMARK_ORACLE_PATH="$<TARGET_FILE:MuffinCmarkCompatibilityOracle>")
+add_dependencies(MuffinParserDefinitionTest MuffinCmarkCompatibilityOracle)
 muffin_add_test(NAME MuffinParserMathCodeTest   SOURCE tests/parser/ParserMathCodeTest.cpp   LINK MuffinCore)
 muffin_add_test(NAME MuffinPieceTableTest       SOURCE tests/document/PieceTableTest.cpp     LINK MuffinCore)
 muffin_add_test(NAME MuffinTextStatsTest        SOURCE tests/document/TextStatsTest.cpp      LINK MuffinCore)
@@ -355,6 +366,10 @@ muffin_add_test(NAME MuffinFractionalFontMappingCompatibilityTest SOURCE tests/t
   FIXTURE tests/fixtures/theme/font-mapping-browser.json RESOURCE_LOCK)
 foreach(_font_mapping_test MuffinFontMappingCompatibilityTest MuffinFractionalFontMappingCompatibilityTest)
   target_compile_definitions(${_font_mapping_test} PRIVATE MUFFIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+  if(UNIX AND NOT APPLE AND EXISTS "/etc/fonts/fonts.conf")
+    set_property(TEST ${_font_mapping_test} APPEND PROPERTY ENVIRONMENT_MODIFICATION
+      "FONTCONFIG_FILE=set:/etc/fonts/fonts.conf" "FONTCONFIG_PATH=set:/etc/fonts")
+  endif()
 endforeach()
 set_property(TEST MuffinFractionalFontMappingCompatibilityTest APPEND PROPERTY ENVIRONMENT_MODIFICATION "MUFFIN_TEXT_LAYOUT_BACKEND=set:fractional")
 muffin_add_test(NAME MuffinCssThemeMapperTest SOURCE tests/theme/CssThemeMapperTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} FIXTURE tests/fixtures/theme/mist-blue.css)
@@ -395,6 +410,10 @@ muffin_add_test(NAME MuffinEditorViewSelectionTest  SOURCE tests/render/EditorVi
 muffin_add_test(NAME MuffinEditorViewLayoutTest     SOURCE tests/render/EditorViewLayoutTest.cpp     LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinViewportResizeTest SOURCE tests/render/ViewportResizeTest.cpp LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinCssPaintInteractionTest SOURCE tests/render/CssPaintInteractionTest.cpp LINK MuffinUi RESOURCE_LOCK)
+if(UNIX AND NOT APPLE AND EXISTS "/etc/fonts/fonts.conf")
+  set_property(TEST MuffinCssPaintInteractionTest APPEND PROPERTY ENVIRONMENT_MODIFICATION
+    "FONTCONFIG_FILE=set:/etc/fonts/fonts.conf" "FONTCONFIG_PATH=set:/etc/fonts")
+endif()
 set_property(TEST MuffinViewportResizeTest APPEND PROPERTY ENVIRONMENT_MODIFICATION "MUFFIN_TEXT_LAYOUT_BACKEND=set:native")
 add_test(NAME MuffinLazyViewportResizeTest COMMAND $<TARGET_FILE:MuffinViewportResizeTest>)
 set_tests_properties(MuffinLazyViewportResizeTest PROPERTIES

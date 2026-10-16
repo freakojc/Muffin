@@ -13,6 +13,7 @@
 #include <QApplication>
 #include <QImage>
 #include <QPainter>
+#include <QRawFont>
 #include <cmath>
 
 using namespace muffin;
@@ -594,6 +595,19 @@ void checkSparseTextShadowMatchesFullCanvas(bool outlined) {
         const auto rects = host ? QVector<QRectF>{} : clips;
         const auto expected = render(true, dpr, rects, shadow, {});
         const auto actual = render(false, dpr, rects, shadow, {});
+        if (!equivalent(actual, expected)) {
+          actual.save("resource-pixels-text-shadow-actual.png");
+          expected.save("resource-pixels-text-shadow-expected.png");
+          int maximum = 0, different = 0;
+          for (int y = 0; y < actual.height(); ++y) for (int x = 0; x < actual.width(); ++x) {
+            const auto a = actual.pixel(x, y), b = expected.pixel(x, y);
+            if (a != b) ++different;
+            maximum = qMax(maximum, qMax(qMax(qAbs(qAlpha(a) - qAlpha(b)), qAbs(qRed(a) - qRed(b))),
+                                         qMax(qAbs(qGreen(a) - qGreen(b)), qAbs(qBlue(a) - qBlue(b)))));
+          }
+          qWarning() << "Text shadow differing pixels/component delta" << different << maximum
+                     << "font" << QRawFont::fromFont(font).familyName();
+        }
         require(
             equivalent(actual, expected),
             QString("sparse glow preserves full-canvas pixels: dpr=%1 blur=%2 host=%3 outlined=%4").arg(dpr).arg(blur).arg(host).arg(outlined));

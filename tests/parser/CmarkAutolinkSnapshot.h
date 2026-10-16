@@ -36,6 +36,8 @@ inline QJsonArray run(const QJsonArray& inputs) {
       for (const auto& entry : inputs) {
         const auto input = entry.toObject();
         const auto bytes = input["source"].toString().toUtf8();
+        if (qEnvironmentVariableIsSet("MUFFIN_CMARK_ORACLE_TRACE"))
+          fprintf(stderr, "Autolink oracle %s mode=%s chunks=%d\n", qPrintable(input["name"].toString()), mode, chunks);
         records.append(
             QJsonObject{{"name", input["name"]},
                         {"mode", mode},

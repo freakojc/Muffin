@@ -4,7 +4,7 @@
 #include <QJsonDocument>
 
 #include "CmarkAutolinkSnapshot.h"
-#include "ParserTestUtils.h"
+#include "../TestUtils.h"
 
 void testCmarkAutolinkCompatibility(const QString& footnoteOraclePath) {
   const auto directory = QFileInfo(footnoteOraclePath).dir();

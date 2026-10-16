@@ -4,7 +4,7 @@
 #include <QJsonDocument>
 
 #include "CmarkFootnoteSnapshot.h"
-#include "ParserTestUtils.h"
+#include "../TestUtils.h"
 
 void testCmarkFootnoteCompatibility(const QString& oraclePath) {
   QFile oracleFile(oraclePath);
@@ -31,6 +31,9 @@ void testCmarkFootnoteCompatibility(const QString& oraclePath) {
         require(record["name"] == input["name"] && record["enabled"].toBool() == enabled &&
                     record["byte_chunks"].toBool() == bool(repeat),
                 QStringLiteral("Misordered cmark footnote oracle"));
+        if (qEnvironmentVariableIsSet("MUFFIN_CMARK_ORACLE_TRACE"))
+          fprintf(stderr, "Footnote oracle %s enabled=%d chunks=%d\n", qPrintable(input["name"].toString()), enabled,
+                  repeat);
         const auto actual = footnote_test::snapshot(parser, source, repeat ? 1 : qMax(1, int(source.size())));
         require(
             actual == record["result"].toObject(),
