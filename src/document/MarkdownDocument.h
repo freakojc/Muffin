@@ -31,6 +31,8 @@ public:
   const PieceTable& pieceText() const { return text_; }
   const LineStartOffsetCache& lineOffsets() const;
   void setMarkdownText(QString text, std::unique_ptr<MarkdownNode> root);
+  // Install a worker-prepared text index without scanning the original text again.
+  void setPreparedMarkdownText(PieceTable text, std::unique_ptr<MarkdownNode> root);
   void replaceTopLevelRange(
       qsizetype first,
       qsizetype count,

@@ -1,13 +1,14 @@
-#include "document/DocumentSession.h"
-#include "document/MarkdownNode.h"
-
-#include "../parser/ParserTestUtils.h"
-
 #include <QCoreApplication>
 #include <QEventLoop>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QObject>
 #include <QThread>
 #include <QTimer>
+
+#include "../parser/ParserTestUtils.h"
+#include "document/DocumentSession.h"
+#include "document/MarkdownNode.h"
 
 using namespace muffin;
 
@@ -17,6 +18,80 @@ using namespace muffin;
 // it with `parseBusy`, and supersedes an in-flight parse when a newer open is requested.
 
 namespace {
+
+QJsonArray inlineSnapshot(const QVector<InlineNode>& inlines) {
+  QJsonArray values;
+  for (const auto& node : inlines) {
+    const auto r = node.sourceRanges();
+    values.append(
+        QJsonObject{{"type", int(node.type())},
+                    {"text", node.text()},
+                    {"marker", node.marker()},
+                    {"href", node.href()},
+                    {"title", node.title()},
+                    {"alt", node.alt()},
+                    {"autolink", node.isAutolink()},
+                    {"shared", node.usesSharedText()},
+                    {"ranges", QJsonArray{qint64(r.source.start), qint64(r.source.end), qint64(r.content.start),
+                                          qint64(r.content.end), qint64(r.openMarker.start), qint64(r.openMarker.end),
+                                          qint64(r.closeMarker.start), qint64(r.closeMarker.end)}},
+                    {"children", inlineSnapshot(node.children())}});
+  }
+  return values;
+}
+
+QJsonObject blockSnapshot(const MarkdownNode& node) {
+  const auto r = node.sourceRange();
+  QJsonArray children;
+  for (const auto& child : node.children()) children.append(blockSnapshot(*child));
+  return {
+      {"type", int(node.type())},
+      {"literal", node.literal()},
+      {"range", QJsonArray{qint64(r.byteStart), qint64(r.byteEnd), r.lineStart, r.lineEnd, r.columnStart, r.columnEnd}},
+      {"heading", node.headingLevel()},
+      {"language", node.codeLanguage()},
+      {"inline_base", qint64(node.inlineAbsoluteDelta())},
+      {"inlines", inlineSnapshot(node.inlines())},
+      {"children", children}};
+}
+
+void testPreparedAsyncDocumentMatchesSyncAndRemainsEditable() {
+  const QString text = QString::fromUtf8(
+      "---\ntitle: Prepared\n---\n\n# Heading\n\n"
+      "Unicode \xe4\xb8\xad\xe6\x96\x87 \xf0\x9f\x98\x80 **bold** and ~~strike~~, &amp; and \\*escaped\\*.\n\n"
+      "> Quote with [link](https://example.com) and `code`.\n\n"
+      "- Item\n  - Nested $x^2$\n\n"
+      "| A | B |\n| --- | --- |\n| escaped \\| pipe | **cell** |\n\n"
+      "```cpp\nint x;\n```\n\n[^note]: Footnote\n\nTail paragraph [^note].\n\n###\n");
+  DocumentSession sync, async;
+  sync.setMarkdownText(text, false);
+  const auto expected = blockSnapshot(sync.document().root());
+  bool publishedPrepared = false;
+  QObject::connect(&async.document(), &MarkdownDocument::documentReset,
+                   [&] { publishedPrepared = blockSnapshot(async.document().root()) == expected; });
+  QEventLoop loop;
+  QObject::connect(&async, &DocumentSession::parseBusy, &loop, [&loop](bool busy) {
+    if (!busy) loop.quit();
+  });
+  async.openDocumentAsync(text);
+  QTimer::singleShot(5000, &loop, &QEventLoop::quit);
+  loop.exec();
+  require(!async.isAsyncParseInProgress(), "prepared async open must finish");
+  require(publishedPrepared, "documentReset must publish complete coordinates and shared text");
+  require(blockSnapshot(async.document().root()) == expected,
+          "async preparation must match synchronous AST and coordinates");
+  require(async.pendingMarkerOffsets() == sync.pendingMarkerOffsets(), "pending markers must survive preparation");
+  for (qsizetype i = 0; i <= text.size(); ++i)
+    require(async.document().lineOffsets().lineForOffset(i) == sync.document().lineOffsets().lineForOffset(i),
+            "prepared text index must retain line lookup");
+  const auto offset = text.indexOf(QStringLiteral("Tail")) + 2;
+  require(async.applyTextDelta(offset, 0, QStringLiteral("X"), true), "prepared document must accept local edits");
+  require(sync.applyTextDelta(offset, 0, QStringLiteral("X"), true), "synchronous reference must accept local edits");
+  require(async.markdownText().toString() == sync.markdownText().toString(),
+          "prepared text must remain correct after editing");
+  require(blockSnapshot(async.document().root()) == blockSnapshot(sync.document().root()),
+          "editing must preserve prepared coordinates");
+}
 
 void testParseOptionsWhileOpeningPreservesPendingFile() {
   DocumentSession session;
@@ -29,7 +104,9 @@ void testParseOptionsWhileOpeningPreservesPendingFile() {
   require(session.isAsyncParseInProgress(), "changing options keeps the pending open asynchronous");
   QEventLoop loop;
   QObject::connect(&session, &DocumentSession::parseBusy, &loop, [&loop](bool busy) {
-    if (!busy) { loop.quit(); }
+    if (!busy) {
+      loop.quit();
+    }
   });
   QTimer::singleShot(5000, &loop, &QEventLoop::quit);
   loop.exec();
@@ -204,6 +281,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testOpenDocumentAsyncSupersedesInFlight);
   RUN_TEST(testApplyTextDeltaRejectedWhileAsyncInFlight);
   RUN_TEST(testParseOptionsWhileOpeningPreservesPendingFile);
+  RUN_TEST(testPreparedAsyncDocumentMatchesSyncAndRemainsEditable);
 #undef RUN_TEST
   return 0;
 }

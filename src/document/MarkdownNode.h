@@ -12,12 +12,14 @@
 #include <vector>
 
 namespace muffin {
+namespace diag { struct MemoryAccounting; }
 
 class MarkdownDocument;
 class SourcePositionIndex;
 struct SourcePositionToken;
 
 class MarkdownNode {
+  friend struct diag::MemoryAccounting;
 public:
   explicit MarkdownNode(BlockType type, NodeId id = NodeId::create());
   MarkdownNode(const MarkdownNode&) = delete;

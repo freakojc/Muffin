@@ -79,9 +79,9 @@ public:
   // Replace the logical document, retiring consumers' old history and selection first.
   void replaceDocument(QString text);
   void setMarkdownText(QString text, bool modified);
-  // Asynchronous full-parse entry used by FileController::open: runs parser_.parseDocument on a
-  // worker thread so the UI stays responsive on huge files, then finishes (setMarkdownText +
-  // relativize + emit parsed) on the GUI thread via finishAsyncParse. All other entry points stay
+  // Asynchronous full-parse entry used by FileController::open: prepares the AST,
+  // shared source slices, relative coordinates and text index on a worker, then
+  // installs the result and emits signals on the GUI thread. Other entry points stay
   // synchronous. Supersession: any newer parse or local edit bumps parseGeneration_, so a stale
   // worker's result is discarded.
   void openDocumentAsync(QString text);
@@ -144,9 +144,10 @@ private:
   bool lastParseWasLocalEdit_ = false;
   bool lastLocalEditChangedTopLevelStructure_ = false;
   TopLevelRangeChange lastLocalTopLevelRangeChange_;
+  struct AsyncParseResult;
   // Async open-parse state. Only the FileController::open path passes async=true; everything else
   // runs the synchronous code path unchanged.
-  QFutureWatcher<std::shared_ptr<ParseResult>>* parseWatcher_ = nullptr;
+  QFutureWatcher<std::shared_ptr<AsyncParseResult>>* parseWatcher_ = nullptr;
   // Covers the complete async-open transaction, including the interval after the worker finishes
   // but before its queued `finished` slot commits pendingText_ on the GUI thread. QFutureWatcher's
   // isRunning() does not cover that interval, so it cannot safely gate editing or saving.

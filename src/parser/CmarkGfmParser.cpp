@@ -7,16 +7,20 @@
 #include "parser/CmarkNodeAdapter.h"
 #include "parser/MarkdownSerializer.h"
 #include "diagnostics/ProcessMemory.h"
+#include "diagnostics/OpenPerformance.h"
 
 #include <QByteArray>
 #include <QElapsedTimer>
 #include <QHash>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QLoggingCategory>
 #include <QSet>
 #include <QStringList>
 #include <QVector>
 #include <algorithm>
+#include <array>
+#include <chrono>
 #include <limits>
 #include <mutex>
 #include <vector>
@@ -38,7 +42,7 @@ public:
   explicit ParsePerfTimer(
       const char* label,
       ParsePerformanceMetrics* metrics = nullptr)
-      : label_(label),
+      : openScope_(label), label_(label),
         metrics_(metrics),
         logEnabled_(parsePerf().isDebugEnabled()),
         enabled_(logEnabled_ || metrics_ != nullptr) {
@@ -63,6 +67,7 @@ public:
   }
 
 private:
+  diag::OpenPerfScope openScope_;
   const char* label_;
   ParsePerformanceMetrics* metrics_ = nullptr;
   bool logEnabled_ = false;
@@ -526,16 +531,63 @@ struct DelimitedInlineSpec {
 DelimitedInlineSpec specForHighlight() { return {QLatin1Char('='), 2, InlineType::Highlight, QStringLiteral("==")}; }
 DelimitedInlineSpec specForSubscript() { return {QLatin1Char('~'), 1, InlineType::Subscript, QStringLiteral("~")}; }
 DelimitedInlineSpec specForSuperscript() { return {QLatin1Char('^'), 1, InlineType::Superscript, QStringLiteral("^")}; }
-DelimitedInlineSpec specForStrikethrough() { return {QLatin1Char('~'), 2, InlineType::Strikethrough, QStringLiteral("~~")}; }
+DelimitedInlineSpec specForStrikethrough() {
+  return {QLatin1Char('~'), 2, InlineType::Strikethrough, QStringLiteral("~~")};
+}
 
 struct DelimToken {
-  enum class Kind { Inline, MarkerRun, Built };
+  enum class Kind { Inline, MarkerRun, Built, Text };
   Kind kind = Kind::Inline;
-  InlineNode node;  // Inline: a marker-free text segment or an opaque inline; Built: the assembled node
+  // The input remains stable until a successful pair. Text segments are views;
+  // opaque inlines are borrowed; only completed pairs own nodes, in a separate
+  // arena. Unmatched runs never allocate temporary InlineNode/QString payloads.
+  InlineNode* original = nullptr;
+  QStringView text;
   qsizetype srcStart = -1;
   qsizetype srcEnd = -1;
   int runLength = 0;
   bool escaped = false;
+  qsizetype previous = -1;
+  qsizetype next = -1;
+  qsizetype builtIndex = -1;
+};
+
+// Opt-in aggregate diagnostics; normal parsing performs no per-token clock or
+// memory queries. Counts describe our containers, not allocator internals.
+struct DelimiterProfile {
+  enum Phase { Candidates, Tokenize, Match, Materialize, Compact, Commit, PhaseCount };
+  bool enabled = qEnvironmentVariableIsSet("MUFFIN_DELIMITER_PROFILE");
+  std::array<qint64, PhaseCount> ns{};
+  qint64 tokens = 0, pairs = 0, shiftedTokens = 0, segments = 0, committed = 0;
+
+  template <typename F>
+  void measure(Phase phase, F&& operation) {
+    if (!enabled) {
+      operation();
+      return;
+    }
+    const auto start = std::chrono::steady_clock::now();
+    operation();
+    ns[phase] += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count();
+  }
+  void report(const DelimitedInlineSpec& spec) const {
+    if (!enabled) return;
+    static const QLoggingCategory category("muffin.delimiter", QtInfoMsg);
+    const QJsonObject row{{"marker", spec.markerString},
+                          {"token_size_bytes", qint64(sizeof(DelimToken))},
+                          {"tokens", tokens},
+                          {"pairs", pairs},
+                          {"shifted_tokens", shiftedTokens},
+                          {"text_segments", segments},
+                          {"committed", committed},
+                          {"candidates_ms", ns[Candidates] / 1e6},
+                          {"tokenize_ms", ns[Tokenize] / 1e6},
+                          {"match_ms", ns[Match] / 1e6},
+                          {"materialize_ms", ns[Materialize] / 1e6},
+                          {"compact_ms", ns[Compact] / 1e6},
+                          {"commit_ms", ns[Commit] / 1e6}};
+    qCInfo(category).noquote() << QJsonDocument(row).toJson(QJsonDocument::Compact);
+  }
 };
 
 QChar firstSignificantChar(const InlineNode& node) {
@@ -544,7 +596,7 @@ QChar firstSignificantChar(const InlineNode& node) {
     case InlineType::Code:
     case InlineType::InlineMath:
     case InlineType::HtmlInline:
-      return node.text().isEmpty() ? QChar() : node.text().at(0);
+      return node.textView().isEmpty() ? QChar() : node.textView().front();
     case InlineType::SoftBreak:
     case InlineType::LineBreak:
       return QChar::Space;
@@ -573,7 +625,7 @@ QChar lastSignificantChar(const InlineNode& node) {
     case InlineType::Code:
     case InlineType::InlineMath:
     case InlineType::HtmlInline:
-      return node.text().isEmpty() ? QChar() : node.text().at(node.text().size() - 1);
+      return node.textView().isEmpty() ? QChar() : node.textView().back();
     case InlineType::SoftBreak:
     case InlineType::LineBreak:
       return QChar::Space;
@@ -615,15 +667,27 @@ InlineNode makeDelimitedInline(const DelimitedInlineSpec& spec, QVector<InlineNo
 // Only Text nodes whose decoded text maps 1:1 to their source span can be safely split — escapes
 // and HTML entities decode to fewer source chars and would misalign segment offsets. For those,
 // keep the node opaque (its marker stays literal).
-QVector<DelimToken> buildDelimTokens(const QVector<InlineNode>& inlines, QStringView markdown, const DelimitedInlineSpec& spec) {
+QVector<DelimToken> buildDelimTokens(QVector<InlineNode>& inlines, QStringView markdown,
+                                     const DelimitedInlineSpec& spec, DelimiterProfile& profile) {
   QVector<DelimToken> tokens;
-  for (const InlineNode& node : inlines) {
+  tokens.reserve(inlines.size());
+  const auto append = [&](DelimToken token) {
+    token.previous = tokens.size() - 1;
+    if (!tokens.isEmpty()) tokens.last().next = tokens.size();
+    tokens.append(std::move(token));
+  };
+  for (InlineNode& node : inlines) {
     if (node.type() == InlineType::Text) {
-      const QString text = node.text();
+      const QStringView text = node.textView();
       const InlineRange range = node.sourceRange();
       const qsizetype srcLen = range.end - range.start;
       if (range.start < 0 || srcLen != text.size()) {
-        tokens.append({DelimToken::Kind::Inline, node, range.start, range.end, 0, false});
+        append({DelimToken::Kind::Inline, &node, {}, range.start, range.end});
+        continue;
+      }
+      if (!text.contains(spec.marker)) {
+        // An empty source-aligned segment generated no token in the old path.
+        if (!text.isEmpty()) append({DelimToken::Kind::Text, &node, text, range.start, range.end});
         continue;
       }
       qsizetype i = 0;
@@ -633,67 +697,75 @@ QVector<DelimToken> buildDelimTokens(const QVector<InlineNode>& inlines, QString
           while (j < text.size() && text.at(j) == spec.marker) {
             ++j;
           }
-          DelimToken t{DelimToken::Kind::MarkerRun, InlineNode(InlineType::Text), range.start + i, range.start + j,
-                       int(j - i), false};
+          DelimToken t{DelimToken::Kind::MarkerRun, nullptr, {}, range.start + i, range.start + j, int(j - i), false};
           if (t.srcStart > 0 && markdown.at(t.srcStart - 1) == QLatin1Char('\\')) {
             t.escaped = true;
           }
-          tokens.append(t);
+          append(std::move(t));
           i = j;
         } else {
           qsizetype j = i;
           while (j < text.size() && text.at(j) != spec.marker) {
             ++j;
           }
-          InlineNode seg = InlineNode::text(text.mid(i, j - i));
-          InlineSourceRanges segRanges;
-          segRanges.source = InlineRange{range.start + i, range.start + j};
-          segRanges.content = segRanges.source;
-          seg.setSourceRanges(segRanges);
-          tokens.append({DelimToken::Kind::Inline, seg, range.start + i, range.start + j, 0, false});
+          if (profile.enabled) ++profile.segments;
+          append({DelimToken::Kind::Text, &node, text.mid(i, j - i), range.start + i, range.start + j});
           i = j;
         }
       }
     } else {
       const InlineRange range = node.sourceRange();
-      tokens.append({DelimToken::Kind::Inline, node, range.start, range.end, 0, false});
+      append({DelimToken::Kind::Inline, &node, {}, range.start, range.end});
     }
   }
   return tokens;
 }
 
-InlineNode tokenToInline(const DelimToken& t, const DelimitedInlineSpec& spec) {
-  if (t.kind == DelimToken::Kind::MarkerRun) {
-    InlineNode text = InlineNode::text(QString(t.runLength, spec.marker));
+InlineNode tokenToInline(DelimToken& t, const DelimitedInlineSpec& spec, QVector<InlineNode>& builtNodes) {
+  if (t.kind == DelimToken::Kind::MarkerRun || t.kind == DelimToken::Kind::Text) {
+    InlineNode text = t.kind == DelimToken::Kind::MarkerRun
+                          ? InlineNode::text(QString(t.runLength, spec.marker))
+                          : t.original->textSegment(t.text.data() - t.original->textView().data(), t.text.size());
     InlineSourceRanges ranges;
     ranges.source = InlineRange{t.srcStart, t.srcEnd};
     ranges.content = ranges.source;
     text.setSourceRanges(ranges);
     return text;
   }
-  return t.node;
+  return t.kind == DelimToken::Kind::Built ? std::move(builtNodes[t.builtIndex]) : std::move(*t.original);
 }
 
-void matchDelimTokens(QVector<DelimToken>& tokens, const DelimitedInlineSpec& spec) {
-  QVector<int> openers;  // indices of marker runs that can open
-  for (int i = 0; i < tokens.size(); ++i) {
+QChar tokenSignificantChar(const DelimToken& token, const QVector<InlineNode>& builtNodes, bool first) {
+  if (token.kind == DelimToken::Kind::MarkerRun) return {};  // Literal runs are opaque to flank checks.
+  if (token.kind == DelimToken::Kind::Text)
+    return token.text.isEmpty() ? QChar() : first ? token.text.front() : token.text.back();
+  const InlineNode& node = token.kind == DelimToken::Kind::Built ? builtNodes[token.builtIndex] : *token.original;
+  return first ? firstSignificantChar(node) : lastSignificantChar(node);
+}
+
+qsizetype matchDelimTokens(QVector<DelimToken>& tokens, const DelimitedInlineSpec& spec, DelimiterProfile& profile,
+                           QVector<InlineNode>& builtNodes) {
+  qsizetype activeCount = tokens.size();
+  QVector<qsizetype> openers;  // Stable token indices, including across nested matches.
+  for (qsizetype i = 0; i >= 0; i = tokens[i].next) {
     const DelimToken& t = tokens[i];
     if (t.kind != DelimToken::Kind::MarkerRun || t.runLength != spec.runLength || t.escaped) {
       continue;
     }
-    const bool canOpen = i + 1 < tokens.size() &&
-        !firstSignificantChar(tokens[i + 1].node).isNull() &&
-        !firstSignificantChar(tokens[i + 1].node).isSpace();
-    const bool canClose = i > 0 &&
-        !lastSignificantChar(tokens[i - 1].node).isNull() &&
-        !lastSignificantChar(tokens[i - 1].node).isSpace();
+    const QChar after = t.next >= 0 ? tokenSignificantChar(tokens[t.next], builtNodes, true) : QChar();
+    const QChar before = t.previous >= 0 ? tokenSignificantChar(tokens[t.previous], builtNodes, false) : QChar();
+    const bool canOpen = !after.isNull() && !after.isSpace();
+    const bool canClose = !before.isNull() && !before.isSpace();
     if (canClose && !openers.isEmpty()) {
-      const int opener = openers.last();
-      if (opener + 1 < i) {  // at least one content token between them
+      const qsizetype opener = openers.last();
+      if (tokens[opener].next != i) {  // at least one active content token between them
         QVector<InlineNode> children;
-        for (int k = opener + 1; k < i; ++k) {
-          children.append(tokenToInline(tokens[k], spec));
-        }
+        profile.measure(DelimiterProfile::Materialize, [&] {
+          for (qsizetype k = tokens[opener].next; k != i; k = tokens[k].next) {
+            children.append(tokenToInline(tokens[k], spec, builtNodes));
+          }
+        });
+        activeCount -= children.size() + 1;
         InlineNode built = makeDelimitedInline(spec, std::move(children));
         InlineSourceRanges ranges;
         ranges.openMarker = InlineRange{tokens[opener].srcStart, tokens[opener].srcEnd};
@@ -701,10 +773,20 @@ void matchDelimTokens(QVector<DelimToken>& tokens, const DelimitedInlineSpec& sp
         ranges.source = InlineRange{ranges.openMarker.start, ranges.closeMarker.end};
         ranges.content = InlineRange{ranges.openMarker.end, ranges.closeMarker.start};
         built.setSourceRanges(ranges);
-        tokens[opener] = DelimToken{DelimToken::Kind::Built, built, ranges.source.start, ranges.source.end, 0, false};
-        tokens.remove(opener + 1, i - opener);
+        builtNodes.append(std::move(built));
+        if (profile.enabled) ++profile.pairs;
+        profile.measure(DelimiterProfile::Compact, [&] {
+          // Splice out the matched interval without shifting any suffix. Keep
+          // the opener in place so subsequent flank checks see the built node.
+          DelimToken& replacement = tokens[opener];
+          replacement.kind = DelimToken::Kind::Built;
+          replacement.builtIndex = builtNodes.size() - 1;
+          replacement.srcEnd = ranges.source.end;
+          replacement.next = t.next;
+          if (t.next >= 0) tokens[t.next].previous = opener;
+        });
         openers.removeLast();
-        i = opener;  // rescan from the new built token (its content may pair further out)
+        i = opener;  // Continue after the built node, exactly as the compacting algorithm did.
         continue;
       }
       openers.removeLast();
@@ -713,23 +795,39 @@ void matchDelimTokens(QVector<DelimToken>& tokens, const DelimitedInlineSpec& sp
       openers.append(i);
     }
   }
+  return activeCount;
 }
 
-void splitDelimInBlock(QVector<InlineNode>& inlines, QStringView markdown, const DelimitedInlineSpec& spec) {
-  QVector<DelimToken> tokens = buildDelimTokens(inlines, markdown, spec);
-  matchDelimTokens(tokens, spec);
-  QVector<InlineNode> rebuilt;
-  rebuilt.reserve(tokens.size());
-  bool changed = false;
-  for (const DelimToken& t : tokens) {
-    if (t.kind == DelimToken::Kind::Built) {
-      changed = true;
+void splitDelimInBlock(QVector<InlineNode>& inlines, QStringView markdown, const DelimitedInlineSpec& spec,
+                       DelimiterProfile& profile) {
+  // Only direct, source-aligned Text nodes can introduce runs. A marker in
+  // another paragraph, code span, link destination or opaque decoded text must
+  // not cause this list (including all nested formatting) to be deep-copied.
+  bool candidate = false;
+  profile.measure(DelimiterProfile::Candidates, [&] {
+    candidate = std::any_of(inlines.cbegin(), inlines.cend(), [&](const InlineNode& node) {
+      if (node.type() != InlineType::Text || !node.textView().contains(spec.marker)) return false;
+      const auto range = node.sourceRange();
+      return range.start >= 0 && range.end - range.start == node.textView().size();
+    });
+  });
+  if (!candidate) return;
+  QVector<DelimToken> tokens;
+  profile.measure(DelimiterProfile::Tokenize, [&] { tokens = buildDelimTokens(inlines, markdown, spec, profile); });
+  if (profile.enabled) profile.tokens += tokens.size();
+  QVector<InlineNode> builtNodes;
+  qsizetype activeCount = 0;
+  profile.measure(DelimiterProfile::Match, [&] { activeCount = matchDelimTokens(tokens, spec, profile, builtNodes); });
+  if (builtNodes.isEmpty()) return;  // No node has been moved: preserve the original list and ranges.
+  profile.measure(DelimiterProfile::Commit, [&] {
+    QVector<InlineNode> rebuilt;
+    rebuilt.reserve(activeCount);
+    for (qsizetype i = 0; i >= 0; i = tokens[i].next) {
+      rebuilt.append(tokenToInline(tokens[i], spec, builtNodes));
     }
-    rebuilt.append(tokenToInline(t, spec));
-  }
-  if (changed) {
+    if (profile.enabled) profile.committed += rebuilt.size();
     inlines = std::move(rebuilt);
-  }
+  });
 }
 
 // Walks the tree and splits spec-delimited runs into typed inlines within every block that owns
@@ -741,21 +839,21 @@ void splitDelimInlines(MarkdownNode& root, QStringView markdown, const Delimited
   if (markdown.indexOf(spec.marker) < 0) {
     return;
   }
+  DelimiterProfile profile;
   const auto visit = [&](auto&& self, MarkdownNode& node) -> void {
     if (!node.inlines().isEmpty()) {
-      splitDelimInBlock(node.inlines(), markdown, spec);
+      splitDelimInBlock(node.inlines(), markdown, spec, profile);
     }
     for (const auto& child : node.children()) {
       self(self, *child);
     }
   };
   visit(visit, root);
+  profile.report(spec);
 }
 
-void annotateDefinitionBlocks(
-    MarkdownNode& root,
-    const QVector<DefinitionParseResult>& definitions,
-    const LineStartOffsetCache& lineOffsets) {
+void annotateDefinitionBlocks(MarkdownNode& root, const QVector<DefinitionParseResult>& definitions,
+                              const LineStartOffsetCache& lineOffsets) {
   if (definitions.isEmpty()) {
     return;
   }
@@ -783,8 +881,7 @@ void annotateDefinitionBlocks(
     const DefinitionBlock& definition = parsedDefinition.definition;
     MarkdownNode* node = nullptr;
     if (definition.kind == DefinitionBlock::Kind::Footnote) {
-      node = footnoteDefinitionByLine.value(
-          lineOffsets.lineForOffset(definition.markerRange.start), nullptr);
+      node = footnoteDefinitionByLine.value(lineOffsets.lineForOffset(definition.markerRange.start), nullptr);
     } else {
       node = linkDefinitionByStart.value(definition.markerRange.start, nullptr);
     }
@@ -794,10 +891,9 @@ void annotateDefinitionBlocks(
     const SourceRange range = node->sourceRange();
     const bool matchesRange =
         definition.kind == DefinitionBlock::Kind::Footnote
-        ? range.lineStart == lineOffsets.lineForOffset(definition.markerRange.start) &&
-              range.byteEnd >= definition.markerRange.end
-        : range.byteStart == definition.markerRange.start &&
-              range.byteEnd >= definition.markerRange.end;
+            ? range.lineStart == lineOffsets.lineForOffset(definition.markerRange.start) &&
+                  range.byteEnd >= definition.markerRange.end
+            : range.byteStart == definition.markerRange.start && range.byteEnd >= definition.markerRange.end;
     const bool matchesType =
         (definition.kind == DefinitionBlock::Kind::Footnote &&
          node->type() == BlockType::FootnoteDefinition) ||
@@ -1452,15 +1548,20 @@ ParseResult CmarkGfmParser::parseDocumentProfiled(
   return parseDocumentImpl(markdown, options, true);
 }
 
-ParseResult CmarkGfmParser::parseDocumentImpl(
-    QStringView markdown,
-    const ParseOptions& options,
-    bool collectPerformanceMetrics) {
+ParseResult CmarkGfmParser::parseDocumentShared(const std::shared_ptr<const QString>& markdown,
+                                                const ParseOptions& options, bool collectPerformanceMetrics) {
+  return parseDocumentImpl(markdown ? QStringView(*markdown) : QStringView(), options, collectPerformanceMetrics,
+                           markdown);
+}
+
+ParseResult CmarkGfmParser::parseDocumentImpl(QStringView markdown, const ParseOptions& options,
+                                              bool collectPerformanceMetrics,
+                                              std::shared_ptr<const QString> sharedSource) {
+  diag::OpenPerfScope openScope("parse.total");
   QElapsedTimer timer;
   timer.start();
   ParsePerformanceMetrics performanceMetrics;
-  ParsePerformanceMetrics* metrics =
-      collectPerformanceMetrics ? &performanceMetrics : nullptr;
+  ParsePerformanceMetrics* metrics = collectPerformanceMetrics ? &performanceMetrics : nullptr;
   if (metrics) {
     metrics->workingSetBytesBefore = muffin::diag::workingSetBytes();
   }
@@ -1550,12 +1651,12 @@ ParseResult CmarkGfmParser::parseDocumentImpl(
     ParsePerfTimer t("parse.lineOffsets", metrics);
     return LineStartOffsetCache(markdownToParse);
   }();
-  CmarkNodeAdapter adapter(&lineOffsets, markdownToParse);
+  CmarkNodeAdapter adapter(&lineOffsets, markdownToParse, std::move(sharedSource), markdownStart);
   ParseResult result;
   {
     ParsePerfTimer t("parse.convertBlock", metrics);
     const bool perf = parsePerf().isDebugEnabled();
-    CmarkNodeAdapter::setPerfEnabled(perf);
+    CmarkNodeAdapter::setPerfEnabled(perf || qEnvironmentVariableIsSet("MUFFIN_AST_PROFILE"));
     CmarkNodeAdapter::resetPerfCounters();
     LineStartOffsetCache::setByteColPerfEnabled(perf);
     LineStartOffsetCache::resetByteColPerf();
@@ -1572,8 +1673,11 @@ ParseResult CmarkGfmParser::parseDocumentImpl(
   // carrying them through ~15 annotation passes (previously freed at function return). On a large
   // file this drops roughly the document's worth of UTF-8 again from the peak window, exactly when
   // the Muffin tree (which re-holds the same text as UTF-16) is at its largest.
-  cmark_node_free(document);
-  cmark_parser_free(parser);
+  {
+    diag::OpenPerfScope freeScope("parse.release_cmark");
+    cmark_node_free(document);
+    cmark_parser_free(parser);
+  }
   document = nullptr;
   parser = nullptr;
   {

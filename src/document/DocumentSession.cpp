@@ -1,18 +1,18 @@
 #include "document/DocumentSession.h"
 
+#include <QElapsedTimer>
+#include <QFileInfo>
+#include <QLoggingCategory>
+#include <QtConcurrent>
+#include <algorithm>
+#include <utility>
+
+#include "diagnostics/OpenPerformance.h"
+#include "diagnostics/ProcessMemory.h"
 #include "document/InlineNode.h"
 #include "document/PendingBlockMarker.h"
 #include "document/SourceRangeUtil.h"
 #include "parser/MarkdownSerializer.h"
-#include "diagnostics/ProcessMemory.h"
-
-#include <QFileInfo>
-#include <QElapsedTimer>
-#include <QLoggingCategory>
-#include <QtConcurrent>
-
-#include <algorithm>
-#include <utility>
 
 namespace {
 
@@ -558,19 +558,24 @@ muffin::MarkdownNode* nodeByIdOrTypeIndex(muffin::MarkdownDocument& document, mu
 
 }  // namespace
 
+struct muffin::DocumentSession::AsyncParseResult {
+  ParseResult parsed;
+  PieceTable text;
+  QVector<qsizetype> pendingMarkers;
+};
+
 muffin::DocumentSession::DocumentSession(QObject* parent) : QObject(parent) {
   connect(&document_, &MarkdownDocument::modifiedChanged, this, &DocumentSession::modifiedChanged);
   newDocument();
-  parseWatcher_ = new QFutureWatcher<std::shared_ptr<ParseResult>>(this);
-  connect(parseWatcher_, &QFutureWatcher<std::shared_ptr<ParseResult>>::finished, this, &DocumentSession::finishAsyncParse);
+  parseWatcher_ = new QFutureWatcher<std::shared_ptr<AsyncParseResult>>(this);
+  connect(parseWatcher_, &QFutureWatcher<std::shared_ptr<AsyncParseResult>>::finished, this,
+          &DocumentSession::finishAsyncParse);
   fileWatcher_ = new QFileSystemWatcher(this);
   connect(fileWatcher_, &QFileSystemWatcher::fileChanged, this, &DocumentSession::onFileChanged);
   connect(fileWatcher_, &QFileSystemWatcher::directoryChanged, this, &DocumentSession::onFileChanged);
 }
 
-muffin::MarkdownDocument& muffin::DocumentSession::document() {
-  return document_;
-}
+muffin::MarkdownDocument& muffin::DocumentSession::document() { return document_; }
 
 const muffin::MarkdownDocument& muffin::DocumentSession::document() const {
   return document_;
@@ -834,29 +839,49 @@ bool muffin::DocumentSession::applyInsertedNode(
   return applyTextDelta(sourceStart, removedLength, std::move(insertedText), modified, std::move(nodeHints));
 }
 
-void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector<qsizetype> demoteAtOffsets, bool async) {
+void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector<qsizetype> demoteAtOffsets,
+                                            bool async) {
   ++parseGeneration_;  // any new parse supersedes an in-flight async worker
   if (async) {
-    // Run only the (Qt-free, stateless) parser on a worker thread; finishAsyncParse does the
-    // QObject-mutating setMarkdownText + relativize + emit parsed on the GUI thread. pendingText_ is
-    // captured (shared copy) before the worker takes ownership of `text`.
+    // The unpublished AST, text index and shared source slices have no QObject
+    // affinity. Prepare them on the existing worker; only installation and
+    // signals touch the GUI-owned document after the generation check.
     pendingText_ = text;
     pendingModified_ = modified;
     pendingDemoteAtOffsets_ = std::move(demoteAtOffsets);
     const ParseOptions options = parseOptions_;
     const bool collectPerformanceMetrics = fullParsePerformanceMetricsEnabled_;
+    const auto demoteOffsets = pendingDemoteAtOffsets_;
     launchGeneration_ = parseGeneration_;
     asyncParsePending_ = true;
     emit parseBusy(true);
-    parseWatcher_->setFuture(QtConcurrent::run(
-        [text = std::move(text), options, collectPerformanceMetrics]()
-            -> std::shared_ptr<ParseResult> {
-          CmarkGfmParser parser;
-          ParseResult result = collectPerformanceMetrics
-              ? parser.parseDocumentProfiled(QStringView(text), options)
-              : parser.parseDocument(QStringView(text), options);
-          return std::make_shared<ParseResult>(std::move(result));
-        }));
+    parseWatcher_->setFuture(QtConcurrent::run([text = std::move(text), options, collectPerformanceMetrics,
+                                                demoteOffsets]() mutable -> std::shared_ptr<AsyncParseResult> {
+      muffin::diag::OpenPerfScope workerScope("open.worker");
+      CmarkGfmParser parser;
+      auto result = std::make_shared<AsyncParseResult>();
+      const auto sharedText = std::make_shared<const QString>(text);
+      result->parsed = parser.parseDocumentShared(sharedText, options, collectPerformanceMetrics);
+      if (!result->parsed.root) result->parsed.root = std::make_unique<MarkdownNode>(BlockType::Document);
+      if (!demoteOffsets.isEmpty()) demotePendingMarkersAtOffsets(text, *result->parsed.root, demoteOffsets);
+      {
+        muffin::diag::OpenPerfAccumulator bind("open.bind_shared_text"), relative("open.relative_coordinates");
+        for (const auto& child : result->parsed.root->children()) {
+          if (!child) continue;
+          bind.measure([&] { child->bindSharedInlineText(sharedText); });
+          relative.measure([&] { child->relativizeDescendants(); });
+        }
+      }
+      {
+        muffin::diag::OpenPerfScope scope("open.pending_markers");
+        result->pendingMarkers = collectPendingMarkerOffsets(QStringView(text), *result->parsed.root);
+      }
+      {
+        muffin::diag::OpenPerfScope scope("open.text_index");
+        result->text = PieceTable(std::move(text));
+      }
+      return result;
+    }));
     return;
   }
   PerfTimer perf("session.fullParse");
@@ -864,9 +889,7 @@ void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector
   ParseResult result;
   {
     PerfTimer parsePerf("session.parse");
-    result = fullParsePerformanceMetricsEnabled_
-        ? parser_.parseDocumentProfiled(QStringView(text), parseOptions_)
-        : parser_.parseDocument(QStringView(text), parseOptions_);
+    result = parser_.parseDocumentShared(sharedText, parseOptions_, fullParsePerformanceMetricsEnabled_);
   }
   lastParseElapsedMs_ = result.elapsedMs;
   lastFullParsePerformanceMetrics_ = std::move(result.performanceMetrics);
@@ -897,6 +920,7 @@ void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector
 }
 
 void muffin::DocumentSession::finishAsyncParse() {
+  muffin::diag::OpenPerfScope installScope("open.install");
   // A newer parse/edit may have landed while this worker ran; its result would clobber the live
   // document, so discard it. (The worker still ran to completion — cmark isn't cancellable.)
   if (launchGeneration_ != parseGeneration_) {
@@ -905,9 +929,8 @@ void muffin::DocumentSession::finishAsyncParse() {
     return;
   }
   PerfTimer perf("session.fullParse");
-  std::shared_ptr<ParseResult> resultPtr = parseWatcher_->result();
-  ParseResult& result = *resultPtr;
-  const auto sharedText = std::make_shared<const QString>(pendingText_);
+  const auto prepared = parseWatcher_->result();
+  ParseResult& result = prepared->parsed;
   lastParseElapsedMs_ = result.elapsedMs;
   lastFullParsePerformanceMetrics_ = std::move(result.performanceMetrics);
   lastParseWasLocalEdit_ = false;
@@ -915,27 +938,18 @@ void muffin::DocumentSession::finishAsyncParse() {
   lastLocalTopLevelRangeChange_ = {};
   {
     PerfTimer buildPerf("session.buildDocument");
-    document_.setMarkdownText(pendingText_, std::move(result.root));
+    document_.setPreparedMarkdownText(std::move(prepared->text), std::move(result.root));
   }
   document_.setModified(pendingModified_);
-  if (!pendingDemoteAtOffsets_.isEmpty()) {
-    demotePendingMarkersAtOffsets(document_.markdownText().toString(), document_.root(), pendingDemoteAtOffsets_);
-    pendingDemoteAtOffsets_.clear();
-  }
-  {
-    PerfTimer relativizePerf("session.relativize");
-    for (const auto& child : document_.root().children()) {
-      if (child) {
-        child->bindSharedInlineText(sharedText);
-        child->relativizeDescendants();
-      }
-    }
-  }
-  pendingMarkerOffsets_ = collectPendingMarkerOffsets(QStringView(*sharedText), document_.root());
+  pendingDemoteAtOffsets_.clear();
+  pendingMarkerOffsets_ = std::move(prepared->pendingMarkers);
   asyncParsePending_ = false;
-  emit parsed(lastParseElapsedMs_);
-  emit documentTextChanged(pendingText_);
-  emit parseBusy(false);
+  {
+    muffin::diag::OpenPerfScope scope("open.publish");
+    emit parsed(lastParseElapsedMs_);
+    emit documentTextChanged(pendingText_);
+    emit parseBusy(false);
+  }
 }
 
 void muffin::DocumentSession::openDocumentAsync(QString text) {

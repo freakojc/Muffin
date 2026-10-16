@@ -4,12 +4,15 @@
 
 #include <QString>
 #include <QStringView>
+#include <QUtf8StringView>
 #include <QVector>
 
 #include <memory>
+#include <array>
 #include <variant>
 
 namespace muffin {
+namespace diag { struct MemoryAccounting; }
 
 struct InlineRange {
   qsizetype start = -1;
@@ -43,6 +46,7 @@ struct InlineSourceRanges {
 };
 
 class InlineNode {
+  friend struct diag::MemoryAccounting;
 public:
   explicit InlineNode(InlineType type = InlineType::Text);
   InlineNode(const InlineNode& other);
@@ -55,6 +59,10 @@ public:
   QStringView textView() const;
   void setText(QString text);
   bool bindSharedText(const std::shared_ptr<const QString>& source);
+  // Exact equality avoids an intermediate decoded QString; range is absolute
+  // within source and is independent of this node's syntax coordinates.
+  bool setSharedTextFromUtf8(const std::shared_ptr<const QString>& source, InlineRange range, QUtf8StringView value);
+  InlineNode textSegment(qsizetype start, qsizetype length) const;
   void detachSharedText();
   bool usesSharedText() const;
 
@@ -120,11 +128,15 @@ private:
   // Keep the four implicitly-shared QString handles off those hot nodes; formatting/link/image
   // nodes allocate this payload on demand.
   struct ExtendedMetadata {
+    ExtendedMetadata() = default;
+    ExtendedMetadata(const ExtendedMetadata& other);
     QString marker;
     QString href;
     QString title;
     QString alt;
     bool autolink = false;
+    // Exceptional coordinates retain the complete public qsizetype domain.
+    std::unique_ptr<InlineSourceRanges> wideRanges;
 
     bool isEmpty() const;
   };
@@ -133,9 +145,13 @@ private:
   void pruneExtendedMetadata();
 
   InlineType type_ = InlineType::Text;
+  // Common immutable syntax never needs four QString handles on the heap.
+  quint8 markerKind_ = 0;
   std::variant<QString, SharedTextSlice> text_;
   QVector<InlineNode> children_;
-  InlineSourceRanges sourceRanges_;
+  // Most coordinates fit 32 bits. Wide/negative exceptional values use the
+  // existing optional payload; public ranges and arithmetic remain qsizetype.
+  std::array<qint32, 8> sourceRanges_{-1, -1, -1, -1, -1, -1, -1, -1};
   std::unique_ptr<ExtendedMetadata> extendedMetadata_;
 };
 

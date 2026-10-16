@@ -11,6 +11,7 @@
 #include <vector>
 
 namespace muffin {
+namespace diag { struct MemoryAccounting; }
 
 // Piece-table text buffer: the editable backing store for a document's text. Logically a flat
 // 0..size() sequence of QChars (so the byte-offset cursor / source-range / line-offset models are
@@ -27,6 +28,7 @@ namespace muffin {
 // edits are O(pieces). The public API is the contract — the backing can later be swapped for a
 // balanced piece-tree (O(log n) edits) without touching callers.
 class PieceTable {
+  friend struct diag::MemoryAccounting;
 public:
   PieceTable() = default;
   explicit PieceTable(QString initial);

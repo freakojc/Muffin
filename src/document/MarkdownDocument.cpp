@@ -3,9 +3,10 @@
 #include <QElapsedTimer>
 #include <QLoggingCategory>
 #include <QSet>
-
 #include <algorithm>
 #include <utility>
+
+#include "diagnostics/OpenPerformance.h"
 
 namespace {
 
@@ -64,18 +65,24 @@ const LineStartOffsetCache& MarkdownDocument::lineOffsets() const {
 }
 
 void MarkdownDocument::setMarkdownText(QString text, std::unique_ptr<MarkdownNode> root) {
-  text_ = PieceTable(std::move(text));
+  PieceTable prepared;
+  {
+    diag::OpenPerfScope scope("open.text_index");
+    prepared = PieceTable(std::move(text));
+  }
+  setPreparedMarkdownText(std::move(prepared), std::move(root));
+}
+
+void MarkdownDocument::setPreparedMarkdownText(PieceTable text, std::unique_ptr<MarkdownNode> root) {
+  text_ = std::move(text);
   lineOffsets_.bind(text_);
   replaceRoot(std::move(root));
 }
 
-void MarkdownDocument::replaceTopLevelRange(
-    qsizetype first,
-    qsizetype count,
-    std::vector<std::unique_ptr<MarkdownNode>> replacements,
-    qsizetype sourceStart,
-    qsizetype sourceEnd,
-    const QString& replacementText) {
+void MarkdownDocument::replaceTopLevelRange(qsizetype first, qsizetype count,
+                                            std::vector<std::unique_ptr<MarkdownNode>> replacements,
+                                            qsizetype sourceStart, qsizetype sourceEnd,
+                                            const QString& replacementText) {
   PerfTimer totalPerf("session.local.replaceRange");
   replaceOutlineRange(first, count, replacements);
   std::unique_ptr<SourcePositionToken> replacementTokens;
@@ -336,13 +343,25 @@ MarkdownNode* MarkdownDocument::topLevelBlockAtOffset(qsizetype offset) const {
 }
 
 void MarkdownDocument::replaceRoot(std::unique_ptr<MarkdownNode> root) {
-  root_ = std::move(root);
+  {
+    diag::OpenPerfScope scope("open.replace_old_ast");
+    root_ = std::move(root);
+  }
   if (!root_) {
     root_ = std::make_unique<MarkdownNode>(BlockType::Document);
   }
-  bindSourcePositionSlots();
-  index_.rebuild(*root_);
-  rebuildOutlineIndex();
+  {
+    diag::OpenPerfScope scope("open.source_positions");
+    bindSourcePositionSlots();
+  }
+  {
+    diag::OpenPerfScope scope("open.node_index");
+    index_.rebuild(*root_);
+  }
+  {
+    diag::OpenPerfScope scope("open.outline_index");
+    rebuildOutlineIndex();
+  }
   ++revision_;
   emit documentReset();
 }

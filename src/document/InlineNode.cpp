@@ -1,9 +1,26 @@
 #include "document/InlineNode.h"
+#include <QAnyStringView>
 
 #include <limits>
 #include <utility>
 
 namespace muffin {
+namespace {
+const std::array<QString, 11>& commonMarkers() {
+  static const std::array<QString, 11> markers{QString(),
+                                               QStringLiteral("*"),
+                                               QStringLiteral("_"),
+                                               QStringLiteral("**"),
+                                               QStringLiteral("__"),
+                                               QStringLiteral("~~"),
+                                               QStringLiteral("=="),
+                                               QStringLiteral("~"),
+                                               QStringLiteral("^"),
+                                               QStringLiteral("`"),
+                                               QStringLiteral("``")};
+  return markers;
+}
+}  // namespace
 
 bool InlineRange::isValid() const {
   return start >= 0 && end >= start;
@@ -16,18 +33,20 @@ qsizetype InlineRange::length() const {
 InlineNode::InlineNode(InlineType type) : type_(type) {}
 
 InlineNode::InlineNode(const InlineNode& other)
-    : type_(other.type_), text_(other.text_), children_(other.children_),
+    : type_(other.type_),
+      markerKind_(other.markerKind_),
+      text_(other.text_),
+      children_(other.children_),
       sourceRanges_(other.sourceRanges_),
-      extendedMetadata_(other.extendedMetadata_
-                            ? std::make_unique<ExtendedMetadata>(*other.extendedMetadata_)
-                            : nullptr) {}
+      extendedMetadata_(other.extendedMetadata_ ? std::make_unique<ExtendedMetadata>(*other.extendedMetadata_)
+                                                : nullptr) {}
 
 InlineNode& InlineNode::operator=(const InlineNode& other) {
   if (this != &other) {
-    auto extendedMetadata = other.extendedMetadata_
-        ? std::make_unique<ExtendedMetadata>(*other.extendedMetadata_)
-        : nullptr;
+    auto extendedMetadata =
+        other.extendedMetadata_ ? std::make_unique<ExtendedMetadata>(*other.extendedMetadata_) : nullptr;
     type_ = other.type_;
+    markerKind_ = other.markerKind_;
     text_ = other.text_;
     children_ = other.children_;
     sourceRanges_ = other.sourceRanges_;
@@ -36,8 +55,16 @@ InlineNode& InlineNode::operator=(const InlineNode& other) {
   return *this;
 }
 
+InlineNode::ExtendedMetadata::ExtendedMetadata(const ExtendedMetadata& other)
+    : marker(other.marker),
+      href(other.href),
+      title(other.title),
+      alt(other.alt),
+      autolink(other.autolink),
+      wideRanges(other.wideRanges ? std::make_unique<InlineSourceRanges>(*other.wideRanges) : nullptr) {}
+
 bool InlineNode::ExtendedMetadata::isEmpty() const {
-  return marker.isEmpty() && href.isEmpty() && title.isEmpty() && alt.isEmpty() && !autolink;
+  return marker.isEmpty() && href.isEmpty() && title.isEmpty() && alt.isEmpty() && !autolink && !wideRanges;
 }
 
 InlineNode::ExtendedMetadata& InlineNode::ensureExtendedMetadata() {
@@ -83,6 +110,10 @@ bool InlineNode::bindSharedText(const std::shared_ptr<const QString>& source) {
     return false;
   }
   const QStringView value = textView();
+  if (const auto* shared = std::get_if<SharedTextSlice>(&text_); shared && shared->source == source) {
+    const auto range = contentRange();
+    if (range.start == shared->start && range.length() == shared->length) return true;
+  }
   if (value.isEmpty()) {
     return false;
   }
@@ -103,7 +134,7 @@ bool InlineNode::bindSharedText(const std::shared_ptr<const QString>& source) {
     }
     return false;
   };
-  if (bindRange(sourceRanges_.content) || bindRange(sourceRanges_.source)) {
+  if (bindRange(contentRange()) || bindRange(sourceRange())) {
     return true;
   }
   return false;
@@ -118,20 +149,51 @@ void InlineNode::detachSharedText() {
   }
 }
 
-bool InlineNode::usesSharedText() const {
-  return std::holds_alternative<SharedTextSlice>(text_);
+bool InlineNode::setSharedTextFromUtf8(const std::shared_ptr<const QString>& source, InlineRange range,
+                                       QUtf8StringView value) {
+  if (!source || source->size() > std::numeric_limits<int>::max() || value.isEmpty() || !range.isValid() ||
+      range.end > source->size())
+    return false;
+  const QStringView candidate = QStringView(*source).mid(range.start, range.length());
+  if (QAnyStringView::compare(QAnyStringView(candidate), QAnyStringView(value)) != 0) return false;
+  text_ = SharedTextSlice{source, int(range.start), int(range.length())};
+  return true;
 }
 
+InlineNode InlineNode::textSegment(qsizetype start, qsizetype length) const {
+  Q_ASSERT(start >= 0 && length >= 0 && start <= textView().size() && length <= textView().size() - start);
+  InlineNode result(InlineType::Text);
+  if (const auto* shared = std::get_if<SharedTextSlice>(&text_)) {
+    result.text_ = SharedTextSlice{shared->source, shared->start + int(start), int(length)};
+  } else {
+    result.text_ = std::get<QString>(text_).mid(start, length);
+  }
+  return result;
+}
+
+bool InlineNode::usesSharedText() const { return std::holds_alternative<SharedTextSlice>(text_); }
+
 QString InlineNode::marker() const {
-  return extendedMetadata_ ? extendedMetadata_->marker : QString();
+  const auto& markers = commonMarkers();
+  return markerKind_ < std::size(markers) ? markers[markerKind_]
+         : extendedMetadata_              ? extendedMetadata_->marker
+                                          : QString();
 }
 
 void InlineNode::setMarker(QString marker) {
-  if (marker.isEmpty() && !extendedMetadata_) {
-    return;
+  const auto& markers = commonMarkers();
+  for (quint8 i = 0; i < std::size(markers); ++i) {
+    if (marker == markers[i]) {
+      markerKind_ = i;
+      if (extendedMetadata_) {
+        extendedMetadata_->marker.clear();
+        pruneExtendedMetadata();
+      }
+      return;
+    }
   }
+  markerKind_ = 255;
   ensureExtendedMetadata().marker = std::move(marker);
-  pruneExtendedMetadata();
 }
 
 QString InlineNode::href() const {
@@ -170,60 +232,66 @@ void InlineNode::setAlt(QString alt) {
   pruneExtendedMetadata();
 }
 
-qsizetype InlineNode::sourceStart() const {
-  return sourceRanges_.source.start;
-}
-
+qsizetype InlineNode::sourceStart() const { return sourceRange().start; }
 void InlineNode::setSourceStart(qsizetype start) {
-  sourceRanges_.source.start = start;
+  auto ranges = sourceRanges();
+  ranges.source.start = start;
+  setSourceRanges(ranges);
 }
-
-qsizetype InlineNode::sourceEnd() const {
-  return sourceRanges_.source.end;
-}
-
+qsizetype InlineNode::sourceEnd() const { return sourceRange().end; }
 void InlineNode::setSourceEnd(qsizetype end) {
-  sourceRanges_.source.end = end;
+  auto ranges = sourceRanges();
+  ranges.source.end = end;
+  setSourceRanges(ranges);
 }
-
-InlineRange InlineNode::sourceRange() const {
-  return sourceRanges_.source;
-}
-
+InlineRange InlineNode::sourceRange() const { return sourceRanges().source; }
 void InlineNode::setSourceRange(InlineRange range) {
-  sourceRanges_.source = range;
+  auto ranges = sourceRanges();
+  ranges.source = range;
+  setSourceRanges(ranges);
 }
-
-InlineRange InlineNode::contentRange() const {
-  return sourceRanges_.content;
-}
-
+InlineRange InlineNode::contentRange() const { return sourceRanges().content; }
 void InlineNode::setContentRange(InlineRange range) {
-  sourceRanges_.content = range;
+  auto ranges = sourceRanges();
+  ranges.content = range;
+  setSourceRanges(ranges);
 }
-
-InlineRange InlineNode::openMarkerRange() const {
-  return sourceRanges_.openMarker;
-}
-
+InlineRange InlineNode::openMarkerRange() const { return sourceRanges().openMarker; }
 void InlineNode::setOpenMarkerRange(InlineRange range) {
-  sourceRanges_.openMarker = range;
+  auto ranges = sourceRanges();
+  ranges.openMarker = range;
+  setSourceRanges(ranges);
 }
-
-InlineRange InlineNode::closeMarkerRange() const {
-  return sourceRanges_.closeMarker;
-}
-
+InlineRange InlineNode::closeMarkerRange() const { return sourceRanges().closeMarker; }
 void InlineNode::setCloseMarkerRange(InlineRange range) {
-  sourceRanges_.closeMarker = range;
+  auto ranges = sourceRanges();
+  ranges.closeMarker = range;
+  setSourceRanges(ranges);
 }
-
 InlineSourceRanges InlineNode::sourceRanges() const {
-  return sourceRanges_;
+  if (extendedMetadata_ && extendedMetadata_->wideRanges) return *extendedMetadata_->wideRanges;
+  return {{sourceRanges_[0], sourceRanges_[1]},
+          {sourceRanges_[2], sourceRanges_[3]},
+          {sourceRanges_[4], sourceRanges_[5]},
+          {sourceRanges_[6], sourceRanges_[7]}};
 }
-
 void InlineNode::setSourceRanges(InlineSourceRanges ranges) {
-  sourceRanges_ = ranges;
+  const std::array<qsizetype, 8> values{ranges.source.start,      ranges.source.end,       ranges.content.start,
+                                        ranges.content.end,       ranges.openMarker.start, ranges.openMarker.end,
+                                        ranges.closeMarker.start, ranges.closeMarker.end};
+  for (const auto value : values) {
+    if (value < std::numeric_limits<qint32>::min() || value > std::numeric_limits<qint32>::max()) {
+      auto& metadata = ensureExtendedMetadata();
+      if (!metadata.wideRanges) metadata.wideRanges = std::make_unique<InlineSourceRanges>();
+      *metadata.wideRanges = ranges;
+      return;
+    }
+  }
+  for (size_t i = 0; i < values.size(); ++i) sourceRanges_[i] = qint32(values[i]);
+  if (extendedMetadata_ && extendedMetadata_->wideRanges) {
+    extendedMetadata_->wideRanges.reset();
+    pruneExtendedMetadata();
+  }
 }
 
 bool InlineNode::isAutolink() const {

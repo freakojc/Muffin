@@ -6,6 +6,11 @@
 #include "../parser/ParserTestUtils.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QDataStream>
+#include <QIODevice>
+#include <QStringList>
+#include <cstdio>
 
 using namespace muffin;
 
@@ -56,6 +61,125 @@ const InlineNode* findInline(const MarkdownNode& node, InlineType type) {
     }
   }
   return nullptr;
+}
+
+void writeInlines(QDataStream& out, const QVector<InlineNode>& inlines) {
+  out << qint32(inlines.size());
+  for (const auto& node : inlines) {
+    out << qint32(node.type()) << node.text() << node.marker() << node.href() << node.title() << node.alt()
+        << node.isAutolink();
+    const auto ranges = node.sourceRanges();
+    for (const auto& range : {ranges.source, ranges.content, ranges.openMarker, ranges.closeMarker})
+      out << qint64(range.start) << qint64(range.end);
+    writeInlines(out, node.children());
+  }
+}
+
+void writeBlock(QDataStream& out, const MarkdownNode& node) {
+  const auto range = node.sourceRange();
+  out << qint32(node.type()) << node.literal() << qint64(range.byteStart) << qint64(range.byteEnd)
+      << qint32(range.lineStart) << qint32(range.lineEnd);
+  writeInlines(out, node.inlines());
+  out << qint32(node.children().size());
+  for (const auto& child : node.children()) writeBlock(out, *child);
+}
+
+// Fixed-seed corpus fingerprint captured from the previous compacting matcher.
+// It checks syntax, every inline coordinate and serialization independently of
+// the new token representation, across all sixteen delimiter-option settings.
+QString delimiterCorpusFingerprint() {
+  QStringList corpus{QStringLiteral("~~outer ~~inner~~ tail~~"),
+                     QStringLiteral("~~a~~b~~c~~"),
+                     QStringLiteral("==outer ==inner== tail=="),
+                     QStringLiteral("~outer ~inner~ tail~"),
+                     QStringLiteral("^outer ^inner^ tail^"),
+                     QStringLiteral("~~**b** *i* [l](url)~~"),
+                     QStringLiteral("~~a~~~b~~ ~~a~~ ~~ ~~b~~ ~ ~ ===x=== ^^x^^"),
+                     QStringLiteral("\\~\\~escaped\\~\\~ \\\\~~plain~~ &#126;&#126;entity&#126;&#126;"),
+                     QStringLiteral("~~line\nwrap~~\n\n==next=="),
+                     QStringLiteral("~~x~~\\\n~~y~~"),
+                     QStringLiteral("| A | B |\n| --- | --- |\n| ~~a~~ | ~b~ ^c^ ==d== |\n"),
+                     QStringLiteral("~~![alt](image.png) <kbd>key</kbd> $x$ `code`~~"),
+                     QString::fromUtf8("中文~~删除~~ \xf0\x9f\x98\x80==高亮== H~2~O X^2^"),
+                     QStringLiteral("~~nested ~~deep ~~inner~~ tail~~ end~~"),
+                     QStringLiteral("~~a~~ *unclosed ~~x~~\n\n> ==q==\n> H~2~O\n"),
+                     QStringLiteral("~~x~~ ").repeated(2048),
+                     QStringLiteral("~~unclosed ").repeated(2048)};
+  const QStringList atoms{"a",
+                          " b ",
+                          "~~",
+                          "~",
+                          "~~~",
+                          "^",
+                          "^^",
+                          "==",
+                          "=",
+                          "===",
+                          " **b** ",
+                          "*i*",
+                          "`~~c~~`",
+                          "[l](https://example.com/~u)",
+                          "![a](image)",
+                          "<kbd>k</kbd>",
+                          "&#126;",
+                          "&amp;",
+                          "\\~",
+                          "\\^",
+                          "\\=",
+                          "\\\\",
+                          "$x^2$",
+                          "\n",
+                          "  \n",
+                          "\t",
+                          QString::fromUtf8("中文"),
+                          QString::fromUtf8("\xf0\x9f\x98\x80")};
+  quint32 random = 0x19a2b3c4;
+  const auto next = [&]() {
+    random ^= random << 13;
+    random ^= random >> 17;
+    random ^= random << 5;
+    return random;
+  };
+  for (int sample = 0; sample < 256; ++sample) {
+    QString text;
+    const int length = 8 + int(next() % 48);
+    for (int i = 0; i < length; ++i) text += atoms.at(next() % atoms.size());
+    if (sample % 4 == 0) text.prepend("# ");
+    if (sample % 4 == 1) text.prepend("> ");
+    if (sample % 4 == 2) text.prepend("- ");
+    corpus.append(std::move(text));
+  }
+  QCryptographicHash hash(QCryptographicHash::Sha256);
+  CmarkGfmParser parser;
+  for (const auto& text : corpus) {
+    for (int mask = 0; mask < 16; ++mask) {
+      ParseOptions options;
+      options.enableHighlight = mask & 1;
+      options.enableStrikethrough = mask & 2;
+      options.enableSubscript = mask & 4;
+      options.enableSuperscript = mask & 8;
+      const auto parsed = parser.parseDocument(text, options);
+      require(parsed.root != nullptr, "delimiter corpus must parse");
+      QByteArray bytes;
+      QDataStream out(&bytes, QIODevice::WriteOnly);
+      out.setVersion(QDataStream::Qt_6_0);
+      out << text << qint32(mask);
+      writeBlock(out, *parsed.root);
+      for (const auto& block : parsed.root->children()) out << MarkdownSerializer().serializeBlock(*block);
+      auto sharedSource = std::make_shared<const QString>(text);
+      auto sharedParsed = parser.parseDocumentShared(sharedSource, options);
+      require(sharedParsed.root != nullptr, "source-sharing parse must produce a root");
+      QByteArray sharedBytes;
+      QDataStream sharedOut(&sharedBytes, QIODevice::WriteOnly);
+      sharedOut.setVersion(QDataStream::Qt_6_0);
+      sharedOut << text << qint32(mask);
+      writeBlock(sharedOut, *sharedParsed.root);
+      for (const auto& block : sharedParsed.root->children()) sharedOut << MarkdownSerializer().serializeBlock(*block);
+      require(sharedBytes == bytes, "direct source slices must preserve the entire delimiter corpus AST and coordinates");
+      hash.addData(bytes);
+    }
+  }
+  return QString::fromLatin1(hash.result().toHex());
 }
 }  // namespace
 
@@ -156,10 +280,54 @@ void testSubscriptSerializesRoundTrip() {
   require(serialized == QStringLiteral("H~2~O"), "subscript should round-trip to H~2~O on serialize");
 }
 
+void testDelimiterCandidatesStayLocalAndOpaqueContentStaysLiteral() {
+  const QString text = QStringLiteral(
+      "~~*struck*~~ H~2~O X^2^ ==mark==\n\n"
+      "Ordinary **bold** and [label](https://example.com/~user), `~~code~~`.\n\n"
+      "Entities &#126;&#126;opaque&#126;&#126; and \\~escaped\\~.\n\n"
+      "| A | B |\n| --- | --- |\n| ~~cell~~ | plain **cell** |\n");
+  ParseOptions options;
+  options.enableHighlight = options.enableSubscript = options.enableSuperscript = true;
+  CmarkGfmParser parser;
+  auto result = parser.parseDocument(text, options);
+  require(countInline(*result.root, InlineType::Strikethrough) == 2, "strike candidates must work across formatting and in tables");
+  require(countInline(*result.root, InlineType::Subscript) == 1, "opaque code, URL and entity markers must not become subscript");
+  require(countInline(*result.root, InlineType::Superscript) == 1, "superscript candidate must remain local");
+  require(countInline(*result.root, InlineType::Highlight) == 1, "highlight candidate must remain local");
+  const auto& ordinary = *result.root->children().at(1);
+  const auto* strong = findInline(ordinary, InlineType::Strong);
+  require(strong && strong->children().first().text() == QStringLiteral("bold"),
+          "marker-free formatting must be retained");
+  const auto r = strong->sourceRange();
+  require(text.mid(r.start, r.length()) == QStringLiteral("**bold**"),
+          "skipping ordinary text must preserve source coordinates");
+}
+
+void testDelimiterCorpusMatchesPreviousSyntaxAndCoordinates() {
+  require(delimiterCorpusFingerprint() == QStringLiteral("697eed90533d805976e8263c078a298686f8f92f149f4040275d497117504d00"),
+          "delimiter syntax, source coordinates and serialization must match the pre-optimization corpus");
+}
+
+void testNestedDelimiterSplicingPreservesSourceRanges() {
+  const QString text = QStringLiteral("~~outer ~~inner~~ tail~~");
+  const auto result = CmarkGfmParser().parseDocument(text, {});
+  const auto* outer = findInline(*result.root, InlineType::Strikethrough);
+  require(outer && outer->sourceRange().start == 0 && outer->sourceRange().end == text.size(),
+          "outer pair must retain its complete source interval");
+  const auto* inner = findInline(outer->children(), InlineType::Strikethrough);
+  require(inner && text.mid(inner->sourceStart(), inner->sourceEnd() - inner->sourceStart()) == "~~inner~~",
+          "nested pair must keep its original marker interval after splicing");
+  require(countInline(*result.root, InlineType::Strikethrough) == 2, "nested delimiter pairs must remain nested");
+}
+
 int main(int argc, char** argv) {
   QCoreApplication::setOrganizationName(QStringLiteral("MuffinTest"));
   QCoreApplication::setApplicationName(QStringLiteral("SubscriptSuperscriptParseTest"));
   QCoreApplication app(argc, argv);
+  if (argc == 2 && QString::fromLocal8Bit(argv[1]) == QStringLiteral("--delimiter-fingerprint")) {
+    std::printf("%s\n", qPrintable(delimiterCorpusFingerprint()));
+    return 0;
+  }
 #define RUN_TEST(test) runTest(#test, test)
   RUN_TEST(testSubscriptParses);
   RUN_TEST(testSuperscriptParses);
@@ -169,6 +337,9 @@ int main(int argc, char** argv) {
   RUN_TEST(testSubscriptDisabledStaysLiteral);
   RUN_TEST(testSpacedTildeStaysLiteral);
   RUN_TEST(testSubscriptSerializesRoundTrip);
+  RUN_TEST(testDelimiterCandidatesStayLocalAndOpaqueContentStaysLiteral);
+  RUN_TEST(testNestedDelimiterSplicingPreservesSourceRanges);
+  RUN_TEST(testDelimiterCorpusMatchesPreviousSyntaxAndCoordinates);
 #undef RUN_TEST
   return 0;
 }

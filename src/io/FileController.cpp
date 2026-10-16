@@ -1,6 +1,7 @@
 #include "io/FileController.h"
 
 #include "document/DocumentSession.h"
+#include "diagnostics/OpenPerformance.h"
 
 #include <QFile>
 #include <QDir>
@@ -483,9 +484,16 @@ bool muffin::FileController::readTextFile(
   }
 
   // Decode the complete byte stream once so charset detection and BOM handling see the whole file.
-  const QByteArray raw = file.readAll();
+  const QByteArray raw = [&] {
+    muffin::diag::OpenPerfScope scope("open.read_bytes");
+    return file.readAll();
+  }();
   QString text;
-  if (!decodeText(raw, {}, &text, format)) {
+  const bool decoded = [&] {
+    muffin::diag::OpenPerfScope scope("open.decode");
+    return decodeText(raw, {}, &text, format);
+  }();
+  if (!decoded) {
     QMessageBox::critical(parent, tr("Encoding Error"),
                           tr("Could not detect a lossless text encoding for this file."));
     return false;

@@ -1,17 +1,21 @@
 #include "parser/CmarkNodeAdapter.h"
 
+#include <QElapsedTimer>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QLoggingCategory>
+#include <QString>
+#include <algorithm>
+#include <cstring>
+
 #include "document/InlineNode.h"
 #include "document/LineStartOffsetCache.h"
 
-#include <QElapsedTimer>
-#include <QLoggingCategory>
-#include <QString>
-
 extern "C" {
 #include "cmark-gfm-core-extensions.h"
+#include "math_extension.h"
 #include "strikethrough.h"
 #include "table.h"
-#include "math_extension.h"
 }
 
 namespace muffin {
@@ -21,22 +25,23 @@ Q_LOGGING_CATEGORY(adapterPerf, "muffin.perf", QtWarningMsg)
 
 // Aggregate convertBlock breakdown counters (single-threaded parse). Enabled only while
 // muffin.perf debug is on, so the fromUtf8/annotate hot paths pay just a branch in normal builds.
-qint64 g_fromUtf8Ns = 0;
-qint64 g_annotateNs = 0;
-qint64 g_inlineChildrenNs = 0;
-qint64 g_blockLocalNs = 0;
-bool g_adapterPerf = false;
+thread_local qint64 g_fromUtf8Ns = 0, g_annotateNs = 0, g_inlineChildrenNs = 0, g_blockLocalNs = 0;
+thread_local qint64 g_coordinatesNs = 0, g_clampNs = 0, g_freeNs = 0, g_leafNs = 0;
+thread_local qint64 g_inlineCount = 0, g_utf8Calls = 0, g_utf8Bytes = 0, g_freeCalls = 0;
+thread_local qint64 g_sharedNs = 0, g_sharedLiterals = 0, g_sharedChars = 0;
+thread_local bool g_adapterPerf = false;
 
 struct AccumGuard {
   qint64& bucket;
   QElapsedTimer timer;
-  explicit AccumGuard(qint64& b) : bucket(b) {
-    if (g_adapterPerf) {
+  bool active;
+  explicit AccumGuard(qint64& b, bool sample = true) : bucket(b), active(g_adapterPerf && sample) {
+    if (active) {
       timer.start();
     }
   }
   ~AccumGuard() {
-    if (g_adapterPerf) {
+    if (active) {
       bucket += timer.nsecsElapsed();
     }
   }
@@ -44,6 +49,10 @@ struct AccumGuard {
 
 QString fromUtf8(const char* value) {
   AccumGuard guard(g_fromUtf8Ns);
+  if (g_adapterPerf && value) {
+    ++g_utf8Calls;
+    g_utf8Bytes += std::strlen(value);
+  }
   return value ? QString::fromUtf8(value) : QString();
 }
 
@@ -78,7 +87,7 @@ QString markdownForInlineLabel(const QVector<InlineNode>& inlines) {
       case InlineType::Code:
       case InlineType::InlineMath:
       case InlineType::HtmlInline:
-        label += child.text();
+        label += child.textView();
         break;
       case InlineType::SoftBreak:
         label += QLatin1Char('\n');
@@ -125,48 +134,93 @@ void setPlainInlineRanges(InlineSourceRanges& ranges, qsizetype start, qsizetype
   ranges.content = ranges.source;
 }
 
-void clampInlineRangeEnd(InlineRange& range, qsizetype end) {
-  if (!range.isValid() || end < 0) {
-    return;
-  }
-  range.end = qMin(range.end, end);
-  if (range.start > range.end) {
-    range.start = range.end;
-  }
+bool clampInlineRangeEnd(InlineRange& range, qsizetype end) {
+  if (!range.isValid() || end < 0 || range.end <= end) return false;
+  range.end = end;
+  if (range.start > range.end) range.start = range.end;
+  return true;
 }
 
 void clampInlineRangesEnd(InlineNode& node, qsizetype end) {
   InlineSourceRanges ranges = node.sourceRanges();
-  clampInlineRangeEnd(ranges.source, end);
-  clampInlineRangeEnd(ranges.content, end);
-  clampInlineRangeEnd(ranges.openMarker, end);
-  clampInlineRangeEnd(ranges.closeMarker, end);
-  node.setSourceRanges(ranges);
+  bool changed = clampInlineRangeEnd(ranges.source, end);
+  changed |= clampInlineRangeEnd(ranges.content, end);
+  changed |= clampInlineRangeEnd(ranges.openMarker, end);
+  changed |= clampInlineRangeEnd(ranges.closeMarker, end);
+  if (changed) {
+    // Re-evaluate overlapping ranges at the final bind using the same
+    // eligibility as the original owned-text path.
+    if (node.usesSharedText()) node.detachSharedText();
+    node.setSourceRanges(ranges);
+  }
 }
 
-void clampInlineRangeStart(InlineRange& range, qsizetype start) {
-  if (!range.isValid() || start < 0) {
-    return;
-  }
-  range.start = qMax(range.start, start);
-  if (range.end < range.start) {
-    range.end = range.start;
-  }
+bool clampInlineRangeStart(InlineRange& range, qsizetype start) {
+  if (!range.isValid() || start < 0 || range.start >= start) return false;
+  range.start = start;
+  if (range.end < range.start) range.end = range.start;
+  return true;
 }
 
 void clampInlineRangesStart(InlineNode& node, qsizetype start) {
   InlineSourceRanges ranges = node.sourceRanges();
-  clampInlineRangeStart(ranges.source, start);
-  clampInlineRangeStart(ranges.content, start);
-  clampInlineRangeStart(ranges.openMarker, start);
-  clampInlineRangeStart(ranges.closeMarker, start);
-  node.setSourceRanges(ranges);
+  bool changed = clampInlineRangeStart(ranges.source, start);
+  changed |= clampInlineRangeStart(ranges.content, start);
+  changed |= clampInlineRangeStart(ranges.openMarker, start);
+  changed |= clampInlineRangeStart(ranges.closeMarker, start);
+  if (changed) {
+    if (node.usesSharedText()) node.detachSharedText();
+    node.setSourceRanges(ranges);
+  }
 }
 
 }  // namespace
 
-CmarkNodeAdapter::CmarkNodeAdapter(const LineStartOffsetCache* lineOffsets, QStringView markdown)
-    : lineOffsets_(lineOffsets), markdown_(markdown) {}
+CmarkNodeAdapter::CmarkNodeAdapter(const LineStartOffsetCache* lineOffsets, QStringView markdown,
+                                   std::shared_ptr<const QString> sharedSource, qsizetype sourceBase)
+    : lineOffsets_(lineOffsets), markdown_(markdown), sharedSource_(std::move(sharedSource)), sourceBase_(sourceBase) {}
+
+qsizetype CmarkNodeAdapter::sourceOffset(int line, int byteColumn) const {
+  if (!lineOffsets_ || line <= 0 || byteColumn <= 0 || line > lineOffsets_->lineCount()) return -1;
+  if (cachedLine_ != line) {
+    cachedLine_ = line;
+    cachedLineText_ = lineOffsets_->lineText(markdown_, line);
+    cachedLineAscii_ =
+        std::all_of(cachedLineText_.begin(), cachedLineText_.end(), [](QChar c) { return c.unicode() <= 0x7f; });
+    byteCheckpoints_.clear();
+    if (!cachedLineAscii_) {
+      qsizetype column = 1, nextCheckpoint = 0;
+      for (qsizetype offset = 0; offset < cachedLineText_.size();) {
+        if (offset >= nextCheckpoint) {
+          byteCheckpoints_.append({column, offset});
+          nextCheckpoint = offset + 64;
+        }
+        const QChar c = cachedLineText_.at(offset);
+        const bool pair = c.isHighSurrogate() && offset + 1 < cachedLineText_.size() &&
+                          cachedLineText_.at(offset + 1).isLowSurrogate();
+        column += pair ? 4 : c.unicode() <= 0x7f ? 1 : c.unicode() <= 0x7ff ? 2 : 3;
+        offset += pair ? 2 : 1;
+      }
+    }
+  }
+  const qsizetype base = lineOffsets_->lineStartOffset(line);
+  if (cachedLineAscii_) return base + qMin<qsizetype>(byteColumn - 1, cachedLineText_.size());
+  const auto upper =
+      std::upper_bound(byteCheckpoints_.cbegin(), byteCheckpoints_.cend(), byteColumn,
+                       [](qsizetype column, const ByteCheckpoint& point) { return column < point.column; });
+  const auto& point = *std::prev(upper);
+  qsizetype offset = point.offset, column = point.column;
+  while (offset < cachedLineText_.size() && column < byteColumn) {
+    const QChar c = cachedLineText_.at(offset);
+    const bool pair =
+        c.isHighSurrogate() && offset + 1 < cachedLineText_.size() && cachedLineText_.at(offset + 1).isLowSurrogate();
+    const qsizetype nextColumn = column + (pair ? 4 : c.unicode() <= 0x7f ? 1 : c.unicode() <= 0x7ff ? 2 : 3);
+    if (byteColumn < nextColumn) break;
+    column = nextColumn;
+    offset += pair ? 2 : 1;
+  }
+  return base + offset;
+}
 
 std::unique_ptr<MarkdownNode> CmarkNodeAdapter::convertBlock(cmark_node* node) {
   std::unique_ptr<MarkdownNode> result;
@@ -189,8 +243,8 @@ std::unique_ptr<MarkdownNode> CmarkNodeAdapter::convertBlock(cmark_node* node) {
     if (lineOffsets_ && !markdown_.isEmpty()) {
       const SourceRange srcRange = result->sourceRange();
       if (srcRange.lineStart > 0 && result->sourceRange().byteEnd <= result->sourceRange().byteStart) {
-        const qsizetype start = lineOffsets_->offsetForLineByteColumn(markdown_, srcRange.lineStart, qMax(1, srcRange.columnStart));
-        const qsizetype end = lineOffsets_->offsetForLineByteColumn(markdown_, srcRange.lineEnd, qMax(1, srcRange.columnEnd + 1));
+        const qsizetype start = sourceOffset(srcRange.lineStart, qMax(1, srcRange.columnStart));
+        const qsizetype end = sourceOffset(srcRange.lineEnd, qMax(1, srcRange.columnEnd + 1));
         if (start >= 0 && end >= start && end <= markdown_.size()) {
           SourceRange updated = srcRange;
           updated.byteStart = start;
@@ -213,6 +267,8 @@ std::unique_ptr<MarkdownNode> CmarkNodeAdapter::convertBlock(cmark_node* node) {
     const cmark_node_type type = cmark_node_get_type(child);
     if (isBlockType(type)) {
       result->appendChild(convertBlock(child));
+      AccumGuard freeGuard(g_freeNs);
+      if (g_adapterPerf) ++g_freeCalls;
       cmark_node_free(child);
     }
     child = next;
@@ -222,64 +278,94 @@ std::unique_ptr<MarkdownNode> CmarkNodeAdapter::convertBlock(cmark_node* node) {
 }
 
 InlineNode CmarkNodeAdapter::convertInline(cmark_node* node) {
-  InlineNode result = [this, node]() -> InlineNode {
-    switch (mapInlineType(node)) {
-    case InlineType::Text:
-      return InlineNode::text(fromUtf8(cmark_node_get_literal(node)));
-    case InlineType::SoftBreak:
-      return InlineNode::softBreak();
-    case InlineType::LineBreak:
-      return InlineNode::lineBreak();
-    case InlineType::Code:
-      return InlineNode::code(fromUtf8(cmark_node_get_literal(node)));
-    case InlineType::HtmlInline: {
-      InlineNode inlineNode(InlineType::HtmlInline);
-      inlineNode.setText(fromUtf8(cmark_node_get_literal(node)));
-      return inlineNode;
-    }
-    case InlineType::Emphasis:
-      return InlineNode::emphasis(QStringLiteral("*"), convertInlineChildren(node));
-    case InlineType::Strong:
-      return InlineNode::strong(QStringLiteral("**"), convertInlineChildren(node));
-    case InlineType::Strikethrough:
-      return InlineNode::strikethrough(QStringLiteral("~~"), convertInlineChildren(node));
-    case InlineType::InlineMath:
-      return InlineNode::inlineMath(fromUtf8(cmark_node_get_string_content(node)));
-    case InlineType::Link:
-      return InlineNode::link(
-          fromUtf8(cmark_node_get_url(node)),
-          fromUtf8(cmark_node_get_title(node)),
-          convertInlineChildren(node));
-    case InlineType::FootnoteReference: {
-      // cmark resolves footnotes at parse time (process_footnotes): the reference's
-      // literal becomes the resolved ordinal ("1"), and parent_footnote_def points at
-      // the definition (whose literal is still the bare label).
-      const QString ordinal = fromUtf8(cmark_node_get_literal(node));
-      cmark_node* def = cmark_node_parent_footnote_def(node);
-      const QString label = def ? fromUtf8(cmark_node_get_literal(def)) : ordinal;
-      return InlineNode::footnoteReference(label, ordinal);
-    }
-    case InlineType::Image: {
-      const auto children = convertInlineChildren(node);
-      QString alt;
-      for (const auto& child : children) {
-        alt += child.text();
+  if (g_adapterPerf) ++g_inlineCount;
+  const auto type = mapInlineType(node);
+  if (sharedSource_ && (type == InlineType::Text || type == InlineType::HtmlInline)) {
+    AccumGuard leafGuard(g_leafNs);
+    InlineNode shared(type);
+    if (trySharedLiteral(node, shared)) return shared;
+  }
+  InlineNode result = [this, node, type]() -> InlineNode {
+    AccumGuard leafGuard(g_leafNs, type == InlineType::Text || type == InlineType::Code ||
+                                       type == InlineType::HtmlInline || type == InlineType::InlineMath);
+    switch (type) {
+      case InlineType::Text:
+        return InlineNode::text(fromUtf8(cmark_node_get_literal(node)));
+      case InlineType::SoftBreak:
+        return InlineNode::softBreak();
+      case InlineType::LineBreak:
+        return InlineNode::lineBreak();
+      case InlineType::Code:
+        return InlineNode::code(fromUtf8(cmark_node_get_literal(node)));
+      case InlineType::HtmlInline: {
+        InlineNode inlineNode(InlineType::HtmlInline);
+        inlineNode.setText(fromUtf8(cmark_node_get_literal(node)));
+        return inlineNode;
       }
-      return InlineNode::image(
-          fromUtf8(cmark_node_get_url(node)),
-          alt,
-          fromUtf8(cmark_node_get_title(node)));
-    }
-    default: {
-      InlineNode unknown(InlineType::Unknown);
-      unknown.setText(fromUtf8(cmark_node_get_literal(node)));
-      return unknown;
-    }
+      case InlineType::Emphasis:
+        return InlineNode::emphasis(QStringLiteral("*"), convertInlineChildren(node));
+      case InlineType::Strong:
+        return InlineNode::strong(QStringLiteral("**"), convertInlineChildren(node));
+      case InlineType::Strikethrough:
+        return InlineNode::strikethrough(QStringLiteral("~~"), convertInlineChildren(node));
+      case InlineType::InlineMath:
+        return InlineNode::inlineMath(fromUtf8(cmark_node_get_string_content(node)));
+      case InlineType::Link:
+        return InlineNode::link(fromUtf8(cmark_node_get_url(node)), fromUtf8(cmark_node_get_title(node)),
+                                convertInlineChildren(node));
+      case InlineType::FootnoteReference: {
+        // cmark resolves footnotes at parse time (process_footnotes): the reference's
+        // literal becomes the resolved ordinal ("1"), and parent_footnote_def points at
+        // the definition (whose literal is still the bare label).
+        const QString ordinal = fromUtf8(cmark_node_get_literal(node));
+        cmark_node* def = cmark_node_parent_footnote_def(node);
+        const QString label = def ? fromUtf8(cmark_node_get_literal(def)) : ordinal;
+        return InlineNode::footnoteReference(label, ordinal);
+      }
+      case InlineType::Image: {
+        const auto children = convertInlineChildren(node);
+        QString alt;
+        for (const auto& child : children) {
+          alt += child.textView();
+        }
+        return InlineNode::image(fromUtf8(cmark_node_get_url(node)), alt, fromUtf8(cmark_node_get_title(node)));
+      }
+      default: {
+        InlineNode unknown(InlineType::Unknown);
+        unknown.setText(fromUtf8(cmark_node_get_literal(node)));
+        return unknown;
+      }
     }
   }();
 
   annotateInlineSource(node, result);
   return result;
+}
+
+bool CmarkNodeAdapter::trySharedLiteral(cmark_node* node, InlineNode& result) const {
+  AccumGuard sharedGuard(g_sharedNs);
+  if (!lineOffsets_ || markdown_.isEmpty()) return false;
+  const SourceRange range = readSourceRange(node);
+  if (range.lineStart <= 0) return false;
+  qsizetype start, end;
+  {
+    AccumGuard coordinatesGuard(g_coordinatesNs);
+    start = sourceOffset(range.lineStart, qMax(1, range.columnStart));
+    end = sourceOffset(range.lineEnd, qMax(1, range.columnEnd + 1));
+  }
+  if (start < 0 || end < start || end > markdown_.size()) return false;
+  const char* literal = cmark_node_get_literal(node);
+  if (!literal ||
+      !result.setSharedTextFromUtf8(sharedSource_, {sourceBase_ + start, sourceBase_ + end}, QUtf8StringView(literal)))
+    return false;
+  InlineSourceRanges ranges;
+  setPlainInlineRanges(ranges, start, end);
+  result.setSourceRanges(ranges);
+  if (g_adapterPerf) {
+    ++g_sharedLiterals;
+    g_sharedChars += end - start;
+  }
+  return true;
 }
 
 BlockType CmarkNodeAdapter::mapBlockType(cmark_node* node) const {
@@ -336,8 +422,12 @@ void CmarkNodeAdapter::annotateInlineSource(cmark_node* cmarkNode, InlineNode& i
   if (range.lineStart <= 0) {
     return;
   }
-  const qsizetype start = lineOffsets_->offsetForLineByteColumn(markdown_, range.lineStart, qMax(1, range.columnStart));
-  const qsizetype end = lineOffsets_->offsetForLineByteColumn(markdown_, range.lineEnd, qMax(1, range.columnEnd + 1));
+  qsizetype start, end;
+  {
+    AccumGuard coordinatesGuard(g_coordinatesNs);
+    start = sourceOffset(range.lineStart, qMax(1, range.columnStart));
+    end = sourceOffset(range.lineEnd, qMax(1, range.columnEnd + 1));
+  }
   if (start < 0 || end < start || end > markdown_.size()) {
     return;
   }
@@ -489,6 +579,7 @@ QVector<InlineNode> CmarkNodeAdapter::convertInlineChildren(cmark_node* node) {
       children.push_back(convertInline(child));
     }
   }
+  AccumGuard clampGuard(g_clampNs);
   for (qsizetype i = 0; i + 1 < children.size(); ++i) {
     const InlineRange next = children.at(i + 1).sourceRange();
     if (next.isValid()) {
@@ -590,25 +681,47 @@ void CmarkNodeAdapter::readTableMetadata(cmark_node* cmarkNode, MarkdownNode& mu
   muffinNode.setTableAlignments(std::move(converted));
 }
 
-void CmarkNodeAdapter::setPerfEnabled(bool enabled) {
-  g_adapterPerf = enabled;
-}
+void CmarkNodeAdapter::setPerfEnabled(bool enabled) { g_adapterPerf = enabled; }
 
 void CmarkNodeAdapter::resetPerfCounters() {
   g_fromUtf8Ns = 0;
   g_annotateNs = 0;
   g_inlineChildrenNs = 0;
   g_blockLocalNs = 0;
+  g_coordinatesNs = g_clampNs = g_freeNs = g_leafNs = 0;
+  g_inlineCount = g_utf8Calls = g_utf8Bytes = g_freeCalls = 0;
+  g_sharedNs = g_sharedLiterals = g_sharedChars = 0;
 }
 
 void CmarkNodeAdapter::dumpConvertBreakdown() {
+  if (qEnvironmentVariableIsSet("MUFFIN_AST_PROFILE")) {
+    static const QLoggingCategory category("muffin.adapter", QtInfoMsg);
+    const QJsonObject row{{"from_utf8_ms", g_fromUtf8Ns / 1e6},
+                          {"annotate_ms", g_annotateNs / 1e6},
+                          {"inline_children_inclusive_ms", g_inlineChildrenNs / 1e6},
+                          {"block_local_ms", g_blockLocalNs / 1e6},
+                          {"coordinates_ms", g_coordinatesNs / 1e6},
+                          {"clamp_ms", g_clampNs / 1e6},
+                          {"cmark_free_ms", g_freeNs / 1e6},
+                          {"leaf_create_ms", g_leafNs / 1e6},
+                          {"inline_nodes", g_inlineCount},
+                          {"utf8_calls", g_utf8Calls},
+                          {"utf8_bytes", g_utf8Bytes},
+                          {"cmark_free_calls", g_freeCalls},
+                          {"direct_literal_inclusive_ms", g_sharedNs / 1e6},
+                          {"shared_literals", g_sharedLiterals},
+                          {"shared_chars", g_sharedChars}};
+    qCInfo(category).noquote() << QJsonDocument(row).toJson(QJsonDocument::Compact);
+  }
   if (!adapterPerf().isDebugEnabled()) {
     return;
   }
   qCDebug(adapterPerf).nospace() << "adapter.fromUtf8 " << g_fromUtf8Ns / 1000000.0 << " ms";
   qCDebug(adapterPerf).nospace() << "adapter.annotateInline " << g_annotateNs / 1000000.0 << " ms";
-  qCDebug(adapterPerf).nospace() << "adapter.inlineChildren " << g_inlineChildrenNs / 1000000.0 << " ms (incl fromUtf8+annotate)";
-  qCDebug(adapterPerf).nospace() << "adapter.blockLocal " << g_blockLocalNs / 1000000.0 << " ms (construct+meta+byterange)";
+  qCDebug(adapterPerf).nospace() << "adapter.inlineChildren " << g_inlineChildrenNs / 1000000.0
+                                 << " ms (incl fromUtf8+annotate)";
+  qCDebug(adapterPerf).nospace() << "adapter.blockLocal " << g_blockLocalNs / 1000000.0
+                                 << " ms (construct+meta+byterange)";
 }
 
 }  // namespace muffin

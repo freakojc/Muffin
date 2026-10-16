@@ -13,8 +13,8 @@ namespace {
 
 Q_LOGGING_CATEGORY(lineOffsetPerf, "muffin.perf", QtWarningMsg)
 
-qint64 g_byteColNs = 0;
-bool g_byteColPerf = false;
+thread_local qint64 g_byteColNs = 0;
+thread_local bool g_byteColPerf = false;
 
 struct ByteColGuard {
   qint64& bucket;
