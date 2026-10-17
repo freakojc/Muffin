@@ -1041,6 +1041,30 @@ void VirtualSourceEdit::setReadOnly(bool readOnly) {
 
 bool VirtualSourceEdit::isReadOnly() const { return readOnly_; }
 
+ViewportPosition VirtualSourceEdit::viewportPosition() const {
+  ViewportPosition position;
+  position.atStart = verticalScrollBar()->value() == 0;
+  position.horizontal = horizontalScrollBar()->value();
+  position.sourceOffset = offsetForPoint(QPoint(kGutterWidth + kTextInset - position.horizontal, 0));
+  position.screenOffset = cursorRectForOffset(position.sourceOffset).top();
+  position.textAnchor = true;
+  return position;
+}
+
+void VirtualSourceEdit::restoreViewportPosition(const ViewportPosition& position) {
+  if (position.sourceOffset < 0) return;
+  const auto offset = boundedOffset(position.sourceOffset);
+  const int line = lineForOffset(offset);
+  const auto measured = buildLineLayout(line);
+  heights_.setHeight(line, measured->height);
+  if (!wordWrap_) horizontalScrollBar()->setRange(0, qMax(0, qCeil(measured->width) - textAreaWidth()));
+  updateScrollBars();
+  const auto rect = cursorRectForOffset(offset);
+  verticalScrollBar()->setValue(position.atStart ? 0 : qRound(verticalScrollBar()->value() + rect.top() - position.screenOffset));
+  horizontalScrollBar()->setValue(position.horizontal);
+  viewport()->update();
+}
+
 void VirtualSourceEdit::resizeEvent(QResizeEvent* event) {
   QAbstractScrollArea::resizeEvent(event);
   if (event->size().width() != event->oldSize().width()) {

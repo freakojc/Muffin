@@ -249,6 +249,39 @@ void testSourcePreeditClearsOnFocusOut() {
   require(differing < 20, "focus-out should leave a clean image (no preedit remnants)");
 }
 
+void testPersistentReadingAnchorSurvivesRewrap() {
+  const auto text = QStringLiteral("中文 words and wrapping text ").repeated(80) + QStringLiteral("\n");
+  const auto document = text.repeated(40);
+  VirtualSourceEdit original;
+  original.setSourceFont(fixtureSourceFont);
+  original.resize(600, 400);
+  original.setStandaloneText(document);
+  original.show();
+  original.setCursorPosition(text.size() * 20 + 300);
+  original.centerCursor();
+  QApplication::processEvents();
+  const auto position = original.viewportPosition();
+  require(!position.atStart && position.sourceOffset > text.size(), "reading fixture is scrolled into wrapped content");
+  VirtualSourceEdit restored;
+  restored.setSourceFont(fixtureSourceFont);
+  restored.resize(420, 300);
+  restored.setStandaloneText(document);
+  restored.show();
+  restored.setSelection(12, 2);
+  restored.restoreViewportPosition(position);
+  QApplication::processEvents();
+  const auto actual = restored.viewportPosition();
+  require(document.left(actual.sourceOffset).count('\n') == document.left(position.sourceOffset).count('\n'),
+          "a new width restores the same logical source line");
+  require(qAbs(actual.sourceOffset - position.sourceOffset) < 100, "rewrapped viewport retains the same nearby text");
+  require(restored.anchorPosition() == 12 && restored.cursorPosition() == 2, "reading restoration leaves the independent reverse selection intact");
+  restored.verticalScrollBar()->setValue(0);
+  const auto top = restored.viewportPosition();
+  restored.verticalScrollBar()->setValue(100);
+  restored.restoreViewportPosition(top);
+  require(restored.verticalScrollBar()->value() == 0, "document-start viewport retains its top padding");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -271,6 +304,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testSourcePreeditClearsOnFocusOut);
   RUN_TEST(testWrappedSourceEditingPreservesViewport);
   RUN_TEST(testHeightResizePreservesReadingPosition);
+  RUN_TEST(testPersistentReadingAnchorSurvivesRewrap);
 #undef RUN_TEST
   qInfo("All source-editor IME tests passed.");
   return 0;

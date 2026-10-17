@@ -496,6 +496,10 @@ muffin_add_test(NAME MuffinDocumentTabsTest SOURCE tests/app/DocumentTabsTest.cp
   EXTRA_SOURCES ${_tab_test_app_sources} src/icons.qrc src/translations.qrc ${MUFFIN_THEMES_QRC} ${MUFFIN_HELP_QRC} ${MUFFIN_EMOJI_QRC}
   RESOURCE_LOCK)
 target_compile_definitions(MuffinDocumentTabsTest PRIVATE MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}")
+add_test(NAME MuffinLazySessionViewTest COMMAND $<TARGET_FILE:MuffinDocumentTabsTest> --session-view-state)
+set_tests_properties(MuffinLazySessionViewTest PROPERTIES
+  ENVIRONMENT_MODIFICATION "${MUFFIN_TEST_ENVIRONMENT_MODIFICATIONS};QT_QPA_PLATFORM=set:minimal;MUFFIN_TEXT_LAYOUT_BACKEND=set:fractional"
+  RESOURCE_LOCK MuffinQtGui)
 
 # Manual native-window benchmark. It exercises the actual app bindings but is
 # excluded from normal builds/CTest: desktop exposure and latency are diagnostic.

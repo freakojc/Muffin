@@ -86,6 +86,8 @@ qsizetype muffin::SourceEditorWidget::findText(QStringView text, qsizetype from)
 qsizetype muffin::SourceEditorWidget::findTextBackward(QStringView text, qsizetype from) const { return editor_->findTextBackward(text, from); }
 void muffin::SourceEditorWidget::ensureCursorVisible() { editor_->ensureCursorVisible(); }
 void muffin::SourceEditorWidget::centerCursor() { editor_->centerCursor(); }
+muffin::ViewportPosition muffin::SourceEditorWidget::viewportPosition() const { return editor_->viewportPosition(); }
+void muffin::SourceEditorWidget::restoreViewportPosition(const ViewportPosition& position) { editor_->restoreViewportPosition(position); }
 int muffin::SourceEditorWidget::cursorLine() const { return editor_->cursorLine(); }
 int muffin::SourceEditorWidget::cursorColumn() const { return editor_->cursorColumn(); }
 

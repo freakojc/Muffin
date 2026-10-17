@@ -5,8 +5,11 @@
 #include "app/PreferencesDialog.h"
 #include "app/QuickOpenDialog.h"
 #include "app/SidebarWidget.h"
+#include "app/RenderEditorBackend.h"
+#include "app/SourceEditorBackend.h"
 #include "document/TextStats.h"
 #include "editor/EditorView.h"
+#include "editor/SourceEditorWidget.h"
 #include "export/HtmlExporter.h"
 #include "export/PandocRunner.h"
 #include "io/FilePathOps.h"
@@ -39,6 +42,7 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QStatusBar>
+#include <QStackedWidget>
 #include <QStyle>
 #include <QTimer>
 #include <QTabWidget>
@@ -327,6 +331,7 @@ void muffin::MainWindow::restoreStartupFile() {
     const QString folder = snapshot.value(QStringLiteral("folder")).toString();
     if (QFileInfo(folder).isDir()) openFolderAtPath(folder);
     const QStringList files = snapshot.value(QStringLiteral("files")).toStringList();
+    const QVariantList views = snapshot.value(QStringLiteral("views")).toList();
     const int active = snapshot.value(QStringLiteral("active"), -1).toInt();
     DocumentTab* selected = nullptr;
     bool restoredAny = false;
@@ -341,12 +346,23 @@ void muffin::MainWindow::restoreStartupFile() {
         if (!openFile(path)) continue;
       }
       restoredAny = true;
+      if (i < views.size()) {
+        const auto view = views[i].toMap();
+        if (view.value(QStringLiteral("version")).toInt() == 1) {
+          tab_->pendingViewState = view;
+          const bool source = view.value(QStringLiteral("sourceMode")).toBool();
+          if (source) tab_->backend = std::make_unique<SourceEditorBackend>(tab_->editor);
+          else tab_->backend = std::make_unique<RenderEditorBackend>(tab_->editorController, tab_->session, tab_->renderView);
+          tab_->viewStack->setCurrentWidget(source ? static_cast<QWidget*>(tab_->editor) : static_cast<QWidget*>(tab_->renderView));
+        }
+      }
       if (i == active) selected = tab_;
     }
     if (selected) tabs_->setCurrentWidget(selected);
   }
   refreshSidebarDocumentInfo();
   sidebar_->restoreExpandedFolders(snapshot.value(QStringLiteral("expanded")).toStringList());
+  activateTab(tabs_->currentIndex());
   saveSessionState();
 }
 

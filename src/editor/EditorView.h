@@ -2,6 +2,7 @@
 
 #include "document/TopLevelRangeChange.h"
 #include "editor/HtmlBlockHoverController.h"
+#include "editor/ViewportPosition.h"
 #include "Export.h"
 #include "mermaid/editor/MermaidRenderCache.h"
 #include "render/DocumentLayout.h"
@@ -83,6 +84,9 @@ public:
   qsizetype residentLayoutCount() const { return layout_ ? layout_->residentDetailCount() : 0; }
   const RenderTheme& theme() const { return theme_; }
   void scrollToNode(NodeId id);
+  ViewportPosition viewportPosition() const;
+  // Resolve textPosition through the owner's source/cursor mapper after parsing.
+  void restoreViewportPosition(const ViewportPosition& position, CursorPosition textPosition = {});
   void ensureCursorVisible();
   void scrollToCursorCentered();
   void scrollToCursorCenteredAnimated();

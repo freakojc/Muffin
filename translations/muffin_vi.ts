@@ -1055,13 +1055,13 @@ Make it your default editor now?</source>
     <name>muffin::EditorView</name>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="68"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1246"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1270"/>
         <source>(no spelling suggestions)</source>
         <translation>(không có gợi ý chính tả)</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="82"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1258"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1282"/>
         <source>Ignore &quot;%1&quot;</source>
         <translation>Bỏ qua &quot;%1&quot;</translation>
     </message>
@@ -1395,7 +1395,7 @@ Make it your default editor now?</source>
         <translation type="vanished">Phân tích %1 ms</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindow.cpp" line="498"/>
+        <location filename="../src/app/MainWindow.cpp" line="499"/>
         <source>Open Folder</source>
         <translation>Mở thư mục</translation>
     </message>
@@ -1471,8 +1471,8 @@ Make it your default editor now?</source>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="152"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="314"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="373"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1376"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="389"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1392"/>
         <source>Properties</source>
         <translation>Thuộc tính</translation>
     </message>
@@ -2421,10 +2421,10 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="264"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="122"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="123"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="150"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="151"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="171"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="172"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="199"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="200"/>
         <source>Close Tab</source>
         <translation>Đóng thẻ</translation>
     </message>
@@ -2788,69 +2788,69 @@ Một trình soạn thảo Markdown gốc nhanh, nhẹ được xây dựng bằ
         <translation>Chọn hình ảnh</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="90"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="94"/>
         <source>Clear Recent Files</source>
         <translation>Xóa tệp gần đây</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="146"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="150"/>
         <source>Import Theme...</source>
         <translation>Nhập chủ đề...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="148"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="152"/>
         <source>Open Themes Folder</source>
         <translation>Mở thư mục chủ đề</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="176"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="184"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="197"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="203"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="209"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="225"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="232"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="180"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="188"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="201"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="207"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="213"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="229"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="236"/>
         <source>Import Theme</source>
         <translation>Nhập chủ đề</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="176"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="180"/>
         <source>Theme Files (*.css *.json)</source>
         <translation>Tệp chủ đề (*.css *.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="197"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="225"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="201"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="229"/>
         <source>Could not read the selected file.</source>
         <translation>Không thể đọc tệp đã chọn.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="203"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="207"/>
         <source>The selected file is not a valid theme.</source>
         <translation>Tệp đã chọn không phải là chủ đề hợp lệ.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="185"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="189"/>
         <source>A built-in theme named &quot;%1&quot; already exists; choose a different file name.</source>
         <translation>Đã có chủ đề tích hợp sẵn tên &quot;%1&quot;; hãy chọn tên tệp khác.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="120"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="124"/>
         <source>Clear Recent Folders</source>
         <translation>Xóa danh sách thư mục gần đây</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="210"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="214"/>
         <source>The theme file is missing required colours (background and text).</source>
         <translation>Tệp chủ đề thiếu các màu bắt buộc (nền và chữ).</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="232"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="236"/>
         <source>Could not copy the theme into the themes folder.</source>
         <translation>Không thể sao chép chủ đề vào thư mục chủ đề.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="359"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="375"/>
         <source>Name: %1
 Location: %2
 Size: %3 bytes
@@ -2865,149 +2865,149 @@ Từ: %5
 Thời gian phân tích: %6 ms</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="536"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="547"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="552"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="563"/>
         <source>Unsaved Drafts Found</source>
         <translation>Tìm thấy bản nháp chưa lưu</translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/MainWindowFileOps.cpp" line="541"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="557"/>
         <source>Muffin found %n unsaved draft(s) from a previous session. Restore one into this window, discard all of them, or keep them for later.</source>
         <translation>
             <numerusform>Muffin tìm thấy %n bản nháp chưa lưu từ phiên trước. Khôi phục một bản vào cửa sổ này, hủy tất cả, hoặc giữ lại để dùng sau.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="553"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="802"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="569"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="818"/>
         <source>Untitled</source>
         <translation>Chưa đặt tên</translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/MainWindowFileOps.cpp" line="555"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="571"/>
         <source>%1  —  %2  (%n char(s))</source>
         <translation>
             <numerusform>%1  —  %2  (%n ký tự)</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="563"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="579"/>
         <source>Restore</source>
         <translation>Khôi phục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="564"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="580"/>
         <source>Discard All</source>
         <translation>Hủy tất cả</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="565"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="581"/>
         <source>Later</source>
         <translation>Để sau</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="657"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="673"/>
         <source>No files to open</source>
         <translation>Không có tệp nào để mở</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="675"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="691"/>
         <source>Import</source>
         <translation>Nhập</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="676"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="692"/>
         <source>Word (*.docx);;OpenDocument (*.odt);;RTF (*.rtf);;EPUB (*.epub);;HTML (*.html *.htm);;LaTeX (*.tex *.latex);;MediaWiki (*.wiki *.mediawini);;reStructuredText (*.rst);;Textile (*.textile);;OPML (*.opml);;All files (*)</source>
         <translation>Word (*.docx);;OpenDocument (*.odt);;RTF (*.rtf);;EPUB (*.epub);;HTML (*.html *.htm);;LaTeX (*.tex *.latex);;MediaWiki (*.wiki *.mediawini);;reStructuredText (*.rst);;Textile (*.textile);;OPML (*.opml);;Tất cả tệp (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="685"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="702"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="701"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="718"/>
         <source>Import Failed</source>
         <translation>Nhập thất bại</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="686"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="843"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="702"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="859"/>
         <source>Pandoc was not found. Install Pandoc or set its path in Preferences → Export.</source>
         <translation>Không tìm thấy Pandoc. Hãy cài đặt Pandoc hoặc đặt đường dẫn trong Tùy chọn → Xuất.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="690"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="706"/>
         <source>Importing %1…</source>
         <translation>Đang nhập %1…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="703"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="719"/>
         <source>Pandoc could not convert the file.</source>
         <translation>Pandoc không thể chuyển đổi tệp.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="712"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="728"/>
         <source>Imported %1</source>
         <translation>Đã nhập %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="797"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="813"/>
         <source>Nothing to export</source>
         <translation>Không có gì để xuất</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="222"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="262"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="807"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="823"/>
         <source>Export As</source>
         <translation>Xuất thành</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="807"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="823"/>
         <source>%1 files (*%2)</source>
         <translation>Tệp %1 (*%2)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="846"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="862"/>
         <source>Exporting %1…</source>
         <translation>Đang xuất %1…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="866"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="882"/>
         <source>Pandoc failed:</source>
         <translation>Pandoc thất bại:</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="236"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="280"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="873"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="889"/>
         <source>Export Failed</source>
         <translation>Xuất thất bại</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="240"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="284"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="877"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="893"/>
         <source>Exported to %1</source>
         <translation>Đã xuất ra %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1025"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1041"/>
         <source>Save All</source>
         <translation>Lưu tất cả</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1026"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1042"/>
         <source>Saved %1 file(s). %2 file(s) could not be saved.</source>
         <translation>Đã lưu %1 tệp. %2 tệp không thể lưu.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1059"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1087"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1311"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1075"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1103"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1327"/>
         <source>Delete File</source>
         <translation>Xóa tệp</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1060"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1314"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1076"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1330"/>
         <source>Are you sure you want to move &quot;%1&quot; to the trash?
 
 This action cannot be undone.</source>
@@ -3016,8 +3016,8 @@ This action cannot be undone.</source>
 Hành động này không thể hoàn tác.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1088"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1339"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1104"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1355"/>
         <source>Could not move to trash. Permanently delete &quot;%1&quot;?
 
 This action cannot be undone.</source>
@@ -3026,35 +3026,35 @@ This action cannot be undone.</source>
 Hành động này không thể hoàn tác.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1099"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1346"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1115"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1362"/>
         <source>Delete Failed</source>
         <translation>Xóa thất bại</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1100"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1116"/>
         <source>Could not delete file:
 %1</source>
         <translation>Không thể xóa tệp:
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1209"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1225"/>
         <source>Name cannot be empty.</source>
         <translation>Tên không được để trống.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1223"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1239"/>
         <source>An item named &quot;%1&quot; already exists.</source>
         <translation>Một mục có tên &quot;%1&quot; đã tồn tại.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1241"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1257"/>
         <source>Could not rename: %1</source>
         <translation>Không thể đổi tên: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1162"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1178"/>
         <source>Could not create file:
 %1
 
@@ -3065,182 +3065,182 @@ Hành động này không thể hoàn tác.</translation>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="827"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="843"/>
         <source>PDF export failed: the printer device could not be opened.</source>
         <translation>Xuất PDF thất bại: không thể mở thiết bị máy in.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="902"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="918"/>
         <source>Unicode</source>
         <translation>Unicode</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="904"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="920"/>
         <source>UTF-8</source>
         <translation>UTF-8</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="905"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="921"/>
         <source>UTF-16 LE</source>
         <translation>UTF-16 LE</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="906"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="922"/>
         <source>UTF-16 BE</source>
         <translation>UTF-16 BE</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="908"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="924"/>
         <source>Western</source>
         <translation>Tây Âu</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="910"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="926"/>
         <source>Western (Windows-1252)</source>
         <translation>Tây Âu (Windows-1252)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="912"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="928"/>
         <source>Cyrillic</source>
         <translation>Kirin</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="914"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="930"/>
         <source>Cyrillic (Windows-1251)</source>
         <translation>Kirin (Windows-1251)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="915"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="931"/>
         <source>Cyrillic (ISO-8859-5)</source>
         <translation>Kirin (ISO-8859-5)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="916"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="932"/>
         <source>Cyrillic (IBM866)</source>
         <translation>Kirin (IBM866)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="917"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="933"/>
         <source>Cyrillic (IBM855)</source>
         <translation>Kirin (IBM855)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="918"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="934"/>
         <source>Cyrillic (KOI8-R)</source>
         <translation>Kirin (KOI8-R)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="919"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="935"/>
         <source>Cyrillic (Mac)</source>
         <translation>Kirin (Mac)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="921"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="937"/>
         <source>Central European</source>
         <translation>Trung Âu</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="923"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="939"/>
         <source>Central European (Windows-1250)</source>
         <translation>Trung Âu (Windows-1250)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="924"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="940"/>
         <source>Central European (ISO-8859-2)</source>
         <translation>Trung Âu (ISO-8859-2)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="926"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="942"/>
         <source>Greek</source>
         <translation>Hy Lạp</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="928"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="944"/>
         <source>Greek (Windows-1253)</source>
         <translation>Hy Lạp (Windows-1253)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="929"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="945"/>
         <source>Greek (ISO-8859-7)</source>
         <translation>Hy Lạp (ISO-8859-7)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="931"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="947"/>
         <source>Hebrew</source>
         <translation>Do Thái</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="933"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="949"/>
         <source>Hebrew (Windows-1255)</source>
         <translation>Do Thái (Windows-1255)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="934"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="950"/>
         <source>Hebrew (ISO-8859-8)</source>
         <translation>Do Thái (ISO-8859-8)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="936"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="952"/>
         <source>Chinese Simplified</source>
         <translation>Tiếng Trung giản thể</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="938"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="954"/>
         <source>Chinese Simplified (GB2312)</source>
         <translation>Tiếng Trung giản thể (GB2312)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="939"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="955"/>
         <source>Chinese Simplified (GB18030)</source>
         <translation>Tiếng Trung giản thể (GB18030)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="941"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="957"/>
         <source>Chinese Traditional</source>
         <translation>Tiếng Trung phồn thể</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="943"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="959"/>
         <source>Chinese Traditional (Big5)</source>
         <translation>Tiếng Trung phồn thể (Big5)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="945"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="961"/>
         <source>Japanese</source>
         <translation>Tiếng Nhật</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="947"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="963"/>
         <source>Japanese (Shift_JIS)</source>
         <translation>Tiếng Nhật (Shift_JIS)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="948"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="964"/>
         <source>Japanese (EUC-JP)</source>
         <translation>Tiếng Nhật (EUC-JP)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="950"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="966"/>
         <source>Korean</source>
         <translation>Tiếng Hàn</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="952"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="968"/>
         <source>Korean (EUC-KR)</source>
         <translation>Tiếng Hàn (EUC-KR)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="954"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="970"/>
         <source>Thai</source>
         <translation>Tiếng Thái</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="956"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="972"/>
         <source>Thai (TIS-620)</source>
         <translation>Tiếng Thái (TIS-620)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1181"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1197"/>
         <source>Could not create folder:
 %1
 
@@ -3251,7 +3251,7 @@ Hành động này không thể hoàn tác.</translation>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1298"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1314"/>
         <source>Could not create a copy:
 %1
 
@@ -3262,12 +3262,12 @@ Hành động này không thể hoàn tác.</translation>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1311"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1327"/>
         <source>Delete Folder</source>
         <translation>Xóa thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1313"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1329"/>
         <source>Are you sure you want to move &quot;%1&quot; and all its contents to the trash?
 
 This action cannot be undone.</source>
@@ -3276,32 +3276,32 @@ This action cannot be undone.</source>
 Không thể hoàn tác thao tác này.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1347"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1363"/>
         <source>Could not delete:
 %1</source>
         <translation>Không thể xóa:
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1370"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1386"/>
         <source>Folder</source>
         <translation>Thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1370"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1386"/>
         <source>File</source>
         <comment>properties: entry type</comment>
         <translation>Tệp</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1372"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1388"/>
         <source>Size: %1 bytes
 </source>
         <translation>Kích thước: %1 byte
 </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1373"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1389"/>
         <source>Name: %1
 Type: %2
 Location: %3
@@ -3312,21 +3312,21 @@ Vị trí: %3
 %4Sửa đổi: %5</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1393"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1409"/>
         <source>Could not reveal:
 %1</source>
         <translation>Không thể hiển thị vị trí tệp:
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1072"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1417"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1088"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1433"/>
         <source>Muffin</source>
         <translation>Muffin</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1072"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1418"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1088"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1434"/>
         <source>The current document has unsaved changes.</source>
         <translation>Tài liệu hiện tại có thay đổi chưa lưu.</translation>
     </message>
@@ -3413,12 +3413,12 @@ Unsaved changes in the editor will be lost.</source>
 Các thay đổi chưa lưu trong trình soạn thảo sẽ bị mất.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="333"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="334"/>
         <source>Update Available</source>
         <translation>Có bản cập nhật mới</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="334"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="335"/>
         <source>A new version of Muffin (%1) is available.
 
 Would you like to open the download page?</source>
@@ -3427,27 +3427,27 @@ Would you like to open the download page?</source>
 Bạn có muốn mở trang tải xuống không?</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="341"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="342"/>
         <source>Muffin %1 is available. Use Help &gt; Check for Updates to download.</source>
         <translation>Muffin %1 đã có sẵn. Sử dụng Trợ giúp &gt; Kiểm tra cập nhật để tải xuống.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="348"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="349"/>
         <source>Up to Date</source>
         <translation>Đã cập nhật</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="349"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="350"/>
         <source>You are running the latest version of Muffin.</source>
         <translation>Bạn đang sử dụng phiên bản mới nhất của Muffin.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="356"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="357"/>
         <source>Update Check Failed</source>
         <translation>Kiểm tra cập nhật thất bại</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="357"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="358"/>
         <source>Could not check for updates:
 %1</source>
         <translation>Không thể kiểm tra cập nhật:
@@ -3492,15 +3492,15 @@ Bạn có muốn mở trang tải xuống không?</translation>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="307"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="322"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1161"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1177"/>
         <source>New File</source>
         <translation>Tệp mới</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="308"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="323"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1174"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1180"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1190"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1196"/>
         <source>New Folder</source>
         <translation>Thư mục mới</translation>
     </message>
@@ -3511,7 +3511,7 @@ Bạn có muốn mở trang tải xuống không?</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="311"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1297"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1313"/>
         <source>Duplicate</source>
         <translation>Tạo bản sao</translation>
     </message>
@@ -3524,7 +3524,7 @@ Bạn có muốn mở trang tải xuống không?</translation>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="317"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="326"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1392"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1408"/>
         <source>Reveal in File Manager</source>
         <translation>Hiển thị trong trình quản lý tệp</translation>
     </message>
@@ -3546,13 +3546,13 @@ Bạn có muốn mở trang tải xuống không?</translation>
         <translation>Thay thế tất cả</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="140"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="189"/>
         <source>Open Documents</source>
         <translation>Tài liệu đang mở</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="143"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="145"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="192"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="194"/>
         <source>New Tab</source>
         <translation>Thẻ mới</translation>
     </message>
@@ -4605,62 +4605,57 @@ Bạn có muốn mở trang tải xuống không?</translation>
 <context>
     <name>muffin::SidebarWidget</name>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="288"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="818"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="272"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="783"/>
         <source>Files</source>
         <translation>Tệp</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="409"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="821"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="391"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="786"/>
         <source>Outline</source>
         <translation>Dàn ý</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="806"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="775"/>
         <source>No folder open</source>
         <translation>Chưa mở thư mục nào</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="809"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="778"/>
         <source>New File</source>
         <translation>Tệp mới</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="810"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="779"/>
         <source>New Folder</source>
         <translation>Thư mục mới</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="331"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="811"/>
         <source>Expand All Folders</source>
-        <translation>Mở rộng tất cả thư mục</translation>
+        <translation type="vanished">Mở rộng tất cả thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="332"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="812"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="331"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="780"/>
         <source>Collapse All Folders</source>
         <translation>Thu gọn tất cả thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="813"/>
         <source>Folder Actions</source>
-        <translation>Thao tác thư mục</translation>
+        <translation type="vanished">Thao tác thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="814"/>
         <source>Open Folder...</source>
-        <translation>Mở thư mục...</translation>
+        <translation type="vanished">Mở thư mục...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="333"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="815"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="332"/>
         <source>Close Folder</source>
         <translation>Đóng thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="824"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="789"/>
         <source>No Headings</source>
         <translation>Không có tiêu đề</translation>
     </message>
@@ -4668,7 +4663,7 @@ Bạn có muốn mở trang tải xuống không?</translation>
 <context>
     <name>muffin::SourceEditorWidget</name>
     <message>
-        <location filename="../src/editor/SourceEditorWidget.cpp" line="151"/>
+        <location filename="../src/editor/SourceEditorWidget.cpp" line="153"/>
         <source>Start writing...</source>
         <translation>Bắt đầu viết...</translation>
     </message>
@@ -4789,32 +4784,32 @@ Bạn có muốn mở trang tải xuống không?</translation>
         <translation>Mã nguồn Markdown dạng văn bản thuần</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1267"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1291"/>
         <source>Undo</source>
         <translation>Hoàn tác</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1268"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1292"/>
         <source>Redo</source>
         <translation>Làm lại</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1272"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1296"/>
         <source>Cut</source>
         <translation>Cắt</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1278"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1302"/>
         <source>Copy</source>
         <translation>Sao chép</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1281"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1305"/>
         <source>Paste</source>
         <translation>Dán</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1293"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1317"/>
         <source>Select All</source>
         <translation>Chọn tất cả</translation>
     </message>

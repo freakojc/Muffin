@@ -229,6 +229,7 @@ void muffin::MainWindow::showEvent(QShowEvent* event) {
   // DWM dark-mode often only takes hold once the window is actually shown, so
   // re-apply on reveal (cheap; one Win32 call) to cover the startup path.
   applyNativeTitleBarDarkMode(themeManager_.currentDefinition().colors.isDark);
+  QTimer::singleShot(0, this, [this] { restoreTabViewState(tab_); });
 }
 
 void muffin::MainWindow::applyNativeTitleBarDarkMode(bool dark) {

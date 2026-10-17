@@ -2,6 +2,7 @@
 
 #include "document/PieceTable.h"
 #include "editor/SourceLineHeightIndex.h"
+#include "editor/ViewportPosition.h"
 #include "Export.h"
 
 #include <QAbstractScrollArea>
@@ -111,6 +112,8 @@ public:
 
   void ensureCursorVisible();
   void centerCursor();
+  ViewportPosition viewportPosition() const;
+  void restoreViewportPosition(const ViewportPosition& position);
   int cursorLine() const;
   int cursorColumn() const;
 

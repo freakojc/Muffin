@@ -60,6 +60,56 @@ void EditorView::scrollToNode(NodeId id) {
   scrollBar->setValue(target);
 }
 
+ViewportPosition EditorView::viewportPosition() const {
+  ViewportPosition position;
+  position.atStart = verticalScrollBar()->value() == 0;
+  const auto anchor = captureViewportAnchor();
+  if (!anchor.valid || !document_) return position;
+  const auto* node = document_->node(anchor.nodeId);
+  if (!node) return position;
+  position.sourceOffset = node->sourceRange().byteStart;
+  position.screenOffset = anchor.screenOffset;
+  // A source position on the first visible text row is more stable than a
+  // pixel offset deep inside a long paragraph, table, list, or code fence.
+  const auto hit = hitTest(QPointF(layout_->pageLeft() + 1, 0));
+  if (hit.sourceOffset >= 0 && !hit.cursorRect.isEmpty() && hit.zone != HitTestResult::Zone::BlockAfter) {
+    position.sourceOffset = hit.sourceOffset;
+    position.screenOffset = hit.cursorRect.top() - scrollY();
+    position.textAnchor = true;
+  }
+  return position;
+}
+
+void EditorView::restoreViewportPosition(const ViewportPosition& position, CursorPosition textPosition) {
+  if (!layout_ || !document_ || position.sourceOffset < 0) return;
+  stopScrollAnimation();
+  if (position.atStart) {
+    verticalScrollBar()->setValue(0);
+    return;
+  }
+  auto* node = document_->topLevelBlockAtOffset(qBound<qsizetype>(0, position.sourceOffset, document_->markdownText().size()));
+  if (!node) return;
+  const auto slot = layout_->topLevelIndexFor(node->id());
+  if (slot < 0) return;
+  {
+    ScopedViewportPin pin(*this);
+    layout_->ensureBuilt(slot, slot, theme_);
+  }
+  const auto anchorY = [&] {
+    if (position.textAnchor && textPosition.isValid()) {
+      const auto hit = hitForCursorPosition(textPosition);
+      if (!hit.cursorRect.isEmpty()) return hit.cursorRect.top();
+    }
+    return layout_->slotTop(slot);
+  };
+  verticalScrollBar()->setValue(qRound(anchorY() - position.screenOffset));
+  // Visible lazy promotions can shift slots above the text row; re-pin once
+  // using the newly measured geometry, without changing the actual caret.
+  ensureVisibleBuilt();
+  verticalScrollBar()->setValue(qRound(anchorY() - position.screenOffset));
+  viewport()->update();
+}
+
 QRectF EditorView::effectiveCursorRect() const {
   if (!cursorHit_.isValid()) {
     return QRectF();

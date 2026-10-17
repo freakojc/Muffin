@@ -106,6 +106,8 @@ private:
   void updateTabBarVisibility();
   void saveSessionState();
   void scheduleSessionSave();
+  QVariantMap tabViewState(DocumentTab* document) const;
+  void restoreTabViewState(DocumentTab* document);
   void closeFolder();
   void retranslateTabs();
   void configureTab(DocumentTab* tab);
@@ -360,6 +362,7 @@ private:
   QTimer* outlineTimer_ = nullptr;
   QTimer* sessionSaveTimer_ = nullptr;
   bool sessionUpdatesPaused_ = true;
+  bool restoringViewState_ = false;
   QMenu* recentFilesMenu_ = nullptr;
   QMenu* reopenEncodingMenu_ = nullptr;
   QMenu* themesMenu_ = nullptr;

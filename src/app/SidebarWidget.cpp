@@ -12,8 +12,6 @@
 #include <QFileInfo>
 #include <QFocusEvent>
 #include <QFileSystemModel>
-#include <QAction>
-#include <QMenu>
 #include <QPainter>
 #include <QSvgRenderer>
 #include <QHBoxLayout>
@@ -243,11 +241,7 @@ void muffin::SidebarWidget::setupFilesPanel() {
   auto* tools = new QHBoxLayout(toolbar);
   tools->setContentsMargins(10, 0, 8, 4);
   tools->setSpacing(2);
-  folderLabel_ = new QLabel(toolbar);
-  folderLabel_->setObjectName(QStringLiteral("FolderName"));
-  folderLabel_->setMinimumWidth(0);
-  folderLabel_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-  tools->addWidget(folderLabel_, 1);
+  tools->addStretch();
   const auto button = [&](const char* name) {
     auto* result = new QToolButton(toolbar);
     result->setObjectName(QString::fromLatin1(name));
@@ -259,19 +253,9 @@ void muffin::SidebarWidget::setupFilesPanel() {
   };
   newFileButton_ = button("NewFileButton");
   newFolderButton_ = button("NewFolderButton");
-  expandFoldersButton_ = button("ExpandFoldersButton");
   collapseFoldersButton_ = button("CollapseFoldersButton");
-  folderMenuButton_ = button("FolderMenuButton");
-  auto* menu = new QMenu(folderMenuButton_);
-  openFolderAction_ = menu->addAction(QString());
-  closeFolderAction_ = menu->addAction(QString());
-  folderMenuButton_->setMenu(menu);
-  folderMenuButton_->setPopupMode(QToolButton::InstantPopup);
-  connect(openFolderAction_, &QAction::triggered, this, &SidebarWidget::openFolderRequested);
-  connect(closeFolderAction_, &QAction::triggered, this, &SidebarWidget::closeFolderRequested);
   connect(newFileButton_, &QToolButton::clicked, this, [this] { emit newFileRequested(selectedDirectory()); });
   connect(newFolderButton_, &QToolButton::clicked, this, [this] { emit newFolderRequested(selectedDirectory()); });
-  connect(expandFoldersButton_, &QToolButton::clicked, this, &SidebarWidget::expandAllFolders);
   connect(collapseFoldersButton_, &QToolButton::clicked, this, &SidebarWidget::collapseAllFolders);
   layout->addWidget(toolbar);
   filesEmptyLabel_ = new QLabel(filesPanel_);
@@ -335,16 +319,14 @@ void muffin::SidebarWidget::setupFilesPanel() {
   folderExpansionTimer_ = new QTimer(this);
   folderExpansionTimer_->setSingleShot(true);
   connect(folderExpansionTimer_, &QTimer::timeout, this, &SidebarWidget::processFolderExpansions);
-  connect(fileModel_, &QFileSystemModel::directoryLoaded, this, [this](const QString& path) {
-    if (expandAllPending_) queueFolderExpansion(path);
-    else if (!expandedFolderPaths_.isEmpty()) queueFolderExpansion(folderRoot_);
+  connect(fileModel_, &QFileSystemModel::directoryLoaded, this, [this](const QString&) {
+    if (!expandedFolderPaths_.isEmpty()) queueFolderExpansion(folderRoot_);
   });
   connect(fileTree_, &QTreeView::expanded, this, [this](const QModelIndex& index) {
     expandedFolderPaths_.insert(fileModel_->filePath(index));
     emit folderStateChanged();
   });
   connect(fileTree_, &QTreeView::collapsed, this, [this](const QModelIndex& index) {
-    expandAllPending_ = false;
     expandedFolderPaths_.remove(fileModel_->filePath(index));
     emit folderStateChanged();
   });
@@ -473,7 +455,6 @@ void muffin::SidebarWidget::setFolderRoot(QString path) {
   folderExplicitlyClosed_ = path.isEmpty();
   path = path.isEmpty() ? QString() : QDir::cleanPath(QFileInfo(path).absoluteFilePath());
   if (path == folderRoot_) { updateFolderControls(); return; }
-  expandAllPending_ = false;
   folderExpansionTimer_->stop();
   folderExpansionQueue_.clear();
   queuedFolderExpansions_.clear();
@@ -505,10 +486,7 @@ void muffin::SidebarWidget::updateFolderControls() {
   const bool open = !folderRoot_.isEmpty();
   fileTree_->setVisible(open);
   filesEmptyLabel_->setVisible(!open);
-  folderLabel_->setText(open ? QFileInfo(folderRoot_).fileName() : QString());
-  folderLabel_->setToolTip(QDir::toNativeSeparators(folderRoot_));
-  for (auto* button : {newFileButton_, newFolderButton_, expandFoldersButton_, collapseFoldersButton_}) button->setEnabled(open);
-  closeFolderAction_->setEnabled(open);
+  for (auto* button : {newFileButton_, newFolderButton_, collapseFoldersButton_}) button->setEnabled(open);
 }
 
 QStringList muffin::SidebarWidget::expandedFolders() const {
@@ -548,8 +526,8 @@ void muffin::SidebarWidget::queueFolderExpansion(const QString& path) {
 }
 
 void muffin::SidebarWidget::processFolderExpansions() {
-  // QFileSystemModel loads on demand. A plain QTreeView::expandAll only visits
-  // rows already loaded, so continue from directoryLoaded in bounded batches.
+  // Restore only saved branches as QFileSystemModel loads them on demand.
+  // Continue from directoryLoaded in bounded batches, without opening siblings.
   for (int count = 0; count < 32 && !folderExpansionQueue_.isEmpty(); ++count) {
     const QString path = folderExpansionQueue_.dequeue();
     queuedFolderExpansions_.remove(path);
@@ -563,13 +541,11 @@ void muffin::SidebarWidget::processFolderExpansions() {
       // Never recursively traverse directory links (including Windows junctions).
       const QFileInfo info(childPath);
       if (info.isSymLink() || info.isJunction()) continue;
-      const bool expand = expandAllPending_ || expandedFolderPaths_.contains(childPath);
+      const bool expand = expandedFolderPaths_.contains(childPath);
       if (expand) fileTree_->setExpanded(child, true);
       bool descendant = false;
-      if (!expandAllPending_) {
-        const QString prefix = childPath + QLatin1Char('/');
-        for (const auto& desired : expandedFolderPaths_) if (desired.startsWith(prefix)) { descendant = true; break; }
-      }
+      const QString prefix = childPath + QLatin1Char('/');
+      for (const auto& desired : expandedFolderPaths_) if (desired.startsWith(prefix)) { descendant = true; break; }
       if (expand || descendant) {
         if (fileModel_->canFetchMore(child)) fileModel_->fetchMore(child);
         queueFolderExpansion(childPath);
@@ -579,14 +555,7 @@ void muffin::SidebarWidget::processFolderExpansions() {
   if (!folderExpansionQueue_.isEmpty()) folderExpansionTimer_->start(0);
 }
 
-void muffin::SidebarWidget::expandAllFolders() {
-  if (folderRoot_.isEmpty()) return;
-  expandAllPending_ = true;
-  queueFolderExpansion(folderRoot_);
-}
-
 void muffin::SidebarWidget::collapseAllFolders() {
-  expandAllPending_ = false;
   folderExpansionTimer_->stop();
   folderExpansionQueue_.clear();
   queuedFolderExpansions_.clear();
@@ -808,11 +777,7 @@ void muffin::SidebarWidget::retranslateUi() {
     const auto label = [](QToolButton* button, const QString& text) { button->setToolTip(text); button->setAccessibleName(text); };
     label(newFileButton_, tr("New File"));
     label(newFolderButton_, tr("New Folder"));
-    label(expandFoldersButton_, tr("Expand All Folders"));
     label(collapseFoldersButton_, tr("Collapse All Folders"));
-    label(folderMenuButton_, tr("Folder Actions"));
-    openFolderAction_->setText(tr("Open Folder..."));
-    closeFolderAction_->setText(tr("Close Folder"));
   }
   if (filesTabButton_) {
     filesTabButton_->setText(tr("Files"));
@@ -842,9 +807,7 @@ void muffin::SidebarWidget::applyStyle() {
   const auto color = currentTheme_.colors.chromeText;
   newFileButton_->setIcon(folderToolbarIcon("<path d='M9 1.5H3.5v13h5M9 1.5l3.5 3.5H9z'/><path d='M12 8v6m-3-3h6'/>", color));
   newFolderButton_->setIcon(folderToolbarIcon("<path d='M7 12.5H1.5v-10h4l2 2h7v3'/><path d='M12 8v6m-3-3h6'/>", color));
-  expandFoldersButton_->setIcon(folderToolbarIcon("<path d='M5 1.5h9.5V11M1.5 5h9.5v9.5H1.5zM4 9.75h4.5M6.25 7.5V12'/>", color));
   collapseFoldersButton_->setIcon(folderToolbarIcon("<path d='M5 1.5h9.5V11M1.5 5h9.5v9.5H1.5zM4 9.75h4.5'/>", color));
-  folderMenuButton_->setIcon(folderToolbarIcon("<circle cx='3' cy='8' r='.6'/><circle cx='8' cy='8' r='.6'/><circle cx='13' cy='8' r='.6'/>", color));
 }
 
 void muffin::SidebarWidget::emitOutlineItem(const QModelIndex& index) {

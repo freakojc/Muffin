@@ -18,7 +18,6 @@ class QStackedWidget;
 class QToolButton;
 class QTreeView;
 class QTimer;
-class QAction;
 
 namespace muffin {
 
@@ -58,7 +57,6 @@ public:
   QString folderRoot() const;
   QStringList expandedFolders() const;
   void restoreExpandedFolders(const QStringList& paths);
-  void expandAllFolders();
   void collapseAllFolders();
   // Select and scroll to a path after create/rename. Expands ancestors first so a
   // fresh entry in a never-expanded folder resolves to a valid index.
@@ -82,8 +80,6 @@ public:
 signals:
   void panelChanged(muffin::SidebarWidget::Panel panel);
   void newWindowRequested();
-  void openFolderRequested();
-  void closeFolderRequested();
   void newFileRequested(QString directory);
   void newFolderRequested(QString directory);
   void folderStateChanged();
@@ -133,19 +129,13 @@ private:
   QFileSystemModel* fileModel_ = nullptr;
   QTreeView* fileTree_ = nullptr;
   QLabel* filesEmptyLabel_ = nullptr;
-  QLabel* folderLabel_ = nullptr;
   QToolButton* newFileButton_ = nullptr;
   QToolButton* newFolderButton_ = nullptr;
-  QToolButton* expandFoldersButton_ = nullptr;
   QToolButton* collapseFoldersButton_ = nullptr;
-  QToolButton* folderMenuButton_ = nullptr;
-  QAction* openFolderAction_ = nullptr;
-  QAction* closeFolderAction_ = nullptr;
   QTimer* folderExpansionTimer_ = nullptr;
   QQueue<QString> folderExpansionQueue_;
   QSet<QString> queuedFolderExpansions_;
   QSet<QString> expandedFolderPaths_;
-  bool expandAllPending_ = false;
   bool folderExplicitlyClosed_ = false;
   QTreeView* outlineTree_ = nullptr;
   OutlineModel* outlineModel_ = nullptr;

@@ -293,8 +293,11 @@ void MainWindow::restorePersistentActionStates() {
   const bool alwaysOnTop = settings.value(QStringLiteral("view/alwaysOnTop"), false).toBool();
   if (QAction* action = window.commands_.action(QStringLiteral("view.always_on_top"))) {
     action->setChecked(alwaysOnTop);
+    const bool wasVisible = window.isVisible();
     window.setWindowFlag(Qt::WindowStaysOnTopHint, alwaysOnTop);
-    window.show();
+    // main() shows the window after session restoration. Changing a window
+    // flag during construction must not expose its unfinished startup view.
+    if (wasVisible) window.show();
   }
 }
 

@@ -97,11 +97,11 @@ The curve measures the time from opening the Markdown file until the first viewp
 
 - **Document outline** — Jump to any heading from the sidebar outline, with collapsible subtrees for long documents.
 - **Heading badges** — Visual level badges (H3–H6) painted alongside headings for quick hierarchy identification.
-- **File tree sidebar** — Browse and open files from a folder tree. A compact toolbar creates files and folders, expands or collapses all directories, and closes the workspace through its folder actions menu.
+- **File tree sidebar** — Browse and open files from a folder tree. A compact toolbar creates files and folders and collapses all directories. Close the workspace from the tree's context menu.
 - **Quick Open** — Fuzzy-jump to any file in the open workspace, with recently used and recently modified files surfaced first.
 - **File operations** — Move, delete, reveal in file manager, reopen-with-encoding, and save-all-open-files from the file menu.
 - **Document tabs** — The tab bar appears when two or more documents are open and hides when only one remains. Each document keeps its own unsaved content, undo history, view mode, and cursor/scroll position. Drag to reorder, use Ctrl+N to add a tab, Ctrl+Tab / Ctrl+Shift+Tab to switch, and Ctrl+W or middle-click to close.
-- **Session restore** — By default, reopen the tabs, active file, workspace, and expanded folders left at exit. Explicitly closed files and folders stay closed; closing everything starts a blank editor next time. Choose **Always start fresh** in Files preferences to disable restoration.
+- **Session restore** — By default, reopen the tabs, active file, workspace, and expanded folders left at exit, including each tab's view mode, cursor, selection, and reading position. Reading positions use source anchors to handle rewrapping. Explicitly closed files and folders stay closed; closing everything starts a blank editor next time. Choose **Always start fresh** in Files preferences to disable restoration.
 - **Draft recovery** — Recover unsaved work after a crash or unexpected exit.
 - **Autosave** — Optional periodic saving and save-on-exit to protect unsaved work.
 - **Custom status bar** — A self-painted, theme-aware status bar showing parse time, cursor position, and word count, with a click-to-open statistics popup (words, characters, lines, reading time, and selection count) and an inline spell-check language quick-switcher.

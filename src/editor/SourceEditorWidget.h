@@ -4,6 +4,7 @@
 #include <QStringView>
 
 #include "Export.h"
+#include "editor/ViewportPosition.h"
 
 class QEvent;
 class QResizeEvent;
@@ -65,6 +66,8 @@ public:
   qsizetype findTextBackward(QStringView text, qsizetype from = -1) const;
   void ensureCursorVisible();
   void centerCursor();
+  ViewportPosition viewportPosition() const;
+  void restoreViewportPosition(const ViewportPosition& position);
   int cursorLine() const;
   int cursorColumn() const;
 

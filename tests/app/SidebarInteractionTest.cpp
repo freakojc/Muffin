@@ -155,18 +155,21 @@ void testRightClickAndInlineRenameDoNotToggleFolder() {
   require(f.openedFiles == 0, "renaming a folder must not open a document");
 }
 
-void testToolbarExpandsUnloadedFoldersAndRestoresState() {
+void testToolbarCollapsesFoldersAndRestoresState() {
   FileTreeFixture f;
   require(QDir(f.dir.path()).mkpath("Folder/Nested/Deep/Leaf"), "create unloaded deep folders");
-  auto* expand = f.sidebar.findChild<QToolButton*>("ExpandFoldersButton");
   auto* collapse = f.sidebar.findChild<QToolButton*>("CollapseFoldersButton");
-  require(expand && collapse && !expand->toolTip().isEmpty() && !collapse->accessibleName().isEmpty(),
+  require(collapse && !collapse->toolTip().isEmpty() && !collapse->accessibleName().isEmpty(),
           "folder toolbar exposes tooltips and accessible names");
-  expand->click();
+  auto* toolbar = f.sidebar.findChild<QWidget*>("FolderToolbar");
+  require(toolbar && toolbar->findChildren<QToolButton*>().size() == 3 &&
+              !f.sidebar.findChild<QWidget*>("FolderName") && !f.sidebar.findChild<QToolButton*>("FolderMenuButton"),
+          "compact toolbar only contains create-file, create-folder and collapse controls");
   const auto nestedPath = f.dir.filePath("Folder/Nested");
   const auto leafPath = f.dir.filePath("Folder/Nested/Deep/Leaf");
+  f.sidebar.restoreExpandedFolders({"Folder", "Folder/Nested", "Folder/Nested/Deep", "Folder/Nested/Deep/Leaf"});
   waitUntil([&] { return f.tree->isExpanded(f.model->index(leafPath)); },
-            "expand all visits asynchronously loaded descendants");
+            "saved state restores asynchronously loaded descendants");
   const auto saved = f.sidebar.expandedFolders();
   require(saved.contains("Folder") && saved.contains("Folder/Nested/Deep/Leaf"), "expansion stores relative paths");
   collapse->click();
@@ -192,7 +195,7 @@ void testToolbarExpandsUnloadedFoldersAndRestoresState() {
   f.sidebar.setCurrentDocument("inside.md", file, true);
   require(!f.tree->isExpanded(f.folder), "status updates for the active file preserve collapsed folders");
   if (const auto screenshot = qEnvironmentVariable("MUFFIN_SIDEBAR_SCREENSHOT"); !screenshot.isEmpty()) {
-    expand->click();
+    f.sidebar.restoreExpandedFolders(saved);
     QApplication::processEvents();
     require(f.sidebar.grab().save(screenshot), "capture explorer toolbar appearance");
     const auto night = ThemeDefinition::builtIn(QStringLiteral("night"));
@@ -218,7 +221,7 @@ void testClosingWorkspaceAndToolbarCreationTargets() {
   f.tree->setCurrentIndex(f.model->index(f.dir.filePath("document.md")));
   newFile->click();
   require(fileTarget == f.dir.path(), "selecting a file creates beside that file");
-  f.sidebar.expandAllFolders();
+  f.sidebar.restoreExpandedFolders({"Folder", "Folder/Nested"});
   f.sidebar.setFolderRoot({});
   QApplication::processEvents();
   auto* empty = f.sidebar.findChild<QLabel*>("FilesEmptyLabel");
@@ -236,7 +239,7 @@ int main(int argc, char** argv) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
   QApplication app(argc, argv);
-  runTest("testToolbarExpandsUnloadedFoldersAndRestoresState", testToolbarExpandsUnloadedFoldersAndRestoresState);
+  runTest("testToolbarCollapsesFoldersAndRestoresState", testToolbarCollapsesFoldersAndRestoresState);
   runTest("testClosingWorkspaceAndToolbarCreationTargets", testClosingWorkspaceAndToolbarCreationTargets);
   runTest("testFolderNameAndRowToggleOnSingleClick", testFolderNameAndRowToggleOnSingleClick);
   runTest("testFolderDoubleClickTogglesOnlyOnce", testFolderDoubleClickTogglesOnlyOnce);

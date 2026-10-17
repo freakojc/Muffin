@@ -1182,6 +1182,7 @@ set(MUFFIN_UI_SOURCES
   src/editor/SourceLineHeightIndex.h
   src/editor/VirtualSourceEdit.cpp
   src/editor/VirtualSourceEdit.h
+  src/editor/ViewportPosition.h
   src/editor/FindBarWidget.cpp
   src/editor/FindBarWidget.h
   src/editor/DocumentSearch.cpp

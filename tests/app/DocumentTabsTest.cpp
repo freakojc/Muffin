@@ -18,6 +18,7 @@
 #include <QFileDialog>
 #include <QFileSystemModel>
 #include <QMessageBox>
+#include <QMenu>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSettings>
@@ -123,6 +124,29 @@ QString contents(const QString& path) {
   QFile file(path);
   require(file.open(QIODevice::ReadOnly), "read saved document");
   return QString::fromUtf8(file.readAll()).replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
+}
+
+void closeFolder(MainWindow& window) {
+  auto* sidebar = window.findChild<SidebarWidget*>();
+  auto* tree = sidebar->findChild<QTreeView*>("FileTree");
+  bool triggered = false;
+  QTimer::singleShot(0, &window, [&] {
+    auto* menu = qobject_cast<QMenu*>(QApplication::activePopupWidget());
+    require(menu != nullptr, "file tree context menu opens");
+    QAction* close = nullptr;
+    bool collapse = false;
+    for (auto* item : menu->actions()) {
+      require(item->text() != "Expand All Folders", "context menu omits recursive expand-all");
+      if (item->text() == "Close Folder") close = item;
+      if (item->text() == "Collapse All Folders") collapse = true;
+    }
+    require(close && collapse, "context menu retains close-folder and collapse-all actions");
+    close->trigger();
+    triggered = true;
+    menu->close();
+  });
+  sidebar->fileTreeContextMenuRequested(sidebar->folderRoot(), true, false, tree->mapToGlobal(tree->rect().center()));
+  require(triggered, "closing the workspace remains accessible from the context menu");
 }
 
 void tabBarOnlyForMultipleDocuments() {
@@ -695,7 +719,7 @@ void closedFilesAndFolderStayClosed() {
   f.close(first);
   require(QSettings().value("session/window").toMap().value("files").toStringList() == QStringList{b},
           "closing a file immediately removes it from the persisted session");
-  action(f.window, "Close Folder")->trigger();
+  closeFolder(f.window);
   auto* sidebar = f.window.findChild<SidebarWidget*>();
   require(sidebar->folderRoot().isEmpty() && f.current() == second,
           "closing a workspace retains its open documents");
@@ -788,10 +812,186 @@ void sessionPreservesEmptyTabAndExplicitReveal() {
   require(openPaths(restored) == QStringList({a, QString(), b}) && restored.tabs->currentIndex() == 1,
           "empty tabs retain their order and active selection among named files");
   restored.tabs->setCurrentIndex(0);
-  action(restored.window, "Close Folder")->trigger();
+  closeFolder(restored.window);
   action(restored.window, "Show in Sidebar")->trigger();
   require(restored.window.findChild<SidebarWidget*>()->folderRoot() == f.directory.path(),
           "explicit Show in Sidebar can reopen a closed workspace");
+}
+
+QString readingFixtureText() {
+  QString text;
+  for (int i = 0; i < 180; ++i)
+    text += QStringLiteral("Paragraph %1 中文 😀 with **bold**, *italic*, $$E=mc^2$$ and words that wrap across the viewport. ").arg(i).repeated(3) + "\n\n";
+  return text;
+}
+
+void waitForRestoredView(DocumentTab* document) {
+  waitUntil([&] { return !document->session.isAsyncParseInProgress() && !document->pendingViewState; },
+            "parsed visible tab consumes its pending view state");
+  QApplication::processEvents();
+}
+
+void requireReadingPosition(DocumentTab* document, const ViewportPosition& expected) {
+  if (document->backend->isSourceMode()) {
+    const auto actual = document->editor->viewportPosition();
+    require(actual.sourceOffset == expected.sourceOffset && qAbs(actual.screenOffset - expected.screenOffset) <= 2,
+            "source reading anchor and screen offset survive restart independently of the caret");
+  } else {
+    const auto cursor = document->editorController.cursorForSourceOffset(expected.sourceOffset);
+    const auto hit = document->renderView->hitForCursorPosition(cursor);
+    const auto* node = document->session.document().topLevelBlockAtOffset(expected.sourceOffset);
+    const qreal y = expected.textAnchor ? hit.cursorRect.top() : document->renderView->nodeRect(node->id()).top();
+    const qreal actual = document->renderView->mapDocumentToViewport(QPointF(0, y)).y();
+    require(qAbs(actual - expected.screenOffset) <= 2,
+            "rendered source anchor stays at its saved screen offset after reparse or rewrap");
+  }
+}
+
+void sessionRestoresSelectionsModesAndIndependentReadingPositions() {
+  SettingsOverride startup("files/startupBehavior", 1);
+  SettingsOverride session("session/window", QVariantMap{});
+  Fixture original;
+  const QString text = readingFixtureText();
+  auto* rendered = original.open(original.file("rendered.md", text));
+  const auto focus = text.indexOf("Paragraph 20") + 6;
+  const auto anchor = focus + 14;
+  rendered->editorController.selection().setSelection(
+      {rendered->editorController.cursorForSourceOffset(anchor), rendered->editorController.cursorForSourceOffset(focus)});
+  const auto savedSelection = rendered->editorController.selection().selection();
+  const auto readingOffset = text.indexOf("Paragraph 130");
+  rendered->renderView->scrollToNode(rendered->session.document().topLevelBlockAtOffset(readingOffset)->id());
+  rendered->renderView->verticalScrollBar()->setValue(rendered->renderView->verticalScrollBar()->value() + 41);
+  QApplication::processEvents();
+  const auto renderedPosition = rendered->renderView->viewportPosition();
+  require(!renderedPosition.atStart && renderedPosition.sourceOffset > anchor, "rendered viewport is far below its selection");
+
+  auto* source = original.open(original.file("source.md", text));
+  action(original.window, "Source Code Mode")->trigger();
+  source->editor->setCursorPosition(readingOffset);
+  source->editor->centerCursor();
+  QApplication::processEvents();
+  const auto sourcePosition = source->editor->viewportPosition();
+  source->editor->setSelection(anchor, focus);
+  source->editor->restoreViewportPosition(sourcePosition);
+  const auto savedSourcePosition = source->editor->viewportPosition();
+  // Leave the rendered page active; the source page must remain deferred after restart.
+  original.tabs->setCurrentWidget(rendered);
+  require(original.window.close(), "mixed-mode session closes");
+  const auto saved = QSettings().value("session/window").toMap();
+  const auto views = saved.value("views").toList();
+  require(views.size() == 2 && !views[0].toMap().value("sourceMode").toBool() && views[1].toMap().value("sourceMode").toBool(),
+          "session persists each tab's own mode");
+
+  Fixture restored;
+  restored.window.resize(760, 620);
+  restored.window.restoreStartupFile();
+  auto* active = restored.current();
+  waitForRestoredView(active);
+  const auto actualSelection = active->editorController.selection().selection();
+  require(actualSelection.anchor.text.sourceOffset == savedSelection.anchor.text.sourceOffset &&
+              actualSelection.focus.text.sourceOffset == savedSelection.focus.text.sourceOffset &&
+              actualSelection.anchor.text.sourceOffset > actualSelection.focus.text.sourceOffset,
+          "rendered reverse selection restores with newly parsed node ids");
+  require(!active->backend->isSourceMode() && !action(restored.window, "Source Code Mode")->isChecked(),
+          "active tab's restored mode updates the shared mode controls");
+  requireReadingPosition(active, renderedPosition);
+  auto* hidden = static_cast<DocumentTab*>(restored.tabs->widget(1));
+  require(hidden->pendingViewState.has_value() && hidden->backend->isSourceMode(), "background page defers geometry restoration");
+  // A session save before first activation must keep the unconsumed state.
+  closeFolder(restored.window);
+  require(QSettings().value("session/window").toMap().value("views").toList()[1] == views[1],
+          "saving an unopened hidden page retains its original pending view state");
+  restored.tabs->setCurrentWidget(hidden);
+  waitForRestoredView(hidden);
+  require(hidden->editor->anchorPosition() == anchor && hidden->editor->cursorPosition() == focus &&
+              action(restored.window, "Source Code Mode")->isChecked(),
+          "source mode preserves reverse selection and updates shared controls on activation");
+  // Width changes can move this source character to another wrapped row; use
+  // its geometry at the new width rather than an absolute scrollbar value.
+  const auto recaptured = hidden->editor->viewportPosition();
+  require(qAbs(hidden->session.markdownText().lineForOffset(recaptured.sourceOffset) -
+               hidden->session.markdownText().lineForOffset(savedSourcePosition.sourceOffset)) <= 1,
+          "source viewport returns to the saved logical line after width changes");
+  const auto before = hidden->editor->viewportPosition();
+  restored.tabs->setCurrentWidget(active);
+  restored.tabs->setCurrentWidget(hidden);
+  QApplication::processEvents();
+  require(hidden->editor->viewportPosition().sourceOffset == before.sourceOffset,
+          "later tab activations do not replay the old persisted viewport");
+  hidden->editor->insertText(QStringLiteral("replacement"));
+  QString edited = text;
+  edited.replace(focus, anchor - focus, QStringLiteral("replacement"));
+  require(hidden->session.markdownText().toString() == edited, "typing replaces the restored source selection at the original coordinates");
+}
+
+void sessionViewRestorationWaitsForShowAndBoundsChangedFiles() {
+  SettingsOverride startup("files/startupBehavior", 1);
+  SettingsOverride session("session/window", QVariantMap{});
+  SettingsOverride geometry("window/geometry", QByteArray{});
+  Fixture files;
+  const auto path = files.file("shortened.md", QStringLiteral("Hello 中文 😀\n"));
+  const QVariantMap view{{"version", 1}, {"sourceMode", true}, {"hasCursor", true},
+                         {"anchor", qlonglong(9999999)}, {"focus", -8},
+                         {"viewport", QVariantMap{{"source", qlonglong(9999999)}, {"screenY", 0}, {"start", false}}}};
+  QSettings().setValue("session/window", QVariantMap{{"version", 1}, {"files", QStringList{path}},
+      {"active", 0}, {"views", QVariantList{view}}});
+  MainWindow restored;
+  restored.resize(900, 660);
+  restored.restoreStartupFile();
+  auto* tabs = restored.findChild<QTabWidget*>("DocumentTabs");
+  auto* document = static_cast<DocumentTab*>(tabs->currentWidget());
+  require(document->session.isAsyncParseInProgress() && document->pendingViewState.has_value(),
+          "restoration retains view state while the worker still owns the unpublished AST");
+  QApplication::processEvents();
+  require(document->pendingViewState.has_value(), "startup before show keeps saved state pending");
+  restored.show();
+  waitForRestoredView(document);
+  require(document->editor->anchorPosition() == document->session.markdownText().size() && document->editor->cursorPosition() == 0,
+          "changed or shortened documents clamp selection endpoints to valid UTF-16 source positions");
+  require(!document->session.document().isModified() && !document->editor->canUndo(), "restoration never edits text or adds undo history");
+}
+
+void sessionRestoresNestedAndLiteralCoordinates() {
+  SettingsOverride startup("files/startupBehavior", 1);
+  SettingsOverride session("session/window", QVariantMap{});
+  Fixture original;
+  const QStringList samples{
+      QStringLiteral("# Heading\n\n- outer\n  - Nested 中文 **bold** 😀 text\n\nTail\n"),
+      QStringLiteral("| Column | Other |\n| --- | --- |\n| Cell 中文 text | value |\n"),
+      QStringLiteral("```cpp\n// Literal 中文 😀 text\nint x = 2;\n```\n"),
+      QStringLiteral("$$\n\\text{中文} + x\n$$\n"),
+      QStringLiteral("---\ntitle: 中文\n---\n\nBody\n")};
+  QList<QPair<qsizetype, qsizetype>> expected;
+  for (int i = 0; i < samples.size(); ++i) {
+    auto* document = original.open(original.file(QStringLiteral("nested-%1.md").arg(i), samples[i]));
+    const auto focus = samples[i].indexOf(QStringLiteral("中文"));
+    const auto anchor = focus + 2;
+    SelectionRange range{document->editorController.cursorForSourceOffset(anchor), document->editorController.cursorForSourceOffset(focus)};
+    if (i >= 2) {
+      // Typing through a literal controller also yields block-local source
+      // offsets; persistence must canonicalize these rather than save them raw.
+      range.anchor.text.sourceOffset = range.anchor.text.textOffset;
+      range.focus.text.sourceOffset = range.focus.text.textOffset;
+    }
+    document->editorController.selection().setSelection(range);
+    require(document->editorController.selection().hasCursor(), "nested and literal fixture selection resolves");
+    expected.append({anchor, focus});
+  }
+  require(original.window.close(), "nested and literal session closes");
+  Fixture restored;
+  restored.window.restoreStartupFile();
+  for (int i = 0; i < samples.size(); ++i) {
+    restored.tabs->setCurrentIndex(i);
+    auto* document = restored.current();
+    waitForRestoredView(document);
+    const auto selection = document->editorController.selection().selection();
+    require(selection.anchor.text.sourceOffset == expected[i].first && selection.focus.text.sourceOffset == expected[i].second,
+            "nested list, table cell and code fence selections retain UTF-16 coordinates after restart");
+    require(document->editorController.inputController().insertText(QStringLiteral("重启")), "restored literal or nested selection accepts input");
+    QString edited = samples[i];
+    edited.replace(expected[i].second, 2, QStringLiteral("重启"));
+    require(document->session.markdownText().toString() == edited, "typing into a restored nested or literal selection targets its original source");
+  }
 }
 
 }  // namespace
@@ -814,6 +1014,10 @@ int main(int argc, char** argv) {
   QSettings().setValue(QStringLiteral("files/autoSaveOnSwitch"), false);
   QSettings().setValue(QStringLiteral("files/autoSave"), false);
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
+  runTest("sessionRestoresSelectionsModesAndIndependentReadingPositions", sessionRestoresSelectionsModesAndIndependentReadingPositions);
+  runTest("sessionViewRestorationWaitsForShowAndBoundsChangedFiles", sessionViewRestorationWaitsForShowAndBoundsChangedFiles);
+  runTest("sessionRestoresNestedAndLiteralCoordinates", sessionRestoresNestedAndLiteralCoordinates);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--session-view-state"))) return 0;
   runTest("sessionRestoresOrderActiveFolderAndExpansion", sessionRestoresOrderActiveFolderAndExpansion);
   runTest("closedFilesAndFolderStayClosed", closedFilesAndFolderStayClosed);
   runTest("startupPreferenceAndMissingFiles", startupPreferenceAndMissingFiles);

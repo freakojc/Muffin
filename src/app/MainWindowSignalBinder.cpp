@@ -56,7 +56,7 @@ void muffin::MainWindow::connectEditorSignals(DocumentTab* tab) {
     tab->cursorColumn = column;
     if (window.tab_ != tab) { return; }
     window.updateCursorStatus(line, column);
-    if (window.typewriterMode_ && tab->backend->isSourceMode()) {
+    if (!window.restoringViewState_ && window.typewriterMode_ && tab->backend->isSourceMode()) {
       tab->backend->centerCursor();
     }
   });
@@ -67,7 +67,7 @@ void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
   QObject::connect(&tab->editorController, &EditorController::cursorChanged, tab, [&window, tab](const HitTestResult& hit) {
     if (window.tab_ != tab) { return; }
     window.updateRenderCursorStatus(hit);
-    if (window.typewriterMode_ && !tab->backend->isSourceMode()) {
+    if (!window.restoringViewState_ && window.typewriterMode_ && !tab->backend->isSourceMode()) {
       tab->renderView->scrollToCursorCenteredAnimated();
     }
   });
@@ -254,6 +254,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
     tab->editor->setReadOnly(busy);
   });
   connect(&tab->session, &DocumentSession::parsed, tab, [this, tab] {
+    QTimer::singleShot(0, tab, [this, tab] { restoreTabViewState(tab); });
     const bool outlineChanged = tab->sidebarOutlineRevision != tab->session.document().outlineRevision();
     tab->outlineDirty = tab->outlineDirty || outlineChanged;
     tab->wordCountDirty = true;
@@ -439,7 +440,6 @@ void muffin::MainWindow::connectSidebarSignals() {
     sidebarFolderRoot_ = sidebar_->folderRoot();
     scheduleSessionSave();
   });
-  connect(sidebar_, &SidebarWidget::closeFolderRequested, this, &MainWindow::closeFolder);
   connect(sidebar_, &SidebarWidget::newFileRequested, this, &MainWindow::newFileInDirectory);
   connect(sidebar_, &SidebarWidget::newFolderRequested, this, &MainWindow::newFolderInDirectory);
   QObject::connect(window.sidebar_, &SidebarWidget::panelChanged, &window,
@@ -454,11 +454,6 @@ void muffin::MainWindow::connectSidebarSignals() {
       });
   QObject::connect(window.sidebar_, &SidebarWidget::newWindowRequested, &window, [&window] {
     if (QAction* action = window.commands_.action(QStringLiteral("file.new_window"))) {
-      action->trigger();
-    }
-  });
-  QObject::connect(window.sidebar_, &SidebarWidget::openFolderRequested, &window, [&window] {
-    if (QAction* action = window.commands_.action(QStringLiteral("file.open_folder"))) {
       action->trigger();
     }
   });

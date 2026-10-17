@@ -9,6 +9,7 @@
 #include "theme/RenderTheme.h"
 
 #include <QWidget>
+#include <QVariantMap>
 #include <memory>
 
 class QLabel;
@@ -52,6 +53,10 @@ public:
   QString lastFindText;
   qsizetype lastFindOffset = -1;
   bool renderViewDirty = false;
+  // Preserve the serialized state until both parsing and first activation have
+  // completed. Saving/closing an unopened background page must not replace it
+  // with the temporary empty layout or startup caret.
+  std::optional<QVariantMap> pendingViewState;
   // Keep only the latest snapshot until this document becomes active.
   std::optional<RenderTheme> pendingTheme;
   bool wordCountDirty = true;
