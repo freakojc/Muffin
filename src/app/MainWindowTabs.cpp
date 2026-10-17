@@ -1,6 +1,8 @@
 #include "app/MainWindow.h"
 
 #include "app/MarkdownSettings.h"
+#include "app/FileOpenConfirmation.h"
+#include "app/FileOpenProtection.h"
 #include "app/SourceEditorBackend.h"
 #include "app/RenderEditorBackend.h"
 #include "app/StatusBarWidget.h"
@@ -98,7 +100,8 @@ QList<muffin::DocumentTab*> muffin::MainWindow::documentTabs() const {
 bool muffin::MainWindow::isPathOpen(const QString& path, const DocumentSession* except) const {
   const QString key = pathKey(path);
   for (DocumentTab* document : documentTabs()) {
-    if (&document->session != except && !key.isEmpty() && pathKey(document->session.filePath()) == key) {
+    if (&document->session != except && !key.isEmpty()
+        && (pathKey(document->session.filePath()) == key || pathKey(document->pendingOpenPath) == key)) {
       return true;
     }
   }
@@ -109,6 +112,7 @@ void muffin::MainWindow::configureTab(DocumentTab* document) {
   const RenderTheme theme = themeManager_.currentTheme(zoomPercent_, fontSizePx_);
   document->renderView->setTheme(theme);
   document->editor->setTheme(theme);
+  document->openConfirmation->setTheme(theme);
   document->renderView->setZoomPercent(zoomPercent_);
   document->editor->setZoomPercent(zoomPercent_);
   document->renderView->setFontSizePx(fontSizePx_);
@@ -194,6 +198,7 @@ void muffin::MainWindow::retranslateTabs() {
     button->setAccessibleName(tr("New Tab"));
   }
   for (DocumentTab* document : documentTabs()) {
+    document->openConfirmation->retranslateUi();
     updateTabLabel(document);
     if (QWidget* close = tabs_->tabBar()->tabButton(tabs_->indexOf(document), QTabBar::RightSide)) {
       close->setToolTip(tr("Close Tab"));
@@ -211,20 +216,34 @@ bool muffin::MainWindow::openFile(QString path) {
   }
   const QString key = pathKey(path);
   for (DocumentTab* document : documentTabs()) {
-    if (pathKey(document->session.filePath()) == key) {
+    if (pathKey(document->session.filePath()) == key || pathKey(document->pendingOpenPath) == key) {
       tabs_->setCurrentWidget(document);
-      document->viewStack->currentWidget()->setFocus();
-      addRecentFile(document->session.filePath());
+      if (document->pendingOpenPath.isEmpty()) document->viewStack->currentWidget()->setFocus();
+      else document->openConfirmation->setFocus();
+      if (document->pendingOpenPath.isEmpty()) addRecentFile(document->session.filePath());
       return true;
     }
   }
   // Reuse the pristine startup page; an edited untitled document is always retained.
   const bool reuse = tab_->session.filePath().isEmpty() && !tab_->session.document().isModified()
-      && tab_->session.markdownText().isEmpty() && !tab_->session.isAsyncParseInProgress()
+      && tab_->session.markdownText().isEmpty() && !tab_->session.isOpenInProgress()
       && !tab_->editorController.canUndo() && !tab_->editorController.canRedo()
       && !tab_->editor->canUndo() && !tab_->editor->canRedo();
   DocumentTab* document = reuse ? tab_ : createDocumentTab();
-  if (!document->fileController.open(document->session, this, QFileInfo(path).absoluteFilePath())) {
+  const QString absolutePath = QFileInfo(path).absoluteFilePath();
+  const auto warnings = file_open_protection::warningsForFile(absolutePath);
+  if (warnings.any()) {
+    document->openReturnTab = tab_;
+    document->pendingOpenPath = absolutePath;
+    document->session.setOpenConfirmationPending(true);
+    document->openConfirmation->setFile(absolutePath, warnings);
+    document->contentStack->setCurrentWidget(document->openConfirmation);
+    tabs_->setCurrentWidget(document);
+    updateTitle();
+    document->openConfirmation->setFocus();
+    return true;
+  }
+  if (!loadFileIntoTab(document, absolutePath)) {
     if (!reuse) {
       const QSignalBlocker blocker(tabs_);
       tabs_->removeTab(tabs_->indexOf(document));
@@ -233,12 +252,64 @@ bool muffin::MainWindow::openFile(QString path) {
     }
     return false;
   }
+  return true;
+}
+
+bool muffin::MainWindow::loadFileIntoTab(DocumentTab* document, const QString& path) {
+  if (!document->fileController.open(document->session, this, path)) return false;
   document->editorController.clearHistoryAndSelection();
   tabs_->setCurrentWidget(document);
   updateTabLabel(document);
   addRecentFile(document->session.filePath());
   saveSessionState();
   return true;
+}
+
+void muffin::MainWindow::confirmPendingFileOpen(DocumentTab* document) {
+  if (document->pendingOpenPath.isEmpty()) return;
+  // Keep the guard up and the model read-only through the synchronous read/decode step.
+  document->openConfirmation->setEnabled(false);
+  if (!loadFileIntoTab(document, document->pendingOpenPath)) {
+    cancelPendingFileOpen(document);
+    return;
+  }
+  document->pendingOpenPath.clear();
+  document->openReturnTab.clear();
+  document->session.setOpenConfirmationPending(false);
+  if (document->pendingRecoveredDraftText) {
+    document->session.setMarkdownText(std::move(*document->pendingRecoveredDraftText), true);
+    document->draftKey = std::move(document->pendingRecoveredDraftKey);
+    document->pendingRecoveredDraftText.reset();
+  }
+  document->contentStack->setCurrentIndex(0);
+  document->openConfirmation->setEnabled(true);
+  updateTitle();
+  saveSessionState();
+  document->viewStack->currentWidget()->setFocus();
+}
+
+void muffin::MainWindow::cancelPendingFileOpen(DocumentTab* document) {
+  if (document->pendingOpenPath.isEmpty()) return;
+  const auto previous = document->openReturnTab;
+  document->pendingOpenPath.clear();
+  document->openReturnTab.clear();
+  document->pendingViewState.reset();
+  document->pendingRecoveredDraftText.reset();
+  document->pendingRecoveredDraftKey.clear();
+  document->session.setOpenConfirmationPending(false);
+  document->contentStack->setCurrentIndex(0);
+  document->openConfirmation->setEnabled(true);
+  if (previous == document) {
+    updateTitle();
+    document->viewStack->currentWidget()->setFocus();
+    saveSessionState();
+  } else {
+    // Defer destruction until the clicked signal has unwound.
+    QTimer::singleShot(0, document, [this, document, previous] {
+      closeTab(tabs_->indexOf(document));
+      if (previous && tabs_->indexOf(previous) >= 0) tabs_->setCurrentWidget(previous);
+    });
+  }
 }
 
 bool muffin::MainWindow::startNewDocument() {
@@ -263,6 +334,7 @@ void muffin::MainWindow::activateTab(int index) {
     tab_->pendingTheme.reset();
     tab_->renderView->setTheme(theme);
     tab_->editor->setTheme(theme);
+    tab_->openConfirmation->setTheme(theme);
   }
   wordCountTimer_->stop();
   outlineTimer_->stop();
@@ -273,7 +345,7 @@ void muffin::MainWindow::activateTab(int index) {
     action->setChecked(tab_->backend->isSourceMode());
   }
   sourceModeButton_->setChecked(tab_->backend->isSourceMode());
-  if (tab_->renderViewDirty && !tab_->backend->isSourceMode() && !tab_->session.isAsyncParseInProgress()) {
+  if (tab_->renderViewDirty && !tab_->backend->isSourceMode() && !tab_->session.isOpenInProgress()) {
     tab_->renderView->setDocument(tab_->session.document(), tab_->session.filePath());
     tab_->renderViewDirty = false;
   }
@@ -286,7 +358,8 @@ void muffin::MainWindow::activateTab(int index) {
   updateWordCountNow();
   updateRenderCursorStatus(tab_->editorController.selection().currentHit());
   updateBlockSourceLabel(tab_->editorController.selection().currentHit());
-  tab_->viewStack->currentWidget()->setFocus(Qt::OtherFocusReason);
+  if (!tab_->pendingOpenPath.isEmpty()) tab_->openConfirmation->setFocus(Qt::OtherFocusReason);
+  else tab_->viewStack->currentWidget()->setFocus(Qt::OtherFocusReason);
   scheduleSessionSave();
   QTimer::singleShot(0, next, [this, next] { restoreTabViewState(next); });
 }
@@ -333,6 +406,7 @@ void muffin::MainWindow::saveSessionState() {
   QVariantList views;
   int active = -1;
   for (auto* document : documentTabs()) {
+    if (!document->pendingOpenPath.isEmpty()) continue;
     const QString path = document->session.filePath();
     // Unsaved contents belong to draft recovery, never to settings. Keep empty
     // tab placeholders only when they are part of a multi-document session.
@@ -382,7 +456,7 @@ QVariantMap muffin::MainWindow::tabViewState(DocumentTab* document) const {
 
 void muffin::MainWindow::restoreTabViewState(DocumentTab* document) {
   if (!document->pendingViewState || document != tab_ || sessionUpdatesPaused_ ||
-      document->session.isAsyncParseInProgress() || !document->isVisible()) return;
+      document->session.isOpenInProgress() || !document->isVisible()) return;
   const QScopedValueRollback<bool> guard(restoringViewState_, true);
   const auto state = *document->pendingViewState;
   const auto& text = document->session.markdownText();
@@ -457,7 +531,8 @@ void muffin::MainWindow::updateTabLabel(DocumentTab* document) {
   if (index < 0) {
     return;
   }
-  const QString name = document->session.displayName();
+  const QString path = document->pendingOpenPath.isEmpty() ? document->session.filePath() : document->pendingOpenPath;
+  const QString name = path.isEmpty() ? document->session.displayName() : QFileInfo(path).fileName();
   tabs_->setTabText(index, name + (document->session.document().isModified() ? QStringLiteral(" *") : QString()));
-  tabs_->setTabToolTip(index, document->session.filePath().isEmpty() ? name : document->session.filePath());
+  tabs_->setTabToolTip(index, path.isEmpty() ? name : path);
 }

@@ -342,7 +342,7 @@ void muffin::MainWindow::restoreStartupFile() {
       } else {
         const QFileInfo info(path);
         if (!info.isFile() || !info.isReadable()) continue;
-        if (restoredAny && tab_->session.filePath().isEmpty()) startNewDocument();
+        if (restoredAny && tab_->session.filePath().isEmpty() && tab_->pendingOpenPath.isEmpty()) startNewDocument();
         if (!openFile(path)) continue;
       }
       restoredAny = true;
@@ -618,6 +618,12 @@ bool muffin::MainWindow::restoreDraft(const DraftRecovery::PendingDraft& draft) 
     // recovered content and mark it modified — the recovered text is the newer version.
     if (!openFile(draft.sourcePath)) {
       return false;
+    }
+    if (!tab_->pendingOpenPath.isEmpty()) {
+      // Keep the recovery snapshot intact if the user cancels the file warning.
+      tab_->pendingRecoveredDraftText = content;
+      tab_->pendingRecoveredDraftKey = draft.key;
+      return true;
     }
     tab_->session.setMarkdownText(content, true);
   } else {

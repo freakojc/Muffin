@@ -9,6 +9,7 @@
 #include "theme/RenderTheme.h"
 
 #include <QWidget>
+#include <QPointer>
 #include <QVariantMap>
 #include <memory>
 
@@ -21,6 +22,7 @@ namespace muffin {
 
 class EditorView;
 class FindBarWidget;
+class FileOpenConfirmation;
 class SourceEditorWidget;
 
 // A tab owns the entire editing lifetime, including undo stacks and both viewports.
@@ -36,6 +38,12 @@ public:
   std::unique_ptr<EditorBackend> backend;
   RenderCommandFacade renderCommands;
   QString draftKey = DraftRecovery::createDraftKey();
+  QStackedWidget* contentStack = nullptr;
+  FileOpenConfirmation* openConfirmation = nullptr;
+  QString pendingOpenPath;
+  QPointer<DocumentTab> openReturnTab;
+  std::optional<QString> pendingRecoveredDraftText;
+  QString pendingRecoveredDraftKey;
   QStackedWidget* viewStack = nullptr;
   EditorView* renderView = nullptr;
   SourceEditorWidget* editor = nullptr;

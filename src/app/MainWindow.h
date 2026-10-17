@@ -55,6 +55,7 @@ public:
   explicit MainWindow(QWidget* parent = nullptr);
   ~MainWindow() override;
 
+  // True when opened or awaiting confirmation in its tab. Rejection happens asynchronously.
   bool openFile(QString path);
   // Open <path> as the sidebar folder root (switches to the Files panel).
   // Shared body of the File → Open Folder command and the new-window path,
@@ -97,6 +98,9 @@ protected:
 
 private:
   bool startNewDocument();
+  bool loadFileIntoTab(DocumentTab* document, const QString& path);
+  void confirmPendingFileOpen(DocumentTab* document);
+  void cancelPendingFileOpen(DocumentTab* document);
   DocumentTab* createDocumentTab();
   void activateTab(int index);
   void closeTab(int index);

@@ -162,7 +162,7 @@ bool InputController::eventFilter(QObject* watched, QEvent* event) {
       // swallow the keystroke entirely so it can't drive a local edit, which would land on that
       // stale text and supersede (discard) the worker's parsed result for the file being opened.
       // The view shows a loading hint meanwhile; editing resumes once parseBusy(false) fires.
-      if (ctx_.session && ctx_.session->isAsyncParseInProgress()) {
+      if (ctx_.session && ctx_.session->isOpenInProgress()) {
         return true;  // swallow — no edit, no fallback reparse
       }
       return handleKeyPress(static_cast<QKeyEvent*>(event));
@@ -181,7 +181,7 @@ bool InputController::eventFilter(QObject* watched, QEvent* event) {
 
 bool InputController::insertText(QString text) {
   clearVerticalNavigationX();
-  if (ctx_.session && ctx_.session->isAsyncParseInProgress()) {
+  if (ctx_.session && ctx_.session->isOpenInProgress()) {
     return false;  // document_ holds stale pre-open text during async parse — drop input (same gate as KeyPress)
   }
   if (ctx_.hasSession() && ctx_.session->markdownText().isEmpty()) {

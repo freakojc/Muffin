@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "app/FileOpenConfirmation.h"
 #include "diagnostics/ScopedPerfProbe.h"
 
 #include "app/LanguageManager.h"
@@ -356,7 +357,8 @@ void muffin::MainWindow::setupStatusBar() {
 void muffin::MainWindow::updateTitle() {
   updateTabLabel(tab_);
   const QString marker = tab_->session.document().isModified() ? QStringLiteral(" *") : QString();
-  setWindowTitle(QStringLiteral("%1%2 - Muffin").arg(tab_->session.displayName(), marker));
+  const QString name = tab_->pendingOpenPath.isEmpty() ? tab_->session.displayName() : QFileInfo(tab_->pendingOpenPath).fileName();
+  setWindowTitle(QStringLiteral("%1%2 - Muffin").arg(name, marker));
 }
 
 void muffin::MainWindow::updateStatus() {
@@ -861,6 +863,7 @@ void muffin::MainWindow::applyTheme(QString name) {
   }();
   const ThemeDefinition def = themeManager_.definition(name);
   for (DocumentTab* document : documentTabs()) {
+    document->openConfirmation->setTheme(theme);
     if (document != tab_) {
       document->pendingTheme = theme;
       continue;

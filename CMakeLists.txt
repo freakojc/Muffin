@@ -167,6 +167,7 @@ set(MUFFIN_TRANSLATABLE_SOURCES
   src/app/MainWindowFileOps.cpp
   src/app/MainWindowFind.cpp
   src/app/MainWindowTabs.cpp
+  src/app/FileOpenConfirmation.cpp
   src/app/PreferencesDialog.cpp
   src/app/HelpViewerDialog.cpp
   src/app/QuickOpenDialog.cpp
@@ -1072,6 +1073,10 @@ add_executable(Muffin
   src/app/MainWindow.h
   src/app/DocumentTab.cpp
   src/app/DocumentTab.h
+  src/app/FileOpenConfirmation.cpp
+  src/app/FileOpenConfirmation.h
+  src/app/FileOpenProtection.cpp
+  src/app/FileOpenProtection.h
   src/app/MainWindowActionBinder.cpp
   src/app/CommandDeclarations.cpp
   src/app/CommandDeclarations.h

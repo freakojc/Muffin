@@ -123,7 +123,7 @@ DraftSnapshotWriter::~DraftSnapshotWriter() {
 
 bool DraftSnapshotWriter::request(const DocumentSession& session, const QString& key) {
   diag::ScopedPerfProbe perf("draft.enqueueSnapshot", draftQueuePerf());
-  if (key.isEmpty() || session.isAsyncParseInProgress() || !session.document().isModified()) return false;
+  if (key.isEmpty() || session.isOpenInProgress() || !session.document().isModified()) return false;
   const auto revision = session.document().revision();
   std::lock_guard lock(state_->mutex);
   auto& entry = state_->entries[key];

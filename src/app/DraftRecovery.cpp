@@ -193,7 +193,7 @@ void DraftRecovery::pruneOrphaned() {
 
 bool muffin::DraftRecovery::snapshotSession(const DocumentSession& session, const QString& draftKey) {
   muffin::diag::ScopedPerfProbe perf("draft.snapshotSession", draftPerf());
-  if (session.isAsyncParseInProgress() || !session.document().isModified()) {
+  if (session.isOpenInProgress() || !session.document().isModified()) {
     return false;
   }
   const QString text = [&] {

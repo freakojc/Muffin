@@ -332,7 +332,7 @@ bool muffin::FileController::open(DocumentSession& session, QWidget* parent, QSt
 muffin::SaveOutcome muffin::FileController::save(DocumentSession& session, QWidget* parent, const QString& defaultDir) {
   // Refuse to persist while an async open parse is in flight: document_ still holds the pre-open
   // text, but filePath_ already points at the new file — writing would clobber it with stale content.
-  if (session.isAsyncParseInProgress()) {
+  if (session.isOpenInProgress()) {
     return SaveOutcome::SkippedBusy;
   }
   if (session.filePath().isEmpty()) {
@@ -386,7 +386,7 @@ void muffin::FileController::autoSaveOnSwitchIfEnabled(DocumentSession& session,
 }
 
 muffin::SaveOutcome muffin::FileController::saveAs(DocumentSession& session, QWidget* parent, const QString& defaultDir) {
-  if (session.isAsyncParseInProgress()) {
+  if (session.isOpenInProgress()) {
     return SaveOutcome::SkippedBusy;
   }
   // For an untitled document, anchor the dialog in the requested directory

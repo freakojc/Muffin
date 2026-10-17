@@ -1,6 +1,7 @@
 #include "app/DocumentTab.h"
 
 #include "app/RenderEditorBackend.h"
+#include "app/FileOpenConfirmation.h"
 #include "editor/EditorView.h"
 #include "editor/FindBarWidget.h"
 #include "editor/SourceEditorWidget.h"
@@ -12,6 +13,15 @@
 muffin::DocumentTab::DocumentTab(QWidget* parent)
     : QWidget(parent), renderCommands(editorController, [this] { return backend && backend->isSourceMode(); }) {
   auto* layout = new QVBoxLayout(this);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(0);
+  contentStack = new QStackedWidget(this);
+  layout->addWidget(contentStack);
+  auto* editorPage = new QWidget(contentStack);
+  contentStack->addWidget(editorPage);
+  openConfirmation = new FileOpenConfirmation(contentStack);
+  contentStack->addWidget(openConfirmation);
+  layout = new QVBoxLayout(editorPage);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
   viewStack = new QStackedWidget(this);
@@ -42,4 +52,5 @@ muffin::DocumentTab::~DocumentTab() {
   backend.reset();
   delete findBar;
   delete viewStack;
+  delete contentStack;
 }

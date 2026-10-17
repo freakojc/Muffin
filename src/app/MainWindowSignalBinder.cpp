@@ -1,5 +1,6 @@
 #include "app/LanguageManager.h"
 #include "app/MainWindow.h"
+#include "app/FileOpenConfirmation.h"
 #include "app/UpdateChecker.h"
 #include "app/SidebarWidget.h"
 #include "app/StatusBarWidget.h"
@@ -175,6 +176,8 @@ void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
 }
 
 void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
+  connect(tab->openConfirmation, &FileOpenConfirmation::confirmed, tab, [this, tab] { confirmPendingFileOpen(tab); });
+  connect(tab->openConfirmation, &FileOpenConfirmation::canceled, tab, [this, tab] { cancelPendingFileOpen(tab); });
   tab->fileController.setPathAvailableCheck([this, tab](const QString& path) {
     if (!isPathOpen(path, &tab->session)) {
       return true;
@@ -204,7 +207,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
   });
   tab->editor->setDocumentPath(tab->session.filePath());
   connect(&tab->session, &DocumentSession::filePathChanged, tab, [this, tab] {
-    if (tab_ != tab || tab->session.isAsyncParseInProgress() || tab->backend->isSourceMode()) {
+    if (tab_ != tab || tab->session.isOpenInProgress() || tab->backend->isSourceMode()) {
       tab->renderViewDirty = true;
       return;
     }
@@ -250,7 +253,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
   connect(&tab->fileController, &FileController::documentBecameClean, tab,
           [this, tab](const QString& path) { clearDraftSnapshot(path, tab->draftKey); });
   connect(&tab->session, &DocumentSession::parseBusy, tab, [tab](bool busy) {
-    tab->renderView->setLoading(busy);
+    tab->renderView->setLoading(busy && tab->pendingOpenPath.isEmpty());
     tab->editor->setReadOnly(busy);
   });
   connect(&tab->session, &DocumentSession::parsed, tab, [this, tab] {

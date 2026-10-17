@@ -5,7 +5,9 @@
 class QCheckBox;
 class QComboBox;
 class QLabel;
+class QLineEdit;
 class QPushButton;
+class QSpinBox;
 
 namespace muffin {
 
@@ -32,6 +34,14 @@ private:
   QCheckBox* outlineFoldableCheck_ = nullptr;
   QLabel* defaultExtLabel_ = nullptr;
   QComboBox* defaultExtCombo_ = nullptr;
+  QLabel* openProtectionLabel_ = nullptr;
+  QCheckBox* extensionProtectionCheck_ = nullptr;
+  QLabel* textExtensionsLabel_ = nullptr;
+  QLineEdit* textExtensionsEdit_ = nullptr;
+  QLabel* textExtensionsHint_ = nullptr;
+  QCheckBox* sizeProtectionCheck_ = nullptr;
+  QLabel* sizeLimitLabel_ = nullptr;
+  QSpinBox* sizeLimitSpin_ = nullptr;
   QLabel* saveLabel_ = nullptr;
   QCheckBox* autoSaveCheck_ = nullptr;
   QCheckBox* autoSaveSwitchCheck_ = nullptr;

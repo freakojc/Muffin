@@ -1,6 +1,10 @@
 #include "app/MainWindow.h"
 #include "app/LanguageManager.h"
 #include "app/FileTreeModel.h"
+#include "app/FileOpenConfirmation.h"
+#include "app/FileOpenProtection.h"
+#include "app/PrefsFilesPage.h"
+#include "app/PreferencesDialog.h"
 #include "editor/EditorView.h"
 #include "editor/SourceEditorWidget.h"
 #include "editor/VirtualSourceEdit.h"
@@ -12,6 +16,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QCheckBox>
 #include <QElapsedTimer>
 #include <QDir>
 #include <QFile>
@@ -19,9 +24,13 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QMenu>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSettings>
+#include <QSpinBox>
 #include <QStackedWidget>
 #include <QStandardPaths>
 #include <QTabBar>
@@ -100,6 +109,185 @@ struct Fixture {
 
   void close(DocumentTab* document) { tabs->tabCloseRequested(tabs->indexOf(document)); }
 };
+
+void fileOpenProtectionSettingsAndBoundaries() {
+  SettingsOverride extensionsOn{"files/extensionProtection", true};
+  SettingsOverride extensions{"files/textExtensions", file_open_protection::defaultTextExtensions()};
+  SettingsOverride sizeOn{"files/sizeProtection", true};
+  SettingsOverride limit{"files/sizeLimitMb", 100};
+  QSettings().remove("files/extensionProtection");
+  QSettings().remove("files/sizeProtection");
+  QSettings().remove("files/sizeLimitMb");
+  PrefsFilesPage page;
+  auto* extensionCheck = page.findChild<QCheckBox*>("extensionProtection");
+  auto* sizeCheck = page.findChild<QCheckBox*>("sizeProtection");
+  auto* edit = page.findChild<QLineEdit*>("textExtensions");
+  auto* spin = page.findChild<QSpinBox*>("sizeLimitMb");
+  require(extensionCheck->isChecked() && sizeCheck->isChecked() && spin->value() == 100,
+          "both guards default on with a 100 MB limit");
+  Fixture f;
+  const QString text = f.file("notes.MD", "text\n");
+  const QString unknown = f.file("unknown.binary", "text\n");
+  const QString noSuffix = f.file("README", "text\n");
+  require(!file_open_protection::warningsForFile(text).any(), "known extension ignores case");
+  require(file_open_protection::warningsForFile(unknown).extension, "unknown extension needs confirmation");
+  require(file_open_protection::warningsForFile(noSuffix).extension, "extensionless file needs confirmation");
+  edit->setText(QStringLiteral("*.MD; .BINARY，log txt"));
+  require(!file_open_protection::warningsForFile(unknown).extension, "custom extensions accept dots, wildcards and separators");
+  edit->clear();
+  require(file_open_protection::warningsForFile(text).extension, "empty allowlist warns for every extension");
+  edit->setText(file_open_protection::defaultTextExtensions());
+  QFile large(unknown);
+  require(large.open(QIODevice::ReadWrite), "open sparse size fixture");
+  require(large.resize(100LL * 1024 * 1024), "resize to exactly the default limit");
+  require(!file_open_protection::warningsForFile(unknown).size, "exact size limit does not warn");
+  require(large.resize(100LL * 1024 * 1024 + 1), "resize beyond limit");
+  large.close();
+  const auto warnings = file_open_protection::warningsForFile(unknown);
+  require(warnings.extension && warnings.size, "both guards can trigger together");
+  spin->setValue(200);
+  require(!file_open_protection::warningsForFile(unknown).size, "custom size limit applies immediately");
+  extensionCheck->setChecked(false);
+  sizeCheck->setChecked(false);
+  require(!edit->isEnabled() && !spin->isEnabled(), "disabled guards disable their fields");
+  require(!file_open_protection::warningsForFile(unknown).any(), "guards can be disabled independently of their values");
+  PrefsFilesPage reopened;
+  require(!reopened.findChild<QCheckBox*>("extensionProtection")->isChecked()
+      && !reopened.findChild<QCheckBox*>("sizeProtection")->isChecked()
+      && reopened.findChild<QSpinBox*>("sizeLimitMb")->value() == 200, "guard settings persist");
+  if (const auto capture = qEnvironmentVariable("MUFFIN_OPEN_GUARD_SCREENSHOT"); !capture.isEmpty()) {
+    SettingsOverride captureExtensions{"files/extensionProtection", true};
+    SettingsOverride captureSize{"files/sizeProtection", true};
+    SettingsOverride captureLimit{"files/sizeLimitMb", 100};
+    LanguageManager::instance().setLanguage(QStringLiteral("zh_CN"));
+    PreferencesDialog preferences;
+    preferences.findChild<QListWidget*>()->setCurrentRow(5);
+    preferences.show();
+    QApplication::processEvents();
+    require(preferences.grab().save(capture + ".settings.png"), "capture protection preferences");
+    LanguageManager::instance().setLanguage(QStringLiteral("en"));
+  }
+}
+
+void fileOpenConfirmationDefersReadingAndPreservesTabs() {
+  SettingsOverride extensionsOn{"files/extensionProtection", true};
+  SettingsOverride extensions{"files/textExtensions", file_open_protection::defaultTextExtensions()};
+  SettingsOverride sizeOn{"files/sizeProtection", true};
+  SettingsOverride limit{"files/sizeLimitMb", 1};
+  Fixture f;
+  auto* original = f.open(f.file("original.md", "Original document\n"));
+  original->session.applyTextDelta(0, 0, "Unsaved ", true);
+  const auto originalText = original->session.markdownText().toString();
+  const QString path = f.file("guard.binary", "Before confirmation\n");
+  require(f.window.openFile(path), "guard accepts open request");
+  auto* pending = f.current();
+  require(pending != original && pending->pendingOpenPath == path, "guard has its own pending tab");
+  require(pending->session.isOpenInProgress() && !pending->session.isAsyncParseInProgress()
+      && pending->session.filePath().isEmpty() && pending->session.markdownText().isEmpty(),
+      "no file identity, text or parser before confirmation");
+  require(pending->openConfirmation->isVisible(), "confirmation is displayed inside the document area");
+  require(pending->openConfirmation->findChild<QLabel*>("extensionWarning")->isVisible()
+      && !pending->openConfirmation->findChild<QLabel*>("sizeWarning")->isVisible(), "extension warning alone");
+  if (const auto capture = qEnvironmentVariable("MUFFIN_OPEN_GUARD_SCREENSHOT"); !capture.isEmpty()) {
+    require(f.window.grab().save(capture + ".extension.png"), "capture extension warning");
+    LanguageManager::instance().setLanguage(QStringLiteral("zh_CN"));
+    QApplication::processEvents();
+    require(f.window.grab().save(capture + ".zh.png"), "capture translated warning");
+    action(f.window, MainWindow::tr("Night"))->trigger();
+    QApplication::processEvents();
+    require(f.window.grab().save(capture + ".night.png"), "capture dark warning");
+    LanguageManager::instance().setLanguage(QStringLiteral("en"));
+  }
+  require(pending->fileController.save(pending->session, &f.window) == SaveOutcome::SkippedBusy,
+          "save cannot create an empty file while awaiting consent");
+  require(!pending->session.applyTextDelta(0, 0, "stray edit", true), "model rejects editing while awaiting consent");
+  ParseOptions options;
+  options.enableAutolink = false;
+  pending->session.setParseOptions(options);
+  require(!pending->session.isAsyncParseInProgress(), "preferences do not start an unconfirmed parse");
+  require(f.window.openFile(path) && f.tabs->count() == 2 && f.current() == pending, "duplicate open reuses confirmation");
+  f.tabs->setCurrentWidget(original);
+  require(original->session.markdownText().toString() == originalText, "other documents remain usable");
+  f.tabs->setCurrentWidget(pending);
+  pending->openConfirmation->findChild<QPushButton*>("cancelFileOpen")->click();
+  waitUntil([&] { return f.tabs->count() == 1; }, "cancel removes pending tab");
+  require(f.current() == original && original->session.markdownText().toString() == originalText,
+          "cancel returns to original document with unsaved changes intact");
+  require(f.window.openFile(path), "reopen for acceptance");
+  pending = f.current();
+  // Replacing the bytes after the warning proves the file was not read speculatively.
+  f.file("guard.binary", "Read only after confirmation\n");
+  pending->openConfirmation->findChild<QPushButton*>("confirmFileOpen")->click();
+  waitUntil([&] { return !pending->session.isOpenInProgress(); }, "confirmed file finishes loading");
+  require(pending->session.filePath() == path && pending->session.markdownText().toString() == "Read only after confirmation\n",
+          "confirmation opens current bytes");
+  require(pending->pendingOpenPath.isEmpty() && !pending->openConfirmation->isVisible(), "guard clears after opening");
+}
+
+void fileOpenSizeConfirmationAndStartupCancellation() {
+  SettingsOverride extensionsOn{"files/extensionProtection", true};
+  SettingsOverride extensions{"files/textExtensions", file_open_protection::defaultTextExtensions()};
+  SettingsOverride sizeOn{"files/sizeProtection", true};
+  SettingsOverride limit{"files/sizeLimitMb", 1};
+  Fixture f;
+  auto* startup = f.current();
+  const QString path = f.file("large.md", "Large text\n");
+  QFile file(path);
+  require(file.open(QIODevice::ReadWrite) && file.resize(1024 * 1024 + 1), "large fixture");
+  file.close();
+  require(f.window.openFile(path) && f.current() == startup, "guard reuses pristine startup tab");
+  require(!startup->openConfirmation->findChild<QLabel*>("extensionWarning")->isVisible()
+      && startup->openConfirmation->findChild<QLabel*>("sizeWarning")->isVisible(), "size warning alone");
+  if (const auto capture = qEnvironmentVariable("MUFFIN_OPEN_GUARD_SCREENSHOT"); !capture.isEmpty()) {
+    require(f.window.grab().save(capture + ".size.png"), "capture size warning");
+  }
+  action(f.window, "Source Code Mode")->trigger();
+  require(startup->openConfirmation->isVisible() && startup->editor->isReadOnly(), "source mode keeps guard visible and read-only");
+  startup->openConfirmation->findChild<QPushButton*>("cancelFileOpen")->click();
+  require(f.tabs->count() == 1 && f.current() == startup && !startup->session.isOpenInProgress()
+      && startup->pendingOpenPath.isEmpty() && !startup->editor->isReadOnly(), "startup cancel restores editable empty document");
+  const QString combined = f.file("large.binary", "Combined warning\n");
+  file.setFileName(combined);
+  require(file.open(QIODevice::ReadWrite) && file.resize(1024 * 1024 + 1), "combined warning fixture");
+  file.close();
+  require(f.window.openFile(combined), "request file triggering both guards");
+  require(startup->openConfirmation->findChild<QLabel*>("extensionWarning")->isVisible()
+      && startup->openConfirmation->findChild<QLabel*>("sizeWarning")->isVisible(), "both warnings share one confirmation page");
+  f.file("large.binary", "Confirmed combined warning\n");
+  startup->openConfirmation->findChild<QPushButton*>("confirmFileOpen")->click();
+  waitUntil([&] { return !startup->session.isOpenInProgress(); }, "combined confirmation loads");
+  require(startup->backend->isSourceMode() && !startup->editor->isReadOnly()
+      && startup->session.markdownText().toString() == "Confirmed combined warning\n", "confirmed open preserves source mode");
+  const QString pendingClose = f.file("close.binary", "Never loaded\n");
+  require(f.window.openFile(pendingClose), "create pending tab to close");
+  f.close(f.current());
+  require(f.current() == startup && f.tabs->count() == 1, "closing an unconfirmed tab preserves loaded document");
+  SettingsOverride extensionOff{"files/extensionProtection", false};
+  SettingsOverride sizeOff{"files/sizeProtection", false};
+  const QString unknown = f.file("allowed.binary", "Guard disabled\n");
+  auto* opened = f.open(unknown);
+  require(opened->pendingOpenPath.isEmpty() && opened->session.filePath() == unknown, "disabled guards open directly");
+}
+
+void sessionRestoreKeepsUnconfirmedFilesSeparate() {
+  SettingsOverride extensionsOn{"files/extensionProtection", true};
+  SettingsOverride extensions{"files/textExtensions", file_open_protection::defaultTextExtensions()};
+  SettingsOverride startupMode{"files/startupBehavior", 1};
+  Fixture f;
+  const QString unknown = f.file("restore.binary", "Unconfirmed text\n");
+  const QString known = f.file("restore.md", "Confirmed text\n");
+  QSettings().setValue("session/window", QVariantMap{{"version", 1}, {"files", QStringList{unknown, known}}, {"active", 0}});
+  f.window.restoreStartupFile();
+  require(f.tabs->count() == 2, "session restore creates exactly one tab per file");
+  auto* pending = f.current();
+  require(pending->pendingOpenPath == unknown && pending->session.markdownText().isEmpty(),
+          "session restore waits for consent on protected files");
+  auto* loaded = static_cast<DocumentTab*>(f.tabs->widget(1));
+  waitUntil([&] { return !loaded->session.isOpenInProgress(); }, "normal session file loads in background");
+  require(loaded->session.markdownText().toString() == "Confirmed text\n", "other session files load independently");
+  pending->openConfirmation->findChild<QPushButton*>("cancelFileOpen")->click();
+  require(!pending->session.isOpenInProgress() && pending->pendingOpenPath.isEmpty(), "restored guard cancels safely");
+}
 
 // Interact with the real modal prompt while its nested event loop is running.
 class AnswerPrompts {
@@ -1014,6 +1202,11 @@ int main(int argc, char** argv) {
   QSettings().setValue(QStringLiteral("files/autoSaveOnSwitch"), false);
   QSettings().setValue(QStringLiteral("files/autoSave"), false);
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
+  runTest("fileOpenProtectionSettingsAndBoundaries", fileOpenProtectionSettingsAndBoundaries);
+  runTest("fileOpenConfirmationDefersReadingAndPreservesTabs", fileOpenConfirmationDefersReadingAndPreservesTabs);
+  runTest("fileOpenSizeConfirmationAndStartupCancellation", fileOpenSizeConfirmationAndStartupCancellation);
+  runTest("sessionRestoreKeepsUnconfirmedFilesSeparate", sessionRestoreKeepsUnconfirmedFilesSeparate);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--file-open-protection"))) return 0;
   runTest("sessionRestoresSelectionsModesAndIndependentReadingPositions", sessionRestoresSelectionsModesAndIndependentReadingPositions);
   runTest("sessionViewRestorationWaitsForShowAndBoundsChangedFiles", sessionViewRestorationWaitsForShowAndBoundsChangedFiles);
   runTest("sessionRestoresNestedAndLiteralCoordinates", sessionRestoresNestedAndLiteralCoordinates);

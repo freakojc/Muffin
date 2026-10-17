@@ -193,6 +193,9 @@ QString dialogStyleSheet(const ThemeDefinition& d) {
       "QLineEdit:hover { border-color:%7; }"
       "QLineEdit:focus { border-color:%7; }"
       "QLineEdit:disabled { background:%6; color:%9; }"
+      "QSpinBox { border:1px solid %4; border-radius:6px; background:%3; padding:4px 10px; min-height:24px; color:%2; }"
+      "QSpinBox:focus { border-color:%7; }"
+      "QSpinBox:disabled { background:%6; color:%9; }"
 
       // QComboBox dropdown scrollbar (more specific than the page scrollbar below).
       // Trough is opaque surface (not transparent): inside the Win11 transparent

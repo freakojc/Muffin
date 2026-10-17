@@ -732,6 +732,16 @@ bool muffin::DocumentSession::isAsyncParseInProgress() const {
   return asyncParsePending_;
 }
 
+bool muffin::DocumentSession::isOpenInProgress() const {
+  return asyncParsePending_ || openConfirmationPending_;
+}
+
+void muffin::DocumentSession::setOpenConfirmationPending(bool pending) {
+  if (openConfirmationPending_ == pending) return;
+  openConfirmationPending_ = pending;
+  emit parseBusy(isOpenInProgress());
+}
+
 bool muffin::DocumentSession::applyTextDelta(
     qsizetype sourceStart,
     qsizetype removedLength,
@@ -744,7 +754,7 @@ bool muffin::DocumentSession::applyTextDelta(
   // and leave the worker to finish instead. InputController drops keystrokes upstream so this branch
   // is normally unreachable; it guards undo / table-snapshot / render-facade paths that bypass it.
   // Do NOT bump parseGeneration_ here — that self-supersede is exactly what loses the open.
-  if (isAsyncParseInProgress()) {
+  if (isOpenInProgress()) {
     warnLocalEditRejected(
         "async open parse in flight",
         sourceStart,
@@ -964,6 +974,7 @@ void muffin::DocumentSession::setParseOptions(ParseOptions options) {
     return;
   }
   parseOptions_ = options;
+  if (openConfirmationPending_) return;
   if (isAsyncParseInProgress()) {
     // Preferences can change while a background tab is opening. Reparse its pending file,
     // rather than superseding that open with the previous (possibly empty) document buffer.

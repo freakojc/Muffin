@@ -51,6 +51,10 @@ public:
   // read-only: applyTextDelta rejects edits and InputController drops keystrokes, so a stray edit
   // can't land on the stale text and supersede (discard) the worker's parsed result for the open.
   bool isAsyncParseInProgress() const;
+  // Opening also includes waiting for user confirmation, before any file content is read.
+  // Use this to gate editing/saving for the complete open transaction.
+  bool isOpenInProgress() const;
+  void setOpenConfirmationPending(bool pending);
 
   // External-modification detection: snapshot the on-disk mtime+size so a later save can detect
   // drift (git pull, sync client, another editor) and the QFileSystemWatcher can prompt proactively.
@@ -152,6 +156,7 @@ private:
   // but before its queued `finished` slot commits pendingText_ on the GUI thread. QFutureWatcher's
   // isRunning() does not cover that interval, so it cannot safely gate editing or saving.
   bool asyncParsePending_ = false;
+  bool openConfirmationPending_ = false;
   quint64 parseGeneration_ = 0;   // bumped on every parseAndStore + local edit; supersedes in-flight workers
   quint64 launchGeneration_ = 0;  // generation captured when the current worker was launched
   QString pendingText_;           // text held for the GUI-thread finish step
