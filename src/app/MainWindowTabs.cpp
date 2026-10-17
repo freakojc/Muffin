@@ -8,14 +8,16 @@
 
 #include <QAction>
 #include <QFileInfo>
-#include <QSettings>
-#include <QScopedValueRollback>
 #include <QMouseEvent>
+#include <QScopedValueRollback>
+#include <QSettings>
 #include <QSignalBlocker>
 #include <QStackedWidget>
 #include <QTabBar>
 #include <QTabWidget>
 #include <QToolButton>
+#include <QTimer>
+#include <QVariantMap>
 
 namespace {
 
@@ -186,6 +188,7 @@ bool muffin::MainWindow::openFile(QString path) {
   tabs_->setCurrentWidget(document);
   updateTabLabel(document);
   addRecentFile(document->session.filePath());
+  saveSessionState();
   return true;
 }
 
@@ -235,10 +238,13 @@ void muffin::MainWindow::activateTab(int index) {
   updateRenderCursorStatus(tab_->editorController.selection().currentHit());
   updateBlockSourceLabel(tab_->editorController.selection().currentHit());
   tab_->viewStack->currentWidget()->setFocus(Qt::OtherFocusReason);
+  scheduleSessionSave();
 }
 
 void muffin::MainWindow::closeTab(int index) {
   const QScopedValueRollback<bool> switchGuard(suppressSaveOnTabSwitch_, true);
+  const bool updatesWerePaused = sessionUpdatesPaused_;
+  const QScopedValueRollback<bool> sessionGuard(sessionUpdatesPaused_, true);
   if (index < 0 || index >= tabs_->count()) {
     return;
   }
@@ -261,6 +267,41 @@ void muffin::MainWindow::closeTab(int index) {
     tabs_->setCurrentWidget(original);
   }
   delete document;
+  sessionUpdatesPaused_ = updatesWerePaused;
+  refreshSidebarDocumentInfo();
+  saveSessionState();
+}
+
+void muffin::MainWindow::scheduleSessionSave() {
+  if (!sessionUpdatesPaused_ && sessionSaveTimer_) sessionSaveTimer_->start();
+}
+
+void muffin::MainWindow::saveSessionState() {
+  if (sessionUpdatesPaused_ || !tabs_ || !sidebar_) return;
+  if (sessionSaveTimer_) sessionSaveTimer_->stop();
+  QStringList files;
+  int active = -1;
+  for (auto* document : documentTabs()) {
+    const QString path = document->session.filePath();
+    // Unsaved contents belong to draft recovery, never to settings. Keep empty
+    // tab placeholders only when they are part of a multi-document session.
+    if (path.isEmpty() && (tabs_->count() == 1 || document->session.document().isModified())) continue;
+    if (document == tab_) active = files.size();
+    files.append(path);
+  }
+  const QVariantMap snapshot{{QStringLiteral("version"), 1},
+      {QStringLiteral("files"), files}, {QStringLiteral("active"), active},
+      {QStringLiteral("folder"), sidebar_->folderRoot()},
+      {QStringLiteral("expanded"), sidebar_->expandedFolders()}};
+  QSettings settings;
+  settings.setValue(QStringLiteral("session/window"), snapshot);
+  settings.sync();
+}
+
+void muffin::MainWindow::closeFolder() {
+  sidebarFolderRoot_.clear();
+  sidebar_->setFolderRoot({});
+  saveSessionState();
 }
 
 void muffin::MainWindow::cycleTab(bool forward) {

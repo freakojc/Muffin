@@ -9,10 +9,12 @@
 #include <QFileSystemModel>
 #include <QKeyEvent>
 #include <QLineEdit>
+#include <QLabel>
 #include <QMouseEvent>
 #include <QTemporaryDir>
 #include <QThread>
 #include <QTreeView>
+#include <QToolButton>
 
 using namespace muffin;
 
@@ -153,6 +155,80 @@ void testRightClickAndInlineRenameDoNotToggleFolder() {
   require(f.openedFiles == 0, "renaming a folder must not open a document");
 }
 
+void testToolbarExpandsUnloadedFoldersAndRestoresState() {
+  FileTreeFixture f;
+  require(QDir(f.dir.path()).mkpath("Folder/Nested/Deep/Leaf"), "create unloaded deep folders");
+  auto* expand = f.sidebar.findChild<QToolButton*>("ExpandFoldersButton");
+  auto* collapse = f.sidebar.findChild<QToolButton*>("CollapseFoldersButton");
+  require(expand && collapse && !expand->toolTip().isEmpty() && !collapse->accessibleName().isEmpty(),
+          "folder toolbar exposes tooltips and accessible names");
+  expand->click();
+  const auto nestedPath = f.dir.filePath("Folder/Nested");
+  const auto leafPath = f.dir.filePath("Folder/Nested/Deep/Leaf");
+  waitUntil([&] { return f.tree->isExpanded(f.model->index(leafPath)); },
+            "expand all visits asynchronously loaded descendants");
+  const auto saved = f.sidebar.expandedFolders();
+  require(saved.contains("Folder") && saved.contains("Folder/Nested/Deep/Leaf"), "expansion stores relative paths");
+  collapse->click();
+  QApplication::processEvents();
+  require(f.sidebar.expandedFolders().isEmpty() && !f.tree->isExpanded(f.folder), "collapse all clears pending expansion");
+  f.sidebar.setFolderRoot({});
+  f.sidebar.setFolderRoot(f.dir.path());
+  f.sidebar.restoreExpandedFolders(saved + QStringList{"../", "missing", f.dir.path()});
+  waitUntil([&] { return f.tree->isExpanded(f.model->index(leafPath)); }, "nested state restores after reopening a workspace");
+  require(f.sidebar.expandedFolders() == saved, "restore excludes absolute, missing and outside workspace entries");
+  f.tree->setExpanded(f.folder, false);
+  const auto collapsedParent = f.sidebar.expandedFolders();
+  f.sidebar.restoreExpandedFolders(collapsedParent);
+  waitUntil([&] { return f.tree->isExpanded(f.model->index(nestedPath)); }, "hidden descendant expansion is retained");
+  require(!f.tree->isExpanded(f.folder), "restoring descendants does not reopen their collapsed parent");
+  const auto file = f.dir.filePath("Folder/Nested/inside.md");
+  QFile out(file);
+  require(out.open(QIODevice::WriteOnly), "create nested active document");
+  out.write("text\n");
+  out.close();
+  f.sidebar.setCurrentDocument("inside.md", file, false);
+  collapse->click();
+  f.sidebar.setCurrentDocument("inside.md", file, true);
+  require(!f.tree->isExpanded(f.folder), "status updates for the active file preserve collapsed folders");
+  if (const auto screenshot = qEnvironmentVariable("MUFFIN_SIDEBAR_SCREENSHOT"); !screenshot.isEmpty()) {
+    expand->click();
+    QApplication::processEvents();
+    require(f.sidebar.grab().save(screenshot), "capture explorer toolbar appearance");
+    const auto night = ThemeDefinition::builtIn(QStringLiteral("night"));
+    require(night.has_value(), "night appearance is available");
+    f.sidebar.applyTheme(*night);
+    QApplication::processEvents();
+    require(f.sidebar.grab().save(screenshot + QStringLiteral(".night.png")), "capture dark explorer toolbar appearance");
+  }
+}
+
+void testClosingWorkspaceAndToolbarCreationTargets() {
+  FileTreeFixture f;
+  auto* newFile = f.sidebar.findChild<QToolButton*>("NewFileButton");
+  auto* newFolder = f.sidebar.findChild<QToolButton*>("NewFolderButton");
+  QString fileTarget, folderTarget;
+  QObject::connect(&f.sidebar, &SidebarWidget::newFileRequested, &f.sidebar, [&](const QString& path) { fileTarget = path; });
+  QObject::connect(&f.sidebar, &SidebarWidget::newFolderRequested, &f.sidebar, [&](const QString& path) { folderTarget = path; });
+  f.tree->setCurrentIndex(f.folder);
+  newFile->click();
+  newFolder->click();
+  require(fileTarget == f.dir.filePath("Folder") && folderTarget == fileTarget,
+          "creation toolbar uses the selected folder");
+  f.tree->setCurrentIndex(f.model->index(f.dir.filePath("document.md")));
+  newFile->click();
+  require(fileTarget == f.dir.path(), "selecting a file creates beside that file");
+  f.sidebar.expandAllFolders();
+  f.sidebar.setFolderRoot({});
+  QApplication::processEvents();
+  auto* empty = f.sidebar.findChild<QLabel*>("FilesEmptyLabel");
+  require(f.sidebar.folderRoot().isEmpty() && !f.tree->isVisible() && empty && empty->isVisible() &&
+              !newFile->isEnabled() && !newFolder->isEnabled(), "closed workspace shows an empty tree with disabled creation controls");
+  f.sidebar.setCurrentDocument("document.md", f.dir.filePath("document.md"), false);
+  require(f.sidebar.folderRoot().isEmpty() && f.sidebar.expandedFolders().isEmpty(),
+          "pending loads and document notifications cannot reopen a closed workspace");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -160,6 +236,8 @@ int main(int argc, char** argv) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
   QApplication app(argc, argv);
+  runTest("testToolbarExpandsUnloadedFoldersAndRestoresState", testToolbarExpandsUnloadedFoldersAndRestoresState);
+  runTest("testClosingWorkspaceAndToolbarCreationTargets", testClosingWorkspaceAndToolbarCreationTargets);
   runTest("testFolderNameAndRowToggleOnSingleClick", testFolderNameAndRowToggleOnSingleClick);
   runTest("testFolderDoubleClickTogglesOnlyOnce", testFolderDoubleClickTogglesOnlyOnce);
   runTest("testArrowAndNestedFolderClicks", testArrowAndNestedFolderClicks);

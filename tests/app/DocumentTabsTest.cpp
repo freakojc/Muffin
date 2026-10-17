@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFileDialog>
+#include <QFileSystemModel>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollBar>
@@ -28,6 +29,7 @@
 #include <QThreadPool>
 #include <QTimer>
 #include <QToolButton>
+#include <QTreeView>
 #include <QtTest/QTest>
 
 using namespace muffin;
@@ -626,6 +628,172 @@ void hiddenTabsMergeThemeAndResourceChanges() {
           "return to rendered mode consumes resources before scrolling");
 }
 
+QStringList openPaths(Fixture& f) {
+  QStringList paths;
+  for (int i = 0; i < f.tabs->count(); ++i)
+    paths.append(static_cast<DocumentTab*>(f.tabs->widget(i))->session.filePath());
+  return paths;
+}
+
+void sessionRestoresOrderActiveFolderAndExpansion() {
+  SettingsOverride startup("files/startupBehavior", 1);
+  SettingsOverride session("session/window", QVariantMap{});
+  Fixture original;
+  require(QDir(original.directory.path()).mkpath("Folder/Nested/Deep"), "create session folders");
+  const QString a = original.file("a.md", "# First\n");
+  const QString b = original.file("Folder/b.md", "# Second\n");
+  const QString c = original.file("c.md", "# Third\n");
+  original.open(a);
+  auto* second = original.open(b);
+  original.open(c);
+  original.tabs->tabBar()->moveTab(2, 0);
+  original.tabs->tabBar()->moveTab(1, 2);
+  original.tabs->setCurrentWidget(second);
+  auto* sidebar = original.window.findChild<SidebarWidget*>();
+  sidebar->restoreExpandedFolders({"Folder", "Folder/Nested"});
+  auto* tree = sidebar->findChild<QTreeView*>("FileTree");
+  auto* model = qobject_cast<QFileSystemModel*>(tree->model());
+  waitUntil([&] { return tree->isExpanded(model->index(original.directory.filePath("Folder/Nested"))); },
+            "session folders expanded before exit");
+  tree->setExpanded(model->index(original.directory.filePath("Folder")), false);
+  const QStringList expected{c, b, a};
+  require(original.window.close(), "clean session closes");
+  const auto snapshot = QSettings().value("session/window").toMap();
+  require(snapshot.value("files").toStringList() == expected && snapshot.value("active").toInt() == 1,
+          "exit preserves tab order and original active tab rather than the last prompted tab");
+  require(snapshot.value("folder").toString() == original.directory.path() &&
+              snapshot.value("expanded").toStringList() == QStringList({"Folder/Nested"}),
+          "exit stores the workspace and relative expanded folder paths");
+
+  Fixture restored;
+  restored.window.restoreStartupFile();
+  waitUntil([&] {
+    for (int i = 0; i < restored.tabs->count(); ++i)
+      if (static_cast<DocumentTab*>(restored.tabs->widget(i))->session.isAsyncParseInProgress()) return false;
+    return true;
+  }, "restored documents finish loading");
+  require(openPaths(restored) == expected && restored.current()->session.filePath() == b,
+          "startup restores ordered tabs and active file");
+  auto* restoredSidebar = restored.window.findChild<SidebarWidget*>();
+  auto* restoredTree = restoredSidebar->findChild<QTreeView*>("FileTree");
+  auto* restoredModel = qobject_cast<QFileSystemModel*>(restoredTree->model());
+  waitUntil([&] { return restoredTree->isExpanded(restoredModel->index(original.directory.filePath("Folder/Nested"))); },
+            "startup restores asynchronously loaded nested folder expansion");
+  require(!restoredTree->isExpanded(restoredModel->index(original.directory.filePath("Folder"))),
+          "exit prompts and queued parse notifications preserve a collapsed folder containing the active file");
+  require(restoredSidebar->folderRoot() == original.directory.path(), "startup restores the workspace root");
+}
+
+void closedFilesAndFolderStayClosed() {
+  SettingsOverride startup("files/startupBehavior", 1);
+  SettingsOverride session("session/window", QVariantMap{});
+  Fixture f;
+  const QString a = f.file("a.md", "first\n");
+  const QString b = f.file("b.md", "second\n");
+  auto* first = f.open(a);
+  auto* second = f.open(b);
+  f.close(first);
+  require(QSettings().value("session/window").toMap().value("files").toStringList() == QStringList{b},
+          "closing a file immediately removes it from the persisted session");
+  action(f.window, "Close Folder")->trigger();
+  auto* sidebar = f.window.findChild<SidebarWidget*>();
+  require(sidebar->folderRoot().isEmpty() && f.current() == second,
+          "closing a workspace retains its open documents");
+  sidebar->setCurrentDocument("b.md", b, false);
+  require(sidebar->folderRoot().isEmpty(), "document refresh does not reopen an explicitly closed workspace");
+  Fixture filesOnly;
+  filesOnly.window.restoreStartupFile();
+  require(openPaths(filesOnly) == QStringList{b} && filesOnly.window.findChild<SidebarWidget*>()->folderRoot().isEmpty(),
+          "files can be restored with no workspace");
+  action(f.window, "Close Tab")->trigger();
+  const auto closed = QSettings().value("session/window").toMap();
+  require(closed.value("files").toStringList().isEmpty() && closed.value("folder").toString().isEmpty(),
+          "closing the last file and workspace immediately stores an empty session");
+  Fixture blank;
+  blank.window.restoreStartupFile();
+  require(blank.tabs->count() == 1 && blank.current()->session.filePath().isEmpty() &&
+              blank.current()->session.markdownText().isEmpty() && !blank.tabs->tabBar()->isVisible() &&
+              blank.window.findChild<SidebarWidget*>()->folderRoot().isEmpty(),
+          "an empty session starts clean and ignores recent-file history");
+}
+
+void startupPreferenceAndMissingFiles() {
+  SettingsOverride startup("files/startupBehavior", 0);
+  SettingsOverride session("session/window", QVariantMap{});
+  Fixture source;
+  const QString a = source.file("available.md", "# Available\n");
+  const QVariantMap snapshot{{"version", 1}, {"files", QStringList{source.directory.filePath("gone.md"), a}},
+                            {"active", 1}, {"folder", source.directory.filePath("removed")}};
+  QSettings().setValue("session/window", snapshot);
+  Fixture fresh;
+  fresh.window.restoreStartupFile();
+  require(fresh.current()->session.filePath().isEmpty() && fresh.tabs->count() == 1,
+          "always start fresh ignores the saved session");
+  QSettings().remove("files/startupBehavior");
+  Fixture restored;
+  restored.window.restoreStartupFile();
+  require(openPaths(restored) == QStringList{a} && restored.current()->session.filePath() == a &&
+              restored.window.findChild<SidebarWidget*>()->folderRoot().isEmpty(),
+          "default restores valid files while silently skipping removed files and folders");
+  QSettings().setValue("session/window", QVariantMap{{"version", 1}, {"files", QStringList{}},
+                                                   {"folder", source.directory.path()}});
+  Fixture folderOnly;
+  folderOnly.window.restoreStartupFile();
+  require(folderOnly.current()->session.filePath().isEmpty() && folderOnly.tabs->count() == 1 &&
+              folderOnly.window.findChild<SidebarWidget*>()->folderRoot() == source.directory.path(),
+          "a workspace can be restored with no open files");
+}
+
+void canceledClosePreservesSessionAndActiveTab() {
+  SettingsOverride session("session/window", QVariantMap{});
+  Fixture f;
+  auto* dirty = f.open(f.file("dirty.md", "before\n"));
+  auto* active = f.open(f.file("active.md", "active\n"));
+  dirty->session.document().setModified(true);
+  const auto before = QSettings().value("session/window");
+  {
+    AnswerPrompts answer(QMessageBox::Cancel);
+    f.close(dirty);
+    require(answer.count == 1, "closing a dirty background tab prompts");
+  }
+  require(f.current() == active && QSettings().value("session/window") == before,
+          "canceling tab close preserves the active tab and session");
+  {
+    AnswerPrompts answer(QMessageBox::Cancel);
+    require(!f.window.close() && answer.count == 1, "canceling window close keeps it open");
+  }
+  require(f.current() == active && QSettings().value("session/window") == before,
+          "canceling exit does not persist temporary prompt activations");
+}
+
+void sessionPreservesEmptyTabAndExplicitReveal() {
+  SettingsOverride startup("files/startupBehavior", 1);
+  SettingsOverride session("session/window", QVariantMap{});
+  Fixture f;
+  const QString a = f.file("first.md", "first\n");
+  const QString b = f.file("last.md", "last\n");
+  f.open(a);
+  action(f.window, "New")->trigger();
+  auto* blank = f.current();
+  f.open(b);
+  // Opening a file may reuse an empty tab. Create the placeholder after both
+  // real files are open, then move it between them.
+  if (blank->session.filePath() == b) action(f.window, "New")->trigger();
+  f.tabs->tabBar()->moveTab(2, 1);
+  f.tabs->setCurrentIndex(1);
+  require(f.current()->session.filePath().isEmpty(), "middle tab is an empty placeholder");
+  require(f.window.close(), "session with an empty tab closes");
+  Fixture restored;
+  restored.window.restoreStartupFile();
+  require(openPaths(restored) == QStringList({a, QString(), b}) && restored.tabs->currentIndex() == 1,
+          "empty tabs retain their order and active selection among named files");
+  restored.tabs->setCurrentIndex(0);
+  action(restored.window, "Close Folder")->trigger();
+  action(restored.window, "Show in Sidebar")->trigger();
+  require(restored.window.findChild<SidebarWidget*>()->folderRoot() == f.directory.path(),
+          "explicit Show in Sidebar can reopen a closed workspace");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -646,6 +814,11 @@ int main(int argc, char** argv) {
   QSettings().setValue(QStringLiteral("files/autoSaveOnSwitch"), false);
   QSettings().setValue(QStringLiteral("files/autoSave"), false);
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
+  runTest("sessionRestoresOrderActiveFolderAndExpansion", sessionRestoresOrderActiveFolderAndExpansion);
+  runTest("closedFilesAndFolderStayClosed", closedFilesAndFolderStayClosed);
+  runTest("startupPreferenceAndMissingFiles", startupPreferenceAndMissingFiles);
+  runTest("canceledClosePreservesSessionAndActiveTab", canceledClosePreservesSessionAndActiveTab);
+  runTest("sessionPreservesEmptyTabAndExplicitReveal", sessionPreservesEmptyTabAndExplicitReveal);
   runTest("tabBarOnlyForMultipleDocuments", tabBarOnlyForMultipleDocuments);
   runTest("formatActionsFollowSelectionAndDocumentChanges", formatActionsFollowSelectionAndDocumentChanges);
   runTest("sharedCursorQueriesMatchIndependentQueries", sharedCursorQueriesMatchIndependentQueries);

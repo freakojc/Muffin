@@ -200,6 +200,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
       updateFileActions();
       refreshSidebarDocumentInfo();
     }
+    scheduleSessionSave();
   });
   tab->editor->setDocumentPath(tab->session.filePath());
   connect(&tab->session, &DocumentSession::filePathChanged, tab, [this, tab] {
@@ -434,6 +435,13 @@ void muffin::MainWindow::connectChromeSignals() {
 
 void muffin::MainWindow::connectSidebarSignals() {
   auto& window = *this;
+  connect(sidebar_, &SidebarWidget::folderStateChanged, this, [this] {
+    sidebarFolderRoot_ = sidebar_->folderRoot();
+    scheduleSessionSave();
+  });
+  connect(sidebar_, &SidebarWidget::closeFolderRequested, this, &MainWindow::closeFolder);
+  connect(sidebar_, &SidebarWidget::newFileRequested, this, &MainWindow::newFileInDirectory);
+  connect(sidebar_, &SidebarWidget::newFolderRequested, this, &MainWindow::newFolderInDirectory);
   QObject::connect(window.sidebar_, &SidebarWidget::panelChanged, &window,
       [&window](SidebarWidget::Panel panel) {
         if (panel == SidebarWidget::Panel::Outline) {

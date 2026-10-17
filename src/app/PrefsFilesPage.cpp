@@ -227,8 +227,8 @@ void muffin::PrefsFilesPage::retranslateUi() {
     const int cur = startupCombo_->currentIndex();
     startupCombo_->blockSignals(true);
     startupCombo_->clear();
-    startupCombo_->addItem(tr("Open new file"));
-    startupCombo_->addItem(tr("Reopen last file"));
+    startupCombo_->addItem(tr("Always start fresh"));
+    startupCombo_->addItem(tr("Restore previous session"));
     polishComboBox(startupCombo_);
     startupCombo_->setCurrentIndex(qBound(0, cur, startupCombo_->count() - 1));
     startupCombo_->blockSignals(false);
@@ -307,7 +307,7 @@ void muffin::PrefsFilesPage::retranslateUi() {
 void muffin::PrefsFilesPage::loadSettings() {
   QSettings settings;
 
-  const int startup = settings.value(QStringLiteral("files/startupBehavior"), 0).toInt();
+  const int startup = settings.value(QStringLiteral("files/startupBehavior"), 1).toInt();
   if (startupCombo_->count() > 0) {
     startupCombo_->blockSignals(true);
     startupCombo_->setCurrentIndex(qBound(0, startup, startupCombo_->count() - 1));

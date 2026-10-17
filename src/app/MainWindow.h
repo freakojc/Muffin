@@ -61,9 +61,8 @@ public:
   // and the entry point for the command-line --folder argument and the
   // Explorer "Open with Muffin" directory verb.
   void openFolderAtPath(QString path);
-  // Honor the "files/startupBehavior" preference when the app is launched
-  // without a file argument: reopen the most-recently-used file, or leave the
-  // default empty document. Called from main() so a command-line file still wins.
+  // Restore the actual open tabs/workspace, independently of recent-file history.
+  // Command-line files/folders and recovered drafts take precedence.
   void restoreStartupFile();
   // Offer to restore unsaved drafts left by a previous (crashed/closed-unsaved)
   // session. Returns true if at least one draft was restored. Called from main()
@@ -105,6 +104,9 @@ private:
   void updateTabLabel(DocumentTab* tab);
   void setupTabButton(DocumentTab* tab);
   void updateTabBarVisibility();
+  void saveSessionState();
+  void scheduleSessionSave();
+  void closeFolder();
   void retranslateTabs();
   void configureTab(DocumentTab* tab);
   QList<DocumentTab*> documentTabs() const;
@@ -356,6 +358,8 @@ private:
   int sidebarTargetWidth_ = 260;
   QTimer* wordCountTimer_ = nullptr;
   QTimer* outlineTimer_ = nullptr;
+  QTimer* sessionSaveTimer_ = nullptr;
+  bool sessionUpdatesPaused_ = true;
   QMenu* recentFilesMenu_ = nullptr;
   QMenu* reopenEncodingMenu_ = nullptr;
   QMenu* themesMenu_ = nullptr;

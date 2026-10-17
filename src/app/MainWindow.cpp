@@ -105,6 +105,11 @@ muffin::MainWindow::MainWindow(QWidget* parent)
   setupMenuBar();
   setupStatusBar();
   setupConnections();
+  sessionSaveTimer_ = new QTimer(this);
+  sessionSaveTimer_->setSingleShot(true);
+  sessionSaveTimer_->setInterval(100);
+  connect(sessionSaveTimer_, &QTimer::timeout, this, &MainWindow::saveSessionState);
+  connect(tabs_->tabBar(), &QTabBar::tabMoved, this, &MainWindow::scheduleSessionSave);
   connect(&draftWriter_, &DraftSnapshotWriter::snapshotFinished, this,
           [this](const QString& key, quint64 revision, bool saved) {
     if (!saved) return;
@@ -120,6 +125,7 @@ muffin::MainWindow::MainWindow(QWidget* parent)
   // disabled an extension.
   tab_->session.setParseOptions(markdownParseOptions());
   muffin::UpdateChecker::instance().maybeAutoCheck();
+  sessionUpdatesPaused_ = false;
 }
 
 muffin::MainWindow::~MainWindow() {
@@ -135,6 +141,9 @@ muffin::MainWindow::~MainWindow() {
 
 void muffin::MainWindow::closeEvent(QCloseEvent* event) {
   const QScopedValueRollback<bool> switchGuard(suppressSaveOnTabSwitch_, true);
+  // Prompting visits every page; those temporary activations must not replace
+  // the user's active tab in the persisted session, including on Cancel.
+  const QScopedValueRollback<bool> sessionGuard(sessionUpdatesPaused_, true);
   DocumentTab* original = tab_;
   for (DocumentTab* document : documentTabs()) {
     tabs_->setCurrentWidget(document);
@@ -147,6 +156,9 @@ void muffin::MainWindow::closeEvent(QCloseEvent* event) {
     }
   }
   QSettings settings;
+  tabs_->setCurrentWidget(original);
+  sessionUpdatesPaused_ = false;
+  saveSessionState();
   settings.setValue(QStringLiteral("window/geometry"), saveGeometry());
   for (DocumentTab* document : documentTabs()) {
     document->autoSaveTimer->stop();
@@ -459,7 +471,10 @@ void muffin::MainWindow::setSidebarPanel(SidebarWidget::Panel panel) {
 }
 
 void muffin::MainWindow::refreshSidebarDocumentInfo() {
-  if (!sidebar_) {
+  // Restoration selects its final document before restoring folder expansion.
+  // Save/close prompts also visit tabs temporarily; neither should reveal files
+  // or change the user's folder state during those intermediate activations.
+  if (!sidebar_ || sessionUpdatesPaused_) {
     return;
   }
   sidebar_->setCurrentDocument(tab_->session.displayName(), tab_->session.filePath(), tab_->session.document().isModified());

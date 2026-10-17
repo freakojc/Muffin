@@ -314,25 +314,40 @@ QString muffin::MainWindow::defaultSaveDirectory() const {
 }
 
 void muffin::MainWindow::restoreStartupFile() {
-  // files/startupBehavior: 0 = open new file, 1 = reopen last file.
+  // 0 = always start fresh, 1 = restore the actual previous session (default).
   QSettings settings;
-  if (settings.value(QStringLiteral("files/startupBehavior"), 0).toInt() != 1) {
-    return;  // default empty document is already in place
+  if (settings.value(QStringLiteral("files/startupBehavior"), 1).toInt() != 1) return;
+  const auto snapshot = settings.value(QStringLiteral("session/window")).toMap();
+  if (snapshot.value(QStringLiteral("version")).toInt() != 1) return;
+  {
+    const QScopedValueRollback<bool> guard(sessionUpdatesPaused_, true);
+    // Explicitly suppress the automatic parent-folder fallback: an empty saved
+    // workspace means the user closed it, even if some files remain open.
+    sidebar_->setFolderRoot({});
+    const QString folder = snapshot.value(QStringLiteral("folder")).toString();
+    if (QFileInfo(folder).isDir()) openFolderAtPath(folder);
+    const QStringList files = snapshot.value(QStringLiteral("files")).toStringList();
+    const int active = snapshot.value(QStringLiteral("active"), -1).toInt();
+    DocumentTab* selected = nullptr;
+    bool restoredAny = false;
+    for (int i = 0; i < files.size(); ++i) {
+      const QString& path = files[i];
+      if (path.isEmpty()) {
+        if (restoredAny) startNewDocument();
+      } else {
+        const QFileInfo info(path);
+        if (!info.isFile() || !info.isReadable()) continue;
+        if (restoredAny && tab_->session.filePath().isEmpty()) startNewDocument();
+        if (!openFile(path)) continue;
+      }
+      restoredAny = true;
+      if (i == active) selected = tab_;
+    }
+    if (selected) tabs_->setCurrentWidget(selected);
   }
-
-  const QStringList recent = recentFiles();
-  if (recent.isEmpty()) {
-    return;
-  }
-
-  const QString path = recent.first();
-  // A stale entry (file deleted/moved since it was recorded) must not pop an
-  // "Open Failed" error at launch; just fall back to the empty document.
-  if (!QFileInfo(path).isFile()) {
-    return;
-  }
-
-  openFile(path);
+  refreshSidebarDocumentInfo();
+  sidebar_->restoreExpandedFolders(snapshot.value(QStringLiteral("expanded")).toStringList());
+  saveSessionState();
 }
 
 void muffin::MainWindow::showDocumentProperties() {
@@ -1018,10 +1033,18 @@ void muffin::MainWindow::showInSidebar() {
   if (tab_->session.filePath().isEmpty()) {
     return;
   }
+  const QString path = tab_->session.filePath();
+  const QString root = sidebar_->folderRoot();
+  const QString relative = QDir(root).relativeFilePath(path);
+  if (root.isEmpty() || relative == QStringLiteral("..") || relative.startsWith(QStringLiteral("../")) ||
+      QDir::isAbsolutePath(relative)) {
+    openFolderAtPath(QFileInfo(path).absolutePath());
+  }
   setSidebarPanel(SidebarWidget::Panel::Files);
   sidebar_->setCurrentDocument(
       tab_->session.displayName(), tab_->session.filePath(),
       tab_->session.document().isModified());
+  sidebar_->setCurrentPath(path);
 }
 
 void muffin::MainWindow::deleteFile() {
@@ -1096,6 +1119,8 @@ void muffin::MainWindow::deleteFile() {
 // in FilePathOps; here we only prompt + integrate with the editor/sidebar.
 
 void muffin::MainWindow::openFolderAtPath(QString path) {
+  if (!QFileInfo(path).isDir()) return;
+  path = QFileInfo(path).absoluteFilePath();
   const QString openedPath = path;  // capture before the move, for recent-folders recording
   sidebarFolderRoot_ = std::move(path);
   if (sidebar_) {
@@ -1103,6 +1128,7 @@ void muffin::MainWindow::openFolderAtPath(QString path) {
     setSidebarPanel(SidebarWidget::Panel::Files);
   }
   addRecentFolder(openedPath);
+  saveSessionState();
 }
 
 void muffin::MainWindow::openFileInNewWindow(QString path) {

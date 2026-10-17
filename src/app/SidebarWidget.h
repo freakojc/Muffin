@@ -9,6 +9,7 @@
 #include <QPoint>
 #include <QPointer>
 #include <QSet>
+#include <QQueue>
 #include <QWidget>
 
 class QFileSystemModel;
@@ -16,6 +17,8 @@ class QLabel;
 class QStackedWidget;
 class QToolButton;
 class QTreeView;
+class QTimer;
+class QAction;
 
 namespace muffin {
 
@@ -53,6 +56,10 @@ public:
   void setCurrentDocument(QString displayName, QString filePath, bool modified);
   void setFolderRoot(QString path);
   QString folderRoot() const;
+  QStringList expandedFolders() const;
+  void restoreExpandedFolders(const QStringList& paths);
+  void expandAllFolders();
+  void collapseAllFolders();
   // Select and scroll to a path after create/rename. Expands ancestors first so a
   // fresh entry in a never-expanded folder resolves to a valid index.
   void setCurrentPath(QString path);
@@ -76,6 +83,10 @@ signals:
   void panelChanged(muffin::SidebarWidget::Panel panel);
   void newWindowRequested();
   void openFolderRequested();
+  void closeFolderRequested();
+  void newFileRequested(QString directory);
+  void newFolderRequested(QString directory);
+  void folderStateChanged();
   void fileOpenRequested(QString path);
   // Right-click on the file tree. `path` is the clicked file/dir, or the folder
   // root when the click landed on empty space. `isDir` says which. `onItem` is
@@ -91,6 +102,10 @@ signals:
 private:
   void changeEvent(QEvent* event) override;
   void setupFilesPanel();
+  void updateFolderControls();
+  void processFolderExpansions();
+  void queueFolderExpansion(const QString& path);
+  QString selectedDirectory() const;
   void setupOutlinePanel();
   void updateTabButtons();
   void applyStyle();
@@ -117,6 +132,21 @@ private:
   QWidget* outlinePanel_ = nullptr;
   QFileSystemModel* fileModel_ = nullptr;
   QTreeView* fileTree_ = nullptr;
+  QLabel* filesEmptyLabel_ = nullptr;
+  QLabel* folderLabel_ = nullptr;
+  QToolButton* newFileButton_ = nullptr;
+  QToolButton* newFolderButton_ = nullptr;
+  QToolButton* expandFoldersButton_ = nullptr;
+  QToolButton* collapseFoldersButton_ = nullptr;
+  QToolButton* folderMenuButton_ = nullptr;
+  QAction* openFolderAction_ = nullptr;
+  QAction* closeFolderAction_ = nullptr;
+  QTimer* folderExpansionTimer_ = nullptr;
+  QQueue<QString> folderExpansionQueue_;
+  QSet<QString> queuedFolderExpansions_;
+  QSet<QString> expandedFolderPaths_;
+  bool expandAllPending_ = false;
+  bool folderExplicitlyClosed_ = false;
   QTreeView* outlineTree_ = nullptr;
   OutlineModel* outlineModel_ = nullptr;
   QLabel* outlineEmptyLabel_ = nullptr;

@@ -326,5 +326,11 @@ void muffin::MainWindow::buildSidebarContextMenu(QString path, bool isDir, bool 
     add(tr("Reveal in File Manager"), [this, path] { revealPathInManager(path); });
   }
 
+  if (!sidebar_->folderRoot().isEmpty()) {
+    menu.addSeparator();
+    add(muffin::SidebarWidget::tr("Expand All Folders"), [this] { sidebar_->expandAllFolders(); });
+    add(muffin::SidebarWidget::tr("Collapse All Folders"), [this] { sidebar_->collapseAllFolders(); });
+    add(muffin::SidebarWidget::tr("Close Folder"), [this] { closeFolder(); });
+  }
   menu.exec(globalPos);
 }
