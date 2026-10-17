@@ -5,6 +5,8 @@
 #include "document/LineStartOffsetCache.h"
 #include "document/PendingBlockMarker.h"
 #include "parser/CmarkNodeAdapter.h"
+#include "parser/CmarkParseAllocator.h"
+#include "parser/CmarkRuntime.h"
 #include "parser/MarkdownSerializer.h"
 #include "diagnostics/ProcessMemory.h"
 #include "diagnostics/OpenPerformance.h"
@@ -1632,16 +1634,20 @@ ParseResult CmarkGfmParser::parseDocumentImpl(QStringView markdown, const ParseO
     ParsePerfTimer t("parse.scanDefinitions", metrics);
     definitions = scanDefinitionBlocks(markdownToParse);
   }
-  cmark_parser* parser = nullptr;
-  cmark_node* document = nullptr;
+  // Destruction order is tree -> parser -> scope -> allocator. The guards also
+  // cover early exits/unwinding; no cmark allocation can outlive its pool.
+  CmarkParseAllocator allocator;
+  CmarkParseAllocator::Scope allocationScope(allocator);
+  std::unique_ptr<cmark_parser, decltype(&cmark_parser_free)> parser(nullptr, cmark_parser_free);
+  std::unique_ptr<cmark_node, decltype(&cmark_node_free)> document(nullptr, cmark_node_free);
   {
     ParsePerfTimer t("parse.cmark", metrics);
-    parser = cmark_parser_new(CMARK_OPT_DEFAULT | CMARK_OPT_FOOTNOTES);
-    attachExtensions(parser, options);
-    cmark_parser_feed(parser, utf8.constData(), static_cast<size_t>(utf8.size()));
-    document = cmark_parser_finish(parser);
+    parser.reset(cmark_parser_new_with_mem(CMARK_OPT_DEFAULT | CMARK_OPT_FOOTNOTES, allocator.memory()));
+    attachExtensions(parser.get(), options);
+    cmark_parser_feed(parser.get(), utf8.constData(), static_cast<size_t>(utf8.size()));
+    document.reset(finishCmarkParse(parser.get()));
   }
-  // cmark dups every literal (cmark_chunk_dup) into its own arena during feed/finish, so `utf8` is
+  // cmark owns the literals needed after feed/finish, so `utf8` is
   // never referenced again — not by convertBlock (it walks the cmark tree) nor by any later pass.
   // Drop it now instead of carrying ~1x the document through the whole parse tail. On a large file
   // this buffer surviving until function return is a big slice of the open-time memory peak.
@@ -1660,7 +1666,7 @@ ParseResult CmarkGfmParser::parseDocumentImpl(QStringView markdown, const ParseO
     CmarkNodeAdapter::resetPerfCounters();
     LineStartOffsetCache::setByteColPerfEnabled(perf);
     LineStartOffsetCache::resetByteColPerf();
-    result.root = adapter.convertBlock(document);
+    result.root = adapter.convertBlock(document.get());
     CmarkNodeAdapter::setPerfEnabled(false);
     LineStartOffsetCache::setByteColPerfEnabled(false);
     CmarkNodeAdapter::dumpConvertBreakdown();
@@ -1670,16 +1676,13 @@ ParseResult CmarkGfmParser::parseDocumentImpl(QStringView markdown, const ParseO
   }
   // The Muffin tree (result.root) is fully built; every remaining pass reads only it +
   // markdownToParse + lineOffsets — never the cmark tree. Free document + parser here instead of
-  // carrying them through ~15 annotation passes (previously freed at function return). On a large
-  // file this drops roughly the document's worth of UTF-8 again from the peak window, exactly when
-  // the Muffin tree (which re-holds the same text as UTF-16) is at its largest.
+  // carrying them and any spare pool pages through the annotation passes.
   {
     diag::OpenPerfScope freeScope("parse.release_cmark");
-    cmark_node_free(document);
-    cmark_parser_free(parser);
+    document.reset();
+    parser.reset();
+    allocator.trim();
   }
-  document = nullptr;
-  parser = nullptr;
   {
     ParsePerfTimer t("parse.insertVirtualEmptyParagraphs", metrics);
     insertVirtualEmptyParagraphs(markdownToParse, *result.root, lineOffsets);

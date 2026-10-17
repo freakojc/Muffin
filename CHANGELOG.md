@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Extend imported theme support with Typora-compatible content nodes and Markdown semantic classes, `@supports` queries, generated content and scoped CSS counters.
+- Extend imported CSS theme support with semantic content nodes and Markdown classes, `@supports` queries, generated content and scoped CSS counters.
 - Support layered background resources, `space`/`round` tiling, blend modes, masks, filters and bounded positioning through shared native rendering. Add a theme compatibility report tool and pinned VLOOK/browser regression fixtures.
 - Map local `@font-face` aliases, weights, italic faces and ordered multilingual fallbacks to isolated font identities, with fixed-font geometry coverage.
 

@@ -198,6 +198,46 @@ void testFootnoteDefinitionsRemainInSourceOrder() {
           QStringLiteral("Footnote sibling order should follow source order"));
 }
 
+void testCrossReferencedFootnotesKeepLabels() {
+  CmarkGfmParser parser;
+  const QString markdown = QStringLiteral(
+      "[^a] &#94; &amp; [^b].\n\n"
+      "| a | b |\n|---|---|\n| [^a] | x |\n\n"
+      "[^b]: Other [^a].\n\n"
+      "[^b]: Other [^a].\n\n"
+      "`[^code]` \\[^escaped].\n\n"
+      "[^b]: Other [^a].\n\n"
+      "[^a]: Note **bold**.\n");
+  const auto checkInlines = [&](const auto& self, const QVector<InlineNode>& inlines) -> int {
+    int references = 0;
+    for (const auto& node : inlines) {
+      if (node.type() == InlineType::FootnoteReference) {
+        const bool first = node.text() == QStringLiteral("1");
+        require(node.href() == (first ? QStringLiteral("#fn:a") : QStringLiteral("#fn:b")),
+                "Footnote references must retain labels of previously consumed definitions");
+        require(node.text() == QStringLiteral("1") || node.text() == QStringLiteral("2"),
+                "Cross-referenced footnote ordinal changed");
+        const QString source = markdown.mid(node.sourceStart(), node.sourceEnd() - node.sourceStart());
+        require(source == (first ? QStringLiteral("[^a]") : QStringLiteral("[^b]")),
+                "Cross-referenced footnote source coordinates changed");
+        ++references;
+      }
+      references += self(self, node.children());
+    }
+    return references;
+  };
+  const auto countReferences = [&](const auto& self, const MarkdownNode& node) -> int {
+    int count = checkInlines(checkInlines, node.inlines());
+    for (const auto& child : node.children()) count += self(self, *child);
+    return count;
+  };
+  for (int repeat = 0; repeat < 20; ++repeat) {
+    const auto parsed = parser.parseDocument(markdown, {});
+    require(parsed.root && countReferences(countReferences, *parsed.root) >= 4,
+            "Cross-referenced footnote fixture lost references");
+  }
+}
+
 void testDenseDefinitionsRetainSourceOrderAndTypes() {
   constexpr int definitionCount = 512;
   QString markdown;
@@ -394,6 +434,7 @@ int main(int argc, char** argv) {
   testDefinitionSerializationRebuildsParenthesizedTitleShape();
   testMultiLineFootnoteKeepsCmarkRange();
   testFootnoteDefinitionsRemainInSourceOrder();
+  testCrossReferencedFootnotesKeepLabels();
   testDenseDefinitionsRetainSourceOrderAndTypes();
   testIndentedDefinitionsAreNotDuplicated();
   testDefinitionCommonMarkBoundaryMatrix();

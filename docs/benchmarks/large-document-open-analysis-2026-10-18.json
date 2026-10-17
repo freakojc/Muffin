@@ -1,0 +1,591 @@
+{
+  "date": "2026-10-18",
+  "scope": "Current public-API allocator revision; standalone Release Core stage study, not GUI opening acceptance.",
+  "input": {
+    "bytes": 1073741824,
+    "utf16_units": 912891904,
+    "path": "build/stress-1g-20261017/muffin-mixed-1gib.md",
+    "sha256": "6a4fd4c4f47be52d284008adc87586a5f6df90277e62bd37d2b36d677b7ef16a"
+  },
+  "pins": {
+    "G:\\github\\Muffin\\build\\large-document-open-analysis-20261018\\ProductParseStudy.exe": "74e922b20f6c4ca996a7ae124543980a405d7996a475a3932b40206d7eb35564",
+    "G:\\github\\Muffin\\build\\Release\\MuffinCore.dll": "77300c94b4f748231bbb303df7649d34fce0a8fdf619302a5e762cca497d81a4",
+    "G:\\github\\Muffin\\build\\large-document-open-analysis-20261018\\probe.cpp": "10fe34feb66de2c27b3dcb7758b1b2e50f01ce1fb00d123e6d734231ef49682e"
+  },
+  "read_decode_release_ms": {
+    "samples": [
+      942.1992,
+      1073.8517,
+      1088.7552
+    ],
+    "median": 1073.8517,
+    "min": 942.1992,
+    "max": 1088.7552
+  },
+  "parse_ms": {
+    "samples": [
+      23387.5464,
+      23681.8049,
+      23692.8997
+    ],
+    "median": 23681.8049,
+    "min": 23387.5464,
+    "max": 23692.8997
+  },
+  "parse_phases_ms": {
+    "parse.frontMatter": {
+      "samples": [
+        0.0013,
+        0.0018,
+        0.0021
+      ],
+      "median": 0.0018,
+      "min": 0.0013,
+      "max": 0.0021
+    },
+    "parse.toUtf8": {
+      "samples": [
+        622.2017,
+        585.118,
+        610.4669
+      ],
+      "median": 610.4669,
+      "min": 585.118,
+      "max": 622.2017
+    },
+    "parse.scanDefinitions": {
+      "samples": [
+        435.9553,
+        404.0199,
+        421.8187
+      ],
+      "median": 421.8187,
+      "min": 404.0199,
+      "max": 435.9553
+    },
+    "parse.cmark": {
+      "samples": [
+        5708.7494,
+        5593.409,
+        5640.8586
+      ],
+      "median": 5640.8586,
+      "min": 5593.409,
+      "max": 5708.7494
+    },
+    "parse.lineOffsets": {
+      "samples": [
+        1340.1224,
+        1350.2563,
+        1347.0034
+      ],
+      "median": 1347.0034,
+      "min": 1340.1224,
+      "max": 1350.2563
+    },
+    "parse.convertBlock": {
+      "samples": [
+        10185.1282,
+        10581.3987,
+        10300.7116
+      ],
+      "median": 10300.7116,
+      "min": 10185.1282,
+      "max": 10581.3987
+    },
+    "parse.insertVirtualEmptyParagraphs": {
+      "samples": [
+        917.1162,
+        1039.955,
+        965.3858
+      ],
+      "median": 965.3858,
+      "min": 917.1162,
+      "max": 1039.955
+    },
+    "parse.annotateSourceOffsets": {
+      "samples": [
+        291.2221,
+        300.8988,
+        292.4498
+      ],
+      "median": 292.4498,
+      "min": 291.2221,
+      "max": 300.8988
+    },
+    "parse.annotateMathDelimiters": {
+      "samples": [
+        162.5929,
+        170.886,
+        171.4823
+      ],
+      "median": 170.886,
+      "min": 162.5929,
+      "max": 171.4823
+    },
+    "parse.annotateAlertKinds": {
+      "samples": [
+        276.4939,
+        269.3844,
+        272.4469
+      ],
+      "median": 272.4469,
+      "min": 269.3844,
+      "max": 276.4939
+    },
+    "parse.splitStrikethrough": {
+      "samples": [
+        1005.3896,
+        979.1123,
+        1095.1202
+      ],
+      "median": 1005.3896,
+      "min": 979.1123,
+      "max": 1095.1202
+    },
+    "parse.insertVEPInBlockQuotes": {
+      "samples": [
+        175.2275,
+        172.0492,
+        180.438
+      ],
+      "median": 175.2275,
+      "min": 172.0492,
+      "max": 180.438
+    },
+    "parse.insertVEPInLists": {
+      "samples": [
+        210.1315,
+        212.0114,
+        209.153
+      ],
+      "median": 210.1315,
+      "min": 209.153,
+      "max": 212.0114
+    },
+    "parse.insertMissingDefinitions": {
+      "samples": [
+        0.0002,
+        0.0003,
+        0.0002
+      ],
+      "median": 0.0002,
+      "min": 0.0002,
+      "max": 0.0003
+    },
+    "parse.annotateDefinitionBlocks": {
+      "samples": [
+        0.0002,
+        0.0002,
+        0.0002
+      ],
+      "median": 0.0002,
+      "min": 0.0002,
+      "max": 0.0002
+    },
+    "parse.insertTrailingVEPAfterDefinition": {
+      "samples": [
+        0,
+        0,
+        0.0001
+      ],
+      "median": 0,
+      "min": 0,
+      "max": 0.0001
+    },
+    "parse.restoreTopLevelSourceOrder": {
+      "samples": [
+        46.3036,
+        45.7397,
+        75.7199
+      ],
+      "median": 46.3036,
+      "min": 45.7397,
+      "max": 75.7199
+    },
+    "parse.annotateTableCellRanges": {
+      "samples": [
+        644.458,
+        618.6724,
+        643.7192
+      ],
+      "median": 643.7192,
+      "min": 618.6724,
+      "max": 644.458
+    },
+    "parse.demoteListMarkers": {
+      "samples": [
+        221.4705,
+        215.0278,
+        204.5293
+      ],
+      "median": 215.0278,
+      "min": 204.5293,
+      "max": 221.4705
+    },
+    "parse.demoteEmptyBlockQuotes": {
+      "samples": [
+        216.531,
+        193.5421,
+        199.0096
+      ],
+      "median": 199.0096,
+      "min": 193.5421,
+      "max": 216.531
+    }
+  },
+  "session_preparation_ms": {
+    "bind_ms": {
+      "samples": [
+        640.8396,
+        646.8537,
+        679.533
+      ],
+      "median": 646.8537,
+      "min": 640.8396,
+      "max": 679.533
+    },
+    "relative_ms": {
+      "samples": [
+        772.1385,
+        777.9184,
+        882.307
+      ],
+      "median": 777.9184,
+      "min": 772.1385,
+      "max": 882.307
+    },
+    "pending_markers_ms": {
+      "samples": [
+        23735.7626,
+        19409.5205,
+        18484.1448
+      ],
+      "median": 19409.5205,
+      "min": 18484.1448,
+      "max": 23735.7626
+    },
+    "text_index_ms": {
+      "samples": [
+        6843.0874,
+        6798.2322,
+        6866.3719
+      ],
+      "median": 6843.0874,
+      "min": 6798.2322,
+      "max": 6866.3719
+    }
+  },
+  "peak_sampled_private_bytes": {
+    "samples": [
+      12764913664,
+      12764844032,
+      12764860416
+    ],
+    "median": 12764860416,
+    "min": 12764844032,
+    "max": 12764913664
+  },
+  "peak_sampled_working_set_bytes": {
+    "samples": [
+      10671198208,
+      10723991552,
+      10728701952
+    ],
+    "median": 10723991552,
+    "min": 10671198208,
+    "max": 10728701952
+  },
+  "census": {
+    "blocks": 6130690,
+    "inlines": 7088129,
+    "shared_inlines": 5746688,
+    "block_types": {
+      "0": 1,
+      "1": 2108417,
+      "10": 191488,
+      "11": 191488,
+      "12": 574464,
+      "13": 1148928,
+      "2": 192512,
+      "3": 191488,
+      "4": 382976,
+      "5": 957440,
+      "8": 191488
+    },
+    "diagnostics": 0,
+    "ast_sha256": "cca733508180553918662caed1c4c004ef76ea67dfcd12d0ec6f6858122e452a"
+  },
+  "indexes": {
+    "lines": 7282689,
+    "words": 124482560,
+    "pending_markers": 0
+  },
+  "candidate": {
+    "scope": "One full-file exploratory parse; three collector-only timings on the same AST; no product modification.",
+    "record": {
+      "name": "1024MiB-marker-candidate-r1",
+      "code": 0,
+      "reason": "exited",
+      "events": [
+        {
+          "details": false,
+          "event": "prepared",
+          "input_bytes": 1073741824,
+          "read_decode_release_ms": 952.144,
+          "utf16_units": 912891904
+        },
+        {
+          "adapter_profiles": [],
+          "ast_sha256": "",
+          "block_types": {
+            "0": 1,
+            "1": 2108417,
+            "10": 191488,
+            "11": 191488,
+            "12": 574464,
+            "13": 1148928,
+            "2": 192512,
+            "3": 191488,
+            "4": 382976,
+            "5": 957440,
+            "8": 191488
+          },
+          "blocks": 6130690,
+          "details": false,
+          "diagnostics": 0,
+          "event": "parsed",
+          "inlines": 7088129,
+          "input_bytes": 1073741824,
+          "open_scope_logs": [
+            "parse.frontMatter 0.0082 ms 1842655232",
+            "parse.toUtf8 595.189 ms 2916413440",
+            "parse.scanDefinitions 424.555 ms 2916413440",
+            "parse.cmark 5751.7 ms 10739716096",
+            "parse.lineOffsets 1338.9 ms 9731543040",
+            "parse.convertBlock 10362.8 ms 4320514048",
+            "parse.release_cmark 1.2836 ms 4318081024",
+            "parse.insertVirtualEmptyParagraphs 967.274 ms 4318089216",
+            "parse.annotateSourceOffsets 312.861 ms 4318089216",
+            "parse.annotateMathDelimiters 169.441 ms 4318089216",
+            "parse.annotateAlertKinds 264.604 ms 4318089216",
+            "parse.splitStrikethrough 1000.43 ms 4318146560",
+            "parse.insertVEPInBlockQuotes 184.892 ms 4318150656",
+            "parse.insertVEPInLists 213.588 ms 4318150656",
+            "parse.insertMissingDefinitions 0.0009 ms 4318150656",
+            "parse.annotateDefinitionBlocks 0.0006 ms 4318150656",
+            "parse.insertTrailingVEPAfterDefinition 0.0012 ms 4318150656",
+            "parse.restoreTopLevelSourceOrder 48.5238 ms 4318150656",
+            "parse.annotateTableCellRanges 667.23 ms 4318162944",
+            "parse.demoteListMarkers 221.909 ms 4318167040",
+            "parse.demoteEmptyBlockQuotes 219.216 ms 4318167040",
+            "parse.total 23716.1 ms 4252581888"
+          ],
+          "parse_metrics_ms": 23713.9925,
+          "phases": [
+            {
+              "ms": 0.0014,
+              "name": "parse.frontMatter",
+              "working_set": 1842651136
+            },
+            {
+              "ms": 595.1809,
+              "name": "parse.toUtf8",
+              "working_set": 2916413440
+            },
+            {
+              "ms": 424.5456,
+              "name": "parse.scanDefinitions",
+              "working_set": 2916413440
+            },
+            {
+              "ms": 5751.6914,
+              "name": "parse.cmark",
+              "working_set": 10739716096
+            },
+            {
+              "ms": 1338.8953,
+              "name": "parse.lineOffsets",
+              "working_set": 9731543040
+            },
+            {
+              "ms": 10362.7711,
+              "name": "parse.convertBlock",
+              "working_set": 4320514048
+            },
+            {
+              "ms": 967.2657,
+              "name": "parse.insertVirtualEmptyParagraphs",
+              "working_set": 4318089216
+            },
+            {
+              "ms": 312.8529,
+              "name": "parse.annotateSourceOffsets",
+              "working_set": 4318089216
+            },
+            {
+              "ms": 169.4338,
+              "name": "parse.annotateMathDelimiters",
+              "working_set": 4318089216
+            },
+            {
+              "ms": 264.5992,
+              "name": "parse.annotateAlertKinds",
+              "working_set": 4318089216
+            },
+            {
+              "ms": 1000.4218,
+              "name": "parse.splitStrikethrough",
+              "working_set": 4318146560
+            },
+            {
+              "ms": 184.885,
+              "name": "parse.insertVEPInBlockQuotes",
+              "working_set": 4318150656
+            },
+            {
+              "ms": 213.5776,
+              "name": "parse.insertVEPInLists",
+              "working_set": 4318150656
+            },
+            {
+              "ms": 0.0002,
+              "name": "parse.insertMissingDefinitions",
+              "working_set": 4318150656
+            },
+            {
+              "ms": 0.0002,
+              "name": "parse.annotateDefinitionBlocks",
+              "working_set": 4318150656
+            },
+            {
+              "ms": 0,
+              "name": "parse.insertTrailingVEPAfterDefinition",
+              "working_set": 4318150656
+            },
+            {
+              "ms": 48.5161,
+              "name": "parse.restoreTopLevelSourceOrder",
+              "working_set": 4318150656
+            },
+            {
+              "ms": 667.224,
+              "name": "parse.annotateTableCellRanges",
+              "working_set": 4318162944
+            },
+            {
+              "ms": 221.9003,
+              "name": "parse.demoteListMarkers",
+              "working_set": 4318167040
+            },
+            {
+              "ms": 219.2097,
+              "name": "parse.demoteEmptyBlockQuotes",
+              "working_set": 4318167040
+            }
+          ],
+          "shared_inlines": 5746688,
+          "utf16_units": 912891904,
+          "wall_ms": 23716.1158,
+          "working_set_after_census": 4252594176
+        },
+        {
+          "event": "candidate_markers",
+          "markers": 0,
+          "ms": 262.4812,
+          "offsets_equal": true,
+          "repeat": 1
+        },
+        {
+          "event": "candidate_markers",
+          "markers": 0,
+          "ms": 250.6871,
+          "offsets_equal": true,
+          "repeat": 2
+        },
+        {
+          "event": "candidate_markers",
+          "markers": 0,
+          "ms": 273.1767,
+          "offsets_equal": true,
+          "repeat": 3
+        },
+        {
+          "bind_ms": 699.0223,
+          "event": "prepared_session_data",
+          "lines": 7282689,
+          "pending_markers": 0,
+          "pending_markers_ms": 21524.6989,
+          "relative_ms": 750.94,
+          "text_index_ms": 6799.433,
+          "words": 124482560,
+          "working_set": 5307703296
+        },
+        {
+          "ast_release_ms": 1684.6489,
+          "event": "released",
+          "working_set": 2919964672
+        }
+      ],
+      "peak_private_bytes": 12764897280,
+      "peak_working_set_bytes": 10734579712
+    },
+    "pins": {
+      "G:\\github\\Muffin\\build\\large-document-open-analysis-20261018\\MarkerCandidateStudy.exe": "289dbdb8f7cb1f50cdfdafb005004be6783d81f25751d3fd236ae87ebfb637a7",
+      "G:\\github\\Muffin\\build\\Release\\MuffinCore.dll": "77300c94b4f748231bbb303df7649d34fce0a8fdf619302a5e762cca497d81a4",
+      "G:\\github\\Muffin\\build\\large-document-open-analysis-20261018\\probe.cpp": "10fe34feb66de2c27b3dcb7758b1b2e50f01ce1fb00d123e6d734231ef49682e"
+    },
+    "candidate_ms": {
+      "samples": [
+        262.4812,
+        250.6871,
+        273.1767
+      ],
+      "median": 262.4812,
+      "min": 250.6871,
+      "max": 273.1767
+    }
+  },
+  "historical_gui_reference": {
+    "date": "2026-10-17",
+    "path": "build/stress-1g-20261017/open-timeline-analysis.json",
+    "open_to_first_qt_paint_ms": 83301.6117,
+    "view_preparation_ms": 21632.2,
+    "layout_skeleton_other_run_ms": 16990,
+    "warning": "Pre-allocator historical GUI data; do not subtract current isolated-stage improvements from it."
+  },
+  "verification": {
+    "first_full_ast_fingerprint_matches_historical": true,
+    "all_node_censuses_equal": true,
+    "candidate_marker_arrays_equal": true,
+    "product_dll_unchanged": true,
+    "product_code_changed_this_round": false,
+    "full_tests_rerun_this_round": false,
+    "previous_full_suite": "341/341 (490.99 seconds)",
+    "candidate_exact_current_source_plus_documented_gate": true,
+    "release_dist_binaries_equal": true
+  },
+  "source_sha256": {
+    "src/parser/CmarkGfmParser.cpp": "96bd99933a1d74cb065933c2884af6f59f65c13dccb16a5725066512de1cf433",
+    "src/parser/CmarkNodeAdapter.cpp": "f887930921b8addb3ce805d25b3a4d041a3a251b23444a421f40dffdf6f7d14c",
+    "src/parser/CmarkParseAllocator.cpp": "92a61298876b8c1283407568060869944f9b025042a7173cfeab62b41565afd4",
+    "src/parser/CmarkRuntime.cpp": "8b2b682621b92dead8c4b499785a2dfd392d4b5900d88a891c66e7a9a7a63742",
+    "src/document/PendingBlockMarker.cpp": "f74569caa5275cec115a30c647071eb9238f40827dc38573d1ffaa6e40095419",
+    "src/document/PieceTable.cpp": "79bfd21fce229d5538c2c367f4f25742a0df3ea7b1c41e5c9e773236e4ee7903",
+    "src/render/DocumentLayout.cpp": "13fb7042bc41f5db324846905462d8d5fc8380f3f77276778498ed633faea00b",
+    "src/render/BlockHeightEstimator.cpp": "33e0d8a2575f4bbee20afa0c4812f43e140cd347afd9efed7b7234dd2449600d",
+    "src/theme/RenderTheme.cpp": "b8a1e2c464cfde7857cbb7ea3d3167648cf81d1f9edb44917359f197497cbfa4"
+  },
+  "isolated_source_sha256": {
+    "probe.cpp": "10fe34feb66de2c27b3dcb7758b1b2e50f01ce1fb00d123e6d734231ef49682e",
+    "candidate-probe.cpp": "0866cb859397f7c4969d85d692ed72c53c9b42d56d19b21e2ec01efdbe49c391",
+    "collector.cpp": "b36462ddc1b18abe35af5df367c137b69d8b16302d2747763f819e526a043711",
+    "collector.h": "4b37e1258f3decd90774869238c3c0915f5cecdfb6373e92cc6a42bf38486b45",
+    "prepare.py": "bfb168c1e99da35f87eb463a17305b70d0596bc6c853aa68fb473395d0be0ee9",
+    "prepare_candidate.py": "384f7f27a1348d98d78ebd6a5194beaf94ec1f48ffadfb05d5ce4158c3b8e63e",
+    "run.py": "4898ec9eaf6488d21fcd066ecd330039fa073f6f33090164f0e92ae9fe301a5c",
+    "run_candidate.py": "4a5f622cd3ed323b4c95607c252660ea35771182c0463ea646a1b8dca6e2d8b3",
+    "summarize.py": "040f26645e1d343c042656fd0962834f46ea1f6f7fd8180850523dd07ebbd5d3",
+    "validate.py": "c123d805a2e43381a8f39fad67db102a37cc0148531ae614de745cebf8f559b1"
+  }
+}

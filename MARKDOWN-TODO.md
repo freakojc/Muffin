@@ -122,7 +122,7 @@ differential fuzz 门禁。
 
 - [x] 把 `[TOC]` 标记渲染为真实的目录（链接到标题锚点）
 
-**已实现（2026-07-08）：** `buildParagraphLike` 检测 `[TOC]` 段落（build 期，不改 parser），光标不在块内时用 `buildOutline()` 的标题列表合成缩进链接目录（`BlockLayout::isToc_` + `paintToc`），块高 = 行数 × 行高。Ctrl+点击条目命中测试产出 `#toc:<nodeId>` 片段，`EditorView::mousePressEvent` 拦截并 `scrollToNode`。光标进入块时重建为普通段落显示字面 `[TOC]`（Typora 式 live toggle）。测试：`tests/render/TableOfContentsTest.cpp`。不依赖标题 HTML 锚点（用 NodeId 直接跳转）。
+**已实现（2026-07-08）：** `buildParagraphLike` 检测 `[TOC]` 段落（build 期，不改 parser），光标不在块内时用 `buildOutline()` 的标题列表合成缩进链接目录（`BlockLayout::isToc_` + `paintToc`），块高 = 行数 × 行高。Ctrl+点击条目命中测试产出 `#toc:<nodeId>` 片段，`EditorView::mousePressEvent` 拦截并 `scrollToNode`。光标进入块时重建为普通段落显示字面 `[TOC]`（光标进入时展开源码）。测试：`tests/render/TableOfContentsTest.cpp`。不依赖标题 HTML 锚点（用 NodeId 直接跳转）。
 
 ---
 

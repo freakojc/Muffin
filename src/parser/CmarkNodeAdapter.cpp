@@ -255,10 +255,9 @@ std::unique_ptr<MarkdownNode> CmarkNodeAdapter::convertBlock(cmark_node* node) {
     }
   }
 
-  // Iterate block children, converting each then freeing its cmark subtree immediately. cmark is
-  // per-node malloc (NOT arena), so cmark_node_free releases real memory now. Without this the
-  // whole cmark tree overlaps the Muffin tree being built until function return — the dominant
-  // ~800MB slice of the open-time peak on large files. Save `next` BEFORE freeing: cmark_node_free
+  // Convert and free each consumed block subtree, returning allocations to the
+  // parse-local pool (or default allocator) so empty pages can be reclaimed while
+  // the Muffin tree is built. Save `next` BEFORE freeing: cmark_node_free
   // unlinks the node (mutating the sibling/parent chain). A block's inline children were read in
   // Phase 2 above and ride inside its subtree, freed here with it.
   cmark_node* child = cmark_node_first_child(node);
@@ -269,7 +268,12 @@ std::unique_ptr<MarkdownNode> CmarkNodeAdapter::convertBlock(cmark_node* node) {
       result->appendChild(convertBlock(child));
       AccumGuard freeGuard(g_freeNs);
       if (g_adapterPerf) ++g_freeCalls;
-      cmark_node_free(child);
+      // References in later definitions can still read this definition's label
+      // through parent_footnote_def. Keep only its shell until the root is freed;
+      // convertBlock has already released its consumed block children.
+      if (type != CMARK_NODE_FOOTNOTE_DEFINITION) {
+        cmark_node_free(child);
+      }
     }
     child = next;
   }

@@ -924,6 +924,10 @@ set(MUFFIN_CORE_SOURCES
   src/parser/MarkdownParser.h
   src/parser/CmarkNodeAdapter.cpp
   src/parser/CmarkNodeAdapter.h
+  src/parser/CmarkParseAllocator.cpp
+  src/parser/CmarkParseAllocator.h
+  src/parser/CmarkRuntime.cpp
+  src/parser/CmarkRuntime.h
   src/parser/CmarkGfmParser.cpp
   src/parser/CmarkGfmParser.h
   src/parser/MarkdownSerializer.cpp

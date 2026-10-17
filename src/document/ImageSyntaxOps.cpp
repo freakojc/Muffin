@@ -1,5 +1,6 @@
 #include "document/ImageSyntaxOps.h"
 #include "document/LinkSyntaxOps.h"
+#include "parser/CmarkRuntime.h"
 #include "cmark-gfm.h"
 #include "houdini.h"
 
@@ -171,7 +172,7 @@ Image parse(const QString& source) {
     // bracketed or escaped, and labels/titles can contain entities and escapes.
     const QByteArray bytes = s.toUtf8();
     const std::unique_ptr<cmark_node, decltype(&cmark_node_free)> document(
-        cmark_parse_document(bytes.constData(), bytes.size(), CMARK_OPT_DEFAULT), cmark_node_free);
+        parseCmarkDocument(bytes.constData(), bytes.size(), CMARK_OPT_DEFAULT), cmark_node_free);
     cmark_node* paragraph = document ? cmark_node_first_child(document.get()) : nullptr;
     cmark_node* image = paragraph ? cmark_node_first_child(paragraph) : nullptr;
     if (!image || cmark_node_get_type(image) != CMARK_NODE_IMAGE) { return img; }

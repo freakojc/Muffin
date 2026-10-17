@@ -498,8 +498,8 @@ stretch or an undefined `QTextLayout::setRawFont` drawing path.
 
 These values have been checked against Chrome computed styles and the Windows
 native Qt font backend. This contract supports the native renderer's CSS subset;
-it does not imply complete browser CSS support or pixel identity with Typora's
-application-specific DOM and stylesheet. Unknown media grammar is skipped.
+it does not imply complete browser CSS support or pixel identity with a theme's
+original host-specific DOM and stylesheet. Unknown media grammar is skipped.
 
 ## Offline compatibility reports
 
@@ -527,13 +527,14 @@ existence is checked relative to the owning imported sheet.
 
 `active-rule`, `inactive-condition`, `blocked-selector` and `excluded-context`
 are distinct scopes. Active means a rule passes its conditions, not that it
-matches a node or wins the cascade. Typora editor/export selectors stay separate
+matches a node or wins the cascade. Host editor/export selectors stay separate
 from missing document capabilities. `context-dependent-value` marks values
 requiring element custom properties; `unverified-property` means no complete
 capability validator exists, not that the renderer ignores the property.
 Font existence is separate from font decoding/registration/fallback. The audit
 does not check all CSS grammar, keyframe property support or final document
-geometry, and a clean report does not imply browser or Typora pixel parity.
+geometry, and a clean report does not imply pixel parity with browser references
+or the theme's original host application.
 
 `MuffinCssCompatibilityReportTest` tests provenance through imports and nested
 conditions, bounded output, conservative classifications and the real CLI.
