@@ -12,6 +12,21 @@
 
 namespace {
 
+constexpr bool addressSanitizerEnabled() {
+#if defined(__SANITIZE_ADDRESS__)
+  return true;
+#elif defined(__clang__)
+  return __has_feature(address_sanitizer);
+#else
+  return false;
+#endif
+}
+
+// ASan's allocation checks make this corpus about 2.5x slower on the Linux
+// runner. Keep the Release budget and allow 3x for instrumented builds; all
+// inputs, operation checks and sanitizer failures still run unchanged.
+constexpr qint64 kTimeBudgetMs = addressSanitizerEnabled() ? 6000 : 2000;
+
 [[noreturn]] void fail(const QString& message) {
   qCritical().noquote() << message;
   std::exit(1);
@@ -99,10 +114,14 @@ int main(int argc, char** argv) {
 
   require(rootKinds.size() >= 7,
           QStringLiteral("Math operation fuzz root-kind coverage regressed"));
-  require(timer.elapsed() < 2000,
-          QStringLiteral("Math operation fuzz exceeded 2 seconds: %1 ms")
-              .arg(timer.elapsed()));
+  const qint64 elapsedMs = timer.elapsed();
+  require(elapsedMs < kTimeBudgetMs,
+          QStringLiteral("Math operation fuzz exceeded %1 ms budget (%2): %3 ms")
+              .arg(kTimeBudgetMs)
+              .arg(addressSanitizerEnabled() ? QStringLiteral("ASan") : QStringLiteral("Release"))
+              .arg(elapsedMs));
   qInfo() << "MermaidMathMlOperationFuzzTest:" << kCaseCount
-          << "operation trees passed in" << timer.elapsed() << "ms";
+          << "operation trees passed in" << elapsedMs << "ms; budget"
+          << kTimeBudgetMs << "ms; ASan" << addressSanitizerEnabled();
   return 0;
 }
