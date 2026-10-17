@@ -68,13 +68,15 @@ struct FileTreeFixture {
   int openedFiles = 0;
   QString openedPath;
 
-  FileTreeFixture() {
+  explicit FileTreeFixture(const std::function<void(const QTemporaryDir&)>& prepare = {}) {
     require(dir.isValid(), "temporary folder should exist");
     require(QDir(dir.path()).mkpath(QStringLiteral("Folder/Nested")), "nested folders should exist");
     QFile file(dir.filePath(QStringLiteral("document.md")));
     require(file.open(QIODevice::WriteOnly), "document fixture should open");
     file.write("# Document\n");
     file.close();
+    if (prepare) prepare(dir);
+    const auto rootRows = QDir(dir.path()).entryList(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot).size();
     sidebar.resize(320, 600);
     sidebar.setFolderRoot(dir.path());
     sidebar.show();
@@ -84,7 +86,7 @@ struct FileTreeFixture {
     require(model != nullptr, "file tree should use a filesystem model");
     waitUntil([&] {
       folder = QPersistentModelIndex(model->index(dir.filePath(QStringLiteral("Folder"))));
-      return model->rowCount(tree->rootIndex()) == 2 && folder.isValid() && !tree->visualRect(folder).isEmpty();
+      return model->rowCount(tree->rootIndex()) == rootRows && folder.isValid() && !tree->visualRect(folder).isEmpty();
     }, "file tree should load its root rows");
     QObject::connect(&sidebar, &SidebarWidget::fileOpenRequested, &sidebar, [this](const QString& path) {
       ++openedFiles;
@@ -252,16 +254,21 @@ QStringList fileNames(FileTreeFixture& f) {
 }
 
 void testSortMenuAndPersistence() {
-  FileTreeFixture f;
-  const auto writeFile = [&](const QString& name, int size, qint64 modified) {
-    QFile file(f.dir.filePath(name));
-    require(file.open(QIODevice::WriteOnly), "create sortable fixture file");
-    file.write(QByteArray(size, 'x'));
-    require(file.setFileTime(QDateTime::fromSecsSinceEpoch(modified), QFileDevice::FileModificationTime), "set fixture modification time");
-  };
-  writeFile("note10.md", 10, 1000000000);
-  writeFile("note2.md", 2, 1200000000);
-  writeFile("a.txt", 30, 1100000000);
+  // Finish fixture data and metadata before the asynchronous model scans it.
+  FileTreeFixture f([](const QTemporaryDir& dir) {
+    const auto writeFile = [&](const QString& name, int size, qint64 modified) {
+      QFile file(dir.filePath(name));
+      require(file.open(QIODevice::WriteOnly), "create sortable fixture file");
+      require(file.write(QByteArray(size, 'x')) == size && file.flush(), "flush sortable fixture before setting its time");
+      require(file.setFileTime(QDateTime::fromSecsSinceEpoch(modified), QFileDevice::FileModificationTime), "set fixture modification time");
+      file.close();
+      require(QFileInfo(file.fileName()).lastModified().toSecsSinceEpoch() == modified,
+              "fixture modification time survives closing the file");
+    };
+    writeFile("note10.md", 10, 1000000000);
+    writeFile("note2.md", 2, 1200000000);
+    writeFile("a.txt", 30, 1100000000);
+  });
   waitUntil([&] { return f.model->rowCount(f.tree->rootIndex()) == 5; }, "new files join the sorted tree");
   auto* menu = f.sidebar.findChild<QMenu*>("FileSortMenu");
   require(menu && f.sidebar.findChild<QToolButton*>("SortFilesButton")->menu() == menu, "sort icon opens a dropdown menu");
