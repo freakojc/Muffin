@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-10-18
+
+### Added
+
+- Restore the previous session by default, including open tabs, the active file, folder expansion, each tab's source/rendered mode, cursor, selection and reading position. Explicitly closed files and folders stay closed; Files preferences can also start every session fresh. ([#5](https://github.com/jstzwj/Muffin/issues/5))
+- Add folder closing through the file-tree context menu and a compact toolbar with refresh, collapse-all and persistent sorting by natural filename, modification date, creation date, type or size. Refresh and sorting preserve expansion and selection, and folders stay first in either direction.
+- Protect file opening with default-enabled extension and size checks. Edit the text-extension allowlist and the size threshold (100 MB by default) in Files preferences; confirm or cancel inside the loading view before the file is read or parsed. Include translations in all 14 application languages.
+
+### Changed
+
+- Use a parse-local paged allocator through public cmark APIs and release consumed storage during AST conversion.
+- Skip pending-block marker recognition for paragraphs that cannot start a marker, reducing large-document preparation work while preserving source offsets and editing behavior.
+
+### Fixed
+
+- Render same-line `$$...$$` math inside paragraphs with display-style math, preserving the original delimiters, source positions and serialized HTML. ([#7](https://github.com/jstzwj/Muffin/issues/7))
+- Restore syntax highlighting in code blocks.
+- Preserve footnote definition labels while later definitions still reference them, and synchronize shared cmark extension state during concurrent document and image parsing.
+- Keep natural numeric filename sorting in the `C` locale, where Qt otherwise ignores the numeric sorting option.
+
 ## [0.7.1] - 2026-10-17
 
 ### Added
@@ -699,7 +719,8 @@ An internal-architecture release. No user-visible behavior changes — every edi
 - **List indentation** - Fixed list item indent/outdent logic
 - **Cross-platform build** - Added `libxcb-util-dev` dependency for Linux CI and offscreen rendering environment for macOS tests
 
-[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.7.2...HEAD
+[0.7.2]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.2
 [0.7.1]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.1
 [0.7.0]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.0
 [0.6.6]: https://github.com/jstzwj/Muffin/releases/tag/v0.6.6
