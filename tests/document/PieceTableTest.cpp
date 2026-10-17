@@ -12,6 +12,7 @@
 #include <QChar>
 #include <QCoreApplication>
 #include <QString>
+#include <QStringList>
 #include <QStringView>
 
 #include <random>
@@ -237,13 +238,101 @@ static void testDualWriteStaysInSyncWithMarkdownText() {
           "dual-write: final toUtf8 match");
 }
 
+// The node recognizer is deliberately unfiltered and shared with editing and
+// rendering. Use it as an oracle for the collector's paragraph-only fast path.
+static QVector<qsizetype> unfilteredPendingMarkers(QStringView text, const MarkdownNode& root) {
+  QVector<qsizetype> result;
+  const auto visit = [&](const auto& self, const MarkdownNode& node) -> void {
+    if (node.type() == BlockType::Paragraph) {
+      const auto marker = detectPendingBlockMarkerForNode(text, node);
+      if (marker.isValid()) {
+        result.append(qMin(node.sourceRange().byteEnd, text.size()) - marker.prefixLength);
+      }
+    }
+    for (const auto& child : node.children()) if (child) self(self, *child);
+  };
+  visit(visit, root);
+  return result;
+}
+
+static void testPendingMarkerCollectionMatchesUnfilteredRecognition() {
+  MarkdownNode paragraph(BlockType::Paragraph);
+  qsizetype positiveCases = 0;
+  const auto check = [&](const QString& source) {
+    // A nonzero offset and a surrogate pair catch accidental byte/UTF-16 mixing.
+    const QString text = QStringLiteral("prefix \U0001f600\n") + source + QStringLiteral("\nunused suffix");
+    const qsizetype start = text.indexOf(QLatin1Char('\n')) + 1;
+    paragraph.setSourceRange({start, start + source.size(), 2, 2, 1, int(source.size() + 1)});
+    const auto expected = unfilteredPendingMarkers(text, paragraph);
+    positiveCases += !expected.isEmpty();
+    require(collectPendingMarkerOffsets(text, paragraph) == expected,
+            "pending marker prefilter changed recognition or source offsets");
+  };
+  const QStringList prefixes{QString(), QStringLiteral(" "), QStringLiteral("   "), QStringLiteral("    "),
+      QStringLiteral("\t"), QStringLiteral(" \t "), QStringLiteral("\r"), QStringLiteral("> "),
+      QStringLiteral("> > "), QStringLiteral("- "), QStringLiteral("1. "), QStringLiteral("> - 12) "),
+      QStringLiteral("   > "), QString(QChar(0x2003))};
+  const QStringList bodies{QString(), QStringLiteral("#"), QStringLiteral("######"), QStringLiteral("#######"),
+      QStringLiteral("# "), QStringLiteral("# real heading"), QStringLiteral("-"), QStringLiteral("+"),
+      QStringLiteral("*"), QStringLiteral("123."), QStringLiteral("9)"), QStringLiteral("1. "),
+      QStringLiteral("```"), QStringLiteral("```cpp"), QStringLiteral("````` a b"), QStringLiteral("```a`"),
+      QStringLiteral("~~~lang`"), QStringLiteral("$$"), QStringLiteral("\\["), QStringLiteral("\\]"),
+      QStringLiteral("ordinary paragraph"), QStringLiteral("中文正文"), QStringLiteral("\U0001f600 text"),
+      QStringLiteral("word\n#"), QStringLiteral("\n$$"), QStringLiteral("$$\n"),
+      QStringLiteral("0.42"), QStringLiteral("https://example.com")};
+  const QStringList endings{QString(), QStringLiteral("\r"), QStringLiteral("\n"), QString(QChar(0x2003))};
+  for (const auto& prefix : prefixes)
+    for (const auto& body : bodies)
+      for (const auto& ending : endings) check(prefix + body + ending);
+  for (uint code = 0; code < 65536; ++code) {
+    check(QString(QChar(ushort(code))) + QStringLiteral("$$"));
+    check(QString(QChar(ushort(code))) + QStringLiteral("> *"));
+  }
+  std::mt19937 random(0x4d41524b);
+  const QString alphabet = QStringLiteral(" \t\r\n#-+*`~$\\[019.)abc中文>") + QChar(0x2003) + QChar(0x0661);
+  for (int sample = 0; sample < 100000; ++sample) {
+    QString source;
+    const auto length = random() % 64;
+    for (unsigned i = 0; i < length; ++i) source += alphabet.at(random() % alphabet.size());
+    check(source);
+  }
+  require(positiveCases > 100, "pending marker comparison must include valid markers");
+}
+
+static void testPendingMarkerCollectionPreservesNestedAndRelativeOffsets() {
+  const QString text = QStringLiteral("prefix \U0001f600\n\n> *\n\n- \\[\n\n###\n\n```cpp\n\nordinary paragraph");
+  MarkdownNode root(BlockType::Document);
+  const auto block = [&](BlockType type, const QString& source) {
+    auto node = std::make_unique<MarkdownNode>(type);
+    const qsizetype start = text.indexOf(source);
+    require(start >= 0, "pending marker fixture source must exist");
+    node->setSourceRange({start, start + source.size(), 1, 1, 1, int(source.size() + 1)});
+    return node;
+  };
+  auto quote = block(BlockType::BlockQuote, QStringLiteral("> *"));
+  quote->appendChild(block(BlockType::Paragraph, QStringLiteral("> *")));
+  root.appendChild(std::move(quote));
+  auto list = block(BlockType::List, QStringLiteral("- \\["));
+  auto item = block(BlockType::ListItem, QStringLiteral("- \\["));
+  item->appendChild(block(BlockType::Paragraph, QStringLiteral("- \\[")));
+  list->appendChild(std::move(item));
+  root.appendChild(std::move(list));
+  root.appendChild(block(BlockType::Heading, QStringLiteral("###")));
+  root.appendChild(block(BlockType::CodeFence, QStringLiteral("```cpp")));
+  root.appendChild(block(BlockType::Paragraph, QStringLiteral("ordinary paragraph")));
+  const QVector<qsizetype> expected{text.indexOf(QLatin1Char('*')), text.indexOf(QStringLiteral("\\["))};
+  require(unfilteredPendingMarkers(text, root) == expected, "nested marker oracle must retain only paragraphs");
+  require(collectPendingMarkerOffsets(text, root) == expected, "nested marker collection changed");
+  for (const auto& child : root.children()) child->relativizeDescendants();
+  require(collectPendingMarkerOffsets(text, root) == expected, "relative marker source coordinates changed");
+}
+
 static void testPendingMarkerCacheTracksLocalEdits() {
   DocumentSession session;
   session.setMarkdownText(QStringLiteral("alpha\n\n*\n\nomega"), false);
   const auto requireCache = [&](const char* label) {
     const QString text = session.markdownText().toString();
-    const QVector<qsizetype> oracle =
-        collectPendingMarkerOffsets(QStringView(text), session.document().root());
+    const QVector<qsizetype> oracle = unfilteredPendingMarkers(QStringView(text), session.document().root());
     require(session.pendingMarkerOffsets() == oracle,
             QStringLiteral("pending marker cache mismatch %1").arg(QString::fromUtf8(label)));
   };
@@ -295,6 +384,8 @@ int main(int argc, char** argv) {
   runTest("streaming search across pieces", testStreamingSearchAcrossPieces);
   runTest("fuzz mirrors QString", testFuzzMirrorsQString);
   runTest("dual-write stays in sync", testDualWriteStaysInSyncWithMarkdownText);
+  runTest("pending marker collection matches full recognition", testPendingMarkerCollectionMatchesUnfilteredRecognition);
+  runTest("pending marker nested and relative offsets", testPendingMarkerCollectionPreservesNestedAndRelativeOffsets);
   runTest("pending marker cache tracks local edits", testPendingMarkerCacheTracksLocalEdits);
   runTest("source position index preserves ranks", testSourcePositionIndexPreservesOrderAndTypeRanksAcrossSplices);
   return 0;

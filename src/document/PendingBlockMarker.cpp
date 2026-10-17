@@ -16,6 +16,23 @@ QStringView sourceForNode(QStringView markdown, const MarkdownNode& node) {
   return markdown.mid(range.byteStart, end - range.byteStart);
 }
 
+bool mayStartPendingMarker(QStringView source) {
+  // Reject ordinary prose before running the full recognizer. Keep Unicode
+  // whitespace/digits and container prefixes: trimmed math markers and markers
+  // nested in quotes/lists must still reach the original checks.
+  for (const QChar ch : source) {
+    if (ch.isSpace()) continue;
+    switch (ch.unicode()) {
+      case '#': case '-': case '+': case '*': case '`':
+      case '~': case '$': case '\\': case '>':
+        return true;
+      default:
+        return ch.isDigit();
+    }
+  }
+  return false;
+}
+
 bool isListContainerMarkerAt(QStringView line, qsizetype index, qsizetype& markerEnd) {
   if (index >= line.size()) {
     return false;
@@ -292,7 +309,7 @@ QVector<qsizetype> collectPendingMarkerOffsets(QStringView markdown, const Markd
   const auto visit = [&](const auto& self, const MarkdownNode& node) -> void {
     if (node.type() == BlockType::Paragraph) {
       const QStringView source = sourceForNode(markdown, node);
-      const qsizetype markerStart = pendingMarkerStartInLine(source);
+      const qsizetype markerStart = mayStartPendingMarker(source) ? pendingMarkerStartInLine(source) : -1;
       if (markerStart >= 0) {
         offsets.append(node.sourceRange().byteStart + markerStart);
       }

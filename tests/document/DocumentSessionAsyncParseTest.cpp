@@ -62,9 +62,10 @@ void testPreparedAsyncDocumentMatchesSyncAndRemainsEditable() {
       "> Quote with [link](https://example.com) and `code`.\n\n"
       "- Item\n  - Nested $x^2$\n\n"
       "| A | B |\n| --- | --- |\n| escaped \\| pipe | **cell** |\n\n"
-      "```cpp\nint x;\n```\n\n[^note]: Footnote\n\nTail paragraph [^note].\n\n###\n");
+      "```cpp\nint x;\n```\n\n[^note]: Footnote\n\nTail paragraph [^note].\n\n###\n\n*\n\n> *\n");
   DocumentSession sync, async;
   sync.setMarkdownText(text, false);
+  require(!sync.pendingMarkerOffsets().isEmpty(), "prepared open fixture must include pending markers");
   const auto expected = blockSnapshot(sync.document().root());
   bool publishedPrepared = false;
   QObject::connect(&async.document(), &MarkdownDocument::documentReset,

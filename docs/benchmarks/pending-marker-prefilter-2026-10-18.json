@@ -1,0 +1,767 @@
+{
+  "date": "2026-10-18",
+  "baseline_commit": "69e47f263102f2cf8f245db4affb8c634f87b8b6",
+  "scope": "Paired Release Core probes, three forward/reverse interleaved repeats; not GUI first-screen acceptance.",
+  "pins": {
+    "G:\\github\\Muffin\\build\\marker-prefilter-20261018\\baseline\\ParseStudy.exe": "a6b9cb9544c885ed45285dc33dcb499c28d28ee71af8af3ce0736605bc2cf7ae",
+    "G:\\github\\Muffin\\build\\marker-prefilter-20261018\\baseline\\MuffinCore.dll": "77300c94b4f748231bbb303df7649d34fce0a8fdf619302a5e762cca497d81a4",
+    "G:\\github\\Muffin\\build\\marker-prefilter-20261018\\candidate\\ParseStudy.exe": "a6b9cb9544c885ed45285dc33dcb499c28d28ee71af8af3ce0736605bc2cf7ae",
+    "G:\\github\\Muffin\\build\\marker-prefilter-20261018\\candidate\\MuffinCore.dll": "b69df7dff35df6c5ee1189a1deae5025a9fc61235841774ae737769fb87ab2ed"
+  },
+  "groups": [
+    {
+      "corpus": "1MiB",
+      "baseline": {
+        "marker_collection_ms": {
+          "samples": [
+            6.1262,
+            6.3152,
+            6.4512
+          ],
+          "median": 6.3152,
+          "min": 6.1262,
+          "max": 6.4512
+        },
+        "parse_ms": {
+          "samples": [
+            20.2264,
+            21.0449,
+            29.1674
+          ],
+          "median": 21.0449,
+          "min": 20.2264,
+          "max": 29.1674
+        },
+        "text_index_ms": {
+          "samples": [
+            6.6638,
+            6.9022,
+            6.7299
+          ],
+          "median": 6.7299,
+          "min": 6.6638,
+          "max": 6.9022
+        },
+        "peak_private_bytes": {
+          "samples": [
+            8101888,
+            8417280,
+            7860224
+          ],
+          "median": 8101888,
+          "min": 7860224,
+          "max": 8417280
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            20996096,
+            21184512,
+            20877312
+          ],
+          "median": 20996096,
+          "min": 20877312,
+          "max": 21184512
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "040ad4231d2345bf9163febb92885cb4420a8992be98a23f26de3490bb458d3b",
+        "input_bytes": 1048576,
+        "blocks": 5989,
+        "inlines": 6923
+      },
+      "candidate": {
+        "marker_collection_ms": {
+          "samples": [
+            0.1243,
+            0.1311,
+            0.0955
+          ],
+          "median": 0.1243,
+          "min": 0.0955,
+          "max": 0.1311
+        },
+        "parse_ms": {
+          "samples": [
+            21.7158,
+            21.0252,
+            20.8021
+          ],
+          "median": 21.0252,
+          "min": 20.8021,
+          "max": 21.7158
+        },
+        "text_index_ms": {
+          "samples": [
+            7.1972,
+            7.2972,
+            7.4566
+          ],
+          "median": 7.2972,
+          "min": 7.1972,
+          "max": 7.4566
+        },
+        "peak_private_bytes": {
+          "samples": [
+            8134656,
+            9117696,
+            8953856
+          ],
+          "median": 8953856,
+          "min": 8134656,
+          "max": 9117696
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            21229568,
+            21868544,
+            21909504
+          ],
+          "median": 21868544,
+          "min": 21229568,
+          "max": 21909504
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "040ad4231d2345bf9163febb92885cb4420a8992be98a23f26de3490bb458d3b",
+        "input_bytes": 1048576,
+        "blocks": 5989,
+        "inlines": 6923
+      },
+      "marker_reduction_percent": 98.0317329617431
+    },
+    {
+      "corpus": "10MiB",
+      "baseline": {
+        "marker_collection_ms": {
+          "samples": [
+            52.5736,
+            50.0326,
+            50.5145
+          ],
+          "median": 50.5145,
+          "min": 50.0326,
+          "max": 52.5736
+        },
+        "parse_ms": {
+          "samples": [
+            214.172,
+            214.0278,
+            234.241
+          ],
+          "median": 214.172,
+          "min": 214.0278,
+          "max": 234.241
+        },
+        "text_index_ms": {
+          "samples": [
+            67.6925,
+            68.2075,
+            68.6097
+          ],
+          "median": 68.2075,
+          "min": 67.6925,
+          "max": 68.6097
+        },
+        "peak_private_bytes": {
+          "samples": [
+            116387840,
+            119296000,
+            99532800
+          ],
+          "median": 116387840,
+          "min": 99532800,
+          "max": 119296000
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            108138496,
+            110804992,
+            106938368
+          ],
+          "median": 108138496,
+          "min": 106938368,
+          "max": 110804992
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "93c59884a0b66c8fc84ef5bc19c6e8a0c5db570728b5f31e1d944432be034b20",
+        "input_bytes": 10485760,
+        "blocks": 59872,
+        "inlines": 69221
+      },
+      "candidate": {
+        "marker_collection_ms": {
+          "samples": [
+            2.4358,
+            2.9741,
+            2.6236
+          ],
+          "median": 2.6236,
+          "min": 2.4358,
+          "max": 2.9741
+        },
+        "parse_ms": {
+          "samples": [
+            208.6022,
+            226.209,
+            223.659
+          ],
+          "median": 223.659,
+          "min": 208.6022,
+          "max": 226.209
+        },
+        "text_index_ms": {
+          "samples": [
+            72.8966,
+            73.6522,
+            74.1431
+          ],
+          "median": 73.6522,
+          "min": 72.8966,
+          "max": 74.1431
+        },
+        "peak_private_bytes": {
+          "samples": [
+            128745472,
+            114536448,
+            104542208
+          ],
+          "median": 114536448,
+          "min": 104542208,
+          "max": 128745472
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            120369152,
+            106266624,
+            112099328
+          ],
+          "median": 112099328,
+          "min": 106266624,
+          "max": 120369152
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "93c59884a0b66c8fc84ef5bc19c6e8a0c5db570728b5f31e1d944432be034b20",
+        "input_bytes": 10485760,
+        "blocks": 59872,
+        "inlines": 69221
+      },
+      "marker_reduction_percent": 94.80624375179404
+    },
+    {
+      "corpus": "30MiB",
+      "baseline": {
+        "marker_collection_ms": {
+          "samples": [
+            168.4797,
+            169.4926,
+            152.0755
+          ],
+          "median": 168.4797,
+          "min": 152.0755,
+          "max": 169.4926
+        },
+        "parse_ms": {
+          "samples": [
+            681.9121,
+            715.2771,
+            643.7191
+          ],
+          "median": 681.9121,
+          "min": 643.7191,
+          "max": 715.2771
+        },
+        "text_index_ms": {
+          "samples": [
+            225.8392,
+            204.2395,
+            267.0647
+          ],
+          "median": 225.8392,
+          "min": 204.2395,
+          "max": 267.0647
+        },
+        "peak_private_bytes": {
+          "samples": [
+            358076416,
+            347070464,
+            336797696
+          ],
+          "median": 347070464,
+          "min": 336797696,
+          "max": 358076416
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            310140928,
+            300720128,
+            302161920
+          ],
+          "median": 302161920,
+          "min": 300720128,
+          "max": 310140928
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "54236dbbd2661a35b4f4ee051d98876123fae8ed7e122876f561fe3812803a75",
+        "input_bytes": 31457280,
+        "blocks": 179612,
+        "inlines": 207661
+      },
+      "candidate": {
+        "marker_collection_ms": {
+          "samples": [
+            7.3952,
+            8.1577,
+            7.1782
+          ],
+          "median": 7.3952,
+          "min": 7.1782,
+          "max": 8.1577
+        },
+        "parse_ms": {
+          "samples": [
+            667.7363,
+            691.5567,
+            644.4056
+          ],
+          "median": 667.7363,
+          "min": 644.4056,
+          "max": 691.5567
+        },
+        "text_index_ms": {
+          "samples": [
+            213.153,
+            217.0937,
+            216.6856
+          ],
+          "median": 216.6856,
+          "min": 213.153,
+          "max": 217.0937
+        },
+        "peak_private_bytes": {
+          "samples": [
+            319725568,
+            361230336,
+            348352512
+          ],
+          "median": 348352512,
+          "min": 319725568,
+          "max": 361230336
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            301961216,
+            313049088,
+            300466176
+          ],
+          "median": 301961216,
+          "min": 300466176,
+          "max": 313049088
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "54236dbbd2661a35b4f4ee051d98876123fae8ed7e122876f561fe3812803a75",
+        "input_bytes": 31457280,
+        "blocks": 179612,
+        "inlines": 207661
+      },
+      "marker_reduction_percent": 95.61062846147044
+    },
+    {
+      "corpus": "1024MiB",
+      "baseline": {
+        "marker_collection_ms": {
+          "samples": [
+            19425.4461,
+            21728.5424,
+            20116.1483
+          ],
+          "median": 20116.1483,
+          "min": 19425.4461,
+          "max": 21728.5424
+        },
+        "parse_ms": {
+          "samples": [
+            24823.5877,
+            25118.55,
+            24151.4853
+          ],
+          "median": 24823.5877,
+          "min": 24151.4853,
+          "max": 25118.55
+        },
+        "text_index_ms": {
+          "samples": [
+            6975.7375,
+            6937.4073,
+            6887.0794
+          ],
+          "median": 6937.4073,
+          "min": 6887.0794,
+          "max": 6975.7375
+        },
+        "peak_private_bytes": {
+          "samples": [
+            12764856320,
+            12764618752,
+            12764868608
+          ],
+          "median": 12764856320,
+          "min": 12764618752,
+          "max": 12764868608
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            10690871296,
+            10736189440,
+            10699132928
+          ],
+          "median": 10699132928,
+          "min": 10690871296,
+          "max": 10736189440
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "cca733508180553918662caed1c4c004ef76ea67dfcd12d0ec6f6858122e452a",
+        "input_bytes": 1073741824,
+        "blocks": 6130690,
+        "inlines": 7088129
+      },
+      "candidate": {
+        "marker_collection_ms": {
+          "samples": [
+            353.4984,
+            260.5572,
+            353.163
+          ],
+          "median": 353.163,
+          "min": 260.5572,
+          "max": 353.4984
+        },
+        "parse_ms": {
+          "samples": [
+            24912.6546,
+            25119.3086,
+            24504.9002
+          ],
+          "median": 24912.6546,
+          "min": 24504.9002,
+          "max": 25119.3086
+        },
+        "text_index_ms": {
+          "samples": [
+            7410.7297,
+            7414.4831,
+            7441.5753
+          ],
+          "median": 7414.4831,
+          "min": 7410.7297,
+          "max": 7441.5753
+        },
+        "peak_private_bytes": {
+          "samples": [
+            12764856320,
+            12764852224,
+            12757770240
+          ],
+          "median": 12764852224,
+          "min": 12757770240,
+          "max": 12764856320
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            10686058496,
+            10697699328,
+            10732232704
+          ],
+          "median": 10697699328,
+          "min": 10686058496,
+          "max": 10732232704
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "cca733508180553918662caed1c4c004ef76ea67dfcd12d0ec6f6858122e452a",
+        "input_bytes": 1073741824,
+        "blocks": 6130690,
+        "inlines": 7088129
+      },
+      "marker_reduction_percent": 98.24438061037758
+    },
+    {
+      "corpus": "positive-markers",
+      "baseline": {
+        "marker_collection_ms": {
+          "samples": [
+            4.8032,
+            4.8717,
+            5.242
+          ],
+          "median": 4.8717,
+          "min": 4.8032,
+          "max": 5.242
+        },
+        "parse_ms": {
+          "samples": [
+            20.6473,
+            21.5606,
+            18.9822
+          ],
+          "median": 20.6473,
+          "min": 18.9822,
+          "max": 21.5606
+        },
+        "text_index_ms": {
+          "samples": [
+            0.3474,
+            0.3165,
+            0.318
+          ],
+          "median": 0.318,
+          "min": 0.3165,
+          "max": 0.3474
+        },
+        "peak_private_bytes": {
+          "samples": [
+            6983680,
+            6975488,
+            6979584
+          ],
+          "median": 6979584,
+          "min": 6975488,
+          "max": 6983680
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            20287488,
+            20213760,
+            20287488
+          ],
+          "median": 20287488,
+          "min": 20213760,
+          "max": 20287488
+        },
+        "marker_count": 4000,
+        "marker_sha256": "58de0c4f1e4ba57ca010076f0b904957b669b9b1d1d5c003db2d658c7924045a",
+        "ast_sha256": "cffbb59a19a8e4865f40707f05a5670a2fc5d26e6e1bf86dbb80cdbb54e08e2b",
+        "input_bytes": 41000,
+        "blocks": 12002,
+        "inlines": 5001
+      },
+      "candidate": {
+        "marker_collection_ms": {
+          "samples": [
+            4.2673,
+            3.872,
+            3.3073
+          ],
+          "median": 3.872,
+          "min": 3.3073,
+          "max": 4.2673
+        },
+        "parse_ms": {
+          "samples": [
+            19.9219,
+            19.0986,
+            17.7431
+          ],
+          "median": 19.0986,
+          "min": 17.7431,
+          "max": 19.9219
+        },
+        "text_index_ms": {
+          "samples": [
+            0.432,
+            0.3288,
+            0.3245
+          ],
+          "median": 0.3288,
+          "min": 0.3245,
+          "max": 0.432
+        },
+        "peak_private_bytes": {
+          "samples": [
+            6991872,
+            7761920,
+            7237632
+          ],
+          "median": 7237632,
+          "min": 6991872,
+          "max": 7761920
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            20234240,
+            20291584,
+            20418560
+          ],
+          "median": 20291584,
+          "min": 20234240,
+          "max": 20418560
+        },
+        "marker_count": 4000,
+        "marker_sha256": "58de0c4f1e4ba57ca010076f0b904957b669b9b1d1d5c003db2d658c7924045a",
+        "ast_sha256": "cffbb59a19a8e4865f40707f05a5670a2fc5d26e6e1bf86dbb80cdbb54e08e2b",
+        "input_bytes": 41000,
+        "blocks": 12002,
+        "inlines": 5001
+      },
+      "marker_reduction_percent": 20.52055750559353
+    },
+    {
+      "corpus": "candidate-heavy",
+      "baseline": {
+        "marker_collection_ms": {
+          "samples": [
+            69.0341,
+            51.1723,
+            51.63
+          ],
+          "median": 51.63,
+          "min": 51.1723,
+          "max": 69.0341
+        },
+        "parse_ms": {
+          "samples": [
+            46.3009,
+            46.8906,
+            41.0248
+          ],
+          "median": 46.3009,
+          "min": 41.0248,
+          "max": 46.8906
+        },
+        "text_index_ms": {
+          "samples": [
+            6.8585,
+            6.0191,
+            5.904
+          ],
+          "median": 6.0191,
+          "min": 5.904,
+          "max": 6.8585
+        },
+        "peak_private_bytes": {
+          "samples": [
+            15908864,
+            23375872,
+            24731648
+          ],
+          "median": 23375872,
+          "min": 15908864,
+          "max": 24731648
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            28368896,
+            35184640,
+            36708352
+          ],
+          "median": 35184640,
+          "min": 28368896,
+          "max": 36708352
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "ad8e235dde0d5b1a311e6fa044c428bfa985c1424491feec04677ac49f245156",
+        "input_bytes": 760000,
+        "blocks": 30002,
+        "inlines": 30001
+      },
+      "candidate": {
+        "marker_collection_ms": {
+          "samples": [
+            50.7984,
+            51.7754,
+            49.3673
+          ],
+          "median": 50.7984,
+          "min": 49.3673,
+          "max": 51.7754
+        },
+        "parse_ms": {
+          "samples": [
+            59.1428,
+            45.7088,
+            42.387
+          ],
+          "median": 45.7088,
+          "min": 42.387,
+          "max": 59.1428
+        },
+        "text_index_ms": {
+          "samples": [
+            6.711,
+            6.4159,
+            6.2616
+          ],
+          "median": 6.4159,
+          "min": 6.2616,
+          "max": 6.711
+        },
+        "peak_private_bytes": {
+          "samples": [
+            23023616,
+            24715264,
+            24477696
+          ],
+          "median": 24477696,
+          "min": 23023616,
+          "max": 24715264
+        },
+        "peak_working_set_bytes": {
+          "samples": [
+            33443840,
+            36691968,
+            36474880
+          ],
+          "median": 36474880,
+          "min": 33443840,
+          "max": 36691968
+        },
+        "marker_count": 0,
+        "marker_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ast_sha256": "ad8e235dde0d5b1a311e6fa044c428bfa985c1424491feec04677ac49f245156",
+        "input_bytes": 760000,
+        "blocks": 30002,
+        "inlines": 30001
+      },
+      "marker_reduction_percent": 1.610691458454394
+    }
+  ],
+  "validation": {
+    "equivalence_cases": 232640,
+    "all_offset_hashes_match": true,
+    "all_node_censuses_match": true,
+    "first_repeat_ast_source_shared_fingerprints_match": true,
+    "focused_passed": 4,
+    "focused_seconds": 1.44,
+    "full_suite_passed": 341,
+    "full_suite_seconds": 455.49
+  },
+  "source_sha256": {
+    "src/document/PendingBlockMarker.cpp": "193531990e3880c496745705552ffdfd7fc0d2b56bd77134b0c777f3a6acc206",
+    "tests/document/PieceTableTest.cpp": "d65f0aa4eb71540f64faac141d932a08f5c5081614c35845f1c58aea168b0935",
+    "tests/document/DocumentSessionAsyncParseTest.cpp": "9be79752dd8b6d72fcc8bf7c8680a773743d9d4c15352b5ea6637aa77c10d2b0"
+  },
+  "probe_source_sha256": {
+    "probe.cpp": "55e786f793d9ac2b8c6a4ba702cdf08ccdb96b5b719aacbcb8db449be403efb8",
+    "prepare_probe.py": "b7d79e76d6385dccd5856c9e9a802f04c7c36705b761ca516072c80b7fd3ad6e",
+    "run_benchmark.py": "5ccfb5497577ce7a318004057d28653f3c2c161bf92dcade9a5f79621f83b180",
+    "summarize.py": "f78761ad88796293b314f4b6d9e3a6d6226196e65d9eea721c48b32540fa9f91",
+    "validate.py": "2f968d9624182cfdef743d71f371a48fcdf886433d2f648c91111a9f8bf2b415"
+  },
+  "verification": {
+    "artifacts": {
+      "Muffin.exe": "d456a0599cf06b99be55ebc36dda0c43d7ca3dd6bfcd1f28834b03e726ee15ce",
+      "MuffinCore.dll": "b69df7dff35df6c5ee1189a1deae5025a9fc61235841774ae737769fb87ab2ed",
+      "MuffinUi.dll": "539b24b0accfedd1109cd05718e549b2575c71853b9fc4081a7a03ca8ffc9d50"
+    },
+    "release_dist_equal": true,
+    "third_party_unchanged": true,
+    "readme_unchanged": true,
+    "full_recognizer_and_edit_helpers_unchanged": true,
+    "all_36_measurements_valid": true
+  }
+}
