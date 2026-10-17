@@ -62,6 +62,8 @@ private:
     qsizetype start = 0;
     qsizetype length = 0;
     std::unique_ptr<TextLayout> layout;
+    mutable std::unique_ptr<TextLayout> paintLayout;
+    mutable QList<TextLayout::FormatRange> paintFormats;
   };
   qsizetype displayOffset(qsizetype sourceOffset) const;
   qsizetype sourceOffset(qsizetype displayOffset) const;

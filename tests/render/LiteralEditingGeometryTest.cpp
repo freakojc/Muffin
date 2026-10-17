@@ -237,6 +237,136 @@ void testSelectionAndLayoutChanges() {
   }
 }
 
+int pixelsNearColor(const QImage& image, QRect area, const QColor& color) {
+  int result = 0;
+  area = area.intersected(image.rect());
+  for (int y = area.top(); y <= area.bottom(); ++y)
+    for (int x = area.left(); x <= area.right(); ++x) {
+      const auto pixel = image.pixelColor(x, y);
+      if (qAbs(pixel.red() - color.red()) + qAbs(pixel.green() - color.green()) + qAbs(pixel.blue() - color.blue()) < 45)
+        ++result;
+    }
+  return result;
+}
+
+void testCodeHighlightColorsReachPaintedGlyphs() {
+  const QString source = QStringLiteral("#include <QApplication>\n\nint main(int argc, char** argv) {\n"
+      "  // 中文 😀\n  QApplication app(argc, argv);\n  return app.exec();\n}\n");
+  for (const auto& name : {QStringLiteral("github"), QStringLiteral("night")}) {
+    const auto definition = ThemeDefinition::builtIn(name);
+    require(definition.has_value(), "code highlight fixture theme exists");
+    Fixture fixture(RenderTheme::fromDefinition(*definition), QStringLiteral("```cpp\n%1```\n").arg(source), BlockType::CodeFence, 900);
+    const auto& theme = fixture.view.theme();
+    const auto& block = fixture.block();
+    require(!block.codeHighlightSpans().isEmpty(), "C++ syntax parser supplies highlight spans to the block");
+    QImage image(1000, 800, QImage::Format_ARGB32_Premultiplied);
+    image.fill(theme.backgroundColor());
+    {
+      QPainter painter(&image);
+      block.paint(painter, theme, 0);
+    }
+    if (const auto path = qEnvironmentVariable("MUFFIN_CODE_HIGHLIGHT_SCREENSHOT"); !path.isEmpty())
+      require(image.save(path + QLatin1Char('.') + name + QStringLiteral(".png")), "capture actual code highlight painting");
+    const auto requireTokenColor = [&](const QString& token, CodeHighlightRole role) {
+      const auto start = source.indexOf(token);
+      const auto color = theme.codeHighlightColor(role);
+      const auto caret = block.literalVisualCursorRect(start, theme);
+      const auto end = block.literalVisualCursorRect(start + token.size(), theme);
+      const QRect area = QRectF(caret.topLeft(), QPointF(end.left(), caret.bottom())).toAlignedRect();
+      QImage reference(image.size(), image.format());
+      reference.fill(image.pixelColor(int(block.literalContentRect(theme).right()) - 2, int(caret.center().y())));
+      {
+        QPainter painter(&reference);
+        painter.setPen(color);
+        block.literalTextLayout(theme).draw(painter, block.literalContentRect(theme).topLeft(), {});
+      }
+      const int expectedInk = pixelsNearColor(reference, area, color);
+      require(expectedInk >= 4 && pixelsNearColor(image, area, color) >= expectedInk * .9,
+              QStringLiteral("entire %1 token retains its syntax color in %2").arg(token, name));
+    };
+    requireTokenColor(QStringLiteral("return"), CodeHighlightRole::Keyword);
+    requireTokenColor(QStringLiteral("exec"), CodeHighlightRole::Function);
+    requireTokenColor(QStringLiteral("int"), CodeHighlightRole::Type);
+    verifyRoundTrip(fixture);
+  }
+}
+
+QImage sourcePaintOracle(const QString& text, const QFont& font, qreal width, qreal lineHeight,
+                         const QList<TextLayout::FormatRange>& formats, const QColor& ink) {
+  QImage image(500, 700, QImage::Format_ARGB32_Premultiplied);
+  image.fill(Qt::white);
+  QPainter painter(&image);
+  painter.setPen(ink);
+  qreal y = 0;
+  int start = 0;
+  for (const auto& paragraph : text.split(QLatin1Char('\n'))) {
+    TextLayout layout(paragraph, font);
+    QTextOption option;
+    option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+    option.setFlags(QTextOption::IncludeTrailingSpaces);
+    layout.setTextOption(option);
+    QList<TextLayout::FormatRange> local;
+    for (const auto& range : formats) {
+      const int first = qMax(start, range.start), last = qMin(start + int(paragraph.size()), range.start + range.length);
+      if (first < last) local.append({first - start, last - first, range.format});
+    }
+    layout.setFormats(local);
+    layout.beginLayout();
+    for (;;) {
+      auto line = layout.createLine();
+      if (!line.isValid()) break;
+      line.setLineWidth(width);
+      const auto height = qMax(lineHeight, line.height());
+      line.setPosition({0, y + (height - line.height()) * .5});
+      y += height;
+    }
+    layout.endLayout();
+    layout.draw(&painter, {8, 8});
+    start += int(paragraph.size()) + 1;
+  }
+  return image;
+}
+
+void testSourcePaintFormatCascadeAndInvalidation() {
+  const QString source = QStringLiteral("alpha beta gamma delta\nreturn app.exec();\nend");
+  const int keyword = int(source.indexOf(QStringLiteral("return")));
+  QTextCharFormat ime;
+  ime.setForeground(QColor("#008000"));
+  ime.setFontUnderline(true);
+  LiteralTextLayout::Preedit preedit{keyword + 4, QStringLiteral("IME"), {{0, 3, ime}}, 2};
+  const QFont font = RenderTheme::github().codeFont();
+  LiteralTextLayout layout(source, font, 135, 28, true, preedit);
+  QString display = source;
+  display.insert(preedit.offset, preedit.text);
+  QTextCharFormat diagnostic;
+  diagnostic.setBackground(QColor("#ffe4b5"));
+  diagnostic.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+  diagnostic.setUnderlineColor(Qt::red);
+  for (const auto color : {QColor("#9b008b"), QColor("#0000a8")}) {
+    QTextCharFormat base, syntax;
+    base.setForeground(Qt::black);
+    syntax.setForeground(color);
+    const QList<TextLayout::FormatRange> formats{{0, int(source.size()), base}, {keyword, 6, syntax},
+        {keyword + 2, 2, base}, {keyword + 2, 13, diagnostic}};
+    // Independent expected display ranges, including the hole occupied by IME.
+    const QList<TextLayout::FormatRange> expectedFormats{
+        {0, int(display.size()), base}, {keyword, 4, syntax}, {keyword + 7, 2, syntax}, {keyword + 2, 2, base},
+        {keyword + 2, 2, diagnostic}, {keyword + 7, 11, diagnostic}, {keyword + 4, 3, ime}};
+    const auto expected = sourcePaintOracle(display, font, 135, 28, expectedFormats, Qt::black);
+    for (int repeat = 0; repeat < 2; ++repeat) {
+      QImage actual(expected.size(), expected.format());
+      actual.fill(Qt::white);
+      { QPainter painter(&actual); painter.setPen(Qt::black); layout.draw(painter, {8, 8}, formats); }
+      require(actual == expected, "cached source formats merge syntax, diagnostics and IME across physical lines and wrapping");
+    }
+  }
+  QImage plain(500, 700, QImage::Format_ARGB32_Premultiplied);
+  plain.fill(Qt::white);
+  { QPainter painter(&plain); painter.setPen(Qt::black); layout.draw(painter, {8, 8}, {}); }
+  require(plain == sourcePaintOracle(display, font, 135, 28, {{keyword + 4, 3, ime}}, Qt::black),
+          "removing source styles discards cached colors and diagnostics while retaining IME");
+}
+
 void testOverflowingTrailingSpaceCarets() {
   // Qt keeps a breakable whitespace suffix on the preceding wrapped row.
   // Its editable caret advances can extend beyond the source block's box,
@@ -364,6 +494,8 @@ int main(int argc, char** argv) {
   QCoreApplication::setApplicationName("LiteralEditingGeometryTest");
   SettingsOverride wrap("markdown/codeBlockWrap", true);
   SettingsOverride lineNumbers("markdown/showLineNumbers", false);
+  runTest("painted code syntax colors", testCodeHighlightColorsReachPaintedGlyphs);
+  runTest("source format cascade and invalidation", testSourcePaintFormatCascadeAndInvalidation);
   runTest("real themes, zoom and wrap", testRealThemesAndZoom);
   runTest("local CSS, HTML, metadata and Unicode", testScopedCssAndOtherSourceBlocks);
   runTest("painted glyph geometry", testSourcePaintUsesTheMeasuredGlyphs);

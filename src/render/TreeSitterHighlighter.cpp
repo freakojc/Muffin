@@ -374,13 +374,18 @@ qsizetype utf16OffsetForByte(const QVector<qsizetype>& byteToUtf16, uint32_t byt
 QVector<qsizetype> byteToUtf16Map(const QString& text, const QByteArray& bytes) {
   QVector<qsizetype> map(bytes.size() + 1, 0);
   qsizetype byteOffset = 0;
-  for (qsizetype i = 0; i < text.size(); ++i) {
-    const QByteArray encoded(QStringView(text).mid(i, 1).toUtf8());
+  for (qsizetype i = 0; i < text.size();) {
+    // Encode complete scalars, just as text.toUtf8() does. Encoding the two
+    // halves of a surrogate pair separately changes its byte length and shifts
+    // every subsequent capture. Isolated surrogates retain Qt's replacement.
+    const qsizetype units = text[i].isHighSurrogate() && i + 1 < text.size() && text[i + 1].isLowSurrogate() ? 2 : 1;
+    const QByteArray encoded(QStringView(text).mid(i, units).toUtf8());
     const qsizetype nextByteOffset = byteOffset + encoded.size();
     while (byteOffset < nextByteOffset && byteOffset < map.size()) {
       map[byteOffset] = i;
       ++byteOffset;
     }
+    i += units;
   }
   while (byteOffset < map.size()) {
     map[byteOffset] = text.size();

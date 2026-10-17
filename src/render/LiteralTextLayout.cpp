@@ -210,8 +210,7 @@ QVector<QRectF> LiteralTextLayout::selectionRects(qsizetype start, qsizetype end
 
 void LiteralTextLayout::draw(QPainter& painter, QPointF origin, const QList<TextLayout::FormatRange>& sourceFormats) const {
   std::vector<QList<TextLayout::FormatRange>> formats(paragraphs_.size());
-  // Distribute each range only to the physical lines it overlaps. Highlighting
-  // stays paint-only; colour boundaries never reshape the retained glyphs.
+  // Distribute each range only to the physical lines it overlaps.
   const auto append = [&](qsizetype start, qsizetype end, const QTextCharFormat& format) {
     if (start >= end) return;
     auto it = std::upper_bound(paragraphs_.begin(), paragraphs_.end(), start,
@@ -222,7 +221,13 @@ void LiteralTextLayout::draw(QPainter& painter, QPointF origin, const QList<Text
       if (first < last) formats[it - paragraphs_.begin()].append({int(first - it->start), int(last - first), format});
     }
   };
-  for (const auto& range : sourceFormats) {
+  QTextCharFormat defaultInk;
+  defaultInk.setForeground(painter.pen().brush());
+  for (qsizetype i = 0; i < sourceFormats.size(); ++i) {
+    const auto& range = sourceFormats[i];
+    // Plain source needs no formatted variant when its ink is already the pen.
+    // Only omit the initial base; later ranges can restore ink overridden above.
+    if (i == 0 && range.start == 0 && range.length == source_.size() && range.format == defaultInk) continue;
     const qsizetype start = qBound<qsizetype>(0, qsizetype(range.start), source_.size());
     const qsizetype end = qBound<qsizetype>(start, qsizetype(range.start) + range.length, source_.size());
     if (!hasPreedit()) append(start, end, range.format);
@@ -235,8 +240,37 @@ void LiteralTextLayout::draw(QPainter& painter, QPointF origin, const QList<Text
   for (const auto& range : preedit_.formats)
     append(preedit_.offset + qMax(0, range.start), preedit_.offset + qMin<qsizetype>(
         preedit_.text.size(), qsizetype(range.start) + range.length), range.format);
-  for (size_t i = 0; i < paragraphs_.size(); ++i)
-    paragraphs_[i].layout->draw(&painter, origin, formats[i]);
+  for (size_t i = 0; i < paragraphs_.size(); ++i) {
+    const auto& paragraph = paragraphs_[i];
+    if (formats[i] == paragraph.layout->formats()) {
+      paragraph.paintLayout.reset();
+      paragraph.paintFormats.clear();
+      paragraph.layout->draw(&painter, origin);
+      continue;
+    }
+    // These are text formats, not selections. QTextLayout::draw(selections)
+    // suppresses overlapping foreground regions, including adjacent character
+    // ranges whose selection rectangles overlap after rounding to pixels.
+    // Cache the formatted variant so repainting never repeats this shaping.
+    if (!paragraph.paintLayout || paragraph.paintFormats != formats[i]) {
+      auto layout = std::make_unique<TextLayout>(paragraph.layout->text(), font_, paragraph.layout->backend());
+      layout->setCacheEnabled(true);
+      layout->setTextOption(paragraph.layout->textOption());
+      layout->setFormats(formats[i]);
+      layout->beginLayout();
+      for (int row = 0; row < paragraph.layout->lineCount(); ++row) {
+        const auto original = paragraph.layout->lineAt(row);
+        auto line = layout->createLine();
+        if (!line.isValid()) break;
+        line.setLineWidth(original.width());
+        line.setPosition(original.position());
+      }
+      layout->endLayout();
+      paragraph.paintFormats = formats[i];
+      paragraph.paintLayout = std::move(layout);
+    }
+    paragraph.paintLayout->draw(&painter, origin);
+  }
 }
 
 }  // namespace muffin

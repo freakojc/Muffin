@@ -80,11 +80,23 @@ void testTreeSitterCodeHighlighting() {
     require(highlighter.supportsLanguage(alias), QStringLiteral("%1 alias should be registered").arg(alias));
   }
 
-  const QString cppText = QStringLiteral("// \xe4\xb8\xad\xe6\x96\x87\nint main() { return 0; }\n");
-  const QVector<CodeHighlightSpan> cppExact = highlighter.highlight(QStringLiteral("cpp"), cppText);
-  const qsizetype returnStart = cppText.indexOf(QStringLiteral("return"));
-  require(hasExactRoleSpan(cppExact, CodeHighlightRole::Keyword, returnStart, returnStart + 6),
-          QStringLiteral("cpp keyword span should align exactly after utf-16 text"));
+  const QStringList unicodePrefixes{
+      QStringLiteral("\u4e2d\u6587"), QStringLiteral("\U0001f600"),
+      QStringLiteral("\u4e2d\u6587 \U0001f600 e\u0301 \U0001f680\U0001f600"),
+      QString(QChar(0xd800)), QString(QChar(0xdc00)),
+  };
+  for (const auto& prefix : unicodePrefixes) {
+    const QString cppText = QStringLiteral("// %1\nint main() { return 0; }").arg(prefix);
+    const auto spans = highlighter.highlight(QStringLiteral("cpp"), cppText);
+    const qsizetype returnStart = cppText.indexOf(QStringLiteral("return"));
+    require(hasExactRoleSpan(spans, CodeHighlightRole::Comment, 0, prefix.size() + 3),
+            QStringLiteral("comment span preserves complete Unicode source boundaries"));
+    require(hasExactRoleSpan(spans, CodeHighlightRole::Keyword, returnStart, returnStart + 6),
+            QStringLiteral("C++ keyword span aligns exactly after UTF-16 text"));
+    const qsizetype numberStart = cppText.indexOf(QLatin1Char('0'));
+    require(hasExactRoleSpan(spans, CodeHighlightRole::Number, numberStart, numberStart + 1),
+            QStringLiteral("token near EOF aligns after Unicode source text"));
+  }
 
   require(!highlighter.supportsLanguage(QStringLiteral("text")), QStringLiteral("text should remain unhighlighted"));
   require(!highlighter.supportsLanguage(QStringLiteral("pgp")), QStringLiteral("pgp should remain unhighlighted"));
