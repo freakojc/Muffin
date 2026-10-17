@@ -111,7 +111,7 @@ public:
   static InlineNode code(QString value);
   static InlineNode link(QString href, QString title, QVector<InlineNode> label);
   static InlineNode image(QString src, QString alt, QString title);
-  static InlineNode inlineMath(QString tex);
+  static InlineNode inlineMath(QString tex, QString marker = QStringLiteral("$"));
   // A footnote reference `[^label]`. `ordinal` is the resolved footnote number (e.g. "1",
   // computed by cmark at parse time) shown as a superscript link; `label` identifies the
   // target definition and is encoded into href as "#fn:<label>" for in-document navigation.

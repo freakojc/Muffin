@@ -696,7 +696,7 @@ QString InlineProjection::markerForInline(const InlineNode& node) {
     case InlineType::Code:
       return QStringLiteral("`");
     case InlineType::InlineMath:
-      return QStringLiteral("$");
+      return node.marker().isEmpty() ? QStringLiteral("$") : node.marker();
     case InlineType::Emphasis:
       return node.marker().isEmpty() ? QStringLiteral("*") : node.marker();
     case InlineType::Strong:
@@ -725,7 +725,7 @@ QString InlineProjection::markdownForInline(const InlineNode& node) {
     case InlineType::Code:
       return QStringLiteral("`%1`").arg(node.text());
     case InlineType::InlineMath:
-      return QStringLiteral("$%1$").arg(node.text());
+      return QStringLiteral("%1%2%1").arg(markerForInline(node), node.text());
     case InlineType::HtmlInline:
       return node.text();
     case InlineType::Emphasis:

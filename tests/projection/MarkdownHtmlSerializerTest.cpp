@@ -217,6 +217,12 @@ void testInlineMath() {
   require(out.contains(QStringLiteral("<span class=\"mfn-inline-math\" data-tex=\"x\">x</span>")),
           QStringLiteral("inline math patched class + data-tex"));
 }
+
+void testDoubleDollarInlineMath() {
+  const QString out = serialize(QStringLiteral("before $$\\frac{a}{b}$$ after"));
+  require(out.contains(QStringLiteral("<span class=\"mfn-inline-math\" data-display=\"true\" data-tex=\"\\frac{a}{b}\">\\frac{a}{b}</span>")),
+          QStringLiteral("Double-dollar math should preserve display style in HTML"));
+}
 void testMathBlock() {
   const QString out = serialize(QStringLiteral("$$\ny=x\n$$"));
   require(out.contains(QStringLiteral("mfn-math-block")), QStringLiteral("math block class"));
@@ -425,6 +431,7 @@ int main(int argc, char** argv) {
   testStrikethrough();
   testEmphasisStrongCode();
   testInlineMath();
+  testDoubleDollarInlineMath();
   testMathBlock();
   testLink();
   testImage();

@@ -309,7 +309,9 @@ InlineNode CmarkNodeAdapter::convertInline(cmark_node* node) {
       case InlineType::Strikethrough:
         return InlineNode::strikethrough(QStringLiteral("~~"), convertInlineChildren(node));
       case InlineType::InlineMath:
-        return InlineNode::inlineMath(fromUtf8(cmark_node_get_string_content(node)));
+        return InlineNode::inlineMath(fromUtf8(cmark_node_get_string_content(node)),
+                                      cmark_gfm_extensions_math_inline_delimiter_length(node) == 2
+                                          ? QStringLiteral("$$") : QStringLiteral("$"));
       case InlineType::Link:
         return InlineNode::link(fromUtf8(cmark_node_get_url(node)), fromUtf8(cmark_node_get_title(node)),
                                 convertInlineChildren(node));

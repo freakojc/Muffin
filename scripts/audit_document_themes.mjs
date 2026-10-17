@@ -20,10 +20,10 @@ try {
       <style>body{background-color:${entry.viewportColor};color:${entry.textColor}}</style>
       <link rel="stylesheet" href="${pathToFileURL(entry.css).href}">
       <link rel="stylesheet" href="${pathToFileURL(path.join(root,'tests/vendor/katex/dist/katex.min.css')).href}">
-      <style>.mfn-inline-math{font-size:1.04166666666667em}.mfn-inline-math .katex{font-size:1em}</style>
+      <style>.mfn-inline-math{font-size:1.04166666666667em}.mfn-inline-math .katex{font-size:1em}.mfn-inline-math[data-display="true"]>.katex-display{display:inline-block;margin:0}</style>
       <div id="write">${documentHtml}</div>
       <script src="${pathToFileURL(path.join(root,'tests/vendor/katex/dist/katex.min.js')).href}"></script>
-      <script>for(const n of document.querySelectorAll('.mfn-inline-math'))katex.render(n.dataset.tex,n,{throwOnError:false});</script>`;
+      <script>for(const n of document.querySelectorAll('.mfn-inline-math'))katex.render(n.dataset.tex,n,{throwOnError:false,displayMode:n.dataset.display==='true'});</script>`;
     const htmlPath=path.join(directory,entry.id+'.html');
     fs.writeFileSync(htmlPath,html);
     await page.goto(pathToFileURL(htmlPath).href);

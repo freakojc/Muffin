@@ -8,4 +8,7 @@ extern cmark_node_type CMARK_NODE_INLINE_MATH, CMARK_NODE_MATH_BLOCK;
 cmark_syntax_extension *create_math_extension(void);
 cmark_syntax_extension *create_relaxed_math_extension(void);
 
+/* Inline math retains its original delimiter width (1 for $, 2 for $$). */
+int cmark_gfm_extensions_math_inline_delimiter_length(cmark_node *node);
+
 #endif

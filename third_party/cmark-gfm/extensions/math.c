@@ -10,6 +10,13 @@
 cmark_node_type CMARK_NODE_INLINE_MATH, CMARK_NODE_MATH_BLOCK;
 
 static int relaxed_inline_math_mode = 1;
+static int double_dollar_inline_math = 2;
+
+int cmark_gfm_extensions_math_inline_delimiter_length(cmark_node *node) {
+  return node && node->type == CMARK_NODE_INLINE_MATH &&
+                 cmark_node_get_user_data(node) == &double_dollar_inline_math
+             ? 2 : 1;
+}
 
 static int is_line_end(unsigned char c) {
   return c == '\n' || c == '\r';
@@ -63,52 +70,69 @@ static cmark_node *match_inline_math(cmark_syntax_extension *self, cmark_parser 
   if (start > 0 && chunk->data[start - 1] == '$') {
     return NULL;
   }
-  if (start + 2 <= chunk->len && chunk->data[start + 1] == '$') {
+  int delimiter_length = 1;
+  while (start + delimiter_length < chunk->len && chunk->data[start + delimiter_length] == '$') {
+    delimiter_length++;
+  }
+  if (delimiter_length > 2) {
     return NULL;
   }
-  if (start + 1 >= chunk->len || (!relaxed && is_space(chunk->data[start + 1]))) {
+  const int content_start = start + delimiter_length;
+  /* Double dollars are unambiguous; the strict currency rules apply only to $. */
+  const int strict_single = !relaxed && delimiter_length == 1;
+  if (content_start >= chunk->len || (strict_single && is_space(chunk->data[content_start]))) {
     return NULL;
   }
   if (is_escaped(chunk, start)) {
     return NULL;
   }
 
-  for (int i = start + 1; i < chunk->len; ++i) {
+  for (int i = content_start; i < chunk->len; ++i) {
     if (is_line_end(chunk->data[i])) {
       return NULL;
     }
     if (chunk->data[i] != '$' || is_escaped(chunk, i)) {
       continue;
     }
-    if (i + 1 < chunk->len && chunk->data[i + 1] == '$') {
+    int closing_length = 1;
+    while (i + closing_length < chunk->len && chunk->data[i + closing_length] == '$') {
+      closing_length++;
+    }
+    if (closing_length != delimiter_length) {
+      i += closing_length - 1;
       continue;
     }
-    if (i == start + 1 || (!relaxed && is_space(chunk->data[i - 1]))) {
+    if (i == content_start || (strict_single && is_space(chunk->data[i - 1]))) {
+      i += closing_length - 1;
       continue;
     }
-    if (!relaxed && i + 1 < chunk->len && is_digit(chunk->data[i + 1])) {
+    if (strict_single && i + closing_length < chunk->len && is_digit(chunk->data[i + closing_length])) {
       continue;
     }
-    if (relaxed) {
-      int content = start + 1;
+    {
+      int content = content_start;
       while (content < i && (chunk->data[content] == ' ' || chunk->data[content] == '\t')) {
         content++;
       }
       if (content == i) {
+        i += closing_length - 1;
         continue;
       }
     }
 
-    cmark_chunk tex = cmark_chunk_dup(chunk, start + 1, i - start - 1);
+    cmark_chunk tex = cmark_chunk_dup(chunk, content_start, i - content_start);
     const char *literal = cmark_chunk_to_cstr(parser->mem, &tex);
     cmark_node *node = cmark_node_new_with_mem(CMARK_NODE_INLINE_MATH, parser->mem);
     cmark_node_set_syntax_extension(node, self);
+    if (delimiter_length == 2) {
+      cmark_node_set_user_data(node, &double_dollar_inline_math);
+    }
     cmark_node_set_string_content(node, literal);
     cmark_chunk_free(parser->mem, &tex);
     node->start_line = node->end_line = cmark_inline_parser_get_line(inline_parser);
     node->start_column = cmark_inline_parser_get_column(inline_parser);
-    node->end_column = node->start_column + (i - start);
-    cmark_inline_parser_set_offset(inline_parser, i + 1);
+    node->end_column = node->start_column + (i - start) + delimiter_length - 1;
+    cmark_inline_parser_set_offset(inline_parser, i + delimiter_length);
     return node;
   }
 
@@ -166,9 +190,10 @@ static void commonmark_render(cmark_syntax_extension *extension,
                               cmark_renderer *renderer, cmark_node *node,
                               cmark_event_type ev_type, int options) {
   if (node->type == CMARK_NODE_INLINE_MATH) {
-    renderer->out(renderer, node, "$", false, LITERAL);
+    const char *delimiter = cmark_gfm_extensions_math_inline_delimiter_length(node) == 2 ? "$$" : "$";
+    renderer->out(renderer, node, delimiter, false, LITERAL);
     renderer->out(renderer, node, cmark_node_get_string_content(node), false, LITERAL);
-    renderer->out(renderer, node, "$", false, LITERAL);
+    renderer->out(renderer, node, delimiter, false, LITERAL);
   } else if (node->type == CMARK_NODE_MATH_BLOCK && ev_type == CMARK_EVENT_ENTER) {
     renderer->cr(renderer);
     renderer->out(renderer, node, "$$", false, LITERAL);
@@ -203,7 +228,11 @@ static void html_render(cmark_syntax_extension *extension,
   if (node->type == CMARK_NODE_INLINE_MATH) {
     if (ev_type == CMARK_EVENT_ENTER) {
       const char *content = cmark_node_get_string_content(node);
-      cmark_strbuf_puts(renderer->html, "<span class=\"mfn-inline-math\" data-tex=\"");
+      cmark_strbuf_puts(renderer->html, "<span class=\"mfn-inline-math\"");
+      if (cmark_gfm_extensions_math_inline_delimiter_length(node) == 2) {
+        cmark_strbuf_puts(renderer->html, " data-display=\"true\"");
+      }
+      cmark_strbuf_puts(renderer->html, " data-tex=\"");
       houdini_escape_html0(renderer->html, (const unsigned char *)content,
                            (bufsize_t)strlen(content), 0);
       cmark_strbuf_puts(renderer->html, "\">");

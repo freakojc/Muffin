@@ -1530,7 +1530,10 @@ void InlineLayout::buildMathAtoms(const QVector<InlineNode>& inlines, const Rend
       rebuiltDisplayMap.push_back(DisplayOffsetMapEntry{span.displayStart, span.displayEnd, displayStart, rebuiltDisplay.size()});
       continue;
     }
-    auto layout = std::make_shared<math::MathLayoutResult>(mathRenderer_.render(tex, theme, false, qMax<qreal>(1.0, width)));
+    // Projection retains both delimiters, including for synthesized AST nodes.
+    // $$ uses display-style operators/fractions while remaining in paragraph flow.
+    const bool displayMode = span.contentSourceStart - span.sourceStart == 2;
+    auto layout = std::make_shared<math::MathLayoutResult>(mathRenderer_.render(tex, theme, displayMode, qMax<qreal>(1.0, width)));
     if (!layout->valid()) {
       const qsizetype displayStart = rebuiltDisplay.size();
       rebuiltDisplay += spanText;

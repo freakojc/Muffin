@@ -53,14 +53,14 @@ void testMathInHeadingsAndTables() {
   ParseOptions options;
   const QString markdown = QStringLiteral(
       "# H1 $a_1$\n"
-      "## H2 $a_2$\n"
+      "## H2 $$a_2$$\n"
       "### H3 $a_3$\n"
       "#### H4 $a_4$\n"
       "##### H5 $a_5$\n"
       "###### H6 $a_6$\n\n"
       "| Formula | Value |\n"
       "| --- | ---: |\n"
-      "| $x+y$ | $42$ |\n");
+      "| $$x+y$$ | $42$ |\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for heading/table math sample"));
@@ -88,8 +88,42 @@ void testMathInHeadingsAndTables() {
   const QString serialized = serializer.serializeDocument(doc);
   require(serialized.contains(QStringLiteral("# H1 $a_1$")), QStringLiteral("Serialized H1 math missing"));
   require(serialized.contains(QStringLiteral("###### H6 $a_6$")), QStringLiteral("Serialized H6 math missing"));
-  require(serialized.contains(QStringLiteral("| $x+y$ | $42$ |")),
+  require(serialized.contains(QStringLiteral("## H2 $$a_2$$")), QStringLiteral("Serialized double-dollar heading math missing"));
+  require(serialized.contains(QStringLiteral("| $$x+y$$ | $42$ |")),
           QStringLiteral("Serialized table math missing"));
+}
+
+void testDoubleDollarInlineMath() {
+  const QString markdown = QStringLiteral("\u4e2d\u6587\U0001f600 $$\\sum_{i=1}^n i$$ and $x$.\n\n$$ x + y $$\n");
+  CmarkGfmParser parser;
+  for (bool relaxed : {false, true}) {
+    ParseOptions options;
+    options.relaxedInlineMath = relaxed;
+    ParseResult parsed = parser.parseDocument(markdown, options);
+    require(parsed.root && countInlineMath(*parsed.root) == 3,
+            QStringLiteral("Single and double dollars should coexist in both math modes"));
+    require(countMathBlocks(*parsed.root) == 0,
+            QStringLiteral("Same-line double dollars should remain in paragraph flow"));
+    const auto& inlines = childAt(*parsed.root, 0).inlines();
+    const InlineNode& formula = inlines.at(1);
+    const qsizetype start = markdown.indexOf(QStringLiteral("$$"));
+    const qsizetype close = markdown.indexOf(QStringLiteral("$$"), start + 2);
+    require(formula.type() == InlineType::InlineMath && formula.marker() == QStringLiteral("$$"),
+            QStringLiteral("Inline math should retain double-dollar delimiter metadata"));
+    require(formula.sourceRange().start == start && formula.sourceRange().end == close + 2 &&
+                formula.openMarkerRange().start == start && formula.openMarkerRange().end == start + 2 &&
+                formula.closeMarkerRange().start == close && formula.closeMarkerRange().end == close + 2 &&
+                formula.contentRange().start == start + 2 && formula.contentRange().end == close,
+            QStringLiteral("Double-dollar UTF-16 source and marker coordinates should be exact"));
+    require(formula.text() == QStringLiteral("\\sum_{i=1}^n i"),
+            QStringLiteral("Formula text must exclude both dollars"));
+    require(inlines.at(3).marker() == QStringLiteral("$"),
+            QStringLiteral("A neighboring single-dollar formula must retain its own delimiter"));
+  }
+  const QString serialized = serializeMarkdown(markdown);
+  require(serialized == markdown.trimmed(), QStringLiteral("Serialization should preserve both formula delimiters and padding"));
+  require(serializeMarkdown(serialized) == serialized,
+          QStringLiteral("Double-dollar serialization should remain stable after reparsing"));
 }
 
 void testRelaxedInlineMathWhitespace() {
@@ -149,7 +183,7 @@ void testMathEdgeCases() {
       "Escaped \\$x$ stays literal.\n\n"
       "Whitespace-only $ \t $ stays literal.\n\n"
       "Unclosed $x stays literal.\n\n"
-      "Double dollars $$x$$ stay literal inline.\n\n"
+      "Mismatched $$x$ stays literal inline.\n\n"
       "$$\n"
       "a &= b + c\n"
       "d &= e\n"
@@ -173,6 +207,31 @@ void testMathEdgeCases() {
   const QString serialized = serializer.serializeDocument(doc);
   require(serialized.contains(QStringLiteral("$$\na &= b + c\nd &= e\n$$")),
           QStringLiteral("Serialized multiline math block missing"));
+}
+
+void testDoubleDollarMathEdgeCases() {
+  CmarkGfmParser parser;
+  for (const QString& markdown : {
+           QStringLiteral("Escaped \\$$x$$ stays literal."),
+           QStringLiteral("Whitespace $$ \t $$ stays literal."),
+           QStringLiteral("Empty $$$$ stays literal."),
+           QStringLiteral("Unclosed $$x stays literal."),
+           QStringLiteral("Long $$$x$$$ stays literal."),
+           QStringLiteral("Mismatched $$x$ stays literal."),
+           QStringLiteral("Mismatched $x$$ stays literal."),
+           QStringLiteral("Mismatched $$x$$$ stays literal."),
+           QStringLiteral("Mismatched $x$$$ stays literal."),
+           QStringLiteral("Cross-line $$x\ny$$ stays literal."),
+           QStringLiteral("Code `$$x$$` stays code."),
+           QStringLiteral("```\n$$x$$\n```\n")}) {
+    ParseResult parsed = parser.parseDocument(markdown, {});
+    require(parsed.root && countInlineMath(*parsed.root) == 0,
+            QStringLiteral("Invalid/code double dollars should stay literal: %1").arg(markdown));
+  }
+  ParseResult parsed = parser.parseDocument(QStringLiteral("Formula $$x + \\$ + y$$."), {});
+  require(parsed.root && countInlineMath(*parsed.root) == 1 &&
+              containsInlineMathText(*parsed.root, QStringLiteral("x + \\$ + y")),
+          QStringLiteral("Escaped dollars inside double-dollar math should remain TeX"));
 }
 
 void testLegacyBracketMathBlock() {
@@ -686,9 +745,11 @@ int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
   testMathSupport();
   testMathInHeadingsAndTables();
+  testDoubleDollarInlineMath();
   testRelaxedInlineMathWhitespace();
   testStrictInlineMathDelimiters();
   testMathEdgeCases();
+  testDoubleDollarMathEdgeCases();
   testLegacyBracketMathBlock();
   testLegacyBracketMathInsideCodeFenceUntouched();
   testLegacyBracketMathInsideDollarMathUntouched();

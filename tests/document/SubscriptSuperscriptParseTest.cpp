@@ -8,6 +8,7 @@
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDataStream>
+#include <QFile>
 #include <QIODevice>
 #include <QStringList>
 #include <cstdio>
@@ -84,10 +85,16 @@ void writeBlock(QDataStream& out, const MarkdownNode& node) {
   for (const auto& child : node.children()) writeBlock(out, *child);
 }
 
-// Fixed-seed corpus fingerprint captured from the previous compacting matcher.
-// It checks syntax, every inline coordinate and serialization independently of
-// the new token representation, across all sixteen delimiter-option settings.
+// Fixed-seed corpus fingerprint, audited for retained $/$$ metadata and exact
+// dollar-run matching. It checks syntax, every inline coordinate and serialization
+// independently of the token representation, across all sixteen option settings.
 QString delimiterCorpusFingerprint() {
+  // Optional binary audit for reviewing intentional parser changes against an
+  // older MuffinCore, without replacing the fixed corpus with self-comparison.
+  QFile dump(qEnvironmentVariable("MUFFIN_DELIMITER_CORPUS_DUMP"));
+  if (!dump.fileName().isEmpty()) require(dump.open(QIODevice::WriteOnly), "cannot open delimiter corpus audit");
+  QDataStream dumpStream(&dump);
+  dumpStream.setVersion(QDataStream::Qt_6_0);
   QStringList corpus{QStringLiteral("~~outer ~~inner~~ tail~~"),
                      QStringLiteral("~~a~~b~~c~~"),
                      QStringLiteral("==outer ==inner== tail=="),
@@ -176,6 +183,7 @@ QString delimiterCorpusFingerprint() {
       writeBlock(sharedOut, *sharedParsed.root);
       for (const auto& block : sharedParsed.root->children()) sharedOut << MarkdownSerializer().serializeBlock(*block);
       require(sharedBytes == bytes, "direct source slices must preserve the entire delimiter corpus AST and coordinates");
+      if (dump.isOpen()) dumpStream << bytes;
       hash.addData(bytes);
     }
   }
@@ -303,9 +311,9 @@ void testDelimiterCandidatesStayLocalAndOpaqueContentStaysLiteral() {
           "skipping ordinary text must preserve source coordinates");
 }
 
-void testDelimiterCorpusMatchesPreviousSyntaxAndCoordinates() {
-  require(delimiterCorpusFingerprint() == QStringLiteral("697eed90533d805976e8263c078a298686f8f92f149f4040275d497117504d00"),
-          "delimiter syntax, source coordinates and serialization must match the pre-optimization corpus");
+void testDelimiterCorpusSyntaxAndCoordinates() {
+  require(delimiterCorpusFingerprint() == QStringLiteral("f4dab0234037d3db8f23ca5651a1e605daf84476b69db2ced27454bae43bee8b"),
+          "delimiter syntax, source coordinates and serialization must match the audited corpus");
 }
 
 void testNestedDelimiterSplicingPreservesSourceRanges() {
@@ -339,7 +347,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testSubscriptSerializesRoundTrip);
   RUN_TEST(testDelimiterCandidatesStayLocalAndOpaqueContentStaysLiteral);
   RUN_TEST(testNestedDelimiterSplicingPreservesSourceRanges);
-  RUN_TEST(testDelimiterCorpusMatchesPreviousSyntaxAndCoordinates);
+  RUN_TEST(testDelimiterCorpusSyntaxAndCoordinates);
 #undef RUN_TEST
   return 0;
 }

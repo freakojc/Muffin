@@ -462,8 +462,10 @@ struct Serializer {
   }
 
   void emitInlineMath(const InlineNode& node) {
-    const QString tex = node.text();  // inner tex, $ stripped
-    out += QStringLiteral("<span class=\"mfn-inline-math\" data-tex=\"") + escapeAttr(tex) +
+    const QString tex = node.text();
+    out += QStringLiteral("<span class=\"mfn-inline-math\"");
+    if (node.marker() == QStringLiteral("$$")) out += QStringLiteral(" data-display=\"true\"");
+    out += QStringLiteral(" data-tex=\"") + escapeAttr(tex) +
            QStringLiteral("\">") + escapeText(tex) + QStringLiteral("</span>");
   }
 

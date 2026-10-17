@@ -169,7 +169,7 @@ QString MarkdownSerializer::serializeInline(const InlineNode& node) const {
           node.href(),
           node.title().isEmpty() ? QString() : QStringLiteral(" \"%1\"").arg(node.title()));
     case InlineType::InlineMath:
-      return QStringLiteral("$%1$").arg(node.text());
+      return QStringLiteral("%1%2%1").arg(node.marker().isEmpty() ? QStringLiteral("$") : node.marker(), node.text());
     default:
       return node.text();
   }

@@ -376,6 +376,33 @@ void testTextHitActivationAddsSourceOffsetForInlineEditing() {
   require(session.markdownText().toString() == QStringLiteral("before **boXld** after"), "text hit inline insert mismatch");
 }
 
+void testDoubleDollarNavigationEditAndUndo() {
+  DocumentSession session;
+  EditorView view;
+  EditorController controller;
+  controller.attach(&session, &view);
+  const QString markdown = QStringLiteral("before $$x+y$$ after");
+  session.setMarkdownText(markdown, false);
+  const qsizetype start = markdown.indexOf(QStringLiteral("$$"));
+  setSourceCursor(controller.selection(), blockAt(session, 0), start, start);
+  auto& input = controller.inputController();
+  for (qsizetype offset = start + 1; offset <= start + 5; ++offset) {
+    require(pressKey(input, &view, Qt::Key_Right), "right arrow should traverse both dollars and TeX");
+    require(controller.selection().cursorPosition().text.sourceOffset == offset,
+            "double-dollar right navigation should retain source coordinates");
+  }
+  require(pressKey(input, &view, Qt::Key_Left), "left arrow should move inside TeX");
+  require(controller.selection().cursorPosition().text.sourceOffset == start + 4,
+          "double-dollar left navigation should retain source coordinates");
+  require(input.insertText(QStringLiteral("z")), "typing inside double-dollar math should edit TeX");
+  const QString edited = QStringLiteral("before $$x+zy$$ after");
+  require(session.markdownText().toString() == edited, "editing should preserve both dollar delimiters");
+  controller.undo();
+  require(session.markdownText().toString() == markdown, "undo should restore double-dollar math");
+  controller.redo();
+  require(session.markdownText().toString() == edited, "redo should restore double-dollar edits");
+}
+
 void testEditorViewInlineLayoutSmoke() {
   DocumentSession session;
   EditorView view;
@@ -455,6 +482,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testInlineProjectionEntitiesAndMarkdownLinksUseParserRanges);
   RUN_TEST(testHorizontalNavigationEntersInlineMarkers);
   RUN_TEST(testTextHitActivationAddsSourceOffsetForInlineEditing);
+  RUN_TEST(testDoubleDollarNavigationEditAndUndo);
   RUN_TEST(testEditorViewInlineLayoutSmoke);
   RUN_TEST(testSelectionRefreshRetainsStylesAndUnchangedProjection);
   RUN_TEST(testProjectionReuseDecisionsMatchFreshProjection);

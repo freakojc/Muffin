@@ -98,6 +98,25 @@ void testExistingLfFileIgnoresNewFileDefault(const QString& path) {
   require(!saved.endsWith('\n'), QStringLiteral("Existing no-newline file gained a trailing newline"));
 }
 
+void testDoubleDollarMathSaveRoundTrip(const QString& path) {
+  const QString original = QStringLiteral("\u516c\u5f0f $$\\frac{a}{b}$$ and $x$.\r\n\r\n$$x+y$$");
+  writeBytes(path, original.toUtf8());
+  DocumentSession session;
+  FileController controller;
+  require(controller.open(session, nullptr, path), QStringLiteral("Could not open double-dollar formulas"));
+  waitForParse(session);
+  const qsizetype offset = session.markdownText().toString().indexOf(QStringLiteral("{a}")) + 2;
+  require(session.applyTextDelta(offset, 0, QStringLiteral("+1"), true), QStringLiteral("Could not edit double-dollar math"));
+  require(controller.save(session, nullptr) == SaveOutcome::Saved, QStringLiteral("Could not save double-dollar formulas"));
+  QString expected = original;
+  expected.replace(QStringLiteral("{a}"), QStringLiteral("{a+1}"));
+  require(readBytes(path) == expected.toUtf8(), QStringLiteral("Saving must preserve double dollars, CRLF and final line format"));
+  require(controller.open(session, nullptr, path), QStringLiteral("Could not reopen double-dollar formulas"));
+  waitForParse(session);
+  expected.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
+  require(session.markdownText().toString() == expected, QStringLiteral("Reopening must preserve edited formula source"));
+}
+
 void testLegacyEncodingRoundTrips(const QString& path) {
   writeBytes(path, QByteArray("caf\xe9\r\nfin", 9));
   DocumentSession session;
@@ -188,6 +207,7 @@ int main(int argc, char** argv) {
   testReopenDirtyFile(dir.filePath(QStringLiteral("reopen.md")), QMessageBox::Cancel, false);
   testReopenDirtyFile(dir.filePath(QStringLiteral("reopen.md")), QMessageBox::Save, true);
   testExistingLfFileIgnoresNewFileDefault(dir.filePath(QStringLiteral("lf.md")));
+  testDoubleDollarMathSaveRoundTrip(dir.filePath(QStringLiteral("double-dollar.md")));
   testLegacyEncodingRoundTrips(dir.filePath(QStringLiteral("legacy.md")));
   testWindows1252PunctuationRoundTrips(dir.filePath(QStringLiteral("windows1252.md")));
   testWindows1252UndefinedBytesRoundTrip(dir.filePath(QStringLiteral("windows1252-c1.md")));

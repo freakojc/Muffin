@@ -1,4 +1,5 @@
 #include "EditorViewTestUtils.h"
+#include "math/MathRenderer.h"
 
 using namespace muffin;
 
@@ -181,6 +182,60 @@ void testInlineMathOpeningMarkerHitEntersContent() {
           QStringLiteral("inline math opening marker hit should enter content: %1 vs %2")
               .arg(hitSourceOffset)
               .arg(mathStart + 1));
+}
+
+void testDoubleDollarMathDisplayAndCoordinates() {
+  const QString tex = QStringLiteral("\\sum_{i=1}^n \\frac{1}{i}");
+  const QString prefix = QStringLiteral("\u4e2d\u6587\U0001f600 ");
+  const QString markdown = prefix + QStringLiteral("$$") + tex + QStringLiteral("$$ after");
+  DocumentSession session;
+  session.setMarkdownText(markdown, false);
+  const auto* block = blockAt(session, 0);
+  const qsizetype start = prefix.size(), contentStart = start + 2, contentEnd = contentStart + tex.size();
+  const RenderTheme theme = RenderTheme::defaultTheme();
+  InlineLayout::BuildOptions options;
+  options.sourceBase = 0;
+  InlineLayout collapsed;
+  collapsed.build(block->inlines(), markdown, theme, 900.0, theme.paragraphFont(), options);
+  require(collapsed.mathAtomCount() == 1 && !collapsed.displayText().contains(tex),
+          "inactive double-dollar math should render as one native atom");
+  const auto rects = collapsed.mathAtomRects({});
+  const auto displayMath = math::MathRenderer().render(tex, theme, true, 900.0);
+  const auto textMath = math::MathRenderer().render(tex, theme, false, 900.0);
+  require(rects.size() == 1 && displayMath.valid() && textMath.valid(), "formula geometries should exist");
+  require(qAbs(rects.front().width() - displayMath.size.width()) < 0.01 &&
+              qAbs(rects.front().height() - displayMath.size.height()) < 0.01 &&
+              displayMath.size.height() > textMath.size.height(),
+          "double dollars should use display-style fractions and operator limits");
+  for (qreal ratio : {0.1, 0.5, 0.9}) {
+    const QPointF point(rects.front().left() + rects.front().width() * ratio, rects.front().center().y());
+    const qsizetype hit = collapsed.hitTestSourceOffset(point);
+    require(hit >= contentStart && hit <= contentEnd, "collapsed formula hits should enter TeX content");
+  }
+
+  options.projectionState.cursorSourceOffset = contentStart;
+  InlineLayout active;
+  active.build(block->inlines(), markdown, theme, 900.0, theme.paragraphFont(), options);
+  require(active.mathAtomCount() == 0 && active.displayText() == markdown,
+          "active double-dollar math should reveal both delimiters");
+  for (qsizetype offset = start; offset < contentStart; ++offset) {
+    const auto left = active.cursorRectForSourceOffset(offset);
+    const auto right = active.cursorRectForSourceOffset(offset + 1);
+    require(active.hitTestSourceOffset({(left.left() + right.left()) / 2, left.center().y()}) == contentStart,
+            "clicking either opening dollar should enter formula content");
+  }
+  for (qsizetype offset = contentStart; offset <= contentEnd; ++offset) {
+    require(active.hitTestSourceOffset(active.cursorRectForSourceOffset(offset).center()) == offset,
+            QStringLiteral("double-dollar caret should round-trip UTF-16 offset %1").arg(offset));
+  }
+
+  // Programmatically created AST nodes have no parser coordinates to fall back on.
+  InlineLayout synthesized;
+  synthesized.build({InlineNode::inlineMath(tex, QStringLiteral("$$"))}, QStringLiteral("$$") + tex + QStringLiteral("$$"),
+                    theme, 900.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
+  require(synthesized.mathAtomCount() == 1 &&
+              qAbs(synthesized.mathAtomRects({}).front().height() - displayMath.size.height()) < 0.01,
+          "synthesized math should retain its delimiter and display style");
 }
 
 void testInlineProjectionForwardBiasAtInlineEnd() {
@@ -393,6 +448,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testInlineProjectionKeepsValidEntitiesDecodedAfterBrokenEntityEdit);
   RUN_TEST(testInlineProjectionEntityDisplayAfterEditMultiParagraph);
   RUN_TEST(testInlineMathOpeningMarkerHitEntersContent);
+  RUN_TEST(testDoubleDollarMathDisplayAndCoordinates);
   RUN_TEST(testInlineProjectionForwardBiasAtInlineEnd);
   RUN_TEST(testInlineProjectionSpanContracts);
   RUN_TEST(testInlineHtmlImageProjectionContract);

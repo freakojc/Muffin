@@ -6,8 +6,8 @@
 
 namespace muffin {
 namespace {
-const std::array<QString, 11>& commonMarkers() {
-  static const std::array<QString, 11> markers{QString(),
+const std::array<QString, 13>& commonMarkers() {
+  static const std::array<QString, 13> markers{QString(),
                                                QStringLiteral("*"),
                                                QStringLiteral("_"),
                                                QStringLiteral("**"),
@@ -17,7 +17,9 @@ const std::array<QString, 11>& commonMarkers() {
                                                QStringLiteral("~"),
                                                QStringLiteral("^"),
                                                QStringLiteral("`"),
-                                               QStringLiteral("``")};
+                                               QStringLiteral("``"),
+                                               QStringLiteral("$"),
+                                               QStringLiteral("$$")};
   return markers;
 }
 }  // namespace
@@ -392,9 +394,10 @@ InlineNode InlineNode::image(QString src, QString alt, QString title) {
   return node;
 }
 
-InlineNode InlineNode::inlineMath(QString tex) {
+InlineNode InlineNode::inlineMath(QString tex, QString marker) {
   InlineNode node(InlineType::InlineMath);
   node.setText(std::move(tex));
+  node.setMarker(std::move(marker));
   return node;
 }
 

@@ -150,6 +150,8 @@ ___
 
 Inline math uses single dollar delimiters: $E = mc^2$ and $a_1 + b_1 = c_1$.
 
+Same-line double dollars use display-style math within a paragraph: $$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$$.
+
 Block math uses double dollar fences:
 
 $$
