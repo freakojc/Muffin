@@ -97,7 +97,7 @@ The curve measures the time from opening the Markdown file until the first viewp
 
 - **Document outline** — Jump to any heading from the sidebar outline, with collapsible subtrees for long documents.
 - **Heading badges** — Visual level badges (H3–H6) painted alongside headings for quick hierarchy identification.
-- **File tree sidebar** — Browse and open files from a folder tree. A compact toolbar creates files and folders and collapses all directories. Close the workspace from the tree's context menu.
+- **File tree sidebar** — Browse and open files from a folder tree. A compact toolbar creates files and folders, refreshes the tree, sorts by name, modification/creation date, type or size, and collapses all directories. Sort preferences are remembered, with folders always listed first. Close the workspace from the tree's context menu.
 - **Quick Open** — Fuzzy-jump to any file in the open workspace, with recently used and recently modified files surfaced first.
 - **File operations** — Move, delete, reveal in file manager, reopen-with-encoding, and save-all-open-files from the file menu.
 - **Document tabs** — The tab bar appears when two or more documents are open and hides when only one remains. Each document keeps its own unsaved content, undo history, view mode, and cursor/scroll position. Drag to reorder, use Ctrl+N to add a tab, Ctrl+Tab / Ctrl+Shift+Tab to switch, and Ctrl+W or middle-click to close.

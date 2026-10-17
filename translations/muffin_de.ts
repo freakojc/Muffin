@@ -4607,31 +4607,76 @@ Möchten Sie die Download-Seite öffnen?</translation>
 <context>
     <name>muffin::SidebarWidget</name>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="272"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="783"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="296"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="876"/>
         <source>Files</source>
         <translation>Dateien</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="391"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="786"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="435"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="879"/>
         <source>Outline</source>
         <translation>Gliederung</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="775"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="859"/>
         <source>No folder open</source>
         <translation>Kein Ordner geöffnet</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="778"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="862"/>
         <source>New File</source>
         <translation>Neue Datei</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="779"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="863"/>
         <source>New Folder</source>
         <translation>Neuer Ordner</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="865"/>
+        <source>Refresh Files</source>
+        <translation>Dateien aktualisieren</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="866"/>
+        <source>Sort Files</source>
+        <translation>Dateien sortieren</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="867"/>
+        <source>File Name</source>
+        <translation>Dateiname</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="868"/>
+        <source>Date Modified</source>
+        <translation>Änderungsdatum</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="869"/>
+        <source>Date Created</source>
+        <translation>Erstellungsdatum</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="870"/>
+        <source>File Type</source>
+        <translation>Dateityp</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="871"/>
+        <source>File Size</source>
+        <translation>Dateigröße</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="872"/>
+        <source>Ascending</source>
+        <translation>Aufsteigend</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="873"/>
+        <source>Descending</source>
+        <translation>Absteigend</translation>
     </message>
     <message>
         <source>Expand All Folders</source>
@@ -4639,7 +4684,7 @@ Möchten Sie die Download-Seite öffnen?</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="331"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="780"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="864"/>
         <source>Collapse All Folders</source>
         <translation>Alle Ordner zuklappen</translation>
     </message>
@@ -4657,7 +4702,7 @@ Möchten Sie die Download-Seite öffnen?</translation>
         <translation>Ordner schließen</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="789"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="882"/>
         <source>No Headings</source>
         <translation>Keine Überschriften</translation>
     </message>

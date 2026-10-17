@@ -1,17 +1,18 @@
 #include "app/SidebarWidget.h"
 #include "app/OutlineModel.h"
+#include "app/FileTreeModel.h"
 
 #include "theme/ChromeStyleSheet.h"
 #include "theme/ThemeDefinition.h"
 
 #include <QAbstractItemView>
+#include <QActionGroup>
 #include <QDir>
 #include <QScrollBar>
 #include <QSettings>
 #include <QEvent>
 #include <QFileInfo>
 #include <QFocusEvent>
-#include <QFileSystemModel>
 #include <QPainter>
 #include <QSvgRenderer>
 #include <QHBoxLayout>
@@ -19,7 +20,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMimeData>
+#include <QMenu>
 #include <QPersistentModelIndex>
 #include <QPointer>
 #include <QSize>
@@ -30,8 +31,6 @@
 #include <QToolTip>
 #include <QTreeView>
 #include <QVBoxLayout>
-
-#include "io/MuffinMime.h"
 
 #include <functional>
 #include <utility>
@@ -63,25 +62,6 @@ QToolButton* createFlatButton(const QString& text, QWidget* parent) {
   button->setCursor(Qt::PointingHandCursor);
   return button;
 }
-
-// QFileSystemModel whose drag mime data carries the kMuffinFileTreeDragMime marker in
-// addition to the standard text/uri-list URLs. Drop targets in the editor check for that
-// marker to route an in-app file-tree drop as "insert a markdown link" instead of the
-// external-drop behaviour (open as document / open as folder). No Q_OBJECT: the model only
-// overrides a virtual and adds no signals/slots of its own.
-class FileTreeModel final : public QFileSystemModel {
- public:
-  using QFileSystemModel::QFileSystemModel;
-
- protected:
-  QMimeData* mimeData(const QModelIndexList& indexes) const override {
-    QMimeData* data = QFileSystemModel::mimeData(indexes);
-    if (data) {
-      data->setData(muffin::kMuffinFileTreeDragMime, QByteArray());
-    }
-    return data;
-  }
-};
 
 // Inline filename editor: a QLineEdit shown as a child of the file-tree viewport, positioned
 // over the row being renamed / created. It bypasses QAbstractItemView's edit machinery entirely
@@ -230,6 +210,13 @@ muffin::SidebarWidget::SidebarWidget(QWidget* parent) : QWidget(parent) {
   connect(outlineTabButton_, &QToolButton::clicked, this, [this] { setPanel(Panel::Outline); });
 }
 
+muffin::SidebarWidget::~SidebarWidget() {
+  // Editors scheduled for deletion can outlive the latest active editor.
+  // Disconnect them before QWidget destroys children and our fields are gone.
+  for (auto* editor : fileTree_->viewport()->findChildren<QLineEdit*>())
+    disconnect(editor, nullptr, this, nullptr);
+}
+
 void muffin::SidebarWidget::setupFilesPanel() {
   filesPanel_ = new QWidget(this);
   auto* layout = new QVBoxLayout(filesPanel_);
@@ -253,10 +240,47 @@ void muffin::SidebarWidget::setupFilesPanel() {
   };
   newFileButton_ = button("NewFileButton");
   newFolderButton_ = button("NewFolderButton");
+  refreshFoldersButton_ = button("RefreshFoldersButton");
+  sortFilesButton_ = button("SortFilesButton");
   collapseFoldersButton_ = button("CollapseFoldersButton");
+  sortFilesMenu_ = new QMenu(sortFilesButton_);
+  sortFilesMenu_->setObjectName(QStringLiteral("FileSortMenu"));
+  sortFilesButton_->setMenu(sortFilesMenu_);
+  sortFilesButton_->setPopupMode(QToolButton::InstantPopup);
+  auto* fields = new QActionGroup(sortFilesMenu_);
+  const auto savedField = qBound(0, QSettings().value("files/sortBy", 0).toInt(), 4);
+  int field = 0;
+  for (const auto* name : {"SortByName", "SortByModified", "SortByCreated", "SortByType", "SortBySize"}) {
+    auto* action = sortFilesMenu_->addAction(QString());
+    action->setObjectName(QString::fromLatin1(name));
+    action->setCheckable(true);
+    action->setData(field);
+    fields->addAction(action);
+    action->setChecked(field++ == savedField);
+    connect(action, &QAction::triggered, this, [this, action] {
+      QSettings().setValue("files/sortBy", action->data());
+      updateFileSort();
+    });
+  }
+  sortFilesMenu_->addSeparator();
+  auto* direction = new QActionGroup(sortFilesMenu_);
+  const bool descending = QSettings().value("files/sortDescending", false).toBool();
+  for (const auto* name : {"SortAscending", "SortDescending"}) {
+    auto* action = sortFilesMenu_->addAction(QString());
+    action->setObjectName(QString::fromLatin1(name));
+    action->setCheckable(true);
+    direction->addAction(action);
+    const bool isDescending = QByteArray(name) == "SortDescending";
+    action->setChecked(descending == isDescending);
+    connect(action, &QAction::triggered, this, [this, isDescending] {
+      QSettings().setValue("files/sortDescending", isDescending);
+      updateFileSort();
+    });
+  }
   connect(newFileButton_, &QToolButton::clicked, this, [this] { emit newFileRequested(selectedDirectory()); });
   connect(newFolderButton_, &QToolButton::clicked, this, [this] { emit newFolderRequested(selectedDirectory()); });
   connect(collapseFoldersButton_, &QToolButton::clicked, this, &SidebarWidget::collapseAllFolders);
+  connect(refreshFoldersButton_, &QToolButton::clicked, this, &SidebarWidget::refreshFolders);
   layout->addWidget(toolbar);
   filesEmptyLabel_ = new QLabel(filesPanel_);
   filesEmptyLabel_->setObjectName(QStringLiteral("FilesEmptyLabel"));
@@ -266,7 +290,7 @@ void muffin::SidebarWidget::setupFilesPanel() {
   layout->addWidget(filesEmptyLabel_, 1);
 
   fileModel_ = new FileTreeModel(this);
-  fileModel_->setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
+  updateFileSort();
 
   fileTree_ = new QTreeView(filesPanel_);
   fileTree_->setAccessibleName(tr("Files"));
@@ -295,7 +319,7 @@ void muffin::SidebarWidget::setupFilesPanel() {
   // Safety net: if the model resets mid-edit (e.g. the user opens another folder while an inline
   // editor is open), the editing row vanishes and a pending-create temp would be stranded on
   // disk — close the editor and cancel any pending create so MainWindow deletes it.
-  connect(fileModel_, &QFileSystemModel::modelReset, this, [this]() {
+  connect(fileModel_, &QAbstractItemModel::modelReset, this, [this]() {
     if (inlineEditor_) {
       inlineEditor_->deleteLater();
     }
@@ -316,11 +340,29 @@ void muffin::SidebarWidget::setupFilesPanel() {
   }
   layout->addWidget(fileTree_, 1);
   fileTree_->setUniformRowHeights(true);
+  fileTree_->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
   folderExpansionTimer_ = new QTimer(this);
   folderExpansionTimer_->setSingleShot(true);
   connect(folderExpansionTimer_, &QTimer::timeout, this, &SidebarWidget::processFolderExpansions);
-  connect(fileModel_, &QFileSystemModel::directoryLoaded, this, [this](const QString&) {
+  connect(fileModel_, &FileTreeModel::directoryLoaded, this, [this](const QString&) {
     if (!expandedFolderPaths_.isEmpty()) queueFolderExpansion(folderRoot_);
+    if (!refreshSelectionPath_.isEmpty()) {
+      const auto selected = fileModel_->index(refreshSelectionPath_);
+      if (selected.isValid()) {
+        fileTree_->setCurrentIndex(selected);
+        refreshSelectionPath_.clear();
+      }
+    }
+    // Restore the top visible row after the loaded branches have been laid out.
+    QTimer::singleShot(0, this, [this] {
+      if (refreshAnchorPath_.isEmpty()) return;
+      const auto anchor = fileModel_->index(refreshAnchorPath_);
+      if (!anchor.isValid() || fileTree_->visualRect(anchor).isEmpty()) return;
+      fileTree_->scrollTo(anchor, QAbstractItemView::PositionAtTop);
+      auto* bar = fileTree_->verticalScrollBar();
+      bar->setValue(bar->value() + fileTree_->visualRect(anchor).top() - refreshAnchorOffset_);
+      refreshAnchorPath_.clear();
+    });
   });
   connect(fileTree_, &QTreeView::expanded, this, [this](const QModelIndex& index) {
     expandedFolderPaths_.insert(fileModel_->filePath(index));
@@ -333,6 +375,8 @@ void muffin::SidebarWidget::setupFilesPanel() {
   updateFolderControls();
 
   connect(fileTree_, &QTreeView::clicked, this, [this](const QModelIndex& index) {
+    refreshSelectionPath_.clear();
+    refreshAnchorPath_.clear();
     if (fileModel_->isDir(index)) {
       fileTree_->setExpanded(index, !fileTree_->isExpanded(index));
     }
@@ -458,6 +502,8 @@ void muffin::SidebarWidget::setFolderRoot(QString path) {
   folderExpansionTimer_->stop();
   folderExpansionQueue_.clear();
   queuedFolderExpansions_.clear();
+  refreshSelectionPath_.clear();
+  refreshAnchorPath_.clear();
   fileTree_->collapseAll();
   expandedFolderPaths_.clear();
   folderRoot_ = std::move(path);
@@ -486,7 +532,37 @@ void muffin::SidebarWidget::updateFolderControls() {
   const bool open = !folderRoot_.isEmpty();
   fileTree_->setVisible(open);
   filesEmptyLabel_->setVisible(!open);
-  for (auto* button : {newFileButton_, newFolderButton_, collapseFoldersButton_}) button->setEnabled(open);
+  for (auto* button : {newFileButton_, newFolderButton_, collapseFoldersButton_, refreshFoldersButton_, sortFilesButton_}) button->setEnabled(open);
+  // A refresh or reorder must not invalidate the row under an inline editor.
+  if (inlineEditor_) {
+    refreshFoldersButton_->setEnabled(false);
+    sortFilesButton_->setEnabled(false);
+  }
+}
+
+void muffin::SidebarWidget::updateFileSort() {
+  if (!fileModel_) return;
+  for (auto* action : sortFilesMenu_->actions()) {
+    if (action->data().isValid() && action->isChecked()) {
+      const bool descending = sortFilesMenu_->findChild<QAction*>("SortDescending")->isChecked();
+      fileModel_->setSortBy(static_cast<FileTreeModel::SortBy>(action->data().toInt()),
+                            descending ? Qt::DescendingOrder : Qt::AscendingOrder);
+      return;
+    }
+  }
+}
+
+void muffin::SidebarWidget::refreshFolders() {
+  if (folderRoot_.isEmpty() || inlineEditor_) return;
+  refreshSelectionPath_ = fileModel_->filePath(fileTree_->currentIndex());
+  const auto anchor = fileTree_->indexAt({fileTree_->viewport()->width() / 2, 0});
+  refreshAnchorPath_ = fileModel_->filePath(anchor);
+  refreshAnchorOffset_ = fileTree_->visualRect(anchor).top();
+  folderExpansionTimer_->stop();
+  folderExpansionQueue_.clear();
+  queuedFolderExpansions_.clear();
+  fileTree_->setRootIndex(fileModel_->refresh(folderRoot_));
+  queueFolderExpansion(folderRoot_);
 }
 
 QStringList muffin::SidebarWidget::expandedFolders() const {
@@ -556,6 +632,8 @@ void muffin::SidebarWidget::processFolderExpansions() {
 }
 
 void muffin::SidebarWidget::collapseAllFolders() {
+  refreshSelectionPath_.clear();
+  refreshAnchorPath_.clear();
   folderExpansionTimer_->stop();
   folderExpansionQueue_.clear();
   queuedFolderExpansions_.clear();
@@ -625,7 +703,7 @@ void muffin::SidebarWidget::beginInlineCreate(QString tempPath) {
     QObject::disconnect(directoryLoadedConn_);
   }
   directoryLoadedConn_ = QObject::connect(
-      fileModel_, &QFileSystemModel::directoryLoaded, this,
+      fileModel_, &FileTreeModel::directoryLoaded, this,
       [this, tempPath, parentDir](const QString& loadedDir) {
         if (loadedDir != parentDir) {
           return;
@@ -684,6 +762,7 @@ void muffin::SidebarWidget::showInlineEditor(QModelIndex idx) {
     }
     auto* editor = new FileNameEdit(fileTree_->viewport());
     inlineEditor_ = editor;
+    updateFolderControls();
     editor->setContext(contextForIndex(i));
     editor->setText(fileModel_->fileName(i));
     editor->setGeometry(rowRect);
@@ -701,7 +780,12 @@ void muffin::SidebarWidget::showInlineEditor(QModelIndex idx) {
       forgetPendingCreate(ctx.oldPath);
       emit inlineCancelRequested(ctx);
     };
-    connect(editor, &QObject::destroyed, this, [this] { editingIndex_ = QPersistentModelIndex(); });
+    connect(editor, &QObject::destroyed, this, [this, editor] {
+      if (inlineEditor_ && inlineEditor_.data() != editor) return;
+      editingIndex_ = QPersistentModelIndex();
+      inlineEditor_.clear();
+      updateFolderControls();
+    });
     // Keep the editor glued to its row while the tree scrolls (otherwise the viewport scrolls
     // under the static child widget). Auto-disconnects when `editor` is destroyed.
     if (auto* bar = fileTree_->verticalScrollBar()) {
@@ -778,6 +862,15 @@ void muffin::SidebarWidget::retranslateUi() {
     label(newFileButton_, tr("New File"));
     label(newFolderButton_, tr("New Folder"));
     label(collapseFoldersButton_, tr("Collapse All Folders"));
+    label(refreshFoldersButton_, tr("Refresh Files"));
+    label(sortFilesButton_, tr("Sort Files"));
+    sortFilesMenu_->findChild<QAction*>("SortByName")->setText(tr("File Name"));
+    sortFilesMenu_->findChild<QAction*>("SortByModified")->setText(tr("Date Modified"));
+    sortFilesMenu_->findChild<QAction*>("SortByCreated")->setText(tr("Date Created"));
+    sortFilesMenu_->findChild<QAction*>("SortByType")->setText(tr("File Type"));
+    sortFilesMenu_->findChild<QAction*>("SortBySize")->setText(tr("File Size"));
+    sortFilesMenu_->findChild<QAction*>("SortAscending")->setText(tr("Ascending"));
+    sortFilesMenu_->findChild<QAction*>("SortDescending")->setText(tr("Descending"));
   }
   if (filesTabButton_) {
     filesTabButton_->setText(tr("Files"));
@@ -808,6 +901,8 @@ void muffin::SidebarWidget::applyStyle() {
   newFileButton_->setIcon(folderToolbarIcon("<path d='M9 1.5H3.5v13h5M9 1.5l3.5 3.5H9z'/><path d='M12 8v6m-3-3h6'/>", color));
   newFolderButton_->setIcon(folderToolbarIcon("<path d='M7 12.5H1.5v-10h4l2 2h7v3'/><path d='M12 8v6m-3-3h6'/>", color));
   collapseFoldersButton_->setIcon(folderToolbarIcon("<path d='M5 1.5h9.5V11M1.5 5h9.5v9.5H1.5zM4 9.75h4.5'/>", color));
+  refreshFoldersButton_->setIcon(folderToolbarIcon("<path d='M13.5 6.5a5.5 5.5 0 1 0-.5 4M13.5 2.5v4h-4'/>", color));
+  sortFilesButton_->setIcon(folderToolbarIcon("<path d='M2 3h7M2 7h5M2 11h3M12 3v10m-2.5-2.5L12 13l2.5-2.5'/>", color));
 }
 
 void muffin::SidebarWidget::emitOutlineItem(const QModelIndex& index) {

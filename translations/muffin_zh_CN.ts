@@ -4631,31 +4631,76 @@ Would you like to open the download page?</source>
 <context>
     <name>muffin::SidebarWidget</name>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="272"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="783"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="296"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="876"/>
         <source>Files</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="391"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="786"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="435"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="879"/>
         <source>Outline</source>
         <translation>大纲</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="775"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="859"/>
         <source>No folder open</source>
         <translation>未打开文件夹</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="778"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="862"/>
         <source>New File</source>
         <translation>新建文件</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="779"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="863"/>
         <source>New Folder</source>
         <translation>新建文件夹</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="865"/>
+        <source>Refresh Files</source>
+        <translation>刷新文件</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="866"/>
+        <source>Sort Files</source>
+        <translation>文件排序</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="867"/>
+        <source>File Name</source>
+        <translation>文件名</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="868"/>
+        <source>Date Modified</source>
+        <translation>修改时间</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="869"/>
+        <source>Date Created</source>
+        <translation>创建时间</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="870"/>
+        <source>File Type</source>
+        <translation>文件类型</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="871"/>
+        <source>File Size</source>
+        <translation>文件大小</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="872"/>
+        <source>Ascending</source>
+        <translation>升序</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="873"/>
+        <source>Descending</source>
+        <translation>降序</translation>
     </message>
     <message>
         <source>Expand All Folders</source>
@@ -4663,7 +4708,7 @@ Would you like to open the download page?</source>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="331"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="780"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="864"/>
         <source>Collapse All Folders</source>
         <translation>收起所有文件夹</translation>
     </message>
@@ -4681,7 +4726,7 @@ Would you like to open the download page?</source>
         <translation>关闭文件夹</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="789"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="882"/>
         <source>No Headings</source>
         <translation>没有标题</translation>
     </message>

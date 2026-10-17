@@ -4609,31 +4609,76 @@ Would you like to open the download page?</source>
 <context>
     <name>muffin::SidebarWidget</name>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="272"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="783"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="296"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="876"/>
         <source>Files</source>
         <translation>ファイル</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="391"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="786"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="435"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="879"/>
         <source>Outline</source>
         <translation>アウトライン</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="775"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="859"/>
         <source>No folder open</source>
         <translation>フォルダーが開かれていません</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="778"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="862"/>
         <source>New File</source>
         <translation>新規ファイル</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="779"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="863"/>
         <source>New Folder</source>
         <translation>新規フォルダー</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="865"/>
+        <source>Refresh Files</source>
+        <translation>ファイルを更新</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="866"/>
+        <source>Sort Files</source>
+        <translation>ファイルの並べ替え</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="867"/>
+        <source>File Name</source>
+        <translation>ファイル名</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="868"/>
+        <source>Date Modified</source>
+        <translation>更新日時</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="869"/>
+        <source>Date Created</source>
+        <translation>作成日時</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="870"/>
+        <source>File Type</source>
+        <translation>ファイルの種類</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="871"/>
+        <source>File Size</source>
+        <translation>ファイルサイズ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="872"/>
+        <source>Ascending</source>
+        <translation>昇順</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="873"/>
+        <source>Descending</source>
+        <translation>降順</translation>
     </message>
     <message>
         <source>Expand All Folders</source>
@@ -4641,7 +4686,7 @@ Would you like to open the download page?</source>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="331"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="780"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="864"/>
         <source>Collapse All Folders</source>
         <translation>すべてのフォルダーを折りたたむ</translation>
     </message>
@@ -4659,7 +4704,7 @@ Would you like to open the download page?</source>
         <translation>フォルダーを閉じる</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="789"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="882"/>
         <source>No Headings</source>
         <translation>見出しなし</translation>
     </message>

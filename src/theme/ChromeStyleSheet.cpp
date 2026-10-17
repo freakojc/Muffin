@@ -95,6 +95,7 @@ QString sidebarStyleSheet(const ThemeDefinition& d, bool outlineFoldable) {
       "#FilesEmptyLabel { color: %3; }"
       "#FolderToolbar QToolButton { padding: 0; min-width: 0; min-height: 0; border-radius: 4px; }"
       "#FolderToolbar QToolButton:pressed { background: %6; }"
+      "#FolderToolbar QToolButton::menu-indicator { image: none; width: 0; }"
       "#FileTree, #OutlineTree { background: %1; color: %5; border: 0; padding: 4px 0; outline: 0; }"
       "#FileTree::item, #OutlineTree::item { min-height: 22px; padding: 1px 4px; border: 0; }"
       "#FileTree::item:hover, #OutlineTree::item:hover { background: %4; color: %5; }"

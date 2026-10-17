@@ -1,6 +1,7 @@
 #include "app/HelpViewerDialog.h"
 #include "app/LanguageManager.h"
 #include "app/StatusBarWidget.h"
+#include "app/SidebarWidget.h"
 #include "editor/EditorView.h"
 #include "editor/VirtualSourceEdit.h"
 #include "image/CustomCommandUploader.h"
@@ -11,6 +12,7 @@
 #include <QEvent>
 #include <QFile>
 #include <QHelpEvent>
+#include <QMenu>
 #include <QPushButton>
 #include <QSettings>
 #include <QTemporaryDir>
@@ -75,6 +77,7 @@ int main(int argc, char** argv) {
   muffin::EditorView rendered;
   muffin::VirtualSourceEdit source;
   muffin::StatusBarWidget statusBar;
+  muffin::SidebarWidget sidebar;
   statusBar.resize(800, statusBar.height());
   statusBar.show();
   require(statusBar.sidebarButton()->toolTip() == QStringLiteral("Show sidebar"),
@@ -110,6 +113,23 @@ int main(int argc, char** argv) {
     require(source.accessibleDescription() == translated("muffin::VirtualSourceEdit", "Plain-text Markdown source"),
             QStringLiteral("Source editor description must follow language changes"));
     verifyStatusBarTooltips(statusBar, manager.effectiveLanguageCode() != QStringLiteral("en"));
+    for (const auto& entry : {qMakePair("RefreshFoldersButton", "Refresh Files"), qMakePair("SortFilesButton", "Sort Files")}) {
+      auto* button = sidebar.findChild<QToolButton*>(QString::fromLatin1(entry.first));
+      const auto label = translated("muffin::SidebarWidget", entry.second);
+      require(button && button->toolTip() == label && button->accessibleName() == label,
+              QStringLiteral("Explorer button hints follow the current language"));
+      if (manager.effectiveLanguageCode() != QStringLiteral("en"))
+        require(label != QString::fromLatin1(entry.second), QStringLiteral("Explorer button hints are translated"));
+    }
+    auto* sortMenu = sidebar.findChild<QMenu*>(QStringLiteral("FileSortMenu"));
+    for (const auto& entry : {qMakePair("SortByName", "File Name"), qMakePair("SortByModified", "Date Modified"),
+                             qMakePair("SortByCreated", "Date Created"), qMakePair("SortByType", "File Type"),
+                             qMakePair("SortBySize", "File Size"), qMakePair("SortAscending", "Ascending"),
+                             qMakePair("SortDescending", "Descending")}) {
+      auto* action = sortMenu->findChild<QAction*>(QString::fromLatin1(entry.first));
+      require(action && action->text() == translated("muffin::SidebarWidget", entry.second),
+              QStringLiteral("Explorer sort options follow the current language"));
+    }
     for (const bool spellEnabled : {false, true}) {
       statusBar.setSpellLanguage(QStringLiteral("en_US"), spellEnabled);
       QStringList shownHints;

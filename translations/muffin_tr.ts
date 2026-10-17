@@ -4597,31 +4597,76 @@ Would you like to open the download page?</source>
 <context>
     <name>muffin::SidebarWidget</name>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="272"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="783"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="296"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="876"/>
         <source>Files</source>
         <translation>Dosyalar</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="391"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="786"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="435"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="879"/>
         <source>Outline</source>
         <translation>Ana Hat</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="775"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="859"/>
         <source>No folder open</source>
         <translation>Açık klasör yok</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="778"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="862"/>
         <source>New File</source>
         <translation>Yeni Dosya</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="779"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="863"/>
         <source>New Folder</source>
         <translation>Yeni Klasör</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="865"/>
+        <source>Refresh Files</source>
+        <translation>Dosyaları Yenile</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="866"/>
+        <source>Sort Files</source>
+        <translation>Dosyaları Sırala</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="867"/>
+        <source>File Name</source>
+        <translation>Dosya Adı</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="868"/>
+        <source>Date Modified</source>
+        <translation>Değiştirilme Tarihi</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="869"/>
+        <source>Date Created</source>
+        <translation>Oluşturulma Tarihi</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="870"/>
+        <source>File Type</source>
+        <translation>Dosya Türü</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="871"/>
+        <source>File Size</source>
+        <translation>Dosya Boyutu</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="872"/>
+        <source>Ascending</source>
+        <translation>Artan</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SidebarWidget.cpp" line="873"/>
+        <source>Descending</source>
+        <translation>Azalan</translation>
     </message>
     <message>
         <source>Expand All Folders</source>
@@ -4629,7 +4674,7 @@ Would you like to open the download page?</source>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="331"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="780"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="864"/>
         <source>Collapse All Folders</source>
         <translation>Tüm Klasörleri Daralt</translation>
     </message>
@@ -4647,7 +4692,7 @@ Would you like to open the download page?</source>
         <translation>Klasörü Kapat</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="789"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="882"/>
         <source>No Headings</source>
         <translation>Başlık Yok</translation>
     </message>

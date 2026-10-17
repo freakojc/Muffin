@@ -12,7 +12,7 @@
 #include <QQueue>
 #include <QWidget>
 
-class QFileSystemModel;
+class QMenu;
 class QLabel;
 class QStackedWidget;
 class QToolButton;
@@ -22,6 +22,7 @@ class QTimer;
 namespace muffin {
 
 class OutlineModel;
+class FileTreeModel;
 
 // Context for an in-progress inline edit of a file-tree row. `pendingCreate` marks a temp
 // entry the MainWindow created on disk so the tree shows a row to rename; on cancel/empty
@@ -46,6 +47,7 @@ public:
   enum class Panel { Files, Outline };
 
   explicit SidebarWidget(QWidget* parent = nullptr);
+  ~SidebarWidget() override;
 
   void setPanel(Panel panel);
   Panel panel() const;
@@ -58,6 +60,7 @@ public:
   QStringList expandedFolders() const;
   void restoreExpandedFolders(const QStringList& paths);
   void collapseAllFolders();
+  void refreshFolders();
   // Select and scroll to a path after create/rename. Expands ancestors first so a
   // fresh entry in a never-expanded folder resolves to a valid index.
   void setCurrentPath(QString path);
@@ -99,6 +102,7 @@ private:
   void changeEvent(QEvent* event) override;
   void setupFilesPanel();
   void updateFolderControls();
+  void updateFileSort();
   void processFolderExpansions();
   void queueFolderExpansion(const QString& path);
   QString selectedDirectory() const;
@@ -126,12 +130,18 @@ private:
   QStackedWidget* stack_ = nullptr;
   QWidget* filesPanel_ = nullptr;
   QWidget* outlinePanel_ = nullptr;
-  QFileSystemModel* fileModel_ = nullptr;
+  FileTreeModel* fileModel_ = nullptr;
   QTreeView* fileTree_ = nullptr;
   QLabel* filesEmptyLabel_ = nullptr;
   QToolButton* newFileButton_ = nullptr;
   QToolButton* newFolderButton_ = nullptr;
   QToolButton* collapseFoldersButton_ = nullptr;
+  QToolButton* refreshFoldersButton_ = nullptr;
+  QToolButton* sortFilesButton_ = nullptr;
+  QMenu* sortFilesMenu_ = nullptr;
+  QString refreshSelectionPath_;
+  QString refreshAnchorPath_;
+  int refreshAnchorOffset_ = 0;
   QTimer* folderExpansionTimer_ = nullptr;
   QQueue<QString> folderExpansionQueue_;
   QSet<QString> queuedFolderExpansions_;

@@ -1172,6 +1172,8 @@ set(MUFFIN_UI_SOURCES
   src/blocks/table/TableCellSourceEdit.h
   src/app/SidebarWidget.cpp
   src/app/SidebarWidget.h
+  src/app/FileTreeModel.cpp
+  src/app/FileTreeModel.h
   src/app/OutlineModel.cpp
   src/app/OutlineModel.h
   src/app/StatusBarWidget.cpp

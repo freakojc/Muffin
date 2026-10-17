@@ -1,5 +1,6 @@
 #include "app/MainWindow.h"
 #include "app/LanguageManager.h"
+#include "app/FileTreeModel.h"
 #include "editor/EditorView.h"
 #include "editor/SourceEditorWidget.h"
 #include "editor/VirtualSourceEdit.h"
@@ -16,7 +17,6 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFileDialog>
-#include <QFileSystemModel>
 #include <QMessageBox>
 #include <QMenu>
 #include <QPushButton>
@@ -676,7 +676,7 @@ void sessionRestoresOrderActiveFolderAndExpansion() {
   auto* sidebar = original.window.findChild<SidebarWidget*>();
   sidebar->restoreExpandedFolders({"Folder", "Folder/Nested"});
   auto* tree = sidebar->findChild<QTreeView*>("FileTree");
-  auto* model = qobject_cast<QFileSystemModel*>(tree->model());
+  auto* model = qobject_cast<FileTreeModel*>(tree->model());
   waitUntil([&] { return tree->isExpanded(model->index(original.directory.filePath("Folder/Nested"))); },
             "session folders expanded before exit");
   tree->setExpanded(model->index(original.directory.filePath("Folder")), false);
@@ -700,7 +700,7 @@ void sessionRestoresOrderActiveFolderAndExpansion() {
           "startup restores ordered tabs and active file");
   auto* restoredSidebar = restored.window.findChild<SidebarWidget*>();
   auto* restoredTree = restoredSidebar->findChild<QTreeView*>("FileTree");
-  auto* restoredModel = qobject_cast<QFileSystemModel*>(restoredTree->model());
+  auto* restoredModel = qobject_cast<FileTreeModel*>(restoredTree->model());
   waitUntil([&] { return restoredTree->isExpanded(restoredModel->index(original.directory.filePath("Folder/Nested"))); },
             "startup restores asynchronously loaded nested folder expansion");
   require(!restoredTree->isExpanded(restoredModel->index(original.directory.filePath("Folder"))),
