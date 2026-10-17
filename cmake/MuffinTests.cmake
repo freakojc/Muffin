@@ -583,9 +583,9 @@ target_compile_definitions(MuffinGuiPerformanceProbe PRIVATE
 muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
 if(APPLE)
   # Conan's ICU 74 archive overrides Apple's ICU data in CoreFoundation.
-  # QFileSystemModel formats hidden size/date columns using QLocale::system(),
+  # QFileSystemModel and QSpinBox format values using QLocale::system(),
   # whose native formatters cannot initialize against that incompatible data.
-  foreach(_file_tree_test MuffinDocumentTabsTest MuffinSidebarInteractionTest)
+  foreach(_file_tree_test MuffinDocumentTabsTest MuffinLazySessionViewTest MuffinSidebarInteractionTest)
     set_property(TEST ${_file_tree_test} APPEND PROPERTY ENVIRONMENT_MODIFICATION
       "ICU_DATA=unset:")
   endforeach()

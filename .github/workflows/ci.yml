@@ -158,7 +158,7 @@ jobs:
 
       - name: Test macOS integration and font raster
         if: runner.os == 'macOS'
-        run: ctest --preset conan-release --verbose -R 'Muffin(DocumentTabs|SidebarInteraction|.*FontMappingCompatibility|.*CssPaintInteraction)Test'
+        run: ctest --preset conan-release --verbose -R 'Muffin(DocumentTabs|LazySessionView|SidebarInteraction|.*FontMappingCompatibility|.*CssPaintInteraction)Test'
 
       - name: Build
         run: cmake --build --preset conan-release
