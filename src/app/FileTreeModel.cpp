@@ -4,6 +4,7 @@
 
 #include <QDateTime>
 #include <QDir>
+#include <QLocale>
 #include <QMimeData>
 
 namespace {
@@ -24,6 +25,8 @@ template<typename T> int compare(const T& a, const T& b) {
 }  // namespace
 
 muffin::FileTreeModel::FileTreeModel(QObject* parent) : QSortFilterProxyModel(parent) {
+  // The C-locale collator ignores numericMode, even with the ICU backend.
+  if (collator_.locale().language() == QLocale::C) collator_.setLocale(QLocale(QLocale::English));
   collator_.setNumericMode(true);
   collator_.setCaseSensitivity(Qt::CaseInsensitive);
   setDynamicSortFilter(true);

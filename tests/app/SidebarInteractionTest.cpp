@@ -13,6 +13,7 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QLabel>
+#include <QLocale>
 #include <QMouseEvent>
 #include <QMenu>
 #include <QMimeData>
@@ -362,6 +363,12 @@ int main(int argc, char** argv) {
   QSettings::setDefaultFormat(QSettings::IniFormat);
   QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settings.path());
   runTest("testSortMenuAndPersistence", testSortMenuAndPersistence);
+  runTest("testSortMenuAndPersistenceInCLocale", +[] {
+    const QLocale previousLocale;
+    QLocale::setDefault(QLocale::c());
+    testSortMenuAndPersistence();
+    QLocale::setDefault(previousLocale);
+  });
   runTest("testRefreshRescansWithoutLosingState", testRefreshRescansWithoutLosingState);
   runTest("testToolbarCollapsesFoldersAndRestoresState", testToolbarCollapsesFoldersAndRestoresState);
   runTest("testClosingWorkspaceAndToolbarCreationTargets", testClosingWorkspaceAndToolbarCreationTargets);
