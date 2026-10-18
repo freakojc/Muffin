@@ -48,7 +48,9 @@ QIcon folderToolbarIcon(const QByteArray& path, const QColor& color) {
     pixmap.setDevicePixelRatio(scale);
     pixmap.fill(Qt::transparent);
     QPainter painter(&pixmap);
-    renderer.render(&painter);
+    // The painter already applies the pixmap's DPR. Default SVG bounds use
+    // physical pixels, which scales the icon twice and clips it on Retina.
+    renderer.render(&painter, QRectF(0, 0, 16, 16));
     painter.end();
     icon.addPixmap(pixmap);
   }

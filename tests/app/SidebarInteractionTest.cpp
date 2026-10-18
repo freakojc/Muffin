@@ -10,6 +10,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QFileSystemModel>
+#include <QImage>
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QLabel>
@@ -166,6 +167,49 @@ void testRightClickAndInlineRenameDoNotToggleFolder() {
   QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
   QApplication::sendEvent(editor, &escape);
   require(f.openedFiles == 0, "renaming a folder must not open a document");
+}
+
+void testToolbarIconsRetainTheirShapeAtHighDpi() {
+  SidebarWidget sidebar;
+  const auto paintedBounds = [](const QPixmap& pixmap) {
+    const QImage image = pixmap.toImage();
+    QRect bounds;
+    for (int y = 0; y < image.height(); ++y) {
+      for (int x = 0; x < image.width(); ++x) {
+        if (qAlpha(image.pixel(x, y)) > 0) bounds |= QRect(x, y, 1, 1);
+      }
+    }
+    const qreal dpr = pixmap.devicePixelRatio();
+    return QRectF(bounds.x() / dpr, bounds.y() / dpr, bounds.width() / dpr, bounds.height() / dpr);
+  };
+  for (const QString& themeId : {QStringLiteral("github"), QStringLiteral("night")}) {
+    const auto theme = ThemeDefinition::builtIn(themeId);
+    require(theme.has_value(), "toolbar icon test theme should exist");
+    sidebar.applyTheme(*theme);
+    for (const auto* name : {"NewFileButton", "NewFolderButton", "RefreshFoldersButton",
+                             "SortFilesButton", "CollapseFoldersButton"}) {
+      const auto* button = sidebar.findChild<QToolButton*>(QString::fromLatin1(name));
+      require(button && !button->icon().isNull(), "toolbar button should have an icon");
+      for (const auto mode : {QIcon::Normal, QIcon::Disabled, QIcon::Active}) {
+        const QRectF reference = paintedBounds(button->icon().pixmap(QSize(16, 16), 1.0, mode));
+        require(!reference.isEmpty(), "toolbar icon should contain visible strokes");
+        for (const qreal dpr : {1.25, 1.5, 2.0, 3.0}) {
+          const QPixmap pixmap = button->icon().pixmap(QSize(16, 16), dpr, mode);
+          require(pixmap.width() >= qRound(16 * dpr) && pixmap.height() >= qRound(16 * dpr),
+                  "toolbar icons should supply enough pixels for high-DPI screens");
+          const QRectF bounds = paintedBounds(pixmap);
+          require(!bounds.isEmpty() && qAbs(bounds.left() - reference.left()) <= 1.0 &&
+                      qAbs(bounds.top() - reference.top()) <= 1.0 &&
+                      qAbs(bounds.right() - reference.right()) <= 1.0 &&
+                      qAbs(bounds.bottom() - reference.bottom()) <= 1.0,
+                  QStringLiteral("%1 icon must retain its full shape at DPR %2, theme %3, mode %4: reference=%5,%6,%7,%8 actual=%9,%10,%11,%12")
+                      .arg(QString::fromLatin1(name)).arg(dpr).arg(themeId).arg(mode)
+                      .arg(reference.x()).arg(reference.y()).arg(reference.width()).arg(reference.height())
+                      .arg(bounds.x()).arg(bounds.y()).arg(bounds.width()).arg(bounds.height()));
+        }
+      }
+    }
+  }
 }
 
 void testToolbarCollapsesFoldersAndRestoresState() {
@@ -362,6 +406,7 @@ int main(int argc, char** argv) {
   QCoreApplication::setApplicationName("SidebarInteraction");
   QSettings::setDefaultFormat(QSettings::IniFormat);
   QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settings.path());
+  runTest("testToolbarIconsRetainTheirShapeAtHighDpi", testToolbarIconsRetainTheirShapeAtHighDpi);
   runTest("testSortMenuAndPersistence", testSortMenuAndPersistence);
   runTest("testSortMenuAndPersistenceInCLocale", +[] {
     const QLocale previousLocale;

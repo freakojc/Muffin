@@ -261,7 +261,9 @@ void muffin::MainWindow::setupUi() {
   tabs_->tabBar()->setDrawBase(false);
   tabs_->tabBar()->setExpanding(false);
   tabs_->setMovable(true);
-  tabs_->setTabsClosable(true);
+  // setupTabButton owns the close/pin control. Qt's automatic close button
+  // uses the platform's side (left on macOS), duplicating our right control.
+  tabs_->setTabsClosable(false);
   tabs_->setElideMode(Qt::ElideMiddle);
   tabs_->setUsesScrollButtons(true);
   tabs_->tabBar()->installEventFilter(this);

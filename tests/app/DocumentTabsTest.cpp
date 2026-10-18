@@ -32,12 +32,14 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QProxyStyle>
 #include <QScrollBar>
 #include <QScopeGuard>
 #include <QSettings>
 #include <QDoubleSpinBox>
 #include <QStackedWidget>
 #include <QStandardPaths>
+#include <QStyleFactory>
 #include <QTabBar>
 #include <QTabWidget>
 #include <QTemporaryDir>
@@ -489,6 +491,79 @@ void triggerTabMenu(MainWindow& window, DocumentTab* document, const QString& te
     require(item->isEnabled(), "tab menu action is enabled");
     item->trigger();
   });
+}
+
+class TabCloseSideStyle final : public QProxyStyle {
+public:
+  explicit TabCloseSideStyle(QTabBar::ButtonPosition side)
+      : QProxyStyle(QStyleFactory::create(QStringLiteral("Fusion"))), side_(side) {}
+
+  int styleHint(StyleHint hint, const QStyleOption* option = nullptr,
+                const QWidget* widget = nullptr, QStyleHintReturn* data = nullptr) const override {
+    if (hint == SH_TabBar_CloseButtonPosition) return side_;
+    return QProxyStyle::styleHint(hint, option, widget, data);
+  }
+
+private:
+  QTabBar::ButtonPosition side_;
+};
+
+void tabButtonsHaveSingleOwnerAcrossPlatformStyles() {
+  const QString originalStyle = QApplication::style()->objectName();
+  const auto restoreStyle = qScopeGuard([&] {
+    if (auto* style = QStyleFactory::create(originalStyle)) QApplication::setStyle(style);
+  });
+  // macOS creates native close buttons on the left and paints them on hover.
+  // Exercise that style hint here too, rather than relying on the host OS.
+  for (const auto side : {QTabBar::LeftSide, QTabBar::RightSide}) {
+    QApplication::setStyle(new TabCloseSideStyle(side));
+    Fixture f;
+    auto* bar = f.tabs->tabBar();
+    require(bar->style()->styleHint(QStyle::SH_TabBar_CloseButtonPosition, nullptr, bar) == side,
+            "fixture should use the requested native close-button side");
+    const auto checkButtons = [&] {
+      QApplication::processEvents();
+      require(!f.tabs->tabsClosable() && !bar->tabsClosable(),
+              "custom tab controls must own closing without Qt creating another button");
+      for (int index = 0; index < f.tabs->count(); ++index) {
+        auto* document = static_cast<DocumentTab*>(f.tabs->widget(index));
+        require(bar->tabButton(index, QTabBar::LeftSide) == nullptr,
+                "tab must not retain a native left-side close button");
+        auto* button = qobject_cast<QToolButton*>(bar->tabButton(index, QTabBar::RightSide));
+        require(button && button->objectName() == (document->pinned ? "PinTabButton" : "CloseTabButton"),
+                "each tab should expose exactly its custom close or pin control");
+        if (bar->isVisible()) {
+          QTest::mouseMove(bar, bar->tabRect(index).center());
+          require(bar->tabButton(index, QTabBar::LeftSide) == nullptr,
+                  "hover must not expose a second close control");
+        }
+      }
+    };
+    checkButtons();
+    auto* a = f.open(f.file("buttons-a.md", "A\n"));
+    auto* b = f.open(f.file("buttons-b.md", "B\n"));
+    auto* c = f.open(f.file("buttons-c.md", "C\n"));
+    checkButtons();
+    triggerTabMenu(f.window, b, "Pin Tab");
+    checkButtons();
+    auto* pin = qobject_cast<QToolButton*>(bar->tabButton(f.tabs->indexOf(b), QTabBar::RightSide));
+    QTest::mouseClick(pin, Qt::LeftButton);
+    require(!b->pinned && f.tabs->count() == 3, "pin control should unpin without closing the document");
+    checkButtons();
+    f.tabs->setCurrentWidget(c);
+    bar->moveTab(f.tabs->indexOf(a), 0);
+    auto* close = qobject_cast<QToolButton*>(bar->tabButton(f.tabs->indexOf(a), QTabBar::RightSide));
+    QTest::mouseClick(close, Qt::LeftButton);
+    require(f.tabs->count() == 2 && f.tabs->indexOf(a) < 0 && f.current() == c,
+            "custom close should target the reordered background tab exactly once");
+    checkButtons();
+    action(f.window, "Night")->trigger();
+    checkButtons();
+    action(f.window, "GitHub")->trigger();
+    checkButtons();
+    QApplication::setStyle(new TabCloseSideStyle(side == QTabBar::LeftSide ? QTabBar::RightSide : QTabBar::LeftSide));
+    checkButtons();
+  }
 }
 
 MainWindow* otherWindow(const QList<QWidget*>& before) {
@@ -1597,6 +1672,8 @@ int main(int argc, char** argv) {
     runSessionViewTests();
     return 0;
   }
+  runTest("tabButtonsHaveSingleOwnerAcrossPlatformStyles", tabButtonsHaveSingleOwnerAcrossPlatformStyles);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--tab-buttons"))) return 0;
   runTest("fileOpenProtectionSettingsAndBoundaries", fileOpenProtectionSettingsAndBoundaries);
   runTest("unsavedMermaidRendersAfterLeavingSource", unsavedMermaidRendersAfterLeavingSource);
   if (QCoreApplication::arguments().contains(QStringLiteral("--unsaved-mermaid"))) return 0;
