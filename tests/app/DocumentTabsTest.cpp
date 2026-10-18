@@ -211,6 +211,61 @@ void fileOpenProtectionSettingsAndBoundaries() {
   }
 }
 
+void unsavedMermaidRendersAfterLeavingSource() {
+  SettingsOverride diagrams{"markdown/diagrams", true};
+  SettingsOverride source{"editor/showMermaidAsSource", false};
+  Fixture f;
+  auto* tab = f.current();
+  QApplication::clipboard()->setText(QStringLiteral(
+      "```mermaid\nflowchart TD\nA[开始] --> B{是否保存？}\n"
+      "B -->|是| C[保存文件]\nB -->|否| D[继续编辑]\n```\n\nafter\n"));
+  QTest::keyClick(tab->renderView, Qt::Key_V, Qt::ControlModifier);
+  QApplication::processEvents();
+  auto& root = tab->session.document().root();
+  require(root.children().size() == 2 && root.children().front()->type() == BlockType::CodeFence,
+          "pasted Markdown creates a Mermaid fence and following paragraph");
+  const NodeId fence = root.children().front()->id();
+  auto* paragraph = root.children().back().get();
+  CursorPosition cursor;
+  cursor.blockId = cursor.text.nodeId = fence;
+  tab->editorController.selection().setCursorPosition(cursor);
+  waitUntil([&] {
+    const auto* block = tab->renderView->blockLayoutForNode(fence);
+    return block && block->mermaidState() == BlockLayout::MermaidState::Ready;
+  }, "focused Mermaid validates its source asynchronously");
+  require(!tab->renderView->blockLayoutForNode(fence)->isMermaidRendered(),
+          "the focused Mermaid fence retains editable source");
+  cursor.blockId = cursor.text.nodeId = paragraph->id();
+  cursor.text.textOffset = 1;
+  tab->editorController.selection().setCursorPosition(cursor);
+  waitUntil([&] {
+    const auto* block = tab->renderView->blockLayoutForNode(fence);
+    return block && block->isMermaidRendered();
+  }, "unsaved Mermaid renders after the cursor leaves its source");
+  require(tab->session.filePath().isEmpty() && tab->session.document().isModified(),
+          "Mermaid renders without saving or assigning a document path");
+
+  // The empty line after the final block shares its node ID, but is outside
+  // the source editor. It must allow the diagram to replace the source too.
+  Fixture atEnd;
+  auto* endTab = atEnd.current();
+  QApplication::clipboard()->setText(QStringLiteral("```mermaid\nflowchart TD\nA --> B\n```\n"));
+  QTest::keyClick(endTab->renderView, Qt::Key_V, Qt::ControlModifier);
+  QApplication::processEvents();
+  const NodeId endFence = endTab->session.document().root().children().front()->id();
+  const QRectF rect = endTab->renderView->nodeRect(endFence);
+  const QPointF trailing(rect.left(), rect.bottom() + endTab->renderView->theme().blockSpacing() + 5);
+  QTest::mouseClick(endTab->renderView->viewport(), Qt::LeftButton, Qt::NoModifier,
+      (trailing - QPointF(0, endTab->renderView->verticalScrollBar()->value())).toPoint());
+  require(endTab->editorController.selection().cursorPosition().afterBlock,
+          "click below the final Mermaid fence reaches the trailing empty line");
+  waitUntil([&] {
+    const auto* block = endTab->renderView->blockLayoutForNode(endFence);
+    return block && block->isMermaidRendered();
+  }, "unsaved Mermaid at document end renders from the trailing empty line");
+  require(endTab->session.filePath().isEmpty(), "trailing-line rendering needs no saved path");
+}
+
 void fileSizeUnitsConvertPersistAndProtectAtByteBoundaries() {
   SettingsOverride sizeOn{"files/sizeProtection", true};
   SettingsOverride legacy{"files/sizeLimitMb", 137};
@@ -1532,6 +1587,8 @@ int main(int argc, char** argv) {
   QSettings().setValue(QStringLiteral("files/autoSave"), false);
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
   runTest("fileOpenProtectionSettingsAndBoundaries", fileOpenProtectionSettingsAndBoundaries);
+  runTest("unsavedMermaidRendersAfterLeavingSource", unsavedMermaidRendersAfterLeavingSource);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--unsaved-mermaid"))) return 0;
   runTest("fileSizeUnitsConvertPersistAndProtectAtByteBoundaries", fileSizeUnitsConvertPersistAndProtectAtByteBoundaries);
   runTest("fileOpenConfirmationDefersReadingAndPreservesTabs", fileOpenConfirmationDefersReadingAndPreservesTabs);
   runTest("fileOpenSizeConfirmationAndStartupCancellation", fileOpenSizeConfirmationAndStartupCancellation);

@@ -173,7 +173,9 @@ QString languageForFrontMatter(FrontMatterFormat format) {
 }
 
 bool selectionFocusesNode(const SelectionRange& selection, NodeId nodeId) {
-  return nodeId.isValid() && selection.focus.blockId == nodeId && selection.focus.text.nodeId == nodeId;
+  // The trailing empty line reuses the last block's IDs without editing it.
+  return !selection.focus.afterBlock && nodeId.isValid() &&
+      selection.focus.blockId == nodeId && selection.focus.text.nodeId == nodeId;
 }
 
 // A `[TOC]` marker: a paragraph whose single inline is the literal text "[TOC]"
