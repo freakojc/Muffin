@@ -349,6 +349,8 @@ void muffin::MainWindow::restoreStartupFile() {
       if (i < views.size()) {
         const auto view = views[i].toMap();
         if (view.value(QStringLiteral("version")).toInt() == 1) {
+          tab_->pinned = view.value(QStringLiteral("pinned")).toBool();
+          setupTabButton(tab_);
           tab_->pendingViewState = view;
           const bool source = view.value(QStringLiteral("sourceMode")).toBool();
           if (source) tab_->backend = std::make_unique<SourceEditorBackend>(tab_->editor);
@@ -358,7 +360,9 @@ void muffin::MainWindow::restoreStartupFile() {
       }
       if (i == active) selected = tab_;
     }
+    normalizePinnedTabs();
     if (selected) tabs_->setCurrentWidget(selected);
+    updateTabBarVisibility();
   }
   refreshSidebarDocumentInfo();
   sidebar_->restoreExpandedFolders(snapshot.value(QStringLiteral("expanded")).toStringList());

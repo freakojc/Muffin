@@ -52,7 +52,7 @@ private:
 
 void muffin::MainWindow::connectEditorSignals(DocumentTab* tab) {
   auto& window = *this;  // preserves the window.X call sites after the friend→member split
-  QObject::connect(tab->editor, &SourceEditorWidget::cursorPositionChanged, tab, [&window, tab](int line, int column) {
+  QObject::connect(tab->editor, &SourceEditorWidget::cursorPositionChanged, tab->windowConnections, [&window, tab](int line, int column) {
     tab->cursorLine = line;
     tab->cursorColumn = column;
     if (window.tab_ != tab) { return; }
@@ -65,39 +65,39 @@ void muffin::MainWindow::connectEditorSignals(DocumentTab* tab) {
 
 void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
   auto& window = *this;
-  QObject::connect(&tab->editorController, &EditorController::cursorChanged, tab, [&window, tab](const HitTestResult& hit) {
+  QObject::connect(&tab->editorController, &EditorController::cursorChanged, tab->windowConnections, [&window, tab](const HitTestResult& hit) {
     if (window.tab_ != tab) { return; }
     window.updateRenderCursorStatus(hit);
     if (!window.restoringViewState_ && window.typewriterMode_ && !tab->backend->isSourceMode()) {
       tab->renderView->scrollToCursorCenteredAnimated();
     }
   });
-  QObject::connect(tab->renderView, &EditorView::codeLanguageCommitted, tab, [&window, tab](NodeId codeId, const QString& language) {
+  QObject::connect(tab->renderView, &EditorView::codeLanguageCommitted, tab->windowConnections, [&window, tab](NodeId codeId, const QString& language) {
     if (window.tab_ != tab) { return; }
     if (tab->backend->isSourceMode()) {
       return;
     }
     tab->renderCommands.setCodeLanguageFor(codeId, language);
   });
-  QObject::connect(tab->renderView, &EditorView::tableResizeRequested, tab, [&window, tab](int rows, int columns) {
+  QObject::connect(tab->renderView, &EditorView::tableResizeRequested, tab->windowConnections, [&window, tab](int rows, int columns) {
     if (window.tab_ != tab) { return; }
     if (!tab->backend->isSourceMode()) {
       tab->renderCommands.resizeCurrentTable(rows, columns);
     }
   });
-  QObject::connect(tab->renderView, &EditorView::tableColumnAlignmentRequested, tab, [&window, tab](TableAlignment alignment) {
+  QObject::connect(tab->renderView, &EditorView::tableColumnAlignmentRequested, tab->windowConnections, [&window, tab](TableAlignment alignment) {
     if (window.tab_ != tab) { return; }
     if (!tab->backend->isSourceMode()) {
       tab->renderCommands.setCurrentColumnAlignment(alignment);
     }
   });
-  QObject::connect(tab->renderView, &EditorView::tableDeleteRequested, tab, [&window, tab] {
+  QObject::connect(tab->renderView, &EditorView::tableDeleteRequested, tab->windowConnections, [&window, tab] {
     if (window.tab_ != tab) { return; }
     if (!tab->backend->isSourceMode()) {
       tab->renderCommands.deleteCurrentTable();
     }
   });
-  QObject::connect(tab->renderView, &EditorView::tableMoreActionsRequested, tab, [&window, tab](QPoint globalPos) {
+  QObject::connect(tab->renderView, &EditorView::tableMoreActionsRequested, tab->windowConnections, [&window, tab](QPoint globalPos) {
     if (window.tab_ != tab) { return; }
     if (tab->backend->isSourceMode()) {
       return;
@@ -134,7 +134,7 @@ void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
     }
     menu.exec(globalPos);
   });
-  QObject::connect(tab->renderView, &EditorView::contextMenuRequested, tab,
+  QObject::connect(tab->renderView, &EditorView::contextMenuRequested, tab->windowConnections,
       [&window, tab](HitTestResult hit, QPoint globalPos) {
         if (window.tab_ != tab) { return; }
         if (tab->backend->isSourceMode()) {
@@ -145,7 +145,7 @@ void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
 
   // External drag-and-drop of folders / documents is handled by the main window
   // according to the files/drop* preferences (images are still inserted inline).
-  QObject::connect(tab->renderView, &EditorView::folderDropped, tab, [&window, tab](const QString& path) {
+  QObject::connect(tab->renderView, &EditorView::folderDropped, tab->windowConnections, [&window, tab](const QString& path) {
     if (window.tab_ != tab) { return; }
     // files/dropFolder: 0 = open in Muffin (sidebar root), 1 = open in file manager.
     const int action = QSettings().value(QStringLiteral("files/dropFolder"), 0).toInt();
@@ -157,13 +157,13 @@ void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
       window.openFolderAtPath(path);
     }
   });
-  QObject::connect(tab->renderView, &EditorView::markdownFileDropped, tab, [&window, tab](const QString& path) {
+  QObject::connect(tab->renderView, &EditorView::markdownFileDropped, tab->windowConnections, [&window, tab](const QString& path) {
     if (window.tab_ != tab) { return; }
     // Markdown is Muffin's native format, so a dropped .md/.txt always opens.
     // (files/dropMarkdown is reserved for a future "import into current doc" action.)
     window.openFile(path);
   });
-  QObject::connect(tab->renderView, &EditorView::importableFileDropped, tab, [&window, tab](const QString& path) {
+  QObject::connect(tab->renderView, &EditorView::importableFileDropped, tab->windowConnections, [&window, tab](const QString& path) {
     if (window.tab_ != tab) { return; }
     // files/dropImportable: 1 = open as text; 0 (default) = import. Import has no
     // backend yet, so it no-ops — which also means a binary/unknown drop (PDF,
@@ -176,8 +176,8 @@ void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
 }
 
 void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
-  connect(tab->openConfirmation, &FileOpenConfirmation::confirmed, tab, [this, tab] { confirmPendingFileOpen(tab); });
-  connect(tab->openConfirmation, &FileOpenConfirmation::canceled, tab, [this, tab] { cancelPendingFileOpen(tab); });
+  connect(tab->openConfirmation, &FileOpenConfirmation::confirmed, tab->windowConnections, [this, tab] { confirmPendingFileOpen(tab); });
+  connect(tab->openConfirmation, &FileOpenConfirmation::canceled, tab->windowConnections, [this, tab] { cancelPendingFileOpen(tab); });
   tab->fileController.setPathAvailableCheck([this, tab](const QString& path) {
     if (!isPathOpen(path, &tab->session)) {
       return true;
@@ -186,16 +186,16 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
         tr("This file is already open in another tab. Switch to that tab to edit or save it."));
     return false;
   });
-  connect(&tab->session, &DocumentSession::documentTextChanged, tab, [tab](const QString&) {
+  connect(&tab->session, &DocumentSession::documentTextChanged, tab->windowConnections, [tab](const QString&) {
     tab->editor->syncFromSession();
   });
-  connect(&tab->session, &DocumentSession::documentLocallyEdited, tab, [tab](qsizetype, qsizetype, const QString&) {
+  connect(&tab->session, &DocumentSession::documentLocallyEdited, tab->windowConnections, [tab](qsizetype, qsizetype, const QString&) {
     tab->editor->notifyDocumentChanged();
     if (tab->backend->isSourceMode()) {
       tab->renderViewDirty = true;
     }
   });
-  connect(&tab->session, &DocumentSession::filePathChanged, tab, [this, tab](const QString& path) {
+  connect(&tab->session, &DocumentSession::filePathChanged, tab->windowConnections, [this, tab](const QString& path) {
     tab->editor->setDocumentPath(path);
     updateTabLabel(tab);
     if (tab_ == tab) {
@@ -206,7 +206,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
     scheduleSessionSave();
   });
   tab->editor->setDocumentPath(tab->session.filePath());
-  connect(&tab->session, &DocumentSession::filePathChanged, tab, [this, tab] {
+  connect(&tab->session, &DocumentSession::filePathChanged, tab->windowConnections, [this, tab] {
     if (tab_ != tab || tab->session.isOpenInProgress() || tab->backend->isSourceMode()) {
       tab->renderViewDirty = true;
       return;
@@ -214,7 +214,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
     tab->renderView->setDocument(tab->session.document(), tab->session.filePath());
     tab->renderViewDirty = false;
   }, Qt::QueuedConnection);
-  connect(&tab->session, &DocumentSession::modifiedChanged, tab, [this, tab](bool modified) {
+  connect(&tab->session, &DocumentSession::modifiedChanged, tab->windowConnections, [this, tab](bool modified) {
     updateTabLabel(tab);
     if (tab_ == tab) {
       updateTitle();
@@ -235,9 +235,9 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
       clearDraftSnapshot(tab->session.filePath(), tab->draftKey);
     }
   });
-  connect(tab->autoSaveTimer, &QTimer::timeout, tab, [this, tab] { performAutoSave(tab); });
-  connect(tab->draftTimer, &QTimer::timeout, tab, [this, tab] { snapshotDraft(tab); });
-  connect(&tab->session, &DocumentSession::externalFileChanged, tab, [this, tab] {
+  connect(tab->autoSaveTimer, &QTimer::timeout, tab->windowConnections, [this, tab] { performAutoSave(tab); });
+  connect(tab->draftTimer, &QTimer::timeout, tab->windowConnections, [this, tab] { snapshotDraft(tab); });
+  connect(&tab->session, &DocumentSession::externalFileChanged, tab->windowConnections, [this, tab] {
     if (tab->session.filePath().isEmpty()) {
       return;
     }
@@ -250,14 +250,14 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
       tab->fileController.reload(tab->session, this);
     }
   });
-  connect(&tab->fileController, &FileController::documentBecameClean, tab,
+  connect(&tab->fileController, &FileController::documentBecameClean, tab->windowConnections,
           [this, tab](const QString& path) { clearDraftSnapshot(path, tab->draftKey); });
-  connect(&tab->session, &DocumentSession::parseBusy, tab, [tab](bool busy) {
+  connect(&tab->session, &DocumentSession::parseBusy, tab->windowConnections, [tab](bool busy) {
     tab->renderView->setLoading(busy && tab->pendingOpenPath.isEmpty());
     tab->editor->setReadOnly(busy);
   });
-  connect(&tab->session, &DocumentSession::parsed, tab, [this, tab] {
-    QTimer::singleShot(0, tab, [this, tab] { restoreTabViewState(tab); });
+  connect(&tab->session, &DocumentSession::parsed, tab->windowConnections, [this, tab] {
+    QTimer::singleShot(0, tab->windowConnections, [this, tab] { restoreTabViewState(tab); });
     const bool outlineChanged = tab->sidebarOutlineRevision != tab->session.document().outlineRevision();
     tab->outlineDirty = tab->outlineDirty || outlineChanged;
     tab->wordCountDirty = true;
@@ -290,7 +290,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
     scheduleWordCountUpdate();
     scheduleEditorStateRefresh();
   });
-  connect(&tab->editorController, &EditorController::stateChanged, tab, [this, tab] {
+  connect(&tab->editorController, &EditorController::stateChanged, tab->windowConnections, [this, tab] {
     if (tab_ == tab) {
       scheduleEditorStateRefresh();
     }
@@ -364,18 +364,18 @@ void muffin::MainWindow::connectApplicationSignals() {
 }
 
 void muffin::MainWindow::connectFindBarSignals(DocumentTab* tab) {
-  connect(tab->findBar, &FindBarWidget::findRequested, tab,
+  connect(tab->findBar, &FindBarWidget::findRequested, tab->windowConnections,
           [this, tab](const QString& text, bool forward, bool regex, bool sensitive) {
     if (tab_ == tab) { performFind(text, forward, regex, sensitive); }
   });
-  connect(tab->findBar, &FindBarWidget::closed, tab, [this, tab] {
+  connect(tab->findBar, &FindBarWidget::closed, tab->windowConnections, [this, tab] {
     if (tab_ == tab) { hideFindBar(); }
   });
-  connect(tab->findBar, &FindBarWidget::replaceRequested, tab,
+  connect(tab->findBar, &FindBarWidget::replaceRequested, tab->windowConnections,
           [this, tab](const QString& find, const QString& replacement, bool regex, bool sensitive) {
     if (tab_ == tab) { performReplace(find, replacement, regex, sensitive); }
   });
-  connect(tab->findBar, &FindBarWidget::replaceAllRequested, tab,
+  connect(tab->findBar, &FindBarWidget::replaceAllRequested, tab->windowConnections,
           [this, tab](const QString& find, const QString& replacement, bool regex, bool sensitive) {
     if (tab_ == tab) { performReplaceAll(find, replacement, regex, sensitive); }
   });

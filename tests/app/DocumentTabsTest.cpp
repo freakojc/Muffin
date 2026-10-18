@@ -17,6 +17,9 @@
 #include <QAction>
 #include <QApplication>
 #include <QCheckBox>
+#include <QClipboard>
+#include <QComboBox>
+#include <QContextMenuEvent>
 #include <QElapsedTimer>
 #include <QDir>
 #include <QFile>
@@ -25,12 +28,14 @@
 #include <QMessageBox>
 #include <QMenu>
 #include <QLabel>
+#include <QLayout>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QScopeGuard>
 #include <QSettings>
-#include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <QStackedWidget>
 #include <QStandardPaths>
 #include <QTabBar>
@@ -115,6 +120,8 @@ void fileOpenProtectionSettingsAndBoundaries() {
   SettingsOverride extensions{"files/textExtensions", file_open_protection::defaultTextExtensions()};
   SettingsOverride sizeOn{"files/sizeProtection", true};
   SettingsOverride limit{"files/sizeLimitMb", 100};
+  SettingsOverride bytes{"files/sizeLimitBytes", QVariant()};
+  SettingsOverride unit{"files/sizeLimitUnit", "MB"};
   QSettings().remove("files/extensionProtection");
   QSettings().remove("files/sizeProtection");
   QSettings().remove("files/sizeLimitMb");
@@ -122,9 +129,14 @@ void fileOpenProtectionSettingsAndBoundaries() {
   auto* extensionCheck = page.findChild<QCheckBox*>("extensionProtection");
   auto* sizeCheck = page.findChild<QCheckBox*>("sizeProtection");
   auto* edit = page.findChild<QLineEdit*>("textExtensions");
-  auto* spin = page.findChild<QSpinBox*>("sizeLimitMb");
+  auto* addExtension = page.findChild<QPushButton*>("addTextExtension");
+  auto* resetExtensions = page.findChild<QPushButton*>("resetTextExtensions");
+  auto* chips = page.findChild<QWidget*>("textExtensionChips");
+  auto* spin = page.findChild<QDoubleSpinBox*>("sizeLimitValue");
+  auto* units = page.findChild<QComboBox*>("sizeLimitUnit");
   require(extensionCheck->isChecked() && sizeCheck->isChecked() && spin->value() == 100,
           "both guards default on with a 100 MB limit");
+  require(units->currentText() == "MB" && units->count() == 3, "size units default to MB with KB and GB available");
   Fixture f;
   const QString text = f.file("notes.MD", "text\n");
   const QString unknown = f.file("unknown.binary", "text\n");
@@ -132,11 +144,21 @@ void fileOpenProtectionSettingsAndBoundaries() {
   require(!file_open_protection::warningsForFile(text).any(), "known extension ignores case");
   require(file_open_protection::warningsForFile(unknown).extension, "unknown extension needs confirmation");
   require(file_open_protection::warningsForFile(noSuffix).extension, "extensionless file needs confirmation");
-  edit->setText(QStringLiteral("*.MD; .BINARY，log txt"));
+  edit->setText(QStringLiteral("*.MD; .BINARY，log txt、.TXT"));
+  addExtension->click();
   require(!file_open_protection::warningsForFile(unknown).extension, "custom extensions accept dots, wildcards and separators");
-  edit->clear();
+  require(edit->text().isEmpty() && !addExtension->isEnabled(), "adding clears the field and prevents empty additions");
+  const int count = chips->layout()->count();
+  edit->setText(QStringLiteral(".binary *.BINARY"));
+  edit->returnPressed();
+  require(chips->layout()->count() == count, "duplicate extensions normalize to one chip");
+  while (chips->layout()->count()) {
+    chips->layout()->itemAt(0)->widget()->findChild<QToolButton*>("removeTextExtension")->click();
+  }
   require(file_open_protection::warningsForFile(text).extension, "empty allowlist warns for every extension");
-  edit->setText(file_open_protection::defaultTextExtensions());
+  resetExtensions->click();
+  require(chips->layout()->count() == file_open_protection::normalizedTextExtensions(file_open_protection::defaultTextExtensions()).size()
+      && !file_open_protection::warningsForFile(text).extension, "restore defaults restores the allowed extensions");
   QFile large(unknown);
   require(large.open(QIODevice::ReadWrite), "open sparse size fixture");
   require(large.resize(100LL * 1024 * 1024), "resize to exactly the default limit");
@@ -149,24 +171,92 @@ void fileOpenProtectionSettingsAndBoundaries() {
   require(!file_open_protection::warningsForFile(unknown).size, "custom size limit applies immediately");
   extensionCheck->setChecked(false);
   sizeCheck->setChecked(false);
-  require(!edit->isEnabled() && !spin->isEnabled(), "disabled guards disable their fields");
+  require(!edit->isEnabled() && !spin->isEnabled() && !units->isEnabled(), "disabled guards disable their fields");
+  require(!resetExtensions->isEnabled() && !chips->isEnabled(), "disabled extension protection also disables chips and reset");
   require(!file_open_protection::warningsForFile(unknown).any(), "guards can be disabled independently of their values");
   PrefsFilesPage reopened;
   require(!reopened.findChild<QCheckBox*>("extensionProtection")->isChecked()
       && !reopened.findChild<QCheckBox*>("sizeProtection")->isChecked()
-      && reopened.findChild<QSpinBox*>("sizeLimitMb")->value() == 200, "guard settings persist");
+      && reopened.findChild<QDoubleSpinBox*>("sizeLimitValue")->value() == 200, "guard settings persist");
   if (const auto capture = qEnvironmentVariable("MUFFIN_OPEN_GUARD_SCREENSHOT"); !capture.isEmpty()) {
     SettingsOverride captureExtensions{"files/extensionProtection", true};
     SettingsOverride captureSize{"files/sizeProtection", true};
     SettingsOverride captureLimit{"files/sizeLimitMb", 100};
+    SettingsOverride captureBytes{"files/sizeLimitBytes", qint64(100) * 1024 * 1024};
     LanguageManager::instance().setLanguage(QStringLiteral("zh_CN"));
     PreferencesDialog preferences;
     preferences.findChild<QListWidget*>()->setCurrentRow(5);
+    preferences.resize(1040, 840);
     preferences.show();
     QApplication::processEvents();
     require(preferences.grab().save(capture + ".settings.png"), "capture protection preferences");
+    auto* protection = preferences.findChild<QWidget*>("fileOpenProtection");
+    const auto captureProtection = [&](const QString& suffix) {
+      const QRect area(protection->mapTo(&preferences, QPoint()), protection->size());
+      require(preferences.grab().copy(area).save(capture + suffix), "capture protection layout with its dialog background");
+    };
+    captureProtection(QStringLiteral(".protection.light.png"));
+    auto* capturedUnits = preferences.findChild<QComboBox*>("sizeLimitUnit");
+    capturedUnits->setCurrentText("GB");
+    QApplication::processEvents();
+    captureProtection(QStringLiteral(".protection.gb.png"));
+    capturedUnits->setCurrentText("MB");
+    preferences.setThemeDefinition(ThemeDefinition::builtIn(QStringLiteral("night")).value());
+    QApplication::processEvents();
+    captureProtection(QStringLiteral(".protection.dark.png"));
+    preferences.resize(880, 840);
+    QApplication::processEvents();
+    captureProtection(QStringLiteral(".protection.narrow.png"));
     LanguageManager::instance().setLanguage(QStringLiteral("en"));
   }
+}
+
+void fileSizeUnitsConvertPersistAndProtectAtByteBoundaries() {
+  SettingsOverride sizeOn{"files/sizeProtection", true};
+  SettingsOverride legacy{"files/sizeLimitMb", 137};
+  SettingsOverride bytes{"files/sizeLimitBytes", QVariant()};
+  SettingsOverride unit{"files/sizeLimitUnit", "MB"};
+  PrefsFilesPage page;
+  auto* spin = page.findChild<QDoubleSpinBox*>("sizeLimitValue");
+  auto* units = page.findChild<QComboBox*>("sizeLimitUnit");
+  const qint64 legacyBytes = qint64(137) * 1024 * 1024;
+  require(spin->value() == 137 && file_open_protection::sizeLimitBytes() == legacyBytes,
+          "existing MB settings retain their threshold");
+  for (const auto& name : {"GB", "KB", "MB", "GB", "KB"}) {
+    units->setCurrentText(QString::fromLatin1(name));
+    require(file_open_protection::sizeLimitBytes() == legacyBytes,
+            "switching display units preserves the byte threshold");
+  }
+  require(spin->value() == 137 * 1024, "MB converts exactly to KB");
+  spin->setValue(513);
+  require(file_open_protection::sizeLimitBytes() == 513 * 1024, "KB edits persist in bytes");
+  units->setCurrentText("GB");
+  units->setCurrentText("KB");
+  require(spin->value() == 513 && file_open_protection::sizeLimitBytes() == 513 * 1024,
+          "fractional GB display does not round an existing KB threshold");
+  PrefsFilesPage reopened;
+  require(reopened.findChild<QComboBox*>("sizeLimitUnit")->currentText() == "KB"
+      && reopened.findChild<QDoubleSpinBox*>("sizeLimitValue")->value() == 513,
+          "both the value and selected unit persist");
+  QTemporaryDir directory;
+  QFile file(directory.filePath("boundary.md"));
+  require(file.open(QIODevice::ReadWrite) && file.resize(513 * 1024), "create KB boundary fixture");
+  require(!file_open_protection::warningsForFile(file.fileName()).size, "exact KB limit does not warn");
+  require(file.resize(513 * 1024 + 1), "extend KB boundary fixture");
+  require(file_open_protection::warningsForFile(file.fileName()).size, "one byte above KB limit warns");
+  units->setCurrentText("GB");
+  spin->setValue(3.25);
+  require(file_open_protection::sizeLimitBytes() == qint64(13) * 1024 * 1024 * 1024 / 4,
+          "fractional GB limits above 2 GB use 64-bit bytes");
+  spin->findChild<QLineEdit*>()->setText(spin->locale().toString(2.5, 'f', 1));
+  units->setCurrentText("MB");
+  require(spin->value() == 2560 && file_open_protection::sizeLimitBytes() == qint64(2560) * 1024 * 1024,
+          "switching units commits unsubmitted input using its original unit");
+  QSettings().setValue("files/sizeLimitBytes", 0);
+  require(file_open_protection::sizeLimitBytes() == 1024, "minimum threshold is one KB");
+  QSettings().setValue("files/sizeLimitBytes", file_open_protection::kMaximumSizeLimitBytes + 1);
+  require(file_open_protection::sizeLimitBytes() == file_open_protection::kMaximumSizeLimitBytes,
+          "oversized persisted thresholds clamp safely");
 }
 
 void fileOpenConfirmationDefersReadingAndPreservesTabs() {
@@ -299,7 +389,8 @@ public:
     QObject::connect(&timer, &QTimer::timeout, &timer, [this, answer] {
       if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
         ++count;
-        require(box->button(answer) != nullptr, "expected modal button");
+        require(box->button(answer) != nullptr, QStringLiteral("Unexpected dialog: %1 — %2")
+            .arg(box->windowTitle(), box->text()));
         box->button(answer)->click();
       }
       require(count < 10, "unexpected repeated prompts");
@@ -313,6 +404,239 @@ QString contents(const QString& path) {
   require(file.open(QIODevice::ReadOnly), "read saved document");
   return QString::fromUtf8(file.readAll()).replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
 }
+
+QAction* tabMenuAction(QMenu& menu, const QString& text) {
+  for (auto* item : menu.actions()) if (item->text() == MainWindow::tr(text.toUtf8().constData())) return item;
+  require(false, QStringLiteral("Missing tab menu action: %1").arg(text));
+  return nullptr;
+}
+
+void withTabMenu(MainWindow& window, DocumentTab* document, const std::function<void(QMenu&)>& inspect) {
+  auto* tabs = window.findChild<QTabWidget*>("DocumentTabs");
+  auto* bar = tabs->tabBar();
+  const QPoint pos = bar->tabRect(tabs->indexOf(document)).center();
+  bool visited = false;
+  QTimer::singleShot(0, &window, [&] {
+    auto* menu = qobject_cast<QMenu*>(QApplication::activePopupWidget());
+    require(menu && menu->objectName() == "TabContextMenu", "tab context menu opens");
+    inspect(*menu);
+    visited = true;
+    menu->close();
+  });
+  QContextMenuEvent event(QContextMenuEvent::Mouse, pos, bar->mapToGlobal(pos));
+  QApplication::sendEvent(bar, &event);
+  require(visited, "tab context event was handled");
+}
+
+void triggerTabMenu(MainWindow& window, DocumentTab* document, const QString& text) {
+  withTabMenu(window, document, [&](QMenu& menu) {
+    auto* item = tabMenuAction(menu, text);
+    require(item->isEnabled(), "tab menu action is enabled");
+    item->trigger();
+  });
+}
+
+MainWindow* otherWindow(const QList<QWidget*>& before) {
+  for (auto* widget : QApplication::topLevelWidgets()) {
+    if (!before.contains(widget)) if (auto* window = qobject_cast<MainWindow*>(widget)) return window;
+  }
+  require(false, "new editor window exists");
+  return nullptr;
+}
+
+void deleteTestWindow(MainWindow* window) {
+  DraftRecovery recovery;
+  auto* tabs = window->findChild<QTabWidget*>("DocumentTabs");
+  for (int i = 0; i < tabs->count(); ++i) {
+    auto* document = static_cast<DocumentTab*>(tabs->widget(i));
+    document->session.document().setModified(false);
+    recovery.markClean(document->session.filePath(), document->draftKey);
+  }
+  delete window;
+}
+
+void tabMenuTargetsBackgroundTabsAndStopsOnCancel() {
+  Fixture f;
+  auto* a = f.open(f.file("a.md", "A\n"));
+  auto* b = f.open(f.file("b.md", "B\n"));
+  auto* c = f.open(f.file("c.md", "C\n"));
+  auto* d = f.open(f.file("d.md", "D\n"));
+  c->editorController.applyMarkdownTextWithUndo("Edited C\n", "edit");
+  triggerTabMenu(f.window, a, "Copy Path");
+  require(QApplication::clipboard()->text() == QDir::toNativeSeparators(a->session.filePath()) && f.current() == d,
+          "right-click actions target the clicked tab without switching documents");
+  {
+    AnswerPrompts answer(QMessageBox::Cancel);
+    triggerTabMenu(f.window, b, "Close Tabs to the Right");
+    require(answer.count == 1 && f.tabs->count() == 4 && f.current() == d,
+            "cancel stops the batch before closing later tabs and retains active document");
+  }
+  {
+    AnswerPrompts answer(QMessageBox::Save);
+    triggerTabMenu(f.window, b, "Close Tabs to the Right");
+    require(answer.count == 1 && f.tabs->count() == 2 && f.tabs->widget(0) == a && f.tabs->widget(1) == b,
+            "close-to-right closes exactly the visible tabs after the target");
+    require(contents(f.directory.filePath("c.md")) == "Edited C\n", "batch close saves the correct buffer");
+  }
+  withTabMenu(f.window, b, [&](QMenu& menu) {
+    require(!tabMenuAction(menu, "Close Tabs to the Right")->isEnabled(), "no right-hand tabs disables close-to-right");
+#ifdef Q_OS_MACOS
+    tabMenuAction(menu, "Reveal in Finder");
+#elif defined(Q_OS_WIN)
+    tabMenuAction(menu, "Reveal in File Explorer");
+#else
+    tabMenuAction(menu, "Reveal in File Manager");
+#endif
+  });
+  // A drag changes the meaning of "to the right" immediately.
+  f.tabs->tabBar()->moveTab(0, 1);
+  triggerTabMenu(f.window, b, "Close Tabs to the Right");
+  require(f.tabs->count() == 1 && f.current() == b, "close-to-right follows dragged order");
+}
+
+void pinnedTabsSurviveBulkCloseAndRestore() {
+  SettingsOverride startupMode{"files/startupBehavior", 1};
+  Fixture f;
+  auto* a = f.open(f.file("a.md", "A\n"));
+  auto* b = f.open(f.file("b.md", "B\n"));
+  auto* pinned = f.open(f.file("pinned.md", "Pinned\n"));
+  b->editorController.applyMarkdownTextWithUndo("Edited B\n", "edit");
+  triggerTabMenu(f.window, pinned, "Pin Tab");
+  require(pinned->pinned && f.tabs->widget(0) == pinned, "pin puts the tab at the front");
+  require(f.tabs->tabBar()->tabButton(0, QTabBar::RightSide)->objectName() == "PinTabButton", "pin replaces accidental close button");
+  if (const auto capture = qEnvironmentVariable("MUFFIN_TAB_MENU_SCREENSHOT"); !capture.isEmpty()) {
+    LanguageManager::instance().setLanguage(QStringLiteral("zh_CN"));
+    withTabMenu(f.window, b, [&](QMenu& menu) {
+      require(menu.grab().save(capture + ".menu.png"), "capture translated tab menu");
+      require(f.window.grab().save(capture + ".window.png"), "capture pinned tab appearance");
+    });
+    LanguageManager::instance().setLanguage(QStringLiteral("en"));
+  }
+  f.tabs->tabBar()->moveTab(0, 2);
+  require(f.tabs->widget(0) == pinned, "dragging keeps fixed tabs before other tabs");
+  QTest::mouseClick(f.tabs->tabBar(), Qt::MiddleButton, Qt::NoModifier, f.tabs->tabBar()->tabRect(0).center());
+  require(f.tabs->indexOf(pinned) == 0, "middle click preserves pinned tabs");
+  {
+    Fixture restored;
+    restored.window.restoreStartupFile();
+    auto* restoredPin = static_cast<DocumentTab*>(restored.tabs->widget(0));
+    require(restoredPin->pinned && restoredPin->session.filePath() == pinned->session.filePath(), "session restores pin and order");
+  }
+  action(f.window, "New")->trigger();
+  auto* blank = f.current();
+  triggerTabMenu(f.window, b, "Close Saved Tabs");
+  require(f.tabs->count() == 3 && f.tabs->indexOf(a) < 0 && f.tabs->indexOf(blank) >= 0 && f.tabs->indexOf(b) >= 0,
+          "close-saved skips dirty, untitled and pinned tabs");
+  triggerTabMenu(f.window, b, "Close Others");
+  require(f.tabs->count() == 2 && f.tabs->indexOf(pinned) == 0 && f.tabs->indexOf(b) == 1,
+          "close-others preserves clicked tab and pinned tabs");
+  {
+    AnswerPrompts answer(QMessageBox::Discard);
+    triggerTabMenu(f.window, b, "Close All Tabs");
+    require(answer.count == 1 && f.tabs->count() == 1 && f.current() == pinned && f.tabs->tabBar()->isVisible(),
+            "close-all preserves a visible pinned tab");
+  }
+  withTabMenu(f.window, pinned, [&](QMenu& menu) {
+    require(!tabMenuAction(menu, "Close All Tabs")->isEnabled(), "bulk close disables when only pinned tabs remain");
+  });
+  triggerTabMenu(f.window, pinned, "Unpin Tab");
+  require(!pinned->pinned && !f.tabs->tabBar()->isVisible(), "unpin restores ordinary single-document appearance");
+}
+
+void movingTabsPreservesHistoryAndRebindsWindowLifetime() {
+  Fixture f;
+  const QString path = f.file("move.md", QStringLiteral("Paragraph.\n\n").repeated(140));
+  auto* document = f.open(path);
+  action(f.window, "Source Code Mode")->trigger();
+  document->editor->setCursorPosition(50);
+  document->editor->insertText("Unsaved move");
+  document->editor->setSelection(32, 64);
+  auto* source = document->editor->findChild<VirtualSourceEdit*>();
+  source->verticalScrollBar()->setValue(source->verticalScrollBar()->maximum() / 2);
+  const auto scroll = source->verticalScrollBar()->value();
+  const QString edited = document->session.markdownText().toString();
+  auto* other = f.open(f.file("other.md", "Other\n"));
+  const auto before = QApplication::topLevelWidgets();
+  triggerTabMenu(f.window, document, "Move Tab to New Window");
+  auto* movedWindow = otherWindow(before);
+  auto* movedTabs = movedWindow->findChild<QTabWidget*>("DocumentTabs");
+  require(movedTabs->currentWidget() == document && f.tabs->count() == 1 && f.current() == other,
+          "move transfers the same editing page and preserves the source's other tab");
+  waitUntil([&] { return !document->pendingViewState; }, "moved viewport restored");
+  require(document->editor->canUndo() && document->editor->anchorPosition() == 32 && document->editor->cursorPosition() == 64
+      && source->verticalScrollBar()->value() == scroll, "move retains source undo, selection and scroll");
+  triggerTabMenu(*movedWindow, document, "Pin Tab");
+  const auto beforeAgain = QApplication::topLevelWidgets();
+  triggerTabMenu(*movedWindow, document, "Move Tab to New Window");
+  auto* finalWindow = otherWindow(beforeAgain);
+  require(movedTabs->count() == 1 && static_cast<DocumentTab*>(movedTabs->widget(0))->session.filePath().isEmpty(),
+          "moving the last document leaves a fresh page in its old window");
+  deleteTestWindow(movedWindow);
+  QApplication::processEvents();
+  action(*finalWindow, "Undo")->trigger();
+  require(document->session.markdownText().toString() != edited && !document->session.markdownText().toString().contains("Unsaved move"),
+          "undo still works after the previous owning window is destroyed");
+  action(*finalWindow, "Redo")->trigger();
+  require(finalWindow->saveCurrentDocument() && contents(path) == edited, "save is rebound to the destination window");
+  require(finalWindow->windowTitle().startsWith("move.md -"), "clean state updates the destination title");
+  deleteTestWindow(finalWindow);
+}
+
+void copyingTabsIncludesUnsavedContentAndIndependentBuffers() {
+  Fixture f;
+  auto* document = f.open(f.file("copy.md", "Original\r\n"));
+  document->editorController.applyMarkdownTextWithUndo("Unsaved copy\n", "edit");
+  document->editorController.moveDocumentEnd();
+  auto* other = f.open(f.file("other.md", "Other\n"));
+  const auto before = QApplication::topLevelWidgets();
+  triggerTabMenu(f.window, document, "Copy Tab to New Window");
+  auto* copiedWindow = otherWindow(before);
+  auto* copyTabs = copiedWindow->findChild<QTabWidget*>("DocumentTabs");
+  auto* copy = static_cast<DocumentTab*>(copyTabs->currentWidget());
+  waitUntil([&] { return !copy->pendingViewState; }, "copied caret restored");
+  require(copy != document && f.current() == other && f.tabs->count() == 2 && copy->session.document().isModified()
+      && copy->session.markdownText().toString() == "Unsaved copy\n", "copy includes unsaved text without removing the original");
+  require(copy->session.filePath() == document->session.filePath() && copy->session.fileFormat().lineEnding == TextLineEnding::Crlf
+      && copy->session.fileBaselineMtime() == document->session.fileBaselineMtime()
+      && copy->session.fileBaselineSize() == document->session.fileBaselineSize(), "copy retains path, encoding and disk conflict baseline");
+  copy->editorController.applyMarkdownTextWithUndo("Independent copy\n", "edit copy");
+  require(document->session.markdownText().toString() == "Unsaved copy\n", "editing the copy leaves the original buffer intact");
+  deleteTestWindow(copiedWindow);
+  action(f.window, "New")->trigger();
+  auto* untitled = f.current();
+  action(f.window, "Source Code Mode")->trigger();
+  untitled->editor->insertText("Untitled copy");
+  const auto beforeUntitled = QApplication::topLevelWidgets();
+  triggerTabMenu(f.window, untitled, "Copy Tab to New Window");
+  auto* untitledWindow = otherWindow(beforeUntitled);
+  auto* untitledCopy = static_cast<DocumentTab*>(untitledWindow->findChild<QTabWidget*>("DocumentTabs")->currentWidget());
+  require(untitledCopy->session.filePath().isEmpty() && untitledCopy->session.document().isModified()
+      && untitledCopy->session.markdownText().toString() == "Untitled copy" && untitledCopy->backend->isSourceMode(),
+          "untitled copies retain text and mode and still require Save As");
+  withTabMenu(*untitledWindow, untitledCopy, [&](QMenu& menu) {
+    require(!tabMenuAction(menu, "Copy Path")->isEnabled(), "untitled copy has no path to copy");
+  });
+  deleteTestWindow(untitledWindow);
+}
+
+void pendingTabsDisableWindowTransfer() {
+  SettingsOverride extensionsOn{"files/extensionProtection", true};
+  SettingsOverride extensions{"files/textExtensions", file_open_protection::defaultTextExtensions()};
+  Fixture f;
+  f.open(f.file("loaded.md", "Loaded\n"));
+  const QString path = f.file("unknown.binary", "Not loaded\n");
+  require(f.window.openFile(path), "request protected file");
+  auto* pending = f.current();
+  withTabMenu(f.window, pending, [&](QMenu& menu) {
+    require(!tabMenuAction(menu, "Move Tab to New Window")->isEnabled()
+        && !tabMenuAction(menu, "Copy Tab to New Window")->isEnabled(), "unconfirmed buffers cannot transfer as empty documents");
+    require(tabMenuAction(menu, "Copy Path")->isEnabled(), "pending file still has a path to copy");
+  });
+  triggerTabMenu(f.window, pending, "Close Tab");
+  require(f.tabs->count() == 1, "context close cancels the protected open without reading it");
+}
+
+
 
 void closeFolder(MainWindow& window) {
   auto* sidebar = window.findChild<SidebarWidget*>();
@@ -1193,8 +1517,13 @@ int main(int argc, char** argv) {
   installMuffinTestCrashHandler();
   QStandardPaths::setTestModeEnabled(true);
   QApplication::setOrganizationName(QStringLiteral("MuffinTests"));
-  QApplication::setApplicationName(QStringLiteral("DocumentTabsTest"));
   QTemporaryDir settings;
+  // Failed/aborted runs must not leave drafts that change the next run's
+  // recovery counts or file-watcher prompts. Each process owns its data root.
+  QApplication::setApplicationName(QStringLiteral("DocumentTabsTest-") + QFileInfo(settings.path()).fileName());
+  const auto cleanupData = qScopeGuard([] {
+    QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).removeRecursively();
+  });
   QSettings::setDefaultFormat(QSettings::IniFormat);
   QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settings.path());
   QSettings().setValue(QStringLiteral("update/autoCheck"), false);
@@ -1203,6 +1532,7 @@ int main(int argc, char** argv) {
   QSettings().setValue(QStringLiteral("files/autoSave"), false);
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
   runTest("fileOpenProtectionSettingsAndBoundaries", fileOpenProtectionSettingsAndBoundaries);
+  runTest("fileSizeUnitsConvertPersistAndProtectAtByteBoundaries", fileSizeUnitsConvertPersistAndProtectAtByteBoundaries);
   runTest("fileOpenConfirmationDefersReadingAndPreservesTabs", fileOpenConfirmationDefersReadingAndPreservesTabs);
   runTest("fileOpenSizeConfirmationAndStartupCancellation", fileOpenSizeConfirmationAndStartupCancellation);
   runTest("sessionRestoreKeepsUnconfirmedFilesSeparate", sessionRestoreKeepsUnconfirmedFilesSeparate);
@@ -1211,6 +1541,12 @@ int main(int argc, char** argv) {
   runTest("sessionViewRestorationWaitsForShowAndBoundsChangedFiles", sessionViewRestorationWaitsForShowAndBoundsChangedFiles);
   runTest("sessionRestoresNestedAndLiteralCoordinates", sessionRestoresNestedAndLiteralCoordinates);
   if (QCoreApplication::arguments().contains(QStringLiteral("--session-view-state"))) return 0;
+  runTest("tabMenuTargetsBackgroundTabsAndStopsOnCancel", tabMenuTargetsBackgroundTabsAndStopsOnCancel);
+  runTest("pinnedTabsSurviveBulkCloseAndRestore", pinnedTabsSurviveBulkCloseAndRestore);
+  runTest("movingTabsPreservesHistoryAndRebindsWindowLifetime", movingTabsPreservesHistoryAndRebindsWindowLifetime);
+  runTest("copyingTabsIncludesUnsavedContentAndIndependentBuffers", copyingTabsIncludesUnsavedContentAndIndependentBuffers);
+  runTest("pendingTabsDisableWindowTransfer", pendingTabsDisableWindowTransfer);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--tab-context-menu"))) return 0;
   runTest("sessionRestoresOrderActiveFolderAndExpansion", sessionRestoresOrderActiveFolderAndExpansion);
   runTest("closedFilesAndFolderStayClosed", closedFilesAndFolderStayClosed);
   runTest("startupPreferenceAndMissingFiles", startupPreferenceAndMissingFiles);

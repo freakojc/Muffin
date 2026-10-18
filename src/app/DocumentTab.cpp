@@ -46,6 +46,7 @@ muffin::DocumentTab::DocumentTab(QWidget* parent)
 
 muffin::DocumentTab::~DocumentTab() {
   // Views refer to the session/controller; destroy them while those members are alive.
+  delete windowConnections;
   disconnect(&editorController, nullptr, this, nullptr);
   disconnect(&session, nullptr, this, nullptr);
   editorController.detach();

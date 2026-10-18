@@ -656,6 +656,16 @@ void muffin::DocumentSession::setFilePath(QString path) {
   emit filePathChanged(filePath_);
 }
 
+void muffin::DocumentSession::copyFileStateFrom(const DocumentSession& other) {
+  setFilePath(other.filePath_);
+  fileFormat_ = other.fileFormat_;
+  baselineMtime_ = other.baselineMtime_;
+  baselineSize_ = other.baselineSize_;
+  lastNotifiedMtime_ = other.lastNotifiedMtime_;
+  lastNotifiedSize_ = other.lastNotifiedSize_;
+  refreshFileWatch();
+}
+
 void muffin::DocumentSession::recordFileBaseline() {
   if (filePath_.isEmpty()) {
     baselineMtime_ = QDateTime();

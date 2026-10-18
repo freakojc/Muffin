@@ -80,6 +80,9 @@ public:
 
   void newDocument();
   void setFilePath(QString path);
+  // A second editor for the same buffer must retain its encoding and original
+  // on-disk baseline, including an external change that has not been reloaded.
+  void copyFileStateFrom(const DocumentSession& other);
   // Replace the logical document, retiring consumers' old history and selection first.
   void replaceDocument(QString text);
   void setMarkdownText(QString text, bool modified);

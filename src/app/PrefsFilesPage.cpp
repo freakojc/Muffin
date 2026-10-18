@@ -5,13 +5,90 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSettings>
-#include <QSpinBox>
+#include <QLocale>
+#include <QSignalBlocker>
+#include <QToolButton>
 #include <QVBoxLayout>
+
+#include <cmath>
+
+namespace {
+
+class FileSizeSpinBox final : public QDoubleSpinBox {
+public:
+  explicit FileSizeSpinBox(QWidget* parent) : QDoubleSpinBox(parent) {
+    // GB needs fractional values to display an existing KB/MB threshold
+    // without rounding it to a different number of bytes.
+    setDecimals(12);
+  }
+protected:
+  QString textFromValue(double value) const override {
+    QString text = QDoubleSpinBox::textFromValue(value);
+    const auto zero = locale().zeroDigit();
+    const auto point = locale().decimalPoint();
+    if (text.contains(point)) {
+      while (text.endsWith(zero)) text.chop(zero.size());
+      if (text.endsWith(point)) text.chop(point.size());
+    }
+    return text;
+  }
+};
+
+// Let extension chips use as many rows as the available settings width needs.
+class ExtensionFlowLayout final : public QLayout {
+public:
+  explicit ExtensionFlowLayout(QWidget* parent) : QLayout(parent) {
+    setContentsMargins(0, 0, 0, 0);
+    setSpacing(6);
+  }
+  ~ExtensionFlowLayout() override { while (auto* item = takeAt(0)) delete item; }
+  void addItem(QLayoutItem* item) override { items_.append(item); }
+  int count() const override { return items_.size(); }
+  QLayoutItem* itemAt(int index) const override { return items_.value(index); }
+  QLayoutItem* takeAt(int index) override {
+    return index >= 0 && index < items_.size() ? items_.takeAt(index) : nullptr;
+  }
+  Qt::Orientations expandingDirections() const override { return {}; }
+  bool hasHeightForWidth() const override { return true; }
+  int heightForWidth(int width) const override { return arrange(QRect(0, 0, width, 0), false); }
+  QSize minimumSize() const override {
+    QSize size;
+    for (auto* item : items_) size = size.expandedTo(item->minimumSize());
+    return size;
+  }
+  QSize sizeHint() const override { return minimumSize(); }
+  void setGeometry(const QRect& rect) override {
+    QLayout::setGeometry(rect);
+    arrange(rect, true);
+  }
+
+private:
+  int arrange(const QRect& rect, bool apply) const {
+    int x = rect.x(), y = rect.y(), rowHeight = 0;
+    for (auto* item : items_) {
+      const QSize size = item->sizeHint();
+      if (x > rect.x() && x + size.width() > rect.x() + rect.width()) {
+        x = rect.x();
+        y += rowHeight + spacing();
+        rowHeight = 0;
+      }
+      if (apply) item->setGeometry(QRect(QPoint(x, y), size));
+      x += size.width() + spacing();
+      rowHeight = qMax(rowHeight, size.height());
+    }
+    return y - rect.y() + rowHeight;
+  }
+  QList<QLayoutItem*> items_;
+};
+
+}  // namespace
 
 muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent) {
   auto* layout = new QVBoxLayout(this);
@@ -76,37 +153,94 @@ muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent
   cardColumn->addWidget(extCard);
 
   auto* protectionCard = makeCard(this);
+  protectionCard->setObjectName(QStringLiteral("fileOpenProtection"));
   auto* protectionLayout = makeCardLayout(protectionCard);
+  protectionLayout->setSpacing(14);
   openProtectionLabel_ = makeSectionLabel(protectionCard);
-  extensionProtectionCheck_ = new QCheckBox(protectionCard);
+  protectionLayout->addWidget(openProtectionLabel_);
+
+  auto* extensionPanel = new QWidget(protectionCard);
+  extensionPanel->setObjectName(QStringLiteral("fileProtectionOption"));
+  auto* extensionLayout = new QVBoxLayout(extensionPanel);
+  extensionLayout->setContentsMargins(14, 12, 14, 14);
+  extensionLayout->setSpacing(8);
+  extensionProtectionCheck_ = new QCheckBox(extensionPanel);
   extensionProtectionCheck_->setObjectName(QStringLiteral("extensionProtection"));
-  textExtensionsLabel_ = new QLabel(protectionCard);
-  textExtensionsEdit_ = new QLineEdit(protectionCard);
+  textExtensionsHint_ = makeMutedLabel(extensionPanel);
+  textExtensionsHint_->setWordWrap(true);
+  extensionLayout->addWidget(extensionProtectionCheck_);
+  extensionLayout->addWidget(textExtensionsHint_);
+
+  extensionOptions_ = new QWidget(extensionPanel);
+  auto* optionsLayout = new QVBoxLayout(extensionOptions_);
+  optionsLayout->setContentsMargins(0, 4, 0, 0);
+  optionsLayout->setSpacing(10);
+  auto* extensionsHeader = new QHBoxLayout();
+  textExtensionsLabel_ = new QLabel(extensionOptions_);
+  resetExtensionsButton_ = makeButton(extensionOptions_);
+  resetExtensionsButton_->setObjectName(QStringLiteral("resetTextExtensions"));
+  resetExtensionsButton_->setAutoDefault(false);
+  extensionsHeader->addWidget(textExtensionsLabel_, 1);
+  extensionsHeader->addWidget(resetExtensionsButton_);
+  optionsLayout->addLayout(extensionsHeader);
+  textExtensionChips_ = new QWidget(extensionOptions_);
+  textExtensionChips_->setObjectName(QStringLiteral("textExtensionChips"));
+  new ExtensionFlowLayout(textExtensionChips_);
+  optionsLayout->addWidget(textExtensionChips_);
+
+  auto* addRow = new QHBoxLayout();
+  addRow->setSpacing(8);
+  textExtensionsEdit_ = new QLineEdit(extensionOptions_);
   textExtensionsEdit_->setObjectName(QStringLiteral("textExtensions"));
   textExtensionsLabel_->setBuddy(textExtensionsEdit_);
-  textExtensionsHint_ = makeMutedLabel(protectionCard);
-  textExtensionsHint_->setWordWrap(true);
-  sizeProtectionCheck_ = new QCheckBox(protectionCard);
+  addExtensionButton_ = makeButton(extensionOptions_);
+  addExtensionButton_->setObjectName(QStringLiteral("addTextExtension"));
+  addExtensionButton_->setAutoDefault(false);
+  addExtensionButton_->setEnabled(false);
+  addRow->addWidget(textExtensionsEdit_, 1);
+  addRow->addWidget(addExtensionButton_);
+  optionsLayout->addLayout(addRow);
+  extensionLayout->addWidget(extensionOptions_);
+  protectionLayout->addWidget(extensionPanel);
+
+  auto* sizePanel = new QWidget(protectionCard);
+  sizePanel->setObjectName(QStringLiteral("fileProtectionOption"));
+  auto* sizeLayout = new QVBoxLayout(sizePanel);
+  sizeLayout->setContentsMargins(14, 12, 14, 14);
+  sizeLayout->setSpacing(8);
+  sizeProtectionCheck_ = new QCheckBox(sizePanel);
   sizeProtectionCheck_->setObjectName(QStringLiteral("sizeProtection"));
+  sizeProtectionHint_ = makeMutedLabel(sizePanel);
+  sizeProtectionHint_->setWordWrap(true);
+  sizeLayout->addWidget(sizeProtectionCheck_);
+  sizeLayout->addWidget(sizeProtectionHint_);
   auto* sizeRow = new QHBoxLayout();
-  sizeLimitLabel_ = new QLabel(protectionCard);
-  sizeLimitSpin_ = new QSpinBox(protectionCard);
-  sizeLimitSpin_->setObjectName(QStringLiteral("sizeLimitMb"));
-  sizeLimitSpin_->setRange(1, file_open_protection::kMaximumSizeLimitMb);
-  sizeLimitSpin_->setSuffix(QStringLiteral(" MB"));
-  sizeLimitSpin_->setMinimumWidth(140);
+  sizeRow->setContentsMargins(0, 4, 0, 0);
+  sizeRow->setSpacing(12);
+  sizeLimitLabel_ = new QLabel(sizePanel);
+  sizeLimitLabel_->setWordWrap(true);
+  sizeLimitSpin_ = new FileSizeSpinBox(sizePanel);
+  sizeLimitSpin_->setObjectName(QStringLiteral("sizeLimitValue"));
+  sizeLimitSpin_->setFixedWidth(144);
+  sizeLimitSpin_->setAlignment(Qt::AlignRight);
+  sizeLimitSpin_->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  sizeLimitSpin_->setKeyboardTracking(false);
+  sizeLimitUnit_ = new QComboBox(sizePanel);
+  sizeLimitUnit_->setObjectName(QStringLiteral("sizeLimitUnit"));
+  sizeLimitUnit_->addItem(QStringLiteral("KB"), qint64(1024));
+  sizeLimitUnit_->addItem(QStringLiteral("MB"), qint64(1024) * 1024);
+  sizeLimitUnit_->addItem(QStringLiteral("GB"), qint64(1024) * 1024 * 1024);
+  sizeLimitUnit_->setFixedWidth(104);
+  polishComboBox(sizeLimitUnit_);
+  auto* valueRow = new QHBoxLayout();
+  valueRow->setSpacing(8);
+  valueRow->addWidget(sizeLimitSpin_);
+  valueRow->addWidget(sizeLimitUnit_);
   sizeLimitLabel_->setBuddy(sizeLimitSpin_);
-  sizeRow->addWidget(sizeLimitLabel_);
-  sizeRow->addStretch();
-  sizeRow->addWidget(sizeLimitSpin_);
-  protectionLayout->addWidget(openProtectionLabel_);
-  protectionLayout->addWidget(extensionProtectionCheck_);
-  protectionLayout->addWidget(textExtensionsLabel_);
-  protectionLayout->addWidget(textExtensionsEdit_);
-  protectionLayout->addWidget(textExtensionsHint_);
-  protectionLayout->addSpacing(8);
-  protectionLayout->addWidget(sizeProtectionCheck_);
-  protectionLayout->addLayout(sizeRow);
+  sizeRow->addWidget(sizeLimitLabel_, 1);
+  sizeRow->addLayout(valueRow);
+  sizeLayout->addLayout(sizeRow);
+  protectionLayout->addWidget(sizePanel);
   cardColumn->addWidget(protectionCard);
 
   // --- Card 4: Save & Restore ---
@@ -220,15 +354,32 @@ muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent
 
   // Wire persistence
   wireBoolSetting(extensionProtectionCheck_, QLatin1String(file_open_protection::kExtensionEnabled));
-  wireLineEditSetting(textExtensionsEdit_, QLatin1String(file_open_protection::kTextExtensions));
-  wireBoolSetting(sizeProtectionCheck_, QLatin1String(file_open_protection::kSizeEnabled));
-  connect(sizeLimitSpin_, &QSpinBox::valueChanged, this, [](int value) {
-    QSettings().setValue(QLatin1String(file_open_protection::kSizeLimitMb), value);
+  connect(addExtensionButton_, &QPushButton::clicked, this, &PrefsFilesPage::addTextExtensions);
+  connect(textExtensionsEdit_, &QLineEdit::returnPressed, this, &PrefsFilesPage::addTextExtensions);
+  connect(textExtensionsEdit_, &QLineEdit::editingFinished, this, &PrefsFilesPage::addTextExtensions);
+  connect(textExtensionsEdit_, &QLineEdit::textChanged, this, [this](const QString& text) {
+    addExtensionButton_->setEnabled(!file_open_protection::normalizedTextExtensions(text).isEmpty());
   });
-  connect(extensionProtectionCheck_, &QCheckBox::toggled, textExtensionsEdit_, &QWidget::setEnabled);
-  connect(extensionProtectionCheck_, &QCheckBox::toggled, textExtensionsLabel_, &QWidget::setEnabled);
-  connect(extensionProtectionCheck_, &QCheckBox::toggled, textExtensionsHint_, &QWidget::setEnabled);
+  connect(resetExtensionsButton_, &QPushButton::clicked, this, [this] {
+    textExtensions_ = file_open_protection::normalizedTextExtensions(file_open_protection::defaultTextExtensions());
+    textExtensionsEdit_->clear();
+    saveTextExtensions();
+  });
+  wireBoolSetting(sizeProtectionCheck_, QLatin1String(file_open_protection::kSizeEnabled));
+  connect(sizeLimitSpin_, &QDoubleSpinBox::valueChanged, this, [this](double value) {
+    sizeLimitBytes_ = qBound(file_open_protection::kMinimumSizeLimitBytes,
+        qint64(std::llround(value * sizeLimitUnitBytes_)), file_open_protection::kMaximumSizeLimitBytes);
+    QSettings().setValue(QLatin1String(file_open_protection::kSizeLimitBytes), sizeLimitBytes_);
+  });
+  connect(sizeLimitUnit_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this] {
+    // Commit pending input in its old unit before reformatting the value.
+    sizeLimitSpin_->interpretText();
+    updateSizeLimitControls();
+    QSettings().setValue(QLatin1String(file_open_protection::kSizeLimitUnit), sizeLimitUnit_->currentText());
+  });
+  connect(extensionProtectionCheck_, &QCheckBox::toggled, extensionOptions_, &QWidget::setEnabled);
   connect(sizeProtectionCheck_, &QCheckBox::toggled, sizeLimitSpin_, &QWidget::setEnabled);
+  connect(sizeProtectionCheck_, &QCheckBox::toggled, sizeLimitUnit_, &QWidget::setEnabled);
   connect(sizeProtectionCheck_, &QCheckBox::toggled, sizeLimitLabel_, &QWidget::setEnabled);
   connect(startupCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           [](int index) { QSettings().setValue(QStringLiteral("files/startupBehavior"), index); });
@@ -272,12 +423,18 @@ muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent
 void muffin::PrefsFilesPage::retranslateUi() {
   openProtectionLabel_->setText(tr("File Open Protection"));
   extensionProtectionCheck_->setText(tr("Extension protection"));
-  textExtensionsLabel_->setText(tr("Text file extensions (open without a warning)"));
-  textExtensionsHint_->setText(tr("Separate extensions with commas, spaces, or semicolons. You can add or remove extensions."));
+  textExtensionsLabel_->setText(tr("Allowed file extensions"));
+  textExtensionsHint_->setText(tr("Ask before opening files with extensions outside this list."));
+  textExtensionsEdit_->setPlaceholderText(tr("e.g. .txt, .log"));
+  addExtensionButton_->setText(tr("Add"));
+  resetExtensionsButton_->setText(tr("Restore Defaults"));
   sizeProtectionCheck_->setText(tr("File size protection"));
+  sizeProtectionHint_->setText(tr("Large files may take longer to open and use more memory."));
   sizeLimitLabel_->setText(tr("Warn before opening files larger than"));
   textExtensionsEdit_->setAccessibleName(textExtensionsLabel_->text());
   sizeLimitSpin_->setAccessibleName(sizeLimitLabel_->text());
+  sizeLimitUnit_->setAccessibleName(tr("File size unit"));
+  refreshTextExtensionChips();
   startupLabel_->setText(tr("Startup"));
   {
     const int cur = startupCombo_->currentIndex();
@@ -360,17 +517,81 @@ void muffin::PrefsFilesPage::retranslateUi() {
 #endif
 }
 
+void muffin::PrefsFilesPage::addTextExtensions() {
+  const auto additions = file_open_protection::normalizedTextExtensions(textExtensionsEdit_->text());
+  if (additions.isEmpty()) return;
+  for (const auto& extension : additions) {
+    if (!textExtensions_.contains(extension)) textExtensions_.append(extension);
+  }
+  textExtensionsEdit_->clear();
+  saveTextExtensions();
+}
+
+void muffin::PrefsFilesPage::saveTextExtensions() {
+  QSettings().setValue(QLatin1String(file_open_protection::kTextExtensions), textExtensions_.join(QStringLiteral(", ")));
+  refreshTextExtensionChips();
+}
+
+void muffin::PrefsFilesPage::refreshTextExtensionChips() {
+  auto* layout = textExtensionChips_->layout();
+  while (auto* item = layout->takeAt(0)) {
+    item->widget()->hide();
+    item->widget()->deleteLater();
+    delete item;
+  }
+  for (const auto& extension : textExtensions_) {
+    auto* chip = new QWidget(textExtensionChips_);
+    chip->setObjectName(QStringLiteral("textExtensionChip"));
+    auto* row = new QHBoxLayout(chip);
+    row->setContentsMargins(9, 3, 4, 3);
+    row->setSpacing(4);
+    auto* label = new QLabel(QLatin1Char('.') + extension, chip);
+    label->setTextFormat(Qt::PlainText);
+    row->addWidget(label);
+    auto* remove = new QToolButton(chip);
+    remove->setObjectName(QStringLiteral("removeTextExtension"));
+    remove->setProperty("extension", extension);
+    remove->setText(QString(QChar(0x00d7)));
+    remove->setFixedSize(20, 20);
+    remove->setCursor(Qt::PointingHandCursor);
+    remove->setToolTip(tr("Remove .%1").arg(extension));
+    remove->setAccessibleName(remove->toolTip());
+    row->addWidget(remove);
+    connect(remove, &QToolButton::clicked, this, [this, extension] {
+      textExtensions_.removeAll(extension);
+      saveTextExtensions();
+      textExtensionsEdit_->setFocus();
+    });
+    layout->addWidget(chip);
+  }
+  layout->invalidate();
+  textExtensionChips_->updateGeometry();
+}
+
+void muffin::PrefsFilesPage::updateSizeLimitControls() {
+  const QSignalBlocker blocker(sizeLimitSpin_);
+  sizeLimitUnitBytes_ = sizeLimitUnit_->currentData().toLongLong();
+  sizeLimitSpin_->setRange(double(file_open_protection::kMinimumSizeLimitBytes) / sizeLimitUnitBytes_,
+                          double(file_open_protection::kMaximumSizeLimitBytes) / sizeLimitUnitBytes_);
+  sizeLimitSpin_->setSingleStep(sizeLimitUnit_->currentText() == QStringLiteral("GB") ? 0.1 : 1.0);
+  sizeLimitSpin_->setValue(double(sizeLimitBytes_) / sizeLimitUnitBytes_);
+}
+
 void muffin::PrefsFilesPage::loadSettings() {
   QSettings settings;
   loadCheck(extensionProtectionCheck_, QLatin1String(file_open_protection::kExtensionEnabled), true);
-  loadLineEdit(textExtensionsEdit_, QLatin1String(file_open_protection::kTextExtensions),
-               file_open_protection::defaultTextExtensions());
+  textExtensions_ = file_open_protection::normalizedTextExtensions(settings.value(
+      QLatin1String(file_open_protection::kTextExtensions), file_open_protection::defaultTextExtensions()).toString());
+  refreshTextExtensionChips();
   loadCheck(sizeProtectionCheck_, QLatin1String(file_open_protection::kSizeEnabled), true);
-  sizeLimitSpin_->setValue(file_open_protection::sizeLimitMb());
-  textExtensionsEdit_->setEnabled(extensionProtectionCheck_->isChecked());
-  textExtensionsLabel_->setEnabled(extensionProtectionCheck_->isChecked());
-  textExtensionsHint_->setEnabled(extensionProtectionCheck_->isChecked());
+  sizeLimitBytes_ = file_open_protection::sizeLimitBytes();
+  const int unit = sizeLimitUnit_->findText(settings.value(
+      QLatin1String(file_open_protection::kSizeLimitUnit), QStringLiteral("MB")).toString());
+  sizeLimitUnit_->setCurrentIndex(unit >= 0 ? unit : 1);
+  updateSizeLimitControls();
+  extensionOptions_->setEnabled(extensionProtectionCheck_->isChecked());
   sizeLimitSpin_->setEnabled(sizeProtectionCheck_->isChecked());
+  sizeLimitUnit_->setEnabled(sizeProtectionCheck_->isChecked());
   sizeLimitLabel_->setEnabled(sizeProtectionCheck_->isChecked());
 
   const int startup = settings.value(QStringLiteral("files/startupBehavior"), 1).toInt();

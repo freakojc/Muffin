@@ -65,11 +65,11 @@ QString mainWindowStyleSheet(const ThemeDefinition& d) {
       " border: 1px solid transparent; border-radius: 6px; }"
       "QTabWidget#DocumentTabs QTabBar::tab:hover { background: %3; color: %2; }"
       "QTabWidget#DocumentTabs QTabBar::tab:selected { background: %4; color: %2; border-color: %5; }"
-      "QToolButton#CloseTabButton { background: transparent; border: 0; color: %7;"
+      "QToolButton#CloseTabButton, QToolButton#PinTabButton { background: transparent; border: 0; color: %7;"
       " min-width: 0; min-height: 0; padding: 0; border-radius: 10px;"
       " font-size: 16px; font-weight: normal; }"
-      "QToolButton#CloseTabButton:hover { background: %9; color: %2; }"
-      "QToolButton#CloseTabButton:pressed { background: %10; color: %2; }"
+      "QToolButton#CloseTabButton:hover, QToolButton#PinTabButton:hover { background: %9; color: %2; }"
+      "QToolButton#CloseTabButton:pressed, QToolButton#PinTabButton:pressed { background: %10; color: %2; }"
       "QToolButton#NewTabButton { min-width: 0; min-height: 0; padding: 0; border-radius: 5px;"
       " font-size: 18px; font-weight: normal; }")
       .arg(hexRgb(c.chromeBackground),
@@ -143,6 +143,20 @@ QString dialogStyleSheet(const ThemeDefinition& d) {
       "QWidget#settingsGroup { background:%3; border:1px solid %4; border-radius:8px; }"
       "QWidget#settingsCard { background:transparent; border:0; border-bottom:1px solid %4; border-radius:0; }"
       "QWidget#settingsCard[lastSettingsRow=\"true\"] { border-bottom:0; }"
+      "QWidget#fileOpenProtection { background:transparent; border:0; border-bottom:1px solid %4; }"
+      "QWidget#fileProtectionOption { background:%1; border:1px solid %4; border-radius:8px; }"
+      "QCheckBox#extensionProtection, QCheckBox#sizeProtection { font-weight:600; }"
+      "QPushButton#resetTextExtensions { background:transparent; border:0; min-height:24px; padding:0 2px; color:%5; font-size:12px; }"
+      "QPushButton#resetTextExtensions:hover { color:%7; }"
+      "QPushButton#resetTextExtensions:disabled { color:%9; }"
+      "QWidget#textExtensionChip { background:%3; border:1px solid %4; border-radius:6px; }"
+      "QWidget#textExtensionChip:disabled { background:%6; }"
+      "QWidget#textExtensionChip QLabel { color:%2; font-size:12px; }"
+      "QWidget#textExtensionChip QLabel:disabled { color:%9; }"
+      "QToolButton#removeTextExtension { background:transparent; border:0; border-radius:4px; padding:0; color:%5; font-size:15px; }"
+      "QToolButton#removeTextExtension:hover { background:%6; color:%2; }"
+      "QToolButton#removeTextExtension:focus { border:1px solid %7; }"
+      "QToolButton#removeTextExtension:disabled { color:%9; }"
 
       // QPushButton
       "QPushButton { border:1px solid %4; border-radius:6px; background:%3; min-height:30px; padding:0 13px; color:%2; }"
@@ -174,6 +188,7 @@ QString dialogStyleSheet(const ThemeDefinition& d) {
       "QComboBox:hover { border-color:%7; }"
       "QComboBox:focus, QComboBox:on { border-color:%7; }"
       "QComboBox::drop-down { subcontrol-origin:padding; subcontrol-position:center right; width:28px; border:0; }"
+      "QComboBox#sizeLimitUnit::down-arrow { image:url(:/icons/ui/chevron-down.svg); width:12px; height:12px; }"
       // Popup container (named by DwmPopupBorderFilter on show). The Windows 11
       // style leaves the container surface unpainted around the item view, which
       // renders as a black ring inside the popup window; fill it with the same
@@ -193,9 +208,9 @@ QString dialogStyleSheet(const ThemeDefinition& d) {
       "QLineEdit:hover { border-color:%7; }"
       "QLineEdit:focus { border-color:%7; }"
       "QLineEdit:disabled { background:%6; color:%9; }"
-      "QSpinBox { border:1px solid %4; border-radius:6px; background:%3; padding:4px 10px; min-height:24px; color:%2; }"
-      "QSpinBox:focus { border-color:%7; }"
-      "QSpinBox:disabled { background:%6; color:%9; }"
+      "QSpinBox, QDoubleSpinBox { border:1px solid %4; border-radius:6px; background:%3; padding:4px 10px; min-height:24px; color:%2; }"
+      "QSpinBox:focus, QDoubleSpinBox:focus { border-color:%7; }"
+      "QSpinBox:disabled, QDoubleSpinBox:disabled { background:%6; color:%9; }"
 
       // QComboBox dropdown scrollbar (more specific than the page scrollbar below).
       // Trough is opaque surface (not transparent): inside the Win11 transparent

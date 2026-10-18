@@ -1,13 +1,14 @@
 #pragma once
 
 #include "app/PreferencesPage.h"
+#include <QStringList>
 
 class QCheckBox;
 class QComboBox;
 class QLabel;
 class QLineEdit;
 class QPushButton;
-class QSpinBox;
+class QDoubleSpinBox;
 
 namespace muffin {
 
@@ -27,6 +28,10 @@ signals:
 private:
   void buildUi();
   void loadSettings();
+  void addTextExtensions();
+  void refreshTextExtensionChips();
+  void saveTextExtensions();
+  void updateSizeLimitControls();
 
   QLabel* startupLabel_ = nullptr;
   QComboBox* startupCombo_ = nullptr;
@@ -36,12 +41,21 @@ private:
   QComboBox* defaultExtCombo_ = nullptr;
   QLabel* openProtectionLabel_ = nullptr;
   QCheckBox* extensionProtectionCheck_ = nullptr;
+  QWidget* extensionOptions_ = nullptr;
   QLabel* textExtensionsLabel_ = nullptr;
   QLineEdit* textExtensionsEdit_ = nullptr;
   QLabel* textExtensionsHint_ = nullptr;
+  QWidget* textExtensionChips_ = nullptr;
+  QPushButton* addExtensionButton_ = nullptr;
+  QPushButton* resetExtensionsButton_ = nullptr;
+  QStringList textExtensions_;
   QCheckBox* sizeProtectionCheck_ = nullptr;
+  QLabel* sizeProtectionHint_ = nullptr;
   QLabel* sizeLimitLabel_ = nullptr;
-  QSpinBox* sizeLimitSpin_ = nullptr;
+  QDoubleSpinBox* sizeLimitSpin_ = nullptr;
+  QComboBox* sizeLimitUnit_ = nullptr;
+  qint64 sizeLimitBytes_ = 0;
+  qint64 sizeLimitUnitBytes_ = 1024 * 1024;
   QLabel* saveLabel_ = nullptr;
   QCheckBox* autoSaveCheck_ = nullptr;
   QCheckBox* autoSaveSwitchCheck_ = nullptr;

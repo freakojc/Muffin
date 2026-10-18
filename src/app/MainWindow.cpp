@@ -110,7 +110,10 @@ muffin::MainWindow::MainWindow(QWidget* parent)
   sessionSaveTimer_->setSingleShot(true);
   sessionSaveTimer_->setInterval(100);
   connect(sessionSaveTimer_, &QTimer::timeout, this, &MainWindow::saveSessionState);
-  connect(tabs_->tabBar(), &QTabBar::tabMoved, this, &MainWindow::scheduleSessionSave);
+  connect(tabs_->tabBar(), &QTabBar::tabMoved, this, [this] {
+    normalizePinnedTabs();
+    scheduleSessionSave();
+  });
   connect(&draftWriter_, &DraftSnapshotWriter::snapshotFinished, this,
           [this](const QString& key, quint64 revision, bool saved) {
     if (!saved) return;

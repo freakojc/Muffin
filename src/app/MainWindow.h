@@ -103,7 +103,13 @@ private:
   void cancelPendingFileOpen(DocumentTab* document);
   DocumentTab* createDocumentTab();
   void activateTab(int index);
-  void closeTab(int index);
+  bool closeTab(int index);
+  void buildTabContextMenu(int index, QPoint globalPos);
+  void closeTabs(const QList<DocumentTab*>& documents);
+  void setTabPinned(DocumentTab* document, bool pinned);
+  void normalizePinnedTabs();
+  void moveTabToNewWindow(DocumentTab* document);
+  void copyTabToNewWindow(DocumentTab* document);
   void cycleTab(bool forward);
   void updateTabLabel(DocumentTab* tab);
   void setupTabButton(DocumentTab* tab);
@@ -351,6 +357,7 @@ private:
   QTabWidget* tabs_ = nullptr;
   DocumentTab* tab_ = nullptr;
   bool suppressSaveOnTabSwitch_ = false;
+  bool normalizingPinnedTabs_ = false;
   CommandRegistry commands_;
   ThemeManager themeManager_;
   BundledEmojiProvider emojiProvider_;

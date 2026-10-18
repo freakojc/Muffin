@@ -32,6 +32,9 @@ public:
   explicit DocumentTab(QWidget* parent = nullptr);
   ~DocumentTab() override;
 
+  // Replaced when the page moves between windows; deleting this context also
+  // cancels queued callbacks that still refer to the previous window.
+  QObject* windowConnections = new QObject(this);
   DocumentSession session;
   FileController fileController;
   EditorController editorController;
@@ -61,6 +64,7 @@ public:
   QString lastFindText;
   qsizetype lastFindOffset = -1;
   bool renderViewDirty = false;
+  bool pinned = false;
   // Preserve the serialized state until both parsing and first activation have
   // completed. Saving/closing an unopened background page must not replace it
   // with the temporary empty layout or startup caret.

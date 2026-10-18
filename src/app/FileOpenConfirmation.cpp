@@ -54,8 +54,8 @@ muffin::FileOpenConfirmation::FileOpenConfirmation(QWidget* parent) : QWidget(pa
 
 void muffin::FileOpenConfirmation::setFile(const QString& path, file_open_protection::Warnings warnings) {
   const QFileInfo info(path);
-  file_->setText(QStringLiteral("%1\n%2 MB").arg(info.fileName())
-      .arg(QLocale().toString(info.size() / (1024.0 * 1024.0), 'f', 2)));
+  file_->setText(QStringLiteral("%1\n%2").arg(info.fileName(),
+      QLocale().formattedDataSize(info.size(), 2, QLocale::DataSizeTraditionalFormat)));
   file_->setToolTip(QDir::toNativeSeparators(info.absoluteFilePath()));
   extensionWarning_->setVisible(warnings.extension);
   sizeWarning_->setVisible(warnings.size);
