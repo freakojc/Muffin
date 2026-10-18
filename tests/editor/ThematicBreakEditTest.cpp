@@ -565,7 +565,10 @@ void testEnterAfterThirdDashConversionKeepsCaret() {
   const Case cases[] = {
     {"-- then beta", "--\n\nbeta"},
     {"-- trailing", "--"},
+    {"-- trailing newline", "--\n"},
+    {"-- trailing blank", "--\n\n"},
     {"-- then blank then beta", "--\n\n\nbeta"},
+    {"-- then CRLF beta", "--\r\n\r\nbeta"},
   };
   for (const Case& tc : cases) {
     Harness h;
@@ -596,6 +599,23 @@ void testEnterAfterThirdDashConversionKeepsCaret() {
       require(afterEnter.text.sourceOffset < h.session.markdownText().toString().indexOf(QStringLiteral("beta")),
               QString::fromLatin1(tc.name) + ": caret should land in the gap below the rule, not at end-of-doc");
     }
+    MarkdownNode* empty = h.session.document().node(afterEnter.blockId);
+    require(empty != nullptr && empty->type() == BlockType::Paragraph
+                && empty->sourceRange().byteStart == empty->sourceRange().byteEnd,
+            QString::fromLatin1(tc.name) + ": Enter should materialize an editable empty paragraph");
+    QString typed = h.session.markdownText().toString();
+    typed.insert(afterEnter.text.sourceOffset, QLatin1Char('X'));
+    require(h.controller.inputController().insertText(QStringLiteral("X"))
+                && h.session.markdownText().toString() == typed,
+            QString::fromLatin1(tc.name) + ": typing should edit the empty paragraph below the rule");
+    h.controller.undo();
+    h.controller.undo();
+    require(h.session.markdownText().toString() == QString::fromLatin1(tc.md).replace("--", "---"),
+            QString::fromLatin1(tc.name) + ": undo should restore the rule and its original separator");
+    h.controller.redo();
+    h.controller.redo();
+    require(h.session.markdownText().toString() == typed,
+            QString::fromLatin1(tc.name) + ": redo should restore the typed paragraph");
   }
 }
 

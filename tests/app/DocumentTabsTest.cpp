@@ -1586,6 +1586,17 @@ int main(int argc, char** argv) {
   QSettings().setValue(QStringLiteral("files/autoSaveOnSwitch"), false);
   QSettings().setValue(QStringLiteral("files/autoSave"), false);
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
+  const auto runSessionViewTests = [] {
+    runTest("sessionRestoresSelectionsModesAndIndependentReadingPositions", sessionRestoresSelectionsModesAndIndependentReadingPositions);
+    runTest("sessionViewRestorationWaitsForShowAndBoundsChangedFiles", sessionViewRestorationWaitsForShowAndBoundsChangedFiles);
+    runTest("sessionRestoresNestedAndLiteralCoordinates", sessionRestoresNestedAndLiteralCoordinates);
+  };
+  if (QCoreApplication::arguments().contains(QStringLiteral("--session-view-state"))) {
+    // The dedicated lazy-layout test uses Qt's minimal platform. It only needs
+    // the session view cases, not unrelated diagram/font rendering scenarios.
+    runSessionViewTests();
+    return 0;
+  }
   runTest("fileOpenProtectionSettingsAndBoundaries", fileOpenProtectionSettingsAndBoundaries);
   runTest("unsavedMermaidRendersAfterLeavingSource", unsavedMermaidRendersAfterLeavingSource);
   if (QCoreApplication::arguments().contains(QStringLiteral("--unsaved-mermaid"))) return 0;
@@ -1594,10 +1605,7 @@ int main(int argc, char** argv) {
   runTest("fileOpenSizeConfirmationAndStartupCancellation", fileOpenSizeConfirmationAndStartupCancellation);
   runTest("sessionRestoreKeepsUnconfirmedFilesSeparate", sessionRestoreKeepsUnconfirmedFilesSeparate);
   if (QCoreApplication::arguments().contains(QStringLiteral("--file-open-protection"))) return 0;
-  runTest("sessionRestoresSelectionsModesAndIndependentReadingPositions", sessionRestoresSelectionsModesAndIndependentReadingPositions);
-  runTest("sessionViewRestorationWaitsForShowAndBoundsChangedFiles", sessionViewRestorationWaitsForShowAndBoundsChangedFiles);
-  runTest("sessionRestoresNestedAndLiteralCoordinates", sessionRestoresNestedAndLiteralCoordinates);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--session-view-state"))) return 0;
+  runSessionViewTests();
   runTest("tabMenuTargetsBackgroundTabsAndStopsOnCancel", tabMenuTargetsBackgroundTabsAndStopsOnCancel);
   runTest("pinnedTabsSurviveBulkCloseAndRestore", pinnedTabsSurviveBulkCloseAndRestore);
   runTest("movingTabsPreservesHistoryAndRebindsWindowLifetime", movingTabsPreservesHistoryAndRebindsWindowLifetime);

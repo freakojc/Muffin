@@ -44,7 +44,7 @@ public:
   Command buildMergeWithPreviousParagraph(const BlockEditContext& context) const;
   Command buildMergeWithNextParagraph(const BlockEditContext& context) const;
   Command buildMergeWithPreviousLiteralBlock(const BlockEditContext& context) const;
-  Command buildRemoveEmptyParagraphBeforeLeafBlock(const BlockEditContext& context) const;
+  Command buildRemoveEmptyParagraphAfterBlock(const BlockEditContext& context) const;
   Command buildRemovePrecedingThematicBreak(const BlockEditContext& context) const;
   Command buildRemoveFollowingThematicBreak(const BlockEditContext& context) const;
   Command buildSplitListItem(const BlockEditContext& context) const;

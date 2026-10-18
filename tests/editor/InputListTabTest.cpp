@@ -871,12 +871,175 @@ void testEnterEmptyMiddleOrderedItemSplitsListRestartsNumbering() {
           "an already-separated following list must keep its authored number 7");
 }
 
+void testTopLevelShiftTabExitsListAndKeepsCaret() {
+  const QString preceding = QStringLiteral("* 1\n* 2\n* 3\n* 4\n* 5\n");
+  const QString original = preceding + QStringLiteral("* 123");
+  for (const qsizetype offset : {0, 1, 3}) {
+    DocumentSession session;
+    EditorController controller;
+    EditorView view;
+    controller.attach(&session, &view);
+    view.resize(640, 420);
+    session.setMarkdownText(original, false);
+    view.setDocument(session.document());
+    setSourceCursor(controller.selection(), listItemAt(session, 0, 5), offset, preceding.size() + 2 + offset);
+    QKeyEvent backtab(QEvent::KeyPress, Qt::Key_Backtab, Qt::ShiftModifier);
+    QApplication::sendEvent(&view, &backtab);
+
+    require(session.markdownText().toString() == preceding + QStringLiteral("\n123"),
+            "top-level Shift+Tab must separate the paragraph from the preceding list");
+    const auto& blocks = session.document().root().children();
+    require(blocks.size() == 2 && blocks[0]->type() == BlockType::List
+        && blocks[0]->children().size() == 5 && blocks[1]->type() == BlockType::Paragraph,
+            "outdented text must be a root paragraph rather than a lazy list continuation");
+    require(controller.selection().cursorPosition().blockId == blocks[1]->id()
+        && controller.selection().cursorPosition().text.textOffset == offset,
+            "Shift+Tab must retain the caret's position in the text");
+    controller.undo();
+    require(session.markdownText().toString() == original
+        && controller.selection().cursorPosition().text.textOffset == offset,
+            "undo restores the list item and caret");
+    controller.redo();
+    require(session.markdownText().toString() == preceding + QStringLiteral("\n123")
+        && controller.selection().cursorPosition().text.textOffset == offset,
+            "redo restores the paragraph and caret");
+
+    QKeyEvent enter(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+    QApplication::sendEvent(&view, &enter);
+    QString split = QStringLiteral("123");
+    split.insert(offset, QStringLiteral("\n\n"));
+    require(session.markdownText().toString() == preceding + QLatin1Char('\n') + split,
+            "Enter at the retained caret splits plain text without continuing the list");
+    controller.undo();
+
+    // Follow the reported sequence: continue from the end of the plain text.
+    setCursor(controller.selection(), blockAt(session, 1), 3);
+    QApplication::sendEvent(&view, &enter);
+    require(session.markdownText().toString() == preceding + QStringLiteral("\n123\n\n"),
+            "Enter after leaving the list must create a paragraph without a list marker");
+    require(controller.inputController().insertText(QStringLiteral("plain")), "typing after Enter remains editable");
+    require(session.markdownText().toString() == preceding + QStringLiteral("\n123\n\nplain"),
+            "typing after Enter must stay outside the list");
+  }
+}
+
+void testTopLevelOutdentParagraphBoundaries() {
+  struct Case {
+    QString original;
+    int item;
+    QString expected;
+    int paragraph;
+  };
+  const Case cases[] = {
+      {"* 123", 0, "123", 0},
+      {"* 123\n* after", 0, "123\n* after", 0},
+      {"* before\n* 123\n* after", 1, "* before\n\n123\n* after", 1},
+      {"* before\n\n* 123", 1, "* before\n\n123", 1},
+      {"* before\n* 123\n", 1, "* before\n\n123\n", 1},
+      {"1. before\n2. 123", 1, "1. before\n\n123", 1},
+      {"1. 123\n2. after", 0, "123\n\n2. after", 0},
+      {"1. before\n2. 123\n3. after", 1, "1. before\n\n123\n\n3. after", 1},
+      {"1. before\n2. 123\n\n3. after", 1, "1. before\n\n123\n\n3. after", 1},
+      {"- [x] before\n- [ ] 123", 1, "- [x] before\n\n123", 1},
+      {"+ before\n+ **123**", 1, "+ before\n\n**123**", 1},
+  };
+  for (const auto& c : cases) {
+    DocumentSession session;
+    SelectionController selection;
+    UndoStack undoStack;
+    BrushQueue brushQueue;
+    InputController input;
+    wireInput(input, session, selection, undoStack, brushQueue);
+    session.setMarkdownText(c.original, false);
+    setSourceCursor(selection, listItemAt(session, 0, c.item), 1, c.original.indexOf("123") + 1);
+    require(input.outdentListItem(), "top-level outdent handles each list position and marker");
+    require(session.markdownText().toString() == c.expected,
+            QStringLiteral("outdent paragraph separators mismatch for %1").arg(c.original));
+    const auto* paragraph = blockAt(session, c.paragraph);
+    require(paragraph->type() == BlockType::Paragraph
+        && selection.cursorPosition().blockId == paragraph->id()
+        && selection.cursorPosition().text.textOffset == 1
+        && selection.cursorPosition().text.sourceOffset == c.expected.indexOf("123") + 1,
+            "outdent retains the visible and source caret within a standalone paragraph");
+    require(input.insertText(QStringLiteral("X")), "outdented paragraph accepts inline editing");
+    QString typed = c.expected;
+    typed.insert(c.expected.indexOf("123") + 1, "X");
+    require(session.markdownText().toString() == typed, "typing after outdent preserves surrounding text and markup");
+  }
+}
+
+void testIndentOutdentMovesWholeItem() {
+  struct Case {
+    QString original;
+    QString indented;
+  };
+  const Case cases[] = {
+      {"- alpha\n- beta\n  - child\n- gamma", "- alpha\n  - beta\n    - child\n- gamma"},
+      {"1. alpha\n2. beta\n   1. child\n3. gamma", "1. alpha\n   1. beta\n      1. child\n2. gamma"},
+      {"9. alpha\n10. beta\n    1. child\n11. gamma", "9. alpha\n   1. beta\n      1. child\n10. gamma"},
+      {"- [x] alpha\n- [ ] beta\n  - [x] child\n- [ ] gamma", "- [x] alpha\n  - [ ] beta\n    - [x] child\n- [ ] gamma"},
+      {"- alpha\n- beta\n  continued\n- gamma", "- alpha\n  - beta\n    continued\n- gamma"},
+      {"- alpha\n- **beta**\n- gamma", "- alpha\n  - **beta**\n- gamma"},
+      {"- alpha\n- beta\n\n  second paragraph\n\n  ```txt\n  code\n  ```\n- gamma",
+       "- alpha\n  - beta\n\n    second paragraph\n\n    ```txt\n    code\n    ```\n- gamma"},
+  };
+  for (const auto& c : cases) {
+    DocumentSession session;
+    EditorController controller;
+    EditorView view;
+    controller.attach(&session, &view);
+    session.setMarkdownText(c.original, false);
+    setSourceCursor(controller.selection(), listItemAt(session, 0, 1), 2, c.original.indexOf("beta") + 2);
+    require(controller.inputController().indentListItem(), "Tab should indent the item");
+    require(session.markdownText().toString() == c.indented,
+            QStringLiteral("Tab must move the whole item, retaining its descendants: %1 -> %2")
+                .arg(c.original, session.markdownText().toString()));
+    const auto cursor = controller.selection().cursorPosition();
+    require(cursor.text.textOffset == 2 && cursor.text.sourceOffset == c.indented.indexOf("beta") + 2,
+            "Tab must retain the caret inside inline markup");
+    require(controller.inputController().outdentListItem(), "Shift+Tab should move the entire item back");
+    require(session.markdownText().toString() == c.original,
+            "indent/outdent should preserve all child blocks and continuation lines");
+    controller.undo();
+    require(session.markdownText().toString() == c.indented, "undo outdent should restore the nested item");
+    controller.undo();
+    require(session.markdownText().toString() == c.original, "undo indent should restore the original item");
+    controller.redo();
+    require(session.markdownText().toString() == c.indented, "redo should move the whole item again");
+  }
+}
+
+void testIndentOutdentRetainsMultilineCaret() {
+  const QString original = QStringLiteral("- alpha\n- beta\n  continued\n- gamma");
+  const QString indented = QStringLiteral("- alpha\n  - beta\n    continued\n- gamma");
+  DocumentSession session;
+  SelectionController selection;
+  UndoStack undo;
+  BrushQueue brush;
+  InputController input;
+  wireInput(input, session, selection, undo, brush);
+  session.setMarkdownText(original, false);
+  setSourceCursor(selection, listItemAt(session, 0, 1), 8, original.indexOf("continued") + 3);
+  require(input.indentListItem(), "Tab should indent an item with the caret in its continuation line");
+  require(session.markdownText().toString() == indented &&
+              selection.cursorPosition().text.sourceOffset == indented.indexOf("continued") + 3,
+          "Tab should keep the source caret at the same word in a continuation line");
+  require(input.outdentListItem(), "Shift+Tab should outdent the multiline item");
+  require(session.markdownText().toString() == original &&
+              selection.cursorPosition().text.sourceOffset == original.indexOf("continued") + 3,
+          "Shift+Tab should retain the multiline source caret");
+}
+
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
   QApplication app(argc, argv);
 #define RUN_TEST(test) runTest(#test, test)
+  RUN_TEST(testTopLevelShiftTabExitsListAndKeepsCaret);
+  RUN_TEST(testTopLevelOutdentParagraphBoundaries);
+  RUN_TEST(testIndentOutdentMovesWholeItem);
+  RUN_TEST(testIndentOutdentRetainsMultilineCaret);
   RUN_TEST(testListItemInput);
   RUN_TEST(testListItemEditingCommands);
   RUN_TEST(testExitLastEmptyListItem);

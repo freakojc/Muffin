@@ -416,6 +416,33 @@ void testProfiledParseMetrics() {
           QStringLiteral("Profiled parser omitted a required full-parse phase"));
 }
 
+void testParagraphBeforeTableRetainsSourceRanges() {
+  const QString prefix = QStringLiteral("# Before\n\n");
+  for (const QString& paragraph : {QStringLiteral("plain **text**"), QStringLiteral("first\nsecond **text**"),
+                                    QString::fromUtf8("中文 **段落**")}) {
+    const QString markdown = prefix + paragraph + QStringLiteral("\n| A |\n|---|\n| B |\n\nend");
+    CmarkGfmParser parser;
+    ParseResult parsed = parser.parseDocument(markdown, {});
+    require(parsed.root->children().size() == 4, "table conversion should retain the preceding paragraph");
+    const MarkdownNode& before = childAt(*parsed.root, 1);
+    const MarkdownNode& table = childAt(*parsed.root, 2);
+    require(before.type() == BlockType::Paragraph && sourceTextForNode(markdown, before) == paragraph,
+            "paragraph split from a table header must retain its own editable source range");
+    require(table.type() == BlockType::Table && table.sourceRange().byteStart == markdown.indexOf("| A |"),
+            "table range must start at its header rather than overlap the preceding paragraph");
+    const MarkdownNode& header = childAt(table, 0);
+    require(header.sourceRange().lineStart == table.sourceRange().lineStart,
+            "header cells must use the table header's actual source line");
+    require(sourceTextForNode(markdown, childAt(header, 0)).contains(QStringLiteral("A")),
+            "table header cell must point to its own text");
+    for (const auto& in : before.inlines()) {
+      require(in.sourceStart() < 0 || (in.sourceStart() >= before.sourceRange().byteStart &&
+                                     in.sourceEnd() <= before.sourceRange().byteEnd),
+              "split paragraph inline ranges must stay inside their paragraph");
+    }
+  }
+}
+
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
   testLineStartOffsetCache();
@@ -427,6 +454,7 @@ int main(int argc, char** argv) {
   testBasicParseAndSerialize();
   testSetextHeadingParseAndSerialize();
   testTableCellSourceRanges();
+  testParagraphBeforeTableRetainsSourceRanges();
   testTaskListAndLooseListRoundTrip();
   testProfiledParseMetrics();
   return 0;

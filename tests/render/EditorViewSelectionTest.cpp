@@ -590,50 +590,57 @@ void testKeyboardUpDownLeavesListAtBoundaries() {
 // Down from a parent item that contains a nested sublist descends to its first nested child, then
 // onwards through the nested children to the parent's sibling; Up retraces the exact same path.
 void testKeyboardUpDownDescendsIntoAndOutOfNestedSublist() {
-  DocumentSession session;
-  EditorView view;
-  EditorController controller;
-  controller.attach(&session, &view);
-  view.resize(800, 500);
+  const QString lists[] = {
+      "- parent\n  - child one\n  - child two\n- sibling",
+      "1. parent\n   1. child one\n   2. child two\n2. sibling",
+      "- [ ] parent\n  - [x] child one\n  - [ ] child two\n- [x] sibling",
+  };
+  for (const QString& markdown : lists) {
+    DocumentSession session;
+    EditorView view;
+    EditorController controller;
+    controller.attach(&session, &view);
+    view.resize(800, 500);
 
-  session.setMarkdownText(QStringLiteral("- parent\n  - child one\n  - child two\n- sibling"), false);
-  view.setDocument(session.document());
-  MarkdownNode* parent = listItemAt(session, 0, 0);
-  MarkdownNode* sibling = listItemAt(session, 0, 1);
-  require(parent != nullptr && sibling != nullptr, "fixture should build parent and sibling items");
-  MarkdownNode* nestedList = nullptr;
-  for (const auto& child : parent->children()) {
-    if (child->type() == BlockType::List) {
-      nestedList = child.get();
-      break;
+    session.setMarkdownText(markdown, false);
+    view.setDocument(session.document());
+    MarkdownNode* parent = listItemAt(session, 0, 0);
+    MarkdownNode* sibling = listItemAt(session, 0, 1);
+    require(parent != nullptr && sibling != nullptr, "fixture should build parent and sibling items");
+    MarkdownNode* nestedList = nullptr;
+    for (const auto& child : parent->children()) {
+      if (child->type() == BlockType::List) {
+        nestedList = child.get();
+        break;
+      }
     }
+    require(nestedList != nullptr, "parent item should contain a nested list");
+    MarkdownNode* childOne = childAt(nestedList, 0);
+    MarkdownNode* childTwo = childAt(nestedList, 1);
+    require(childOne != nullptr && childTwo != nullptr, "nested list should expose two child items");
+
+    setCursor(controller.selection(), parent, 0);
+    require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down from the parent should be handled");
+    require(controller.selection().cursorPosition().blockId == childOne->id(),
+            "Down from a parent item should descend to its first nested child, not skip to the sibling");
+    require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down to the second child should be handled");
+    require(controller.selection().cursorPosition().blockId == childTwo->id(),
+            "Down should move to the second nested child");
+    require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down to the sibling should be handled");
+    require(controller.selection().cursorPosition().blockId == sibling->id(),
+            "Down from the last nested child should move to the parent's sibling");
+
+    // Up retraces the path: sibling -> childTwo -> childOne -> parent.
+    require(pressKey(controller.inputController(), &view, Qt::Key_Up), "Up from the sibling should be handled");
+    require(controller.selection().cursorPosition().blockId == childTwo->id(),
+            "Up from the sibling should return to the last nested child, not the parent");
+    require(pressKey(controller.inputController(), &view, Qt::Key_Up), "Up to the first child should be handled");
+    require(controller.selection().cursorPosition().blockId == childOne->id(),
+            "Up should return to the first nested child");
+    require(pressKey(controller.inputController(), &view, Qt::Key_Up), "Up to the parent should be handled");
+    require(controller.selection().cursorPosition().blockId == parent->id(),
+            "Up from the first nested child should return to the parent item");
   }
-  require(nestedList != nullptr, "parent item should contain a nested list");
-  MarkdownNode* childOne = childAt(nestedList, 0);
-  MarkdownNode* childTwo = childAt(nestedList, 1);
-  require(childOne != nullptr && childTwo != nullptr, "nested list should expose two child items");
-
-  setCursor(controller.selection(), parent, 0);
-  require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down from the parent should be handled");
-  require(controller.selection().cursorPosition().blockId == childOne->id(),
-          "Down from a parent item should descend to its first nested child, not skip to the sibling");
-  require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down to the second child should be handled");
-  require(controller.selection().cursorPosition().blockId == childTwo->id(),
-          "Down should move to the second nested child");
-  require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down to the sibling should be handled");
-  require(controller.selection().cursorPosition().blockId == sibling->id(),
-          "Down from the last nested child should move to the parent's sibling");
-
-  // Up retraces the path: sibling -> childTwo -> childOne -> parent.
-  require(pressKey(controller.inputController(), &view, Qt::Key_Up), "Up from the sibling should be handled");
-  require(controller.selection().cursorPosition().blockId == childTwo->id(),
-          "Up from the sibling should return to the last nested child, not the parent");
-  require(pressKey(controller.inputController(), &view, Qt::Key_Up), "Up to the first child should be handled");
-  require(controller.selection().cursorPosition().blockId == childOne->id(),
-          "Up should return to the first nested child");
-  require(pressKey(controller.inputController(), &view, Qt::Key_Up), "Up to the parent should be handled");
-  require(controller.selection().cursorPosition().blockId == parent->id(),
-          "Up from the first nested child should return to the parent item");
 }
 
 // Captures the widget's current pixels (forces a synchronous paint so it reflects state set since

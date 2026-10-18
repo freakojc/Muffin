@@ -286,8 +286,29 @@ static void try_inserting_table_header_paragraph(cmark_parser *parser,
                                                  int paragraph_offset) {
   cmark_node *paragraph;
   cmark_strbuf *paragraph_content;
+  int index, last_line_start = 0, paragraph_end = paragraph_offset;
 
   paragraph = cmark_node_new_with_mem(CMARK_NODE_PARAGRAPH, parser->mem);
+  // Preserve source positions when a table header splits off preceding prose.
+  // The new paragraph owns the prefix; the table starts on the header line.
+  paragraph->start_line = paragraph->end_line = parent_container->start_line;
+  paragraph->start_column = parent_container->start_column;
+  paragraph->internal_offset = parent_container->internal_offset;
+  while (paragraph_end > 0 && (parent_string[paragraph_end - 1] == '\n' ||
+                               parent_string[paragraph_end - 1] == '\r')) {
+    --paragraph_end;
+  }
+  for (index = 0; index < paragraph_offset; ++index) {
+    if (parent_string[index] == '\n') {
+      ++parent_container->start_line;
+      if (index < paragraph_end) {
+        ++paragraph->end_line;
+        last_line_start = index + 1;
+      }
+    }
+  }
+  paragraph->end_column = paragraph_end - last_line_start +
+      (last_line_start == 0 ? paragraph->start_column - 1 : 0);
 
   paragraph_content = unescape_pipes(parser->mem, parent_string, paragraph_offset);
   cmark_strbuf_trim(paragraph_content);
@@ -396,7 +417,8 @@ static cmark_node *try_opening_table_header(cmark_syntax_extension *self,
       cmark_parser_add_child(parser, parent_container, CMARK_NODE_TABLE_ROW,
                              parent_container->start_column);
   cmark_node_set_syntax_extension(table_header, self);
-  table_header->end_column = parent_container->start_column + (int)strlen(parent_string) - 2;
+  table_header->end_column = parent_container->start_column +
+      (int)strlen(parent_string) - header_row->paragraph_offset - 2;
   table_header->start_line = table_header->end_line = parent_container->start_line;
 
   table_header->as.opaque = ntr = (node_table_row *)parser->mem->calloc(1, sizeof(node_table_row));
@@ -405,10 +427,10 @@ static cmark_node *try_opening_table_header(cmark_syntax_extension *self,
   for (i = 0; i < header_row->n_columns; ++i) {
     node_cell *cell = &header_row->cells[i];
     cmark_node *header_cell = cmark_parser_add_child(parser, table_header,
-                                                     CMARK_NODE_TABLE_CELL, parent_container->start_column + cell->start_offset);
+                                                     CMARK_NODE_TABLE_CELL, parent_container->start_column + cell->start_offset - header_row->paragraph_offset);
     header_cell->start_line = header_cell->end_line = parent_container->start_line;
     header_cell->internal_offset = cell->internal_offset;
-    header_cell->end_column = parent_container->start_column + cell->end_offset;
+    header_cell->end_column = parent_container->start_column + cell->end_offset - header_row->paragraph_offset;
     cmark_node_set_string_content(header_cell, (char *) cell->buf->ptr);
     cmark_node_set_syntax_extension(header_cell, self);
     set_cell_index(header_cell, i);

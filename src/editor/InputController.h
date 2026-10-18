@@ -176,9 +176,6 @@ private:
   // nested caret can reach the editable block that visually follows/precedes it. Unlike
   // selectableBlockByDirection (top-level only), this crosses list items and quoted paragraphs.
   MarkdownNode* neighborBlockInDocumentDirection(const MarkdownNode& node, int direction) const;
-  // The LAST editable block in document order within a subtree, descending into a list item's nested
-  // children (unlike the resolver's lastEditableDescendant, which short-circuits on a ListItem).
-  MarkdownNode* deepestLastEditableInSubtree(MarkdownNode& node) const;
   qsizetype selectableTextLength(const MarkdownNode& node) const;
   // The selectable text itself (mirrors selectableTextLength's per-type source), used for
   // grapheme-aware caret stepping.

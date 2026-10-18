@@ -23,6 +23,13 @@ QString fieldMismatch(const char* what, qsizetype got, qsizetype want) {
 // Compare a session (relativized) tree against a freshly-parsed (absolute) tree, node by node.
 // Session inline offsets are relative-to-top-level-block, so resolve them via topLevelByteStart.
 bool compareNode(const MarkdownNode& fresh, const MarkdownNode& session, QString& err, qsizetype topBase) {
+  if (fresh.type() != session.type() || fresh.literal() != session.literal() ||
+      fresh.listKind() != session.listKind() || fresh.listStart() != session.listStart() ||
+      fresh.listTight() != session.listTight() || fresh.isTaskItem() != session.isTaskItem() ||
+      fresh.taskChecked() != session.taskChecked()) {
+    err = QStringLiteral("node structure or content mismatch");
+    return false;
+  }
   // topBase = the session node's owning top-level block's absolute byteStart (0 for fresh, which is
   // already absolute). Used to resolve session inline ranges.
   const SourceRange fr = fresh.sourceRange();
@@ -34,6 +41,10 @@ bool compareNode(const MarkdownNode& fresh, const MarkdownNode& session, QString
   }
   if (fr.lineStart != sr.lineStart) {
     err = fieldMismatch("node lineStart", sr.lineStart, fr.lineStart);
+    return false;
+  }
+  if (fr.lineEnd != sr.lineEnd || fr.columnStart != sr.columnStart || fr.columnEnd != sr.columnEnd) {
+    err = QStringLiteral("node line/column range mismatch");
     return false;
   }
 
@@ -241,7 +252,72 @@ void testFrontMatterRootRangeAfterLocalEdit() {
   require(matches, QStringLiteral("front-matter local root/source oracle: %1").arg(err));
 }
 
+void testSeparatorEditsMatchFullParse() {
+  const QString blocks[] = {
+      QStringLiteral("plain **text**"),
+      QStringLiteral("* alpha\n* beta"),
+      QStringLiteral("- alpha\n- beta"),
+      QStringLiteral("+ alpha\n+ beta"),
+      QStringLiteral("1. alpha\n2. beta"),
+      QStringLiteral("9) alpha\n10) beta"),
+      QStringLiteral("- [ ] alpha\n- [x] beta"),
+      QStringLiteral("- alpha\n  - child\n- beta"),
+      QStringLiteral("1. alpha\n   1. child\n2. beta"),
+      QStringLiteral("> quote"),
+      QStringLiteral("```txt\ncode\n```"),
+      QStringLiteral("| A |\n|---|\n| B |"),
+  };
+  const QString prefix = QStringLiteral("# Before\n\n");
+  const QString suffix = QStringLiteral("\n\n# After\n\ntail");
+  int failures = 0;
+  int edits = 0;
+  for (const QString& before : blocks) {
+    for (const QString& after : blocks) {
+      for (int gap = 2; gap <= 5; ++gap) {
+        const QString original = prefix + before + QString(gap, QLatin1Char('\n')) + after + suffix;
+        const qsizetype gapStart = prefix.size() + before.size();
+        for (int offset = 0; offset < gap; ++offset) {
+          for (const bool insert : {false, true}) {
+            DocumentSession session;
+            session.setMarkdownText(original, false);
+            const qsizetype start = gapStart + offset;
+            const qsizetype removed = insert ? 0 : 1;
+            const QString replacement = insert ? QStringLiteral("\n") : QString();
+            QString expected = original;
+            expected.replace(start, removed, replacement);
+            QString error;
+            const bool applied = session.applyTextDelta(start, removed, replacement, true);
+            const bool matches = applied && session.markdownText().toString() == expected &&
+                                 documentMatchesFreshParse(session, error);
+            ++edits;
+            if (!matches) {
+              if (failures < 20) {
+                std::fprintf(stderr, "separator edit failed before=[%s] after=[%s] gap=%d offset=%d insert=%d applied=%d: %s\n",
+                             before.toUtf8().constData(), after.toUtf8().constData(), gap, offset,
+                             insert, applied, error.toUtf8().constData());
+              }
+              ++failures;
+            } else {
+              const QString inverse = original.mid(start, removed);
+              const bool restored = session.applyTextDelta(start, replacement.size(), inverse, true) &&
+                                    session.markdownText().toString() == original &&
+                                    documentMatchesFreshParse(session, error);
+              require(restored, QStringLiteral("separator inverse edit: %1").arg(error));
+              const bool replayed = session.applyTextDelta(start, removed, replacement, true) &&
+                                    session.markdownText().toString() == expected &&
+                                    documentMatchesFreshParse(session, error);
+              require(replayed, QStringLiteral("separator replayed edit: %1").arg(error));
+            }
+          }
+        }
+      }
+    }
+  }
+  require(failures == 0, QStringLiteral("separator edit oracle: %1 failures across %2 edits").arg(failures).arg(edits));
+}
+
 int main() {
+  runTest("testSeparatorEditsMatchFullParse", testSeparatorEditsMatchFullParse);
   runTest("testParagraphAndHeading", testParagraphAndHeading);
   runTest("testListNestedWithInlineMath", testListNestedWithInlineMath);
   runTest("testBlockquoteAndAlert", testBlockquoteAndAlert);

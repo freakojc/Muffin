@@ -45,6 +45,7 @@ struct TopLevelSlice {
   qsizetype count = 0;
   qsizetype sourceStart = -1;
   qsizetype sourceEnd = -1;
+  qsizetype parseEnd = -1;  // optional unmodified right context, excluded from the splice
   bool startsAtEditStart = false;  // the preceding block(s) were skipped (trailing-newline touch);
                                   // a leading VEP in the replacements is a separator artifact
 };
@@ -250,6 +251,43 @@ TopLevelSlice chooseTopLevelSlice(const muffin::MarkdownDocument& document, qsiz
     }
     hiExcl = a;
   }
+
+  if (blankLineStructuralEdit) {
+    // Blank lines belong to the gap between blocks. Parsing only the touched
+    // node cannot tell whether they separate blocks, create an empty paragraph,
+    // or join a paragraph to a list's lazy continuation. Reparse the neighbors
+    // and all virtual paragraphs in their gaps as one source region.
+    qsizetype first = lo;
+    while (first > 0) {
+      --first;
+      if (!isVirtualEmptyParagraph(*blocks.at(static_cast<size_t>(first)))) break;
+    }
+    qsizetype end = hiExcl;
+    while (end < static_cast<qsizetype>(blocks.size())) {
+      const bool empty = isVirtualEmptyParagraph(*blocks.at(static_cast<size_t>(end)));
+      ++end;
+      if (!empty) break;
+    }
+    // Include the trailing gap, then parse one unchanged block as lookahead.
+    // cmark's ranges and empty-paragraph synthesis depend on that right context;
+    // the lookahead itself keeps its original node and is never spliced out.
+    while (end < static_cast<qsizetype>(blocks.size()) &&
+           isVirtualEmptyParagraph(*blocks.at(static_cast<size_t>(end)))) {
+      ++end;
+    }
+    slice.first = first;
+    slice.count = end - first;
+    slice.sourceStart = first == 0 ? 0 : muffin::lineStartOffset(
+        document.pieceText(), blocks.at(static_cast<size_t>(first))->sourceRange().byteStart);
+    if (end == static_cast<qsizetype>(blocks.size())) {
+      slice.sourceEnd = slice.parseEnd = document.pieceText().size();
+    } else {
+      const muffin::SourceRange contextRange = blocks.at(static_cast<size_t>(end))->sourceRange();
+      slice.sourceEnd = muffin::lineStartOffset(document.pieceText(), contextRange.byteStart);
+      slice.parseEnd = contextRange.byteEnd;
+    }
+    return slice;
+  }
   // A pure deletion that begins inside a block's trailing-newline region (caret at the end of a
   // block's content — the classic "delete at end of a paragraph/list eats the following divider")
   // leaves that block's CONTENT unchanged: only trailing whitespace is removed, and cmark
@@ -310,40 +348,12 @@ TopLevelSlice chooseTopLevelSlice(const muffin::MarkdownDocument& document, qsiz
     }
 
     if (onlyVirtualEmptyParagraphs) {
-      qsizetype selectedFirst = slice.first;
-      qsizetype selectedEnd = slice.first + slice.count;
-      if (blankLineStructuralEdit) {
-        while (selectedFirst > 0 && isVirtualEmptyParagraph(*blocks.at(static_cast<size_t>(selectedFirst - 1)))) {
-          --selectedFirst;
-        }
-        while (selectedEnd < static_cast<qsizetype>(blocks.size()) && isVirtualEmptyParagraph(*blocks.at(static_cast<size_t>(selectedEnd)))) {
-          ++selectedEnd;
-        }
-      }
-
-      // Only expand into neighboring blocks for blank-line structural edits.
-      // Character insertions (like typing "*" in a virtual empty paragraph)
-      // don't need surrounding context — the pending-marker demotion logic
-      // handles single-line markers correctly.  Expanding would pull in a
-      // List block, causing cmark to absorb the "*" into the list structure,
-      // which then can't be demoted because the multi-line source doesn't
-      // match the single-line pending-marker regex.
-      qsizetype expandedFirst = selectedFirst;
-      qsizetype expandedEnd = selectedEnd;
-      if (blankLineStructuralEdit) {
-        if (expandedFirst > 0) {
-          --expandedFirst;
-        }
-        if (expandedEnd < static_cast<qsizetype>(blocks.size())) {
-          ++expandedEnd;
-        }
-      }
-
-      slice.first = expandedFirst;
-      slice.count = expandedEnd - expandedFirst;
-      slice.sourceStart = expandedFirst > 0 ? blocks.at(static_cast<size_t>(expandedFirst))->sourceRange().byteStart : 0;
-      slice.sourceEnd = expandedEnd < static_cast<qsizetype>(blocks.size())
-                            ? blocks.at(static_cast<size_t>(expandedEnd - 1))->sourceRange().byteEnd
+      // Character edits in an empty paragraph stay isolated so typing a lone
+      // marker cannot absorb it into a neighboring list before it is complete.
+      const qsizetype end = slice.first + slice.count;
+      slice.sourceStart = slice.first > 0 ? blocks.at(static_cast<size_t>(slice.first))->sourceRange().byteStart : 0;
+      slice.sourceEnd = end < static_cast<qsizetype>(blocks.size())
+                            ? blocks.at(static_cast<size_t>(end - 1))->sourceRange().byteEnd
                             : document.pieceText().size();
     }
   }
@@ -357,6 +367,10 @@ TopLevelSlice chooseTopLevelSlice(const muffin::MarkdownDocument& document, qsiz
       // re-parseable line boundary. The slice must still cover editStart, so start exactly there.
       slice.sourceStart = editStart;
     }
+    // A block's serialized span can include a line terminator excluded from
+    // its node range (notably HTML literals). The overlap search already owns
+    // every node touched by the edit; retain any edited separator bytes too.
+    slice.sourceEnd = qMax(slice.sourceEnd, editEnd);
     slice.startsAtEditStart = sliceStartsAtEditStart;
     return slice;
   }
@@ -1008,7 +1022,8 @@ bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(
   TopLevelSlice slice = chooseTopLevelSlice(document_, sourceStart, sourceEnd, isBlankLineStructuralEdit(removedText, replacementText), replacementText.isEmpty());
   qCDebug(sessionPerf).nospace() << "slice.chosen first=" << slice.first << " count=" << slice.count
       << " src=[" << slice.sourceStart << "," << slice.sourceEnd << "]";
-  if (slice.first < 0 || slice.sourceStart < 0 || slice.sourceEnd < slice.sourceStart) {
+  if (slice.first < 0 || slice.sourceStart < 0 || slice.sourceStart > sourceStart ||
+      slice.sourceEnd < sourceEnd || slice.sourceEnd > oldText.size()) {
     warnLocalEditSliceRejected(
         "could not choose a valid top-level slice",
         sourceStart,
@@ -1040,6 +1055,9 @@ bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(
     sliceMarkdown = oldText.mid(slice.sourceStart, sourceStart - slice.sourceStart);
     sliceMarkdown += replacementText;
     sliceMarkdown += oldText.mid(sourceEnd, slice.sourceEnd - sourceEnd);
+    if (slice.parseEnd > slice.sourceEnd) {
+      sliceMarkdown += oldText.mid(slice.sourceEnd, slice.parseEnd - slice.sourceEnd);
+    }
     ParseOptions sliceOptions = parseOptions_;
     sliceOptions.enableFrontMatter = slice.sourceStart == 0;
     parsedSlice = parser_.parseDocument(QStringView(sliceMarkdown), sliceOptions);
@@ -1053,6 +1071,21 @@ bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(
         oldText.size(),
         slice);
     return false;
+  }
+
+  if (slice.parseEnd > slice.sourceEnd) {
+    const qsizetype spliceEnd = slice.sourceEnd - slice.sourceStart + editDelta;
+    while (!parsedSlice.root->children().empty() &&
+           parsedSlice.root->children().back()->sourceRange().byteStart >= spliceEnd) {
+      parsedSlice.root->detachChild(parsedSlice.root->children().size() - 1);
+    }
+    for (const auto& child : parsedSlice.root->children()) {
+      if (child->sourceRange().byteEnd > spliceEnd) {
+        // The edit changed the parse beyond this window (for example removing
+        // an opening fence's newline). Let the caller take the full parse path.
+        return false;
+      }
+    }
   }
 
   // Lazy markers: keep a still-incomplete list bullet / fence / math opener as a paragraph

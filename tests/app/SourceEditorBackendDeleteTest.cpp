@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QImage>
+#include <QKeyEvent>
 #include <QScrollBar>
 #include <iostream>
 
@@ -160,6 +161,87 @@ void testReadOnlySourceRejectsMutationWithoutDamagingUndo() {
           "undo history should remain usable after read-only mode ends");
 }
 
+void testSessionBackedBackspaceInListSeparator() {
+  const QString lists[] = {
+      "* 1\n* 2\n* 3\n* 4\n* 5",
+      "- 1\n- 2\n- 3\n- 4\n- 5",
+      "+ 1\n+ 2\n+ 3\n+ 4\n+ 5",
+      "1. 1\n2. 2\n3. 3\n4. 4\n5. 5",
+      "9) 1\n10) 2\n11) 3\n12) 4\n13) 5",
+      "- [ ] 1\n- [x] 2\n- [ ] 3\n- [x] 4\n- [ ] 5",
+      "- 1\n- 2\n- 3\n- 4\n- parent\n  - 5",
+      "1. 1\n2. 2\n3. 3\n4. 4\n5. parent\n   1. 5",
+  };
+  for (const QString& list : lists) {
+    for (int blankLines : {1, 2}) {
+      DocumentSession session;
+      const QString original = list + QString(blankLines + 1, QLatin1Char('\n')) + QStringLiteral("123");
+      session.setMarkdownText(original, false);
+      SourceEditorWidget editor;
+      editor.bindSession(&session);
+      QObject::connect(&session, &DocumentSession::documentTextChanged, &editor,
+                       [&editor] { editor.syncFromSession(); });
+      QObject::connect(&session, &DocumentSession::documentLocallyEdited, &editor,
+                       [&editor] { editor.notifyDocumentChanged(); });
+      SourceEditorBackend backend(&editor);
+      VirtualSourceEdit* view = editor.findChild<VirtualSourceEdit*>();
+      require(view != nullptr, "source editor should expose its keyboard target");
+      const qsizetype caret = list.size() + 1;
+      editor.setCursorPosition(caret);
+      QKeyEvent backspace(QEvent::KeyPress, Qt::Key_Backspace, Qt::NoModifier);
+      QApplication::sendEvent(view, &backspace);
+
+      QString expected = original;
+      expected.remove(caret - 1, 1);
+      require(session.markdownText().toString() == expected,
+              QStringLiteral("source Backspace on a blank line after a list must remove the preceding newline: blanks=%1, caret=%2, actual=[%3]")
+                  .arg(blankLines).arg(editor.cursorPosition()).arg(session.markdownText().toString()));
+      require(editor.cursorPosition() == caret - 1, "source Backspace must move the caret back one character");
+      require(session.lastParseWasLocalEdit(), "ordinary source separator edits must not reparse the entire document");
+      const auto checkTree = [&session, blankLines](qsizetype expectedBlocks, const char* stage) {
+        const auto& blocks = session.document().root().children();
+        require(static_cast<qsizetype>(blocks.size()) == expectedBlocks &&
+                    blocks.front()->type() == BlockType::List && blocks.front()->children().size() == 5,
+                QStringLiteral("source separator tree mismatch after %1 with %2 blank lines: expected=%3 actual=%4 firstType=%5 items=%6 source=[%7]")
+                    .arg(QString::fromLatin1(stage)).arg(blankLines).arg(expectedBlocks).arg(blocks.size())
+                    .arg(blocks.empty() ? -1 : static_cast<int>(blocks.front()->type()))
+                    .arg(blocks.empty() ? 0 : blocks.front()->children().size())
+                    .arg(session.markdownText().toString().replace(QLatin1Char('\n'), QStringLiteral("\\n"))));
+      };
+      checkTree(blankLines == 1 ? 1 : 2, "Backspace");
+      require(backend.canUndo(), "deleting a list separator should be undoable");
+      backend.undo();
+      require(session.markdownText().toString() == original && editor.cursorPosition() == caret,
+              "undo should restore the blank line and caret");
+      checkTree(blankLines + 1, "undo");
+      backend.redo();
+      require(session.markdownText().toString() == expected && editor.cursorPosition() == caret - 1,
+              "redo should delete the separator again");
+      checkTree(blankLines == 1 ? 1 : 2, "redo");
+    }
+  }
+}
+
+void testSessionBackedSourceRejectsEditsDuringOpen() {
+  DocumentSession session;
+  session.setMarkdownText(QStringLiteral("alpha"), false);
+  SourceEditorWidget editor;
+  editor.bindSession(&session);
+  editor.setCursorPosition(5);
+  editor.insertText(QStringLiteral("!"));
+
+  session.setOpenConfirmationPending(true);
+  editor.deleteBackward();
+  editor.insertText(QStringLiteral("ignored"));
+  editor.undo();
+  require(session.markdownText().toString() == QStringLiteral("alpha!") && editor.cursorPosition() == 6,
+          "source edits and fallback must leave the old document untouched while an open is pending");
+  session.setOpenConfirmationPending(false);
+  editor.undo();
+  require(session.markdownText().toString() == QStringLiteral("alpha"),
+          "an edit rejected during open must preserve the source undo history");
+}
+
 void testVirtualSourceViewportAffordances() {
   SourceEditorWidget editor;
   editor.resize(720, 300);
@@ -209,6 +291,8 @@ int main(int argc, char** argv) {
   testSourceDeleteBlockLast();
   testSourceDeleteBlockOnly();
   testSessionBackedSourceEditsAndUndo();
+  testSessionBackedBackspaceInListSeparator();
+  testSessionBackedSourceRejectsEditsDuringOpen();
   testReadOnlySourceRejectsMutationWithoutDamagingUndo();
   testVirtualSourceViewportAffordances();
   QApplication::clipboard()->clear();

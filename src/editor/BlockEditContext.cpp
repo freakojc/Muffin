@@ -454,6 +454,14 @@ MarkdownNode* BlockEditContextResolver::nodeAtContentSourceOffset(
 }
 
 MarkdownNode* BlockEditContextResolver::lastEditableDescendant(MarkdownNode& node) const {
+  if (node.type() == BlockType::ListItem) {
+    const MarkdownNode* primary = primaryParagraph(node);
+    for (auto it = node.children().rbegin(); it != node.children().rend(); ++it) {
+      if (it->get() == primary) continue;
+      if (MarkdownNode* found = lastEditableDescendant(*it->get())) return found;
+    }
+    return &node;
+  }
   if (isEditableTextBlock(node.type())) {
     return &node;
   }

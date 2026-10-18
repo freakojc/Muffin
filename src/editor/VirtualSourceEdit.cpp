@@ -1,6 +1,7 @@
 #include "editor/VirtualSourceEdit.h"
 
 #include "document/DocumentSession.h"
+#include "document/PendingBlockMarker.h"
 #include "editor/WordBoundary.h"
 #include "io/FilePathOps.h"
 #include "io/MuffinMime.h"
@@ -327,6 +328,9 @@ void VirtualSourceEdit::bindSession(DocumentSession* session) {
 }
 
 void VirtualSourceEdit::syncFromSession(bool preserveCursor) {
+  // A full-parse fallback publishes the new text while applyEdit still owns
+  // the caret, undo record and incremental line-height update.
+  if (applyingEdit_) return;
   if (!preserveCursor) cursor_ = anchor_ = 0;
   cursor_ = boundedOffset(cursor_);
   anchor_ = boundedOffset(anchor_);
@@ -439,7 +443,7 @@ void VirtualSourceEdit::selectWord() {
 
 bool VirtualSourceEdit::applyEdit(
     qsizetype start, qsizetype end, const QString& inserted, bool recordUndo) {
-  if (readOnly_) return false;
+  if (readOnly_ || (session_ && session_->isOpenInProgress())) return false;
   start = boundedOffset(start);
   end = qBound(start, end, source().size());
   EditRecord record;
@@ -453,15 +457,25 @@ bool VirtualSourceEdit::applyEdit(
   const int lastLine = lineForOffset(end);
   const qsizetype oldLineCount = source().lineCount();
 
-  bool applied = true;
   applyingEdit_ = true;
   if (session_) {
-    applied = session_->applyTextDelta(start, end - start, inserted, true);
+    if (!session_->applyTextDelta(start, end - start, inserted, true)) {
+      // A structural change can extend beyond the local parse window. Source
+      // edits must still apply and remain undoable through a full parse.
+      QString nextText = source().toString();
+      nextText.replace(start, end - start, inserted);
+      auto pendingOffsets = shiftPendingMarkerOffsets(
+          session_->pendingMarkerOffsets(), start, end - start, inserted.size());
+      if (!inserted.contains(QLatin1Char('\n'))) {
+        const qsizetype pendingOffset = pendingBlockMarkerOffset(nextText, start);
+        if (pendingOffset >= 0) pendingOffsets.append(pendingOffset);
+      }
+      session_->applyMarkdownText(std::move(nextText), true, std::move(pendingOffsets));
+    }
   } else {
     standaloneSource().replace(start, end, inserted);
   }
   applyingEdit_ = false;
-  if (!applied) return false;
 
   anchor_ = record.afterAnchor;
   cursor_ = record.afterCursor;

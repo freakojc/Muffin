@@ -157,6 +157,83 @@ void testEmptyParagraphAfterHtmlBlock() {
   require(block != nullptr && block->type() == BlockType::HtmlBlock, "caret should retreat into the HTML block");
 }
 
+void testEmptyParagraphBetweenListAndNextBlock() {
+  const QString lists[] = {
+      "* 1\n* 2\n* 3\n* 4\n* 5",
+      "- 1\n- 2\n- 3\n- 4\n- 5",
+      "+ 1\n+ 2\n+ 3\n+ 4\n+ 5",
+      "1. 1\n2. 2\n3. 3\n4. 4\n5. 5",
+      "9) 1\n10) 2\n11) 3\n12) 4\n13) 5",
+      "- [ ] 1\n- [x] 2\n- [ ] 3\n- [x] 4\n- [ ] 5",
+      "- 1\n- 2\n- 3\n- 4\n- parent\n  - 5",
+      "1. 1\n2. 2\n3. 3\n4. 4\n5. parent\n   1. 5",
+  };
+  for (const QString& list : lists) {
+    Harness h;
+    const QString original = list + QStringLiteral("\n\n123");
+    h.load(original);
+    auto* following = h.session.document().root().children().back().get();
+    require(following->type() == BlockType::Paragraph, "fixture should end in a plain paragraph");
+    setCursor(h.controller.selection(), following, 0);
+    require(h.controller.inputController().insertParagraphBreak(), "Enter should create an empty paragraph");
+    const QString withEmptyParagraph = h.session.markdownText().toString();
+    h.placeInEmptyParagraph();
+    require(h.controller.inputController().deleteBackward(), "Backspace after a list should be handled");
+    require(h.session.markdownText().toString() == original,
+            QStringLiteral("Backspace must preserve the entire preceding list: %1 -> %2")
+                .arg(original, h.session.markdownText().toString()));
+    const auto& blocks = h.session.document().root().children();
+    require(blocks.size() == 2 && blocks.front()->type() == BlockType::List &&
+                blocks.front()->children().size() == 5 && blocks.back()->type() == BlockType::Paragraph,
+            "deleting a separator must preserve the list in the parsed document");
+    const auto cursor = h.controller.selection().cursorPosition();
+    const MarkdownNode* block = h.session.document().node(cursor.blockId);
+    require(block && !cursor.afterBlock && block->parent() && block->parent()->type() == BlockType::List,
+            "Backspace should retreat into the final list item");
+    require(cursor.text.textOffset == 1, "caret should land after the final list item's text");
+    require(h.controller.inputController().insertText(QStringLiteral("!")), "the restored caret should remain editable");
+    require(h.session.markdownText().toString() == list + QStringLiteral("!\n\n123"),
+            "typing after Backspace should edit the last list item rather than the following paragraph");
+    h.controller.undo();
+    h.controller.undo();
+    require(h.session.markdownText().toString() == withEmptyParagraph &&
+                findEmptyParagraph(&h.session.document().root()) != nullptr,
+            "undo should restore the empty paragraph after the list");
+    h.controller.redo();
+    require(h.session.markdownText().toString() == original &&
+                h.session.document().root().children().front()->type() == BlockType::List,
+            "redo should remove the empty paragraph and preserve the list");
+  }
+}
+
+void testEmptyParagraphAfterContainerWithLiteralTail() {
+  const QString containers[] = {
+      "- item\n\n  ```txt\n  code\n  ```",
+      "1. item\n\n   ```txt\n   code\n   ```",
+      "> ```txt\n> code\n> ```",
+  };
+  for (const QString& before : containers) {
+    Harness h;
+    const QString original = before + QStringLiteral("\n\n123");
+    h.load(original);
+    setCursor(h.controller.selection(), h.session.document().root().children().back().get(), 0);
+    require(h.controller.inputController().insertParagraphBreak(), "Enter should create a blank paragraph after the container");
+    const QString withBlank = h.session.markdownText().toString();
+    h.placeInEmptyParagraph();
+    require(h.controller.inputController().deleteBackward(), "Backspace after a container should be handled");
+    require(h.session.markdownText().toString() == original,
+            "removing an empty paragraph must preserve literal blocks inside the preceding container");
+    const auto cursor = h.controller.selection().cursorPosition();
+    const auto* block = h.session.document().node(cursor.blockId);
+    require(block && block->type() == BlockType::CodeFence && !cursor.afterBlock,
+            "caret should retreat into the container's last literal block");
+    h.controller.undo();
+    require(h.session.markdownText().toString() == withBlank, "undo must restore the blank paragraph");
+    h.controller.redo();
+    require(h.session.markdownText().toString() == original, "redo must preserve the container's literal content");
+  }
+}
+
 // Front matter's trailing-newline-sensitive parsing makes deleting a trailing empty paragraph
 // unsafe (the closing fence needs its newline). Backspace there must be a safe no-op: document
 // intact, caret valid — never corrupted or dropped.
@@ -280,6 +357,8 @@ int main(int argc, char** argv) {
   QApplication app(argc, argv);
   testEmptyParagraphAfterTable();
   testEmptyParagraphBetweenTableAndNextBlock();
+  testEmptyParagraphBetweenListAndNextBlock();
+  testEmptyParagraphAfterContainerWithLiteralTail();
   testTrailingCaretAfterTable();
   testEmptyParagraphAfterHtmlBlock();
   testEmptyParagraphAfterFrontMatterIsSafe();

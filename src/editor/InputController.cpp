@@ -343,15 +343,12 @@ bool InputController::insertBlockAfterCurrentBlock(QString text) {
   } else {
     if (text.isEmpty()) {
       insertedText = QStringLiteral("\n\n");
-      // Materialize the layout-only BlockAfter caret. For ordinary text/container blocks, the new
-      // trailing empty paragraph is represented by the blank line AFTER the inserted separator, so the
-      // caret must resolve at insertOffset + size; leaving it at insertOffset hits the previous block's
-      // inclusive end boundary (e.g. a trailing heading) and visually snaps back into that block.
-      //
-      // Non-text leaves are different: a thematic break's editable target lives at the START of the
-      // blank-line run below the rule. Pointing past the "\n\n" there lands in a gap no block covers,
-      // so keep the established rule-specific offset and let preferLaterEmptyAtOffset resolve that VEP.
-      caretOffset = (!isLiteralBlock && isNonTextLeafBlock(*node)) ? insertOffset : (insertOffset + insertedText.size());
+      // Empty paragraphs occupy every second blank line. When the block's line
+      // terminator already precedes the insertion, the first inserted newline
+      // reaches that paragraph; otherwise the first newline ends the block.
+      // Use the same source position for every block type and for a full parse.
+      const bool atLineStart = insertOffset > 0 && markdown.at(insertOffset - 1) == QLatin1Char('\n');
+      caretOffset = insertOffset + (atLineStart ? 1 : insertedText.size());
     } else {
       insertedText = isLiteralBlock ? QStringLiteral("\n%1").arg(text) : QStringLiteral("\n\n%1").arg(text);
       caretOffset = insertOffset + insertedText.size();
@@ -1174,36 +1171,9 @@ MarkdownNode* InputController::neighborBlockInDocumentDirection(const MarkdownNo
         prev->parent()->type() == BlockType::ListItem) {
       return prev->parent();
     }
-    return deepestLastEditableInSubtree(*prev);
+    return contextResolver().lastEditableDescendant(*prev);
   }
   return nullptr;
-}
-
-MarkdownNode* InputController::deepestLastEditableInSubtree(MarkdownNode& node) const {
-  if (node.type() == BlockType::ListItem) {
-    const MarkdownNode* const primary = primaryParagraph(node);
-    auto& children = node.children();
-    for (auto it = children.rbegin(); it != children.rend(); ++it) {
-      if (primary != nullptr && it->get() == primary) {
-        continue;
-      }
-      if (MarkdownNode* e = deepestLastEditableInSubtree(*it->get())) {
-        return e;
-      }
-    }
-    return &node;  // a leaf list item (no nested content)
-  }
-  if (!isEditableTextBlock(node.type())) {
-    // Container (List / BlockQuote): descend into the last child's subtree.
-    auto& children = node.children();
-    for (auto it = children.rbegin(); it != children.rend(); ++it) {
-      if (MarkdownNode* e = deepestLastEditableInSubtree(*it->get())) {
-        return e;
-      }
-    }
-    return nullptr;
-  }
-  return &node;  // editable leaf (Paragraph / Heading / ...)
 }
 
 qsizetype InputController::selectableTextLength(const MarkdownNode& node) const {
@@ -1310,7 +1280,11 @@ HitTestResult InputController::visualEdgeHitForBlock(NodeId blockId, int directi
   }
 
   BlockEditContextResolver resolver = contextResolver();
-  MarkdownNode* editable = direction > 0 ? resolver.firstEditableDescendant(*node) : resolver.lastEditableDescendant(*node);
+  // Navigation can target a list item's own text when moving up from its first
+  // nested child. That is already an editable destination, not a container
+  // whose last descendant should be selected again.
+  MarkdownNode* editable = isEditableTextBlock(node->type()) ? node :
+      (direction > 0 ? resolver.firstEditableDescendant(*node) : resolver.lastEditableDescendant(*node));
   if (!editable) {
     return result;
   }

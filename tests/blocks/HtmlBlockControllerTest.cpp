@@ -109,6 +109,37 @@ void testSetHtmlRoundtripAndSanitizer() {
   require(preview.contains(QStringLiteral("href=\"#\"")), "javascript href should be neutralized");
 }
 
+void testEditingIndentedHtmlPreservesSeparators() {
+  const QString before = QStringLiteral("# Before\n\n");
+  const QString html = QStringLiteral("  <div>\n  alpha\n  </div>\n");
+  for (const QString& after : {QString(), QStringLiteral("\nplain"), QStringLiteral("\n\n\nplain")}) {
+    DocumentSession session;
+    SelectionController selection;
+    UndoStack undoStack;
+    BrushQueue brushQueue;
+    LiteralBlockController controller(htmlSpec());
+    controller.setContext({&session, &selection, &undoStack, &brushQueue});
+    const QString original = before + html + after;
+    session.setMarkdownText(original, false);
+    MarkdownNode* block = firstHtmlBlock(session);
+    require(block != nullptr, "indented HTML fixture should parse");
+    setHtmlHit(selection, block);
+    require(controller.enterEditMode(), "indented HTML edit should activate");
+    CursorPosition cursor = selection.cursorPosition();
+    cursor.text.textOffset = html.indexOf(QStringLiteral("alpha")) + 2;
+    selection.setCursorPosition(cursor);
+    require(controller.insertText(QStringLiteral("Z")), "indented HTML should accept typing");
+    QString expected = original;
+    expected.insert(before.size() + cursor.text.textOffset, QLatin1Char('Z'));
+    require(session.markdownText().toString() == expected,
+            "HTML typing must preserve leading indentation and following separators exactly");
+    require(session.lastParseWasLocalEdit(), "HTML typing should remain a local edit");
+    require(controller.deleteBackward(), "indented HTML should accept Backspace");
+    require(session.markdownText().toString() == original,
+            "HTML typing and Backspace must round-trip the complete Markdown source");
+  }
+}
+
 void testStandaloneSanitizer() {
   const QString html = QStringLiteral("<img src=javascript:evil onerror='x'><SCRIPT>bad()</SCRIPT><p onClick=test>ok</p>");
   const QString preview = HtmlSanitizer().sanitizedPreview(html);
@@ -163,6 +194,7 @@ void testSanitizerClosesBypassClasses() {
 
 int main() {
   testEnterEditAndTextEditing();
+  testEditingIndentedHtmlPreservesSeparators();
   testSetHtmlRoundtripAndSanitizer();
   testStandaloneSanitizer();
   testSanitizerClosesBypassClasses();
