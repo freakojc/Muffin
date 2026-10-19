@@ -382,7 +382,8 @@ bool InputController::isNonTextLeafBlock(MarkdownNode& node) const {
 }
 
 bool InputController::caretRestsOnNonTextBlock() const {
-  if (!ctx_.hasSession() || !ctx_.selection || !ctx_.selection->hasCursor()) {
+  if (!ctx_.hasSession() || !ctx_.selection || !ctx_.selection->hasCursor() ||
+      ctx_.selection->selection().coversDocument(ctx_.session->markdownText().size())) {
     return false;
   }
   MarkdownNode* node = ctx_.session->document().node(ctx_.selection->cursorPosition().blockId);

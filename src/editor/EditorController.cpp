@@ -87,6 +87,12 @@ qsizetype selectableTextLength(const MarkdownNode& node) {
     case BlockType::Heading:
     case BlockType::TableCell:
       return InlineProjection::plainTextForInlines(node.inlines()).size();
+    case BlockType::ListItem:
+      for (const auto& child : node.children()) {
+        if (child->type() == BlockType::Paragraph || child->type() == BlockType::Heading)
+          return selectableTextLength(*child);
+      }
+      return 0;
     case BlockType::FrontMatter:
     case BlockType::CodeFence:
     case BlockType::MathBlock:
@@ -132,6 +138,21 @@ MarkdownNode* lastSelectableBlock(MarkdownNode& root) {
     }
   }
   return nullptr;
+}
+
+MarkdownNode* documentSelectionEdge(MarkdownNode& node, bool first) {
+  if (node.type() == BlockType::List || node.type() == BlockType::BlockQuote ||
+      (!first && node.type() == BlockType::ListItem)) {
+    const auto& children = node.children();
+    for (size_t i = 0; i < children.size(); ++i) {
+      auto* child = children[first ? i : children.size() - i - 1].get();
+      if (child->type() == BlockType::Unknown) continue;
+      // The primary list paragraph is painted and edited by its ListItem.
+      if (node.type() == BlockType::ListItem && child == primaryParagraphOrSelf(node)) return &node;
+      return documentSelectionEdge(*child, first);
+    }
+  }
+  return &node;
 }
 
 bool fillSourceOffsetForTextHit(const DocumentSession& session, HitTestResult& hit) {
@@ -580,8 +601,12 @@ bool EditorController::selectAll() {
   }
 
   SelectionRange range;
+  first = documentSelectionEdge(*first, true);
+  last = documentSelectionEdge(*last, false);
   range.anchor = cursorForNodeText(*first, 0);
   range.focus = cursorForNodeText(*last, selectableTextLength(*last));
+  range.anchor.text.sourceOffset = 0;
+  range.focus.text.sourceOffset = session_->markdownText().size();
   selection_.setSelection(range);
   return true;
 }

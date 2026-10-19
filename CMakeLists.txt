@@ -917,7 +917,6 @@ set(MUFFIN_CORE_SOURCES
   src/document/PieceTable.h
   src/document/TextStats.cpp
   src/document/TextStats.h
-  src/document/TextSelection.h
   src/document/NodeIndex.cpp
   src/document/NodeIndex.h
   src/document/MarkdownDocument.cpp
@@ -1130,6 +1129,7 @@ qt_add_resources(MUFFIN_UI_QRC_SOURCES
 )
 
 set(MUFFIN_UI_SOURCES
+  src/document/TextSelection.h
   src/app/WorkspaceReplace.cpp
   src/app/WorkspaceReplace.h
   src/app/WorkspaceSearch.cpp

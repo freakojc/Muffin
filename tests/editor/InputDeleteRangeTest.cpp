@@ -9,6 +9,7 @@
 
 #include <QApplication>
 #include <QClipboard>
+#include <QMimeData>
 
 #include <iostream>
 
@@ -221,11 +222,91 @@ void testRenderedDeletionUsesWholeGraphemes() {
   }
 }
 
+void testSelectAllDeletesMixedDocument() {
+  const QString before = QString::fromUtf8(
+      "* 123\n* 123\n* 123\n\n123\n\n123\n\n123\n\n"
+      "- 123 **13\n- 123-123\n- 321\n\n[123]()\n\n213哇哦\n\n我有时候感觉我\n\n\n");
+  Harness h;
+  h.load(before);
+  h.controller.setCursorForSourceOffset(before.indexOf(QString::fromUtf8("我有时候")) + 2);
+  require(pressKey(h.controller.inputController(), &h.view, Qt::Key_A, Qt::ControlModifier), "Ctrl+A selects the mixed document");
+  require(selectedMarkdown(h.session, h.controller.selection()) == before, "whole document copy includes Markdown markers and blank lines");
+  require(pressKey(h.controller.inputController(), &h.view, Qt::Key_Backspace), "Backspace handles the whole document selection");
+  require(h.session.markdownText().isEmpty(), "Ctrl+A then Backspace clears list markers, links, text and trailing blank lines");
+  require(h.controller.canUndo(), "clearing the document is undoable");
+  h.controller.undo();
+  require(h.session.markdownText().toString() == before, "undo restores the complete original Markdown");
+  h.controller.redo();
+  require(h.session.markdownText().isEmpty(), "redo clears the complete document again");
+  require(h.controller.inputController().insertText(QString::fromUtf8("重新输入")), "typing works after clearing the document");
+  require(h.session.markdownText().toString() == QString::fromUtf8("重新输入"), "new text starts in an empty document");
+}
+
+void testSelectAllCoversStructuredDocumentEdges() {
+  const QStringList documents{
+      "- first\n- second\n",
+      "- outer\n  - nested\n",
+      "> first\n>\n> second\n",
+      "\n\n## **Title**\n\n[link]()\n\n\n",
+      "---\n\nbody\n\n---\n",
+      "```cpp\ncode\n```\n\nbody\n\n$$\nx+y\n$$\n",
+      "| A | B |\n| --- | --- |\n| one | two |\n\nbody\n",
+      "body\n\n| A | B |\n| --- | --- |\n| one | two |\n",
+      "![image](missing.png)\n",
+      "# heading\n",
+      "paragraph\n\n\n"};
+  for (const auto& before : documents) {
+    for (int operation = 0; operation < 3; ++operation) {
+      Harness h;
+      h.load(before);
+      auto* initial = blockAt(h.session, 0);
+      for (const auto& block : h.session.document().root().children()) {
+        if (block->type() == BlockType::Paragraph) initial = block.get();
+      }
+      // Establish a document caret, outside literal/cell editing contexts.
+      CursorPosition cursor;
+      cursor.blockId = initial->id();
+      cursor.text.nodeId = initial->id();
+      h.controller.selection().setCursorPosition(cursor);
+      require(h.controller.selectAll(), "select all handles structured document boundaries");
+      require(selectedMarkdown(h.session, h.controller.selection()) == before,
+              QStringLiteral("whole document selection includes all source: %1").arg(before));
+      qsizetype start = -1, end = -1;
+      require(h.controller.selectionSourceRange(start, end) && start == 0 && end == before.size(),
+              "whole document edit range includes markers, fences and blank lines");
+      if (operation == 0) h.backend.deleteRange(DeleteTarget::Backward);
+      else if (operation == 1) h.backend.deleteRange(DeleteTarget::Forward);
+      else require(h.controller.inputController().insertText("replacement"), "typing replaces the whole document selection");
+      const QString after = operation == 2 ? QStringLiteral("replacement") : QString();
+      require(h.session.markdownText().toString() == after,
+              QStringLiteral("whole selection edit leaves no source fragments (operation %1): %2")
+                  .arg(operation).arg(h.session.markdownText().toString()));
+      h.controller.undo();
+      require(h.session.markdownText().toString() == before, "one undo restores exact structured source");
+      h.controller.redo();
+      require(h.session.markdownText().toString() == after, "redo reapplies the whole selection edit");
+    }
+  }
+  Harness cut;
+  const QString before = "- first\n- second\n\n# end\n\n";
+  cut.load(before);
+  cut.placeIn(blockAt(cut.session, 1), 1);
+  cut.backend.selectAll();
+  cut.backend.cut();
+  require(cut.session.markdownText().isEmpty() &&
+              QApplication::clipboard()->mimeData()->data("text/markdown") == before.toUtf8(),
+          "cut removes the whole selection and copies exact source");
+  cut.controller.undo();
+  require(cut.session.markdownText().toString() == before, "cut is one undoable edit");
+}
+
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
   QApplication app(argc, argv);
+  testSelectAllDeletesMixedDocument();
+  testSelectAllCoversStructuredDocumentEdges();
   testRenderedDeletionUsesWholeGraphemes();
   testDeleteWordInParagraph();
   testDeleteWordMidWord();

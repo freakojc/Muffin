@@ -32,6 +32,15 @@ struct SelectionRange {
   CursorPosition anchor;
   CursorPosition focus;
 
+  // Document selection includes syntax outside editable text (list/heading
+  // markers, fences and blank lines). Its explicit source endpoints remain
+  // authoritative even when a rendered endpoint lies inside a container.
+  bool coversDocument(qsizetype sourceLength) const {
+    return sourceLength > 0 && anchor.isValid() && focus.isValid() &&
+           qMin(anchor.text.sourceOffset, focus.text.sourceOffset) == 0 &&
+           qMax(anchor.text.sourceOffset, focus.text.sourceOffset) == sourceLength;
+  }
+
   // Collapsed means ONE caret position. nodeId must be compared too: table cells share their
   // table's blockId but have per-cell text nodes, so two cells at equal offsets are NOT one
   // position (the historical omission made cross-cell selections masquerade as collapsed).

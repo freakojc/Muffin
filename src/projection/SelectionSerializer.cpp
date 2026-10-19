@@ -75,6 +75,7 @@ SelectionExportResult SelectionSerializer::exportSelection(const SelectionExport
 }
 
 QString SelectionSerializer::exportMarkdown(const MarkdownDocument& document, const SelectionRange& selection) const {
+  if (selection.coversDocument(document.markdownText().size())) return document.markdownText().toString();
   EditableContext context;
   qsizetype start = 0;
   qsizetype end = 0;
@@ -144,6 +145,8 @@ QString SelectionSerializer::exportMarkdown(const MarkdownDocument& document, co
 }
 
 QString SelectionSerializer::exportPlainText(const MarkdownDocument& document, const SelectionRange& selection) const {
+  if (selection.coversDocument(document.markdownText().size()))
+    return plainTextForMarkdownRange(document.markdownText().toString(), 0, document.markdownText().size());
   qsizetype literalAnchorOffset = -1;
   qsizetype literalFocusOffset = -1;
   if (literalCursorSourceOffset(document, selection.anchor, literalAnchorOffset) &&
@@ -329,6 +332,11 @@ bool SelectionSerializer::selectionSourceRange(
     qsizetype& end) const {
   if (selection.isCollapsed()) {
     return false;
+  }
+  if (selection.coversDocument(document.markdownText().size())) {
+    start = 0;
+    end = document.markdownText().size();
+    return true;
   }
 
   qsizetype anchorOffset = -1;

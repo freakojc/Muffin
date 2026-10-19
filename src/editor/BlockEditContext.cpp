@@ -292,7 +292,8 @@ bool BlockEditContextResolver::selectionContext(BlockEditContext& context, qsize
   // Single TEXT node, not just single block: table cells share the table's blockId but hold
   // per-cell text nodes, and their offsets are not comparable against one context (the
   // plainInlineEditable clamp below would happily map a foreign cell's offset into this one).
-  if (!range.isSingleBlock() || !range.isSingleTextNode() || range.isCollapsed()) {
+  if (!range.isSingleBlock() || !range.isSingleTextNode() || range.isCollapsed() ||
+      (session_ && range.coversDocument(session_->markdownText().size()))) {
     return false;
   }
   const NodeId focusContextId = range.focus.text.nodeId.isValid() ? range.focus.text.nodeId : range.focus.blockId;
@@ -318,6 +319,11 @@ bool BlockEditContextResolver::selectionSourceRange(qsizetype& start, qsizetype&
   const SelectionRange range = selection_->selection();
   if (range.isCollapsed()) {
     return false;
+  }
+  if (range.coversDocument(session_->markdownText().size())) {
+    start = 0;
+    end = session_->markdownText().size();
+    return true;
   }
 
   BlockEditContext anchor;
