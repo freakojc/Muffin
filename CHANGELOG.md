@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-10-19
+
+### Added
+
+- Add tab context-menu actions for closing other, right-hand, saved or all unpinned tabs; pinning tabs; copying paths; revealing files in the system file manager; and moving or copying a tab into a new window. Preserve pinned tabs across restarts.
+
+### Changed
+
+- Give source mode the full editor workspace independently of the rendered reading width. Prefer platform monospace fonts, keep headings at the body font size, and reduce line spacing and top padding.
+- Reorganize file-opening protection into separate settings cards with editable extension chips. Support KB, MB and GB for the size threshold, retain existing limits, and remove unnecessary numeric spinner arrows.
+
+### Fixed
+
+- Render Mermaid diagrams after leaving the final code block in a new, unsaved document, without requiring a save to refresh the preview.
+- Preserve ordered, unordered, task and nested list structure and caret positions during indentation and outdentation. Keep edits around list separators consistent with a full parse, including Backspace in source mode and undo/redo.
+- Preserve nested content when removing empty paragraphs and retain table-cell source coordinates after prefix edits.
+- Correct sidebar toolbar icon scaling on macOS Retina displays and prevent duplicate close buttons from appearing on tab hover with platform styles.
+
 ## [0.7.2] - 2026-10-18
 
 ### Added
@@ -719,7 +737,8 @@ An internal-architecture release. No user-visible behavior changes — every edi
 - **List indentation** - Fixed list item indent/outdent logic
 - **Cross-platform build** - Added `libxcb-util-dev` dependency for Linux CI and offscreen rendering environment for macOS tests
 
-[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.7.2...HEAD
+[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.7.3...HEAD
+[0.7.3]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.3
 [0.7.2]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.2
 [0.7.1]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.1
 [0.7.0]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.0
