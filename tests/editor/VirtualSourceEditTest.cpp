@@ -17,6 +17,28 @@ using namespace muffin;
 namespace {
 QFont fixtureSourceFont;
 
+void testHeadingsKeepSourceRowGeometry() {
+  QString text = QStringLiteral("plain source\n");
+  for (int level = 1; level <= 6; ++level) {
+    text += QString(level, QLatin1Char('#')) + QStringLiteral(" Heading\n");
+  }
+  VirtualSourceEdit edit;
+  edit.setSourceFont(fixtureSourceFont);
+  edit.setStandaloneText(text);
+  edit.resize(720, 400);
+  edit.show();
+  QApplication::processEvents();
+  const QRect body = edit.inputMethodQuery(Qt::ImCursorRectangle).toRect();
+  qsizetype offset = 0;
+  for (int row = 0; row <= 6; ++row) {
+    edit.setCursorPosition(offset);
+    const QRect caret = edit.inputMethodQuery(Qt::ImCursorRectangle).toRect();
+    require(caret.height() == body.height() && caret.top() == body.top() + row * body.height(),
+            "all source heading levels must keep the body row height and caret geometry");
+    offset = text.indexOf(QLatin1Char('\n'), offset) + 1;
+  }
+}
+
 void testReplacementRetiresSourceHistory() {
   DocumentSession session;
   session.setMarkdownText(QStringLiteral("abc"), false);
@@ -300,6 +322,7 @@ int main(int argc, char** argv) {
 #define RUN_TEST(test) runTest(#test, test)
   RUN_TEST(testReplacementRetiresSourceHistory);
   RUN_TEST(testEmptyReplacementDeletesSelection);
+  RUN_TEST(testHeadingsKeepSourceRowGeometry);
   RUN_TEST(testSourcePreeditRendersWithoutOverlap);
   RUN_TEST(testSourcePreeditClearsOnFocusOut);
   RUN_TEST(testWrappedSourceEditingPreservesViewport);

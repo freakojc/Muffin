@@ -133,6 +133,29 @@ QString codeFamily() {
   });
   return f;
 }
+QFont sourceEditorFont() {
+  const QFont systemFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+  QFont font(firstAvailableFontFamily({
+#if defined(Q_OS_WIN)
+      QStringLiteral("Consolas"),
+      QStringLiteral("Cascadia Mono"),
+#elif defined(Q_OS_MACOS)
+      QStringLiteral("Menlo"),
+      QStringLiteral("Monaco"),
+#else
+      QStringLiteral("DejaVu Sans Mono"),
+      QStringLiteral("Noto Sans Mono"),
+      QStringLiteral("Liberation Mono"),
+#endif
+      systemFont.family(),
+  }));
+  font.setStyleHint(QFont::Monospace);
+  font.setFixedPitch(true);
+  font.setPointSizeF(13.0);
+  configureForScreen(font);
+  return font;
+}
+
 QString genericFamilyTail(const QString& generic) {
   const QString lower = generic.toLower();
   if (lower == QStringLiteral("serif")) {

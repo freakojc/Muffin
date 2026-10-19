@@ -7,7 +7,6 @@
 #include "editor/ViewportPosition.h"
 
 class QEvent;
-class QResizeEvent;
 
 namespace muffin {
 
@@ -74,7 +73,6 @@ public:
   void setWordWrapEnabled(bool enabled);
   void setZoomPercent(int percent);
   void setFontSizePx(int px);
-  void setContentWidthPx(int px);
   void setTheme(const RenderTheme& theme);
   void setDocumentPath(const QString& path);
   void setReadOnly(bool readOnly);
@@ -85,19 +83,16 @@ signals:
   void editApplied();
 
 protected:
-  void resizeEvent(QResizeEvent* event) override;
   void changeEvent(QEvent* event) override;
 
 private:
   void setupStyle();
   void retranslateUi();
-  void updateEditorWidth();
   void applyFontSize();
 
   VirtualSourceEdit* editor_ = nullptr;
   int zoomPercent_ = 100;
   int fontSizePx_ = 16;
-  int contentWidthPx_ = 0;
 };
 
 }  // namespace muffin

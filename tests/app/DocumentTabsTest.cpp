@@ -950,6 +950,44 @@ void retainsDocumentsAndRenderState() {
   require(f.window.openFile(first) && f.current() == a, "reordered tabs still resolve by document");
 }
 
+void sourceLayoutUsesAvailableWorkspace() {
+  SettingsOverride readingWidth{"appearance/contentWidthPx", 640};
+  Fixture f;
+  const QString text = QStringLiteral(
+      "# CLAUDE.md\n\n"
+      "## Build\n\n"
+      "This project uses Conan-generated CMake presets. Use the Release preset for local verification:\n\n"
+      "```powershell\n"
+      "conan install . -s build_type=Release -s compiler.cppstd=20 --build=missing\n"
+      "cmake --preset conan-default\n"
+      "cmake --build --preset conan-release\n"
+      "```\n\n"
+      "Do not use plain `cmake --build build` for verification on this workspace. The generated Visual Studio project may default to Debug, while the Conan Qt environment is configured for Release.\n\n"
+      "## Test\n\n"
+      "Run the full test suite with:\n\n"
+      "```powershell\nctest --preset conan-release --output-on-failure\n```\n\n"
+      "## Notes\n\n"
+      "- Source mode uses the available workspace.\n"
+      "- Markdown headings keep the same font size as body text.\n"
+      "- Rendered mode keeps its own reading width.\n");
+  auto* document = f.open(f.file(QStringLiteral("CLAUDE.md"), text));
+  action(f.window, QStringLiteral("Source Code Mode"))->trigger();
+  auto* source = document->editor->findChild<VirtualSourceEdit*>();
+  require(source != nullptr && document->backend->isSourceMode(), "source workspace is visible");
+  for (int width : {1680, 680}) {
+    f.window.resize(width, 800);
+    QApplication::processEvents();
+    require(source->width() == document->editor->width() && source->x() == 0,
+            "source canvas must fill wide and narrow workspaces regardless of the rendered reading width");
+    require(source->viewport()->width() > 0, "source text remains usable in a narrow workspace");
+  }
+  if (const QString screenshot = qEnvironmentVariable("MUFFIN_SOURCE_SCREENSHOT"); !screenshot.isEmpty()) {
+    f.window.resize(1600, 900);
+    QApplication::processEvents();
+    require(f.window.grab().save(screenshot), "save source-mode appearance capture");
+  }
+}
+
 void sourceStateAndKeyboardNavigation() {
   Fixture f;
   DocumentTab* a = f.open(f.file(QStringLiteral("a.md"), QStringLiteral("Source A\n\n").repeated(150)));
@@ -1699,6 +1737,7 @@ int main(int argc, char** argv) {
   runTest("sharedCursorQueriesMatchIndependentQueries", sharedCursorQueriesMatchIndependentQueries);
   runTest("retainsDocumentsAndRenderState", retainsDocumentsAndRenderState);
   runTest("sourceStateAndKeyboardNavigation", sourceStateAndKeyboardNavigation);
+  runTest("sourceLayoutUsesAvailableWorkspace", sourceLayoutUsesAvailableWorkspace);
   runTest("closesWithSaveDiscardAndCancel", closesWithSaveDiscardAndCancel);
   runTest("backgroundLoadingAndPersistence", backgroundLoadingAndPersistence);
   runTest("openFailuresAndConflictingSaveAs", openFailuresAndConflictingSaveAs);

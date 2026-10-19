@@ -1,33 +1,25 @@
 #include "editor/SourceEditorWidget.h"
 
 #include "editor/VirtualSourceEdit.h"
+#include "theme/FontRendering.h"
 #include "theme/RenderTheme.h"
 
 #include <QCoreApplication>
 #include <QEvent>
 #include <QFont>
-#include <QFontDatabase>
 #include <QHBoxLayout>
-#include <QResizeEvent>
-
-namespace {
-
-constexpr int kDefaultContentWidth = 860;
-constexpr int kHorizontalInset = 64;
-
-}  // namespace
 
 muffin::SourceEditorWidget::SourceEditorWidget(QWidget* parent) : QWidget(parent) {
   auto* layout = new QHBoxLayout(this);
-  layout->setContentsMargins(0, 30, 0, 0);
+  layout->setContentsMargins(0, 16, 0, 0);
   layout->setSpacing(0);
 
   editor_ = new VirtualSourceEdit(this);
   editor_->setMinimumWidth(0);
   setFocusProxy(editor_);
-  layout->addStretch(1);
-  layout->addWidget(editor_, 0);
-  layout->addStretch(1);
+  // Source editing uses the available workspace, independently of the
+  // rendered document's reading width. Keep its scrollbar at the outer edge.
+  layout->addWidget(editor_, 1);
 
   connect(editor_, &VirtualSourceEdit::cursorPositionChanged,
           this, &SourceEditorWidget::cursorPositionChanged);
@@ -35,7 +27,6 @@ muffin::SourceEditorWidget::SourceEditorWidget(QWidget* parent) : QWidget(parent
           this, &SourceEditorWidget::editApplied);
   setupStyle();
   retranslateUi();
-  updateEditorWidth();
 }
 
 void muffin::SourceEditorWidget::bindSession(DocumentSession* session) {
@@ -115,27 +106,11 @@ void muffin::SourceEditorWidget::setFontSizePx(int px) {
   applyFontSize();
 }
 
-void muffin::SourceEditorWidget::setContentWidthPx(int px) {
-  if (px == -1) {
-    contentWidthPx_ = -1;
-  } else if (px > 0) {
-    contentWidthPx_ = qBound(640, px, 2400);
-  } else {
-    contentWidthPx_ = 0;
-  }
-  updateEditorWidth();
-}
-
 void muffin::SourceEditorWidget::setTheme(const RenderTheme& theme) {
   const SourceEditorColors colors = SourceEditorColors::fromTheme(theme);
   editor_->setColors(colors);
   setStyleSheet(QStringLiteral("muffin--SourceEditorWidget { background:%1; }")
                     .arg(colors.background.name(QColor::HexRgb)));
-}
-
-void muffin::SourceEditorWidget::resizeEvent(QResizeEvent* event) {
-  QWidget::resizeEvent(event);
-  updateEditorWidth();
 }
 
 void muffin::SourceEditorWidget::changeEvent(QEvent* event) {
@@ -154,22 +129,9 @@ void muffin::SourceEditorWidget::retranslateUi() {
 }
 
 void muffin::SourceEditorWidget::applyFontSize() {
-  QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-  font.setStyleHint(QFont::Monospace);
-  font.setFixedPitch(true);
+  QFont font = font_rendering::sourceEditorFont();
   const qreal scale = static_cast<qreal>(zoomPercent_) / 100.0 *
       static_cast<qreal>(fontSizePx_) / 16.0;
   font.setPointSizeF(qMax(8.0, 13.0 * scale));
   editor_->setSourceFont(font);
-}
-
-void muffin::SourceEditorWidget::updateEditorWidth() {
-  if (!editor_) return;
-  const int availableWidth = qMax(0, width() - kHorizontalInset * 2);
-  const int preferredWidth = contentWidthPx_ == -1
-      ? availableWidth
-      : (contentWidthPx_ > 0 ? contentWidthPx_ : kDefaultContentWidth);
-  const int targetWidth = qMin(preferredWidth,
-                               availableWidth > 0 ? availableWidth : preferredWidth);
-  editor_->setFixedWidth(targetWidth);
 }

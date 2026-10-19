@@ -21,6 +21,8 @@ void configureCssFont(QFont& font, qreal letterSpacing, qreal wordSpacing, TextB
 QString sansFamily();
 QString serifFamily();
 QString codeFamily();
+// Source editing has its own platform monospace font, independent of themes.
+QFont sourceEditorFont();
 // Deterministic fallback tail shared by Markdown, HTML and Mermaid.  The
 // bundled Noto faces are registered lazily, so CJK/Arabic/Hebrew shaping does
 // not depend on whichever system font happens to be installed first.

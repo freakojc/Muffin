@@ -732,7 +732,6 @@ void muffin::MainWindow::setContentWidthPx(int px) {
     contentWidthPx_ = 0;
   }
   for (DocumentTab* document : documentTabs()) {
-    document->editor->setContentWidthPx(contentWidthPx_);
     document->renderView->setContentWidthPx(contentWidthPx_);
   }
 }

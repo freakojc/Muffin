@@ -122,7 +122,6 @@ void muffin::MainWindow::configureTab(DocumentTab* document) {
   document->renderView->setFontSizePx(fontSizePx_);
   document->editor->setFontSizePx(fontSizePx_);
   document->renderView->setContentWidthPx(contentWidthPx_);
-  document->editor->setContentWidthPx(contentWidthPx_);
   document->renderView->setFocusMode(focusMode_);
   document->renderView->setTypewriterMode(typewriterMode_);
   document->renderView->setTypewriterCursorMiddle(

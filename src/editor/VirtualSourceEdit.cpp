@@ -20,7 +20,6 @@
 #include <QDropEvent>
 #include <QFileInfo>
 #include <QFocusEvent>
-#include <QFontDatabase>
 #include "render/TextLayout.h"
 #include <QInputMethodEvent>
 #include <QKeyEvent>
@@ -45,16 +44,15 @@ namespace {
 
 constexpr int kGutterWidth = 48;
 constexpr int kTextInset = 16;
-constexpr qreal kLineSpacingScale = 1.7;
+constexpr qreal kLineSpacingScale = 1.4;
 constexpr qsizetype kLongLineThreshold = 16 * 1024;
 constexpr int kMaxCachedLayouts = 256;
 constexpr QChar kZeroWidthSpace(0x200b);
 
-QTextCharFormat sourceFormat(QColor foreground, bool bold = false, qreal pointSize = 0.0) {
+QTextCharFormat sourceFormat(QColor foreground, bool bold = false) {
   QTextCharFormat format;
   format.setForeground(foreground);
   if (bold) format.setFontWeight(QFont::Bold);
-  if (pointSize > 0.0) format.setFontPointSize(pointSize);
   return format;
 }
 
@@ -75,8 +73,7 @@ void appendRegexFormats(
 
 QVector<QTextLayout::FormatRange> sourceFormats(
     const QString& text,
-    const SourceEditorColors& colors,
-    const QFont& baseFont) {
+    const SourceEditorColors& colors) {
   QVector<QTextLayout::FormatRange> ranges;
   const auto whole = [&](const QTextCharFormat& format) {
     ranges.push_back(QTextLayout::FormatRange{0, static_cast<int>(text.size()), format});
@@ -87,9 +84,7 @@ QVector<QTextLayout::FormatRange> sourceFormats(
   if (text.startsWith(QStringLiteral("```")) || text.startsWith(QStringLiteral("~~~"))) {
     whole(sourceFormat(colors.fence));
   } else if (heading.hasMatch()) {
-    static const qreal scales[6] = {1.78, 1.36, 1.18, 1.0, 1.0, 1.0};
-    const int level = qBound(1, static_cast<int>(heading.capturedLength(1)), 6);
-    whole(sourceFormat(colors.heading, true, baseFont.pointSizeF() * scales[level - 1]));
+    whole(sourceFormat(colors.heading, true));
   } else {
     static const QRegularExpression quoteRe(QStringLiteral("^\\s*>+"));
     static const QRegularExpression listRe(QStringLiteral("^\\s*(?:[-+*]|\\d+[.)])\\s+"));
@@ -260,11 +255,7 @@ VirtualSourceEdit::VirtualSourceEdit(QWidget* parent)
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   viewport()->setCursor(Qt::IBeamCursor);
   viewport()->setMouseTracking(true);
-  sourceFont_ = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-  sourceFont_.setStyleHint(QFont::Monospace);
-  sourceFont_.setFixedPitch(true);
-  sourceFont_.setPointSizeF(13.0);
-  font_rendering::configureForScreen(sourceFont_);
+  sourceFont_ = font_rendering::sourceEditorFont();
   lineNumberFont_ = sourceFont_;
   lineNumberFont_.setPointSizeF(10.0);
   cursorTimer_ = new QTimer(this);
@@ -701,7 +692,7 @@ std::shared_ptr<VirtualSourceEdit::LineLayout> VirtualSourceEdit::buildLineLayou
   option.setWrapMode(wordWrap_ ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
   option.setTabStopDistance(TextFontMetrics(sourceFont_).horizontalAdvance(QLatin1Char(' ')) * 4.0);
   result->layout->setTextOption(option);
-  result->layout->setFormats(sourceFormats(result->text, colors_, sourceFont_));
+  result->layout->setFormats(sourceFormats(result->text, colors_));
   result->layout->beginLayout();
   qreal y = 0.0;
   qreal maxWidth = 0.0;
