@@ -98,7 +98,8 @@ The curve measures the time from opening the Markdown file until the first viewp
 - **Document outline** — Jump to any heading from the sidebar outline, with collapsible subtrees for long documents.
 - **Heading badges** — Visual level badges (H3–H6) painted alongside headings for quick hierarchy identification.
 - **File tree sidebar** — Browse and open files from a folder tree. A compact toolbar creates files and folders, refreshes the tree, sorts by name, modification/creation date, type or size, and collapses all directories. Sort preferences are remembered, with folders always listed first. Close the workspace from the tree's context menu.
-- **Quick Open** — Fuzzy-jump to any file in the open workspace, with recently used and recently modified files surfaced first.
+- **Quick Open** — `Ctrl+P` recursively searches text files in the open folder by file name, relative path, multiple terms, or ordered characters, with visible paths for duplicate names. Without a folder, choose from open and recent files.
+- **Folder search & replace** — Click the file toolbar's magnifier or press `Ctrl+Shift+F` to search contents with grouped source lines and context, selecting ordinary text in live editing and temporarily showing hidden syntax in source mode. Click the magnifier again or the Files tab to return to the tree without losing results. `Ctrl+Shift+H` opens replacement controls, followed by a preview with selectable files. Unsaved or conflicting files are skipped, with original-byte backups available for recovery after restart.
 - **File operations** — Move, delete, reveal in file manager, reopen-with-encoding, and save-all-open-files from the file menu.
 - **Document tabs** — The tab bar appears when two or more documents are open and hides when only one remains. Each document keeps its own unsaved content, undo history, view mode, and cursor/scroll position. Drag to reorder, use Ctrl+N to add a tab, Ctrl+Tab / Ctrl+Shift+Tab to switch, and Ctrl+W or middle-click to close.
 - **Session restore** — By default, reopen the tabs, active file, workspace, and expanded folders left at exit, including each tab's view mode, cursor, selection, and reading position. Reading positions use source anchors to handle rewrapping. Explicitly closed files and folders stay closed; closing everything starts a blank editor next time. Choose **Always start fresh** in Files preferences to disable restoration.
@@ -112,7 +113,7 @@ The curve measures the time from opening the Markdown file until the first viewp
 
 - **Multi-format export** — Export to PDF (native renderer), HTML, and plain HTML natively; Word (DOCX), ODT, RTF, ePub, LaTeX, MediaWiki, RST, Textile, and OPML via an external [Pandoc](https://pandoc.org) process.
 - **Import via Pandoc** — Convert documents from other formats into Markdown through File → Import.
-- **Document printing** — Print the current document via File → Print (Ctrl+P).
+- **Document printing** — Print the current document via File → Print (Alt+Shift+P).
 
 ### 🖼️ Images
 
@@ -125,7 +126,7 @@ The curve measures the time from opening the Markdown file until the first viewp
 - **5 built-in themes** — GitHub, Newsprint, Night, Pixyll (now with a serif body font), and Whitey.
 - **Custom themes** — The built-in themes are authored as plain CSS, and you can author your own the same way: drop a `.css` (or `.json`) file into the themes folder and it shows up in the live Theme menu instantly. Import themes directly from the menu or the Appearance preferences page.
 - **Appearance preferences** — Font size, zoom level, content width (theme default, comfortable, wide, or full width), focus mode, typewriter mode, and status bar visibility — all persisted across sessions.
-- **Always-on-top** — Keep the window above all others (Ctrl+Shift+F).
+- **Always-on-top** — Keep the window above all others through the View menu.
 - **15 UI languages** — English, 简体中文, 繁體中文, 日本語, 한국어, Tiếng Việt, Français, Español, Deutsch, Português (Brasil), Русский, Italiano, Türkçe, Polski, and Nederlands.
 
 ### ⚡ Performance

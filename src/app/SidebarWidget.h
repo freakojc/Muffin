@@ -23,6 +23,7 @@ namespace muffin {
 
 class OutlineModel;
 class FileTreeModel;
+class SearchPanelWidget;
 
 // Context for an in-progress inline edit of a file-tree row. `pendingCreate` marks a temp
 // entry the MainWindow created on disk so the tree shows a row to rename; on cancel/empty
@@ -44,13 +45,16 @@ class MUFFIN_UI_EXPORT SidebarWidget final : public QWidget {
   Q_OBJECT
 
 public:
-  enum class Panel { Files, Outline };
+  enum class Panel { Files, Outline, Search };
+  static constexpr int kMinimumWidth = 220;
+  static constexpr int kMaximumWidth = 480;
 
   explicit SidebarWidget(QWidget* parent = nullptr);
   ~SidebarWidget() override;
 
   void setPanel(Panel panel);
   Panel panel() const;
+  SearchPanelWidget* searchPanel() const { return searchPanel_; }
   // The tree of the active panel (files or outline), or null before setup — the focus target
   // for F6 pane cycling.
   QWidget* activeTreeWidget() const;
@@ -60,6 +64,7 @@ public:
   QStringList expandedFolders() const;
   void restoreExpandedFolders(const QStringList& paths);
   void collapseAllFolders();
+  void expandAllFolders();
   void refreshFolders();
   // Select and scroll to a path after create/rename. Expands ancestors first so a
   // fresh entry in a never-expanded folder resolves to a valid index.
@@ -127,8 +132,11 @@ private:
 
   QToolButton* filesTabButton_ = nullptr;
   QToolButton* outlineTabButton_ = nullptr;
+  QToolButton* searchFilesButton_ = nullptr;
+  SearchPanelWidget* searchPanel_ = nullptr;
   QStackedWidget* stack_ = nullptr;
   QWidget* filesPanel_ = nullptr;
+  QWidget* folderToolbar_ = nullptr;
   QWidget* outlinePanel_ = nullptr;
   FileTreeModel* fileModel_ = nullptr;
   QTreeView* fileTree_ = nullptr;
@@ -147,6 +155,7 @@ private:
   QSet<QString> queuedFolderExpansions_;
   QSet<QString> expandedFolderPaths_;
   bool folderExplicitlyClosed_ = false;
+  bool expandAllRequested_ = false;
   QTreeView* outlineTree_ = nullptr;
   OutlineModel* outlineModel_ = nullptr;
   QLabel* outlineEmptyLabel_ = nullptr;

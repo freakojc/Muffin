@@ -166,12 +166,16 @@ set(MUFFIN_TRANSLATABLE_SOURCES
   src/app/MainWindowActions.cpp
   src/app/MainWindowFileOps.cpp
   src/app/MainWindowFind.cpp
+  src/app/MainWindowSearch.cpp
+  src/app/WorkspaceSearch.cpp
+  src/app/WorkspaceReplace.cpp
   src/app/MainWindowTabs.cpp
   src/app/FileOpenConfirmation.cpp
   src/app/PreferencesDialog.cpp
   src/app/HelpViewerDialog.cpp
   src/app/QuickOpenDialog.cpp
   src/app/PreferencesPage.cpp
+  src/app/SearchPanelWidget.cpp
   src/app/PrefsFilesPage.cpp
   src/app/PrefsEditorPage.cpp
   src/app/PrefsImagePage.cpp
@@ -1075,8 +1079,6 @@ add_executable(Muffin
   src/app/DocumentTab.h
   src/app/FileOpenConfirmation.cpp
   src/app/FileOpenConfirmation.h
-  src/app/FileOpenProtection.cpp
-  src/app/FileOpenProtection.h
   src/app/MainWindowActionBinder.cpp
   src/app/CommandDeclarations.cpp
   src/app/CommandDeclarations.h
@@ -1089,12 +1091,11 @@ add_executable(Muffin
   src/app/MainWindowFileOps.cpp
   src/app/MainWindowFind.cpp
   src/app/MainWindowTabs.cpp
+  src/app/MainWindowSearch.cpp
   src/app/PreferencesDialog.cpp
   src/app/PreferencesDialog.h
   src/app/HelpViewerDialog.cpp
   src/app/HelpViewerDialog.h
-  src/app/QuickOpenDialog.cpp
-  src/app/QuickOpenDialog.h
   src/export/ExportFormat.h
   src/app/RenderCommandFacade.cpp
   src/app/RenderCommandFacade.h
@@ -1129,6 +1130,18 @@ qt_add_resources(MUFFIN_UI_QRC_SOURCES
 )
 
 set(MUFFIN_UI_SOURCES
+  src/app/WorkspaceReplace.cpp
+  src/app/WorkspaceReplace.h
+  src/app/WorkspaceSearch.cpp
+  src/app/WorkspaceSearch.h
+  src/app/SearchPanelWidget.cpp
+  src/app/SearchPanelWidget.h
+  src/app/QuickOpenDialog.cpp
+  src/app/QuickOpenDialog.h
+  src/app/WorkspaceFiles.cpp
+  src/app/WorkspaceFiles.h
+  src/app/FileOpenProtection.cpp
+  src/app/FileOpenProtection.h
   third_party/katex/src/fontMetricsData.js
   third_party/katex/src/svgGeometry.ts
   third_party/katex/src/symbols.ts
@@ -1389,6 +1402,7 @@ target_link_libraries(MuffinUi
     Qt6::Network
     MuffinCore
   PRIVATE
+    Qt6::Concurrent
     # Folded into MuffinUi alone. Under SHARED these are implementation
     # details of the DLL; listing them PUBLIC would statically relink the
     # whole tree-sitter grammar set + ICU into every consumer exe too
@@ -1477,6 +1491,7 @@ target_sources(Muffin
 )
 
 target_link_libraries(Muffin
+  PRIVATE Qt6::Concurrent
   PRIVATE
     Qt6::Widgets
     Qt6::Svg

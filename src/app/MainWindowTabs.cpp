@@ -136,7 +136,7 @@ muffin::DocumentTab* muffin::MainWindow::createDocumentTab() {
   document->session.setParseOptions(markdownParseOptions());
   document->editorController.inputController().setEmojiProvider(&emojiProvider_);
   configureTab(document);
-  if (tab_->backend->isSourceMode()) {
+  if (tab_->backend->isSourceMode() && !tab_->searchSourceFallback) {
     document->backend = std::make_unique<SourceEditorBackend>(document->editor);
     document->viewStack->setCurrentWidget(document->editor);
   }
@@ -226,6 +226,7 @@ void muffin::MainWindow::retranslateTabs() {
 }
 
 bool muffin::MainWindow::openFile(QString path) {
+  if (workspaceWriteInProgress_) return false;
   if (path.isEmpty()) {
     path = tab_->fileController.chooseOpenPath(this);
     if (path.isEmpty()) {
@@ -315,6 +316,7 @@ void muffin::MainWindow::cancelPendingFileOpen(DocumentTab* document) {
   document->pendingViewState.reset();
   document->pendingRecoveredDraftText.reset();
   document->pendingRecoveredDraftKey.clear();
+  document->pendingSearchText.reset();
   document->session.setOpenConfirmationPending(false);
   document->contentStack->setCurrentIndex(0);
   document->openConfirmation->setEnabled(true);
@@ -348,6 +350,7 @@ void muffin::MainWindow::activateTab(int index) {
     tab_->fileController.save(tab_->session, this);
   }
   tab_ = next;
+  QTimer::singleShot(0, next->windowConnections, [this, next] { applySearchNavigation(next); });
   if (tab_->pendingTheme) {
     auto theme = std::move(*tab_->pendingTheme);
     tab_->pendingTheme.reset();
@@ -618,6 +621,13 @@ QVariantMap muffin::MainWindow::tabViewState(DocumentTab* document) const {
     return state;
   }
   const bool source = document->backend->isSourceMode();
+  if (source && document->searchSourceFallback) {
+    const auto offset = qMax<qsizetype>(0, document->editor->cursorPosition());
+    return {{QStringLiteral("version"), 1}, {QStringLiteral("sourceMode"), false},
+            {QStringLiteral("pinned"), document->pinned}, {QStringLiteral("hasCursor"), true},
+            {QStringLiteral("anchor"), qlonglong(offset)}, {QStringLiteral("focus"), qlonglong(offset)},
+            {QStringLiteral("viewport"), viewportState({offset, 0, 0, true, false})}};
+  }
   QVariantMap state{{QStringLiteral("version"), 1}, {QStringLiteral("sourceMode"), source},
                     {QStringLiteral("pinned"), document->pinned}};
   if (source) {

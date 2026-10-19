@@ -1,4 +1,6 @@
 #include "app/MainWindow.h"
+#include "app/QuickOpenDialog.h"
+#include "app/SearchPanelWidget.h"
 #include "app/LanguageManager.h"
 #include "app/FileTreeModel.h"
 #include "app/FileOpenConfirmation.h"
@@ -37,6 +39,7 @@
 #include <QScopeGuard>
 #include <QSettings>
 #include <QDoubleSpinBox>
+#include <QSplitter>
 #include <QStackedWidget>
 #include <QStandardPaths>
 #include <QStyleFactory>
@@ -47,6 +50,7 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QTreeView>
+#include <QTreeWidget>
 #include <QtTest/QTest>
 
 using namespace muffin;
@@ -116,6 +120,235 @@ struct Fixture {
 
   void close(DocumentTab* document) { tabs->tabCloseRequested(tabs->indexOf(document)); }
 };
+
+void workspaceSearchAndReplace() {
+  Fixture f;
+  const QString screenshotDirectory = qEnvironmentVariable("MUFFIN_SEARCH_SCREENSHOT_DIR");
+  if (!screenshotDirectory.isEmpty()) QDir().mkpath(screenshotDirectory);
+  QDir(f.directory.path()).mkpath("04.Study/English");
+  QDir(f.directory.path()).mkpath("06.Notes/English");
+  const auto a = f.file("04.Study/English/words.md", "# Notes\n[link](old-term)\nold-term\n");
+  const auto b = f.file("06.Notes/English/words.md", "old-term\n");
+  f.window.openFolderAtPath(f.directory.path());
+  auto* quick = action(f.window, "Quick Open...");
+  require(quick->isEnabled(), "Ctrl+P enabled with only a directory open");
+  QTimer::singleShot(0, [&] {
+    auto* picker = qobject_cast<QuickOpenDialog*>(QApplication::activeModalWidget());
+    require(picker, "Ctrl+P opens picker");
+    auto* field = picker->findChild<QLineEdit*>("QuickOpenFilter");
+    auto* matches = picker->findChild<QListWidget*>("QuickOpenResults");
+    field->setText("04/words");
+    waitUntil([&] { return matches->count() == 1; }, "find unexpanded deep file");
+    require(picker->selectedPath() == a, "path query distinguishes duplicate names");
+    if (!screenshotDirectory.isEmpty()) picker->grab().save(QDir(screenshotDirectory).filePath("quick-open.png"));
+    picker->accept();
+  });
+  quick->trigger();
+  auto* first = f.current();
+  waitUntil([&] { return !first->session.isOpenInProgress(); }, "quick-open file loaded");
+  auto* dirty = f.open(b);
+  dirty->session.setMarkdownText("unsaved old-term\n", true);
+  auto* searchAction = action(f.window, QString::fromUtf8("Find in Folder…"));
+  require(searchAction->shortcut() == QKeySequence("Ctrl+Shift+F"), "directory search shortcut");
+  searchAction->trigger();
+  auto* sidebar = f.window.findChild<SidebarWidget*>();
+  auto* panel = sidebar->searchPanel();
+  require(sidebar->panel() == SidebarWidget::Panel::Search, "search command selects sidebar");
+  panel->findChild<QLineEdit*>("WorkspaceSearchQuery")->setText("old-term");
+  panel->findChild<QPushButton*>("WorkspaceSearchRun")->click();
+  auto* tree = panel->findChild<QTreeWidget*>("WorkspaceSearchResults");
+  waitUntil([&] { return panel->result().complete && panel->result().matches == 3 && tree->topLevelItemCount() == 2; }, "search disk and dirty buffer");
+  auto* searchToggle = sidebar->findChild<QToolButton*>("SearchFilesButton");
+  auto* filesTab = sidebar->findChild<QToolButton*>("FilesTabButton");
+  auto* outlineTab = sidebar->findChild<QToolButton*>("OutlineTabButton");
+  require(searchToggle && searchToggle->isVisible() && searchToggle->isChecked() && filesTab->isChecked(),
+          "search is an active file toolbar toggle rather than a third tab");
+  const auto expanded = sidebar->expandedFolders();
+  searchToggle->click();
+  require(sidebar->panel() == SidebarWidget::Panel::Files && !searchToggle->isChecked(), "magnifier returns to files");
+  searchToggle->click();
+  require(sidebar->panel() == SidebarWidget::Panel::Search &&
+              tree->topLevelItemCount() == 2 && panel->result().matches == 3 && sidebar->expandedFolders() == expanded,
+          "switching back to search preserves query results and file expansion");
+  require(f.window.focusWidget() == panel->focusWidget(), "search toggle targets the query field for keyboard input");
+  outlineTab->click();
+  require(sidebar->panel() == SidebarWidget::Panel::Outline && !searchToggle->isVisible(), "outline keeps its own view");
+  searchAction->trigger();
+  filesTab->click();
+  require(sidebar->panel() == SidebarWidget::Panel::Files, "file tab also exits search");
+  searchAction->trigger();
+  QTreeWidgetItem* item = nullptr;
+  for (int i = 0; i < tree->topLevelItemCount(); ++i) {
+    if (tree->topLevelItem(i)->toolTip(0) == a) item = tree->topLevelItem(i)->child(0);
+  }
+  require(item, "first file has a content hit");
+  tree->itemClicked(item, 0);
+  waitUntil([&] { return f.current()->backend->isSourceMode() && f.current()->editor->selectedText() == "old-term"; }, "link target is exactly selected in source");
+  require(f.current() == first && f.tabs->count() == 2, "search reuses existing tab");
+  require(first->searchSourceFallback && !QSettings().value("view/sourceMode").toBool(), "hidden hit only temporarily enters source mode");
+  tree->itemClicked(item->parent()->child(1), 0);
+  waitUntil([&] { return !first->backend->isSourceMode() && first->editorController.selection().hasCursor(); }, "ordinary text returns to live editing after a hidden hit");
+  require(!first->searchSourceFallback && first->editorController.selection().selection().anchor.text.sourceOffset == 25,
+          "live selection retains the precise source range");
+  if (!screenshotDirectory.isEmpty()) {
+    f.window.grab().save(QDir(screenshotDirectory).filePath("sidebar.png"));
+  }
+  panel->findChild<QLineEdit*>("WorkspaceReplacement")->setText("new-term");
+  bool confirmed = false, completed = false;
+  QTimer responder;
+  responder.setInterval(5);
+  QObject::connect(&responder, &QTimer::timeout, [&] {
+    auto* modal = QApplication::activeModalWidget();
+    if (!modal) return;
+    if (auto* button = modal->findChild<QPushButton*>("FolderReplaceConfirm")) {
+      if (!confirmed) {
+        auto* files = modal->findChild<QTreeWidget*>("FolderReplaceFiles");
+        require(files && files->topLevelItemCount() == 2, "preview includes editable and skipped files");
+        require(files->topLevelItem(0)->checkState(0) == Qt::Checked && !(files->topLevelItem(1)->flags() & Qt::ItemIsEnabled), "dirty file excluded from preview");
+        if (!screenshotDirectory.isEmpty()) modal->grab().save(QDir(screenshotDirectory).filePath("preview.png"));
+        confirmed = true; button->click();
+      }
+    } else if (auto* message = qobject_cast<QMessageBox*>(modal)) {
+      require(message->windowTitle() == "Folder Replacement", "no self-write external-change prompt");
+      completed = true; message->accept();
+    }
+  });
+  responder.start();
+  // Preview is exposed through the panel even when its replace row is collapsed.
+  panel->replaceRequested();
+  responder.stop();
+  require(confirmed && completed, "replacement was explicitly confirmed and finished");
+  require(first->session.markdownText().toString().contains("new-term") && !first->session.document().isModified(), "open clean buffer updated after disk replacement");
+  require(dirty->session.markdownText().toString() == "unsaved old-term\n" && dirty->session.document().isModified(), "dirty buffer preserved");
+  QFile disk(a); require(disk.open(QIODevice::ReadOnly), "read replaced file");
+  require(disk.readAll().contains("new-term"), "disk replacement applied");
+  disk.close();
+  bool restoreConfirmed = false, restoreCompleted = false;
+  QObject::disconnect(&responder, nullptr, nullptr, nullptr);
+  QObject::connect(&responder, &QTimer::timeout, [&] {
+    auto* message = qobject_cast<QMessageBox*>(QApplication::activeModalWidget());
+    if (!message) return;
+    if (message->icon() == QMessageBox::Question) {
+      for (auto* button : message->buttons()) if (button->text() == "Restore Originals") { restoreConfirmed = true; button->click(); return; }
+    } else {
+      require(message->windowTitle() == "Undo Folder Replacement", "restoring open files emits no external-change prompt");
+      restoreCompleted = true; message->accept();
+    }
+  });
+  responder.start(); action(f.window, "Undo Folder Replacement")->trigger(); responder.stop();
+  require(restoreConfirmed && restoreCompleted, "restore explicitly confirmed and completed");
+  require(first->session.markdownText().toString().contains("old-term") && !first->session.document().isModified(), "restored open buffer is synchronized");
+  require(disk.open(QIODevice::ReadOnly) && disk.readAll().contains("old-term"), "restore updates disk");
+}
+
+void workspaceSidebarWidth() {
+  Fixture f;
+  f.window.openFolderAtPath(f.directory.path());
+  auto* sidebar = f.window.findChild<SidebarWidget*>();
+  auto* splitter = qobject_cast<QSplitter*>(sidebar->parentWidget());
+  auto* magnifier = sidebar->findChild<QToolButton*>("SearchFilesButton");
+  auto* files = sidebar->findChild<QToolButton*>("FilesTabButton");
+  auto* outline = sidebar->findChild<QToolButton*>("OutlineTabButton");
+  auto* find = action(f.window, QString::fromUtf8("Find in Folder…"));
+  auto* replace = action(f.window, QString::fromUtf8("Replace in Folder…"));
+  require(splitter && magnifier, "sidebar is hosted in a resizable splitter");
+  for (const int requested : {220, 260, 420}) {
+    files->click();
+    splitter->setSizes({requested, splitter->width() - requested - splitter->handleWidth()});
+    QApplication::processEvents();
+    const int width = sidebar->width();
+    require(qAbs(width - requested) <= 1, "sidebar accepts both narrow and wide user sizes");
+    const auto unchanged = [&] {
+      QApplication::processEvents();
+      require(sidebar->width() == width, "switching sidebar content preserves the user-selected width");
+    };
+    magnifier->click(); unchanged();
+    magnifier->click(); unchanged();
+    find->trigger(); unchanged();
+    replace->trigger(); unchanged();
+    outline->click(); unchanged();
+    find->trigger(); unchanged();
+    files->click(); unchanged();
+  }
+  // An already visible sidebar must not replay its opening animation when a
+  // menu command or shortcut selects a different panel.
+  SettingsOverride motion("appearance/reducedMotion", false);
+  SettingsOverride visibility("view/sidebarVisible", true);
+  const int width = sidebar->width();
+  find->trigger();
+  require(sidebar->width() == width, "search command does not collapse an already visible sidebar");
+  QTest::qWait(240);
+  require(sidebar->width() == width, "search command preserves width with animations enabled");
+  auto* toggle = action(f.window, "Show / Hide Sidebar");
+  toggle->trigger();
+  waitUntil([&] { return !sidebar->isVisible(); }, "sidebar hide animation completes");
+  find->trigger();
+  waitUntil([&] { return sidebar->isVisible() && sidebar->minimumWidth() == SidebarWidget::kMinimumWidth; },
+            "sidebar search opening animation completes");
+  require(sidebar->width() == width, "reopening search restores the user's sidebar width");
+  files->click();
+  require(sidebar->width() == width, "returning to files retains a wide search sidebar");
+}
+
+void workspaceRenderedNavigation() {
+  SettingsOverride startup("files/startupBehavior", 1);
+  SettingsOverride sessionState("session/window", QVariantMap{});
+  Fixture f;
+  const QString text = QString::fromUtf8(
+      "# 标题 needle\n\n中文😀 **needle** [needle](https://example.test/needle)\n\n"
+      "- list needle\n\n> quote needle\n\n| column |\n| --- |\n| needle |\n\n"
+      "```cpp\n// needle\n```\n\n![needle](image.png)\n\n$needle$\n");
+  const auto path = f.file("rendered.md", text);
+  f.window.openFolderAtPath(f.directory.path());
+  auto* panel = f.window.findChild<SidebarWidget*>()->searchPanel();
+  const auto jump = [&](qsizetype start, bool source) {
+    require(start >= 0, "fixture match exists");
+    panel->resultActivated(path, text, start, 6);
+    waitUntil([&] { return !f.current()->session.isOpenInProgress() && f.current()->backend->isSourceMode() == source; }, "search navigation completes in the intended mode");
+    auto* document = f.current();
+    if (source) {
+      require(document->editor->selectionStart() == start && document->editor->selectedText() == "needle", "source fallback selects the exact hidden range");
+    } else {
+      const auto range = document->editorController.selection().selection();
+      require(range.anchor.text.sourceOffset == start && range.focus.text.sourceOffset == start + 6, "live selection covers the exact Unicode source range");
+      const auto rect = document->renderView->effectiveCursorRect();
+      const auto scroll = document->renderView->verticalScrollBar()->value();
+      require(!rect.isEmpty() && rect.bottom() >= scroll && rect.top() <= scroll + document->renderView->viewport()->height(), "live match is visible in the viewport");
+    }
+  };
+  for (const auto& prefix : {QString::fromUtf8("标题 "), QString("**"), QString("["), QString("list "), QString("quote "), QString("| "), QString("// ")}) {
+    qsizetype start = text.indexOf(prefix) + prefix.size();
+    if (prefix == "| ") start = text.indexOf("| needle") + 2;
+    jump(start, false);
+  }
+  jump(text.indexOf("test/needle") + 5, true);
+  jump(text.indexOf("list needle") + 5, false);
+  jump(text.indexOf("![needle") + 2, true);
+  jump(text.indexOf("quote needle") + 6, false);
+  QSettings().remove("session/window");
+  jump(text.indexOf("$needle") + 1, true);
+  waitUntil([&] {
+    const auto snapshot = QSettings().value("session/window").toMap().value("views").toList();
+    return snapshot.size() == 1 && !snapshot[0].toMap().value("sourceMode").toBool();
+  }, "temporary source fallback is not persisted as the user's preferred mode");
+  // Explicit user mode choices override the temporary fallback policy.
+  auto* source = action(f.window, "Source Code Mode");
+  source->trigger(); source->trigger();
+  jump(text.indexOf("list needle") + 5, true);
+  require(!f.current()->searchSourceFallback, "manual source mode is respected");
+  source->trigger();
+  jump(text.indexOf("list needle") + 5, false);
+  // An async open must reveal a distant match after its layout is ready.
+  QString distant;
+  for (int i = 0; i < 500; ++i) distant += QStringLiteral("Paragraph %1 with ordinary text.\n\n").arg(i);
+  distant += "Distant needle.\n";
+  const auto deepPath = f.file("distant.md", distant);
+  const auto offset = distant.indexOf("needle");
+  jump(text.indexOf("test/needle") + 5, true);
+  panel->resultActivated(deepPath, distant, offset, 6);
+  waitUntil([&] { return !f.current()->session.isOpenInProgress() && f.current()->editorController.selection().selection().anchor.text.sourceOffset == offset; }, "async navigation selects a distant live match");
+  require(!f.current()->backend->isSourceMode(), "new files default to live editing");
+}
 
 void fileOpenProtectionSettingsAndBoundaries() {
   SettingsOverride extensionsOn{"files/extensionProtection", true};
@@ -776,13 +1009,14 @@ void closeFolder(MainWindow& window) {
     auto* menu = qobject_cast<QMenu*>(QApplication::activePopupWidget());
     require(menu != nullptr, "file tree context menu opens");
     QAction* close = nullptr;
-    bool collapse = false;
+    bool collapse = false, expand = false, search = false;
     for (auto* item : menu->actions()) {
-      require(item->text() != "Expand All Folders", "context menu omits recursive expand-all");
+      if (item->text() == "Expand All Folders") expand = true;
+      if (item->text() == QString::fromUtf8("Find in Folder…")) search = true;
       if (item->text() == "Close Folder") close = item;
       if (item->text() == "Collapse All Folders") collapse = true;
     }
-    require(close && collapse, "context menu retains close-folder and collapse-all actions");
+    require(close && collapse && expand && search, "context menu exposes folder search, expand, collapse, and close");
     close->trigger();
     triggered = true;
     menu->close();
@@ -1690,6 +1924,7 @@ int main(int argc, char** argv) {
   // recovery counts or file-watcher prompts. Each process owns its data root.
   QApplication::setApplicationName(QStringLiteral("DocumentTabsTest-") + QFileInfo(settings.path()).fileName());
   const auto cleanupData = qScopeGuard([] {
+    QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).removeRecursively();
     QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).removeRecursively();
   });
   QSettings::setDefaultFormat(QSettings::IniFormat);
@@ -1710,6 +1945,10 @@ int main(int argc, char** argv) {
     runSessionViewTests();
     return 0;
   }
+  runTest("workspaceSearchAndReplace", workspaceSearchAndReplace);
+  runTest("workspaceSidebarWidth", workspaceSidebarWidth);
+  runTest("workspaceRenderedNavigation", workspaceRenderedNavigation);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--workspace-search"))) return 0;
   runTest("tabButtonsHaveSingleOwnerAcrossPlatformStyles", tabButtonsHaveSingleOwnerAcrossPlatformStyles);
   if (QCoreApplication::arguments().contains(QStringLiteral("--tab-buttons"))) return 0;
   runTest("fileOpenProtectionSettingsAndBoundaries", fileOpenProtectionSettingsAndBoundaries);

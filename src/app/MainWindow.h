@@ -12,6 +12,8 @@
 #include "io/FileController.h"
 #include "app/DraftRecovery.h"
 #include "app/DraftSnapshotWriter.h"
+#include "app/WorkspaceSearch.h"
+#include "app/WorkspaceReplace.h"
 #include "export/ExportFormat.h"
 #include "theme/ThemeManager.h"
 
@@ -270,8 +272,7 @@ private:
   void showDocumentProperties();
   void showPreferences();
   void printDocument();
-  // File → Quick Open (Ctrl+P): pick from recent files plus the current file's
-  // sibling Markdown files.
+  // Search the opened directory recursively, or open/recent files without one.
   void quickOpen();
   QStringList quickOpenCandidates() const;
   // File → Import: convert a foreign format to markdown via Pandoc and load it
@@ -332,6 +333,14 @@ private:
   CommandContextSnapshot captureCommandContext() const;
 
   void showFindBar();
+  void showWorkspaceSearch(bool replace = false, const QString& directory = {});
+  OpenSearchBuffers openSearchBuffers() const;
+  void navigateSearchResult(const QString& path, const QString& text, qsizetype offset, qsizetype length);
+  void applySearchNavigation(DocumentTab* document);
+  void previewWorkspaceReplace();
+  void undoWorkspaceReplace();
+  WorkspaceReplaceReport runWorkspaceWrite(const std::function<WorkspaceReplaceReport(
+      const OpenSearchBuffers&, const SearchCancellation&)>& operation);
   void showReplaceBar();
   void hideFindBar();
   void performFind(const QString& text, bool forward, bool regularExpression, bool caseSensitive);
@@ -373,6 +382,7 @@ private:
   QTimer* outlineTimer_ = nullptr;
   QTimer* sessionSaveTimer_ = nullptr;
   bool sessionUpdatesPaused_ = true;
+  bool workspaceWriteInProgress_ = false;
   bool restoringViewState_ = false;
   QMenu* recentFilesMenu_ = nullptr;
   QMenu* reopenEncodingMenu_ = nullptr;

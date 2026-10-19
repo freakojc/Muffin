@@ -1,6 +1,7 @@
 #include "app/SidebarWidget.h"
 #include "app/OutlineModel.h"
 #include "app/FileTreeModel.h"
+#include "app/SearchPanelWidget.h"
 
 #include "theme/ChromeStyleSheet.h"
 #include "theme/ThemeDefinition.h"
@@ -18,6 +19,7 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QKeyEvent>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -179,8 +181,8 @@ class FileNameEdit final : public QLineEdit {
 
 muffin::SidebarWidget::SidebarWidget(QWidget* parent) : QWidget(parent) {
   setObjectName(QStringLiteral("MuffinSidebar"));
-  setMinimumWidth(220);
-  setMaximumWidth(360);
+  setMinimumWidth(kMinimumWidth);
+  setMaximumWidth(kMaximumWidth);
 
   auto* rootLayout = new QVBoxLayout(this);
   rootLayout->setContentsMargins(0, 0, 0, 0);
@@ -188,9 +190,11 @@ muffin::SidebarWidget::SidebarWidget(QWidget* parent) : QWidget(parent) {
 
   auto* tabLayout = new QHBoxLayout();
   tabLayout->setContentsMargins(18, 12, 18, 0);
-  tabLayout->setSpacing(24);
+  tabLayout->setSpacing(10);
   filesTabButton_ = createFlatButton(QString(), this);
+  filesTabButton_->setObjectName(QStringLiteral("FilesTabButton"));
   outlineTabButton_ = createFlatButton(QString(), this);
+  outlineTabButton_->setObjectName(QStringLiteral("OutlineTabButton"));
   filesTabButton_->setCheckable(true);
   outlineTabButton_->setCheckable(true);
   tabLayout->addStretch(1);
@@ -203,13 +207,24 @@ muffin::SidebarWidget::SidebarWidget(QWidget* parent) : QWidget(parent) {
   rootLayout->addWidget(stack_, 1);
 
   setupFilesPanel();
+  // Keep the search toggle available while the file tree is replaced by results.
+  rootLayout->insertWidget(1, folderToolbar_);
   setupOutlinePanel();
+  searchPanel_ = new SearchPanelWidget(this);
+  stack_->addWidget(searchPanel_);
   retranslateUi();
   applyTheme(ThemeDefinition::builtIn(QStringLiteral("github")).value());
   setPanel(Panel::Files);
 
-  connect(filesTabButton_, &QToolButton::clicked, this, [this] { setPanel(Panel::Files); });
+  connect(filesTabButton_, &QToolButton::clicked, this, [this] {
+    setPanel(Panel::Files);
+    fileTree_->setFocus();
+  });
   connect(outlineTabButton_, &QToolButton::clicked, this, [this] { setPanel(Panel::Outline); });
+  connect(searchFilesButton_, &QToolButton::clicked, this, [this] {
+    setPanel(panel_ == Panel::Search ? Panel::Files : Panel::Search);
+    activeTreeWidget()->setFocus();
+  });
 }
 
 muffin::SidebarWidget::~SidebarWidget() {
@@ -222,13 +237,13 @@ muffin::SidebarWidget::~SidebarWidget() {
 void muffin::SidebarWidget::setupFilesPanel() {
   filesPanel_ = new QWidget(this);
   auto* layout = new QVBoxLayout(filesPanel_);
-  layout->setContentsMargins(0, 12, 0, 0);
+  layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
 
-  auto* toolbar = new QWidget(filesPanel_);
+  auto* toolbar = folderToolbar_ = new QWidget(this);
   toolbar->setObjectName(QStringLiteral("FolderToolbar"));
   auto* tools = new QHBoxLayout(toolbar);
-  tools->setContentsMargins(10, 0, 8, 4);
+  tools->setContentsMargins(10, 12, 8, 4);
   tools->setSpacing(2);
   tools->addStretch();
   const auto button = [&](const char* name) {
@@ -245,6 +260,8 @@ void muffin::SidebarWidget::setupFilesPanel() {
   refreshFoldersButton_ = button("RefreshFoldersButton");
   sortFilesButton_ = button("SortFilesButton");
   collapseFoldersButton_ = button("CollapseFoldersButton");
+  searchFilesButton_ = button("SearchFilesButton");
+  searchFilesButton_->setCheckable(true);
   sortFilesMenu_ = new QMenu(sortFilesButton_);
   sortFilesMenu_->setObjectName(QStringLiteral("FileSortMenu"));
   sortFilesButton_->setMenu(sortFilesMenu_);
@@ -283,7 +300,6 @@ void muffin::SidebarWidget::setupFilesPanel() {
   connect(newFolderButton_, &QToolButton::clicked, this, [this] { emit newFolderRequested(selectedDirectory()); });
   connect(collapseFoldersButton_, &QToolButton::clicked, this, &SidebarWidget::collapseAllFolders);
   connect(refreshFoldersButton_, &QToolButton::clicked, this, &SidebarWidget::refreshFolders);
-  layout->addWidget(toolbar);
   filesEmptyLabel_ = new QLabel(filesPanel_);
   filesEmptyLabel_->setObjectName(QStringLiteral("FilesEmptyLabel"));
   filesEmptyLabel_->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
@@ -346,8 +362,9 @@ void muffin::SidebarWidget::setupFilesPanel() {
   folderExpansionTimer_ = new QTimer(this);
   folderExpansionTimer_->setSingleShot(true);
   connect(folderExpansionTimer_, &QTimer::timeout, this, &SidebarWidget::processFolderExpansions);
-  connect(fileModel_, &FileTreeModel::directoryLoaded, this, [this](const QString&) {
-    if (!expandedFolderPaths_.isEmpty()) queueFolderExpansion(folderRoot_);
+  connect(fileModel_, &FileTreeModel::directoryLoaded, this, [this](const QString& directory) {
+    if (expandAllRequested_) queueFolderExpansion(directory);
+    else if (!expandedFolderPaths_.isEmpty()) queueFolderExpansion(folderRoot_);
     if (!refreshSelectionPath_.isEmpty()) {
       const auto selected = fileModel_->index(refreshSelectionPath_);
       if (selected.isValid()) {
@@ -371,6 +388,7 @@ void muffin::SidebarWidget::setupFilesPanel() {
     emit folderStateChanged();
   });
   connect(fileTree_, &QTreeView::collapsed, this, [this](const QModelIndex& index) {
+    expandAllRequested_ = false;
     expandedFolderPaths_.remove(fileModel_->filePath(index));
     emit folderStateChanged();
   });
@@ -462,7 +480,10 @@ void muffin::SidebarWidget::setupOutlinePanel() {
 void muffin::SidebarWidget::setPanel(Panel panel) {
   const bool changed = panel_ != panel;
   panel_ = panel;
-  stack_->setCurrentWidget(panel == Panel::Files ? filesPanel_ : outlinePanel_);
+  stack_->setCurrentWidget(panel == Panel::Files ? filesPanel_ : panel == Panel::Outline ? outlinePanel_ : searchPanel_);
+  folderToolbar_->setVisible(panel != Panel::Outline);
+  for (auto* button : {newFileButton_, newFolderButton_, collapseFoldersButton_, refreshFoldersButton_, sortFilesButton_})
+    button->setVisible(panel == Panel::Files);
   updateTabButtons();
   if (changed) {
     emit panelChanged(panel);
@@ -474,6 +495,7 @@ muffin::SidebarWidget::Panel muffin::SidebarWidget::panel() const {
 }
 
 QWidget* muffin::SidebarWidget::activeTreeWidget() const {
+  if (panel_ == Panel::Search) return searchPanel_->focusWidget();
   QWidget* active = panel_ == Panel::Files ? fileTree_ : outlineTree_;
   return active ? active : (fileTree_ ? fileTree_ : outlineTree_);
 }
@@ -498,6 +520,7 @@ void muffin::SidebarWidget::setCurrentDocument(QString displayName, QString file
 }
 
 void muffin::SidebarWidget::setFolderRoot(QString path) {
+  expandAllRequested_ = false;
   folderExplicitlyClosed_ = path.isEmpty();
   path = path.isEmpty() ? QString() : QDir::cleanPath(QFileInfo(path).absoluteFilePath());
   if (path == folderRoot_) { updateFolderControls(); return; }
@@ -509,6 +532,7 @@ void muffin::SidebarWidget::setFolderRoot(QString path) {
   fileTree_->collapseAll();
   expandedFolderPaths_.clear();
   folderRoot_ = std::move(path);
+  searchPanel_->setRoot(folderRoot_);
   fileTree_->clearSelection();
   fileTree_->setCurrentIndex({});
   fileTree_->setRootIndex(folderRoot_.isEmpty() ? QModelIndex() : fileModel_->setRootPath(folderRoot_));
@@ -619,11 +643,11 @@ void muffin::SidebarWidget::processFolderExpansions() {
       // Never recursively traverse directory links (including Windows junctions).
       const QFileInfo info(childPath);
       if (info.isSymLink() || info.isJunction()) continue;
-      const bool expand = expandedFolderPaths_.contains(childPath);
+      const bool expand = expandAllRequested_ || expandedFolderPaths_.contains(childPath);
       if (expand) fileTree_->setExpanded(child, true);
       bool descendant = false;
       const QString prefix = childPath + QLatin1Char('/');
-      for (const auto& desired : expandedFolderPaths_) if (desired.startsWith(prefix)) { descendant = true; break; }
+      if (!expand) for (const auto& desired : expandedFolderPaths_) if (desired.startsWith(prefix)) { descendant = true; break; }
       if (expand || descendant) {
         if (fileModel_->canFetchMore(child)) fileModel_->fetchMore(child);
         queueFolderExpansion(childPath);
@@ -634,6 +658,7 @@ void muffin::SidebarWidget::processFolderExpansions() {
 }
 
 void muffin::SidebarWidget::collapseAllFolders() {
+  expandAllRequested_ = false;
   refreshSelectionPath_.clear();
   refreshAnchorPath_.clear();
   folderExpansionTimer_->stop();
@@ -642,6 +667,12 @@ void muffin::SidebarWidget::collapseAllFolders() {
   fileTree_->collapseAll();
   expandedFolderPaths_.clear();
   emit folderStateChanged();
+}
+
+void muffin::SidebarWidget::expandAllFolders() {
+  if (folderRoot_.isEmpty()) return;
+  expandAllRequested_ = true;
+  queueFolderExpansion(folderRoot_);
 }
 
 QString muffin::SidebarWidget::folderRoot() const {
@@ -880,9 +911,13 @@ void muffin::SidebarWidget::retranslateUi() {
   if (outlineTabButton_) {
     outlineTabButton_->setText(tr("Outline"));
   }
+  if (searchFilesButton_) {
+    searchFilesButton_->setAccessibleName(tr("Search"));
+  }
   if (outlineEmptyLabel_) {
     outlineEmptyLabel_->setText(tr("No Headings"));
   }
+  updateTabButtons();
 }
 
 void muffin::SidebarWidget::changeEvent(QEvent* event) {
@@ -893,18 +928,23 @@ void muffin::SidebarWidget::changeEvent(QEvent* event) {
 }
 
 void muffin::SidebarWidget::updateTabButtons() {
-  filesTabButton_->setChecked(panel_ == Panel::Files);
+  filesTabButton_->setChecked(panel_ != Panel::Outline);
   outlineTabButton_->setChecked(panel_ == Panel::Outline);
+  searchFilesButton_->setChecked(panel_ == Panel::Search);
+  searchFilesButton_->setToolTip(panel_ == Panel::Search ? tr("Files")
+      : tr("Search") + QStringLiteral(" (%1)").arg(QKeySequence(QStringLiteral("Ctrl+Shift+F")).toString(QKeySequence::NativeText)));
 }
 
 void muffin::SidebarWidget::applyStyle() {
   setStyleSheet(sidebarStyleSheet(currentTheme_, outlineFoldable_));
+  searchPanel_->setThemeDefinition(currentTheme_);
   const auto color = currentTheme_.colors.chromeText;
   newFileButton_->setIcon(folderToolbarIcon("<path d='M9 1.5H3.5v13h5M9 1.5l3.5 3.5H9z'/><path d='M12 8v6m-3-3h6'/>", color));
   newFolderButton_->setIcon(folderToolbarIcon("<path d='M7 12.5H1.5v-10h4l2 2h7v3'/><path d='M12 8v6m-3-3h6'/>", color));
   collapseFoldersButton_->setIcon(folderToolbarIcon("<path d='M5 1.5h9.5V11M1.5 5h9.5v9.5H1.5zM4 9.75h4.5'/>", color));
   refreshFoldersButton_->setIcon(folderToolbarIcon("<path d='M13.5 6.5a5.5 5.5 0 1 0-.5 4M13.5 2.5v4h-4'/>", color));
   sortFilesButton_->setIcon(folderToolbarIcon("<path d='M2 3h7M2 7h5M2 11h3M12 3v10m-2.5-2.5L12 13l2.5-2.5'/>", color));
+  searchFilesButton_->setIcon(folderToolbarIcon("<circle cx='6.75' cy='6.75' r='4.75'/><path d='M10.25 10.25l4.25 4.25'/>", color));
 }
 
 void muffin::SidebarWidget::emitOutlineItem(const QModelIndex& index) {

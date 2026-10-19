@@ -1,5 +1,6 @@
 #include "app/LanguageManager.h"
 #include "app/MainWindow.h"
+#include "app/SearchPanelWidget.h"
 #include "app/FileOpenConfirmation.h"
 #include "app/UpdateChecker.h"
 #include "app/SidebarWidget.h"
@@ -257,6 +258,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
     tab->editor->setReadOnly(busy);
   });
   connect(&tab->session, &DocumentSession::parsed, tab->windowConnections, [this, tab] {
+    QTimer::singleShot(0, tab->windowConnections, [this, tab] { applySearchNavigation(tab); });
     QTimer::singleShot(0, tab->windowConnections, [this, tab] { restoreTabViewState(tab); });
     const bool outlineChanged = tab->sidebarOutlineRevision != tab->session.document().outlineRevision();
     tab->outlineDirty = tab->outlineDirty || outlineChanged;
@@ -439,8 +441,13 @@ void muffin::MainWindow::connectChromeSignals() {
 
 void muffin::MainWindow::connectSidebarSignals() {
   auto& window = *this;
+  auto* search = sidebar_->searchPanel();
+  connect(search, &SearchPanelWidget::searchRequested, this, [this, search] { search->startSearch(openSearchBuffers()); });
+  connect(search, &SearchPanelWidget::resultActivated, this, &MainWindow::navigateSearchResult);
+  connect(search, &SearchPanelWidget::replaceRequested, this, &MainWindow::previewWorkspaceReplace);
   connect(sidebar_, &SidebarWidget::folderStateChanged, this, [this] {
     sidebarFolderRoot_ = sidebar_->folderRoot();
+    updateFileActions();
     scheduleSessionSave();
   });
   connect(sidebar_, &SidebarWidget::newFileRequested, this, &MainWindow::newFileInDirectory);

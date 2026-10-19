@@ -23,6 +23,9 @@ class MUFFIN_UI_EXPORT FileController final : public QObject {
 
 public:
   explicit FileController(QObject* parent = nullptr);
+  // Non-interactive codec shared by directory search/replace workers.
+  static bool decodeTextBytes(const QByteArray& bytes, QString* text, TextFileFormat* format);
+  static bool encodeTextBytes(const QString& text, const TextFileFormat& format, QByteArray* bytes);
 
   bool newFile(DocumentSession& session, QWidget* parent);
   QString chooseOpenPath(QWidget* parent) const;

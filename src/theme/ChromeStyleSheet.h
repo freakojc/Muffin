@@ -25,5 +25,6 @@ QString sidebarStyleSheet(const ThemeDefinition& theme, bool outlineFoldable);
 // bug). The sidebar-title / page-title / placeholder labels are themed via
 // object names (preferencesSidebarTitle / preferencesPageTitle / preferencesPlaceholder).
 QString dialogStyleSheet(const ThemeDefinition& theme);
+QString quickOpenStyleSheet(const ThemeDefinition& theme);
 
 }  // namespace muffin

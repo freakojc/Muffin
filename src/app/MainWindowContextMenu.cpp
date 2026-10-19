@@ -317,6 +317,7 @@ void muffin::MainWindow::buildSidebarContextMenu(QString path, bool isDir, bool 
     add(tr("Reveal in File Manager"), [this, path] { revealPathInManager(path); });
   } else {
     // Directory, or empty space (path is then the folder root).
+    add(tr("Find in Folder…"), [this, path] { showWorkspaceSearch(false, path); });
     add(tr("Open in New Window"), [this, path] { openFolderInNewWindow(path); });
     menu.addSeparator();
     add(tr("New File"), [this, targetDir] { newFileInDirectory(targetDir); });
@@ -328,6 +329,7 @@ void muffin::MainWindow::buildSidebarContextMenu(QString path, bool isDir, bool 
 
   if (!sidebar_->folderRoot().isEmpty()) {
     menu.addSeparator();
+    add(muffin::SidebarWidget::tr("Expand All Folders"), [this] { sidebar_->expandAllFolders(); });
     add(muffin::SidebarWidget::tr("Collapse All Folders"), [this] { sidebar_->collapseAllFolders(); });
     add(muffin::SidebarWidget::tr("Close Folder"), [this] { closeFolder(); });
   }

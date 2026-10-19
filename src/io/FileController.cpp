@@ -272,6 +272,21 @@ QByteArray bomForEncoding(const QString& encoding) {
 
 muffin::FileController::FileController(QObject* parent) : QObject(parent) {}
 
+bool muffin::FileController::decodeTextBytes(const QByteArray& bytes, QString* text, TextFileFormat* format) {
+  text->clear();
+  return decodeText(bytes, {}, text, format);
+}
+
+bool muffin::FileController::encodeTextBytes(const QString& text, const TextFileFormat& format, QByteArray* bytes) {
+  QString diskText = text;
+  if (format.lineEnding == TextLineEnding::Crlf) diskText.replace(QStringLiteral("\n"), QStringLiteral("\r\n"));
+  else if (format.lineEnding == TextLineEnding::Cr) diskText.replace(QLatin1Char('\n'), QLatin1Char('\r'));
+  if (format.encodingName.compare(QStringLiteral("UTF-8"), Qt::CaseInsensitive) == 0) *bytes = diskText.toUtf8();
+  else if (!encodeLegacyText(diskText, format.encodingName, bytes)) return false;
+  if (format.writeBom) bytes->prepend(bomForEncoding(format.encodingName));
+  return true;
+}
+
 bool muffin::FileController::newFile(DocumentSession& session, QWidget* parent) {
   autoSaveOnSwitchIfEnabled(session, parent);
   if (!confirmDiscardIfModified(session, parent)) {

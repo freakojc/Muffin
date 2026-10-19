@@ -111,7 +111,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.quickOpen(); },
        .enabled = [](const MainWindow& w) {
-         return !w.recentFiles().isEmpty() || !w.tab_->session.filePath().isEmpty();
+         return !w.sidebar_->folderRoot().isEmpty() || !w.recentFiles().isEmpty() || !w.tab_->session.filePath().isEmpty();
        }},
       {.id = QStringLiteral("file.save"),
        .category = CommandCategory::File,
@@ -520,6 +520,20 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .text = muffin::MainWindow::tr("Replace..."),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+H")),
        .handler = [](MainWindow& window) { window.showReplaceBar(); }},
+      {.id = QStringLiteral("edit.find_in_folder"),
+       .category = CommandCategory::Edit,
+       .text = muffin::MainWindow::tr("Find in Folder…"),
+       .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+F")),
+       .handler = [](MainWindow& window) { window.showWorkspaceSearch(); }},
+      {.id = QStringLiteral("edit.replace_in_folder"),
+       .category = CommandCategory::Edit,
+       .text = muffin::MainWindow::tr("Replace in Folder…"),
+       .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+H")),
+       .handler = [](MainWindow& window) { window.showWorkspaceSearch(true); }},
+      {.id = QStringLiteral("edit.undo_folder_replace"),
+       .category = CommandCategory::Edit,
+       .text = muffin::MainWindow::tr("Undo Folder Replacement"),
+       .handler = [](MainWindow& window) { window.undoWorkspaceReplace(); }},
       {.id = QStringLiteral("edit.find_next"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Find Next"),
@@ -1519,6 +1533,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .shortcut = QKeySequence(QStringLiteral("Ctrl+/")),
        .checkable = true,
        .handler = [](MainWindow& window) {
+         window.tab_->searchSourceFallback = false;
          window.updateViewMode();
          QSettings().setValue(QStringLiteral("view/sourceMode"),
              window.commands_.action(QStringLiteral("view.source_mode"))->isChecked());
@@ -1825,6 +1840,9 @@ const std::vector<muffin::MenuSpec>& muffin::mainMenuSpec() {
             .children = {
                 {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.find")},
                 {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.replace")},
+                {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.find_in_folder")},
+                {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.replace_in_folder")},
+                {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.undo_folder_replace")},
                 {.kind = MenuItem::Kind::Separator},
                 {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.find_next")},
                 {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.find_previous")},

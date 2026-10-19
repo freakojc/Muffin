@@ -62,6 +62,10 @@ public:
   bool lastFindRegularExpression = false;
   bool lastFindCaseSensitive = false;
   QString lastFindText;
+  std::optional<QString> pendingSearchText;
+  qsizetype pendingSearchOffset = 0;
+  qsizetype pendingSearchLength = 0;
+  bool searchSourceFallback = false;
   qsizetype lastFindOffset = -1;
   bool renderViewDirty = false;
   bool pinned = false;

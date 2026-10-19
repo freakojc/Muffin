@@ -650,41 +650,25 @@ bool muffin::MainWindow::isDocumentModified() const {
 // ---- Quick Open -----------------------------------------------------------
 
 QStringList muffin::MainWindow::quickOpenCandidates() const {
-  QStringList candidates = recentFiles();
-
-  // When a file is open, also surface its sibling Markdown/text files so the
-  // picker doubles as a workspace switcher for the current folder.
-  const QString current = tab_->session.filePath();
-  if (!current.isEmpty()) {
-    const QString dir = QFileInfo(current).absolutePath();
-    const QStringList entries = QDir(dir).entryList(
-        {QStringLiteral("*.md"), QStringLiteral("*.markdown"), QStringLiteral("*.mdown"), QStringLiteral("*.txt")},
-        QDir::Files, QDir::Name);
-    QSet<QString> seen;
-    for (const QString& path : candidates) {
-      seen.insert(QFileInfo(path).absoluteFilePath());
-    }
-    const QString currentAbs = QFileInfo(current).absoluteFilePath();
-    seen.insert(currentAbs);
-    for (const QString& entry : entries) {
-      const QString abs = QDir(dir).absoluteFilePath(entry);
-      if (!seen.contains(abs)) {
-        seen.insert(abs);
-        candidates.append(abs);
-      }
-    }
+  QStringList candidates;
+  if (!tab_->session.filePath().isEmpty()) candidates.append(tab_->session.filePath());
+  candidates.append(recentFiles());
+  for (const auto* document : documentTabs()) {
+    if (!document->session.filePath().isEmpty()) candidates.append(document->session.filePath());
   }
   return candidates;
 }
 
 void muffin::MainWindow::quickOpen() {
   const QStringList candidates = quickOpenCandidates();
-  if (candidates.isEmpty()) {
+  if (candidates.isEmpty() && sidebar_->folderRoot().isEmpty()) {
     statusBar()->showMessage(tr("No files to open"), 4000);
     return;
   }
   QuickOpenDialog dialog(this);
+  dialog.setThemeDefinition(themeManager_.currentDefinition());
   dialog.setCandidates(candidates);
+  dialog.setWorkspace(sidebar_->folderRoot(), WorkspaceFileIndex::textExtensions());
   if (dialog.exec() == QDialog::Accepted) {
     const QString path = dialog.selectedPath();
     if (!path.isEmpty()) {

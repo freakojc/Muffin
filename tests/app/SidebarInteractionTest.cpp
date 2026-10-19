@@ -187,7 +187,7 @@ void testToolbarIconsRetainTheirShapeAtHighDpi() {
     require(theme.has_value(), "toolbar icon test theme should exist");
     sidebar.applyTheme(*theme);
     for (const auto* name : {"NewFileButton", "NewFolderButton", "RefreshFoldersButton",
-                             "SortFilesButton", "CollapseFoldersButton"}) {
+                             "SortFilesButton", "CollapseFoldersButton", "SearchFilesButton"}) {
       const auto* button = sidebar.findChild<QToolButton*>(QString::fromLatin1(name));
       require(button && !button->icon().isNull(), "toolbar button should have an icon");
       for (const auto mode : {QIcon::Normal, QIcon::Disabled, QIcon::Active}) {
@@ -219,9 +219,9 @@ void testToolbarCollapsesFoldersAndRestoresState() {
   require(collapse && !collapse->toolTip().isEmpty() && !collapse->accessibleName().isEmpty(),
           "folder toolbar exposes tooltips and accessible names");
   auto* toolbar = f.sidebar.findChild<QWidget*>("FolderToolbar");
-  require(toolbar && toolbar->findChildren<QToolButton*>().size() == 5 &&
+  require(toolbar && toolbar->findChildren<QToolButton*>().size() == 6 &&
               !f.sidebar.findChild<QWidget*>("FolderName") && !f.sidebar.findChild<QToolButton*>("FolderMenuButton"),
-          "compact toolbar contains create-file, create-folder, refresh, sort and collapse controls");
+          "compact toolbar contains file controls and the search toggle");
   const auto nestedPath = f.dir.filePath("Folder/Nested");
   const auto leafPath = f.dir.filePath("Folder/Nested/Deep/Leaf");
   f.sidebar.restoreExpandedFolders({"Folder", "Folder/Nested", "Folder/Nested/Deep", "Folder/Nested/Deep/Leaf"});
@@ -251,6 +251,13 @@ void testToolbarCollapsesFoldersAndRestoresState() {
   collapse->click();
   f.sidebar.setCurrentDocument("inside.md", file, true);
   require(!f.tree->isExpanded(f.folder), "status updates for the active file preserve collapsed folders");
+  require(QDir(f.dir.path()).mkpath("Unloaded/More/Leaf"), "create fresh branch for expand all");
+  f.sidebar.expandAllFolders();
+  waitUntil([&] { return f.tree->isExpanded(f.model->index(f.dir.filePath("Unloaded/More/Leaf"))); },
+            "expand all discovers and expands previously unloaded branches");
+  collapse->click();
+  QApplication::processEvents();
+  require(f.sidebar.expandedFolders().isEmpty(), "collapse cancels recursive expansion");
   if (const auto screenshot = qEnvironmentVariable("MUFFIN_SIDEBAR_SCREENSHOT"); !screenshot.isEmpty()) {
     f.sidebar.restoreExpandedFolders(saved);
     QApplication::processEvents();

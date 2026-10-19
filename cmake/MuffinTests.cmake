@@ -3,6 +3,8 @@
 # CMakeLists.txt after MUFFIN_TEST_ENVIRONMENT_MODIFICATIONS is assembled.
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/MuffinTestFunctions.cmake)
+muffin_add_test(NAME MuffinWorkspaceFilesTest SOURCE tests/app/WorkspaceFilesTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
+muffin_add_test(NAME MuffinWorkspaceSearchTest SOURCE tests/app/WorkspaceSearchTest.cpp LINK MuffinUi RESOURCE_LOCK)
 
 muffin_add_test(NAME MuffinMermaidTextBackendTest SOURCE tests/mermaid/MermaidTextBackendTest.cpp LINK MuffinUi RESOURCE_LOCK)
 set_property(TEST MuffinMermaidTextBackendTest APPEND PROPERTY ENVIRONMENT_MODIFICATION "MUFFIN_TEXT_LAYOUT_BACKEND=set:native")
@@ -493,7 +495,7 @@ muffin_add_test(NAME MuffinBlockCodeFrontMatterTest SOURCE tests/blocks/BlockCod
 get_target_property(_tab_test_app_sources Muffin SOURCES)
 list(FILTER _tab_test_app_sources INCLUDE REGEX "^src/app/.*\\.(cpp|h)$")
 muffin_add_test(NAME MuffinDocumentTabsTest SOURCE tests/app/DocumentTabsTest.cpp LINK MuffinUi
-  EXTRA_LINK Qt6::Test Qt6::Svg Qt6::PrintSupport
+  EXTRA_LINK Qt6::Test Qt6::Svg Qt6::PrintSupport Qt6::Concurrent
   EXTRA_SOURCES ${_tab_test_app_sources} src/icons.qrc src/translations.qrc ${MUFFIN_THEMES_QRC} ${MUFFIN_HELP_QRC} ${MUFFIN_EMOJI_QRC}
   RESOURCE_LOCK)
 target_compile_definitions(MuffinDocumentTabsTest PRIVATE MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}")
@@ -577,7 +579,7 @@ target_include_directories(MuffinCmarkAutolinkProbe PRIVATE
 add_executable(MuffinGuiPerformanceProbe EXCLUDE_FROM_ALL
   scripts/gui_performance_probe.cpp ${_tab_test_app_sources}
   src/icons.qrc src/translations.qrc ${MUFFIN_THEMES_QRC} ${MUFFIN_HELP_QRC} ${MUFFIN_EMOJI_QRC})
-target_link_libraries(MuffinGuiPerformanceProbe PRIVATE MuffinUi Qt6::Test Qt6::Svg Qt6::PrintSupport)
+target_link_libraries(MuffinGuiPerformanceProbe PRIVATE MuffinUi Qt6::Test Qt6::Svg Qt6::PrintSupport Qt6::Concurrent)
 target_compile_definitions(MuffinGuiPerformanceProbe PRIVATE
   MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}" MUFFIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)

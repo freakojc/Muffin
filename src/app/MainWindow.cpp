@@ -144,6 +144,7 @@ muffin::MainWindow::~MainWindow() {
 }
 
 void muffin::MainWindow::closeEvent(QCloseEvent* event) {
+  if (workspaceWriteInProgress_) { event->ignore(); return; }
   const QScopedValueRollback<bool> switchGuard(suppressSaveOnTabSwitch_, true);
   // Prompting visits every page; those temporary activations must not replace
   // the user's active tab in the persisted session, including on Cancel.
@@ -300,7 +301,7 @@ void muffin::MainWindow::setupUi() {
 
   // Sidebar show/hide width transition. min+max move in lockstep so the splitter tracks the value
   // exactly (a lone maximumWidth wouldn't pull the widget wider than its sizeHint). On finish we
-  // restore the 220–360 drag range — the live width already sits inside it, so there's no snap.
+  // restore the shared drag range without changing the current panel's width.
   sidebarAnimation_ = new QVariantAnimation(this);
   sidebarAnimation_->setEasingCurve(QEasingCurve::OutCubic);
   sidebarAnimation_->setDuration(180);
@@ -319,8 +320,8 @@ void muffin::MainWindow::setupUi() {
     if (sidebar_->maximumWidth() == 0) {
       sidebar_->setVisible(false);
     }
-    sidebar_->setMinimumWidth(220);
-    sidebar_->setMaximumWidth(360);
+    sidebar_->setMinimumWidth(SidebarWidget::kMinimumWidth);
+    sidebar_->setMaximumWidth(SidebarWidget::kMaximumWidth);
   });
 }
 
@@ -421,8 +422,8 @@ void muffin::MainWindow::updateSidebarMode() {
 
   // No transition at startup (window not shown yet) or when reduced motion is requested.
   if (!isVisible() || reducedMotion() || !sidebarAnimation_) {
-    sidebar_->setMinimumWidth(220);
-    sidebar_->setMaximumWidth(360);
+    sidebar_->setMinimumWidth(SidebarWidget::kMinimumWidth);
+    sidebar_->setMaximumWidth(SidebarWidget::kMaximumWidth);
     sidebar_->setVisible(sidebarVisible);
     if (sidebarVisible && sidebar_->panel() == SidebarWidget::Panel::Outline) {
       refreshSidebarOutline();
@@ -434,14 +435,14 @@ void muffin::MainWindow::updateSidebarMode() {
     sidebar_->setMinimumWidth(0);
     sidebar_->setMaximumWidth(0);
     sidebar_->setVisible(true);
-    sidebarTargetWidth_ = qBound(220, sidebarTargetWidth_, 360);
+    sidebarTargetWidth_ = qBound(SidebarWidget::kMinimumWidth, sidebarTargetWidth_, SidebarWidget::kMaximumWidth);
     animateSidebarWidth(0, sidebarTargetWidth_);
     if (sidebar_->panel() == SidebarWidget::Panel::Outline) {
       refreshSidebarOutline();
     }
   } else {
-    const int currentWidth = qBound(0, sidebar_->width(), 360);
-    sidebarTargetWidth_ = qBound(220, currentWidth, 360);  // remember for next show
+    const int currentWidth = qBound(0, sidebar_->width(), SidebarWidget::kMaximumWidth);
+    sidebarTargetWidth_ = qBound(SidebarWidget::kMinimumWidth, currentWidth, SidebarWidget::kMaximumWidth);
     animateSidebarWidth(currentWidth, 0);
   }
 }
@@ -466,9 +467,10 @@ void muffin::MainWindow::setSidebarPanel(SidebarWidget::Panel panel) {
   }
   sidebar_->setPanel(panel);
   if (QAction* action = commands_.action(QStringLiteral("view.sidebar"))) {
+    const bool opening = !action->isChecked();
     action->setChecked(true);
+    if (opening) updateSidebarMode();
   }
-  updateSidebarMode();
   if (panel == SidebarWidget::Panel::Outline) {
     refreshSidebarOutline();
   } else {

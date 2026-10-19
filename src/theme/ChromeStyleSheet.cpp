@@ -92,9 +92,18 @@ QString sidebarStyleSheet(const ThemeDefinition& d, bool outlineFoldable) {
       "#MuffinSidebar QToolButton:hover { background: %4; }"
       "#MuffinSidebar QToolButton:checked { color: %5; border-bottom: 3px solid %3; }"
       "#OutlineEmptyLabel { color: %3; }"
-      "#FilesEmptyLabel { color: %3; }"
+        "#FilesEmptyLabel { color: %3; }"
+        "#MuffinSidebar QLabel, #MuffinSidebar QCheckBox { color:%5; background:transparent; }"
+        "#MuffinSidebar QLineEdit { color:%5; background:%1; border:1px solid %2; border-radius:4px; padding:5px; }"
+        "#MuffinSidebar QPushButton { color:%5; background:%1; border:1px solid %2; border-radius:4px; padding:4px; }"
+        "#MuffinSidebar QPushButton:hover { background:%4; }"
+        "#MuffinSidebar QPushButton:disabled { color:%3; }"
+        "#WorkspaceSearchResults { background:%1; color:%5; border:0; }"
+        "#WorkspaceSearchResults::item { min-height:24px; padding:2px; }"
+        "#WorkspaceSearchResults::item:selected { background:%6; color:%7; }"
       "#FolderToolbar QToolButton { padding: 0; min-width: 0; min-height: 0; border-radius: 4px; }"
       "#FolderToolbar QToolButton:pressed { background: %6; }"
+      "#FolderToolbar QToolButton:checked { background: %4; border: 1px solid %2; }"
       "#FolderToolbar QToolButton::menu-indicator { image: none; width: 0; }"
       "#FileTree, #OutlineTree { background: %1; color: %5; border: 0; padding: 4px 0; outline: 0; }"
       "#FileTree::item, #OutlineTree::item { min-height: 22px; padding: 1px 4px; border: 0; }"
@@ -111,6 +120,22 @@ QString sidebarStyleSheet(const ThemeDefinition& d, bool outlineFoldable) {
     sheet += QStringLiteral("#OutlineTree::branch { image:none; width:0; }");
   }
   return sheet;
+}
+
+QString quickOpenStyleSheet(const ThemeDefinition& d) {
+  const auto& c = d.colors;
+  return QStringLiteral(
+      "QDialog#QuickOpenDialog { background:%1; color:%2; }"
+      "QDialog#QuickOpenDialog QLabel { color:%3; background:transparent; }"
+      "QLineEdit#QuickOpenFilter { background:%4; color:%2; border:1px solid %5; border-radius:5px; padding:7px; }"
+      "QLineEdit#QuickOpenFilter:focus { border-color:%6; }"
+      "QListWidget#QuickOpenResults { background:%4; color:%2; border:0; outline:0; }"
+      "QScrollBar:vertical { width:8px; background:transparent; border:0; }"
+      "QScrollBar::handle:vertical { background:%5; min-height:28px; border-radius:4px; }"
+      "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; }"
+      "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }")
+      .arg(hexRgb(c.canvas), hexRgb(c.chromeText), hexRgb(c.chromeMuted),
+           hexRgb(c.surface), hexRgb(c.border), hexRgb(c.accent));
 }
 
 QString dialogStyleSheet(const ThemeDefinition& d) {

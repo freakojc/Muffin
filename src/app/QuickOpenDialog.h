@@ -1,11 +1,7 @@
 #pragma once
 
-// Modal file picker backing File → Quick Open (Ctrl+P). Shows a filter box over
-// a list of candidate absolute paths (recent files plus, when a file is open,
-// the current file's sibling Markdown files — see MainWindow::quickOpenCandidates),
-// narrows the list as you type, and returns the selected path. Filtering is
-// case-insensitive substring on both the file name and the full path; name hits
-// are ranked first.
+// Keyboard-driven file picker with asynchronous directory scanning and
+// relative path matching, independent of file-tree expansion.
 //
 // NOTE: the .cpp contains tr() calls and follows the lupdate rule in CLAUDE.md
 // (fully-qualified muffin::QuickOpenDialog::method() defs + anonymous-namespace
@@ -15,19 +11,26 @@
 #include <QDialog>
 #include <QString>
 #include <QStringList>
+#include "app/WorkspaceFiles.h"
 
 class QLineEdit;
 class QListWidget;
+class QLabel;
+class QTimer;
 
 namespace muffin {
+struct ThemeDefinition;
 
-class QuickOpenDialog : public QDialog {
+class MUFFIN_UI_EXPORT QuickOpenDialog : public QDialog {
   Q_OBJECT
 
 public:
   explicit QuickOpenDialog(QWidget* parent = nullptr);
+  ~QuickOpenDialog() override;
 
   void setCandidates(QStringList paths);
+  void setWorkspace(const QString& root, const QStringList& extensions);
+  void setThemeDefinition(const ThemeDefinition& definition);
   QString selectedPath() const;
 
 protected:
@@ -43,7 +46,16 @@ private:
 
   QLineEdit* filterEdit_ = nullptr;
   QListWidget* list_ = nullptr;
+  QLabel* scopeLabel_ = nullptr;
+  QLabel* statusLabel_ = nullptr;
+  QTimer* filterTimer_ = nullptr;
   QStringList candidates_;
+  QString root_;
+  QString lastFilter_;
+  SearchCancellation cancel_;
+  bool scanning_ = false;
+  bool truncated_ = false;
+  int unreadable_ = 0;
 };
 
 }  // namespace muffin
