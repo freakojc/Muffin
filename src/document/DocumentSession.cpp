@@ -701,12 +701,29 @@ void muffin::DocumentSession::refreshFileWatch() {
     return;
   }
   const QString directory = QFileInfo(filePath_).absolutePath();
+#if defined(Q_OS_WIN)
+  // Overlapping Windows file/directory watches can race atomic replacement
+  // and make QSaveFile::commit fail with access denied. Watch the file while
+  // it exists, or its directory while missing so recreation is still detected.
+  if (QFileInfo::exists(filePath_)) {
+    if (fileWatcher_->directories().contains(directory)) {
+      fileWatcher_->removePath(directory);
+    }
+    if (fileWatcher_->files().contains(filePath_) || fileWatcher_->addPath(filePath_)) {
+      return;
+    }
+  } else if (fileWatcher_->files().contains(filePath_)) {
+    fileWatcher_->removePath(filePath_);
+  }
+#endif
   if (!fileWatcher_->directories().contains(directory)) {
     fileWatcher_->addPath(directory);
   }
+#if !defined(Q_OS_WIN)
   if (QFileInfo::exists(filePath_) && !fileWatcher_->files().contains(filePath_)) {
     fileWatcher_->addPath(filePath_);
   }
+#endif
 }
 
 void muffin::DocumentSession::onFileChanged() {

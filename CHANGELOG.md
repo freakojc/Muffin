@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preserve ordered, unordered, task and nested list structure and caret positions during indentation and outdentation. Keep edits around list separators consistent with a full parse, including Backspace in source mode and undo/redo.
 - Preserve nested content when removing empty paragraphs and retain table-cell source coordinates after prefix edits.
 - Correct sidebar toolbar icon scaling on macOS Retina displays and prevent duplicate close buttons from appearing on tab hover with platform styles.
+- Avoid overlapping file and directory watches on Windows, which can make atomic saves fail with access denied. Keep detection of external edits, replacement, deletion and recreation.
 
 ## [0.7.2] - 2026-10-18
 
