@@ -218,7 +218,8 @@ void muffin::SearchPanelWidget::retranslateUi() {
   case_->setToolTip(tr("Match case")); case_->setAccessibleName(case_->toolTip());
   regex_->setToolTip(tr("Regular expression")); regex_->setAccessibleName(regex_->toolTip());
   replacement_->setPlaceholderText(tr("Replace with…")); replacement_->setAccessibleName(tr("Replace with"));
-  replaceToggle_->setText(tr("Replace")); preview_->setText(tr("Preview folder replacement…"));
+  replaceToggle_->setText(tr("Replace")); preview_->setText(tr("Replace") + QChar(0x2026));
+  preview_->setToolTip(tr("Preview folder replacement…"));
   search_->setText(tr("Search")); cancelButton_->setText(tr("Stop"));
   results_->setAccessibleName(tr("Content search results"));
   preview_->setEnabled(!running_ && result_.complete && result_.matches > 0);

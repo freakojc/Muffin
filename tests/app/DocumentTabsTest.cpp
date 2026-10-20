@@ -24,6 +24,7 @@
 #include <QContextMenuEvent>
 #include <QElapsedTimer>
 #include <QDir>
+#include <QDialog>
 #include <QFile>
 #include <QFileInfo>
 #include <QFileDialog>
@@ -194,6 +195,23 @@ void workspaceSearchAndReplace() {
     f.window.grab().save(QDir(screenshotDirectory).filePath("sidebar.png"));
   }
   panel->findChild<QLineEdit*>("WorkspaceReplacement")->setText("new-term");
+  panel->activate(true);
+  auto* replaceButton = panel->findChild<QPushButton*>("WorkspaceReplacePreview");
+  require(replaceButton && replaceButton->isVisible() && replaceButton->isEnabled(), "folder replacement has an available sidebar button");
+  bool previewCanceled = false;
+  QTimer::singleShot(0, [&] {
+    auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
+    require(dialog && dialog->findChild<QPushButton*>("FolderReplaceConfirm"), "replacement button opens a preview with a confirmation action");
+    previewCanceled = true;
+    dialog->reject();
+  });
+  replaceButton->click();
+  require(previewCanceled && panel->result().complete && panel->result().matches == 3 && replaceButton->isEnabled(),
+          "canceling the preview preserves complete results and permits another replacement attempt");
+  require(first->session.markdownText().toString().contains("old-term"), "canceling a preview preserves the open document");
+  QFile unchanged(a); require(unchanged.open(QIODevice::ReadOnly), "read original after canceled preview");
+  require(!unchanged.readAll().contains("new-term"), "preview does not write files before confirmation");
+  unchanged.close();
   bool confirmed = false, completed = false;
   QTimer responder;
   responder.setInterval(5);
@@ -214,8 +232,7 @@ void workspaceSearchAndReplace() {
     }
   });
   responder.start();
-  // Preview is exposed through the panel even when its replace row is collapsed.
-  panel->replaceRequested();
+  replaceButton->click();
   responder.stop();
   require(confirmed && completed, "replacement was explicitly confirmed and finished");
   require(first->session.markdownText().toString().contains("new-term") && !first->session.document().isModified(), "open clean buffer updated after disk replacement");

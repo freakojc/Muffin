@@ -166,7 +166,6 @@ void muffin::MainWindow::previewWorkspaceReplace() {
   const auto result = panel->result();
   const QString replacement = panel->replacement();
   if (!result.complete || !result.error.isEmpty() || result.matches == 0) return;
-  panel->invalidate();
   QStringList skipped = result.skipped;
   auto changes = WorkspaceReplace::prepare(result, replacement, &skipped);
   const auto buffers = openSearchBuffers();
@@ -222,6 +221,7 @@ void muffin::MainWindow::previewWorkspaceReplace() {
   connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject); layout->addWidget(buttons);
   if (dialog.exec() != QDialog::Accepted) return;
+  panel->invalidate();
   QVector<WorkspaceChange> selected;
   for (int i = 0; i < changes.size(); ++i) if (files->topLevelItem(i)->checkState(0) == Qt::Checked) selected.append(changes[i]);
   const auto report = runWorkspaceWrite([root = result.query.root, selected](const OpenSearchBuffers& current, const SearchCancellation& cancel) {
