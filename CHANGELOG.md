@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-10-21
+
+### Added
+
+- Add folder-wide file navigation with Ctrl+P, matching filenames and relative paths with space-separated terms and ordered-character fuzzy matching. Show paths to distinguish files with the same name. ([#6](https://github.com/jstzwj/Muffin/issues/6))
+- Add recursive content search with Ctrl+Shift+F, case-sensitive and regular-expression options, and grouped results showing paths, line numbers and highlighted context. Include open unsaved buffers and navigate to matches in live editing where precise selection is possible.
+- Add folder replacement with a file checklist and before/after preview, explicit confirmation, original-file backups and recovery. Skip unsaved or changed files instead of overwriting them.
+
+### Changed
+
+- Access folder search through a magnifier in the Files toolbar, preserving file-tree expansion, search results and the sidebar width when switching views.
+- Make the sidebar replacement action easier to find and keep complete search results available after canceling the replacement preview.
+
+### Fixed
+
+- Remove the entire Markdown document when pressing Backspace or Delete after Select All, including mixed lists, links and literal blocks, while preserving undo/redo.
+- Preserve precise reading position during sidebar resizing and lazy layout, avoiding accumulated viewport drift and small vertical jumps in long documents.
+- Avoid rebuilding and highlighting an entire code block on caret clicks. Replace quadratic highlight normalization with a boundary sweep, limit source painting to visible paragraphs and prevent intermediate jumps to the end of a code block.
+
 ## [0.7.3] - 2026-10-19
 
 ### Added
@@ -738,7 +757,8 @@ An internal-architecture release. No user-visible behavior changes — every edi
 - **List indentation** - Fixed list item indent/outdent logic
 - **Cross-platform build** - Added `libxcb-util-dev` dependency for Linux CI and offscreen rendering environment for macOS tests
 
-[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.7.3...HEAD
+[Unreleased]: https://github.com/jstzwj/Muffin/compare/v0.7.4...HEAD
+[0.7.4]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.4
 [0.7.3]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.3
 [0.7.2]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.2
 [0.7.1]: https://github.com/jstzwj/Muffin/releases/tag/v0.7.1
