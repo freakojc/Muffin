@@ -195,6 +195,9 @@ void workspaceSearchAndReplace() {
     f.window.grab().save(QDir(screenshotDirectory).filePath("sidebar.png"));
   }
   panel->findChild<QLineEdit*>("WorkspaceReplacement")->setText("new-term");
+  int externalChanges = 0;
+  QObject::connect(&first->session, &DocumentSession::externalFileChanged, &f.window, [&] { ++externalChanges; });
+  QObject::connect(&dirty->session, &DocumentSession::externalFileChanged, &f.window, [&] { ++externalChanges; });
   panel->activate(true);
   auto* replaceButton = panel->findChild<QPushButton*>("WorkspaceReplacePreview");
   require(replaceButton && replaceButton->isVisible() && replaceButton->isEnabled(), "folder replacement has an available sidebar button");
@@ -227,7 +230,8 @@ void workspaceSearchAndReplace() {
         confirmed = true; button->click();
       }
     } else if (auto* message = qobject_cast<QMessageBox*>(modal)) {
-      require(message->windowTitle() == "Folder Replacement", "no self-write external-change prompt");
+      // QMessageBox deliberately ignores window titles on macOS.
+      require(message->objectName() == "FolderReplaceReport", "only the folder replacement report should be shown");
       completed = true; message->accept();
     }
   });
@@ -235,6 +239,7 @@ void workspaceSearchAndReplace() {
   replaceButton->click();
   responder.stop();
   require(confirmed && completed, "replacement was explicitly confirmed and finished");
+  require(externalChanges == 0, "folder replacement must not emit self-write external-change notifications");
   require(first->session.markdownText().toString().contains("new-term") && !first->session.document().isModified(), "open clean buffer updated after disk replacement");
   require(dirty->session.markdownText().toString() == "unsaved old-term\n" && dirty->session.document().isModified(), "dirty buffer preserved");
   QFile disk(a); require(disk.open(QIODevice::ReadOnly), "read replaced file");
@@ -248,12 +253,13 @@ void workspaceSearchAndReplace() {
     if (message->icon() == QMessageBox::Question) {
       for (auto* button : message->buttons()) if (button->text() == "Restore Originals") { restoreConfirmed = true; button->click(); return; }
     } else {
-      require(message->windowTitle() == "Undo Folder Replacement", "restoring open files emits no external-change prompt");
+      require(message->objectName() == "FolderRestoreReport", "only the folder restoration report should be shown");
       restoreCompleted = true; message->accept();
     }
   });
   responder.start(); action(f.window, "Undo Folder Replacement")->trigger(); responder.stop();
   require(restoreConfirmed && restoreCompleted, "restore explicitly confirmed and completed");
+  require(externalChanges == 0, "restoring open files must not emit self-write external-change notifications");
   require(first->session.markdownText().toString().contains("old-term") && !first->session.document().isModified(), "restored open buffer is synchronized");
   require(disk.open(QIODevice::ReadOnly) && disk.readAll().contains("old-term"), "restore updates disk");
 }

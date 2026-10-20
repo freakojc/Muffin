@@ -236,6 +236,7 @@ void muffin::MainWindow::previewWorkspaceReplace() {
   });
   QMessageBox message(QMessageBox::Information, tr("Folder Replacement"),
       tr("%1 files changed; %2 skipped.\n%3").arg(report.changed.size()).arg(report.skipped.size()).arg(report.error), QMessageBox::Ok, this);
+  message.setObjectName("FolderReplaceReport");
   message.setDetailedText(report.skipped.join('\n') + tr("\nRecovery folder: %1").arg(report.backupDirectory)); message.exec();
   panel->startSearch(openSearchBuffers());
 }
@@ -257,6 +258,7 @@ void muffin::MainWindow::undoWorkspaceReplace() {
   });
   QMessageBox message(QMessageBox::Information, tr("Undo Folder Replacement"),
       tr("%1 files restored; %2 skipped.\n%3").arg(report.changed.size()).arg(report.skipped.size()).arg(report.error), QMessageBox::Ok, this);
+  message.setObjectName("FolderRestoreReport");
   message.setDetailedText(report.skipped.join('\n')); message.exec();
   sidebar_->searchPanel()->startSearch(openSearchBuffers());
 }
