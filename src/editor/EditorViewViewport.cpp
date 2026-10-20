@@ -53,6 +53,7 @@ void EditorView::scrollToNode(NodeId id) {
   if (idx < 0) {
     return;
   }
+  viewportScrollRemainder_ = 0.0;
   layout_->ensureBuilt(idx, idx, theme_);
   const qreal targetTop = layout_->slotTop(idx);
   QScrollBar* scrollBar = verticalScrollBar();
@@ -62,7 +63,7 @@ void EditorView::scrollToNode(NodeId id) {
 
 ViewportPosition EditorView::viewportPosition() const {
   ViewportPosition position;
-  position.atStart = verticalScrollBar()->value() == 0;
+  position.atStart = qFuzzyIsNull(scrollY());
   const auto anchor = captureViewportAnchor();
   if (!anchor.valid || !document_) return position;
   const auto* node = document_->node(anchor.nodeId);
@@ -83,6 +84,7 @@ ViewportPosition EditorView::viewportPosition() const {
 void EditorView::restoreViewportPosition(const ViewportPosition& position, CursorPosition textPosition) {
   if (!layout_ || !document_ || position.sourceOffset < 0) return;
   stopScrollAnimation();
+  viewportScrollRemainder_ = 0.0;
   if (position.atStart) {
     verticalScrollBar()->setValue(0);
     return;
@@ -148,7 +150,7 @@ int EditorView::typewriterScrollTarget(const QRectF& cursor) const {
   }
   // Relaxed policy: scroll only when the caret leaves a comfort band (top/bottom third of the
   // viewport). When it already sits inside the band, no scrolling is wanted.
-  const qreal cursorViewportY = cursorCenterY - static_cast<qreal>(scrollBar->value());
+  const qreal cursorViewportY = cursorCenterY - scrollY();
   const qreal topMargin = viewportHeight / 3.0;
   const qreal bottomMargin = viewportHeight * 2.0 / 3.0;
   if (cursorViewportY < topMargin) {
@@ -173,7 +175,7 @@ void EditorView::ensureCursorVisible() {
   }
 
   QScrollBar* bar = verticalScrollBar();
-  const qreal top = bar->value();
+  const qreal top = scrollY();
   const qreal bottom = top + viewport()->height();
   const qreal margin = qMin<qreal>(24.0, viewport()->height() / 4.0);
   // A mouse click on a visible line must leave it under the pointer. Apply the comfort
@@ -329,6 +331,9 @@ HitTestResult EditorView::hitTest(QPointF viewportPos) const {
 // ─── scroll-bar / lazy-promotion / viewport anchor + pin ─────────────────────
 
 void EditorView::scrollContentsBy(int dx, int dy) {
+  // Wheel/slider/navigation changes establish a new reading position. Clear
+  // before ensureVisibleBuilt captures its anchor, rather than after promotion.
+  if (dy != 0 && !inScrollBuild_) viewportScrollRemainder_ = 0.0;
   QAbstractScrollArea::scrollContentsBy(dx, dy);
   if (layout_ && document_) {
     ensureVisibleBuilt();
@@ -411,23 +416,34 @@ EditorView::ViewportAnchor EditorView::captureViewportAnchor(NodeId preferNode) 
 
 bool EditorView::restoreViewportAnchor(const ViewportAnchor& anchor) {
   if (!anchor.valid || !layout_) {
+    viewportScrollRemainder_ = 0.0;
     return false;
   }
   const qsizetype slot = layout_->topLevelIndexFor(anchor.nodeId);
   if (slot < 0) {
+    viewportScrollRemainder_ = 0.0;
     return false;  // block removed by the change — leave cursor-follow to decide
   }
   QScrollBar* bar = verticalScrollBar();
-  const int target = qBound(bar->minimum(), qRound(layout_->slotTop(slot) - anchor.screenOffset), bar->maximum());
-  if (target == bar->value()) {
-    return false;
-  }
+  const qreal previousScroll = scrollY();
+  const qreal logicalScroll = layout_->slotTop(slot) - anchor.screenOffset;
+  const int target = qBound(bar->minimum(), qRound(logicalScroll), bar->maximum());
+  // Keep the fraction even if the integer value does not change. A clamped
+  // boundary cannot preserve the anchor, so discard its unreachable remainder.
+  viewportScrollRemainder_ = logicalScroll >= bar->minimum() && logicalScroll <= bar->maximum()
+      ? logicalScroll - target : 0.0;
   // Suppress the valueChanged -> scrollContentsBy -> ensureVisibleBuilt cascade whether or not a
   // ScopedViewportPin already holds the guard.
   const bool prev = inScrollBuild_;
   inScrollBuild_ = true;
   bar->setValue(target);
   inScrollBuild_ = prev;
+  if (scrollY() == previousScroll) return false;
+  // A fractional-only move emits no scrollbar signal. Paint, hit testing,
+  // caret and inline controls must still share the same precise origin.
+  updateCodeLanguageEditor();
+  updateTableToolbar();
+  diag::updateViewport(viewport());
   return true;
 }
 
@@ -467,7 +483,7 @@ QRectF EditorView::documentViewportRect() const {
 }
 
 qreal EditorView::scrollY() const {
-  return static_cast<qreal>(verticalScrollBar()->value());
+  return static_cast<qreal>(verticalScrollBar()->value()) + viewportScrollRemainder_;
 }
 
 QPointF EditorView::mapDocumentToViewport(const QPointF& documentPos) const {

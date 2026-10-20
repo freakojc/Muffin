@@ -277,8 +277,10 @@ void EditorView::refreshPendingResources() {
 void EditorView::setDocument(const MarkdownDocument& document, QString documentPath) {
   cssPaintContext_.clear();
   cssPaintTimer_->stop();
-  if (document_ != &document || documentPath_ != documentPath)
+  if (document_ != &document || documentPath_ != documentPath) {
     openSequenceMenus_.clear();
+    viewportScrollRemainder_ = 0.0;
+  }
   document_ = &document;
   documentPath_ = std::move(documentPath);
   blockBuiltAt_.clear();  // fresh document: every block's build stamp is stale

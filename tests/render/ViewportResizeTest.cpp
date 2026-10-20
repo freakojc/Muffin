@@ -6,6 +6,8 @@
 #include <QScrollBar>
 #include <QFile>
 #include <QPaintEvent>
+#include <QTimer>
+#include <QEasingCurve>
 
 namespace {
 void testOpaqueViewportSkipsParentPaintAndTracksTheme() {
@@ -212,6 +214,85 @@ void testResizeKeepsReadingPositionWithOffscreenCaret() {
           "idle height estimation must preserve the same reading anchor");
 }
 
+void testLongDocumentResizeDoesNotAccumulateRounding() {
+  // Offscreen views use eager layout. The minimal/native runs exercise the
+  // same deferred estimates used by the application.
+  if (QApplication::platformName() == QLatin1String("offscreen")) return;
+  DocumentSession session;
+  session.setMarkdownText(QStringLiteral("A paragraph with enough words for multiple lines while resizing. ")
+                              .repeated(6).append("\n\n").repeated(12000), false);
+  EditorView view;
+  view.setAttribute(Qt::WA_DontShowOnScreen);
+  view.resize(1000, 500);
+  view.setTheme(RenderTheme::fromDefinition(CssThemeMapper::fromCss(
+      "#write{max-width:900px;padding:20px}p{font-size:17px;line-height:1.65;margin:13.3px 0}",
+      "resize-rounding", {})));
+  view.setDocument(session.document());
+  view.show();
+  QApplication::processEvents();
+  const auto& children = session.document().root().children();
+  NodeId anchor = children[9600]->id();
+  view.scrollToNode(anchor);
+  view.verticalScrollBar()->setValue(qRound(view.nodeRect(anchor).top() + 30));
+  auto* estimates = view.findChild<QTimer*>("viewportEstimates");
+  require(estimates, "deferred viewport estimate timer exists");
+  const auto stopTimers = [&] {
+    for (auto* timer : view.findChildren<QTimer*>()) timer->stop();
+  };
+  stopTimers();
+  const auto screenY = [&] { return view.mapDocumentToViewport(view.nodeRect(anchor).topLeft()).y(); };
+  const auto readingImage = [&] { return view.viewport()->grab(QRect(40, 0, 200, 120)).toImage(); };
+  for (int toggle = 0; toggle < 4; ++toggle) {
+    qreal before = screenY();
+    const int from = toggle % 2 == 0 ? 1000 : 740;
+    const int to = toggle % 2 == 0 ? 740 : 1000;
+    const QEasingCurve easing(QEasingCurve::OutCubic);
+    for (int frame = 1; frame <= 12; ++frame) {
+      view.resize(qRound(from + (to - from) * easing.valueForProgress(frame / 12.0)), 500);
+      stopTimers();
+      require(qAbs(screenY() - before) < .001, "sidebar width animation keeps the reading block stationary");
+    }
+    QImage referenceImage = readingImage();
+    stopTimers();
+    // More than 40 slices: repeated rounding must remain bounded throughout
+    // the idle pass, rather than merely cancel after opening AND closing.
+    bool complete = false;
+    for (int slice = 0; slice < 500; ++slice) {
+      QMetaObject::invokeMethod(estimates, "timeout", Qt::DirectConnection);
+      complete = !estimates->isActive();
+      stopTimers();
+      require(qAbs(screenY() - before) < .001,
+              QStringLiteral("reading anchor drifted during toggle %1, slice %2: %3px")
+                  .arg(toggle).arg(slice).arg(screenY() - before));
+      require(readingImage() == referenceImage,
+              QStringLiteral("visible text pixels changed during idle toggle %1, slice %2").arg(toggle).arg(slice));
+      stopTimers();
+      if (toggle == 1 && slice == 2) {
+        // Explicit navigation supersedes the previous reading position.
+        anchor = children[9000]->id();
+        view.scrollToNode(anchor);
+        view.verticalScrollBar()->setValue(qRound(view.nodeRect(anchor).top() + 30));
+        before = screenY();
+        referenceImage = readingImage();
+      } else if (toggle == 2 && slice == 2) {
+        // A scrollbar move must reset rounding before visible promotion runs.
+        anchor = children[8400]->id();
+        view.verticalScrollBar()->setValue(qRound(view.nodeRect(anchor).top() + 30));
+        before = screenY();
+        referenceImage = readingImage();
+      } else if (toggle == 3 && slice == 2) {
+        anchor = children.front()->id();
+        view.verticalScrollBar()->setValue(0);
+        before = screenY();
+        referenceImage = readingImage();
+      }
+      if (complete) break;
+    }
+    require(complete, "long document resize estimates finish");
+    if (toggle == 3) require(view.verticalScrollBar()->value() == 0, "idle estimates do not pull away from the document start");
+  }
+}
+
 void testBudgetedPrefetchAndEviction() {
   DocumentSession session;
   session.setMarkdownText(QString("A **bold** *em* paragraph with words for wrapping. ").repeated(3).append("\n\n").repeated(160), false);
@@ -343,6 +424,7 @@ int main(int argc, char** argv) {
   runTest("HTML viewport and edits", testHtmlViewportUnitsAndEditsDuringResize);
   runTest("HTML viewport style dependencies", testHtmlResizeInvalidatesOnlyViewportStyles);
   runTest("resize reading anchor", testResizeKeepsReadingPositionWithOffscreenCaret);
+  runTest("long document resize rounding", testLongDocumentResizeDoesNotAccumulateRounding);
   runTest("budgeted prefetch and eviction", testBudgetedPrefetchAndEviction);
   runTest("viewport opacity and parent paint", testOpaqueViewportSkipsParentPaintAndTracksTheme);
   benchmarkLargeResize();

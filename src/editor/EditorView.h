@@ -177,7 +177,7 @@ private:
   struct ViewportAnchor {
     bool valid = false;
     NodeId nodeId;
-    qreal screenOffset = 0.0;  // slotTop(nodeId) - scrollY() at capture time
+    qreal screenOffset = 0.0;  // slotTop minus the unrounded logical scroll position
   };
   // Resolve the block to anchor on into a ViewportAnchor. When `preferNode` is valid it is used
   // directly (e.g. the cursor's block, so a marker reveal keeps the clicked line put); otherwise
@@ -355,6 +355,10 @@ private:
   // implicit setRange -> clamp -> valueChanged -> scrollContentsBy -> ensureVisibleBuilt cascade
   // cannot re-enter layout and re-promote mid-transaction.
   bool inScrollBuild_ = false;
+  // QScrollBar stores integers. Paint and hit testing also use this fraction
+  // so deferred height updates neither accumulate drift nor jitter by a pixel.
+  // Explicit scrolling starts a new reference; guarded layout scrolling keeps it.
+  qreal viewportScrollRemainder_ = 0.0;
   // A checkbox click edits in place, even when the text caret is offscreen.
   bool togglingTaskCheckbox_ = false;
   bool loading_ = false;  // set by setLoading; paintEvent shows a loading hint while true
