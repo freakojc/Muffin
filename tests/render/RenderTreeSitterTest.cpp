@@ -103,6 +103,27 @@ void testTreeSitterCodeHighlighting() {
   require(highlighter.highlight(QStringLiteral("text"), QStringLiteral("plain text")).isEmpty(), QStringLiteral("text should not highlight"));
 }
 
+void testLongCodeHighlightingPreservesTokenBoundaries() {
+  TreeSitterHighlighter highlighter;
+  const QString line = QStringLiteral("const char* value = \"hi\\n\"; /* \u6ce8\u91ca \U0001f600 */\n");
+  const auto expected = highlighter.highlight(QStringLiteral("cpp"), line);
+  const auto spans = highlighter.highlight(QStringLiteral("cpp"), line.repeated(1500));
+  require(!expected.isEmpty() && spans.size() == expected.size() * 1500,
+          "long code must retain all normalized token spans");
+  for (int row = 0; row < 1500; ++row)
+    for (qsizetype i = 0; i < expected.size(); ++i) {
+      const auto& actual = spans[row * expected.size() + i];
+      require(actual.start == row * line.size() + expected[i].start &&
+                  actual.end == row * line.size() + expected[i].end && actual.role == expected[i].role,
+              "normalizing repeated tokens must preserve roles and Unicode source offsets");
+    }
+  const QString json = QStringLiteral("{\"message\": \"hi\\n\"}");
+  const auto nested = highlighter.highlight(QStringLiteral("json"), json);
+  const qsizetype escape = json.indexOf(QStringLiteral("\\n"));
+  require(hasExactRoleSpan(nested, CodeHighlightRole::Escape, escape, escape + 2),
+          "an escape capture must override its enclosing string capture");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -112,6 +133,7 @@ int main(int argc, char** argv) {
   QApplication app(argc, argv);
 #define RUN_TEST(test) runTest(#test, test)
   RUN_TEST(testTreeSitterCodeHighlighting);
+  RUN_TEST(testLongCodeHighlightingPreservesTokenBoundaries);
 #undef RUN_TEST
   return 0;
 }

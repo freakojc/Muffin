@@ -436,13 +436,20 @@ void BlockLayout::paintPositionedPseudos(QPainter& painter, QPointF origin, qrea
 }
 
 bool BlockLayout::selectionLayoutMatches(const SelectionRange& selection, const MarkdownDocument& document) const {
+  if (!document.node(id_)) return false;
+  // Ordinary source blocks keep the same geometry when the caret enters,
+  // leaves or moves inside them. Retain their shaping and syntax highlights.
+  // Mermaid, math and HTML can switch between a preview and a source editor;
+  // a cancelled IME splice also needs a fresh layout.
+  if ((type_ == BlockType::CodeFence && codeLanguage_.trimmed().compare(QStringLiteral("mermaid"), Qt::CaseInsensitive) != 0) ||
+      type_ == BlockType::FrontMatter)
+    return literalTextLayout_ && !literalTextLayout_->hasPreedit();
   // Entering/leaving a block can switch generated previews, literal editors or
   // omitted empty paragraphs. Reuse within a block is governed by its actual
   // projection decisions, rather than the caret's exact character offset.
   if (layoutSelection_.focus.blockId != selection.focus.blockId ||
       layoutSelection_.focus.text.nodeId != selection.focus.text.nodeId ||
       isLiteralBlockType(type_) || type_ == BlockType::LinkDefinition || type_ == BlockType::FootnoteDefinition) return false;
-  if (!document.node(id_)) return false;
   // A quote's virtual empty paragraphs also depend on the selection anchor.
   // Containers may omit those children entirely, so compare that dependency
   // before inspecting just the materialized descendants.
@@ -1690,7 +1697,7 @@ void BlockLayout::paintCodeFence(QPainter& painter, const RenderTheme& theme, QR
     painter.save();
     // Clip in view space FIRST, then translate: NoWrap lines are drawn at natural width and must
     // be cut at the block's right edge instead of overflowing into the page margin.
-    painter.setClipRect(textRect);
+    painter.setClipRect(textRect, Qt::IntersectClip);
     painter.translate(QPointF(-offset, 0.0));
     // Draw at the base text rect (NOT +offset). The painter's translate(-offset) is what actually
     // moves the content: a char at world x appears at device x-offset, so as `offset` grows the line
@@ -1729,7 +1736,18 @@ void BlockLayout::paintLiteralSource(QPainter& painter, const RenderTheme& theme
   QTextCharFormat base;
   base.setForeground(theme.textColor());
   QList<TextLayout::FormatRange> formats{{0, int(literal_.size()), base}};
-  for (const auto& span : spans) {
+  auto first = spans.cbegin(), last = spans.cend();
+  if (painter.hasClipping()) {
+    const auto clip = painter.clipBoundingRect().translated(-contentRect.topLeft());
+    const auto [start, end] = literalTextLayout(theme).sourceRangeForY(clip.top(), clip.bottom());
+    // Highlight spans are normalized: sorted and non-overlapping.
+    first = std::lower_bound(first, last, start,
+        [](const CodeHighlightSpan& span, qsizetype offset) { return span.end <= offset; });
+    last = std::lower_bound(first, last, end,
+        [](const CodeHighlightSpan& span, qsizetype offset) { return span.start < offset; });
+  }
+  for (auto it = first; it != last; ++it) {
+    const auto& span = *it;
     QTextCharFormat format;
     format.setForeground(theme.codeHighlightColor(span.role));
     formats.append({int(span.start), int(span.end - span.start), format});
@@ -1755,7 +1773,17 @@ void BlockLayout::paintCodeLineNumbers(QPainter& painter, const RenderTheme& the
   const qreal numRightX = codeRect.left() - 2.0 * metrics.horizontalAdvance(QStringLiteral("8"));
   painter.setFont(literalFont());
   painter.setPen(theme.mutedTextColor());
-  for (const auto& line : literalTextLayout(theme).numberedLines()) {
+  const auto& lines = literalTextLayout(theme).numberedLines();
+  auto first = lines.cbegin(), last = lines.cend();
+  if (painter.hasClipping()) {
+    const auto clip = painter.clipBoundingRect().translated(-codeRect.topLeft());
+    first = std::lower_bound(first, last, clip.top(),
+        [](const auto& line, qreal y) { return line.rect.bottom() < y; });
+    last = std::upper_bound(first, last, clip.bottom(),
+        [](qreal y, const auto& line) { return y < line.rect.top(); });
+  }
+  for (auto it = first; it != last; ++it) {
+    const auto& line = *it;
     const QString number = QString::number(line.number);
     const qreal width = metrics.horizontalAdvance(number);
     drawDocumentText(painter, QRectF(numRightX - width, codeRect.top() + line.rect.top(), width, line.rect.height()),

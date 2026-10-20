@@ -9,6 +9,7 @@
 #include <QStringList>
 
 #include <algorithm>
+#include <array>
 #include <map>
 #include <memory>
 
@@ -403,45 +404,42 @@ QVector<CodeHighlightSpan> normalizeSpans(QVector<CodeHighlightSpan> spans, qsiz
     span.start = qBound<qsizetype>(0, span.start, textSize);
     span.end = qBound<qsizetype>(span.start, span.end, textSize);
   }
-  std::sort(spans.begin(), spans.end(), [](const CodeHighlightSpan& left, const CodeHighlightSpan& right) {
-    if (left.start != right.start) {
-      return left.start < right.start;
-    }
-    const qsizetype leftLength = left.end - left.start;
-    const qsizetype rightLength = right.end - right.start;
-    if (leftLength != rightLength) {
-      return leftLength < rightLength;
-    }
-    return priority(left.role) > priority(right.role);
+  struct Event {
+    qsizetype offset;
+    CodeHighlightRole role;
+    int delta;
+  };
+  QVector<Event> events;
+  events.reserve(spans.size() * 2);
+  for (const CodeHighlightSpan& span : spans) {
+    events.push_back({span.start, span.role, 1});
+    events.push_back({span.end, span.role, -1});
+  }
+  std::sort(events.begin(), events.end(), [](const Event& left, const Event& right) {
+    return left.offset < right.offset;
   });
 
-  QVector<qsizetype> boundaries;
-  boundaries.reserve(spans.size() * 2);
-  for (const CodeHighlightSpan& span : spans) {
-    boundaries.push_back(span.start);
-    boundaries.push_back(span.end);
-  }
-  std::sort(boundaries.begin(), boundaries.end());
-  boundaries.erase(std::unique(boundaries.begin(), boundaries.end()), boundaries.end());
-
+  // Sweep capture boundaries once. Scanning every capture at every boundary
+  // made highlighting a long code fence quadratic, including on caret moves.
+  std::array<int, 14> active{};
+  std::array<CodeHighlightRole, 14> roles{};
   QVector<CodeHighlightSpan> result;
-  for (qsizetype i = 0; i + 1 < boundaries.size(); ++i) {
-    const qsizetype start = boundaries.at(i);
-    const qsizetype end = boundaries.at(i + 1);
-    CodeHighlightRole bestRole = CodeHighlightRole::Plain;
-    int bestPriority = 0;
-    for (const CodeHighlightSpan& span : spans) {
-      if (span.start <= start && span.end >= end) {
-        const int spanPriority = priority(span.role);
-        if (spanPriority >= bestPriority) {
-          bestPriority = spanPriority;
-          bestRole = span.role;
-        }
-      }
-    }
-    if (bestRole == CodeHighlightRole::Plain) {
+  for (qsizetype i = 0; i < events.size();) {
+    const qsizetype start = events[i].offset;
+    do {
+      const auto& event = events[i++];
+      const int rank = priority(event.role);
+      active[rank] += event.delta;
+      roles[rank] = event.role;
+    } while (i < events.size() && events[i].offset == start);
+    if (i == events.size()) break;
+    const qsizetype end = events[i].offset;
+    int bestPriority = int(active.size()) - 1;
+    while (bestPriority > 0 && active[bestPriority] == 0) --bestPriority;
+    if (bestPriority == 0) {
       continue;
     }
+    const auto bestRole = roles[bestPriority];
     if (!result.isEmpty() && result.last().end == start && result.last().role == bestRole) {
       result.last().end = end;
     } else {

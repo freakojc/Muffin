@@ -21,6 +21,7 @@
 #include <QDebug>
 #include <QElapsedTimer>
 #include <QLoggingCategory>
+#include <QSignalBlocker>
 
 namespace muffin {
 namespace {
@@ -1409,10 +1410,15 @@ void EditorController::activateHit(HitTestResult hit) {
       }
     }
   }
-  selection_.setHitResult(hit);
-  if (hit.zone != HitTestResult::Zone::Html && enterLiteralEditMode(hit.zone)) {
+  if (hit.zone != HitTestResult::Zone::Html) {
+    // Literal editors initialize at the source end. Activate them silently,
+    // then publish only the clicked caret: exposing the intermediate end caret
+    // both rebuilt a long fence again and scrolled away from the clicked row.
+    const QSignalBlocker blocker(&selection_);
     selection_.setHitResult(hit);
+    enterLiteralEditMode(hit.zone);
   }
+  selection_.setHitResult(hit);
 }
 
 }  // namespace muffin

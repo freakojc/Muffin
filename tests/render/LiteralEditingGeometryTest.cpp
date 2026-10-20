@@ -9,6 +9,7 @@
 #include <QInputMethodEvent>
 #include <QPainter>
 #include <QScrollBar>
+#include <QtMath>
 
 namespace {
 
@@ -367,6 +368,37 @@ void testSourcePaintFormatCascadeAndInvalidation() {
           "removing source styles discards cached colors and diagnostics while retaining IME");
 }
 
+void testClippedSourcePaintMatchesFullPaint() {
+  const QString row = QStringLiteral("alpha beta gamma delta epsilon zeta\n");
+  const QString source = row.repeated(60);
+  const QFont font = RenderTheme::github().codeFont();
+  QTextCharFormat base, syntax, diagnostic, ime;
+  base.setForeground(Qt::black);
+  syntax.setForeground(Qt::blue);
+  diagnostic.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+  diagnostic.setUnderlineColor(Qt::red);
+  ime.setForeground(Qt::darkGreen);
+  LiteralTextLayout layout(source, font, 145, 28, true,
+                           {row.size() * 30 + 8, QStringLiteral("COMPOSITION"), {{0, 11, ime}}, 5});
+  for (const QColor color : {QColor(Qt::blue), QColor(Qt::magenta)}) {
+    syntax.setForeground(color);
+    const QList<TextLayout::FormatRange> formats{{0, int(source.size()), base}, {5, int(source.size() - 10), syntax},
+        {int(row.size() * 25), int(row.size() * 12), diagnostic}, {int(row.size() * 31 + 4), 8, base}};
+    QImage full(200, qCeil(layout.height()) + 16, QImage::Format_ARGB32_Premultiplied);
+    full.fill(Qt::white);
+    { QPainter painter(&full); painter.setPen(Qt::black); layout.draw(painter, {8, 8}, formats); }
+    for (int y : {0, int(layout.height() / 2) + 17, int(layout.height()) - 120, int(layout.height()) + 20}) {
+      QImage clipped(200, 100, full.format()), expected(200, 100, full.format());
+      clipped.fill(Qt::white); expected.fill(Qt::white);
+      const QRect dirty(3, 9, 181, 71);
+      { QPainter painter(&expected); painter.setClipRect(dirty); painter.drawImage(0, -y, full); }
+      { QPainter painter(&clipped); painter.setPen(Qt::black); painter.setClipRect(dirty);
+        layout.draw(painter, {8, 8 - qreal(y)}, formats); }
+      require(clipped == expected, "clipped source must match a full paint through wrapped rows, diagnostics and IME");
+    }
+  }
+}
+
 void testOverflowingTrailingSpaceCarets() {
   // Qt keeps a breakable whitespace suffix on the preceding wrapped row.
   // Its editable caret advances can extend beyond the source block's box,
@@ -496,6 +528,7 @@ int main(int argc, char** argv) {
   SettingsOverride lineNumbers("markdown/showLineNumbers", false);
   runTest("painted code syntax colors", testCodeHighlightColorsReachPaintedGlyphs);
   runTest("source format cascade and invalidation", testSourcePaintFormatCascadeAndInvalidation);
+  runTest("clipped source paint", testClippedSourcePaintMatchesFullPaint);
   runTest("real themes, zoom and wrap", testRealThemesAndZoom);
   runTest("local CSS, HTML, metadata and Unicode", testScopedCssAndOtherSourceBlocks);
   runTest("painted glyph geometry", testSourcePaintUsesTheMeasuredGlyphs);

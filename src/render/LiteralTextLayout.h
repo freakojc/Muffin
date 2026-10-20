@@ -55,6 +55,9 @@ public:
   QRectF cursorRect(qsizetype sourceOffset) const;
   QRectF preeditCursorRect() const;
   QVector<QRectF> selectionRects(qsizetype start, qsizetype end) const;
+  // Include whole physical paragraphs so clipped paints retain identical
+  // shaping and format precedence at soft-wrap boundaries.
+  QPair<qsizetype, qsizetype> sourceRangeForY(qreal top, qreal bottom) const;
   void draw(QPainter& painter, QPointF origin, const QList<TextLayout::FormatRange>& sourceFormats) const;
 
 private:
@@ -69,6 +72,7 @@ private:
   qsizetype sourceOffset(qsizetype displayOffset) const;
   int lineIndexForDisplayOffset(qsizetype offset) const;
   QRectF displayCursorRect(qsizetype offset) const;
+  QPair<qsizetype, qsizetype> paragraphRangeForY(qreal top, qreal bottom) const;
 
   QString source_;
   QString display_;

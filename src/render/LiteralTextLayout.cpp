@@ -6,6 +6,7 @@
 #include <QTextOption>
 #include <algorithm>
 #include <cmath>
+#include <tuple>
 
 namespace muffin {
 
@@ -208,17 +209,42 @@ QVector<QRectF> LiteralTextLayout::selectionRects(qsizetype start, qsizetype end
   return result;
 }
 
+QPair<qsizetype, qsizetype> LiteralTextLayout::paragraphRangeForY(qreal top, qreal bottom) const {
+  // Keep a row of overscan for antialiasing and glyph overhang.
+  const auto first = std::lower_bound(numberedLines_.cbegin(), numberedLines_.cend(), top - lineHeight_,
+      [](const NumberedLine& line, qreal y) { return line.rect.bottom() < y; });
+  const auto last = std::upper_bound(first, numberedLines_.cend(), bottom + lineHeight_,
+      [](qreal y, const NumberedLine& line) { return y < line.rect.top(); });
+  return {first - numberedLines_.cbegin(), last - numberedLines_.cbegin()};
+}
+
+QPair<qsizetype, qsizetype> LiteralTextLayout::sourceRangeForY(qreal top, qreal bottom) const {
+  const auto [first, last] = paragraphRangeForY(top, bottom);
+  if (first == last) return {0, 0};
+  return {sourceOffset(paragraphs_[first].start), sourceOffset(paragraphs_[last - 1].start + paragraphs_[last - 1].length)};
+}
+
 void LiteralTextLayout::draw(QPainter& painter, QPointF origin, const QList<TextLayout::FormatRange>& sourceFormats) const {
-  std::vector<QList<TextLayout::FormatRange>> formats(paragraphs_.size());
+  qsizetype firstParagraph = 0, lastParagraph = qsizetype(paragraphs_.size());
+  if (painter.hasClipping()) {
+    const auto clip = painter.clipBoundingRect().translated(-origin);
+    std::tie(firstParagraph, lastParagraph) = paragraphRangeForY(clip.top(), clip.bottom());
+  }
+  if (firstParagraph == lastParagraph) return;
+  const qsizetype visibleStart = paragraphs_[firstParagraph].start;
+  const qsizetype visibleEnd = paragraphs_[lastParagraph - 1].start + paragraphs_[lastParagraph - 1].length;
+  std::vector<QList<TextLayout::FormatRange>> formats(lastParagraph - firstParagraph);
   // Distribute each range only to the physical lines it overlaps.
   const auto append = [&](qsizetype start, qsizetype end, const QTextCharFormat& format) {
+    start = qMax(start, visibleStart);
+    end = qMin(end, visibleEnd);
     if (start >= end) return;
     auto it = std::upper_bound(paragraphs_.begin(), paragraphs_.end(), start,
         [](qsizetype pos, const Paragraph& paragraph) { return pos < paragraph.start; });
     if (it != paragraphs_.begin()) --it;
     for (; it != paragraphs_.end() && it->start < end; ++it) {
       const qsizetype first = qMax(start, it->start), last = qMin(end, it->start + it->length);
-      if (first < last) formats[it - paragraphs_.begin()].append({int(first - it->start), int(last - first), format});
+      if (first < last) formats[it - paragraphs_.begin() - firstParagraph].append({int(first - it->start), int(last - first), format});
     }
   };
   QTextCharFormat defaultInk;
@@ -240,9 +266,10 @@ void LiteralTextLayout::draw(QPainter& painter, QPointF origin, const QList<Text
   for (const auto& range : preedit_.formats)
     append(preedit_.offset + qMax(0, range.start), preedit_.offset + qMin<qsizetype>(
         preedit_.text.size(), qsizetype(range.start) + range.length), range.format);
-  for (size_t i = 0; i < paragraphs_.size(); ++i) {
+  for (qsizetype i = firstParagraph; i < lastParagraph; ++i) {
     const auto& paragraph = paragraphs_[i];
-    if (formats[i] == paragraph.layout->formats()) {
+    const auto& paragraphFormats = formats[i - firstParagraph];
+    if (paragraphFormats == paragraph.layout->formats()) {
       paragraph.paintLayout.reset();
       paragraph.paintFormats.clear();
       paragraph.layout->draw(&painter, origin);
@@ -252,11 +279,11 @@ void LiteralTextLayout::draw(QPainter& painter, QPointF origin, const QList<Text
     // suppresses overlapping foreground regions, including adjacent character
     // ranges whose selection rectangles overlap after rounding to pixels.
     // Cache the formatted variant so repainting never repeats this shaping.
-    if (!paragraph.paintLayout || paragraph.paintFormats != formats[i]) {
+    if (!paragraph.paintLayout || paragraph.paintFormats != paragraphFormats) {
       auto layout = std::make_unique<TextLayout>(paragraph.layout->text(), font_, paragraph.layout->backend());
       layout->setCacheEnabled(true);
       layout->setTextOption(paragraph.layout->textOption());
-      layout->setFormats(formats[i]);
+      layout->setFormats(paragraphFormats);
       layout->beginLayout();
       for (int row = 0; row < paragraph.layout->lineCount(); ++row) {
         const auto original = paragraph.layout->lineAt(row);
@@ -266,7 +293,7 @@ void LiteralTextLayout::draw(QPainter& painter, QPointF origin, const QList<Text
         line.setPosition(original.position());
       }
       layout->endLayout();
-      paragraph.paintFormats = formats[i];
+      paragraph.paintFormats = paragraphFormats;
       paragraph.paintLayout = std::move(layout);
     }
     paragraph.paintLayout->draw(&painter, origin);

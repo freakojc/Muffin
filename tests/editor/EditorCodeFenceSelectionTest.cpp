@@ -16,6 +16,8 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QKeyEvent>
+#include <QMouseEvent>
+#include <QScrollBar>
 
 #include <iostream>
 #include <variant>
@@ -417,6 +419,59 @@ void testMathBlockUpDownMovesLineByLine() {
           "Down should move to the second math source line");
 }
 
+void testLongCodeFenceClickRetainsLayoutAndViewport() {
+  const QString line = QStringLiteral("const auto value = calculate(42, \"markdown\"); // note\n");
+  DocumentSession session;
+  EditorView view;
+  EditorController controller;
+  controller.attach(&session, &view);
+  view.setAttribute(Qt::WA_DontShowOnScreen);
+  view.resize(1000, 700);
+  session.setMarkdownText(QStringLiteral("before\n\n```cpp\n") + line.repeated(1500) + QStringLiteral("```\n\nafter"), false);
+  view.setDocument(session.document());
+  view.show();
+  QApplication::processEvents();
+  const NodeId id = blockAt(session, 1)->id();
+  const auto* original = view.blockLayoutForNode(id);
+  const auto* shaping = &original->literalTextLayout(view.theme());
+  // Keep the old capture buffer alive: a rebuilt highlighter cannot obtain the
+  // same address from the allocator and accidentally pass this assertion.
+  const auto highlights = original->codeHighlightSpans();
+  require(!highlights.isEmpty(), "long fence should be syntax highlighted");
+  const QString before = session.markdownText().toString();
+  int selectionUpdates = 0;
+  QObject::connect(&controller.selection(), &SelectionController::selectionChanged,
+                   [&] { ++selectionUpdates; });
+  int column = 3;
+  for (int row : {750, 751, 1100}) {
+    // Separate click positions so Qt does not interpret the rapid sequence as
+    // a double/triple click, whose selection semantics are deliberately different.
+    column += 9;
+    const qsizetype offset = row * line.size() + column;
+    const auto caret = view.blockLayoutForNode(id)->literalVisualCursorRect(offset, view.theme());
+    view.verticalScrollBar()->setValue(qRound(caret.top() - 240));
+    QApplication::processEvents();
+    const auto point = view.mapDocumentToViewport(caret.center());
+    const auto expected = view.hitTest(point);
+    require(expected.blockId == id && expected.textOffset == offset, "long fence target must round-trip to its source offset");
+    const int scrollBefore = view.verticalScrollBar()->value();
+    selectionUpdates = 0;
+    QMouseEvent press(QEvent::MouseButtonPress, point, view.viewport()->mapToGlobal(point.toPoint()),
+                      Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    QApplication::sendEvent(view.viewport(), &press);
+    QMouseEvent release(QEvent::MouseButtonRelease, point, view.viewport()->mapToGlobal(point.toPoint()),
+                        Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    QApplication::sendEvent(view.viewport(), &release);
+    const auto* current = view.blockLayoutForNode(id);
+    require(&current->literalTextLayout(view.theme()) == shaping, "caret clicks must retain the long source shaping");
+    require(current->codeHighlightSpans().constData() == highlights.constData(), "caret clicks must retain existing syntax highlights");
+    require(selectionUpdates == 1, "one click must publish only the clicked caret, without an intermediate end caret");
+    require(controller.selection().cursorPosition().text.textOffset == offset, "click must activate the requested code offset");
+    require(view.verticalScrollBar()->value() == scrollBefore, "clicking a visible code row must keep the viewport fixed");
+  }
+  require(session.markdownText().toString() == before, "caret clicks must preserve the source");
+}
+
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -432,6 +487,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testCodeFenceUpDownLeavesBlockAtBoundaries);
   RUN_TEST(testCodeFenceLeftRightWrapsAtLineBoundaries);
   RUN_TEST(testMathBlockUpDownMovesLineByLine);
+  RUN_TEST(testLongCodeFenceClickRetainsLayoutAndViewport);
   RUN_TEST(testKeyboardNavigationBasics);
   RUN_TEST(testSelectAllContextSemantics);
 #undef RUN_TEST
