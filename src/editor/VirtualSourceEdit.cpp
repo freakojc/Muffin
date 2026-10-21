@@ -509,6 +509,13 @@ void VirtualSourceEdit::replaceSelection(const QString& text) {
   if (hasSelection()) insertText(text);
 }
 
+void VirtualSourceEdit::replaceAllWithUndo(const QString& text) {
+  QString normalized = text;
+  normalized.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
+  normalized.replace(QLatin1Char('\r'), QLatin1Char('\n'));
+  applyEdit(0, source().size(), normalized, true);
+}
+
 void VirtualSourceEdit::deleteForward() {
   if (hasSelection()) {
     applyEdit(selectionStart(), selectionEnd(), {}, true);

@@ -283,6 +283,18 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .handler = [](MainWindow& window) { window.cycleTab(false); }},
 
       // ---------------- Edit ----------------
+      {.id = QStringLiteral("edit.navigate_back"),
+       .category = CommandCategory::Edit,
+       .text = muffin::MainWindow::tr("Back"),
+       .shortcut = QKeySequence(QStringLiteral("Alt+Left")),
+       .handler = [](MainWindow& w) { w.navigateHistory(false); },
+       .enabled = [](const MainWindow& w) { return !w.backHistory_.isEmpty() && !w.pendingNavigation_; }},
+      {.id = QStringLiteral("edit.navigate_forward"),
+       .category = CommandCategory::Edit,
+       .text = muffin::MainWindow::tr("Forward"),
+       .shortcut = QKeySequence(QStringLiteral("Alt+Right")),
+       .handler = [](MainWindow& w) { w.navigateHistory(true); },
+       .enabled = [](const MainWindow& w) { return !w.forwardHistory_.isEmpty() && !w.pendingNavigation_; }},
       {.id = QStringLiteral("edit.undo"),
        .category = CommandCategory::Edit,
        .text = muffin::MainWindow::tr("Undo"),
@@ -312,7 +324,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          if (href.isEmpty()) {
            return;
          }
-         QDesktopServices::openUrl(resolvedUrlForDocumentResource(href, window.tab_->session.filePath()));
+         window.navigateToLink(href);
        },
        .enabled = [](const MainWindow& w) {
          return !w.tab_->backend->isSourceMode() && !w.tab_->renderView->cursorHit().linkHref.isEmpty();
@@ -1790,6 +1802,9 @@ const std::vector<muffin::MenuSpec>& muffin::mainMenuSpec() {
       // Edit
       {muffin::MainWindow::tr("Edit"),
        {
+           {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.navigate_back")},
+           {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.navigate_forward")},
+           {.kind = MenuItem::Kind::Separator},
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.undo")},
            {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.redo")},
            {.kind = MenuItem::Kind::Separator},

@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "app/NoteLinks.h"
 #include "app/QuickOpenDialog.h"
 #include "app/SearchPanelWidget.h"
 #include "app/LanguageManager.h"
@@ -36,6 +37,7 @@
 #include <QInputMethodEvent>
 #include <QListWidget>
 #include <QPushButton>
+#include <QPlainTextEdit>
 #include <QProxyStyle>
 #include <QScrollBar>
 #include <QScopeGuard>
@@ -122,6 +124,204 @@ struct Fixture {
 
   void close(DocumentTab* document) { tabs->tabCloseRequested(tabs->indexOf(document)); }
 };
+
+void noteLinkRewriting() {
+  const QString root = QDir::tempPath() + QStringLiteral("/muffin-notes");
+  const auto oldPath = root + QStringLiteral("/notes/方案.md");
+  const auto newPath = root + QStringLiteral("/archive/new name.md");
+  const auto source = root + QStringLiteral("/index.md");
+  const QString before = QStringLiteral(
+      "# 项目总览\n\n[方案](notes/方案.md#第一节 \"保留标题\")\n\n"
+      "[引用][plan]\n\n[plan]: <notes/方案.md#第一节> \"定义标题\"\n\n"
+      "![图片](notes/方案.md)\n\n[网页](https://example.com/notes/方案.md)\n\n"
+      "`[代码](notes/方案.md)`\n\n```md\n[代码](notes/方案.md)\n```\n\n"
+      "[本页](#项目总览)\n\n[附件](assets/a.png)\n");
+  int count = 0;
+  const auto after = NoteLinks::rewrite(before, source, oldPath, newPath, &count);
+  require(count == 3, QStringLiteral("rewrite inline, definition and image only, got %1: %2").arg(count).arg(after));
+  require(after.contains(QStringLiteral("[方案](archive/new%20name.md#%E7%AC%AC%E4%B8%80%E8%8A%82 \"保留标题\")")), "encoded path and fragment keep link title");
+  require(after.contains(QStringLiteral("[plan]: <archive/new%20name.md#%E7%AC%AC%E4%B8%80%E8%8A%82> \"定义标题\"")), "reference definition keeps angle delimiters and title");
+  require(after.contains(QStringLiteral("`[代码](notes/方案.md)`")) && after.contains(QStringLiteral("```md\n[代码](notes/方案.md)")), "code examples unchanged");
+  const auto outgoing = NoteLinks::rewrite(QStringLiteral("[总览](../index.md)\n\n![图](images/a.png)\n"), oldPath, oldPath, newPath, &count);
+  require(count == 1 && outgoing.contains(QStringLiteral("../notes/images/a.png")), "moving a note rebases its outgoing images");
+  const auto folder = NoteLinks::rewrite(QStringLiteral("[内链](方案.md)\n\n[外链](../index.md)\n"), oldPath,
+      root + QStringLiteral("/notes"), root + QStringLiteral("/deep/archive"), &count);
+  require(count == 1 && folder.contains(QStringLiteral("[内链](方案.md)")) && folder.contains(QStringLiteral("../../index.md")), "folder move preserves internal links and rebases outgoing ones");
+  const auto nested = NoteLinks::rewrite(QStringLiteral("[![a](notes/方案.md)](notes/方案.md)\n\n[x\\] y](notes/方案.md)\n"), source, oldPath, newPath, &count);
+  require(count == 3, QStringLiteral("nested images and escaped labels use source destinations: %1").arg(nested));
+  const auto codeLabels = NoteLinks::rewrite(QStringLiteral("[`a](notes/方案.md) b`](notes/方案.md)\n\n[`[unbalanced`](notes/方案.md)\n"), source, oldPath, newPath, &count);
+  require(count == 2 && codeLabels.contains(QStringLiteral("`a](notes/方案.md) b`"))
+      && codeLabels.contains(QStringLiteral("`[unbalanced`")), "bracket-like code inside link labels is never rewritten as a destination");
+  QTemporaryDir encodedFolder;
+  const auto encodedPath = encodedFolder.filePath("index.md");
+  TextFileFormat format;
+  format.encodingName = QStringLiteral("UTF-16LE"); format.writeBom = true; format.lineEnding = TextLineEnding::Crlf;
+  QByteArray originalBytes;
+  require(FileController::encodeTextBytes(QStringLiteral("# Note\n\n[link](old.md)\n"), format, &originalBytes), "encode UTF-16 note");
+  QFile encodedFile(encodedPath); require(encodedFile.open(QIODevice::WriteOnly), "create encoded note");
+  require(encodedFile.write(originalBytes) == originalBytes.size(), "write UTF-16 note"); encodedFile.close();
+  const auto encoded = NoteLinks::prepare(encodedFolder.path(), encodedFolder.filePath("old.md"), encodedFolder.filePath(QStringLiteral("新 方案.md")), {}, {});
+  require(encoded.complete && encoded.changes.size() == 1 && encoded.changes[0].file.before == originalBytes, "encoding-aware preview retains exact original bytes");
+  QString decoded; TextFileFormat detected;
+  require(FileController::decodeTextBytes(encoded.changes[0].file.after, &decoded, &detected)
+      && detected.encodingName == format.encodingName && detected.writeBom && detected.lineEnding == TextLineEnding::Crlf,
+      "link updates preserve UTF-16 BOM and CRLF");
+}
+
+void noteLinkNavigation() {
+  Fixture f;
+  const auto aPath = f.file(QStringLiteral("总览.md"), QStringLiteral("# 总览\n\n")
+      + QStringLiteral("阅读段落 [方案](方案%20一.md#重复-1)\n\n").repeated(180));
+  const auto bPath = f.file(QStringLiteral("方案 一.md"), QStringLiteral("# 开头\n\n") + QStringLiteral("背景\n\n").repeated(160)
+      + QStringLiteral("## 重复\n\n一\n\n## 重复\n\n二\n\n## Hello World!\n\n结尾\n"));
+  auto* a = f.open(aPath);
+  a->editorController.setCursorForSourceOffset(200);
+  a->renderView->verticalScrollBar()->setValue(a->renderView->verticalScrollBar()->maximum() / 2);
+  QApplication::processEvents();
+  const auto original = a->renderView->viewportPosition();
+  QPoint linkPoint(-1, -1);
+  for (int y = 4; y < a->renderView->viewport()->height() && linkPoint.x() < 0; y += 8)
+    for (int x = 4; x < a->renderView->viewport()->width(); x += 8)
+      if (!a->renderView->hitTest(QPointF(x, y)).linkHref.isEmpty()) { linkPoint = QPoint(x, y); break; }
+  require(linkPoint.x() >= 0, "find rendered link in reading viewport");
+  QTest::mouseClick(a->renderView->viewport(), Qt::LeftButton, Qt::ControlModifier, linkPoint);
+  waitUntil([&] { return f.current() != a && !f.current()->session.isOpenInProgress() && action(f.window, "Back")->isEnabled(); }, "local link opens and completes navigation");
+  auto* b = f.current();
+  require(b->session.filePath() == bPath && !b->backend->isSourceMode(), "local Markdown uses live preview in a tab");
+  const auto heading = NoteLinks::headingTarget(b->session.document().outline(), QStringLiteral("重复-1"));
+  require(b->editorController.selection().cursorPosition().blockId == heading, "duplicate Chinese heading anchor selected");
+  action(f.window, "Back")->trigger();
+  waitUntil([&] { return f.current() == a && action(f.window, "Forward")->isEnabled(); }, "back returns to source note");
+  const auto restored = a->renderView->viewportPosition();
+  require(qAbs(restored.sourceOffset - original.sourceOffset) < 2 && qAbs(restored.screenOffset - original.screenOffset) < 2, "back preserves reading paragraph and pixel offset");
+  action(f.window, "Forward")->trigger();
+  waitUntil([&] { return f.current() == b && action(f.window, "Back")->isEnabled(); }, "forward returns to destination");
+  b->renderView->linkActivated(QStringLiteral("#hello-world"));
+  QApplication::processEvents();
+  require(b->editorController.selection().cursorPosition().blockId == NoteLinks::headingTarget(b->session.document().outline(), "hello-world"), "current-file heading anchor resolves formatted slug");
+  b->renderView->linkActivated(QStringLiteral("missing.md#标题"));
+  QApplication::processEvents();
+  require(f.current() == b && f.tabs->count() == 2, "missing local target does not open an empty tab");
+  f.close(a);
+  action(f.window, "Back")->trigger();
+  QApplication::processEvents();
+  action(f.window, "Back")->trigger();
+  waitUntil([&] { return f.current()->session.filePath() == aPath && action(f.window, "Forward")->isEnabled(); }, "history reopens a closed note");
+  auto* reopened = f.current();
+  action(f.window, "Source Code Mode")->trigger();
+  require(reopened->backend->isSourceMode(), "switch origin to source mode");
+  reopened->editor->setCursorPosition(800);
+  auto* sourceView = reopened->editor->findChild<VirtualSourceEdit*>();
+  sourceView->verticalScrollBar()->setValue(sourceView->verticalScrollBar()->maximum() / 3);
+  const auto sourcePosition = reopened->editor->viewportPosition();
+  reopened->renderView->linkActivated(QStringLiteral("方案%20一.md#Hello%20World!"));
+  waitUntil([&] { return f.current() == b && action(f.window, "Back")->isEnabled(); }, "raw heading title and existing destination tab resolve");
+  action(f.window, "Back")->trigger();
+  waitUntil([&] { return f.current() == reopened && action(f.window, "Forward")->isEnabled(); }, "return from live preview to source note");
+  require(reopened->backend->isSourceMode() && qAbs(reopened->editor->viewportPosition().sourceOffset - sourcePosition.sourceOffset) < 2,
+      "history preserves source mode and reading location");
+}
+
+void noteLinkRenamePreview() {
+  for (bool sourceMode : {false, true}) {
+  Fixture f;
+  const auto target = f.file(QStringLiteral("方案.md"), QStringLiteral("# 方案\n\n正文\n"));
+  const auto index = f.file(QStringLiteral("总览.md"), QStringLiteral("# 总览\n\n[方案](方案.md#方案)\n"));
+  auto* source = f.open(index);
+  if (sourceMode) action(f.window, "Source Code Mode")->trigger();
+  f.window.openFolderAtPath(f.directory.path());
+  auto* sidebar = f.window.findChild<SidebarWidget*>();
+  const auto answer = [&](const QString& button) {
+    auto* timer = new QTimer(&f.window); timer->setInterval(5);
+    QObject::connect(timer, &QTimer::timeout, &f.window, [&, timer, button] {
+      auto* dialog = f.window.findChild<QDialog*>(QStringLiteral("NoteLinkPreview"));
+      if (!dialog || !dialog->isVisible()) return;
+      require(dialog->findChild<QTreeWidget*>("NoteLinkFiles")->topLevelItemCount() == 1, "preview lists affected note");
+      require(!dialog->findChild<QPlainTextEdit*>("NoteLinkDiff")->toPlainText().isEmpty(), "preview shows actual changed links");
+      if (qEnvironmentVariableIsSet("MUFFIN_NOTE_LINK_SCREENSHOT")) dialog->grab().save(qEnvironmentVariable("MUFFIN_NOTE_LINK_SCREENSHOT"));
+      timer->stop();
+      if (button.isEmpty()) dialog->reject();
+      else dialog->findChild<QPushButton*>(button)->click();
+      timer->deleteLater();
+    }); timer->start();
+  };
+  answer({});
+  sidebar->inlineCommitRequested(InlineEditContext{target, false, false}, QStringLiteral("新方案.md"));
+  require(QFileInfo::exists(target), "canceling preview leaves filename unchanged");
+  answer(QStringLiteral("NoteLinkApply"));
+  sidebar->inlineCommitRequested(InlineEditContext{target, false, false}, QStringLiteral("新方案.md"));
+  const auto renamed = f.directory.filePath(QStringLiteral("新方案.md"));
+  require(QFileInfo::exists(renamed) && !QFileInfo::exists(target), "rename completes after update preview");
+  require(source->session.markdownText().toString().contains(QStringLiteral("%E6%96%B0%E6%96%B9%E6%A1%88.md#%E6%96%B9%E6%A1%88")), "open clean note reloads updated link");
+  require(!source->session.document().isModified(), "clean note stays clean after disk update");
+  if (sourceMode) {
+    source->editor->moveDocumentEnd(); source->editor->insertText(QStringLiteral("\n未保存草稿\n"));
+  } else {
+    source->editorController.applyMarkdownTextWithUndo(source->session.markdownText().toString() + QStringLiteral("\n未保存草稿\n"), "draft");
+  }
+  answer(QStringLiteral("NoteLinkApply"));
+  const auto priorAnchor = source->editor->anchorPosition(), priorFocus = source->editor->cursorPosition();
+  sidebar->inlineCommitRequested(InlineEditContext{renamed, false, false}, QStringLiteral("最终.md"));
+  require(source->session.document().isModified() && source->session.markdownText().toString().contains(QStringLiteral("未保存草稿")), "dirty note updates in memory without losing draft");
+  QFile disk(index); require(disk.open(QIODevice::ReadOnly), "read note on disk");
+  const auto diskText = QString::fromUtf8(disk.readAll());
+  require(!diskText.contains(QStringLiteral("未保存草稿")) && diskText.contains(QStringLiteral("%E6%96%B0")), "dirty note is not silently saved");
+  source->backend->undo();
+  require(source->session.markdownText().toString().contains(QStringLiteral("%E6%96%B0")), "unsaved link update is one undoable step");
+  if (sourceMode) require(source->editor->anchorPosition() == priorAnchor && source->editor->cursorPosition() == priorFocus,
+      "source undo restores the selection before the batch update");
+  }
+}
+
+void noteLinkMoveAndConflicts() {
+  Fixture f;
+  require(QDir().mkpath(f.directory.filePath("old/images")) && QDir().mkpath(f.directory.filePath("deep/archive")), "create move folders");
+  const auto target = f.file("old/plan.md", QStringLiteral("# Plan\n\n[Home](../index.md#home)\n\n![image](images/a.png)\n"));
+  const auto index = f.file("index.md", QStringLiteral("# Home\n\n[plan](old/plan.md#plan)\n"));
+  auto* moved = f.open(target);
+  f.window.openFolderAtPath(f.directory.path());
+  const auto destination = f.directory.filePath("deep/archive/plan.md");
+  QTimer choose; choose.setInterval(5);
+  QObject::connect(&choose, &QTimer::timeout, &f.window, [&] {
+    if (auto* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
+      dialog->selectFile(destination);
+      QMetaObject::invokeMethod(dialog, "accept", Qt::DirectConnection);
+      choose.stop();
+    }
+  });
+  QTimer apply; apply.setInterval(5);
+  QObject::connect(&apply, &QTimer::timeout, &f.window, [&] {
+    auto* dialog = f.window.findChild<QDialog*>("NoteLinkPreview");
+    if (!dialog || !dialog->isVisible()) return;
+    require(dialog->findChild<QTreeWidget*>("NoteLinkFiles")->topLevelItemCount() == 2, "move preview includes incoming and outgoing links");
+    apply.stop(); dialog->findChild<QPushButton*>("NoteLinkApply")->click();
+  });
+  choose.start(); apply.start();
+  action(f.window, "Move To...")->trigger();
+  require(moved->session.filePath() == destination && QFileInfo::exists(destination) && !QFileInfo::exists(target), "move updates the open tab and disk path");
+  require(moved->session.markdownText().toString().contains("../../old/images/a.png")
+      && moved->session.markdownText().toString().contains("../../index.md#home"), "moved note retains image and outgoing heading targets");
+  QFile incoming(index); require(incoming.open(QIODevice::ReadOnly), "read incoming links after move");
+  require(incoming.readAll().contains("deep/archive/plan.md#plan"), "incoming links follow moved note"); incoming.close();
+
+  // Change a note on disk after preview; this must abort before renaming anything.
+  QTimer conflict; conflict.setInterval(5);
+  QObject::connect(&conflict, &QTimer::timeout, &f.window, [&] {
+    if (auto* message = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+      require(message->text().contains("changed on disk"), "conflicting disk changes are explained");
+      conflict.stop(); message->accept(); return;
+    }
+    auto* dialog = f.window.findChild<QDialog*>("NoteLinkPreview");
+    if (!dialog || !dialog->isVisible()) return;
+    QFile changed(index); require(changed.open(QIODevice::WriteOnly | QIODevice::Truncate), "edit disk after preview");
+    changed.write("external edit\n"); changed.close();
+    dialog->findChild<QPushButton*>("NoteLinkApply")->click();
+  });
+  conflict.start();
+  f.window.findChild<SidebarWidget*>()->inlineCommitRequested(InlineEditContext{destination, false, false}, "other.md");
+  require(QFileInfo::exists(destination) && !QFileInfo::exists(f.directory.filePath("deep/archive/other.md")), "stale preview leaves path unchanged");
+  require(incoming.open(QIODevice::ReadOnly) && incoming.readAll() == "external edit\n", "stale preview preserves externally edited bytes");
+}
 
 void continuousEditingWorkflow() {
   // Exercise the same document through real widget input and window commands,
@@ -2194,6 +2394,11 @@ int main(int argc, char** argv) {
     runSessionViewTests();
     return 0;
   }
+  runTest("noteLinkRewriting", noteLinkRewriting);
+  runTest("noteLinkNavigation", noteLinkNavigation);
+  runTest("noteLinkRenamePreview", noteLinkRenamePreview);
+  runTest("noteLinkMoveAndConflicts", noteLinkMoveAndConflicts);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--note-links"))) return 0;
   runTest("continuousEditingWorkflow", continuousEditingWorkflow);
   runTest("imeSelectionReplacementWorkflow", imeSelectionReplacementWorkflow);
   runTest("restrictedFormattingActions", restrictedFormattingActions);

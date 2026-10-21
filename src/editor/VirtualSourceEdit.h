@@ -87,6 +87,7 @@ public:
   void selectWord();
 
   void insertText(const QString& text);
+  void replaceAllWithUndo(const QString& text);
   void replaceSelection(const QString& text);
   void deleteForward();
   void deleteBackward();

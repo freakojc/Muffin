@@ -275,6 +275,25 @@ private:
   void printDocument();
   // Search the opened directory recursively, or open/recent files without one.
   void quickOpen();
+  struct NavigationEntry {
+    QPointer<DocumentTab> document;
+    QString path;
+    QVariantMap view;
+  };
+  struct PendingNavigation {
+    QPointer<DocumentTab> destination;
+    NavigationEntry origin;
+    QString fragment;
+    bool hasFragment = false;
+    std::optional<NavigationEntry> restore;
+    int direction = 0; // 0: new link, -1: back, 1: forward
+  };
+  NavigationEntry navigationEntry() const;
+  void navigateToLink(const QString& href);
+  void navigateHistory(bool forward);
+  void applyLinkNavigation(DocumentTab* document);
+  void remapNavigationPaths(const QString& oldPath, const QString& newPath);
+  bool renameOrMoveWithLinks(const QString& oldPath, const QString& newPath);
   QStringList quickOpenCandidates() const;
   // File → Import: convert a foreign format to markdown via Pandoc and load it
   // into a new untitled document.
@@ -302,6 +321,7 @@ private:
   void newFileInDirectory(QString dir);
   void newFolderInDirectory(QString dir);
   void renamePath(QString path);
+  void movePath(QString path);
   void duplicateFile(QString path);
   void deletePath(QString path);
   void showPathProperties(QString path);
@@ -385,6 +405,8 @@ private:
   QTimer* sessionSaveTimer_ = nullptr;
   bool sessionUpdatesPaused_ = true;
   bool workspaceWriteInProgress_ = false;
+  QVector<NavigationEntry> backHistory_, forwardHistory_;
+  std::optional<PendingNavigation> pendingNavigation_;
   bool restoringViewState_ = false;
   QMenu* recentFilesMenu_ = nullptr;
   QMenu* reopenEncodingMenu_ = nullptr;

@@ -995,15 +995,10 @@ void muffin::MainWindow::moveToFile() {
   }
 
   const QString oldPath = tab_->session.filePath();
-  if (!tab_->fileController.moveTo(tab_->session, this)) {
-    return;
-  }
-
-  QStringList recent = recentFiles();
-  recent.removeAll(QFileInfo(oldPath).absoluteFilePath());
-  setRecentFiles(recent);
-  addRecentFile(tab_->session.filePath());
-  tab_->editorController.clearHistoryAndSelection();
+  const QString newPath = QFileDialog::getSaveFileName(this, tr("Move To"), oldPath,
+      tr("Markdown Files (*.md *.markdown);;All Files (*)"));
+  if (newPath.isEmpty() || newPath == oldPath) return;
+  renameOrMoveWithLinks(oldPath, newPath);
 }
 
 void muffin::MainWindow::saveAllOpenFiles() {
@@ -1245,6 +1240,10 @@ void muffin::MainWindow::onInlineCommit(muffin::InlineEditContext ctx, const QSt
       ? FilePathOps::normalizeMarkdownFileName(trimmed) : trimmed;
   const QString oldName = QFileInfo(ctx.oldPath).fileName();
   const QString newPath = QDir(QFileInfo(ctx.oldPath).absolutePath()).filePath(normalized);
+  if (!ctx.pendingCreate) {
+    renameOrMoveWithLinks(ctx.oldPath, newPath);
+    return;
+  }
   if (normalized != oldName) {
     QString error;
     if (!FilePathOps::renamePath(ctx.oldPath, newPath, &error)) {
@@ -1252,37 +1251,12 @@ void muffin::MainWindow::onInlineCommit(muffin::InlineEditContext ctx, const QSt
       return;  // editor already closed on commit; best-effort surface via the status bar
     }
   }
-  if (ctx.pendingCreate) {
-    if (sidebar_) {
-      sidebar_->setCurrentPath(newPath);
-    }
-    if (!ctx.isFolder) {
-      openFile(newPath);  // preserve the old New File behavior of opening the new document
-    }
-    return;
-  }
-  // Existing-item rename — keep editor/sidebar in sync. Preserved verbatim from the old modal
-  // rename flow so an open document that was renamed continues to track its new path.
   if (sidebar_) {
     sidebar_->setCurrentPath(newPath);
   }
-  for (DocumentTab* document : documentTabs()) {
-    const QString previousDocumentPath = document->session.filePath();
-    const QString remappedDocumentPath = ctx.isFolder
-        ? FilePathOps::remapDescendant(previousDocumentPath, ctx.oldPath, newPath)
-        : (ctx.oldPath == previousDocumentPath ? newPath : previousDocumentPath);
-    if (remappedDocumentPath == previousDocumentPath) {
-      continue;
-    }
-    const QString oldAbs = QFileInfo(previousDocumentPath).absoluteFilePath();
-    document->session.setFilePath(remappedDocumentPath);
-    document->session.recordFileBaseline();
-    addRecentFile(remappedDocumentPath);
-    QStringList recent = recentFiles();
-    recent.removeAll(oldAbs);
-    setRecentFiles(recent);
+  if (!ctx.isFolder) {
+    openFile(newPath);
   }
-  rebuildRecentFilesMenu();
 }
 
 // Cancel a pending new-item create: the user pressed Escape or submitted an empty name, so

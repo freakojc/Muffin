@@ -744,6 +744,11 @@ void EditorView::wheelEvent(QWheelEvent* event) {
 }
 
 void EditorView::mousePressEvent(QMouseEvent* event) {
+  if (event->button() == Qt::BackButton || event->button() == Qt::ForwardButton) {
+    emit historyNavigationRequested(event->button() == Qt::ForwardButton);
+    event->accept();
+    return;
+  }
   cssPaintContext_.pointer = event->position();
   cssPaintContext_.pressed = event->buttons().testFlag(Qt::LeftButton);
   diag::updateViewport(viewport());
@@ -765,29 +770,7 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
       return;
     }
     if (event->modifiers().testFlag(Qt::ControlModifier) && hit.isValid() && !hit.linkHref.isEmpty()) {
-      // In-document `[TOC]` navigation: a `#toc:<nodeId>` fragment emitted by a TOC
-      // entry's hit-test scrolls to the heading instead of being handed to the OS
-      // (which has no target for a bare fragment). Falls through to normal URL
-      // handling for every other href.
-      if (hit.linkHref.startsWith(QLatin1String("#toc:"))) {
-        const NodeId target = NodeId::fromString(hit.linkHref.mid(5));
-        if (target.isValid()) {
-          scrollToNode(target);
-        }
-        event->accept();
-        return;
-      }
-      // Footnote reference navigation: a `#fn:<label>` fragment emitted by a
-      // footnote-reference inline scrolls to its definition block.
-      if (hit.linkHref.startsWith(QLatin1String("#fn:"))) {
-        const NodeId target = layout_ ? layout_->footnoteDefinitionIdForLabel(hit.linkHref.mid(4)) : NodeId();
-        if (target.isValid()) {
-          scrollToNode(target);
-        }
-        event->accept();
-        return;
-      }
-      QDesktopServices::openUrl(resolvedUrlForDocumentResource(hit.linkHref, documentPath_));
+      emit linkActivated(hit.linkHref);
       event->accept();
       return;
     }
@@ -1677,6 +1660,13 @@ void EditorView::dropEvent(QDropEvent* event) {
     return;
   }
   emit importableFileDropped(filePath);
+}
+
+NodeId EditorView::specialAnchorTarget(const QString& href) const {
+  if (href.startsWith(QLatin1String("#toc:"))) return NodeId::fromString(href.mid(5));
+  if (href.startsWith(QLatin1String("#fn:")))
+    return layout_ ? layout_->footnoteDefinitionIdForLabel(href.mid(4)) : NodeId();
+  return {};
 }
 
 }  // namespace muffin

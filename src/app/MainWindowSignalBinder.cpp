@@ -144,6 +144,13 @@ void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
         window.buildEditorContextMenu(hit, globalPos);
       });
 
+  connect(tab->renderView, &EditorView::linkActivated, tab->windowConnections, [&window, tab](const QString& href) {
+    if (window.tab_ == tab) window.navigateToLink(href);
+  });
+  connect(tab->renderView, &EditorView::historyNavigationRequested, tab->windowConnections, [&window](bool forward) {
+    window.navigateHistory(forward);
+  });
+
   // External drag-and-drop of folders / documents is handled by the main window
   // according to the files/drop* preferences (images are still inserted inline).
   QObject::connect(tab->renderView, &EditorView::folderDropped, tab->windowConnections, [&window, tab](const QString& path) {
@@ -260,6 +267,7 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
   connect(&tab->session, &DocumentSession::parsed, tab->windowConnections, [this, tab] {
     QTimer::singleShot(0, tab->windowConnections, [this, tab] { applySearchNavigation(tab); });
     QTimer::singleShot(0, tab->windowConnections, [this, tab] { restoreTabViewState(tab); });
+    QTimer::singleShot(0, tab->windowConnections, [this, tab] { applyLinkNavigation(tab); });
     const bool outlineChanged = tab->sidebarOutlineRevision != tab->session.document().outlineRevision();
     tab->outlineDirty = tab->outlineDirty || outlineChanged;
     tab->wordCountDirty = true;

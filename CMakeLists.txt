@@ -165,6 +165,8 @@ set(MUFFIN_TRANSLATABLE_SOURCES
   src/app/MainWindowSignalBinder.cpp
   src/app/MainWindowActions.cpp
   src/app/MainWindowFileOps.cpp
+  src/app/MainWindowNavigation.cpp
+  src/app/MainWindowNoteLinks.cpp
   src/app/MainWindowFind.cpp
   src/app/MainWindowSearch.cpp
   src/app/WorkspaceSearch.cpp
@@ -1088,6 +1090,8 @@ add_executable(Muffin
   src/app/UpdateChecker.cpp
   src/app/UpdateChecker.h
   src/app/MainWindowFileOps.cpp
+  src/app/MainWindowNavigation.cpp
+  src/app/MainWindowNoteLinks.cpp
   src/app/MainWindowFind.cpp
   src/app/MainWindowTabs.cpp
   src/app/MainWindowSearch.cpp
@@ -1132,6 +1136,8 @@ set(MUFFIN_UI_SOURCES
   src/document/TextSelection.h
   src/app/WorkspaceReplace.cpp
   src/app/WorkspaceReplace.h
+  src/app/NoteLinks.cpp
+  src/app/NoteLinks.h
   src/app/WorkspaceSearch.cpp
   src/app/WorkspaceSearch.h
   src/app/SearchPanelWidget.cpp

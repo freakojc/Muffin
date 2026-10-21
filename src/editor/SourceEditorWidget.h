@@ -41,6 +41,8 @@ public:
   void selectWord();
 
   void insertText(const QString& text);
+  // Batch replacement preserves the previous selection in the source undo record.
+  void replaceAllWithUndo(const QString& text);
   void replaceSelection(const QString& text);
   void deleteForward();
   void deleteBackward();

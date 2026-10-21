@@ -55,6 +55,7 @@ void muffin::SourceEditorWidget::selectAll() { editor_->selectAll(); }
 void muffin::SourceEditorWidget::selectLine() { editor_->selectLine(); }
 void muffin::SourceEditorWidget::selectWord() { editor_->selectWord(); }
 void muffin::SourceEditorWidget::insertText(const QString& text) { editor_->insertText(text); }
+void muffin::SourceEditorWidget::replaceAllWithUndo(const QString& text) { editor_->replaceAllWithUndo(text); }
 void muffin::SourceEditorWidget::replaceSelection(const QString& text) { editor_->replaceSelection(text); }
 void muffin::SourceEditorWidget::deleteForward() { editor_->deleteForward(); }
 void muffin::SourceEditorWidget::deleteBackward() { editor_->deleteBackward(); }

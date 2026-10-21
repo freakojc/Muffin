@@ -84,6 +84,7 @@ public:
   qsizetype residentLayoutCount() const { return layout_ ? layout_->residentDetailCount() : 0; }
   const RenderTheme& theme() const { return theme_; }
   void scrollToNode(NodeId id);
+  NodeId specialAnchorTarget(const QString& href) const;
   ViewportPosition viewportPosition() const;
   // Resolve textPosition through the owner's source/cursor mapper after parsing.
   void restoreViewportPosition(const ViewportPosition& position, CursorPosition textPosition = {});
@@ -108,6 +109,8 @@ public:
   QRectF effectiveCursorRect() const;
 
 signals:
+  void linkActivated(QString href);
+  void historyNavigationRequested(bool forward);
   void blockClicked(HitTestResult result);
   void selectionChanged(SelectionRange selection, HitTestResult focusHit);
   void textCommitted(QString text);

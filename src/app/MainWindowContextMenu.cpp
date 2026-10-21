@@ -44,6 +44,11 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
       menu.addAction(action);
     }
   };
+  if (!backHistory_.isEmpty() || !forwardHistory_.isEmpty()) {
+    addCommand(QStringLiteral("edit.navigate_back"));
+    addCommand(QStringLiteral("edit.navigate_forward"));
+    menu.addSeparator();
+  }
   // Pull every listed command id into a submenu, skipping any that are not
   // registered (defensive: a typo should not abort the whole menu).
   const auto fill = [this](QMenu* sub, std::initializer_list<QString> ids) {
@@ -310,6 +315,7 @@ void muffin::MainWindow::buildSidebarContextMenu(QString path, bool isDir, bool 
     add(tr("New Folder"), [this, targetDir] { newFolderInDirectory(targetDir); });
     menu.addSeparator();
     add(tr("Rename"), [this, path] { renamePath(path); });
+    add(tr("Move To"), [this, path] { movePath(path); });
     add(tr("Duplicate"), [this, path] { duplicateFile(path); });
     add(tr("Delete"), [this, path] { deletePath(path); });
     menu.addSeparator();

@@ -310,6 +310,7 @@ void muffin::MainWindow::confirmPendingFileOpen(DocumentTab* document) {
 
 void muffin::MainWindow::cancelPendingFileOpen(DocumentTab* document) {
   if (document->pendingOpenPath.isEmpty()) return;
+  if (pendingNavigation_ && pendingNavigation_->destination == document) pendingNavigation_.reset();
   const auto previous = document->openReturnTab;
   document->pendingOpenPath.clear();
   document->openReturnTab.clear();
@@ -350,6 +351,7 @@ void muffin::MainWindow::activateTab(int index) {
     tab_->fileController.save(tab_->session, this);
   }
   tab_ = next;
+  if (pendingNavigation_ && pendingNavigation_->destination != next) pendingNavigation_.reset();
   QTimer::singleShot(0, next->windowConnections, [this, next] { applySearchNavigation(next); });
   if (tab_->pendingTheme) {
     auto theme = std::move(*tab_->pendingTheme);
@@ -384,6 +386,7 @@ void muffin::MainWindow::activateTab(int index) {
   else tab_->viewStack->currentWidget()->setFocus(Qt::OtherFocusReason);
   scheduleSessionSave();
   QTimer::singleShot(0, next->windowConnections, [this, next] { restoreTabViewState(next); });
+  QTimer::singleShot(0, next->windowConnections, [this, next] { applyLinkNavigation(next); });
 }
 
 bool muffin::MainWindow::closeTab(int index) {
