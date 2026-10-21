@@ -357,7 +357,7 @@ private:
   void showFindBar();
   void showWorkspaceSearch(bool replace = false, const QString& directory = {});
   OpenSearchBuffers openSearchBuffers() const;
-  void navigateSearchResult(const QString& path, const QString& text, qsizetype offset, qsizetype length);
+  void navigateSearchResult(const QString& path, const QByteArray& fingerprint, qsizetype offset, qsizetype length);
   void applySearchNavigation(DocumentTab* document);
   void previewWorkspaceReplace();
   void undoWorkspaceReplace();

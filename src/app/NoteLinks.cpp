@@ -163,7 +163,7 @@ muffin::NoteLinkPlan muffin::NoteLinks::prepare(const QString& root, const QStri
     QFile input(path);
     const auto buffer = buffers.constFind(WorkspaceFileIndex::pathKey(path));
     if (QFileInfo(path).isSymLink() || QFileInfo(path).isJunction() || !input.open(QIODevice::ReadOnly)
-        || input.size() > 8 * 1024 * 1024 || (buffer != buffers.cend() && (buffer->busy || buffer->text.size() > 4 * 1024 * 1024))) {
+        || input.size() > 8 * 1024 * 1024 || (buffer != buffers.cend() && (buffer->busy || buffer->snapshot || buffer->text.size() > 4 * 1024 * 1024))) {
       plan.skipped.append(path); continue;
     }
     auto bytes = input.readAll(); QString diskText; TextFileFormat format;

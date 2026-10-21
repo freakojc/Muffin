@@ -27,12 +27,13 @@ public:
   void invalidate();
 signals:
   void searchRequested();
-  void resultActivated(QString path, QString text, qsizetype offset, qsizetype length);
+  void resultActivated(QString path, QByteArray fingerprint, qsizetype offset, qsizetype length);
   void replaceRequested();
 private:
   void scheduleSearch();
   void addFile(const WorkspaceSearchFile& file);
   void updateSummary();
+  void showDetails();
   void saveState() const;
   void cancelSearch();
   void changeEvent(QEvent* event) override;

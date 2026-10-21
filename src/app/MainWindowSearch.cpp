@@ -88,19 +88,23 @@ muffin::OpenSearchBuffers muffin::MainWindow::openSearchBuffers() const {
       if (path.isEmpty()) continue;
       const auto key = WorkspaceFileIndex::pathKey(path);
       const bool modified = document->session.document().isModified();
-      const bool busy = document->session.isOpenInProgress() || document->session.markdownText().size() * 2 > 8 * 1024 * 1024;
-      const auto text = busy ? QString() : document->session.markdownText().toString();
+      const bool busy = document->session.isOpenInProgress();
+      const bool large = document->session.markdownText().size() * 2 > 8 * 1024 * 1024;
+      const auto text = busy || large ? QString() : document->session.markdownText().toString();
+      auto snapshot = !busy && large ? std::make_shared<const PieceTable>(document->session.markdownText()) : nullptr;
       const auto existing = buffers.constFind(key);
       if (existing != buffers.cend() && existing->busy) continue;
-      if (existing != buffers.cend() && existing->modified && modified && existing->text != text) {
+      if (existing != buffers.cend() && existing->modified && modified &&
+          (existing->snapshot ? WorkspaceSearch::fingerprint(*existing->snapshot) : WorkspaceSearch::fingerprint(existing->text))
+          != (snapshot ? WorkspaceSearch::fingerprint(*snapshot) : WorkspaceSearch::fingerprint(text))) {
         buffers[key].busy = true; continue;
       }
-      if (existing == buffers.cend() || modified || busy) buffers.insert(key, {text, modified, busy});
+      if (existing == buffers.cend() || modified || busy) buffers.insert(key, {text, modified, busy, std::move(snapshot)});
     }
   }
   return buffers;
 }
-void muffin::MainWindow::navigateSearchResult(const QString& path, const QString& text, qsizetype offset, qsizetype length) {
+void muffin::MainWindow::navigateSearchResult(const QString& path, const QByteArray& fingerprint, qsizetype offset, qsizetype length) {
   // A dirty buffer in another window supplied this result; navigate to its
   // owner rather than opening an older disk copy in this window.
   const auto key = WorkspaceFileIndex::pathKey(path);
@@ -109,23 +113,23 @@ void muffin::MainWindow::navigateSearchResult(const QString& path, const QString
     if (!owner || owner == this) continue;
     for (auto* document : owner->documentTabs()) {
       if (WorkspaceFileIndex::pathKey(document->session.filePath()) != key || !document->session.document().isModified()
-          || document->session.isOpenInProgress() || document->session.markdownText().toString() != text) continue;
+          || document->session.isOpenInProgress() || WorkspaceSearch::fingerprint(document->session.markdownText()) != fingerprint) continue;
       owner->tabs_->setCurrentWidget(document);
-      document->pendingSearchText = text; document->pendingSearchOffset = offset; document->pendingSearchLength = length;
+      document->pendingSearchFingerprint = fingerprint; document->pendingSearchOffset = offset; document->pendingSearchLength = length;
       owner->show(); owner->raise(); owner->activateWindow(); owner->applySearchNavigation(document); return;
     }
   }
   if (!openFile(path)) return;
-  tab_->pendingSearchText = text;
+  tab_->pendingSearchFingerprint = fingerprint;
   tab_->pendingSearchOffset = offset;
   tab_->pendingSearchLength = length;
   applySearchNavigation(tab_);
 }
 void muffin::MainWindow::applySearchNavigation(DocumentTab* document) {
-  if (document != tab_ || !document->pendingSearchText || document->session.isOpenInProgress()) return;
-  const QString expected = std::move(*document->pendingSearchText);
-  document->pendingSearchText.reset();
-  if (document->backend->fullText() != expected) {
+  if (document != tab_ || !document->pendingSearchFingerprint || document->session.isOpenInProgress()) return;
+  const auto expected = std::move(*document->pendingSearchFingerprint);
+  document->pendingSearchFingerprint.reset();
+  if (WorkspaceSearch::fingerprint(document->session.markdownText()) != expected) {
     statusBar()->showMessage(tr("This file changed. Search again to update its matches."), 6000); return;
   }
   document->pendingViewState.reset();
@@ -171,7 +175,7 @@ void muffin::MainWindow::previewWorkspaceReplace() {
   const auto buffers = openSearchBuffers();
   changes.removeIf([&](const WorkspaceChange& change) {
     const auto buffer = buffers.constFind(WorkspaceFileIndex::pathKey(change.path));
-    if (buffer != buffers.cend() && (buffer->modified || buffer->busy || buffer->text != change.beforeText)) {
+    if (buffer != buffers.cend() && (buffer->modified || buffer->busy || !WorkspaceSearch::bufferMatches(*buffer, change.beforeText))) {
       skipped.append(change.path); return true;
     }
     return false;
@@ -229,7 +233,7 @@ void muffin::MainWindow::previewWorkspaceReplace() {
     QStringList skipped;
     for (const auto& change : selected) {
       const auto buffer = current.constFind(WorkspaceFileIndex::pathKey(change.path));
-      if (buffer != current.cend() && (buffer->modified || buffer->busy || buffer->text != change.beforeText)) skipped.append(change.path);
+      if (buffer != current.cend() && (buffer->modified || buffer->busy || !WorkspaceSearch::bufferMatches(*buffer, change.beforeText))) skipped.append(change.path);
       else safe.append(change);
     }
     auto report = WorkspaceReplace::apply(root, safe, recoveryRoot(), cancel); report.skipped.append(skipped); return report;
@@ -301,7 +305,7 @@ muffin::WorkspaceReplaceReport muffin::MainWindow::runWorkspaceWrite(
     const auto key = WorkspaceFileIndex::pathKey(path);
     for (const auto& item : frozen) for (auto* document : item.window->documentTabs()) {
       if (WorkspaceFileIndex::pathKey(document->session.filePath()) != key || document->session.document().isModified() || document->session.isOpenInProgress()) continue;
-      document->pendingSearchText.reset();
+      document->pendingSearchFingerprint.reset();
       document->pendingViewState = item.window->tabViewState(document);
       document->session.replaceDocument(text);
       document->session.setFileFormat(format); document->session.recordFileBaseline();

@@ -1054,14 +1054,14 @@ Make it your default editor now?</source>
 <context>
     <name>muffin::EditorView</name>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="70"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1289"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="75"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1296"/>
         <source>(no spelling suggestions)</source>
         <translation>(无拼写建议)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="84"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1301"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="89"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1308"/>
         <source>Ignore &quot;%1&quot;</source>
         <translation>忽略“%1”</translation>
     </message>
@@ -1428,8 +1428,8 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="1751"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="64"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="191"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="69"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="195"/>
         <source>File</source>
         <translation>文件(&amp;F)</translation>
     </message>
@@ -1490,9 +1490,9 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="152"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="317"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="322"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="393"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1364"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1360"/>
         <source>Properties</source>
         <translation>属性</translation>
     </message>
@@ -1604,7 +1604,7 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="1820"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="191"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="196"/>
         <source>Select</source>
         <translation>选择</translation>
     </message>
@@ -1634,7 +1634,7 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="457"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="315"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="320"/>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
@@ -1694,7 +1694,7 @@ Make it your default editor now?</source>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="621"/>
         <location filename="../src/app/CommandDeclarations.cpp" line="1890"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="171"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="176"/>
         <source>Paragraph</source>
         <translation>段落(&amp;P)</translation>
     </message>
@@ -1715,7 +1715,7 @@ Make it your default editor now?</source>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="1923"/>
         <location filename="../src/app/CommandDeclarations.cpp" line="1987"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="127"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="132"/>
         <source>Table</source>
         <translation>表格(&amp;B)</translation>
     </message>
@@ -1871,7 +1871,7 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="2038"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="110"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="115"/>
         <source>Image</source>
         <translation>图片</translation>
     </message>
@@ -2478,7 +2478,7 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="537"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="323"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="328"/>
         <source>Find in Folder…</source>
         <translation>在文件夹中搜索…</translation>
     </message>
@@ -2795,7 +2795,7 @@ A fast, lightweight native Markdown editor built with C++ and Qt 6 Widgets.</sou
     <message>
         <location filename="../src/app/MainWindowActions.cpp" line="185"/>
         <location filename="../src/app/MainWindowActions.cpp" line="227"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="42"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="46"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -3010,8 +3010,8 @@ Parse time: %6 ms</source>
         <translation>没有可导出的内容</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="224"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="264"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="229"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="269"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="817"/>
         <source>Export As</source>
         <translation>导出</translation>
@@ -3037,15 +3037,15 @@ Parse time: %6 ms</source>
         <translation>Pandoc 失败：</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="238"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="282"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="243"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="287"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="883"/>
         <source>Export Failed</source>
         <translation>导出失败</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="242"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="286"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="247"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="291"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="887"/>
         <source>Exported to %1</source>
         <translation>已导出到 %1</translation>
@@ -3063,13 +3063,13 @@ Parse time: %6 ms</source>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1064"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1092"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1299"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1295"/>
         <source>Delete File</source>
         <translation>删除文件</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1065"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1302"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1298"/>
         <source>Are you sure you want to move &quot;%1&quot; to the trash?
 
 This action cannot be undone.</source>
@@ -3079,7 +3079,7 @@ This action cannot be undone.</source>
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1093"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1327"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1323"/>
         <source>Could not move to trash. Permanently delete &quot;%1&quot;?
 
 This action cannot be undone.</source>
@@ -3089,7 +3089,7 @@ This action cannot be undone.</source>
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1104"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1334"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1330"/>
         <source>Delete Failed</source>
         <translation>删除失败</translation>
     </message>
@@ -3160,7 +3160,7 @@ This action cannot be undone.</source>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1286"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1282"/>
         <source>Could not create a copy:
 %1
 
@@ -3171,12 +3171,12 @@ This action cannot be undone.</source>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1299"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1295"/>
         <source>Delete Folder</source>
         <translation>删除文件夹</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1301"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1297"/>
         <source>Are you sure you want to move &quot;%1&quot; and all its contents to the trash?
 
 This action cannot be undone.</source>
@@ -3185,32 +3185,32 @@ This action cannot be undone.</source>
 此操作无法撤销。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1335"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1331"/>
         <source>Could not delete:
 %1</source>
         <translation>无法删除：
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1358"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1354"/>
         <source>Folder</source>
         <translation>文件夹</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1358"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1354"/>
         <source>File</source>
         <comment>properties: entry type</comment>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1360"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1356"/>
         <source>Size: %1 bytes
 </source>
         <translation>大小：%1 字节
 </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1361"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1357"/>
         <source>Name: %1
 Type: %2
 Location: %3
@@ -3221,7 +3221,7 @@ Location: %3
 %4修改时间：%5</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1381"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1377"/>
         <source>Could not reveal:
 %1</source>
         <translation>无法显示文件位置：
@@ -3229,7 +3229,7 @@ Location: %3
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1077"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1405"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1401"/>
         <source>Muffin</source>
         <translation>Muffin</translation>
     </message>
@@ -3410,7 +3410,7 @@ Location: %3
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1077"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1406"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1402"/>
         <source>The current document has unsaved changes.</source>
         <translation>当前文档有未保存的更改。</translation>
     </message>
@@ -3553,85 +3553,85 @@ Would you like to open the download page?</source>
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="96"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="101"/>
         <source>Export Mermaid as SVG...</source>
         <translation>将 Mermaid 导出为 SVG...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="99"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="104"/>
         <source>Export Mermaid as PNG...</source>
         <translation>将 Mermaid 导出为 PNG...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="114"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="119"/>
         <source>Resize</source>
         <translation>调整大小</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="118"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="123"/>
         <source>Convert</source>
         <translation>转换</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="153"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="158"/>
         <source>Copy as</source>
         <translation>复制为</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="306"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="311"/>
         <source>Open</source>
         <translation>打开</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="307"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="324"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="312"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="329"/>
         <source>Open in New Window</source>
         <translation>在新窗口打开</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="309"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="326"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="314"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="331"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1166"/>
         <source>New File</source>
         <translation>新建文件</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="310"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="327"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="315"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="332"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1179"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1185"/>
         <source>New Folder</source>
         <translation>新建文件夹</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="312"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="317"/>
         <source>Rename</source>
         <translation>重命名</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="313"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="318"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="998"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="26"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="30"/>
         <source>Move To</source>
         <translation>移动到</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="314"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1285"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="319"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1281"/>
         <source>Duplicate</source>
         <translation>创建副本</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="319"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="329"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="324"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="334"/>
         <location filename="../src/app/MainWindowTabs.cpp" line="467"/>
         <source>Copy Path</source>
         <translation>复制路径</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="320"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="330"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1380"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="325"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="335"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1376"/>
         <location filename="../src/app/MainWindowTabs.cpp" line="473"/>
         <source>Reveal in File Manager</source>
         <translation>在文件管理器中显示</translation>
@@ -3717,22 +3717,22 @@ Would you like to open the download page?</source>
         <translation>将标签页复制到新窗口</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="129"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="133"/>
         <source>This file changed. Search again to update its matches.</source>
         <translation>此文件已更改。请重新搜索以更新匹配结果。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="158"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="162"/>
         <source>This match cannot be selected precisely in live preview. Showing it in source mode.</source>
         <translation>无法在实时预览中精确选中此匹配项，已切换到源码模式显示。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="179"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="183"/>
         <source>Preview Folder Replacement</source>
         <translation>预览文件夹替换</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="181"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="185"/>
         <source>Folder: %1
 Find: %2
 Replace with: %3</source>
@@ -3745,145 +3745,145 @@ Replace with: %3</source>
         <translation type="vanished">包含路径：%1 · 排除路径：%2 · 区分大小写：%3 · 正则表达式：%4</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="186"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="188"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="190"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="192"/>
         <source>Yes</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="186"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="188"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="190"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="192"/>
         <source>No</source>
         <translation>否</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="191"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="195"/>
         <source>Matches</source>
         <translation>匹配项</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="35"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="154"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="39"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="166"/>
         <source>Rename / Move</source>
         <translation>重命名 / 移动</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="35"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="39"/>
         <source>The destination already exists or is inside the folder being moved.</source>
         <translation>目标已存在，或位于要移动的文件夹内。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="42"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="46"/>
         <source>Checking links…</source>
         <translation>正在检查链接…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="57"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="61"/>
         <source>Preview Link Updates</source>
         <translation>预览链接更新</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="59"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="63"/>
         <source>%1 → %2
 Search folder: %3</source>
         <translation>%1 → %2
 搜索文件夹：%3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="64"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="69"/>
         <source>Links</source>
         <translation>链接</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="68"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="73"/>
         <source> (unsaved)</source>
         <translation> （未保存）</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="73"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="199"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="78"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="203"/>
         <source>Skipped</source>
         <translation>已跳过</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="90"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="95"/>
         <source>Updates Markdown links, reference definitions and Markdown images in this folder. Code and external URLs are excluded. Unsaved notes stay unsaved and can be undone. Disk originals are backed up.
 Hidden folders, build folders, symbolic links, unreadable files and files over 8 MB are excluded; links outside this folder are not scanned.</source>
         <translation>更新此文件夹中的 Markdown 链接、引用定义和 Markdown 图片，不处理代码和外部网址。未保存的笔记仍保持未保存状态，且可撤销更新。磁盘上的原文件会备份。
 不处理隐藏文件夹、构建文件夹、符号链接、无法读取的文件及超过 8 MB 的文件；不扫描此文件夹以外的链接。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="93"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="98"/>
         <source>Some files could not be checked. Their links may need manual updates.</source>
         <translation>部分文件无法检查，其中的链接可能需要手动更新。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="97"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="102"/>
         <source>Rename / Move Only</source>
         <translation>仅重命名 / 移动</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="99"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="104"/>
         <source>Update Links</source>
         <translation>更新链接</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="121"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="124"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="126"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="129"/>
         <source>A note changed after the preview. Please try again.</source>
         <translation>预览后有笔记发生更改，请重试。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="128"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="133"/>
         <source>A file changed on disk after the preview. Please try again.</source>
         <translation>预览后磁盘上的文件发生更改，请重试。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="137"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="142"/>
         <source>
 Some originals could not be restored. Backups: %1</source>
         <translation>
 部分原文件无法恢复。备份位置：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="141"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="146"/>
         <source>Link updates could not be completed. The path was not changed.</source>
         <translation>无法完成链接更新，路径未更改。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="146"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="158"/>
         <source>Could not rename or move: %1</source>
         <translation>无法重命名或移动：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="171"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="188"/>
         <source>Update Note Links</source>
         <translation>更新笔记链接</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="189"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="210"/>
         <source>Links updated. Originals backed up in %1</source>
         <translation>链接已更新。原文件已备份至 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="201"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="205"/>
         <source>Unsaved, changed, unreadable, oversized, mixed line endings, or not losslessly writable.</source>
         <translation>存在未保存的更改、文件已更改、无法读取、文件过大、混用换行符，或无法无损写入。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="203"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="207"/>
         <source>Replacement preview</source>
         <translation>替换预览</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="207"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="211"/>
         <source>
 … Preview truncated; the full file will be processed.</source>
         <translation>
 … 预览已截断；将处理完整文件。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="208"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="212"/>
         <source>Before:
 %1
 
@@ -3896,29 +3896,29 @@ After:
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="211"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="215"/>
         <source>Files with unsaved changes are skipped. Originals are backed up for recovery. Files changed since this preview will not be overwritten.</source>
         <translation>将跳过有未保存更改的文件。原文件会备份以便恢复。预览后发生更改的文件不会被覆盖。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="218"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="222"/>
         <source>Replace %1 matches in %2 files</source>
         <translation>替换 %2 个文件中的 %1 处匹配项</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="237"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="241"/>
         <source>Folder Replacement</source>
         <translation>文件夹替换</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="238"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="242"/>
         <source>%1 files changed; %2 skipped.
 %3</source>
         <translation>已更改 %1 个文件；已跳过 %2 个。
 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="240"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="244"/>
         <source>
 Recovery folder: %1</source>
         <translation>
@@ -3926,19 +3926,19 @@ Recovery folder: %1</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="547"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="246"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="247"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="259"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="250"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="251"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="263"/>
         <source>Undo Folder Replacement</source>
         <translation>撤销文件夹替换</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="246"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="250"/>
         <source>No folder replacement is available to restore.</source>
         <translation>没有可恢复的文件夹替换记录。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="248"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="252"/>
         <source>Restore the original files from this replacement?
 %1
 
@@ -3949,29 +3949,29 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
 将跳过替换后又被编辑或有未保存更改的文件。</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="250"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="254"/>
         <source>Restore Originals</source>
         <translation>恢复原文件</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="251"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="255"/>
         <source>Open Recovery Folder</source>
         <translation>打开恢复文件夹</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="260"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="264"/>
         <source>%1 files restored; %2 skipped.
 %3</source>
         <translation>已恢复 %1 个文件；已跳过 %2 个。
 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="289"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="293"/>
         <source>Updating files…</source>
         <translation>正在更新文件…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="289"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="293"/>
         <source>Stop after current file</source>
         <translation>处理完当前文件后停止</translation>
     </message>
@@ -5141,56 +5141,124 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
 <context>
     <name>muffin::SearchPanelWidget</name>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="188"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="193"/>
         <source> · Unsaved</source>
         <translation> · 未保存</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="205"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="210"/>
         <source>Open a folder to search its contents.</source>
         <translation>打开文件夹后即可搜索其中的内容。</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="206"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="211"/>
         <source>Search failed: %1</source>
         <translation>搜索失败：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="207"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="212"/>
         <source>Search text files in this folder and its subfolders.</source>
         <translation>搜索此文件夹及其子文件夹中的文本文件。</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="208"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="213"/>
         <source>%1 matches in %2 files</source>
         <translation>%2 个文件中有 %1 处匹配</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="209"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="214"/>
         <source> · Searching…</source>
         <translation> · 正在搜索…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="210"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="215"/>
         <source> · Incomplete results; search again before replacing</source>
         <translation> · 结果不完整；请在替换前重新搜索</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="211"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="216"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="228"/>
+        <source>%1 files searched</source>
+        <translation>已搜索 %1 个文件</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="217"/>
         <source> · %1 files or folders skipped</source>
         <translation> · 已跳过 %1 个文件或文件夹</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="218"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="247"/>
+        <source>Result limit reached</source>
+        <translation>已达到结果数量上限</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="221"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="226"/>
+        <source>Search details</source>
+        <translation>搜索详情</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="230"/>
+        <source>Path</source>
+        <translation>路径</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="230"/>
+        <source>Reason</source>
+        <translation>原因</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="235"/>
+        <source>File size exceeds %1 MiB</source>
+        <translation>文件大小超过 %1 MiB</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="236"/>
+        <source>Regular expression search is limited to %1 MiB per file</source>
+        <translation>正则表达式搜索仅支持不超过 %1 MiB 的文件</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="237"/>
+        <source>File is loading or has conflicting unsaved versions</source>
+        <translation>文件正在加载，或存在相互冲突的未保存版本</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="238"/>
+        <source>Cannot read file or folder</source>
+        <translation>无法读取文件或文件夹</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="239"/>
+        <source>Unsupported encoding or binary content</source>
+        <translation>编码不受支持，或内容为二进制数据</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="240"/>
+        <source>File changed during search</source>
+        <translation>文件在搜索期间发生更改</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="241"/>
+        <source>Search exceeded its resource limit</source>
+        <translation>搜索超出资源限制</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="242"/>
+        <source>Ignored directory</source>
+        <translation>已忽略的目录</translation>
     </message>
     <message>
         <source>No folder open</source>
         <translation type="vanished">未打开文件夹</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="216"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="254"/>
         <source>Search contents…</source>
         <translation>搜索内容…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="216"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="254"/>
         <source>Search contents</source>
         <translation>搜索内容</translation>
     </message>
@@ -5203,44 +5271,44 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
         <translation type="vanished">排除路径（词语或路径片段）</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="185"/>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="218"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="189"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="256"/>
         <source>Match case</source>
         <translation>区分大小写</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="187"/>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="219"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="191"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="257"/>
         <source>Regular expression</source>
         <translation>正则表达式</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="220"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="258"/>
         <source>Replace with…</source>
         <translation>替换为…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="220"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="258"/>
         <source>Replace with</source>
         <translation>替换为</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="221"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="259"/>
         <source>Replace</source>
         <translation>替换</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="222"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="260"/>
         <source>Preview folder replacement…</source>
         <translation>预览文件夹替换…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="223"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="261"/>
         <source>Search</source>
         <translation>搜索</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="223"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="261"/>
         <source>Stop</source>
         <translation>停止</translation>
     </message>
@@ -5249,7 +5317,7 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
         <translation type="vanished">撤销文件夹替换…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="224"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="262"/>
         <source>Content search results</source>
         <translation>内容搜索结果</translation>
     </message>
@@ -5336,12 +5404,12 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
         <translation>搜索</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="335"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="340"/>
         <source>Expand All Folders</source>
         <translation>展开所有文件夹</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="336"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="341"/>
         <location filename="../src/app/SidebarWidget.cpp" line="897"/>
         <source>Collapse All Folders</source>
         <translation>收起所有文件夹</translation>
@@ -5355,7 +5423,7 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
         <translation type="vanished">打开文件夹...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="337"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="342"/>
         <source>Close Folder</source>
         <translation>关闭文件夹</translation>
     </message>
@@ -5368,7 +5436,7 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
 <context>
     <name>muffin::SourceEditorWidget</name>
     <message>
-        <location filename="../src/editor/SourceEditorWidget.cpp" line="128"/>
+        <location filename="../src/editor/SourceEditorWidget.cpp" line="129"/>
         <source>Start writing...</source>
         <translation>开始写作...</translation>
     </message>
@@ -5489,32 +5557,32 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
         <translation>纯文本 Markdown 源码</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1310"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1317"/>
         <source>Undo</source>
         <translation>撤销</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1311"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1318"/>
         <source>Redo</source>
         <translation>重做</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1315"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1322"/>
         <source>Cut</source>
         <translation>剪切</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1321"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1328"/>
         <source>Copy</source>
         <translation>复制</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1324"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1331"/>
         <source>Paste</source>
         <translation>粘贴</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1336"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1343"/>
         <source>Select All</source>
         <translation>全选</translation>
     </message>
@@ -5522,25 +5590,25 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
 <context>
     <name>muffin::WorkspaceReplace</name>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="71"/>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="76"/>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="90"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="132"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="137"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="151"/>
         <source>Could not create recovery folder</source>
         <translation>无法创建恢复文件夹</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="73"/>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="145"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="134"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="206"/>
         <source>Another folder replacement is running</source>
         <translation>另一个文件夹替换正在进行</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="147"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="208"/>
         <source>Could not read recovery journal</source>
         <translation>无法读取恢复日志</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="149"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="210"/>
         <source>Invalid recovery journal</source>
         <translation>恢复日志无效</translation>
     </message>
@@ -5548,14 +5616,13 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
 <context>
     <name>muffin::WorkspaceSearch</name>
     <message>
-        <location filename="../src/app/WorkspaceSearch.cpp" line="38"/>
+        <location filename="../src/app/WorkspaceSearch.cpp" line="245"/>
         <source>Folder is unavailable</source>
         <translation>文件夹不可用</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceSearch.cpp" line="80"/>
         <source>Regular expression exceeded its resource limit</source>
-        <translation>正则表达式超出资源限制</translation>
+        <translation type="vanished">正则表达式超出资源限制</translation>
     </message>
 </context>
 </TS>

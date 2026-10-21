@@ -65,7 +65,7 @@ jobs:
           # Include conan-arch in the key: x86_64 and armv8 Windows builds both
           # report runner.os == 'Windows', so without the arch segment they would
           # share one cache and restore the wrong-arch binaries on each other.
-          key: conan-pkg-${{ runner.os }}-${{ matrix.conan-arch }}-${{ hashFiles('conanfile.txt') }}
+          key: conan-pkg-${{ runner.os }}-${{ matrix.conan-arch }}-${{ hashFiles('conanfile.py') }}
           restore-keys: |
             conan-pkg-${{ runner.os }}-${{ matrix.conan-arch }}-
 
@@ -147,7 +147,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ~/.conan2/p
-          key: conan-pkg-${{ runner.os }}-${{ matrix.conan-arch }}-${{ hashFiles('conanfile.txt') }}
+          key: conan-pkg-${{ runner.os }}-${{ matrix.conan-arch }}-${{ hashFiles('conanfile.py') }}
         continue-on-error: true   # exact-hit restores have nothing new to persist
 
       - name: Configure
@@ -230,7 +230,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.conan2/p
-          key: conan-pkg-${{ runner.os }}-x86_64-${{ hashFiles('conanfile.txt') }}
+          key: conan-pkg-${{ runner.os }}-x86_64-${{ hashFiles('conanfile.py') }}
           restore-keys: |
             conan-pkg-${{ runner.os }}-x86_64-
 

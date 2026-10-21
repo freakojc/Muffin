@@ -1054,14 +1054,14 @@ Make it your default editor now?</source>
 <context>
     <name>muffin::EditorView</name>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="70"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1289"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="75"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1296"/>
         <source>(no spelling suggestions)</source>
         <translation>(không có gợi ý chính tả)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="84"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1301"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="89"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1308"/>
         <source>Ignore &quot;%1&quot;</source>
         <translation>Bỏ qua &quot;%1&quot;</translation>
     </message>
@@ -1428,8 +1428,8 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="1751"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="64"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="191"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="69"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="195"/>
         <source>File</source>
         <translation>Tệp</translation>
     </message>
@@ -1490,9 +1490,9 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="152"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="317"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="322"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="393"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1364"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1360"/>
         <source>Properties</source>
         <translation>Thuộc tính</translation>
     </message>
@@ -1604,7 +1604,7 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="1820"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="191"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="196"/>
         <source>Select</source>
         <translation>Chọn</translation>
     </message>
@@ -1634,7 +1634,7 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="457"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="315"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="320"/>
         <source>Delete</source>
         <translation>Xóa</translation>
     </message>
@@ -1709,7 +1709,7 @@ Make it your default editor now?</source>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="621"/>
         <location filename="../src/app/CommandDeclarations.cpp" line="1890"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="171"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="176"/>
         <source>Paragraph</source>
         <translation>Đoạn văn</translation>
     </message>
@@ -1730,7 +1730,7 @@ Make it your default editor now?</source>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="1923"/>
         <location filename="../src/app/CommandDeclarations.cpp" line="1987"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="127"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="132"/>
         <source>Table</source>
         <translation>Bảng</translation>
     </message>
@@ -1886,7 +1886,7 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="2038"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="110"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="115"/>
         <source>Image</source>
         <translation>Hình ảnh</translation>
     </message>
@@ -2489,7 +2489,7 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="537"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="323"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="328"/>
         <source>Find in Folder…</source>
         <translation>Tìm trong thư mục…</translation>
     </message>
@@ -2806,7 +2806,7 @@ Một trình soạn thảo Markdown gốc nhanh, nhẹ được xây dựng bằ
     <message>
         <location filename="../src/app/MainWindowActions.cpp" line="185"/>
         <location filename="../src/app/MainWindowActions.cpp" line="227"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="42"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="46"/>
         <source>Cancel</source>
         <translation>Hủy</translation>
     </message>
@@ -3021,8 +3021,8 @@ Thời gian phân tích: %6 ms</translation>
         <translation>Không có gì để xuất</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="224"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="264"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="229"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="269"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="817"/>
         <source>Export As</source>
         <translation>Xuất thành</translation>
@@ -3043,15 +3043,15 @@ Thời gian phân tích: %6 ms</translation>
         <translation>Pandoc thất bại:</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="238"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="282"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="243"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="287"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="883"/>
         <source>Export Failed</source>
         <translation>Xuất thất bại</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="242"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="286"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="247"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="291"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="887"/>
         <source>Exported to %1</source>
         <translation>Đã xuất ra %1</translation>
@@ -3069,13 +3069,13 @@ Thời gian phân tích: %6 ms</translation>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1064"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1092"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1299"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1295"/>
         <source>Delete File</source>
         <translation>Xóa tệp</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1065"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1302"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1298"/>
         <source>Are you sure you want to move &quot;%1&quot; to the trash?
 
 This action cannot be undone.</source>
@@ -3085,7 +3085,7 @@ Hành động này không thể hoàn tác.</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1093"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1327"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1323"/>
         <source>Could not move to trash. Permanently delete &quot;%1&quot;?
 
 This action cannot be undone.</source>
@@ -3095,7 +3095,7 @@ Hành động này không thể hoàn tác.</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1104"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1334"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1330"/>
         <source>Delete Failed</source>
         <translation>Xóa thất bại</translation>
     </message>
@@ -3324,7 +3324,7 @@ Hành động này không thể hoàn tác.</translation>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1286"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1282"/>
         <source>Could not create a copy:
 %1
 
@@ -3335,12 +3335,12 @@ Hành động này không thể hoàn tác.</translation>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1299"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1295"/>
         <source>Delete Folder</source>
         <translation>Xóa thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1301"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1297"/>
         <source>Are you sure you want to move &quot;%1&quot; and all its contents to the trash?
 
 This action cannot be undone.</source>
@@ -3349,32 +3349,32 @@ This action cannot be undone.</source>
 Không thể hoàn tác thao tác này.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1335"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1331"/>
         <source>Could not delete:
 %1</source>
         <translation>Không thể xóa:
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1358"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1354"/>
         <source>Folder</source>
         <translation>Thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1358"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1354"/>
         <source>File</source>
         <comment>properties: entry type</comment>
         <translation>Tệp</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1360"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1356"/>
         <source>Size: %1 bytes
 </source>
         <translation>Kích thước: %1 byte
 </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1361"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1357"/>
         <source>Name: %1
 Type: %2
 Location: %3
@@ -3385,7 +3385,7 @@ Vị trí: %3
 %4Sửa đổi: %5</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1381"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1377"/>
         <source>Could not reveal:
 %1</source>
         <translation>Không thể hiển thị vị trí tệp:
@@ -3393,13 +3393,13 @@ Vị trí: %3
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1077"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1405"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1401"/>
         <source>Muffin</source>
         <translation>Muffin</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1077"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1406"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1402"/>
         <source>The current document has unsaved changes.</source>
         <translation>Tài liệu hiện tại có thay đổi chưa lưu.</translation>
     </message>
@@ -3527,85 +3527,85 @@ Bạn có muốn mở trang tải xuống không?</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="96"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="101"/>
         <source>Export Mermaid as SVG...</source>
         <translation>Xuất Mermaid dưới dạng SVG...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="99"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="104"/>
         <source>Export Mermaid as PNG...</source>
         <translation>Xuất Mermaid dưới dạng PNG...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="114"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="119"/>
         <source>Resize</source>
         <translation>Thay đổi kích thước</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="118"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="123"/>
         <source>Convert</source>
         <translation>Chuyển đổi</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="153"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="158"/>
         <source>Copy as</source>
         <translation>Sao chép dạng</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="306"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="311"/>
         <source>Open</source>
         <translation>Mở</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="307"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="324"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="312"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="329"/>
         <source>Open in New Window</source>
         <translation>Mở trong cửa sổ mới</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="309"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="326"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="314"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="331"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1166"/>
         <source>New File</source>
         <translation>Tệp mới</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="310"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="327"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="315"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="332"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1179"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1185"/>
         <source>New Folder</source>
         <translation>Thư mục mới</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="312"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="317"/>
         <source>Rename</source>
         <translation>Đổi tên</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="313"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="318"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="998"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="26"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="30"/>
         <source>Move To</source>
         <translation>Di chuyển đến</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="314"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1285"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="319"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1281"/>
         <source>Duplicate</source>
         <translation>Tạo bản sao</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="319"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="329"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="324"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="334"/>
         <location filename="../src/app/MainWindowTabs.cpp" line="467"/>
         <source>Copy Path</source>
         <translation>Sao chép đường dẫn</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="320"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="330"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1380"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="325"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="335"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1376"/>
         <location filename="../src/app/MainWindowTabs.cpp" line="473"/>
         <source>Reveal in File Manager</source>
         <translation>Hiển thị trong trình quản lý tệp</translation>
@@ -3691,22 +3691,22 @@ Bạn có muốn mở trang tải xuống không?</translation>
         <translation>Sao chép thẻ sang cửa sổ mới</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="129"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="133"/>
         <source>This file changed. Search again to update its matches.</source>
         <translation>Tệp này đã thay đổi. Hãy tìm lại để cập nhật các kết quả khớp.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="158"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="162"/>
         <source>This match cannot be selected precisely in live preview. Showing it in source mode.</source>
         <translation>Không thể chọn chính xác kết quả khớp này trong chế độ xem trước trực tiếp. Đang hiển thị kết quả trong chế độ mã nguồn.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="179"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="183"/>
         <source>Preview Folder Replacement</source>
         <translation>Xem trước thay thế trong thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="181"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="185"/>
         <source>Folder: %1
 Find: %2
 Replace with: %3</source>
@@ -3719,145 +3719,145 @@ Thay bằng: %3</translation>
         <translation type="vanished">Đường dẫn bao gồm: %1 · Đường dẫn loại trừ: %2 · Phân biệt chữ hoa/thường: %3 · Biểu thức chính quy: %4</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="186"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="188"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="190"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="192"/>
         <source>Yes</source>
         <translation>Có</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="186"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="188"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="190"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="192"/>
         <source>No</source>
         <translation>Không</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="191"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="195"/>
         <source>Matches</source>
         <translation>Kết quả khớp</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="35"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="154"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="39"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="166"/>
         <source>Rename / Move</source>
         <translation>Đổi tên / Di chuyển</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="35"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="39"/>
         <source>The destination already exists or is inside the folder being moved.</source>
         <translation>Đích đã tồn tại hoặc nằm trong thư mục đang được di chuyển.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="42"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="46"/>
         <source>Checking links…</source>
         <translation>Đang kiểm tra liên kết…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="57"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="61"/>
         <source>Preview Link Updates</source>
         <translation>Xem trước cập nhật liên kết</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="59"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="63"/>
         <source>%1 → %2
 Search folder: %3</source>
         <translation>%1 → %2
 Thư mục tìm kiếm: %3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="64"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="69"/>
         <source>Links</source>
         <translation>Liên kết</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="68"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="73"/>
         <source> (unsaved)</source>
         <translation> (chưa lưu)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="73"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="199"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="78"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="203"/>
         <source>Skipped</source>
         <translation>Đã bỏ qua</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="90"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="95"/>
         <source>Updates Markdown links, reference definitions and Markdown images in this folder. Code and external URLs are excluded. Unsaved notes stay unsaved and can be undone. Disk originals are backed up.
 Hidden folders, build folders, symbolic links, unreadable files and files over 8 MB are excluded; links outside this folder are not scanned.</source>
         <translation>Cập nhật các liên kết Markdown, định nghĩa tham chiếu và hình ảnh Markdown trong thư mục này. Mã và URL bên ngoài được loại trừ. Ghi chú chưa lưu vẫn giữ trạng thái chưa lưu và có thể hoàn tác cập nhật. Các tệp gốc trên đĩa được sao lưu.
 Thư mục ẩn, thư mục bản dựng, liên kết tượng trưng, tệp không đọc được và tệp lớn hơn 8 MB được loại trừ; các liên kết bên ngoài thư mục này không được quét.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="93"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="98"/>
         <source>Some files could not be checked. Their links may need manual updates.</source>
         <translation>Không thể kiểm tra một số tệp. Có thể cần cập nhật thủ công các liên kết trong những tệp đó.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="97"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="102"/>
         <source>Rename / Move Only</source>
         <translation>Chỉ đổi tên / di chuyển</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="99"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="104"/>
         <source>Update Links</source>
         <translation>Cập nhật liên kết</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="121"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="124"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="126"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="129"/>
         <source>A note changed after the preview. Please try again.</source>
         <translation>Một ghi chú đã thay đổi sau khi xem trước. Vui lòng thử lại.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="128"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="133"/>
         <source>A file changed on disk after the preview. Please try again.</source>
         <translation>Một tệp trên đĩa đã thay đổi sau khi xem trước. Vui lòng thử lại.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="137"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="142"/>
         <source>
 Some originals could not be restored. Backups: %1</source>
         <translation>
 Không thể khôi phục một số tệp gốc. Bản sao lưu: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="141"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="146"/>
         <source>Link updates could not be completed. The path was not changed.</source>
         <translation>Không thể hoàn tất cập nhật liên kết. Đường dẫn chưa được thay đổi.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="146"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="158"/>
         <source>Could not rename or move: %1</source>
         <translation>Không thể đổi tên hoặc di chuyển: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="171"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="188"/>
         <source>Update Note Links</source>
         <translation>Cập nhật liên kết ghi chú</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="189"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="210"/>
         <source>Links updated. Originals backed up in %1</source>
         <translation>Đã cập nhật liên kết. Các tệp gốc được sao lưu tại %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="201"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="205"/>
         <source>Unsaved, changed, unreadable, oversized, mixed line endings, or not losslessly writable.</source>
         <translation>Chưa lưu, đã thay đổi, không đọc được, quá lớn, có kiểu xuống dòng hỗn hợp hoặc không thể ghi mà không mất dữ liệu.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="203"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="207"/>
         <source>Replacement preview</source>
         <translation>Xem trước thay thế</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="207"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="211"/>
         <source>
 … Preview truncated; the full file will be processed.</source>
         <translation>
 … Bản xem trước đã được rút gọn; toàn bộ tệp sẽ được xử lý.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="208"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="212"/>
         <source>Before:
 %1
 
@@ -3870,29 +3870,29 @@ Sau:
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="211"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="215"/>
         <source>Files with unsaved changes are skipped. Originals are backed up for recovery. Files changed since this preview will not be overwritten.</source>
         <translation>Các tệp có thay đổi chưa lưu sẽ được bỏ qua. Bản gốc được sao lưu để có thể khôi phục. Các tệp thay đổi sau bản xem trước này sẽ không bị ghi đè.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="218"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="222"/>
         <source>Replace %1 matches in %2 files</source>
         <translation>Thay thế %1 kết quả khớp trong %2 tệp</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="237"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="241"/>
         <source>Folder Replacement</source>
         <translation>Thay thế trong thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="238"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="242"/>
         <source>%1 files changed; %2 skipped.
 %3</source>
         <translation>Đã thay đổi %1 tệp; bỏ qua %2 tệp.
 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="240"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="244"/>
         <source>
 Recovery folder: %1</source>
         <translation>
@@ -3900,19 +3900,19 @@ Thư mục khôi phục: %1</translation>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="547"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="246"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="247"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="259"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="250"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="251"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="263"/>
         <source>Undo Folder Replacement</source>
         <translation>Hoàn tác thay thế trong thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="246"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="250"/>
         <source>No folder replacement is available to restore.</source>
         <translation>Không có thao tác thay thế trong thư mục nào để khôi phục.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="248"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="252"/>
         <source>Restore the original files from this replacement?
 %1
 
@@ -3923,29 +3923,29 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
 Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu sẽ được bỏ qua.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="250"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="254"/>
         <source>Restore Originals</source>
         <translation>Khôi phục bản gốc</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="251"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="255"/>
         <source>Open Recovery Folder</source>
         <translation>Mở thư mục khôi phục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="260"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="264"/>
         <source>%1 files restored; %2 skipped.
 %3</source>
         <translation>Đã khôi phục %1 tệp; bỏ qua %2 tệp.
 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="289"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="293"/>
         <source>Updating files…</source>
         <translation>Đang cập nhật tệp…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="289"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="293"/>
         <source>Stop after current file</source>
         <translation>Dừng sau tệp hiện tại</translation>
     </message>
@@ -5115,56 +5115,124 @@ Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu s�
 <context>
     <name>muffin::SearchPanelWidget</name>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="188"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="193"/>
         <source> · Unsaved</source>
         <translation> · Chưa lưu</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="205"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="210"/>
         <source>Open a folder to search its contents.</source>
         <translation>Mở một thư mục để tìm kiếm nội dung trong đó.</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="206"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="211"/>
         <source>Search failed: %1</source>
         <translation>Tìm kiếm thất bại: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="207"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="212"/>
         <source>Search text files in this folder and its subfolders.</source>
         <translation>Tìm trong các tệp văn bản của thư mục này và các thư mục con.</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="208"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="213"/>
         <source>%1 matches in %2 files</source>
         <translation>%1 kết quả khớp trong %2 tệp</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="209"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="214"/>
         <source> · Searching…</source>
         <translation> · Đang tìm kiếm…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="210"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="215"/>
         <source> · Incomplete results; search again before replacing</source>
         <translation> · Kết quả chưa đầy đủ; hãy tìm lại trước khi thay thế</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="211"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="216"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="228"/>
+        <source>%1 files searched</source>
+        <translation>Đã tìm kiếm trong %1 tệp</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="217"/>
         <source> · %1 files or folders skipped</source>
         <translation> · Đã bỏ qua %1 tệp hoặc thư mục</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="218"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="247"/>
+        <source>Result limit reached</source>
+        <translation>Đã đạt giới hạn số kết quả</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="221"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="226"/>
+        <source>Search details</source>
+        <translation>Chi tiết tìm kiếm</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="230"/>
+        <source>Path</source>
+        <translation>Đường dẫn</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="230"/>
+        <source>Reason</source>
+        <translation>Lý do</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="235"/>
+        <source>File size exceeds %1 MiB</source>
+        <translation>Kích thước tệp vượt quá %1 MiB</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="236"/>
+        <source>Regular expression search is limited to %1 MiB per file</source>
+        <translation>Tìm kiếm bằng biểu thức chính quy được giới hạn ở %1 MiB cho mỗi tệp</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="237"/>
+        <source>File is loading or has conflicting unsaved versions</source>
+        <translation>Tệp đang tải hoặc có các phiên bản chưa lưu xung đột với nhau</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="238"/>
+        <source>Cannot read file or folder</source>
+        <translation>Không thể đọc tệp hoặc thư mục</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="239"/>
+        <source>Unsupported encoding or binary content</source>
+        <translation>Mã hóa không được hỗ trợ hoặc nội dung là dữ liệu nhị phân</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="240"/>
+        <source>File changed during search</source>
+        <translation>Tệp đã thay đổi trong khi tìm kiếm</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="241"/>
+        <source>Search exceeded its resource limit</source>
+        <translation>Tìm kiếm đã vượt quá giới hạn tài nguyên</translation>
+    </message>
+    <message>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="242"/>
+        <source>Ignored directory</source>
+        <translation>Thư mục bị bỏ qua</translation>
     </message>
     <message>
         <source>No folder open</source>
         <translation type="vanished">Chưa mở thư mục nào</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="216"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="254"/>
         <source>Search contents…</source>
         <translation>Tìm nội dung…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="216"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="254"/>
         <source>Search contents</source>
         <translation>Tìm nội dung</translation>
     </message>
@@ -5177,44 +5245,44 @@ Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu s�
         <translation type="vanished">Đường dẫn loại trừ (từ hoặc đoạn đường dẫn)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="185"/>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="218"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="189"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="256"/>
         <source>Match case</source>
         <translation>Phân biệt chữ hoa/thường</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="187"/>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="219"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="191"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="257"/>
         <source>Regular expression</source>
         <translation>Biểu thức chính quy</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="220"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="258"/>
         <source>Replace with…</source>
         <translation>Thay bằng…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="220"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="258"/>
         <source>Replace with</source>
         <translation>Thay bằng</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="221"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="259"/>
         <source>Replace</source>
         <translation>Thay thế</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="222"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="260"/>
         <source>Preview folder replacement…</source>
         <translation>Xem trước thay thế trong thư mục…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="223"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="261"/>
         <source>Search</source>
         <translation>Tìm kiếm</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="223"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="261"/>
         <source>Stop</source>
         <translation>Dừng</translation>
     </message>
@@ -5223,7 +5291,7 @@ Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu s�
         <translation type="vanished">Hoàn tác thay thế trong thư mục…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="224"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="262"/>
         <source>Content search results</source>
         <translation>Kết quả tìm kiếm nội dung</translation>
     </message>
@@ -5310,12 +5378,12 @@ Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu s�
         <translation>Tìm kiếm</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="335"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="340"/>
         <source>Expand All Folders</source>
         <translation>Mở rộng tất cả thư mục</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="336"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="341"/>
         <location filename="../src/app/SidebarWidget.cpp" line="897"/>
         <source>Collapse All Folders</source>
         <translation>Thu gọn tất cả thư mục</translation>
@@ -5329,7 +5397,7 @@ Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu s�
         <translation type="vanished">Mở thư mục...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="337"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="342"/>
         <source>Close Folder</source>
         <translation>Đóng thư mục</translation>
     </message>
@@ -5342,7 +5410,7 @@ Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu s�
 <context>
     <name>muffin::SourceEditorWidget</name>
     <message>
-        <location filename="../src/editor/SourceEditorWidget.cpp" line="128"/>
+        <location filename="../src/editor/SourceEditorWidget.cpp" line="129"/>
         <source>Start writing...</source>
         <translation>Bắt đầu viết...</translation>
     </message>
@@ -5463,32 +5531,32 @@ Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu s�
         <translation>Mã nguồn Markdown dạng văn bản thuần</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1310"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1317"/>
         <source>Undo</source>
         <translation>Hoàn tác</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1311"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1318"/>
         <source>Redo</source>
         <translation>Làm lại</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1315"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1322"/>
         <source>Cut</source>
         <translation>Cắt</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1321"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1328"/>
         <source>Copy</source>
         <translation>Sao chép</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1324"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1331"/>
         <source>Paste</source>
         <translation>Dán</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1336"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1343"/>
         <source>Select All</source>
         <translation>Chọn tất cả</translation>
     </message>
@@ -5496,25 +5564,25 @@ Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu s�
 <context>
     <name>muffin::WorkspaceReplace</name>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="71"/>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="76"/>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="90"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="132"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="137"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="151"/>
         <source>Could not create recovery folder</source>
         <translation>Không thể tạo thư mục khôi phục</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="73"/>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="145"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="134"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="206"/>
         <source>Another folder replacement is running</source>
         <translation>Một thao tác thay thế trong thư mục khác đang chạy</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="147"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="208"/>
         <source>Could not read recovery journal</source>
         <translation>Không thể đọc nhật ký khôi phục</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="149"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="210"/>
         <source>Invalid recovery journal</source>
         <translation>Nhật ký khôi phục không hợp lệ</translation>
     </message>
@@ -5522,14 +5590,13 @@ Các tệp được chỉnh sửa sau đó hoặc có thay đổi chưa lưu s�
 <context>
     <name>muffin::WorkspaceSearch</name>
     <message>
-        <location filename="../src/app/WorkspaceSearch.cpp" line="38"/>
+        <location filename="../src/app/WorkspaceSearch.cpp" line="245"/>
         <source>Folder is unavailable</source>
         <translation>Thư mục không khả dụng</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceSearch.cpp" line="80"/>
         <source>Regular expression exceeded its resource limit</source>
-        <translation>Biểu thức chính quy đã vượt quá giới hạn tài nguyên</translation>
+        <translation type="vanished">Biểu thức chính quy đã vượt quá giới hạn tài nguyên</translation>
     </message>
 </context>
 </TS>

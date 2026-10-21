@@ -752,7 +752,7 @@ void workspaceRenderedNavigation() {
   auto* panel = f.window.findChild<SidebarWidget*>()->searchPanel();
   const auto jump = [&](qsizetype start, bool source) {
     require(start >= 0, "fixture match exists");
-    panel->resultActivated(path, text, start, 6);
+    panel->resultActivated(path, WorkspaceSearch::fingerprint(text), start, 6);
     waitUntil([&] { return !f.current()->session.isOpenInProgress() && f.current()->backend->isSourceMode() == source; }, "search navigation completes in the intended mode");
     auto* document = f.current();
     if (source) {
@@ -794,7 +794,7 @@ void workspaceRenderedNavigation() {
   const auto deepPath = f.file("distant.md", distant);
   const auto offset = distant.indexOf("needle");
   jump(text.indexOf("test/needle") + 5, true);
-  panel->resultActivated(deepPath, distant, offset, 6);
+  panel->resultActivated(deepPath, WorkspaceSearch::fingerprint(distant), offset, 6);
   waitUntil([&] { return !f.current()->session.isOpenInProgress() && f.current()->editorController.selection().selection().anchor.text.sourceOffset == offset; }, "async navigation selects a distant live match");
   require(!f.current()->backend->isSourceMode(), "new files default to live editing");
 }

@@ -47,6 +47,7 @@ endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Svg PrintSupport Network Concurrent)
 find_package(ICU REQUIRED COMPONENTS uc i18n)
+find_package(PCRE2 10.49 REQUIRED CONFIG)
 find_package(WebP REQUIRED)
 # dav1d is libavif's AV1 decoder; found here (Conan provides dav1d::dav1d) so libavif's own
 # find_package(dav1d) below reuses it. libavif itself is built from vendored source (see the
@@ -1409,6 +1410,7 @@ target_link_libraries(MuffinUi
     MuffinCore
   PRIVATE
     Qt6::Concurrent
+    PCRE2::16BIT
     # Folded into MuffinUi alone. Under SHARED these are implementation
     # details of the DLL; listing them PUBLIC would statically relink the
     # whole tree-sitter grammar set + ICU into every consumer exe too

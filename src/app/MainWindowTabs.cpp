@@ -317,7 +317,7 @@ void muffin::MainWindow::cancelPendingFileOpen(DocumentTab* document) {
   document->pendingViewState.reset();
   document->pendingRecoveredDraftText.reset();
   document->pendingRecoveredDraftKey.clear();
-  document->pendingSearchText.reset();
+  document->pendingSearchFingerprint.reset();
   document->session.setOpenConfirmationPending(false);
   document->contentStack->setCurrentIndex(0);
   document->openConfirmation->setEnabled(true);

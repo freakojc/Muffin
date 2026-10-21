@@ -10,6 +10,7 @@ using SearchCancellation = std::shared_ptr<std::atomic_bool>;
 struct WorkspaceFiles {
   QStringList paths;
   QStringList unreadableDirectories;
+  QStringList ignoredDirectories;
   bool truncated = false;
 };
 // Metadata only, independent of file-tree expansion. Safe on a worker thread.

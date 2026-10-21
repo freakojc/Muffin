@@ -12,8 +12,32 @@
 #include <QUuid>
 #include <QDateTime>
 #include <QCoreApplication>
+#include <QRegularExpression>
+#include <optional>
 
 namespace {
+// Expand only referenced captures, directly from views into the current
+// subject. A lookahead can otherwise retain an entire file for every hit.
+std::optional<QString> expandBounded(QStringView replacement, const QRegularExpressionMatch& match, bool regex) {
+  constexpr qsizetype limit = 8 * 1024 * 1024;
+  if (!regex) return replacement.size() <= limit ? std::optional(replacement.toString()) : std::nullopt;
+  QString output;
+  for (qsizetype i = 0; i < replacement.size(); ++i) {
+    const auto ch = replacement.at(i);
+    if ((ch == u'$' || ch == u'\\') && i + 1 < replacement.size() && replacement.at(i + 1).isDigit()) {
+      int capture = 0;
+      while (i + 1 < replacement.size() && replacement.at(i + 1).isDigit())
+        capture = qMin(match.lastCapturedIndex() + 1, capture * 10 + replacement.at(++i).digitValue());
+      const auto part = match.capturedView(capture);
+      if (part.size() > limit - output.size()) return std::nullopt;
+      output += part;
+    } else {
+      if (output.size() == limit) return std::nullopt;
+      output += ch;
+    }
+  }
+  return output;
+}
 QByteArray digest(const QByteArray& bytes) { return QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex(); }
 bool writeAtomic(const QString& path, const QByteArray& bytes, QString* error) {
   QSaveFile file(path);
@@ -44,21 +68,58 @@ bool ordinaryPath(const QString& root, const QString& path) {
 QVector<muffin::WorkspaceChange> muffin::WorkspaceReplace::prepare(
     const WorkspaceSearchResult& result, const QString& replacement, QStringList* skipped) {
   QVector<WorkspaceChange> changes;
+  qint64 retainedBytes = 0;
   if (!result.complete || !result.error.isEmpty()) return changes;
   for (const auto& file : result.files) {
     if (!file.replaceable) { skipped->append(file.path); continue; }
-    QString changed = file.text;
-    bool tooLarge = false;
-    for (auto it = file.hits.crbegin(); it != file.hits.crend(); ++it) {
-      const auto expanded = DocumentSearch::expandReplacement(replacement, it->match, result.query.options.regularExpression);
-      if (expanded.size() > 8 * 1024 * 1024 || changed.size() - it->match.length + expanded.size() > 8 * 1024 * 1024) {
+    QFile disk(file.path);
+    if (QFileInfo(file.path).size() > result.query.maxReplaceBytes || !disk.open(QIODevice::ReadOnly)) {
+      skipped->append(file.path); continue;
+    }
+    const auto original = disk.read(qMin(disk.size(), result.query.maxReplaceBytes) + 1);
+    QString text; TextFileFormat format; QByteArray roundTrip;
+    if (disk.error() != QFileDevice::NoError || original.size() > result.query.maxReplaceBytes
+        || !FileController::decodeTextBytes(original, &text, &format)
+        || WorkspaceSearch::fingerprint(text) != file.fingerprint
+        || !FileController::encodeTextBytes(text, format, &roundTrip) || roundTrip != original) {
+      skipped->append(file.path); continue;
+    }
+    // Rebuild captures only for previewed files; search results retain no full
+    // file contents or arbitrarily large captured strings.
+    const bool regex = result.query.options.regularExpression;
+    const QRegularExpression expression(regex ? result.query.pattern : QRegularExpression::escape(result.query.pattern),
+        result.query.options.caseSensitive ? QRegularExpression::NoPatternOption : QRegularExpression::CaseInsensitiveOption);
+    auto iterator = expression.globalMatch(text);
+    QVector<QString> replacements;
+    qsizetype expandedChars = 0;
+    bool stale = !expression.isValid(), tooLarge = false;
+    while (!stale && iterator.hasNext()) {
+      const auto match = iterator.next();
+      const auto i = replacements.size();
+      if (i >= file.hits.size() || match.capturedStart() != file.hits[i].match.start || match.capturedLength() != file.hits[i].match.length) {
+        stale = true; break;
+      }
+      auto expanded = expandBounded(replacement, match, regex);
+      if (!expanded || expanded->size() > 8 * 1024 * 1024 - expandedChars) { tooLarge = true; break; }
+      expandedChars += expanded->size(); replacements.append(std::move(*expanded));
+    }
+    if (stale || tooLarge || replacements.size() != file.hits.size()) { skipped->append(file.path); continue; }
+    QString changed = text;
+    for (qsizetype i = file.hits.size(); i-- > 0;) {
+      const auto& match = file.hits[i].match;
+      if (changed.size() - match.length + replacements[i].size() > 8 * 1024 * 1024) {
         tooLarge = true; break;
       }
-      changed.replace(it->match.start, it->match.length, expanded);
+      changed.replace(match.start, match.length, replacements[i]);
     }
     QByteArray after;
-    if (tooLarge || !FileController::encodeTextBytes(changed, file.format, &after) || after.size() > 16 * 1024 * 1024) { skipped->append(file.path); continue; }
-    if (after != file.original) changes.append({file.path, file.text, std::move(changed), file.original, std::move(after), int(file.hits.size())});
+    if (tooLarge || !FileController::encodeTextBytes(changed, format, &after) || after.size() > 16 * 1024 * 1024) { skipped->append(file.path); continue; }
+    const auto bytes = original.size() + after.size() + (text.size() + changed.size()) * 2;
+    if (retainedBytes + bytes > 64 * 1024 * 1024) { skipped->append(file.path); continue; }
+    if (after != original) {
+      retainedBytes += bytes;
+      changes.append({file.path, text, std::move(changed), original, std::move(after), int(file.hits.size())});
+    }
   }
   return changes;
 }
@@ -176,7 +237,7 @@ muffin::WorkspaceReplaceReport muffin::WorkspaceReplace::restore(
     }
     if (buffer != buffers.cend()) {
       QString text; TextFileFormat format;
-      if (!FileController::decodeTextBytes(now, &text, &format) || buffer->text != text) {
+      if (!FileController::decodeTextBytes(now, &text, &format) || !WorkspaceSearch::bufferMatches(*buffer, text)) {
         report.skipped.append(path); complete = false; continue;
       }
     }

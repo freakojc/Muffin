@@ -1,4 +1,6 @@
 #include "app/SearchPanelWidget.h"
+#include <QDialog>
+#include <QDialogButtonBox>
 #include "app/FileOpenProtection.h"
 #include "theme/ThemeDefinition.h"
 #include <QCheckBox>
@@ -82,6 +84,9 @@ muffin::SearchPanelWidget::SearchPanelWidget(QWidget* parent) : QWidget(parent) 
   search_ = new QPushButton(this); search_->setObjectName("WorkspaceSearchRun"); cancelButton_ = new QPushButton(this);
   actions->addWidget(search_); actions->addWidget(cancelButton_); layout->addLayout(actions);
   summary_ = new QLabel(this); summary_->setWordWrap(true); summary_->setObjectName("WorkspaceSearchSummary"); layout->addWidget(summary_);
+  summary_->setTextFormat(Qt::RichText);
+  summary_->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::LinksAccessibleByKeyboard);
+  connect(summary_, &QLabel::linkActivated, this, [this] { showDetails(); });
   results_ = new QTreeWidget(this); results_->setObjectName("WorkspaceSearchResults"); results_->setHeaderHidden(true);
   results_->setItemDelegate(new MatchDelegate(results_));
   results_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -103,7 +108,7 @@ muffin::SearchPanelWidget::SearchPanelWidget(QWidget* parent) : QWidget(parent) 
     const auto& file = result_.files[fileIndex];
     if (hitIndex < 0 || hitIndex >= file.hits.size()) return;
     const auto& hit = file.hits[hitIndex].match;
-    emit resultActivated(file.path, file.text, hit.start, hit.length);
+    emit resultActivated(file.path, file.fingerprint, hit.start, hit.length);
   });
   connect(results_, &QTreeWidget::itemActivated, this, [this](QTreeWidgetItem* item) { emit results_->itemClicked(item, 0); });
   retranslateUi();
@@ -208,8 +213,41 @@ void muffin::SearchPanelWidget::updateSummary() {
   else text = tr("%1 matches in %2 files").arg(result_.matches).arg(result_.files.size());
   if (running_) text += tr(" · Searching…");
   else if (!result_.complete) text += tr(" · Incomplete results; search again before replacing");
-  if (!result_.skipped.isEmpty()) text += tr(" · %1 files or folders skipped").arg(result_.skipped.size());
-  summary_->setText(text); summary_->setToolTip(result_.skipped.join('\n'));
+  if (result_.searchedFiles) text += QStringLiteral(" · ") + tr("%1 files searched").arg(result_.searchedFiles);
+  if (!result_.details.isEmpty()) text += tr(" · %1 files or folders skipped").arg(result_.details.size());
+  if (result_.resultLimitReached) text += QStringLiteral(" · ") + tr("Result limit reached");
+  text = text.toHtmlEscaped();
+  if (!result_.details.isEmpty() || result_.resultLimitReached)
+    text += QStringLiteral(" · <a href=\"details\">%1</a>").arg(tr("Search details").toHtmlEscaped());
+  summary_->setText(text);
+}
+void muffin::SearchPanelWidget::showDetails() {
+  QDialog dialog(this); dialog.setObjectName("WorkspaceSearchDetails");
+  dialog.setWindowTitle(tr("Search details")); dialog.resize(760, 440);
+  auto* layout = new QVBoxLayout(&dialog);
+  auto* scope = new QLabel(tr("%1 files searched").arg(result_.searchedFiles), &dialog);
+  layout->addWidget(scope);
+  auto* files = new QTreeWidget(&dialog); files->setHeaderLabels({tr("Path"), tr("Reason")});
+  files->setColumnWidth(0, 400); files->setRootIsDecorated(false); layout->addWidget(files, 1);
+  for (const auto& detail : result_.details) {
+    QString reason;
+    switch (detail.reason) {
+    case WorkspaceSkipReason::TooLarge: reason = tr("File size exceeds %1 MiB").arg(result_.query.maxFileBytes / (1024 * 1024)); break;
+    case WorkspaceSkipReason::RegexTooLarge: reason = tr("Regular expression search is limited to %1 MiB per file").arg(result_.query.maxRegexBytes / (1024 * 1024)); break;
+    case WorkspaceSkipReason::Busy: reason = tr("File is loading or has conflicting unsaved versions"); break;
+    case WorkspaceSkipReason::Unreadable: reason = tr("Cannot read file or folder"); break;
+    case WorkspaceSkipReason::InvalidText: reason = tr("Unsupported encoding or binary content"); break;
+    case WorkspaceSkipReason::Changed: reason = tr("File changed during search"); break;
+    case WorkspaceSkipReason::ResourceLimit: reason = tr("Search exceeded its resource limit"); break;
+    case WorkspaceSkipReason::IgnoredDirectory: reason = tr("Ignored directory"); break;
+    }
+    auto* item = new QTreeWidgetItem(files, {QDir(root_).relativeFilePath(detail.path), reason});
+    item->setToolTip(0, detail.path); item->setToolTip(1, reason);
+  }
+  if (result_.resultLimitReached) layout->addWidget(new QLabel(tr("Result limit reached"), &dialog));
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject); layout->addWidget(buttons);
+  dialog.exec();
 }
 void muffin::SearchPanelWidget::retranslateUi() {
   query_->setToolTip(QDir::toNativeSeparators(root_));

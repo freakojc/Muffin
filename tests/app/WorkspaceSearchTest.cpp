@@ -2,6 +2,7 @@
 #include "app/WorkspaceReplace.h"
 #include "app/SearchPanelWidget.h"
 #include "io/FileController.h"
+#include "document/PieceTable.h"
 #include "../TestUtils.h"
 #include <QApplication>
 #include <QDir>
@@ -16,6 +17,10 @@
 #include <QStyleOptionViewItem>
 #include <QImage>
 #include <QPainter>
+#include <QTimer>
+#include <QDialog>
+#include <QTextStream>
+#include <algorithm>
 
 using namespace muffin;
 namespace {
@@ -78,7 +83,12 @@ void replacementAndRecovery() {
   restored = WorkspaceReplace::restore(report.backupDirectory, {}, cancel);
   require(read(path) == "new edit" && restored.skipped.contains(path), "restore refuses later edits");
   write(path, replaced);
-  restored = WorkspaceReplace::restore(report.backupDirectory, {}, cancel);
+  QString replacedText; TextFileFormat replacedFormat;
+  require(FileController::decodeTextBytes(replaced, &replacedText, &replacedFormat), "decode current snapshot");
+  OpenSearchBuffers cleanSnapshot{{WorkspaceFileIndex::pathKey(path), {{}, false, false, std::make_shared<PieceTable>(replacedText)}}};
+  require(WorkspaceSearch::bufferMatches(cleanSnapshot.cbegin().value(), replacedText)
+      && !WorkspaceSearch::bufferMatches(cleanSnapshot.cbegin().value(), QStringLiteral("changed")), "snapshot comparisons validate logical content");
+  restored = WorkspaceReplace::restore(report.backupDirectory, cleanSnapshot, cancel);
   require(restored.changed.contains(path) && read(path) == original && read(other) == "external update", "restore exact bytes without overwriting skipped files");
   // A canceled operation never touches files but remains safe to recover.
   cancel->store(true);
@@ -143,12 +153,166 @@ void narrowMatchPreview() {
   }
   require(visibleMatch, "narrow sidebar elides context before the hit so its highlight remains visible");
 }
+void coverageDetails() {
+  QTemporaryDir directory;
+  write(directory.filePath("build/ignored.md"), "needle");
+  SearchPanelWidget panel; panel.setRoot(directory.path());
+  panel.findChild<QLineEdit*>("WorkspaceSearchQuery")->setText("needle"); panel.startSearch({});
+  QElapsedTimer timer; timer.start();
+  while (panel.result().details.isEmpty() && timer.elapsed() < 5000) { QApplication::processEvents(); QThread::msleep(5); }
+  auto* summary = panel.findChild<QLabel*>("WorkspaceSearchSummary");
+  require(summary->text().contains("href=\"details\""), "zero matches still explain excluded coverage");
+  QTimer::singleShot(0, &panel, [&] {
+    auto* dialog = panel.findChild<QDialog*>("WorkspaceSearchDetails");
+    require(dialog && dialog->isVisible(), "summary opens coverage details");
+    auto* tree = dialog->findChild<QTreeWidget*>();
+    require(tree && tree->topLevelItemCount() == 1 && tree->topLevelItem(0)->text(0) == "build"
+        && !tree->topLevelItem(0)->text(1).isEmpty(), "coverage details show a relative path and reason");
+    dialog->accept();
+  });
+  require(QMetaObject::invokeMethod(summary, "linkActivated", Q_ARG(QString, QStringLiteral("details"))), "activate details link");
+}
+void streamingAndParallelism() {
+  QTemporaryDir directory;
+  QString text(255, u'a');
+  text += QString::fromUtf8("😀朝圣之路\r\n");
+  text += QString(70000, u'x') + QString::fromUtf8("朝圣之路\rending\n朝圣之路");
+  QString normalized = text; normalized.replace("\r\n", "\n"); normalized.replace(u'\r', u'\n');
+  const QStringList encodings{"UTF-8", "UTF-16LE", "UTF-16BE", "UTF-32LE", "UTF-32BE"};
+  for (int i = 0; i < encodings.size(); ++i) {
+    TextFileFormat format; format.encodingName = encodings[i]; format.writeBom = true;
+    QByteArray bytes;
+    require(FileController::encodeTextBytes(text, format, &bytes), "encode streaming fixture");
+    write(directory.filePath(QString::number(i) + ".md"), bytes);
+  }
+  auto q = query(directory.path()); q.pattern = QString::fromUtf8("朝圣之路");
+  q.maxReplaceBytes = 1; q.chunkBytes = 256;
+  const auto expected = DocumentSearch::findAll(normalized, q.pattern, q.options);
+  auto cancel = std::make_shared<std::atomic_bool>(false);
+  for (int workers : {1, 4}) {
+    q.workerCount = workers;
+    const auto result = WorkspaceSearch::run(q, {}, cancel);
+    QString diagnostics = QStringLiteral("serial and parallel streaming cover all Unicode files: searched=%1 hits=%2 error=%3")
+        .arg(result.searchedFiles).arg(result.matches).arg(result.error);
+    for (const auto& detail : result.details) diagnostics += QStringLiteral("; %1 reason=%2").arg(detail.path).arg(int(detail.reason));
+    require(result.complete && result.searchedFiles == 5 && result.matches == 15, diagnostics);
+    for (const auto& file : result.files) {
+      require(file.fingerprint == WorkspaceSearch::fingerprint(normalized), "streamed normalization produces the editor fingerprint");
+      for (int i = 0; i < expected.matches.size(); ++i) {
+        const auto& hit = file.hits[i];
+        require(hit.match.start == expected.matches[i].start && hit.match.length == expected.matches[i].length,
+                "matches spanning byte, character and rolling-window boundaries have exact UTF-16 offsets");
+        require(hit.line == normalized.left(hit.match.start).count(u'\n') + 1, "streaming preserves normalized line numbers");
+        require(hit.context.mid(hit.highlight, hit.match.length) == q.pattern, "snippet highlights the match");
+        require(hit.context.size() < 170 && hit.match.captures.isEmpty(), "results retain bounded snippets instead of full text or captures");
+      }
+    }
+  }
+  const auto path = directory.filePath("0.md");
+  auto snapshot = std::make_shared<PieceTable>(QString(200000, u'z') + q.pattern);
+  snapshot->replace(17, 18, QString::fromUtf8("😀"));
+  OpenSearchBuffers buffers{{WorkspaceFileIndex::pathKey(path), {{}, true, false, snapshot}}};
+  const auto withDraft = WorkspaceSearch::run(q, buffers, cancel);
+  const auto draft = std::find_if(withDraft.files.begin(), withDraft.files.end(), [&](const auto& file) { return file.path == path; });
+  require(draft != withDraft.files.end() && draft->hits.size() == 1 && draft->modified
+      && draft->fingerprint == WorkspaceSearch::fingerprint(*snapshot), "piece-table snapshots override disk without UI-thread materialization");
+  q.maxResultBytes = 1;
+  const auto bounded = WorkspaceSearch::run(q, {}, cancel);
+  require(!bounded.complete && bounded.resultLimitReached && bounded.matches == 0, "result memory limit is explicit and blocks replacement");
+  q.maxResultBytes = 16 * 1024 * 1024; q.maxMatches = 2;
+  const auto limited = WorkspaceSearch::run(q, {}, cancel);
+  require(!limited.complete && limited.matches == 2 && limited.resultLimitReached, "parallel workers share the global match limit");
+  cancel->store(true);
+  require(!WorkspaceSearch::run(q, {}, cancel).complete, "pre-canceled scans remain incomplete");
+}
+void regexCompatibilityAndStalePreview() {
+  QTemporaryDir directory;
+  const auto path = directory.filePath("note.md");
+  const auto text = QString::fromUtf8("😀 alpha\nbeta alpha\nbeta"); write(path, text.toUtf8());
+  auto q = query(directory.path()); q.options.regularExpression = true;
+  auto cancel = std::make_shared<std::atomic_bool>(false);
+  for (const auto& pattern : QStringList{"alpha\\nbeta", "(?<=alpha)\\nbeta", "(?=.)|.", "^|$", "\\b", ""}) {
+    q.pattern = pattern;
+    const auto found = WorkspaceSearch::run(q, {}, cancel);
+    const auto expected = DocumentSearch::findAll(text, pattern, q.options);
+    require(found.complete && found.matches == expected.matches.size(), "native PCRE2 preserves current-document regex semantics");
+    if (found.matches) for (int i = 0; i < expected.matches.size(); ++i)
+      require(found.files[0].hits[i].match.start == expected.matches[i].start && found.files[0].hits[i].match.length == expected.matches[i].length,
+              "regex ranges, including empty matches, agree with Qt");
+  }
+  q.pattern = "alpha"; const auto result = WorkspaceSearch::run(q, {}, cancel);
+  write(path, QString(text).replace("beta", "BETA").toUtf8());
+  QStringList skipped;
+  require(WorkspaceReplace::prepare(result, "new", &skipped).isEmpty() && skipped.contains(path),
+          "lazy replacement preview rejects even same-size disk changes since search");
+  q.maxRegexBytes = 1;
+  const auto oversized = WorkspaceSearch::run(q, {}, cancel);
+  require(oversized.matches == 0 && oversized.details.size() == 1 && oversized.details[0].reason == WorkspaceSkipReason::RegexTooLarge,
+          "regex resource limit has a distinct skip reason");
+  write(directory.filePath("build/ignored.md"), "alpha");
+  const auto ignored = WorkspaceSearch::run(q, {}, cancel);
+  require(std::any_of(ignored.details.begin(), ignored.details.end(), [](const auto& detail) {
+    return detail.reason == WorkspaceSkipReason::IgnoredDirectory;
+  }), "fixed directory exclusions are visible in coverage details");
+  QString wide;
+  for (int i = 0; i < 100; ++i) wide += u'a' + QString(4095, u'x') + u'\n';
+  write(path, wide.toUtf8());
+  q.maxRegexBytes = 32 * 1024 * 1024; q.pattern = "(?ms)^a(?=(.*))";
+  const auto captures = WorkspaceSearch::run(q, {}, cancel);
+  require(captures.complete && captures.matches == 100 && captures.files[0].hits[0].match.captures.isEmpty(),
+          "large lookahead captures stay out of search results");
+  skipped.clear();
+  const auto preview = WorkspaceReplace::prepare(captures, "b", &skipped);
+  require(preview.size() == 1 && preview[0].afterText.size() == wide.size() && preview[0].afterText.count(u'b') == 100,
+          "preview expands one match at a time without retaining every captured tail");
+}
+void largeFile() {
+  QTemporaryDir directory;
+  const auto path = directory.filePath("large.md");
+  QFile file(path); require(file.open(QIODevice::WriteOnly), "create large note");
+  const QByteArray chunk = QByteArray(1024 * 1024 - 1, 'a') + '\n';
+  for (int i = 0; i < 100; ++i) require(file.write(chunk) == chunk.size(), "write 100 MiB fixture");
+  file.write(QString::fromUtf8("😀 large needle\r\n").toUtf8()); file.close();
+  auto q = query(directory.path()); q.pattern = "needle";
+  QElapsedTimer timer; timer.start();
+  const auto result = WorkspaceSearch::run(q, {}, std::make_shared<std::atomic_bool>(false));
+  require(result.complete && result.matches == 1 && result.searchedFiles == 1, "ordinary search covers a 100 MiB note");
+  require(result.files[0].hits[0].match.start == 100 * 1024 * 1024 + 9 && result.files[0].hits[0].line == 101,
+          "large note hit has the exact editor offset and line");
+  require(!result.files[0].replaceable, "large-file search and replacement limits remain independent");
+  QTextStream(stdout) << "100 MiB search: " << timer.elapsed() << " ms; retained context: "
+                      << result.files[0].hits[0].context.size() << " UTF-16 units\n";
+}
+void benchmark(const QString& path, const QString& pattern) {
+  WorkspaceQuery q; q.root = QFileInfo(path).isDir() ? path : QFileInfo(path).absolutePath();
+  q.includePath = QFileInfo(path).isDir() ? QString() : QFileInfo(path).fileName();
+  q.extensions = {"md"}; q.pattern = pattern;
+  for (int workers : {1, 4}) {
+    q.workerCount = workers;
+    QElapsedTimer timer; timer.start(); qint64 first = -1;
+    const auto result = WorkspaceSearch::run(q, {}, std::make_shared<std::atomic_bool>(false),
+        [&](const auto&) { if (first < 0) first = timer.elapsed(); });
+    qint64 snippets = 0;
+    for (const auto& file : result.files) for (const auto& hit : file.hits) snippets += hit.context.size() * 2;
+    QTextStream(stdout) << workers << " workers: " << result.searchedFiles << " files, " << result.matches
+        << " hits, first=" << first << " ms, total=" << timer.elapsed() << " ms, context=" << snippets
+        << " bytes, complete=" << result.complete << '\n';
+  }
+}
 }
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
+  const auto arguments = app.arguments();
+  if (arguments.size() >= 4 && arguments[1] == "--benchmark") {
+    benchmark(arguments[2], arguments[3]); return 0;
+  }
   runTest("workspace contents", search);
   runTest("preview write and durable recovery", replacementAndRecovery);
   runTest("encodings and regex captures", encodingAndCaptures);
   runTest("query generations", panelGeneration);
   runTest("narrow match context", narrowMatchPreview);
+  runTest("search coverage details", coverageDetails);
+  runTest("streaming and parallel search", streamingAndParallelism);
+  runTest("regex compatibility and lazy preview", regexCompatibilityAndStalePreview);
+  runTest("100 MiB search", largeFile);
 }

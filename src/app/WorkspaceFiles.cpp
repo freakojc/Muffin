@@ -67,6 +67,7 @@ muffin::WorkspaceFiles muffin::WorkspaceFileIndex::scan(
       if (entry.isSymLink() || entry.isJunction()) continue;
       if (entry.isDir()) {
         if (!excluded.contains(entry.fileName().toCaseFolded())) pending.append(entry.absoluteFilePath());
+        else result.ignoredDirectories.append(entry.absoluteFilePath());
       } else if (entry.isFile()) {
         bool allowed = false;
         for (const auto& ext : extensions) {
