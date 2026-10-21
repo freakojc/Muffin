@@ -275,6 +275,13 @@ public:
   void mergeTextDelta(const TextDeltaCommand& next);
   void updateAfterCursor(const CursorPosition& cursor);
 
+  // Selection replacement must undo to the original range, including its
+  // direction. Empty metadata leaves existing caret-only commands unchanged.
+  void setBeforeSelection(const SelectionRange& range) {
+    if (range.anchor.isValid() && range.focus.isValid() && !range.isCollapsed()) beforeSelection_ = range;
+  }
+  const SelectionRange& beforeSelection() const { return beforeSelection_; }
+
   TextDeltaCommand& textDeltaCommandMut();
 
 private:
@@ -286,6 +293,7 @@ private:
 
   Kind kind_ = Kind::ReplaceDocumentText;
   QString label_;
+  SelectionRange beforeSelection_;
   // One discriminated command payload. Replaces a hand-rolled Storage enum plus eight
   // always-present members: copy/assign are now trivially correct (the variant copies the
   // active payload itself), so the "forgot to copy a field" drift the old hand-written copy

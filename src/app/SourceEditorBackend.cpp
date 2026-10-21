@@ -98,7 +98,12 @@ void SourceEditorBackend::toggleCode() { editor_->insertText(QStringLiteral("``"
 void SourceEditorBackend::toggleStrikethrough() { editor_->insertText(QStringLiteral("~~~~")); }
 void SourceEditorBackend::toggleInlineMath() { editor_->insertText(QStringLiteral("$$")); }
 void SourceEditorBackend::toggleUnderline() { editor_->insertText(QStringLiteral("<u></u>")); }
-void SourceEditorBackend::insertLink() { editor_->insertText(QStringLiteral("[](url)")); }
+void SourceEditorBackend::insertLink() {
+  const auto start = editor_->selectionStart();
+  const QString selected = editor_->selectedText();
+  editor_->insertText(QStringLiteral("[") + selected + QStringLiteral("](url)"));
+  editor_->setSelection(start + 1, start + 1 + selected.size());
+}
 void SourceEditorBackend::insertImage() { editor_->insertText(QStringLiteral("![alt](url)")); }
 void SourceEditorBackend::clearFormatting() {}
 bool SourceEditorBackend::hasSelection() const { return editor_->hasSelection(); }

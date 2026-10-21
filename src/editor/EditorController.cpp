@@ -547,6 +547,21 @@ void EditorController::undo() {
     // silently consuming it (the "Ctrl+Z did nothing" misalignment bug).
     undoStack_.restoreUndo(transaction);
     brushQueue_.requestFullRefresh();
+    return;
+  }
+  const auto& range = transaction.beforeSelection();
+  if (range.anchor.isValid() && range.focus.isValid()) {
+    const auto remap = [this](const CursorPosition& stored) {
+      auto cursor = stored.text.sourceOffset >= 0 && !stored.afterBlock
+          ? cursorForSourceOffset(stored.text.sourceOffset) : remapSnapshotCursor(stored);
+      // Document selections include syntax outside the visible text. Keep
+      // their explicit endpoints authoritative after remapping reparsed nodes.
+      if (stored.text.sourceOffset >= 0) cursor.text.sourceOffset = stored.text.sourceOffset;
+      cursor.text.inMeta = stored.text.inMeta;
+      return cursor;
+    };
+    const auto anchor = remap(range.anchor), focus = remap(range.focus);
+    if (anchor.isValid() && focus.isValid()) selection_.setSelection({anchor, focus});
   }
 }
 

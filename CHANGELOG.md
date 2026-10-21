@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep plain Tab in the source editor instead of moving focus away, and preserve selected text when inserting a source-mode hyperlink.
+- Restore the selected range and its direction when undoing text replacement or deletion in live editing, and keep those operations separate from neighbouring typing.
+- Disable unsupported hyperlink and underline selections before invocation, explain formatting restrictions in menu hints, and enable inline formatting within individual table cells.
+- Add continuous editing regression coverage for Chinese input, reverse selections, cross-paragraph cut/paste, list indentation, undo/redo, tab switching and deleting the entire document.
+
 ## [0.7.4] - 2026-10-21
 
 ### Added

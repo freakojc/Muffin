@@ -167,6 +167,7 @@ void InputController::applyLocalEdit(
   }
 
   const CursorPosition beforeCursor = ctx_.selection && ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : CursorPosition();
+  const SelectionRange beforeSelection = ctx_.selection ? ctx_.selection->selection() : SelectionRange();
   const PieceTable& currentText = ctx_.session->markdownText();
   if (sourceStart + removedLength > currentText.size()) {
     return;
@@ -263,14 +264,16 @@ void InputController::applyLocalEdit(
     if (textDeltaUndoEligible) {
       QVector<NodeId> affectedNodes;
       affectedNodes.push_back(refreshNodeFor(ctx_.session, nextCursor.blockId));
-      ctx_.undoStack->push(EditTransaction(
+      EditTransaction transaction(
           kind,
           label,
           TextDeltaCommand{
               TextDelta{sourceStart, removedText, insertedText},
               beforeCursor,
               nextCursor,
-              std::move(affectedNodes)}));
+              std::move(affectedNodes)});
+      transaction.setBeforeSelection(beforeSelection);
+      ctx_.undoStack->push(std::move(transaction));
     } else {
       if (!beforeTextCaptured) {
         beforeText = ctx_.session->markdownText().toString();
@@ -281,8 +284,9 @@ void InputController::applyLocalEdit(
         nextText = ctx_.session->markdownText().toString();
       }
       const QVector<qsizetype> afterOffsets = collectPendingMarkerOffsetsForSession(ctx_.session);
-      ctx_.undoStack->push(
-          EditTransaction(kind, label, {beforeText, beforeCursor, beforeOffsets}, {std::move(nextText), nextCursor, afterOffsets}));
+      EditTransaction transaction(kind, label, {beforeText, beforeCursor, beforeOffsets}, {std::move(nextText), nextCursor, afterOffsets});
+      transaction.setBeforeSelection(beforeSelection);
+      ctx_.undoStack->push(std::move(transaction));
     }
   }
   if (ctx_.brushQueue) {
@@ -331,6 +335,7 @@ void InputController::applyEdit(
     bool preferLaterEmptyAtOffset) {
   PerfTimer perf("input.applyEdit.diffFallback");
   const CursorPosition beforeCursor = ctx_.selection && ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : CursorPosition();
+  const SelectionRange beforeSelection = ctx_.selection ? ctx_.selection->selection() : SelectionRange();
   const QString beforeText = ctx_.session->markdownText().toString();
 
   qsizetype prefix = 0;
@@ -370,21 +375,25 @@ void InputController::applyEdit(
     if (textDeltaUndoEligible) {
       QVector<NodeId> affectedNodes;
       affectedNodes.push_back(refreshNodeFor(ctx_.session, nextCursor.blockId));
-      ctx_.undoStack->push(EditTransaction(
+      EditTransaction transaction(
           kind,
           label,
           TextDeltaCommand{
               TextDelta{prefix, removedText, insertedText},
               beforeCursor,
               nextCursor,
-              std::move(affectedNodes)}));
+              std::move(affectedNodes)});
+      transaction.setBeforeSelection(beforeSelection);
+      ctx_.undoStack->push(std::move(transaction));
     } else {
       const QVector<qsizetype> afterOffsets = collectPendingMarkerOffsetsForSession(ctx_.session);
-      ctx_.undoStack->push(EditTransaction(
+      EditTransaction transaction(
           kind,
           label,
           {beforeText, beforeCursor, beforeOffsets},
-          {std::move(nextText), nextCursor, afterOffsets}));
+          {std::move(nextText), nextCursor, afterOffsets});
+      transaction.setBeforeSelection(beforeSelection);
+      ctx_.undoStack->push(std::move(transaction));
     }
   }
   if (ctx_.brushQueue) {

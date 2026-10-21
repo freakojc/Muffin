@@ -1014,8 +1014,12 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .checkable = true,
        .enabledInitial = false,
        .handler = [](MainWindow& window) { window.tab_->backend->toggleUnderline(); },
-       .enabled = [](const MainWindow& w) { return inlineFormat(w); },
-       .checked = [](const MainWindow& w) { return inlineFormat(w) && w.commandInlineFormats().underline; }},
+       .enabled = [](const MainWindow& w) { return w.commandSingleInlineSelection(); },
+       .checked = [](const MainWindow& w) { return w.commandSingleInlineSelection() && w.commandInlineFormats().underline; },
+       .disabledReason = [](const MainWindow& w) {
+         if (w.tab_->backend->isSourceMode()) return muffin::MainWindow::tr("Switch to live editing to use this formatting command.");
+         return muffin::MainWindow::tr("Select text within a single paragraph or table cell, or place the caret in editable text.");
+       }},
       {.id = QStringLiteral("format.code"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Inline Code"),
@@ -1050,7 +1054,19 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Hyperlink"),
        .shortcut = QKeySequence(QStringLiteral("Ctrl+K")),
-       .handler = [](MainWindow& window) { window.tab_->backend->insertLink(); }},
+       .handler = [](MainWindow& window) { window.tab_->backend->insertLink(); },
+       .enabled = [](const MainWindow& w) {
+         if (w.tab_->session.isOpenInProgress()) return false;
+         if (!w.tab_->backend->isSourceMode()) return w.commandSingleInlineSelection();
+         const auto& lines = w.tab_->session.document().lineOffsets();
+         return lines.lineForOffset(w.tab_->editor->selectionStart()) == lines.lineForOffset(w.tab_->editor->selectionEnd());
+       },
+       .disabledReason = [](const MainWindow& w) {
+         if (w.tab_->session.isOpenInProgress()) return muffin::MainWindow::tr("Wait for the document to finish loading.");
+         return w.tab_->backend->isSourceMode()
+             ? muffin::MainWindow::tr("Select text within one line, or place the caret where you want to insert the link.")
+             : muffin::MainWindow::tr("Select text within a single paragraph or table cell, or place the caret in editable text.");
+       }},
       {.id = QStringLiteral("format.clear"),
        .category = CommandCategory::Format,
        .text = muffin::MainWindow::tr("Clear Style"),
@@ -1061,6 +1077,10 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          // require a collapsed caret — with an active selection it would wipe formatting outside the
          // selection too, which is surprising. Selection-scoped clearing is a separate feature.
          return inlineFormat(w) && w.tab_->editorController.selection().selection().isCollapsed();
+       },
+       .disabledReason = [](const MainWindow& w) {
+         if (w.tab_->backend->isSourceMode()) return muffin::MainWindow::tr("Switch to live editing to use this formatting command.");
+         return muffin::MainWindow::tr("Place the caret in the paragraph or table cell whose formatting you want to clear.");
        }},
 
       // ---------------- Math ----------------

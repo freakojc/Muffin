@@ -57,15 +57,24 @@ bool RenderCommandFacade::isInlineFormatEnabled() const {
   if (!blockId.isValid()) {
     return false;
   }
-  MarkdownNode* node = session->document().node(blockId);
+  MarkdownNode* node = session->document().node(sel.focus.text.nodeId.isValid() ? sel.focus.text.nodeId : blockId);
   if (!node) {
     return false;
   }
-  // Accept Paragraph, Heading, ListItem — blocks that support inline formatting.
+  // Accept paragraphs, headings, list text and individual table cells.
   // Unlike isOnEditableParagraphBlock(), this allows non-collapsed selections.
-  return node->type() == BlockType::Paragraph ||
+  return !sel.focus.afterBlock && !sel.focus.text.inMeta &&
+        (node->type() == BlockType::Paragraph || node->type() == BlockType::TableCell ||
          node->type() == BlockType::Heading ||
-         node->type() == BlockType::ListItem;
+         node->type() == BlockType::ListItem);
+}
+
+bool RenderCommandFacade::isSingleInlineSelection() const {
+  if (!isInlineFormatEnabled()) return false;
+  const auto range = editorController_.selection().selection();
+  return range.anchor.isValid() && !range.anchor.afterBlock && !range.anchor.text.inMeta
+      && range.isSingleBlock() && range.isSingleTextNode()
+      && !range.coversDocument(editorController_.session()->markdownText().size());
 }
 
 int RenderCommandFacade::currentHeadingLevel() const {

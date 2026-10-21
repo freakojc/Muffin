@@ -1083,6 +1083,20 @@ void VirtualSourceEdit::resizeEvent(QResizeEvent* event) {
   }
 }
 
+bool VirtualSourceEdit::event(QEvent* event) {
+  if (event->type() == QEvent::KeyPress || event->type() == QEvent::ShortcutOverride) {
+    auto* key = static_cast<QKeyEvent*>(event);
+    if (key->key() == Qt::Key_Tab && key->modifiers() == Qt::NoModifier) {
+      // QWidget consumes Tab for focus traversal before keyPressEvent. Source
+      // editing owns plain Tab; modified Tab shortcuts still reach the window.
+      event->accept();
+      if (event->type() == QEvent::KeyPress) keyPressEvent(key);
+      return true;
+    }
+  }
+  return QAbstractScrollArea::event(event);
+}
+
 void VirtualSourceEdit::keyPressEvent(QKeyEvent* event) {
   const bool shift = event->modifiers().testFlag(Qt::ShiftModifier);
   const bool control = event->modifiers().testFlag(Qt::ControlModifier);

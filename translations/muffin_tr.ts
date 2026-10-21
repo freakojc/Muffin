@@ -1046,14 +1046,14 @@ Make it your default editor now?</source>
 <context>
     <name>muffin::EditorView</name>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="68"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1275"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="70"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1289"/>
         <source>(no spelling suggestions)</source>
         <translation>(yazım önerisi yok)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="82"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1287"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="84"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1301"/>
         <source>Ignore &quot;%1&quot;</source>
         <translation>&quot;%1&quot; öğesini yoksay</translation>
     </message>
@@ -1063,12 +1063,12 @@ Make it your default editor now?</source>
         <translation>Yükleniyor…</translation>
     </message>
     <message>
-        <location filename="../src/editor/EditorView.cpp" line="599"/>
+        <location filename="../src/editor/EditorView.cpp" line="601"/>
         <source>Markdown editor</source>
         <translation>Markdown düzenleyici</translation>
     </message>
     <message>
-        <location filename="../src/editor/EditorView.cpp" line="600"/>
+        <location filename="../src/editor/EditorView.cpp" line="602"/>
         <source>Rendered Markdown document</source>
         <translation>İşlenmiş Markdown belgesi</translation>
     </message>
@@ -1405,12 +1405,12 @@ Make it your default editor now?</source>
         <translation type="vanished">Ayrıştırma %1 ms</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindow.cpp" line="509"/>
+        <location filename="../src/app/MainWindow.cpp" line="508"/>
         <source>Open Folder</source>
         <translation>Klasör Aç</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1512"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1532"/>
         <source>Show / Hide Sidebar</source>
         <translation>Kenar Çubuğunu Göster / Gizle</translation>
     </message>
@@ -1419,8 +1419,8 @@ Make it your default editor now?</source>
         <translation type="vanished">Kaynak / işlenmiş modu değiştir</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1719"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="193"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1739"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="191"/>
         <source>File</source>
         <translation>Dosya(&amp;F)</translation>
     </message>
@@ -1450,12 +1450,12 @@ Make it your default editor now?</source>
         <translation>Hızlı Aç...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1726"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1746"/>
         <source>Open Recent</source>
         <translation>Son Kullanılanları Aç</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1728"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1748"/>
         <source>Reopen with Encoding</source>
         <translation>Kodlamayla Yeniden Aç</translation>
     </message>
@@ -1481,7 +1481,7 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="152"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="314"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="316"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="393"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1386"/>
         <source>Properties</source>
@@ -1508,19 +1508,19 @@ Make it your default editor now?</source>
         <translation>İçe Aktar...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1492"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1512"/>
         <source>Could not move images:
 %1</source>
         <translation>Görüntüler taşınamadı:
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1683"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1703"/>
         <source>&lt;h3&gt;Muffin %1&lt;/h3&gt;&lt;p&gt;&lt;b&gt;Platform:&lt;/b&gt; %2&lt;br&gt;&lt;b&gt;Author:&lt;/b&gt; 夏寒&lt;br&gt;&lt;b&gt;License:&lt;/b&gt; MIT License&lt;br&gt;&lt;b&gt;Website:&lt;/b&gt; https://github.com/jstzwj/Muffin&lt;/p&gt;</source>
         <translation>&lt;h3&gt;Muffin %1&lt;/h3&gt;&lt;p&gt;&lt;b&gt;Platform:&lt;/b&gt; %2&lt;br&gt;&lt;b&gt;Geliştirici:&lt;/b&gt; 夏寒&lt;br&gt;&lt;b&gt;Lisans:&lt;/b&gt; MIT License&lt;br&gt;&lt;b&gt;Web sitesi:&lt;/b&gt; https://github.com/jstzwj/Muffin&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1741"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1761"/>
         <source>Export</source>
         <translation>Dışa Aktar</translation>
     </message>
@@ -1539,7 +1539,7 @@ Make it your default editor now?</source>
         <translation type="vanished">Kapat</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1771"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1791"/>
         <source>Edit</source>
         <translation>Düzenle(&amp;E)</translation>
     </message>
@@ -1564,7 +1564,7 @@ Make it your default editor now?</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1181"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1201"/>
         <source>Copy Image</source>
         <translation>Görüntüyü Kopyala</translation>
     </message>
@@ -1594,8 +1594,8 @@ Make it your default editor now?</source>
         <translation>Düz Metin Olarak Yapıştır</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1785"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="189"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1805"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="191"/>
         <source>Select</source>
         <translation>Seç</translation>
     </message>
@@ -1625,12 +1625,12 @@ Make it your default editor now?</source>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="445"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="312"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="314"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1805"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1825"/>
         <source>Delete Range</source>
         <translation>Aralığı Sil</translation>
     </message>
@@ -1655,17 +1655,17 @@ Make it your default editor now?</source>
         <translation>Geçerli sözcüğü sil</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1813"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1833"/>
         <source>Math Tools</source>
         <translation>Matematik Araçları</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1818"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1838"/>
         <source>Smart Punctuation</source>
         <translation>Akıllı Noktalama</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1830"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1850"/>
         <source>Line Breaks</source>
         <translation>Satır Sonları</translation>
     </message>
@@ -1693,14 +1693,14 @@ Make it your default editor now?</source>
         <translation type="vanished">Yazım Denetimi...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1839"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1859"/>
         <source>Find and Replace</source>
         <translation>Bul ve Değiştir</translation>
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="609"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1855"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="169"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1875"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="171"/>
         <source>Paragraph</source>
         <translation>Paragraf(&amp;P)</translation>
     </message>
@@ -1719,9 +1719,9 @@ Make it your default editor now?</source>
         <translation>Başlığı Düşür</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1888"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1952"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="125"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1908"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1972"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="127"/>
         <source>Table</source>
         <translation>Tablo(&amp;B)</translation>
     </message>
@@ -1736,12 +1736,12 @@ Make it your default editor now?</source>
         <translation>Kod Bloğu</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1914"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1934"/>
         <source>Code Tools</source>
         <translation>Kod Araçları</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1926"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1946"/>
         <source>Alert</source>
         <translation>Uyarı</translation>
     </message>
@@ -1766,12 +1766,12 @@ Make it your default editor now?</source>
         <translation>Görev Listesi</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1872"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1892"/>
         <source>Task Status</source>
         <translation>Görev Durumu</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1877"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1897"/>
         <source>List Indent</source>
         <translation>Liste Girintisi</translation>
     </message>
@@ -1806,7 +1806,7 @@ Make it your default editor now?</source>
         <translation>İçindekiler</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1935"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1955"/>
         <source>Front Matter</source>
         <translation>Ön Bilgi</translation>
     </message>
@@ -1826,7 +1826,7 @@ Make it your default editor now?</source>
         <translation>JSON</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1985"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2005"/>
         <source>Format</source>
         <translation>Biçim(&amp;O)</translation>
     </message>
@@ -1846,128 +1846,128 @@ Make it your default editor now?</source>
         <translation>Altı Çizili</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1021"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1025"/>
         <source>Inline Code</source>
         <translation>Satır İçi Kod</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1029"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1033"/>
         <source>Inline Formula</source>
         <translation>Satır İçi Formül</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1038"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1042"/>
         <source>Strikethrough</source>
         <translation>Üstü Çizili</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1047"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1051"/>
         <source>Comment</source>
         <translation>Yorum</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1051"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1055"/>
         <source>Hyperlink</source>
         <translation>Köprü</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1997"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2017"/>
         <source>Link Actions</source>
         <translation>Bağlantı Eylemleri</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2003"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="108"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2023"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="110"/>
         <source>Image</source>
         <translation>Görüntü</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1157"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1177"/>
         <source>Insert Image...</source>
         <translation>Resim ekle...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1163"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1183"/>
         <source>Insert Local Image...</source>
         <translation>Yerel resim ekle...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1168"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1188"/>
         <source>Open Image Location...</source>
         <translation>Resim konumunu aç...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1199"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1219"/>
         <source>Delete Image File</source>
         <translation>Resim dosyasını sil</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1224"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1244"/>
         <source>Copy Image To...</source>
         <translation>Resmi şuraya kopyala...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1255"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1275"/>
         <source>Rename / Move Image To...</source>
         <translation>Resmi yeniden adlandır / şuraya taşı...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1322"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1342"/>
         <source>Upload All Local Images</source>
         <translation>Tüm yerel resimleri yükle</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1373"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1393"/>
         <source>Reload All Images</source>
         <translation>Tüm resimleri yeniden yükle</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2019"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2039"/>
         <source>Resize Image</source>
         <translation>Resmi yeniden boyutlandır</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1382"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1402"/>
         <source>25%</source>
         <translation>%25</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1390"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1410"/>
         <source>50%</source>
         <translation>%50</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1398"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1418"/>
         <source>75%</source>
         <translation>%75</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1406"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1426"/>
         <source>100%</source>
         <translation>%100</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1415"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1435"/>
         <source>150%</source>
         <translation>%150</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1423"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1443"/>
         <source>Custom...</source>
         <translation>Özel...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2030"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2050"/>
         <source>Convert Image Syntax</source>
         <translation>Resim sözdizimini dönüştür</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1442"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1462"/>
         <source>Standard Markdown ![](url)</source>
         <translation>Standart Markdown ![](url)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1448"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1468"/>
         <source>HTML &lt;img&gt;</source>
         <translation>HTML &lt;img&gt;</translation>
     </message>
@@ -1988,22 +1988,22 @@ Make it your default editor now?</source>
         <translation type="vanished">Özel klasöre kopyala</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1454"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1474"/>
         <source>Copy All Images To...</source>
         <translation>Tüm resimleri şuraya kopyala...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1477"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1497"/>
         <source>Move All Images To...</source>
         <translation>Tüm resimleri şuraya taşı...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1506"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1526"/>
         <source>Global Image Settings...</source>
         <translation>Genel resim ayarları...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1056"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1072"/>
         <source>Clear Style</source>
         <translation>Stili Temizle</translation>
     </message>
@@ -2139,33 +2139,33 @@ Make it your default editor now?</source>
         <translation>Tablo kaynağını biçimlendir</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1290"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1326"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1310"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1346"/>
         <source>No upload command is configured.
 Set up a custom upload command in Preferences → Images.</source>
         <translation>Hiç yükleme komutu yapılandırılmamış.
 Tercihler → Resimler bölümünden özel bir yükleme komutu ayarlayın.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1305"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1356"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1325"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1376"/>
         <source>Upload failed:
 %1</source>
         <translation>Yükleme başarısız:
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1347"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1367"/>
         <source>There are no local images to upload.</source>
         <translation>Yüklenecek yerel resim yok.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1356"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1376"/>
         <source>the uploader did not return one URL per image</source>
         <translation>yükleme programı her görsel için bir URL döndürmedi</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1368"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1388"/>
         <source>Uploaded %1 image(s).</source>
         <translation>%1 resim yüklendi.</translation>
     </message>
@@ -2178,7 +2178,7 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
         <translation type="vanished">Canlı önizleme ve kaynak düzenleme; Pandoc aracılığıyla PDF, HTML ve çok daha fazla biçime dışa aktarma; klasöre kopyalama ve özel komut yüklemesi ile resim ekleme; yazım denetimi; temalar; bul ve değiştir; ana hat; hızlı aç; ve çökmeye dayanıklı taslak kurtarma.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1961"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1981"/>
         <source>Code</source>
         <translation>Kod(&amp;C)</translation>
     </message>
@@ -2202,7 +2202,7 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
         <translation>Dili Ayarla...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1977"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1997"/>
         <source>Math</source>
         <translation>Matematik(&amp;M)</translation>
     </message>
@@ -2217,17 +2217,17 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
         <translation>HTML Ayarla...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2044"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2064"/>
         <source>View</source>
         <translation>Görünüm(&amp;V)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1522"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1542"/>
         <source>Outline</source>
         <translation>Ana Hat</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1527"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1547"/>
         <source>File Tree</source>
         <translation>Dosya Ağacı</translation>
     </message>
@@ -2236,62 +2236,62 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
         <translation type="vanished">Ara</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1532"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1552"/>
         <source>Source Code Mode</source>
         <translation>Kaynak Kod Modu</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1543"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1563"/>
         <source>Word Wrap</source>
         <translation>Sözcük Kaydırma</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1555"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1575"/>
         <source>Focus Mode</source>
         <translation>Odak Modu</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1565"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1585"/>
         <source>Typewriter Mode</source>
         <translation>Daktilo Modu</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1575"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1595"/>
         <source>Show Status Bar</source>
         <translation>Durum Çubuğunu Göster</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1585"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1605"/>
         <source>Word Count Window</source>
         <translation>Sözcük Sayımı Penceresi</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1589"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1609"/>
         <source>Toggle Full Screen</source>
         <translation>Tam Ekranı Aç/Kapat</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1594"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1614"/>
         <source>Always on Top</source>
         <translation>Her Zaman Üstte</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1604"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1624"/>
         <source>Actual Size</source>
         <translation>Gerçek Boyut</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1612"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1632"/>
         <source>Zoom In</source>
         <translation>Yakınlaştır</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1620"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1640"/>
         <source>Zoom Out</source>
         <translation>Uzaklaştır</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1628"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1648"/>
         <source>Switch Windows</source>
         <translation>Pencereler Arasında Geç</translation>
     </message>
@@ -2300,67 +2300,67 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
         <translation type="vanished">&lt;h3&gt;Muffin %1&lt;/h3&gt;&lt;p&gt;&lt;b&gt;Platform:&lt;/b&gt; %2&lt;br&gt;&lt;b&gt;Geliştirici:&lt;/b&gt; jstzwj&lt;br&gt;&lt;b&gt;Lisans:&lt;/b&gt; MIT License&lt;br&gt;&lt;b&gt;Web sitesi:&lt;/b&gt; https://github.com/jstzwj/Muffin&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1885"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1905"/>
         <source>Insert</source>
         <translation>Ekle</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2073"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2093"/>
         <source>Theme</source>
         <translation>Tema(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2075"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2095"/>
         <source>Help</source>
         <translation>Yardım(&amp;H)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1640"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1660"/>
         <source>Quick Start</source>
         <translation>Hızlı Başlangıç</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1644"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1664"/>
         <source>Markdown Reference</source>
         <translation>Markdown Başvurusu</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1648"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1668"/>
         <source>Custom Themes</source>
         <translation>Özel Temalar</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1652"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1672"/>
         <source>Acknowledgements</source>
         <translation>Teşekkürler</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1656"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1676"/>
         <source>Changelog</source>
         <translation>Değişiklik Günlüğü</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1662"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1682"/>
         <source>Official Website</source>
         <translation>Resmî Web Sitesi</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1668"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1688"/>
         <source>Feedback</source>
         <translation>Geri Bildirim</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1674"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1694"/>
         <source>Check for Updates...</source>
         <translation>Güncellemeleri Denetle...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1678"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1698"/>
         <source>About</source>
         <translation>Hakkında</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1209"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1229"/>
         <source>Delete Image</source>
         <translation>Resmi sil</translation>
     </message>
@@ -2376,7 +2376,7 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="193"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1969"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1989"/>
         <source>HTML</source>
         <translation>HTML</translation>
     </message>
@@ -2470,7 +2470,7 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
     </message>
     <message>
         <location filename="../src/app/CommandDeclarations.cpp" line="525"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="320"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="322"/>
         <source>Find in Folder…</source>
         <translation>Klasörde Bul…</translation>
     </message>
@@ -2575,61 +2575,88 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
         <translation>Tüm bloğun girintisini azalt</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1069"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1020"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1082"/>
+        <source>Switch to live editing to use this formatting command.</source>
+        <translation>Bu biçimlendirme komutunu kullanmak için canlı düzenlemeye geçin.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1021"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1068"/>
+        <source>Select text within a single paragraph or table cell, or place the caret in editable text.</source>
+        <translation>Tek bir paragraf veya tablo hücresi içinde metin seçin ya da imleci düzenlenebilir metne yerleştirin.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1065"/>
+        <source>Wait for the document to finish loading.</source>
+        <translation>Belgenin yüklenmesinin tamamlanmasını bekleyin.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1067"/>
+        <source>Select text within one line, or place the caret where you want to insert the link.</source>
+        <translation>Tek bir satır içinde metin seçin ya da imleci bağlantıyı eklemek istediğiniz yere yerleştirin.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1083"/>
+        <source>Place the caret in the paragraph or table cell whose formatting you want to clear.</source>
+        <translation>İmleci biçimlendirmesini temizlemek istediğiniz paragrafa veya tablo hücresine yerleştirin.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1089"/>
         <source>Refresh All Math</source>
         <translation>Tüm formülleri yenile</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1077"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1097"/>
         <source>Convert on Input</source>
         <translation>Girdide Dönüştür</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1096"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1116"/>
         <source>Convert on Rendering</source>
         <translation>Görüntülerken dönüştür</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1115"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1135"/>
         <source>Smart Quotes</source>
         <translation>Akıllı Tırnak İşaretleri</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1127"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1147"/>
         <source>Smart Dashes</source>
         <translation>Akıllı Tireler</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1139"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1159"/>
         <source>Remap Unicode Punctuation on Parse</source>
         <translation>Ayrıştırırken Unicode noktalamayı yeniden eşle</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1151"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1171"/>
         <source>More Options...</source>
         <translation>Diğer seçenekler...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1210"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1230"/>
         <source>Delete image file &quot;%1&quot;?
 This cannot be undone.</source>
         <translation>&quot;%1&quot; resim dosyası silinsin mi?
 Bu işlem geri alınamaz.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1233"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1253"/>
         <source>Copy Image To</source>
         <translation>Resmi şuraya kopyala</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1264"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1284"/>
         <source>Move Image To</source>
         <translation>Resmi şuraya taşı</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1285"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1289"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1304"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1305"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1309"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1324"/>
         <source>Upload Image</source>
         <translation>Resmi yükle</translation>
     </message>
@@ -2640,53 +2667,53 @@ Set up an image uploader in Preferences → Images.</source>
 Tercihler → Resimler bölümünde bir yükleyici ayarlayın.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1325"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1346"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1355"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1345"/>
         <location filename="../src/app/CommandDeclarations.cpp" line="1366"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1367"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1375"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1386"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1387"/>
         <source>Upload All Images</source>
         <translation>Tüm resimleri yükle</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1429"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1449"/>
         <source>Image Size</source>
         <translation>Görüntü Boyutu</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1429"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1449"/>
         <source>Zoom percent:</source>
         <translation>Yakınlaştırma yüzdesi:</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1460"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1480"/>
         <source>Copy All Images To</source>
         <translation>Tüm resimleri şuraya kopyala</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1471"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1491"/>
         <source>Copy All Images</source>
         <translation>Tüm resimleri kopyala</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1472"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1492"/>
         <source>Copied %1 of %2 image(s).</source>
         <translation>%2 resmin %1&apos;i kopyalandı.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1483"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1503"/>
         <source>Move All Images To</source>
         <translation>Tüm resimleri şuraya taşı</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1491"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1498"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1500"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1511"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1518"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1520"/>
         <source>Move All Images</source>
         <translation>Tüm resimleri taşı</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1501"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1521"/>
         <source>Moved %1 image(s).</source>
         <translation>%1 resim taşındı.</translation>
     </message>
@@ -2721,7 +2748,7 @@ Tercihler → Resimler bölümünde bir yükleyici ayarlayın.</translation>
         <translation>TeX:</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1682"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1702"/>
         <source>About Muffin</source>
         <translation>Muffin Hakkında</translation>
     </message>
@@ -2974,8 +3001,8 @@ Ayrıştırma süresi: %6 ms</translation>
         <translation>Dışa aktarılacak bir şey yok</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="222"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="262"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="224"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="264"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="817"/>
         <source>Export As</source>
         <translation>Farklı Dışa Aktar</translation>
@@ -2996,15 +3023,15 @@ Ayrıştırma süresi: %6 ms</translation>
         <translation>Pandoc başarısız oldu:</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="236"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="280"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="238"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="282"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="883"/>
         <source>Export Failed</source>
         <translation>Dışa Aktarma Başarısız</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="240"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="284"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="242"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="286"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="887"/>
         <source>Exported to %1</source>
         <translation>%1 konumuna dışa aktarıldı</translation>
@@ -3475,77 +3502,77 @@ Would you like to open the download page?</source>
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="94"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="96"/>
         <source>Export Mermaid as SVG...</source>
         <translation>Mermaid&apos;i SVG olarak dışa aktar...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="97"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="99"/>
         <source>Export Mermaid as PNG...</source>
         <translation>Mermaid&apos;i PNG olarak dışa aktar...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="112"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="114"/>
         <source>Resize</source>
         <translation>Yeniden boyutlandır</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="116"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="118"/>
         <source>Convert</source>
         <translation>Dönüştür</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="151"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="153"/>
         <source>Copy as</source>
         <translation>Farklı kopyala</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="304"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="306"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="305"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="321"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="307"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="323"/>
         <source>Open in New Window</source>
         <translation>Yeni Pencerede Aç</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="307"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="323"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="309"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="325"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1171"/>
         <source>New File</source>
         <translation>Yeni Dosya</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="308"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="324"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="310"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="326"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1184"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1190"/>
         <source>New Folder</source>
         <translation>Yeni Klasör</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="310"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="312"/>
         <source>Rename</source>
         <translation>Yeniden Adlandır</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="311"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="313"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1307"/>
         <source>Duplicate</source>
         <translation>Kopyasını Oluştur</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="316"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="326"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="318"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="328"/>
         <location filename="../src/app/MainWindowTabs.cpp" line="464"/>
         <source>Copy Path</source>
         <translation>Yolu Kopyala</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="317"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="327"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="319"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="329"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="1402"/>
         <location filename="../src/app/MainWindowTabs.cpp" line="470"/>
         <source>Reveal in File Manager</source>
@@ -3632,22 +3659,22 @@ Would you like to open the download page?</source>
         <translation>Sekmeyi yeni pencereye kopyala</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="130"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="129"/>
         <source>This file changed. Search again to update its matches.</source>
         <translation>Bu dosya değişti. Eşleşmelerini güncellemek için yeniden arayın.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="159"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="158"/>
         <source>This match cannot be selected precisely in live preview. Showing it in source mode.</source>
         <translation>Bu eşleşme canlı önizlemede tam olarak seçilemiyor. Kaynak modunda gösteriliyor.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="181"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="179"/>
         <source>Preview Folder Replacement</source>
         <translation>Klasörde Değiştirmeyi Önizle</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="183"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="181"/>
         <source>Folder: %1
 Find: %2
 Replace with: %3</source>
@@ -3660,46 +3687,46 @@ Bul: %2
         <translation type="vanished">Dahil edilecek yollar: %1 · Hariç tutulacak yollar: %2 · Büyük/küçük harf duyarlı: %3 · Düzenli ifade: %4</translation>
     </message>
     <message>
+        <location filename="../src/app/MainWindowSearch.cpp" line="186"/>
         <location filename="../src/app/MainWindowSearch.cpp" line="188"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="190"/>
         <source>Yes</source>
         <translation>Evet</translation>
     </message>
     <message>
+        <location filename="../src/app/MainWindowSearch.cpp" line="186"/>
         <location filename="../src/app/MainWindowSearch.cpp" line="188"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="190"/>
         <source>No</source>
         <translation>Hayır</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="193"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="191"/>
         <source>Matches</source>
         <translation>Eşleşmeler</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="201"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="199"/>
         <source>Skipped</source>
         <translation>Atlananlar</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="203"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="201"/>
         <source>Unsaved, changed, unreadable, oversized, mixed line endings, or not losslessly writable.</source>
         <translation>Kaydedilmemiş, değiştirilmiş, okunamıyor, çok büyük, karışık satır sonları içeriyor veya kayıpsız yazılamıyor.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="205"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="203"/>
         <source>Replacement preview</source>
         <translation>Değiştirme önizlemesi</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="209"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="207"/>
         <source>
 … Preview truncated; the full file will be processed.</source>
         <translation>
 … Önizleme kısaltıldı; dosyanın tamamı işlenecek.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="210"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="208"/>
         <source>Before:
 %1
 
@@ -3712,22 +3739,22 @@ Sonra:
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="213"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="211"/>
         <source>Files with unsaved changes are skipped. Originals are backed up for recovery. Files changed since this preview will not be overwritten.</source>
         <translation>Kaydedilmemiş değişiklikleri olan dosyalar atlanır. Özgün dosyalar kurtarma için yedeklenir. Bu önizlemeden sonra değiştirilen dosyaların üzerine yazılmaz.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="220"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="218"/>
         <source>Replace %1 matches in %2 files</source>
         <translation>%2 dosyadaki %1 eşleşmeyi değiştir</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="238"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="237"/>
         <source>Folder Replacement</source>
         <translation>Klasörde Değiştirme</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="239"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="238"/>
         <source>%1 files changed; %2 skipped.
 %3</source>
         <translation>%1 dosya değiştirildi; %2 dosya atlandı.
@@ -3782,12 +3809,12 @@ Daha sonra düzenlenen veya kaydedilmemiş değişiklikler içeren dosyalar atla
 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="288"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="289"/>
         <source>Updating files…</source>
         <translation>Dosyalar güncelleniyor…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="288"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="289"/>
         <source>Stop after current file</source>
         <translation>Geçerli dosyadan sonra durdur</translation>
     </message>
@@ -5009,13 +5036,13 @@ Daha sonra düzenlenen veya kaydedilmemiş değişiklikler içeren dosyalar atla
         <translation type="vanished">Hariç tutulacak yollar (sözcükler veya yol bölümleri)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="187"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="185"/>
         <location filename="../src/app/SearchPanelWidget.cpp" line="218"/>
         <source>Match case</source>
         <translation>Büyük/küçük harf duyarlı</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="189"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="187"/>
         <location filename="../src/app/SearchPanelWidget.cpp" line="219"/>
         <source>Regular expression</source>
         <translation>Düzenli ifade</translation>
@@ -5036,17 +5063,17 @@ Daha sonra düzenlenen veya kaydedilmemiş değişiklikler içeren dosyalar atla
         <translation>Değiştir</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="221"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="222"/>
         <source>Preview folder replacement…</source>
         <translation>Klasörde değiştirmeyi önizle…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="222"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="223"/>
         <source>Search</source>
         <translation>Ara</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="222"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="223"/>
         <source>Stop</source>
         <translation>Durdur</translation>
     </message>
@@ -5055,7 +5082,7 @@ Daha sonra düzenlenen veya kaydedilmemiş değişiklikler içeren dosyalar atla
         <translation type="vanished">Klasörde değiştirmeyi geri al…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="223"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="224"/>
         <source>Content search results</source>
         <translation>İçerik arama sonuçları</translation>
     </message>
@@ -5064,91 +5091,91 @@ Daha sonra düzenlenen veya kaydedilmemiş değişiklikler içeren dosyalar atla
     <name>muffin::SidebarWidget</name>
     <message>
         <location filename="../src/app/SidebarWidget.cpp" line="314"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="911"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="936"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="909"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="934"/>
         <source>Files</source>
         <translation>Dosyalar</translation>
     </message>
     <message>
         <location filename="../src/app/SidebarWidget.cpp" line="455"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="914"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="912"/>
         <source>Outline</source>
         <translation>Ana Hat</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="894"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="892"/>
         <source>No folder open</source>
         <translation>Açık klasör yok</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="897"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="895"/>
         <source>New File</source>
         <translation>Yeni Dosya</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="898"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="896"/>
         <source>New Folder</source>
         <translation>Yeni Klasör</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="900"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="898"/>
         <source>Refresh Files</source>
         <translation>Dosyaları Yenile</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="901"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="899"/>
         <source>Sort Files</source>
         <translation>Dosyaları Sırala</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="902"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="900"/>
         <source>File Name</source>
         <translation>Dosya Adı</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="903"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="901"/>
         <source>Date Modified</source>
         <translation>Değiştirilme Tarihi</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="904"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="902"/>
         <source>Date Created</source>
         <translation>Oluşturulma Tarihi</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="905"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="903"/>
         <source>File Type</source>
         <translation>Dosya Türü</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="906"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="904"/>
         <source>File Size</source>
         <translation>Dosya Boyutu</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="907"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="905"/>
         <source>Ascending</source>
         <translation>Artan</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="908"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="906"/>
         <source>Descending</source>
         <translation>Azalan</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="917"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="937"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="915"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="935"/>
         <source>Search</source>
         <translation>Ara</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="332"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="334"/>
         <source>Expand All Folders</source>
         <translation>Tüm Klasörleri Genişlet</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="333"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="899"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="335"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="897"/>
         <source>Collapse All Folders</source>
         <translation>Tüm Klasörleri Daralt</translation>
     </message>
@@ -5161,12 +5188,12 @@ Daha sonra düzenlenen veya kaydedilmemiş değişiklikler içeren dosyalar atla
         <translation type="vanished">Klasör Aç...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="334"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="336"/>
         <source>Close Folder</source>
         <translation>Klasörü Kapat</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="920"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="918"/>
         <source>No Headings</source>
         <translation>Başlık Yok</translation>
     </message>
@@ -5295,32 +5322,32 @@ Daha sonra düzenlenen veya kaydedilmemiş değişiklikler içeren dosyalar atla
         <translation>Düz metin Markdown kaynak kodu</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1296"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1310"/>
         <source>Undo</source>
         <translation>Geri Al</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1297"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1311"/>
         <source>Redo</source>
         <translation>Yinele</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1301"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1315"/>
         <source>Cut</source>
         <translation>Kes</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1307"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1321"/>
         <source>Copy</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1310"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1324"/>
         <source>Paste</source>
         <translation>Yapıştır</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1322"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1336"/>
         <source>Select All</source>
         <translation>Tümünü Seç</translation>
     </message>

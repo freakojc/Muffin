@@ -36,6 +36,7 @@ public:
   bool isOnEditableParagraphBlock() const;
   bool canInsertParagraphAround() const;
   bool isInlineFormatEnabled() const;
+  bool isSingleInlineSelection() const;
   bool isOnListItem() const;
   bool isOnTaskItem() const;
   int currentHeadingLevel() const;

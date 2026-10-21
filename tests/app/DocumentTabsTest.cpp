@@ -33,6 +33,7 @@
 #include <QLabel>
 #include <QLayout>
 #include <QLineEdit>
+#include <QInputMethodEvent>
 #include <QListWidget>
 #include <QPushButton>
 #include <QProxyStyle>
@@ -121,6 +122,231 @@ struct Fixture {
 
   void close(DocumentTab* document) { tabs->tabCloseRequested(tabs->indexOf(document)); }
 };
+
+void continuousEditingWorkflow() {
+  // Exercise the same document through real widget input and window commands,
+  // without resetting its AST or history between individual editing operations.
+  for (bool source : {false, true}) for (bool reverse : {false, true}) {
+    Fixture f;
+    SettingsOverride copyMarkdown{"editor/copyAsMarkdown", true};
+    SettingsOverride indentSize{"editor/indentSize", 0};
+    const QString original = QString::fromUtf8("第一段开头。\n\n第二段内容。\n\n- 第一项\n- 第二项\n\n结尾。\n\n"
+        "## 标题\n\n> 引用 **加粗** 与 [链接](https://example.com)\n\n"
+        "| 列一 | 列二 |\n|---|---|\n| 中文 | 🙂 |\n\n```cpp\nint value = 123;\n```\n");
+    auto* document = f.open(f.file("workflow.md", original));
+    auto* mode = action(f.window, "Source Code Mode");
+    if (document->backend->isSourceMode() != source) mode->trigger();
+    QWidget* input = source ? static_cast<QWidget*>(document->editor->findChild<VirtualSourceEdit*>())
+                            : static_cast<QWidget*>(document->renderView);
+    require(input, "workflow has an input surface");
+    const auto select = [&](qsizetype start, qsizetype end) {
+      if (source) document->editor->setSelection(start, end);
+      else document->editorController.selection().setSelection({
+          document->editorController.cursorForSourceOffset(start), document->editorController.cursorForSourceOffset(end)});
+      input->setFocus();
+      QApplication::processEvents();
+    };
+    const auto text = [&] { return document->session.markdownText().toString(); };
+    const auto expect = [&](const QString& expected, const char* step) {
+      require(text() == expected, QString::fromLatin1(step) + "\nExpected: " + expected + "\nActual: " + text());
+    };
+    select(5, 5);
+    QInputMethodEvent composing(QStringLiteral("zhongwen"), {});
+    QApplication::sendEvent(input, &composing);
+    expect(original, "preedit must not change document");
+    QInputMethodEvent commit;
+    const QString committed = QString::fromUtf8("中文🙂");
+    commit.setCommitString(committed);
+    QApplication::sendEvent(input, &commit);
+    QString typed = original;
+    typed.insert(5, committed);
+    expect(typed, "Chinese IME commits once at caret");
+
+    const auto start = typed.indexOf(committed);
+    const auto end = typed.indexOf(QString::fromUtf8("内容"));
+    select(reverse ? end : start, reverse ? start : end);
+    action(f.window, "Cut")->trigger();
+    QString cut = typed; cut.remove(start, end - start);
+    expect(cut, "cross-paragraph cut removes the exact UTF-16 range");
+    require(QApplication::clipboard()->text() == typed.mid(start, end - start), "cut preserves Chinese, emoji and paragraph breaks");
+    action(f.window, "Paste")->trigger();
+    expect(typed, "paste restores the cut range at the collapsed caret");
+
+    const auto listCaret = text().indexOf(QString::fromUtf8(source ? "- 第二项" : "第二项"));
+    select(listCaret, listCaret);
+    QTest::keyClick(input, Qt::Key_Tab);
+    require(QApplication::focusWidget() == input || QApplication::focusWidget() == input->focusProxy(),
+            "plain Tab keeps focus in the editing surface");
+    QString indented = typed; indented.insert(typed.indexOf(QString::fromUtf8("- 第二项")), source ? "\t" : "  ");
+    expect(indented, "Tab nests the second list item");
+    action(f.window, "Undo")->trigger(); expect(typed, "undo list indent");
+    action(f.window, "Undo")->trigger(); expect(cut, "undo paste");
+    action(f.window, "Undo")->trigger(); expect(typed, "undo cut");
+    action(f.window, "Undo")->trigger(); expect(original, "undo Chinese commit");
+    for (const auto& expected : {typed, cut, typed, indented}) {
+      action(f.window, "Redo")->trigger(); expect(expected, "redo workflow in order");
+    }
+    select(text().indexOf(committed), text().indexOf(committed) + committed.size());
+    const auto viewport = source ? document->editor->viewportPosition() : document->renderView->viewportPosition();
+    auto* other = f.open(f.file("other.md", "Untouched document\n"));
+    require(other != document && other->session.markdownText().toString() == "Untouched document\n", "second tab remains independent");
+    f.tabs->setCurrentWidget(document);
+    QApplication::processEvents();
+    expect(indented, "returning to tab retains unsaved workflow edits");
+    qsizetype selectedStart = -1, selectedEnd = -1;
+    if (source) {
+      selectedStart = document->editor->selectionStart(); selectedEnd = document->editor->selectionEnd();
+    } else {
+      require(BlockEditContextResolver(&document->session, &document->editorController.selection())
+                  .selectionSourceRange(selectedStart, selectedEnd), "returned render selection has source range");
+    }
+    require(document->backend->isSourceMode() == source && text().mid(selectedStart, selectedEnd - selectedStart) == committed,
+            "returning retains editor mode and UTF-16 selection");
+    const auto returned = source ? document->editor->viewportPosition() : document->renderView->viewportPosition();
+    require(returned.sourceOffset == viewport.sourceOffset, "returning retains reading anchor");
+    action(f.window, "Undo")->trigger(); expect(typed, "history survives tab switch");
+    action(f.window, "Redo")->trigger(); expect(indented, "redo survives tab switch");
+    QTest::keyClick(input, Qt::Key_A, Qt::ControlModifier);
+    QTest::keyClick(input, Qt::Key_Backspace);
+    expect({}, "select-all Backspace clears document after the entire editing workflow");
+    action(f.window, "Undo")->trigger(); expect(indented, "undo restores the complete mixed document");
+    action(f.window, "Redo")->trigger(); expect({}, "redo clears the complete mixed document again");
+    action(f.window, "Undo")->trigger(); expect(indented, "document remains recoverable after repeated delete/undo");
+  }
+}
+
+void imeSelectionReplacementWorkflow() {
+  for (bool source : {false, true}) for (bool reverse : {false, true}) {
+    Fixture f;
+    const QString selected = QString::fromUtf8("中文🙂");
+    const QString original = QString::fromUtf8("开头：") + selected + QString::fromUtf8("，结尾。\n");
+    auto* document = f.open(f.file("ime-selection.md", original));
+    if (source) action(f.window, "Source Code Mode")->trigger();
+    QWidget* input = source ? static_cast<QWidget*>(document->editor->findChild<VirtualSourceEdit*>())
+                            : static_cast<QWidget*>(document->renderView);
+    const auto start = original.indexOf(selected), end = start + selected.size();
+    if (source) document->editor->setSelection(reverse ? end : start, reverse ? start : end);
+    else document->editorController.selection().setSelection({document->editorController.cursorForSourceOffset(reverse ? end : start),
+                                                            document->editorController.cursorForSourceOffset(reverse ? start : end)});
+    input->setFocus();
+    QInputMethodEvent composing(QStringLiteral("xinde"), {});
+    QApplication::sendEvent(input, &composing);
+    QInputMethodEvent cancel;
+    QApplication::sendEvent(input, &cancel);
+    require(document->session.markdownText().toString() == original && !document->backend->canUndo(),
+            "canceling Chinese composition preserves selected text and creates no undo entry");
+    QApplication::sendEvent(input, &composing);
+    QInputMethodEvent commit;
+    const QString replacement = QString::fromUtf8("新的文字");
+    commit.setCommitString(replacement);
+    QApplication::sendEvent(input, &commit);
+    const auto expected = QString(original).replace(start, end - start, replacement);
+    require(document->session.markdownText().toString() == expected, "Chinese commit replaces selection exactly once");
+    action(f.window, "Undo")->trigger();
+    require(document->session.markdownText().toString() == original && !document->backend->canUndo(),
+            "one undo restores replaced Chinese text and emoji");
+    qsizetype anchor = -1, focus = -1;
+    if (source) { anchor = document->editor->anchorPosition(); focus = document->editor->cursorPosition(); }
+    else {
+      const auto selection = document->editorController.selection().selection();
+      anchor = selection.anchor.text.sourceOffset; focus = selection.focus.text.sourceOffset;
+    }
+    require(anchor == (reverse ? end : start) && focus == (reverse ? start : end),
+            QStringLiteral("IME undo restores selection and direction: source=%1 reverse=%2 expected=%3,%4 actual=%5,%6")
+                .arg(source).arg(reverse).arg(reverse ? end : start).arg(reverse ? start : end).arg(anchor).arg(focus));
+    action(f.window, "Redo")->trigger();
+    require(document->session.markdownText().toString() == expected, "Chinese replacement redo is exact");
+    QTest::keyClicks(input, "x");
+    const auto continued = QString(expected).insert(start + replacement.size(), QLatin1Char('x'));
+    require(document->session.markdownText().toString() == continued, "typing continues at the committed Chinese caret");
+    action(f.window, "Undo")->trigger();
+    require(document->session.markdownText().toString() == expected, "replacement does not merge with following typing");
+    action(f.window, "Undo")->trigger();
+    require(document->session.markdownText().toString() == original, "replacement remains a separate recoverable undo step");
+  }
+}
+
+void restrictedFormattingActions() {
+  Fixture f;
+  const QString original = "alpha\n\nbeta\n\n- first\n- second\n\n| A | B |\n|---|---|\n| one | two |\n\n```cpp\ncode\n```\n";
+  auto* document = f.open(f.file("format-availability.md", original));
+  auto* link = action(f.window, "Hyperlink");
+  auto* underline = action(f.window, "Underline");
+  const auto select = [&](qsizetype start, qsizetype end) {
+    document->editorController.selection().setSelection({document->editorController.cursorForSourceOffset(start),
+                                                       document->editorController.cursorForSourceOffset(end)});
+    QApplication::processEvents();
+  };
+  select(1, original.indexOf("beta") + 2);
+  require(!link->isEnabled() && !underline->isEnabled(), "single-block commands disabled for cross-paragraph selections");
+  require(link->toolTip().contains("single paragraph") && underline->statusTip().contains("single paragraph"),
+          "unavailable commands explain how to make the selection valid");
+  for (auto* menu : f.window.findChildren<QMenu*>()) {
+    if (menu->actions().contains(link)) require(menu->toolTipsVisible(), "format menu exposes disabled command explanations");
+  }
+  link->trigger(); underline->trigger();
+  require(document->session.markdownText().toString() == original && !document->backend->canUndo(),
+          "disabled actions do not mutate text or history");
+  select(original.indexOf("one"), original.indexOf("two") + 2);
+  require(!link->isEnabled() && !underline->isEnabled(), "different table cells do not share one editable selection");
+  select(original.indexOf("code") + 1, original.indexOf("code") + 1);
+  require(!link->isEnabled() && !underline->isEnabled(), "literal code caret cannot invoke prose formatting");
+  select(original.indexOf("one"), original.indexOf("one") + 3);
+  require(link->isEnabled() && underline->isEnabled() && action(f.window, "Bold")->isEnabled(),
+          "single table cell supports inline formatting");
+  link->trigger();
+  require(document->session.markdownText().toString() == QString(original).replace("one", "[one](url)"),
+          "table-cell hyperlink edits the cell without replacing neighbours");
+  action(f.window, "Undo")->trigger();
+  require(document->session.markdownText().toString() == original, "table-cell link is one undoable edit");
+  select(original.indexOf("one") + 1, original.indexOf("one") + 1);
+  require(link->isEnabled(), "table-cell caret supports inserting a link");
+  link->trigger();
+  require(document->session.markdownText().toString() == QString(original).replace("one", "o[](url)ne"),
+          "table-cell caret inserts a link at its actual text offset");
+  action(f.window, "Undo")->trigger();
+  require(document->session.markdownText().toString() == original, "table-cell caret link undoes cleanly");
+  select(original.indexOf("one") + 1, original.indexOf("one") + 1);
+  action(f.window, "Bold")->trigger();
+  require(document->session.markdownText().toString() == QString(original).replace("one", "**one**"),
+          "table-cell caret formats the current word without touching neighbours");
+  action(f.window, "Undo")->trigger();
+  require(document->session.markdownText().toString() == original, "table-cell caret formatting undoes cleanly");
+  select(original.indexOf("second"), original.indexOf("second") + 6);
+  require(link->isEnabled() && underline->isEnabled(), "nested list text supports single-block commands");
+  select(1, 4);
+  require(link->isEnabled() && link->toolTip() != MainWindow::tr("Select text within a single paragraph or table cell, or place the caret in editable text."),
+          "valid selection clears the unavailable explanation");
+  action(f.window, "Source Code Mode")->trigger();
+  QApplication::processEvents();
+  require(!underline->isEnabled() && underline->toolTip().contains("live editing"), "source formatting limit explains which mode to use");
+  document->editor->setSelection(4, 1); // backwards selection
+  QApplication::processEvents();
+  require(link->isEnabled(), "source single-line link enabled");
+  link->trigger();
+  require(document->session.markdownText().toString() == QString(original).replace(1, 3, "[lph](url)"),
+          "source hyperlink preserves selected text");
+  require(document->editor->selectedText() == "lph", "source link keeps its label selected");
+  action(f.window, "Undo")->trigger();
+  require(document->session.markdownText().toString() == original, "source link undo restores selected text");
+  document->editor->setSelection(1, original.indexOf("beta") + 2);
+  QApplication::processEvents();
+  require(!link->isEnabled() && link->toolTip().contains("one line"), "source multiline link explains its limit");
+  // State and explanations must follow the active tab, including a locale change.
+  auto* other = f.open(f.file("format-other.md", "Other text\n"));
+  other->editorController.selection().setCursorPosition(other->editorController.cursorForSourceOffset(2));
+  QApplication::processEvents();
+  require(link->isEnabled(), "unavailable state does not leak to another tab");
+  f.tabs->setCurrentWidget(document);
+  QApplication::processEvents();
+  require(!link->isEnabled(), "returning refreshes the original restricted selection");
+  LanguageManager::instance().setLanguage("zh_CN");
+  QApplication::processEvents();
+  require(link->toolTip() == MainWindow::tr("Select text within one line, or place the caret where you want to insert the link."),
+          "unavailable explanation follows UI language");
+  LanguageManager::instance().setLanguage("en");
+  QApplication::processEvents();
+}
 
 void workspaceSearchAndReplace() {
   Fixture f;
@@ -1968,6 +2194,10 @@ int main(int argc, char** argv) {
     runSessionViewTests();
     return 0;
   }
+  runTest("continuousEditingWorkflow", continuousEditingWorkflow);
+  runTest("imeSelectionReplacementWorkflow", imeSelectionReplacementWorkflow);
+  runTest("restrictedFormattingActions", restrictedFormattingActions);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--editing-workflow"))) return 0;
   runTest("workspaceSearchAndReplace", workspaceSearchAndReplace);
   runTest("workspaceSidebarWidth", workspaceSidebarWidth);
   runTest("workspaceRenderedNavigation", workspaceRenderedNavigation);

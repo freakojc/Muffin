@@ -47,6 +47,7 @@ QAction* muffin::MainWindow::registerAction(QMenu* menu, const QString& id) {
 }
 
 void muffin::MainWindow::buildMenuItems(QMenu* parent, const std::vector<MenuItem>& items) {
+  parent->setToolTipsVisible(true);
   for (const MenuItem& item : items) {
     switch (item.kind) {
       case MenuItem::Kind::Action:

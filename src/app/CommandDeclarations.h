@@ -69,6 +69,8 @@ struct CommandDeclaration {
   std::function<bool(const MainWindow&)> enabled;
   // null => no checked state to sync. Only meaningful for checkable actions.
   std::function<bool(const MainWindow&)> checked;
+  // Explain an unavailable action before it is invoked (menu tooltip/status).
+  std::function<QString(const MainWindow&)> disabledReason;
 };
 
 // All commands, in a stable order. Cached after first build (predicates are

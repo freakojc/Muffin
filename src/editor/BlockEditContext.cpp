@@ -82,7 +82,14 @@ bool BlockEditContextResolver::current(BlockEditContext& context) const {
   if (!session_ || !selection_ || !selection_->hasCursor()) {
     return false;
   }
-  return forBlock(selection_->cursorPosition().blockId, context);
+  const auto cursor = selection_->cursorPosition();
+  // A rendered table has one display block but separate editable cell nodes.
+  // Caret commands must resolve the cell, just as selectionContext does.
+  if (auto* textNode = session_->document().node(cursor.text.nodeId);
+      textNode && textNode->type() == BlockType::TableCell) {
+    return forBlock(textNode->id(), context);
+  }
+  return forBlock(cursor.blockId, context);
 }
 
 bool BlockEditContextResolver::forBlock(NodeId blockId, BlockEditContext& context) const {
@@ -233,17 +240,22 @@ bool BlockEditContextResolver::fill(MarkdownNode& displayNode, BlockEditContext&
   context.blockRange.byteEnd = range.byteEnd;
   context.contentRange.byteStart = start;
   context.contentRange.byteEnd = end;
-  context.cursorTextOffset = selection_ && selection_->hasCursor() && selection_->cursorPosition().blockId == displayNode.id()
+  const bool ownsCursor = selection_ && selection_->hasCursor() &&
+      (selection_->cursorPosition().blockId == displayNode.id() ||
+       (displayNode.type() == BlockType::TableCell && selection_->cursorPosition().text.nodeId == displayNode.id()));
+  context.cursorTextOffset = ownsCursor
                               ? selection_->cursorPosition().text.textOffset
                               : 0;
   const qsizetype cursorStoredSourceOffset =
-      selection_ && selection_->hasCursor() && selection_->cursorPosition().blockId == displayNode.id()
+      ownsCursor
           ? selection_->cursorPosition().text.sourceOffset
           : -1;
   context.contentText = markdown.mid(start, end - start);
   InlineProjectionState projectionState;
   if (selection_ && selection_->hasCursor()) {
-    projectionState = InlineProjectionState::forSelection(selection_->selection(), displayNode.id(), start);
+    auto projectionSelection = selection_->selection();
+    if (ownsCursor && displayNode.type() == BlockType::TableCell) projectionSelection.focus.blockId = displayNode.id();
+    projectionState = InlineProjectionState::forSelection(projectionSelection, displayNode.id(), start);
   } else {
     CursorPosition cursor;
     cursor.blockId = displayNode.id();

@@ -17,6 +17,15 @@ namespace muffin {
 Q_LOGGING_CATEGORY(actionProbe, "muffin.perf", QtWarningMsg)
 Q_LOGGING_CATEGORY(actionDetailProbe, "muffin.perf.detail", QtWarningMsg)
 
+namespace {
+void updateCommandHint(QAction* action, const CommandDeclaration& declaration, const MainWindow& window) {
+  if (!declaration.disabledReason) return;
+  const auto reason = action->isEnabled() ? QString() : declaration.disabledReason(window);
+  action->setToolTip(reason);
+  action->setStatusTip(reason);
+}
+}
+
 // Every command's handler comes from the declaration table (CommandDeclarations.cpp);
 // bindCommands just wires each one to its id. The handler is captured by value —
 // it is a stateless std::function that receives the window — so it survives as
@@ -73,6 +82,12 @@ bool MainWindow::commandInlineFormatEnabled() const {
   return !tab_->backend->isSourceMode() && tab_->renderCommands.isInlineFormatEnabled();
 }
 
+bool MainWindow::commandSingleInlineSelection() const {
+  if (commandContextSnapshotActive_) return commandContextSnapshot_.singleInlineSelection;
+  return !tab_->session.isOpenInProgress() && !tab_->backend->isSourceMode()
+      && tab_->renderCommands.isSingleInlineSelection();
+}
+
 bool MainWindow::commandInTableCell() const {
   if (commandContextSnapshotActive_) {
     return commandContextSnapshot_.inTableCell;
@@ -112,6 +127,7 @@ MainWindow::CommandContextSnapshot MainWindow::captureCommandContext() const {
   snapshot.onEditableParagraph = tab_->renderCommands.isOnEditableParagraphBlock();
   snapshot.headingLevel = tab_->renderCommands.currentHeadingLevel();
   snapshot.inlineFormatEnabled = tab_->renderCommands.isInlineFormatEnabled();
+  snapshot.singleInlineSelection = !tab_->session.isOpenInProgress() && tab_->renderCommands.isSingleInlineSelection();
   const auto cursorState = tab_->renderCommands.currentCursorState();
   if (snapshot.inlineFormatEnabled) snapshot.inlineFormats = cursorState.formats;
   snapshot.inTableCell = tab_->renderCommands.hasCurrentTableCell();
@@ -161,6 +177,7 @@ void MainWindow::updateActionsForCategory(CommandCategory category) {
       }
       action->setChecked(checked);
     }
+    updateCommandHint(action, decl, *this);
   }
 }
 
@@ -175,6 +192,7 @@ void MainWindow::updateAllActions() {
       if (decl.checked) {
         action->setChecked(decl.checked(*this));
       }
+      updateCommandHint(action, decl, *this);
     }
   }
   commandContextSnapshotActive_ = false;
@@ -227,6 +245,7 @@ void MainWindow::updateContextActions() {
     if (decl.checked) {
       action->setChecked(decl.checked(*this));
     }
+    updateCommandHint(action, decl, *this);
   }
   commandContextSnapshotActive_ = false;
 }

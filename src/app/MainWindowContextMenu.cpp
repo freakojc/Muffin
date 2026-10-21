@@ -37,6 +37,7 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
   updateAllActions();
 
   QMenu menu(this);
+  menu.setToolTipsVisible(true);
 
   const auto addCommand = [&menu, this](const QString& id) {
     if (QAction* action = commands_.action(id)) {
@@ -46,6 +47,7 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
   // Pull every listed command id into a submenu, skipping any that are not
   // registered (defensive: a typo should not abort the whole menu).
   const auto fill = [this](QMenu* sub, std::initializer_list<QString> ids) {
+    sub->setToolTipsVisible(true);
     for (const QString& id : ids) {
       if (QAction* action = commands_.action(id)) {
         sub->addAction(action);

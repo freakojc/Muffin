@@ -87,6 +87,7 @@ public:
   bool commandOnEditableParagraph() const;
   int commandHeadingLevel() const;
   bool commandInlineFormatEnabled() const;
+  bool commandSingleInlineSelection() const;
   bool commandInTableCell() const;
   bool commandOnImage() const;
   bool commandOnLocalImage() const;
@@ -325,6 +326,7 @@ private:
     bool onEditableParagraph = false;
     int headingLevel = -1;
     bool inlineFormatEnabled = false;
+    bool singleInlineSelection = false;
     bool inTableCell = false;
     bool onImage = false;
     bool onLocalImage = false;
