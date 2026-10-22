@@ -302,6 +302,7 @@ muffin_add_test(NAME MuffinRenderMathLinkBeforeOffsetTest SOURCE tests/render/Re
 
 # --- export (link MuffinUi; pure logic under QCoreApplication, no GUI lock) ---
 muffin_add_test(NAME MuffinHtmlExporterTest   SOURCE tests/export/HtmlExporterTest.cpp   LINK MuffinUi)
+muffin_add_test(NAME MuffinExportOptionsTest SOURCE tests/export/ExportOptionsTest.cpp LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinPandocRunnerTest   SOURCE tests/export/PandocRunnerTest.cpp   LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinMarkdownHtmlSerializerTest SOURCE tests/projection/MarkdownHtmlSerializerTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_EMOJI_QRC} RESOURCE_LOCK)
 

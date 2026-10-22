@@ -44,7 +44,7 @@ Muffin combines a native C++/Qt editor with a broad, fully editable Markdown run
 | End-to-end CSS themes | ✅ | ◐ JSONC tokens | ◐ themes | — | — | — |
 | Native Mermaid diagrams | **38 IDs** | — | **11 IDs** | — | — | — |
 | Math blocks / renderer | **Native C++ / KaTeX-compatible** | **Native Rust / RaTeX** | — (planned) | MathJax | KaTeX | MathJax |
-| Export | PDF, HTML, Pandoc formats | HTML, PDF | HTML, PDF | PDF, HTML | HTML, PDF | HTML, PDF |
+| Export | PDF, HTML, PNG, Pandoc formats | HTML, PDF | HTML, PDF | PDF, HTML | HTML, PDF | HTML, PDF |
 | Large files | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
 
 ### Document size and opening time
@@ -111,7 +111,8 @@ The curve measures the time from opening the Markdown file until the first viewp
 
 ### 📤 Export & Import
 
-- **Multi-format export** — Export to PDF (native renderer), HTML, and plain HTML natively; Word (DOCX), ODT, RTF, ePub, LaTeX, MediaWiki, RST, Textile, and OPML via an external [Pandoc](https://pandoc.org) process.
+- **Multi-format export** — Export to PDF, PNG, HTML, and plain HTML natively; Word (DOCX), ODT, RTF, ePub, LaTeX, MediaWiki, RST, Textile, and OPML via an external [Pandoc](https://pandoc.org) process.
+- **Settings per format** — Preferences → Export has independent settings for PDF paper, margins and heading breaks; HTML contents and additions; PNG width and scale; Word/ODT reference documents; and EPUB CSS and contents depth. Conversion failures and cancellation preserve an existing destination file.
 - **Import via Pandoc** — Convert documents from other formats into Markdown through File → Import.
 - **Document printing** — Print the current document via File → Print (Alt+Shift+P).
 
@@ -207,7 +208,7 @@ Muffin uses a native block tree as its runtime model. On import, Markdown is par
 | `html` | HTML block layout engine — Lexbor parsing and Yoga flexbox used by HTML blocks. |
 | `edit` | Text editing operations: insert, delete, replace, and block movement. |
 | `projection` | Bidirectional offset mapping between the rendered view and raw Markdown. |
-| `export` | Native PDF/HTML export and the Pandoc runner for other formats. |
+| `export` | Native PDF/HTML/PNG export, per-format options and the Pandoc runner for other formats. |
 | `math` | KaTeX-compatible math rendering. |
 | `unicode` | Word-boundary segmentation for cursor movement and selection. |
 | `theme` | Unified theme definitions, chrome style-sheet generation, and runtime theme management. |

@@ -8,6 +8,7 @@
 #include "app/FileOpenProtection.h"
 #include "app/PrefsFilesPage.h"
 #include "app/PreferencesDialog.h"
+#include "app/PrefsExportPage.h"
 #include "editor/EditorView.h"
 #include "editor/SourceEditorWidget.h"
 #include "editor/VirtualSourceEdit.h"
@@ -37,6 +38,7 @@
 #include <QInputMethodEvent>
 #include <QListWidget>
 #include <QPushButton>
+#include <QProgressDialog>
 #include <QPlainTextEdit>
 #include <QProxyStyle>
 #include <QScrollBar>
@@ -46,6 +48,7 @@
 #include <QSplitter>
 #include <QStackedWidget>
 #include <QStandardPaths>
+#include <QSpinBox>
 #include <QStyleFactory>
 #include <QTabBar>
 #include <QTabWidget>
@@ -124,6 +127,120 @@ struct Fixture {
 
   void close(DocumentTab* document) { tabs->tabCloseRequested(tabs->indexOf(document)); }
 };
+
+void exportPreferencesAndOutputs() {
+  Fixture f;
+  f.open(f.file("export.md", "# First\n\nExport **content**\n\n# Second\n\nEnd\n"));
+  QSettings().setValue("preferences/lastCategory", "export");
+  PreferencesDialog preferences;
+  preferences.show();
+  auto* page = preferences.findChild<PrefsExportPage*>();
+  auto* formats = page->findChild<QListWidget*>("ExportFormats");
+  require(formats && formats->count() == 14, "general and all available export formats have settings pages");
+  formats->setCurrentRow(1);
+  auto* paper = page->findChild<QComboBox*>("ExportPdfPaper");
+  require(paper && !page->findChild<QLineEdit*>("ExportPandocArguments"), "PDF shows native page settings");
+  paper->setCurrentIndex(paper->findData("Custom"));
+  page->findChild<QDoubleSpinBox*>("ExportPdfWidth")->setValue(174.2);
+  page->findChild<QDoubleSpinBox*>("ExportPdfHeight")->setValue(230.5);
+  paper->setCurrentIndex(paper->findData("A5"));
+  require(page->findChild<QDoubleSpinBox*>("ExportPdfWidth")->value() == 148.0, "preset dimensions update in the form");
+  paper->setCurrentIndex(paper->findData("Custom"));
+  require(page->findChild<QDoubleSpinBox*>("ExportPdfWidth")->value() == 174.2
+      && page->findChild<QDoubleSpinBox*>("ExportPdfHeight")->value() == 230.5, "paper presets preserve custom dimensions");
+  paper->setCurrentIndex(paper->findData("A5"));
+  page->findChild<QCheckBox*>("ExportPdfLandscape")->setChecked(true);
+  formats->setCurrentRow(2);
+  page->findChild<QCheckBox*>("ExportHtmlOutline")->setChecked(true);
+  page->findChild<QComboBox*>("ExportTheme")->setCurrentIndex(1);
+  page->findChild<QPlainTextEdit*>("ExportHtmlHead")->setPlainText("<meta name=\"author\" content=\"Muffin\">");
+  formats->setCurrentRow(3);
+  require(!page->findChild<QCheckBox*>("ExportHtmlOutline")->isChecked()
+      && !page->findChild<QComboBox*>("ExportTheme"), "unstyled HTML has independent settings and no theme picker");
+  formats->setCurrentRow(4);
+  page->findChild<QSpinBox*>("ExportImageWidth")->setValue(640);
+  page->findChild<QComboBox*>("ExportImageScale")->setCurrentIndex(1);
+  formats->setCurrentRow(5);
+  require(page->findChild<QLineEdit*>("ExportReferenceDocument") && !page->findChild<QLineEdit*>("ExportEpubCss"), "Word shows a reference template");
+  formats->setCurrentRow(8);
+  require(page->findChild<QLineEdit*>("ExportEpubCss") && page->findChild<QSpinBox*>("ExportTocDepth")
+      && !page->findChild<QLineEdit*>("ExportReferenceDocument"), "EPUB has CSS and TOC options");
+  formats->setCurrentRow(1);
+  require(page->findChild<QComboBox*>("ExportPdfPaper")->currentData() == "A5"
+      && page->findChild<QCheckBox*>("ExportPdfLandscape")->isChecked(), "switching formats retains independent settings");
+  const auto captures = qEnvironmentVariable("MUFFIN_EXPORT_SCREENSHOT_DIR");
+  if (!captures.isEmpty()) {
+    QDir().mkpath(captures);
+    for (const auto& language : {QStringLiteral("en"), QStringLiteral("zh_CN")}) {
+      LanguageManager::instance().setLanguage(language);
+      for (int row : {0, 1, 2, 3, 4, 5, 8}) {
+        formats->setCurrentRow(row);
+        QApplication::processEvents();
+        require(preferences.grab().save(QDir(captures).filePath(language + QString::number(row) + ".png")), "capture real export settings");
+      }
+    }
+    LanguageManager::instance().setLanguage("en");
+  }
+  preferences.hide();
+  const auto exportTo = [&](const char* name, const QString& path) {
+    QTimer accept;
+    accept.setInterval(5);
+    QObject::connect(&accept, &QTimer::timeout, &f.window, [&] {
+      if (auto* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
+        dialog->setOption(QFileDialog::DontConfirmOverwrite, true);
+        dialog->selectFile(path);
+        QMetaObject::invokeMethod(dialog, "accept", Qt::DirectConnection);
+      } else if (auto* message = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+        require(false, "Unexpected export error: " + message->text());
+      }
+    });
+    accept.start();
+    action(f.window, name)->trigger();
+    require(QFileInfo(path).isFile(), "export menu creates the selected output");
+    if (!captures.isEmpty()) {
+      const auto copy = QDir(captures).filePath(QFileInfo(path).fileName());
+      QFile::remove(copy);
+      require(QFile::copy(path, copy), "retain exported samples for inspection");
+    }
+  };
+  const auto html = f.directory.filePath("note.html");
+  exportTo("HTML", html);
+  QFile out(html); require(out.open(QIODevice::ReadOnly), "read menu-exported HTML");
+  const auto contents = out.readAll(); out.close();
+  require(contents.contains("muffin-heading-1") && contents.contains("name=\"author\""), "HTML menu consumes its saved options");
+  require(contents.contains("--side-bar-bg-color"), "default light theme uses the bundled theme stylesheet");
+  exportTo("PDF", f.directory.filePath("note.pdf"));
+  const auto image = f.directory.filePath("note.png");
+  exportTo("Image (PNG)", image);
+  require(QImage(image).width() == 1280, "image menu consumes saved width and scale");
+  QSettings().setValue("export/pandocPath", QCoreApplication::applicationFilePath());
+  QSettings().setValue("export/docx/arguments", "--metadata title=Test");
+  const auto word = f.directory.filePath("note.docx");
+  exportTo("Word (.docx)", word);
+  QFile converted(word); require(converted.open(QIODevice::ReadOnly), "read fake converter output");
+  require(converted.readAll().contains("title=Test"), "Word menu passes its saved arguments"); converted.close();
+  QSettings().setValue("export/docx/arguments", "--fake-export-failure");
+  QTimer dismiss;
+  dismiss.setInterval(5);
+  QObject::connect(&dismiss, &QTimer::timeout, &f.window, [] {
+    if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) box->accept();
+  });
+  // Choose the existing file and suppress only the expected failure message.
+  QTimer choose;
+  choose.setInterval(5);
+  QObject::connect(&choose, &QTimer::timeout, &f.window, [&] {
+    if (auto* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
+      dialog->setOption(QFileDialog::DontConfirmOverwrite, true); dialog->selectFile(word);
+      QMetaObject::invokeMethod(dialog, "accept", Qt::DirectConnection);
+    }
+  });
+  dismiss.start(); choose.start();
+  action(f.window, "Word (.docx)")->trigger();
+  dismiss.stop(); choose.stop();
+  require(converted.open(QIODevice::ReadOnly) && converted.readAll().contains("title=Test"), "failed conversion preserves an existing destination");
+  QSettings().remove("export/pandocPath");
+  QSettings().remove("export/docx/arguments");
+}
 
 void noteLinkRewriting() {
   const QString root = QDir::tempPath() + QStringLiteral("/muffin-notes");
@@ -2361,6 +2478,17 @@ void sessionRestoresNestedAndLiteralCoordinates() {
 }  // namespace
 
 int main(int argc, char** argv) {
+  // A deterministic converter process for export plumbing tests. Actual
+  // Pandoc need not be installed on CI, and can fail after partial output.
+  if (argc == 2 && QByteArray(argv[1]) == "--version") return 0;
+  QStringList converterArgs;
+  for (int i = 1; i < argc; ++i) converterArgs << QString::fromLocal8Bit(argv[i]);
+  if (converterArgs.contains("-o") && converterArgs.contains("-t")) {
+    QFile output(converterArgs.value(converterArgs.indexOf("-o") + 1));
+    if (!output.open(QIODevice::WriteOnly)) return 1;
+    output.write(converterArgs.join('\n').toUtf8());
+    return converterArgs.contains("--fake-export-failure") ? 1 : 0;
+  }
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
@@ -2395,6 +2523,8 @@ int main(int argc, char** argv) {
     runSessionViewTests();
     return 0;
   }
+  runTest("exportPreferencesAndOutputs", exportPreferencesAndOutputs);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--export-options"))) return 0;
   runTest("noteLinkRewriting", noteLinkRewriting);
   runTest("noteLinkNavigation", noteLinkNavigation);
   runTest("noteLinkRenamePreview", noteLinkRenamePreview);

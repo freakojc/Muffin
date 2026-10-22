@@ -73,6 +73,16 @@ void testThemeCssEmbeddedAndWriteWrapped() {
           QStringLiteral("Plain export must not wrap in #write"));
 }
 
+void testOutlineAndAdditionalContent() {
+  const auto html = muffin::renderDocumentHtml("# Same **title**\n\n## Same title\n\nText", "Doc", false, {},
+      {.outline = true, .head = "<meta name=\"author\" content=\"Writer\">", .body = "<aside>Introduction</aside>"});
+  require(html.contains("href=\"#muffin-heading-1\"") && html.contains("id=\"muffin-heading-1\"")
+      && html.contains("id=\"muffin-heading-2\""), "TOC targets real unique heading anchors");
+  require(html.indexOf("name=\"author\"") < html.indexOf("</head>")
+      && html.indexOf("<aside>") > html.indexOf("<body>"), "head and body additions go into their intended locations");
+  require(!html.contains("<style>"), "plain export keeps theme CSS out when extra content is present");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -82,5 +92,6 @@ int main(int argc, char** argv) {
   testTitleIsHtmlEscaped();
   testEmptyMarkdownStillWraps();
   testThemeCssEmbeddedAndWriteWrapped();
+  testOutlineAndAdditionalContent();
   return 0;
 }

@@ -44,7 +44,7 @@ Muffin 将原生 C++/Qt 编辑器与完整、可编辑的 Markdown 运行时结�
 | 全链路 CSS 主题 | ✅ | ◐ JSONC 令牌 | ◐ 主题系统 | — | — | — |
 | 原生 Mermaid 图表 | **38 种 ID** | — | **11 种 ID** | — | — | — |
 | 数学块／渲染器 | **原生 C++／兼容 KaTeX** | **原生 Rust／RaTeX** | —（计划中） | MathJax | KaTeX | MathJax |
-| 导出 | PDF、HTML、Pandoc 格式 | HTML、PDF | HTML、PDF | PDF、HTML | HTML、PDF | HTML、PDF |
+| 导出 | PDF、HTML、PNG、Pandoc 格式 | HTML、PDF | HTML、PDF | PDF、HTML | HTML、PDF | HTML、PDF |
 | 大文件 | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
 
 ### 文档大小与打开耗时
@@ -111,7 +111,8 @@ xychart-beta
 
 ### 📤 导出与导入
 
-- **多格式导出** — 原生导出为 PDF（自带渲染器）、HTML 和纯 HTML；通过外部的 [Pandoc](https://pandoc.org) 进程导出 Word (DOCX)、ODT、RTF、ePub、LaTeX、MediaWiki、RST、Textile 和 OPML。
+- **多格式导出** — 原生导出为 PDF、PNG、HTML 和纯 HTML；通过外部的 [Pandoc](https://pandoc.org) 进程导出 Word (DOCX)、ODT、RTF、ePub、LaTeX、MediaWiki、RST、Textile 和 OPML。
+- **各格式独立设置** — 偏好设置 → 导出按格式分别保存参数：PDF 纸张、页边距和标题分页，HTML 目录和附加内容，PNG 宽度和缩放，Word/ODT 参考样式文档，以及 EPUB CSS 和目录深度。转换失败或取消时会保留已有的目标文件。
 - **通过 Pandoc 导入** — 通过 文件 → 导入 把其他格式的文档转换为 Markdown。
 - **文档打印** — 通过 文件 → 打印 (Alt+Shift+P) 打印当前文档。
 
@@ -207,7 +208,7 @@ Muffin 以原生 block tree 作为运行时模型。导入时，Markdown 被解�
 | `html` | HTML 块布局引擎 —— 供 HTML 块使用的 Lexbor 解析与 Yoga 弹性盒子布局。 |
 | `edit` | 文本编辑操作：插入、删除、替换和块移动。 |
 | `projection` | 渲染视图与原始 Markdown 之间的双向偏移映射。 |
-| `export` | 原生 PDF/HTML 导出，以及用于其他格式的 Pandoc 运行器。 |
+| `export` | 原生 PDF/HTML/PNG 导出、各格式独立选项，以及用于其他格式的 Pandoc 运行器。 |
 | `math` | KaTeX 兼容的数学公式渲染。 |
 | `unicode` | 用于光标移动与选区的词边界切分。 |
 | `theme` | 统一的主题定义、外壳样式表生成与运行时主题管理。 |

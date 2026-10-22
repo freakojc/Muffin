@@ -1165,6 +1165,10 @@ set(MUFFIN_UI_SOURCES
   src/projection/MarkdownHtmlSerializer.h
   src/export/HtmlExporter.cpp
   src/export/HtmlExporter.h
+  src/export/ExportOptions.cpp
+  src/export/ExportOptions.h
+  src/export/NativeExporter.cpp
+  src/export/NativeExporter.h
   src/export/PandocRunner.cpp
   src/export/PandocRunner.h
   src/blocks/code/CodeFenceController.cpp
@@ -1411,6 +1415,7 @@ target_link_libraries(MuffinUi
   PRIVATE
     Qt6::Concurrent
     PCRE2::16BIT
+    Qt6::PrintSupport
     # Folded into MuffinUi alone. Under SHARED these are implementation
     # details of the DLL; listing them PUBLIC would statically relink the
     # whole tree-sitter grammar set + ICU into every consumer exe too

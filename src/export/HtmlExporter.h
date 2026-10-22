@@ -4,6 +4,12 @@
 
 namespace muffin {
 
+struct HtmlExportOptions {
+  bool outline = false;
+  QString head;
+  QString body;
+};
+
 // Produces a complete, self-contained HTML document for an entire markdown
 // source string. The body is rendered through SelectionSerializer (cmark-gfm —
 // the same engine the editor uses), so the exported HTML matches what the app
@@ -14,6 +20,6 @@ namespace muffin {
 // is wrapped in <div id="write"> (Typora themes style #write), so the export
 // carries the active theme. `themeCss` is ignored when `styled` is false.
 QString renderDocumentHtml(const QString& markdownSource, const QString& title, bool styled,
-                           const QString& themeCss = {});
+                           const QString& themeCss = {}, const HtmlExportOptions& options = {});
 
 }  // namespace muffin

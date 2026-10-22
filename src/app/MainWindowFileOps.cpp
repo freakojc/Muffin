@@ -12,6 +12,8 @@
 #include "editor/SourceEditorWidget.h"
 #include "export/HtmlExporter.h"
 #include "export/PandocRunner.h"
+#include "export/ExportOptions.h"
+#include "export/NativeExporter.h"
 #include "io/FilePathOps.h"
 #include "theme/ThemeDefinition.h"
 
@@ -38,6 +40,7 @@
 #include <QPrinter>
 #include <QPushButton>
 #include <QSaveFile>
+#include <QTemporaryDir>
 #include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
@@ -732,6 +735,7 @@ QString exportExtension(muffin::ExportFormat format) {
     case muffin::ExportFormat::Pdf: return QStringLiteral(".pdf");
     case muffin::ExportFormat::Html:
     case muffin::ExportFormat::HtmlPlain: return QStringLiteral(".html");
+    case muffin::ExportFormat::Image: return QStringLiteral(".png");
     case muffin::ExportFormat::Docx: return QStringLiteral(".docx");
     case muffin::ExportFormat::Odt: return QStringLiteral(".odt");
     case muffin::ExportFormat::Rtf: return QStringLiteral(".rtf");
@@ -745,22 +749,6 @@ QString exportExtension(muffin::ExportFormat format) {
   return QStringLiteral(".txt");
 }
 
-// Pandoc writer id for the Pandoc-backed formats.
-QString exportPandocWriter(muffin::ExportFormat format) {
-  switch (format) {
-    case muffin::ExportFormat::Docx: return QStringLiteral("docx");
-    case muffin::ExportFormat::Odt: return QStringLiteral("odt");
-    case muffin::ExportFormat::Rtf: return QStringLiteral("rtf");
-    case muffin::ExportFormat::Epub: return QStringLiteral("epub");
-    case muffin::ExportFormat::Latex: return QStringLiteral("latex");
-    case muffin::ExportFormat::MediaWiki: return QStringLiteral("mediawiki");
-    case muffin::ExportFormat::Rst: return QStringLiteral("rst");
-    case muffin::ExportFormat::Textile: return QStringLiteral("textile");
-    case muffin::ExportFormat::Opml: return QStringLiteral("opml");
-    default: return QStringLiteral("markdown");
-  }
-}
-
 // Resolves the suggested destination directory from export/defaultFolder:
 // 0 Auto / 1 Same folder → the source file's folder (Documents if untitled);
 // 2 Custom → the last-used custom folder (export/lastCustomFolder).
@@ -771,7 +759,8 @@ QString exportSuggestedDir(const QString& sourcePath) {
   const QString sourceDir = sourcePath.isEmpty() ? QString() : QFileInfo(sourcePath).absolutePath();
   switch (mode) {
     case 2:
-      return settings.value(QStringLiteral("export/lastCustomFolder"), documents).toString();
+      return settings.value(QStringLiteral("export/customFolder"),
+          settings.value(QStringLiteral("export/lastCustomFolder"), documents)).toString();
     case 1:
       return sourceDir.isEmpty() ? documents : sourceDir;
     case 0:
@@ -819,33 +808,55 @@ void muffin::MainWindow::exportAs(ExportFormat format) {
     return;
   }
 
-  // Remember the chosen folder in Custom mode so the next export reopens there.
   QSettings settings;
-  if (settings.value(QStringLiteral("export/defaultFolder"), 0).toInt() == 2) {
-    settings.setValue(QStringLiteral("export/lastCustomFolder"), QFileInfo(target).absolutePath());
+  // Convert into a sibling temporary directory. A canceled/failed conversion
+  // must preserve an existing destination even after overwrite was accepted.
+  QTemporaryDir staging(QDir(QFileInfo(target).absolutePath()).filePath(QStringLiteral(".muffin-export-XXXXXX")));
+  if (!staging.isValid()) {
+    QMessageBox::critical(this, tr("Export Failed"), tr("Could not create a temporary export file."));
+    return;
   }
+  const auto stagedTarget = staging.filePath(QStringLiteral("document") + ext);
+  const auto prefix = exportSettingsPrefix(format);
+  const auto nativeTheme = [&](const QString& name, int fontSize) {
+    return name == QStringLiteral("github")
+        ? RenderTheme::fromDefinition(themeManager_.definition(QStringLiteral("github")), 100, fontSize)
+        : themeManager_.currentTheme(100, fontSize);
+  };
+  auto* cache = tab_->renderView ? tab_->renderView->mermaidRenderCache() : nullptr;
 
   bool ok = false;
   QString error;
   switch (format) {
     case ExportFormat::Pdf: {
-      QPrinter printer;
-      printer.setOutputFormat(QPrinter::PdfFormat);
-      printer.setOutputFileName(target);
-      ok = paintDocumentToPrinter(&printer);
+      const auto options = pdfExportOptions();
+      ok = exportNativePdf(stagedTarget, tab_->session.document(), nativeTheme(options.theme, options.fontSize),
+                           sourcePath, options, cache);
       if (!ok) {
         error = tr("PDF export failed: the printer device could not be opened.");
       }
       break;
     }
+    case ExportFormat::Image: {
+      const auto options = imageExportOptions();
+      ok = exportNativeImage(stagedTarget, tab_->session.document(), nativeTheme(options.theme, options.fontSize),
+                             sourcePath, options, cache);
+      if (!ok) error = tr("Image export failed. The image must fit within 64 million pixels and 32,767 pixels in height. Try a smaller width or scale, or export as PDF.");
+      break;
+    }
     case ExportFormat::Html:
     case ExportFormat::HtmlPlain: {
       const bool styled = (format == ExportFormat::Html);
-      // Carry the active theme into the styled export (built-in or custom *.css
-      // theme); plain export and JSON-only themes (no CSS source) fall back.
+      // Export the selected theme; the default light option must stay light
+      // even when the browser or operating system prefers dark colours.
+      const QString themeCss = !styled ? QString()
+          : settings.value(prefix + "theme", "current").toString() == "current"
+              ? themeManager_.currentThemeCss() : ThemeManager().currentThemeCss();
       const QString html = muffin::renderDocumentHtml(
-          markdown, baseName, styled, styled ? themeManager_.currentThemeCss() : QString());
-      ok = writeExportBytes(target, html.toUtf8(), &error);
+          markdown, baseName, styled, themeCss,
+          {.outline = settings.value(prefix + "outline", false).toBool(),
+           .head = settings.value(prefix + "head").toString(), .body = settings.value(prefix + "body").toString()});
+      ok = writeExportBytes(stagedTarget, html.toUtf8(), &error);
       break;
     }
     default: {
@@ -860,34 +871,59 @@ void muffin::MainWindow::exportAs(ExportFormat format) {
       const QString inputFormat = QSettings().value(QStringLiteral("markdown/breakOnSingleNewline"), true).toBool()
                                       ? QStringLiteral("gfm+hard_line_breaks")
                                       : QStringLiteral("gfm");
+      const auto options = pandocExportOptions(format);
+      for (const auto& path : {options.referenceDocument, options.css}) {
+        if (!path.isEmpty() && !QFileInfo(path).isFile()) {
+          error = tr("Export resource was not found: %1").arg(path);
+          break;
+        }
+      }
+      if (!error.isEmpty()) { statusBar()->clearMessage(); break; }
+      QStringList arguments;
+      if (!pandocExportArguments(format, inputFormat, stagedTarget, options, &arguments)) {
+        error = tr("Additional arguments cannot override the input format, output format, output path, or defaults file.");
+        statusBar()->clearMessage();
+        break;
+      }
       const PandocResult result = PandocRunner::run(
-          this, {QStringLiteral("-f"), inputFormat, QStringLiteral("-t"), exportPandocWriter(format),
-                 QStringLiteral("-o"), target},
-          {.stdinData = markdown.toUtf8(), .progressLabel = exportingMsg});
+          this, arguments, {.stdinData = markdown.toUtf8(),
+              .workDir = sourcePath.isEmpty() ? QDir::homePath() : QFileInfo(sourcePath).absolutePath(),
+              .progressLabel = exportingMsg});
       statusBar()->clearMessage();
       if (result.canceled) {
-        QFile::remove(target);  // drop partial output
         return;
       }
       if (result.ran && result.exitCode == 0) {
         ok = true;
       } else {
-        QFile::remove(target);
         error = tr("Pandoc failed:") + QStringLiteral("\n\n") + QString::fromUtf8(result.err);
       }
       break;
     }
   }
 
+  if (ok) {
+    QFile staged(stagedTarget);
+    QSaveFile output(target);
+    output.setDirectWriteFallback(false);
+    ok = staged.open(QIODevice::ReadOnly) && output.open(QIODevice::WriteOnly);
+    while (ok && !staged.atEnd()) {
+      const auto bytes = staged.read(64 * 1024);
+      ok = !bytes.isEmpty() && output.write(bytes) == bytes.size();
+    }
+    if (ok) ok = output.commit();
+    if (!ok) error = output.errorString().isEmpty() ? staged.errorString() : output.errorString();
+  }
   if (!ok) {
     QMessageBox::critical(this, tr("Export Failed"), error);
     return;
   }
 
   statusBar()->showMessage(tr("Exported to %1").arg(QDir::toNativeSeparators(target)), 6000);
-  if (settings.value(QStringLiteral("export/openAfterExport"), false).toBool()) {
+  if (settings.value(prefix + "openDirectory", settings.value(QStringLiteral("export/openAfterExport"), false)).toBool()) {
     QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(target).absolutePath()));
   }
+  if (settings.value(prefix + "openFile", false).toBool()) QDesktopServices::openUrl(QUrl::fromLocalFile(target));
 }
 
 void muffin::MainWindow::buildReopenEncodingMenu() {

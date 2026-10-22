@@ -1,231 +1,310 @@
 #include "app/PrefsExportPage.h"
-
+#include "export/ExportOptions.h"
 #include "export/PandocRunner.h"
-
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
+#include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPlainTextEdit>
+#include <QPageSize>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSettings>
+#include <QSignalBlocker>
+#include <QSpinBox>
+#include <QStandardPaths>
 #include <QVBoxLayout>
 
+namespace {
+const QVector<muffin::ExportFormat> formats{
+    muffin::ExportFormat::Pdf, muffin::ExportFormat::Html, muffin::ExportFormat::HtmlPlain,
+    muffin::ExportFormat::Image, muffin::ExportFormat::Docx, muffin::ExportFormat::Odt,
+    muffin::ExportFormat::Rtf, muffin::ExportFormat::Epub, muffin::ExportFormat::Latex,
+    muffin::ExportFormat::MediaWiki, muffin::ExportFormat::Rst, muffin::ExportFormat::Textile,
+    muffin::ExportFormat::Opml};
+}
+
 muffin::PrefsExportPage::PrefsExportPage(QWidget* parent) : PreferencesPage(parent) {
-  auto* rootLayout = new QHBoxLayout(this);
-  rootLayout->setContentsMargins(0, 0, 0, 0);
-  rootLayout->setSpacing(0);
-
-  // Left: format list (fixed width). Colours come from the dialog stylesheet
-  // (QWidget#exportPanel, QLabel#exportPanelHeader and the generic QListWidget
-  // rules in dialogStyleSheet) so this panel follows the theme instead of
-  // forcing a white panel with dark text in dark mode.
-  auto* leftWidget = new QWidget(this);
-  leftWidget->setObjectName(QStringLiteral("exportPanel"));
-  leftWidget->setFixedWidth(200);
-  auto* leftLayout = new QVBoxLayout(leftWidget);
-  leftLayout->setContentsMargins(12, 18, 12, 12);
-  leftLayout->setSpacing(6);
-
-  auto* sectionLabel = new QLabel(leftWidget);
-  sectionLabel->setObjectName(QStringLiteral("exportPanelHeader"));
-  sectionLabel_ = sectionLabel;
-  leftLayout->addWidget(sectionLabel);
-
-  formatList_ = new QListWidget(leftWidget);
-  formatList_->setAccessibleName(tr("Formats"));
-  formatList_->setFocusPolicy(Qt::NoFocus);
-  leftLayout->addWidget(formatList_, 1);
-
-  rootLayout->addWidget(leftWidget);
-
-  // Right: settings card
-  auto* rightWidget = new QWidget(this);
-  rightWidget->setStyleSheet(QStringLiteral("background:transparent;"));
-  auto* rightLayout = new QVBoxLayout(rightWidget);
-  rightLayout->setContentsMargins(kPageLeftMargin, kPageTopMargin, kPageRightMargin, kPageBottomMargin);
-  rightLayout->setSpacing(14);
-
-  auto* card = new QWidget(rightWidget);
-  card->setObjectName(QStringLiteral("settingsGroup"));
-  auto* cardLayout = new QVBoxLayout(card);
-  cardLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin, kRowVerticalMargin);
-  cardLayout->setSpacing(kRowSpacing);
-  card->setMaximumWidth(kContentWidth);
-
-  // Default export folder
-  defaultFolderLabel_ = makeSectionLabel(card);
-  defaultFolderCombo_ = new QComboBox(card);
-  defaultFolderCombo_->setMinimumWidth(320);
-  cardLayout->addWidget(defaultFolderLabel_);
-  cardLayout->addWidget(defaultFolderCombo_);
-
-  // Pandoc path
-  auto* pandocHeaderRow = new QHBoxLayout();
-  pandocHeaderRow->setSpacing(8);
-  pandocLabel_ = makeSectionLabel(card);
-  pandocHeaderRow->addWidget(pandocLabel_);
-  pandocHeaderRow->addStretch(1);
-  autoDetectButton_ = makeButton(card);
-  pandocHeaderRow->addWidget(autoDetectButton_);
-
-  auto* pandocRow = new QHBoxLayout();
-  pandocRow->setSpacing(8);
-  pandocPathEdit_ = new QLineEdit(card);
-  pandocPathEdit_->setMinimumWidth(280);
-  pandocBrowseButton_ = makeButton(card);
-  pandocRow->addWidget(pandocPathEdit_);
-  pandocRow->addWidget(pandocBrowseButton_);
-
-  cardLayout->addLayout(pandocHeaderRow);
-  cardLayout->addLayout(pandocRow);
-
-  // Live status line showing which Pandoc will actually be used.
-  pandocStatus_ = makeMutedLabel(card);
-  pandocStatus_->setWordWrap(true);
-  cardLayout->addWidget(pandocStatus_);
-
-  // After export
-  afterExportLabel_ = makeSectionLabel(card);
-  openAfterExportCheck_ = new QCheckBox(card);
-  cardLayout->addWidget(afterExportLabel_);
-  cardLayout->addWidget(openAfterExportCheck_);
-
-  rightLayout->addWidget(card);
-  rightLayout->addStretch(1);
-
-  rootLayout->addWidget(rightWidget, 1);
-
+  auto* root = new QHBoxLayout(this);
+  root->setContentsMargins(0, 0, 0, 0);
+  root->setSpacing(0);
+  auto* left = new QWidget(this);
+  left->setObjectName("exportPanel");
+  left->setFixedWidth(172);
+  auto* navigation = new QVBoxLayout(left);
+  navigation->setContentsMargins(12, 18, 12, 12);
+  sectionLabel_ = new QLabel(left);
+  sectionLabel_->setObjectName("exportPanelHeader");
+  navigation->addWidget(sectionLabel_);
+  formatList_ = new QListWidget(left);
+  formatList_->setObjectName("ExportFormats");
+  formatList_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  navigation->addWidget(formatList_, 1);
+  root->addWidget(left);
+  content_ = new QScrollArea(this);
+  content_->setObjectName("ExportOptions");
+  content_->setFrameShape(QFrame::NoFrame);
+  content_->setWidgetResizable(true);
+  content_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  root->addWidget(content_, 1);
   retranslateUi();
-  loadSettings();
-
-  // Wire persistence
-  connect(defaultFolderCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-          [](int index) { QSettings().setValue(QStringLiteral("export/defaultFolder"), index); });
-  connect(pandocPathEdit_, &QLineEdit::textChanged, this,
-          [](const QString& text) { QSettings().setValue(QStringLiteral("export/pandocPath"), text); });
-  connect(pandocPathEdit_, &QLineEdit::textChanged, this, [this] { refreshPandocStatus(); });
-  // Auto-detect clears any pinned path so resolution falls back to the system
-  // search; refreshPandocStatus() then shows what was found.
-  connect(autoDetectButton_, &QPushButton::clicked, this, [this] { pandocPathEdit_->clear(); });
-  connect(openAfterExportCheck_, &QCheckBox::toggled, this,
-          [](bool checked) { QSettings().setValue(QStringLiteral("export/openAfterExport"), checked); });
-  connect(pandocBrowseButton_, &QPushButton::clicked, this, [this] {
-    const QString path = QFileDialog::getOpenFileName(this, tr("Select Pandoc Executable"), QString(),
-        tr("Executables (*.exe);;All Files (*)"));
-    if (!path.isEmpty()) {
-      pandocPathEdit_->setText(path);
-    }
+  connect(formatList_, &QListWidget::currentRowChanged, this, [this](int row) {
+    QSettings().setValue("export/lastPage", row);
+    rebuildPage();
   });
 }
 
 void muffin::PrefsExportPage::retranslateUi() {
-  // Left sidebar format list
-  {
-    const int cur = formatList_->currentRow();
-    formatList_->blockSignals(true);
-    formatList_->clear();
-
-    formatList_->addItem(QStringLiteral("PDF"));
-    formatList_->addItem(QStringLiteral("HTML"));
-    formatList_->addItem(tr("HTML (without Styles)"));
-    formatList_->addItem(tr("Image"));
-    formatList_->addItem(QStringLiteral("Word (.docx)"));
-    formatList_->addItem(QStringLiteral("OpenOffice"));
-    formatList_->addItem(QStringLiteral("RTF"));
-    formatList_->addItem(QStringLiteral("Epub"));
-    formatList_->addItem(QStringLiteral("LaTeX"));
-    formatList_->addItem(QStringLiteral("Media Wiki"));
-    formatList_->addItem(QStringLiteral("reStructuredText"));
-    formatList_->addItem(QStringLiteral("Textile"));
-    formatList_->addItem(QStringLiteral("OPML"));
-
-    if (cur >= 0 && cur < formatList_->count()) {
-      formatList_->setCurrentRow(cur);
-    } else {
-      formatList_->setCurrentRow(0);  // Default to first item (PDF)
-    }
-    formatList_->blockSignals(false);
-  }
-
-  // Header above the format list.
+  const QSignalBlocker blocked(formatList_);
+  const int row = formatList_->currentRow() < 0 ? QSettings().value("export/lastPage", 0).toInt() : formatList_->currentRow();
   sectionLabel_->setText(tr("Formats"));
-
-  // Right card
-  defaultFolderLabel_->setText(tr("Default Export Folder"));
-  {
-    const int cur = defaultFolderCombo_->currentIndex();
-    defaultFolderCombo_->blockSignals(true);
-    defaultFolderCombo_->clear();
-    defaultFolderCombo_->addItem(tr("Auto"));
-    defaultFolderCombo_->addItem(tr("Same folder as current file"));
-    defaultFolderCombo_->addItem(tr("Custom..."));
-    polishComboBox(defaultFolderCombo_);
-    defaultFolderCombo_->setCurrentIndex(qBound(0, cur, defaultFolderCombo_->count() - 1));
-    defaultFolderCombo_->blockSignals(false);
-  }
-
-  pandocLabel_->setText(tr("Pandoc Path"));
-  if (pandocPathEdit_->text().isEmpty()) {
-    pandocPathEdit_->setPlaceholderText(tr("(Auto-detect)"));
-  }
-  pandocBrowseButton_->setText(tr("Browse..."));
-  autoDetectButton_->setText(tr("Auto-detect"));
-
-  afterExportLabel_->setText(tr("After Export"));
-  openAfterExportCheck_->setText(tr("Open the exported file directory"));
-
-  refreshPandocStatus();
+  formatList_->setAccessibleName(tr("Formats"));
+  formatList_->clear();
+  formatList_->addItems({tr("General"), "PDF", "HTML", tr("HTML (without Styles)"), tr("Image"),
+      "Word (.docx)", "OpenOffice", "RTF", "Epub", "LaTeX", "Media Wiki", "reStructuredText", "Textile", "OPML"});
+  for (int i = 0; i < formatList_->count(); ++i)
+    formatList_->item(i)->setToolTip(formatList_->item(i)->text());
+  formatList_->setCurrentRow(qBound(0, row, formatList_->count() - 1));
+  rebuildPage();
 }
 
-void muffin::PrefsExportPage::loadSettings() {
-  QSettings settings;
-
-  const int folder = settings.value(QStringLiteral("export/defaultFolder"), 0).toInt();
-  if (defaultFolderCombo_->count() > 0) {
-    defaultFolderCombo_->blockSignals(true);
-    defaultFolderCombo_->setCurrentIndex(qBound(0, folder, defaultFolderCombo_->count() - 1));
-    defaultFolderCombo_->blockSignals(false);
+void muffin::PrefsExportPage::rebuildPage() {
+  pandocPathEdit_ = nullptr;
+  pandocStatus_ = nullptr;
+  delete content_->takeWidget();
+  auto* page = new QWidget(content_);
+  auto* outer = new QVBoxLayout(page);
+  outer->setContentsMargins(22, 26, 22, 26);
+  auto* title = makeSectionLabel(page);
+  title->setText(formatList_->currentItem()->text());
+  outer->addWidget(title);
+  auto* card = new QWidget(page);
+  card->setObjectName("settingsGroup");
+  card->setMaximumWidth(kContentWidth);
+  auto* form = new QFormLayout(card);
+  form->setContentsMargins(16, 16, 16, 16);
+  form->setVerticalSpacing(12);
+  form->setHorizontalSpacing(16);
+  form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  form->setRowWrapPolicy(QFormLayout::WrapLongRows);
+  form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  outer->addWidget(card);
+  outer->addStretch();
+  content_->setWidget(page);
+  const auto note = [&](const QString& text) {
+    auto* label = makeMutedLabel(card);
+    label->setText(text);
+    label->setWordWrap(true);
+    form->addRow(label);
+  };
+  const auto check = [&](const QString& label, const QString& key, bool fallback = false, const QString& name = {}) {
+    auto* box = new QCheckBox(label, card);
+    box->setObjectName(name);
+    box->setChecked(QSettings().value(key, fallback).toBool());
+    wireBoolSetting(box, key);
+    form->addRow(box);
+    return box;
+  };
+  const auto edit = [&](const QString& label, const QString& key, const QString& name = {}) {
+    auto* field = new QLineEdit(card);
+    field->setObjectName(name);
+    field->setText(QSettings().value(key).toString());
+    wireLineEditSetting(field, key);
+    form->addRow(label, field);
+    return field;
+  };
+  const auto file = [&](const QString& label, const QString& key, const QString& filter, bool directory, const QString& name) {
+    auto* row = new QWidget(card);
+    auto* layout = new QHBoxLayout(row);
+    layout->setContentsMargins(0, 0, 0, 0);
+    auto* field = new QLineEdit(row);
+    field->setObjectName(name);
+    field->setText(QSettings().value(key).toString());
+    wireLineEditSetting(field, key);
+    layout->addWidget(field, 1);
+    auto* browse = new QPushButton(tr("Browse..."), row);
+    layout->addWidget(browse);
+    connect(browse, &QPushButton::clicked, this, [this, field, filter, directory, label] {
+      const auto path = directory ? QFileDialog::getExistingDirectory(this, label, field->text())
+                                 : QFileDialog::getOpenFileName(this, label, field->text(), filter);
+      if (!path.isEmpty()) field->setText(QDir::toNativeSeparators(path));
+    });
+    form->addRow(label, row);
+    return row;
+  };
+  const auto combo = [&](const QString& label, const QString& key, const QStringList& labels,
+                         const QStringList& values, const QString& fallback, const QString& name = {}) {
+    auto* field = new QComboBox(card);
+    field->setObjectName(name);
+    for (int i = 0; i < labels.size(); ++i) field->addItem(labels[i], values[i]);
+    const int index = field->findData(QSettings().value(key, fallback).toString());
+    field->setCurrentIndex(qMax(0, index));
+    polishComboBox(field);
+    connect(field, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [field, key] {
+      QSettings().setValue(key, field->currentData());
+    });
+    form->addRow(label, field);
+    return field;
+  };
+  const auto number = [&](const QString& label, const QString& key, int fallback, int minimum, int maximum, const QString& name = {}) {
+    auto* field = new QSpinBox(card);
+    field->setObjectName(name);
+    field->setRange(minimum, maximum);
+    field->setValue(QSettings().value(key, fallback).toInt());
+    connect(field, QOverload<int>::of(&QSpinBox::valueChanged), this, [key](int value) { QSettings().setValue(key, value); });
+    form->addRow(label, field);
+    return field;
+  };
+  const auto decimal = [&](const QString& label, const QString& key, double fallback, double minimum, double maximum, const QString& name) {
+    auto* field = new QDoubleSpinBox(card);
+    field->setObjectName(name);
+    field->setDecimals(1);
+    field->setRange(minimum, maximum);
+    field->setValue(QSettings().value(key, fallback).toDouble());
+    field->setSuffix(" mm");
+    connect(field, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [key](double value) { QSettings().setValue(key, value); });
+    form->addRow(label, field);
+    return field;
+  };
+  const auto multiline = [&](const QString& label, const QString& key, const QString& name) {
+    auto* field = new QPlainTextEdit(card);
+    field->setObjectName(name);
+    field->setMinimumHeight(70);
+    field->setMaximumHeight(100);
+    field->setPlainText(QSettings().value(key).toString());
+    connect(field, &QPlainTextEdit::textChanged, this, [field, key] { QSettings().setValue(key, field->toPlainText()); });
+    form->addRow(label, field);
+  };
+  const int selected = formatList_->currentRow();
+  if (selected == 0) {
+    note(tr("Shared defaults for all export formats. Select a format to configure its own options."));
+    auto* folder = new QComboBox(card);
+    folder->setObjectName("ExportDefaultFolder");
+    folder->addItem(tr("Same folder as current file"), 0);
+    folder->addItem(tr("Custom..."), 2);
+    folder->setCurrentIndex(QSettings().value("export/defaultFolder", 0).toInt() == 2 ? 1 : 0);
+    polishComboBox(folder);
+    form->addRow(tr("Default Export Folder"), folder);
+    const QString documents = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    const auto custom = QSettings().value("export/customFolder", QSettings().value("export/lastCustomFolder", documents)).toString();
+    auto* customRow = file(tr("Custom Folder"), "export/customFolder", {}, true, "ExportCustomFolder");
+    customRow->findChild<QLineEdit*>()->setText(custom);
+    customRow->setEnabled(folder->currentData().toInt() == 2);
+    connect(folder, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [folder, customRow] {
+      QSettings().setValue("export/defaultFolder", folder->currentData());
+      customRow->setEnabled(folder->currentData().toInt() == 2);
+    });
+    note(tr("Untitled documents use the Documents folder."));
+    auto* pandocRow = file(tr("Pandoc Path"), "export/pandocPath", tr("All Files (*)"), false, "ExportPandocPath");
+    pandocPathEdit_ = pandocRow->findChild<QLineEdit*>();
+    pandocPathEdit_->setPlaceholderText(tr("(Auto-detect)"));
+    auto* detect = new QPushButton(tr("Auto-detect"), card);
+    form->addRow(QString(), detect);
+    connect(detect, &QPushButton::clicked, this, [this] { pandocPathEdit_->clear(); refreshPandocStatus(); });
+    pandocStatus_ = makeMutedLabel(card);
+    pandocStatus_->setWordWrap(true);
+    form->addRow(pandocStatus_);
+    note(tr("PDF, HTML and images use Muffin's renderer. Other formats require Pandoc."));
+    connect(pandocPathEdit_, &QLineEdit::editingFinished, this, &PrefsExportPage::refreshPandocStatus);
+    refreshPandocStatus();
+    return;
   }
-
-  pandocPathEdit_->blockSignals(true);
-  pandocPathEdit_->setText(settings.value(QStringLiteral("export/pandocPath")).toString());
-  pandocPathEdit_->blockSignals(false);
-
-  openAfterExportCheck_->blockSignals(true);
-  openAfterExportCheck_->setChecked(settings.value(QStringLiteral("export/openAfterExport"), false).toBool());
-  openAfterExportCheck_->blockSignals(false);
-
-  // pandocPathEdit_ was loaded with signals blocked, so refresh manually.
-  refreshPandocStatus();
+  const auto format = formats[selected - 1];
+  const auto p = exportSettingsPrefix(format);
+  note(tr("Used when exporting as %1. Changes are saved immediately.").arg(formatList_->currentItem()->text()));
+  const auto theme = [&] {
+    combo(tr("Theme"), p + "theme", {tr("Current theme"), tr("Default light theme")}, {"current", "github"}, "current", "ExportTheme");
+  };
+  if (format == ExportFormat::Pdf) {
+    auto* paper = combo(tr("Page Size"), p + "paper", {"A4", "A5", "Letter", "Legal", tr("Custom...")},
+                       {"A4", "A5", "Letter", "Legal", "Custom"}, "A4", "ExportPdfPaper");
+    auto* width = decimal(tr("Width"), p + "width", 210, 50, 1000, "ExportPdfWidth");
+    auto* height = decimal(tr("Height"), p + "height", 297, 50, 1000, "ExportPdfHeight");
+    const auto custom = [paper, width, height, p] {
+      const auto id = paper->currentData().toString();
+      const bool editable = id == "Custom";
+      width->setEnabled(editable);
+      height->setEnabled(editable);
+      const QSignalBlocker widthBlock(width), heightBlock(height);
+      if (editable) {
+        width->setValue(QSettings().value(p + "width", 210).toDouble());
+        height->setValue(QSettings().value(p + "height", 297).toDouble());
+      } else {
+        const auto size = QPageSize(id == "A5" ? QPageSize::A5 : id == "Letter" ? QPageSize::Letter
+            : id == "Legal" ? QPageSize::Legal : QPageSize::A4).size(QPageSize::Millimeter);
+        width->setValue(size.width());
+        height->setValue(size.height());
+      }
+    };
+    connect(paper, QOverload<int>::of(&QComboBox::currentIndexChanged), this, custom);
+    custom();
+    check(tr("Landscape"), p + "landscape", false, "ExportPdfLandscape");
+    decimal(tr("Page Margins"), p + "margin", 15, 0, 20, "ExportPdfMargin");
+    theme();
+    number(tr("Font Size (px)"), p + "fontSize", 16, 10, 40, "ExportPdfFontSize");
+    check(tr("Start each level-one heading on a new page"), p + "breakOnHeading", false, "ExportPdfHeadingBreak");
+  } else if (format == ExportFormat::Html || format == ExportFormat::HtmlPlain) {
+    check(tr("Include a table of contents"), p + "outline", false, "ExportHtmlOutline");
+    if (format == ExportFormat::Html) theme();
+    multiline(tr("Add to <head>"), p + "head", "ExportHtmlHead");
+    multiline(tr("Add before document content"), p + "body", "ExportHtmlBody");
+    if (format == ExportFormat::HtmlPlain) note(tr("Muffin adds no theme stylesheet to this format."));
+  } else if (format == ExportFormat::Image) {
+    number(tr("Width (px)"), p + "width", 960, 320, 2400, "ExportImageWidth");
+    combo(tr("Output Scale"), p + "scale", {"1×", "2×", "3×"}, {"1", "2", "3"}, "1", "ExportImageScale");
+    number(tr("Font Size (px)"), p + "fontSize", 16, 10, 40, "ExportImageFontSize");
+    theme();
+    note(tr("Exports one PNG. Maximum: 64 million pixels and 32,767 pixels in height. Use PDF for longer documents."));
+  } else {
+    note(tr("Requires Pandoc. Configure its path under General."));
+    if (format == ExportFormat::Docx || format == ExportFormat::Odt)
+      file(tr("Reference Document"), p + "referenceDocument", format == ExportFormat::Docx ? "Word (*.docx)" : "OpenDocument (*.odt)", false, "ExportReferenceDocument");
+    if (format == ExportFormat::Epub) file(tr("Custom CSS"), p + "css", "CSS (*.css)", false, "ExportEpubCss");
+    if (format == ExportFormat::Docx || format == ExportFormat::Odt || format == ExportFormat::Epub
+        || format == ExportFormat::Latex || format == ExportFormat::Rtf || format == ExportFormat::Opml) {
+      edit(tr("Title"), p + "title", "ExportTitle");
+      if (format != ExportFormat::Opml) edit(tr("Author"), p + "author", "ExportAuthor");
+    }
+    if (format == ExportFormat::Docx || format == ExportFormat::Odt || format == ExportFormat::Epub
+        || format == ExportFormat::Latex || format == ExportFormat::Rtf) {
+      auto* toc = check(tr("Include a table of contents"), p + "toc", false, "ExportPandocToc");
+      auto* depth = number(tr("TOC Depth"), p + "tocDepth", 3, 1, 6, "ExportTocDepth");
+      depth->setEnabled(toc->isChecked());
+      connect(toc, &QCheckBox::toggled, depth, &QWidget::setEnabled);
+    }
+    if (format == ExportFormat::Docx || format == ExportFormat::Odt || format == ExportFormat::Latex)
+      check(tr("Number sections"), p + "numberSections", false, "ExportNumberSections");
+    if (format == ExportFormat::Latex || format == ExportFormat::MediaWiki || format == ExportFormat::Rst
+        || format == ExportFormat::Textile || format == ExportFormat::Opml)
+      combo(tr("Line Wrapping"), p + "wrap", {tr("Do not wrap"), tr("Automatic"), tr("Preserve source wrapping")},
+            {"none", "auto", "preserve"}, "none", "ExportWrap");
+    edit(tr("Additional Pandoc Arguments"), p + "arguments", "ExportPandocArguments");
+    note(tr("Quote paths containing spaces. Muffin manages the input format, output format and output path."));
+  }
+  auto* after = makeSectionLabel(card);
+  after->setText(tr("After Export"));
+  form->addRow(after);
+  check(tr("Open the exported file directory"), p + "openDirectory", QSettings().value("export/openAfterExport", false).toBool(), "ExportOpenDirectory");
+  check(tr("Open the exported file"), p + "openFile", false, "ExportOpenFile");
 }
 
 void muffin::PrefsExportPage::refreshPandocStatus() {
-  const QString configured = pandocPathEdit_->text().trimmed();
+  if (!pandocPathEdit_ || !pandocStatus_) return;
+  const auto configured = pandocPathEdit_->text().trimmed();
   if (!configured.isEmpty()) {
-    if (QFileInfo(configured).isExecutable()) {
-      pandocStatus_->setText(tr("Using: %1").arg(QDir::toNativeSeparators(configured)));
-    } else {
-      pandocStatus_->setText(tr("Not a valid executable; will auto-detect."));
-    }
+    pandocStatus_->setText(QFileInfo(configured).isFile() && QFileInfo(configured).isExecutable()
+        ? tr("Using: %1").arg(QDir::toNativeSeparators(configured)) : tr("Not a valid executable; will auto-detect."));
     return;
   }
-  // Auto mode: report whatever the runner will actually invoke. searchSystem()
-  // covers well-known install locations; if it still falls through to a bare
-  // "pandoc", resolveOnPath() says whether PATH can find it (for display only).
-  const QString resolved = muffin::PandocRunner::resolvedExecutable();
-  if (resolved != QStringLiteral("pandoc")) {
-    pandocStatus_->setText(tr("Detected: %1").arg(QDir::toNativeSeparators(resolved)));
-    return;
-  }
-  const QString onPath = muffin::PandocRunner::resolveOnPath();
-  if (!onPath.isEmpty()) {
-    pandocStatus_->setText(tr("Detected: %1").arg(QDir::toNativeSeparators(onPath)));
-  } else {
-    pandocStatus_->setText(tr("Pandoc was not found. Install it, or click Browse to locate."));
-  }
+  QString resolved = PandocRunner::resolvedExecutable();
+  if (resolved == "pandoc") resolved = PandocRunner::resolveOnPath();
+  pandocStatus_->setText(resolved.isEmpty() ? tr("Pandoc was not found. Install it, or click Browse to locate.")
+      : tr("Detected: %1").arg(QDir::toNativeSeparators(resolved)));
 }

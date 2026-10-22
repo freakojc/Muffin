@@ -1,6 +1,8 @@
 #include "export/HtmlExporter.h"
 
 #include "projection/SelectionSerializer.h"
+#include <QRegularExpression>
+#include <QTextDocumentFragment>
 
 namespace muffin {
 
@@ -75,8 +77,27 @@ QString escapeHtmlText(const QString& text) {
 }  // namespace
 
 QString renderDocumentHtml(const QString& markdownSource, const QString& title, bool styled,
-                           const QString& themeCss) {
-  const QString body = SelectionSerializer::renderMarkdownToHtml(markdownSource);
+                           const QString& themeCss, const HtmlExportOptions& options) {
+  QString body = SelectionSerializer::renderMarkdownToHtml(markdownSource);
+  QString outline;
+  if (options.outline) {
+    const QRegularExpression headings(QStringLiteral("<h([1-6])>(.*?)</h\\1>"), QRegularExpression::DotMatchesEverythingOption);
+    auto matches = headings.globalMatch(body);
+    QString rewritten;
+    qsizetype cursor = 0;
+    int index = 0;
+    while (matches.hasNext()) {
+      const auto match = matches.next();
+      const auto id = QStringLiteral("muffin-heading-%1").arg(++index);
+      rewritten += body.mid(cursor, match.capturedStart() - cursor);
+      rewritten += QStringLiteral("<h%1 id=\"%2\">%3</h%1>").arg(match.captured(1), id, match.captured(2));
+      outline += QStringLiteral("<li data-level=\"%1\"><a href=\"#%2\">%3</a></li>\n")
+          .arg(match.captured(1), id, escapeHtmlText(QTextDocumentFragment::fromHtml(match.captured(2)).toPlainText()));
+      cursor = match.capturedEnd();
+    }
+    body = rewritten + body.mid(cursor);
+    if (!outline.isEmpty()) outline = QStringLiteral("<nav aria-label=\"Contents\"><ul>\n") + outline + QStringLiteral("</ul></nav>\n");
+  }
 
   const bool useTheme = styled && !themeCss.isEmpty();
   QString html;
@@ -90,13 +111,16 @@ QString renderDocumentHtml(const QString& markdownSource, const QString& title, 
     html += useTheme ? themeCss : QString::fromLatin1(kStyledCss);
     html += QStringLiteral("</style>\n");
   }
-  html += QStringLiteral("</head>\n<body>\n");
+  html += options.head;
+  html += QStringLiteral("\n</head>\n<body>\n");
   // Typora themes style #write (the centred content card: max-width/margin/
   // padding); wrap the body so a theme's layout rules apply. Harmless for the
   // built-in fallback, which targets <body> directly.
   if (styled) {
     html += QStringLiteral("<div id=\"write\">\n");
   }
+  html += outline;
+  html += options.body;
   html += body;
   if (!body.endsWith(QLatin1Char('\n'))) {
     html += QLatin1Char('\n');
