@@ -15,6 +15,13 @@ class MuffinDependencies(ConanFile):
         "qt/*:with_pq": False,
     }
 
+    def configure(self):
+        if self.settings.os == "Macos":
+            # A process-wide ICU_DATA also redirects Apple's system ICU to
+            # our incompatible data. Embed Muffin's ICU data instead, so
+            # word segmentation works alongside native locale formatters.
+            self.options["icu/*"].data_packaging = "static"
+
     def requirements(self):
         self.requires("qt/6.11.1")
         # Qt's recipe pins 10.42. Use one PCRE2 version throughout the graph,

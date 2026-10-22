@@ -447,6 +447,7 @@ muffin_add_test(NAME MuffinThematicBreakEditTest       SOURCE tests/editor/Thema
 muffin_add_test(NAME MuffinBackspaceEmptyParagraphTest SOURCE tests/editor/BackspaceEmptyParagraphTest.cpp LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinInputDeleteRangeTest        SOURCE tests/editor/InputDeleteRangeTest.cpp        LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinWordBoundaryTest            SOURCE tests/editor/WordBoundaryTest.cpp            LINK MuffinUi RESOURCE_LOCK)
+muffin_add_test(NAME MuffinIcuWordBoundaryTest         SOURCE tests/editor/IcuWordBoundaryTest.cpp         LINK MuffinUi)
 muffin_add_test(NAME MuffinInputWordNavTest            SOURCE tests/editor/InputWordNavTest.cpp            LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinInputPageNavTest            SOURCE tests/editor/InputPageNavTest.cpp            LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinTableTabNavTest             SOURCE tests/editor/TableTabNavTest.cpp             LINK MuffinUi RESOURCE_LOCK)
@@ -584,10 +585,10 @@ target_compile_definitions(MuffinGuiPerformanceProbe PRIVATE
   MUFFIN_VERSION="${MUFFIN_EFFECTIVE_VERSION}" MUFFIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 muffin_add_test(NAME MuffinSidebarInteractionTest SOURCE tests/app/SidebarInteractionTest.cpp LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} RESOURCE_LOCK)
 if(APPLE)
-  # Conan's ICU 74 archive overrides Apple's ICU data in CoreFoundation.
-  # QFileSystemModel and QSpinBox format values using QLocale::system(),
-  # whose native formatters cannot initialize against that incompatible data.
-  foreach(_file_tree_test MuffinDocumentTabsTest MuffinLazySessionViewTest MuffinSidebarInteractionTest)
+  # Keep Apple's ICU on its own system data. Muffin's ICU embeds its data
+  # (conanfile.py), so segmentation must also work without ICU_DATA. Exercise
+  # that contract directly as well as through the file tree and editor UI.
+  foreach(_file_tree_test MuffinIcuWordBoundaryTest MuffinDocumentTabsTest MuffinLazySessionViewTest MuffinSidebarInteractionTest)
     set_property(TEST ${_file_tree_test} APPEND PROPERTY ENVIRONMENT_MODIFICATION
       "ICU_DATA=unset:")
   endforeach()

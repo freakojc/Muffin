@@ -509,7 +509,8 @@ void restrictedFormattingActions() {
   select(original.indexOf("one") + 1, original.indexOf("one") + 1);
   action(f.window, "Bold")->trigger();
   require(document->session.markdownText().toString() == QString(original).replace("one", "**one**"),
-          "table-cell caret formats the current word without touching neighbours");
+          QStringLiteral("table-cell caret formats the current word without touching neighbours; actual: %1")
+              .arg(document->session.markdownText().toString()));
   action(f.window, "Undo")->trigger();
   require(document->session.markdownText().toString() == original, "table-cell caret formatting undoes cleanly");
   select(original.indexOf("second"), original.indexOf("second") + 6);
