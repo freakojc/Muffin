@@ -514,7 +514,9 @@ void muffin::SidebarWidget::setCurrentDocument(QString displayName, QString file
       fileTree_->setCurrentIndex(index);
       // Status and parse notifications for the same document must not undo
       // the user's collapsed folders (or the restored expansion state).
-      if (changed) fileTree_->scrollTo(index, QAbstractItemView::PositionAtCenter);
+      // A file opened from a visible row stays where the user clicked it.
+      // External navigation only scrolls far enough to reveal an offscreen row.
+      if (changed) fileTree_->scrollTo(index, QAbstractItemView::EnsureVisible);
     }
   }
 }

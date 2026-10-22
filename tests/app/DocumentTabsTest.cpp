@@ -32,6 +32,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QMenu>
+#include <QMenuBar>
 #include <QLabel>
 #include <QLayout>
 #include <QLineEdit>
@@ -183,6 +184,14 @@ void exportPreferencesAndOutputs() {
   }
   preferences.hide();
   const auto exportTo = [&](const char* name, const QString& path) {
+    auto* command = action(f.window, name);
+    // Content-dependent actions refresh when the File menu opens. Exercise
+    // that path instead of relying on incidental updates from screenshots.
+    auto* fileMenu = f.window.menuBar()->actions().first()->menu();
+    fileMenu->popup(f.window.menuBar()->mapToGlobal(QPoint(0, f.window.menuBar()->height())));
+    QApplication::processEvents();
+    fileMenu->hide();
+    require(command->isEnabled(), "export action is enabled when the File menu opens");
     QTimer accept;
     accept.setInterval(5);
     QObject::connect(&accept, &QTimer::timeout, &f.window, [&] {
@@ -195,7 +204,7 @@ void exportPreferencesAndOutputs() {
       }
     });
     accept.start();
-    action(f.window, name)->trigger();
+    command->trigger();
     require(QFileInfo(path).isFile(), "export menu creates the selected output");
     if (!captures.isEmpty()) {
       const auto copy = QDir(captures).filePath(QFileInfo(path).fileName());
@@ -806,6 +815,58 @@ void workspaceSearchAndReplace() {
   require(externalChanges == 0, "restoring open files must not emit self-write external-change notifications");
   require(first->session.markdownText().toString().contains("old-term") && !first->session.document().isModified(), "restored open buffer is synchronized");
   require(disk.open(QIODevice::ReadOnly) && disk.readAll().contains("old-term"), "restore updates disk");
+}
+
+void fileTreeOpeningPreservesScrollPosition() {
+  Fixture f;
+  QStringList paths;
+  for (int i = 0; i < 80; ++i)
+    paths << f.file(QStringLiteral("note-%1.md").arg(i, 3, 10, QLatin1Char('0')), "# Note\n\nContent\n");
+  f.open(paths.first());
+  f.window.openFolderAtPath(f.directory.path());
+  auto* sidebar = f.window.findChild<SidebarWidget*>();
+  sidebar->setPanel(SidebarWidget::Panel::Files);
+  auto* tree = sidebar->findChild<QTreeView*>("FileTree");
+  auto* model = qobject_cast<FileTreeModel*>(tree->model());
+  auto* bar = tree->verticalScrollBar();
+  waitUntil([&] { return model->rowCount(tree->rootIndex()) == paths.size() && bar->maximum() > 0; },
+            "file tree loads enough notes to scroll");
+  bar->setValue(bar->maximum() / 2 + 3);
+  QApplication::processEvents();
+  const int rowHeight = tree->visualRect(model->index(paths[40])).height();
+  for (int y : {2 * rowHeight, tree->viewport()->height() - 3 * rowHeight}) {
+    const auto index = tree->indexAt(QPoint(40, y));
+    const auto path = model->filePath(index);
+    const auto row = tree->visualRect(index);
+    require(index.isValid() && row.top() >= 0 && row.bottom() < tree->viewport()->height(), "target row is fully visible");
+    const int position = bar->value();
+    for (int repeat = 0; repeat < 2; ++repeat) {
+      int scrollChanges = 0;
+      const auto monitor = QObject::connect(bar, &QScrollBar::valueChanged, &f.window, [&](int) { ++scrollChanges; });
+      const QPoint point(row.left() + 40, row.center().y());
+      QTest::mouseClick(tree->viewport(), Qt::LeftButton, Qt::NoModifier, point);
+      QTest::mouseDClick(tree->viewport(), Qt::LeftButton, Qt::NoModifier, point);
+      waitUntil([&] { return f.current()->session.filePath() == path && !f.current()->session.isAsyncParseInProgress(); },
+                "double-click opens the selected note in the editor");
+      QTest::qWait(40); // include queued document/status updates after the open
+      QObject::disconnect(monitor);
+      require(scrollChanges == 0 && bar->value() == position && tree->visualRect(index).top() == row.top(),
+              "opening or reactivating a visible file never shifts the tree, including transient scrolls");
+    }
+  }
+  const auto distant = model->index(paths[70]);
+  require(tree->visualRect(distant).top() >= tree->viewport()->height(), "external navigation target starts below the viewport");
+  f.open(paths[70]);
+  QApplication::processEvents();
+  const auto revealed = tree->visualRect(distant);
+  require(tree->currentIndex() == distant && revealed.top() >= 0
+      && qAbs(revealed.bottom() - (tree->viewport()->height() - 1)) <= 1,
+      "opening an offscreen file scrolls only far enough to reveal it");
+  bar->setValue(bar->maximum() / 2 + 3);
+  const int browsedPosition = bar->value();
+  sidebar->setCurrentDocument("note-070.md", paths[70], true);
+  QApplication::processEvents();
+  require(bar->value() == browsedPosition, "status updates preserve the user's browsing position");
 }
 
 void workspaceSidebarWidth() {
@@ -2523,6 +2584,8 @@ int main(int argc, char** argv) {
     runSessionViewTests();
     return 0;
   }
+  runTest("fileTreeOpeningPreservesScrollPosition", fileTreeOpeningPreservesScrollPosition);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--sidebar-file-open"))) return 0;
   runTest("exportPreferencesAndOutputs", exportPreferencesAndOutputs);
   if (QCoreApplication::arguments().contains(QStringLiteral("--export-options"))) return 0;
   runTest("noteLinkRewriting", noteLinkRewriting);
