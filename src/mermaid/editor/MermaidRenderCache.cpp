@@ -319,7 +319,7 @@ void attachErrorFallbackScene(MermaidRenderEntry& entry, const QString& source, 
 } // namespace
 
 MermaidRenderCache::MermaidRenderCache(QObject* parent, int capacity)
-    : QObject(parent), capacity_(capacity), resourceIdentity_(QUuid::createUuid().toString()) {
+    : QObject(parent), capacity_(qMax(1, capacity)), resourceIdentity_(QUuid::createUuid().toString()) {
   debounceTimer_.setSingleShot(true);
   connect(&debounceTimer_, &QTimer::timeout, this, [this]() {
     if (!debouncePending_)
@@ -333,6 +333,11 @@ MermaidRenderCache::MermaidRenderCache(QObject* parent, int capacity)
       return;
     launchWorker(key, source);
   });
+}
+
+MermaidRenderCache::~MermaidRenderCache() {
+  for (const auto& key : entries_.keys())
+    LayoutResources::instance().release(resourceKey(key), false);
 }
 
 MermaidRenderKey MermaidRenderCache::makeKey(const QString& source) {
@@ -373,6 +378,7 @@ void MermaidRenderCache::evict() {
   while (static_cast<int>(entries_.size()) > capacity_ && !lru_.isEmpty()) {
     const MermaidRenderKey oldest = lru_.takeFirst();
     entries_.remove(oldest);
+    LayoutResources::instance().release(resourceKey(oldest), false);
   }
 }
 
@@ -488,7 +494,7 @@ void MermaidRenderCache::clear() {
   entries_.clear();
   lru_.clear();
   for (const auto& key : keys)
-    LayoutResources::instance().publish(resourceKey(key), {});
+    LayoutResources::instance().release(resourceKey(key));
 }
 
 MermaidPngRenderResult MermaidRenderCache::renderMermaidSourceToPng(const QString& source, qreal dpr) {

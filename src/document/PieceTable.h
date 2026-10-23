@@ -22,9 +22,8 @@ struct MemoryAccounting;
 // Editing via `replace` appends the new text to `changes_` and rewires pieces — there is NO memmove
 // of the whole document, which is the O(doc)-per-keystroke cost the single-QString model pays.
 //
-// Phase 0 of the markdownText_ → piece-table migration: a standalone, fuzz-tested class, NOT yet
-// wired into MarkdownDocument. The QString-like facade (size/at/mid/toString/toUtf8) is designed to
-// drop into markdownText()'s slot later with minimal call-site churn.
+// Used by MarkdownDocument. Backing buffers are rebased when deleted content
+// exceeds both 1 MiB and the live text size; ordinary typing stays append-only.
 //
 // Backing is a vector<Piece> + a cumulative-offset index (prefix_) giving O(log n) random access;
 // edits are O(pieces). The public API is the contract — the backing can later be swapped for a
@@ -46,6 +45,7 @@ public:
   // Number of pieces in the piece list — exposed for tests/diagnostics to assert that consecutive
   // appends coalesce (replace keeps the list small) rather than growing one piece per keystroke.
   qsizetype pieceCount() const { return static_cast<qsizetype>(pieces_.size()); }
+  qint64 backingStoreBytes() const { return qint64(original_.capacity() + changes_.capacity()) * sizeof(QChar); }
 
   // O(log n) random access. `offset` must be in [0, size); unchecked (mirrors QString::at).
   QChar at(qsizetype offset) const;
@@ -112,6 +112,7 @@ private:
   // Returns {piece index, offset within that piece} for `offset` in [0, size).
   std::pair<qsizetype, qsizetype> locate(qsizetype offset) const;
   void rebuildPrefix();
+  void compactIfNeeded();
   qsizetype countNewlines(bool fromChanges, qsizetype start, qsizetype length) const;
   WordSummary wordSummary(bool fromChanges, qsizetype start, qsizetype length) const;
   static bool isWordChar(QChar ch);

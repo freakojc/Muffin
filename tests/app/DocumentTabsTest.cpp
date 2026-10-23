@@ -17,6 +17,7 @@
 #include "render/LayoutResources.h"
 
 #include "../TestUtils.h"
+#include "../../scripts/MemoryLifecycleAudit.h"
 
 #include <QAction>
 #include <QApplication>
@@ -2872,6 +2873,10 @@ int main(int argc, char** argv) {
   QSettings().setValue(QStringLiteral("files/autoSaveOnSwitch"), false);
   QSettings().setValue(QStringLiteral("files/autoSave"), false);
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
+  if (QCoreApplication::arguments().contains(QStringLiteral("--memory-audit"))) {
+    muffin::diag::runMemoryLifecycleAudit<Fixture>();
+    return 0;
+  }
   const auto runSessionViewTests = [] {
     runTest("sessionRestoresSelectionsModesAndIndependentReadingPositions",
             sessionRestoresSelectionsModesAndIndependentReadingPositions);

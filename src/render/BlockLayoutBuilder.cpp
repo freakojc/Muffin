@@ -517,6 +517,7 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(const Markdo
   }();
   InlineLayout::BuildOptions options;
   options.documentPath = documentPath_;
+  options.imageResources = imageResources_;
   options.projectionState = InlineProjectionState::forSelection(selection_, node.id(), projectionBase);
   // Inlines are stored relative to the owning top-level block's byteStart. The projection wants
   // content-local spans, so sourceBase = content offset within the block (contentStart - the
@@ -1079,6 +1080,7 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildListItem(const MarkdownNod
   const QString elementKey = isInsideBlockquote(node) ? QStringLiteral("blockquote p") : QStringLiteral("li");
   InlineLayout::BuildOptions options;
   options.documentPath = documentPath_;
+  options.imageResources = imageResources_;
   options.styleNode = primaryParagraph(node) ? primaryParagraph(node) : &node;
   QString listSourceText;
   if (const MarkdownNode* paragraph = primaryParagraph(node)) {
@@ -1394,6 +1396,7 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTable(const MarkdownNode& 
       options.baseTextColor =
           theme.textColorForElement(cell.header ? QStringLiteral("th") : QStringLiteral("td"), cellNode.get());
       options.documentPath = documentPath_;
+      options.imageResources = imageResources_;
       options.sourceBase =
           sourceContentStartForEditableNode(*cellNode) - cellNode->topLevelBlock()->sourceRange().byteStart;
       if (selection_.focus.text.nodeId == cellNode->id()) {

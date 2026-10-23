@@ -39,6 +39,7 @@ public:
   void setPreedit(QString text, QVector<QTextLayout::FormatRange> formats, int cursor);
   void setEditingHtmlBlock(NodeId id);
   void setDocumentPath(QString path);
+  void setImageResources(QHash<QString, std::shared_ptr<void>>* resources) { imageResources_ = resources; }
   // Per-code-fence horizontal scroll state (offset + longest-line width), keyed by NodeId and
   // owned outside the rebuilt BlockLayouts. The builder writes the measured line width so the
   // paint path and scrollbar thumb agree on scrollability.
@@ -102,6 +103,7 @@ public:
                                       const CssGridInheritance& inherited = {});
 
 private:
+  QHash<QString, std::shared_ptr<void>>* imageResources_ = nullptr;
   BlockFormattingCache formattingCache_;
   QHash<NodeId, std::unique_ptr<BlockLayout>*> retainedLayouts_;
   bool materializing_ = true;

@@ -168,6 +168,9 @@ public:
   HitTestResult hitTest(QPointF documentPos, const RenderTheme& theme);
 
 private:
+  // A lazy document retains encountered images even while their block detail
+  // is demoted. Reflow/scrolling must not turn a loaded remote image into a download.
+  QHash<QString, std::shared_ptr<void>> imageResources_;
   QRectF refreshDependentStyles(const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection);
   bool refreshingStyles_ = false;
   bool resourceOnlyUpdate_ = false;

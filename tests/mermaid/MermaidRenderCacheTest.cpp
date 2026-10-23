@@ -3,6 +3,7 @@
 // key stability.
 
 #include "mermaid/editor/MermaidRenderCache.h"
+#include "render/LayoutResources.h"
 #include "mermaid/block/BlockScene.h"
 #include "mermaid/c4/C4Scene.h"
 #include "mermaid/erdiagram/ErScene.h"
@@ -1159,12 +1160,24 @@ int main(int argc, char** argv) {
     const MermaidRenderKey kb = MermaidRenderCache::makeKey(b);
     const MermaidRenderKey kc = MermaidRenderCache::makeKey(c);
     cache.getSync(ka, a); // [a]
+    const auto resourceA = cache.resourceKey(ka);
+    auto& resources = muffin::LayoutResources::instance();
+    auto versionA = resources.read(resourceA);
+    muffin::LayoutResourceDependencies liveLayout{{resourceA, versionA}};
     cache.getSync(kb, b); // [a,b]
     require(cache.size() == 2, QStringLiteral("size after 2 inserts = %1").arg(cache.size()));
     cache.getSync(kc, c); // [b,c]  (a evicted — least recently used)
     require(cache.size() == 2, QStringLiteral("size stays at capacity after 3 inserts"));
+    require(resources.matches(liveLayout), QStringLiteral("eviction preserves the version used by an existing scene"));
     const MermaidRenderEntry evicted = cache.getSync(ka, a); // a was evicted → re-rendered → Ready again
     require(evicted.status == kReady, QStringLiteral("evicted entry re-renders on request"));
+    require(resources.matches(liveLayout, false),
+            QStringLiteral("equal metrics after reload do not reflow live layouts"));
+    cache.clear();
+    require(!resources.matches(liveLayout, false), QStringLiteral("cache reset invalidates live scene dependencies"));
+    versionA = {};
+    liveLayout.clear();
+    require(resources.read(resourceA).paint == 0, QStringLiteral("the last layout releases a retired Mermaid record"));
   }
 
   // --- key stability: same inputs → same key ---

@@ -301,6 +301,8 @@ void DocumentLayout::rebuild(const MarkdownDocument& document, const RenderTheme
   const bool reuseIndex = document_ == &document && indexDocumentRoot_ == document.root().id() &&
                           indexDocumentRevision_ == document.revision() &&
                           slots_.size() == document.root().children().size();
+  if (document_ != &document || indexDocumentRoot_ != document.root().id())
+    imageResources_.clear();
   const bool reuseFormatting = incrementalFormatting_ && formattingRoot_ && document_ == &document;
   incrementalFormatting_ = false;
   formattingReuseStats_ = {};
@@ -1621,6 +1623,7 @@ void DocumentLayout::configureBuilder(SelectionRange selection, bool reuseFormat
   builder_.setPreedit(preeditText_, preeditFormats_, preeditCursor_);
   builder_.setEditingHtmlBlock(editingHtmlBlockId_);
   builder_.setDocumentPath(documentPath_);
+  builder_.setImageResources(&imageResources_);
   builder_.setCodeFenceScroll(codeFenceScroll_);
   builder_.setMermaidRenderCache(mermaidCache_);
   builder_.setMermaidSyncMode(mermaidSyncMode_);

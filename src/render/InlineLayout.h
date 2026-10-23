@@ -45,6 +45,7 @@ public:
     InlineProjectionState projectionState;
     const MarkdownNode* styleNode = nullptr;
     QString documentPath; // resource base belongs to this layout/document, never global CWD
+    QHash<QString, std::shared_ptr<void>>* imageResources = nullptr;
     qsizetype sourceBase = -1;
     qsizetype pendingPrefixLength = 0;
     QVector<InlineSourceReplacement> sourceReplacements;
@@ -274,7 +275,7 @@ private:
                                  qsizetype layoutPosition = -1);
   void buildMathAtoms(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width);
   void buildImageAtoms(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width,
-                       const QString& documentPath);
+                       const QString& documentPath, QHash<QString, std::shared_ptr<void>>* resources);
   QString texForInlineMathSpan(const QVector<InlineNode>& inlines, const InlineProjectionSpan& span) const;
   void buildTextLayout(const RenderTheme& theme, qreal width, const QFont& baseFont);
   QString shapingText() const;
@@ -377,6 +378,7 @@ private:
   qsizetype preeditInsertAtSourceOffset_ = -1;
   QVector<MathAtom> mathAtoms_;
   QVector<ImageAtom> imageAtoms_;
+  QVector<std::shared_ptr<void>> imageResources_;
   QVector<HtmlAtom> htmlAtoms_;
   QVector<ImageAtom> previewAtoms_; // Active images rendered as block preview below text
   qreal previewHeight_ = 0.0;       // Total height of image previews

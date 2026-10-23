@@ -306,6 +306,36 @@ void testHeadingEnterAtStartInsertsParagraphBeforeBlock() {
           "heading middle enter delta should insert split marker");
 }
 
+void testUndoRedoAfterBackingCompaction() {
+  DocumentSession session;
+  SelectionController selection;
+  UndoStack stack;
+  BrushQueue brushes;
+  InputController input;
+  wireInput(input, session, selection, stack, brushes);
+  session.setMarkdownText(QStringLiteral("alpha"), false);
+  setCursor(selection, blockAt(session, 0), 5);
+  const QString pasted(600 * 1024, QLatin1Char('x'));
+  require(input.insertText(pasted), "large paste creates an undo transaction");
+  setSelection(selection, blockAt(session, 0), 5, 5 + pasted.size());
+  require(input.deleteBackward(), "large selection deletion succeeds");
+  require(session.markdownText().toString() == QStringLiteral("alpha") &&
+              session.document().pieceText().backingStoreBytes() < 1024 * 1024,
+          "deletion compacts the backing store while keeping undo history");
+  const auto undo = stack.takeUndo();
+  require(undo.isTextDeltaCommand(), "selection deletion retains a text-delta undo command");
+  const auto& delta = undo.textDeltaCommand().delta;
+  require(session.applyTextDelta(delta.start, delta.insertedText.size(), delta.removedText, true),
+          "undo applies after backing buffers have been rebased");
+  require(session.markdownText().toString() == QStringLiteral("alpha") + pasted,
+          "undo restores every deleted character after compaction");
+  const auto redo = stack.takeRedo();
+  const auto& repeated = redo.textDeltaCommand().delta;
+  require(session.applyTextDelta(repeated.start, repeated.removedText.size(), repeated.insertedText, true),
+          "redo applies after compaction");
+  require(session.markdownText().toString() == QStringLiteral("alpha"), "redo restores the compacted text");
+}
+
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -313,6 +343,7 @@ int main(int argc, char** argv) {
   QApplication app(argc, argv);
 #define RUN_TEST(test) runTest(#test, test)
   RUN_TEST(testInputUndoRedoSnapshots);
+  RUN_TEST(testUndoRedoAfterBackingCompaction);
   RUN_TEST(testCoalescedBackspaceUndoRedo);
   RUN_TEST(testExternalReloadResetsHistoryAndSelection);
   RUN_TEST(testControllerUndoRedoRemapsCursorAfterReparse);

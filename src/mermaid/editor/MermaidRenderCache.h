@@ -86,6 +86,7 @@ class MUFFIN_CORE_EXPORT MermaidRenderCache : public QObject {
   Q_OBJECT
 public:
   explicit MermaidRenderCache(QObject* parent = nullptr, int capacity = 64);
+  ~MermaidRenderCache() override;
 
   // Build a key from the source. Extracts the mermaid theme the source declares
   // (%%{init:{theme}}%%, else "default"). Native scenes depend on source, theme

@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QThread>
 #include <QTimer>
+#include <QThreadPool>
 
 #include "../parser/ParserTestUtils.h"
 #include "document/DocumentSession.h"
@@ -18,6 +19,53 @@ using namespace muffin;
 // it with `parseBusy`, and supersedes an in-flight parse when a newer open is requested.
 
 namespace {
+
+void drainAsyncParses() {
+  for (int i = 0; i < 4; ++i) {
+    require(QThreadPool::globalInstance()->waitForDone(10000), "async test workers finish");
+    QCoreApplication::processEvents();
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+  }
+}
+
+void testCompletedAndSupersededParsesReleaseSources() {
+  DocumentSession session;
+  QString text = "```text\n" + QString(512 * 1024, QLatin1Char('x')) + "\n```\n";
+  require(text.isDetached(), "source starts with one owner");
+  session.openDocumentAsync(text);
+  drainAsyncParses();
+  require(!session.isAsyncParseInProgress(), "successful async parse completes");
+  session.newDocument();
+  drainAsyncParses();
+  require(text.isDetached(), "empty replacement releases the previously published source");
+
+  session.openDocumentAsync(text);
+  session.newDocument(); // supersede before the worker can publish on the GUI thread
+  drainAsyncParses();
+  require(text.isDetached() && session.markdownText().isEmpty(), "obsolete async result releases its source and AST");
+  require(session.findChildren<QFutureWatcherBase*>().isEmpty(), "completed per-job watchers are destroyed");
+}
+
+void testReentrantOpenKeepsLatestBusyState() {
+  DocumentSession session;
+  bool reopened = false;
+  bool staleIdle = false;
+  QObject::connect(&session, &DocumentSession::parsed, &session, [&](qint64) {
+    if (!reopened) {
+      reopened = true;
+      session.openDocumentAsync(QStringLiteral("Second document\n"));
+    }
+  });
+  QObject::connect(&session, &DocumentSession::parseBusy, &session, [&](bool busy) {
+    if (!busy && !session.markdownText().toString().contains("Second"))
+      staleIdle = true;
+  });
+  session.openDocumentAsync(QStringLiteral("First document\n"));
+  drainAsyncParses();
+  require(reopened && !staleIdle && !session.isAsyncParseInProgress(),
+          "a reentrant open does not receive an obsolete idle signal");
+  require(session.markdownText().toString().contains("Second"), "the reentrant open publishes the latest document");
+}
 
 QJsonArray inlineSnapshot(const QVector<InlineNode>& inlines) {
   QJsonArray values;
@@ -277,6 +325,8 @@ int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
 #define RUN_TEST(test) runTest(#test, test)
   RUN_TEST(testOpenDocumentAsyncEmitsParsed);
+  RUN_TEST(testCompletedAndSupersededParsesReleaseSources);
+  RUN_TEST(testReentrantOpenKeepsLatestBusyState);
   RUN_TEST(testOpenDocumentAsyncEmitsParseBusy);
   RUN_TEST(testOpenDocumentAsyncRetainsProfiledMetrics);
   RUN_TEST(testAsyncStateCoversPendingGuiCommit);

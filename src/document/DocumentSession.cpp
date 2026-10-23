@@ -566,9 +566,6 @@ struct muffin::DocumentSession::AsyncParseResult {
 muffin::DocumentSession::DocumentSession(QObject* parent) : QObject(parent) {
   connect(&document_, &MarkdownDocument::modifiedChanged, this, &DocumentSession::modifiedChanged);
   newDocument();
-  parseWatcher_ = new QFutureWatcher<std::shared_ptr<AsyncParseResult>>(this);
-  connect(parseWatcher_, &QFutureWatcher<std::shared_ptr<AsyncParseResult>>::finished, this,
-          &DocumentSession::finishAsyncParse);
   fileWatcher_ = new QFileSystemWatcher(this);
   connect(fileWatcher_, &QFileSystemWatcher::fileChanged, this, &DocumentSession::onFileChanged);
   connect(fileWatcher_, &QFileSystemWatcher::directoryChanged, this, &DocumentSession::onFileChanged);
@@ -881,11 +878,14 @@ void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector
     const ParseOptions options = parseOptions_;
     const bool collectPerformanceMetrics = fullParsePerformanceMetricsEnabled_;
     const auto demoteOffsets = pendingDemoteAtOffsets_;
-    launchGeneration_ = parseGeneration_;
+    const auto generation = parseGeneration_;
+    auto* watcher = new QFutureWatcher<std::shared_ptr<AsyncParseResult>>(this);
+    connect(watcher, &QFutureWatcher<std::shared_ptr<AsyncParseResult>>::finished, this,
+            [this, watcher, generation] { finishAsyncParse(watcher, generation); });
     asyncParsePending_ = true;
     emit parseBusy(true);
-    parseWatcher_->setFuture(QtConcurrent::run([text = std::move(text), options, collectPerformanceMetrics,
-                                                demoteOffsets]() mutable -> std::shared_ptr<AsyncParseResult> {
+    watcher->setFuture(QtConcurrent::run([text = std::move(text), options, collectPerformanceMetrics,
+                                          demoteOffsets]() mutable -> std::shared_ptr<AsyncParseResult> {
       muffin::diag::OpenPerfScope workerScope("open.worker");
       CmarkGfmParser parser;
       auto result = std::make_shared<AsyncParseResult>();
@@ -916,6 +916,10 @@ void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector
     }));
     return;
   }
+  const auto generation = parseGeneration_;
+  const bool replacedAsync = std::exchange(asyncParsePending_, false);
+  pendingText_.clear();
+  pendingDemoteAtOffsets_.clear();
   PerfTimer perf("session.fullParse");
   const auto sharedText = std::make_shared<const QString>(text);
   ParseResult result;
@@ -949,19 +953,26 @@ void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector
   }
   pendingMarkerOffsets_ = collectPendingMarkerOffsets(QStringView(*sharedText), document_.root());
   emit parsed(lastParseElapsedMs_);
+  if (replacedAsync && generation == parseGeneration_)
+    emit parseBusy(isOpenInProgress());
 }
 
-void muffin::DocumentSession::finishAsyncParse() {
+void muffin::DocumentSession::finishAsyncParse(QFutureWatcher<std::shared_ptr<AsyncParseResult>>* watcher,
+                                               quint64 generation) {
   muffin::diag::OpenPerfScope installScope("open.install");
+  // Consume both successful and obsolete results. A finished watcher must not
+  // keep an old AST/source alive for the lifetime of the session.
+  auto prepared = watcher->future().takeResult();
+  watcher->deleteLater();
   // A newer parse/edit may have landed while this worker ran; its result would clobber the live
   // document, so discard it. (The worker still ran to completion — cmark isn't cancellable.)
-  if (launchGeneration_ != parseGeneration_) {
-    asyncParsePending_ = false;
-    emit parseBusy(false);
+  if (generation != parseGeneration_) {
     return;
   }
   PerfTimer perf("session.fullParse");
-  const auto prepared = parseWatcher_->result();
+  auto publishedText = std::exchange(pendingText_, {});
+  const bool modified = pendingModified_;
+  pendingDemoteAtOffsets_.clear();
   ParseResult& result = prepared->parsed;
   lastParseElapsedMs_ = result.elapsedMs;
   lastFullParsePerformanceMetrics_ = std::move(result.performanceMetrics);
@@ -972,15 +983,21 @@ void muffin::DocumentSession::finishAsyncParse() {
     PerfTimer buildPerf("session.buildDocument");
     document_.setPreparedMarkdownText(std::move(prepared->text), std::move(result.root));
   }
-  document_.setModified(pendingModified_);
-  pendingDemoteAtOffsets_.clear();
+  if (generation != parseGeneration_)
+    return; // A documentReset observer started a newer operation.
+  document_.setModified(modified);
+  if (generation != parseGeneration_)
+    return;
   pendingMarkerOffsets_ = std::move(prepared->pendingMarkers);
   asyncParsePending_ = false;
   {
     muffin::diag::OpenPerfScope scope("open.publish");
     emit parsed(lastParseElapsedMs_);
-    emit documentTextChanged(pendingText_);
-    emit parseBusy(false);
+    if (generation != parseGeneration_)
+      return;
+    emit documentTextChanged(std::move(publishedText));
+    if (generation == parseGeneration_)
+      emit parseBusy(isOpenInProgress());
   }
 }
 

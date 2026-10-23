@@ -128,19 +128,90 @@ void resourceVersions() {
   auto& resources = LayoutResources::instance();
   const QString key = "test:resource-version";
   resources.publish(key, "80x40");
-  LayoutResourceScope outer;
-  LayoutResourceDependencies snapshot;
   {
-    LayoutResourceScope inner;
-    resources.read(key);
-    snapshot = inner.dependencies;
+    LayoutResourceScope outer;
+    LayoutResourceDependencies snapshot;
+    {
+      LayoutResourceScope inner;
+      resources.read(key);
+      snapshot = inner.dependencies;
+    }
+    resources.publish(key, "80x40");
+    require(resources.matches(snapshot, false) && !resources.matches(snapshot),
+            "paint and metric versions differ independently");
+    require(outer.dependencies.contains(key), "nested resource reads propagate to enclosing dependency scope");
+    resources.publish(key, "80x60");
+    require(!resources.matches(snapshot, false), "changed natural size invalidates measurements");
   }
-  resources.publish(key, "80x40");
-  require(resources.matches(snapshot, false) && !resources.matches(snapshot),
-          "paint and metric versions differ independently");
-  require(outer.dependencies.contains(key), "nested resource reads propagate to enclosing dependency scope");
-  resources.publish(key, "80x60");
-  require(!resources.matches(snapshot, false), "changed natural size invalidates measurements");
+
+  const QString recycled = "test:recycled-resource";
+  resources.publish(recycled, "same-size");
+  auto old = resources.read(recycled);
+  const auto retiredPaint = old.paint;
+  LayoutResourceDependencies saved{{recycled, old}};
+  resources.release(recycled, false);
+  require(resources.matches(saved), "payload eviction preserves a live layout's version");
+  resources.publish(recycled, "same-size");
+  require(resources.matches(saved, false) && !resources.matches(saved),
+          "reloading equal metrics refreshes paint without reflowing a live layout");
+  resources.release(recycled);
+  require(!resources.matches(saved, false), "explicit reset invalidates live dependencies");
+  old = {};
+  saved.clear();
+  require(resources.read(recycled).paint == 0, "the final dependency releases the retired resource record");
+  resources.publish(recycled, "same-size");
+  require(resources.read(recycled).paint > retiredPaint,
+          "recreated keys use monotonic versions rather than reviving old snapshots");
+  resources.release(recycled);
+}
+
+void boundedImageLifetimes() {
+  auto& loader = ImageLoader::instance();
+  loader.setCacheLimits(0, 0);
+  require(loader.cacheStats().entries == 0, "unused image cache can be drained");
+  const auto baseline = loader.cacheStats();
+  loader.setCacheLimits(512, 2);
+  loader.store("test:cache-a", image({8, 8}, Qt::red));
+  loader.store("test:cache-b", image({8, 8}, Qt::green));
+  loader.cached("test:cache-a");
+  loader.store("test:cache-c", image({8, 8}, Qt::blue));
+  require(loader.cached("test:cache-b").isNull() && !loader.cached("test:cache-a").isNull(),
+          "byte and entry budgets evict the least recently used unowned image");
+
+  QTemporaryDir directory;
+  const auto path = directory.filePath("leased.png");
+  image({64, 64}, Qt::red).save(path);
+  const auto url = QUrl::fromLocalFile(path).toString(QUrl::FullyEncoded);
+  auto first = loader.retain(url);
+  auto second = loader.retain(url);
+  require(loader.image(url).size() == QSize(64, 64), "a live image can exceed the warm-cache budget");
+  require(loader.cacheStats().watchedFiles == baseline.watchedFiles + 1, "leased local images are watched");
+  first.reset();
+  require(!loader.cached(url).isNull(), "one reader closing does not release another reader's image");
+  second.reset();
+  QCoreApplication::processEvents();
+  require(loader.cached(url).isNull() && loader.cacheStats().watchedFiles == baseline.watchedFiles &&
+              loader.cacheStats().watchedDirectories == baseline.watchedDirectories,
+          "the final reader releases pixels and file/directory watches");
+  auto reopened = loader.retain(url);
+  require(!loader.image(url).isNull(), "a released local image reloads correctly");
+  reopened.reset();
+  QCoreApplication::processEvents();
+
+  QTcpServer slowServer;
+  require(slowServer.listen(QHostAddress::LocalHost), "slow image test server listens");
+  const auto remote = QString("http://127.0.0.1:%1/slow.png").arg(slowServer.serverPort());
+  auto pending = loader.retain(remote);
+  loader.image(remote);
+  require(loader.isPending(remote), "leased download starts");
+  pending.reset();
+  QCoreApplication::processEvents();
+  require(!loader.isPending(remote) && loader.cached(remote).isNull(),
+          "closing the last reader cancels a slow download without repopulating the cache");
+  loader.setCacheLimits(0, 0);
+  require(loader.cacheStats().entries == 0 && loader.cacheStats().users == 0,
+          "image payload and leases return to baseline");
+  loader.setCacheLimits(32 * 1024 * 1024, 256);
 }
 void imageUpdates() {
   for (const auto& display : {QString("flex"), QString("grid")})
@@ -759,6 +830,7 @@ int main(int argc, char** argv) {
   QSettings::setDefaultFormat(QSettings::IniFormat);
   QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settings.path());
   resourceVersions();
+  boundedImageLifetimes();
   imageUpdates();
   asyncAndLocalImages();
   editorResources();

@@ -123,7 +123,8 @@ private:
   void refreshFileWatch();
   void parseAndStore(QString text, bool modified, QVector<qsizetype> demoteAtOffsets = {}, bool async = false);
   // GUI-thread completion of an async parseAndStore (async=true). Discards the result if superseded.
-  void finishAsyncParse();
+  struct AsyncParseResult;
+  void finishAsyncParse(QFutureWatcher<std::shared_ptr<AsyncParseResult>>* watcher, quint64 generation);
   bool tryApplyTopLevelLocalEdit(qsizetype sourceStart, qsizetype sourceEnd, const QString& replacementText,
                                  bool modified, const QVector<LocalEditNodeHint>& nodeHints);
 
@@ -138,18 +139,15 @@ private:
   bool lastParseWasLocalEdit_ = false;
   bool lastLocalEditChangedTopLevelStructure_ = false;
   TopLevelRangeChange lastLocalTopLevelRangeChange_;
-  struct AsyncParseResult;
   // Async open-parse state. Only the FileController::open path passes async=true; everything else
   // runs the synchronous code path unchanged.
-  QFutureWatcher<std::shared_ptr<AsyncParseResult>>* parseWatcher_ = nullptr;
   // Covers the complete async-open transaction, including the interval after the worker finishes
   // but before its queued `finished` slot commits pendingText_ on the GUI thread. QFutureWatcher's
   // isRunning() does not cover that interval, so it cannot safely gate editing or saving.
   bool asyncParsePending_ = false;
   bool openConfirmationPending_ = false;
-  quint64 parseGeneration_ = 0;  // bumped on every parseAndStore + local edit; supersedes in-flight workers
-  quint64 launchGeneration_ = 0; // generation captured when the current worker was launched
-  QString pendingText_;          // text held for the GUI-thread finish step
+  quint64 parseGeneration_ = 0; // bumped on every parseAndStore + local edit; supersedes in-flight workers
+  QString pendingText_;         // text held for the GUI-thread finish step
   bool pendingModified_ = false;
   QVector<qsizetype> pendingDemoteAtOffsets_;
   QVector<qsizetype> pendingMarkerOffsets_;

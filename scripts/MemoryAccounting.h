@@ -131,6 +131,7 @@ struct MemoryAccounting {
     const auto text = textShadowRasterStats();
     const auto draft = window.draftWriter_.queueStats();
     auto& images = ImageLoader::instance();
+    const auto imageStats = images.cacheStats();
     qint64 imageBytes = 0, cssBytes = 0;
     QSet<const void*> sources;
     for (const auto& image : images.cache_) {
@@ -152,6 +153,11 @@ struct MemoryAccounting {
     return {{"private_font_faces", font.faces},
             {"native_font_bytes_submitted_to_qt", font.nativeBytesSubmitted},
             {"image_cache_bytes", imageBytes},
+            {"image_cache_entries", qint64(imageStats.entries)},
+            {"image_resource_users", qint64(imageStats.users)},
+            {"image_watched_files", qint64(imageStats.watchedFiles)},
+            {"image_watched_directories", qint64(imageStats.watchedDirectories)},
+            {"image_pending_requests", qint64(imageStats.requests)},
             {"css_source_cache_cost_bytes", cssBytes},
             {"css_source_cache_count", cssCaches},
             {"svg_raster_budget_per_source_cache", 16 * 1024 * 1024},

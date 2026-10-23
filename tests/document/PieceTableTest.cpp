@@ -405,9 +405,34 @@ static void testSourcePositionIndexPreservesOrderAndTypeRanksAcrossSplices() {
           "unchanged suffix token must preserve its lazy source shift through splice");
 }
 
+static void testCompactionPreservesSnapshotsAndIndexes() {
+  const QString seed = QString::fromUtf8("alpha\n中文 😀 tail\n");
+  PieceTable table(seed);
+  const PieceTable snapshot = table;
+  const QString insertion = QString("deleted words\n").repeated(50000);
+  for (int i = 0; i < 8; ++i) {
+    table.replace(3, 3, insertion);
+    table.replace(3, 3 + insertion.size(), {});
+    require(table.toString() == seed && snapshot.toString() == seed,
+            "compaction preserves live text and independent snapshots");
+    require(table.backingStoreBytes() < 2 * 1024 * 1024,
+            "repeated deletions do not accumulate unbounded backing capacity");
+    PieceTable oracle(seed);
+    require(table.wordCount() == oracle.wordCount() && table.lineCount() == oracle.lineCount(),
+            "rebasing preserves word and line indexes");
+    for (qsizetype offset = 0; offset <= table.size(); ++offset)
+      require(table.lineForOffset(offset) == oracle.lineForOffset(offset), "rebased source offsets remain unchanged");
+    table.replace(1, 1, QStringLiteral("Z"));
+    table.replace(1, 2, {});
+  }
+  table.replace(0, table.size(), {});
+  require(table.backingStoreBytes() == 0, "deleting all text releases both backing buffers");
+}
+
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
   runTest("empty table", testEmptyTable);
+  runTest("compaction preserves snapshots and indexes", testCompactionPreservesSnapshotsAndIndexes);
   runTest("insert at boundaries", testInsertAtBoundaries);
   runTest("delete and replace whole", testDeleteAndReplaceWhole);
   runTest("cjk and surrogate pairs", testCjkAndSurrogates);

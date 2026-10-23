@@ -156,6 +156,10 @@ void InlineLayout::build(const QVector<InlineNode>& inlines, const RenderTheme& 
 
 void InlineLayout::build(const QVector<InlineNode>& inlines, QString sourceText, const RenderTheme& theme, qreal width,
                          const QFont& baseFont, BuildOptions options) {
+  // Keep old leases until the replacement layout has acquired its own, avoiding
+  // a decode/download gap when rebuilding the same image after a resize/edit.
+  const auto previousImageResources = std::move(imageResources_);
+  imageResources_.clear();
   hasHtmlContent_ = false;
   shadowPainter_.reset();
   diag::ScopedPerfProbe perf("inline.build", inlineBuildPerf());
@@ -276,7 +280,7 @@ void InlineLayout::build(const QVector<InlineNode>& inlines, QString sourceText,
   }
   buildOffsetMapFromProjection();
   buildMathAtoms(inlines, theme, width);
-  buildImageAtoms(inlines, theme, width, options.documentPath);
+  buildImageAtoms(inlines, theme, width, options.documentPath, options.imageResources);
   buildHtmlAtoms(width, baseFont, options.documentPath);
   buildHtmlFormatSpans(theme, width);
   buildInlineBoxSpacing();
@@ -1812,7 +1816,7 @@ QString InlineLayout::texForInlineMathSpan(const QVector<InlineNode>& inlines, c
 }
 
 void InlineLayout::buildImageAtoms(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width,
-                                   const QString& documentPath) {
+                                   const QString& documentPath, QHash<QString, std::shared_ptr<void>>* resources) {
   Q_UNUSED(inlines);
   // Quick check: are there any image Atom spans at all?
   bool hasImageAtom = false;
@@ -1871,6 +1875,9 @@ void InlineLayout::buildImageAtoms(const QVector<InlineNode>& inlines, const Ren
 
     const QUrl resolved = resolvedUrlForDocumentResource(srcUrl, documentPath);
     const QString resourceKey = resolved.toString(QUrl::FullyEncoded);
+    imageResources_.append(ImageLoader::instance().retain(resourceKey));
+    if (resources)
+      resources->insert(resourceKey, imageResources_.last());
     const bool isRemote = resolved.scheme() == QLatin1String("http") || resolved.scheme() == QLatin1String("https");
     QImage image = ImageLoader::instance().image(resourceKey);
 

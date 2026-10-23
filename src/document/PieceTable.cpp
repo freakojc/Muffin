@@ -159,6 +159,22 @@ void PieceTable::replace(qsizetype start, qsizetype end, QStringView text) {
 
   pieces_ = std::move(next);
   rebuildPrefix();
+  compactIfNeeded();
+}
+
+void PieceTable::compactIfNeeded() {
+  if (isEmpty()) {
+    *this = PieceTable();
+    return;
+  }
+  const qint64 discarded = qint64(original_.size()) + changes_.size() - totalLength_;
+  // Charge a linear rebase to at least as much discarded text. This bounds
+  // retention without introducing a full-document copy per keystroke. Rebuild
+  // all backing indexes together; snapshots and AST QString slices remain valid
+  // through Qt's shared immutable buffers, and logical source offsets do not move.
+  constexpr qint64 minimumDiscarded = 512 * 1024;
+  if (discarded >= minimumDiscarded && discarded >= totalLength_)
+    *this = PieceTable(toString());
 }
 
 void PieceTable::rebuildPrefix() {
