@@ -32,12 +32,12 @@ qsizetype InlineRange::length() const {
   return isValid() ? end - start : 0;
 }
 
-InlineNode::InlineNode(InlineType type) : type_(type) {
+InlineNode::InlineNode(InlineType type) : type_(quint8(type)) {
 }
 
 InlineNode::InlineNode(const InlineNode& other)
-    : type_(other.type_), markerKind_(other.markerKind_), text_(other.text_), children_(other.children_),
-      sourceRanges_(other.sourceRanges_),
+    : text_(other.text_), children_(other.children_), sourceRanges_(other.sourceRanges_), type_(other.type_),
+      markerKind_(other.markerKind_),
       extendedMetadata_(other.extendedMetadata_ ? std::make_unique<ExtendedMetadata>(*other.extendedMetadata_)
                                                 : nullptr) {
 }
@@ -79,7 +79,7 @@ void InlineNode::pruneExtendedMetadata() {
 }
 
 InlineType InlineNode::type() const {
-  return type_;
+  return InlineType(type_);
 }
 
 QString InlineNode::text() const {
@@ -283,26 +283,46 @@ void InlineNode::setCloseMarkerRange(InlineRange range) {
 InlineSourceRanges InlineNode::sourceRanges() const {
   if (extendedMetadata_ && extendedMetadata_->wideRanges)
     return *extendedMetadata_->wideRanges;
-  return {{sourceRanges_[0], sourceRanges_[1]},
-          {sourceRanges_[2], sourceRanges_[3]},
-          {sourceRanges_[4], sourceRanges_[5]},
-          {sourceRanges_[6], sourceRanges_[7]}};
+  const qsizetype start = sourceRanges_.start, end = sourceRanges_.end;
+  const auto expand = [](qint16 offset, qsizetype base) {
+    return offset == absentOffset ? qsizetype(-1) : base + offset;
+  };
+  const auto& offsets = sourceRanges_.offsets;
+  return {{start, end},
+          {expand(offsets[0], start), expand(offsets[1], end)},
+          {expand(offsets[2], start), expand(offsets[3], start)},
+          {expand(offsets[4], end), expand(offsets[5], end)}};
 }
 void InlineNode::setSourceRanges(InlineSourceRanges ranges) {
-  const std::array<qsizetype, 8> values{ranges.source.start,      ranges.source.end,       ranges.content.start,
-                                        ranges.content.end,       ranges.openMarker.start, ranges.openMarker.end,
-                                        ranges.closeMarker.start, ranges.closeMarker.end};
-  for (const auto value : values) {
-    if (value < std::numeric_limits<qint32>::min() || value > std::numeric_limits<qint32>::max()) {
-      auto& metadata = ensureExtendedMetadata();
-      if (!metadata.wideRanges)
-        metadata.wideRanges = std::make_unique<InlineSourceRanges>();
-      *metadata.wideRanges = ranges;
-      return;
+  CompactRanges compact;
+  const auto encode = [&] {
+    for (const auto value : {ranges.source.start, ranges.source.end}) {
+      if (value < std::numeric_limits<qint32>::min() || value > std::numeric_limits<qint32>::max())
+        return false;
     }
+    compact.start = qint32(ranges.source.start);
+    compact.end = qint32(ranges.source.end);
+    const std::array<qsizetype, 6> values{ranges.content.start,  ranges.content.end,       ranges.openMarker.start,
+                                          ranges.openMarker.end, ranges.closeMarker.start, ranges.closeMarker.end};
+    for (size_t i = 0; i < values.size(); ++i) {
+      if (values[i] == -1)
+        continue;
+      const qint64 base = (i == 1 || i >= 4) ? compact.end : compact.start;
+      // Compare before subtracting: public values can include qsizetype's extrema.
+      if (values[i] < base - 32767 || values[i] > base + 32767)
+        return false;
+      compact.offsets[i] = qint16(values[i] - base);
+    }
+    return true;
+  };
+  if (!encode()) {
+    auto& metadata = ensureExtendedMetadata();
+    if (!metadata.wideRanges)
+      metadata.wideRanges = std::make_unique<InlineSourceRanges>();
+    *metadata.wideRanges = ranges;
+    return;
   }
-  for (size_t i = 0; i < values.size(); ++i)
-    sourceRanges_[i] = qint32(values[i]);
+  sourceRanges_ = compact;
   if (extendedMetadata_ && extendedMetadata_->wideRanges) {
     extendedMetadata_->wideRanges.reset();
     pruneExtendedMetadata();

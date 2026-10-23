@@ -624,6 +624,12 @@ void CmarkNodeAdapter::annotateInlineSource(cmark_node* cmarkNode, InlineNode& i
 QVector<InlineNode> CmarkNodeAdapter::convertInlineChildren(cmark_node* node) {
   AccumGuard guard(g_inlineChildrenNs);
   QVector<InlineNode> children;
+  // cmark already knows every sibling. Reserve once to avoid repeated moves,
+  // allocator calls and retained geometric-growth slack on millions of nodes.
+  qsizetype count = 0;
+  for (cmark_node* child = cmark_node_first_child(node); child; child = cmark_node_next(child))
+    count += !isBlockType(cmark_node_get_type(child));
+  children.reserve(count);
   for (cmark_node* child = cmark_node_first_child(node); child; child = cmark_node_next(child)) {
     if (!isBlockType(cmark_node_get_type(child))) {
       children.push_back(convertInline(child));

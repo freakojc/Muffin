@@ -33,6 +33,12 @@ struct MemoryAccounting {
       arrays += value.capacity() * sizeof(T);
     }
   }
+  void array(const CompactOffsetIndex& value) {
+    if (value.allocatedBytes() && !buffers.contains(value.data())) {
+      buffers.insert(value.data());
+      arrays += value.allocatedBytes();
+    }
+  }
   void text(const PieceTable& value) {
     string(value.original_, true);
     string(value.changes_, true);

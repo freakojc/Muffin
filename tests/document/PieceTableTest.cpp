@@ -16,6 +16,7 @@
 #include <QStringView>
 
 #include <random>
+#include <limits>
 
 using namespace muffin;
 
@@ -429,9 +430,40 @@ static void testCompactionPreservesSnapshotsAndIndexes() {
   require(table.backingStoreBytes() == 0, "deleting all text releases both backing buffers");
 }
 
+static void testCompactOffsetIndexPromotionAndSnapshots() {
+  CompactOffsetIndex index;
+  QVector<qsizetype> expected;
+  for (qsizetype value : {0, 1, 7, 7, 1234}) {
+    index.push_back(value);
+    expected.push_back(value);
+  }
+  const auto narrowSnapshot = index;
+  if constexpr (sizeof(qsizetype) > sizeof(quint32)) {
+    for (qsizetype value :
+         {qsizetype(std::numeric_limits<quint32>::max()), qsizetype(std::numeric_limits<quint32>::max()) + 1,
+          std::numeric_limits<qsizetype>::max()}) {
+      index.push_back(value);
+      expected.push_back(value);
+    }
+  }
+  const auto wideSnapshot = index;
+  index.push_back(expected.last());
+  require(narrowSnapshot.size() == 5 && narrowSnapshot.at(4) == 1234,
+          "promotion and append preserve implicitly shared narrow snapshots");
+  require(wideSnapshot.size() == expected.size(), "append preserves wide snapshots");
+  for (qsizetype i = 0; i < expected.size(); ++i) {
+    require(index.at(i) == expected.at(i), "index retains full-width offsets after promotion");
+    const qsizetype first = std::lower_bound(expected.cbegin(), expected.cend(), expected.at(i)) - expected.cbegin();
+    require(wideSnapshot.lowerBound(expected.at(i)) == first, "binary search preserves duplicate and boundary offsets");
+  }
+  require(index.lowerBound(-1) == 0 && index.lowerBound(8, 2) == 4,
+          "binary search handles negative queries and a restricted suffix");
+}
+
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
   runTest("empty table", testEmptyTable);
+  runTest("compact index promotion and snapshots", testCompactOffsetIndexPromotionAndSnapshots);
   runTest("compaction preserves snapshots and indexes", testCompactionPreservesSnapshotsAndIndexes);
   runTest("insert at boundaries", testInsertAtBoundaries);
   runTest("delete and replace whole", testDeleteAndReplaceWhole);

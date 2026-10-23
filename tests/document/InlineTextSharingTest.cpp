@@ -281,6 +281,26 @@ void testRangeStorageAndMarkerTransitions() {
     return range(a.source, b.source) && range(a.content, b.content) && range(a.openMarker, b.openMarker) &&
            range(a.closeMarker, b.closeMarker);
   };
+  // A long span has small edge deltas. Exercise both compact boundaries and
+  // fallback, including -1 sentinels and negative but otherwise legal values.
+  for (qsizetype delta : {-32769, -32768, -32767, -1, 0, 1, 32767, 32768, 32769}) {
+    for (qsizetype base : {qsizetype(-100000), qsizetype(0), qsizetype(1000000)}) {
+      InlineSourceRanges expected{{base, base + 1000000},
+                                  {base + delta, base + 1000000 - delta},
+                                  {-1, base + delta},
+                                  {base + 1000000 - delta, -1}};
+      InlineNode node(InlineType::Text);
+      node.setSourceRanges(expected);
+      require(equal(node.sourceRanges(), expected), "edge-relative coordinates retain sentinel and delta boundaries");
+      InlineNode copy = node;
+      node.setSourceEnd(base + 2000000);
+      require(equal(copy.sourceRanges(), expected) && node.contentRange().end == expected.content.end,
+              "changing an edge preserves other ranges and independent copies");
+      node.setSourceRanges({{0, 5}, {0, 5}, {-1, -1}, {-1, -1}});
+      require(node.sourceStart() == 0 && node.contentRange().end == 5,
+              "exceptional coordinates can return to ordinary storage");
+    }
+  }
   const qsizetype limit = std::numeric_limits<qint32>::max();
   const QVector<qsizetype> offsets{-1,
                                    0,

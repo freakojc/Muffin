@@ -147,14 +147,19 @@ private:
   ExtendedMetadata& ensureExtendedMetadata();
   void pruneExtendedMetadata();
 
-  InlineType type_ = InlineType::Text;
-  // Common immutable syntax never needs four QString handles on the heap.
-  quint8 markerKind_ = 0;
   std::variant<QString, SharedTextSlice> text_;
   QVector<InlineNode> children_;
-  // Most coordinates fit 32 bits. Wide/negative exceptional values use the
-  // existing optional payload; public ranges and arithmetic remain qsizetype.
-  std::array<qint32, 8> sourceRanges_{-1, -1, -1, -1, -1, -1, -1, -1};
+  // Content and syntax markers normally lie near the corresponding source
+  // edge, even for very long text. Store those six coordinates as edge-relative
+  // deltas; unusual ranges use the lossless optional payload below.
+  static constexpr qint16 absentOffset = -32768;
+  struct CompactRanges {
+    qint32 start = -1, end = -1;
+    std::array<qint16, 6> offsets{absentOffset, absentOffset, absentOffset, absentOffset, absentOffset, absentOffset};
+  } sourceRanges_;
+  // Byte-sized tags occupy the compact ranges' alignment gap.
+  quint8 type_ = quint8(InlineType::Text);
+  quint8 markerKind_ = 0;
   std::unique_ptr<ExtendedMetadata> extendedMetadata_;
 };
 

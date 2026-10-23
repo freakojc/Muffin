@@ -212,9 +212,9 @@ void PieceTable::rebuildPrefix() {
 }
 
 qsizetype PieceTable::countNewlines(bool fromChanges, qsizetype start, qsizetype length) const {
-  const QVector<qsizetype>& positions = newlines(fromChanges);
-  const auto first = std::lower_bound(positions.cbegin(), positions.cend(), start);
-  const auto last = std::lower_bound(first, positions.cend(), start + length);
+  const auto& positions = newlines(fromChanges);
+  const auto first = positions.lowerBound(start);
+  const auto last = positions.lowerBound(start + length, first);
   return last - first;
 }
 
@@ -228,9 +228,9 @@ PieceTable::WordSummary PieceTable::wordSummary(bool fromChanges, qsizetype star
     return result;
   }
   const QString& source = buffer(fromChanges);
-  const QVector<qsizetype>& starts = fromChanges ? changesWordStarts_ : originalWordStarts_;
-  const auto first = std::lower_bound(starts.cbegin(), starts.cend(), start);
-  const auto last = std::lower_bound(first, starts.cend(), start + length);
+  const auto& starts = fromChanges ? changesWordStarts_ : originalWordStarts_;
+  const auto first = starts.lowerBound(start);
+  const auto last = starts.lowerBound(start + length, first);
   result.count = last - first;
   result.startsWithWord = isWordChar(source.at(start));
   result.endsWithWord = isWordChar(source.at(start + length - 1));
@@ -360,10 +360,10 @@ qsizetype PieceTable::lineStartOffset(int line) const {
   const auto boundary = std::upper_bound(prefixNewlines_.begin(), prefixNewlines_.end(), ordinal);
   const qsizetype pieceIndex = static_cast<qsizetype>(boundary - prefixNewlines_.begin()) - 1;
   const Piece& piece = pieces_.at(static_cast<size_t>(pieceIndex));
-  const QVector<qsizetype>& positions = newlines(piece.fromChanges);
-  const auto first = std::lower_bound(positions.cbegin(), positions.cend(), piece.start);
+  const auto& positions = newlines(piece.fromChanges);
+  const auto first = positions.lowerBound(piece.start);
   const qsizetype withinPiece = static_cast<qsizetype>(ordinal - prefixNewlines_.at(static_cast<size_t>(pieceIndex)));
-  const qsizetype newline = *(first + withinPiece);
+  const qsizetype newline = positions.at(first + withinPiece);
   return static_cast<qsizetype>(prefix_.at(static_cast<size_t>(pieceIndex))) + (newline - piece.start) + 1;
 }
 

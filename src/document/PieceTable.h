@@ -1,5 +1,7 @@
 #pragma once
 
+#include "document/CompactOffsetIndex.h"
+
 #include <QString>
 #include <QStringView>
 
@@ -105,7 +107,7 @@ private:
   };
 
   const QString& buffer(bool fromChanges) const { return fromChanges ? changes_ : original_; }
-  const QVector<qsizetype>& newlines(bool fromChanges) const {
+  const CompactOffsetIndex& newlines(bool fromChanges) const {
     return fromChanges ? changesNewlines_ : originalNewlines_;
   }
 
@@ -124,10 +126,10 @@ private:
   // so `locate` binary-searches it for O(log n) offset→piece resolution.
   std::vector<qint64> prefix_;
   std::vector<qint64> prefixNewlines_;
-  QVector<qsizetype> originalNewlines_;
-  QVector<qsizetype> changesNewlines_;
-  QVector<qsizetype> originalWordStarts_;
-  QVector<qsizetype> changesWordStarts_;
+  CompactOffsetIndex originalNewlines_;
+  CompactOffsetIndex changesNewlines_;
+  CompactOffsetIndex originalWordStarts_;
+  CompactOffsetIndex changesWordStarts_;
   qint64 totalLength_ = 0;
   qint64 totalNewlines_ = 0;
   qint64 totalWords_ = 0;
