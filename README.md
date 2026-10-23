@@ -44,8 +44,10 @@ Muffin combines a native C++/Qt editor with a broad, fully editable Markdown run
 | End-to-end CSS themes | ✅ | ◐ JSONC tokens | ◐ themes | — | — | — |
 | Native Mermaid diagrams | **38 IDs** | — | **11 IDs** | — | — | — |
 | Math blocks / renderer | **Native C++ / KaTeX-compatible** | **Native Rust / RaTeX** | — (planned) | MathJax | KaTeX | MathJax |
-| Export | PDF, HTML, PNG, Pandoc formats | HTML, PDF | HTML, PDF | PDF, HTML | HTML, PDF | HTML, PDF |
+| Export | PDF, HTML, PNG; more via Pandoc | HTML, PDF | HTML, PDF | PDF, HTML, images; more via Pandoc | HTML, PDF | HTML, PDF |
 | Large files | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
+
+Muffin and Typora both require a separate Pandoc installation for formats such as Word, OpenDocument, RTF, EPUB, and LaTeX. See [Typora's export documentation](https://support.typora.io/Export/).
 
 ### Document size and opening time
 

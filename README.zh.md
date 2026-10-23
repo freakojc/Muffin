@@ -44,8 +44,10 @@ Muffin 将原生 C++/Qt 编辑器与完整、可编辑的 Markdown 运行时结�
 | 全链路 CSS 主题 | ✅ | ◐ JSONC 令牌 | ◐ 主题系统 | — | — | — |
 | 原生 Mermaid 图表 | **38 种 ID** | — | **11 种 ID** | — | — | — |
 | 数学块／渲染器 | **原生 C++／兼容 KaTeX** | **原生 Rust／RaTeX** | —（计划中） | MathJax | KaTeX | MathJax |
-| 导出 | PDF、HTML、PNG、Pandoc 格式 | HTML、PDF | HTML、PDF | PDF、HTML | HTML、PDF | HTML、PDF |
+| 导出 | PDF、HTML、PNG；更多格式通过 Pandoc | HTML、PDF | HTML、PDF | PDF、HTML、图片；更多格式通过 Pandoc | HTML、PDF | HTML、PDF |
 | 大文件 | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
+
+Muffin 和 Typora 导出 Word、OpenDocument、RTF、EPUB、LaTeX 等格式时，均需单独安装 Pandoc。参见 [Typora 官方导出文档](https://support.typora.io/Export/)。
 
 ### 文档大小与打开耗时
 
