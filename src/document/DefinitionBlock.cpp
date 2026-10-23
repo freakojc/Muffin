@@ -70,10 +70,8 @@ DefinitionFieldRange sourceRangeForLine(qsizetype sourceStart, QStringView line,
   return {sourceStart, end};
 }
 
-DefinitionFieldRange parseOptionalTitle(
-    QStringView line,
-    qsizetype titleStart,
-    DefinitionBlock::TitleDelimiter& delimiter) {
+DefinitionFieldRange parseOptionalTitle(QStringView line, qsizetype titleStart,
+                                        DefinitionBlock::TitleDelimiter& delimiter) {
   delimiter = DefinitionBlock::TitleDelimiter::None;
   qsizetype start = skipHorizontalSpace(line, titleStart);
   if (start >= line.size()) {
@@ -84,9 +82,8 @@ DefinitionFieldRange parseOptionalTitle(
   QChar closer;
   if (opener == QLatin1Char('"') || opener == QLatin1Char('\'')) {
     closer = opener;
-    delimiter = opener == QLatin1Char('"')
-                    ? DefinitionBlock::TitleDelimiter::DoubleQuote
-                    : DefinitionBlock::TitleDelimiter::SingleQuote;
+    delimiter = opener == QLatin1Char('"') ? DefinitionBlock::TitleDelimiter::DoubleQuote
+                                           : DefinitionBlock::TitleDelimiter::SingleQuote;
   } else if (opener == QLatin1Char('(')) {
     closer = QLatin1Char(')');
     delimiter = DefinitionBlock::TitleDelimiter::Parentheses;
@@ -124,9 +121,8 @@ DefinitionFieldRange parseOptionalTitle(
 
 DefinitionBlock::DestinationDelimiter destinationDelimiterFor(QStringView line, qsizetype start) {
   start = skipHorizontalSpace(line, start);
-  return start < line.size() && line.at(start) == QLatin1Char('<')
-             ? DefinitionBlock::DestinationDelimiter::Angle
-             : DefinitionBlock::DestinationDelimiter::Bare;
+  return start < line.size() && line.at(start) == QLatin1Char('<') ? DefinitionBlock::DestinationDelimiter::Angle
+                                                                   : DefinitionBlock::DestinationDelimiter::Bare;
 }
 
 DefinitionFieldRange parseDestination(QStringView line, qsizetype start) {
@@ -212,7 +208,7 @@ qsizetype nextLineStart(QStringView text, qsizetype start) {
   return end < text.size() ? end + 1 : text.size();
 }
 
-}  // namespace
+} // namespace
 
 DefinitionParseResult parseDefinitionBlockLineFields(QStringView line, qsizetype sourceStart) {
   DefinitionParseResult result;
@@ -250,9 +246,8 @@ DefinitionParseResult parseDefinitionBlockLineFields(QStringView line, qsizetype
     definition.note = line.mid(noteStart, noteEnd - noteStart).toString();
     definition.virtualTemplate = definition.label.isEmpty() && definition.note.isEmpty();
     definition.sourceRange = sourceRangeForLine(sourceStart, line, definition);
-    result.classification = definition.virtualTemplate
-                                ? DefinitionParseClassification::VirtualTemplate
-                                : DefinitionParseClassification::ValidMarkdownDefinition;
+    result.classification = definition.virtualTemplate ? DefinitionParseClassification::VirtualTemplate
+                                                       : DefinitionParseClassification::ValidMarkdownDefinition;
     return result;
   }
 
@@ -288,8 +283,7 @@ DefinitionParseResult parseDefinitionBlockLineFields(QStringView line, qsizetype
     const qsizetype titleSlot = trimEnd(line, afterDestination, line.size());
     definition.titleRange = {sourceStart + titleSlot, sourceStart + titleSlot};
   }
-  definition.virtualTemplate = definition.destination.isEmpty() &&
-                               definition.title.isEmpty() &&
+  definition.virtualTemplate = definition.destination.isEmpty() && definition.title.isEmpty() &&
                                (definition.label.isEmpty() || hasTemplatePaddingAfterMarker);
   definition.sourceRange = sourceRangeForLine(sourceStart, line, definition);
   if (definition.virtualTemplate) {
@@ -326,7 +320,8 @@ QVector<DefinitionParseResult> scanDefinitionBlocks(QStringView markdown) {
   qsizetype lineStart = 0;
   while (lineStart <= markdown.size()) {
     const qsizetype lineEnd = lineEndOffset(markdown, lineStart);
-    DefinitionParseResult result = parseDefinitionBlockLineFields(markdown.mid(lineStart, lineEnd - lineStart), lineStart);
+    DefinitionParseResult result =
+        parseDefinitionBlockLineFields(markdown.mid(lineStart, lineEnd - lineStart), lineStart);
     if (result.definition.isValid()) {
       DefinitionBlock& definition = result.definition;
       if (definition.kind == DefinitionBlock::Kind::Footnote) {
@@ -342,7 +337,8 @@ QVector<DefinitionParseResult> scanDefinitionBlocks(QStringView markdown) {
           continuationStart = nextLineStart(markdown, continuationStart);
         }
         definition.sourceText = markdown.mid(definition.sourceRange.start, definition.sourceRange.length()).toString();
-      } else if (definition.kind == DefinitionBlock::Kind::Link && definition.destination.isEmpty() && lineEnd < markdown.size()) {
+      } else if (definition.kind == DefinitionBlock::Kind::Link && definition.destination.isEmpty() &&
+                 lineEnd < markdown.size()) {
         const qsizetype continuationStart = nextLineStart(markdown, lineStart);
         const qsizetype continuationEnd = lineEndOffset(markdown, continuationStart);
         QStringView continuation = markdown.mid(continuationStart, continuationEnd - continuationStart);
@@ -377,11 +373,14 @@ QVector<DefinitionParseResult> scanDefinitionBlocks(QStringView markdown) {
               continuationValid = true;
             }
             if (continuationValid) {
-              definition.sourceRange = {definition.sourceRange.start, continuationStart + trimEnd(continuation, 0, continuation.size())};
-              definition.sourceText = markdown.mid(definition.sourceRange.start, definition.sourceRange.length()).toString();
+              definition.sourceRange = {definition.sourceRange.start,
+                                        continuationStart + trimEnd(continuation, 0, continuation.size())};
+              definition.sourceText =
+                  markdown.mid(definition.sourceRange.start, definition.sourceRange.length()).toString();
               definition.virtualTemplate = definition.label.isEmpty() || definition.destination.isEmpty();
-              result.classification = definition.virtualTemplate ? DefinitionParseClassification::VirtualTemplate
-                                                                 : DefinitionParseClassification::ValidMarkdownDefinition;
+              result.classification = definition.virtualTemplate
+                                          ? DefinitionParseClassification::VirtualTemplate
+                                          : DefinitionParseClassification::ValidMarkdownDefinition;
             }
           }
         }
@@ -403,4 +402,4 @@ DefinitionParseResult parseDefinitionBlockLine(QStringView line, qsizetype sourc
   return result.isRecognized() ? result : DefinitionParseResult{};
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -54,8 +54,8 @@ muffin::FileOpenConfirmation::FileOpenConfirmation(QWidget* parent) : QWidget(pa
 
 void muffin::FileOpenConfirmation::setFile(const QString& path, file_open_protection::Warnings warnings) {
   const QFileInfo info(path);
-  file_->setText(QStringLiteral("%1\n%2").arg(info.fileName(),
-      QLocale().formattedDataSize(info.size(), 2, QLocale::DataSizeTraditionalFormat)));
+  file_->setText(QStringLiteral("%1\n%2").arg(
+      info.fileName(), QLocale().formattedDataSize(info.size(), 2, QLocale::DataSizeTraditionalFormat)));
   file_->setToolTip(QDir::toNativeSeparators(info.absoluteFilePath()));
   extensionWarning_->setVisible(warnings.extension);
   sizeWarning_->setVisible(warnings.size);
@@ -70,18 +70,19 @@ void muffin::FileOpenConfirmation::setTheme(const RenderTheme& theme) {
   setPalette(colors);
   title_->setFont(theme.headingFont(2));
   setStyleSheet(QStringLiteral(
-      "QWidget#FileOpenConfirmation { background:%5; }"
-      "QLabel { color:%1; background:transparent; }"
-      "QLabel#openConfirmationFile { color:%2; }"
-      "QPushButton { color:%1; background:%3; border:1px solid %2; border-radius:6px; padding:7px 24px; }"
-      "QPushButton:hover, QPushButton:focus { border-color:%1; background:%4; }"
-      "QPushButton:disabled { color:%2; }")
-      .arg(theme.textColor().name(), theme.mutedTextColor().name(), theme.pageBackgroundColor().name(),
-           theme.selectionColor().name(), theme.viewportBackgroundColor().name()));
+                    "QWidget#FileOpenConfirmation { background:%5; }"
+                    "QLabel { color:%1; background:transparent; }"
+                    "QLabel#openConfirmationFile { color:%2; }"
+                    "QPushButton { color:%1; background:%3; border:1px solid %2; border-radius:6px; padding:7px 24px; }"
+                    "QPushButton:hover, QPushButton:focus { border-color:%1; background:%4; }"
+                    "QPushButton:disabled { color:%2; }")
+                    .arg(theme.textColor().name(), theme.mutedTextColor().name(), theme.pageBackgroundColor().name(),
+                         theme.selectionColor().name(), theme.viewportBackgroundColor().name()));
 }
 
 void muffin::FileOpenConfirmation::retranslateUi() {
   title_->setText(tr("Open this file?"));
   extensionWarning_->setText(tr("This file is not a Markdown or text file. Are you sure you want to open it?"));
-  sizeWarning_->setText(tr("Opening this large file may take a long time and use a lot of memory. Are you sure you want to open it?"));
+  sizeWarning_->setText(
+      tr("Opening this large file may take a long time and use a lot of memory. Are you sure you want to open it?"));
 }

@@ -33,9 +33,8 @@ namespace {
 // test never depends on a hand-maintained blob or on QImage's PNG encoder
 // (qpng/qjpeg are absent from this Qt build).
 QByteArray redSvgBytes() {
-  return QByteArray(
-      "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\">"
-      "<rect width=\"40\" height=\"40\" fill=\"#d00000\"/></svg>");
+  return QByteArray("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\">"
+                    "<rect width=\"40\" height=\"40\" fill=\"#d00000\"/></svg>");
 }
 
 QString redSvgPercentDataUri() {
@@ -69,17 +68,17 @@ QImage renderParagraphImage(const RenderTheme& theme, const QString& markdown) {
   return image;
 }
 
-const std::function<bool(QRgb)> isRed = [](QRgb p) {
-  return qRed(p) > 150 && qGreen(p) < 90 && qBlue(p) < 90;
-};
+const std::function<bool(QRgb)> isRed = [](QRgb p) { return qRed(p) > 150 && qGreen(p) < 90 && qBlue(p) < 90; };
 
 QRect colorBBox(const QImage& image, const std::function<bool(QRgb)>& pred) {
   int left = image.width(), top = image.height(), right = -1, bottom = -1;
   for (int y = 0; y < image.height(); ++y) {
     for (int x = 0; x < image.width(); ++x) {
       if (pred(image.pixel(x, y))) {
-        left = qMin(left, x); top = qMin(top, y);
-        right = qMax(right, x); bottom = qMax(bottom, y);
+        left = qMin(left, x);
+        top = qMin(top, y);
+        right = qMax(right, x);
+        bottom = qMax(bottom, y);
       }
     }
   }
@@ -98,7 +97,8 @@ QImage renderDocumentImage(DocumentLayout& layout, DocumentSession& session, con
   image.fill(Qt::white);
   QPainter painter(&image);
   for (const auto& child : session.document().root().children()) {
-    if (const auto* block = layout.block(child->id())) block->paint(painter, theme, 0.0, nullptr);
+    if (const auto* block = layout.block(child->id()))
+      block->paint(painter, theme, 0.0, nullptr);
   }
   return image;
 }
@@ -113,14 +113,15 @@ void testDocumentRelativeImagesAndIndependentBases() {
     QFile image(root.filePath(folder + QStringLiteral("/assets/a b.svg")));
     require(image.open(QIODevice::WriteOnly), QStringLiteral("fixture image open failed"));
     QByteArray bytes = redSvgBytes();
-    if (folder == QStringLiteral("blue")) bytes.replace("#d00000", "#0000d0");
+    if (folder == QStringLiteral("blue"))
+      bytes.replace("#d00000", "#0000d0");
     require(image.write(bytes) == bytes.size(), QStringLiteral("fixture image write failed"));
   }
   const QString redPath = root.filePath(QStringLiteral("red/doc.md"));
   const QString bluePath = root.filePath(QStringLiteral("blue/doc.md"));
   const QString image = QStringLiteral("![x](assets/a%20b.svg)");
   const QStringList markdown{image, QStringLiteral("# ") + image, QStringLiteral("- ") + image,
-                            QStringLiteral("| A |\n| --- |\n| %1 |").arg(image)};
+                             QStringLiteral("| A |\n| --- |\n| %1 |").arg(image)};
   for (const QString& md : markdown) {
     DocumentSession session;
     session.setMarkdownText(md, false);
@@ -142,8 +143,9 @@ void testDocumentRelativeImagesAndIndependentBases() {
   const QUrl fileUrl = QUrl::fromLocalFile(local);
   require(resolvedUrlForDocumentResource(fileUrl.toString(QUrl::FullyEncoded), bluePath) == fileUrl,
           QStringLiteral("absolute file URL must stay absolute"));
-  require(resolvedUrlForDocumentResource(QStringLiteral("https://example.com/a%20b.png"), redPath).toString(QUrl::FullyEncoded)
-              == QStringLiteral("https://example.com/a%20b.png"), QStringLiteral("remote URL must retain its own base and escapes"));
+  require(resolvedUrlForDocumentResource(QStringLiteral("https://example.com/a%20b.png"), redPath)
+                  .toString(QUrl::FullyEncoded) == QStringLiteral("https://example.com/a%20b.png"),
+          QStringLiteral("remote URL must retain its own base and escapes"));
   require(QDir::currentPath() == originalCwd, QStringLiteral("resource resolution must not change process CWD"));
 }
 
@@ -152,9 +154,8 @@ void testDocumentRelativeImagesAndIndependentBases() {
 // estimate that only matched a plain text line, drifting negative and drawing the
 // image on top of the previous block's text. The image must stay inside its block.
 void testImageDoesNotOverflowAboveItsBlock() {
-  const RenderTheme theme = RenderTheme::fromDefinition(
-      CssThemeMapper::fromCss(QStringLiteral("body { line-height: 1.6; } #write { color:#000000; }"),
-                              QStringLiteral("g"), QString()));
+  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
+      QStringLiteral("body { line-height: 1.6; } #write { color:#000000; }"), QStringLiteral("g"), QString()));
   const QString md = QStringLiteral("WebP images:\n\n![red](%1)\n").arg(redSvgPercentDataUri());
 
   DocumentSession session;
@@ -168,12 +169,13 @@ void testImageDoesNotOverflowAboveItsBlock() {
   bool firstParagraph = true;
   for (const auto& child : children) {
     const BlockLayout* b = layout.block(child->id());
-    if (!b) continue;
+    if (!b)
+      continue;
     docTop = qMin(docTop, b->rect().top());
     docBottom = qMax(docBottom, b->rect().bottom());
     if (child->type() == BlockType::Paragraph) {
       if (!firstParagraph) {
-        imageBlockTop = b->rect().top();  // the image sits in the second paragraph
+        imageBlockTop = b->rect().top(); // the image sits in the second paragraph
       }
       firstParagraph = false;
     }
@@ -186,7 +188,8 @@ void testImageDoesNotOverflowAboveItsBlock() {
   painter.translate(0, -docTop);
   for (const auto& child : children) {
     const BlockLayout* b = layout.block(child->id());
-    if (b) b->paint(painter, theme, 0.0, nullptr);
+    if (b)
+      b->paint(painter, theme, 0.0, nullptr);
   }
   painter.end();
 
@@ -195,9 +198,9 @@ void testImageDoesNotOverflowAboveItsBlock() {
   const qreal inkTopDoc = red.top() + docTop;
   // Allow 1px for anti-aliasing at the SVG edge; anything more means the image
   // escaped its block rect upward — the regression.
-  require(inkTopDoc >= imageBlockTop - 1.0,
-          QStringLiteral("image paints above its own block (ink top=%1, block top=%2)")
-              .arg(inkTopDoc).arg(imageBlockTop));
+  require(
+      inkTopDoc >= imageBlockTop - 1.0,
+      QStringLiteral("image paints above its own block (ink top=%1, block top=%2)").arg(inkTopDoc).arg(imageBlockTop));
 }
 
 // A valid inline data: URI image renders as actual coloured pixels (a red
@@ -210,7 +213,8 @@ void testPercentEncodedDataUriRendersImage() {
   require(red.isValid(), QStringLiteral("percent-encoded data: URI image should paint red pixels"));
   require(red.width() >= 10 && red.height() >= 10,
           QStringLiteral("rendered image should be a real block, not a tiny placeholder (bbox=%1x%2)")
-              .arg(red.width()).arg(red.height()));
+              .arg(red.width())
+              .arg(red.height()));
 }
 
 // Same end-to-end check via the base64 form — the shape real emitters produce
@@ -222,7 +226,8 @@ void testBase64DataUriRendersImage() {
   require(red.isValid(), QStringLiteral("base64 data: URI image should paint red pixels"));
   require(red.width() >= 10 && red.height() >= 10,
           QStringLiteral("rendered image should be a real block, not a tiny placeholder (bbox=%1x%2)")
-              .arg(red.width()).arg(red.height()));
+              .arg(red.width())
+              .arg(red.height()));
 }
 
 // A data: URI whose payload is not a decodable image falls back to the broken
@@ -232,11 +237,10 @@ void testBrokenDataUriShowsPlaceholder() {
   const QString md = QStringLiteral("![x](data:image/png;base64,AAAA)\n");
   const QImage img = renderParagraphImage(plainTheme(), md);
   const QRect red = colorBBox(img, isRed);
-  require(!red.isValid(),
-          QStringLiteral("broken data: URI should render the placeholder, not a coloured image"));
+  require(!red.isValid(), QStringLiteral("broken data: URI should render the placeholder, not a coloured image"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

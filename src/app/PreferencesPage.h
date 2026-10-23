@@ -49,4 +49,4 @@ protected:
   void polishComboBox(QComboBox* comboBox, int visibleItems = 8) const;
 };
 
-}  // namespace muffin
+} // namespace muffin

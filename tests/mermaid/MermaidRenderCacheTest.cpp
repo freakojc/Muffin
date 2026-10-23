@@ -36,8 +36,14 @@
 using namespace muffin::mermaid::editor;
 
 namespace {
-[[noreturn]] void fail(const QString& message) { qCritical().noquote() << message; std::exit(1); }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+[[noreturn]] void fail(const QString& message) {
+  qCritical().noquote() << message;
+  std::exit(1);
+}
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 
 constexpr auto kReady = MermaidRenderStatus::Ready;
 constexpr auto kLoading = MermaidRenderStatus::Loading;
@@ -48,13 +54,16 @@ bool waitForReady(MermaidRenderCache& cache, const MermaidRenderKey& key, int ti
   QEventLoop loop;
   bool fired = false;
   QObject::connect(&cache, &MermaidRenderCache::renderReady, &loop, [&](const MermaidRenderKey& emitted) {
-    if (emitted == key) { fired = true; loop.quit(); }
+    if (emitted == key) {
+      fired = true;
+      loop.quit();
+    }
   });
   QTimer::singleShot(timeoutMs, &loop, [&]() { loop.quit(); });
   loop.exec();
   return fired;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QGuiApplication app(argc, argv);
@@ -62,26 +71,20 @@ int main(int argc, char** argv) {
   const QString flow = QStringLiteral("flowchart TB\nA[Alpha] --> B[Beta] --> C[Gamma]");
   const QString malformed = QStringLiteral("flowchart TB\nA --> B\nlinkStyle 9 stroke:red");
   const QString sequence = QStringLiteral("sequenceDiagram\nAlice->>Bob: Hi");
-  const QString classDiagram = QStringLiteral(
-      "classDiagram\nclass Service {\n  <<interface>>\n  +run() Result\n}\n"
-      "class Client\nClient --> Service : uses");
-  const QString stateDiagram = QStringLiteral(
-      "stateDiagram-v2\n[*] --> Idle\nIdle --> Active : start\nActive --> [*]");
-  const QString erDiagram = QStringLiteral(
-      "erDiagram\n"
-      "CUSTOMER ||--o{ ORDER : places\n"
-      "ORDER ||--|{ LINE-ITEM : contains\n"
-      "CUSTOMER {\n  string name PK\n  int age\n}\n"
-      "ORDER {\n  bigint id PK\n  string status\n}");
-  const QString gitGraph = QStringLiteral(
-      "gitGraph\ncommit id: \"A\"\ncommit id: \"B\"");
-  const QString c4Diagram = QStringLiteral(
-      "C4Context\ntitle System context\n"
-      "Person(user, \"User\", \"Uses the system\")\n"
-      "System(app, \"Application\", \"Serves requests\")\n"
-      "Rel(user, app, \"Uses\", \"HTTPS\")");
-  const QString flowchartElk = QStringLiteral(
-      "flowchart-elk LR\nA --> B");
+  const QString classDiagram = QStringLiteral("classDiagram\nclass Service {\n  <<interface>>\n  +run() Result\n}\n"
+                                              "class Client\nClient --> Service : uses");
+  const QString stateDiagram = QStringLiteral("stateDiagram-v2\n[*] --> Idle\nIdle --> Active : start\nActive --> [*]");
+  const QString erDiagram = QStringLiteral("erDiagram\n"
+                                           "CUSTOMER ||--o{ ORDER : places\n"
+                                           "ORDER ||--|{ LINE-ITEM : contains\n"
+                                           "CUSTOMER {\n  string name PK\n  int age\n}\n"
+                                           "ORDER {\n  bigint id PK\n  string status\n}");
+  const QString gitGraph = QStringLiteral("gitGraph\ncommit id: \"A\"\ncommit id: \"B\"");
+  const QString c4Diagram = QStringLiteral("C4Context\ntitle System context\n"
+                                           "Person(user, \"User\", \"Uses the system\")\n"
+                                           "System(app, \"Application\", \"Serves requests\")\n"
+                                           "Rel(user, app, \"Uses\", \"HTTPS\")");
+  const QString flowchartElk = QStringLiteral("flowchart-elk LR\nA --> B");
 
   // --- getSync: valid flowchart → Ready + scene + natural size ---
   {
@@ -96,13 +99,9 @@ int main(int argc, char** argv) {
     // rounding — Chromium's replaced-element screenshot, replacing the old
     // piecewise qCeil(contentSize + 2×padding).
     const QRectF clientBox = e.scene->svgClientViewBox();
-    require(e.metadata.title.isEmpty() && e.metadata.titleHeight == 0.0 &&
-                e.metadata.diagramPadding == 8.0 &&
-                clientBox.isValid() &&
-                std::abs(clientBox.width() -
-                         e.metadata.contentSize.width()) < 0.01 &&
-                std::abs(clientBox.height() -
-                         e.metadata.contentSize.height()) < 0.01 &&
+    require(e.metadata.title.isEmpty() && e.metadata.titleHeight == 0.0 && e.metadata.diagramPadding == 8.0 &&
+                clientBox.isValid() && std::abs(clientBox.width() - e.metadata.contentSize.width()) < 0.01 &&
+                std::abs(clientBox.height() - e.metadata.contentSize.height()) < 0.01 &&
                 e.naturalSize.width() == qRound(clientBox.width()) &&
                 e.naturalSize.height() == qRound(clientBox.height()),
             QStringLiteral("untitled flowcharts must retain configured viewport padding"));
@@ -121,7 +120,8 @@ int main(int argc, char** argv) {
     require(e.status == kReady, QStringLiteral("valid erDiagram should be Ready (got %1)").arg((int)e.status));
     const auto* erScene = dynamic_cast<const muffin::mermaid::er::ErScene*>(e.scene.get());
     require(erScene != nullptr, QStringLiteral("Ready er entry must carry an erScene"));
-    require(e.naturalSize.width() > 0 && e.naturalSize.height() > 0, QStringLiteral("er natural size must be positive"));
+    require(e.naturalSize.width() > 0 && e.naturalSize.height() > 0,
+            QStringLiteral("er natural size must be positive"));
   }
 
   // --- look: handDrawn renders sequence/class/state through the rough painter
@@ -146,23 +146,20 @@ int main(int argc, char** argv) {
               QStringLiteral("handDrawn look must render a PNG for: %1").arg(src));
     }
     MermaidRenderCache cache;
-    const MermaidRenderEntry seq = cache.getSync(
-        MermaidRenderCache::makeKey(handDrawnSources[0]), handDrawnSources[0]);
+    const MermaidRenderEntry seq = cache.getSync(MermaidRenderCache::makeKey(handDrawnSources[0]), handDrawnSources[0]);
     require(seq.status == kReady, QStringLiteral("handDrawn sequence should be Ready"));
     // Mermaid 11.16's sequence renderer never branches on config.look (the
     // classic and handDrawn SVGs differ only in render-id counters, probed),
     // so the sequence scene carries no handDrawn surface — it must render the
     // IDENTICAL classic scene for a look:handDrawn source.
-    const MermaidRenderEntry classic = cache.getSync(
-        MermaidRenderCache::makeKey(QStringLiteral(
-            "sequenceDiagram\nAlice->>Bob: Hi\nBob-->>Alice: Yo\n"
-            "Note over Alice,Bob: shared\n")),
-        QStringLiteral("sequenceDiagram\nAlice->>Bob: Hi\nBob-->>Alice: Yo\n"
-                       "Note over Alice,Bob: shared\n"));
+    const MermaidRenderEntry classic =
+        cache.getSync(MermaidRenderCache::makeKey(QStringLiteral("sequenceDiagram\nAlice->>Bob: Hi\nBob-->>Alice: Yo\n"
+                                                                 "Note over Alice,Bob: shared\n")),
+                      QStringLiteral("sequenceDiagram\nAlice->>Bob: Hi\nBob-->>Alice: Yo\n"
+                                     "Note over Alice,Bob: shared\n"));
     const auto* sequenceScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(seq.scene.get());
     const auto* classicScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(classic.scene.get());
-    require(sequenceScene && classicScene &&
-                sequenceScene->toJsonObject() == classicScene->toJsonObject(),
+    require(sequenceScene && classicScene && sequenceScene->toJsonObject() == classicScene->toJsonObject(),
             QStringLiteral("look:handDrawn must leave the sequence scene unchanged"));
   }
 
@@ -177,135 +174,94 @@ int main(int argc, char** argv) {
     };
     const QVector<MetadataCase> cases = {
         {QStringLiteral("flowchart"),
-         QStringLiteral(
-             "---\ntitle: A deliberately long flowchart overview title\n---\n"
-             "flowchart TB\naccTitle: Flow accessible\n"
-             "accDescr: Flow description\nA --> B"),
-         QStringLiteral("A deliberately long flowchart overview title"),
-         QStringLiteral("Flow accessible"),
+         QStringLiteral("---\ntitle: A deliberately long flowchart overview title\n---\n"
+                        "flowchart TB\naccTitle: Flow accessible\n"
+                        "accDescr: Flow description\nA --> B"),
+         QStringLiteral("A deliberately long flowchart overview title"), QStringLiteral("Flow accessible"),
          QStringLiteral("Flow description")},
         {QStringLiteral("sequence"),
-         QStringLiteral(
-             "---\ntitle: Sequence overview\n---\nsequenceDiagram\n"
-             "accTitle: Sequence accessible\n"
-             "accDescr: Sequence description\nA->>B: Hi"),
-         QStringLiteral("Sequence overview"),
-         QStringLiteral("Sequence accessible"),
+         QStringLiteral("---\ntitle: Sequence overview\n---\nsequenceDiagram\n"
+                        "accTitle: Sequence accessible\n"
+                        "accDescr: Sequence description\nA->>B: Hi"),
+         QStringLiteral("Sequence overview"), QStringLiteral("Sequence accessible"),
          QStringLiteral("Sequence description")},
         {QStringLiteral("class"),
-         QStringLiteral(
-             "---\ntitle: Class overview\n---\nclassDiagram\n"
-             "accTitle: Class accessible\naccDescr: Class description\n"
-             "class Service"),
-         QStringLiteral("Class overview"),
-         QStringLiteral("Class accessible"),
-         QStringLiteral("Class description")},
+         QStringLiteral("---\ntitle: Class overview\n---\nclassDiagram\n"
+                        "accTitle: Class accessible\naccDescr: Class description\n"
+                        "class Service"),
+         QStringLiteral("Class overview"), QStringLiteral("Class accessible"), QStringLiteral("Class description")},
         {QStringLiteral("state"),
-         QStringLiteral(
-             "---\ntitle: State overview\n---\nstateDiagram-v2\n"
-             "accTitle: State accessible\naccDescr: State description\n"
-             "[*] --> Idle"),
-         QStringLiteral("State overview"),
-         QStringLiteral("State accessible"),
-         QStringLiteral("State description")},
+         QStringLiteral("---\ntitle: State overview\n---\nstateDiagram-v2\n"
+                        "accTitle: State accessible\naccDescr: State description\n"
+                        "[*] --> Idle"),
+         QStringLiteral("State overview"), QStringLiteral("State accessible"), QStringLiteral("State description")},
         {QStringLiteral("requirement"),
-         QStringLiteral(
-             "---\ntitle: Requirement overview\n---\nrequirementDiagram\n"
-             "accTitle: Requirement accessible\naccDescr: Requirement description\n"
-             "requirement A {\n id: 1\n}\nrequirement B {\n id: 2\n}\nA -contains-> B"),
-         QStringLiteral("Requirement overview"),
-         QStringLiteral("Requirement accessible"),
+         QStringLiteral("---\ntitle: Requirement overview\n---\nrequirementDiagram\n"
+                        "accTitle: Requirement accessible\naccDescr: Requirement description\n"
+                        "requirement A {\n id: 1\n}\nrequirement B {\n id: 2\n}\nA -contains-> B"),
+         QStringLiteral("Requirement overview"), QStringLiteral("Requirement accessible"),
          QStringLiteral("Requirement description")},
     };
     MermaidRenderCache cache;
     for (const MetadataCase& value : cases) {
-      const MermaidRenderEntry entry = cache.getSync(
-          MermaidRenderCache::makeKey(value.source), value.source);
-      require(entry.status == kReady,
-              value.family + QStringLiteral(" titled diagram must render"));
-      require(entry.metadata.title == value.title &&
-                  entry.metadata.accessibleTitle == value.accessibleTitle &&
-                  entry.metadata.accessibleDescription ==
-                      value.accessibleDescription &&
-                  entry.metadata.accessibleName() == value.accessibleTitle &&
-                  !entry.metadata.roleDescription.isEmpty(),
-              value.family +
-                  QStringLiteral(" title/accessibility metadata drifted"));
+      const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(value.source), value.source);
+      require(entry.status == kReady, value.family + QStringLiteral(" titled diagram must render"));
+      require(entry.metadata.title == value.title && entry.metadata.accessibleTitle == value.accessibleTitle &&
+                  entry.metadata.accessibleDescription == value.accessibleDescription &&
+                  entry.metadata.accessibleName() == value.accessibleTitle && !entry.metadata.roleDescription.isEmpty(),
+              value.family + QStringLiteral(" title/accessibility metadata drifted"));
       // Two title-reservation contracts: client-box families fold the title
       // band INTO the fractional client box (contentSize carries it; the
       // raster is one nearest-pixel rounding), piecewise families add the
       // reserved strip on top of the padded content.
-      const bool clientContract = entry.scene &&
-          entry.scene->svgClientViewBox().isValid();
-      require(entry.metadata.titleHeight >= 40.0 &&
-                  entry.metadata.contentSize.width() > 0.0 &&
+      const bool clientContract = entry.scene && entry.scene->svgClientViewBox().isValid();
+      require(entry.metadata.titleHeight >= 40.0 && entry.metadata.contentSize.width() > 0.0 &&
                   entry.metadata.contentSize.height() > 0.0 &&
-                  entry.naturalSize.width() + 0.5 >=
-                      entry.metadata.contentSize.width() &&
-                  (clientContract
-                       ? (entry.naturalSize.width() ==
-                              qRound(entry.metadata.contentSize.width()) &&
-                          entry.naturalSize.height() ==
-                              qRound(entry.metadata.contentSize.height()) &&
-                          entry.metadata.contentSize.height() >
-                              entry.metadata.titleHeight)
-                       : (entry.naturalSize.width() >=
-                              qCeil(entry.metadata.contentSize.width()) &&
-                          entry.naturalSize.height() >=
-                              qCeil(entry.metadata.contentSize.height() +
-                                    entry.metadata.titleHeight))),
+                  entry.naturalSize.width() + 0.5 >= entry.metadata.contentSize.width() &&
+                  (clientContract ? (entry.naturalSize.width() == qRound(entry.metadata.contentSize.width()) &&
+                                     entry.naturalSize.height() == qRound(entry.metadata.contentSize.height()) &&
+                                     entry.metadata.contentSize.height() > entry.metadata.titleHeight)
+                                  : (entry.naturalSize.width() >= qCeil(entry.metadata.contentSize.width()) &&
+                                     entry.naturalSize.height() >=
+                                         qCeil(entry.metadata.contentSize.height() + entry.metadata.titleHeight))),
               value.family + QStringLiteral(" title canvas was not reserved"));
-      const MermaidPngRenderResult png =
-          MermaidRenderCache::renderMermaidSourceToPng(value.source, 1.0);
-      require(!png.dataUrl.isEmpty() &&
-                  png.metadata.accessibleName() == value.accessibleTitle,
-              value.family +
-                  QStringLiteral(" PNG export lost accessibility metadata"));
+      const MermaidPngRenderResult png = MermaidRenderCache::renderMermaidSourceToPng(value.source, 1.0);
+      require(!png.dataUrl.isEmpty() && png.metadata.accessibleName() == value.accessibleTitle,
+              value.family + QStringLiteral(" PNG export lost accessibility metadata"));
     }
   }
 
   // Mermaid sets frontmatter metadata before parsing, so sequence's native
   // `title` statement wins when both are present.
   {
-    const QString source = QStringLiteral(
-        "---\ntitle: Frontmatter title\n---\nsequenceDiagram\n"
-        "title Inline title\nA->>B: Hi");
+    const QString source = QStringLiteral("---\ntitle: Frontmatter title\n---\nsequenceDiagram\n"
+                                          "title Inline title\nA->>B: Hi");
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    require(entry.status == kReady &&
-                entry.metadata.title == QLatin1String("Inline title"),
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    require(entry.status == kReady && entry.metadata.title == QLatin1String("Inline title"),
             QStringLiteral("sequence inline title must override frontmatter"));
   }
 
   // --- state diagrams use the immutable state scene pipeline ---
   {
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(stateDiagram), stateDiagram);
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(stateDiagram), stateDiagram);
     const auto* stateScene = dynamic_cast<const muffin::mermaid::state::StateScene*>(entry.scene.get());
-    require(entry.status == kReady && stateScene != nullptr,
-            QStringLiteral("stateDiagram-v2 should be Ready"));
-    require(stateScene->nodes.size() == 4 &&
-                stateScene->edges.size() == 3 &&
-                entry.naturalSize.width() > 0 && entry.naturalSize.height() > 0,
+    require(entry.status == kReady && stateScene != nullptr, QStringLiteral("stateDiagram-v2 should be Ready"));
+    require(stateScene->nodes.size() == 4 && stateScene->edges.size() == 3 && entry.naturalSize.width() > 0 &&
+                entry.naturalSize.height() > 0,
             QStringLiteral("state scene must contain state and transition geometry"));
-    require(!MermaidRenderCache::renderMermaidSourceToPngDataUrl(
-                 stateDiagram, 1.0).isEmpty(),
+    require(!MermaidRenderCache::renderMermaidSourceToPngDataUrl(stateDiagram, 1.0).isEmpty(),
             QStringLiteral("state scene PNG export must be available"));
   }
 
   // --- class diagrams use the immutable class scene pipeline ---
   {
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(classDiagram), classDiagram);
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(classDiagram), classDiagram);
     const auto* classScene = dynamic_cast<const muffin::mermaid::classdiagram::ClassScene*>(entry.scene.get());
-    require(entry.status == kReady && classScene != nullptr,
-            QStringLiteral("classDiagram should be Ready"));
-    require(classScene->nodes.size() == 2 &&
-                classScene->edges.size() == 1 &&
-                classScene->markers.size() == 20 &&
+    require(entry.status == kReady && classScene != nullptr, QStringLiteral("classDiagram should be Ready"));
+    require(classScene->nodes.size() == 2 && classScene->edges.size() == 1 && classScene->markers.size() == 20 &&
                 entry.naturalSize.width() > 0 && entry.naturalSize.height() > 0,
             QStringLiteral("classDiagram scene must contain class, relation, and marker geometry"));
   }
@@ -314,19 +270,14 @@ int main(int argc, char** argv) {
   // does not forward them to the class renderer's Dagre graph.
   {
     MermaidRenderCache cache;
-    const QString configured = QStringLiteral(
-        "%%{init: {\"class\": {\"nodeSpacing\": 123, \"rankSpacing\": 234}}}%%\n") +
-        classDiagram;
-    const MermaidRenderEntry baseline = cache.getSync(
-        MermaidRenderCache::makeKey(classDiagram), classDiagram);
-    const MermaidRenderEntry inert = cache.getSync(
-        MermaidRenderCache::makeKey(configured), configured);
+    const QString configured =
+        QStringLiteral("%%{init: {\"class\": {\"nodeSpacing\": 123, \"rankSpacing\": 234}}}%%\n") + classDiagram;
+    const MermaidRenderEntry baseline = cache.getSync(MermaidRenderCache::makeKey(classDiagram), classDiagram);
+    const MermaidRenderEntry inert = cache.getSync(MermaidRenderCache::makeKey(configured), configured);
     const auto* baselineScene = dynamic_cast<const muffin::mermaid::classdiagram::ClassScene*>(baseline.scene.get());
     const auto* inertScene = dynamic_cast<const muffin::mermaid::classdiagram::ClassScene*>(inert.scene.get());
-    require(baseline.status == kReady && inert.status == kReady &&
-                baselineScene && inertScene &&
-                baseline.naturalSize == inert.naturalSize &&
-                baselineScene->nodes.size() == inertScene->nodes.size(),
+    require(baseline.status == kReady && inert.status == kReady && baselineScene && inertScene &&
+                baseline.naturalSize == inert.naturalSize && baselineScene->nodes.size() == inertScene->nodes.size(),
             QStringLiteral("class spacing config must remain upstream-inert"));
     for (qsizetype i = 0; i < baselineScene->nodes.size(); ++i)
       require(baselineScene->nodes.at(i).center == inertScene->nodes.at(i).center,
@@ -340,18 +291,14 @@ int main(int argc, char** argv) {
     const MermaidRenderEntry e = cache.getSync(key, malformed);
     require(e.status == kError, QStringLiteral("malformed flowchart should be Error (got %1)").arg((int)e.status));
     require(!e.errorMessage.isEmpty(), QStringLiteral("Error entry must carry a message"));
-    require(e.diagnostic.stage == QLatin1String("semantic") &&
-                e.diagnostic.code == QLatin1String("link-style-bounds"),
+    require(e.diagnostic.stage == QLatin1String("semantic") && e.diagnostic.code == QLatin1String("link-style-bounds"),
             QStringLiteral("flowchart cache error must preserve stage/code"));
-    require(e.diagnostic.span.offset == malformed.indexOf(QLatin1Char('9')) &&
-                e.diagnostic.span.length == 1 &&
-                e.diagnostic.span.line == 3 &&
-                e.diagnostic.span.column == 11,
+    require(e.diagnostic.span.offset == malformed.indexOf(QLatin1Char('9')) && e.diagnostic.span.length == 1 &&
+                e.diagnostic.span.line == 3 && e.diagnostic.span.column == 11,
             QStringLiteral("flowchart cache error must preserve its 1-based source position"));
     require(e.errorMessage.contains(QStringLiteral("Line 3, column 11")) &&
                 e.errorMessage.contains(QStringLiteral("Semantic error")) &&
-                e.errorDiagnostic.value(QStringLiteral("offset")).toInt() ==
-                    malformed.indexOf(QLatin1Char('9')),
+                e.errorDiagnostic.value(QStringLiteral("offset")).toInt() == malformed.indexOf(QLatin1Char('9')),
             QStringLiteral("flowchart display/JSON diagnostics must expose the source position"));
   }
 
@@ -359,41 +306,30 @@ int main(int argc, char** argv) {
   // init directives and comments before exposing them to the editor.
   {
     MermaidRenderCache cache;
-    const QString decorated = QStringLiteral(
-        "%%{init: {\"theme\": \"default\"}}%%\n"
-        "%% generated comment\n"
-        "flowchart TB\n"
-        "A --> B\n"
-        "linkStyle 9 stroke:red");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(decorated), decorated);
-    require(entry.status == kError &&
-                entry.diagnostic.span.offset == decorated.indexOf(
-                    QStringLiteral("9 stroke")) &&
-                entry.diagnostic.span.line == 5 &&
-                entry.diagnostic.span.column == 11,
+    const QString decorated = QStringLiteral("%%{init: {\"theme\": \"default\"}}%%\n"
+                                             "%% generated comment\n"
+                                             "flowchart TB\n"
+                                             "A --> B\n"
+                                             "linkStyle 9 stroke:red");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+    require(entry.status == kError && entry.diagnostic.span.offset == decorated.indexOf(QStringLiteral("9 stroke")) &&
+                entry.diagnostic.span.line == 5 && entry.diagnostic.span.column == 11,
             QStringLiteral("diagnostic mapping must restore original directive/comment lines"));
   }
 
   // Journey owns its visible title inside the scene while retaining shared
   // accessibility metadata for PNG/SVG/export consumers.
   {
-    const QString source = QStringLiteral(
-        "---\ntitle: Journey overview\n---\njourney\n"
-        "accTitle: Journey accessible\n"
-        "accDescr: Journey description\nsection S\ntask: 5");
+    const QString source = QStringLiteral("---\ntitle: Journey overview\n---\njourney\n"
+                                          "accTitle: Journey accessible\n"
+                                          "accDescr: Journey description\nsection S\ntask: 5");
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::journey::JourneyScene>(entry.scene);
-    require(entry.status == kReady && scene &&
-                scene->title == QLatin1String("Journey overview") &&
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::journey::JourneyScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->title == QLatin1String("Journey overview") &&
                 entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle ==
-                    QLatin1String("Journey accessible") &&
-                entry.metadata.accessibleDescription ==
-                    QLatin1String("Journey description"),
+                entry.metadata.accessibleTitle == QLatin1String("Journey accessible") &&
+                entry.metadata.accessibleDescription == QLatin1String("Journey description"),
             QStringLiteral("Journey title ownership/accessibility metadata drifted"));
   }
 
@@ -401,41 +337,29 @@ int main(int argc, char** argv) {
   // frontmatter/directives/comments must map back to the original source.
   {
     MermaidRenderCache cache;
-    const QString decorated = QStringLiteral(
-        "---\ntitle: Journey title\n---\n"
-        "%%{init: {\"theme\": \"default\"}}%%\n"
-        "%% generated comment\n"
-        "journey\nsection S\ninvalid journey line");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(decorated), decorated);
-    require(entry.status == kError &&
-                entry.diagnostic.code == QLatin1String("journey-parse-error") &&
-                entry.diagnostic.span.offset ==
-                    decorated.indexOf(QStringLiteral("invalid journey line")) &&
-                entry.diagnostic.span.line == 8 &&
-                entry.diagnostic.span.column == 1,
+    const QString decorated = QStringLiteral("---\ntitle: Journey title\n---\n"
+                                             "%%{init: {\"theme\": \"default\"}}%%\n"
+                                             "%% generated comment\n"
+                                             "journey\nsection S\ninvalid journey line");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+    require(entry.status == kError && entry.diagnostic.code == QLatin1String("journey-parse-error") &&
+                entry.diagnostic.span.offset == decorated.indexOf(QStringLiteral("invalid journey line")) &&
+                entry.diagnostic.span.line == 8 && entry.diagnostic.span.column == 1,
             QStringLiteral("Journey diagnostics must map to original source lines"));
   }
 
   // Radar owns its visible title in the fixed scene while keeping shared
   // accessibility metadata for SVG/PNG consumers.
   {
-    const QString source = QStringLiteral(
-        "---\ntitle: Radar overview\n---\nradar-beta\n"
-        "accTitle: Radar accessible\naccDescr: Radar description\n"
-        "axis A,B,C\ncurve Team {1,2,3}");
+    const QString source = QStringLiteral("---\ntitle: Radar overview\n---\nradar-beta\n"
+                                          "accTitle: Radar accessible\naccDescr: Radar description\n"
+                                          "axis A,B,C\ncurve Team {1,2,3}");
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::radar::RadarScene>(entry.scene);
-    require(entry.status == kReady && scene &&
-                scene->title == QLatin1String("Radar overview") &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle ==
-                    QLatin1String("Radar accessible") &&
-                entry.metadata.accessibleDescription ==
-                    QLatin1String("Radar description"),
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::radar::RadarScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->title == QLatin1String("Radar overview") &&
+                entry.metadata.title.isEmpty() && entry.metadata.accessibleTitle == QLatin1String("Radar accessible") &&
+                entry.metadata.accessibleDescription == QLatin1String("Radar description"),
             QStringLiteral("Radar title ownership/accessibility metadata drifted"));
   }
 
@@ -443,16 +367,12 @@ int main(int argc, char** argv) {
   // original-source mapping pinned through every removable decoration layer.
   {
     MermaidRenderCache cache;
-    const QString decorated = QStringLiteral(
-        "---\ntitle: XY title\n---\n"
-        "%%{init: {\"theme\": \"default\"}}%%\n"
-        "%% generated comment\nxychart-beta\nbar");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(decorated), decorated);
-    require(entry.status == kError &&
-                entry.diagnostic.code == QLatin1String("xychart-parse-error") &&
-                entry.diagnostic.span.offset == decorated.size() &&
-                entry.diagnostic.span.line == 7 &&
+    const QString decorated = QStringLiteral("---\ntitle: XY title\n---\n"
+                                             "%%{init: {\"theme\": \"default\"}}%%\n"
+                                             "%% generated comment\nxychart-beta\nbar");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+    require(entry.status == kError && entry.diagnostic.code == QLatin1String("xychart-parse-error") &&
+                entry.diagnostic.span.offset == decorated.size() && entry.diagnostic.span.line == 7 &&
                 entry.diagnostic.span.column == 4,
             QStringLiteral("XYChart diagnostics must map original line and column"));
   }
@@ -460,22 +380,15 @@ int main(int argc, char** argv) {
   // XYChart owns its visible title in the fixed scene while keeping shared
   // accessibility metadata for SVG/PNG consumers.
   {
-    const QString source = QStringLiteral(
-        "---\ntitle: XY overview\n---\nxychart-beta\n"
-        "accTitle: XY accessible\naccDescr: XY description\n"
-        "x-axis [A,B,C]\ny-axis 0 --> 3\nbar [1,2,3]");
+    const QString source = QStringLiteral("---\ntitle: XY overview\n---\nxychart-beta\n"
+                                          "accTitle: XY accessible\naccDescr: XY description\n"
+                                          "x-axis [A,B,C]\ny-axis 0 --> 3\nbar [1,2,3]");
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::xychart::XYChartScene>(entry.scene);
-    require(entry.status == kReady && scene &&
-                scene->title == QLatin1String("XY overview") &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle ==
-                    QLatin1String("XY accessible") &&
-                entry.metadata.accessibleDescription ==
-                    QLatin1String("XY description"),
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::xychart::XYChartScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->title == QLatin1String("XY overview") &&
+                entry.metadata.title.isEmpty() && entry.metadata.accessibleTitle == QLatin1String("XY accessible") &&
+                entry.metadata.accessibleDescription == QLatin1String("XY description"),
             QStringLiteral("XYChart title ownership/accessibility metadata drifted"));
   }
 
@@ -483,69 +396,51 @@ int main(int argc, char** argv) {
   // original line and offset through frontmatter, directives, and comments.
   {
     MermaidRenderCache cache;
-    const QString decorated = QStringLiteral(
-        "---\ntitle: Ignored timeline frontmatter\n---\n"
-        "%%{init: {\"theme\": \"default\"}}%%\n"
-        "%% generated comment\ntimeline\n: orphan event");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(decorated), decorated);
-    require(entry.status == kError &&
-                entry.diagnostic.code == QLatin1String("timeline-runtime-error") &&
-                entry.diagnostic.span.offset ==
-                    decorated.indexOf(QStringLiteral(": orphan event")) &&
-                entry.diagnostic.span.line == 7 &&
-                entry.diagnostic.span.column == 1,
+    const QString decorated = QStringLiteral("---\ntitle: Ignored timeline frontmatter\n---\n"
+                                             "%%{init: {\"theme\": \"default\"}}%%\n"
+                                             "%% generated comment\ntimeline\n: orphan event");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+    require(entry.status == kError && entry.diagnostic.code == QLatin1String("timeline-runtime-error") &&
+                entry.diagnostic.span.offset == decorated.indexOf(QStringLiteral(": orphan event")) &&
+                entry.diagnostic.span.line == 7 && entry.diagnostic.span.column == 1,
             QStringLiteral("Timeline diagnostics must map original line and column"));
   }
 
   // Timeline paints only its inline title. Frontmatter title is intentionally
   // ignored by the upstream family, while shared ARIA metadata remains live.
   {
-    const QString source = QStringLiteral(
-        "---\ntitle: Ignored frontmatter title\n---\ntimeline\n"
-        "title Inline timeline\naccTitle: Timeline accessible\n"
-        "accDescr: Timeline description\nsection S\nTask : Event");
+    const QString source = QStringLiteral("---\ntitle: Ignored frontmatter title\n---\ntimeline\n"
+                                          "title Inline timeline\naccTitle: Timeline accessible\n"
+                                          "accDescr: Timeline description\nsection S\nTask : Event");
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::timeline::TimelineScene>(entry.scene);
-    require(entry.status == kReady && scene &&
-                scene->title == QLatin1String("Inline timeline") &&
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::timeline::TimelineScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->title == QLatin1String("Inline timeline") &&
                 entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle ==
-                    QLatin1String("Timeline accessible") &&
-                entry.metadata.accessibleDescription ==
-                    QLatin1String("Timeline description"),
+                entry.metadata.accessibleTitle == QLatin1String("Timeline accessible") &&
+                entry.metadata.accessibleDescription == QLatin1String("Timeline description"),
             QStringLiteral("Timeline title ownership/accessibility metadata drifted"));
 
-    const QString frontmatterOnly = QStringLiteral(
-        "---\ntitle: Invisible timeline title\n---\n"
-        "timeline\nsection S\nTask : Event");
-    const MermaidRenderEntry noInlineTitle = cache.getSync(
-        MermaidRenderCache::makeKey(frontmatterOnly), frontmatterOnly);
-    const auto noInlineScene = std::dynamic_pointer_cast<
-        const muffin::mermaid::timeline::TimelineScene>(noInlineTitle.scene);
-    require(noInlineTitle.status == kReady && noInlineScene &&
-                noInlineScene->title.isEmpty() &&
-                noInlineTitle.metadata.title.isEmpty() &&
-                noInlineTitle.metadata.titleHeight == 0.0,
+    const QString frontmatterOnly = QStringLiteral("---\ntitle: Invisible timeline title\n---\n"
+                                                   "timeline\nsection S\nTask : Event");
+    const MermaidRenderEntry noInlineTitle =
+        cache.getSync(MermaidRenderCache::makeKey(frontmatterOnly), frontmatterOnly);
+    const auto noInlineScene =
+        std::dynamic_pointer_cast<const muffin::mermaid::timeline::TimelineScene>(noInlineTitle.scene);
+    require(noInlineTitle.status == kReady && noInlineScene && noInlineScene->title.isEmpty() &&
+                noInlineTitle.metadata.title.isEmpty() && noInlineTitle.metadata.titleHeight == 0.0,
             QStringLiteral("Timeline must ignore a frontmatter-only visible title"));
   }
 
   // populateCommonDb ignores a falsy final AST title. An empty source title,
   // even after a non-empty one, therefore leaves the frontmatter title intact.
   {
-    const QString source = QStringLiteral(
-        "---\ntitle: Frontmatter Radar\n---\nradar-beta\n"
-        "title Temporary\ntitle\naxis A");
+    const QString source = QStringLiteral("---\ntitle: Frontmatter Radar\n---\nradar-beta\n"
+                                          "title Temporary\ntitle\naxis A");
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::radar::RadarScene>(entry.scene);
-    require(entry.status == kReady && scene &&
-                scene->title == QLatin1String("Frontmatter Radar"),
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::radar::RadarScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->title == QLatin1String("Frontmatter Radar"),
             QStringLiteral("Empty Radar title must retain frontmatter title"));
   }
 
@@ -554,21 +449,16 @@ int main(int argc, char** argv) {
   // render failure cannot silently replace the family diagnostic.
   {
     MermaidRenderCache cache;
-    const QString decorated = QStringLiteral(
-        "---\ntitle: Packet frontmatter\n---\n"
-        "%%{init: {\"theme\": \"default\"}}%%\n"
-        "%% generated comment\npacket-beta\n0: \"first\"\n2: \"gap\"");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(decorated), decorated);
-    require(entry.status == kError &&
-                entry.diagnostic.stage == QLatin1String("parse") &&
+    const QString decorated = QStringLiteral("---\ntitle: Packet frontmatter\n---\n"
+                                             "%%{init: {\"theme\": \"default\"}}%%\n"
+                                             "%% generated comment\npacket-beta\n0: \"first\"\n2: \"gap\"");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+    require(entry.status == kError && entry.diagnostic.stage == QLatin1String("parse") &&
                 entry.diagnostic.code == QLatin1String("packet-runtime-error") &&
                 entry.diagnostic.message ==
                     QLatin1String("Packet block 2 - 2 is not contiguous. It should start from 1.") &&
-                entry.diagnostic.span.offset ==
-                    decorated.indexOf(QStringLiteral("2: \"gap\"")) &&
-                entry.diagnostic.span.line == 8 &&
-                entry.diagnostic.span.column == 1,
+                entry.diagnostic.span.offset == decorated.indexOf(QStringLiteral("2: \"gap\"")) &&
+                entry.diagnostic.span.line == 8 && entry.diagnostic.span.column == 1,
             QStringLiteral("Packet runtime diagnostic contract drifted"));
   }
 
@@ -584,33 +474,24 @@ int main(int argc, char** argv) {
       int column;
     };
     const QVector<PacketDiagnosticCase> cases = {
-        {QStringLiteral("0: x"), QStringLiteral("x"),
-         QStringLiteral("packet-lexer-error"),
+        {QStringLiteral("0: x"), QStringLiteral("x"), QStringLiteral("packet-lexer-error"),
          QStringLiteral("expected quoted STRING"), 4},
-        {QStringLiteral("0 \"x\""), QStringLiteral("\"x\""),
-         QStringLiteral("packet-parse-error"), QStringLiteral("expected ':'"),
-         3},
+        {QStringLiteral("0 \"x\""), QStringLiteral("\"x\""), QStringLiteral("packet-parse-error"),
+         QStringLiteral("expected ':'"), 3},
     };
     for (const PacketDiagnosticCase& fixture : cases) {
       MermaidRenderCache cache;
-      const QString decorated =
-          QStringLiteral("---\ntitle: Packet diagnostic\n---\n"
-                         "%%{init: {\"theme\": \"default\"}}%%\n"
-                         "%% generated comment\npacket-beta\n") +
-          fixture.tail;
-      const qsizetype tokenOffset =
-          decorated.lastIndexOf(fixture.token);
-      const MermaidRenderEntry entry = cache.getSync(
-          MermaidRenderCache::makeKey(decorated), decorated);
-      require(entry.status == kError &&
-                  entry.diagnostic.stage == QLatin1String("parse") &&
-                  entry.diagnostic.code == fixture.code &&
-                  entry.diagnostic.message == fixture.message &&
-                  entry.diagnostic.span.offset == tokenOffset &&
-                  entry.diagnostic.span.line == 7 &&
+      const QString decorated = QStringLiteral("---\ntitle: Packet diagnostic\n---\n"
+                                               "%%{init: {\"theme\": \"default\"}}%%\n"
+                                               "%% generated comment\npacket-beta\n") +
+                                fixture.tail;
+      const qsizetype tokenOffset = decorated.lastIndexOf(fixture.token);
+      const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+      require(entry.status == kError && entry.diagnostic.stage == QLatin1String("parse") &&
+                  entry.diagnostic.code == fixture.code && entry.diagnostic.message == fixture.message &&
+                  entry.diagnostic.span.offset == tokenOffset && entry.diagnostic.span.line == 7 &&
                   entry.diagnostic.span.column == fixture.column,
-              QStringLiteral("Packet %1 diagnostic contract drifted")
-                  .arg(fixture.code));
+              QStringLiteral("Packet %1 diagnostic contract drifted").arg(fixture.code));
     }
   }
 
@@ -618,34 +499,23 @@ int main(int argc, char** argv) {
   // title wins; frontmatter supplies the title only when the AST has none.
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "---\ntitle: Frontmatter Packet\n---\npacket-beta\n"
-        "title Inline Packet\naccTitle: Packet accessible\n"
-        "accDescr: Packet description\n0-7: \"Header\"");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::packet::PacketScene>(entry.scene);
-    require(entry.status == kReady && scene &&
-                scene->title == QLatin1String("Inline Packet") &&
+    const QString source = QStringLiteral("---\ntitle: Frontmatter Packet\n---\npacket-beta\n"
+                                          "title Inline Packet\naccTitle: Packet accessible\n"
+                                          "accDescr: Packet description\n0-7: \"Header\"");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::packet::PacketScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->title == QLatin1String("Inline Packet") &&
                 entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle ==
-                    QLatin1String("Packet accessible") &&
-                entry.metadata.accessibleDescription ==
-                    QLatin1String("Packet description"),
+                entry.metadata.accessibleTitle == QLatin1String("Packet accessible") &&
+                entry.metadata.accessibleDescription == QLatin1String("Packet description"),
             QStringLiteral("Packet title ownership/accessibility metadata drifted"));
 
-    const QString frontmatterOnly = QStringLiteral(
-        "---\ntitle: Frontmatter Packet\n---\n"
-        "packet-beta\n0-7: \"Header\"");
-    const MermaidRenderEntry fallback = cache.getSync(
-        MermaidRenderCache::makeKey(frontmatterOnly), frontmatterOnly);
-    const auto fallbackScene = std::dynamic_pointer_cast<
-        const muffin::mermaid::packet::PacketScene>(fallback.scene);
-    require(fallback.status == kReady && fallbackScene &&
-                fallbackScene->title == QLatin1String("Frontmatter Packet") &&
-                fallback.metadata.title.isEmpty() &&
-                fallback.metadata.titleHeight == 0.0,
+    const QString frontmatterOnly = QStringLiteral("---\ntitle: Frontmatter Packet\n---\n"
+                                                   "packet-beta\n0-7: \"Header\"");
+    const MermaidRenderEntry fallback = cache.getSync(MermaidRenderCache::makeKey(frontmatterOnly), frontmatterOnly);
+    const auto fallbackScene = std::dynamic_pointer_cast<const muffin::mermaid::packet::PacketScene>(fallback.scene);
+    require(fallback.status == kReady && fallbackScene && fallbackScene->title == QLatin1String("Frontmatter Packet") &&
+                fallback.metadata.title.isEmpty() && fallback.metadata.titleHeight == 0.0,
             QStringLiteral("Packet frontmatter title fallback drifted"));
   }
 
@@ -653,17 +523,12 @@ int main(int argc, char** argv) {
   // through removed frontmatter, directives, and comments.
   {
     MermaidRenderCache cache;
-    const QString decorated = QStringLiteral(
-        "---\ntitle: Radar title\n---\n"
-        "%%{init: {\"theme\": \"default\"}}%%\n"
-        "%% generated comment\nradar-beta axis A,");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(decorated), decorated);
-    require(entry.status == kError &&
-                entry.diagnostic.code == QLatin1String("radar-parse-error") &&
-                entry.diagnostic.span.offset ==
-                    decorated.size() &&
-                entry.diagnostic.span.line == 6 &&
+    const QString decorated = QStringLiteral("---\ntitle: Radar title\n---\n"
+                                             "%%{init: {\"theme\": \"default\"}}%%\n"
+                                             "%% generated comment\nradar-beta axis A,");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+    require(entry.status == kError && entry.diagnostic.code == QLatin1String("radar-parse-error") &&
+                entry.diagnostic.span.offset == decorated.size() && entry.diagnostic.span.line == 6 &&
                 entry.diagnostic.span.column == 19,
             QStringLiteral("Radar diagnostics must map original line and column"));
   }
@@ -681,37 +546,25 @@ int main(int argc, char** argv) {
       int originalLine;
     };
     const QVector<KanbanDiagnosticCase> cases = {
-        {QStringLiteral("kanbanXYZ\n A"),
-         QStringLiteral("kanban-parse-error"),
-         QStringLiteral("Parse error on line 1"),
+        {QStringLiteral("kanbanXYZ\n A"), QStringLiteral("kanban-parse-error"), QStringLiteral("Parse error on line 1"),
          QStringLiteral("NODE_ID"), 6},
-        {QStringLiteral("kanban\n @"),
-         QStringLiteral("kanban-lexer-error"),
-         QStringLiteral("Lexical error on line 2. Unrecognized text."),
-         QString(), 7},
+        {QStringLiteral("kanban\n @"), QStringLiteral("kanban-lexer-error"),
+         QStringLiteral("Lexical error on line 2. Unrecognized text."), QString(), 7},
     };
     for (const KanbanDiagnosticCase& fixture : cases) {
       MermaidRenderCache cache;
-      const QString decorated =
-          QStringLiteral("---\ntitle: Ignored Kanban title\n---\n"
-                         "%%{init: {\"theme\": \"default\"}}%%\n"
-                         "%% generated comment\n") +
-          fixture.tail;
-      const MermaidRenderEntry entry = cache.getSync(
-          MermaidRenderCache::makeKey(decorated), decorated);
-      const qsizetype lineOffset = fixture.originalLine == 6
-          ? decorated.indexOf(QStringLiteral("kanbanXYZ"))
-          : decorated.indexOf(QStringLiteral(" @"));
-      require(entry.status == kError &&
-                  entry.diagnostic.stage == QLatin1String("parse") &&
-                  entry.diagnostic.code == fixture.code &&
-                  entry.diagnostic.message == fixture.message &&
-                  entry.diagnostic.actual == fixture.actual &&
-                  entry.diagnostic.span.offset == lineOffset &&
-                  entry.diagnostic.span.line == fixture.originalLine &&
-                  entry.diagnostic.span.column == 1,
-              QStringLiteral("Kanban %1 diagnostic contract drifted")
-                  .arg(fixture.code));
+      const QString decorated = QStringLiteral("---\ntitle: Ignored Kanban title\n---\n"
+                                               "%%{init: {\"theme\": \"default\"}}%%\n"
+                                               "%% generated comment\n") +
+                                fixture.tail;
+      const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+      const qsizetype lineOffset = fixture.originalLine == 6 ? decorated.indexOf(QStringLiteral("kanbanXYZ"))
+                                                             : decorated.indexOf(QStringLiteral(" @"));
+      require(entry.status == kError && entry.diagnostic.stage == QLatin1String("parse") &&
+                  entry.diagnostic.code == fixture.code && entry.diagnostic.message == fixture.message &&
+                  entry.diagnostic.actual == fixture.actual && entry.diagnostic.span.offset == lineOffset &&
+                  entry.diagnostic.span.line == fixture.originalLine && entry.diagnostic.span.column == 1,
+              QStringLiteral("Kanban %1 diagnostic contract drifted").arg(fixture.code));
     }
   }
 
@@ -719,22 +572,14 @@ int main(int argc, char** argv) {
   // discarded before shared metadata can add a visible title band or ARIA.
   {
     MermaidRenderCache cache;
-    const QString body = QStringLiteral(
-        "kanban\n  todo[Todo]\n    task1[Write docs]");
-    const QString titled =
-        QStringLiteral("---\ntitle: Invisible board title\n---\n") + body;
-    const MermaidRenderEntry base = cache.getSync(
-        MermaidRenderCache::makeKey(body), body);
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(titled), titled);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::kanban::KanbanScene>(entry.scene);
-    require(base.status == kReady && entry.status == kReady && scene &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle.isEmpty() &&
-                entry.metadata.accessibleDescription.isEmpty() &&
-                entry.metadata.titleHeight == 0.0 &&
-                entry.naturalSize == base.naturalSize,
+    const QString body = QStringLiteral("kanban\n  todo[Todo]\n    task1[Write docs]");
+    const QString titled = QStringLiteral("---\ntitle: Invisible board title\n---\n") + body;
+    const MermaidRenderEntry base = cache.getSync(MermaidRenderCache::makeKey(body), body);
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(titled), titled);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::kanban::KanbanScene>(entry.scene);
+    require(base.status == kReady && entry.status == kReady && scene && entry.metadata.title.isEmpty() &&
+                entry.metadata.accessibleTitle.isEmpty() && entry.metadata.accessibleDescription.isEmpty() &&
+                entry.metadata.titleHeight == 0.0 && entry.naturalSize == base.naturalSize,
             QStringLiteral("Kanban frontmatter title must remain invisible"));
   }
 
@@ -750,49 +595,35 @@ int main(int argc, char** argv) {
       int originalColumn;
     };
     const QVector<MindmapDiagnosticCase> cases = {
-        {QStringLiteral("mindmapXYZ\n root"),
-         QStringLiteral("mindmap-parse-error"),
-         QStringLiteral("Parse error on line 1: Unexpected NODE_ID"),
-         QStringLiteral("NODE_ID"), 6, 1},
-        {QStringLiteral("mindmap\n root@{ shape: rect }"),
-         QStringLiteral("mindmap-lexer-error"),
-         QStringLiteral("Lexical error on line 2. Unrecognized text."),
-         QString(), 7, 7},
+        {QStringLiteral("mindmapXYZ\n root"), QStringLiteral("mindmap-parse-error"),
+         QStringLiteral("Parse error on line 1: Unexpected NODE_ID"), QStringLiteral("NODE_ID"), 6, 1},
+        {QStringLiteral("mindmap\n root@{ shape: rect }"), QStringLiteral("mindmap-lexer-error"),
+         QStringLiteral("Lexical error on line 2. Unrecognized text."), QString(), 7, 7},
     };
     for (const MindmapDiagnosticCase& fixture : cases) {
       MermaidRenderCache cache;
-      const QString decorated =
-          QStringLiteral("---\ntitle: Ignored Mindmap title\n---\n"
-                         "%%{init: {\"theme\": \"default\"}}%%\n"
-                         "%% generated comment\n") +
-          fixture.tail;
-      const MermaidRenderEntry entry = cache.getSync(
-          MermaidRenderCache::makeKey(decorated), decorated);
-      require(entry.status == kError &&
-                  entry.diagnostic.stage == QLatin1String("parse") &&
-                  entry.diagnostic.code == fixture.code &&
-                  entry.diagnostic.message == fixture.message &&
-                  entry.diagnostic.actual == fixture.actual &&
-                  entry.diagnostic.span.line == fixture.originalLine &&
-                  entry.diagnostic.span.column == fixture.originalColumn,
-              QStringLiteral("Mindmap %1 diagnostic contract drifted")
-                  .arg(fixture.code) +
-                  QStringLiteral(" actual stage=%1 code=%2 message=%3 token=%4 line=%5 column=%6")
-                      .arg(entry.diagnostic.stage, entry.diagnostic.code,
-                           entry.diagnostic.message, entry.diagnostic.actual)
-                      .arg(entry.diagnostic.span.line)
-                      .arg(entry.diagnostic.span.column));
+      const QString decorated = QStringLiteral("---\ntitle: Ignored Mindmap title\n---\n"
+                                               "%%{init: {\"theme\": \"default\"}}%%\n"
+                                               "%% generated comment\n") +
+                                fixture.tail;
+      const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+      require(
+          entry.status == kError && entry.diagnostic.stage == QLatin1String("parse") &&
+              entry.diagnostic.code == fixture.code && entry.diagnostic.message == fixture.message &&
+              entry.diagnostic.actual == fixture.actual && entry.diagnostic.span.line == fixture.originalLine &&
+              entry.diagnostic.span.column == fixture.originalColumn,
+          QStringLiteral("Mindmap %1 diagnostic contract drifted").arg(fixture.code) +
+              QStringLiteral(" actual stage=%1 code=%2 message=%3 token=%4 line=%5 column=%6")
+                  .arg(entry.diagnostic.stage, entry.diagnostic.code, entry.diagnostic.message, entry.diagnostic.actual)
+                  .arg(entry.diagnostic.span.line)
+                  .arg(entry.diagnostic.span.column));
     }
 
-    const QString runtimeSource = QStringLiteral(
-        "mindmap\n root\n other");
+    const QString runtimeSource = QStringLiteral("mindmap\n root\n other");
     MermaidRenderCache cache;
-    const MermaidRenderEntry runtime = cache.getSync(
-        MermaidRenderCache::makeKey(runtimeSource), runtimeSource);
-    require(runtime.status == kError &&
-                runtime.diagnostic.stage == QLatin1String("parse") &&
-                runtime.diagnostic.code ==
-                    QLatin1String("mindmap-runtime-error") &&
+    const MermaidRenderEntry runtime = cache.getSync(MermaidRenderCache::makeKey(runtimeSource), runtimeSource);
+    require(runtime.status == kError && runtime.diagnostic.stage == QLatin1String("parse") &&
+                runtime.diagnostic.code == QLatin1String("mindmap-runtime-error") &&
                 runtime.diagnostic.message ==
                     QLatin1String("There can be only one root. No parent could be found for (\"other\")") &&
                 runtime.diagnostic.span.line == 0,
@@ -803,22 +634,14 @@ int main(int argc, char** argv) {
   // is ignored just like Kanban and cannot reserve the shared title strip.
   {
     MermaidRenderCache cache;
-    const QString body = QStringLiteral(
-        "mindmap\n  root((Root))\n    Child");
-    const QString titled =
-        QStringLiteral("---\ntitle: Invisible mindmap title\n---\n") + body;
-    const MermaidRenderEntry base = cache.getSync(
-        MermaidRenderCache::makeKey(body), body);
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(titled), titled);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::mindmap::MindmapScene>(entry.scene);
-    require(base.status == kReady && entry.status == kReady && scene &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle.isEmpty() &&
-                entry.metadata.accessibleDescription.isEmpty() &&
-                entry.metadata.titleHeight == 0.0 &&
-                entry.naturalSize == base.naturalSize,
+    const QString body = QStringLiteral("mindmap\n  root((Root))\n    Child");
+    const QString titled = QStringLiteral("---\ntitle: Invisible mindmap title\n---\n") + body;
+    const MermaidRenderEntry base = cache.getSync(MermaidRenderCache::makeKey(body), body);
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(titled), titled);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::mindmap::MindmapScene>(entry.scene);
+    require(base.status == kReady && entry.status == kReady && scene && entry.metadata.title.isEmpty() &&
+                entry.metadata.accessibleTitle.isEmpty() && entry.metadata.accessibleDescription.isEmpty() &&
+                entry.metadata.titleHeight == 0.0 && entry.naturalSize == base.naturalSize,
             QStringLiteral("Mindmap frontmatter title must remain invisible"));
   }
 
@@ -826,46 +649,37 @@ int main(int argc, char** argv) {
   // invisible, while family config is projected into its typed scene.
   {
     MermaidRenderCache cache;
-    const QString body = QStringLiteral(
-        "%%{init: {\"block\": {\"useMaxWidth\": false, "
-        "\"padding\": 20}}}%%\n"
-        "block-beta\ncolumns 2\na[\"Alpha\"] b(\"Beta\")\na --> b");
-    const QString titled =
-        QStringLiteral("---\ntitle: Invisible block title\n---\n") + body;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(titled), titled);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::block::BlockScene>(entry.scene);
-    require(entry.status == kReady && scene && scene->nodes.size() == 2 &&
-                !scene->useMaxWidth && !entry.metadata.svgUseMaxWidth &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle.isEmpty() &&
-                entry.metadata.accessibleDescription.isEmpty() &&
+    const QString body = QStringLiteral("%%{init: {\"block\": {\"useMaxWidth\": false, "
+                                        "\"padding\": 20}}}%%\n"
+                                        "block-beta\ncolumns 2\na[\"Alpha\"] b(\"Beta\")\na --> b");
+    const QString titled = QStringLiteral("---\ntitle: Invisible block title\n---\n") + body;
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(titled), titled);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::block::BlockScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->nodes.size() == 2 && !scene->useMaxWidth &&
+                !entry.metadata.svgUseMaxWidth && entry.metadata.title.isEmpty() &&
+                entry.metadata.accessibleTitle.isEmpty() && entry.metadata.accessibleDescription.isEmpty() &&
                 entry.metadata.titleHeight == 0.0,
             QStringLiteral("Block scene/config/metadata contract drifted"));
   }
 
   // --- getSync: swimlane-beta reuses Flowchart syntax but owns its layout ---
   {
-    const QString source = QStringLiteral(
-        "swimlane-beta TB\n"
-        "subgraph sales[Sales]\n  a[Lead] --> b[Quote]\nend\n"
-        "subgraph legal[Legal]\n  c[Review] --> d[Approve]\nend\n"
-        "b --> c\n");
+    const QString source = QStringLiteral("swimlane-beta TB\n"
+                                          "subgraph sales[Sales]\n  a[Lead] --> b[Quote]\nend\n"
+                                          "subgraph legal[Legal]\n  c[Review] --> d[Approve]\nend\n"
+                                          "b --> c\n");
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
     require(entry.status == kReady && entry.scene != nullptr,
             QStringLiteral("swimlane-beta must render through the native adapter"));
-    const auto* scene =
-        dynamic_cast<const muffin::mermaid::flowscene::FlowScene*>(entry.scene.get());
+    const auto* scene = dynamic_cast<const muffin::mermaid::flowscene::FlowScene*>(entry.scene.get());
     require(scene != nullptr && scene->nodes.size() == 4 && scene->edges.size() == 3,
             QStringLiteral("swimlane must expose the shared FlowScene semantic content"));
     int lanes = 0;
     for (const auto& cluster : scene->clusters)
-      if (cluster.swimlane && cluster.titleBandSize > 0.0) ++lanes;
-    require(lanes == 2 && entry.naturalSize.width() > 0 &&
-                entry.naturalSize.height() > 0,
+      if (cluster.swimlane && cluster.titleBandSize > 0.0)
+        ++lanes;
+    require(lanes == 2 && entry.naturalSize.width() > 0 && entry.naturalSize.height() > 0,
             QStringLiteral("swimlane layout must materialize both titled lanes"));
   }
 
@@ -874,22 +688,15 @@ int main(int argc, char** argv) {
   // no inline title directive exists and must not create a second title strip.
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "---\ntitle: Frontmatter Gantt\n---\n"
-        "gantt\ntitle Inline Gantt\naccTitle: Accessible plan\n"
-        "accDescr: Delivery schedule\ndateFormat YYYY-MM-DD\n"
-        "todayMarker off\nTask :task, 2024-01-01, 2d");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::gantt::GanttScene>(entry.scene);
-    require(entry.status == kReady && scene &&
-                scene->title == QLatin1String("Inline Gantt") &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle ==
-                    QLatin1String("Accessible plan") &&
-                entry.metadata.accessibleDescription ==
-                    QLatin1String("Delivery schedule") &&
+    const QString source = QStringLiteral("---\ntitle: Frontmatter Gantt\n---\n"
+                                          "gantt\ntitle Inline Gantt\naccTitle: Accessible plan\n"
+                                          "accDescr: Delivery schedule\ndateFormat YYYY-MM-DD\n"
+                                          "todayMarker off\nTask :task, 2024-01-01, 2d");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::gantt::GanttScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->title == QLatin1String("Inline Gantt") &&
+                entry.metadata.title.isEmpty() && entry.metadata.accessibleTitle == QLatin1String("Accessible plan") &&
+                entry.metadata.accessibleDescription == QLatin1String("Delivery schedule") &&
                 entry.metadata.titleHeight == 0.0,
             QStringLiteral("Gantt title/accessibility ownership drifted"));
   }
@@ -898,23 +705,16 @@ int main(int argc, char** argv) {
   // parsed/frontmatter metadata, matching the upstream diagram parser.
   {
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(QStringLiteral(
-            "---\ntitle: Front\n---\ninfo\ntitle Inline\n"
-            "accTitle: AT\naccDescr: AD")),
-        QStringLiteral("---\ntitle: Front\n---\ninfo\ntitle Inline\n"
-                       "accTitle: AT\naccDescr: AD"));
-    const auto scene =
-        std::dynamic_pointer_cast<const muffin::mermaid::info::InfoScene>(
-            entry.scene);
-    require(entry.status == kReady && scene &&
-                entry.naturalSize == QSize(400, 150) &&
-                scene->text == QLatin1String("v11.16.0") &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle.isEmpty() &&
-                entry.metadata.accessibleDescription.isEmpty() &&
-                !entry.metadata.svgEmitAccessibleTitle &&
-                !entry.metadata.svgEmitViewBox,
+    const MermaidRenderEntry entry =
+        cache.getSync(MermaidRenderCache::makeKey(QStringLiteral("---\ntitle: Front\n---\ninfo\ntitle Inline\n"
+                                                                 "accTitle: AT\naccDescr: AD")),
+                      QStringLiteral("---\ntitle: Front\n---\ninfo\ntitle Inline\n"
+                                     "accTitle: AT\naccDescr: AD"));
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::info::InfoScene>(entry.scene);
+    require(entry.status == kReady && scene && entry.naturalSize == QSize(400, 150) &&
+                scene->text == QLatin1String("v11.16.0") && entry.metadata.title.isEmpty() &&
+                entry.metadata.accessibleTitle.isEmpty() && entry.metadata.accessibleDescription.isEmpty() &&
+                !entry.metadata.svgEmitAccessibleTitle && !entry.metadata.svgEmitViewBox,
             QStringLiteral("Info fixed viewport/metadata contract drifted"));
   }
 
@@ -922,24 +722,16 @@ int main(int argc, char** argv) {
   // frontmatter visual titles, and retains common accessibility metadata.
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "---\ntitle: Invisible frontmatter title\n---\n"
-        "treeView-beta\ntitle Invisible inline title\n"
-        "accTitle: Accessible tree\naccDescr: Tree description\n"
-        "project/\n  README.md");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::treeview::TreeViewScene>(entry.scene);
-    require(entry.status == kReady && scene && scene->nodes.size() == 3 &&
-                entry.naturalSize.width() > 0 &&
-                entry.naturalSize.height() > 0 &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.titleHeight == 0.0 &&
-                entry.metadata.accessibleTitle ==
-                    QLatin1String("Accessible tree") &&
-                entry.metadata.accessibleDescription ==
-                    QLatin1String("Tree description"),
+    const QString source = QStringLiteral("---\ntitle: Invisible frontmatter title\n---\n"
+                                          "treeView-beta\ntitle Invisible inline title\n"
+                                          "accTitle: Accessible tree\naccDescr: Tree description\n"
+                                          "project/\n  README.md");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::treeview::TreeViewScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->nodes.size() == 3 && entry.naturalSize.width() > 0 &&
+                entry.naturalSize.height() > 0 && entry.metadata.title.isEmpty() && entry.metadata.titleHeight == 0.0 &&
+                entry.metadata.accessibleTitle == QLatin1String("Accessible tree") &&
+                entry.metadata.accessibleDescription == QLatin1String("Tree description"),
             QStringLiteral("TreeView scene/title/accessibility contract drifted"));
   }
 
@@ -947,19 +739,13 @@ int main(int argc, char** argv) {
   // metadata-looking statements never create a title strip or SVG ARIA nodes.
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "---\ntitle: Invisible event title\n---\n"
-        "eventmodeling\ntf 1 evt Created");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::eventmodeling::EventModelingScene>(entry.scene);
-    require(entry.status == kReady && scene && scene->boxes.size() == 1 &&
-                entry.naturalSize.width() > 0 &&
-                entry.naturalSize.height() > 0 &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle.isEmpty() &&
-                entry.metadata.accessibleDescription.isEmpty() &&
+    const QString source = QStringLiteral("---\ntitle: Invisible event title\n---\n"
+                                          "eventmodeling\ntf 1 evt Created");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::eventmodeling::EventModelingScene>(entry.scene);
+    require(entry.status == kReady && scene && scene->boxes.size() == 1 && entry.naturalSize.width() > 0 &&
+                entry.naturalSize.height() > 0 && entry.metadata.title.isEmpty() &&
+                entry.metadata.accessibleTitle.isEmpty() && entry.metadata.accessibleDescription.isEmpty() &&
                 !entry.metadata.svgEmitAccessibleTitle,
             QStringLiteral("Event Modeling scene/metadata contract drifted"));
   }
@@ -968,22 +754,14 @@ int main(int argc, char** argv) {
   // metadata-looking nodes must not create a second title strip or SVG ARIA.
   {
     MermaidRenderCache cache;
-    const QString body = QStringLiteral(
-        "ishikawa\nEffect\n  Cause A\n  Cause B");
-    const QString titled =
-        QStringLiteral("---\ntitle: Invisible Ishikawa title\n---\n") + body;
-    const MermaidRenderEntry base = cache.getSync(
-        MermaidRenderCache::makeKey(body), body);
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(titled), titled);
-    const auto scene = std::dynamic_pointer_cast<
-        const muffin::mermaid::ishikawa::IshikawaScene>(entry.scene);
-    require(base.status == kReady && entry.status == kReady && scene &&
-                entry.metadata.title.isEmpty() &&
-                entry.metadata.accessibleTitle.isEmpty() &&
-                entry.metadata.accessibleDescription.isEmpty() &&
-                !entry.metadata.svgEmitAccessibleTitle &&
-                entry.metadata.titleHeight == 0.0 &&
+    const QString body = QStringLiteral("ishikawa\nEffect\n  Cause A\n  Cause B");
+    const QString titled = QStringLiteral("---\ntitle: Invisible Ishikawa title\n---\n") + body;
+    const MermaidRenderEntry base = cache.getSync(MermaidRenderCache::makeKey(body), body);
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(titled), titled);
+    const auto scene = std::dynamic_pointer_cast<const muffin::mermaid::ishikawa::IshikawaScene>(entry.scene);
+    require(base.status == kReady && entry.status == kReady && scene && entry.metadata.title.isEmpty() &&
+                entry.metadata.accessibleTitle.isEmpty() && entry.metadata.accessibleDescription.isEmpty() &&
+                !entry.metadata.svgEmitAccessibleTitle && entry.metadata.titleHeight == 0.0 &&
                 entry.naturalSize == base.naturalSize,
             QStringLiteral("Ishikawa frontmatter title must remain invisible"));
   }
@@ -992,31 +770,25 @@ int main(int argc, char** argv) {
   // SPACELINE caret back to the physical offending token in decorated source.
   {
     MermaidRenderCache cache;
-    const QString decorated = QStringLiteral(
-        "---\ntitle: Ignored fish title\n---\n"
-        "%%{init: {\"theme\": \"default\"}}%%\n"
-        "%% generated comment\nishikawa\n  \nEffect");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(decorated), decorated);
-    require(entry.status == kError &&
-                entry.diagnostic.stage == QLatin1String("parse") &&
-                entry.diagnostic.code ==
-                    QLatin1String("ishikawa-parse-error") &&
-                entry.diagnostic.message ==
-                    QLatin1String("Parse error on line 3: ishikawa Effect ----------^ Expecting 'SPACELINE', 'NL', 'EOF', got 'TEXT'") &&
-                entry.diagnostic.actual == QLatin1String("TEXT") &&
-                entry.diagnostic.span.offset ==
-                    decorated.lastIndexOf(QStringLiteral("Effect")) &&
-                entry.diagnostic.span.line == 8 &&
-                entry.diagnostic.span.column == 1,
-            QStringLiteral(
-                "Ishikawa decorated parser diagnostic drifted: "
-                "stage=%1 code=%2 message=%3 actual=%4 offset=%5 line=%6 column=%7")
-                .arg(entry.diagnostic.stage, entry.diagnostic.code,
-                     entry.diagnostic.message, entry.diagnostic.actual)
-                .arg(entry.diagnostic.span.offset)
-                .arg(entry.diagnostic.span.line)
-                .arg(entry.diagnostic.span.column));
+    const QString decorated = QStringLiteral("---\ntitle: Ignored fish title\n---\n"
+                                             "%%{init: {\"theme\": \"default\"}}%%\n"
+                                             "%% generated comment\nishikawa\n  \nEffect");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+    require(
+        entry.status == kError && entry.diagnostic.stage == QLatin1String("parse") &&
+            entry.diagnostic.code == QLatin1String("ishikawa-parse-error") &&
+            entry.diagnostic.message ==
+                QLatin1String(
+                    "Parse error on line 3: ishikawa Effect ----------^ Expecting 'SPACELINE', 'NL', 'EOF', got 'TEXT'") &&
+            entry.diagnostic.actual == QLatin1String("TEXT") &&
+            entry.diagnostic.span.offset == decorated.lastIndexOf(QStringLiteral("Effect")) &&
+            entry.diagnostic.span.line == 8 && entry.diagnostic.span.column == 1,
+        QStringLiteral("Ishikawa decorated parser diagnostic drifted: "
+                       "stage=%1 code=%2 message=%3 actual=%4 offset=%5 line=%6 column=%7")
+            .arg(entry.diagnostic.stage, entry.diagnostic.code, entry.diagnostic.message, entry.diagnostic.actual)
+            .arg(entry.diagnostic.span.offset)
+            .arg(entry.diagnostic.span.line)
+            .arg(entry.diagnostic.span.column));
   }
 
   // TreeView parser offsets are measured after preprocessing. Preserve the
@@ -1024,22 +796,19 @@ int main(int argc, char** argv) {
   // removed frontmatter, directives, and comments.
   {
     MermaidRenderCache cache;
-    const QString decorated = QStringLiteral(
-        "---\ntitle: Ignored tree title\n---\n"
-        "%%{init: {\"theme\": \"default\"}}%%\n"
-        "%% generated comment\ntreeView-beta\n\"root");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(decorated), decorated);
-    require(entry.status == kError &&
-                entry.diagnostic.stage == QLatin1String("parse") &&
-                entry.diagnostic.code ==
-                    QLatin1String("treeview-lexer-error") &&
-                entry.diagnostic.message ==
-                    QLatin1String("Parsing failed: Lexer error on line 2, column 1: unexpected character: ->\"<- at offset: 14, skipped 1 characters.") &&
-                entry.diagnostic.span.offset == decorated.lastIndexOf('"') &&
-                entry.diagnostic.span.line == 7 &&
-                entry.diagnostic.span.column == 1,
-            QStringLiteral("TreeView decorated lexer diagnostic drifted"));
+    const QString decorated = QStringLiteral("---\ntitle: Ignored tree title\n---\n"
+                                             "%%{init: {\"theme\": \"default\"}}%%\n"
+                                             "%% generated comment\ntreeView-beta\n\"root");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+    require(
+        entry.status == kError && entry.diagnostic.stage == QLatin1String("parse") &&
+            entry.diagnostic.code == QLatin1String("treeview-lexer-error") &&
+            entry.diagnostic.message ==
+                QLatin1String(
+                    "Parsing failed: Lexer error on line 2, column 1: unexpected character: ->\"<- at offset: 14, skipped 1 characters.") &&
+            entry.diagnostic.span.offset == decorated.lastIndexOf('"') && entry.diagnostic.span.line == 7 &&
+            entry.diagnostic.span.column == 1,
+        QStringLiteral("TreeView decorated lexer diagnostic drifted"));
   }
 
   // C4 parser offsets are measured after preprocessing. Preserve the typed
@@ -1047,21 +816,15 @@ int main(int argc, char** argv) {
   // removal to the original source.
   {
     MermaidRenderCache cache;
-    const QString decorated = QStringLiteral(
-        "---\ntitle: C4 title\n---\n"
-        "%%{init: {\"theme\": \"default\"}}%%\n"
-        "%% generated comment\nC4Context\nUnknown(a,A)");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(decorated), decorated);
-    require(entry.status == kError &&
-                entry.diagnostic.stage == QLatin1String("parse") &&
+    const QString decorated = QStringLiteral("---\ntitle: C4 title\n---\n"
+                                             "%%{init: {\"theme\": \"default\"}}%%\n"
+                                             "%% generated comment\nC4Context\nUnknown(a,A)");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(decorated), decorated);
+    require(entry.status == kError && entry.diagnostic.stage == QLatin1String("parse") &&
                 entry.diagnostic.code == QLatin1String("c4-lexer-error") &&
-                entry.diagnostic.span.offset ==
-                    decorated.lastIndexOf(QStringLiteral("Unknown")) &&
-                entry.diagnostic.span.line == 7 &&
-                entry.diagnostic.span.column == 1,
-            QStringLiteral("C4 decorated lexer diagnostic drifted: %1")
-                .arg(entry.errorMessage));
+                entry.diagnostic.span.offset == decorated.lastIndexOf(QStringLiteral("Unknown")) &&
+                entry.diagnostic.span.line == 7 && entry.diagnostic.span.column == 1,
+            QStringLiteral("C4 decorated lexer diagnostic drifted: %1").arg(entry.errorMessage));
   }
 
   // Every native family is normalised into the same 1-based diagnostic model.
@@ -1073,61 +836,43 @@ int main(int argc, char** argv) {
       int line;
     };
     const QVector<InvalidCase> cases = {
-        {QStringLiteral("sequenceDiagram\nloop open\nA->>B:x"),
-         QStringLiteral("sequence"), QStringLiteral("missing-end"), 2},
-        {QStringLiteral("classDiagram\nA -->"),
-         QStringLiteral("class"), QStringLiteral("missing-relation-target"), 2},
-        {QStringLiteral("stateDiagram-v2\nA -->"),
-         QStringLiteral("state"), QStringLiteral("unexpected-token"), 2},
-        {QStringLiteral("radar-beta\naxis"),
-         QStringLiteral("radar"), QStringLiteral("radar-parse-error"), 2},
-        {QStringLiteral("xychart-beta\nbar"),
-         QStringLiteral("xychart"), QStringLiteral("xychart-parse-error"), 2},
-        {QStringLiteral("timeline\n: orphan event"),
-         QStringLiteral("timeline"), QStringLiteral("timeline-runtime-error"), 2},
-        {QStringLiteral("packet-beta\n0: \"a\"\n2: \"gap\""),
-         QStringLiteral("packet"), QStringLiteral("packet-runtime-error"), 3},
-        {QStringLiteral("kanban\n []"),
-         QStringLiteral("kanban"), QStringLiteral("kanban-parse-error"), 2},
-        {QStringLiteral("block-beta\na[A]"),
-         QStringLiteral("block"), QStringLiteral("block-lexer-error"), 2},
-        {QStringLiteral("gitGraph\ncommit id: \"a\";"),
-         QStringLiteral("gitGraph"),
+        {QStringLiteral("sequenceDiagram\nloop open\nA->>B:x"), QStringLiteral("sequence"),
+         QStringLiteral("missing-end"), 2},
+        {QStringLiteral("classDiagram\nA -->"), QStringLiteral("class"), QStringLiteral("missing-relation-target"), 2},
+        {QStringLiteral("stateDiagram-v2\nA -->"), QStringLiteral("state"), QStringLiteral("unexpected-token"), 2},
+        {QStringLiteral("radar-beta\naxis"), QStringLiteral("radar"), QStringLiteral("radar-parse-error"), 2},
+        {QStringLiteral("xychart-beta\nbar"), QStringLiteral("xychart"), QStringLiteral("xychart-parse-error"), 2},
+        {QStringLiteral("timeline\n: orphan event"), QStringLiteral("timeline"),
+         QStringLiteral("timeline-runtime-error"), 2},
+        {QStringLiteral("packet-beta\n0: \"a\"\n2: \"gap\""), QStringLiteral("packet"),
+         QStringLiteral("packet-runtime-error"), 3},
+        {QStringLiteral("kanban\n []"), QStringLiteral("kanban"), QStringLiteral("kanban-parse-error"), 2},
+        {QStringLiteral("block-beta\na[A]"), QStringLiteral("block"), QStringLiteral("block-lexer-error"), 2},
+        {QStringLiteral("gitGraph\ncommit id: \"a\";"), QStringLiteral("gitGraph"),
          QStringLiteral("gitgraph-lexer-error"), 2},
-        {QStringLiteral("C4Context\nUnknown(a,A)"),
-         QStringLiteral("c4"), QStringLiteral("c4-lexer-error"), 2},
-        {QStringLiteral("swimlane-beta\nA -->"),
-         QStringLiteral("swimlane"), QStringLiteral("missing-link-endpoint"), 2},
-        {QStringLiteral("gantt:"),
-         QStringLiteral("gantt"), QStringLiteral("gantt-parse-error"), 1},
-        {QStringLiteral("info\nunknown"),
-         QStringLiteral("info"), QStringLiteral("info-lexer-error"), 2},
-        {QStringLiteral("treeView-beta\n\"root"),
-         QStringLiteral("treeView"), QStringLiteral("treeview-lexer-error"), 2},
-        {QStringLiteral("eventmodeling\ntf 1000 evt A"),
-         QStringLiteral("eventmodeling"),
+        {QStringLiteral("C4Context\nUnknown(a,A)"), QStringLiteral("c4"), QStringLiteral("c4-lexer-error"), 2},
+        {QStringLiteral("swimlane-beta\nA -->"), QStringLiteral("swimlane"), QStringLiteral("missing-link-endpoint"),
+         2},
+        {QStringLiteral("gantt:"), QStringLiteral("gantt"), QStringLiteral("gantt-parse-error"), 1},
+        {QStringLiteral("info\nunknown"), QStringLiteral("info"), QStringLiteral("info-lexer-error"), 2},
+        {QStringLiteral("treeView-beta\n\"root"), QStringLiteral("treeView"), QStringLiteral("treeview-lexer-error"),
+         2},
+        {QStringLiteral("eventmodeling\ntf 1000 evt A"), QStringLiteral("eventmodeling"),
          QStringLiteral("eventmodeling-parse-error"), 2},
-        {QStringLiteral("venn-beta\nset A: 1e3"),
-         QStringLiteral("venn"), QStringLiteral("venn-parse-error"), 2},
-        {QStringLiteral("cynefin-beta\ncomplex\nA"),
-         QStringLiteral("cynefin"), QStringLiteral("cynefin-lexer-error"), 3},
-        {QStringLiteral("wardley-beta\nsize [480.5,320]"),
-         QStringLiteral("wardley"), QStringLiteral("wardley-parse-error"), 2},
+        {QStringLiteral("venn-beta\nset A: 1e3"), QStringLiteral("venn"), QStringLiteral("venn-parse-error"), 2},
+        {QStringLiteral("cynefin-beta\ncomplex\nA"), QStringLiteral("cynefin"), QStringLiteral("cynefin-lexer-error"),
+         3},
+        {QStringLiteral("wardley-beta\nsize [480.5,320]"), QStringLiteral("wardley"),
+         QStringLiteral("wardley-parse-error"), 2},
     };
     for (const InvalidCase& invalid : cases) {
       MermaidRenderCache cache;
-      const MermaidRenderEntry entry = cache.getSync(
-          MermaidRenderCache::makeKey(invalid.source), invalid.source);
-      require(entry.status == kError &&
-                  entry.diagnostic.diagramType.startsWith(invalid.type) &&
-                  entry.diagnostic.code == invalid.code &&
-                  entry.diagnostic.span.hasLocation() &&
-                  entry.diagnostic.span.line == invalid.line &&
-                  entry.diagnostic.span.column >= 1 &&
-                  entry.diagnostic.span.offset >= 0 &&
-                  entry.diagnostic.span.offset <= invalid.source.size(),
-              QStringLiteral("%1 diagnostic was not normalised: %2")
-                  .arg(invalid.type, entry.errorMessage));
+      const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(invalid.source), invalid.source);
+      require(entry.status == kError && entry.diagnostic.diagramType.startsWith(invalid.type) &&
+                  entry.diagnostic.code == invalid.code && entry.diagnostic.span.hasLocation() &&
+                  entry.diagnostic.span.line == invalid.line && entry.diagnostic.span.column >= 1 &&
+                  entry.diagnostic.span.offset >= 0 && entry.diagnostic.span.offset <= invalid.source.size(),
+              QStringLiteral("%1 diagnostic was not normalised: %2").arg(invalid.type, entry.errorMessage));
       require(entry.errorMessage.contains(QStringLiteral("Line %1, column ").arg(invalid.line)),
               QStringLiteral("%1 diagnostic display omitted line/column").arg(invalid.type));
     }
@@ -1137,59 +882,34 @@ int main(int argc, char** argv) {
   {
     MermaidRenderCache cache;
     const QString noHeader = QStringLiteral("A --> B");
-    const MermaidRenderEntry detected = cache.getSync(
-        MermaidRenderCache::makeKey(noHeader), noHeader);
-    require(detected.status == kError &&
-                detected.diagnostic.stage == QLatin1String("detector") &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("radar-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("xychart-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("timeline")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("packet-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("kanban")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("mindmap")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("block-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("gitGraph")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("C4Context")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("swimlane-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("gantt")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("info")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("treeView-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("eventmodeling")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("ishikawa-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("venn-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("sankey-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("treemap-beta")) &&
-                detected.diagnostic.expected.contains(
-                    QStringLiteral("cynefin-beta")) &&
-                detected.diagnostic.span.offset == 0 &&
-                detected.diagnostic.span.line == 1 &&
+    const MermaidRenderEntry detected = cache.getSync(MermaidRenderCache::makeKey(noHeader), noHeader);
+    require(detected.status == kError && detected.diagnostic.stage == QLatin1String("detector") &&
+                detected.diagnostic.expected.contains(QStringLiteral("radar-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("xychart-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("timeline")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("packet-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("kanban")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("mindmap")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("block-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("gitGraph")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("C4Context")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("swimlane-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("gantt")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("info")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("treeView-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("eventmodeling")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("ishikawa-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("venn-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("sankey-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("treemap-beta")) &&
+                detected.diagnostic.expected.contains(QStringLiteral("cynefin-beta")) &&
+                detected.diagnostic.span.offset == 0 && detected.diagnostic.span.line == 1 &&
                 detected.diagnostic.span.column == 1,
             QStringLiteral("missing diagram header must carry a source position"));
 
-    const QString invalidYaml = QStringLiteral(
-        "---\nconfig: [\n---\nflowchart TB\nA --> B");
-    const MermaidRenderEntry preprocessed = cache.getSync(
-        MermaidRenderCache::makeKey(invalidYaml), invalidYaml);
-    require(preprocessed.status == kError &&
-                preprocessed.diagnostic.stage == QLatin1String("preprocess") &&
+    const QString invalidYaml = QStringLiteral("---\nconfig: [\n---\nflowchart TB\nA --> B");
+    const MermaidRenderEntry preprocessed = cache.getSync(MermaidRenderCache::makeKey(invalidYaml), invalidYaml);
+    require(preprocessed.status == kError && preprocessed.diagnostic.stage == QLatin1String("preprocess") &&
                 preprocessed.diagnostic.span.hasLocation() &&
                 preprocessed.errorMessage.contains(QStringLiteral("Line ")) &&
                 preprocessed.errorMessage.contains(QStringLiteral("Preprocessing error")),
@@ -1212,13 +932,9 @@ int main(int argc, char** argv) {
   // --- getSync: GitGraph is supported through the shared cache path ---
   {
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(gitGraph), gitGraph);
-    const auto* scene =
-        dynamic_cast<const muffin::mermaid::gitgraph::GitGraphScene*>(
-            entry.scene.get());
-    require(entry.status == kReady && scene && !scene->primitives.isEmpty() &&
-                entry.naturalSize.width() > 0 &&
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(gitGraph), gitGraph);
+    const auto* scene = dynamic_cast<const muffin::mermaid::gitgraph::GitGraphScene*>(entry.scene.get());
+    require(entry.status == kReady && scene && !scene->primitives.isEmpty() && entry.naturalSize.width() > 0 &&
                 entry.naturalSize.height() > 0,
             QStringLiteral("gitGraph should produce a native scene"));
   }
@@ -1226,13 +942,10 @@ int main(int argc, char** argv) {
   // --- getSync: C4 is supported through the shared cache path ---
   {
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(c4Diagram), c4Diagram);
-    const auto* scene =
-        dynamic_cast<const muffin::mermaid::c4::C4Scene*>(entry.scene.get());
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(c4Diagram), c4Diagram);
+    const auto* scene = dynamic_cast<const muffin::mermaid::c4::C4Scene*>(entry.scene.get());
     require(entry.status == kReady && scene && !scene->primitives.isEmpty() &&
-                entry.metadata.cssClass == QLatin1String("c4") &&
-                entry.naturalSize.width() > 0 &&
+                entry.metadata.cssClass == QLatin1String("c4") && entry.naturalSize.width() > 0 &&
                 entry.naturalSize.height() > 0,
             QStringLiteral("C4 should produce a native scene"));
   }
@@ -1241,30 +954,22 @@ int main(int argc, char** argv) {
   // flowchart-elk ID therefore uses the unified parser and Dagre fallback.
   {
     MermaidRenderCache cache;
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(flowchartElk), flowchartElk);
-    require(entry.status == kReady && entry.scene &&
-                entry.metadata.diagramType == QLatin1String("flowchart-elk"),
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(flowchartElk), flowchartElk);
+    require(entry.status == kReady && entry.scene && entry.metadata.diagramType == QLatin1String("flowchart-elk"),
             QStringLiteral("flowchart-elk must use the bundled Dagre fallback"));
   }
 
   // --- all four Railroad parser frontends share one native immutable scene ---
   {
     const QVector<QString> sources = {
-        QStringLiteral("railroad-beta\nA=terminal('a');"),
-        QStringLiteral("railroad-ebnf-beta\nA='a';"),
-        QStringLiteral("railroad-abnf-beta\nA=\"a\";"),
-        QStringLiteral("railroad-peg-beta\nA<-'a';")};
+        QStringLiteral("railroad-beta\nA=terminal('a');"), QStringLiteral("railroad-ebnf-beta\nA='a';"),
+        QStringLiteral("railroad-abnf-beta\nA=\"a\";"), QStringLiteral("railroad-peg-beta\nA<-'a';")};
     MermaidRenderCache cache;
     for (const QString& source : sources) {
-      const MermaidRenderEntry entry = cache.getSync(
-          MermaidRenderCache::makeKey(source), source);
-      const auto* scene =
-          dynamic_cast<const muffin::mermaid::railroad::RailroadScene*>(
-              entry.scene.get());
+      const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+      const auto* scene = dynamic_cast<const muffin::mermaid::railroad::RailroadScene*>(entry.scene.get());
       require(entry.status == kReady && scene && !scene->rules.isEmpty() &&
-                  entry.metadata.cssClass == QLatin1String("railroad") &&
-                  entry.naturalSize.width() > 0 &&
+                  entry.metadata.cssClass == QLatin1String("railroad") && entry.naturalSize.width() > 0 &&
                   entry.naturalSize.height() > 0,
               QStringLiteral("Railroad dialect did not reach the native cache"));
     }
@@ -1273,65 +978,49 @@ int main(int argc, char** argv) {
   // --- sequence MathML is compiled into the immutable scene once ---
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "sequenceDiagram\nA->>B: $$\\frac{\\sqrt{x}}{y^2}$$");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
+    const QString source = QStringLiteral("sequenceDiagram\nA->>B: $$\\frac{\\sqrt{x}}{y^2}$$");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
     const auto* sequenceScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(entry.scene.get());
-    require(entry.status == kReady && sequenceScene &&
-                sequenceScene->messageLabels.size() == 1,
+    require(entry.status == kReady && sequenceScene && sequenceScene->messageLabels.size() == 1,
             QStringLiteral("sequence MathML cache case must render"));
     const auto& math = sequenceScene->messageLabels.first().richText.math;
     require(math.size() == 1 && math.front().prepared,
             QStringLiteral("sequence scene must own a prepared MathML operation"));
     const auto* prepared = math.front().prepared.get();
-    const QImage first = muffin::mermaid::sequence::renderSequenceSceneToImage(
-        *sequenceScene, 1.0, 0.0);
-    const QImage second = muffin::mermaid::sequence::renderSequenceSceneToImage(
-        *sequenceScene, 1.0, 0.0);
-    require(!first.isNull() && first == second &&
-                math.front().prepared.get() == prepared,
+    const QImage first = muffin::mermaid::sequence::renderSequenceSceneToImage(*sequenceScene, 1.0, 0.0);
+    const QImage second = muffin::mermaid::sequence::renderSequenceSceneToImage(*sequenceScene, 1.0, 0.0);
+    require(!first.isNull() && first == second && math.front().prepared.get() == prepared,
             QStringLiteral("repaint must reuse the immutable MathML operation"));
   }
 
   // --- prepared MathML crosses the worker/GUI thread boundary read-only ---
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "sequenceDiagram\nA->>B: $$\\hat{\\frac{x}{y}}$$");
+    const QString source = QStringLiteral("sequenceDiagram\nA->>B: $$\\hat{\\frac{x}{y}}$$");
     const MermaidRenderKey key = MermaidRenderCache::makeKey(source);
     require(cache.request(key, source).status == kLoading,
             QStringLiteral("async sequence MathML request must start loading"));
-    require(waitForReady(cache, key),
-            QStringLiteral("async sequence MathML renderReady must fire"));
+    require(waitForReady(cache, key), QStringLiteral("async sequence MathML renderReady must fire"));
     const MermaidRenderEntry entry = cache.request(key, source);
     const auto* sequenceScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(entry.scene.get());
-    require(entry.status == kReady && sequenceScene &&
-                !sequenceScene->messageLabels.isEmpty() &&
-                sequenceScene->messageLabels.first()
-                    .richText.math.front().prepared,
+    require(entry.status == kReady && sequenceScene && !sequenceScene->messageLabels.isEmpty() &&
+                sequenceScene->messageLabels.first().richText.math.front().prepared,
             QStringLiteral("worker-built MathML scene must retain operations"));
-    const QImage image = muffin::mermaid::sequence::renderSequenceSceneToImage(
-        *sequenceScene, 1.0, 0.0);
-    require(!image.isNull(),
-            QStringLiteral("worker-built MathML operations must paint on GUI thread"));
+    const QImage image = muffin::mermaid::sequence::renderSequenceSceneToImage(*sequenceScene, 1.0, 0.0);
+    require(!image.isNull(), QStringLiteral("worker-built MathML operations must paint on GUI thread"));
   }
 
   // --- preparation is idempotent and strict scene assembly preserves identity ---
   {
-    auto label = muffin::mermaid::sequence::parseSequenceLabel(
-        QStringLiteral("$$\\frac{x}{y}$$"),
-        muffin::mermaid::sequence::SequenceLabelKind::Message);
-    require(muffin::mermaid::flowchart::prepareFlowLabelMath(
-                label.richText, 16.0) == 1,
+    auto label = muffin::mermaid::sequence::parseSequenceLabel(QStringLiteral("$$\\frac{x}{y}$$"),
+                                                               muffin::mermaid::sequence::SequenceLabelKind::Message);
+    require(muffin::mermaid::flowchart::prepareFlowLabelMath(label.richText, 16.0) == 1,
             QStringLiteral("first MathML preparation must build one operation"));
     const auto* first = label.richText.math.front().prepared.get();
-    require(muffin::mermaid::flowchart::prepareFlowLabelMath(
-                label.richText, 16.0) == 0 &&
+    require(muffin::mermaid::flowchart::prepareFlowLabelMath(label.richText, 16.0) == 0 &&
                 label.richText.math.front().prepared.get() == first,
             QStringLiteral("same-font preparation must reuse the operation"));
-    require(muffin::mermaid::flowchart::prepareFlowLabelMath(
-                label.richText, 20.0) == 1 &&
+    require(muffin::mermaid::flowchart::prepareFlowLabelMath(label.richText, 20.0) == 1 &&
                 label.richText.math.front().prepared.get() != first,
             QStringLiteral("font-size changes must rebuild the operation"));
 
@@ -1343,52 +1032,37 @@ int main(int argc, char** argv) {
     muffin::mermaid::sequence::SequencePreparedLabels labels;
     labels.messagesByIndex.insert(7, label);
     const auto* prepared = label.richText.math.front().prepared.get();
-    const auto scene = muffin::mermaid::sequence::buildSequenceScene(
-        layout, {}, labels, true);
+    const auto scene = muffin::mermaid::sequence::buildSequenceScene(layout, {}, labels, true);
     require(scene.messageLabels.size() == 1 &&
-                scene.messageLabels.front().richText.math.front()
-                    .prepared.get() == prepared,
+                scene.messageLabels.front().richText.math.front().prepared.get() == prepared,
             QStringLiteral("scene assembly must preserve prepared identity"));
     bool rejectedMissing = false;
     try {
-      (void)muffin::mermaid::sequence::buildSequenceScene(
-          layout, {}, {}, true);
+      (void)muffin::mermaid::sequence::buildSequenceScene(layout, {}, {}, true);
     } catch (const std::logic_error&) {
       rejectedMissing = true;
     }
-    require(rejectedMissing,
-            QStringLiteral("strict scene assembly must reject missing labels"));
+    require(rejectedMissing, QStringLiteral("strict scene assembly must reject missing labels"));
   }
 
   // --- sequence font style is resolved before measurement and preparation ---
   {
     MermaidRenderCache cache;
-    const QString body = QStringLiteral(
-        "sequenceDiagram\nA->>B: a deliberately long message label\n"
-        "A->>B: $$\\hat{\\frac{x}{y}}$$");
-    const QString large = QStringLiteral(
-        "%%{init: {\"themeVariables\": {\"fontSize\": \"20px\"}}}%%\n") +
-        body;
-    const auto normal = cache.getSync(
-        MermaidRenderCache::makeKey(body), body);
-    const auto enlarged = cache.getSync(
-        MermaidRenderCache::makeKey(large), large);
+    const QString body = QStringLiteral("sequenceDiagram\nA->>B: a deliberately long message label\n"
+                                        "A->>B: $$\\hat{\\frac{x}{y}}$$");
+    const QString large = QStringLiteral("%%{init: {\"themeVariables\": {\"fontSize\": \"20px\"}}}%%\n") + body;
+    const auto normal = cache.getSync(MermaidRenderCache::makeKey(body), body);
+    const auto enlarged = cache.getSync(MermaidRenderCache::makeKey(large), large);
     const auto* normalScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(normal.scene.get());
     const auto* enlargedScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(enlarged.scene.get());
-    require(normal.status == kReady && normalScene &&
-                enlarged.status == kReady && enlargedScene,
+    require(normal.status == kReady && normalScene && enlarged.status == kReady && enlargedScene,
             QStringLiteral("sequence font-size comparison must render"));
-    require(normalScene->style.fontSize == 16.0 &&
-                enlargedScene->style.fontSize == 20.0 &&
-                enlargedScene->messages.first().labelRect.width() >
-                    normalScene->messages.first().labelRect.width() &&
-                enlargedScene->messages.first().labelRect.height() >
-                    normalScene->messages.first().labelRect.height(),
+    require(normalScene->style.fontSize == 16.0 && enlargedScene->style.fontSize == 20.0 &&
+                enlargedScene->messages.first().labelRect.width() > normalScene->messages.first().labelRect.width() &&
+                enlargedScene->messages.first().labelRect.height() > normalScene->messages.first().labelRect.height(),
             QStringLiteral("sequence font size must affect measured geometry"));
-    const auto& normalMath = normalScene->messageLabels.at(1)
-                                 .richText.math.front().prepared;
-    const auto& enlargedMath = enlargedScene->messageLabels.at(1)
-                                   .richText.math.front().prepared;
+    const auto& normalMath = normalScene->messageLabels.at(1).richText.math.front().prepared;
+    const auto& enlargedMath = enlargedScene->messageLabels.at(1).richText.math.front().prepared;
     require(normalMath && enlargedMath && normalMath.get() != enlargedMath.get(),
             QStringLiteral("font-size changes must produce a new Math operation"));
   }
@@ -1396,22 +1070,20 @@ int main(int argc, char** argv) {
   // --- sequence config + box measurements reach the production scene ---
   {
     MermaidRenderCache cache;
-    const QString configured = QStringLiteral(
-        "%%{init: {\"sequence\": {\"mirrorActors\": false, "
-        "\"hideUnusedParticipants\": true, \"width\": 180, \"boxMargin\": 14, "
-        "\"diagramMarginX\": 31, \"diagramMarginY\": 23, "
-        "\"bottomMarginAdj\": 7}}}%%\n"
-        "sequenceDiagram\n"
-        "participant UNUSED as Hidden\n"
-        "box rgb(238, 246, 255) Services\n"
-        "participant A as API\n"
-        "participant B as Worker\n"
-        "end\n"
-        "A->>B:call");
+    const QString configured = QStringLiteral("%%{init: {\"sequence\": {\"mirrorActors\": false, "
+                                              "\"hideUnusedParticipants\": true, \"width\": 180, \"boxMargin\": 14, "
+                                              "\"diagramMarginX\": 31, \"diagramMarginY\": 23, "
+                                              "\"bottomMarginAdj\": 7}}}%%\n"
+                                              "sequenceDiagram\n"
+                                              "participant UNUSED as Hidden\n"
+                                              "box rgb(238, 246, 255) Services\n"
+                                              "participant A as API\n"
+                                              "participant B as Worker\n"
+                                              "end\n"
+                                              "A->>B:call");
     const MermaidRenderEntry e = cache.getSync(MermaidRenderCache::makeKey(configured), configured);
     const auto* sequenceScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(e.scene.get());
-    require(e.status == kReady && sequenceScene != nullptr,
-            QStringLiteral("configured sequence must render"));
+    require(e.status == kReady && sequenceScene != nullptr, QStringLiteral("configured sequence must render"));
     require(sequenceScene->participants.size() == 2 && sequenceScene->boxes.size() == 1,
             QStringLiteral("sequence hideUnusedParticipants/box config must reach the scene"));
     require(sequenceScene->participants.first().logicalRect.width() == 180.0 &&
@@ -1429,10 +1101,9 @@ int main(int argc, char** argv) {
     viewportOptions.boxMargin = 14.0;
     viewportOptions.bottomMarginAdj = 7.0;
     viewportOptions.mirrorActors = false;
-    const QRectF viewport = muffin::mermaid::sequence::sequenceViewportRect(
-        *sequenceScene, viewportOptions);
-    const QImage viewportImage = muffin::mermaid::sequence::renderSequenceSceneToImage(
-        *sequenceScene, 1.0, viewportOptions);
+    const QRectF viewport = muffin::mermaid::sequence::sequenceViewportRect(*sequenceScene, viewportOptions);
+    const QImage viewportImage =
+        muffin::mermaid::sequence::renderSequenceSceneToImage(*sequenceScene, 1.0, viewportOptions);
     require(sequenceScene->viewportRect == viewport &&
                 e.naturalSize == QSize(qCeil(viewport.width()), qCeil(viewport.height())) &&
                 viewportImage.size() == e.naturalSize,
@@ -1447,7 +1118,8 @@ int main(int argc, char** argv) {
     require(first.status == kLoading, QStringLiteral("first request must be Loading (got %1)").arg((int)first.status));
     require(waitForReady(cache, key), QStringLiteral("renderReady must fire for the key"));
     const MermaidRenderEntry second = cache.request(key, flow);
-    require(second.status == kReady && second.scene != nullptr, QStringLiteral("after renderReady, request must be Ready"));
+    require(second.status == kReady && second.scene != nullptr,
+            QStringLiteral("after renderReady, request must be Ready"));
   }
 
   // --- edit debounce supersedes stale source and reports async errors ---
@@ -1457,18 +1129,16 @@ int main(int argc, char** argv) {
     const MermaidRenderKey staleKey = MermaidRenderCache::makeKey(stale);
     const MermaidRenderKey latestKey = MermaidRenderCache::makeKey(malformed);
     bool staleRendered = false;
-    QObject::connect(&cache, &MermaidRenderCache::renderReady, &app,
-                     [&](const MermaidRenderKey& key) {
-      if (key == staleKey) staleRendered = true;
+    QObject::connect(&cache, &MermaidRenderCache::renderReady, &app, [&](const MermaidRenderKey& key) {
+      if (key == staleKey)
+        staleRendered = true;
     });
     require(cache.requestDebounced(staleKey, stale, 150).status == kLoading,
             QStringLiteral("first debounced source must enter Loading"));
     require(cache.requestDebounced(latestKey, malformed, 5).status == kLoading,
             QStringLiteral("latest debounced source must enter Loading"));
-    require(waitForReady(cache, latestKey),
-            QStringLiteral("latest debounced source must emit renderReady"));
-    const MermaidRenderEntry result =
-        cache.requestDebounced(latestKey, malformed, 5);
+    require(waitForReady(cache, latestKey), QStringLiteral("latest debounced source must emit renderReady"));
+    const MermaidRenderEntry result = cache.requestDebounced(latestKey, malformed, 5);
     require(result.status == kError && !result.errorMessage.isEmpty(),
             QStringLiteral("debounced malformed source must resolve to Error"));
 
@@ -1488,12 +1158,12 @@ int main(int argc, char** argv) {
     const MermaidRenderKey ka = MermaidRenderCache::makeKey(a);
     const MermaidRenderKey kb = MermaidRenderCache::makeKey(b);
     const MermaidRenderKey kc = MermaidRenderCache::makeKey(c);
-    cache.getSync(ka, a);  // [a]
-    cache.getSync(kb, b);  // [a,b]
+    cache.getSync(ka, a); // [a]
+    cache.getSync(kb, b); // [a,b]
     require(cache.size() == 2, QStringLiteral("size after 2 inserts = %1").arg(cache.size()));
-    cache.getSync(kc, c);  // [b,c]  (a evicted — least recently used)
+    cache.getSync(kc, c); // [b,c]  (a evicted — least recently used)
     require(cache.size() == 2, QStringLiteral("size stays at capacity after 3 inserts"));
-    const MermaidRenderEntry evicted = cache.getSync(ka, a);  // a was evicted → re-rendered → Ready again
+    const MermaidRenderEntry evicted = cache.getSync(ka, a); // a was evicted → re-rendered → Ready again
     require(evicted.status == kReady, QStringLiteral("evicted entry re-renders on request"));
   }
 
@@ -1502,18 +1172,18 @@ int main(int argc, char** argv) {
     const MermaidRenderKey k1 = MermaidRenderCache::makeKey(flow);
     const MermaidRenderKey k2 = MermaidRenderCache::makeKey(flow);
     require(k1 == k2, QStringLiteral("same inputs must produce the same key"));
-    const MermaidRenderKey k3 = MermaidRenderCache::makeKey(flow + QStringLiteral(" "));  // different source
+    const MermaidRenderKey k3 = MermaidRenderCache::makeKey(flow + QStringLiteral(" ")); // different source
     require(!(k1 == k3), QStringLiteral("different source must produce a different key"));
   }
 
   // --- complete config propagation: themeVariables + flowchart spacing/font ---
   {
     MermaidRenderCache cache;
-    const QString configured = QStringLiteral(
-        "%%{init: {\"look\": \"neo\", "
-        "\"themeVariables\": {\"mainBkg\": \"#123456\", \"fontSize\": \"14px\"}, "
-        "\"flowchart\": {\"nodeSpacing\": 120, \"rankSpacing\": 90, \"curve\": \"linear\"}}}%%\n"
-        "flowchart LR\nA[\"`**Bold** label`\"] --> B[Beta]");
+    const QString configured =
+        QStringLiteral("%%{init: {\"look\": \"neo\", "
+                       "\"themeVariables\": {\"mainBkg\": \"#123456\", \"fontSize\": \"14px\"}, "
+                       "\"flowchart\": {\"nodeSpacing\": 120, \"rankSpacing\": 90, \"curve\": \"linear\"}}}%%\n"
+                       "flowchart LR\nA[\"`**Bold** label`\"] --> B[Beta]");
     const MermaidRenderEntry e = cache.getSync(MermaidRenderCache::makeKey(configured), configured);
     require(e.status == kReady && e.scene != nullptr, QStringLiteral("configured flowchart must render"));
     const auto* flowScene = dynamic_cast<const muffin::mermaid::flowscene::FlowScene*>(e.scene.get());
@@ -1526,8 +1196,7 @@ int main(int argc, char** argv) {
             QStringLiteral("top-level look must reach the rendered scene"));
     require(flowScene->nodes.first().label.fontFamily.contains(QLatin1String("Noto Sans")),
             QStringLiteral("default Mermaid labels must use the bundled Noto stack"));
-    require(flowScene->nodes.size() == 2 &&
-                qAbs(flowScene->nodes.at(1).cx - flowScene->nodes.at(0).cx) > 150.0,
+    require(flowScene->nodes.size() == 2 && qAbs(flowScene->nodes.at(1).cx - flowScene->nodes.at(0).cx) > 150.0,
             QStringLiteral("flowchart spacing must reach Dagre"));
   }
 
@@ -1535,47 +1204,34 @@ int main(int argc, char** argv) {
   {
     using muffin::mermaid::flowchart::parseFlowLabel;
     using muffin::mermaid::flowchart::parseFlowSvgLabel;
-    const auto markdown = parseFlowLabel(QStringLiteral("**Bold** and `code`<br/>next"),
-                                         QStringLiteral("markdown"));
+    const auto markdown = parseFlowLabel(QStringLiteral("**Bold** and `code`<br/>next"), QStringLiteral("markdown"));
     require(markdown.text == QLatin1String("Bold and code\nnext"),
             QStringLiteral("markdown markers and br must be consumed by the label model"));
     require(markdown.formats.size() == 2 && markdown.formats.first().format.fontWeight() == QFont::Bold,
             QStringLiteral("markdown bold/code formatting must be represented structurally"));
-    const auto markdownMetrics = muffin::mermaid::flowchart::layoutFlowLabel(
-        markdown, QStringLiteral("Noto Sans"), 16.0, 22.0);
+    const auto markdownMetrics =
+        muffin::mermaid::flowchart::layoutFlowLabel(markdown, QStringLiteral("Noto Sans"), 16.0, 22.0);
     const auto& formattedRuns = markdownMetrics.lines.first().runs;
     require(!formattedRuns.isEmpty() &&
-                std::all_of(formattedRuns.cbegin(), formattedRuns.cend(), [](const auto& run) {
-                  return !run.preparedGlyphs.isEmpty();
-                }) &&
-                std::any_of(formattedRuns.cbegin(), formattedRuns.cend(), [](const auto& run) {
-                  return run.fontWeight >= QFont::Bold;
-                }),
+                std::all_of(formattedRuns.cbegin(), formattedRuns.cend(),
+                            [](const auto& run) { return !run.preparedGlyphs.isEmpty(); }) &&
+                std::any_of(formattedRuns.cbegin(), formattedRuns.cend(),
+                            [](const auto& run) { return run.fontWeight >= QFont::Bold; }),
             QStringLiteral("formatted labels must retain styled prepared glyph runs"));
-    const auto html = parseFlowLabel(QStringLiteral("<b>Bold</b><br><i>italic</i>"),
-                                     QStringLiteral("string"));
-    require(html.text == QLatin1String("Bold\nitalic") && html.formats.size() == 2 &&
-                html.direction == Qt::LeftToRight,
+    const auto html = parseFlowLabel(QStringLiteral("<b>Bold</b><br><i>italic</i>"), QStringLiteral("string"));
+    require(html.text == QLatin1String("Bold\nitalic") && html.formats.size() == 2 && html.direction == Qt::LeftToRight,
             QStringLiteral("safe inline HTML must use the same native label model"));
-    const auto htmlMetrics = muffin::mermaid::flowchart::layoutFlowLabel(
-        html, QStringLiteral("Noto Sans"), 16.0, 22.0);
-    require(std::any_of(htmlMetrics.lines.at(1).runs.cbegin(),
-                        htmlMetrics.lines.at(1).runs.cend(), [](const auto& run) {
-              return run.fontItalic;
-            }), QStringLiteral("italic labels must retain the synthetic style face"));
-    const auto svgHtml = parseFlowSvgLabel(
-        QStringLiteral("<b>Bold</b><br><i>italic</i>"),
-        QStringLiteral("string"));
-    require(svgHtml.text == QLatin1String("<b> Bold </b>\n<i> italic </i>") &&
-                svgHtml.formats.isEmpty() &&
+    const auto htmlMetrics = muffin::mermaid::flowchart::layoutFlowLabel(html, QStringLiteral("Noto Sans"), 16.0, 22.0);
+    require(std::any_of(htmlMetrics.lines.at(1).runs.cbegin(), htmlMetrics.lines.at(1).runs.cend(),
+                        [](const auto& run) { return run.fontItalic; }),
+            QStringLiteral("italic labels must retain the synthetic style face"));
+    const auto svgHtml = parseFlowSvgLabel(QStringLiteral("<b>Bold</b><br><i>italic</i>"), QStringLiteral("string"));
+    require(svgHtml.text == QLatin1String("<b> Bold </b>\n<i> italic </i>") && svgHtml.formats.isEmpty() &&
                 svgHtml.formattingContext ==
-                    muffin::mermaid::flowchart::FlowLabelFormattingContext::
-                        FlowSvgFormattedText,
+                    muffin::mermaid::flowchart::FlowLabelFormattingContext::FlowSvgFormattedText,
             QStringLiteral("SVG formatted text must retain visible HTML tags"));
-    const auto svgMarkdown = parseFlowSvgLabel(
-        QStringLiteral("**Bold** next"), QStringLiteral("markdown"));
-    require(svgMarkdown.text == QLatin1String("Bold next") &&
-                svgMarkdown.formats.size() == 1 &&
+    const auto svgMarkdown = parseFlowSvgLabel(QStringLiteral("**Bold** next"), QStringLiteral("markdown"));
+    require(svgMarkdown.text == QLatin1String("Bold next") && svgMarkdown.formats.size() == 1 &&
                 svgMarkdown.formats.first().format.fontWeight() == QFont::Bold,
             QStringLiteral("SVG formatted text must still parse Markdown markers"));
   }
@@ -1583,18 +1239,15 @@ int main(int argc, char** argv) {
   // --- cluster titles constrain the compound layout width ---
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "flowchart TB\nsubgraph S[\"<b>Group \u4e2d\u6587</b> "
-        "\u0645\u0631\u062d\u0628\u0627 \u05e9\u05dc\u05d5\u05dd\"]\nA[Inside]\nend");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
+    const QString source = QStringLiteral("flowchart TB\nsubgraph S[\"<b>Group \u4e2d\u6587</b> "
+                                          "\u0645\u0631\u062d\u0628\u0627 \u05e9\u05dc\u05d5\u05dd\"]\nA[Inside]\nend");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
     const auto* flowScene = dynamic_cast<const muffin::mermaid::flowscene::FlowScene*>(entry.scene.get());
-    require(entry.status == kReady && entry.scene && flowScene &&
-                flowScene->clusters.size() == 1,
+    require(entry.status == kReady && entry.scene && flowScene && flowScene->clusters.size() == 1,
             QStringLiteral("wide cluster title must render"));
     const auto& cluster = flowScene->clusters.first();
-    const auto titleLayout = muffin::mermaid::flowchart::layoutFlowLabel(
-        cluster.label.richText, cluster.label.fontFamily, 16.0, 17.0);
+    const auto titleLayout =
+        muffin::mermaid::flowchart::layoutFlowLabel(cluster.label.richText, cluster.label.fontFamily, 16.0, 17.0);
     require(cluster.width + 0.001 >= titleLayout.size.width() + 8.0,
             QStringLiteral("cluster width must include the SVG title inset"));
   }
@@ -1602,31 +1255,22 @@ int main(int argc, char** argv) {
   // --- wrapped edge labels are immutable layout products ---
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "flowchart LR\nA[Start] -->|\"A deliberately long edge label that "
-        "wraps at the upstream limit\"| B[Finish]");
-    const MermaidRenderEntry entry = cache.getSync(
-        MermaidRenderCache::makeKey(source), source);
+    const QString source = QStringLiteral("flowchart LR\nA[Start] -->|\"A deliberately long edge label that "
+                                          "wraps at the upstream limit\"| B[Finish]");
+    const MermaidRenderEntry entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
     const auto* flowScene = dynamic_cast<const muffin::mermaid::flowscene::FlowScene*>(entry.scene.get());
-    require(entry.status == kReady && entry.scene && flowScene &&
-                flowScene->edges.size() == 1,
+    require(entry.status == kReady && entry.scene && flowScene && flowScene->edges.size() == 1,
             QStringLiteral("wrapped edge label must render"));
     const auto& edge = flowScene->edges.first();
     require(edge.label.richText.visualLines.size() == 3 &&
-                (edge.label.htmlLabels
-                     ? qFuzzyIsNull(edge.label.richText.visualLineAdvance)
-                     : edge.label.richText.visualLineAdvance > 0.0) &&
-                edge.labelSize.width() > 0.0 &&
-                edge.labelSize.height() > 0.0,
+                (edge.label.htmlLabels ? qFuzzyIsNull(edge.label.richText.visualLineAdvance)
+                                       : edge.label.richText.visualLineAdvance > 0.0) &&
+                edge.labelSize.width() > 0.0 && edge.labelSize.height() > 0.0,
             QStringLiteral("edge wrapping must reach the immutable scene"));
-    const auto metrics = muffin::mermaid::flowchart::layoutFlowLabel(
-        edge.label.richText, edge.label.fontFamily, 16.0, 24.0);
-    const auto fontMetrics =
-        muffin::mermaid::flowchart::flowLabelFontBoundingMetrics(
-            edge.label.fontFamily, 16.0);
-    require(metrics.lines.size() == 3 &&
-                qAbs(metrics.lines.first().baseline -
-                     fontMetrics.ascent) < 0.001,
+    const auto metrics =
+        muffin::mermaid::flowchart::layoutFlowLabel(edge.label.richText, edge.label.fontFamily, 16.0, 24.0);
+    const auto fontMetrics = muffin::mermaid::flowchart::flowLabelFontBoundingMetrics(edge.label.fontFamily, 16.0);
+    require(metrics.lines.size() == 3 && qAbs(metrics.lines.first().baseline - fontMetrics.ascent) < 0.001,
             QStringLiteral("wrapped SVG lines must use the font-table baseline"));
   }
 
@@ -1643,56 +1287,51 @@ int main(int argc, char** argv) {
                                                  "\u05e9\u05dc\u05d5\u05dd") &&
                 htmlMetrics.lines.size() == 2 && htmlMetrics.size.height() >= 44.0,
             QStringLiteral("sequence HTML/br labels must retain visual lines"));
-    require(std::all_of(htmlMetrics.lines.cbegin(), htmlMetrics.lines.cend(), [](const auto& line) {
-              return line.baseline > 0.0 && line.ascent > 0.0 && line.descent >= 0.0 &&
-                     !line.runs.isEmpty();
-            }), QStringLiteral("sequence labels must expose baseline/ascent/descent/bidi runs"));
-    const auto literalBidi = parseSequenceLabel(
-        QStringLiteral("<b>\u4e2d\u6587</b> \u0645\u0631\u062d\u0628\u0627"));
-    const auto literalBidiMetrics = layoutSequenceLabel(
-        literalBidi, QStringLiteral("Noto Sans"), 16.0, 22.0);
-    require(!literalBidi.richText.text.contains(QLatin1Char('\n')) &&
-                literalBidiMetrics.lines.size() == 1,
+    require(std::all_of(htmlMetrics.lines.cbegin(), htmlMetrics.lines.cend(),
+                        [](const auto& line) {
+                          return line.baseline > 0.0 && line.ascent > 0.0 && line.descent >= 0.0 &&
+                                 !line.runs.isEmpty();
+                        }),
+            QStringLiteral("sequence labels must expose baseline/ascent/descent/bidi runs"));
+    const auto literalBidi = parseSequenceLabel(QStringLiteral("<b>\u4e2d\u6587</b> \u0645\u0631\u062d\u0628\u0627"));
+    const auto literalBidiMetrics = layoutSequenceLabel(literalBidi, QStringLiteral("Noto Sans"), 16.0, 22.0);
+    require(!literalBidi.richText.text.contains(QLatin1Char('\n')) && literalBidiMetrics.lines.size() == 1,
             QStringLiteral("sequence SVG labels must not be paint-time auto-wrapped"));
     const auto& literalRuns = literalBidiMetrics.lines.first().runs;
-    require(!literalRuns.isEmpty() &&
-                std::any_of(literalRuns.cbegin(), literalRuns.cend(), [](const auto& run) {
-                  return run.rightToLeft;
-                }) &&
-                std::all_of(literalRuns.cbegin(), literalRuns.cend(), [](const auto& run) {
-                  return !run.preparedGlyphs.isEmpty() &&
-                         run.preparedGlyphs.glyphIndexes().size() ==
-                             run.preparedGlyphs.positions().size() &&
-                         run.preparedGlyphWidth > 0.0;
-                }),
-            QStringLiteral("sequence bidi runs must retain complete full-line glyph shaping"));
-    const auto markdownMath = parseSequenceLabel(
-        QStringLiteral("`**\u901f\u5ea6** $$x^2$$`"),
-        muffin::mermaid::sequence::SequenceLabelKind::Note);
+    require(
+        !literalRuns.isEmpty() &&
+            std::any_of(literalRuns.cbegin(), literalRuns.cend(), [](const auto& run) { return run.rightToLeft; }) &&
+            std::all_of(literalRuns.cbegin(), literalRuns.cend(),
+                        [](const auto& run) {
+                          return !run.preparedGlyphs.isEmpty() &&
+                                 run.preparedGlyphs.glyphIndexes().size() == run.preparedGlyphs.positions().size() &&
+                                 run.preparedGlyphWidth > 0.0;
+                        }),
+        QStringLiteral("sequence bidi runs must retain complete full-line glyph shaping"));
+    const auto markdownMath = parseSequenceLabel(QStringLiteral("`**\u901f\u5ea6** $$x^2$$`"),
+                                                 muffin::mermaid::sequence::SequenceLabelKind::Note);
     const auto mathMetrics = layoutSequenceLabel(markdownMath, QStringLiteral("Noto Sans"), 16.0, 22.0);
     require(!markdownMath.markdown && !markdownMath.richText.math.isEmpty() &&
-                markdownMath.richText.text.startsWith(QLatin1String("`**")) &&
-                mathMetrics.size.width() > 0.0,
+                markdownMath.richText.text.startsWith(QLatin1String("`**")) && mathMetrics.size.width() > 0.0,
             QStringLiteral("sequence literal Markdown/Math labels must use structured measurement"));
   }
 
   // --- structured label height participates in sequence vertical placement ---
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "sequenceDiagram\n"
-        "box rgb(238, 246, 255) <b>\u670d\u52a1</b>\n"
-        "participant A as `**\u5ba2\u6237\u7aef**`\n"
-        "participant B as \u062e\u0627\u062f\u0645\n"
-        "end\n"
-        "A->>B:\u7b2c\u4e00\u884c<br/>\u0645\u0631\u062d\u0628\u0627 "
-        "\u05e9\u05dc\u05d5\u05dd\n"
-        "note over A,B:\u8bf4\u660e<br/>$$x^2$$\n"
-        "B-->>A:after");
+    const QString source = QStringLiteral("sequenceDiagram\n"
+                                          "box rgb(238, 246, 255) <b>\u670d\u52a1</b>\n"
+                                          "participant A as `**\u5ba2\u6237\u7aef**`\n"
+                                          "participant B as \u062e\u0627\u062f\u0645\n"
+                                          "end\n"
+                                          "A->>B:\u7b2c\u4e00\u884c<br/>\u0645\u0631\u062d\u0628\u0627 "
+                                          "\u05e9\u05dc\u05d5\u05dd\n"
+                                          "note over A,B:\u8bf4\u660e<br/>$$x^2$$\n"
+                                          "B-->>A:after");
     const MermaidRenderEntry e = cache.getSync(MermaidRenderCache::makeKey(source), source);
     const auto* sequenceScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(e.scene.get());
-    require(e.status == kReady && sequenceScene != nullptr &&
-                sequenceScene->messages.size() == 2 && sequenceScene->notes.size() == 1,
+    require(e.status == kReady && sequenceScene != nullptr && sequenceScene->messages.size() == 2 &&
+                sequenceScene->notes.size() == 1,
             QStringLiteral("structured sequence labels must render end-to-end"));
     require(sequenceScene->messages.first().labelRect.height() >= 44.0 &&
                 sequenceScene->notes.first().rect.height() >= 64.0 &&
@@ -1703,18 +1342,16 @@ int main(int argc, char** argv) {
   // --- production wrap uses the same participant/note/message documents ---
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "%%{init: {\"sequence\": {\"width\": 100, \"actorMargin\": 50, "
-        "\"wrapPadding\": 10}}}%%\n"
-        "sequenceDiagram\n"
-        "participant A as wrap:alpha beta gamma delta epsilon\n"
-        "participant B as Worker\n"
-        "A->>B:wrap:alpha beta gamma delta epsilon zeta\n"
-        "Note over A,B:wrap:alpha beta gamma delta epsilon zeta");
+    const QString source = QStringLiteral("%%{init: {\"sequence\": {\"width\": 100, \"actorMargin\": 50, "
+                                          "\"wrapPadding\": 10}}}%%\n"
+                                          "sequenceDiagram\n"
+                                          "participant A as wrap:alpha beta gamma delta epsilon\n"
+                                          "participant B as Worker\n"
+                                          "A->>B:wrap:alpha beta gamma delta epsilon zeta\n"
+                                          "Note over A,B:wrap:alpha beta gamma delta epsilon zeta");
     const MermaidRenderEntry e = cache.getSync(MermaidRenderCache::makeKey(source), source);
     const auto* sequenceScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(e.scene.get());
-    require(e.status == kReady && sequenceScene != nullptr &&
-                sequenceScene->participants.size() == 2 &&
+    require(e.status == kReady && sequenceScene != nullptr && sequenceScene->participants.size() == 2 &&
                 sequenceScene->messages.size() == 1 && sequenceScene->notes.size() == 1,
             QStringLiteral("wrapped sequence labels must render end-to-end"));
     const auto& scene = *sequenceScene;
@@ -1724,8 +1361,7 @@ int main(int argc, char** argv) {
             QStringLiteral("participant/message/note wrap display must reach the scene"));
     const qreal anchorGap = scene.participants.at(1).anchorX - scene.participants.at(0).anchorX;
     require(qAbs(anchorGap - 150.0) < 0.01,
-            QStringLiteral("wrapped message labels must not enlarge actor margins (gap=%1)")
-                .arg(anchorGap));
+            QStringLiteral("wrapped message labels must not enlarge actor margins (gap=%1)").arg(anchorGap));
     require(scene.participants.first().logicalRect.height() > 65.0,
             QStringLiteral("wrapped participant height must reach participant geometry"));
   }
@@ -1733,32 +1369,32 @@ int main(int argc, char** argv) {
   // --- sequence themeVariables reach their distinct painter channels ---
   {
     MermaidRenderCache cache;
-    const QString source = QStringLiteral(
-        "%%{init: {\"themeVariables\": {\"actorBkg\": \"#101112\", "
-        "\"actorBorder\": \"#202122\", \"actorTextColor\": \"#303132\", "
-        "\"actorLineColor\": \"#404142\", \"signalColor\": \"#505152\", "
-        "\"signalTextColor\": \"#606162\", \"noteBkgColor\": \"#707172\", "
-        "\"noteBorderColor\": \"#808182\", \"noteTextColor\": \"#909192\", "
-        "\"activationBkgColor\": \"#a0a1a2\", "
-        "\"activationBorderColor\": \"#b0b1b2\", "
-        "\"labelBoxBkgColor\": \"#c0c1c2\", "
-        "\"labelBoxBorderColor\": \"#d0d1d2\", "
-        "\"labelTextColor\": \"#e0e1e2\", \"loopTextColor\": \"#f0f1f2\", "
-        "\"sequenceNumberColor\": \"#123456\"}}}%%\n"
-        "sequenceDiagram\nautonumber\nA->>+B:call\nNote over A,B:note\nalt branch\nB-->>-A:return\nend");
-    const auto entry=cache.getSync(MermaidRenderCache::makeKey(source),source);
-    const auto* sequenceScene=dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(entry.scene.get());
-    require(entry.status==kReady&&sequenceScene,
-            QStringLiteral("sequence themeVariables case must render"));
-    const auto& style=sequenceScene->style;
-    require(style.actorFill==QLatin1String("#101112")&&style.actorStroke==QLatin1String("#202122")&&
-                style.actorTextColor==QLatin1String("#303132")&&style.lifelineColor==QLatin1String("#404142")&&
-                style.signalColor==QLatin1String("#505152")&&style.signalTextColor==QLatin1String("#606162")&&
-                style.noteFill==QLatin1String("#707172")&&style.noteStroke==QLatin1String("#808182")&&
-                style.noteTextColor==QLatin1String("#909192")&&style.activationFill==QLatin1String("#a0a1a2")&&
-                style.activationStroke==QLatin1String("#b0b1b2")&&style.labelFill==QLatin1String("#c0c1c2")&&
-                style.labelStroke==QLatin1String("#d0d1d2")&&style.labelTextColor==QLatin1String("#e0e1e2")&&
-                style.loopTextColor==QLatin1String("#f0f1f2")&&style.sequenceNumberColor==QLatin1String("#123456"),
+    const QString source =
+        QStringLiteral("%%{init: {\"themeVariables\": {\"actorBkg\": \"#101112\", "
+                       "\"actorBorder\": \"#202122\", \"actorTextColor\": \"#303132\", "
+                       "\"actorLineColor\": \"#404142\", \"signalColor\": \"#505152\", "
+                       "\"signalTextColor\": \"#606162\", \"noteBkgColor\": \"#707172\", "
+                       "\"noteBorderColor\": \"#808182\", \"noteTextColor\": \"#909192\", "
+                       "\"activationBkgColor\": \"#a0a1a2\", "
+                       "\"activationBorderColor\": \"#b0b1b2\", "
+                       "\"labelBoxBkgColor\": \"#c0c1c2\", "
+                       "\"labelBoxBorderColor\": \"#d0d1d2\", "
+                       "\"labelTextColor\": \"#e0e1e2\", \"loopTextColor\": \"#f0f1f2\", "
+                       "\"sequenceNumberColor\": \"#123456\"}}}%%\n"
+                       "sequenceDiagram\nautonumber\nA->>+B:call\nNote over A,B:note\nalt branch\nB-->>-A:return\nend");
+    const auto entry = cache.getSync(MermaidRenderCache::makeKey(source), source);
+    const auto* sequenceScene = dynamic_cast<const muffin::mermaid::sequence::SequenceScene*>(entry.scene.get());
+    require(entry.status == kReady && sequenceScene, QStringLiteral("sequence themeVariables case must render"));
+    const auto& style = sequenceScene->style;
+    require(style.actorFill == QLatin1String("#101112") && style.actorStroke == QLatin1String("#202122") &&
+                style.actorTextColor == QLatin1String("#303132") && style.lifelineColor == QLatin1String("#404142") &&
+                style.signalColor == QLatin1String("#505152") && style.signalTextColor == QLatin1String("#606162") &&
+                style.noteFill == QLatin1String("#707172") && style.noteStroke == QLatin1String("#808182") &&
+                style.noteTextColor == QLatin1String("#909192") && style.activationFill == QLatin1String("#a0a1a2") &&
+                style.activationStroke == QLatin1String("#b0b1b2") && style.labelFill == QLatin1String("#c0c1c2") &&
+                style.labelStroke == QLatin1String("#d0d1d2") && style.labelTextColor == QLatin1String("#e0e1e2") &&
+                style.loopTextColor == QLatin1String("#f0f1f2") &&
+                style.sequenceNumberColor == QLatin1String("#123456"),
             QStringLiteral("sequence themeVariables did not reach all painter channels"));
   }
 
@@ -1769,26 +1405,28 @@ int main(int argc, char** argv) {
   // → non-deterministic crash. Must render a non-degenerate scene.
   {
     MermaidRenderCache cache;
-    const QString src = QStringLiteral(
-        "flowchart TB\n"
-        "    subgraph C1[\"One\"]\n"
-        "        A([Browser]) --> B[Web]\n"
-        "        B --> C{Cache?}\n"
-        "        C -- yes --> D[(Cache)]\n"
-        "    end\n"
-        "    subgraph C2[\"Two\"]\n"
-        "        subgraph Inner[\"Inner\"]\n"
-        "            E[Gw] --> F[Auth]\n"
-        "            F --> G[(DB)]\n"
-        "        end\n"
-        "    end\n"
-        "    C -- no --> E\n"
-        "    B --> B\n"
-        "    G --> E\n");
+    const QString src = QStringLiteral("flowchart TB\n"
+                                       "    subgraph C1[\"One\"]\n"
+                                       "        A([Browser]) --> B[Web]\n"
+                                       "        B --> C{Cache?}\n"
+                                       "        C -- yes --> D[(Cache)]\n"
+                                       "    end\n"
+                                       "    subgraph C2[\"Two\"]\n"
+                                       "        subgraph Inner[\"Inner\"]\n"
+                                       "            E[Gw] --> F[Auth]\n"
+                                       "            F --> G[(DB)]\n"
+                                       "        end\n"
+                                       "    end\n"
+                                       "    C -- no --> E\n"
+                                       "    B --> B\n"
+                                       "    G --> E\n");
     const MermaidRenderEntry e = cache.getSync(MermaidRenderCache::makeKey(src), src);
-    require(e.status == kReady, QStringLiteral("compound-crossing+self-edge graph must render (got %1)").arg((int)e.status));
+    require(e.status == kReady,
+            QStringLiteral("compound-crossing+self-edge graph must render (got %1)").arg((int)e.status));
     require(e.naturalSize.width() > 0 && e.naturalSize.height() > 0,
-            QStringLiteral("compound graph must have a non-degenerate size (got %1x%2)").arg(e.naturalSize.width()).arg(e.naturalSize.height()));
+            QStringLiteral("compound graph must have a non-degenerate size (got %1x%2)")
+                .arg(e.naturalSize.width())
+                .arg(e.naturalSize.height()));
     require(e.scene != nullptr, QStringLiteral("Ready entry must carry a scene"));
   }
 
@@ -1801,75 +1439,57 @@ int main(int argc, char** argv) {
       img.loadFromData(QByteArray::fromBase64(dataUrl.mid(comma + 1).toLatin1()), "PNG");
       return img;
     };
-    struct FamilyCase { QString name; QString source; };
+    struct FamilyCase {
+      QString name;
+      QString source;
+    };
     const FamilyCase families[] = {
         {QStringLiteral("flowchart"), QStringLiteral("flowchart TB\nA[Start] --> B[Done]")},
         {QStringLiteral("sequence"), QStringLiteral("sequenceDiagram\nAlice->>Bob: Hello")},
         {QStringLiteral("class"), QStringLiteral("classDiagram\nclass A\nclass B\nA --> B")},
         {QStringLiteral("state"), QStringLiteral("stateDiagram-v2\n[*] --> S\nS --> [*]")},
         {QStringLiteral("er"), QStringLiteral("erDiagram\nCUSTOMER ||--o{ ORDER : places")},
-        {QStringLiteral("requirement"),
-         QStringLiteral("requirementDiagram\nrequirement R {\n id: 1\n text: hello\n}\n"
-                        "element E {\n type: hw\n}\nR -contains-> E")},
+        {QStringLiteral("requirement"), QStringLiteral("requirementDiagram\nrequirement R {\n id: 1\n text: hello\n}\n"
+                                                       "element E {\n type: hw\n}\nR -contains-> E")},
         {QStringLiteral("pie"), QStringLiteral("pie title Pets\n\"Dogs\" : 38\n\"Cats\" : 26")},
         {QStringLiteral("quadrant"),
          QStringLiteral("quadrantChart\nx-axis Low --> High\ny-axis Down --> Up\n\"A\": [0.3, 0.7]")},
-        {QStringLiteral("journey"),
-         QStringLiteral("journey\nsection Morning\nMake tea: 5: Me\nDo work: 3: Me, You")},
-        {QStringLiteral("radar"),
-         QStringLiteral("radar-beta\naxis A,B,C\ncurve C {1,2,3}")},
-        {QStringLiteral("xychart"),
-         QStringLiteral("xychart-beta\nx-axis [A,B,C]\ny-axis 0 --> 3\n"
-                        "bar [1,2,3]\nline [3,2,1]")},
-        {QStringLiteral("timeline"),
-         QStringLiteral("timeline\nsection S\nTask : Event")},
-        {QStringLiteral("packet"),
-         QStringLiteral("packet-beta\n0-7: \"Header\"\n8-15: \"Payload\"")},
-        {QStringLiteral("kanban"),
-         QStringLiteral("kanban\n  todo[Todo]\n    task1[Write docs]\n"
-                        "  done[Done]\n    task2[Ship]")},
-        {QStringLiteral("mindmap"),
-         QStringLiteral("mindmap\n  root((Root))\n    Alpha\n    Beta")},
-        {QStringLiteral("block"),
-         QStringLiteral("block-beta\ncolumns 2\nA[\"Alpha\"] B(\"Beta\")\nA --> B")},
-        {QStringLiteral("gitGraph"),
-         QStringLiteral("gitGraph\ncommit id: \"root\"\nbranch feature\n"
-                        "commit id: \"feature-1\"\ncheckout main\n"
-                        "merge feature id: \"release\"")},
-        {QStringLiteral("c4"),
-         QStringLiteral("C4Context\nPerson(user, \"User\")\n"
-                        "System(app, \"Application\")\n"
-                        "Rel(user, app, \"Uses\")")},
-        {QStringLiteral("swimlane"),
-         QStringLiteral("swimlane-beta TB\nsubgraph one[One]\n"
-                        "  A[Start] --> B[Done]\nend")},
-        {QStringLiteral("gantt"),
-         QStringLiteral("gantt\ndateFormat YYYY-MM-DD\ntodayMarker off\n"
-                        "section Delivery\nBuild :build, 2024-01-01, 3d\n"
-                        "Ship :ship, after build, 2d")},
+        {QStringLiteral("journey"), QStringLiteral("journey\nsection Morning\nMake tea: 5: Me\nDo work: 3: Me, You")},
+        {QStringLiteral("radar"), QStringLiteral("radar-beta\naxis A,B,C\ncurve C {1,2,3}")},
+        {QStringLiteral("xychart"), QStringLiteral("xychart-beta\nx-axis [A,B,C]\ny-axis 0 --> 3\n"
+                                                   "bar [1,2,3]\nline [3,2,1]")},
+        {QStringLiteral("timeline"), QStringLiteral("timeline\nsection S\nTask : Event")},
+        {QStringLiteral("packet"), QStringLiteral("packet-beta\n0-7: \"Header\"\n8-15: \"Payload\"")},
+        {QStringLiteral("kanban"), QStringLiteral("kanban\n  todo[Todo]\n    task1[Write docs]\n"
+                                                  "  done[Done]\n    task2[Ship]")},
+        {QStringLiteral("mindmap"), QStringLiteral("mindmap\n  root((Root))\n    Alpha\n    Beta")},
+        {QStringLiteral("block"), QStringLiteral("block-beta\ncolumns 2\nA[\"Alpha\"] B(\"Beta\")\nA --> B")},
+        {QStringLiteral("gitGraph"), QStringLiteral("gitGraph\ncommit id: \"root\"\nbranch feature\n"
+                                                    "commit id: \"feature-1\"\ncheckout main\n"
+                                                    "merge feature id: \"release\"")},
+        {QStringLiteral("c4"), QStringLiteral("C4Context\nPerson(user, \"User\")\n"
+                                              "System(app, \"Application\")\n"
+                                              "Rel(user, app, \"Uses\")")},
+        {QStringLiteral("swimlane"), QStringLiteral("swimlane-beta TB\nsubgraph one[One]\n"
+                                                    "  A[Start] --> B[Done]\nend")},
+        {QStringLiteral("gantt"), QStringLiteral("gantt\ndateFormat YYYY-MM-DD\ntodayMarker off\n"
+                                                 "section Delivery\nBuild :build, 2024-01-01, 3d\n"
+                                                 "Ship :ship, after build, 2d")},
         {QStringLiteral("info"), QStringLiteral("info showInfo")},
-        {QStringLiteral("treeView"),
-         QStringLiteral("treeView-beta\nproject/\n  src/\n    main.cpp\n  README.md")},
-        {QStringLiteral("eventmodeling"),
-         QStringLiteral("eventmodeling\ntf 1 ui Start\n"
-                        "tf 2 cmd Submit ->> 1\n"
-                        "tf 3 evt Submitted ->> 2")},
-        {QStringLiteral("ishikawa"),
-         QStringLiteral("ishikawa\nEffect\n  Cause A\n  Cause B")},
-        {QStringLiteral("venn"),
-         QStringLiteral("venn-beta\nset A: 10\nset B: 8\n"
-                        "union A,B: 3")},
-        {QStringLiteral("sankey"),
-         QStringLiteral("sankey-beta\nA,B,8\nB,C,5\nB,D,3")},
-        {QStringLiteral("treemap"),
-         QStringLiteral("treemap-beta\n\"Root\"\n  \"A\": 8\n  \"B\": 5")},
-        {QStringLiteral("cynefin"),
-         QStringLiteral("%%{init: {\"cynefin\": {\"seed\": 17}}}%%\n"
-                        "cynefin-beta\nclear\n  \"Standardise\"")},
-        {QStringLiteral("wardley"),
-         QStringLiteral("wardley-beta\ntitle Platform map\n"
-                        "component User [0.9,0.1]\n"
-                        "component Service [0.5,0.5]\nUser -> Service")},
+        {QStringLiteral("treeView"), QStringLiteral("treeView-beta\nproject/\n  src/\n    main.cpp\n  README.md")},
+        {QStringLiteral("eventmodeling"), QStringLiteral("eventmodeling\ntf 1 ui Start\n"
+                                                         "tf 2 cmd Submit ->> 1\n"
+                                                         "tf 3 evt Submitted ->> 2")},
+        {QStringLiteral("ishikawa"), QStringLiteral("ishikawa\nEffect\n  Cause A\n  Cause B")},
+        {QStringLiteral("venn"), QStringLiteral("venn-beta\nset A: 10\nset B: 8\n"
+                                                "union A,B: 3")},
+        {QStringLiteral("sankey"), QStringLiteral("sankey-beta\nA,B,8\nB,C,5\nB,D,3")},
+        {QStringLiteral("treemap"), QStringLiteral("treemap-beta\n\"Root\"\n  \"A\": 8\n  \"B\": 5")},
+        {QStringLiteral("cynefin"), QStringLiteral("%%{init: {\"cynefin\": {\"seed\": 17}}}%%\n"
+                                                   "cynefin-beta\nclear\n  \"Standardise\"")},
+        {QStringLiteral("wardley"), QStringLiteral("wardley-beta\ntitle Platform map\n"
+                                                   "component User [0.9,0.1]\n"
+                                                   "component Service [0.5,0.5]\nUser -> Service")},
     };
     for (const FamilyCase& f : families) {
       const QString url1 = MermaidRenderCache::renderMermaidSourceToPngDataUrl(f.source, 1.0);
@@ -1881,16 +1501,16 @@ int main(int argc, char** argv) {
       const QImage img2 = decodePng(url2);
       require(!img1.isNull() && img1.width() > 10 && img1.height() > 10,
               f.name + QStringLiteral(" PNG must decode to a real image"));
-      require(qAbs(img2.width() - 2 * img1.width()) <= 2 &&
-                  qAbs(img2.height() - 2 * img1.height()) <= 2,
+      require(qAbs(img2.width() - 2 * img1.width()) <= 2 && qAbs(img2.height() - 2 * img1.height()) <= 2,
               f.name + QStringLiteral(" DPR-2 PNG must be ~2x the DPR-1 dimensions"));
     }
     // A large sequence diagramMarginX widens the rasterized PNG via the same path.
     const QImage wide = decodePng(MermaidRenderCache::renderMermaidSourceToPngDataUrl(
         QStringLiteral("%%{init: {\"sequence\": {\"diagramMarginX\": 300}}}%%\n"
-                       "sequenceDiagram\nA->>B: x\n"), 1.0));
-    const QImage narrow = decodePng(MermaidRenderCache::renderMermaidSourceToPngDataUrl(
-        QStringLiteral("sequenceDiagram\nA->>B: x\n"), 1.0));
+                       "sequenceDiagram\nA->>B: x\n"),
+        1.0));
+    const QImage narrow = decodePng(
+        MermaidRenderCache::renderMermaidSourceToPngDataUrl(QStringLiteral("sequenceDiagram\nA->>B: x\n"), 1.0));
     require(wide.width() > narrow.width() + 200,
             QStringLiteral("sequence diagramMarginX must widen the PNG via the generic path"));
   }
@@ -1915,14 +1535,21 @@ int main(int argc, char** argv) {
       for (int y = yStart; y < img.height(); ++y)
         for (int x = 0; x < img.width(); ++x)
           if (img.pixelColor(x, y).alpha() > 32) {
-            if (x < minX) minX = x;
-            if (y < minY) minY = y;
-            if (x > maxX) maxX = x;
-            if (y > maxY) maxY = y;
+            if (x < minX)
+              minX = x;
+            if (y < minY)
+              minY = y;
+            if (x > maxX)
+              maxX = x;
+            if (y > maxY)
+              maxY = y;
           }
       return maxX < 0 ? QSize(0, 0) : QSize(maxX - minX + 1, maxY - minY + 1);
     };
-    struct FamilyCase { QString name; QString body; };
+    struct FamilyCase {
+      QString name;
+      QString body;
+    };
     const FamilyCase families[] = {
         {QStringLiteral("flowchart"), QStringLiteral("flowchart TB\nA[Start] --> B[Done]")},
         {QStringLiteral("sequence"), QStringLiteral("sequenceDiagram\nAlice->>Bob: Hello")},
@@ -1938,18 +1565,19 @@ int main(int argc, char** argv) {
       const MermaidPngRenderResult r2 = MermaidRenderCache::renderMermaidSourceToPng(titled, 2.0);
       const QImage t1 = decodePng(r1.dataUrl);
       const QImage t2 = decodePng(r2.dataUrl);
-      require(!t1.isNull() && !t2.isNull(),
-              f.name + QStringLiteral(" titled PNG must decode at DPR 1 and 2"));
+      require(!t1.isNull() && !t2.isNull(), f.name + QStringLiteral(" titled PNG must decode at DPR 1 and 2"));
       // metadata.titleHeight is logical px; the title strip is titleHeight*dpr
       // device px tall, so start scanning the content below it.
       const QSize b1 = contentBBox(t1, qCeil(r1.metadata.titleHeight));
       const QSize b2 = contentBBox(t2, qCeil(r2.metadata.titleHeight * 2.0));
-      require(b1.width() > 10 && b1.height() > 10,
-              f.name + QStringLiteral(" titled content bbox must be non-trivial"));
-      require(qAbs(b2.width() - 2 * b1.width()) <= 3 &&
-                  qAbs(b2.height() - 2 * b1.height()) <= 3,
-              f.name + QStringLiteral(" titled DPR-2 content bbox must be ~2x DPR-1 (full-res content); got %1x%2 -> %3x%4")
-                  .arg(b1.width()).arg(b1.height()).arg(b2.width()).arg(b2.height()));
+      require(b1.width() > 10 && b1.height() > 10, f.name + QStringLiteral(" titled content bbox must be non-trivial"));
+      require(qAbs(b2.width() - 2 * b1.width()) <= 3 && qAbs(b2.height() - 2 * b1.height()) <= 3,
+              f.name +
+                  QStringLiteral(" titled DPR-2 content bbox must be ~2x DPR-1 (full-res content); got %1x%2 -> %3x%4")
+                      .arg(b1.width())
+                      .arg(b1.height())
+                      .arg(b2.width())
+                      .arg(b2.height()));
     }
   }
 
@@ -1958,12 +1586,12 @@ int main(int argc, char** argv) {
   //     to a 1x1 canvas. ---
   {
     muffin::mermaid::sequence::SequenceScene scene;
-    scene.bounds = QRectF(10.0, 20.0, 100.0, 50.0);  // viewportRect intentionally null
-    require(scene.renderBounds() == scene.sceneBounds() &&
-                scene.renderBounds() == QRectF(10.0, 20.0, 100.0, 50.0),
+    scene.bounds = QRectF(10.0, 20.0, 100.0, 50.0); // viewportRect intentionally null
+    require(scene.renderBounds() == scene.sceneBounds() && scene.renderBounds() == QRectF(10.0, 20.0, 100.0, 50.0),
             QStringLiteral("SequenceScene with unset viewportRect must fall back to sceneBounds"));
   }
 
-  qDebug().noquote() << "MermaidRenderCacheTest: sync ready/error/unsupported + async/debounced rendering + LRU + key stability";
+  qDebug().noquote()
+      << "MermaidRenderCacheTest: sync ready/error/unsupported + async/debounced rendering + LRU + key stability";
   return 0;
 }

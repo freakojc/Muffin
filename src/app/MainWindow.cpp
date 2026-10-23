@@ -58,14 +58,14 @@
 // buttons), so Qt style sheets cannot reach it. Toggling the DWM attribute
 // below makes that caption follow the theme's brightness. NOMINMAX /
 // WIN32_LEAN_AND_MEAN keep <windows.h> from clashing with Qt/std symbols.
-#  define WIN32_LEAN_AND_MEAN
-#  define NOMINMAX
-#  include <windows.h>
-#  include <dwmapi.h>
-#  pragma comment(lib, "dwmapi")
-#  ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
-#    define DWMWA_USE_IMMERSIVE_DARK_MODE 20
-#  endif
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi")
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
 #endif
 
 namespace {
@@ -74,34 +74,33 @@ Q_LOGGING_CATEGORY(mainWindowPerf, "muffin.perf", QtWarningMsg)
 
 QString zoneName(muffin::HitTestResult::Zone zone) {
   switch (zone) {
-    case muffin::HitTestResult::Zone::Text:
-      return QStringLiteral("text");
-    case muffin::HitTestResult::Zone::Marker:
-      return QStringLiteral("marker");
-    case muffin::HitTestResult::Zone::TableCell:
-      return QStringLiteral("table");
-    case muffin::HitTestResult::Zone::Code:
-      return QStringLiteral("code");
-    case muffin::HitTestResult::Zone::Math:
-      return QStringLiteral("math");
-    case muffin::HitTestResult::Zone::Html:
-      return QStringLiteral("html");
-    case muffin::HitTestResult::Zone::FrontMatter:
-      return QStringLiteral("front matter");
-    case muffin::HitTestResult::Zone::Block:
-      return QStringLiteral("block");
-    case muffin::HitTestResult::Zone::BlockAfter:
-      return QStringLiteral("block after");
-    case muffin::HitTestResult::Zone::None:
-    default:
-      return QStringLiteral("none");
+  case muffin::HitTestResult::Zone::Text:
+    return QStringLiteral("text");
+  case muffin::HitTestResult::Zone::Marker:
+    return QStringLiteral("marker");
+  case muffin::HitTestResult::Zone::TableCell:
+    return QStringLiteral("table");
+  case muffin::HitTestResult::Zone::Code:
+    return QStringLiteral("code");
+  case muffin::HitTestResult::Zone::Math:
+    return QStringLiteral("math");
+  case muffin::HitTestResult::Zone::Html:
+    return QStringLiteral("html");
+  case muffin::HitTestResult::Zone::FrontMatter:
+    return QStringLiteral("front matter");
+  case muffin::HitTestResult::Zone::Block:
+    return QStringLiteral("block");
+  case muffin::HitTestResult::Zone::BlockAfter:
+    return QStringLiteral("block after");
+  case muffin::HitTestResult::Zone::None:
+  default:
+    return QStringLiteral("none");
   }
 }
 
-}  // namespace
+} // namespace
 
-muffin::MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent) {
+muffin::MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
   setupUi();
   setupMenuBar();
   setupStatusBar();
@@ -116,11 +115,12 @@ muffin::MainWindow::MainWindow(QWidget* parent)
   });
   connect(&draftWriter_, &DraftSnapshotWriter::snapshotFinished, this,
           [this](const QString& key, quint64 revision, bool saved) {
-    if (!saved) return;
-    for (auto* document : documentTabs())
-      if (document->draftKey == key && document->session.document().isModified())
-        document->lastDraftSnapshotRevision = qMax(document->lastDraftSnapshotRevision, revision);
-  });
+            if (!saved)
+              return;
+            for (auto* document : documentTabs())
+              if (document->draftKey == key && document->session.document().isModified())
+                document->lastDraftSnapshotRevision = qMax(document->lastDraftSnapshotRevision, revision);
+          });
   updateTitle();
   loadAppearanceSettings();
   showBlockSourceEnabled_ = QSettings().value(QStringLiteral("editor/showBlockSource"), false).toBool();
@@ -144,7 +144,10 @@ muffin::MainWindow::~MainWindow() {
 }
 
 void muffin::MainWindow::closeEvent(QCloseEvent* event) {
-  if (workspaceWriteInProgress_) { event->ignore(); return; }
+  if (workspaceWriteInProgress_) {
+    event->ignore();
+    return;
+  }
   const QScopedValueRollback<bool> switchGuard(suppressSaveOnTabSwitch_, true);
   // Prompting visits every page; those temporary activations must not replace
   // the user's active tab in the persisted session, including on Cancel.
@@ -343,8 +346,8 @@ void muffin::MainWindow::setupStatusBar() {
   sourceModeButton_ = statusBar_->sourceModeButton();
   statusBar_->setSpellLanguage(SpellChecker::instance().language(), SpellChecker::instance().isEnabled());
   const int lineBreak = QSettings().value(QStringLiteral("editor/defaultLineBreak"), 1).toInt();
-  statusBar_->setEncodingLineEnding(QStringLiteral("UTF-8 | %1").arg(
-      lineBreak == 1 ? QStringLiteral("CRLF") : QStringLiteral("LF")));
+  statusBar_->setEncodingLineEnding(
+      QStringLiteral("UTF-8 | %1").arg(lineBreak == 1 ? QStringLiteral("CRLF") : QStringLiteral("LF")));
   wordCountTimer_ = new QTimer(this);
   wordCountTimer_->setSingleShot(true);
   wordCountTimer_->setInterval(250);
@@ -363,7 +366,8 @@ void muffin::MainWindow::setupStatusBar() {
 void muffin::MainWindow::updateTitle() {
   updateTabLabel(tab_);
   const QString marker = tab_->session.document().isModified() ? QStringLiteral(" *") : QString();
-  const QString name = tab_->pendingOpenPath.isEmpty() ? tab_->session.displayName() : QFileInfo(tab_->pendingOpenPath).fileName();
+  const QString name =
+      tab_->pendingOpenPath.isEmpty() ? tab_->session.displayName() : QFileInfo(tab_->pendingOpenPath).fileName();
   setWindowTitle(QStringLiteral("%1%2 - Muffin").arg(name, marker));
 }
 
@@ -379,20 +383,24 @@ void muffin::MainWindow::updateStatus() {
   const TextFileFormat& format = tab_->session.fileFormat();
   QString lineEnding;
   if (!format.existingFile && tab_->session.filePath().isEmpty()) {
-    lineEnding = QSettings().value(QStringLiteral("editor/defaultLineBreak"), 1).toInt() == 1
-        ? QStringLiteral("CRLF") : QStringLiteral("LF");
+    lineEnding = QSettings().value(QStringLiteral("editor/defaultLineBreak"), 1).toInt() == 1 ? QStringLiteral("CRLF")
+                                                                                              : QStringLiteral("LF");
   } else {
     switch (format.lineEnding) {
-      case TextLineEnding::Crlf: lineEnding = QStringLiteral("CRLF"); break;
-      case TextLineEnding::Cr: lineEnding = QStringLiteral("CR"); break;
-      case TextLineEnding::Lf: lineEnding = QStringLiteral("LF"); break;
+    case TextLineEnding::Crlf:
+      lineEnding = QStringLiteral("CRLF");
+      break;
+    case TextLineEnding::Cr:
+      lineEnding = QStringLiteral("CR");
+      break;
+    case TextLineEnding::Lf:
+      lineEnding = QStringLiteral("LF");
+      break;
     }
   }
   statusBar_->setEncodingLineEnding(
       QStringLiteral("%1%2 | %3")
-          .arg(format.encodingName,
-               format.writeBom ? QStringLiteral(" BOM") : QString(),
-               lineEnding));
+          .arg(format.encodingName, format.writeBom ? QStringLiteral(" BOM") : QString(), lineEnding));
   // The block-source preview is render-mode only; clear any stale text when editing source.
   if (tab_->backend && tab_->backend->isSourceMode()) {
     statusBar_->setBlockSource(QString(), QString());
@@ -469,7 +477,8 @@ void muffin::MainWindow::setSidebarPanel(SidebarWidget::Panel panel) {
   if (QAction* action = commands_.action(QStringLiteral("view.sidebar"))) {
     const bool opening = !action->isChecked();
     action->setChecked(true);
-    if (opening) updateSidebarMode();
+    if (opening)
+      updateSidebarMode();
   }
   if (panel == SidebarWidget::Panel::Outline) {
     refreshSidebarOutline();
@@ -487,7 +496,8 @@ void muffin::MainWindow::refreshSidebarDocumentInfo() {
   if (!sidebar_ || sessionUpdatesPaused_) {
     return;
   }
-  sidebar_->setCurrentDocument(tab_->session.displayName(), tab_->session.filePath(), tab_->session.document().isModified());
+  sidebar_->setCurrentDocument(tab_->session.displayName(), tab_->session.filePath(),
+                               tab_->session.document().isModified());
 }
 
 void muffin::MainWindow::refreshSidebarOutline() {
@@ -504,7 +514,8 @@ void muffin::MainWindow::refreshSidebarOutline() {
 }
 
 void muffin::MainWindow::openFolder() {
-  const QString initialPath = sidebarFolderRoot_.isEmpty() ? QFileInfo(tab_->session.filePath()).absolutePath() : sidebarFolderRoot_;
+  const QString initialPath =
+      sidebarFolderRoot_.isEmpty() ? QFileInfo(tab_->session.filePath()).absolutePath() : sidebarFolderRoot_;
   const QString path = QFileDialog::getExistingDirectory(this, tr("Open Folder"), initialPath);
   if (path.isEmpty()) {
     return;
@@ -571,7 +582,8 @@ void muffin::MainWindow::updateViewMode() {
   if (isVisible() && !reducedMotion() && tab_->viewStack->currentWidget() != nullptr) {
     outgoingSnapshot = tab_->viewStack->currentWidget()->grab();
   }
-  tab_->viewStack->setCurrentWidget(sourceMode ? static_cast<QWidget*>(tab_->editor) : static_cast<QWidget*>(tab_->renderView));
+  tab_->viewStack->setCurrentWidget(sourceMode ? static_cast<QWidget*>(tab_->editor)
+                                               : static_cast<QWidget*>(tab_->renderView));
   if (!outgoingSnapshot.isNull()) {
     showViewSwitchOverlay(outgoingSnapshot);
   }
@@ -611,9 +623,8 @@ void muffin::MainWindow::showViewSwitchOverlay(const QPixmap& snapshot) {
     tab_->overlayOpacityAnimation = new QPropertyAnimation(opacity, QByteArrayLiteral("opacity"), tab_);
     tab_->overlayOpacityAnimation->setDuration(120);
     tab_->overlayOpacityAnimation->setEasingCurve(QEasingCurve::OutCubic);
-    connect(tab_->overlayOpacityAnimation, &QPropertyAnimation::finished, tab_, [document = tab_] {
-      document->viewSwitchOverlay->hide();
-    });
+    connect(tab_->overlayOpacityAnimation, &QPropertyAnimation::finished, tab_,
+            [document = tab_] { document->viewSwitchOverlay->hide(); });
   }
   tab_->viewSwitchOverlay->setPixmap(snapshot);
   tab_->viewSwitchOverlay->setGeometry(tab_->viewStack->rect());
@@ -762,7 +773,8 @@ void muffin::MainWindow::setTypewriterMode(bool enabled) {
 
   for (DocumentTab* document : documentTabs()) {
     document->renderView->setTypewriterMode(enabled);
-    document->renderView->setTypewriterCursorMiddle(QSettings().value(QStringLiteral("editor/typewriterCursorMiddle"), true).toBool());
+    document->renderView->setTypewriterCursorMiddle(
+        QSettings().value(QStringLiteral("editor/typewriterCursorMiddle"), true).toBool());
   }
 
   if (QAction* action = commands_.action(QStringLiteral("view.typewriter"))) {
@@ -787,7 +799,8 @@ void muffin::MainWindow::loadAppearanceSettings() {
     }
   }
 
-  const QString themeName = settings.value(QStringLiteral("appearance/themeName"), themeManager_.currentThemeName()).toString();
+  const QString themeName =
+      settings.value(QStringLiteral("appearance/themeName"), themeManager_.currentThemeName()).toString();
   themeManager_.setTheme(themeName);
   setStatusBarVisible(settings.value(QStringLiteral("appearance/showStatusBar"), true).toBool());
   setZoomPercent(settings.value(QStringLiteral("appearance/zoomPercent"), 100).toInt());
@@ -821,7 +834,8 @@ void muffin::MainWindow::loadAppearanceSettings() {
     setTypewriterMode(true);
   }
   if (tab_->renderView) {
-    tab_->renderView->setTypewriterCursorMiddle(settings.value(QStringLiteral("editor/typewriterCursorMiddle"), true).toBool());
+    tab_->renderView->setTypewriterCursorMiddle(
+        settings.value(QStringLiteral("editor/typewriterCursorMiddle"), true).toBool());
   }
 }
 
@@ -900,8 +914,7 @@ void muffin::MainWindow::applyTheme(QString name) {
   // the code-border colour: that's a document/code token which is invalid on
   // themes with no code-border rule, and an invalid QPen renders solid black.
   if (statusBar_) {
-    statusBar_->applyThemeColors(theme.backgroundColor(), theme.textColor(), theme.mutedTextColor(),
-                                 def.colors.border);
+    statusBar_->applyThemeColors(theme.backgroundColor(), theme.textColor(), theme.mutedTextColor(), def.colors.border);
   }
 
   applyNativeTitleBarDarkMode(def.colors.isDark);

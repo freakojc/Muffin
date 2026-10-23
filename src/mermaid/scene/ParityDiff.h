@@ -40,16 +40,15 @@ inline constexpr Tier kMeasurement{0.2};
 
 // Empty list on match, else { "path: native X, expected Y" }.
 inline QStringList compareNumber(qreal actual, qreal expected, Tier tol, const QString& path) {
-  if (std::abs(actual - expected) <= tol.value + 1e-9) return {};
-  return {QStringLiteral("%1: native %2, expected %3")
-              .arg(path).arg(actual, 0, 'f', 3).arg(expected, 0, 'f', 3)};
+  if (std::abs(actual - expected) <= tol.value + 1e-9)
+    return {};
+  return {QStringLiteral("%1: native %2, expected %3").arg(path).arg(actual, 0, 'f', 3).arg(expected, 0, 'f', 3)};
 }
 
 // SVG path `d` compare: normalize numbers to '#' for a structural equality
 // check, then compare each coordinate within `tol`. Modelled on
 // MermaidFlowchartLayoutTest.cpp requirePathNear.
-inline QStringList comparePath(const QString& actual, const QString& expected, Tier tol,
-                               const QString& path) {
+inline QStringList comparePath(const QString& actual, const QString& expected, Tier tol, const QString& path) {
   static const QRegularExpression number(QStringLiteral("-?\\d+(?:\\.\\d+)?(?:e[-+]?\\d+)?"));
   QStringList errs;
   const QString actualSkeleton = QString(actual).replace(number, QStringLiteral("#"));
@@ -61,26 +60,32 @@ inline QStringList comparePath(const QString& actual, const QString& expected, T
   auto collect = [](const QString& s) {
     QVector<double> values;
     auto it = number.globalMatch(s);
-    while (it.hasNext()) values.append(it.next().captured(0).toDouble());
+    while (it.hasNext())
+      values.append(it.next().captured(0).toDouble());
     return values;
   };
   const QVector<double> actualNumbers = collect(actual);
   const QVector<double> expectedNumbers = collect(expected);
   for (int i = 0; i < actualNumbers.size() && i < expectedNumbers.size(); ++i) {
-    errs += compareNumber(actualNumbers[i], expectedNumbers[i], tol,
-                          QStringLiteral("%1 coord %2").arg(path).arg(i));
+    errs += compareNumber(actualNumbers[i], expectedNumbers[i], tol, QStringLiteral("%1 coord %2").arg(path).arg(i));
   }
   return errs;
 }
 
 inline QString jsonTypeName(const QJsonValue& value) {
   switch (value.type()) {
-    case QJsonValue::Null:   return QStringLiteral("null");
-    case QJsonValue::Bool:   return QStringLiteral("bool");
-    case QJsonValue::Double: return QStringLiteral("number");
-    case QJsonValue::String: return QStringLiteral("string");
-    case QJsonValue::Array:  return QStringLiteral("array");
-    case QJsonValue::Object: return QStringLiteral("object");
+  case QJsonValue::Null:
+    return QStringLiteral("null");
+  case QJsonValue::Bool:
+    return QStringLiteral("bool");
+  case QJsonValue::Double:
+    return QStringLiteral("number");
+  case QJsonValue::String:
+    return QStringLiteral("string");
+  case QJsonValue::Array:
+    return QStringLiteral("array");
+  case QJsonValue::Object:
+    return QStringLiteral("object");
   }
   return QStringLiteral("undefined");
 }
@@ -92,13 +97,14 @@ inline QString jsonTypeName(const QJsonValue& value) {
 // coordinates subject to run-to-run raster/order jitter); those are compared
 // via comparePath (structural equality + numeric tolerance) instead of exact
 // string equality.
-inline QStringList compareJson(const QJsonValue& actual, const QJsonValue& expected, Tier tol,
-                               const QString& path, const QSet<QString>& ignoreKeys = {},
-                               const QSet<QString>& pathValueKeys = {}) {
+inline QStringList compareJson(const QJsonValue& actual, const QJsonValue& expected, Tier tol, const QString& path,
+                               const QSet<QString>& ignoreKeys = {}, const QSet<QString>& pathValueKeys = {}) {
   QStringList errs;
   if (actual.type() != expected.type()) {
     errs << QStringLiteral("%1: type mismatch (native %2, expected %3)")
-                .arg(path).arg(jsonTypeName(actual)).arg(jsonTypeName(expected));
+                .arg(path)
+                .arg(jsonTypeName(actual))
+                .arg(jsonTypeName(expected));
     return errs;
   }
   if (actual.isObject()) {
@@ -110,17 +116,20 @@ inline QStringList compareJson(const QJsonValue& actual, const QJsonValue& expec
     const QStringList expectedKeys = expectedObject.keys();
     const QSet<QString> expectedSet(expectedKeys.cbegin(), expectedKeys.cend());
     for (const QString& key : actualKeys) {
-      if (ignoreKeys.contains(key)) continue;
+      if (ignoreKeys.contains(key))
+        continue;
       if (!expectedSet.contains(key))
         errs << QStringLiteral("%1: unexpected key '%2'").arg(path).arg(key);
     }
     for (const QString& key : expectedKeys) {
-      if (ignoreKeys.contains(key)) continue;
+      if (ignoreKeys.contains(key))
+        continue;
       if (!actualObject.contains(key))
         errs << QStringLiteral("%1: missing key '%2'").arg(path).arg(key);
     }
     for (const QString& key : actualKeys) {
-      if (ignoreKeys.contains(key) || !expectedObject.contains(key)) continue;
+      if (ignoreKeys.contains(key) || !expectedObject.contains(key))
+        continue;
       const QString childPath = QStringLiteral("%1/%2").arg(path).arg(key);
       const QJsonValue actualChild = actualObject.value(key);
       const QJsonValue expectedChild = expectedObject.value(key);
@@ -136,20 +145,26 @@ inline QStringList compareJson(const QJsonValue& actual, const QJsonValue& expec
     const QJsonArray expectedArray = expected.toArray();
     if (actualArray.size() != expectedArray.size()) {
       errs << QStringLiteral("%1: array length native %2, expected %3")
-                  .arg(path).arg(actualArray.size()).arg(expectedArray.size());
+                  .arg(path)
+                  .arg(actualArray.size())
+                  .arg(expectedArray.size());
       return errs;
     }
     for (int i = 0; i < actualArray.size(); ++i) {
-      errs += compareJson(actualArray.at(i), expectedArray.at(i), tol,
-                          QStringLiteral("%1[%2]").arg(path).arg(i), ignoreKeys, pathValueKeys);
+      errs += compareJson(actualArray.at(i), expectedArray.at(i), tol, QStringLiteral("%1[%2]").arg(path).arg(i),
+                          ignoreKeys, pathValueKeys);
     }
     return errs;
   }
-  if (actual.isDouble()) return compareNumber(actual.toDouble(), expected.toDouble(), tol, path);
-  if (actual == expected) return {};
+  if (actual.isDouble())
+    return compareNumber(actual.toDouble(), expected.toDouble(), tol, path);
+  if (actual == expected)
+    return {};
   errs << QStringLiteral("%1: native '%2', expected '%3'")
-              .arg(path).arg(actual.toVariant().toString()).arg(expected.toVariant().toString());
+              .arg(path)
+              .arg(actual.toVariant().toString())
+              .arg(expected.toVariant().toString());
   return errs;
 }
 
-}  // namespace muffin::mermaid::parity
+} // namespace muffin::mermaid::parity

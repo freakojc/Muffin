@@ -74,9 +74,8 @@ void isolationAndReload() {
   QTemporaryDir dir;
   const auto path = dir.filePath("theme.css");
   const auto rule = [](const QString& filename) {
-    return QString(
-               "@font-face{font-family:'Shared "
-               "Alias';src:url('%1/tests/fixtures/theme/fonts/%2')}p{font-family:'Shared Alias';font-size:20px}")
+    return QString("@font-face{font-family:'Shared "
+                   "Alias';src:url('%1/tests/fixtures/theme/fonts/%2')}p{font-family:'Shared Alias';font-size:20px}")
         .arg(MUFFIN_SOURCE_DIR, filename)
         .toUtf8();
   };
@@ -135,7 +134,8 @@ void preparedFontChecksumsAndIdentity() {
     quint32 result = 0;
     for (qsizetype i = 0; i < bytes.size(); i += 4) {
       quint32 word = 0;
-      for (int j = 0; j < 4; ++j) word = (word << 8) | (i + j < bytes.size() ? quint8(bytes[i + j]) : 0);
+      for (int j = 0; j < 4; ++j)
+        word = (word << 8) | (i + j < bytes.size() ? quint8(bytes[i + j]) : 0);
       result += word;
     }
     return result;
@@ -145,7 +145,8 @@ void preparedFontChecksumsAndIdentity() {
   auto withoutDescriptors = prepared.native;
   for (int i = 0; i < get16(withoutDescriptors, 4); ++i) {
     const auto at = 12 + 16 * i;
-    if (get32(withoutDescriptors, at) == 0x4f532f32) qToBigEndian<quint32>(0x4e4f5332, withoutDescriptors.data() + at);
+    if (get32(withoutDescriptors, at) == 0x4f532f32)
+      qToBigEndian<quint32>(0x4e4f5332, withoutDescriptors.data() + at);
   }
   require(!prepareThemeFont(withoutDescriptors).native.isEmpty() &&
               prepareThemeFont(withoutDescriptors, 400, false).native.isEmpty(),
@@ -155,7 +156,8 @@ void preparedFontChecksumsAndIdentity() {
     for (int i = 0; i < get16(native, 4); ++i) {
       const auto at = 12 + 16 * i;
       auto table = native.mid(get32(native, at + 8), get32(native, at + 12));
-      if (get32(native, at) == 0x68656164) qToBigEndian<quint32>(0, table.data() + 8);
+      if (get32(native, at) == 0x68656164)
+        qToBigEndian<quint32>(0, table.data() + 8);
       require(sum(table) == get32(native, at + 4), "independent table checksum matches padded big-endian sum");
     }
   };
@@ -177,7 +179,8 @@ void preparedFontChecksumsAndIdentity() {
     qToBigEndian<quint32>(offset, extended.data() + header + 8);
     qToBigEndian<quint32>(length, extended.data() + header + 12);
     QByteArray glyphs(length, Qt::Uninitialized);
-    for (int i = 0; i < length; ++i) glyphs[i] = char((i * 37 + 127) % 256);
+    for (int i = 0; i < length; ++i)
+      glyphs[i] = char((i * 37 + 127) % 256);
     extended += glyphs;
     const auto original = extended;
     verify(isolateThemeFont(extended, "MuffinChecksum", 700, true));
@@ -270,7 +273,7 @@ void conditionalFontsAndAssets() {
   require(ThemeDefinition::fromCss(path, "embedded").fontAliases.contains("embedded"),
           "embedded webfont uses the same decoder and registry");
 }
-}  // namespace
+} // namespace
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
   require(argc == 2, "font mapping browser fixture argument");

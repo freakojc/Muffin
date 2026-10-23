@@ -52,10 +52,8 @@ public:
   // Move every unique local image referenced by document and rewrite all
   // references. The complete rewrite is validated before touching disk; a
   // failed move rolls back all earlier moves.
-  static MoveAllResult moveAllImages(const MarkdownDocument& document,
-                                     const QString& markdown,
-                                     const QString& documentDir,
-                                     const QDir& destDir);
+  static MoveAllResult moveAllImages(const MarkdownDocument& document, const QString& markdown,
+                                     const QString& documentDir, const QDir& destDir);
 
   /// Delete an image file.
   static bool deleteImageFile(const QString& path);
@@ -67,4 +65,4 @@ private:
   ImageFileOps() = delete;
 };
 
-}  // namespace muffin
+} // namespace muffin

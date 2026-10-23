@@ -12,25 +12,29 @@ namespace muffin::math {
 namespace {
 
 QString metricsNameForDelimiterFont(const QString& fontClass) {
-  if (fontClass == QStringLiteral("size1")) return QStringLiteral("Size1-Regular");
-  if (fontClass == QStringLiteral("size2")) return QStringLiteral("Size2-Regular");
-  if (fontClass == QStringLiteral("size3")) return QStringLiteral("Size3-Regular");
-  if (fontClass == QStringLiteral("size4")) return QStringLiteral("Size4-Regular");
+  if (fontClass == QStringLiteral("size1"))
+    return QStringLiteral("Size1-Regular");
+  if (fontClass == QStringLiteral("size2"))
+    return QStringLiteral("Size2-Regular");
+  if (fontClass == QStringLiteral("size3"))
+    return QStringLiteral("Size3-Regular");
+  if (fontClass == QStringLiteral("size4"))
+    return QStringLiteral("Size4-Regular");
   return QStringLiteral("Main-Regular");
 }
 
 qreal sizeToMaxHeight(int size) {
   switch (size) {
-    case 1:
-      return 1.2;
-    case 2:
-      return 1.8;
-    case 3:
-      return 2.4;
-    case 4:
-      return 3.0;
-    default:
-      return 1.2;
+  case 1:
+    return 1.2;
+  case 2:
+    return 1.8;
+  case 3:
+    return 2.4;
+  case 4:
+    return 3.0;
+  default:
+    return 1.2;
   }
 }
 
@@ -43,9 +47,9 @@ QSet<QString> set(std::initializer_list<const char*> values) {
 }
 
 const QSet<QString>& stackLargeSet() {
-  static const QSet<QString> values = set({"(", "\\lparen", ")", "\\rparen", "[", "\\lbrack", "]", "\\rbrack",
-                                           "{", "\\{", "\\lbrace", "}", "\\}", "\\rbrace", "\\lfloor", "\\rfloor", "\\lceil",
-                                           "\\rceil"});
+  static const QSet<QString> values =
+      set({"(", "\\lparen", ")", "\\rparen", "[", "\\lbrack", "]", "\\rbrack", "{", "\\{", "\\lbrace", "}", "\\}",
+           "\\rbrace", "\\lfloor", "\\rfloor", "\\lceil", "\\rceil"});
   return values;
 }
 
@@ -81,22 +85,33 @@ QString glyphForDelimiter(const QString& text) {
   } else if (glyph == QStringLiteral("\u2016")) {
     glyph = QStringLiteral("\\|");
   }
-  if (glyph == QStringLiteral("\\langle")) return QStringLiteral("\u27e8");
-  if (glyph == QStringLiteral("\\rangle")) return QStringLiteral("\u27e9");
-  if (glyph == QStringLiteral("\\{") || glyph == QStringLiteral("\\lbrace")) return QStringLiteral("{");
-  if (glyph == QStringLiteral("\\}") || glyph == QStringLiteral("\\rbrace")) return QStringLiteral("}");
-  if (glyph == QStringLiteral("\\lfloor")) return QStringLiteral("\u230a");
-  if (glyph == QStringLiteral("\\rfloor")) return QStringLiteral("\u230b");
-  if (glyph == QStringLiteral("\\lceil")) return QStringLiteral("\u2308");
-  if (glyph == QStringLiteral("\\rceil")) return QStringLiteral("\u2309");
-  if (glyph == QStringLiteral("\\|")) return QStringLiteral("\u2016");
-  if (glyph == QStringLiteral("\\backslash")) return QStringLiteral("\\");
+  if (glyph == QStringLiteral("\\langle"))
+    return QStringLiteral("\u27e8");
+  if (glyph == QStringLiteral("\\rangle"))
+    return QStringLiteral("\u27e9");
+  if (glyph == QStringLiteral("\\{") || glyph == QStringLiteral("\\lbrace"))
+    return QStringLiteral("{");
+  if (glyph == QStringLiteral("\\}") || glyph == QStringLiteral("\\rbrace"))
+    return QStringLiteral("}");
+  if (glyph == QStringLiteral("\\lfloor"))
+    return QStringLiteral("\u230a");
+  if (glyph == QStringLiteral("\\rfloor"))
+    return QStringLiteral("\u230b");
+  if (glyph == QStringLiteral("\\lceil"))
+    return QStringLiteral("\u2308");
+  if (glyph == QStringLiteral("\\rceil"))
+    return QStringLiteral("\u2309");
+  if (glyph == QStringLiteral("\\|"))
+    return QStringLiteral("\u2016");
+  if (glyph == QStringLiteral("\\backslash"))
+    return QStringLiteral("\\");
   return glyph;
 }
 
-}  // namespace
+} // namespace
 
-std::unique_ptr<MathRenderNode> MathDelimiter::makeSized(const QString& delimiter, int size, MathNodeType type, const MathOptions& options) {
+std::unique_ptr<MathRenderNode> MathDelimiter::makeSized(const QString& delimiter, int size, MathNodeType type,
+                                                         const MathOptions& options) {
   const QString normalized = normalizeDelimiter(delimiter);
   const int clampedSize = qBound(1, size, 4);
   if (stacksLarge(normalized) || stacksNever(normalized)) {
@@ -114,11 +129,8 @@ std::unique_ptr<MathRenderNode> MathDelimiter::makeSized(const QString& delimite
   return makeLarge(normalized, clampedSize, false, type, options);
 }
 
-std::unique_ptr<MathRenderNode> MathDelimiter::makeCustom(const QString& delimiter,
-                                                          qreal targetTotalHeight,
-                                                          bool center,
-                                                          MathNodeType type,
-                                                          const MathOptions& options) {
+std::unique_ptr<MathRenderNode> MathDelimiter::makeCustom(const QString& delimiter, qreal targetTotalHeight,
+                                                          bool center, MathNodeType type, const MathOptions& options) {
   const QString normalized = normalizeDelimiter(delimiter);
   const Variant variant = traverseSequence(normalized, targetTotalHeight, options);
   if (variant.kind == VariantKind::Small) {
@@ -130,11 +142,8 @@ std::unique_ptr<MathRenderNode> MathDelimiter::makeCustom(const QString& delimit
   return makeStacked(normalized, targetTotalHeight, center, type, options);
 }
 
-std::unique_ptr<MathRenderNode> MathDelimiter::makeLeftRight(const QString& delimiter,
-                                                             qreal height,
-                                                             qreal depth,
-                                                             MathNodeType type,
-                                                             const MathOptions& options) {
+std::unique_ptr<MathRenderNode> MathDelimiter::makeLeftRight(const QString& delimiter, qreal height, qreal depth,
+                                                             MathNodeType type, const MathOptions& options) {
   const GlobalFontMetrics metrics = MathFontMetrics::globalMetrics(options.style().size());
   const qreal axisHeight = metrics.axisHeight * options.fontPointSize();
   const qreal delimiterFactor = 901.0;
@@ -145,19 +154,28 @@ std::unique_ptr<MathRenderNode> MathDelimiter::makeLeftRight(const QString& deli
 }
 
 QString MathDelimiter::normalizeDelimiter(QString delimiter) {
-  if (delimiter == QStringLiteral("<") || delimiter == QStringLiteral("\\lt") || delimiter == QStringLiteral("\u27e8")) {
+  if (delimiter == QStringLiteral("<") || delimiter == QStringLiteral("\\lt") ||
+      delimiter == QStringLiteral("\u27e8")) {
     return QStringLiteral("\\langle");
   }
-  if (delimiter == QStringLiteral(">") || delimiter == QStringLiteral("\\gt") || delimiter == QStringLiteral("\u27e9")) {
+  if (delimiter == QStringLiteral(">") || delimiter == QStringLiteral("\\gt") ||
+      delimiter == QStringLiteral("\u27e9")) {
     return QStringLiteral("\\rangle");
   }
-  if (delimiter == QStringLiteral("{")) return QStringLiteral("\\{");
-  if (delimiter == QStringLiteral("}")) return QStringLiteral("\\}");
-  if (delimiter == QStringLiteral("\u230a")) return QStringLiteral("\\lfloor");
-  if (delimiter == QStringLiteral("\u230b")) return QStringLiteral("\\rfloor");
-  if (delimiter == QStringLiteral("\u2308")) return QStringLiteral("\\lceil");
-  if (delimiter == QStringLiteral("\u2309")) return QStringLiteral("\\rceil");
-  if (delimiter == QStringLiteral("\u2016")) return QStringLiteral("\\|");
+  if (delimiter == QStringLiteral("{"))
+    return QStringLiteral("\\{");
+  if (delimiter == QStringLiteral("}"))
+    return QStringLiteral("\\}");
+  if (delimiter == QStringLiteral("\u230a"))
+    return QStringLiteral("\\lfloor");
+  if (delimiter == QStringLiteral("\u230b"))
+    return QStringLiteral("\\rfloor");
+  if (delimiter == QStringLiteral("\u2308"))
+    return QStringLiteral("\\lceil");
+  if (delimiter == QStringLiteral("\u2309"))
+    return QStringLiteral("\\rceil");
+  if (delimiter == QStringLiteral("\u2016"))
+    return QStringLiteral("\\|");
   return delimiter;
 }
 
@@ -175,38 +193,30 @@ bool MathDelimiter::stacksNever(const QString& delimiter) {
 
 QVector<MathDelimiter::Variant> MathDelimiter::sequenceFor(const QString& delimiter) {
   const QVector<Variant> never{
-      {VariantKind::Small, 0, MathStyle::scriptScript()},
-      {VariantKind::Small, 0, MathStyle::script()},
-      {VariantKind::Small, 0, MathStyle::textStyle()},
-      {VariantKind::Large, 1, MathStyle::textStyle()},
-      {VariantKind::Large, 2, MathStyle::textStyle()},
-      {VariantKind::Large, 3, MathStyle::textStyle()},
+      {VariantKind::Small, 0, MathStyle::scriptScript()}, {VariantKind::Small, 0, MathStyle::script()},
+      {VariantKind::Small, 0, MathStyle::textStyle()},    {VariantKind::Large, 1, MathStyle::textStyle()},
+      {VariantKind::Large, 2, MathStyle::textStyle()},    {VariantKind::Large, 3, MathStyle::textStyle()},
       {VariantKind::Large, 4, MathStyle::textStyle()}};
-  const QVector<Variant> always{
-      {VariantKind::Small, 0, MathStyle::scriptScript()},
-      {VariantKind::Small, 0, MathStyle::script()},
-      {VariantKind::Small, 0, MathStyle::textStyle()},
-      {VariantKind::Stack, 0, MathStyle::textStyle()}};
+  const QVector<Variant> always{{VariantKind::Small, 0, MathStyle::scriptScript()},
+                                {VariantKind::Small, 0, MathStyle::script()},
+                                {VariantKind::Small, 0, MathStyle::textStyle()},
+                                {VariantKind::Stack, 0, MathStyle::textStyle()}};
   const QVector<Variant> large{
-      {VariantKind::Small, 0, MathStyle::scriptScript()},
-      {VariantKind::Small, 0, MathStyle::script()},
-      {VariantKind::Small, 0, MathStyle::textStyle()},
-      {VariantKind::Large, 1, MathStyle::textStyle()},
-      {VariantKind::Large, 2, MathStyle::textStyle()},
-      {VariantKind::Large, 3, MathStyle::textStyle()},
-      {VariantKind::Large, 4, MathStyle::textStyle()},
-      {VariantKind::Stack, 0, MathStyle::textStyle()}};
+      {VariantKind::Small, 0, MathStyle::scriptScript()}, {VariantKind::Small, 0, MathStyle::script()},
+      {VariantKind::Small, 0, MathStyle::textStyle()},    {VariantKind::Large, 1, MathStyle::textStyle()},
+      {VariantKind::Large, 2, MathStyle::textStyle()},    {VariantKind::Large, 3, MathStyle::textStyle()},
+      {VariantKind::Large, 4, MathStyle::textStyle()},    {VariantKind::Stack, 0, MathStyle::textStyle()}};
   if (stacksNever(delimiter)) {
     return never;
   }
-  if (delimiter == QStringLiteral("\\lbrace") || delimiter == QStringLiteral("\\rbrace") || delimiter == QStringLiteral("\\{") ||
-      delimiter == QStringLiteral("\\}") || delimiter == QStringLiteral("{") || delimiter == QStringLiteral("}")) {
-    return QVector<Variant>{
-        {VariantKind::Large, 1, MathStyle::textStyle()},
-        {VariantKind::Large, 2, MathStyle::textStyle()},
-        {VariantKind::Large, 3, MathStyle::textStyle()},
-        {VariantKind::Large, 4, MathStyle::textStyle()},
-        {VariantKind::Stack, 0, MathStyle::textStyle()}};
+  if (delimiter == QStringLiteral("\\lbrace") || delimiter == QStringLiteral("\\rbrace") ||
+      delimiter == QStringLiteral("\\{") || delimiter == QStringLiteral("\\}") || delimiter == QStringLiteral("{") ||
+      delimiter == QStringLiteral("}")) {
+    return QVector<Variant>{{VariantKind::Large, 1, MathStyle::textStyle()},
+                            {VariantKind::Large, 2, MathStyle::textStyle()},
+                            {VariantKind::Large, 3, MathStyle::textStyle()},
+                            {VariantKind::Large, 4, MathStyle::textStyle()},
+                            {VariantKind::Stack, 0, MathStyle::textStyle()}};
   }
   if (stacksLarge(delimiter)) {
     return large;
@@ -214,7 +224,8 @@ QVector<MathDelimiter::Variant> MathDelimiter::sequenceFor(const QString& delimi
   return always;
 }
 
-MathDelimiter::Variant MathDelimiter::traverseSequence(const QString& delimiter, qreal targetTotalHeight, const MathOptions& options) {
+MathDelimiter::Variant MathDelimiter::traverseSequence(const QString& delimiter, qreal targetTotalHeight,
+                                                       const MathOptions& options) {
   const QVector<Variant> sequence = sequenceFor(delimiter);
   const int start = qMin(2, 3 - options.style().size());
   for (int i = qMax(0, start); i < sequence.size(); ++i) {
@@ -237,11 +248,8 @@ MathDelimiter::Variant MathDelimiter::traverseSequence(const QString& delimiter,
   return sequence.last();
 }
 
-std::unique_ptr<MathRenderNode> MathDelimiter::makeSmall(const QString& delimiter,
-                                                         MathStyle style,
-                                                         bool center,
-                                                         MathNodeType type,
-                                                         const MathOptions& options) {
+std::unique_ptr<MathRenderNode> MathDelimiter::makeSmall(const QString& delimiter, MathStyle style, bool center,
+                                                         MathNodeType type, const MathOptions& options) {
   MathOptions styled = options.havingStyle(style);
   auto node = makeGlyph(delimiter, QStringLiteral("main"), type, styled);
   if (center) {
@@ -250,23 +258,18 @@ std::unique_ptr<MathRenderNode> MathDelimiter::makeSmall(const QString& delimite
   return node;
 }
 
-std::unique_ptr<MathRenderNode> MathDelimiter::makeLarge(const QString& delimiter,
-                                                         int size,
-                                                         bool center,
-                                                         MathNodeType type,
-                                                         const MathOptions& options) {
-  auto node = makeGlyph(delimiter, QStringLiteral("size%1").arg(size), type, options.havingStyle(MathStyle::textStyle()));
+std::unique_ptr<MathRenderNode> MathDelimiter::makeLarge(const QString& delimiter, int size, bool center,
+                                                         MathNodeType type, const MathOptions& options) {
+  auto node =
+      makeGlyph(delimiter, QStringLiteral("size%1").arg(size), type, options.havingStyle(MathStyle::textStyle()));
   if (center) {
     centerOnAxis(*node, options);
   }
   return node;
 }
 
-std::unique_ptr<MathRenderNode> MathDelimiter::makeStacked(const QString& delimiter,
-                                                           qreal targetTotalHeight,
-                                                           bool center,
-                                                           MathNodeType type,
-                                                           const MathOptions& options) {
+std::unique_ptr<MathRenderNode> MathDelimiter::makeStacked(const QString& delimiter, qreal targetTotalHeight,
+                                                           bool center, MathNodeType type, const MathOptions& options) {
   const StackParts parts = stackParts(delimiter);
   const qreal em = options.fontPointSize();
   const qreal topTotal = metricsTotalHeight(parts.top, parts.fontClass, em);
@@ -275,7 +278,8 @@ std::unique_ptr<MathRenderNode> MathDelimiter::makeStacked(const QString& delimi
   const qreal repeatTotal = qMax<qreal>(1.0, metricsTotalHeight(parts.repeat, parts.fontClass, em));
   const int middleFactor = parts.middle.isEmpty() ? 1 : 2;
   const qreal minHeight = topTotal + bottomTotal + middleTotal;
-  const int repeatCount = qMax(1, static_cast<int>(std::ceil((targetTotalHeight - minHeight) / (middleFactor * repeatTotal))));
+  const int repeatCount =
+      qMax(1, static_cast<int>(std::ceil((targetTotalHeight - minHeight) / (middleFactor * repeatTotal))));
   if (!parts.svgLabel.isEmpty()) {
     return makeTallSvg(parts, minHeight + repeatCount * middleFactor * repeatTotal, center, options);
   }
@@ -289,7 +293,7 @@ std::unique_ptr<MathRenderNode> MathDelimiter::makeStacked(const QString& delimi
   // continuity, but they should not inflate the glyph count.
   const bool isBrace = !parts.middle.isEmpty();
   auto makeRepeatGlyph = [&](const QString& text, const QString& fontClass, MathNodeType glyphType,
-                              const MathOptions& glyphOptions) -> std::unique_ptr<MathRenderNode> {
+                             const MathOptions& glyphOptions) -> std::unique_ptr<MathRenderNode> {
     if (isBrace) {
       // Create a Stretchy node with font metrics for painting, but invisible
       // to glyph counting (MathRenderKind::Stretchy is not counted).
@@ -347,10 +351,8 @@ std::unique_ptr<MathRenderNode> MathDelimiter::makeStacked(const QString& delimi
   return stack;
 }
 
-std::unique_ptr<MathRenderNode> MathDelimiter::makeTallSvg(const StackParts& parts,
-                                                           qreal targetTotalHeight,
-                                                           bool center,
-                                                           const MathOptions& options) {
+std::unique_ptr<MathRenderNode> MathDelimiter::makeTallSvg(const StackParts& parts, qreal targetTotalHeight,
+                                                           bool center, const MathOptions& options) {
   const qreal em = options.fontPointSize();
   const qreal topTotal = metricsTotalHeight(parts.top, parts.fontClass, em);
   const qreal bottomTotal = metricsTotalHeight(parts.bottom, parts.fontClass, em);
@@ -366,17 +368,16 @@ std::unique_ptr<MathRenderNode> MathDelimiter::makeTallSvg(const StackParts& par
   node->depth = targetTotalHeight - node->height;
   node->color = options.color();
   node->phantom = options.phantom();
-  node->ruleThickness = qMax<qreal>(1.0, em * MathFontMetrics::globalMetrics(options.style().size()).defaultRuleThickness);
+  node->ruleThickness =
+      qMax<qreal>(1.0, em * MathFontMetrics::globalMetrics(options.style().size()).defaultRuleThickness);
   if (center) {
     centerOnAxis(*node, options);
   }
   return node;
 }
 
-std::unique_ptr<MathRenderNode> MathDelimiter::makeGlyph(const QString& text,
-                                                         const QString& fontClass,
-                                                         MathNodeType type,
-                                                         const MathOptions& options) {
+std::unique_ptr<MathRenderNode> MathDelimiter::makeGlyph(const QString& text, const QString& fontClass,
+                                                         MathNodeType type, const MathOptions& options) {
   auto node = std::make_unique<MathRenderNode>();
   node->kind = MathRenderKind::Symbol;
   node->text = glyphForDelimiter(text);
@@ -385,7 +386,8 @@ std::unique_ptr<MathRenderNode> MathDelimiter::makeGlyph(const QString& text,
   node->color = options.color();
   node->phantom = options.phantom();
   const qreal em = options.fontPointSize();
-  const std::optional<CharacterMetrics> metrics = MathFontMetrics::characterMetrics(metricsNameForDelimiterFont(fontClass), node->text);
+  const std::optional<CharacterMetrics> metrics =
+      MathFontMetrics::characterMetrics(metricsNameForDelimiterFont(fontClass), node->text);
   if (metrics) {
     node->width = metrics->width * em;
     node->height = metrics->height * em;
@@ -405,13 +407,13 @@ MathDelimiter::StackParts MathDelimiter::stackParts(const QString& delimiter) {
   parts.bottom = delimiter;
   parts.repeat = delimiter;
   parts.fontClass = QStringLiteral("size1");
-  if (delimiter == QStringLiteral("|") || delimiter == QStringLiteral("\\vert") || delimiter == QStringLiteral("\\lvert") ||
-      delimiter == QStringLiteral("\\rvert")) {
+  if (delimiter == QStringLiteral("|") || delimiter == QStringLiteral("\\vert") ||
+      delimiter == QStringLiteral("\\lvert") || delimiter == QStringLiteral("\\rvert")) {
     parts.repeat = parts.top = parts.bottom = QStringLiteral("\u2223");
     parts.svgLabel = QStringLiteral("vert");
     parts.svgViewBoxWidth = 333;
-  } else if (delimiter == QStringLiteral("\\|") || delimiter == QStringLiteral("\\Vert") || delimiter == QStringLiteral("\\lVert") ||
-             delimiter == QStringLiteral("\\rVert")) {
+  } else if (delimiter == QStringLiteral("\\|") || delimiter == QStringLiteral("\\Vert") ||
+             delimiter == QStringLiteral("\\lVert") || delimiter == QStringLiteral("\\rVert")) {
     parts.repeat = parts.top = parts.bottom = QStringLiteral("\u2225");
     parts.svgLabel = QStringLiteral("doublevert");
     parts.svgViewBoxWidth = 556;
@@ -489,7 +491,8 @@ MathDelimiter::StackParts MathDelimiter::stackParts(const QString& delimiter) {
 
 qreal MathDelimiter::metricsTotalHeight(const QString& text, const QString& fontClass, qreal em) {
   const QString glyph = glyphForDelimiter(text);
-  const std::optional<CharacterMetrics> metrics = MathFontMetrics::characterMetrics(metricsNameForDelimiterFont(fontClass), glyph);
+  const std::optional<CharacterMetrics> metrics =
+      MathFontMetrics::characterMetrics(metricsNameForDelimiterFont(fontClass), glyph);
   if (metrics) {
     return (metrics->height + metrics->depth) * em;
   }
@@ -503,4 +506,4 @@ void MathDelimiter::centerOnAxis(MathRenderNode& node, const MathOptions& option
   node.depth = qMax<qreal>(0.0, total - node.height);
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

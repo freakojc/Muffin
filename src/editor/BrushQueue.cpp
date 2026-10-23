@@ -5,7 +5,8 @@
 
 namespace muffin {
 
-BrushQueue::BrushQueue(QObject* parent) : QObject(parent) {}
+BrushQueue::BrushQueue(QObject* parent) : QObject(parent) {
+}
 
 void BrushQueue::requestBlockRefresh(NodeId blockId) {
   if (!blockId.isValid()) {
@@ -111,4 +112,4 @@ void BrushQueue::scheduleFlush() {
   QTimer::singleShot(0, this, [this] { flush(); });
 }
 
-}  // namespace muffin
+} // namespace muffin

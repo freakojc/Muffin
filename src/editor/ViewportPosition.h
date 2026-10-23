@@ -15,4 +15,4 @@ struct ViewportPosition {
   bool atStart = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

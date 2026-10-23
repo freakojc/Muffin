@@ -27,10 +27,10 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
-template <typename A, typename E>
-void requireEq(const A& actual, const E& expected, const QString& message) {
+template <typename A, typename E> void requireEq(const A& actual, const E& expected, const QString& message) {
   if (!(actual == expected)) {
     qCritical().noquote() << message << "\n  actual:  " << actual << "\n  expected:" << expected;
     std::exit(1);
@@ -39,16 +39,16 @@ void requireEq(const A& actual, const E& expected, const QString& message) {
 
 DagreGraph makeCompound() {
   DagreGraph g({.directed = true, .multigraph = true, .compound = true});
-  g.setGraph(DagreGraphLabel{});  // buildLayoutGraph always sets a graph label
+  g.setGraph(DagreGraphLabel{}); // buildLayoutGraph always sets a graph label
   return g;
 }
 
 // Count edges by predicate.
-template <typename Fn>
-int countEdges(const DagreGraph& g, Fn pred) {
+template <typename Fn> int countEdges(const DagreGraph& g, Fn pred) {
   int n = 0;
   for (const Edge& e : g.edges())
-    if (pred(e, g.edge(e))) ++n;
+    if (pred(e, g.edge(e)))
+      ++n;
   return n;
 }
 
@@ -94,13 +94,13 @@ void testNestingGraphRun() {
   require(g.node(c->borderTop)->dummy == "border", QStringLiteral("border dummy tag"));
 
   // Four nesting edges (top->a, a->bottom, top->b, b->bottom), all weight 4 minlen 1.
-  const int nesting = countEdges(g, [](const Edge&, const DagreEdgeLabel* l) {
-    return l && l->nestingEdge;
-  });
+  const int nesting = countEdges(g, [](const Edge&, const DagreEdgeLabel* l) { return l && l->nestingEdge; });
   requireEq(nesting, 4, QStringLiteral("four nesting edges"));
-  require(countEdges(g, [](const Edge&, const DagreEdgeLabel* l) {
-    return l && l->nestingEdge && l->weight == 4 && l->minlen == 1;
-  }) == 4, QStringLiteral("nesting edges carry weight=2*sumWeights+2, minlen=1"));
+  require(countEdges(g,
+                     [](const Edge&, const DagreEdgeLabel* l) {
+                       return l && l->nestingEdge && l->weight == 4 && l->minlen == 1;
+                     }) == 4,
+          QStringLiteral("nesting edges carry weight=2*sumWeights+2, minlen=1"));
 
   // Root connects to leaves and the cluster top with zero-weight edges.
   require(g.edge(root, "a") && g.edge(root, "a")->weight == 0 && g.edge(root, "a")->minlen == 3,
@@ -127,9 +127,8 @@ void testNestingGraphCleanup() {
   require(g.graph()->nestingRoot.isEmpty(), QStringLiteral("nestingRoot cleared"));
   require(!g.hasNode("_root1") || true, QStringLiteral("root node removed"));
   require(g.graph()->nestingRoot.isEmpty() && !g.hasNode(QString()), QStringLiteral("root id gone"));
-  require(countEdges(g, [](const Edge&, const DagreEdgeLabel* l) {
-    return l && l->nestingEdge;
-  }) == 0, QStringLiteral("all nesting edges removed"));
+  require(countEdges(g, [](const Edge&, const DagreEdgeLabel* l) { return l && l->nestingEdge; }) == 0,
+          QStringLiteral("all nesting edges removed"));
   require(g.hasEdge("a", "b") && g.edge("a", "b")->minlen == 6,
           QStringLiteral("original edge survives with scaled minlen"));
   require(g.hasNode(top), QStringLiteral("border dummies survive cleanup"));
@@ -171,7 +170,8 @@ void testAddBorderSegments() {
 
 void testPostorder() {
   DagreGraph g = makeCompound();
-  for (const QString& n : {"C", "D", "a", "b"}) g.setNode(n);
+  for (const QString& n : {"C", "D", "a", "b"})
+    g.setNode(n);
   g.setParent("a", "C");
   g.setParent("D", "C");
   g.setParent("b", "D");
@@ -189,7 +189,8 @@ void testPostorder() {
 
 void testFindPath() {
   DagreGraph g = makeCompound();
-  for (const QString& n : {"C", "D", "a", "b"}) g.setNode(n);
+  for (const QString& n : {"C", "D", "a", "b"})
+    g.setNode(n);
   g.setParent("a", "C");
   g.setParent("D", "C");
   g.setParent("b", "D");
@@ -205,7 +206,8 @@ void testParentDummyChainsInsideCluster() {
   // Edge a->b entirely inside cluster C (both endpoints children of C), with a
   // single dummy d between them. The dummy must be re-parented to C.
   DagreGraph g = makeCompound();
-  for (const QString& n : {"C", "a", "b", "d"}) g.setNode(n);
+  for (const QString& n : {"C", "a", "b", "d"})
+    g.setNode(n);
   g.setParent("a", "C");
   g.setParent("b", "C");
   g.node("a")->rank = 1;
@@ -229,7 +231,8 @@ void testParentDummyChainsNestedAscending() {
   // Dummy d's rank (2) is outside Inner's range [1,1] so ascending must walk
   // past Inner up to the LCA (Outer) using the maxRank check.
   DagreGraph g = makeCompound();
-  for (const QString& n : {"Outer", "Inner", "a", "b", "d"}) g.setNode(n);
+  for (const QString& n : {"Outer", "Inner", "a", "b", "d"})
+    g.setNode(n);
   g.setParent("Inner", "Outer");
   g.setParent("a", "Inner");
   g.setParent("b", "Outer");
@@ -248,8 +251,7 @@ void testParentDummyChainsNestedAscending() {
   g.graph()->dummyChains.append("d");
 
   parentDummyChains(g);
-  requireEq(g.parentOf("d"), QString("Outer"),
-            QStringLiteral("dummy past Inner's range parented to the LCA (Outer)"));
+  requireEq(g.parentOf("d"), QString("Outer"), QStringLiteral("dummy past Inner's range parented to the LCA (Outer)"));
 }
 
 void testUtilHelpers() {
@@ -275,7 +277,7 @@ void testUtilHelpers() {
   rect.y = 0.0;
   rect.width = 10.0;
   rect.height = 6.0;
-  const QPointF hit = intersectRect(rect, QPointF(100.0, 1.0));  // ray to the right
+  const QPointF hit = intersectRect(rect, QPointF(100.0, 1.0)); // ray to the right
   require(qAbs(hit.x() - 5.0) < 1e-9, QStringLiteral("intersectRect right edge x"));
 }
 
@@ -290,7 +292,7 @@ void testNormalizeRanks() {
   requireEq(*g.node("b")->rank, 2, QStringLiteral("normalizeRanks shift"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

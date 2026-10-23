@@ -15,7 +15,8 @@ void InlineDisplayMap::reset(const InlineProjection& projection) {
   displayOffsetMap_.reserve(projection.spans().size());
   for (const InlineProjectionSpan& span : projection.spans()) {
     offsetMap_.push_back(OffsetMapEntry{span.displayStart, span.displayEnd, span.visibleStart, span.visibleEnd});
-    displayOffsetMap_.push_back(DisplayOffsetMapEntry{span.displayStart, span.displayEnd, span.displayStart, span.displayEnd});
+    displayOffsetMap_.push_back(
+        DisplayOffsetMapEntry{span.displayStart, span.displayEnd, span.displayStart, span.displayEnd});
   }
 }
 
@@ -29,7 +30,8 @@ qsizetype InlineDisplayMap::visibleOffsetForDisplayOffset(qsizetype displayOffse
       if (entry.visibleEnd <= entry.visibleStart || entry.displayEnd <= entry.displayStart) {
         return entry.visibleStart;
       }
-      const qsizetype delta = qBound<qsizetype>(0, displayOffset - entry.displayStart, entry.visibleEnd - entry.visibleStart);
+      const qsizetype delta =
+          qBound<qsizetype>(0, displayOffset - entry.displayStart, entry.visibleEnd - entry.visibleStart);
       return qBound<qsizetype>(entry.visibleStart, entry.visibleStart + delta, entry.visibleEnd);
     }
   }
@@ -42,19 +44,22 @@ qsizetype InlineDisplayMap::displayOffsetForVisibleOffset(qsizetype visibleOffse
   }
   visibleOffset = qBound<qsizetype>(0, visibleOffset, visibleLength_);
   for (const OffsetMapEntry& entry : offsetMap_) {
-    if (visibleOffset == entry.visibleEnd && visibleOffset < visibleLength_) continue;
+    if (visibleOffset == entry.visibleEnd && visibleOffset < visibleLength_)
+      continue;
     if (visibleOffset <= entry.visibleEnd) {
       if (entry.visibleEnd <= entry.visibleStart || entry.displayEnd <= entry.displayStart) {
         continue;
       }
-      const qsizetype delta = qBound<qsizetype>(0, visibleOffset - entry.visibleStart, entry.displayEnd - entry.displayStart);
+      const qsizetype delta =
+          qBound<qsizetype>(0, visibleOffset - entry.visibleStart, entry.displayEnd - entry.displayStart);
       return qBound<qsizetype>(entry.displayStart, entry.displayStart + delta, entry.displayEnd);
     }
   }
   return displayText_.size();
 }
 
-qsizetype InlineDisplayMap::projectionDisplayOffsetForLayoutOffset(qsizetype layoutOffset, InlineProjectionBias bias) const {
+qsizetype InlineDisplayMap::projectionDisplayOffsetForLayoutOffset(qsizetype layoutOffset,
+                                                                   InlineProjectionBias bias) const {
   if (displayOffsetMap_.isEmpty()) {
     return qBound<qsizetype>(0, layoutOffset, projectionLength_);
   }
@@ -82,7 +87,8 @@ qsizetype InlineDisplayMap::projectionDisplayOffsetForLayoutOffset(qsizetype lay
   return projectionLength_;
 }
 
-qsizetype InlineDisplayMap::layoutDisplayOffsetForProjectionOffset(qsizetype projectionOffset, InlineProjectionBias bias) const {
+qsizetype InlineDisplayMap::layoutDisplayOffsetForProjectionOffset(qsizetype projectionOffset,
+                                                                   InlineProjectionBias bias) const {
   if (displayOffsetMap_.isEmpty()) {
     return qBound<qsizetype>(0, projectionOffset, displayText_.size());
   }
@@ -96,13 +102,14 @@ qsizetype InlineDisplayMap::layoutDisplayOffsetForProjectionOffset(qsizetype pro
     // Shared boundaries belong to the following editable run, beyond its
     // zero-source spacers/prefix. Apply this for source selections as well as
     // carets; the bias still controls positions inside collapsed atoms.
-    if (projectionOffset == entry.projectionEnd &&
-        projectionOffset < projectionLength_) continue;
+    if (projectionOffset == entry.projectionEnd && projectionOffset < projectionLength_)
+      continue;
     if (entry.projectionEnd <= entry.projectionStart) {
       // Generated content has no source extent. Prefer the adjacent editable
       // range for both caret bias and selections; only an empty source needs
       // this fallback (the boundary between ::before and ::after).
-      if (generatedFallback < 0) generatedFallback = entry.layoutEnd;
+      if (generatedFallback < 0)
+        generatedFallback = entry.layoutEnd;
       continue;
     }
     if (entry.layoutEnd <= entry.layoutStart) {
@@ -124,7 +131,8 @@ qsizetype InlineDisplayMap::layoutDisplayOffsetForProjectionOffset(qsizetype pro
   return generatedFallback >= 0 ? generatedFallback : displayText_.size();
 }
 
-InlineDisplayMap::DisplayOffsetRange InlineDisplayMap::layoutDisplayRangeForProjectionRange(qsizetype projectionStart, qsizetype projectionEnd) const {
+InlineDisplayMap::DisplayOffsetRange
+InlineDisplayMap::layoutDisplayRangeForProjectionRange(qsizetype projectionStart, qsizetype projectionEnd) const {
   DisplayOffsetRange range;
   if (projectionEnd <= projectionStart) {
     return range;
@@ -134,12 +142,15 @@ InlineDisplayMap::DisplayOffsetRange InlineDisplayMap::layoutDisplayRangeForProj
   // mapping a whole span through one caret bias would include padding as text.
   bool found = false;
   for (const auto& entry : displayOffsetMap_) {
-    if (entry.projectionEnd <= entry.projectionStart || entry.projectionEnd <= projectionStart || entry.projectionStart >= projectionEnd)
+    if (entry.projectionEnd <= entry.projectionStart || entry.projectionEnd <= projectionStart ||
+        entry.projectionStart >= projectionEnd)
       continue;
     const qsizetype a = qMax(projectionStart, entry.projectionStart), b = qMin(projectionEnd, entry.projectionEnd);
     const qsizetype length = entry.projectionEnd - entry.projectionStart;
-    const qsizetype start = entry.layoutStart + (a - entry.projectionStart) * (entry.layoutEnd - entry.layoutStart) / length;
-    const qsizetype end = entry.layoutStart + (b - entry.projectionStart) * (entry.layoutEnd - entry.layoutStart) / length;
+    const qsizetype start =
+        entry.layoutStart + (a - entry.projectionStart) * (entry.layoutEnd - entry.layoutStart) / length;
+    const qsizetype end =
+        entry.layoutStart + (b - entry.projectionStart) * (entry.layoutEnd - entry.layoutStart) / length;
     if (!found) {
       range.start = start;
       range.end = end;
@@ -149,7 +160,8 @@ InlineDisplayMap::DisplayOffsetRange InlineDisplayMap::layoutDisplayRangeForProj
       range.end = qMax(range.end, end);
     }
   }
-  if (!found) return range;
+  if (!found)
+    return range;
   range.start = qBound<qsizetype>(0, range.start, displayText_.size());
   range.end = qBound<qsizetype>(0, range.end, displayText_.size());
   range.valid = range.end > range.start;
@@ -169,7 +181,8 @@ qsizetype InlineDisplayMap::Insertions::after(qsizetype position) const {
   return position + (std::upper_bound(positions.begin(), positions.end(), position) - positions.begin());
 }
 
-void InlineDisplayMap::insertGenerated(qsizetype position, const QString& inserted, qsizetype projectionAnchor, qsizetype visibleAnchor) {
+void InlineDisplayMap::insertGenerated(qsizetype position, const QString& inserted, qsizetype projectionAnchor,
+                                       qsizetype visibleAnchor) {
   const qsizetype length = inserted.size();
   const auto shift = [&](qsizetype& start, qsizetype& end) {
     if (start >= position) {
@@ -183,10 +196,14 @@ void InlineDisplayMap::insertGenerated(qsizetype position, const QString& insert
   for (auto entry : offsetMap_) {
     if (entry.displayStart < position && position < entry.displayEnd) {
       const auto anchor = entry.visibleStart + (entry.visibleEnd - entry.visibleStart) *
-          (position - entry.displayStart) / (entry.displayEnd - entry.displayStart);
+                                                   (position - entry.displayStart) /
+                                                   (entry.displayEnd - entry.displayStart);
       offsets.push_back({entry.displayStart, position, entry.visibleStart, anchor});
       offsets.push_back({position + length, entry.displayEnd + length, anchor, entry.visibleEnd});
-    } else { shift(entry.displayStart, entry.displayEnd); offsets.push_back(entry); }
+    } else {
+      shift(entry.displayStart, entry.displayEnd);
+      offsets.push_back(entry);
+    }
   }
   offsetMap_ = std::move(offsets);
   QVector<DisplayOffsetMapEntry> displayOffsets;
@@ -194,18 +211,19 @@ void InlineDisplayMap::insertGenerated(qsizetype position, const QString& insert
     if (entry.layoutStart < position && position < entry.layoutEnd) {
       displayOffsets.push_back({entry.projectionStart, projectionAnchor, entry.layoutStart, position});
       displayOffsets.push_back({projectionAnchor, entry.projectionEnd, position + length, entry.layoutEnd + length});
-    } else { shift(entry.layoutStart, entry.layoutEnd); displayOffsets.push_back(entry); }
+    } else {
+      shift(entry.layoutStart, entry.layoutEnd);
+      displayOffsets.push_back(entry);
+    }
   }
   displayOffsetMap_ = std::move(displayOffsets);
   displayText_.insert(position, inserted);
   offsetMap_.push_back({position, position + length, visibleAnchor, visibleAnchor});
   displayOffsetMap_.push_back({projectionAnchor, projectionAnchor, position, position + length});
-  std::stable_sort(offsetMap_.begin(), offsetMap_.end(), [](const auto& a, const auto& b) {
-    return a.displayStart < b.displayStart;
-  });
-  std::stable_sort(displayOffsetMap_.begin(), displayOffsetMap_.end(), [](const auto& a, const auto& b) {
-    return a.layoutStart < b.layoutStart;
-  });
+  std::stable_sort(offsetMap_.begin(), offsetMap_.end(),
+                   [](const auto& a, const auto& b) { return a.displayStart < b.displayStart; });
+  std::stable_sort(displayOffsetMap_.begin(), displayOffsetMap_.end(),
+                   [](const auto& a, const auto& b) { return a.layoutStart < b.layoutStart; });
 }
 
 InlineDisplayMap::Insertions InlineDisplayMap::insertSpacing(QVector<qsizetype> positions, QChar placeholder) {
@@ -219,30 +237,32 @@ InlineDisplayMap::Insertions InlineDisplayMap::insertSpacing(QVector<qsizetype> 
   for (const auto& e : offsetMap_) {
     qsizetype start = e.displayStart;
     const auto visible = [&](qsizetype p) {
-      return e.visibleStart +
-             (e.displayEnd > e.displayStart ? (e.visibleEnd - e.visibleStart) * (p - e.displayStart) / (e.displayEnd - e.displayStart) : 0);
+      return e.visibleStart + (e.displayEnd > e.displayStart ? (e.visibleEnd - e.visibleStart) * (p - e.displayStart) /
+                                                                   (e.displayEnd - e.displayStart)
+                                                             : 0);
     };
     for (auto position : result.positions)
       if (position > start && position < e.displayEnd) {
         offsets.push_back({after(start), before(position), visible(start), visible(position)});
         start = position;
       }
-    offsets.push_back({after(start), e.displayEnd > start ? before(e.displayEnd) : after(e.displayEnd), visible(start), e.visibleEnd});
+    offsets.push_back({after(start), e.displayEnd > start ? before(e.displayEnd) : after(e.displayEnd), visible(start),
+                       e.visibleEnd});
   }
   for (const auto& e : displayOffsetMap_) {
     qsizetype start = e.layoutStart;
     const auto projected = [&](qsizetype p) {
-      return e.projectionStart + (e.layoutEnd > e.layoutStart
-                                      ? (e.projectionEnd - e.projectionStart) * (p - e.layoutStart) / (e.layoutEnd - e.layoutStart)
-                                      : 0);
+      return e.projectionStart + (e.layoutEnd > e.layoutStart ? (e.projectionEnd - e.projectionStart) *
+                                                                    (p - e.layoutStart) / (e.layoutEnd - e.layoutStart)
+                                                              : 0);
     };
     for (auto position : result.positions)
       if (position > start && position < e.layoutEnd) {
         displayOffsets.push_back({projected(start), projected(position), after(start), before(position)});
         start = position;
       }
-    displayOffsets.push_back(
-        {projected(start), e.projectionEnd, after(start), e.layoutEnd > start ? before(e.layoutEnd) : after(e.layoutEnd)});
+    displayOffsets.push_back({projected(start), e.projectionEnd, after(start),
+                              e.layoutEnd > start ? before(e.layoutEnd) : after(e.layoutEnd)});
   }
   for (auto position : result.positions) {
     const qsizetype pos = before(position);
@@ -250,10 +270,11 @@ InlineDisplayMap::Insertions InlineDisplayMap::insertSpacing(QVector<qsizetype> 
     const qsizetype projected = projectionDisplayOffsetForLayoutOffset(position, InlineProjectionBias::Backward);
     offsets.push_back({pos, pos + 1, visible, visible});
     displayOffsets.push_back({projected, projected, pos, pos + 1});
-
   }
-  for (auto it = result.positions.rbegin(); it != result.positions.rend(); ++it) displayText_.insert(*it, placeholder);
-  std::stable_sort(offsets.begin(), offsets.end(), [](const auto& a, const auto& b) { return a.displayStart < b.displayStart; });
+  for (auto it = result.positions.rbegin(); it != result.positions.rend(); ++it)
+    displayText_.insert(*it, placeholder);
+  std::stable_sort(offsets.begin(), offsets.end(),
+                   [](const auto& a, const auto& b) { return a.displayStart < b.displayStart; });
   std::stable_sort(displayOffsets.begin(), displayOffsets.end(),
                    [](const auto& a, const auto& b) { return a.layoutStart < b.layoutStart; });
   offsetMap_ = std::move(offsets);
@@ -282,4 +303,4 @@ void InlineDisplayMap::collapse(DisplayOffsetRange range, QChar placeholder) {
   }
 }
 
-}  // namespace muffin
+} // namespace muffin

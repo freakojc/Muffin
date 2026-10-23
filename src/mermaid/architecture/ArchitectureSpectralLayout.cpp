@@ -46,10 +46,13 @@ SvdResult svd(Matrix a) {
   for (int k = 0; k < std::max(nct, nrt); ++k) {
     if (k < nct) {
       s[k] = 0.0;
-      for (int i = k; i < m; ++i) s[k] = stableHypot(s[k], a[i][k]);
+      for (int i = k; i < m; ++i)
+        s[k] = stableHypot(s[k], a[i][k]);
       if (s[k] != 0.0) {
-        if (a[k][k] < 0.0) s[k] = -s[k];
-        for (int i = k; i < m; ++i) a[i][k] /= s[k];
+        if (a[k][k] < 0.0)
+          s[k] = -s[k];
+        for (int i = k; i < m; ++i)
+          a[i][k] /= s[k];
         a[k][k] += 1.0;
       }
       s[k] = -s[k];
@@ -57,59 +60,78 @@ SvdResult svd(Matrix a) {
     for (int j = k + 1; j < n; ++j) {
       if (k < nct && s[k] != 0.0) {
         double t = 0.0;
-        for (int i = k; i < m; ++i) t += a[i][k] * a[i][j];
+        for (int i = k; i < m; ++i)
+          t += a[i][k] * a[i][j];
         t = -t / a[k][k];
-        for (int i = k; i < m; ++i) a[i][j] += t * a[i][k];
+        for (int i = k; i < m; ++i)
+          a[i][j] += t * a[i][k];
       }
       e[j] = a[k][j];
     }
     if (k < nct)
-      for (int i = k; i < m; ++i) u[i][k] = a[i][k];
+      for (int i = k; i < m; ++i)
+        u[i][k] = a[i][k];
     if (k < nrt) {
       e[k] = 0.0;
-      for (int i = k + 1; i < n; ++i) e[k] = stableHypot(e[k], e[i]);
+      for (int i = k + 1; i < n; ++i)
+        e[k] = stableHypot(e[k], e[i]);
       if (e[k] != 0.0) {
-        if (e[k + 1] < 0.0) e[k] = -e[k];
-        for (int i = k + 1; i < n; ++i) e[i] /= e[k];
+        if (e[k + 1] < 0.0)
+          e[k] = -e[k];
+        for (int i = k + 1; i < n; ++i)
+          e[i] /= e[k];
         e[k + 1] += 1.0;
       }
       e[k] = -e[k];
       if (k + 1 < m && e[k] != 0.0) {
-        for (int i = k + 1; i < m; ++i) work[i] = 0.0;
+        for (int i = k + 1; i < m; ++i)
+          work[i] = 0.0;
         for (int j = k + 1; j < n; ++j)
-          for (int i = k + 1; i < m; ++i) work[i] += e[j] * a[i][j];
+          for (int i = k + 1; i < m; ++i)
+            work[i] += e[j] * a[i][j];
         for (int j = k + 1; j < n; ++j) {
           const double t = -e[j] / e[k + 1];
-          for (int i = k + 1; i < m; ++i) a[i][j] += t * work[i];
+          for (int i = k + 1; i < m; ++i)
+            a[i][j] += t * work[i];
         }
       }
-      for (int i = k + 1; i < n; ++i) v[i][k] = e[i];
+      for (int i = k + 1; i < n; ++i)
+        v[i][k] = e[i];
     }
   }
 
   int p = std::min(n, m + 1);
-  if (nct < n) s[nct] = a[nct][nct];
-  if (m < p) s[p - 1] = 0.0;
-  if (nrt + 1 < p) e[nrt] = a[nrt][p - 1];
+  if (nct < n)
+    s[nct] = a[nct][nct];
+  if (m < p)
+    s[p - 1] = 0.0;
+  if (nrt + 1 < p)
+    e[nrt] = a[nrt][p - 1];
   e[p - 1] = 0.0;
 
   for (int j = nct; j < nu; ++j) {
-    for (int i = 0; i < m; ++i) u[i][j] = 0.0;
+    for (int i = 0; i < m; ++i)
+      u[i][j] = 0.0;
     u[j][j] = 1.0;
   }
   for (int k = nct - 1; k >= 0; --k) {
     if (s[k] != 0.0) {
       for (int j = k + 1; j < nu; ++j) {
         double t = 0.0;
-        for (int i = k; i < m; ++i) t += u[i][k] * u[i][j];
+        for (int i = k; i < m; ++i)
+          t += u[i][k] * u[i][j];
         t = -t / u[k][k];
-        for (int i = k; i < m; ++i) u[i][j] += t * u[i][k];
+        for (int i = k; i < m; ++i)
+          u[i][j] += t * u[i][k];
       }
-      for (int i = k; i < m; ++i) u[i][k] = -u[i][k];
+      for (int i = k; i < m; ++i)
+        u[i][k] = -u[i][k];
       u[k][k] = 1.0 + u[k][k];
-      for (int i = 0; i < k - 1; ++i) u[i][k] = 0.0;
+      for (int i = 0; i < k - 1; ++i)
+        u[i][k] = 0.0;
     } else {
-      for (int i = 0; i < m; ++i) u[i][k] = 0.0;
+      for (int i = 0; i < m; ++i)
+        u[i][k] = 0.0;
       u[k][k] = 1.0;
     }
   }
@@ -117,12 +139,15 @@ SvdResult svd(Matrix a) {
     if (k < nrt && e[k] != 0.0) {
       for (int j = k + 1; j < nu; ++j) {
         double t = 0.0;
-        for (int i = k + 1; i < n; ++i) t += v[i][k] * v[i][j];
+        for (int i = k + 1; i < n; ++i)
+          t += v[i][k] * v[i][j];
         t = -t / v[k + 1][k];
-        for (int i = k + 1; i < n; ++i) v[i][j] += t * v[i][k];
+        for (int i = k + 1; i < n; ++i)
+          v[i][j] += t * v[i][k];
       }
     }
-    for (int i = 0; i < n; ++i) v[i][k] = 0.0;
+    for (int i = 0; i < n; ++i)
+      v[i][k] = 0.0;
     v[k][k] = 1.0;
   }
 
@@ -132,7 +157,8 @@ SvdResult svd(Matrix a) {
   while (p > 0) {
     int k = p - 2;
     for (; k >= -1; --k) {
-      if (k == -1) break;
+      if (k == -1)
+        break;
       if (std::abs(e[k]) <= tiny + eps * (std::abs(s[k]) + std::abs(s[k + 1]))) {
         e[k] = 0.0;
         break;
@@ -144,17 +170,22 @@ SvdResult svd(Matrix a) {
     } else {
       int ks = p - 1;
       for (; ks >= k; --ks) {
-        if (ks == k) break;
-        const double t = (ks != p ? std::abs(e[ks]) : 0.0) +
-                         (ks != k + 1 ? std::abs(e[ks - 1]) : 0.0);
+        if (ks == k)
+          break;
+        const double t = (ks != p ? std::abs(e[ks]) : 0.0) + (ks != k + 1 ? std::abs(e[ks - 1]) : 0.0);
         if (std::abs(s[ks]) <= tiny + eps * t) {
           s[ks] = 0.0;
           break;
         }
       }
-      if (ks == k) kase = 3;
-      else if (ks == p - 1) kase = 1;
-      else { kase = 2; k = ks; }
+      if (ks == k)
+        kase = 3;
+      else if (ks == p - 1)
+        kase = 1;
+      else {
+        kase = 2;
+        k = ks;
+      }
     }
     ++k;
 
@@ -166,7 +197,10 @@ SvdResult svd(Matrix a) {
         const double cs = s[j] / t;
         const double sn = f / t;
         s[j] = t;
-        if (j != k) { f = -sn * e[j - 1]; e[j - 1] = cs * e[j - 1]; }
+        if (j != k) {
+          f = -sn * e[j - 1];
+          e[j - 1] = cs * e[j - 1];
+        }
         for (int i = 0; i < n; ++i) {
           t = cs * v[i][j] + sn * v[i][p - 1];
           v[i][p - 1] = -sn * v[i][j] + cs * v[i][p - 1];
@@ -190,9 +224,8 @@ SvdResult svd(Matrix a) {
         }
       }
     } else if (kase == 3) {
-      const double scale = std::max({std::abs(s[p - 1]), std::abs(s[p - 2]),
-                                     std::abs(e[p - 2]), std::abs(s[k]),
-                                     std::abs(e[k])});
+      const double scale =
+          std::max({std::abs(s[p - 1]), std::abs(s[p - 2]), std::abs(e[p - 2]), std::abs(s[k]), std::abs(e[k])});
       const double sp = s[p - 1] / scale;
       const double spm1 = s[p - 2] / scale;
       const double epm1 = e[p - 2] / scale;
@@ -203,7 +236,8 @@ SvdResult svd(Matrix a) {
       double shift = 0.0;
       if (b != 0.0 || c != 0.0) {
         shift = std::sqrt(b * b + c);
-        if (b < 0.0) shift = -shift;
+        if (b < 0.0)
+          shift = -shift;
         shift = c / (b + shift);
       }
       double f = (sk + sp) * (sk - sp) + shift;
@@ -212,7 +246,8 @@ SvdResult svd(Matrix a) {
         double t = stableHypot(f, g);
         double cs = f / t;
         double sn = g / t;
-        if (j != k) e[j - 1] = t;
+        if (j != k)
+          e[j - 1] = t;
         f = cs * s[j] + sn * e[j];
         e[j] = cs * e[j] - sn * s[j];
         g = sn * s[j + 1];
@@ -242,15 +277,19 @@ SvdResult svd(Matrix a) {
     } else {
       if (s[k] <= 0.0) {
         s[k] = s[k] < 0.0 ? -s[k] : 0.0;
-        for (int i = 0; i <= pp; ++i) v[i][k] = -v[i][k];
+        for (int i = 0; i <= pp; ++i)
+          v[i][k] = -v[i][k];
       }
       while (k < pp) {
-        if (s[k] >= s[k + 1]) break;
+        if (s[k] >= s[k + 1])
+          break;
         std::swap(s[k], s[k + 1]);
         if (k < n - 1)
-          for (int i = 0; i < n; ++i) std::swap(v[i][k + 1], v[i][k]);
+          for (int i = 0; i < n; ++i)
+            std::swap(v[i][k + 1], v[i][k]);
         if (k < m - 1)
-          for (int i = 0; i < m; ++i) std::swap(u[i][k + 1], u[i][k]);
+          for (int i = 0; i < m; ++i)
+            std::swap(u[i][k + 1], u[i][k]);
         ++k;
       }
       --p;
@@ -262,7 +301,8 @@ SvdResult svd(Matrix a) {
 Matrix transpose(const Matrix& value) {
   Matrix result(value.at(0).size(), Vector(value.size(), 0.0));
   for (int i = 0; i < value.size(); ++i)
-    for (int j = 0; j < value.at(0).size(); ++j) result[j][i] = value[i][j];
+    for (int j = 0; j < value.at(0).size(); ++j)
+      result[j][i] = value[i][j];
   return result;
 }
 
@@ -277,53 +317,60 @@ Matrix multiply(const Matrix& lhs, const Matrix& rhs) {
 
 double dot(const Vector& lhs, const Vector& rhs) {
   double result = 0.0;
-  for (int i = 0; i < lhs.size(); ++i) result += lhs[i] * rhs[i];
+  for (int i = 0; i < lhs.size(); ++i)
+    result += lhs[i] * rhs[i];
   return result;
 }
 
 Vector normalized(const Vector& value) {
   const double magnitude = std::sqrt(dot(value, value));
   Vector result(value.size());
-  for (int i = 0; i < value.size(); ++i) result[i] = value[i] / magnitude;
+  for (int i = 0; i < value.size(); ++i)
+    result[i] = value[i] / magnitude;
   return result;
 }
 
 Vector centered(const Vector& value) {
   double sum = 0.0;
-  for (double item : value) sum += item;
+  for (double item : value)
+    sum += item;
   sum *= -1.0 / value.size();
   Vector result(value.size());
-  for (int i = 0; i < value.size(); ++i) result[i] = sum + value[i];
+  for (int i = 0; i < value.size(); ++i)
+    result[i] = sum + value[i];
   return result;
 }
 
 Vector multiplyL(const Vector& value, const Matrix& c, const Matrix& inverse) {
   Vector first(c.at(0).size(), 0.0);
   for (int i = 0; i < c.at(0).size(); ++i)
-    for (int j = 0; j < c.size(); ++j) first[i] += -0.5 * c[j][i] * value[j];
+    for (int j = 0; j < c.size(); ++j)
+      first[i] += -0.5 * c[j][i] * value[j];
   Vector second(inverse.size(), 0.0);
   for (int i = 0; i < inverse.size(); ++i)
-    for (int j = 0; j < inverse.size(); ++j) second[i] += inverse[i][j] * first[j];
+    for (int j = 0; j < inverse.size(); ++j)
+      second[i] += inverse[i][j] * first[j];
   Vector result(c.size(), 0.0);
   for (int i = 0; i < c.size(); ++i)
-    for (int j = 0; j < c.at(0).size(); ++j) result[i] += c[i][j] * second[j];
+    for (int j = 0; j < c.at(0).size(); ++j)
+      result[i] += c[i][j] * second[j];
   return result;
 }
 
-Vector spectralProduct(const Vector& value, const Matrix& c,
-                       const Matrix& inverse) {
+Vector spectralProduct(const Vector& value, const Matrix& c, const Matrix& inverse) {
   return centered(multiplyL(centered(value), c, inverse));
 }
 
-}  // namespace
+} // namespace
 
-QVector<QPointF> layoutArchitectureSpectral(
-    const QVector<QVector<int>>& adjacency, qreal nodeSeparation,
-    const std::function<double()>& random) {
+QVector<QPointF> layoutArchitectureSpectral(const QVector<QVector<int>>& adjacency, qreal nodeSeparation,
+                                            const std::function<double()>& random) {
   const int nodeCount = adjacency.size();
   QVector<QPointF> result(nodeCount);
-  if (nodeCount <= 0) return result;
-  if (nodeCount == 1) return result;
+  if (nodeCount <= 0)
+    return result;
+  if (nodeCount == 1)
+    return result;
   if (nodeCount == 2) {
     result[1].setX(nodeSeparation);
     return result;
@@ -344,8 +391,7 @@ QVector<QPointF> layoutArchitectureSpectral(
     for (int front = 0; front < queue.size(); ++front) {
       const int current = queue.at(front);
       for (int neighbor : adjacency.at(current)) {
-        if (neighbor < 0 || neighbor >= nodeCount ||
-            distance[neighbor] != 100000000)
+        if (neighbor < 0 || neighbor >= nodeCount || distance[neighbor] != 100000000)
           continue;
         distance[neighbor] = distance[current] + 1;
         queue.append(neighbor);
@@ -364,22 +410,21 @@ QVector<QPointF> layoutArchitectureSpectral(
     sample = furthestIndex;
   }
   for (Vector& row : c)
-    for (double& value : row) value *= value;
+    for (double& value : row)
+      value *= value;
 
   Matrix phi(sampleCount, Vector(sampleCount, 0.0));
   for (int i = 0; i < sampleCount; ++i)
-    for (int j = 0; j < sampleCount; ++j) phi[i][j] = c[samples[j]][i];
+    for (int j = 0; j < sampleCount; ++j)
+      phi[i][j] = c[samples[j]][i];
   const SvdResult decomposition = svd(phi);
-  const double maximum = decomposition.singular.at(0) *
-                         decomposition.singular.at(0) *
-                         decomposition.singular.at(0);
+  const double maximum = decomposition.singular.at(0) * decomposition.singular.at(0) * decomposition.singular.at(0);
   Matrix sigma(sampleCount, Vector(sampleCount, 0.0));
   for (int i = 0; i < sampleCount; ++i) {
     const double q = decomposition.singular.at(i);
     sigma[i][i] = q / (q * q + maximum / (q * q));
   }
-  const Matrix inverse = multiply(multiply(decomposition.v, sigma),
-                                  transpose(decomposition.u));
+  const Matrix inverse = multiply(multiply(decomposition.v, sigma), transpose(decomposition.u));
 
   Vector y1(nodeCount), y2(nodeCount);
   for (int i = 0; i < nodeCount; ++i) {
@@ -399,7 +444,8 @@ QVector<QPointF> layoutArchitectureSpectral(
     y1 = normalized(y1);
     const double current = dot(v1, y1);
     const double ratio = std::abs(current / previous);
-    if (ratio <= 1.0000001 && ratio >= 1.0) break;
+    if (ratio <= 1.0000001 && ratio >= 1.0)
+      break;
     previous = current;
   }
   v1 = y1;
@@ -407,13 +453,15 @@ QVector<QPointF> layoutArchitectureSpectral(
   for (;;) {
     v2 = y2;
     const double projection = dot(v1, v2);
-    for (int i = 0; i < nodeCount; ++i) v2[i] -= v1[i] * projection;
+    for (int i = 0; i < nodeCount; ++i)
+      v2[i] -= v1[i] * projection;
     y2 = spectralProduct(v2, c, inverse);
     theta2 = dot(v2, y2);
     y2 = normalized(y2);
     const double current = dot(v2, y2);
     const double ratio = std::abs(current / previous);
-    if (ratio <= 1.0000001 && ratio >= 1.0) break;
+    if (ratio <= 1.0000001 && ratio >= 1.0)
+      break;
     previous = current;
   }
   v2 = y2;
@@ -424,17 +472,18 @@ QVector<QPointF> layoutArchitectureSpectral(
   return result;
 }
 
-void transformArchitectureSpectralConstraints(
-    QVector<QPointF>& positions,
-    const QVector<QVector<int>>& verticalAlignments,
-    const QVector<QVector<int>>& horizontalAlignments,
-    const QVector<ArchitectureSpectralRelativeConstraint>& relative) {
+void transformArchitectureSpectralConstraints(QVector<QPointF>& positions,
+                                              const QVector<QVector<int>>& verticalAlignments,
+                                              const QVector<QVector<int>>& horizontalAlignments,
+                                              const QVector<ArchitectureSpectralRelativeConstraint>& relative) {
   Matrix target;
   Matrix source;
   auto appendVertical = [&](const QVector<int>& group) {
-    if (group.isEmpty()) return;
+    if (group.isEmpty())
+      return;
     double average = 0.0;
-    for (int index : group) average += positions.at(index).x();
+    for (int index : group)
+      average += positions.at(index).x();
     average /= group.size();
     for (int index : group) {
       target.append({average, positions.at(index).y()});
@@ -442,27 +491,32 @@ void transformArchitectureSpectralConstraints(
     }
   };
   auto appendHorizontal = [&](const QVector<int>& group) {
-    if (group.isEmpty()) return;
+    if (group.isEmpty())
+      return;
     double average = 0.0;
-    for (int index : group) average += positions.at(index).y();
+    for (int index : group)
+      average += positions.at(index).y();
     average /= group.size();
     for (int index : group) {
       target.append({positions.at(index).x(), average});
       source.append({positions.at(index).x(), positions.at(index).y()});
     }
   };
-  for (const QVector<int>& group : verticalAlignments) appendVertical(group);
-  for (const QVector<int>& group : horizontalAlignments) appendHorizontal(group);
+  for (const QVector<int>& group : verticalAlignments)
+    appendVertical(group);
+  for (const QVector<int>& group : horizontalAlignments)
+    appendHorizontal(group);
 
   if (!source.isEmpty()) {
     Matrix targetTranspose = transpose(target);
     Matrix sourceTranspose = transpose(source);
-    for (Vector& row : targetTranspose) row = centered(row);
-    for (Vector& row : sourceTranspose) row = centered(row);
+    for (Vector& row : targetTranspose)
+      row = centered(row);
+    for (Vector& row : sourceTranspose)
+      row = centered(row);
     const Matrix product = multiply(targetTranspose, transpose(sourceTranspose));
     const SvdResult decomposition = svd(product);
-    const Matrix transform =
-        multiply(decomposition.v, transpose(decomposition.u));
+    const Matrix transform = multiply(decomposition.v, transpose(decomposition.u));
     for (QPointF& point : positions) {
       const double x = point.x();
       const double y = point.y();
@@ -477,21 +531,16 @@ void transformArchitectureSpectralConstraints(
     int reflectVertical = 0;
     int keepVertical = 0;
     for (const ArchitectureSpectralRelativeConstraint& constraint : relative) {
-      if (constraint.before < 0 || constraint.after < 0 ||
-          constraint.before >= positions.size() ||
+      if (constraint.before < 0 || constraint.after < 0 || constraint.before >= positions.size() ||
           constraint.after >= positions.size())
         continue;
       if (constraint.horizontal) {
-        if (positions.at(constraint.before).x() -
-                positions.at(constraint.after).x() >=
-            0.0)
+        if (positions.at(constraint.before).x() - positions.at(constraint.after).x() >= 0.0)
           ++reflectHorizontal;
         else
           ++keepHorizontal;
       } else {
-        if (positions.at(constraint.before).y() -
-                positions.at(constraint.after).y() >=
-            0.0)
+        if (positions.at(constraint.before).y() - positions.at(constraint.after).y() >= 0.0)
           ++reflectVertical;
         else
           ++keepVertical;
@@ -500,10 +549,12 @@ void transformArchitectureSpectralConstraints(
     const bool flipX = reflectHorizontal > keepHorizontal;
     const bool flipY = reflectVertical > keepVertical;
     for (QPointF& point : positions) {
-      if (flipX) point.setX(-point.x());
-      if (flipY) point.setY(-point.y());
+      if (flipX)
+        point.setX(-point.x());
+      if (flipY)
+        point.setY(-point.y());
     }
   }
 }
 
-}  // namespace muffin::mermaid::architecture
+} // namespace muffin::mermaid::architecture

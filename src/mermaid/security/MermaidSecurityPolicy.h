@@ -23,7 +23,8 @@ struct MermaidSecurityPolicy {
   // empty when it is unsafe and the policy drops it. Strict drops; Loose passes
   // through (the editor/export may then apply its own sanitization).
   QString enforceLink(const QString& raw, bool unsafe) const {
-    if (level == MermaidSecurityLevel::Loose) return raw;
+    if (level == MermaidSecurityLevel::Loose)
+      return raw;
     return unsafe ? QString() : raw;
   }
 
@@ -36,4 +37,4 @@ struct MermaidSecurityPolicy {
   bool allowCallbackExecution() const { return false; }
 };
 
-}  // namespace muffin::mermaid
+} // namespace muffin::mermaid

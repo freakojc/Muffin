@@ -30,7 +30,8 @@ void testCompressedDefaultsAndPointMeasurements() {
 void testResetIsIndependentOfPriorMeasurements() {
   SourceLineHeightIndex index;
   index.reset(100, 10);
-  for (int line = 0; line < 100; line += 3) index.setHeight(line, 50);
+  for (int line = 0; line < 100; line += 3)
+    index.setHeight(line, 50);
   index.reset(7, 17);
   require(index.lineCount() == 7, "reset line count mismatch");
   require(index.totalHeight() == 119, "reset total height mismatch");
@@ -44,20 +45,21 @@ int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
   runTest("testCompressedDefaultsAndPointMeasurements", testCompressedDefaultsAndPointMeasurements);
   runTest("testResetIsIndependentOfPriorMeasurements", testResetIsIndependentOfPriorMeasurements);
-  runTest("testLineEditsPreserveUnaffectedMeasurements", +[] {
-    SourceLineHeightIndex index;
-    index.reset(5, 20);
-    index.setHeight(0, 100);
-    index.setHeight(2, 80);
-    index.setHeight(4, 60);
-    index.replaceLines(1, 1, 3);
-    require(index.lineCount() == 7, "splitting a line should increase the line count");
-    require(index.heightForLine(0) == 100 && index.heightForLine(4) == 80 && index.heightForLine(6) == 60,
-            "splitting should retain measurements before and after the edited line");
-    index.replaceLines(1, 4, 1);
-    require(index.lineCount() == 4 && index.totalHeight() == 200,
-            "joining lines should discard only the replaced measurements");
-    require(index.heightForLine(3) == 60, "joining should retain the shifted suffix measurement");
-  });
+  runTest(
+      "testLineEditsPreserveUnaffectedMeasurements", +[] {
+        SourceLineHeightIndex index;
+        index.reset(5, 20);
+        index.setHeight(0, 100);
+        index.setHeight(2, 80);
+        index.setHeight(4, 60);
+        index.replaceLines(1, 1, 3);
+        require(index.lineCount() == 7, "splitting a line should increase the line count");
+        require(index.heightForLine(0) == 100 && index.heightForLine(4) == 80 && index.heightForLine(6) == 60,
+                "splitting should retain measurements before and after the edited line");
+        index.replaceLines(1, 4, 1);
+        require(index.lineCount() == 4 && index.totalHeight() == 200,
+                "joining lines should discard only the replaced measurements");
+        require(index.heightForLine(3) == 60, "joining should retain the shifted suffix measurement");
+      });
   return 0;
 }

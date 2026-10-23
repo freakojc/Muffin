@@ -41,9 +41,9 @@ using namespace muffin::mermaid;
 namespace {
 
 // Asserted (font-independent) tolerances.
-constexpr qreal kHeight = 1.5;   // state node height: fixed-radius circles + label rows
+constexpr qreal kHeight = 1.5; // state node height: fixed-radius circles + label rows
 // Reported (font-coupled) — printed, not failed.
-constexpr qreal kReport = 0.5;   // state node width: per-glyph advance (Qt vs Chrome)
+constexpr qreal kReport = 0.5; // state node width: per-glyph advance (Qt vs Chrome)
 
 [[noreturn]] void fail(const QString& message) {
   std::fprintf(stderr, "%s\n", qPrintable(message));
@@ -51,7 +51,8 @@ constexpr qreal kReport = 0.5;   // state node width: per-glyph advance (Qt vs C
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 // Transition tuple key: from -> to (font-independent identity).
@@ -62,17 +63,17 @@ QString transitionTuple(const QJsonObject& edge, const char* fromKey, const char
 
 QStringList sortedTuples(const QJsonArray& edges, const char* fromKey, const char* toKey) {
   QStringList tuples;
-  for (const QJsonValue& e : edges) tuples << transitionTuple(e.toObject(), fromKey, toKey);
+  for (const QJsonValue& e : edges)
+    tuples << transitionTuple(e.toObject(), fromKey, toKey);
   std::sort(tuples.begin(), tuples.end());
   return tuples;
 }
 
 qreal boundsHeight(const QJsonValue& node) {
-  return node.toObject().value(QStringLiteral("bounds")).toObject()
-      .value(QLatin1String("height")).toDouble();
+  return node.toObject().value(QStringLiteral("bounds")).toObject().value(QLatin1String("height")).toDouble();
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -85,8 +86,7 @@ int main(int argc, char** argv) {
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
   require(root.value(QStringLiteral("mermaidVersion")).toString() == QLatin1String("11.16.0"),
           QStringLiteral("State geometry: mermaidVersion drifted"));
-  require(root.value(QStringLiteral("oracle")).toString().startsWith(
-              QLatin1String("stateDiagram.render")),
+  require(root.value(QStringLiteral("oracle")).toString().startsWith(QLatin1String("stateDiagram.render")),
           QStringLiteral("State geometry: oracle contract drifted"));
 
   editor::MermaidRenderCache cache;
@@ -111,11 +111,11 @@ int main(int argc, char** argv) {
 
     // Counts (font-independent topology).
     if (actualNodes.size() != expectedNodes.size())
-      assertErrors << id + QStringLiteral(": node count %1 != mermaid %2")
-                          .arg(actualNodes.size()).arg(expectedNodes.size());
+      assertErrors
+          << id + QStringLiteral(": node count %1 != mermaid %2").arg(actualNodes.size()).arg(expectedNodes.size());
     if (actualEdges.size() != expectedEdges.size())
-      assertErrors << id + QStringLiteral(": edge count %1 != mermaid %2")
-                          .arg(actualEdges.size()).arg(expectedEdges.size());
+      assertErrors
+          << id + QStringLiteral(": edge count %1 != mermaid %2").arg(actualEdges.size()).arg(expectedEdges.size());
 
     // Transition multiset (font-independent state-machine parity). The fixture
     // uses from/to; Muffin's StateScene uses start/end.
@@ -142,22 +142,22 @@ int main(int argc, char** argv) {
       }
       const QJsonValue exp = expectedNodeById.value(nodeId);
       const QString prefix = id + QStringLiteral("/node/%1").arg(nodeId);
-      assertErrors += parity::compareNumber(boundsHeight(n),
-                                            exp.toObject().value(QStringLiteral("height")).toDouble(),
+      assertErrors += parity::compareNumber(boundsHeight(n), exp.toObject().value(QStringLiteral("height")).toDouble(),
                                             heightTier, prefix + "/height");
-      reportNotes += parity::compareNumber(node.value(QStringLiteral("bounds")).toObject()
-                                              .value(QStringLiteral("width")).toDouble(),
-                                           exp.toObject().value(QStringLiteral("width")).toDouble(),
-                                           parity::Tier{kReport}, prefix + "/width");
+      reportNotes += parity::compareNumber(
+          node.value(QStringLiteral("bounds")).toObject().value(QStringLiteral("width")).toDouble(),
+          exp.toObject().value(QStringLiteral("width")).toDouble(), parity::Tier{kReport}, prefix + "/width");
     }
 
     if (!reportNotes.isEmpty()) {
       std::fprintf(stderr, "[State geometry] %s: %llu font-coupled delta(s) (reported, not asserted):\n",
                    qPrintable(id), static_cast<unsigned long long>(reportNotes.size()));
-      for (const QString& note : reportNotes) std::fprintf(stderr, "  %s\n", qPrintable(note));
+      for (const QString& note : reportNotes)
+        std::fprintf(stderr, "  %s\n", qPrintable(note));
     }
     if (!assertErrors.isEmpty()) {
-      for (const QString& e : assertErrors) std::fprintf(stderr, "%s\n", qPrintable(e));
+      for (const QString& e : assertErrors)
+        std::fprintf(stderr, "%s\n", qPrintable(e));
       fail(id + QStringLiteral(": state geometry parity regression (topology/transition multiset/height)"));
     }
   }

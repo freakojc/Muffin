@@ -32,11 +32,13 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 QByteArray sha256(const QString& path) {
   QFile file(path);
-  if (!file.open(QIODevice::ReadOnly)) return {};
+  if (!file.open(QIODevice::ReadOnly))
+    return {};
   return QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex();
 }
 QImage decodePng(const QString& dataUrl) {
@@ -68,7 +70,8 @@ qreal foregroundRgbaSimilarity(const QImage& native, const QImage& reference) {
     for (int x = 0; x < reference.width(); ++x) {
       const QColor a = left.pixelColor(x, y);
       const QColor b = reference.pixelColor(x, y);
-      if (a.alpha() < 32 && b.alpha() < 32) continue;
+      if (a.alpha() < 32 && b.alpha() < 32)
+        continue;
       ++united;
       difference += std::abs(pm(a.red(), a.alpha()) - pm(b.red(), b.alpha()));
       difference += std::abs(pm(a.green(), a.alpha()) - pm(b.green(), b.alpha()));
@@ -79,8 +82,7 @@ qreal foregroundRgbaSimilarity(const QImage& native, const QImage& reference) {
 }
 qreal greenInkIou(const QImage& native, const QImage& reference) {
   const auto greenInk = [](QColor color) {
-    return color.alpha() >= 32 && color.green() >= 70 &&
-           color.green() >= color.red() * 2 &&
+    return color.alpha() >= 32 && color.green() >= 70 && color.green() >= color.red() * 2 &&
            color.green() >= color.blue() * 2;
   };
   int intersection = 0;
@@ -89,16 +91,14 @@ qreal greenInkIou(const QImage& native, const QImage& reference) {
   const int height = std::max(native.height(), reference.height());
   for (int y = 0; y < height; ++y)
     for (int x = 0; x < width; ++x) {
-      const bool a = x < native.width() && y < native.height() &&
-                     greenInk(native.pixelColor(x, y));
-      const bool b = x < reference.width() && y < reference.height() &&
-                     greenInk(reference.pixelColor(x, y));
+      const bool a = x < native.width() && y < native.height() && greenInk(native.pixelColor(x, y));
+      const bool b = x < reference.width() && y < reference.height() && greenInk(reference.pixelColor(x, y));
       intersection += a && b;
       united += a || b;
     }
   return united ? qreal(intersection) / united : 1.0;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -107,7 +107,8 @@ int main(int argc, char** argv) {
   require(argc == 2, QStringLiteral("Expected requirement pixel manifest"));
   const QString manifestPath = QString::fromLocal8Bit(argv[1]);
   QFile file(manifestPath);
-  if (!file.open(QIODevice::ReadOnly)) fail(file.errorString());
+  if (!file.open(QIODevice::ReadOnly))
+    fail(file.errorString());
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
   require(root.value(QStringLiteral("fixtureSha256")).toString() ==
               QLatin1String("87240739abe714f8870db1ac08b9fff8ad9c56109df46848e95939bd7cd0e447"),
@@ -126,8 +127,7 @@ int main(int argc, char** argv) {
                 browser.height() == fixture.value(QStringLiteral("height")).toInt(),
             id + QStringLiteral(": browser PNG dimensions drifted"));
     const qreal dpr = fixture.value(QStringLiteral("dpr")).toDouble(1.0);
-    const editor::MermaidPngRenderResult result =
-        editor::MermaidRenderCache::renderMermaidSourceToPng(source, dpr);
+    const editor::MermaidPngRenderResult result = editor::MermaidRenderCache::renderMermaidSourceToPng(source, dpr);
     const QImage native = decodePng(result.dataUrl);
     require(!native.isNull(), id + QStringLiteral(": production PNG must decode"));
     if (qEnvironmentVariableIsSet("MUFFIN_SAVE_NATIVE"))
@@ -137,31 +137,27 @@ int main(int argc, char** argv) {
     const qreal iou = alphaIou(native, browser);
     const qreal rgbaSimilarity = foregroundRgbaSimilarity(native, browser);
     std::fprintf(stderr, "%s native=%dx%d browser=%dx%d widthDiff=%.0f heightDiff=%.0f iou=%.3f rgba=%.3f\n",
-                 qPrintable(id), native.width(), native.height(), browser.width(), browser.height(),
-                 widthDiff, heightDiff, iou, rgbaSimilarity);
+                 qPrintable(id), native.width(), native.height(), browser.width(), browser.height(), widthDiff,
+                 heightDiff, iou, rgbaSimilarity);
     std::fflush(stderr);
     // Canvas tolerance: catches a padding/viewport regression (the case scores an
     // exact 253x668 match here; 3% allows cross-platform font-shape variation
     // while still flagging an ~8px padding shift).
     require(widthDiff <= 0.03 * browser.width() && heightDiff <= 0.03 * browser.height(),
             QStringLiteral("%1: native/browser canvas differs by %2 x %3 (tolerance 3%)")
-                .arg(id).arg(widthDiff, 0, 'f', 0).arg(heightDiff, 0, 'f', 0));
+                .arg(id)
+                .arg(widthDiff, 0, 'f', 0)
+                .arg(heightDiff, 0, 'f', 0));
     require(iou >= 0.90, id + QStringLiteral(": native/browser alpha IoU regressed"));
-    require(rgbaSimilarity >= 0.85,
-            id + QStringLiteral(": native/browser foreground RGBA regressed"));
+    require(rgbaSimilarity >= 0.85, id + QStringLiteral(": native/browser foreground RGBA regressed"));
     if (id == QLatin1String("dash-width-4")) {
       const QJsonArray edgeStyles = fixture.value(QStringLiteral("edgeStyles")).toArray();
-      require(edgeStyles.size() == 1,
-              QStringLiteral("dash-width-4: browser edge capture missing"));
+      require(edgeStyles.size() == 1, QStringLiteral("dash-width-4: browser edge capture missing"));
       const QJsonObject edgeStyle = edgeStyles.first().toObject();
-      require(edgeStyle.value(QStringLiteral("stroke")).toString() ==
-                  QLatin1String("rgb(0, 128, 0)") &&
-                  edgeStyle.value(QStringLiteral("strokeWidth")).toString() ==
-                  QLatin1String("4px") &&
-                  edgeStyle.value(QStringLiteral("strokeDasharray")).toString() ==
-                  QLatin1String("10px, 7px") &&
-                  edgeStyle.value(QStringLiteral("strokeLinecap")).toString() ==
-                  QLatin1String("butt"),
+      require(edgeStyle.value(QStringLiteral("stroke")).toString() == QLatin1String("rgb(0, 128, 0)") &&
+                  edgeStyle.value(QStringLiteral("strokeWidth")).toString() == QLatin1String("4px") &&
+                  edgeStyle.value(QStringLiteral("strokeDasharray")).toString() == QLatin1String("10px, 7px") &&
+                  edgeStyle.value(QStringLiteral("strokeLinecap")).toString() == QLatin1String("butt"),
               QStringLiteral("dash-width-4: browser computed dash contract drifted"));
       const qreal dashIou = greenInkIou(native, browser);
       std::fprintf(stderr, "dash-width-4 isolated green edge iou=%.3f\n", dashIou);
@@ -170,9 +166,7 @@ int main(int argc, char** argv) {
       // is 171; compare in shared scene coordinates (no resampling). Residual
       // one-pixel AA/phase differences score ~0.87, while the old unnormalized
       // 40/28px Qt pattern scored ~0.34.
-      require(dashIou >= 0.85,
-              QStringLiteral("dash-width-4: isolated relationship dash drifted: IoU %1")
-                  .arg(dashIou));
+      require(dashIou >= 0.85, QStringLiteral("dash-width-4: isolated relationship dash drifted: IoU %1").arg(dashIou));
     }
     minimumIou = std::min(minimumIou, iou);
   }

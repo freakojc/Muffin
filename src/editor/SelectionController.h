@@ -33,4 +33,4 @@ private:
   bool hasCursor_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

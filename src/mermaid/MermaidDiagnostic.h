@@ -15,9 +15,7 @@ struct MermaidSourceSpan {
   int line = 0;
   int column = 0;
 
-  bool hasLocation() const {
-    return offset >= 0 && line > 0 && column > 0;
-  }
+  bool hasLocation() const { return offset >= 0 && line > 0 && column > 0; }
 };
 
 struct MermaidDiagnostic {
@@ -30,9 +28,7 @@ struct MermaidDiagnostic {
   QString actual;
   QStringList expected;
 
-  bool isEmpty() const {
-    return message.trimmed().isEmpty() && code.trimmed().isEmpty();
-  }
+  bool isEmpty() const { return message.trimmed().isEmpty() && code.trimmed().isEmpty(); }
 };
 
 QString formatMermaidDiagnosticHeader(const MermaidDiagnostic& diagnostic);
@@ -40,4 +36,4 @@ QString formatMermaidDiagnosticBody(const MermaidDiagnostic& diagnostic);
 QString formatMermaidDiagnostic(const MermaidDiagnostic& diagnostic);
 QJsonObject mermaidDiagnosticToJson(const MermaidDiagnostic& diagnostic);
 
-}  // namespace muffin::mermaid
+} // namespace muffin::mermaid

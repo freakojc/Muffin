@@ -10,9 +10,8 @@ namespace muffin::mermaid::ishikawa {
 enum class IshikawaErrorKind { Lexer, Parser };
 
 class IshikawaParseError final : public std::runtime_error {
- public:
-  IshikawaParseError(IshikawaErrorKind kind, int line, int column,
-                     QString token, const QString& message);
+public:
+  IshikawaParseError(IshikawaErrorKind kind, int line, int column, QString token, const QString& message);
 
   IshikawaErrorKind kind;
   int line = 1;
@@ -34,8 +33,8 @@ struct IshikawaData {
 };
 
 class IshikawaDiagram {
- public:
+public:
   static IshikawaData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::ishikawa
+} // namespace muffin::mermaid::ishikawa

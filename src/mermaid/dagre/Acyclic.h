@@ -12,4 +12,4 @@ namespace muffin::mermaid::dagre {
 void runAcyclic(DagreGraph& g);
 void undoAcyclic(DagreGraph& g);
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

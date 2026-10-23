@@ -41,8 +41,9 @@ namespace {
 
 QIcon folderToolbarIcon(const QByteArray& path, const QColor& color) {
   const QByteArray svg = "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'>"
-      "<g fill='none' stroke='" + color.name().toUtf8() + "' stroke-width='1.15' stroke-linecap='round' stroke-linejoin='round'>"
-      + path + "</g></svg>";
+                         "<g fill='none' stroke='" +
+                         color.name().toUtf8() +
+                         "' stroke-width='1.15' stroke-linecap='round' stroke-linejoin='round'>" + path + "</g></svg>";
   QSvgRenderer renderer(svg);
   QIcon icon;
   for (int scale : {1, 2, 3}) {
@@ -77,7 +78,7 @@ QToolButton* createFlatButton(const QString& text, QWidget* parent) {
 // Owns no FS logic; SidebarWidget wires validateFn / commitFn / cancelFn, forwarding to MainWindow
 // (the file-ops owner). No Q_OBJECT: only virtual overrides + std::function members.
 class FileNameEdit final : public QLineEdit {
- public:
+public:
   explicit FileNameEdit(QWidget* parent) : QLineEdit(parent) {}
 
   std::function<muffin::InlineValidation(muffin::InlineEditContext, QString)> validateFn;
@@ -98,7 +99,7 @@ class FileNameEdit final : public QLineEdit {
     }
   }
 
- protected:
+protected:
   void keyPressEvent(QKeyEvent* event) override {
     const int key = event->key();
     if (key == Qt::Key_Enter || key == Qt::Key_Return) {
@@ -107,7 +108,7 @@ class FileNameEdit final : public QLineEdit {
       if (tryCommit()) {
         closeSelf();
       }
-      return;  // swallow Enter either way — never let it bubble to a parent handler
+      return; // swallow Enter either way — never let it bubble to a parent handler
     }
     if (key == Qt::Key_Escape) {
       if (cancelFn) {
@@ -138,7 +139,7 @@ class FileNameEdit final : public QLineEdit {
     closeSelf();
   }
 
- private:
+private:
   // Validate + decide. Returns true if the editor should close (a valid commit, a no-change, or
   // an empty name on a pending create which cancels). Returns false (after showing the inline
   // error) for Duplicate or Empty-on-rename, keeping the editor open.
@@ -171,13 +172,13 @@ class FileNameEdit final : public QLineEdit {
 
   void closeSelf() {
     QToolTip::hideText();
-    deleteLater();  // owner's QPointer<QWidget> auto-nulls on destruction
+    deleteLater(); // owner's QPointer<QWidget> auto-nulls on destruction
   }
 
   muffin::InlineEditContext ctx_;
 };
 
-}  // namespace
+} // namespace
 
 muffin::SidebarWidget::SidebarWidget(QWidget* parent) : QWidget(parent) {
   setObjectName(QStringLiteral("MuffinSidebar"));
@@ -363,8 +364,10 @@ void muffin::SidebarWidget::setupFilesPanel() {
   folderExpansionTimer_->setSingleShot(true);
   connect(folderExpansionTimer_, &QTimer::timeout, this, &SidebarWidget::processFolderExpansions);
   connect(fileModel_, &FileTreeModel::directoryLoaded, this, [this](const QString& directory) {
-    if (expandAllRequested_) queueFolderExpansion(directory);
-    else if (!expandedFolderPaths_.isEmpty()) queueFolderExpansion(folderRoot_);
+    if (expandAllRequested_)
+      queueFolderExpansion(directory);
+    else if (!expandedFolderPaths_.isEmpty())
+      queueFolderExpansion(folderRoot_);
     if (!refreshSelectionPath_.isEmpty()) {
       const auto selected = fileModel_->index(refreshSelectionPath_);
       if (selected.isValid()) {
@@ -374,9 +377,11 @@ void muffin::SidebarWidget::setupFilesPanel() {
     }
     // Restore the top visible row after the loaded branches have been laid out.
     QTimer::singleShot(0, this, [this] {
-      if (refreshAnchorPath_.isEmpty()) return;
+      if (refreshAnchorPath_.isEmpty())
+        return;
       const auto anchor = fileModel_->index(refreshAnchorPath_);
-      if (!anchor.isValid() || fileTree_->visualRect(anchor).isEmpty()) return;
+      if (!anchor.isValid() || fileTree_->visualRect(anchor).isEmpty())
+        return;
       fileTree_->scrollTo(anchor, QAbstractItemView::PositionAtTop);
       auto* bar = fileTree_->verticalScrollBar();
       bar->setValue(bar->value() + fileTree_->visualRect(anchor).top() - refreshAnchorOffset_);
@@ -425,7 +430,7 @@ void muffin::SidebarWidget::setupFilesPanel() {
       onItem = false;
     }
     if (path.isEmpty()) {
-      return;  // no folder open and no item: nothing to act on
+      return; // no folder open and no item: nothing to act on
     }
     emit fileTreeContextMenuRequested(path, isDir, onItem, fileTree_->viewport()->mapToGlobal(pos));
   });
@@ -480,9 +485,12 @@ void muffin::SidebarWidget::setupOutlinePanel() {
 void muffin::SidebarWidget::setPanel(Panel panel) {
   const bool changed = panel_ != panel;
   panel_ = panel;
-  stack_->setCurrentWidget(panel == Panel::Files ? filesPanel_ : panel == Panel::Outline ? outlinePanel_ : searchPanel_);
+  stack_->setCurrentWidget(panel == Panel::Files     ? filesPanel_
+                           : panel == Panel::Outline ? outlinePanel_
+                                                     : searchPanel_);
   folderToolbar_->setVisible(panel != Panel::Outline);
-  for (auto* button : {newFileButton_, newFolderButton_, collapseFoldersButton_, refreshFoldersButton_, sortFilesButton_})
+  for (auto* button :
+       {newFileButton_, newFolderButton_, collapseFoldersButton_, refreshFoldersButton_, sortFilesButton_})
     button->setVisible(panel == Panel::Files);
   updateTabButtons();
   if (changed) {
@@ -495,7 +503,8 @@ muffin::SidebarWidget::Panel muffin::SidebarWidget::panel() const {
 }
 
 QWidget* muffin::SidebarWidget::activeTreeWidget() const {
-  if (panel_ == Panel::Search) return searchPanel_->focusWidget();
+  if (panel_ == Panel::Search)
+    return searchPanel_->focusWidget();
   QWidget* active = panel_ == Panel::Files ? fileTree_ : outlineTree_;
   return active ? active : (fileTree_ ? fileTree_ : outlineTree_);
 }
@@ -516,7 +525,8 @@ void muffin::SidebarWidget::setCurrentDocument(QString displayName, QString file
       // the user's collapsed folders (or the restored expansion state).
       // A file opened from a visible row stays where the user clicked it.
       // External navigation only scrolls far enough to reveal an offscreen row.
-      if (changed) fileTree_->scrollTo(index, QAbstractItemView::EnsureVisible);
+      if (changed)
+        fileTree_->scrollTo(index, QAbstractItemView::EnsureVisible);
     }
   }
 }
@@ -525,7 +535,10 @@ void muffin::SidebarWidget::setFolderRoot(QString path) {
   expandAllRequested_ = false;
   folderExplicitlyClosed_ = path.isEmpty();
   path = path.isEmpty() ? QString() : QDir::cleanPath(QFileInfo(path).absoluteFilePath());
-  if (path == folderRoot_) { updateFolderControls(); return; }
+  if (path == folderRoot_) {
+    updateFolderControls();
+    return;
+  }
   folderExpansionTimer_->stop();
   folderExpansionQueue_.clear();
   queuedFolderExpansions_.clear();
@@ -549,10 +562,12 @@ void muffin::SidebarWidget::setFolderRoot(QString path) {
 }
 
 QString muffin::SidebarWidget::selectedDirectory() const {
-  if (folderRoot_.isEmpty()) return {};
+  if (folderRoot_.isEmpty())
+    return {};
   const QString selected = fileModel_->filePath(fileTree_->currentIndex());
   const QString relative = QDir(folderRoot_).relativeFilePath(selected);
-  if (relative == QStringLiteral("..") || relative.startsWith(QStringLiteral("../")) || QDir::isAbsolutePath(relative)) return folderRoot_;
+  if (relative == QStringLiteral("..") || relative.startsWith(QStringLiteral("../")) || QDir::isAbsolutePath(relative))
+    return folderRoot_;
   return selected.isEmpty() ? folderRoot_ : QFileInfo(selected).isDir() ? selected : QFileInfo(selected).absolutePath();
 }
 
@@ -560,7 +575,9 @@ void muffin::SidebarWidget::updateFolderControls() {
   const bool open = !folderRoot_.isEmpty();
   fileTree_->setVisible(open);
   filesEmptyLabel_->setVisible(!open);
-  for (auto* button : {newFileButton_, newFolderButton_, collapseFoldersButton_, refreshFoldersButton_, sortFilesButton_}) button->setEnabled(open);
+  for (auto* button :
+       {newFileButton_, newFolderButton_, collapseFoldersButton_, refreshFoldersButton_, sortFilesButton_})
+    button->setEnabled(open);
   // A refresh or reorder must not invalidate the row under an inline editor.
   if (inlineEditor_) {
     refreshFoldersButton_->setEnabled(false);
@@ -569,7 +586,8 @@ void muffin::SidebarWidget::updateFolderControls() {
 }
 
 void muffin::SidebarWidget::updateFileSort() {
-  if (!fileModel_) return;
+  if (!fileModel_)
+    return;
   for (auto* action : sortFilesMenu_->actions()) {
     if (action->data().isValid() && action->isChecked()) {
       const bool descending = sortFilesMenu_->findChild<QAction*>("SortDescending")->isChecked();
@@ -581,7 +599,8 @@ void muffin::SidebarWidget::updateFileSort() {
 }
 
 void muffin::SidebarWidget::refreshFolders() {
-  if (folderRoot_.isEmpty() || inlineEditor_) return;
+  if (folderRoot_.isEmpty() || inlineEditor_)
+    return;
   refreshSelectionPath_ = fileModel_->filePath(fileTree_->currentIndex());
   const auto anchor = fileTree_->indexAt({fileTree_->viewport()->width() / 2, 0});
   refreshAnchorPath_ = fileModel_->filePath(anchor);
@@ -595,38 +614,47 @@ void muffin::SidebarWidget::refreshFolders() {
 
 QStringList muffin::SidebarWidget::expandedFolders() const {
   QStringList paths;
-  if (folderRoot_.isEmpty()) return paths;
+  if (folderRoot_.isEmpty())
+    return paths;
   const QDir root(folderRoot_);
   for (const QString& path : expandedFolderPaths_) {
     const QString relative = root.relativeFilePath(path);
     if (relative != QStringLiteral(".") && relative != QStringLiteral("..") &&
-        !relative.startsWith(QStringLiteral("../")) && !QDir::isAbsolutePath(relative)) paths.append(relative);
+        !relative.startsWith(QStringLiteral("../")) && !QDir::isAbsolutePath(relative))
+      paths.append(relative);
   }
   paths.sort();
   return paths;
 }
 
 void muffin::SidebarWidget::restoreExpandedFolders(const QStringList& paths) {
-  if (folderRoot_.isEmpty()) return;
+  if (folderRoot_.isEmpty())
+    return;
   collapseAllFolders();
   for (const QString& path : paths) {
     const QString relative = QDir::cleanPath(path);
-    if (QDir::isAbsolutePath(relative) || relative == QStringLiteral("..") || relative.startsWith(QStringLiteral("../"))) continue;
+    if (QDir::isAbsolutePath(relative) || relative == QStringLiteral("..") ||
+        relative.startsWith(QStringLiteral("../")))
+      continue;
     const QString absolute = QDir(folderRoot_).absoluteFilePath(relative);
-    if (QFileInfo(absolute).isDir()) expandedFolderPaths_.insert(absolute);
+    if (QFileInfo(absolute).isDir())
+      expandedFolderPaths_.insert(absolute);
   }
   queueFolderExpansion(folderRoot_);
 }
 
 void muffin::SidebarWidget::queueFolderExpansion(const QString& path) {
-  if (folderRoot_.isEmpty()) return;
+  if (folderRoot_.isEmpty())
+    return;
   const QString relative = QDir(folderRoot_).relativeFilePath(path);
-  if (relative == QStringLiteral("..") || relative.startsWith(QStringLiteral("../")) || QDir::isAbsolutePath(relative)) return;
+  if (relative == QStringLiteral("..") || relative.startsWith(QStringLiteral("../")) || QDir::isAbsolutePath(relative))
+    return;
   if (!queuedFolderExpansions_.contains(path)) {
     queuedFolderExpansions_.insert(path);
     folderExpansionQueue_.enqueue(path);
   }
-  if (!folderExpansionTimer_->isActive()) folderExpansionTimer_->start(0);
+  if (!folderExpansionTimer_->isActive())
+    folderExpansionTimer_->start(0);
 }
 
 void muffin::SidebarWidget::processFolderExpansions() {
@@ -636,27 +664,39 @@ void muffin::SidebarWidget::processFolderExpansions() {
     const QString path = folderExpansionQueue_.dequeue();
     queuedFolderExpansions_.remove(path);
     const QModelIndex parent = fileModel_->index(path);
-    if (!parent.isValid()) continue;
-    if (fileModel_->canFetchMore(parent)) fileModel_->fetchMore(parent);
+    if (!parent.isValid())
+      continue;
+    if (fileModel_->canFetchMore(parent))
+      fileModel_->fetchMore(parent);
     for (int row = 0; row < fileModel_->rowCount(parent); ++row) {
       const auto child = fileModel_->index(row, 0, parent);
-      if (!fileModel_->isDir(child)) continue;
+      if (!fileModel_->isDir(child))
+        continue;
       const QString childPath = fileModel_->filePath(child);
       // Never recursively traverse directory links (including Windows junctions).
       const QFileInfo info(childPath);
-      if (info.isSymLink() || info.isJunction()) continue;
+      if (info.isSymLink() || info.isJunction())
+        continue;
       const bool expand = expandAllRequested_ || expandedFolderPaths_.contains(childPath);
-      if (expand) fileTree_->setExpanded(child, true);
+      if (expand)
+        fileTree_->setExpanded(child, true);
       bool descendant = false;
       const QString prefix = childPath + QLatin1Char('/');
-      if (!expand) for (const auto& desired : expandedFolderPaths_) if (desired.startsWith(prefix)) { descendant = true; break; }
+      if (!expand)
+        for (const auto& desired : expandedFolderPaths_)
+          if (desired.startsWith(prefix)) {
+            descendant = true;
+            break;
+          }
       if (expand || descendant) {
-        if (fileModel_->canFetchMore(child)) fileModel_->fetchMore(child);
+        if (fileModel_->canFetchMore(child))
+          fileModel_->fetchMore(child);
         queueFolderExpansion(childPath);
       }
     }
   }
-  if (!folderExpansionQueue_.isEmpty()) folderExpansionTimer_->start(0);
+  if (!folderExpansionQueue_.isEmpty())
+    folderExpansionTimer_->start(0);
 }
 
 void muffin::SidebarWidget::collapseAllFolders() {
@@ -672,7 +712,8 @@ void muffin::SidebarWidget::collapseAllFolders() {
 }
 
 void muffin::SidebarWidget::expandAllFolders() {
-  if (folderRoot_.isEmpty()) return;
+  if (folderRoot_.isEmpty())
+    return;
   expandAllRequested_ = true;
   queueFolderExpansion(folderRoot_);
 }
@@ -708,10 +749,10 @@ void muffin::SidebarWidget::beginInlineRename(QString path) {
   if (path.isEmpty() || !fileTree_ || !fileModel_) {
     return;
   }
-  setCurrentPath(path);  // expands ancestors + selects + scrolls to the row
+  setCurrentPath(path); // expands ancestors + selects + scrolls to the row
   const QModelIndex idx = fileModel_->index(path);
   if (!idx.isValid() || !QFileInfo(path).isWritable()) {
-    return;  // unresolvable or read-only: no inline editor (silent no-op)
+    return; // unresolvable or read-only: no inline editor (silent no-op)
   }
   showInlineEditor(idx);
 }
@@ -737,18 +778,17 @@ void muffin::SidebarWidget::beginInlineCreate(QString tempPath) {
   if (directoryLoadedConn_) {
     QObject::disconnect(directoryLoadedConn_);
   }
-  directoryLoadedConn_ = QObject::connect(
-      fileModel_, &FileTreeModel::directoryLoaded, this,
-      [this, tempPath, parentDir](const QString& loadedDir) {
-        if (loadedDir != parentDir) {
-          return;
-        }
-        if (directoryLoadedConn_) {
-          QObject::disconnect(directoryLoadedConn_);
-          directoryLoadedConn_ = QMetaObject::Connection{};
-        }
-        resolveAndEdit(tempPath);
-      });
+  directoryLoadedConn_ = QObject::connect(fileModel_, &FileTreeModel::directoryLoaded, this,
+                                          [this, tempPath, parentDir](const QString& loadedDir) {
+                                            if (loadedDir != parentDir) {
+                                              return;
+                                            }
+                                            if (directoryLoadedConn_) {
+                                              QObject::disconnect(directoryLoadedConn_);
+                                              directoryLoadedConn_ = QMetaObject::Connection{};
+                                            }
+                                            resolveAndEdit(tempPath);
+                                          });
   QTimer::singleShot(150, this, [this, tempPath] { resolveAndEdit(tempPath); });
 }
 
@@ -758,11 +798,11 @@ void muffin::SidebarWidget::resolveAndEdit(QString path) {
   }
   // Idempotent: directoryLoaded and the fallback timer can both fire.
   if (inlineEditor_) {
-    return;  // an editor is already open
+    return; // an editor is already open
   }
   const QModelIndex idx = fileModel_->index(path);
   if (!idx.isValid()) {
-    return;  // entry gone (cancelled / deleted) before it could be resolved
+    return; // entry gone (cancelled / deleted) before it could be resolved
   }
   showInlineEditor(idx);
 }
@@ -793,7 +833,7 @@ void muffin::SidebarWidget::showInlineEditor(QModelIndex idx) {
     }
     const QRect rowRect = fileTree_->visualRect(i);
     if (rowRect.isNull()) {
-      return;  // row not laid out / scrolled out of view
+      return; // row not laid out / scrolled out of view
     }
     auto* editor = new FileNameEdit(fileTree_->viewport());
     inlineEditor_ = editor;
@@ -816,7 +856,8 @@ void muffin::SidebarWidget::showInlineEditor(QModelIndex idx) {
       emit inlineCancelRequested(ctx);
     };
     connect(editor, &QObject::destroyed, this, [this, editor] {
-      if (inlineEditor_ && inlineEditor_.data() != editor) return;
+      if (inlineEditor_ && inlineEditor_.data() != editor)
+        return;
       editingIndex_ = QPersistentModelIndex();
       inlineEditor_.clear();
       updateFolderControls();
@@ -879,7 +920,7 @@ void muffin::SidebarWidget::setOutlineFoldable(bool foldable) {
   outlineTree_->setRootIsDecorated(foldable);
   outlineTree_->setItemsExpandable(foldable);
   outlineModel_->setFoldable(foldable);
-  applyStyle();                     // toggle the expand-arrow rule
+  applyStyle(); // toggle the expand-arrow rule
   if (foldable) {
     outlineTree_->expandAll();
   }
@@ -891,9 +932,13 @@ void muffin::SidebarWidget::applyTheme(const ThemeDefinition& theme) {
 }
 
 void muffin::SidebarWidget::retranslateUi() {
-  if (filesEmptyLabel_) filesEmptyLabel_->setText(tr("No folder open"));
+  if (filesEmptyLabel_)
+    filesEmptyLabel_->setText(tr("No folder open"));
   if (newFileButton_) {
-    const auto label = [](QToolButton* button, const QString& text) { button->setToolTip(text); button->setAccessibleName(text); };
+    const auto label = [](QToolButton* button, const QString& text) {
+      button->setToolTip(text);
+      button->setAccessibleName(text);
+    };
     label(newFileButton_, tr("New File"));
     label(newFolderButton_, tr("New Folder"));
     label(collapseFoldersButton_, tr("Collapse All Folders"));
@@ -933,20 +978,26 @@ void muffin::SidebarWidget::updateTabButtons() {
   filesTabButton_->setChecked(panel_ != Panel::Outline);
   outlineTabButton_->setChecked(panel_ == Panel::Outline);
   searchFilesButton_->setChecked(panel_ == Panel::Search);
-  searchFilesButton_->setToolTip(panel_ == Panel::Search ? tr("Files")
-      : tr("Search") + QStringLiteral(" (%1)").arg(QKeySequence(QStringLiteral("Ctrl+Shift+F")).toString(QKeySequence::NativeText)));
+  searchFilesButton_->setToolTip(
+      panel_ == Panel::Search
+          ? tr("Files")
+          : tr("Search") + QStringLiteral(" (%1)").arg(
+                               QKeySequence(QStringLiteral("Ctrl+Shift+F")).toString(QKeySequence::NativeText)));
 }
 
 void muffin::SidebarWidget::applyStyle() {
   setStyleSheet(sidebarStyleSheet(currentTheme_, outlineFoldable_));
   searchPanel_->setThemeDefinition(currentTheme_);
   const auto color = currentTheme_.colors.chromeText;
-  newFileButton_->setIcon(folderToolbarIcon("<path d='M9 1.5H3.5v13h5M9 1.5l3.5 3.5H9z'/><path d='M12 8v6m-3-3h6'/>", color));
-  newFolderButton_->setIcon(folderToolbarIcon("<path d='M7 12.5H1.5v-10h4l2 2h7v3'/><path d='M12 8v6m-3-3h6'/>", color));
+  newFileButton_->setIcon(
+      folderToolbarIcon("<path d='M9 1.5H3.5v13h5M9 1.5l3.5 3.5H9z'/><path d='M12 8v6m-3-3h6'/>", color));
+  newFolderButton_->setIcon(
+      folderToolbarIcon("<path d='M7 12.5H1.5v-10h4l2 2h7v3'/><path d='M12 8v6m-3-3h6'/>", color));
   collapseFoldersButton_->setIcon(folderToolbarIcon("<path d='M5 1.5h9.5V11M1.5 5h9.5v9.5H1.5zM4 9.75h4.5'/>", color));
   refreshFoldersButton_->setIcon(folderToolbarIcon("<path d='M13.5 6.5a5.5 5.5 0 1 0-.5 4M13.5 2.5v4h-4'/>", color));
   sortFilesButton_->setIcon(folderToolbarIcon("<path d='M2 3h7M2 7h5M2 11h3M12 3v10m-2.5-2.5L12 13l2.5-2.5'/>", color));
-  searchFilesButton_->setIcon(folderToolbarIcon("<circle cx='6.75' cy='6.75' r='4.75'/><path d='M10.25 10.25l4.25 4.25'/>", color));
+  searchFilesButton_->setIcon(
+      folderToolbarIcon("<circle cx='6.75' cy='6.75' r='4.75'/><path d='M10.25 10.25l4.25 4.25'/>", color));
 }
 
 void muffin::SidebarWidget::emitOutlineItem(const QModelIndex& index) {

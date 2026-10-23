@@ -37,7 +37,8 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString accVal(const QJsonObject& db, const QString& key) {
@@ -46,8 +47,10 @@ QString accVal(const QJsonObject& db, const QString& key) {
   return v.isNull() || v.isUndefined() ? QString() : v.toString();
 }
 
-bool nearEqual(double a, double b) { return std::fabs(a - b) < 1e-9; }
-}  // namespace
+bool nearEqual(double a, double b) {
+  return std::fabs(a - b) < 1e-9;
+}
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -77,8 +80,7 @@ int main(int argc, char** argv) {
       const QString rejectClass =
           c.value(QStringLiteral("reject")).toObject().value(QStringLiteral("class")).toString();
       require(rejectClass == QStringLiteral("no-diagram"),
-              id + QStringLiteral(": non-pie detection, expected no-diagram reject, got class=") +
-                  rejectClass);
+              id + QStringLiteral(": non-pie detection, expected no-diagram reject, got class=") + rejectClass);
       continue;
     }
 
@@ -93,24 +95,20 @@ int main(int argc, char** argv) {
       // Sections: label + value, in order.
       const QJsonArray expSections = db.value(QStringLiteral("sections")).toArray();
       require(d.sections.size() == expSections.size(),
-              id + QStringLiteral(": section count %1 != oracle %2")
-                      .arg(d.sections.size()).arg(expSections.size()));
+              id + QStringLiteral(": section count %1 != oracle %2").arg(d.sections.size()).arg(expSections.size()));
       for (int i = 0; i < expSections.size(); ++i) {
         const QJsonObject es = expSections.at(i).toObject();
         require(d.sections.at(i).label == es.value(QStringLiteral("label")).toString(),
                 id + QStringLiteral("/section%1 label '%2' != oracle '%3'")
-                        .arg(i).arg(d.sections.at(i).label, es.value(QStringLiteral("label")).toString()));
+                         .arg(i)
+                         .arg(d.sections.at(i).label, es.value(QStringLiteral("label")).toString()));
         require(nearEqual(d.sections.at(i).value, es.value(QStringLiteral("value")).toDouble()),
                 id + QStringLiteral("/section%1 value mismatch").arg(i));
       }
-      require(d.showData == db.value(QStringLiteral("showData")).toBool(),
-              id + QStringLiteral(": showData mismatch"));
-      require(d.title == db.value(QStringLiteral("title")).toString(),
-              id + QStringLiteral(": title mismatch"));
-      require(d.accTitle == accVal(db, QStringLiteral("accTitle")),
-              id + QStringLiteral(": accTitle mismatch"));
-      require(d.accDescr == accVal(db, QStringLiteral("accDescr")),
-              id + QStringLiteral(": accDescr mismatch"));
+      require(d.showData == db.value(QStringLiteral("showData")).toBool(), id + QStringLiteral(": showData mismatch"));
+      require(d.title == db.value(QStringLiteral("title")).toString(), id + QStringLiteral(": title mismatch"));
+      require(d.accTitle == accVal(db, QStringLiteral("accTitle")), id + QStringLiteral(": accTitle mismatch"));
+      require(d.accDescr == accVal(db, QStringLiteral("accDescr")), id + QStringLiteral(": accDescr mismatch"));
       // Renderer-side counts.
       require(d.sections.size() == db.value(QStringLiteral("legendCount")).toDouble(),
               id + QStringLiteral(": legendCount mismatch"));
@@ -140,16 +138,13 @@ int main(int argc, char** argv) {
   // updated probe: they prevent the native parser from silently drifting back
   // to JSON-number or ad-hoc string semantics.
   {
-    const pie::PieData d = pie::PieDiagram::parse(
-        QStringLiteral("pie\n\"leading\" : 01.5\n\"fraction\" : 00.5"));
+    const pie::PieData d = pie::PieDiagram::parse(QStringLiteral("pie\n\"leading\" : 01.5\n\"fraction\" : 00.5"));
     require(d.sections.size() == 2, QStringLiteral("leading-zero fractions accepted"));
-    require(nearEqual(d.sections.at(0).value, 1.5) &&
-                nearEqual(d.sections.at(1).value, 0.5),
+    require(nearEqual(d.sections.at(0).value, 1.5) && nearEqual(d.sections.at(1).value, 0.5),
             QStringLiteral("leading-zero fraction values decoded"));
   }
   {
-    const pie::PieData d = pie::PieDiagram::parse(
-        QStringLiteral("pie\n\"A\\nB\\tC\\rD\\bE\\fF\\vG\" : 1"));
+    const pie::PieData d = pie::PieDiagram::parse(QStringLiteral("pie\n\"A\\nB\\tC\\rD\\bE\\fF\\vG\" : 1"));
     QString expected = QStringLiteral("A\nB\tC\rD");
     expected += QChar(u'\b');
     expected += QStringLiteral("E");
@@ -161,10 +156,8 @@ int main(int argc, char** argv) {
             QStringLiteral("quoted label escape decoding"));
   }
   {
-    const pie::PieData d = pie::PieDiagram::parse(
-        QStringLiteral("pie\naccDescr {first line\nsecond line}\n\"A\" : 1"));
-    require(d.accDescr == QStringLiteral("first line\nsecond line"),
-            QStringLiteral("multiline accDescr body"));
+    const pie::PieData d = pie::PieDiagram::parse(QStringLiteral("pie\naccDescr {first line\nsecond line}\n\"A\" : 1"));
+    require(d.accDescr == QStringLiteral("first line\nsecond line"), QStringLiteral("multiline accDescr body"));
   }
   {
     bool threw = false;

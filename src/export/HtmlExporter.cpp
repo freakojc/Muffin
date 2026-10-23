@@ -65,23 +65,31 @@ QString escapeHtmlText(const QString& text) {
   out.reserve(text.size());
   for (const QChar ch : text) {
     switch (ch.unicode()) {
-      case '&': out += QStringLiteral("&amp;"); break;
-      case '<': out += QStringLiteral("&lt;"); break;
-      case '>': out += QStringLiteral("&gt;"); break;
-      default: out += ch;
+    case '&':
+      out += QStringLiteral("&amp;");
+      break;
+    case '<':
+      out += QStringLiteral("&lt;");
+      break;
+    case '>':
+      out += QStringLiteral("&gt;");
+      break;
+    default:
+      out += ch;
     }
   }
   return out;
 }
 
-}  // namespace
+} // namespace
 
-QString renderDocumentHtml(const QString& markdownSource, const QString& title, bool styled,
-                           const QString& themeCss, const HtmlExportOptions& options) {
+QString renderDocumentHtml(const QString& markdownSource, const QString& title, bool styled, const QString& themeCss,
+                           const HtmlExportOptions& options) {
   QString body = SelectionSerializer::renderMarkdownToHtml(markdownSource);
   QString outline;
   if (options.outline) {
-    const QRegularExpression headings(QStringLiteral("<h([1-6])>(.*?)</h\\1>"), QRegularExpression::DotMatchesEverythingOption);
+    const QRegularExpression headings(QStringLiteral("<h([1-6])>(.*?)</h\\1>"),
+                                      QRegularExpression::DotMatchesEverythingOption);
     auto matches = headings.globalMatch(body);
     QString rewritten;
     qsizetype cursor = 0;
@@ -92,11 +100,13 @@ QString renderDocumentHtml(const QString& markdownSource, const QString& title, 
       rewritten += body.mid(cursor, match.capturedStart() - cursor);
       rewritten += QStringLiteral("<h%1 id=\"%2\">%3</h%1>").arg(match.captured(1), id, match.captured(2));
       outline += QStringLiteral("<li data-level=\"%1\"><a href=\"#%2\">%3</a></li>\n")
-          .arg(match.captured(1), id, escapeHtmlText(QTextDocumentFragment::fromHtml(match.captured(2)).toPlainText()));
+                     .arg(match.captured(1), id,
+                          escapeHtmlText(QTextDocumentFragment::fromHtml(match.captured(2)).toPlainText()));
       cursor = match.capturedEnd();
     }
     body = rewritten + body.mid(cursor);
-    if (!outline.isEmpty()) outline = QStringLiteral("<nav aria-label=\"Contents\"><ul>\n") + outline + QStringLiteral("</ul></nav>\n");
+    if (!outline.isEmpty())
+      outline = QStringLiteral("<nav aria-label=\"Contents\"><ul>\n") + outline + QStringLiteral("</ul></nav>\n");
   }
 
   const bool useTheme = styled && !themeCss.isEmpty();
@@ -132,4 +142,4 @@ QString renderDocumentHtml(const QString& markdownSource, const QString& title, 
   return html;
 }
 
-}  // namespace muffin
+} // namespace muffin

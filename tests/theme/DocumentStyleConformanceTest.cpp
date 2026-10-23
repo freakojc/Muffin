@@ -40,17 +40,19 @@ void near(qreal actual, qreal expected, const char* message) {
 }
 QVector<const muffin::LayoutBox*> boxesForTag(const muffin::InlineLayout& text, const QString& tag) {
   QVector<const muffin::LayoutBox*> result;
-  for (const auto& box : text.inlineBoxes()) if (box.hostKey == tag) result.append(&box);
+  for (const auto& box : text.inlineBoxes())
+    if (box.hostKey == tag)
+      result.append(&box);
   return result;
 }
 void testCascadeAndInheritance() {
-  const auto sheet =
-      muffin::CssThemeParser::parse(QStringLiteral("html{font-size:16px} body{font-size:125%;color:#123456;line-height:1.5em}"
-                                                   "h1{font-size:1.5em;margin:2em;padding-left:99px;padding:1em 2em;"
-                                                   "border-bottom:1px solid;border-color:#c5c5c5}"
-                                                   "h2{border-color:red;border-bottom:1px solid}"
-                                                   "h3{padding:2px !important;padding-left:8px}"),
-                                    {});
+  const auto sheet = muffin::CssThemeParser::parse(
+      QStringLiteral("html{font-size:16px} body{font-size:125%;color:#123456;line-height:1.5em}"
+                     "h1{font-size:1.5em;margin:2em;padding-left:99px;padding:1em 2em;"
+                     "border-bottom:1px solid;border-color:#c5c5c5}"
+                     "h2{border-color:red;border-bottom:1px solid}"
+                     "h3{padding:2px !important;padding-left:8px}"),
+      {});
   muffin::CssComputedStyleEngine engine(sheet);
   muffin::CssElement html;
   html.tag = "html";
@@ -69,14 +71,17 @@ void testCascadeAndInheritance() {
   require(engine.styleFor(h).resolvedValue("border-bottom-color") == QStringLiteral("currentColor"),
           "later border shorthand resets omitted color");
   h.tag = "h3";
-  require(engine.styleFor(h).resolvedValue("padding-left") == QStringLiteral("2px"), "important shorthand protects components");
+  require(engine.styleFor(h).resolvedValue("padding-left") == QStringLiteral("2px"),
+          "important shorthand protects components");
   const auto inlineStyle = engine.styleFor(h, {}, muffin::CssThemeParser::parseDeclarations("padding-left:12px"));
-  require(inlineStyle.resolvedValue("padding-left") == QStringLiteral("2px"), "stylesheet important beats normal inline longhand");
+  require(inlineStyle.resolvedValue("padding-left") == QStringLiteral("2px"),
+          "stylesheet important beats normal inline longhand");
 }
 void testConditionalVariables() {
-  const auto sheet = muffin::CssThemeParser::parse(QStringLiteral(":root{--ink:red}@media screen and (min-width:1400px){:root{--ink:blue}"
-                                                                  "@media (max-width:1600px){p{padding:2px}}}p{color:var(--ink)}"),
-                                                   {});
+  const auto sheet = muffin::CssThemeParser::parse(
+      QStringLiteral(":root{--ink:red}@media screen and (min-width:1400px){:root{--ink:blue}"
+                     "@media (max-width:1600px){p{padding:2px}}}p{color:var(--ink)}"),
+      {});
   muffin::CssElement html;
   html.tag = "html";
   muffin::CssElement p;
@@ -88,10 +93,12 @@ void testConditionalVariables() {
           "inactive media variable cannot leak");
   env.viewportWidth = 1400;
   const auto s = muffin::CssComputedStyleEngine(sheet, env).styleFor(p);
-  require(s.resolvedValue("color") == QStringLiteral("blue") && s.resolvedValue("padding-left") == QStringLiteral("2px"),
+  require(s.resolvedValue("color") == QStringLiteral("blue") &&
+              s.resolvedValue("padding-left") == QStringLiteral("2px"),
           "nested media AND and scoped root variable");
   env.viewportWidth = 1601;
-  require(!muffin::CssComputedStyleEngine(sheet, env).styleFor(p).hasProperty("padding-left"), "nested condition exits");
+  require(!muffin::CssComputedStyleEngine(sheet, env).styleFor(p).hasProperty("padding-left"),
+          "nested condition exits");
 }
 void testNewsprintGeometryAndFonts() {
   auto theme = muffin::RenderTheme::newsprint();
@@ -108,9 +115,10 @@ void testNewsprintGeometryAndFonts() {
   near(style->box.margin.top(), 60, "live heading em geometry matches browser");
   near(style->box.padding.bottom(), 24.375, "live heading padding uses own font");
   require(style->box.borderBottomColor == QColor("#c5c5c5"), "Newsprint heading border color survives shorthand");
-  const auto alias=theme.fontAliases().value("pt serif");
-  require(!alias.isEmpty() && QFontDatabase::families().contains(alias), "bundled PT Serif loaded in its private family");
-  require(theme.paragraphFont().families().front()==alias,"Newsprint uses its own PT Serif family");
+  const auto alias = theme.fontAliases().value("pt serif");
+  require(!alias.isEmpty() && QFontDatabase::families().contains(alias),
+          "bundled PT Serif loaded in its private family");
+  require(theme.paragraphFont().families().front() == alias, "Newsprint uses its own PT Serif family");
   near(theme.codeLineHeight(), 24, "code block line height comes from document CSS");
   for (const char* filename : {"regular", "italic", "700", "700italic"}) {
     QFile file(QString(":/themes/newsprint/pt-serif-v11-latin-%1.woff2").arg(filename));
@@ -120,12 +128,14 @@ void testNewsprintGeometryAndFonts() {
   }
 }
 void testImportedWebFonts() {
-  for (const QString& path : {QStringLiteral(MUFFIN_SOURCE_DIR "/resources/themes/newsprint/pt-serif-v11-latin-regular.woff2"),
-                              QStringLiteral(MUFFIN_SOURCE_DIR "/resources/themes/pixyll/lato-v14-latin-300.woff")}) {
+  for (const QString& path :
+       {QStringLiteral(MUFFIN_SOURCE_DIR "/resources/themes/newsprint/pt-serif-v11-latin-regular.woff2"),
+        QStringLiteral(MUFFIN_SOURCE_DIR "/resources/themes/pixyll/lato-v14-latin-300.woff")}) {
     QFile source(path);
     require(source.open(QIODevice::ReadOnly), "webfont fixture readable");
     const QByteArray native = muffin::decodeThemeWebFont(source.readAll());
-    require(!native.isEmpty() && !native.startsWith("wOFF") && !native.startsWith("wOF2"), "webfont decoder reconstructs SFNT");
+    require(!native.isEmpty() && !native.startsWith("wOFF") && !native.startsWith("wOF2"),
+            "webfont decoder reconstructs SFNT");
     require(QRawFont(native, 16).isValid(), "native backend loads reconstructed webfont");
   }
   require(muffin::decodeThemeWebFont(QByteArray("wOF2broken")).isEmpty(), "invalid webfont fails without registration");
@@ -145,7 +155,8 @@ void testHeadingBoxAndTextScale() {
   theme.setFontSizePx(18);
   theme.updateForViewport(1914, 1030);
   near(theme.elementStyleForNode(node, "h1")->box.margin.top(), 67.5, "user text scale changes font-relative margins");
-  near(theme.elementStyleForNode(node, "h1")->box.borderBottomWidth, 1, "user text scale leaves absolute border width unchanged");
+  near(theme.elementStyleForNode(node, "h1")->box.borderBottomWidth, 1,
+       "user text scale leaves absolute border width unchanged");
   theme.setZoomPercent(125);
   theme.updateForViewport(1914, 1030);
   near(theme.elementBoxStyle(QStringLiteral("h%1").arg(1)).padding.bottom(), 24.375 * 1.125 * 1.25,
@@ -162,14 +173,16 @@ void testHtmlUsesDocumentCascade() {
   palette.fontAliases = theme.fontAliases();
   palette.cssEnvironment.viewportWidth = 1914;
   muffin::html::HtmlRenderer renderer;
-  const auto result =
-      renderer.render("<h1 style='padding-bottom:1em'>Title</h1><p style='font-size:20px'><span>Text</span></p>", 12, 854, {}, palette);
+  const auto result = renderer.render(
+      "<h1 style='padding-bottom:1em'>Title</h1><p style='font-size:20px'><span>Text</span></p>", 12, 854, {}, palette);
   require(result.valid(), "themed HTML block lays out");
   std::function<const muffin::html::HtmlBox*(const muffin::html::HtmlBox&, muffin::html::HtmlTag)> find;
   find = [&](const auto& box, auto tag) -> const muffin::html::HtmlBox* {
-    if (box.tag() == tag) return &box;
+    if (box.tag() == tag)
+      return &box;
     for (const auto& child : box.children()) {
-      if (const auto* found = find(*child, tag)) return found;
+      if (const auto* found = find(*child, tag))
+        return found;
     }
     return nullptr;
   };
@@ -177,7 +190,8 @@ void testHtmlUsesDocumentCascade() {
   require(heading != nullptr, "HTML heading exists");
   near(heading->style().fontSize, 22.5, "HTML heading uses document computed font");
   near(heading->style().padding.bottom(), 30, "HTML inline em uses computed heading size");
-  require(heading->style().font.families().front()==theme.fontAliases().value("pt serif"), "HTML shares registered private document family");
+  require(heading->style().font.families().front() == theme.fontAliases().value("pt serif"),
+          "HTML shares registered private document family");
   require(heading->style().fontWeight == QFont::Normal, "HTML text measurement respects normal heading weight");
   const auto* span = find(*result.root(), muffin::html::HtmlTag::Span);
   require(span != nullptr, "HTML span exists");
@@ -194,21 +208,24 @@ void testCodeStylesRemainSeparate() {
 void testUsedBoxesAndBorderDefaults() {
   muffin::CssElement p;
   p.tag = "p";
-  const auto sheet = muffin::CssThemeParser::parse("p{margin:10%;padding:calc(5% + 2px);border-left-width:8px;box-sizing:border-box}", {});
+  const auto sheet = muffin::CssThemeParser::parse(
+      "p{margin:10%;padding:calc(5% + 2px);border-left-width:8px;box-sizing:border-box}", {});
   const auto computed = muffin::CssComputedStyleEngine(sheet).styleFor(p);
   const auto box = muffin::CssThemeMapper::projectComputedStyle("p", computed.withContainingWidth(600)).box;
   near(box.margin.left(), 60, "margin uses containing width rather than viewport or em");
   near(box.padding.top(), 32, "calc percentage combines with absolute part at used-value stage");
   near(box.borderLeftWidth, 0, "initial border style none suppresses specified border width");
   require(box.borderBox, "box-sizing survives projection");
-  const auto theme = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss("h1{padding:10%}", "used-padding", {}));
+  const auto theme =
+      muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss("h1{padding:10%}", "used-padding", {}));
   near(theme.elementBoxStyle(QStringLiteral("h%1").arg(1), nullptr, 600).padding.left(), 60,
        "Markdown heading resolves percentage at layout width");
   near(theme.elementBoxStyle(QStringLiteral("h%1").arg(1), nullptr, 300).padding.left(), 30,
        "same cached Markdown style responds to containing width");
   const auto border =
       muffin::CssThemeMapper::projectComputedStyle(
-          "p", muffin::CssComputedStyleEngine(muffin::CssThemeParser::parse("p{color:red;border-style:solid}", {})).styleFor(p))
+          "p", muffin::CssComputedStyleEngine(muffin::CssThemeParser::parse("p{color:red;border-style:solid}", {}))
+                   .styleFor(p))
           .box;
   near(border.borderLeftWidth, 3, "border-style alone uses initial medium width");
   require(border.borderLeftColor == QColor("red"), "border initial color follows currentColor");
@@ -219,10 +236,11 @@ void testHtmlContainingBlockAndBoxSizing() {
   palette.documentStyleSheet = std::make_shared<muffin::CssThemeSheet>(muffin::CssThemeParser::parse("", {}));
   muffin::html::HtmlRenderer renderer;
   for (bool borderBox : {false, true}) {
-    const auto result = renderer.render(QString("<div style='width:300px;padding:20px;border:2px solid;box-sizing:%1'>"
-                                                "<p style='margin:0;margin-left:10%;padding:calc(5% + 2px);width:50%'>Text</p></div>")
-                                            .arg(borderBox ? "border-box" : "content-box"),
-                                        12, 900, {}, palette);
+    const auto result =
+        renderer.render(QString("<div style='width:300px;padding:20px;border:2px solid;box-sizing:%1'>"
+                                "<p style='margin:0;margin-left:10%;padding:calc(5% + 2px);width:50%'>Text</p></div>")
+                            .arg(borderBox ? "border-box" : "content-box"),
+                        12, 900, {}, palette);
     require(result.valid(), "HTML used-value fixture lays out");
     const auto* div = result.root()->children().front().get();
     const auto* p = div->children().front().get();
@@ -234,7 +252,8 @@ void testHtmlContainingBlockAndBoxSizing() {
 }
 
 void testDuplicateNodeIdsDoNotAliasStyle() {
-  const auto definition = muffin::CssThemeMapper::fromCss("p{color:red}h1{color:blue}p:first-child{color:green}", "cache-identity", {});
+  const auto definition =
+      muffin::CssThemeMapper::fromCss("p{color:red}h1{color:blue}p:first-child{color:green}", "cache-identity", {});
   const auto theme = muffin::RenderTheme::fromDefinition(definition);
   const auto id = muffin::NodeId::create();
   muffin::MarkdownNode p(muffin::BlockType::Paragraph, id);
@@ -246,11 +265,13 @@ void testDuplicateNodeIdsDoNotAliasStyle() {
 
 void testPercentageFlowAndZeroFont() {
   const auto definition = muffin::CssThemeMapper::fromCss(
-      "#write{max-width:600px;margin:0;padding:0}p{margin:10% 0 5%;margin-left:10%}h1{font-size:0em}", "percentage-flow", {});
+      "#write{max-width:600px;margin:0;padding:0}p{margin:10% 0 5%;margin-left:10%}h1{font-size:0em}",
+      "percentage-flow", {});
   auto theme = muffin::RenderTheme::fromDefinition(definition);
   require(theme.elementStyle("h1")->text.fontSizeSet && theme.elementStyle("h1")->text.fontSizePx == 0,
           "projection distinguishes explicit font-size zero from missing font size");
-  require(theme.textFontForElement("h1").pointSizeF() < .01, "native font-size zero must not select a large heading fallback");
+  require(theme.textFontForElement("h1").pointSizeF() < .01,
+          "native font-size zero must not select a large heading fallback");
   muffin::DocumentSession session;
   session.setMarkdownText("Text\n\nMore text\n", false);
   for (int width : {900, 450}) {
@@ -262,7 +283,8 @@ void testPercentageFlowAndZeroFont() {
     const auto* second = layout.block(children[1]->id());
     const auto content = layout.pageWidth();
     near(first->rect().width(), content * .9, "horizontal percentage margin narrows actual text layout");
-    near(second->rect().top() - first->rect().bottom(), content * .1, "vertical percentage margins collapse using actual page width");
+    near(second->rect().top() - first->rect().bottom(), content * .1,
+         "vertical percentage margins collapse using actual page width");
   }
 }
 
@@ -274,12 +296,11 @@ void testUnifiedHeadingSnapshotAndLazyLayout() {
       false);
   qreal previousHeight = 0;
   for (int size : {20, 30}) {
-    const auto css = QString(
-                         "#write{max-width:420px;padding:0;margin:0}body{color:black}"
-                         "h1{font-size:%1px;line-height:2;padding:7px 13px 11px 17px;border:3px solid red;margin:0}"
-                         "strong code{font-size:11px;padding:2px 9px 4px 5px;border:2px solid blue}"
-                         "pre{width:260px;box-sizing:border-box;padding:9px 15px;border:4px solid green}"
-                         "th{padding:12px 20px;font-size:18px}td{padding:3px 7px;font-size:12px}")
+    const auto css = QString("#write{max-width:420px;padding:0;margin:0}body{color:black}"
+                             "h1{font-size:%1px;line-height:2;padding:7px 13px 11px 17px;border:3px solid red;margin:0}"
+                             "strong code{font-size:11px;padding:2px 9px 4px 5px;border:2px solid blue}"
+                             "pre{width:260px;box-sizing:border-box;padding:9px 15px;border:4px solid green}"
+                             "th{padding:12px 20px;font-size:18px}td{padding:3px 7px;font-size:12px}")
                          .arg(size);
     const auto theme = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(css, "snapshots", {}));
     muffin::DocumentLayout eager, lazy;
@@ -290,7 +311,8 @@ void testUnifiedHeadingSnapshotAndLazyLayout() {
     for (const auto* block : eager.promotedBlocks()) {
       const auto* promoted = lazy.block(block->nodeId());
       require(promoted && block->rect() == promoted->rect(), "lazy and eager flow rectangles match");
-      require(block->cssBoxGeometry().contentBox == promoted->cssBoxGeometry().contentBox, "lazy and eager content boxes match");
+      require(block->cssBoxGeometry().contentBox == promoted->cssBoxGeometry().contentBox,
+              "lazy and eager content boxes match");
     }
     const auto& node = *document.document().root().children()[0];
     const auto* heading = eager.block(node.id());
@@ -311,8 +333,10 @@ void testUnifiedHeadingSnapshotAndLazyLayout() {
     painter.translate(-box.borderBox.left(), -box.borderBox.top());
     heading->paint(painter, theme, 0);
     painter.end();
-    require(image.pixelColor(1, 1) == QColor(Qt::red), "generic box painter draws the heading border at saved coordinates");
-    if (previousHeight) require(heading->height() > previousHeight, "font CSS change updates wrapping and flow height together");
+    require(image.pixelColor(1, 1) == QColor(Qt::red),
+            "generic box painter draws the heading border at saved coordinates");
+    if (previousHeight)
+      require(heading->height() > previousHeight, "font CSS change updates wrapping and flow height together");
     previousHeight = heading->height();
     const auto* paragraph = eager.block(document.document().root().children()[1]->id());
     const auto codeBoxes = boxesForTag(*paragraph->inlineLayout(), "code");
@@ -337,7 +361,8 @@ void testLegacyThemeUsesDocumentEngine() {
   auto theme = muffin::RenderTheme::fromDefinition(definition);
   muffin::MarkdownNode heading(muffin::BlockType::Heading);
   heading.setHeadingLevel(1);
-  require(theme.documentStyleSheet() && theme.elementStyleForNode(heading, "h1"), "legacy themes enter the shared style engine");
+  require(theme.documentStyleSheet() && theme.elementStyleForNode(heading, "h1"),
+          "legacy themes enter the shared style engine");
   near(theme.elementStyleForNode(heading, "h1")->text.fontSizePx, 32, "legacy heading size is lowered into CSS");
   require(theme.elementStyleForNode(heading, "h1")->paint.color == definition.colors.text,
           "legacy inherited color comes from computed style");
@@ -346,8 +371,8 @@ void testLegacyThemeUsesDocumentEngine() {
 void testInlineHtmlUsesActualBoxAndFont() {
   muffin::DocumentSession document;
   document.setMarkdownText("Before <kbd style='padding:3px 7px;font-size:20px'><span>A</span>B</kbd> after", false);
-  const auto theme = muffin::RenderTheme::fromDefinition(
-      muffin::CssThemeMapper::fromCss("#write{padding:0}kbd{padding:1px;font-size:10px}p{letter-spacing:-.5px}", "inline-html-box", {}));
+  const auto theme = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(
+      "#write{padding:0}kbd{padding:1px;font-size:10px}p{letter-spacing:-.5px}", "inline-html-box", {}));
   muffin::DocumentLayout layout;
   layout.rebuild(document.document(), theme, 800);
   const auto* paragraph = layout.block(document.document().root().children().front()->id());
@@ -361,12 +386,13 @@ void testInlineHtmlUsesActualBoxAndFont() {
   near(theme.paragraphFont().letterSpacing(), -.5, "negative letter spacing reaches the common font projection");
   for (int offset = 0; offset <= text->visibleText().size(); ++offset) {
     const auto caret = text->cursorRect(offset);
-    require(text->hitTestTextOffset(caret.center()) == offset, "HTML box spacers preserve visible-text caret round trips");
+    require(text->hitTestTextOffset(caret.center()) == offset,
+            "HTML box spacers preserve visible-text caret round trips");
   }
   auto palette = muffin::html::HtmlColorPalette::defaultLight();
   palette.documentStyleSheet = theme.documentStyleSheet();
-  const auto html =
-      muffin::html::HtmlRenderer().render("<strong><span style='font-weight:normal'>Normal</span></strong>", 12, 800, {}, palette);
+  const auto html = muffin::html::HtmlRenderer().render(
+      "<strong><span style='font-weight:normal'>Normal</span></strong>", 12, 800, {}, palette);
   const auto* span = html.root()->children().front()->children().front().get();
   require(span->style().font.weight() == QFont::Normal, "computed normal weight resets inherited strong styling");
 
@@ -375,22 +401,26 @@ void testInlineHtmlUsesActualBoxAndFont() {
       "**<kbd class='hot'>X</kbd>** and <strong style='font-weight:normal'>plain</strong> <u style='text-decoration:none'>clear</u>",
       false);
   const auto nestedTheme = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(
-      "p > span[md-inline=strong] > strong > kbd{padding:4px 19px;font-size:23px}p:has(.hot){padding-top:5px}", "mixed-inline-tree", {}));
+      "p > span[md-inline=strong] > strong > kbd{padding:4px 19px;font-size:23px}p:has(.hot){padding-top:5px}",
+      "mixed-inline-tree", {}));
   muffin::DocumentLayout nestedLayout;
   nestedLayout.rebuild(nested.document(), nestedTheme, 800);
   const auto* nestedText = nestedLayout.block(nested.document().root().children().front()->id())->inlineLayout();
   const auto nestedKeyboardBoxes = boxesForTag(*nestedText, "kbd");
   require(nestedKeyboardBoxes.size() == 1, "Markdown and HTML share the same semantic ancestry");
   near(nestedKeyboardBoxes.front()->usedBox.padding.left(), 19, "direct-child CSS crosses the Markdown/HTML boundary");
-  near(nestedKeyboardBoxes.front()->font.pointSizeF() * 96 / 72, 23, "contextual HTML font comes from its actual Markdown parent");
+  near(nestedKeyboardBoxes.front()->font.pointSizeF() * 96 / 72, 23,
+       "contextual HTML font comes from its actual Markdown parent");
   near(nestedLayout.block(nested.document().root().children().front()->id())->cssBoxGeometry().usedBox.padding.top(), 5,
        "has selectors see embedded HTML classes");
   bool sawNormal = false, sawClear = false;
   const auto rendered = nestedText->displayText();
   for (const auto& format : nestedText->debugTextFormats(nestedTheme, nestedTheme.paragraphFont())) {
     const auto value = rendered.mid(format.start, format.length);
-    if (value == "plain" && format.format.fontWeight() == QFont::Normal) sawNormal = true;
-    if (value == "clear" && !format.format.fontUnderline()) sawClear = true;
+    if (value == "plain" && format.format.fontWeight() == QFont::Normal)
+      sawNormal = true;
+    if (value == "clear" && !format.format.fontUnderline())
+      sawClear = true;
   }
   require(sawNormal, "simple inline HTML uses computed font overrides while preserving Markdown projection");
   require(sawClear, "inline HTML decoration resets come from the common computed style");
@@ -400,10 +430,10 @@ void testStructuralEditInvalidatesExistingLayout() {
   for (bool lazy : {false, true}) {
     muffin::DocumentSession document;
     document.setMarkdownText("# Heading\n\nBody\n\nTail", false);
-    const auto theme = muffin::RenderTheme::fromDefinition(
-        muffin::CssThemeMapper::fromCss("#write{max-width:450px;padding:0;margin:0}body{color:black}p{margin:4px 0}h1 + "
-                                        "p{padding:16px;border:2px solid red}p + p{font-size:28px;margin-top:40px}",
-                                        "invalidation", {}));
+    const auto theme = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(
+        "#write{max-width:450px;padding:0;margin:0}body{color:black}p{margin:4px 0}h1 + "
+        "p{padding:16px;border:2px solid red}p + p{font-size:28px;margin-top:40px}",
+        "invalidation", {}));
     muffin::DocumentLayout incremental;
     incremental.rebuild(document.document(), theme, 800, {}, {},
                         lazy ? muffin::DocumentLayout::BuildPolicy::Lazy : muffin::DocumentLayout::BuildPolicy::Eager);
@@ -432,19 +462,22 @@ void testHtmlBlockUsesSharedBoxPainter() {
       muffin::CssThemeParser::parse("p{margin:0;padding:7px 13px;border:3px solid red;line-height:40px}"
                                     "kbd{padding:2px 9px 4px 5px;border:2px solid blue;font-size:20px;border-radius:0}",
                                     {}));
-  const auto result = muffin::html::HtmlRenderer().render("<p>Before <kbd><span>A</span>B</kbd> after</p>", 12, 500, {}, palette);
+  const auto result =
+      muffin::html::HtmlRenderer().render("<p>Before <kbd><span>A</span>B</kbd> after</p>", 12, 500, {}, palette);
   require(result.valid(), "HTML block fixture lays out");
   const auto* paragraph = result.root()->children().front().get();
   const auto& box = paragraph->layoutBox;
   require(box.valid, "HTML saves the same box snapshot as Markdown");
-  near(box.contentBox.left() - box.borderBox.left(), 16, "HTML content origin comes from shared padding and border geometry");
+  near(box.contentBox.left() - box.borderBox.left(), 16,
+       "HTML content origin comes from shared padding and border geometry");
   muffin::html::HtmlTextMeasurer measurer;
   const auto text = measurer.buildInlineLayout(*paragraph, paragraph->style().fontSize, 450);
   require(text->inlineBoxes.size() == 1, "nested HTML keyboard spans share one inline box");
   near(text->inlineBoxes.front().usedBox.padding.left(), 5, "HTML inline layout uses contextual left padding");
   near(text->inlineBoxes.front().usedBox.padding.right(), 9, "HTML inline layout uses contextual right padding");
   near(text->lineHeight, 40, "HTML line height consumes shared computed pixels");
-  require(text->layout->text().size() == text->text.size() + 2, "HTML horizontal box edges reserve actual wrapping advance");
+  require(text->layout->text().size() == text->text.size() + 2,
+          "HTML horizontal box edges reserve actual wrapping advance");
   QImage image(600, 200, QImage::Format_ARGB32_Premultiplied);
   image.fill(Qt::white);
   QPainter painter(&image);
@@ -459,12 +492,13 @@ void testBrowserBoxReference() {
   require(fixture.open(QIODevice::ReadOnly), "browser box reference is readable");
   const auto reference = QJsonDocument::fromJson(fixture.readAll()).object();
   const auto viewport = reference["viewport"].toObject();
-  require(reference["cases"].toArray().size() == 6, "browser reference covers all paragraph, heading and pre box-sizing cases");
+  require(reference["cases"].toArray().size() == 6,
+          "browser reference covers all paragraph, heading and pre box-sizing cases");
   for (const auto& value : reference["cases"].toArray()) {
     const auto entry = value.toObject(), expected = entry["expected"].toObject();
     const auto tag = entry["tag"].toString();
-    const auto theme =
-        muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(entry["css"].toString(), "browser-reference", {}));
+    const auto theme = muffin::RenderTheme::fromDefinition(
+        muffin::CssThemeMapper::fromCss(entry["css"].toString(), "browser-reference", {}));
     muffin::DocumentSession document;
     document.setMarkdownText(tag == "h1" ? "# Text" : tag == "pre" ? "```\nText\n```" : "Text", false);
     muffin::DocumentLayout layout;
@@ -472,10 +506,13 @@ void testBrowserBoxReference() {
     const auto& box = layout.block(document.document().root().children().front()->id())->cssBoxGeometry();
     near(box.borderBox.width(), expected["width"].toDouble(), "border width matches Chrome used box");
     near(box.borderBox.height(), expected["height"].toDouble(), "border height matches Chrome used box");
-    near(box.contentBox.left() - box.borderBox.left(), expected["left"].toDouble(), "horizontal content inset matches Chrome");
-    near(box.contentBox.top() - box.borderBox.top(), expected["top"].toDouble(), "vertical content inset matches Chrome");
+    near(box.contentBox.left() - box.borderBox.left(), expected["left"].toDouble(),
+         "horizontal content inset matches Chrome");
+    near(box.contentBox.top() - box.borderBox.top(), expected["top"].toDouble(),
+         "vertical content inset matches Chrome");
     near(box.contentBox.width(), expected["contentWidth"].toDouble(), "wrapping width matches Chrome content box");
-    near(box.font.pointSizeF() * 96 / 72, expected["fontSize"].toDouble(), "saved font size matches Chrome computed font");
+    near(box.font.pointSizeF() * 96 / 72, expected["fontSize"].toDouble(),
+         "saved font size matches Chrome computed font");
   }
 }
 
@@ -497,11 +534,10 @@ void testLazyPromotionUsesLiveMargins() {
 }
 
 void testResponsiveProjectionReuse() {
-  const auto definition = muffin::CssThemeMapper::fromCss(
-      "#write{max-width:500px;padding:20px}p{font-size:16px}"
-      "@media(min-width:900px){p{font-size:24px}}"
-      "@media(orientation:portrait){h1{font-size:25px}}",
-      "resize", {});
+  const auto definition = muffin::CssThemeMapper::fromCss("#write{max-width:500px;padding:20px}p{font-size:16px}"
+                                                          "@media(min-width:900px){p{font-size:24px}}"
+                                                          "@media(orientation:portrait){h1{font-size:25px}}",
+                                                          "resize", {});
   auto theme = muffin::RenderTheme::fromDefinition(definition);
   require(theme.updateForViewport(700, 600), "first viewport projects the environment");
   muffin::DocumentSession session;
@@ -521,15 +557,16 @@ void testResponsiveProjectionReuse() {
   near(theme.elementStyle("p")->text.fontSizePx, 24, "media font size updates");
   require(theme.updateForViewport(950, 1000), "height/orientation change invalidates projections");
   near(theme.elementStyle("h1")->text.fontSizePx, 25, "orientation media applies");
-  auto exportOnly = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(
-      "#write{max-width:500px}p{font-size:16px}"
-      ".typora-export #write{min-height:calc(100vh - 40px)}"
-      ".typora-export-sidebar + #write{min-height:100vh}", "export-resize", {}));
+  auto exportOnly = muffin::RenderTheme::fromDefinition(
+      muffin::CssThemeMapper::fromCss("#write{max-width:500px}p{font-size:16px}"
+                                      ".typora-export #write{min-height:calc(100vh - 40px)}"
+                                      ".typora-export-sidebar + #write{min-height:100vh}",
+                                      "export-resize", {}));
   exportOnly.updateForViewport(700, 600);
   require(!exportOnly.updateForViewport(850, 650), "export-only viewport units do not rebuild the editor theme");
-  for (const auto& css :
-       {QString(":root{--size:2vw}#write{max-width:500px}p{font-size:var(--size)}"),
-        QString("#write{width:70%;padding:2% 3%;margin:1% auto}"), QString("#write{max-width:calc(80% - 10px);padding:0}")}) {
+  for (const auto& css : {QString(":root{--size:2vw}#write{max-width:500px}p{font-size:var(--size)}"),
+                          QString("#write{width:70%;padding:2% 3%;margin:1% auto}"),
+                          QString("#write{max-width:calc(80% - 10px);padding:0}")}) {
     const auto dynamicDefinition = muffin::CssThemeMapper::fromCss(css, "dynamic-resize", {});
     auto dynamic = muffin::RenderTheme::fromDefinition(dynamicDefinition);
     dynamic.updateForViewport(700, 600);
@@ -563,9 +600,9 @@ void testProjectionPrototypeCacheLifetime() {
   muffin::enableThemePerformance(false);
   require(before == after && work == 0, "temporary projection scopes preserve caller-owned cached styles");
   const auto a = muffin::RenderTheme::fromDefinition(first), b = muffin::RenderTheme::fromDefinition(second);
-  require(
-      a.elementStyle("p")->paint.color == QColor(Qt::red) && b.elementStyle("p:hover")->paint.color == QColor(Qt::blue),
-      "short-lived prototype caches retain base and interaction projection semantics");
+  require(a.elementStyle("p")->paint.color == QColor(Qt::red) &&
+              b.elementStyle("p:hover")->paint.color == QColor(Qt::blue),
+          "short-lived prototype caches retain base and interaction projection semantics");
 }
 
 void testTextOnlyStyleRebinding() {
@@ -701,7 +738,7 @@ void testPendingRangeKeepsStyleSnapshot() {
   require(layout.rebuildTopLevelRange(session.lastLocalTopLevelRangeChange(), session.document(), theme, {}).rebuilt,
           "the owning range refresh applies its structural dependencies afterwards");
 }
-}  // namespace
+} // namespace
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
   testCascadeAndInheritance();

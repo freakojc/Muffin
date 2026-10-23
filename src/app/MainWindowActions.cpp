@@ -27,31 +27,31 @@ Q_LOGGING_CATEGORY(actionsPerf, "muffin.perf.detail", QtWarningMsg)
 
 QString zoneName(muffin::HitTestResult::Zone zone) {
   switch (zone) {
-    case muffin::HitTestResult::Zone::Text:
-      return QStringLiteral("text");
-    case muffin::HitTestResult::Zone::Marker:
-      return QStringLiteral("marker");
-    case muffin::HitTestResult::Zone::TableCell:
-      return QStringLiteral("table");
-    case muffin::HitTestResult::Zone::Code:
-      return QStringLiteral("code");
-    case muffin::HitTestResult::Zone::Math:
-      return QStringLiteral("math");
-    case muffin::HitTestResult::Zone::Html:
-      return QStringLiteral("html");
-    case muffin::HitTestResult::Zone::FrontMatter:
-      return QStringLiteral("front matter");
-    case muffin::HitTestResult::Zone::Block:
-      return QStringLiteral("block");
-    case muffin::HitTestResult::Zone::BlockAfter:
-      return QStringLiteral("block after");
-    case muffin::HitTestResult::Zone::None:
-    default:
-      return QStringLiteral("none");
+  case muffin::HitTestResult::Zone::Text:
+    return QStringLiteral("text");
+  case muffin::HitTestResult::Zone::Marker:
+    return QStringLiteral("marker");
+  case muffin::HitTestResult::Zone::TableCell:
+    return QStringLiteral("table");
+  case muffin::HitTestResult::Zone::Code:
+    return QStringLiteral("code");
+  case muffin::HitTestResult::Zone::Math:
+    return QStringLiteral("math");
+  case muffin::HitTestResult::Zone::Html:
+    return QStringLiteral("html");
+  case muffin::HitTestResult::Zone::FrontMatter:
+    return QStringLiteral("front matter");
+  case muffin::HitTestResult::Zone::Block:
+    return QStringLiteral("block");
+  case muffin::HitTestResult::Zone::BlockAfter:
+    return QStringLiteral("block after");
+  case muffin::HitTestResult::Zone::None:
+  default:
+    return QStringLiteral("none");
   }
 }
 
-}  // namespace
+} // namespace
 
 void muffin::MainWindow::setupConnections() {
   tab_->editorController.inputController().setEmojiProvider(&emojiProvider_);
@@ -132,7 +132,8 @@ void muffin::MainWindow::updateBlockSourceLabel(const HitTestResult& hit) {
 }
 
 void muffin::MainWindow::syncSourceEditorIfNeeded() {
-  if (!tab_->editor) return;
+  if (!tab_->editor)
+    return;
   tab_->editor->syncFromSession();
 }
 
@@ -253,8 +254,8 @@ void muffin::MainWindow::insertLocalImageWithDialog() {
     return;
   }
 
-  const QString filter = tr("Images (%1)")
-                             .arg(QStringLiteral("*.png *.jpg *.jpeg *.gif *.svg *.webp *.bmp *.ico *.tiff *.tif"));
+  const QString filter =
+      tr("Images (%1)").arg(QStringLiteral("*.png *.jpg *.jpeg *.gif *.svg *.webp *.bmp *.ico *.tiff *.tif"));
   const QString filePath = QFileDialog::getOpenFileName(this, tr("Select Image"), QString(), filter);
   if (filePath.isEmpty()) {
     return;

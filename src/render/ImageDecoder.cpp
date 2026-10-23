@@ -29,25 +29,28 @@ bool isWebp(const QByteArray& data) {
 
 bool isAvif(const QByteArray& data) {
   // ISO Base Media File Format: offset 4-7 == "ftyp"
-  if (data.size() < 12) return false;
-  if (data.mid(4, 4) != "ftyp") return false;
+  if (data.size() < 12)
+    return false;
+  if (data.mid(4, 4) != "ftyp")
+    return false;
   // Check major brand or compatible brands for AVIF signatures
   const QByteArray brand = data.mid(8, 4);
-  if (brand == "avif" || brand == "avis" || brand == "mif1" || brand == "msf1"
-      || brand == "heic" || brand == "heix") {
+  if (brand == "avif" || brand == "avis" || brand == "mif1" || brand == "msf1" || brand == "heic" || brand == "heix") {
     return true;
   }
   // Scan compatible brands (starting at offset 16, each 4 bytes)
   for (int i = 16; i + 4 <= data.size(); i += 4) {
     const QByteArray b = data.mid(i, 4);
-    if (b == "avif" || b == "avis" || b == "mif1" || b == "msf1") return true;
+    if (b == "avif" || b == "avis" || b == "mif1" || b == "msf1")
+      return true;
   }
   return false;
 }
 
 bool isSvg(const QByteArray& data) {
   // SVG is an XML format. Look for "<svg" tag in the first 1 KB.
-  if (data.size() < 4) return false;
+  if (data.size() < 4)
+    return false;
   const QByteArray header = data.left(1024);
   return header.contains("<svg");
 }
@@ -80,9 +83,8 @@ QImage decodeAvif(const QByteArray& data) {
     return QImage();
   }
 
-  avifResult result = avifDecoderSetIOMemory(decoder,
-      reinterpret_cast<const uint8_t*>(data.constData()),
-      static_cast<size_t>(data.size()));
+  avifResult result = avifDecoderSetIOMemory(decoder, reinterpret_cast<const uint8_t*>(data.constData()),
+                                             static_cast<size_t>(data.size()));
   if (result != AVIF_RESULT_OK) {
     avifDecoderDestroy(decoder);
     return QImage();
@@ -118,8 +120,8 @@ QImage decodeAvif(const QByteArray& data) {
     return QImage();
   }
 
-  QImage img(rgb.pixels, static_cast<int>(rgb.width), static_cast<int>(rgb.height),
-             static_cast<int>(rgb.rowBytes), QImage::Format_RGBA8888);
+  QImage img(rgb.pixels, static_cast<int>(rgb.width), static_cast<int>(rgb.height), static_cast<int>(rgb.rowBytes),
+             QImage::Format_RGBA8888);
   QImage copy = img.copy();
 
   avifRGBImageFreePixels(&rgb);
@@ -174,8 +176,7 @@ QImage decodePng(const QByteArray& data) {
   png_image image;
   std::memset(&image, 0, sizeof(image));
   image.version = PNG_IMAGE_VERSION;
-  if (png_image_begin_read_from_memory(&image, data.constData(),
-                                       static_cast<png_alloc_size_t>(data.size())) == 0) {
+  if (png_image_begin_read_from_memory(&image, data.constData(), static_cast<png_alloc_size_t>(data.size())) == 0) {
     return QImage();
   }
   image.format = PNG_FORMAT_RGBA;
@@ -244,8 +245,7 @@ QImage decodeJpeg(const QByteArray& data) {
   // Decode into a tightly-packed RGB buffer, then wrap (and detach) in a QImage.
   std::vector<unsigned char> pixels(static_cast<size_t>(width) * 3 * height);
   while (cinfo.output_scanline < static_cast<JDIMENSION>(height)) {
-    unsigned char* row =
-        pixels.data() + static_cast<size_t>(cinfo.output_scanline) * width * 3;
+    unsigned char* row = pixels.data() + static_cast<size_t>(cinfo.output_scanline) * width * 3;
     jpeg_read_scanlines(&cinfo, &row, 1);
   }
 
@@ -256,7 +256,7 @@ QImage decodeJpeg(const QByteArray& data) {
   return img.copy();
 }
 
-}  // namespace
+} // namespace
 
 QImage decodeFallback(const QByteArray& data) {
   if (data.isEmpty()) {
@@ -302,8 +302,7 @@ QImage decodeDataUri(const QString& uri) {
   }
   const QStringView head = QStringView(uri).left(comma);
   const int colon = head.indexOf(QLatin1Char(':'));
-  if (colon < 0 ||
-      head.left(colon).trimmed().compare(QLatin1String("data"), Qt::CaseInsensitive) != 0) {
+  if (colon < 0 || head.left(colon).trimmed().compare(QLatin1String("data"), Qt::CaseInsensitive) != 0) {
     return QImage();
   }
 
@@ -322,8 +321,7 @@ QImage decodeDataUri(const QString& uri) {
     // Some emitters wrap long base64 lines with newlines/spaces, which
     // QByteArray::fromBase64 rejects — strip them first.
     QByteArray raw = body.toUtf8();
-    raw.replace('\n', QByteArray()).replace('\r', QByteArray())
-        .replace(' ', QByteArray()).replace('\t', QByteArray());
+    raw.replace('\n', QByteArray()).replace('\r', QByteArray()).replace(' ', QByteArray()).replace('\t', QByteArray());
     bytes = QByteArray::fromBase64(raw);
   } else {
     bytes = QByteArray::fromPercentEncoding(body.toUtf8());
@@ -334,7 +332,7 @@ QImage decodeDataUri(const QString& uri) {
 
   QImage image = decodeFallback(bytes);
   if (image.isNull()) {
-    image.loadFromData(bytes);  // last resort for formats we don't ship (gif/bmp/tiff…)
+    image.loadFromData(bytes); // last resort for formats we don't ship (gif/bmp/tiff…)
   }
   return image;
 }
@@ -355,4 +353,4 @@ QSize detectSize(const QString& filePath) {
   return {};
 }
 
-}  // namespace muffin::image_decoder
+} // namespace muffin::image_decoder

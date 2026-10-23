@@ -26,7 +26,7 @@ QString withoutBoxSpacing(QString text) {
 QString keyboardFamily(const RenderTheme& theme) {
   const auto* style = theme.elementStyle(QStringLiteral("kbd"));
   return style && !style->text.fontFamily.isEmpty() ? theme.textFontForElement(QStringLiteral("kbd")).family()
-                                                 : QStringLiteral("Courier New");
+                                                    : QStringLiteral("Courier New");
 }
 
 void testInlineLayoutGeometryContract() {
@@ -56,14 +56,18 @@ void testInlineLayoutGeometryContract() {
   InlineLayout::BuildOptions options;
   options.projectionState.revealMarkdownMarkers = true;
   InlineLayout styled;
-  styled.build(styledInlines, QStringLiteral("before **bold** [link](u) `code`"), theme, 180.0, theme.paragraphFont(), options);
+  styled.build(styledInlines, QStringLiteral("before **bold** [link](u) `code`"), theme, 180.0, theme.paragraphFont(),
+               options);
   require(styled.height() > 0.0, QStringLiteral("inline layout should measure styled inline height"));
-  require(withoutBoxSpacing(styled.displayText()) == QStringLiteral("before **bold** [link](u) `code`"), QStringLiteral("styled display text should match projection"));
+  require(withoutBoxSpacing(styled.displayText()) == QStringLiteral("before **bold** [link](u) `code`"),
+          QStringLiteral("styled display text should match projection"));
   const QRectF styledCursor = styled.cursorRect(9);
   require(!styledCursor.isEmpty(), QStringLiteral("inline layout styled cursor rect should be available"));
   const qsizetype styledHit = styled.hitTestTextOffset(QPointF(styledCursor.left(), styledCursor.center().y()));
-  require(styledHit >= 0 && styledHit <= styled.plainText().size(), QStringLiteral("inline layout hit-test should return a valid styled offset"));
-  require(!styled.selectionRects(0, styled.plainText().size()).isEmpty(), QStringLiteral("inline layout should produce styled selection rects"));
+  require(styledHit >= 0 && styledHit <= styled.plainText().size(),
+          QStringLiteral("inline layout hit-test should return a valid styled offset"));
+  require(!styled.selectionRects(0, styled.plainText().size()).isEmpty(),
+          QStringLiteral("inline layout should produce styled selection rects"));
 }
 
 void testInlineLayoutAlignmentAffectsGeometryAndVisualBounds() {
@@ -107,7 +111,7 @@ void testInlineLayoutFirstLineBaselineFollowsLineHeight() {
   inlines.push_back(InlineNode::text(QStringLiteral("line")));
 
   InlineLayout::BuildOptions options;
-  options.lineHeightMultiplier = 2.5;  // tall line-height → sizeable centering offset
+  options.lineHeightMultiplier = 2.5; // tall line-height → sizeable centering offset
   InlineLayout tall;
   tall.build(inlines, theme, 300.0, font, options);
   const qreal tallBaseline = tall.firstLineBaselineY();
@@ -135,12 +139,15 @@ void testInlineLayoutZeroWidthTabIndentGeometry() {
 
   InlineLayout layout;
   layout.build(inlines, theme, 400.0, theme.paragraphFont());
-  require(layout.displayText() == QStringLiteral("​alpha"), QStringLiteral("zero-width tab source should remain in display text"));
+  require(layout.displayText() == QStringLiteral("​alpha"),
+          QStringLiteral("zero-width tab source should remain in display text"));
 
   const qreal actualIndent = layout.cursorRect(1).left() - layout.cursorRect(0).left();
   const qreal expectedIndent = QFontMetricsF(theme.paragraphFont()).horizontalAdvance(QStringLiteral("汉汉"));
   require(qAbs(actualIndent - expectedIndent) < 1.0,
-          QStringLiteral("zero-width tab indent should render as two CJK characters, actual=%1 expected=%2").arg(actualIndent).arg(expectedIndent));
+          QStringLiteral("zero-width tab indent should render as two CJK characters, actual=%1 expected=%2")
+              .arg(actualIndent)
+              .arg(expectedIndent));
   require(actualIndent < QFontMetricsF(theme.paragraphFont()).horizontalAdvance(QStringLiteral("汉汉汉")),
           QStringLiteral("zero-width tab indent should not expand to a wide editor tab stop"));
 }
@@ -155,12 +162,13 @@ void testInlineLayoutStyleFormats() {
   inlines.push_back(InlineNode::strikethrough(QStringLiteral("~~"), {InlineNode::text(QStringLiteral("gone"))}));
   inlines.push_back(InlineNode::text(QStringLiteral(" ")));
   inlines.push_back(InlineNode::strong(
-      QStringLiteral("**"),
-      {InlineNode::emphasis(QStringLiteral("*"), {InlineNode::text(QStringLiteral("both"))})}));
+      QStringLiteral("**"), {InlineNode::emphasis(QStringLiteral("*"), {InlineNode::text(QStringLiteral("both"))})}));
 
   InlineLayout layout;
-  layout.build(inlines, QStringLiteral("**bold** *em* ~~gone~~ ***both***"), theme, 500.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
-  require(layout.displayText() == QStringLiteral("bold em gone both"), QStringLiteral("style format fixture display text mismatch"));
+  layout.build(inlines, QStringLiteral("**bold** *em* ~~gone~~ ***both***"), theme, 500.0, theme.paragraphFont(),
+               InlineLayout::BuildOptions{});
+  require(layout.displayText() == QStringLiteral("bold em gone both"),
+          QStringLiteral("style format fixture display text mismatch"));
 
   const QVector<QTextLayout::FormatRange> formats = layout.debugTextFormats(theme, theme.paragraphFont());
   auto formatAt = [&formats](int offset) -> QTextCharFormat {
@@ -199,13 +207,8 @@ void testInlineHtmlKeyboardLayoutContract() {
   inlines << openCtrl << ctrlText << closeCtrl << plus << openC << cText << closeC;
 
   InlineLayout layout;
-  layout.build(
-      inlines,
-      QStringLiteral("<kbd>Ctrl</kbd>+<kbd>C</kbd>"),
-      theme,
-      500.0,
-      theme.paragraphFont(),
-      InlineLayout::BuildOptions{});
+  layout.build(inlines, QStringLiteral("<kbd>Ctrl</kbd>+<kbd>C</kbd>"), theme, 500.0, theme.paragraphFont(),
+               InlineLayout::BuildOptions{});
 
   require(withoutBoxSpacing(layout.displayText()) == QStringLiteral("Ctrl+C"),
           QStringLiteral("inline html kbd fixture should collapse to visible keyboard chord"));
@@ -227,7 +230,8 @@ void testInlineHtmlKeyboardLayoutContract() {
   const int lastKey = static_cast<int>(layout.displayText().lastIndexOf(QLatin1Char('C')));
   require(formatAt(firstKey).fontFamilies().toStringList().contains(expectedKeyboardFamily),
           QStringLiteral("first kbd segment should use computed keyboard font: expected=%1 actual=%2 at=%3")
-              .arg(expectedKeyboardFamily, formatAt(firstKey).fontFamilies().toStringList().join(QLatin1Char(','))).arg(firstKey));
+              .arg(expectedKeyboardFamily, formatAt(firstKey).fontFamilies().toStringList().join(QLatin1Char(',')))
+              .arg(firstKey));
   require(formatAt(lastKey).fontFamilies().toStringList().contains(expectedKeyboardFamily),
           QStringLiteral("last kbd segment should map even at end of html fragment"));
   require(!formatAt(separator).fontFamilies().toStringList().contains(expectedKeyboardFamily),
@@ -245,20 +249,16 @@ void testInlineLayoutProjectionDisplayMappingAfterCollapsedMath() {
   inlines.push_back(InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("bold"))}));
 
   InlineLayout layout;
-  layout.build(
-      inlines,
-      QStringLiteral("math $E = mc^2$ then `code` and **bold**"),
-      theme,
-      500.0,
-      theme.paragraphFont(),
-      InlineLayout::BuildOptions{});
+  layout.build(inlines, QStringLiteral("math $E = mc^2$ then `code` and **bold**"), theme, 500.0, theme.paragraphFont(),
+               InlineLayout::BuildOptions{});
   require(layout.mathAtomCount() == 1, QStringLiteral("mapping fixture should collapse first inline math"));
   require(withoutBoxSpacing(layout.displayText()).contains(QStringLiteral(" then code and bold")),
           QStringLiteral("mapping fixture should keep text after collapsed math"));
 
   const qsizetype codeStart = layout.displayText().indexOf(QStringLiteral("code"));
   const qsizetype boldStart = layout.displayText().indexOf(QStringLiteral("bold"));
-  require(codeStart >= 0 && boldStart > codeStart, QStringLiteral("mapping fixture display offsets should be discoverable"));
+  require(codeStart >= 0 && boldStart > codeStart,
+          QStringLiteral("mapping fixture display offsets should be discoverable"));
 
   const QVector<QTextLayout::FormatRange> formats = layout.debugTextFormats(theme, theme.paragraphFont());
   auto formatAt = [&formats](int offset) -> QTextCharFormat {
@@ -271,14 +271,14 @@ void testInlineLayoutProjectionDisplayMappingAfterCollapsedMath() {
     return result;
   };
 
-  require(formatAt(static_cast<int>(codeStart)).fontFamilies().toStringList().first() == theme.inlineCodeFont().family(),
+  require(formatAt(static_cast<int>(codeStart)).fontFamilies().toStringList().first() ==
+              theme.inlineCodeFont().family(),
           QStringLiteral("code format after collapsed math should use rebuilt display offset"));
   require(formatAt(static_cast<int>(boldStart)).fontWeight() >= QFont::Bold,
           QStringLiteral("strong format after collapsed math should use rebuilt display offset"));
 
-  const QVector<QRectF> codeSelection =
-      layout.selectionRectsForSourceOffsets(QStringLiteral("math $E = mc^2$ then `").size(),
-                                            QStringLiteral("math $E = mc^2$ then `code").size());
+  const QVector<QRectF> codeSelection = layout.selectionRectsForSourceOffsets(
+      QStringLiteral("math $E = mc^2$ then `").size(), QStringLiteral("math $E = mc^2$ then `code").size());
   require(codeSelection.size() == 1, QStringLiteral("source selection after collapsed math should select code text"));
   const QRectF codeCursor = layout.cursorRectForSourceOffset(QStringLiteral("math $E = mc^2$ then `").size());
   require(!codeCursor.isEmpty(), QStringLiteral("source cursor after collapsed math should exist"));
@@ -292,7 +292,8 @@ void testInlineLayoutPainting() {
   inlines.push_back(InlineNode::text(QStringLiteral("before ")));
   inlines.push_back(InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("bold"))}));
   inlines.push_back(InlineNode::text(QStringLiteral(" ")));
-  inlines.push_back(InlineNode::link(QStringLiteral("https://example.com"), QString(), {InlineNode::text(QStringLiteral("link"))}));
+  inlines.push_back(
+      InlineNode::link(QStringLiteral("https://example.com"), QString(), {InlineNode::text(QStringLiteral("link"))}));
   inlines.push_back(InlineNode::text(QStringLiteral(" ")));
   inlines.push_back(InlineNode::code(QStringLiteral("code")));
   inlines.push_back(InlineNode::text(QStringLiteral(" after")));
@@ -301,7 +302,8 @@ void testInlineLayoutPainting() {
   options.projectionState.revealMarkdownMarkers = true;
 
   InlineLayout layout;
-  layout.build(inlines, QStringLiteral("before **bold** [link](https://example.com) `code` after"), theme, 280.0, theme.paragraphFont(), options);
+  layout.build(inlines, QStringLiteral("before **bold** [link](https://example.com) `code` after"), theme, 280.0,
+               theme.paragraphFont(), options);
   require(layout.height() > 0.0, QStringLiteral("inline layout paint fixture should have height"));
 
   QImage img(QSize(320, qCeil(layout.height()) + 20), QImage::Format_ARGB32);
@@ -330,14 +332,14 @@ void testInlineHtmlSimpleFormattingPassthrough() {
     QVector<InlineNode> inlines;
     InlineNode openU(InlineType::HtmlInline);
     openU.setText(QStringLiteral("<u>"));
-    inlines << openU
-            << InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("bold"))});
+    inlines << openU << InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("bold"))});
     InlineNode closeU(InlineType::HtmlInline);
     closeU.setText(QStringLiteral("</u>"));
     inlines << closeU;
 
     InlineLayout layout;
-    layout.build(inlines, QStringLiteral("<u>**bold**</u>"), theme, 500.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
+    layout.build(inlines, QStringLiteral("<u>**bold**</u>"), theme, 500.0, theme.paragraphFont(),
+                 InlineLayout::BuildOptions{});
 
     require(layout.displayText() == QStringLiteral("bold"),
             QStringLiteral("<u>**bold**</u> should display as 'bold', got '%1'").arg(layout.displayText()));
@@ -349,10 +351,8 @@ void testInlineHtmlSimpleFormattingPassthrough() {
         fmt = range.format;
       }
     }
-    require(fmt.fontWeight() >= QFont::Bold,
-            QStringLiteral("<u>**bold**</u> should render bold"));
-    require(fmt.fontUnderline(),
-            QStringLiteral("<u>**bold**</u> should render underline"));
+    require(fmt.fontWeight() >= QFont::Bold, QStringLiteral("<u>**bold**</u> should render bold"));
+    require(fmt.fontUnderline(), QStringLiteral("<u>**bold**</u> should render underline"));
   }
 
   // --- <u>text</u>: underline only ---
@@ -360,14 +360,14 @@ void testInlineHtmlSimpleFormattingPassthrough() {
     QVector<InlineNode> inlines;
     InlineNode openU(InlineType::HtmlInline);
     openU.setText(QStringLiteral("<u>"));
-    inlines << openU
-            << InlineNode::text(QStringLiteral("text"));
+    inlines << openU << InlineNode::text(QStringLiteral("text"));
     InlineNode closeU(InlineType::HtmlInline);
     closeU.setText(QStringLiteral("</u>"));
     inlines << closeU;
 
     InlineLayout layout;
-    layout.build(inlines, QStringLiteral("<u>text</u>"), theme, 500.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
+    layout.build(inlines, QStringLiteral("<u>text</u>"), theme, 500.0, theme.paragraphFont(),
+                 InlineLayout::BuildOptions{});
 
     require(layout.displayText() == QStringLiteral("text"),
             QStringLiteral("<u>text</u> should display as 'text', got '%1'").arg(layout.displayText()));
@@ -379,10 +379,8 @@ void testInlineHtmlSimpleFormattingPassthrough() {
         fmt = range.format;
       }
     }
-    require(fmt.fontUnderline(),
-            QStringLiteral("<u>text</u> should render underline"));
-    require(fmt.fontWeight() < QFont::Bold,
-            QStringLiteral("<u>text</u> should not render bold"));
+    require(fmt.fontUnderline(), QStringLiteral("<u>text</u> should render underline"));
+    require(fmt.fontWeight() < QFont::Bold, QStringLiteral("<u>text</u> should not render bold"));
   }
 
   // --- <b>*italic*</b>: bold + italic ---
@@ -390,14 +388,14 @@ void testInlineHtmlSimpleFormattingPassthrough() {
     QVector<InlineNode> inlines;
     InlineNode openB(InlineType::HtmlInline);
     openB.setText(QStringLiteral("<b>"));
-    inlines << openB
-            << InlineNode::emphasis(QStringLiteral("*"), {InlineNode::text(QStringLiteral("italic"))});
+    inlines << openB << InlineNode::emphasis(QStringLiteral("*"), {InlineNode::text(QStringLiteral("italic"))});
     InlineNode closeB(InlineType::HtmlInline);
     closeB.setText(QStringLiteral("</b>"));
     inlines << closeB;
 
     InlineLayout layout;
-    layout.build(inlines, QStringLiteral("<b>*italic*</b>"), theme, 500.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
+    layout.build(inlines, QStringLiteral("<b>*italic*</b>"), theme, 500.0, theme.paragraphFont(),
+                 InlineLayout::BuildOptions{});
 
     require(layout.displayText() == QStringLiteral("italic"),
             QStringLiteral("<b>*italic*</b> should display as 'italic', got '%1'").arg(layout.displayText()));
@@ -409,10 +407,8 @@ void testInlineHtmlSimpleFormattingPassthrough() {
         fmt = range.format;
       }
     }
-    require(fmt.fontWeight() >= QFont::Bold,
-            QStringLiteral("<b>*italic*</b> should render bold"));
-    require(fmt.fontItalic(),
-            QStringLiteral("<b>*italic*</b> should render italic"));
+    require(fmt.fontWeight() >= QFont::Bold, QStringLiteral("<b>*italic*</b> should render bold"));
+    require(fmt.fontItalic(), QStringLiteral("<b>*italic*</b> should render italic"));
   }
 
   // --- <s>text</s>: strikethrough passthrough ---
@@ -420,14 +416,14 @@ void testInlineHtmlSimpleFormattingPassthrough() {
     QVector<InlineNode> inlines;
     InlineNode openS(InlineType::HtmlInline);
     openS.setText(QStringLiteral("<s>"));
-    inlines << openS
-            << InlineNode::text(QStringLiteral("gone"));
+    inlines << openS << InlineNode::text(QStringLiteral("gone"));
     InlineNode closeS(InlineType::HtmlInline);
     closeS.setText(QStringLiteral("</s>"));
     inlines << closeS;
 
     InlineLayout layout;
-    layout.build(inlines, QStringLiteral("<s>gone</s>"), theme, 500.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
+    layout.build(inlines, QStringLiteral("<s>gone</s>"), theme, 500.0, theme.paragraphFont(),
+                 InlineLayout::BuildOptions{});
 
     require(layout.displayText() == QStringLiteral("gone"),
             QStringLiteral("<s>gone</s> should display as 'gone', got '%1'").arg(layout.displayText()));
@@ -439,8 +435,7 @@ void testInlineHtmlSimpleFormattingPassthrough() {
         fmt = range.format;
       }
     }
-    require(fmt.fontStrikeOut(),
-            QStringLiteral("<s>gone</s> should render strikethrough"));
+    require(fmt.fontStrikeOut(), QStringLiteral("<s>gone</s> should render strikethrough"));
   }
 
   // --- <kbd>text</kbd>: complex tag, still uses InlineHtmlRenderer (backward compat) ---
@@ -448,14 +443,14 @@ void testInlineHtmlSimpleFormattingPassthrough() {
     QVector<InlineNode> inlines;
     InlineNode openKbd(InlineType::HtmlInline);
     openKbd.setText(QStringLiteral("<kbd>"));
-    inlines << openKbd
-            << InlineNode::text(QStringLiteral("Ctrl"));
+    inlines << openKbd << InlineNode::text(QStringLiteral("Ctrl"));
     InlineNode closeKbd(InlineType::HtmlInline);
     closeKbd.setText(QStringLiteral("</kbd>"));
     inlines << closeKbd;
 
     InlineLayout layout;
-    layout.build(inlines, QStringLiteral("<kbd>Ctrl</kbd>"), theme, 500.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
+    layout.build(inlines, QStringLiteral("<kbd>Ctrl</kbd>"), theme, 500.0, theme.paragraphFont(),
+                 InlineLayout::BuildOptions{});
 
     require(withoutBoxSpacing(layout.displayText()) == QStringLiteral("Ctrl"),
             QStringLiteral("<kbd>Ctrl</kbd> should display as 'Ctrl', got '%1'").arg(layout.displayText()));
@@ -478,8 +473,10 @@ void testCompositionPreservesMixedInlineMappingAcrossRebuilds() {
   const QFont font = theme.paragraphFont();
   const QString source = QStringLiteral("math $x^2$ then `code` and **bold**");
   const QVector<InlineNode> inlines{
-      InlineNode::text(QStringLiteral("math ")), InlineNode::inlineMath(QStringLiteral("x^2")),
-      InlineNode::text(QStringLiteral(" then ")), InlineNode::code(QStringLiteral("code")),
+      InlineNode::text(QStringLiteral("math ")),
+      InlineNode::inlineMath(QStringLiteral("x^2")),
+      InlineNode::text(QStringLiteral(" then ")),
+      InlineNode::code(QStringLiteral("code")),
       InlineNode::text(QStringLiteral(" and ")),
       InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("bold"))})};
   InlineLayout layout;
@@ -496,7 +493,8 @@ void testCompositionPreservesMixedInlineMappingAcrossRebuilds() {
   options.preeditInsertAtSourceOffset = 2;
   options.preeditCursor = 1;
   layout.build(inlines, source, theme, 1000, font, options);
-  require(layout.hasPreedit() && !layout.preeditCursorRect({}).isEmpty(), QStringLiteral("composition should expose its own caret"));
+  require(layout.hasPreedit() && !layout.preeditCursorRect({}).isEmpty(),
+          QStringLiteral("composition should expose its own caret"));
   require(layout.displayText() == display && layout.visibleText() == visible,
           QStringLiteral("composition must preserve projected display and copy text"));
   const QRectF caret = layout.cursorRectForSourceOffset(tail);
@@ -505,8 +503,7 @@ void testCompositionPreservesMixedInlineMappingAcrossRebuilds() {
   const auto afterMath = layout.mathAtomRects({});
   require(afterMath.size() == 1 && afterMath.front().left() > beforeMath.front().left(),
           QStringLiteral("composition should shift following math geometry"));
-  require(qAbs((caret.left() - beforeCaret.left()) -
-               (afterMath.front().left() - beforeMath.front().left())) < 0.1,
+  require(qAbs((caret.left() - beforeCaret.left()) - (afterMath.front().left() - beforeMath.front().left())) < 0.1,
           QStringLiteral("text and math must advance by the same composed width"));
 
   layout.build(inlines, source, theme, 1000, font, {});
@@ -515,7 +512,7 @@ void testCompositionPreservesMixedInlineMappingAcrossRebuilds() {
           QStringLiteral("rebuilding after composition must discard all temporary text and geometry"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

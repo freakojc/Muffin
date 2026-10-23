@@ -43,11 +43,9 @@ Q_LOGGING_CATEGORY(blockBuildDetailPerf, "muffin.perf.detail", QtWarningMsg)
 
 bool isOrderedListStyle(const QString& style) {
   static const QSet<QString> ordered = {
-      QStringLiteral("decimal"), QStringLiteral("decimal-leading-zero"),
-      QStringLiteral("lower-alpha"), QStringLiteral("upper-alpha"),
-      QStringLiteral("lower-latin"), QStringLiteral("upper-latin"),
-      QStringLiteral("lower-roman"), QStringLiteral("upper-roman"),
-      QStringLiteral("lower-greek")};
+      QStringLiteral("decimal"),     QStringLiteral("decimal-leading-zero"), QStringLiteral("lower-alpha"),
+      QStringLiteral("upper-alpha"), QStringLiteral("lower-latin"),          QStringLiteral("upper-latin"),
+      QStringLiteral("lower-roman"), QStringLiteral("upper-roman"),          QStringLiteral("lower-greek")};
   return ordered.contains(style);
 }
 
@@ -61,7 +59,7 @@ SmartPunctRenderOptions smartPunctRenderOptions() {
   const bool rendering = settings.value(QStringLiteral("markdown/convertOnRendering"), false).toBool();
   opts.convertQuotes = rendering && settings.value(QStringLiteral("markdown/smartQuotes"), false).toBool();
   opts.convertDashes = rendering && settings.value(QStringLiteral("markdown/smartDashes"), false).toBool();
-  opts.convertEllipsis = opts.convertDashes;  // ellipsis rides on Smart Dashes, matching other editors
+  opts.convertEllipsis = opts.convertDashes; // ellipsis rides on Smart Dashes, matching other editors
   opts.doubleQuoteStyle = settings.value(QStringLiteral("markdown/doubleQuoteStyle"), 0).toInt();
   opts.singleQuoteStyle = settings.value(QStringLiteral("markdown/singleQuoteStyle"), 0).toInt();
   return opts;
@@ -160,22 +158,22 @@ qsizetype pendingPrefixLengthFor(const MarkdownNode& node, const QString& source
 
 QString languageForFrontMatter(FrontMatterFormat format) {
   switch (format) {
-    case FrontMatterFormat::Yaml:
-      return QStringLiteral("yaml");
-    case FrontMatterFormat::Toml:
-      return QStringLiteral("toml");
-    case FrontMatterFormat::Json:
-      return QStringLiteral("json");
-    case FrontMatterFormat::None:
-    default:
-      return {};
+  case FrontMatterFormat::Yaml:
+    return QStringLiteral("yaml");
+  case FrontMatterFormat::Toml:
+    return QStringLiteral("toml");
+  case FrontMatterFormat::Json:
+    return QStringLiteral("json");
+  case FrontMatterFormat::None:
+  default:
+    return {};
   }
 }
 
 bool selectionFocusesNode(const SelectionRange& selection, NodeId nodeId) {
   // The trailing empty line reuses the last block's IDs without editing it.
-  return !selection.focus.afterBlock && nodeId.isValid() &&
-      selection.focus.blockId == nodeId && selection.focus.text.nodeId == nodeId;
+  return !selection.focus.afterBlock && nodeId.isValid() && selection.focus.blockId == nodeId &&
+         selection.focus.text.nodeId == nodeId;
 }
 
 // A `[TOC]` marker: a paragraph whose single inline is the literal text "[TOC]"
@@ -192,13 +190,13 @@ bool isTocMarkerParagraph(const MarkdownNode& node) {
 
 // Templated so it reads the document text from either a QString or a PieceTable -- both expose
 // isEmpty(). The builder passes its PieceTable view (md()).
-template <typename Text>
-bool isEmptyDocumentParagraph(const Text& markdown, const MarkdownNode& node) {
+template <typename Text> bool isEmptyDocumentParagraph(const Text& markdown, const MarkdownNode& node) {
   const SourceRange range = node.sourceRange();
   return markdown.isEmpty() && node.type() == BlockType::Paragraph && range.byteStart == 0 && range.byteEnd == 0;
 }
 
-QVector<qreal> tableColumnWidths(const MarkdownNode& table, const RenderTheme& theme, qreal width, bool breakOnSingleNewline) {
+QVector<qreal> tableColumnWidths(const MarkdownNode& table, const RenderTheme& theme, qreal width,
+                                 bool breakOnSingleNewline) {
   int columnCount = 0;
   for (const auto& row : table.children()) {
     columnCount = qMax(columnCount, static_cast<int>(row->children().size()));
@@ -216,11 +214,14 @@ QVector<qreal> tableColumnWidths(const MarkdownNode& table, const RenderTheme& t
         continue;
       }
       const MarkdownNode& cell = *row->children().at(static_cast<size_t>(column));
-      const QFont font = theme.textFontForElement(row->tableRowIsHeader() ? QStringLiteral("th") : QStringLiteral("td"), &cell);
-      const auto padding =
-          LayoutBox::insets(theme.elementBoxStyle(row->tableRowIsHeader() ? QStringLiteral("th") : QStringLiteral("td"), &cell, width));
-      preferred = qMax(preferred, maxLiteralLineWidth(InlineProjection::plainTextForInlines(cell.inlines(), breakOnSingleNewline), font) +
-                                      padding.left() + padding.right());
+      const QFont font =
+          theme.textFontForElement(row->tableRowIsHeader() ? QStringLiteral("th") : QStringLiteral("td"), &cell);
+      const auto padding = LayoutBox::insets(
+          theme.elementBoxStyle(row->tableRowIsHeader() ? QStringLiteral("th") : QStringLiteral("td"), &cell, width));
+      preferred =
+          qMax(preferred,
+               maxLiteralLineWidth(InlineProjection::plainTextForInlines(cell.inlines(), breakOnSingleNewline), font) +
+                   padding.left() + padding.right());
     }
     widths[column] = preferred;
     preferredTotal += widths[column];
@@ -249,15 +250,15 @@ QVector<qreal> tableColumnWidths(const MarkdownNode& table, const RenderTheme& t
   return widths;
 }
 
-}  // namespace
+} // namespace
 
 void BlockLayoutBuilder::setMarkdownText(const PieceTable& markdownText, const LineStartOffsetCache& lineOffsets) {
-  markdownText_ = &markdownText;  // non-owning view; the document outlives the build
+  markdownText_ = &markdownText; // non-owning view; the document outlives the build
   lineOffsets_ = &lineOffsets;
 }
 
 const PieceTable& BlockLayoutBuilder::md() const {
-  return *markdownText_;  // defaults to emptyText_; configureBuilder refreshes it before each build
+  return *markdownText_; // defaults to emptyText_; configureBuilder refreshes it before each build
 }
 
 void BlockLayoutBuilder::setSelection(SelectionRange selection) {
@@ -314,7 +315,8 @@ void BlockLayoutBuilder::setTocEntries(const QVector<OutlineEntry>* entries) {
   tocEntries_ = entries;
 }
 
-BlockLayoutBuilder::BlockLayoutBuilder() : perfEnabled_(blockBuildPerf().isDebugEnabled()) {}
+BlockLayoutBuilder::BlockLayoutBuilder() : perfEnabled_(blockBuildPerf().isDebugEnabled()) {
+}
 
 void BlockLayoutBuilder::refreshRenderSettings() {
   const auto fonts = LayoutResources::instance().read(LayoutResources::fontKey()).geometry;
@@ -332,9 +334,9 @@ void BlockLayoutBuilder::refreshRenderSettings() {
   renderDiagrams_ = s.value(QStringLiteral("markdown/diagrams"), true).toBool();
   showMermaidAsSource_ = s.value(QStringLiteral("editor/showMermaidAsSource"), false).toBool();
   const auto punctuation = smartPunctRenderOptions();
-  settingsStream << breakOnSingleNewline_ << codeBlockWrap_ << showLineNumbers_ << renderEmoji_ << renderDiagrams_ << showMermaidAsSource_
-                 << punctuation.convertQuotes << punctuation.convertDashes << punctuation.convertEllipsis << punctuation.doubleQuoteStyle
-                 << punctuation.singleQuoteStyle;
+  settingsStream << breakOnSingleNewline_ << codeBlockWrap_ << showLineNumbers_ << renderEmoji_ << renderDiagrams_
+                 << showMermaidAsSource_ << punctuation.convertQuotes << punctuation.convertDashes
+                 << punctuation.convertEllipsis << punctuation.doubleQuoteStyle << punctuation.singleQuoteStyle;
   // The estimate caches are keyed by elementKey|headingLevel only (no theme dimension), so a theme
   // switch would otherwise keep serving the previous theme's lineHeight/avgCharWidth. Clearing here
   // (once per layout pass) keeps them fresh: they re-populate within a single estimate pass — many
@@ -358,25 +360,29 @@ void BlockLayoutBuilder::dumpBuildBreakdown() const {
 }
 
 void BlockLayoutBuilder::retainLayouts(std::unique_ptr<BlockLayout>& layout) {
-  if (!layout) return;
+  if (!layout)
+    return;
   retainedLayouts_.insert(layout->nodeId(), &layout);
-  for (auto& child : layout->children()) retainLayouts(child);
+  for (auto& child : layout->children())
+    retainLayouts(child);
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::build(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width,
-                                                       int depth) {
-  if (!materializing_) return buildFresh(node, theme, x, y, width, depth);
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::build(const MarkdownNode& node, const RenderTheme& theme, qreal x,
+                                                       qreal y, qreal width, int depth) {
+  if (!materializing_)
+    return buildFresh(node, theme, x, y, width, depth);
   LayoutResourceScope resources;
   LayoutResources::instance().read(LayoutResources::fontKey());
   const auto signature = formattingSignature(node, theme);
   QByteArray constraints;
   QDataStream stream(&constraints, QIODevice::WriteOnly);
   stream << width << depth << allocations_.contains(&node);
-  if (allocations_.contains(&node)) stream << allocations_.value(&node).first << allocations_.value(&node).second;
+  if (allocations_.contains(&node))
+    stream << allocations_.value(&node).first << allocations_.value(&node).second;
   stream << cssMeasureKey({width, width, -1, -1, gridInheritance_.value(&node), CssLayoutPhase::Final});
   const auto old = retainedLayouts_.value(node.id(), nullptr);
-  if (old && *old && !signature.isEmpty() && (*old)->reuse.signature == signature && (*old)->reuse.constraints == constraints &&
-      LayoutResources::instance().matches((*old)->reuse.resources)) {
+  if (old && *old && !signature.isEmpty() && (*old)->reuse.signature == signature &&
+      (*old)->reuse.constraints == constraints && LayoutResources::instance().matches((*old)->reuse.resources)) {
     auto result = std::move(*old);
     const auto delta = QPointF(x, y) - result->reuse.origin;
     result->translate(delta.x(), delta.y());
@@ -393,8 +399,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::build(const MarkdownNode& node,
   return result;
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFresh(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
-                                                            qreal width, int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFresh(const MarkdownNode& node, const RenderTheme& theme, qreal x,
+                                                            qreal y, qreal width, int depth) {
   diag::ScopedPerfProbe perf("block.buildFresh", blockBuildDetailPerf());
   const auto build = [&]() -> std::unique_ptr<BlockLayout> {
     const auto key = cssTagForNode(node);
@@ -405,49 +411,47 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFresh(const MarkdownNode& 
       hidden->setRect({x, y, 0, 0});
       return hidden;
     }
-    if (style && style->layout.establishesFormattingContext() && !node.children().empty()) return buildFormattingContainer(node, theme, x, y, width, depth);
+    if (style && style->layout.establishesFormattingContext() && !node.children().empty())
+      return buildFormattingContainer(node, theme, x, y, width, depth);
     switch (node.type()) {
-      case BlockType::Paragraph:
-      case BlockType::Heading:
-        return buildParagraphLike(node, theme, x, y, width, depth);
-      case BlockType::BlockQuote:
-      case BlockType::List:
-        return buildContainer(node, theme, x, y, width, depth);
-      case BlockType::ListItem:
-        return buildListItem(node, theme, x, y, width, depth);
-      case BlockType::FrontMatter:
-      case BlockType::CodeFence:
-      case BlockType::HtmlBlock:
-      case BlockType::MathBlock:
-        return buildLiteralBlock(node, theme, x, y, width, depth);
-      case BlockType::Table:
-        return buildTable(node, theme, x, y, width, depth);
-      case BlockType::ThematicBreak:
-        return buildThematicBreak(node, theme, x, y, width, depth);
-      case BlockType::LinkDefinition:
-      case BlockType::FootnoteDefinition:
-        return buildDefinition(node, theme, x, y, width, depth);
-      case BlockType::Document:
-      default:
-        return buildContainer(node, theme, x, y, width, depth);
+    case BlockType::Paragraph:
+    case BlockType::Heading:
+      return buildParagraphLike(node, theme, x, y, width, depth);
+    case BlockType::BlockQuote:
+    case BlockType::List:
+      return buildContainer(node, theme, x, y, width, depth);
+    case BlockType::ListItem:
+      return buildListItem(node, theme, x, y, width, depth);
+    case BlockType::FrontMatter:
+    case BlockType::CodeFence:
+    case BlockType::HtmlBlock:
+    case BlockType::MathBlock:
+      return buildLiteralBlock(node, theme, x, y, width, depth);
+    case BlockType::Table:
+      return buildTable(node, theme, x, y, width, depth);
+    case BlockType::ThematicBreak:
+      return buildThematicBreak(node, theme, x, y, width, depth);
+    case BlockType::LinkDefinition:
+    case BlockType::FootnoteDefinition:
+      return buildDefinition(node, theme, x, y, width, depth);
+    case BlockType::Document:
+    default:
+      return buildContainer(node, theme, x, y, width, depth);
     }
   };
   auto result = build();
-  if (result) result->setLayoutSelection(selection_);
+  if (result)
+    result->setLayoutSelection(selection_);
   if (result && result->rect().width() > 0) {
     diag::ScopedPerfProbe generatedPerf("block.generatedContent", blockBuildDetailPerf());
-    result->layoutGeneratedContent(node, theme, headingCounterText_ ? headingCounterText_->value(node.id()) : QPair<QString, QString>());
+    result->layoutGeneratedContent(
+        node, theme, headingCounterText_ ? headingCounterText_->value(node.id()) : QPair<QString, QString>());
   }
   return result;
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
-    const MarkdownNode& node,
-    const RenderTheme& theme,
-    qreal x,
-    qreal y,
-    qreal width,
-    int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(const MarkdownNode& node, const RenderTheme& theme,
+                                                                    qreal x, qreal y, qreal width, int depth) {
   diag::ScopedPerfProbe perf("block.paragraph", blockBuildDetailPerf());
   auto layout = std::make_unique<BlockLayout>(node.id());
   layout->setType(node.type());
@@ -468,7 +472,9 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
   // outline is unchanged — so a heading always reads its correct ordinal.
   if (headingCounterText_ && node.type() == BlockType::Heading) {
     const auto it = headingCounterText_->constFind(node.id());
-    if (it != headingCounterText_->constEnd()) { layout->setHeadingBeforeText(it.value().first); }
+    if (it != headingCounterText_->constEnd()) {
+      layout->setHeadingBeforeText(it.value().first);
+    }
   }
   if (isEmptyDocumentParagraph(md(), node)) {
     layout->setPlaceholderText(QCoreApplication::translate("muffin::BlockLayoutBuilder", "Start writing..."));
@@ -476,8 +482,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
 
   auto inlineLayout = std::make_unique<InlineLayout>();
   const QString elementKey = node.type() == BlockType::Heading
-      ? QStringLiteral("h%1").arg(node.headingLevel())
-      : (isInsideBlockquote(node) ? QStringLiteral("blockquote p") : QStringLiteral("p"));
+                                 ? QStringLiteral("h%1").arg(node.headingLevel())
+                                 : (isInsideBlockquote(node) ? QStringLiteral("blockquote p") : QStringLiteral("p"));
   const qreal containingWidth = width;
   const auto usedBox = boxFor(node, theme, elementKey, containingWidth);
   const auto* resolvedStyle = theme.elementStyleForNode(node, elementKey);
@@ -493,9 +499,9 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
   // advance here would make wrapping and hit testing disagree with paint.
   const qreal textWidth = qMax<qreal>(1, width - insets.left() - insets.right());
   const auto intrinsicKind = resolvedStyle ? resolvedStyle->layout.sizes[0] : CssIntrinsicSize::Auto;
-  const bool intrinsic =
-      !allocations_.contains(&node) && (intrinsicKind == CssIntrinsicSize::MinContent || intrinsicKind == CssIntrinsicSize::MaxContent ||
-                                        intrinsicKind == CssIntrinsicSize::FitContent);
+  const bool intrinsic = !allocations_.contains(&node) && (intrinsicKind == CssIntrinsicSize::MinContent ||
+                                                           intrinsicKind == CssIntrinsicSize::MaxContent ||
+                                                           intrinsicKind == CssIntrinsicSize::FitContent);
   // A heading projects content-only: its `# ` prefix region [blockStart, contentStart) is never part
   // of the editable projection (it is empty for Setext headings, whose byteStart == contentStart).
   // The level is conveyed by font size and changed via the heading-level commands, so the prefix is
@@ -522,21 +528,30 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
     qsizetype candidate = 0;
     for (qsizetype line = editableSource.indexOf('\n'); line >= 0; line = editableSource.indexOf('\n', line + 1)) {
       qsizetype end = line + 1;
-      while (end < editableSource.size() && (editableSource[end] == ' ' || editableSource[end] == '\t')) ++end;
+      while (end < editableSource.size() && (editableSource[end] == ' ' || editableSource[end] == '\t'))
+        ++end;
       bool quote = false;
       while (end < editableSource.size() && editableSource[end] == '>') {
-        quote = true; ++end;
-        if (end < editableSource.size() && editableSource[end] == ' ') ++end;
+        quote = true;
+        ++end;
+        if (end < editableSource.size() && editableSource[end] == ' ')
+          ++end;
       }
-      if (!quote) continue;
-      while (candidate < node.inlines().size() && (node.inlines()[candidate].sourceEnd() <= options.sourceBase + line + 1 ||
-          node.inlines()[candidate].type() == InlineType::SoftBreak || node.inlines()[candidate].type() == InlineType::LineBreak)) ++candidate;
-      const bool parsedText = candidate < node.inlines().size() && node.inlines()[candidate].sourceStart() < options.sourceBase + end;
-      if (!parsedText) options.sourceReplacements.push_back({{line + 1, end}, {}});
+      if (!quote)
+        continue;
+      while (candidate < node.inlines().size() &&
+             (node.inlines()[candidate].sourceEnd() <= options.sourceBase + line + 1 ||
+              node.inlines()[candidate].type() == InlineType::SoftBreak ||
+              node.inlines()[candidate].type() == InlineType::LineBreak))
+        ++candidate;
+      const bool parsedText =
+          candidate < node.inlines().size() && node.inlines()[candidate].sourceStart() < options.sourceBase + end;
+      if (!parsedText)
+        options.sourceReplacements.push_back({{line + 1, end}, {}});
     }
     const auto* parent = node.parent();
-    if (parent && parent->alertKind() != AlertKind::None && !parent->children().empty() && parent->children().front().get() == &node &&
-        !node.inlines().isEmpty()) {
+    if (parent && parent->alertKind() != AlertKind::None && !parent->children().empty() &&
+        parent->children().front().get() == &node && !node.inlines().isEmpty()) {
       const auto marker = node.inlines().front().text();
       if (marker.startsWith("[!") && marker.endsWith(']')) {
         const auto start = node.inlines().front().sourceStart() - options.sourceBase;
@@ -554,10 +569,13 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
   options.pseudoBefore = theme.pseudoForNode(node, QStringLiteral("before"));
   options.pseudoAfter = theme.pseudoForNode(node, QStringLiteral("after"));
   options.pseudoBeforeText = layout->headingBeforeText();
-  if (headingCounterText_) options.pseudoBeforeText = headingCounterText_->value(node.id()).first;
-  if (headingCounterText_) options.pseudoAfterText = headingCounterText_->value(node.id()).second;
+  if (headingCounterText_)
+    options.pseudoBeforeText = headingCounterText_->value(node.id()).first;
+  if (headingCounterText_)
+    options.pseudoAfterText = headingCounterText_->value(node.id()).second;
   if (resolvedStyle) {
-    options.anywhereMinimum = resolvedStyle->layout.overflowWrap == "anywhere" || resolvedStyle->layout.wordBreak == "break-all";
+    options.anywhereMinimum =
+        resolvedStyle->layout.overflowWrap == "anywhere" || resolvedStyle->layout.wordBreak == "break-all";
     options.wrapMode = resolvedStyle->layout.wordBreak == "break-all"   ? QTextOption::WrapAnywhere
                        : resolvedStyle->layout.overflowWrap == "normal" ? QTextOption::WordWrap
                                                                         : QTextOption::WrapAtWordBoundaryOrAnywhere;
@@ -588,10 +606,11 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
     intrinsicBox.widthFitContent = false;
     intrinsicBox.widthLength = {CssLengthStatus::Valid, content + extra - (usedBox.borderBox ? 0 : extra)};
     width = LayoutBox::borderWidth(intrinsicBox, availableWidth);
-    inlineLayout->build(node.inlines(), editableSource, theme, qMax<qreal>(1, width - insets.left() - insets.right()), font,
-                        options);
+    inlineLayout->build(node.inlines(), editableSource, theme, qMax<qreal>(1, width - insets.left() - insets.right()),
+                        font, options);
   }
-  if (usedBox.marginLeftAuto) x += qMax<qreal>(0, availableWidth - width) / (usedBox.marginRightAuto ? 2 : 1);
+  if (usedBox.marginLeftAuto)
+    x += qMax<qreal>(0, availableWidth - width) / (usedBox.marginRightAuto ? 2 : 1);
   diag::ScopedPerfProbe geometryPerf("block.geometry", blockBuildDetailPerf());
   const qreal height = LayoutBox::borderHeight(usedBox, inlineLayout->height());
   layout->setContentSourceStart(projectionBase);
@@ -599,12 +618,15 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
   layout->setRect(flowRect);
   auto fragment =
       LayoutBox::place(elementKey, resolvedStyle ? *resolvedStyle : ThemeElementStyle{}, usedBox, flowRect, font);
-  if (const auto* style = theme.elementStyleForNode(node, elementKey + QStringLiteral(":hover"))) fragment.hoverPaint = style->paint;
-  if (const auto* style = theme.elementStyleForNode(node, elementKey + QStringLiteral(":focus"))) fragment.focusPaint = style->paint;
-  const qreal overflow = std::max({fragment.style.paint.boxShadowBlur, fragment.hoverPaint.boxShadowBlur, fragment.focusPaint.boxShadowBlur,
-                                   fragment.style.paint.filterBlur + 2});
+  if (const auto* style = theme.elementStyleForNode(node, elementKey + QStringLiteral(":hover")))
+    fragment.hoverPaint = style->paint;
+  if (const auto* style = theme.elementStyleForNode(node, elementKey + QStringLiteral(":focus")))
+    fragment.focusPaint = style->paint;
+  const qreal overflow = std::max({fragment.style.paint.boxShadowBlur, fragment.hoverPaint.boxShadowBlur,
+                                   fragment.focusPaint.boxShadowBlur, fragment.style.paint.filterBlur + 2});
   fragment.visualOverflow = fragment.borderBox.adjusted(-overflow, -overflow, overflow, overflow);
-  fragment.visualOverflow = fragment.visualOverflow.united(inlineLayout->visualTextBounds().translated(fragment.inlineTextOrigin));
+  fragment.visualOverflow =
+      fragment.visualOverflow.united(inlineLayout->visualTextBounds().translated(fragment.inlineTextOrigin));
   layout->setCssBoxGeometry(std::move(fragment));
 
   layout->setInlineLayout(std::move(inlineLayout));
@@ -614,8 +636,10 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildParagraphLike(
 ThemeElementBoxStyle BlockLayoutBuilder::boxFor(const MarkdownNode& node, const RenderTheme& theme, const QString& key,
                                                 qreal containingWidth) const {
   const auto allocation = allocations_.constFind(&node);
-  auto box = theme.elementBoxStyle(key, &node, allocation == allocations_.cend() ? containingWidth : allocation->second);
-  if (allocation == allocations_.cend()) return box;
+  auto box =
+      theme.elementBoxStyle(key, &node, allocation == allocations_.cend() ? containingWidth : allocation->second);
+  if (allocation == allocations_.cend())
+    return box;
   box.margin = {};
   box.marginLengths = {};
   box.marginLeftAuto = box.marginRightAuto = false;
@@ -632,8 +656,9 @@ ThemeElementBoxStyle BlockLayoutBuilder::boxFor(const MarkdownNode& node, const 
   return box;
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildAllocated(const MarkdownNode& node, const RenderTheme& theme, QRectF allocation,
-                                                                qreal containingWidth, int depth, const CssGridInheritance& inherited) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildAllocated(const MarkdownNode& node, const RenderTheme& theme,
+                                                                QRectF allocation, qreal containingWidth, int depth,
+                                                                const CssGridInheritance& inherited) {
   const auto savedGrid = gridInheritance_.value(&node);
   const bool hadGrid = gridInheritance_.contains(&node);
   gridInheritance_.insert(&node, inherited);
@@ -652,7 +677,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildAllocated(const MarkdownNo
   return result;
 }
 
-CssIntrinsicMetrics BlockLayoutBuilder::intrinsicMetrics(const MarkdownNode& node, const RenderTheme& theme, qreal containingWidth) {
+CssIntrinsicMetrics BlockLayoutBuilder::intrinsicMetrics(const MarkdownNode& node, const RenderTheme& theme,
+                                                         qreal containingWidth) {
   const auto* computed = theme.elementStyleForNode(node, cssTagForNode(node));
   if (computed && computed->layout.establishesFormattingContext() && !node.children().empty())
     return formattingItem(node, theme, containingWidth).intrinsic;
@@ -689,15 +715,18 @@ QPair<quint64, quint64> BlockLayoutBuilder::finishFormattingPass() {
 
 QByteArray BlockLayoutBuilder::formattingSignature(const MarkdownNode& node, const RenderTheme& theme) {
   diag::ScopedPerfProbe perf("block.formattingSignature", blockBuildDetailPerf());
-  if (const auto cached = formattingCache_.signature(node.id())) return *cached;
+  if (const auto cached = formattingCache_.signature(node.id()))
+    return *cached;
   // Generated outlines have a separate document-wide dependency.
-  if (sourceTextForEditableNode(node).trimmed() == "[TOC]") return {};
+  if (sourceTextForEditableNode(node).trimmed() == "[TOC]")
+    return {};
   QByteArray data;
   QDataStream stream(&data, QIODevice::WriteOnly);
   stream << formattingCache_.themeSignature(theme) << renderStateGeneration_;
   const auto range = node.sourceRange();
-  stream << node.id().toString() << int(node.type()) << md().mid(range.byteStart, qMax<qsizetype>(0, range.byteEnd - range.byteStart))
-         << node.literal() << theme.zoomPercent() << theme.fontSizePx() << renderSettingsSignature_ << documentPath_;
+  stream << node.id().toString() << int(node.type())
+         << md().mid(range.byteStart, qMax<qsizetype>(0, range.byteEnd - range.byteStart)) << node.literal()
+         << theme.zoomPercent() << theme.fontSizePx() << renderSettingsSignature_ << documentPath_;
   stream << theme.paragraphFont().key() << theme.codeFont().key();
   const auto key = cssTagForNode(node);
   for (const auto& state : {QString(), QString(":hover"), QString(":focus")}) {
@@ -706,17 +735,22 @@ QByteArray BlockLayoutBuilder::formattingSignature(const MarkdownNode& node, con
   }
   for (const auto& pseudo : {QStringLiteral("before"), QStringLiteral("after")})
     for (int bits = 0; bits < 4; ++bits) {
-      CssElementState state; state.hover = bits & 1; state.focus = bits & 2;
+      CssElementState state;
+      state.hover = bits & 1;
+      state.focus = bits & 2;
       const auto generated = theme.pseudoForElement(*theme.cssElementForNode(node), pseudo, state);
       stream << (generated && generated->computed ? generated->computed->fingerprint() : quint64(0));
     }
-  const auto projection = InlineProjectionState::forSelection(selection_, node.id(), sourceContentStartForEditableNode(node));
+  const auto projection =
+      InlineProjectionState::forSelection(selection_, node.id(), sourceContentStartForEditableNode(node));
   stream << projection.cursorSourceOffset << projection.cursorVisibleOffset << projection.revealMarkdownMarkers;
   if (projection.cursorSourceOffset >= 0 || projection.cursorVisibleOffset >= 0) {
     stream << preeditText_ << preeditCursor_;
-    for (const auto& format : preeditFormats_) stream << format.start << format.length << format.format;
+    for (const auto& format : preeditFormats_)
+      stream << format.start << format.length << format.format;
   }
-  if (headingCounterText_) stream << headingCounterText_->value(node.id());
+  if (headingCounterText_)
+    stream << headingCounterText_->value(node.id());
   stream << theme.generatedCounterFingerprint(node.id());
   if (node.type() == BlockType::ListItem) {
     const auto marker = listMarkerLayout(node, theme);
@@ -726,16 +760,18 @@ QByteArray BlockLayoutBuilder::formattingSignature(const MarkdownNode& node, con
     const auto* wrapper = theme.elementStyleForNode(node, QStringLiteral(".table-figure"));
     stream << (wrapper ? wrapper->fingerprint : quint64(0));
   }
-  if (formattingCache_.isDirty(node.id())) stream << formattingCache_.pass();
+  if (formattingCache_.isDirty(node.id()))
+    stream << formattingCache_.pass();
   stream << editingHtmlBlockId_.toString() << mermaidSyncMode_;
   if (node.type() == BlockType::CodeFence && node.codeLanguage() == "mermaid" && mermaidCache_)
     stream << mermaidCache_->resourceKey(mermaidCache_->makeKey(node.literal()));
   bool reusable = true;
   const auto inlines = [&](const auto& self, const QVector<InlineNode>& nodes) -> void {
     for (const auto& inlineNode : nodes) {
-      const auto offset = inlineNode.contentRange().isValid() ? inlineNode.contentRange().start : inlineNode.sourceRange().start;
-      stream << int(inlineNode.type()) << inlineNode.text() << inlineNode.href() << inlineNode.title() << inlineNode.alt()
-             << theme.inlineStyleForNode(node, offset).fingerprint;
+      const auto offset =
+          inlineNode.contentRange().isValid() ? inlineNode.contentRange().start : inlineNode.sourceRange().start;
+      stream << int(inlineNode.type()) << inlineNode.text() << inlineNode.href() << inlineNode.title()
+             << inlineNode.alt() << theme.inlineStyleForNode(node, offset).fingerprint;
       if (const auto* link = theme.cssInlineElement(node, offset, QStringLiteral("a")))
         for (const auto& pseudo : {QStringLiteral("before"), QStringLiteral("after")}) {
           const auto generated = theme.pseudoForElement(*link, pseudo);
@@ -747,7 +783,8 @@ QByteArray BlockLayoutBuilder::formattingSignature(const MarkdownNode& node, con
   inlines(inlines, node.inlines());
   for (const auto& child : node.children()) {
     const auto signature = formattingSignature(*child, theme);
-    if (signature.isEmpty()) reusable = false;
+    if (signature.isEmpty())
+      reusable = false;
     stream << signature;
   }
   const auto result = reusable ? QCryptographicHash::hash(data, QCryptographicHash::Sha256) : QByteArray();
@@ -755,21 +792,24 @@ QByteArray BlockLayoutBuilder::formattingSignature(const MarkdownNode& node, con
   return result;
 }
 
-CssFormattingItem BlockLayoutBuilder::formattingItem(const MarkdownNode& node, const RenderTheme& theme, qreal containingWidth, int depth) {
+CssFormattingItem BlockLayoutBuilder::formattingItem(const MarkdownNode& node, const RenderTheme& theme,
+                                                     qreal containingWidth, int depth) {
   const auto key = cssTagForNode(node);
   const auto* style = theme.elementStyleForNode(node, key);
   auto projected = style ? *style : ThemeElementStyle{};
   projected.box = theme.elementBoxStyle(key, &node, containingWidth);
   const qreal zoom = theme.zoomPercent() / 100.0;
   for (auto* sides : {&projected.box.marginLengths, &projected.box.paddingLengths})
-    for (auto& length : sides->sides) length.px *= zoom;
+    for (auto& length : sides->sides)
+      length.px *= zoom;
   projected.layout.scaleLengths(zoom);
   CssFormattingItem item;
   item.style = projected;
   const auto signature = formattingSignature(node, theme);
   const auto cached = formattingCache_.measurement(node.id(), signature);
   LayoutResourceScope resourceScope;
-  for (auto it = cached->resources.cbegin(); it != cached->resources.cend(); ++it) LayoutResources::instance().read(it.key());
+  for (auto it = cached->resources.cbegin(); it != cached->resources.cend(); ++it)
+    LayoutResources::instance().read(it.key());
   LayoutResources::instance().read(LayoutResources::fontKey());
   item.measurements = cached->measurements;
   if (projected.layout.establishesFormattingContext() && !node.children().empty()) {
@@ -778,8 +818,8 @@ CssFormattingItem BlockLayoutBuilder::formattingItem(const MarkdownNode& node, c
       if (!omitVirtualEmptyParagraphInRenderFlow(*child, selection_))
         item.children->push_back(formattingItem(*child, theme, containingWidth, depth + 1));
     }
-    item.intrinsic =
-        projected.layout.isGrid() ? intrinsicGridWidths(projected, *item.children) : intrinsicFlexWidths(projected, *item.children);
+    item.intrinsic = projected.layout.isGrid() ? intrinsicGridWidths(projected, *item.children)
+                                               : intrinsicFlexWidths(projected, *item.children);
   } else {
     if (!cached->intrinsicValid || cached->containingWidth != containingWidth) {
       cached->intrinsic = intrinsicMetrics(node, theme, containingWidth);
@@ -797,32 +837,34 @@ CssFormattingItem BlockLayoutBuilder::formattingItem(const MarkdownNode& node, c
     const auto width = request.width, reference = request.containingWidth;
     const auto& inherited = request.inherited;
     const auto inset = LayoutBox::insets(theme.elementBoxStyle(key, &node, reference));
-    const auto built = buildAllocated(node, theme, {0, 0, width < 0 ? 1e6 : width + inset.left() + inset.right(), request.allocatedHeight},
-                                      reference, depth, inherited);
+    const auto built = buildAllocated(
+        node, theme, {0, 0, width < 0 ? 1e6 : width + inset.left() + inset.right(), request.allocatedHeight}, reference,
+        depth, inherited);
     for (auto it = resourceScope.dependencies.cbegin(); it != resourceScope.dependencies.cend(); ++it)
       cached->resources.insert(it.key(), it.value());
     const auto* text = built->inlineLayout();
     const qreal baseline = built->firstBaseline() < 0 ? -1 : built->firstBaseline() - inset.top();
     const qreal lastBaseline = built->lastBaseline() < 0 ? -1 : built->lastBaseline() - inset.top();
     const qreal measuredWidth = text ? text->visualTextBounds().width() : width;
-    return CssMeasuredContent{
-        {width < 0 ? measuredWidth : qMin(width, measuredWidth), qMax<qreal>(0, built->height() - inset.top() - inset.bottom())},
-        baseline,
-        lastBaseline};
+    return CssMeasuredContent{{width < 0 ? measuredWidth : qMin(width, measuredWidth),
+                               qMax<qreal>(0, built->height() - inset.top() - inset.bottom())},
+                              baseline,
+                              lastBaseline};
   };
   return item;
 }
 
 CssFormattingResult BlockLayoutBuilder::solveFormatting(NodeId id, const ThemeElementStyle& style,
-                                                        const std::vector<CssFormattingItem>& items, qreal width, qreal height,
-                                                        const CssGridInheritance& inherited) {
+                                                        const std::vector<CssFormattingItem>& items, qreal width,
+                                                        qreal height, const CssGridInheritance& inherited) {
   auto solution = formattingCache_.solve(id, style, items, width, height, inherited);
   solution.reused ? ++reusedContexts : ++solvedContexts;
   return std::move(solution.result);
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFormattingContainer(const MarkdownNode& node, const RenderTheme& theme, qreal x,
-                                                                          qreal y, qreal width, int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFormattingContainer(const MarkdownNode& node,
+                                                                          const RenderTheme& theme, qreal x, qreal y,
+                                                                          qreal width, int depth) {
   auto result = std::make_unique<BlockLayout>(node.id());
   result->setType(node.type());
   result->setDepth(depth);
@@ -833,27 +875,31 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFormattingContainer(const 
   width = LayoutBox::borderWidth(used, width - used.margin.left() - used.margin.right());
   const auto inset = LayoutBox::insets(used);
   const qreal contentWidth = qMax<qreal>(0, width - inset.left() - inset.right());
-  const qreal contentHeight = used.heightLength.status == CssLengthStatus::Valid && !used.heightLength.hasPercentage
-                                  ? qMax<qreal>(0, used.heightLength.px - (used.borderBox ? inset.top() + inset.bottom() : 0))
-                                  : -1;
+  const qreal contentHeight =
+      used.heightLength.status == CssLengthStatus::Valid && !used.heightLength.hasPercentage
+          ? qMax<qreal>(0, used.heightLength.px - (used.borderBox ? inset.top() + inset.bottom() : 0))
+          : -1;
   const qreal zoom = theme.zoomPercent() / 100.0;
   style.layout.scaleLengths(zoom);
   style.box = used;
   std::vector<const MarkdownNode*> nodes;
   std::vector<CssFormattingItem> items;
   for (const auto& child : node.children()) {
-    if (omitVirtualEmptyParagraphInRenderFlow(*child, selection_)) continue;
+    if (omitVirtualEmptyParagraphInRenderFlow(*child, selection_))
+      continue;
     const auto* childStyle = theme.elementStyleForNode(*child, cssTagForNode(*child));
-    if (childStyle && childStyle->layout.display == "none") continue;
+    if (childStyle && childStyle->layout.display == "none")
+      continue;
     nodes.push_back(child.get());
     items.push_back(formattingItem(*child, theme, contentWidth, depth + 1));
   }
-  const auto formatted =
-      solveFormatting(node.id(), style, items, contentWidth, contentHeight, contentGridInheritance(gridInheritance_.value(&node), inset));
+  const auto formatted = solveFormatting(node.id(), style, items, contentWidth, contentHeight,
+                                         contentGridInheritance(gridInheritance_.value(&node), inset));
   std::vector<std::unique_ptr<BlockLayout>> children;
   for (size_t i = 0; i < nodes.size(); ++i) {
     const auto allocation = formatted.items[i].translated(x + inset.left(), y + inset.top());
-    children.push_back(buildAllocated(*nodes[i], theme, allocation, formatted.containingWidths[i], depth + 1, formatted.inheritedGrids[i]));
+    children.push_back(buildAllocated(*nodes[i], theme, allocation, formatted.containingWidths[i], depth + 1,
+                                      formatted.inheritedGrids[i]));
   }
   const QRectF rect(x, y, width, formatted.size.height() + inset.top() + inset.bottom());
   result->setRect(rect);
@@ -864,8 +910,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildFormattingContainer(const 
   return result;
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTocPreview(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
-                                                                 qreal width, int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTocPreview(const MarkdownNode& node, const RenderTheme& theme,
+                                                                 qreal x, qreal y, qreal width, int depth) {
   // Generated, non-editable preview: one row per document heading, indented by
   // level, painted in the link colour (paintToc) and Ctrl+clickable to scroll to
   // the heading (hitSelf emits a `#toc:<nodeId>` href). Height = rows × line
@@ -902,13 +948,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTocPreview(const MarkdownN
   return layout;
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildContainer(
-    const MarkdownNode& node,
-    const RenderTheme& theme,
-    qreal x,
-    qreal y,
-    qreal width,
-    int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildContainer(const MarkdownNode& node, const RenderTheme& theme,
+                                                                qreal x, qreal y, qreal width, int depth) {
   auto layout = std::make_unique<BlockLayout>(node.id());
   layout->setType(node.type());
   layout->setDepth(depth);
@@ -920,12 +961,15 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildContainer(
     const auto ordinary = theme.styleForElement(plain);
     const auto* styled = theme.elementStyleForNode(node, QStringLiteral("blockquote"));
     layout->setAlertThemed(styled && (styled->paint != ordinary.paint ||
-        styled->box.borderLeftColor != ordinary.box.borderLeftColor || styled->box.borderTopColor != ordinary.box.borderTopColor ||
-        styled->box.borderLeftWidth != ordinary.box.borderLeftWidth || styled->box.borderTopWidth != ordinary.box.borderTopWidth));
+                                      styled->box.borderLeftColor != ordinary.box.borderLeftColor ||
+                                      styled->box.borderTopColor != ordinary.box.borderTopColor ||
+                                      styled->box.borderLeftWidth != ordinary.box.borderLeftWidth ||
+                                      styled->box.borderTopWidth != ordinary.box.borderTopWidth));
   }
 
   const bool quoteBox = node.type() == BlockType::BlockQuote;
-  const ThemeElementBoxStyle qbox = quoteBox ? theme.elementBoxStyle(QStringLiteral("blockquote"), &node, width) : ThemeElementBoxStyle{};
+  const ThemeElementBoxStyle qbox =
+      quoteBox ? theme.elementBoxStyle(QStringLiteral("blockquote"), &node, width) : ThemeElementBoxStyle{};
   if (quoteBox) {
     x += qbox.margin.left();
     width = LayoutBox::borderWidth(qbox, qMax<qreal>(1, width - qbox.margin.left() - qbox.margin.right()));
@@ -942,7 +986,9 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildContainer(
   const bool firstChildMarginCollapses = qFuzzyIsNull(qborder.top() + qpad.top());
   const bool lastChildMarginCollapses = qFuzzyIsNull(qborder.bottom() + qpad.bottom());
   for (const auto& child : node.children()) {
-    if (omitVirtualEmptyParagraphInRenderFlow(*child, selection_)) { continue; }
+    if (omitVirtualEmptyParagraphInRenderFlow(*child, selection_)) {
+      continue;
+    }
     omittedOnlyRenderChildren = false;
     if (previousChild) {
       cursorY += spacingBetweenInFlow(*previousChild, *child, theme, false, childWidth);
@@ -959,33 +1005,42 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildContainer(
   if (children.empty()) {
     height = quoteBox && omittedOnlyRenderChildren
                  ? qborder.top() + qpad.top() + qpad.bottom() + qborder.bottom()
-                 : qborder.top() + qpad.top() + TextFontMetrics(theme.paragraphFont()).height() + qpad.bottom() + qborder.bottom();
+                 : qborder.top() + qpad.top() + TextFontMetrics(theme.paragraphFont()).height() + qpad.bottom() +
+                       qborder.bottom();
   } else {
-    const qreal trailingChildMargin = lastChildMarginCollapses ? 0.0 : spacingAfterInFlow(*previousChild, theme, false, childWidth);
+    const qreal trailingChildMargin =
+        lastChildMarginCollapses ? 0.0 : spacingAfterInFlow(*previousChild, theme, false, childWidth);
     height = cursorY + trailingChildMargin + qpad.bottom() + qborder.bottom() - y;
   }
-  if (quoteBox) height = LayoutBox::borderHeight(qbox, height - qborder.top() - qpad.top() - qpad.bottom() - qborder.bottom());
+  if (quoteBox)
+    height = LayoutBox::borderHeight(qbox, height - qborder.top() - qpad.top() - qpad.bottom() - qborder.bottom());
   const QRectF flowRect(x, y, width, height);
   layout->setRect(flowRect);
   if (quoteBox) {
     const auto* style = theme.elementStyleForNode(node, QStringLiteral("blockquote"));
-    layout->setCssBoxGeometry(LayoutBox::place(QStringLiteral("blockquote"), style ? *style : ThemeElementStyle{}, qbox, flowRect,
+    layout->setCssBoxGeometry(LayoutBox::place(QStringLiteral("blockquote"), style ? *style : ThemeElementStyle{}, qbox,
+                                               flowRect,
                                                theme.textFontForElement(QStringLiteral("blockquote"), &node)));
   }
   layout->setChildren(std::move(children));
   return layout;
 }
 
-BlockLayoutBuilder::ListMarkerLayout BlockLayoutBuilder::listMarkerLayout(const MarkdownNode& itemNode, const RenderTheme& theme) {
-  if (const auto found = listMarkerLayouts_.constFind(itemNode.id()); found != listMarkerLayouts_.cend()) return found.value();
-  const ListMarkerLayout fallback{{BlockLayout::ListMarkerKind::BulletDisc, QString(QChar(0x2022))}, theme.listIndent()};
+BlockLayoutBuilder::ListMarkerLayout BlockLayoutBuilder::listMarkerLayout(const MarkdownNode& itemNode,
+                                                                          const RenderTheme& theme) {
+  if (const auto found = listMarkerLayouts_.constFind(itemNode.id()); found != listMarkerLayouts_.cend())
+    return found.value();
+  const ListMarkerLayout fallback{{BlockLayout::ListMarkerKind::BulletDisc, QString(QChar(0x2022))},
+                                  theme.listIndent()};
   const auto* parent = itemNode.parent();
-  if (!parent) return fallback;
+  if (!parent)
+    return fallback;
   QVector<NodeId> items;
   bool hasOrderedMarker = false;
   qsizetype index = 0;
   for (const auto& child : parent->children()) {
-    if (isVirtualEmptyParagraphNode(*child)) continue;
+    if (isVirtualEmptyParagraphNode(*child))
+      continue;
     const auto marker = resolveListMarker(*child, theme, index++);
     items.push_back(child->id());
     hasOrderedMarker = hasOrderedMarker || marker.kind == BlockLayout::ListMarkerKind::OrderedText;
@@ -994,7 +1049,8 @@ BlockLayoutBuilder::ListMarkerLayout BlockLayoutBuilder::listMarkerLayout(const 
   if (hasOrderedMarker) {
     const TextFontMetrics metrics(theme.paragraphFont());
     qreal widest = 0;
-    for (const auto id : items) widest = qMax(widest, metrics.horizontalAdvance(listMarkerLayouts_.value(id).marker.text));
+    for (const auto id : items)
+      widest = qMax(widest, metrics.horizontalAdvance(listMarkerLayouts_.value(id).marker.text));
     for (const auto id : items) {
       auto& item = listMarkerLayouts_[id];
       if (item.marker.kind == BlockLayout::ListMarkerKind::OrderedText)
@@ -1004,13 +1060,8 @@ BlockLayoutBuilder::ListMarkerLayout BlockLayoutBuilder::listMarkerLayout(const 
   return listMarkerLayouts_.value(itemNode.id(), fallback);
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildListItem(
-    const MarkdownNode& node,
-    const RenderTheme& theme,
-    qreal x,
-    qreal y,
-    qreal width,
-    int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildListItem(const MarkdownNode& node, const RenderTheme& theme,
+                                                               qreal x, qreal y, qreal width, int depth) {
   auto layout = std::make_unique<BlockLayout>(node.id());
   layout->setType(BlockType::ListItem);
   layout->setDepth(depth);
@@ -1049,24 +1100,29 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildListItem(
     options.textTransform = static_cast<TextTransform>(theme.textTransformForElement(elementKey, &node));
     options.textShadow = theme.textShadowForElement(elementKey, &node);
     applyPreedit(options);
-    inlineLayout->build(primaryInlinesForListItem(node), listSourceText, theme, contentWidth, theme.textFontForElement(elementKey, &node), options);
+    inlineLayout->build(primaryInlinesForListItem(node), listSourceText, theme, contentWidth,
+                        theme.textFontForElement(elementKey, &node), options);
   }
   layout->setInlineLayout(std::move(inlineLayout));
 
-  const qreal inlineHeight = layout->inlineLayout() ? layout->inlineLayout()->height() : TextFontMetrics(theme.paragraphFont()).height();
+  const qreal inlineHeight =
+      layout->inlineLayout() ? layout->inlineLayout()->height() : TextFontMetrics(theme.paragraphFont()).height();
   qreal flowBottom = y + inlineHeight;
   std::vector<std::unique_ptr<BlockLayout>> children;
 
   bool skippedPrimaryParagraph = false;
   const MarkdownNode* previousChild = nullptr;
   for (const auto& child : node.children()) {
-    if (omitVirtualEmptyParagraphInRenderFlow(*child, selection_)) { continue; }
+    if (omitVirtualEmptyParagraphInRenderFlow(*child, selection_)) {
+      continue;
+    }
     if (!skippedPrimaryParagraph && child->type() == BlockType::Paragraph) {
       skippedPrimaryParagraph = true;
       previousChild = child.get();
       continue;
     }
-    flowBottom += previousChild ? spacingBetweenInFlow(*previousChild, *child, theme, false, contentWidth) : theme.blockSpacing();
+    flowBottom +=
+        previousChild ? spacingBetweenInFlow(*previousChild, *child, theme, false, contentWidth) : theme.blockSpacing();
     auto childLayout = build(*child, theme, contentX, flowBottom, contentWidth, depth + 1);
     flowBottom = childLayout->rect().bottom();
     previousChild = child.get();
@@ -1087,13 +1143,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildListItem(
   return layout;
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
-    const MarkdownNode& node,
-    const RenderTheme& theme,
-    qreal x,
-    qreal y,
-    qreal width,
-    int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(const MarkdownNode& node, const RenderTheme& theme,
+                                                                   qreal x, qreal y, qreal width, int depth) {
   auto layout = std::make_unique<BlockLayout>(node.id());
   layout->setType(node.type());
   layout->setDepth(depth);
@@ -1121,7 +1172,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
   const qreal availableWidth = qMax<qreal>(1, width - usedBox.margin.left() - usedBox.margin.right());
   x += usedBox.margin.left();
   width = LayoutBox::borderWidth(usedBox, availableWidth);
-  if (usedBox.marginLeftAuto) x += qMax<qreal>(0, availableWidth - width) / (usedBox.marginRightAuto ? 2 : 1);
+  if (usedBox.marginLeftAuto)
+    x += qMax<qreal>(0, availableWidth - width) / (usedBox.marginRightAuto ? 2 : 1);
   const auto padding = LayoutBox::insets(usedBox);
   const QFont codeFont = theme.textFontForElement(styleKey, &node);
   const qreal codeLineHeight = resolvedStyle && resolvedStyle->text.lineHeight > 0
@@ -1130,10 +1182,9 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
   const bool editingLiteral = (node.type() == BlockType::MathBlock && selectionFocusesNode(selection_, node.id())) ||
                               (node.type() == BlockType::HtmlBlock && editingHtmlBlockId_ == node.id());
   layout->setLiteralEditing(editingLiteral);
-  const qreal lineNumberGutter =
-      (node.type() == BlockType::CodeFence && showLineNumbers_)
-          ? codeLineNumberGutterWidth(layout->literal(), codeFont)
-          : 0.0;
+  const qreal lineNumberGutter = (node.type() == BlockType::CodeFence && showLineNumbers_)
+                                     ? codeLineNumberGutterWidth(layout->literal(), codeFont)
+                                     : 0.0;
   layout->setLineNumberGutterWidth(lineNumberGutter);
   // Code fences honor markdown/codeBlockWrap; other literal blocks always wrap.
   const bool codeWrap = node.type() == BlockType::CodeFence ? codeBlockWrap_ : true;
@@ -1145,8 +1196,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
   std::shared_ptr<const LiteralTextLayout> sourceLayout;
   {
     BuildAccumTimer t(literalTextNs_, perfEnabled_);
-    sourceLayout = std::make_shared<LiteralTextLayout>(layout->literal(), codeFont, sourceWidth, codeLineHeight, codeWrap,
-                                                      std::move(preedit));
+    sourceLayout = std::make_shared<LiteralTextLayout>(layout->literal(), codeFont, sourceWidth, codeLineHeight,
+                                                       codeWrap, std::move(preedit));
   }
   layout->setLiteralTextLayout(sourceLayout);
   // Measure the widest source line so the block knows whether it is horizontally scrollable and
@@ -1168,7 +1219,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
     std::shared_ptr<math::MathLayoutResult> mathLayout;
     {
       BuildAccumTimer t(mathRenderNs_, perfEnabled_);
-      mathLayout = std::make_shared<math::MathLayoutResult>(mathRenderer_.render(layout->literal(), theme, true, width));
+      mathLayout =
+          std::make_shared<math::MathLayoutResult>(mathRenderer_.render(layout->literal(), theme, true, width));
     }
     if (editingLiteral) {
       const qreal markerHeight = qMax<qreal>(14, TextFontMetrics(codeFont).height());
@@ -1180,7 +1232,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
     } else {
       // The inactive parse-error fallback is plain math text. The editable
       // source snapshot above always keeps its resolved code font.
-      LiteralTextLayout fallback(layout->literal(), theme.mathFont(), sourceWidth, TextFontMetrics(theme.mathFont()).height(), true);
+      LiteralTextLayout fallback(layout->literal(), theme.mathFont(), sourceWidth,
+                                 TextFontMetrics(theme.mathFont()).height(), true);
       height = std::ceil(fallback.height() + padding.top() + padding.bottom() + 2);
     }
     if (mathLayout->valid()) {
@@ -1191,31 +1244,27 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
   // A focused fence uses the debounced async path and keeps painting its source;
   // a Ready scene replaces the source only after focus leaves and show-as-source
   // is off. Error/Unsupported retain the source and add a diagnostic panel.
-  if (node.type() == BlockType::CodeFence && node.codeLanguage() == QLatin1String("mermaid") &&
-      renderDiagrams_ && mermaidCache_ != nullptr) {
+  if (node.type() == BlockType::CodeFence && node.codeLanguage() == QLatin1String("mermaid") && renderDiagrams_ &&
+      mermaidCache_ != nullptr) {
     const bool editingMermaid = selectionFocusesNode(selection_, node.id());
     const bool keepSource = editingMermaid || showMermaidAsSource_;
     const QString source = layout->literal();
     const MermaidRenderKey key = mermaidCache_->makeKey(source);
-    const MermaidRenderEntry entry = mermaidSyncMode_
-        ? mermaidCache_->getSync(key, source)
-        : editingMermaid ? mermaidCache_->requestDebounced(key, source)
-                         : mermaidCache_->request(key, source);
+    const MermaidRenderEntry entry = mermaidSyncMode_ ? mermaidCache_->getSync(key, source)
+                                     : editingMermaid ? mermaidCache_->requestDebounced(key, source)
+                                                      : mermaidCache_->request(key, source);
     layout->setMermaidState(static_cast<BlockLayout::MermaidState>(
-        static_cast<int>(entry.status)));  // MermaidRenderStatus ↔ BlockLayout::MermaidState are ordered identically
-    if (!keepSource && entry.status == MermaidRenderStatus::Ready &&
-        entry.scene) {
+        static_cast<int>(entry.status))); // MermaidRenderStatus ↔ BlockLayout::MermaidState are ordered identically
+    if (!keepSource && entry.status == MermaidRenderStatus::Ready && entry.scene) {
       layout->setMermaidViewportCullingEnabled(!mermaidSyncMode_);
       layout->setMermaidScene(entry.scene, entry.naturalSize, entry.metadata);
       const int contentWidth = static_cast<int>(qMax<qreal>(1.0, width - padding.left() - padding.right()));
       const qreal natW = entry.naturalSize.width();
       const qreal scale = natW > 0.0 ? qMin<qreal>(1.0, contentWidth / natW) : 1.0;
       height = std::ceil(entry.naturalSize.height() * scale + padding.top() + padding.bottom());
-    } else if (entry.status == MermaidRenderStatus::Error ||
-               entry.status == MermaidRenderStatus::Unsupported) {
+    } else if (entry.status == MermaidRenderStatus::Error || entry.status == MermaidRenderStatus::Unsupported) {
       layout->setMermaidDiagnostic(entry.diagnostic);
-      height += BlockLayout::mermaidDiagnosticFootprint(
-          entry.diagnostic, theme, width);
+      height += BlockLayout::mermaidDiagnosticFootprint(entry.diagnostic, theme, width);
     }
   }
   if (node.type() == BlockType::HtmlBlock && editingLiteral) {
@@ -1265,19 +1314,15 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildLiteralBlock(
   }
   height = LayoutBox::borderHeight(usedBox, qMax<qreal>(0, height - padding.top() - padding.bottom()));
   layout->setRect(QRectF(x, y, width, height));
-  auto box = LayoutBox::place(styleKey, resolvedStyle ? *resolvedStyle : ThemeElementStyle{}, usedBox, layout->rect(), codeFont);
+  auto box = LayoutBox::place(styleKey, resolvedStyle ? *resolvedStyle : ThemeElementStyle{}, usedBox, layout->rect(),
+                              codeFont);
   box.lineHeight = codeLineHeight;
   layout->setCssBoxGeometry(std::move(box));
   return layout;
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTable(
-    const MarkdownNode& node,
-    const RenderTheme& theme,
-    qreal x,
-    qreal y,
-    qreal width,
-    int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTable(const MarkdownNode& node, const RenderTheme& theme, qreal x,
+                                                            qreal y, qreal width, int depth) {
   auto layout = std::make_unique<BlockLayout>(node.id());
   layout->setType(BlockType::Table);
   layout->setDepth(depth);
@@ -1285,7 +1330,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTable(
   const auto* wrapperStyle = theme.elementStyleForNode(node, QStringLiteral(".table-figure"));
   const auto wrapperBox = theme.elementBoxStyle(QStringLiteral(".table-figure"), &node, width);
   const auto wrapperInsets = LayoutBox::insets(wrapperBox);
-  const qreal wrapperWidth = LayoutBox::borderWidth(wrapperBox, qMax<qreal>(1, width - wrapperBox.margin.left() - wrapperBox.margin.right()));
+  const qreal wrapperWidth =
+      LayoutBox::borderWidth(wrapperBox, qMax<qreal>(1, width - wrapperBox.margin.left() - wrapperBox.margin.right()));
   const QPointF wrapperOrigin(x + wrapperBox.margin.left(), y);
   x = wrapperOrigin.x() + wrapperInsets.left();
   y += wrapperInsets.top();
@@ -1301,7 +1347,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTable(
   const qreal availableWidth = qMax<qreal>(1, width - tableBox.margin.left() - tableBox.margin.right());
   x += tableBox.margin.left();
   width = LayoutBox::borderWidth(tableBox, availableWidth);
-  if (tableBox.marginLeftAuto) x += qMax<qreal>(0, availableWidth - width) / (tableBox.marginRightAuto ? 2 : 1);
+  if (tableBox.marginLeftAuto)
+    x += qMax<qreal>(0, availableWidth - width) / (tableBox.marginRightAuto ? 2 : 1);
   const qreal contentWidth = qMax<qreal>(1, width - tableInsets.left() - tableInsets.right());
 
   const int rowCount = static_cast<int>(node.children().size());
@@ -1344,22 +1391,27 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTable(
       InlineLayout::BuildOptions options;
       options.styleNode = cellNode.get();
       options.lineHeightMultiplier = theme.lineHeightMultiplierForElement(key, cellNode.get());
-      options.baseTextColor = theme.textColorForElement(cell.header ? QStringLiteral("th") : QStringLiteral("td"), cellNode.get());
+      options.baseTextColor =
+          theme.textColorForElement(cell.header ? QStringLiteral("th") : QStringLiteral("td"), cellNode.get());
       options.documentPath = documentPath_;
-      options.sourceBase = sourceContentStartForEditableNode(*cellNode) - cellNode->topLevelBlock()->sourceRange().byteStart;
+      options.sourceBase =
+          sourceContentStartForEditableNode(*cellNode) - cellNode->topLevelBlock()->sourceRange().byteStart;
       if (selection_.focus.text.nodeId == cellNode->id()) {
-        options.projectionState = InlineProjectionState::forSelection(selection_, selection_.focus.blockId, sourceContentStartForEditableNode(*cellNode));
+        options.projectionState = InlineProjectionState::forSelection(selection_, selection_.focus.blockId,
+                                                                      sourceContentStartForEditableNode(*cellNode));
       }
       options.isMisspelled = spellMisspelledPredicate();
       options.smartPunct = smartPunctRenderOptions();
       options.breakOnSingleNewline = breakOnSingleNewline_;
-  options.renderEmoji = renderEmoji_;
+      options.renderEmoji = renderEmoji_;
       {
         BuildAccumTimer t(inlineLayoutNs_, perfEnabled_);
-        applyPreedit(options);  // only the focused cell has projectionState.cursorSourceOffset set
-        cell.text.build(cellNode->inlines(), sourceTextForEditableNode(*cellNode), theme,
-                        qMax<qreal>(1.0, columnWidth - padding.left() - padding.right()),
-                        theme.textFontForElement(cell.header ? QStringLiteral("th") : QStringLiteral("td"), cellNode.get()), options);
+        applyPreedit(options); // only the focused cell has projectionState.cursorSourceOffset set
+        cell.text.build(
+            cellNode->inlines(), sourceTextForEditableNode(*cellNode), theme,
+            qMax<qreal>(1.0, columnWidth - padding.left() - padding.right()),
+            theme.textFontForElement(cell.header ? QStringLiteral("th") : QStringLiteral("td"), cellNode.get()),
+            options);
       }
       rowHeight = qMax(rowHeight, LayoutBox::borderHeight(usedBox, cell.text.height()));
       cell.rect = QRectF(cellX, cursorY, columnWidth, 0);
@@ -1401,22 +1453,20 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildTable(
   }
 
   const QRectF tableRect(x, y, width, LayoutBox::borderHeight(tableBox, cursorY - y - tableInsets.top()));
-  const qreal wrapperHeight = LayoutBox::borderHeight(wrapperBox, tableRect.height() + innerTopMargin + innerBottomMargin);
+  const qreal wrapperHeight =
+      LayoutBox::borderHeight(wrapperBox, tableRect.height() + innerTopMargin + innerBottomMargin);
   layout->setRect(QRectF(wrapperOrigin, QSizeF(wrapperWidth, wrapperHeight)));
-  layout->setCssBoxGeometry(LayoutBox::place(tableKey, tableStyle ? *tableStyle : ThemeElementStyle{}, tableBox, tableRect));
-  layout->setOuterCssBox(LayoutBox::place(QStringLiteral(".table-figure"), wrapperStyle ? *wrapperStyle : ThemeElementStyle{},
-                                         wrapperBox, layout->rect(), theme.paragraphFont()));
+  layout->setCssBoxGeometry(
+      LayoutBox::place(tableKey, tableStyle ? *tableStyle : ThemeElementStyle{}, tableBox, tableRect));
+  layout->setOuterCssBox(LayoutBox::place(QStringLiteral(".table-figure"),
+                                          wrapperStyle ? *wrapperStyle : ThemeElementStyle{}, wrapperBox,
+                                          layout->rect(), theme.paragraphFont()));
   layout->setTableRows(std::move(rows));
   return layout;
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildThematicBreak(
-    const MarkdownNode& node,
-    const RenderTheme& theme,
-    qreal x,
-    qreal y,
-    qreal width,
-    int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildThematicBreak(const MarkdownNode& node, const RenderTheme& theme,
+                                                                    qreal x, qreal y, qreal width, int depth) {
   auto layout = std::make_unique<BlockLayout>(node.id());
   layout->setType(BlockType::ThematicBreak);
   layout->setDepth(depth);
@@ -1424,19 +1474,15 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildThematicBreak(
   return layout;
 }
 
-std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildDefinition(
-    const MarkdownNode& node,
-    const RenderTheme& theme,
-    qreal x,
-    qreal y,
-    qreal width,
-    int depth) {
+std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildDefinition(const MarkdownNode& node, const RenderTheme& theme,
+                                                                 qreal x, qreal y, qreal width, int depth) {
   auto layout = std::make_unique<BlockLayout>(node.id());
   layout->setType(node.type());
   layout->setDepth(depth);
   const DefinitionBlock definition = node.definition();
   layout->setDefinition(definition);
-  layout->setContentSourceStart(definition.markerRange.isValid() ? definition.markerRange.start : node.sourceRange().byteStart);
+  layout->setContentSourceStart(definition.markerRange.isValid() ? definition.markerRange.start
+                                                                 : node.sourceRange().byteStart);
   const bool definitionFocused = selection_.isCollapsed() && selection_.focus.blockId == node.id();
 
   const QFont font = theme.paragraphFont();
@@ -1455,10 +1501,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildDefinition(
     definitionTokens.push_back(token);
     cursorX = token.rect.right();
   };
-  auto slot = [&](BlockLayout::DefinitionSlotLayout::Field field,
-                  const DefinitionFieldRange& sourceRange,
-                  const QString& text,
-                  const QString& placeholder) {
+  auto slot = [&](BlockLayout::DefinitionSlotLayout::Field field, const DefinitionFieldRange& sourceRange,
+                  const QString& text, const QString& placeholder) {
     BlockLayout::DefinitionTokenLayout token;
     token.kind = BlockLayout::DefinitionTokenLayout::Kind::Slot;
     token.field = field;
@@ -1478,26 +1522,26 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildDefinition(
   };
   auto titleOpeningSyntax = [&definition]() {
     switch (definition.titleDelimiter) {
-      case DefinitionBlock::TitleDelimiter::SingleQuote:
-        return QStringLiteral("  '");
-      case DefinitionBlock::TitleDelimiter::Parentheses:
-        return QStringLiteral("  (");
-      case DefinitionBlock::TitleDelimiter::DoubleQuote:
-      case DefinitionBlock::TitleDelimiter::None:
-      default:
-        return QStringLiteral("  \"");
+    case DefinitionBlock::TitleDelimiter::SingleQuote:
+      return QStringLiteral("  '");
+    case DefinitionBlock::TitleDelimiter::Parentheses:
+      return QStringLiteral("  (");
+    case DefinitionBlock::TitleDelimiter::DoubleQuote:
+    case DefinitionBlock::TitleDelimiter::None:
+    default:
+      return QStringLiteral("  \"");
     }
   };
   auto titleClosingSyntax = [&definition]() {
     switch (definition.titleDelimiter) {
-      case DefinitionBlock::TitleDelimiter::SingleQuote:
-        return QStringLiteral("'");
-      case DefinitionBlock::TitleDelimiter::Parentheses:
-        return QStringLiteral(")");
-      case DefinitionBlock::TitleDelimiter::DoubleQuote:
-      case DefinitionBlock::TitleDelimiter::None:
-      default:
-        return QStringLiteral("\"");
+    case DefinitionBlock::TitleDelimiter::SingleQuote:
+      return QStringLiteral("'");
+    case DefinitionBlock::TitleDelimiter::Parentheses:
+      return QStringLiteral(")");
+    case DefinitionBlock::TitleDelimiter::DoubleQuote:
+    case DefinitionBlock::TitleDelimiter::None:
+    default:
+      return QStringLiteral("\"");
     }
   };
 
@@ -1505,17 +1549,13 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildDefinition(
   if (definition.kind == DefinitionBlock::Kind::Footnote) {
     syntax(QStringLiteral("^"));
   }
-  slot(BlockLayout::DefinitionSlotLayout::Field::Label,
-       definition.labelRange,
-       definition.label,
+  slot(BlockLayout::DefinitionSlotLayout::Field::Label, definition.labelRange, definition.label,
        QStringLiteral("name"));
   syntax(QStringLiteral("]:"));
 
   if (definition.kind == DefinitionBlock::Kind::Footnote) {
     syntax(QStringLiteral(" "));
-    slot(BlockLayout::DefinitionSlotLayout::Field::Note,
-         definition.noteRange,
-         definition.note,
+    slot(BlockLayout::DefinitionSlotLayout::Field::Note, definition.noteRange, definition.note,
          QStringLiteral("input description here"));
 
     // Extract continuation lines for multi-line footnotes
@@ -1523,27 +1563,23 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildDefinition(
         definition.sourceRange.end > definition.noteRange.end && !md().isEmpty()) {
       // Find end of the first line in the source range
       const qsizetype srcStart = definition.sourceRange.start;
-      const qsizetype firstLineEnd = md().indexOf(
-          QLatin1Char('\n'), definition.noteRange.end);
+      const qsizetype firstLineEnd = md().indexOf(QLatin1Char('\n'), definition.noteRange.end);
       if (firstLineEnd >= 0 && firstLineEnd < definition.sourceRange.end) {
         QString continuation;
         qsizetype pos = firstLineEnd + 1;
         while (pos < definition.sourceRange.end) {
           // Strip leading indentation (up to 4 spaces or 1 tab)
           int indent = 0;
-          while (pos < definition.sourceRange.end && indent < 4 &&
-                 md().at(pos) == QLatin1Char(' ')) {
+          while (pos < definition.sourceRange.end && indent < 4 && md().at(pos) == QLatin1Char(' ')) {
             ++pos;
             ++indent;
           }
-          if (pos < definition.sourceRange.end && indent < 4 &&
-              md().at(pos) == QLatin1Char('\t')) {
+          if (pos < definition.sourceRange.end && indent < 4 && md().at(pos) == QLatin1Char('\t')) {
             ++pos;
           }
           // Read to end of line
           const qsizetype contentStart = pos;
-          while (pos < definition.sourceRange.end &&
-                 md().at(pos) != QLatin1Char('\n') &&
+          while (pos < definition.sourceRange.end && md().at(pos) != QLatin1Char('\n') &&
                  md().at(pos) != QLatin1Char('\r')) {
             ++pos;
           }
@@ -1551,12 +1587,10 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildDefinition(
             continuation += QLatin1Char('\n');
           }
           continuation += md().mid(contentStart, pos - contentStart);
-          if (pos < definition.sourceRange.end &&
-              md().at(pos) == QLatin1Char('\r')) {
+          if (pos < definition.sourceRange.end && md().at(pos) == QLatin1Char('\r')) {
             ++pos;
           }
-          if (pos < definition.sourceRange.end &&
-              md().at(pos) == QLatin1Char('\n')) {
+          if (pos < definition.sourceRange.end && md().at(pos) == QLatin1Char('\n')) {
             ++pos;
           }
         }
@@ -1567,17 +1601,13 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildDefinition(
     }
   } else {
     syntax(QStringLiteral("  "));
-    slot(BlockLayout::DefinitionSlotLayout::Field::Destination,
-         definition.destinationRange,
-         definition.destination,
+    slot(BlockLayout::DefinitionSlotLayout::Field::Destination, definition.destinationRange, definition.destination,
          QStringLiteral("input link url here"));
     if (definition.titleDelimiter != DefinitionBlock::TitleDelimiter::None || definitionFocused) {
-      const bool explicitEmptyTitle = definition.titleDelimiter != DefinitionBlock::TitleDelimiter::None &&
-                                      definition.title.isEmpty();
+      const bool explicitEmptyTitle =
+          definition.titleDelimiter != DefinitionBlock::TitleDelimiter::None && definition.title.isEmpty();
       syntax(titleOpeningSyntax());
-      slot(BlockLayout::DefinitionSlotLayout::Field::Title,
-           definition.titleRange,
-           definition.title,
+      slot(BlockLayout::DefinitionSlotLayout::Field::Title, definition.titleRange, definition.title,
            explicitEmptyTitle ? QString() : QStringLiteral("title (optional)"));
       syntax(titleClosingSyntax());
     }
@@ -1619,7 +1649,8 @@ std::unique_ptr<BlockLayout> BlockLayoutBuilder::buildDefinition(
   return layout;
 }
 
-QString BlockLayoutBuilder::textForListMarker(const MarkdownNode& itemNode, const MarkdownNode& listNode, qsizetype index) const {
+QString BlockLayoutBuilder::textForListMarker(const MarkdownNode& itemNode, const MarkdownNode& listNode,
+                                              qsizetype index) const {
   if (listNode.listKind() == ListKind::Ordered) {
     const ListLineInfo info = authoredMarkerInfo(itemNode);
     if (info.valid && info.ordered) {
@@ -1664,17 +1695,18 @@ BlockLayout::ListMarkerKind BlockLayoutBuilder::markerKindForListItem(const Mark
     }
   }
   switch (unorderedDepth) {
-    case 1:
-      return BlockLayout::ListMarkerKind::BulletDisc;
-    case 2:
-      return BlockLayout::ListMarkerKind::BulletCircle;
-    default:
-      return BlockLayout::ListMarkerKind::BulletSquare;
+  case 1:
+    return BlockLayout::ListMarkerKind::BulletDisc;
+  case 2:
+    return BlockLayout::ListMarkerKind::BulletCircle;
+  default:
+    return BlockLayout::ListMarkerKind::BulletSquare;
   }
 }
 
-BlockLayoutBuilder::ResolvedMarker BlockLayoutBuilder::resolveListMarker(
-    const MarkdownNode& itemNode, const RenderTheme& theme, qsizetype itemIndex) const {
+BlockLayoutBuilder::ResolvedMarker BlockLayoutBuilder::resolveListMarker(const MarkdownNode& itemNode,
+                                                                         const RenderTheme& theme,
+                                                                         qsizetype itemIndex) const {
   const MarkdownNode* listNode = itemNode.parent();
   // `li::marker { content: … counter(list-item) … }` — content-driven marker,
   // resolved against the implicit list-item counter (this item's position).
@@ -1684,21 +1716,30 @@ BlockLayoutBuilder::ResolvedMarker BlockLayoutBuilder::resolveListMarker(
       if (name == QStringLiteral("list-item")) {
         const ListLineInfo authored = authoredMarkerInfo(itemNode);
         if (listNode && listNode->listKind() == ListKind::Ordered && authored.valid && authored.ordered) {
-          return authored.orderedNumber;  // authored number, not positional (see authoredMarkerInfo)
+          return authored.orderedNumber; // authored number, not positional (see authoredMarkerInfo)
         }
         const int start = (listNode && listNode->listKind() == ListKind::Ordered) ? listNode->listStart() : 1;
         return start + int(itemIndex);
       }
-      return 0;  // named counters are not tracked in the marker path
+      return 0; // named counters are not tracked in the marker path
     };
     const auto chain = [this, &itemNode](const QString& name) -> QVector<int> {
-      QVector<int> levels;  // outermost first
-      if (name != QStringLiteral("list-item")) { return levels; }
-      for (const MarkdownNode* item = &itemNode; item && item->type() == BlockType::ListItem; ) {
+      QVector<int> levels; // outermost first
+      if (name != QStringLiteral("list-item")) {
+        return levels;
+      }
+      for (const MarkdownNode* item = &itemNode; item && item->type() == BlockType::ListItem;) {
         const MarkdownNode* list = item->parent();
-        if (!list) { break; }
+        if (!list) {
+          break;
+        }
         int idx = 0;
-        for (const auto& s : list->children()) { if (s.get() == item) { break; } ++idx; }
+        for (const auto& s : list->children()) {
+          if (s.get() == item) {
+            break;
+          }
+          ++idx;
+        }
         const ListLineInfo authored = authoredMarkerInfo(*item);
         if (list->listKind() == ListKind::Ordered && authored.valid && authored.ordered) {
           levels.prepend(authored.orderedNumber);
@@ -1706,14 +1747,16 @@ BlockLayoutBuilder::ResolvedMarker BlockLayoutBuilder::resolveListMarker(
           const int start = (list->listKind() == ListKind::Ordered) ? list->listStart() : 1;
           levels.prepend(start + idx);
         }
-        item = list->parent();  // next outer list level (a ListItem, or null at top)
+        item = list->parent(); // next outer list level (a ListItem, or null at top)
       }
       return levels;
     };
     const auto* origin = theme.cssElementForNode(itemNode);
-    const QString text = resolveContentTokens(contentTokens, value, chain, [origin](const QString& name) -> std::optional<QString> {
-      return origin->attributes.contains(name) ? std::optional<QString>(origin->attributes.value(name)) : std::nullopt;
-    });
+    const QString text =
+        resolveContentTokens(contentTokens, value, chain, [origin](const QString& name) -> std::optional<QString> {
+          return origin->attributes.contains(name) ? std::optional<QString>(origin->attributes.value(name))
+                                                   : std::nullopt;
+        });
     return {text.isEmpty() ? BlockLayout::ListMarkerKind::None : BlockLayout::ListMarkerKind::OrderedText, text};
   }
   QString styleType;
@@ -1723,23 +1766,34 @@ BlockLayoutBuilder::ResolvedMarker BlockLayoutBuilder::resolveListMarker(
   }
   if (styleType.isEmpty()) {
     // No CSS list-style-type → legacy depth/kind-based marker.
-    if (listNode) { return {markerKindForListItem(itemNode), textForListMarker(itemNode, *listNode, itemIndex)}; }
+    if (listNode) {
+      return {markerKindForListItem(itemNode), textForListMarker(itemNode, *listNode, itemIndex)};
+    }
     return {BlockLayout::ListMarkerKind::BulletDisc, QStringLiteral("•")};
   }
-  if (styleType == QStringLiteral("none")) { return {BlockLayout::ListMarkerKind::None, QString()}; }
-  if (styleType == QStringLiteral("disc")) { return {BlockLayout::ListMarkerKind::BulletDisc, QStringLiteral("•")}; }
-  if (styleType == QStringLiteral("circle")) { return {BlockLayout::ListMarkerKind::BulletCircle, QStringLiteral("•")}; }
-  if (styleType == QStringLiteral("square")) { return {BlockLayout::ListMarkerKind::BulletSquare, QStringLiteral("•")}; }
+  if (styleType == QStringLiteral("none")) {
+    return {BlockLayout::ListMarkerKind::None, QString()};
+  }
+  if (styleType == QStringLiteral("disc")) {
+    return {BlockLayout::ListMarkerKind::BulletDisc, QStringLiteral("•")};
+  }
+  if (styleType == QStringLiteral("circle")) {
+    return {BlockLayout::ListMarkerKind::BulletCircle, QStringLiteral("•")};
+  }
+  if (styleType == QStringLiteral("square")) {
+    return {BlockLayout::ListMarkerKind::BulletSquare, QStringLiteral("•")};
+  }
   if (isOrderedListStyle(styleType)) {
     const ListLineInfo authored = authoredMarkerInfo(itemNode);
     int number = int(itemIndex) + 1;
     if (listNode && listNode->listKind() == ListKind::Ordered) {
-      number = (authored.valid && authored.ordered) ? authored.orderedNumber
-                                                    : listNode->listStart() + int(itemIndex);
+      number = (authored.valid && authored.ordered) ? authored.orderedNumber : listNode->listStart() + int(itemIndex);
     }
     return {BlockLayout::ListMarkerKind::OrderedText, formatCounterValue(number, styleType) + QStringLiteral(".")};
   }
-  if (listNode) { return {markerKindForListItem(itemNode), textForListMarker(itemNode, *listNode, itemIndex)}; }
+  if (listNode) {
+    return {markerKindForListItem(itemNode), textForListMarker(itemNode, *listNode, itemIndex)};
+  }
   return {BlockLayout::ListMarkerKind::BulletDisc, QStringLiteral("•")};
 }
 
@@ -1755,8 +1809,8 @@ QString BlockLayoutBuilder::sourceTextForEditableNode(const MarkdownNode& node) 
 qsizetype BlockLayoutBuilder::sourceContentStartForEditableNode(const MarkdownNode& node) const {
   const SourceRange range = node.sourceRange();
   qsizetype start = hasResolvedByteRange(range)
-                     ? range.byteStart
-                     : sourceOffsetForLineColumn(range.lineStart, qMax(1, range.columnStart));
+                        ? range.byteStart
+                        : sourceOffsetForLineColumn(range.lineStart, qMax(1, range.columnStart));
   const qsizetype end = sourceContentEndForEditableNode(node);
   if (start < 0 || end < start) {
     return -1;
@@ -1794,10 +1848,8 @@ qsizetype BlockLayoutBuilder::sourceContentStartForEditableNode(const MarkdownNo
 qsizetype BlockLayoutBuilder::sourceContentEndForEditableNode(const MarkdownNode& node) const {
   const SourceRange range = node.sourceRange();
   qsizetype end = node.type() == BlockType::Heading
-                    ? headingContentEndOffset(node, md())
-                    : (hasResolvedByteRange(range)
-                           ? range.byteEnd
-                           : sourceOffsetForLineEnd(range.lineEnd));
+                      ? headingContentEndOffset(node, md())
+                      : (hasResolvedByteRange(range) ? range.byteEnd : sourceOffsetForLineEnd(range.lineEnd));
   const qsizetype start = sourceOffsetForLineColumn(range.lineStart, qMax(1, range.columnStart));
   if (isEmptyDocumentParagraph(md(), node)) {
     return 0;
@@ -1821,9 +1873,9 @@ qsizetype BlockLayoutBuilder::sourceOffsetForLineEnd(int line) const {
   return lineOffsets_ ? lineOffsets_->lineEndOffset(line) : -1;
 }
 
-BlockLayoutBuilder::EstimateResult BlockLayoutBuilder::estimateHeight(
-    const MarkdownNode& node, const RenderTheme& theme, qreal width, int depth) const {
+BlockLayoutBuilder::EstimateResult
+BlockLayoutBuilder::estimateHeight(const MarkdownNode& node, const RenderTheme& theme, qreal width, int depth) const {
   return heightEstimator_.estimateHeight(node, theme, width, depth);
 }
 
-}  // namespace muffin
+} // namespace muffin

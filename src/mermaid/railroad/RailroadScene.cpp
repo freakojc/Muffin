@@ -17,14 +17,15 @@
 
 namespace muffin::mermaid::railroad {
 
-void RailroadScene::paint(QPainter& painter,
-                          const MermaidPaintOptions& options) const {
+void RailroadScene::paint(QPainter& painter, const MermaidPaintOptions& options) const {
   paintRailroadScene(*this, painter, options);
 }
 
 namespace {
 
-QString number(qreal value) { return editor::jsNumberToString(value); }
+QString number(qreal value) {
+  return editor::jsNumberToString(value);
+}
 
 QJsonObject pointJson(const QPointF& point) {
   return {{QStringLiteral("x"), point.x()}, {QStringLiteral("y"), point.y()}};
@@ -55,13 +56,10 @@ public:
     d_ += QStringLiteral("V %1 ").arg(number(y));
     return *this;
   }
-  PathBuilder& arcTo(qreal rx, qreal ry, qreal rotation, bool largeArc,
-                     bool sweep, qreal x, qreal y) {
+  PathBuilder& arcTo(qreal rx, qreal ry, qreal rotation, bool largeArc, bool sweep, qreal x, qreal y) {
     d_ += QStringLiteral("A %1 %2 %3 %4 %5 %6 %7 ")
-              .arg(number(rx), number(ry), number(rotation),
-                   largeArc ? QStringLiteral("1") : QStringLiteral("0"),
-                   sweep ? QStringLiteral("1") : QStringLiteral("0"),
-                   number(x), number(y));
+              .arg(number(rx), number(ry), number(rotation), largeArc ? QStringLiteral("1") : QStringLiteral("0"),
+                   sweep ? QStringLiteral("1") : QStringLiteral("0"), number(x), number(y));
     return *this;
   }
   QString build() const { return d_.trimmed(); }
@@ -90,21 +88,17 @@ void translate(QVector<RailroadPrimitive>& primitives, const QPointF& offset) {
 
 class Builder {
 public:
-  explicit Builder(const RailroadConfig& config,
-                   const RailroadCssOverrides* css = nullptr)
+  explicit Builder(const RailroadConfig& config, const RailroadCssOverrides* css = nullptr)
       : config_(config), css_(css) {}
 
   // themeCSS probe font: the measurement text carries font-family/font-size
   // presentation attrs, which only tag-level rules can override.
   QString measureFontFamily() const {
-    return css_ != nullptr && css_->active && !css_->probeFontFamily.isEmpty()
-               ? css_->probeFontFamily
-               : config_.fontFamily;
+    return css_ != nullptr && css_->active && !css_->probeFontFamily.isEmpty() ? css_->probeFontFamily
+                                                                               : config_.fontFamily;
   }
   qreal measureFontSize() const {
-    return css_ != nullptr && css_->active && css_->probeFontSize >= 0.0
-               ? css_->probeFontSize
-               : config_.fontSize;
+    return css_ != nullptr && css_->active && css_->probeFontSize >= 0.0 ? css_->probeFontSize : config_.fontSize;
   }
 
   TextDimensions measure(const QString& text) const {
@@ -112,29 +106,23 @@ public:
     const QString family = measureFontFamily();
     const qreal size = measureFontSize();
     qreal advance = 0.0;
-    if (const auto shaped = textmetrics::harfBuzzAdvance(
-            visible, family, size))
+    if (const auto shaped = textmetrics::harfBuzzAdvance(visible, family, size))
       advance = std::ceil(*shaped * 64.0 - 1e-9) / 64.0;
     else
-      advance = editor::makeUnhintedCssPixelFont(
-                  editor::firstFontFamily(family), size)
-                  .horizontalAdvance(visible);
+      advance = editor::makeUnhintedCssPixelFont(editor::firstFontFamily(family), size).horizontalAdvance(visible);
     flowchart::FlowLabelDocument label;
     label.text = visible;
-    QRectF chromiumBounds = flowchart::measureChromiumSvgTextBounds(
-        label, family, size, QFont::Normal, 1.0, false, true);
-    const auto hbInk = textmetrics::harfBuzzInkBounds(
-        visible, family, size);
+    QRectF chromiumBounds =
+        flowchart::measureChromiumSvgTextBounds(label, family, size, QFont::Normal, 1.0, false, true);
+    const auto hbInk = textmetrics::harfBuzzInkBounds(visible, family, size);
     // Blink's SVG text bbox snaps a positive leading side-bearing to the
     // current pixel at the observed 17/64px threshold; below it the antialias
     // fringe occupies the preceding pixel.
-    if (hbInk && hbInk->left() >= 17.0 / 64.0 &&
-        chromiumBounds.left() < 0.0)
+    if (hbInk && hbInk->left() >= 17.0 / 64.0 && chromiumBounds.left() < 0.0)
       chromiumBounds.setLeft(0.0);
     const qreal chromium = chromiumBounds.width();
     const qreal width = std::max(advance, chromium);
-    const auto vertical = flowchart::flowLabelFontBoundingMetrics(
-        editor::firstFontFamily(family), size);
+    const auto vertical = flowchart::flowLabelFontBoundingMetrics(editor::firstFontFamily(family), size);
     qreal height = vertical.height();
     if (!(height > 0.0))
       height = std::ceil(size * 1.35);
@@ -155,22 +143,25 @@ public:
 
   LayoutResult expression(const RailroadNode& node) {
     switch (node.type) {
-      case RailroadNodeType::Terminal: return terminal(node.text);
-      case RailroadNodeType::NonTerminal: return nonTerminal(node.text);
-      case RailroadNodeType::Sequence: return sequence(node.children);
-      case RailroadNodeType::Choice: return choice(node.children);
-      case RailroadNodeType::Optional:
-        return optional(node.children.isEmpty() ? RailroadNode{} : node.children.front());
-      case RailroadNodeType::Repetition:
-        return repetition(node.children.isEmpty() ? RailroadNode{} : node.children.front(),
-                          node.min);
-      case RailroadNodeType::Special: return special(node.text);
+    case RailroadNodeType::Terminal:
+      return terminal(node.text);
+    case RailroadNodeType::NonTerminal:
+      return nonTerminal(node.text);
+    case RailroadNodeType::Sequence:
+      return sequence(node.children);
+    case RailroadNodeType::Choice:
+      return choice(node.children);
+    case RailroadNodeType::Optional:
+      return optional(node.children.isEmpty() ? RailroadNode{} : node.children.front());
+    case RailroadNodeType::Repetition:
+      return repetition(node.children.isEmpty() ? RailroadNode{} : node.children.front(), node.min);
+    case RailroadNodeType::Special:
+      return special(node.text);
     }
     return {};
   }
 
-  RailroadRuleGeometry rule(const RailroadRule& source, qreal y,
-                            QVector<RailroadPrimitive>& output) {
+  RailroadRuleGeometry rule(const RailroadRule& source, qreal y, QVector<RailroadPrimitive>& output) {
     RailroadRuleGeometry geometry;
     geometry.name = source.name;
     geometry.y = y;
@@ -197,9 +188,7 @@ public:
     RailroadPrimitive start;
     start.kind = RailroadPrimitiveKind::Circle;
     start.cssClass = QStringLiteral("railroad-start");
-    start.rect = QRectF(nameWidth - config_.markerRadius,
-                        baselineY - config_.markerRadius,
-                        config_.markerRadius * 2.0,
+    start.rect = QRectF(nameWidth - config_.markerRadius, baselineY - config_.markerRadius, config_.markerRadius * 2.0,
                         config_.markerRadius * 2.0);
     start.translation = QPointF(0.0, y);
     start.fill = config_.markerFill;
@@ -210,9 +199,7 @@ public:
     RailroadPrimitive end;
     end.kind = RailroadPrimitiveKind::Circle;
     end.cssClass = QStringLiteral("railroad-end");
-    end.rect = QRectF(endCenter - config_.markerRadius,
-                      baselineY - config_.markerRadius,
-                      config_.markerRadius * 2.0,
+    end.rect = QRectF(endCenter - config_.markerRadius, baselineY - config_.markerRadius, config_.markerRadius * 2.0,
                       config_.markerRadius * 2.0);
     end.translation = QPointF(0.0, y);
     end.fill = config_.markerFill;
@@ -220,23 +207,19 @@ public:
     output.append(std::move(end));
 
     RailroadPrimitive firstLine =
-        path(PathBuilder().moveTo(nameWidth + config_.markerRadius, baselineY)
-                 .lineTo(definitionX, baselineY)
-                 .build());
+        path(PathBuilder().moveTo(nameWidth + config_.markerRadius, baselineY).lineTo(definitionX, baselineY).build());
     firstLine.translation = QPointF(0.0, y);
     output.append(std::move(firstLine));
-    RailroadPrimitive secondLine =
-        path(PathBuilder().moveTo(definitionX + result.width, baselineY)
-                 .lineTo(definitionX + result.width + 10.0 - config_.markerRadius,
-                         baselineY)
-                 .build());
+    RailroadPrimitive secondLine = path(PathBuilder()
+                                            .moveTo(definitionX + result.width, baselineY)
+                                            .lineTo(definitionX + result.width + 10.0 - config_.markerRadius, baselineY)
+                                            .build());
     secondLine.translation = QPointF(0.0, y);
     output.append(std::move(secondLine));
 
     geometry.baselineY = baselineY;
     geometry.definitionX = definitionX;
-    geometry.height = std::max<qreal>(
-        40.0, definitionY + result.height + config_.padding * 2.0);
+    geometry.height = std::max<qreal>(40.0, definitionY + result.height + config_.padding * 2.0);
     geometry.width = definitionX + result.width + 10.0 + config_.markerRadius;
     return geometry;
   }
@@ -245,9 +228,8 @@ private:
   const RailroadConfig& config_;
   const RailroadCssOverrides* css_ = nullptr;
 
-  LayoutResult leafBox(const QString& cssClass, const QString& text,
-                       const QString& fill, const QString& stroke, qreal rx,
-                       bool dashed = false) {
+  LayoutResult leafBox(const QString& cssClass, const QString& text, const QString& fill, const QString& stroke,
+                       qreal rx, bool dashed = false) {
     const TextDimensions dimensions = measure(text);
     LayoutResult result;
     result.width = dimensions.width + config_.padding * 2.0;
@@ -264,7 +246,8 @@ private:
     rect.strokeWidth = config_.strokeWidth;
     rect.rx = rx;
     rect.ry = rx;
-    if (dashed) rect.dash = {5.0, 3.0};
+    if (dashed)
+      rect.dash = {5.0, 3.0};
     rect.paintOrder = nextPaintOrder_++;
     result.primitives.append(std::move(rect));
 
@@ -273,9 +256,8 @@ private:
     label.cssClass = cssClass;
     label.position = QPointF(result.width / 2.0, result.height / 2.0);
     label.text = text;
-    label.fill = cssClass == QLatin1String("railroad-terminal")
-                     ? config_.terminalTextColor
-                     : config_.nonTerminalTextColor;
+    label.fill =
+        cssClass == QLatin1String("railroad-terminal") ? config_.terminalTextColor : config_.nonTerminalTextColor;
     label.middleAnchor = true;
     label.baseline = RailroadTextBaseline::Middle;
     label.paintOrder = nextPaintOrder_++;
@@ -284,18 +266,16 @@ private:
   }
 
   LayoutResult terminal(const QString& value) {
-    return leafBox(QStringLiteral("railroad-terminal"), value,
-                   config_.terminalFill, config_.terminalStroke, 10.0);
+    return leafBox(QStringLiteral("railroad-terminal"), value, config_.terminalFill, config_.terminalStroke, 10.0);
   }
 
   LayoutResult nonTerminal(const QString& name) {
-    return leafBox(QStringLiteral("railroad-nonterminal"), name,
-                   config_.nonTerminalFill, config_.nonTerminalStroke, 0.0);
+    return leafBox(QStringLiteral("railroad-nonterminal"), name, config_.nonTerminalFill, config_.nonTerminalStroke,
+                   0.0);
   }
 
   LayoutResult special(const QString& text) {
-    return leafBox(QStringLiteral("railroad-special"),
-                   QStringLiteral("? ") + text + QStringLiteral(" ?"),
+    return leafBox(QStringLiteral("railroad-special"), QStringLiteral("? ") + text + QStringLiteral(" ?"),
                    config_.specialFill, config_.specialStroke, 0.0, true);
   }
 
@@ -322,9 +302,7 @@ private:
       if (i + 1 < children.size()) {
         const qreal first = x + child.width;
         result.primitives.append(
-            path(PathBuilder().moveTo(first, maxUp)
-                     .lineTo(first + config_.horizontalSeparation, maxUp)
-                     .build()));
+            path(PathBuilder().moveTo(first, maxUp).lineTo(first + config_.horizontalSeparation, maxUp).build()));
       }
       x += child.width + config_.horizontalSeparation;
     }
@@ -345,8 +323,7 @@ private:
     const qreal radius = config_.arcRadius;
     const qreal totalWidth = maxWidth + radius * 4.0;
     const qreal centerY = totalHeight / 2.0;
-    LayoutResult result{totalWidth, totalHeight, centerY,
-                        totalHeight - centerY, {}};
+    LayoutResult result{totalWidth, totalHeight, centerY, totalHeight - centerY, {}};
     qreal y = 0.0;
     for (LayoutResult& child : children) {
       const qreal elemCenterY = y + child.up;
@@ -360,11 +337,9 @@ private:
         left.moveTo(0.0, centerY).lineTo(elemX, elemCenterY);
       } else {
         left.moveTo(0.0, centerY)
-            .arcTo(radius, radius, 0.0, false, below, radius,
-                   centerY + (below ? radius : -radius))
+            .arcTo(radius, radius, 0.0, false, below, radius, centerY + (below ? radius : -radius))
             .lineTo(radius, elemCenterY - (below ? radius : -radius))
-            .arcTo(radius, radius, 0.0, false, !below, radius * 2.0,
-                   elemCenterY)
+            .arcTo(radius, radius, 0.0, false, !below, radius * 2.0, elemCenterY)
             .lineTo(elemX, elemCenterY);
       }
       result.primitives.append(path(left.build()));
@@ -377,11 +352,8 @@ private:
       } else {
         right.moveTo(rightStart, elemCenterY)
             .lineTo(laneX, elemCenterY)
-            .arcTo(radius, radius, 0.0, false, !below,
-                   totalWidth - radius,
-                   elemCenterY + (below ? -radius : radius))
-            .lineTo(totalWidth - radius,
-                    centerY + (below ? radius : -radius))
+            .arcTo(radius, radius, 0.0, false, !below, totalWidth - radius, elemCenterY + (below ? -radius : radius))
+            .lineTo(totalWidth - radius, centerY + (below ? radius : -radius))
             .arcTo(radius, radius, 0.0, false, below, totalWidth, centerY);
       }
       result.primitives.append(path(right.build()));
@@ -399,26 +371,22 @@ private:
     const qreal elemX = radius * 2.0;
     const qreal elemY = arcHeight;
     const qreal centerY = elemY + inner.up;
-    LayoutResult result{totalWidth, totalHeight, centerY,
-                        totalHeight - centerY, {}};
+    LayoutResult result{totalWidth, totalHeight, centerY, totalHeight - centerY, {}};
     translate(inner.primitives, QPointF(elemX, elemY));
     result.primitives += std::move(inner.primitives);
-    result.primitives.append(path(PathBuilder().moveTo(0.0, centerY)
-                                      .lineTo(radius * 2.0, centerY)
+    result.primitives.append(path(PathBuilder().moveTo(0.0, centerY).lineTo(radius * 2.0, centerY).build()));
+    result.primitives.append(
+        path(PathBuilder().moveTo(elemX + inner.width, centerY).lineTo(totalWidth, centerY).build()));
+    result.primitives.append(path(PathBuilder()
+                                      .moveTo(0.0, centerY)
+                                      .arcTo(radius, radius, 0.0, false, false, radius, centerY - radius)
+                                      .lineTo(radius, radius)
+                                      .arcTo(radius, radius, 0.0, false, true, radius * 2.0, 0.0)
+                                      .lineTo(totalWidth - radius * 2.0, 0.0)
+                                      .arcTo(radius, radius, 0.0, false, true, totalWidth - radius, radius)
+                                      .lineTo(totalWidth - radius, centerY - radius)
+                                      .arcTo(radius, radius, 0.0, false, false, totalWidth, centerY)
                                       .build()));
-    result.primitives.append(path(PathBuilder().moveTo(elemX + inner.width, centerY)
-                                      .lineTo(totalWidth, centerY)
-                                      .build()));
-    result.primitives.append(path(
-        PathBuilder().moveTo(0.0, centerY)
-            .arcTo(radius, radius, 0.0, false, false, radius, centerY - radius)
-            .lineTo(radius, radius)
-            .arcTo(radius, radius, 0.0, false, true, radius * 2.0, 0.0)
-            .lineTo(totalWidth - radius * 2.0, 0.0)
-            .arcTo(radius, radius, 0.0, false, true, totalWidth - radius, radius)
-            .lineTo(totalWidth - radius, centerY - radius)
-            .arcTo(radius, radius, 0.0, false, false, totalWidth, centerY)
-            .build()));
     return result;
   }
 
@@ -432,42 +400,35 @@ private:
     const qreal elemX = radius * 2.0;
     const qreal elemY = bypass ? arcHeight : 0.0;
     const qreal centerY = elemY + inner.up;
-    LayoutResult result{totalWidth, totalHeight, centerY,
-                        totalHeight - centerY, {}};
+    LayoutResult result{totalWidth, totalHeight, centerY, totalHeight - centerY, {}};
     translate(inner.primitives, QPointF(elemX, elemY));
     result.primitives += std::move(inner.primitives);
-    result.primitives.append(path(PathBuilder().moveTo(0.0, centerY)
-                                      .lineTo(radius * 2.0, centerY)
-                                      .build()));
-    result.primitives.append(path(PathBuilder().moveTo(elemX + inner.width, centerY)
-                                      .lineTo(totalWidth, centerY)
-                                      .build()));
+    result.primitives.append(path(PathBuilder().moveTo(0.0, centerY).lineTo(radius * 2.0, centerY).build()));
+    result.primitives.append(
+        path(PathBuilder().moveTo(elemX + inner.width, centerY).lineTo(totalWidth, centerY).build()));
     const qreal loopY = elemY + inner.height + radius;
-    result.primitives.append(path(
-        PathBuilder().moveTo(elemX + inner.width, centerY)
-            .arcTo(radius, radius, 0.0, false, true,
-                   elemX + inner.width + radius, centerY + radius)
-            .lineTo(elemX + inner.width + radius, loopY)
-            .arcTo(radius, radius, 0.0, false, true, elemX + inner.width,
-                   loopY + radius)
-            .lineTo(radius * 2.0, loopY + radius)
-            .arcTo(radius, radius, 0.0, false, true, radius, loopY)
-            .lineTo(radius, centerY + radius)
-            .arcTo(radius, radius, 0.0, false, true, radius * 2.0, centerY)
-            .build()));
+    result.primitives.append(
+        path(PathBuilder()
+                 .moveTo(elemX + inner.width, centerY)
+                 .arcTo(radius, radius, 0.0, false, true, elemX + inner.width + radius, centerY + radius)
+                 .lineTo(elemX + inner.width + radius, loopY)
+                 .arcTo(radius, radius, 0.0, false, true, elemX + inner.width, loopY + radius)
+                 .lineTo(radius * 2.0, loopY + radius)
+                 .arcTo(radius, radius, 0.0, false, true, radius, loopY)
+                 .lineTo(radius, centerY + radius)
+                 .arcTo(radius, radius, 0.0, false, true, radius * 2.0, centerY)
+                 .build()));
     if (bypass) {
-      result.primitives.append(path(
-          PathBuilder().moveTo(0.0, centerY)
-              .arcTo(radius, radius, 0.0, false, false, radius,
-                     centerY - radius)
-              .lineTo(radius, radius)
-              .arcTo(radius, radius, 0.0, false, true, radius * 2.0, 0.0)
-              .lineTo(totalWidth - radius * 2.0, 0.0)
-              .arcTo(radius, radius, 0.0, false, true, totalWidth - radius,
-                     radius)
-              .lineTo(totalWidth - radius, centerY - radius)
-              .arcTo(radius, radius, 0.0, false, false, totalWidth, centerY)
-              .build()));
+      result.primitives.append(path(PathBuilder()
+                                        .moveTo(0.0, centerY)
+                                        .arcTo(radius, radius, 0.0, false, false, radius, centerY - radius)
+                                        .lineTo(radius, radius)
+                                        .arcTo(radius, radius, 0.0, false, true, radius * 2.0, 0.0)
+                                        .lineTo(totalWidth - radius * 2.0, 0.0)
+                                        .arcTo(radius, radius, 0.0, false, true, totalWidth - radius, radius)
+                                        .lineTo(totalWidth - radius, centerY - radius)
+                                        .arcTo(radius, radius, 0.0, false, false, totalWidth, centerY)
+                                        .build()));
     }
     return result;
   }
@@ -475,11 +436,9 @@ private:
   int nextPaintOrder_ = 0;
 };
 
-}  // namespace
+} // namespace
 
-RailroadScene buildRailroadScene(const RailroadData& data,
-                                 RailroadConfig config,
-                                 const RailroadCssOverrides* css) {
+RailroadScene buildRailroadScene(const RailroadData& data, RailroadConfig config, const RailroadCssOverrides* css) {
   RailroadScene scene;
   scene.config = std::move(config);
   scene.dialect = data.dialect;
@@ -501,21 +460,16 @@ RailroadScene buildRailroadScene(const RailroadData& data,
     maxWidth = std::max(maxWidth, geometry.width);
     scene.rules.append(std::move(geometry));
   }
-  scene.bounds = QRectF(0.0, 0.0, maxWidth + scene.config.padding * 2.0,
-                        y + scene.config.padding);
+  scene.bounds = QRectF(0.0, 0.0, maxWidth + scene.config.padding * 2.0, y + scene.config.padding);
   qreal clientWidth = scene.bounds.width();
   qreal clientHeight = scene.bounds.height();
   if (scene.config.useMaxWidth && clientWidth > 0.0) {
     clientWidth = std::floor(clientWidth * 64.0) / 64.0;
-    clientHeight = std::floor(
-        clientWidth * scene.bounds.height() / scene.bounds.width() * 64.0) /
-        64.0;
+    clientHeight = std::floor(clientWidth * scene.bounds.height() / scene.bounds.width() * 64.0) / 64.0;
   }
-  scene.rasterBounds = QRectF(
-      scene.bounds.topLeft(), QSizeF(qRound(clientWidth), qRound(clientHeight)));
+  scene.rasterBounds = QRectF(scene.bounds.topLeft(), QSizeF(qRound(clientWidth), qRound(clientHeight)));
   if (css != nullptr && css->active) {
-    const qsizetype count = qMin<qsizetype>(scene.primitives.size(),
-                                            css->perPrimitive.size());
+    const qsizetype count = qMin<qsizetype>(scene.primitives.size(), css->perPrimitive.size());
     for (qsizetype i = 0; i < count; ++i)
       scene.primitives[i].css = css->perPrimitive.at(i);
   }
@@ -544,14 +498,10 @@ QJsonObject RailroadScene::toJsonObject() const {
   QJsonArray primitiveArray;
   for (const RailroadPrimitive& primitive : primitives) {
     QJsonObject object;
-    object[QStringLiteral("kind")] =
-        primitive.kind == RailroadPrimitiveKind::Rect
-            ? QStringLiteral("rect")
-            : primitive.kind == RailroadPrimitiveKind::Circle
-                  ? QStringLiteral("circle")
-                  : primitive.kind == RailroadPrimitiveKind::Path
-                        ? QStringLiteral("path")
-                        : QStringLiteral("text");
+    object[QStringLiteral("kind")] = primitive.kind == RailroadPrimitiveKind::Rect     ? QStringLiteral("rect")
+                                     : primitive.kind == RailroadPrimitiveKind::Circle ? QStringLiteral("circle")
+                                     : primitive.kind == RailroadPrimitiveKind::Path   ? QStringLiteral("path")
+                                                                                       : QStringLiteral("text");
     object[QStringLiteral("class")] = primitive.cssClass;
     object[QStringLiteral("translation")] = pointJson(primitive.translation);
     object[QStringLiteral("rect")] = rectJson(primitive.rect);
@@ -565,11 +515,11 @@ QJsonObject RailroadScene::toJsonObject() const {
     object[QStringLiteral("bold")] = primitive.bold;
     object[QStringLiteral("italic")] = primitive.italic;
     object[QStringLiteral("middleAnchor")] = primitive.middleAnchor;
-    object[QStringLiteral("middleBaseline")] =
-        primitive.baseline == RailroadTextBaseline::Middle;
+    object[QStringLiteral("middleBaseline")] = primitive.baseline == RailroadTextBaseline::Middle;
     object[QStringLiteral("paintOrder")] = primitive.paintOrder;
     QJsonArray dash;
-    for (qreal value : primitive.dash) dash.append(value);
+    for (qreal value : primitive.dash)
+      dash.append(value);
     object[QStringLiteral("dash")] = dash;
     primitiveArray.append(std::move(object));
   }
@@ -577,4 +527,4 @@ QJsonObject RailroadScene::toJsonObject() const {
   return root;
 }
 
-}  // namespace muffin::mermaid::railroad
+} // namespace muffin::mermaid::railroad

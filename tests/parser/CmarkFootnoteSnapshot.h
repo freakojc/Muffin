@@ -28,7 +28,8 @@ inline QJsonObject snapshot(cmark_parser* parser, const QByteArray& source, int 
   for (qsizetype offset = 0; offset < source.size(); offset += chunkSize)
     cmark_parser_feed(parser, source.constData() + offset, size_t(qMin(qsizetype(chunkSize), source.size() - offset)));
   auto* root = cmark_parser_finish(parser);
-  if (!root || cmark_node_check(root, stderr)) qFatal("Invalid cmark footnote tree");
+  if (!root || cmark_node_check(root, stderr))
+    qFatal("Invalid cmark footnote tree");
   QCryptographicHash hash(QCryptographicHash::Sha256);
   auto* iter = cmark_iter_new(root);
   int definitions = 0, references = 0;
@@ -36,7 +37,8 @@ inline QJsonObject snapshot(cmark_parser* parser, const QByteArray& source, int 
   bool inLink = false;
   while ((event = cmark_iter_next(iter)) != CMARK_EVENT_DONE) {
     auto* node = cmark_iter_get_node(iter);
-    if (node->type == CMARK_NODE_LINK) inLink = event == CMARK_EVENT_ENTER;
+    if (node->type == CMARK_NODE_LINK)
+      inLink = event == CMARK_EVENT_ENTER;
     if (requireOwnedText && !inLink && node->type == CMARK_NODE_TEXT && !node->as.literal.alloc)
       qFatal("Autolink moved a text allocation out of parsing into get_literal()");
     QByteArray bytes;
@@ -67,4 +69,4 @@ inline QJsonObject snapshot(cmark_parser* parser, const QByteArray& source, int 
           {"definitions", definitions},
           {"references", references}};
 }
-}  // namespace footnote_test
+} // namespace footnote_test

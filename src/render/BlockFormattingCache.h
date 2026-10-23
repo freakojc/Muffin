@@ -36,9 +36,8 @@ public:
   bool isDirty(NodeId id) const { return dirty_.contains(id); }
   quint64 pass() const { return pass_; }
   std::shared_ptr<Measurement> measurement(NodeId id, const QByteArray& signature);
-  SolveResult solve(NodeId id, const ThemeElementStyle& style,
-                    const std::vector<CssFormattingItem>& items, qreal width, qreal height,
-                    const CssGridInheritance& inherited = {});
+  SolveResult solve(NodeId id, const ThemeElementStyle& style, const std::vector<CssFormattingItem>& items, qreal width,
+                    qreal height, const CssGridInheritance& inherited = {});
 
 private:
   QHash<NodeId, std::shared_ptr<Measurement>> measurements_;
@@ -58,4 +57,4 @@ private:
   quint64 signatureRevision_ = 0;
 };
 
-}  // namespace muffin
+} // namespace muffin

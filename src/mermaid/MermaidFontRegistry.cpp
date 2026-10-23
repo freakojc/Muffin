@@ -11,7 +11,9 @@
 
 #include "theme/ThemeFontDecoder.h"
 
-static void initMermaidFontsResource() { Q_INIT_RESOURCE(mermaid_fonts); }
+static void initMermaidFontsResource() {
+  Q_INIT_RESOURCE(mermaid_fonts);
+}
 
 namespace muffin::mermaid {
 namespace {
@@ -25,7 +27,7 @@ QHash<QString, QString>& bundledAliases() {
   return aliases;
 }
 
-}  // namespace
+} // namespace
 
 void MermaidFontRegistry::ensureLoaded() {
   static const bool loaded = [] {
@@ -40,7 +42,8 @@ void MermaidFontRegistry::ensureLoaded() {
     QStringList& families = loadedFamilies();
     for (const QString& resource : resources) {
       QFile file(resource);
-      if (!file.open(QIODevice::ReadOnly)) qFatal("Missing bundled Mermaid font: %s", qPrintable(resource));
+      if (!file.open(QIODevice::ReadOnly))
+        qFatal("Missing bundled Mermaid font: %s", qPrintable(resource));
       const auto source = file.readAll();
       const auto logical = QFileInfo(resource)
                                .fileName()
@@ -81,7 +84,8 @@ void MermaidFontRegistry::ensureLoaded() {
                                             QStringLiteral("trebucit.ttf"), QStringLiteral("trebucbi.ttf")};
     for (const QString& face : compatibilityFaces) {
       const QString path = windowsFonts + face;
-      if (QFileInfo::exists(path)) QFontDatabase::addApplicationFont(path);
+      if (QFileInfo::exists(path))
+        QFontDatabase::addApplicationFont(path);
     }
 #endif
     return true;
@@ -104,19 +108,20 @@ QString MermaidFontRegistry::bundledFamily(const QString& declaredFamily) {
 }
 QStringList MermaidFontRegistry::resolveFamilies(QStringList families) {
   ensureLoaded();
-  for (auto& family : families) family = bundledAliases().value(family.toLower(), family);
+  for (auto& family : families)
+    family = bundledAliases().value(family.toLower(), family);
   return families;
 }
 
 QString MermaidFontRegistry::cssFamilyStack() {
-  return QStringLiteral(
-      "\"Noto Sans\", \"Noto Sans CJK SC\", "
-      "\"Noto Sans Arabic\", \"Noto Sans Hebrew\", sans-serif");
+  return QStringLiteral("\"Noto Sans\", \"Noto Sans CJK SC\", "
+                        "\"Noto Sans Arabic\", \"Noto Sans Hebrew\", sans-serif");
 }
 
 void MermaidFontRegistry::configureFont(QFont& font, const QString& familyExpression) {
   ensureLoaded();
-  if (!familyExpression.contains(QStringLiteral("Noto Sans"), Qt::CaseInsensitive)) return;
+  if (!familyExpression.contains(QStringLiteral("Noto Sans"), Qt::CaseInsensitive))
+    return;
 
   QStringList ordered;
   for (QString family : familyExpression.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
@@ -126,10 +131,12 @@ void MermaidFontRegistry::configureFont(QFont& font, const QString& familyExpres
       family = family.mid(1, family.size() - 2);
     }
     const auto resolved = bundledAliases().value(family.toLower(), family);
-    if (!resolved.isEmpty() && !ordered.contains(resolved, Qt::CaseInsensitive)) ordered.append(resolved);
+    if (!resolved.isEmpty() && !ordered.contains(resolved, Qt::CaseInsensitive))
+      ordered.append(resolved);
   }
   for (const QString& family : loadedFamilies())
-    if (!ordered.contains(family)) ordered.append(family);
+    if (!ordered.contains(family))
+      ordered.append(family);
   if (!ordered.isEmpty()) {
     font.setFamilies(ordered);
     if (!loadedFamilies().contains(ordered.front(), Qt::CaseInsensitive)) {
@@ -146,4 +153,4 @@ void MermaidFontRegistry::configureFont(QFont& font, const QString& familyExpres
   }
 }
 
-}  // namespace muffin::mermaid
+} // namespace muffin::mermaid

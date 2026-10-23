@@ -25,21 +25,19 @@
 namespace muffin::mermaid::flowscene {
 namespace {
 
-QColor qcolor(const QString& s) { return color::toQColor(s); }
+QColor qcolor(const QString& s) {
+  return color::toQColor(s);
+}
 
 QColor svgFilterQuantizedColor(const QColor& source) {
   auto channel = [](int value) {
     const qreal srgb = value / 255.0;
-    const qreal linear = srgb <= 0.04045 ? srgb / 12.92
-                                         : std::pow((srgb + 0.055) / 1.055, 2.4);
+    const qreal linear = srgb <= 0.04045 ? srgb / 12.92 : std::pow((srgb + 0.055) / 1.055, 2.4);
     const qreal quantized = std::round(linear * 255.0) / 255.0;
-    const qreal encoded = quantized <= 0.0031308
-        ? quantized * 12.92
-        : 1.055 * std::pow(quantized, 1.0 / 2.4) - 0.055;
+    const qreal encoded = quantized <= 0.0031308 ? quantized * 12.92 : 1.055 * std::pow(quantized, 1.0 / 2.4) - 0.055;
     return std::clamp(static_cast<int>(std::round(encoded * 255.0)), 0, 255);
   };
-  return QColor(channel(source.red()), channel(source.green()), channel(source.blue()),
-                source.alpha());
+  return QColor(channel(source.red()), channel(source.green()), channel(source.blue()), source.alpha());
 }
 
 qreal pxSize(const QString& s) {
@@ -49,28 +47,26 @@ qreal pxSize(const QString& s) {
 }
 
 bool isAxisAlignedRectangle(const QPainterPath& path) {
-  if (path.elementCount() != 5) return false;
+  if (path.elementCount() != 5)
+    return false;
   const QRectF bounds = path.boundingRect();
   for (int i = 0; i < path.elementCount(); ++i) {
     const auto element = path.elementAt(i);
-    if (element.type == QPainterPath::CurveToElement ||
-        !((element.x == bounds.left() || element.x == bounds.right()) &&
-          (element.y == bounds.top() || element.y == bounds.bottom()))) return false;
+    if (element.type == QPainterPath::CurveToElement || !((element.x == bounds.left() || element.x == bounds.right()) &&
+                                                          (element.y == bounds.top() || element.y == bounds.bottom())))
+      return false;
   }
   return true;
 }
 
-rough::Drawable nodeRoughDrawable(const FlowSceneNode& node,
-                                  const FlowSceneShapePath& item,
+rough::Drawable nodeRoughDrawable(const FlowSceneNode& node, const FlowSceneShapePath& item,
                                   const rough::Options& options) {
   const QRectF bounds = item.path.boundingRect();
   if (isAxisAlignedRectangle(item.path))
     return rough::rectangle(bounds.x(), bounds.y(), bounds.width(), bounds.height(), options);
   if (node.shapeKind == QLatin1String("ellipse") && item.path.elementCount() > 5)
-    return rough::ellipse(bounds.center().x(), bounds.center().y(),
-                          bounds.width(), bounds.height(), options);
-  if (node.shapeKind == QLatin1String("polygon") &&
-      node.shapePaths.size() == 1 && !node.points.isEmpty())
+    return rough::ellipse(bounds.center().x(), bounds.center().y(), bounds.width(), bounds.height(), options);
+  if (node.shapeKind == QLatin1String("polygon") && node.shapePaths.size() == 1 && !node.points.isEmpty())
     return rough::polygon(node.points, options);
   return rough::path(item.path, options);
 }
@@ -86,17 +82,20 @@ struct ParsedPath {
 
 ParsedPath parsePath(const QString& d) {
   ParsedPath p;
-  static const QRegularExpression tok(
-      QStringLiteral("[MmLlCcQqAaZz]|-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?"));
+  static const QRegularExpression tok(QStringLiteral("[MmLlCcQqAaZz]|-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?"));
   auto it = tok.globalMatch(d);
   QVector<QString> tokens;
-  while (it.hasNext()) tokens.append(it.next().captured());
+  while (it.hasNext())
+    tokens.append(it.next().captured());
   QPointF cur, start;
   QPointF lastCtrl;
   char cmd = 0;
   for (int i = 0; i < tokens.size(); ++i) {
     const QString& t = tokens[i];
-    if (t[0].isLetter()) { cmd = t[0].toLatin1(); continue; }
+    if (t[0].isLetter()) {
+      cmd = t[0].toLatin1();
+      continue;
+    }
     auto point = [&](int& j, char c) -> QPointF {
       const qreal x = tokens.at(j++).toDouble();
       const qreal y = tokens.at(j++).toDouble();
@@ -107,73 +106,123 @@ ParsedPath parsePath(const QString& d) {
     // Argument count the pending command consumes; 0 = it takes none (Z) or is no command
     // yet (a leading number). Without an explicit skip the trailing `i = j - 1` left the
     // scan pointer unchanged and an unhandled command looped forever.
-    const int argc = (cmd == 'C' || cmd == 'c') ? 6
-                   : (cmd == 'Q' || cmd == 'q') ? 4
-                   : (cmd == 'A' || cmd == 'a') ? 7
-                   : (cmd == 'M' || cmd == 'm' || cmd == 'L' || cmd == 'l') ? 2 : 0;
+    const int argc = (cmd == 'C' || cmd == 'c')                               ? 6
+                     : (cmd == 'Q' || cmd == 'q')                             ? 4
+                     : (cmd == 'A' || cmd == 'a')                             ? 7
+                     : (cmd == 'M' || cmd == 'm' || cmd == 'L' || cmd == 'l') ? 2
+                                                                              : 0;
     if (argc == 0) {
       continue;
     }
-    if (i + argc > tokens.size()) break;  // truncated path: drop the incomplete tail
+    if (i + argc > tokens.size())
+      break; // truncated path: drop the incomplete tail
     if (cmd == 'M' || cmd == 'm') {
       const QPointF pt = point(j, cmd);
-      if (!p.hasStart) { p.startPoint = pt; p.hasStart = true; start = pt; }
-      cur = pt; p.path.moveTo(pt); cmd = cmd == 'M' ? 'L' : 'l';
+      if (!p.hasStart) {
+        p.startPoint = pt;
+        p.hasStart = true;
+        start = pt;
+      }
+      cur = pt;
+      p.path.moveTo(pt);
+      cmd = cmd == 'M' ? 'L' : 'l';
     } else if (cmd == 'L' || cmd == 'l') {
       const QPointF pt = point(j, cmd);
-      if (!p.hasStart) { p.startPoint = cur; p.hasStart = true; }
+      if (!p.hasStart) {
+        p.startPoint = cur;
+        p.hasStart = true;
+      }
       p.startTangent = p.startTangent.isNull() ? (pt - cur) : p.startTangent;
-      p.endTangent = pt - cur; p.endPoint = pt; p.hasEnd = true;
-      cur = pt; p.path.lineTo(pt);
+      p.endTangent = pt - cur;
+      p.endPoint = pt;
+      p.hasEnd = true;
+      cur = pt;
+      p.path.lineTo(pt);
     } else if (cmd == 'C' || cmd == 'c') {
       const QPointF c1 = point(j, cmd), c2 = point(j, cmd), e = point(j, cmd);
-      if (!p.hasStart) { p.startPoint = cur; p.hasStart = true; }
-      if (p.startTangent.isNull()) p.startTangent = c1 - cur;
-      p.endTangent = e - c2; p.endPoint = e; p.hasEnd = true;
-      lastCtrl = c2; cur = e; p.path.cubicTo(c1, c2, e);
+      if (!p.hasStart) {
+        p.startPoint = cur;
+        p.hasStart = true;
+      }
+      if (p.startTangent.isNull())
+        p.startTangent = c1 - cur;
+      p.endTangent = e - c2;
+      p.endPoint = e;
+      p.hasEnd = true;
+      lastCtrl = c2;
+      cur = e;
+      p.path.cubicTo(c1, c2, e);
     } else if (cmd == 'Q' || cmd == 'q') {
       const QPointF c1 = point(j, cmd), e = point(j, cmd);
-      if (!p.hasStart) { p.startPoint = cur; p.hasStart = true; }
-      if (p.startTangent.isNull()) p.startTangent = c1 - cur;
-      p.endTangent = e - c1; p.endPoint = e; p.hasEnd = true;
-      lastCtrl = c1; cur = e; p.path.quadTo(c1, e);
+      if (!p.hasStart) {
+        p.startPoint = cur;
+        p.hasStart = true;
+      }
+      if (p.startTangent.isNull())
+        p.startTangent = c1 - cur;
+      p.endTangent = e - c1;
+      p.endPoint = e;
+      p.hasEnd = true;
+      lastCtrl = c1;
+      cur = e;
+      p.path.quadTo(c1, e);
     } else if (cmd == 'A' || cmd == 'a') {
       // rx ry xrot large sweep dx dy — approximate with a line (rare in flowchart edges).
-      j += 5;  // rx ry xrot large sweep
+      j += 5; // rx ry xrot large sweep
       const QPointF e = point(j, cmd);
-      if (!p.hasStart) { p.startPoint = cur; p.hasStart = true; }
-      p.endTangent = e - cur; p.endPoint = e; p.hasEnd = true;
-      cur = e; p.path.lineTo(e);
+      if (!p.hasStart) {
+        p.startPoint = cur;
+        p.hasStart = true;
+      }
+      p.endTangent = e - cur;
+      p.endPoint = e;
+      p.hasEnd = true;
+      cur = e;
+      p.path.lineTo(e);
     }
     i = j - 1;
   }
-  if (p.hasStart && p.startTangent.isNull() && p.hasEnd) p.startTangent = p.endTangent;
+  if (p.hasStart && p.startTangent.isNull() && p.hasEnd)
+    p.startTangent = p.endTangent;
   return p;
 }
 
-void drawMarker(QPainter& painter, const QString& type, const QPointF& at,
-                const QPointF& tangent, const QColor& color) {
-  if (type.isEmpty() || tangent.isNull()) return;
+void drawMarker(QPainter& painter, const QString& type, const QPointF& at, const QPointF& tangent,
+                const QColor& color) {
+  if (type.isEmpty() || tangent.isNull())
+    return;
   const MarkerGeometry g = markerGeometry(type);
-  if (g.tag.isEmpty()) return;
+  if (g.tag.isEmpty())
+    return;
   painter.save();
   scene::applyMarkerTransform(painter, at, scene::tangentAngleDeg(tangent), g.refX, g.refY);
-  QPen pen(color); pen.setWidthF(1.0); pen.setCapStyle(Qt::RoundCap);
+  QPen pen(color);
+  pen.setWidthF(1.0);
+  pen.setCapStyle(Qt::RoundCap);
   painter.setPen(pen);
   if (g.tag == QLatin1String("path") && type.contains(QLatin1String("point"))) {
-    painter.setBrush(color); painter.setPen(Qt::NoPen);
-    QPainterPath mp; mp.moveTo(0, 0); mp.lineTo(g.markerWidth, g.markerHeight / 2.0);
-    mp.lineTo(0, g.markerHeight); mp.closeSubpath();
+    painter.setBrush(color);
+    painter.setPen(Qt::NoPen);
+    QPainterPath mp;
+    mp.moveTo(0, 0);
+    mp.lineTo(g.markerWidth, g.markerHeight / 2.0);
+    mp.lineTo(0, g.markerHeight);
+    mp.closeSubpath();
     // Use the actual pathData via a sub-parse if simple; the triangle above matches pointEnd.
     painter.drawPath(mp);
   } else if (g.tag == QLatin1String("circle")) {
-    painter.setBrush(Qt::NoBrush); painter.setPen(pen);
+    painter.setBrush(Qt::NoBrush);
+    painter.setPen(pen);
     painter.drawEllipse(QPointF(g.cx, g.cy), g.r, g.r);
   } else if (g.tag == QLatin1String("path")) {
     // cross: stroke the X
-    painter.setBrush(Qt::NoBrush); painter.setPen(pen);
-    QPainterPath mp; mp.moveTo(1, 1); mp.lineTo(10, 10);
-    mp.moveTo(10, 1); mp.lineTo(1, 10);
+    painter.setBrush(Qt::NoBrush);
+    painter.setPen(pen);
+    QPainterPath mp;
+    mp.moveTo(1, 1);
+    mp.lineTo(10, 10);
+    mp.moveTo(10, 1);
+    mp.lineTo(1, 10);
     painter.drawPath(mp);
   }
   painter.restore();
@@ -200,22 +249,21 @@ QFont labelFont(const FlowSceneLabel& label, const QString& fontFamily) {
   return font;
 }
 
-void drawLabel(QPainter& painter, const FlowSceneLabel& label, const QRectF& rect,
-               const QString& fontFamily, bool center, PaintMode mode) {
-  if (label.text.isEmpty() || !label.visible) return;
+void drawLabel(QPainter& painter, const FlowSceneLabel& label, const QRectF& rect, const QString& fontFamily,
+               bool center, PaintMode mode) {
+  if (label.text.isEmpty() || !label.visible)
+    return;
   const QFont font = labelFont(label, fontFamily);
   const qreal lineHeight = textFontPixelSize(font) * 1.5;
   const QColor color = mode == PaintMode::CategoryMask
                            ? QColor(kCatText)
-                           : qcolor(label.color.isEmpty() ? QStringLiteral("#333333")
-                                                          : label.color);
-  flowchart::paintFlowLabel(painter, label.richText, rect, font.family(), textFontPixelSize(font),
-                            lineHeight, color, center);
+                           : qcolor(label.color.isEmpty() ? QStringLiteral("#333333") : label.color);
+  flowchart::paintFlowLabel(painter, label.richText, rect, font.family(), textFontPixelSize(font), lineHeight, color,
+                            center);
 }
 
-void drawNodeShape(QPainter& painter, const FlowSceneNode& n, QRectF r,
-                   const QPointF& offset = {}, bool forceSilhouette = false,
-                   bool categoryMask = false, bool handDrawn = false,
+void drawNodeShape(QPainter& painter, const FlowSceneNode& n, QRectF r, const QPointF& offset = {},
+                   bool forceSilhouette = false, bool categoryMask = false, bool handDrawn = false,
                    quint32 handDrawnSeed = 0) {
   r.translate(offset);
   if (!n.shapePaths.isEmpty()) {
@@ -240,7 +288,8 @@ void drawNodeShape(QPainter& painter, const FlowSceneNode& n, QRectF r,
           painter.setPen(silhouette);
         } else {
           QPen itemPen = strokePen;
-          if (!item.strokeOverride.isEmpty()) itemPen.setColor(qcolor(item.strokeOverride));
+          if (!item.strokeOverride.isEmpty())
+            itemPen.setColor(qcolor(item.strokeOverride));
           painter.setPen(itemPen);
         }
       } else {
@@ -257,16 +306,15 @@ void drawNodeShape(QPainter& painter, const FlowSceneNode& n, QRectF r,
         options.fillWeight = 4.0;
         options.hachureGap = 5.2;
         QPen roughStroke = strokePen;
-        if (!item.strokeOverride.isEmpty()) roughStroke.setColor(qcolor(item.strokeOverride));
+        if (!item.strokeOverride.isEmpty())
+          roughStroke.setColor(qcolor(item.strokeOverride));
         if (categoryMask)
-          roughStroke = QPen(QColor(kCatBoundary),
-                             std::max<qreal>(5.0, options.strokeWidth + 4.0));
+          roughStroke = QPen(QColor(kCatBoundary), std::max<qreal>(5.0, options.strokeWidth + 4.0));
         QPen fillSketch(categoryMask ? QColor(kCatBoundary) : itemBrush.color());
         fillSketch.setWidthF(categoryMask ? 4.0 : options.fillWeight);
-        const rough::Drawable drawable = itemIndex < n.roughDrawables.size()
-            ? n.roughDrawables.at(itemIndex) : nodeRoughDrawable(n, item, options);
-        rough::drawRoughDrawable(painter, drawable, itemBrush,
-                                 roughStroke, fillSketch);
+        const rough::Drawable drawable =
+            itemIndex < n.roughDrawables.size() ? n.roughDrawables.at(itemIndex) : nodeRoughDrawable(n, item, options);
+        rough::drawRoughDrawable(painter, drawable, itemBrush, roughStroke, fillSketch);
       } else {
         painter.drawPath(item.path);
       }
@@ -276,8 +324,7 @@ void drawNodeShape(QPainter& painter, const FlowSceneNode& n, QRectF r,
   }
 }
 
-void drawNeoShadow(QPainter& painter, const FlowSceneNode& node, const QRectF& bounds,
-                   const FlowScene& scene) {
+void drawNeoShadow(QPainter& painter, const FlowSceneNode& node, const QRectF& bounds, const FlowScene& scene) {
   // SVG/CSS: drop-shadow(0px 1px 2px rgba(0,0,0,.25)). A normalized discrete
   // Gaussian gives stable results on every QPainter backend while preserving
   // the source alpha silhouette used by CSS drop-shadow.
@@ -298,8 +345,7 @@ void drawNeoShadow(QPainter& painter, const FlowSceneNode& node, const QRectF& b
       QColor shadow = qcolor(scene.shadowColor);
       shadow.setAlphaF(scene.shadowOpacity * weights[y + radius][x + radius] / sum);
       painter.setBrush(shadow);
-      drawNodeShape(painter, node, bounds,
-                    QPointF(x + scene.shadowOffsetX, y + scene.shadowOffsetY), true);
+      drawNodeShape(painter, node, bounds, QPointF(x + scene.shadowOffsetX, y + scene.shadowOffsetY), true);
     }
   }
 }
@@ -312,10 +358,9 @@ void drawNeoShadowMask(QPainter& painter, const FlowSceneNode& node, const QRect
       drawNodeShape(painter, node, bounds, QPointF(x, y + 1), true);
 }
 
-}  // namespace
+} // namespace
 
-void paintFlowScene(const FlowScene& scene, QPainter& painter,
-                    const QString& fontFamily, PaintMode mode,
+void paintFlowScene(const FlowScene& scene, QPainter& painter, const QString& fontFamily, PaintMode mode,
                     const MermaidPaintOptions& options) {
   // mermaid's flowchart SVG has no background rect (transparent where there is
   // no shape); the painter matches that. scene.background is kept in the scene
@@ -335,30 +380,30 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
 
   // Clusters (drawn first).
   for (const FlowSceneCluster& c : scene.clusters) {
-    if (!c.visible) continue;
+    if (!c.visible)
+      continue;
     const QRectF r(c.cx - c.width / 2.0, c.cy - c.height / 2.0, c.width, c.height);
-    if (!mermaidPrimitiveIsVisible(r, options)) continue;
+    if (!mermaidPrimitiveIsVisible(r, options))
+      continue;
     if (scene.look == flowchart::FlowLook::Neo && !c.swimlane) {
       painter.setPen(Qt::NoPen);
       for (int y = -4; y <= 4; ++y) {
         for (int x = -4; x <= 4; ++x) {
           const qreal weight = std::exp(-(x * x + y * y) / 8.0);
-          QColor shadow = mode == PaintMode::Color ? qcolor(scene.shadowColor)
-                                                    : QColor(kCatShadow);
-          if (mode == PaintMode::Color) shadow.setAlphaF(scene.shadowOpacity * weight / 23.9907);
+          QColor shadow = mode == PaintMode::Color ? qcolor(scene.shadowColor) : QColor(kCatShadow);
+          if (mode == PaintMode::Color)
+            shadow.setAlphaF(scene.shadowOpacity * weight / 23.9907);
           painter.setBrush(shadow);
-          painter.drawRect(r.translated(x + scene.shadowOffsetX,
-                                        y + scene.shadowOffsetY));
+          painter.drawRect(r.translated(x + scene.shadowOffsetX, y + scene.shadowOffsetY));
         }
       }
     }
     QColor clusterFill = paletteColor(c.fill, kCatCluster);
-    if (mode == PaintMode::Color && scene.look == flowchart::FlowLook::Neo &&
-        !c.swimlane &&
-        !scene.useGradient)
+    if (mode == PaintMode::Color && scene.look == flowchart::FlowLook::Neo && !c.swimlane && !scene.useGradient)
       clusterFill = svgFilterQuantizedColor(clusterFill);
     painter.setBrush(clusterFill);
-    QPen pen(paletteColor(c.stroke, kCatCluster)); pen.setWidthF(pxSize(c.strokeWidth));
+    QPen pen(paletteColor(c.stroke, kCatCluster));
+    pen.setWidthF(pxSize(c.strokeWidth));
     if (mode == PaintMode::Color && scene.useGradient && !c.swimlane) {
       QLinearGradient gradient(r.left(), 0.0, r.right(), 0.0);
       gradient.setColorAt(0.0, qcolor(scene.gradientStart));
@@ -367,24 +412,17 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
     }
     painter.setPen(pen);
     if (c.swimlane) {
-      const qreal band = std::clamp(c.titleBandSize, 0.0,
-                                    c.titleOnLeft ? r.width() : r.height());
-      const QRectF titleRect = c.titleOnLeft
-          ? QRectF(r.left(), r.top(), band, r.height())
-          : QRectF(r.left(), r.top(), r.width(), band);
-      const QRectF bodyRect = c.titleOnLeft
-          ? QRectF(r.left() + band, r.top(), std::max<qreal>(0.0, r.width() - band), r.height())
-          : QRectF(r.left(), r.top() + band, r.width(), std::max<qreal>(0.0, r.height() - band));
+      const qreal band = std::clamp(c.titleBandSize, 0.0, c.titleOnLeft ? r.width() : r.height());
+      const QRectF titleRect =
+          c.titleOnLeft ? QRectF(r.left(), r.top(), band, r.height()) : QRectF(r.left(), r.top(), r.width(), band);
+      const QRectF bodyRect =
+          c.titleOnLeft ? QRectF(r.left() + band, r.top(), std::max<qreal>(0.0, r.width() - band), r.height())
+                        : QRectF(r.left(), r.top() + band, r.width(), std::max<qreal>(0.0, r.height() - band));
       if (scene.look == flowchart::FlowLook::HandDrawn) {
-        QPen hachurePen(mode == PaintMode::CategoryMask ? QColor(kCatBoundary)
-                                                         : clusterFill);
+        QPen hachurePen(mode == PaintMode::CategoryMask ? QColor(kCatBoundary) : clusterFill);
         hachurePen.setWidthF(mode == PaintMode::CategoryMask ? 4.0 : 3.0);
-        rough::drawRoughDrawable(
-            painter, c.roughTitle,
-            clusterFill, pen, hachurePen);
-        rough::drawRoughDrawable(
-            painter, c.roughBody,
-            Qt::NoBrush, pen, Qt::NoPen);
+        rough::drawRoughDrawable(painter, c.roughTitle, clusterFill, pen, hachurePen);
+        rough::drawRoughDrawable(painter, c.roughBody, Qt::NoBrush, pen, Qt::NoPen);
       } else {
         if (c.swimlaneTitleVisible) {
           painter.setBrush(paletteColor(c.swimlaneTitleFill, kCatCluster));
@@ -406,8 +444,8 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
           painter.save();
           painter.translate(titleRect.center());
           painter.rotate(-90.0);
-          const QRectF labelRect(-titleRect.height() / 2.0, -titleRect.width() / 2.0,
-                                 titleRect.height(), titleRect.width());
+          const QRectF labelRect(-titleRect.height() / 2.0, -titleRect.width() / 2.0, titleRect.height(),
+                                 titleRect.width());
           drawLabel(painter, c.label, labelRect, fontFamily, true, mode);
           painter.restore();
         } else {
@@ -424,33 +462,31 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
       roughOptions.fill = QStringLiteral("#000");
       roughOptions.fillWeight = 3.0;
       roughOptions.hachureGap = 5.2;
-      QPen hachurePen(mode == PaintMode::CategoryMask ? QColor(kCatBoundary)
-                                                       : clusterFill);
-      hachurePen.setWidthF(mode == PaintMode::CategoryMask ? 4.0
-                                                           : pxSize(c.strokeWidth));
+      QPen hachurePen(mode == PaintMode::CategoryMask ? QColor(kCatBoundary) : clusterFill);
+      hachurePen.setWidthF(mode == PaintMode::CategoryMask ? 4.0 : pxSize(c.strokeWidth));
       if (mode == PaintMode::CategoryMask)
         pen.setWidthF(std::max<qreal>(5.0, pen.widthF() + 4.0));
       QPainterPath clusterPath;
       clusterPath.addRect(r);
-      rough::drawRoughDrawable(painter, rough::path(clusterPath, roughOptions),
-                               clusterFill, pen, hachurePen);
+      rough::drawRoughDrawable(painter, rough::path(clusterPath, roughOptions), clusterFill, pen, hachurePen);
     } else {
       painter.drawRoundedRect(r, 0, 0);
     }
     if (!c.label.text.isEmpty()) {
-      QRectF lr(r.left() + 4, r.top() + c.titleTopMargin + 2,
-                c.width - 8, 20);
+      QRectF lr(r.left() + 4, r.top() + c.titleTopMargin + 2, c.width - 8, 20);
       drawLabel(painter, c.label, lr, fontFamily, false, mode);
     }
   }
 
   // Edges (drawn second).
   for (const FlowSceneEdge& e : scene.edges) {
-    if (!e.visible) continue;
+    if (!e.visible)
+      continue;
     const QRectF pathBounds = e.pathBounds.isValid() ? e.pathBounds : scene.bounds;
     if (mermaidPrimitiveIsVisible(pathBounds, options)) {
       const ParsedPath pp = parsePath(e.path);
-      QPen pen(paletteColor(e.stroke, kCatEdge)); pen.setWidthF(pxSize(e.strokeWidth));
+      QPen pen(paletteColor(e.stroke, kCatEdge));
+      pen.setWidthF(pxSize(e.strokeWidth));
       if (e.animated) {
         // Mermaid 11.16.0 uses stroke-dasharray 9,5 and animates
         // stroke-dashoffset from 900 to 0 over 20s (fast) or 50s (slow).
@@ -458,8 +494,8 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
         const qreal width = std::max<qreal>(0.001, pen.widthF());
         pen.setDashPattern({9.0 / width, 5.0 / width});
         const qreal duration = e.animation == QLatin1String("slow") ? 50.0 : 20.0;
-        const qreal elapsed = options.animationTimeSeconds < 0.0
-            ? 0.0 : std::fmod(options.animationTimeSeconds, duration);
+        const qreal elapsed =
+            options.animationTimeSeconds < 0.0 ? 0.0 : std::fmod(options.animationTimeSeconds, duration);
         const qreal offset = 900.0 * (1.0 - elapsed / duration);
         pen.setDashOffset(offset / width);
       } else if (!e.strokeDasharray.isEmpty()) {
@@ -470,11 +506,13 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
         // hand-rolled parse never divided by the width, doubling the rendered
         // period for stroke-width != 1 (e.g. linkStyle stroke-width:3px with
         // dasharray 6 painted 18px dashes).
-        const QVector<qreal> dash = scene::parseAndNormalizeSvgDashPattern(
-            e.strokeDasharray, std::max<qreal>(0.001, pen.widthF()));
-        if (!dash.isEmpty()) pen.setDashPattern(dash);
+        const QVector<qreal> dash =
+            scene::parseAndNormalizeSvgDashPattern(e.strokeDasharray, std::max<qreal>(0.001, pen.widthF()));
+        if (!dash.isEmpty())
+          pen.setDashPattern(dash);
       }
-      pen.setCapStyle(Qt::RoundCap); pen.setJoinStyle(Qt::RoundJoin);
+      pen.setCapStyle(Qt::RoundCap);
+      pen.setJoinStyle(Qt::RoundJoin);
       if (scene.look == flowchart::FlowLook::HandDrawn) {
         if (mode == PaintMode::CategoryMask)
           pen.setWidthF(std::max<qreal>(5.0, pen.widthF() + 4.0));
@@ -482,17 +520,18 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
         roughOptions.seed = scene.handDrawnSeed;
         roughOptions.roughness = 0.3;
         roughOptions.strokeWidth = pxSize(e.strokeWidth);
-        const rough::Drawable drawable = e.roughDrawable.sets.isEmpty()
-            ? rough::path(pp.path, roughOptions) : e.roughDrawable;
-        rough::drawRoughDrawable(painter, drawable, Qt::NoBrush,
-                                 pen, Qt::NoPen);
+        const rough::Drawable drawable =
+            e.roughDrawable.sets.isEmpty() ? rough::path(pp.path, roughOptions) : e.roughDrawable;
+        rough::drawRoughDrawable(painter, drawable, Qt::NoBrush, pen, Qt::NoPen);
       } else {
-        painter.setPen(pen); painter.setBrush(Qt::NoBrush);
+        painter.setPen(pen);
+        painter.setBrush(Qt::NoBrush);
         painter.drawPath(pp.path);
       }
       if (options.paintEdgeMarkers) {
         const QColor mc = paletteColor(e.stroke, kCatEdge);
-        if (!e.markerEnd.isEmpty()) drawMarker(painter, e.markerEnd, pp.endPoint, pp.endTangent, mc);
+        if (!e.markerEnd.isEmpty())
+          drawMarker(painter, e.markerEnd, pp.endPoint, pp.endTangent, mc);
         if (!e.markerStart.isEmpty()) {
           QPointF t = pp.startTangent;
           drawMarker(painter, e.markerStart, pp.startPoint, QPointF(-t.x(), -t.y()), mc);
@@ -502,13 +541,12 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
     // Edge label.
     if (!e.label.text.isEmpty()) {
       const QSizeF measured = e.labelSize;
-      const QRectF lr(e.label.x - measured.width() / 2.0,
-                      e.label.y - measured.height() / 2.0,
-                      measured.width(), measured.height());
-      if (!mermaidPrimitiveIsVisible(
-              e.labelBounds.isValid() ? e.labelBounds : lr, options))
+      const QRectF lr(e.label.x - measured.width() / 2.0, e.label.y - measured.height() / 2.0, measured.width(),
+                      measured.height());
+      if (!mermaidPrimitiveIsVisible(e.labelBounds.isValid() ? e.labelBounds : lr, options))
         continue;
-      painter.setPen(Qt::NoPen); painter.setBrush(paletteColor(e.label.background, kCatEdgeLabelBg));
+      painter.setPen(Qt::NoPen);
+      painter.setBrush(paletteColor(e.label.background, kCatEdgeLabelBg));
       painter.drawRoundedRect(lr, 2, 2);
       drawLabel(painter, e.label, lr, fontFamily, true, mode);
     }
@@ -516,7 +554,8 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
 
   // Nodes (drawn last).
   for (const FlowSceneNode& n : scene.nodes) {
-    if (!n.visible) continue;
+    if (!n.visible)
+      continue;
     const QRectF r(n.cx - n.width / 2.0, n.cy - n.height / 2.0, n.width, n.height);
     QRectF paintBounds = r;
     if (!n.label.text.isEmpty()) {
@@ -524,19 +563,22 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
       labelBounds.translate(n.label.x - n.cx, n.label.y - n.cy);
       paintBounds = paintBounds.united(labelBounds);
     }
-    if (!mermaidPrimitiveIsVisible(paintBounds, options)) continue;
+    if (!mermaidPrimitiveIsVisible(paintBounds, options))
+      continue;
     if (scene.look == flowchart::FlowLook::Neo) {
-      if (mode == PaintMode::Color) drawNeoShadow(painter, n, r, scene);
-      else drawNeoShadowMask(painter, n, r);
+      if (mode == PaintMode::Color)
+        drawNeoShadow(painter, n, r, scene);
+      else
+        drawNeoShadowMask(painter, n, r);
     }
     QColor nodeFill = paletteColor(n.fill, kCatNode);
-    if (mode == PaintMode::Color && scene.look == flowchart::FlowLook::Neo &&
-        !scene.useGradient)
+    if (mode == PaintMode::Color && scene.look == flowchart::FlowLook::Neo && !scene.useGradient)
       nodeFill = svgFilterQuantizedColor(nodeFill);
     painter.setBrush(nodeFill);
-    QPen pen(paletteColor(n.stroke, kCatNode)); pen.setWidthF(pxSize(n.strokeWidth));
-    if (mode == PaintMode::Color && scene.useGradient &&
-        !scene.gradientStart.isEmpty() && !scene.gradientStop.isEmpty()) {
+    QPen pen(paletteColor(n.stroke, kCatNode));
+    pen.setWidthF(pxSize(n.strokeWidth));
+    if (mode == PaintMode::Color && scene.useGradient && !scene.gradientStart.isEmpty() &&
+        !scene.gradientStop.isEmpty()) {
       const qreal gradientLeft = n.shapePaths.isEmpty() ? r.left() : -n.width / 2.0;
       const qreal gradientRight = n.shapePaths.isEmpty() ? r.right() : n.width / 2.0;
       QLinearGradient gradient(gradientLeft, 0.0, gradientRight, 0.0);
@@ -546,8 +588,7 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
     }
     painter.setPen(pen);
     drawNodeShape(painter, n, r, {}, false, mode == PaintMode::CategoryMask,
-                  scene.look == flowchart::FlowLook::HandDrawn,
-                  scene.handDrawnSeed);
+                  scene.look == flowchart::FlowLook::HandDrawn, scene.handDrawnSeed);
     // Node label centered.
     if (!n.label.text.isEmpty()) {
       QRectF labelRect = r;
@@ -575,8 +616,7 @@ QImage renderFlowSceneToImage(const FlowScene& scene, qreal dpr, qreal padding, 
 }
 
 void FlowScene::paint(QPainter& painter, const MermaidPaintOptions& options) const {
-  paintFlowScene(*this, painter, MermaidFontRegistry::primaryFamily(),
-                 PaintMode::Color, options);
+  paintFlowScene(*this, painter, MermaidFontRegistry::primaryFamily(), PaintMode::Color, options);
 }
 
-}  // namespace muffin::mermaid::flowscene
+} // namespace muffin::mermaid::flowscene

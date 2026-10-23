@@ -63,7 +63,7 @@ protected:
         if (window_) {
           open(path);
         } else {
-          pending_ = path;  // arrived before the window existed — replay later
+          pending_ = path; // arrived before the window existed — replay later
         }
       }
       return true;
@@ -85,7 +85,7 @@ private:
   QString pending_;
 };
 
-}  // namespace
+} // namespace
 
 namespace {
 
@@ -129,16 +129,15 @@ void installPerfFileLogger() {
   qInstallMessageHandler(muffinMessageHandler);
 }
 
-}  // namespace
+} // namespace
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   installPerfFileLogger();
 
   // Qt 6 defaults to PassThrough (fractional) scaling and Per-Monitor V2 DPI
   // awareness. Set it explicitly so a stray env var or qt.conf can't silently
   // change it and reintroduce blurry chrome.
-  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
-      Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
   QApplication app(argc, argv);
   QApplication::setApplicationName("Muffin");
@@ -172,21 +171,19 @@ int main(int argc, char *argv[]) {
   app.installEventFilter(&fileOpenForwarder);
 
   QCommandLineParser parser;
-  parser.setApplicationDescription(QCoreApplication::translate(
-      "main",
-      "A fast, lightweight, native Markdown editor built with C++ and Qt 6."));
+  parser.setApplicationDescription(
+      QCoreApplication::translate("main", "A fast, lightweight, native Markdown editor built with C++ and Qt 6."));
   parser.addHelpOption();
   parser.addVersionOption();
   // --folder <path> is the form used by the Explorer "Open with Muffin" verb
   // for directories and folder backgrounds (it passes %1 / %V). A positional
   // directory argument is treated the same way for ergonomic command-line use.
   const QCommandLineOption folderOption(
-      QStringLiteral("folder"),
-      QCoreApplication::translate("main", "Open <folder> in the sidebar file browser."), QStringLiteral("folder"));
+      QStringLiteral("folder"), QCoreApplication::translate("main", "Open <folder> in the sidebar file browser."),
+      QStringLiteral("folder"));
   parser.addOption(folderOption);
-  parser.addPositionalArgument(
-      QStringLiteral("file"),
-      QCoreApplication::translate("main", "Markdown or text file (or folder) to open."));
+  parser.addPositionalArgument(QStringLiteral("file"),
+                               QCoreApplication::translate("main", "Markdown or text file (or folder) to open."));
   parser.process(app);
 
   muffin::MainWindow window;
@@ -224,10 +221,8 @@ int main(int argc, char *argv[]) {
     muffin::WindowsIntegration::clearPromptForDefault();
     const auto answer = QMessageBox::question(
         &window, QCoreApplication::translate("main", "Default Markdown editor"),
-        QCoreApplication::translate(
-            "main",
-            "Muffin is registered as an editor for Markdown files.\n"
-            "Make it your default editor now?"),
+        QCoreApplication::translate("main", "Muffin is registered as an editor for Markdown files.\n"
+                                            "Make it your default editor now?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if (answer == QMessageBox::Yes) {
       muffin::WindowsIntegration::openDefaultAppsSettings();

@@ -69,11 +69,10 @@ bool sameSelectionRange(const SelectionRange& a, const SelectionRange& b) {
 // Image extensions whose drop inserts an inline ![alt](path) rather than a [name](path)
 // link. Shared by the file-tree-drop and external-image-drop paths.
 bool isImageSuffix(QStringView suffix) {
-  static const QSet<QString> kImageSuffixes = {
-      QStringLiteral("png"), QStringLiteral("jpg"), QStringLiteral("jpeg"),
-      QStringLiteral("gif"), QStringLiteral("svg"), QStringLiteral("webp"),
-      QStringLiteral("bmp"), QStringLiteral("ico"), QStringLiteral("tiff"),
-      QStringLiteral("tif")};
+  static const QSet<QString> kImageSuffixes = {QStringLiteral("png"), QStringLiteral("jpg"), QStringLiteral("jpeg"),
+                                               QStringLiteral("gif"), QStringLiteral("svg"), QStringLiteral("webp"),
+                                               QStringLiteral("bmp"), QStringLiteral("ico"), QStringLiteral("tiff"),
+                                               QStringLiteral("tif")};
   return kImageSuffixes.contains(suffix.toString().toLower());
 }
 
@@ -81,7 +80,7 @@ struct PerfTimer : diag::ScopedPerfProbe {
   explicit PerfTimer(const char* label) : diag::ScopedPerfProbe(label, viewPerf()) {}
 };
 
-}  // namespace
+} // namespace
 
 EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(std::make_unique<DocumentLayout>()) {
   setFrameShape(QFrame::NoFrame);
@@ -94,7 +93,8 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
   viewport()->setAutoFillBackground(false);
   syncViewportBackground();
   layout_->setMermaidRenderCache(&mermaidCache_);
-  connect(&LayoutResources::instance(), &LayoutResources::resourceChanged, this, [this](const QString&) { queueResourceRefresh(); });
+  connect(&LayoutResources::instance(), &LayoutResources::resourceChanged, this,
+          [this](const QString&) { queueResourceRefresh(); });
   // Enable external drag-and-drop. acceptDrops defaults to false, so without
   // this the overridden drag*/dropEvent handlers are never delivered and drops
   // of folders/.md/.txt/images onto the window are silently ignored. The
@@ -111,15 +111,15 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
   connect(cssPaintTimer_, &QTimer::timeout, this, [this] { diag::updateViewport(viewport()); });
   mermaidAnimationTimer_ = new QTimer(this);
   mermaidAnimationTimer_->setInterval(33);
-  QObject::connect(mermaidAnimationTimer_, &QTimer::timeout, this,
-                   [this] { repaintAnimatedMermaidBlocks(); });
+  QObject::connect(mermaidAnimationTimer_, &QTimer::timeout, this, [this] { repaintAnimatedMermaidBlocks(); });
   // Idle-gated spinner driver: runs only while loading_ (set by setLoading), advancing the
   // bright wave around the dot ring and repainting. Costs nothing on a loaded document.
   loadingTimer_ = new QTimer(this);
-  loadingTimer_->setInterval(33);  // ~30 fps — smooth for a flowing dot ring
+  loadingTimer_->setInterval(33); // ~30 fps — smooth for a flowing dot ring
   QObject::connect(loadingTimer_, &QTimer::timeout, this, [this] {
-    loadingPhase_ += 1.0 / 36.0;  // ~1.2 s per revolution at 30 fps
-    if (loadingPhase_ >= 1.0) loadingPhase_ -= 1.0;
+    loadingPhase_ += 1.0 / 36.0; // ~1.2 s per revolution at 30 fps
+    if (loadingPhase_ >= 1.0)
+      loadingPhase_ -= 1.0;
     diag::updateViewport(viewport());
   });
   // Caret blink, unified with the source editor's cadence (cursorFlashTime/2). The timer only
@@ -147,10 +147,9 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
     }
     constexpr qreal kEdgeMargin = 16.0;
     const qreal height = static_cast<qreal>(viewport()->height());
-    const qreal overshoot =
-        lastDragViewportPos_.y() < height / 2.0
-            ? qMax(0.0, kEdgeMargin - lastDragViewportPos_.y())
-            : qMax(0.0, lastDragViewportPos_.y() - (height - kEdgeMargin));
+    const qreal overshoot = lastDragViewportPos_.y() < height / 2.0
+                                ? qMax(0.0, kEdgeMargin - lastDragViewportPos_.y())
+                                : qMax(0.0, lastDragViewportPos_.y() - (height - kEdgeMargin));
     if (overshoot <= 0.0) {
       dragScrollTimer_->stop();
       return;
@@ -160,49 +159,25 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
     verticalScrollBar()->setValue(static_cast<int>(qRound(verticalScrollBar()->value() + direction * step)));
     // Hit-test at the clamped edge: hitTest interprets viewport coordinates, so the selection
     // extends to whatever now sits at the edge.
-    const QPointF clamped(
-        qBound<qreal>(0.0, lastDragViewportPos_.x(), static_cast<qreal>(viewport()->width())),
-        qBound<qreal>(0.0, lastDragViewportPos_.y(), height));
+    const QPointF clamped(qBound<qreal>(0.0, lastDragViewportPos_.x(), static_cast<qreal>(viewport()->width())),
+                          qBound<qreal>(0.0, lastDragViewportPos_.y(), height));
     updateDragSelection(clamped);
   });
 
   codeLanguageEditor_ = new CodeLanguageEditor(viewport(), this);
   codeLanguageEditor_->setSuggestions({
-      QStringLiteral("bash"),
-      QStringLiteral("c"),
-      QStringLiteral("cpp"),
-      QStringLiteral("csharp"),
-      QStringLiteral("css"),
-      QStringLiteral("go"),
-      QStringLiteral("html"),
-      QStringLiteral("ini"),
-      QStringLiteral("java"),
-      QStringLiteral("javascript"),
-      QStringLiteral("json"),
-      QStringLiteral("kotlin"),
-      QStringLiteral("lua"),
-      QStringLiteral("markdown"),
-      QStringLiteral("mermaid"),
-      QStringLiteral("objective-c"),
-      QStringLiteral("pascal"),
-      QStringLiteral("pegjs"),
-      QStringLiteral("perl"),
-      QStringLiteral("perl6"),
-      QStringLiteral("pgp"),
-      QStringLiteral("php"),
-      QStringLiteral("powershell"),
-      QStringLiteral("python"),
-      QStringLiteral("qml"),
-      QStringLiteral("r"),
-      QStringLiteral("ruby"),
-      QStringLiteral("rust"),
-      QStringLiteral("sql"),
-      QStringLiteral("swift"),
-      QStringLiteral("text"),
-      QStringLiteral("toml"),
-      QStringLiteral("typescript"),
-      QStringLiteral("xml"),
-      QStringLiteral("yaml"),
+      QStringLiteral("bash"),        QStringLiteral("c"),          QStringLiteral("cpp"),
+      QStringLiteral("csharp"),      QStringLiteral("css"),        QStringLiteral("go"),
+      QStringLiteral("html"),        QStringLiteral("ini"),        QStringLiteral("java"),
+      QStringLiteral("javascript"),  QStringLiteral("json"),       QStringLiteral("kotlin"),
+      QStringLiteral("lua"),         QStringLiteral("markdown"),   QStringLiteral("mermaid"),
+      QStringLiteral("objective-c"), QStringLiteral("pascal"),     QStringLiteral("pegjs"),
+      QStringLiteral("perl"),        QStringLiteral("perl6"),      QStringLiteral("pgp"),
+      QStringLiteral("php"),         QStringLiteral("powershell"), QStringLiteral("python"),
+      QStringLiteral("qml"),         QStringLiteral("r"),          QStringLiteral("ruby"),
+      QStringLiteral("rust"),        QStringLiteral("sql"),        QStringLiteral("swift"),
+      QStringLiteral("text"),        QStringLiteral("toml"),       QStringLiteral("typescript"),
+      QStringLiteral("xml"),         QStringLiteral("yaml"),
   });
   connect(codeLanguageEditor_, &CodeLanguageEditor::languageCommitted, this, &EditorView::codeLanguageCommitted);
 
@@ -217,9 +192,7 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
     updateCodeLanguageEditor();
     updateTableToolbar();
   });
-  connect(verticalScrollBar(), &QScrollBar::sliderPressed, this, [this] {
-    stopScrollAnimation();
-  });
+  connect(verticalScrollBar(), &QScrollBar::sliderPressed, this, [this] { stopScrollAnimation(); });
 
   viewportEstimateTimer_ = new QTimer(this);
   viewportEstimateTimer_->setObjectName(QStringLiteral("viewportEstimates"));
@@ -237,7 +210,8 @@ void EditorView::queueResourceRefresh() {
 }
 
 void EditorView::scheduleResourceRefresh() {
-  if (!resourcesDirty_ || resourceRefreshQueued_ || !isVisible() || loading_ || !document_ || !layout_) return;
+  if (!resourcesDirty_ || resourceRefreshQueued_ || !isVisible() || loading_ || !document_ || !layout_)
+    return;
   resourceRefreshQueued_ = true;
   // Show must not synchronously rebuild the old theme: QStackedWidget shows a
   // page before currentChanged lets its owner install the deferred snapshot.
@@ -249,7 +223,8 @@ void EditorView::scheduleResourceRefresh() {
 }
 
 void EditorView::refreshPendingResources() {
-  if (!resourcesDirty_ || !isVisible() || loading_ || !document_ || !layout_) return;
+  if (!resourcesDirty_ || !isVisible() || loading_ || !document_ || !layout_)
+    return;
   PerfTimer perf("view.refreshResources");
   // A resource can finish while rebuilding (e.g. first diagram/font use). Clear
   // before work so a new notification survives and schedules another pass.
@@ -260,7 +235,8 @@ void EditorView::refreshPendingResources() {
     ScopedViewportPin pin(*this);
     result = layout_->refreshResources(theme_, selection_);
   }
-  if (!result.updatedBlocks) return;
+  if (!result.updatedBlocks)
+    return;
   blockBuiltAt_.clear();
   updateCursorHitFromPosition();
   updateTableToolbar();
@@ -283,7 +259,7 @@ void EditorView::setDocument(const MarkdownDocument& document, QString documentP
   }
   document_ = &document;
   documentPath_ = std::move(documentPath);
-  blockBuiltAt_.clear();  // fresh document: every block's build stamp is stale
+  blockBuiltAt_.clear(); // fresh document: every block's build stamp is stale
   rebuildLayout();
   updateTableToolbar();
 }
@@ -292,11 +268,11 @@ void EditorView::setLoading(bool loading) {
   if (loading_ != loading) {
     loading_ = loading;
     if (loading_) {
-      loadingPhase_ = 0.0;        // each load animates from the top of the ring
+      loadingPhase_ = 0.0; // each load animates from the top of the ring
       loadingTimer_->start();
     } else {
       loadingTimer_->stop();
-      queueResourceRefresh();  // Also consume deferred updates if an open was cancelled.
+      queueResourceRefresh(); // Also consume deferred updates if an open was cancelled.
     }
     diag::updateViewport(viewport());
   }
@@ -316,13 +292,12 @@ bool EditorView::refreshBlock(NodeId blockId, const MarkdownDocument& document) 
   {
     ScopedViewportPin pin(*this);
     const auto it = blockBuiltAt_.constFind(blockId);
-    const bool current = it != blockBuiltAt_.constEnd()
-                         && sameSelectionRange(it.value().selection, selection_)
-                         && it.value().revision == document.revision();
+    const bool current = it != blockBuiltAt_.constEnd() && sameSelectionRange(it.value().selection, selection_) &&
+                         it.value().revision == document.revision();
     if (!current) {
       result = layout_->rebuildBlock(blockId, document, theme_, selection_);
       if (!result.rebuilt) {
-        return false;  // pin reconciles (nothing moved); caller falls back to setDocument
+        return false; // pin reconciles (nothing moved); caller falls back to setDocument
       }
       blockBuiltAt_[blockId] = {selection_, document.revision()};
     }
@@ -363,8 +338,8 @@ bool EditorView::refreshBlocks(const QVector<NodeId>& blockIds, const MarkdownDo
 // refreshVisibleBlocks exists precisely for callers whose visible output depends on state OUTSIDE
 // the stamp's key — spell-check enablement, markdown/convertOnRendering, codeBlockWrap, an async
 // mermaid render arriving — so its blocks must rebuild even when the stamp says "current".
-bool EditorView::refreshBlocksInternal(
-    const QVector<NodeId>& blockIds, const MarkdownDocument& document, bool forceRebuild, DocumentLayout::BlockUpdateReason reason) {
+bool EditorView::refreshBlocksInternal(const QVector<NodeId>& blockIds, const MarkdownDocument& document,
+                                       bool forceRebuild, DocumentLayout::BlockUpdateReason reason) {
   PerfTimer perf("view.refreshBlocks");
   if (!layout_ || document_ != &document) {
     return false;
@@ -378,11 +353,12 @@ bool EditorView::refreshBlocksInternal(
     const quint64 revision = document.revision();
     for (NodeId blockId : blockIds) {
       const auto it = blockBuiltAt_.constFind(blockId);
-      if (!forceRebuild && it != blockBuiltAt_.constEnd() &&
-          sameSelectionRange(it.value().selection, selection_) && it.value().revision == revision) {
-        continue;  // already built with the current selection + revision — skip the O(block) rebuild
+      if (!forceRebuild && it != blockBuiltAt_.constEnd() && sameSelectionRange(it.value().selection, selection_) &&
+          it.value().revision == revision) {
+        continue; // already built with the current selection + revision — skip the O(block) rebuild
       }
-      const DocumentLayout::BlockRebuildResult result = layout_->rebuildBlock(blockId, document, theme_, selection_, reason);
+      const DocumentLayout::BlockRebuildResult result =
+          layout_->rebuildBlock(blockId, document, theme_, selection_, reason);
       if (!result.rebuilt) {
         return false;
       }
@@ -610,9 +586,12 @@ void EditorView::changeEvent(QEvent* event) {
 }
 
 bool EditorView::event(QEvent* event) {
-  if (event->type() == QEvent::Show) scheduleResourceRefresh();
-  if (event->type() == QEvent::Hide && cssPaintTimer_) cssPaintTimer_->stop();
-  if (event->type() == QEvent::Hide && viewportPrefetchTimer_) viewportPrefetchTimer_->stop();
+  if (event->type() == QEvent::Show)
+    scheduleResourceRefresh();
+  if (event->type() == QEvent::Hide && cssPaintTimer_)
+    cssPaintTimer_->stop();
+  if (event->type() == QEvent::Hide && viewportPrefetchTimer_)
+    viewportPrefetchTimer_->stop();
   if (event->type() == QEvent::Leave) {
     cssPaintContext_.pointer.reset();
     cssPaintContext_.pressed = false;
@@ -674,7 +653,8 @@ void EditorView::resizeEvent(QResizeEvent* event) {
   {
     PerfTimer step("view.resize.theme");
     stylesChanged = theme_.updateForViewport(viewport()->width(), viewport()->height());
-    if (stylesChanged) syncViewportBackground();
+    if (stylesChanged)
+      syncViewportBackground();
   }
   bool relayouted = false;
   if (layout_ && document_) {
@@ -690,7 +670,8 @@ void EditorView::resizeEvent(QResizeEvent* event) {
       const auto range = layout_->slotRangeOverlappingY(scrollY(), scrollY() + viewport()->height());
       {
         PerfTimer step("view.resize.visible");
-        if (range.first >= 0) layout_->ensureBuilt(range.first, range.second, theme_);
+        if (range.first >= 0)
+          layout_->ensureBuilt(range.first, range.second, theme_);
       }
       {
         PerfTimer step("view.resize.cursor");
@@ -704,7 +685,8 @@ void EditorView::resizeEvent(QResizeEvent* event) {
   }
   // New resize events supersede unfinished estimate work. No full-document pass
   // runs in the native resize handler, or in one long pause after mouse release.
-  if (layout_ && layout_->hasPendingViewportEstimates()) viewportEstimateTimer_->start(80);
+  if (layout_ && layout_->hasPendingViewportEstimates())
+    viewportEstimateTimer_->start(80);
   updateCodeLanguageEditor();
   updateTableToolbar();
   if (typewriterMode_ && cursorHit_.isValid()) {
@@ -713,7 +695,8 @@ void EditorView::resizeEvent(QResizeEvent* event) {
 }
 
 void EditorView::refreshViewportEstimates() {
-  if (!document_ || loading_ || !layout_ || !layout_->hasPendingViewportEstimates()) return;
+  if (!document_ || loading_ || !layout_ || !layout_->hasPendingViewportEstimates())
+    return;
   {
     ScopedViewportPin pin(*this);
     layout_->refreshViewportEstimates(theme_);
@@ -723,14 +706,16 @@ void EditorView::refreshViewportEstimates() {
   updateCodeLanguageEditor();
   updateTableToolbar();
   diag::updateViewport(viewport());
-  if (layout_->hasPendingViewportEstimates()) viewportEstimateTimer_->start(8);
+  if (layout_->hasPendingViewportEstimates())
+    viewportEstimateTimer_->start(8);
 }
 
 void EditorView::wheelEvent(QWheelEvent* event) {
   const bool horizontal = qAbs(event->angleDelta().x()) >= qAbs(event->angleDelta().y());
   // Shift+wheel or a trackpad horizontal gesture scrolls the code fence under the cursor; plain
   // vertical wheel always scrolls the document (unchanged).
-  if ((event->modifiers().testFlag(Qt::ShiftModifier) || horizontal) && scrollCodeFenceHorizontally(event, horizontal)) {
+  if ((event->modifiers().testFlag(Qt::ShiftModifier) || horizontal) &&
+      scrollCodeFenceHorizontally(event, horizontal)) {
     stopScrollAnimation();
     event->accept();
     updateCodeLanguageEditor();
@@ -780,18 +765,17 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
       return;
     }
     if (hit.isValid() && !hit.mermaidMenuActorId.isEmpty()) {
-      const NodeId hostId = layout_
-          ? layout_->topLevelBlockIdFor(hit.blockId) : hit.blockId;
+      const NodeId hostId = layout_ ? layout_->topLevelBlockIdFor(hit.blockId) : hit.blockId;
       QSet<QString>& openMenus = openSequenceMenus_[hostId];
       if (openMenus.contains(hit.mermaidMenuActorId))
         openMenus.remove(hit.mermaidMenuActorId);
       else
         openMenus.insert(hit.mermaidMenuActorId);
-      if (openMenus.isEmpty()) openSequenceMenus_.remove(hostId);
+      if (openMenus.isEmpty())
+        openSequenceMenus_.remove(hostId);
       if (layout_) {
         if (const BlockLayout* block = layout_->blockIfPromoted(hostId)) {
-          diag::updateViewport(viewport(),
-              block->rect().translated(0, -scrollY()).toAlignedRect());
+          diag::updateViewport(viewport(), block->rect().translated(0, -scrollY()).toAlignedRect());
         }
       }
       event->accept();
@@ -812,7 +796,8 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
       event->accept();
       return;
     }
-    if (event->modifiers().testFlag(Qt::ShiftModifier) && hit.isValid() && isDragSelectableZone(hit.zone) && cursorPosition_.isValid()) {
+    if (event->modifiers().testFlag(Qt::ShiftModifier) && hit.isValid() && isDragSelectableZone(hit.zone) &&
+        cursorPosition_.isValid()) {
       SelectionRange range;
       range.anchor = selection_.anchor.isValid() ? selection_.anchor : cursorPosition_;
       range.focus = hit.cursorPosition();
@@ -837,7 +822,7 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
       dragState_ = DragState::Pending;
       dragStartViewportPos_ = event->position();
       dragAnchorHit_ = hit;
-      dragFromWord_ = false;  // a plain press anchors the drag at the press point
+      dragFromWord_ = false; // a plain press anchors the drag at the press point
     }
   }
   QAbstractScrollArea::mousePressEvent(event);
@@ -919,7 +904,7 @@ void EditorView::mouseDoubleClickEvent(QMouseEvent* event) {
 
   setFocus(Qt::MouseFocusReason);
   const HitTestResult hit = hitTest(event->position());
-  registerClick(event->position());  // press(1) → dblclick(2): the third press makes 3
+  registerClick(event->position()); // press(1) → dblclick(2): the third press makes 3
   if (!hit.isValid() || !isSelectableZone(hit.zone)) {
     QAbstractScrollArea::mouseDoubleClickEvent(event);
     return;
@@ -935,8 +920,8 @@ void EditorView::mouseDoubleClickEvent(QMouseEvent* event) {
   QString text;
   if (hit.zone == HitTestResult::Zone::TableCell) {
     const auto& rows = block->tableRows();
-    if (hit.tableRow >= 0 && hit.tableRow < static_cast<int>(rows.size()) &&
-        hit.tableColumn >= 0 && hit.tableColumn < static_cast<int>(rows[hit.tableRow].cells.size())) {
+    if (hit.tableRow >= 0 && hit.tableRow < static_cast<int>(rows.size()) && hit.tableColumn >= 0 &&
+        hit.tableColumn < static_cast<int>(rows[hit.tableRow].cells.size())) {
       const InlineLayout* cellLayout = &rows[hit.tableRow].cells[hit.tableColumn].text;
       text = cellLayout->visibleText();
     }
@@ -992,8 +977,7 @@ void EditorView::mouseDoubleClickEvent(QMouseEvent* event) {
 
 int EditorView::registerClick(QPointF viewportPos) {
   // Qt delivers press(1) → dblclick(2) → press(3) for a triple click; count in both handlers.
-  const bool sameSpot =
-      (viewportPos - lastClickViewportPos_).manhattanLength() < 4.0;
+  const bool sameSpot = (viewportPos - lastClickViewportPos_).manhattanLength() < 4.0;
   if (clickCount_ > 0 && sameSpot && clickClock_.elapsed() < QApplication::doubleClickInterval()) {
     ++clickCount_;
   } else {
@@ -1054,7 +1038,7 @@ void EditorView::focusOutEvent(QFocusEvent* event) {
     resetComposition();
   }
   cursorTimer_->stop();
-  caretBlinkOn_ = true;  // unfocused: steady caret, no blink
+  caretBlinkOn_ = true; // unfocused: steady caret, no blink
 }
 
 void EditorView::resetComposition() {
@@ -1079,7 +1063,8 @@ void EditorView::contextMenuEvent(QContextMenuEvent* event) {
   // object); a plain-text click leaves an existing selection intact when it lands
   // on it, so Cut/Copy still act on the selection. The menu itself (spell
   // suggestions + command sections) is assembled by MainWindow from the registry.
-  const bool onObject = !hit.linkHref.isEmpty() || !hit.imageSrc.isEmpty() || hit.zone == HitTestResult::Zone::TableCell;
+  const bool onObject =
+      !hit.linkHref.isEmpty() || !hit.imageSrc.isEmpty() || hit.zone == HitTestResult::Zone::TableCell;
   const bool placeable = hit.isValid() && isSelectableZone(hit.zone);
   if (placeable && (onObject || !selectionContainsViewportPoint(hit, QPointF(event->pos())))) {
     setCursorHit(hit);
@@ -1106,7 +1091,7 @@ bool EditorView::selectionContainsViewportPoint(const HitTestResult& hit, QPoint
     // block — the historical direct comparison rejected every nested selection, so a right-click
     // inside it collapsed the selection instead of opening Copy/Cut on it.
     if (clickTop != layout_->topLevelBlockIdFor(selection_.focus.blockId)) {
-      return false;  // click is in a different top-level block than the (single) selected one
+      return false; // click is in a different top-level block than the (single) selected one
     }
     rects = block->selectionRects(selection_, theme_);
   } else {
@@ -1115,8 +1100,7 @@ bool EditorView::selectionContainsViewportPoint(const HitTestResult& hit, QPoint
     // must land in one of the covered blocks AND inside that block's selected rects.
     bool found = false;
     editor_geometry::forEachMultiBlockSelectionBlock(
-        *layout_, selection_,
-        [&](const BlockLayout* covered, qsizetype start, qsizetype end) {
+        *layout_, selection_, [&](const BlockLayout* covered, qsizetype start, qsizetype end) {
           if (found || covered == nullptr || covered->nodeId() != clickTop) {
             return;
           }
@@ -1175,7 +1159,7 @@ void EditorView::inputMethodEvent(QInputMethodEvent* event) {
     // text layout re-splices the preedit (following text shifts/wraps) and repaints. The block's
     // BuiltStamp is dropped so the cached build is discarded; refreshBlocks resolves a nested caret
     // (list item / quote paragraph) up to its top-level block. configureBuilder forwards the preedit.
-    resetCaretBlink();  // a composition replaces the caret — stop blinking while composing
+    resetCaretBlink(); // a composition replaces the caret — stop blinking while composing
     if (layout_ && document_ && cursorPosition_.blockId.isValid()) {
       layout_->setPreedit(preedit_, preeditFormats_, preeditCursor_);
       blockBuiltAt_.remove(cursorPosition_.blockId);
@@ -1192,55 +1176,54 @@ void EditorView::inputMethodEvent(QInputMethodEvent* event) {
 
 QVariant EditorView::inputMethodQuery(Qt::InputMethodQuery query) const {
   switch (query) {
-    case Qt::ImCursorRectangle: {
-      // effectiveCursorRect matches where the caret is painted (offset-adjusted for a scrolled code
-      // fence); without it the IME panel anchored at the natural advance, far from the visible caret.
-      QRectF cursor = effectiveCursorRect();
-      cursor.translate(0, -scrollY());
-      return cursor.toRect();
+  case Qt::ImCursorRectangle: {
+    // effectiveCursorRect matches where the caret is painted (offset-adjusted for a scrolled code
+    // fence); without it the IME panel anchored at the natural advance, far from the visible caret.
+    QRectF cursor = effectiveCursorRect();
+    cursor.translate(0, -scrollY());
+    return cursor.toRect();
+  }
+  case Qt::ImEnabled:
+    return true;
+  case Qt::ImFont:
+    return preeditFont();
+  case Qt::ImSurroundingText: {
+    // The caret block's visible text — the paragraph around the cursor, which is what conversion
+    // IMEs consume for context/reconversion. Folded inline syntax reports the VISIBLE projection.
+    const BlockLayout* block = layout_ ? layout_->blockIfPromoted(cursorPosition_.blockId) : nullptr;
+    if (!block) {
+      return QString();
     }
-    case Qt::ImEnabled:
-      return true;
-    case Qt::ImFont:
-      return preeditFont();
-    case Qt::ImSurroundingText: {
-      // The caret block's visible text — the paragraph around the cursor, which is what conversion
-      // IMEs consume for context/reconversion. Folded inline syntax reports the VISIBLE projection.
-      const BlockLayout* block =
-          layout_ ? layout_->blockIfPromoted(cursorPosition_.blockId) : nullptr;
-      if (!block) {
-        return QString();
+    if (cursorHit_.zone == HitTestResult::Zone::TableCell && cursorHit_.tableRow >= 0 &&
+        cursorHit_.tableRow < static_cast<int>(block->tableRows().size())) {
+      const auto& row = block->tableRows().at(static_cast<size_t>(cursorHit_.tableRow));
+      if (cursorHit_.tableColumn >= 0 && cursorHit_.tableColumn < static_cast<int>(row.cells.size())) {
+        return row.cells.at(static_cast<size_t>(cursorHit_.tableColumn)).text.visibleText();
       }
-      if (cursorHit_.zone == HitTestResult::Zone::TableCell &&
-          cursorHit_.tableRow >= 0 && cursorHit_.tableRow < static_cast<int>(block->tableRows().size())) {
-        const auto& row = block->tableRows().at(static_cast<size_t>(cursorHit_.tableRow));
-        if (cursorHit_.tableColumn >= 0 && cursorHit_.tableColumn < static_cast<int>(row.cells.size())) {
-          return row.cells.at(static_cast<size_t>(cursorHit_.tableColumn)).text.visibleText();
-        }
-        return QString();
-      }
-      if (block->inlineLayout() != nullptr) {
-        return block->inlineLayout()->visibleText();
-      }
-      return block->literal();
+      return QString();
     }
-    case Qt::ImCursorPosition: {
-      const QString surrounding = inputMethodQuery(Qt::ImSurroundingText).toString();
-      return static_cast<int>(qBound<qsizetype>(0, cursorPosition_.text.textOffset, surrounding.size()));
+    if (block->inlineLayout() != nullptr) {
+      return block->inlineLayout()->visibleText();
     }
-    case Qt::ImCurrentSelection: {
-      // Only a same-text-node selection maps into the surrounding text; cross-block/cross-cell
-      // selections have no single surrounding string.
-      if (selection_.isCollapsed() || !selection_.isSingleTextNode()) {
-        return QString();
-      }
-      const QString surrounding = inputMethodQuery(Qt::ImSurroundingText).toString();
-      const qsizetype start = qBound<qsizetype>(0, selection_.startOffset(), surrounding.size());
-      const qsizetype end = qBound<qsizetype>(start, selection_.endOffset(), surrounding.size());
-      return surrounding.mid(start, end - start);
+    return block->literal();
+  }
+  case Qt::ImCursorPosition: {
+    const QString surrounding = inputMethodQuery(Qt::ImSurroundingText).toString();
+    return static_cast<int>(qBound<qsizetype>(0, cursorPosition_.text.textOffset, surrounding.size()));
+  }
+  case Qt::ImCurrentSelection: {
+    // Only a same-text-node selection maps into the surrounding text; cross-block/cross-cell
+    // selections have no single surrounding string.
+    if (selection_.isCollapsed() || !selection_.isSingleTextNode()) {
+      return QString();
     }
-    default:
-      return QAbstractScrollArea::inputMethodQuery(query);
+    const QString surrounding = inputMethodQuery(Qt::ImSurroundingText).toString();
+    const qsizetype start = qBound<qsizetype>(0, selection_.startOffset(), surrounding.size());
+    const qsizetype end = qBound<qsizetype>(start, selection_.endOffset(), surrounding.size());
+    return surrounding.mid(start, end - start);
+  }
+  default:
+    return QAbstractScrollArea::inputMethodQuery(query);
   }
 }
 
@@ -1280,11 +1263,11 @@ void EditorView::rebuildLayout(bool preserveViewport) {
       if (cursorPosition_.isValid()) {
         const qsizetype caretIdx = layout_->topLevelIndexFor(cursorPosition_.blockId);
         if (caretIdx >= 0) {
-          layout_->ensureBuilt(caretIdx, caretIdx, theme_);  // caret block needed for hit resolution
+          layout_->ensureBuilt(caretIdx, caretIdx, theme_); // caret block needed for hit resolution
         }
       }
     }
-    ensureVisibleBuilt();  // promote the visible window; self-pinned so the promotion snap is invisible
+    ensureVisibleBuilt(); // promote the visible window; self-pinned so the promotion snap is invisible
     if (cursorPosition_.isValid()) {
       cursorHit_ = editor_geometry::hitForCursorPosition(*layout_, theme_, cursorPosition_);
       cursorVisible_ = cursorHit_.isValid();
@@ -1293,7 +1276,7 @@ void EditorView::rebuildLayout(bool preserveViewport) {
   } else {
     layout_ = std::make_unique<DocumentLayout>();
     layout_->setCodeFenceScroll(codeFenceScroll_);
-  layout_->setMermaidRenderCache(&mermaidCache_);
+    layout_->setMermaidRenderCache(&mermaidCache_);
     updateScrollBars();
   }
   updateCodeLanguageEditor();
@@ -1316,7 +1299,8 @@ void EditorView::updateCodeLanguageEditor() {
   if (!codeLanguageEditor_) {
     return;
   }
-  codeLanguageEditor_->update(cursorPosition_, cursorHit_, layout_.get(), document_.data(), scrollY(), viewport()->height());
+  codeLanguageEditor_->update(cursorPosition_, cursorHit_, layout_.get(), document_.data(), scrollY(),
+                              viewport()->height());
 }
 
 void EditorView::updateTableToolbar() {
@@ -1359,13 +1343,11 @@ void EditorView::refreshInlineProjectionForSelectionChange(SelectionRange previo
   // Invalidate the overlay region of BOTH the old and the new selection; Qt unions
   // this with whatever update refreshBlocks already scheduled, so it is a no-op when
   // a full repaint is pending.
-  const QRectF overlayDirty = selectionOverlayDocumentRect(previousSelection)
-                                  .united(selectionOverlayDocumentRect(selection_));
+  const QRectF overlayDirty =
+      selectionOverlayDocumentRect(previousSelection).united(selectionOverlayDocumentRect(selection_));
   if (!overlayDirty.isEmpty()) {
-    const QRect viewportRect = overlayDirty.translated(0.0, -scrollY())
-                                   .adjusted(-3.0, -3.0, 3.0, 3.0)
-                                   .toAlignedRect()
-                               & viewport()->rect();
+    const QRect viewportRect =
+        overlayDirty.translated(0.0, -scrollY()).adjusted(-3.0, -3.0, 3.0, 3.0).toAlignedRect() & viewport()->rect();
     if (!viewportRect.isEmpty()) {
       diag::updateViewport(viewport(), viewportRect);
     }
@@ -1378,7 +1360,7 @@ void EditorView::refreshInlineProjectionForSelectionChange(SelectionRange previo
   } else {
     cursorVisible_ = selection_.isCollapsed() && cursorHit_.isValid();
     if (scrolled) {
-      diag::updateViewport(viewport());  // content shifted under a new scroll offset — repaint coherently
+      diag::updateViewport(viewport()); // content shifted under a new scroll offset — repaint coherently
     }
     // Erase old heading badge if cursor moved away from a heading block
     if (previousSelection.focus.blockId != cursorPosition_.blockId) {
@@ -1479,21 +1461,27 @@ void EditorView::clearHtmlHover() {
 
 void EditorView::repaintAnimatedMermaidBlocks() {
   PerfTimer perf("view.repaintMermaidAnim");
-  if (!layout_ || !mermaidAnimationTimer_ || !mermaidAnimationTimer_->isActive()) return;
+  if (!layout_ || !mermaidAnimationTimer_ || !mermaidAnimationTimer_->isActive())
+    return;
   const auto blocks = layout_->visibleBlocks(documentViewportRect().adjusted(0, -40, 0, 40), theme_);
   QRectF dirty;
   for (const auto* block : blocks) {
-    if (!block || !block->hasAnimatedMermaid()) continue;
+    if (!block || !block->hasAnimatedMermaid())
+      continue;
     dirty = dirty.isNull() ? block->rect() : dirty.united(block->rect());
   }
-  if (!dirty.isNull()) diag::updateViewport(viewport(), dirty.translated(0, -scrollY()).adjusted(-2, -2, 2, 2).toAlignedRect());
+  if (!dirty.isNull())
+    diag::updateViewport(viewport(), dirty.translated(0, -scrollY()).adjusted(-2, -2, 2, 2).toAlignedRect());
 }
 
 void EditorView::updateMermaidAnimationDriver(bool hasVisibleAnimation) {
-  if (!mermaidAnimationTimer_) return;
+  if (!mermaidAnimationTimer_)
+    return;
   if (hasVisibleAnimation) {
-    if (!mermaidAnimationClock_.isValid()) mermaidAnimationClock_.start();
-    if (!mermaidAnimationTimer_->isActive()) mermaidAnimationTimer_->start();
+    if (!mermaidAnimationClock_.isValid())
+      mermaidAnimationClock_.start();
+    if (!mermaidAnimationTimer_->isActive())
+      mermaidAnimationTimer_->start();
   } else if (mermaidAnimationTimer_->isActive()) {
     // Keep the elapsed clock so scrolling away and back matches CSS animation
     // time; only the repaint wakeups are idle-gated.
@@ -1544,10 +1532,10 @@ void EditorView::updateMouseCursor(QPointF viewportPos) {
     return;
   }
   const HitTestResult hit = hitTest(viewportPos);
-  const QString toolTip = hit.toolTip.isEmpty()
-      ? QString()
-      : Qt::convertFromPlainText(hit.toolTip, Qt::WhiteSpaceNormal);
-  if (viewport()->toolTip() != toolTip) viewport()->setToolTip(toolTip);
+  const QString toolTip =
+      hit.toolTip.isEmpty() ? QString() : Qt::convertFromPlainText(hit.toolTip, Qt::WhiteSpaceNormal);
+  if (viewport()->toolTip() != toolTip)
+    viewport()->setToolTip(toolTip);
   if (hit.isValid() && !hit.linkHref.isEmpty()) {
     viewport()->setCursor(Qt::PointingHandCursor);
   } else if (hit.isValid() && !hit.imageSrc.isEmpty()) {
@@ -1555,9 +1543,10 @@ void EditorView::updateMouseCursor(QPointF viewportPos) {
   } else if (hit.isValid() && !hit.mermaidMenuActorId.isEmpty()) {
     viewport()->setCursor(Qt::PointingHandCursor);
   } else if (hit.isValid() &&
-      (hit.zone == HitTestResult::Zone::Text || hit.zone == HitTestResult::Zone::Code || hit.zone == HitTestResult::Zone::Math ||
-       hit.zone == HitTestResult::Zone::Html || hit.zone == HitTestResult::Zone::FrontMatter || hit.zone == HitTestResult::Zone::TableCell ||
-       hit.zone == HitTestResult::Zone::BlockAfter)) {
+             (hit.zone == HitTestResult::Zone::Text || hit.zone == HitTestResult::Zone::Code ||
+              hit.zone == HitTestResult::Zone::Math || hit.zone == HitTestResult::Zone::Html ||
+              hit.zone == HitTestResult::Zone::FrontMatter || hit.zone == HitTestResult::Zone::TableCell ||
+              hit.zone == HitTestResult::Zone::BlockAfter)) {
     viewport()->setCursor(Qt::IBeamCursor);
   } else {
     viewport()->unsetCursor();
@@ -1592,7 +1581,7 @@ void EditorView::moveCaretToViewportPos(QPointF viewportPos) {
   // is non-emitting; the caret move only propagates via the explicit blockClicked signal.
   const HitTestResult hit = hitTest(viewportPos);
   if (!hit.isValid()) {
-    return;  // dropped on empty space — keep the existing caret and insert there.
+    return; // dropped on empty space — keep the existing caret and insert there.
   }
   setCursorHit(hit);
   emit blockClicked(hit);
@@ -1663,10 +1652,11 @@ void EditorView::dropEvent(QDropEvent* event) {
 }
 
 NodeId EditorView::specialAnchorTarget(const QString& href) const {
-  if (href.startsWith(QLatin1String("#toc:"))) return NodeId::fromString(href.mid(5));
+  if (href.startsWith(QLatin1String("#toc:")))
+    return NodeId::fromString(href.mid(5));
   if (href.startsWith(QLatin1String("#fn:")))
     return layout_ ? layout_->footnoteDefinitionIdForLabel(href.mid(4)) : NodeId();
   return {};
 }
 
-}  // namespace muffin
+} // namespace muffin

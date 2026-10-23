@@ -54,4 +54,4 @@ void CodeFenceScrollController::clear() {
   entries_.clear();
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -27,11 +27,19 @@ qreal paragraphBlockHeight(const QString& markdown) {
   if (markdown.contains(QLatin1Char('$'))) {
     require(block->inlineLayout()->mathAtomCount() == 1, "height regression must exercise a rendered math atom");
     const auto rects = block->inlineLayout()->mathAtomRects(block->inlineTextOrigin());
-    require(rects.size() == 1 && rects.front().top() >= block->rect().top() - .01 &&
-                rects.front().bottom() <= block->rect().bottom() + .01,
-            QString("painted math content must fit within the same measured paragraph box: math=(%1,%2,%3,%4) block=(%5,%6,%7,%8)")
-                .arg(rects.front().x()).arg(rects.front().y()).arg(rects.front().width()).arg(rects.front().height())
-                .arg(block->rect().x()).arg(block->rect().y()).arg(block->rect().width()).arg(block->rect().height()));
+    require(
+        rects.size() == 1 && rects.front().top() >= block->rect().top() - .01 &&
+            rects.front().bottom() <= block->rect().bottom() + .01,
+        QString(
+            "painted math content must fit within the same measured paragraph box: math=(%1,%2,%3,%4) block=(%5,%6,%7,%8)")
+            .arg(rects.front().x())
+            .arg(rects.front().y())
+            .arg(rects.front().width())
+            .arg(rects.front().height())
+            .arg(block->rect().x())
+            .arg(block->rect().y())
+            .arg(block->rect().width())
+            .arg(block->rect().height()));
   }
   return block->rect().height();
 }
@@ -50,7 +58,7 @@ void testTallInlineMathGrowsLine() {
           QStringLiteral("a tall inline math box must grow its line (plain=%1 withMath=%2)").arg(plain).arg(withMath));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

@@ -34,4 +34,4 @@ struct DagreSnapshot {
 // default → zero overhead for the production/editor path.
 void runDagreLayout(DagreGraph& g, std::vector<DagreSnapshot>* snapshots = nullptr);
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

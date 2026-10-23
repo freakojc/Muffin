@@ -14,32 +14,28 @@ bool horizontal(QChar c) {
   return c == QLatin1Char(' ') || c == QLatin1Char('\t');
 }
 
-QString sanitizedMetadata(const QString &value) {
+QString sanitizedMetadata(const QString& value) {
   return HtmlSanitizer().sanitizedMermaidText(value);
 }
 
 QString collapseInline(QString value) {
   value = value.trimmed();
-  value.replace(QRegularExpression(QStringLiteral(R"([\t ]{2,})")),
-                QStringLiteral(" "));
+  value.replace(QRegularExpression(QStringLiteral(R"([\t ]{2,})")), QStringLiteral(" "));
   return value;
 }
 
 QString normalizeBlock(QString value) {
-  const QStringList lines = value.split(QRegularExpression(QStringLiteral(R"(\r?\n)")),
-                                        Qt::KeepEmptyParts);
+  const QStringList lines = value.split(QRegularExpression(QStringLiteral(R"(\r?\n)")), Qt::KeepEmptyParts);
   QStringList normalized;
   normalized.reserve(lines.size());
   for (QString line : lines) {
     line.remove(QRegularExpression(QStringLiteral(R"(^\s*)")));
     line.remove(QRegularExpression(QStringLiteral(R"(\s+$)")));
-    line.replace(QRegularExpression(QStringLiteral(R"([\t ]{2,})")),
-                 QStringLiteral(" "));
+    line.replace(QRegularExpression(QStringLiteral(R"([\t ]{2,})")), QStringLiteral(" "));
     normalized.append(line);
   }
   QString result = normalized.join(QLatin1Char('\n'));
-  result.replace(QRegularExpression(QStringLiteral(R"([\n\r]{2,})")),
-                 QStringLiteral("\n"));
+  result.replace(QRegularExpression(QStringLiteral(R"([\n\r]{2,})")), QStringLiteral("\n"));
   return result;
 }
 
@@ -84,13 +80,12 @@ public:
   }
 
 private:
-  bool startsMetadata(const QString &word) const {
+  bool startsMetadata(const QString& word) const {
     if (source_.mid(index_, word.size()) != word)
       return false;
     const int end = index_ + word.size();
     if (word == QLatin1String("title"))
-      return end >= source_.size() || horizontal(source_.at(end)) ||
-             source_.at(end) == QLatin1Char('\n');
+      return end >= source_.size() || horizontal(source_.at(end)) || source_.at(end) == QLatin1Char('\n');
     return true;
   }
 
@@ -100,8 +95,7 @@ private:
   }
 
   void skipComment() {
-    if (source_.mid(index_, 2) != QLatin1String("%%") ||
-        source_.mid(index_, 3) == QLatin1String("%%{"))
+    if (source_.mid(index_, 2) != QLatin1String("%%") || source_.mid(index_, 3) == QLatin1String("%%{"))
       return;
     while (index_ < source_.size() && source_.at(index_) != QLatin1Char('\n'))
       ++index_;
@@ -144,11 +138,9 @@ private:
   }
 
   QString parseDomain() {
-    static const QStringList domains{
-        QStringLiteral("complicated"), QStringLiteral("confusion"),
-        QStringLiteral("complex"), QStringLiteral("chaotic"),
-        QStringLiteral("clear")};
-    for (const QString &domain : domains) {
+    static const QStringList domains{QStringLiteral("complicated"), QStringLiteral("confusion"),
+                                     QStringLiteral("complex"), QStringLiteral("chaotic"), QStringLiteral("clear")};
+    for (const QString& domain : domains) {
       if (source_.mid(index_, domain.size()) == domain) {
         index_ += domain.size();
         return domain;
@@ -162,22 +154,16 @@ private:
       int next = index_;
       while (next < source_.size() && source_.at(next) != QLatin1Char('\n'))
         ++next;
-      while (next < source_.size() &&
-             (source_.at(next) == QLatin1Char('\n') ||
-              horizontal(source_.at(next))))
+      while (next < source_.size() && (source_.at(next) == QLatin1Char('\n') || horizontal(source_.at(next))))
         ++next;
-      if (next < source_.size() &&
-          (source_.at(next) == QLatin1Char('"') ||
-           source_.at(next) == QLatin1Char('\'')))
+      if (next < source_.size() && (source_.at(next) == QLatin1Char('"') || source_.at(next) == QLatin1Char('\'')))
         lexer(next, QStringLiteral("Invalid Cynefin token"));
     }
     lexer(index_, QStringLiteral("Invalid Cynefin token"));
   }
 
   QString parseString() {
-    if (index_ >= source_.size() ||
-        (source_.at(index_) != QLatin1Char('"') &&
-         source_.at(index_) != QLatin1Char('\'')))
+    if (index_ >= source_.size() || (source_.at(index_) != QLatin1Char('"') && source_.at(index_) != QLatin1Char('\'')))
       parser(index_, QStringLiteral("Expected quoted Cynefin label"));
     const int start = index_;
     const QChar quote = source_.at(index_++);
@@ -194,14 +180,30 @@ private:
         lexer(start, QStringLiteral("Unterminated Cynefin string"));
       const QChar escaped = source_.at(index_++);
       switch (escaped.unicode()) {
-      case 'b': result += QLatin1Char('\b'); break;
-      case 'f': result += QLatin1Char('\f'); break;
-      case 'n': result += QLatin1Char('\n'); break;
-      case 'r': result += QLatin1Char('\r'); break;
-      case 't': result += QLatin1Char('\t'); break;
-      case 'v': result += QChar(0x000b); break;
-      case '0': result += QChar(0); break;
-      default: result += escaped; break;
+      case 'b':
+        result += QLatin1Char('\b');
+        break;
+      case 'f':
+        result += QLatin1Char('\f');
+        break;
+      case 'n':
+        result += QLatin1Char('\n');
+        break;
+      case 'r':
+        result += QLatin1Char('\r');
+        break;
+      case 't':
+        result += QLatin1Char('\t');
+        break;
+      case 'v':
+        result += QChar(0x000b);
+        break;
+      case '0':
+        result += QChar(0);
+        break;
+      default:
+        result += escaped;
+        break;
       }
     }
     lexer(start, QStringLiteral("Unterminated Cynefin string"));
@@ -210,15 +212,14 @@ private:
   bool stringAhead() {
     const int saved = index_;
     skipHidden(true);
-    const bool result = index_ < source_.size() &&
-                        (source_.at(index_) == QLatin1Char('"') ||
-                         source_.at(index_) == QLatin1Char('\''));
+    const bool result =
+        index_ < source_.size() && (source_.at(index_) == QLatin1Char('"') || source_.at(index_) == QLatin1Char('\''));
     if (!result)
       index_ = saved;
     return result;
   }
 
-  void parseDomainBlock(const QString &name, int) {
+  void parseDomainBlock(const QString& name, int) {
     QVector<CynefinItem> items;
     while (stringAhead()) {
       items.append({parseString()});
@@ -233,7 +234,7 @@ private:
     }
   }
 
-  void parseTransition(const QString &from, int arrowOffset) {
+  void parseTransition(const QString& from, int arrowOffset) {
     index_ += 3;
     skipHorizontalAndComments();
     CynefinTransition transition;
@@ -244,15 +245,13 @@ private:
       ++index_;
       skipHorizontalAndComments();
       if (index_ >= source_.size() ||
-          (source_.at(index_) != QLatin1Char('"') &&
-           source_.at(index_) != QLatin1Char('\'')))
+          (source_.at(index_) != QLatin1Char('"') && source_.at(index_) != QLatin1Char('\'')))
         lexer(arrowOffset, QStringLiteral("Invalid Cynefin transition label"));
       transition.label = parseString();
       transition.hasLabel = !transition.label.isEmpty();
     }
     skipHorizontalAndComments();
-    if (index_ < source_.size() && source_.at(index_) != QLatin1Char('\n') &&
-        source_.at(index_) != QLatin1Char(';'))
+    if (index_ < source_.size() && source_.at(index_) != QLatin1Char('\n') && source_.at(index_) != QLatin1Char(';'))
       parser(arrowOffset, QStringLiteral("Expected end of Cynefin transition"));
     requireEol(index_);
     if (transition.from != transition.to)
@@ -338,20 +337,16 @@ private:
     return {line, column};
   }
 
-  [[noreturn]] void parser(int offset, const QString &message) const {
+  [[noreturn]] void parser(int offset, const QString& message) const {
     const auto [line, column] = location(offset);
     throw CynefinParseError(CynefinErrorKind::Parser, line, column,
-                            offset < source_.size() ? source_.mid(offset, 1)
-                                                    : QStringLiteral("EOF"),
-                            message);
+                            offset < source_.size() ? source_.mid(offset, 1) : QStringLiteral("EOF"), message);
   }
 
-  [[noreturn]] void lexer(int offset, const QString &message) const {
+  [[noreturn]] void lexer(int offset, const QString& message) const {
     const auto [line, column] = location(offset);
     throw CynefinParseError(CynefinErrorKind::Lexer, line, column,
-                            offset < source_.size() ? source_.mid(offset, 1)
-                                                    : QStringLiteral("EOF"),
-                            message);
+                            offset < source_.size() ? source_.mid(offset, 1) : QStringLiteral("EOF"), message);
   }
 
   QString source_;
@@ -362,13 +357,13 @@ private:
 
 } // namespace
 
-CynefinParseError::CynefinParseError(CynefinErrorKind errorKind, int errorLine,
-                                     int errorColumn, QString errorToken,
-                                     const QString &message)
-    : std::runtime_error(message.toStdString()), kind(errorKind),
-      line(errorLine), column(errorColumn), token(std::move(errorToken)) {}
+CynefinParseError::CynefinParseError(CynefinErrorKind errorKind, int errorLine, int errorColumn, QString errorToken,
+                                     const QString& message)
+    : std::runtime_error(message.toStdString()), kind(errorKind), line(errorLine), column(errorColumn),
+      token(std::move(errorToken)) {
+}
 
-CynefinData CynefinDiagram::parse(const QString &source) {
+CynefinData CynefinDiagram::parse(const QString& source) {
   return Parser(source).run();
 }
 

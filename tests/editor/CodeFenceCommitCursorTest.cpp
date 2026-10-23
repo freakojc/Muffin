@@ -47,7 +47,7 @@ struct Harness {
   }
 };
 
-}  // namespace
+} // namespace
 
 // "```" + Enter commits to a code block; the caret must land inside it and the code editor must
 // be active so the next keystroke types into the fence rather than being rejected.
@@ -65,8 +65,10 @@ void testBacktickFenceCommitCaretInsideBlock() {
   require(h.controller.codeFenceController().isEditing(), "code fence should be in edit mode after commit");
 
   // Typing routes into the fence (proves the caret is genuinely inside, not just visually).
-  require(h.controller.inputController().insertText(QStringLiteral("x")), "typing into the committed fence should succeed");
-  require(h.session.markdownText().toString() == QStringLiteral("```\nx\n```"), "typed text should land inside the code fence");
+  require(h.controller.inputController().insertText(QStringLiteral("x")),
+          "typing into the committed fence should succeed");
+  require(h.session.markdownText().toString() == QStringLiteral("```\nx\n```"),
+          "typed text should land inside the code fence");
   require(firstBlockOfType(h.session, BlockType::CodeFence)->literal() == QStringLiteral("x"),
           "code fence literal should hold the typed text");
 }
@@ -83,7 +85,8 @@ void testDollarMathCommitCaretInsideBlock() {
   require(cursor.blockId == math->id(), "caret should be inside the math block, not lost");
   require(cursor.text.textOffset == 0, "caret should be at the start of the empty math content");
 
-  require(h.controller.inputController().insertText(QStringLiteral("x")), "typing into the committed math block should succeed");
+  require(h.controller.inputController().insertText(QStringLiteral("x")),
+          "typing into the committed math block should succeed");
   require(firstBlockOfType(h.session, BlockType::MathBlock)->literal() == QStringLiteral("x"),
           "math block literal should hold the typed text");
 }
@@ -100,7 +103,8 @@ void testBracketMathCommitCaretInsideBlock() {
   require(cursor.blockId == math->id(), "caret should be inside the bracket math block, not lost");
   require(cursor.text.textOffset == 0, "caret should be at the start of the empty math content");
 
-  require(h.controller.inputController().insertText(QStringLiteral("x")), "typing into the committed math block should succeed");
+  require(h.controller.inputController().insertText(QStringLiteral("x")),
+          "typing into the committed math block should succeed");
   require(firstBlockOfType(h.session, BlockType::MathBlock)->literal() == QStringLiteral("x"),
           "bracket math literal should hold the typed text");
 }

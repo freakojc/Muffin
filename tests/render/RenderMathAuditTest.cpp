@@ -31,7 +31,8 @@ void testMathMetricsMacrosAndState() {
   require(math::MathFontMetrics::characterMetrics(QStringLiteral("Math-Italic"), QString(QChar(0x03b1))).has_value(),
           QStringLiteral("KaTeX Math-Italic metrics should include Greek alpha"));
   require(math::MathSvgGeometry::loaded(), QStringLiteral("KaTeX SVG geometry data should load from resources"));
-  require(math::MathSvgGeometry::hasPath(QStringLiteral("rightarrow")), QStringLiteral("KaTeX SVG geometry should include rightarrow"));
+  require(math::MathSvgGeometry::hasPath(QStringLiteral("rightarrow")),
+          QStringLiteral("KaTeX SVG geometry should include rightarrow"));
   require(!math::MathSvgGeometry::painterPath(QStringLiteral("rightarrow"), QRectF(0.0, 0.0, 40.0, 8.0)).isEmpty(),
           QStringLiteral("KaTeX SVG geometry should convert rightarrow path to QPainterPath"));
 
@@ -53,7 +54,8 @@ void testMathMetricsMacrosAndState() {
             QStringLiteral("macro expander should support noexpand relax treatment"));
     require(expander.expand(QStringLiteral("\\char`A")) == QStringLiteral("\\text{A}"),
             QStringLiteral("macro expander should lower char primitive to renderable text"));
-    require(expander.expand(QStringLiteral("\\pmod{n}+\\iff+\\implies+\\And+\\alef")).contains(QStringLiteral("\\Longleftrightarrow")),
+    require(expander.expand(QStringLiteral("\\pmod{n}+\\iff+\\implies+\\And+\\alef"))
+                .contains(QStringLiteral("\\Longleftrightarrow")),
             QStringLiteral("macro expander should include high frequency KaTeX macros"));
   }
   {
@@ -65,8 +67,10 @@ void testMathMetricsMacrosAndState() {
       expander.expand(QStringLiteral("\\def\\loop{\\loop}\\loop"));
     } catch (const math::MathParseError& error) {
       threw = true;
-      require(error.message().contains(QStringLiteral("Too many expansions")), QStringLiteral("recursive macro should throw maxExpand error"));
-      require(error.position() == QStringLiteral("\\def\\loop{\\loop}").size() && error.endPosition() == QStringLiteral("\\def\\loop{\\loop}\\loop").size(),
+      require(error.message().contains(QStringLiteral("Too many expansions")),
+              QStringLiteral("recursive macro should throw maxExpand error"));
+      require(error.position() == QStringLiteral("\\def\\loop{\\loop}").size() &&
+                  error.endPosition() == QStringLiteral("\\def\\loop{\\loop}\\loop").size(),
               QStringLiteral("recursive macro maxExpand error should preserve macro token source range"));
     }
     require(threw, QStringLiteral("macro expander should enforce maxExpand"));
@@ -97,7 +101,8 @@ void testMathMetricsMacrosAndState() {
   const BlockLayout* blockLayout = layout.block(mathBlock->id());
   require(blockLayout != nullptr && blockLayout->mathLayout() != nullptr && blockLayout->mathLayout()->valid(),
           QStringLiteral("metrics/macro/state block should have native layout"));
-  require(blockLayout->mathLayout()->size.width() > 40.0, QStringLiteral("metrics/macro/state layout should have measurable width"));
+  require(blockLayout->mathLayout()->size.width() > 40.0,
+          QStringLiteral("metrics/macro/state layout should have measurable width"));
 }
 
 void testRecursionGuards() {
@@ -105,9 +110,13 @@ void testRecursionGuards() {
   // MuffinMathParserStackTest also exercises this on a deliberately small stack.
   {
     QString deep;
-    for (int i = 0; i < 2000; ++i) { deep += QLatin1Char('{'); }
+    for (int i = 0; i < 2000; ++i) {
+      deep += QLatin1Char('{');
+    }
     deep += QLatin1Char('x');
-    for (int i = 0; i < 2000; ++i) { deep += QLatin1Char('}'); }
+    for (int i = 0; i < 2000; ++i) {
+      deep += QLatin1Char('}');
+    }
     bool threw = false;
     try {
       math::MathParser parser(deep);
@@ -121,7 +130,9 @@ void testRecursionGuards() {
   {
     math::MathMacroExpander expander;
     QString chain;
-    for (int i = 0; i < 500; ++i) { chain += QStringLiteral("\\expandafter"); }
+    for (int i = 0; i < 500; ++i) {
+      chain += QStringLiteral("\\expandafter");
+    }
     chain += QStringLiteral("\\relax");
     bool threw = false;
     try {
@@ -159,15 +170,18 @@ void testMathFixtureRenderTreeDumps(const QString& fixturePath) {
     require(rendered.valid(), QStringLiteral("math fixture %1 should render").arg(id));
     require(rendered.root->width > 0.0 && rendered.root->height >= 0.0 && rendered.root->depth >= 0.0,
             QStringLiteral("math fixture %1 should expose positive root metrics").arg(id));
-    require(rendered.size.width() >= rendered.root->width && rendered.size.height() >= rendered.root->height + rendered.root->depth,
+    require(rendered.size.width() >= rendered.root->width &&
+                rendered.size.height() >= rendered.root->height + rendered.root->depth,
             QStringLiteral("math fixture %1 layout size should include root box").arg(id));
 
     const QJsonObject dump = rendered.root->toJson();
     if (qEnvironmentVariable("MUFFIN_DUMP_MATH_FIXTURE") == id.toUtf8()) {
       qInfo().noquote() << QString::fromUtf8(QJsonDocument(dump).toJson(QJsonDocument::Indented));
     }
-    require(dump.value(QStringLiteral("kind")).isString(), QStringLiteral("math fixture %1 JSON dump should include kind").arg(id));
-    require(dump.value(QStringLiteral("width")).toDouble() > 0.0, QStringLiteral("math fixture %1 JSON dump should include width").arg(id));
+    require(dump.value(QStringLiteral("kind")).isString(),
+            QStringLiteral("math fixture %1 JSON dump should include kind").arg(id));
+    require(dump.value(QStringLiteral("width")).toDouble() > 0.0,
+            QStringLiteral("math fixture %1 JSON dump should include width").arg(id));
     const QJsonDocument reparsed = QJsonDocument::fromJson(rendered.root->toJsonString().toUtf8());
     require(reparsed.isObject(), QStringLiteral("math fixture %1 JSON dump string should parse").arg(id));
 
@@ -179,7 +193,8 @@ void testMathFixtureRenderTreeDumps(const QString& fixturePath) {
     }
 
     const auto goldenIt = katexMetricsById.constFind(id);
-    if (qEnvironmentVariable("MUFFIN_DUMP_KATEX_METRIC_DIFF") == id.toUtf8() && goldenIt != katexMetricsById.constEnd()) {
+    if (qEnvironmentVariable("MUFFIN_DUMP_KATEX_METRIC_DIFF") == id.toUtf8() &&
+        goldenIt != katexMetricsById.constEnd()) {
       QJsonObject nativeMetricsRoot = dump;
       QJsonObject katexHtml;
       if (findRenderTreeText(dump, QStringLiteral("katex-html"), katexHtml)) {
@@ -191,7 +206,8 @@ void testMathFixtureRenderTreeDumps(const QString& fixturePath) {
       const qreal heightTolerance = fixture.value(QStringLiteral("heightToleranceEm")).toDouble(0.35);
       const qreal depthTolerance = fixture.value(QStringLiteral("depthToleranceEm")).toDouble(0.35);
       const qreal shiftTolerance = fixture.value(QStringLiteral("shiftToleranceEm")).toDouble(0.75);
-      compareKatexBuilderRootMetrics(id, *rendered.root, dump, goldenIt.value(), rootEm, heightTolerance, depthTolerance, shiftTolerance);
+      compareKatexBuilderRootMetrics(id, *rendered.root, dump, goldenIt.value(), rootEm, heightTolerance,
+                                     depthTolerance, shiftTolerance);
     }
 
     const auto glyphIt = katexGlyphsById.constFind(id);
@@ -205,7 +221,8 @@ void testMathFixtureRenderTreeDumps(const QString& fixturePath) {
     }
 
     const auto bboxIt = katexBBoxById.constFind(id);
-    if (auditKatexBBox && bboxIt != katexBBoxById.constEnd() && !bboxIt.value().value(QStringLiteral("error")).toBool()) {
+    if (auditKatexBBox && bboxIt != katexBBoxById.constEnd() &&
+        !bboxIt.value().value(QStringLiteral("error")).toBool()) {
       bboxAudit.push_back(makeBBoxAuditEntry(id, *rendered.root, bboxIt.value(), rootEm));
     }
     if (fixture.value(QStringLiteral("compareKatexBBox")).toBool() && bboxIt != katexBBoxById.constEnd()) {
@@ -227,7 +244,8 @@ void testMathFixtureRenderTreeDumps(const QString& fixturePath) {
     qInfo().noquote() << "KaTeX bbox audit, sorted by layout error:";
     for (const BBoxAuditEntry& entry : bboxAudit) {
       qInfo().noquote()
-          << QStringLiteral("%1 layoutErr=%2 inkErr=%3 katexDom=(%4,%5) katexInk=(%6,%7) nativeLayout=(%8,%9) nativeInk=(%10,%11)")
+          << QStringLiteral(
+                 "%1 layoutErr=%2 inkErr=%3 katexDom=(%4,%5) katexInk=(%6,%7) nativeLayout=(%8,%9) nativeInk=(%10,%11)")
                  .arg(entry.id)
                  .arg(entry.layoutError(), 0, 'f', 4)
                  .arg(entry.inkError(), 0, 'f', 4)
@@ -245,10 +263,13 @@ void testMathFixtureRenderTreeDumps(const QString& fixturePath) {
 
 void testOfficialKatexScreenshotterAudit(const QString& fixturePath) {
   const QJsonArray fixtures = readJsonArrayFixture(fixturePath);
-  require(fixtures.size() >= 100, QStringLiteral("official KaTeX screenshotter fixture suite should contain broad coverage"));
+  require(fixtures.size() >= 100,
+          QStringLiteral("official KaTeX screenshotter fixture suite should contain broad coverage"));
 
-  const QMap<QString, QJsonObject> katexBBoxById = readObjectArrayById(katexBBoxPathForFixture(fixturePath, QStringLiteral("katex-official")));
-  const QMap<QString, QJsonObject> katexGlyphsById = readObjectArrayById(katexGlyphsPathForFixture(fixturePath, QStringLiteral("katex-official")));
+  const QMap<QString, QJsonObject> katexBBoxById =
+      readObjectArrayById(katexBBoxPathForFixture(fixturePath, QStringLiteral("katex-official")));
+  const QMap<QString, QJsonObject> katexGlyphsById =
+      readObjectArrayById(katexGlyphsPathForFixture(fixturePath, QStringLiteral("katex-official")));
   RenderTheme theme = RenderTheme::github();
   math::MathSettings officialSettings;
   officialSettings.trust = false;
@@ -302,7 +323,8 @@ void testOfficialKatexScreenshotterAudit(const QString& fixturePath) {
       const int nativeGlyphs = nativeVisibleGlyphItems(*rendered.root, rootEm).size();
       const int katexGlyphs = katexVisibleGlyphItems(glyphIt.value()).size();
       if (nativeGlyphs != katexGlyphs) {
-        glyphCountMismatches.push_back(QStringLiteral("%1 native=%2 katex=%3").arg(id).arg(nativeGlyphs).arg(katexGlyphs));
+        glyphCountMismatches.push_back(
+            QStringLiteral("%1 native=%2 katex=%3").arg(id).arg(nativeGlyphs).arg(katexGlyphs));
       }
       ++glyphComparedCount;
     }
@@ -312,25 +334,31 @@ void testOfficialKatexScreenshotterAudit(const QString& fixturePath) {
     return left.layoutError() > right.layoutError();
   });
 
-  qInfo().noquote() << QStringLiteral("Official KaTeX screenshotter audit: fixtures=%1 rendered=%2 renderFailures=%3 bboxCompared=%4 glyphCompared=%5 glyphCountMismatches=%6")
-                           .arg(fixtures.size())
-                           .arg(renderedCount)
-                           .arg(renderFailures.size())
-                           .arg(bboxComparedCount)
-                           .arg(glyphComparedCount)
-                           .arg(glyphCountMismatches.size());
+  qInfo().noquote()
+      << QStringLiteral(
+             "Official KaTeX screenshotter audit: fixtures=%1 rendered=%2 renderFailures=%3 bboxCompared=%4 glyphCompared=%5 glyphCountMismatches=%6")
+             .arg(fixtures.size())
+             .arg(renderedCount)
+             .arg(renderFailures.size())
+             .arg(bboxComparedCount)
+             .arg(glyphComparedCount)
+             .arg(glyphCountMismatches.size());
   if (!renderFailures.isEmpty()) {
-    qInfo().noquote() << QStringLiteral("Official render failures first 25: %1").arg(renderFailures.mid(0, 25).join(QStringLiteral(", ")));
+    qInfo().noquote() << QStringLiteral("Official render failures first 25: %1")
+                             .arg(renderFailures.mid(0, 25).join(QStringLiteral(", ")));
   }
   if (!glyphCountMismatches.isEmpty()) {
-    qInfo().noquote() << QStringLiteral("Official glyph count mismatches (%1): %2").arg(glyphCountMismatches.size()).arg(glyphCountMismatches.join(QStringLiteral("; ")));
+    qInfo().noquote() << QStringLiteral("Official glyph count mismatches (%1): %2")
+                             .arg(glyphCountMismatches.size())
+                             .arg(glyphCountMismatches.join(QStringLiteral("; ")));
   }
   qInfo().noquote() << "Official KaTeX bbox audit top 25 by layout error:";
   const int limit = qMin(25, bboxAudit.size());
   for (int i = 0; i < limit; ++i) {
     const BBoxAuditEntry& entry = bboxAudit.at(i);
     qInfo().noquote()
-        << QStringLiteral("%1 layoutErr=%2 inkErr=%3 katexDom=(%4,%5) nativeLayout=(%6,%7) katexInk=(%8,%9) nativeInk=(%10,%11)")
+        << QStringLiteral(
+               "%1 layoutErr=%2 inkErr=%3 katexDom=(%4,%5) nativeLayout=(%6,%7) katexInk=(%8,%9) nativeInk=(%10,%11)")
                .arg(entry.id)
                .arg(entry.layoutError(), 0, 'f', 4)
                .arg(entry.inkError(), 0, 'f', 4)
@@ -345,7 +373,7 @@ void testOfficialKatexScreenshotterAudit(const QString& fixturePath) {
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
@@ -358,11 +386,11 @@ int main(int argc, char** argv) {
 #define RUN_TEST(test) runTest(#test, test)
   RUN_TEST(testMathMetricsMacrosAndState);
   RUN_TEST(testRecursionGuards);
-  runTest("testMathFixtureRenderTreeDumps", [&] {
-    testMathFixtureRenderTreeDumps(smokeFixtureInfo.dir().filePath(QStringLiteral("math/core.json")));
-  });
+  runTest("testMathFixtureRenderTreeDumps",
+          [&] { testMathFixtureRenderTreeDumps(smokeFixtureInfo.dir().filePath(QStringLiteral("math/core.json"))); });
   runTest("testOfficialKatexScreenshotterAudit", [&] {
-    testOfficialKatexScreenshotterAudit(smokeFixtureInfo.dir().filePath(QStringLiteral("math/katex-official-screenshotter.json")));
+    testOfficialKatexScreenshotterAudit(
+        smokeFixtureInfo.dir().filePath(QStringLiteral("math/katex-official-screenshotter.json")));
   });
 #undef RUN_TEST
   return 0;

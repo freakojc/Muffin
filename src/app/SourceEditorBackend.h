@@ -65,4 +65,4 @@ private:
   SourceEditorWidget* editor_;
 };
 
-}  // namespace muffin
+} // namespace muffin

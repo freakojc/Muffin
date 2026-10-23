@@ -9,9 +9,7 @@ class QPainter;
 
 namespace muffin::mermaid::state {
 
-void paintStateScene(const StateScene& scene, QPainter& painter,
-                     const MermaidPaintOptions& options = {});
-QImage renderStateSceneToImage(const StateScene& scene, qreal dpr = 1.0,
-                               qreal padding = 8.0);
+void paintStateScene(const StateScene& scene, QPainter& painter, const MermaidPaintOptions& options = {});
+QImage renderStateSceneToImage(const StateScene& scene, qreal dpr = 1.0, qreal padding = 8.0);
 
-}  // namespace muffin::mermaid::state
+} // namespace muffin::mermaid::state

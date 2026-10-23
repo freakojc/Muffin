@@ -21,4 +21,4 @@ public:
   static void configureFont(QFont& font, const QString& familyExpression);
 };
 
-}  // namespace muffin::mermaid
+} // namespace muffin::mermaid

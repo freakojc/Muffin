@@ -26,22 +26,18 @@ QString errorBaseCss(const flowtheme::FlowThemeVariables& theme) {
 }
 
 error::ErrorTextCss textCssFromComputed(const csscascade::ElementStyle& computed,
-                                        const flowtheme::FlowThemeVariables& theme,
-                                        qreal presentationFontSize) {
+                                        const flowtheme::FlowThemeVariables& theme, qreal presentationFontSize) {
   error::ErrorTextCss css;
   css.fill = computed.fill;
   css.stroke = computed.stroke;
   css.fontFamily = computed.fontFamily;
   css.fontWeight = computed.fontWeight;
-  const CssLengthContext rootContext =
-      pieCssLengthContext(firstFontFamily(theme.fontFamily), 16.0);
-  const qreal resolved =
-      cssFontSizePx(computed.fontSize, rootContext);
+  const CssLengthContext rootContext = pieCssLengthContext(firstFontFamily(theme.fontFamily), 16.0);
+  const qreal resolved = cssFontSizePx(computed.fontSize, rootContext);
   css.fontSize = resolved > 0.0 ? resolved : presentationFontSize;
   // % stroke-width resolves against the viewBox normalized diagonal.
-  css.strokeWidthPx = qMax(0.0, cssStrokeWidthPx(
-      computed.strokeWidth, rootContext,
-      std::sqrt((2412.0 * 2412.0 + 512.0 * 512.0) / 2.0)));
+  css.strokeWidthPx = qMax(
+      0.0, cssStrokeWidthPx(computed.strokeWidth, rootContext, std::sqrt((2412.0 * 2412.0 + 512.0 * 512.0) / 2.0)));
   css.visible = computed.displayed();
   css.opacity = computed.effectiveOpacity;
   return css;
@@ -53,14 +49,12 @@ struct ErrorDiagramImpl final : Diagram {
   // with the raw selectSvgElement util, which never stamps the type class).
   QString cssClass() const override { return {}; }
 
-  MermaidRenderEntry render(const MermaidPreprocessResult& pre,
-                            const QString& type,
+  MermaidRenderEntry render(const MermaidPreprocessResult& pre, const QString& type,
                             const QString& theme) const override {
     const QString configuredTheme = themeFromConfig(pre.config);
-    const QString effectiveTheme =
-        configuredTheme.isEmpty() ? theme : configuredTheme;
-    const flowtheme::FlowThemeVariables themeVars = flowtheme::resolveFlowTheme(
-        themeIdFromName(effectiveTheme), themeOverrides(pre.config));
+    const QString effectiveTheme = configuredTheme.isEmpty() ? theme : configuredTheme;
+    const flowtheme::FlowThemeVariables themeVars =
+        flowtheme::resolveFlowTheme(themeIdFromName(effectiveTheme), themeOverrides(pre.config));
 
     error::ErrorTextStyle style;
     style.fontFamily = themeVars.fontFamily;
@@ -68,8 +62,7 @@ struct ErrorDiagramImpl final : Diagram {
     style.errorTextColor = themeVars.errorTextColor;
 
     error::ErrorScene scene = error::buildErrorScene(std::move(style));
-    const QString themeCss =
-        pre.config.value(QStringLiteral("themeCSS")).toString();
+    const QString themeCss = pre.config.value(QStringLiteral("themeCSS")).toString();
     if (!themeCss.trimmed().isEmpty()) {
       // The upstream DOM: svg > [style, g (empty scaffold), g > 6 x
       // path.error-icon + 2 x text.error-text] — the content group is a
@@ -88,65 +81,90 @@ struct ErrorDiagramImpl final : Diagram {
       csscascade::ElementStyle textFallback = rootFallback;
       textFallback.fill = themeVars.errorTextColor;
       QVector<csscascade::ElementInput> elements;
-      elements.append({QStringLiteral("svg"), QString(),
+      elements.append({QStringLiteral("svg"),
+                       QString(),
                        QStringLiteral("svg"),
-                       QStringLiteral("diagram-root"), {}, {}, rootFallback,
+                       QStringLiteral("diagram-root"),
+                       {},
+                       {},
+                       rootFallback,
                        QString()});
-      elements.append({QStringLiteral("sheet"), QStringLiteral("svg"),
-                       QStringLiteral("style"), QString(), {}, {}, rootFallback,
+      elements.append({QStringLiteral("sheet"),
+                       QStringLiteral("svg"),
+                       QStringLiteral("style"),
+                       QString(),
+                       {},
+                       {},
+                       rootFallback,
                        QString()});
-      elements.append({QStringLiteral("scaffold"), QStringLiteral("svg"),
-                       QStringLiteral("g"), QString(), {}, {}, rootFallback,
+      elements.append({QStringLiteral("scaffold"),
+                       QStringLiteral("svg"),
+                       QStringLiteral("g"),
+                       QString(),
+                       {},
+                       {},
+                       rootFallback,
                        QString()});
-      elements.append({QStringLiteral("content"), QStringLiteral("svg"),
-                       QStringLiteral("g"), QString(), {}, {}, rootFallback,
+      elements.append({QStringLiteral("content"),
+                       QStringLiteral("svg"),
+                       QStringLiteral("g"),
+                       QString(),
+                       {},
+                       {},
+                       rootFallback,
                        QString()});
       for (int index = 0; index < scene.iconPaths.size(); ++index)
         elements.append({QStringLiteral("icon%1").arg(index),
-                         QStringLiteral("content"), QStringLiteral("path"),
-                         QString(), {QStringLiteral("error-icon")}, {},
-                         iconFallback, QString()});
-      elements.append({QStringLiteral("headline"), QStringLiteral("content"),
-                       QStringLiteral("text"), QString(),
-                       {QStringLiteral("error-text")}, {}, textFallback,
+                         QStringLiteral("content"),
+                         QStringLiteral("path"),
+                         QString(),
+                         {QStringLiteral("error-icon")},
+                         {},
+                         iconFallback,
+                         QString()});
+      elements.append({QStringLiteral("headline"),
+                       QStringLiteral("content"),
+                       QStringLiteral("text"),
+                       QString(),
+                       {QStringLiteral("error-text")},
+                       {},
+                       textFallback,
                        QStringLiteral("text-anchor: middle"),
                        QStringLiteral("font-size: 150px")});
-      elements.append({QStringLiteral("version"), QStringLiteral("content"),
-                       QStringLiteral("text"), QString(),
-                       {QStringLiteral("error-text")}, {}, textFallback,
+      elements.append({QStringLiteral("version"),
+                       QStringLiteral("content"),
+                       QStringLiteral("text"),
+                       QString(),
+                       {QStringLiteral("error-text")},
+                       {},
+                       textFallback,
                        QStringLiteral("text-anchor: middle"),
                        QStringLiteral("font-size: 100px")});
       const QHash<QString, csscascade::ElementStyle> computed =
-          csscascade::resolveElements(
-              themeCss, elements, errorBaseCss(themeVars));
+          csscascade::resolveElements(themeCss, elements, errorBaseCss(themeVars));
       // Per-path resolution: the six icons are DOM siblings, so each gets its
       // own computed style (structural selectors can split them).
       scene.css.icons.reserve(scene.iconPaths.size());
       for (int index = 0; index < scene.iconPaths.size(); ++index) {
-        const csscascade::ElementStyle icon =
-            computed.value(QStringLiteral("icon%1").arg(index), iconFallback);
+        const csscascade::ElementStyle icon = computed.value(QStringLiteral("icon%1").arg(index), iconFallback);
         error::ErrorIconCss iconCss;
         iconCss.fill = icon.fill;
         iconCss.stroke = icon.stroke;
-        iconCss.strokeWidthPx = qMax(0.0, cssStrokeWidthPx(
-            icon.strokeWidth,
-            pieCssLengthContext(firstFontFamily(themeVars.fontFamily), 16.0),
-            std::sqrt((2412.0 * 2412.0 + 512.0 * 512.0) / 2.0)));
+        iconCss.strokeWidthPx = qMax(
+            0.0, cssStrokeWidthPx(icon.strokeWidth, pieCssLengthContext(firstFontFamily(themeVars.fontFamily), 16.0),
+                                  std::sqrt((2412.0 * 2412.0 + 512.0 * 512.0) / 2.0)));
         iconCss.visible = icon.displayed();
         iconCss.opacity = icon.effectiveOpacity;
         scene.css.icons.append(iconCss);
       }
-      scene.css.headline = textCssFromComputed(
-          computed.value(QStringLiteral("headline"), textFallback), themeVars,
-          150.0);
-      scene.css.version = textCssFromComputed(
-          computed.value(QStringLiteral("version"), textFallback), themeVars,
-          100.0);
+      scene.css.headline =
+          textCssFromComputed(computed.value(QStringLiteral("headline"), textFallback), themeVars, 150.0);
+      scene.css.version =
+          textCssFromComputed(computed.value(QStringLiteral("version"), textFallback), themeVars, 100.0);
     }
 
-    MermaidRenderMetadata metadata = renderMetadata(
-        pre, type, QString(), QString(), QString(), themeVars.textColor,
-        themeVars.fontFamily, 18.0);
+    MermaidRenderMetadata metadata =
+        renderMetadata(pre, type, QString(), QString(), QString(), themeVars.textColor, themeVars.fontFamily, 18.0);
     metadata.title.clear();
     metadata.accessibleTitle.clear();
     metadata.accessibleDescription.clear();
@@ -172,17 +190,15 @@ struct DashDiagramImpl final : Diagram {
   QStringList ids() const override { return {QStringLiteral("---")}; }
   QString cssClass() const override { return {}; }
 
-  MermaidRenderEntry render(const MermaidPreprocessResult& pre,
-                            const QString& type,
+  MermaidRenderEntry render(const MermaidPreprocessResult& pre, const QString& type,
                             const QString& /*theme*/) const override {
     MermaidDiagnostic diagnostic;
     diagnostic.diagramType = type;
     diagnostic.stage = QStringLiteral("parser");
     diagnostic.code = QStringLiteral("dash-frontmatter");
-    diagnostic.message = QStringLiteral(
-        "Diagrams beginning with --- are not valid. If you were trying to use "
-        "a YAML front-matter, please ensure that you've correctly opened and "
-        "closed the YAML front-matter with un-indented `---` blocks");
+    diagnostic.message = QStringLiteral("Diagrams beginning with --- are not valid. If you were trying to use "
+                                        "a YAML front-matter, please ensure that you've correctly opened and "
+                                        "closed the YAML front-matter with un-indented `---` blocks");
     diagnostic.span.offset = 0;
     diagnostic.span.length = pre.code.isEmpty() ? 0 : 3;
     diagnostic.span.line = 1;
@@ -196,7 +212,7 @@ struct DashDiagramImpl final : Diagram {
   }
 };
 
-}  // namespace
+} // namespace
 
 const Diagram& errorDiagramAdapter() {
   static const ErrorDiagramImpl instance;
@@ -208,4 +224,4 @@ const Diagram& dashDiagramAdapter() {
   return instance;
 }
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

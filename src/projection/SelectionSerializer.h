@@ -12,11 +12,7 @@ namespace muffin {
 class MarkdownDocument;
 class MarkdownNode;
 
-enum class SelectionExportFormat {
-  Markdown,
-  PlainText,
-  Html
-};
+enum class SelectionExportFormat { Markdown, PlainText, Html };
 
 struct SelectionExportRequest {
   const MarkdownDocument* document = nullptr;
@@ -29,9 +25,7 @@ struct SelectionExportResult {
   QString mimeType;
   QByteArray mimeData;
 
-  bool isEmpty() const {
-    return text.isEmpty() && mimeData.isEmpty();
-  }
+  bool isEmpty() const { return text.isEmpty() && mimeData.isEmpty(); }
 };
 
 class SelectionSerializer {
@@ -52,22 +46,28 @@ private:
     QString sourceText;
   };
 
-  bool selectionContext(const MarkdownDocument& document, const SelectionRange& selection, EditableContext& context, qsizetype& start,
+  bool selectionContext(const MarkdownDocument& document, const SelectionRange& selection, EditableContext& context,
+                        qsizetype& start, qsizetype& end) const;
+  bool editableContextFor(const MarkdownDocument& document, const MarkdownNode& displayNode,
+                          EditableContext& context) const;
+  bool editableCursorSourceOffset(const MarkdownDocument& document, const CursorPosition& cursor,
+                                  qsizetype& sourceOffset, qsizetype& contextSourceStart) const;
+  bool selectionSourceRange(const MarkdownDocument& document, const SelectionRange& selection, qsizetype& start,
+                            qsizetype& end) const;
+  bool blockSelectionSourceRange(const MarkdownDocument& document, const SelectionRange& selection, qsizetype& start,
+                                 qsizetype& end) const;
+  bool blockSourceRange(const MarkdownDocument& document, const MarkdownNode& node, qsizetype& start,
                         qsizetype& end) const;
-  bool editableContextFor(const MarkdownDocument& document, const MarkdownNode& displayNode, EditableContext& context) const;
-  bool editableCursorSourceOffset(const MarkdownDocument& document, const CursorPosition& cursor, qsizetype& sourceOffset,
-                                  qsizetype& contextSourceStart) const;
-  bool selectionSourceRange(const MarkdownDocument& document, const SelectionRange& selection, qsizetype& start, qsizetype& end) const;
-  bool blockSelectionSourceRange(const MarkdownDocument& document, const SelectionRange& selection, qsizetype& start, qsizetype& end) const;
-  bool blockSourceRange(const MarkdownDocument& document, const MarkdownNode& node, qsizetype& start, qsizetype& end) const;
-  bool literalCursorSourceOffset(const MarkdownDocument& document, const CursorPosition& cursor, qsizetype& sourceOffset) const;
-  bool literalContentSourceRange(const MarkdownDocument& document, const MarkdownNode& node, qsizetype& start, qsizetype& end) const;
+  bool literalCursorSourceOffset(const MarkdownDocument& document, const CursorPosition& cursor,
+                                 qsizetype& sourceOffset) const;
+  bool literalContentSourceRange(const MarkdownDocument& document, const MarkdownNode& node, qsizetype& start,
+                                 qsizetype& end) const;
   QString literalMarkdownPrefix(const MarkdownDocument& document, const MarkdownNode& node) const;
   qsizetype structuredLineStart(const QString& markdown, qsizetype contextSourceStart) const;
-  bool listItemLineBounds(const QString& markdown, const EditableContext& context, qsizetype& lineStart, qsizetype& contentStart,
-                          qsizetype& lineEnd) const;
+  bool listItemLineBounds(const QString& markdown, const EditableContext& context, qsizetype& lineStart,
+                          qsizetype& contentStart, qsizetype& lineEnd) const;
   bool isPlainInlineEditable(const MarkdownNode& node, const QString& sourceText) const;
   QString plainTextForMarkdownRange(const QString& markdownText, qsizetype start, qsizetype end) const;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -42,13 +42,15 @@ QImage raster(const ThemeElementStyle& style, QFont font, qreal height, QPoint o
   }
   return image;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
-  if (argc != 3) return 2;
+  if (argc != 3)
+    return 2;
   QFile css(QString::fromLocal8Bit(argv[1]));
-  if (!css.open(QIODevice::ReadOnly)) return 2;
+  if (!css.open(QIODevice::ReadOnly))
+    return 2;
   auto theme = RenderTheme::fromDefinition(
       CssThemeMapper::fromCss(QString::fromUtf8(css.readAll()), "vlook-probe", QFileInfo(css).absolutePath()));
   theme.updateForViewport(1086, 741);
@@ -56,7 +58,8 @@ int main(int argc, char** argv) {
   session.setMarkdownText("# Theme acceptance\n\nPlain **bold** text.\n", false);
   theme.resolveDocumentCounters(session.document());
   const auto* style = theme.elementStyleForNode(session.document().root(), "#write");
-  if (!style || style->paint.backgroundLayers.empty()) return 3;
+  if (!style || style->paint.backgroundLayers.empty())
+    return 3;
   QJsonArray layers;
   for (const auto& layer : style->paint.backgroundLayers)
     layers.append(QJsonObject{{"image_width", layer.bitmap.width()},
@@ -66,7 +69,8 @@ int main(int argc, char** argv) {
                               {"position_y_px", layer.positionY.px},
                               {"position_y_fraction", layer.positionY.fraction}});
   const auto directory = QString::fromLocal8Bit(argv[2]);
-  if (!QDir().mkpath(directory)) return 2;
+  if (!QDir().mkpath(directory))
+    return 2;
   QJsonArray rows;
   for (const auto offset : {QPoint(0, 0), QPoint(0, 30)}) {
     const auto reference = raster(*style, theme.paragraphFont(), 1000, offset, false);
@@ -74,7 +78,8 @@ int main(int argc, char** argv) {
       for (bool split : {false, true}) {
         const auto image = raster(*style, theme.paragraphFont(), height, offset, split);
         const auto name = QString("%1-%2-%3.png").arg(height).arg(offset.y()).arg(split);
-        if (!image.save(QDir(directory).filePath(name))) return 3;
+        if (!image.save(QDir(directory).filePath(name)))
+          return 3;
         rows.append(QJsonObject{{"height", height},
                                 {"offset_y", offset.y()},
                                 {"split", split},
@@ -89,7 +94,8 @@ int main(int argc, char** argv) {
       QString("Plain text with **bold**, *italic*, ~~strike~~, `code`, and [Muffin](https://example.com). ")
           .repeated(12) +
       "\n\n";
-  while (text.size() < 10 * 1024 * 1024) text += paragraph;
+  while (text.size() < 10 * 1024 * 1024)
+    text += paragraph;
   DocumentSession large;
   large.setMarkdownText(text, false);
   EditorView view;
@@ -110,8 +116,10 @@ int main(int argc, char** argv) {
     QTimer::singleShot(700, &settle, &QEventLoop::quit);
     settle.exec();
     const auto image = view.viewport()->grab().toImage();
-    if (reference.isNull()) reference = image;
-    if (!image.save(QDir(directory).filePath(QString("editor-cycle-%1.png").arg(cycle)))) return 3;
+    if (reference.isNull())
+      reference = image;
+    if (!image.save(QDir(directory).filePath(QString("editor-cycle-%1.png").arg(cycle))))
+      return 3;
     const auto first = view.nodeRect(large.document().root().children().front()->id());
     editorRows.append(QJsonObject{{"cycle", cycle},
                                   {"same_as_first", image == reference},

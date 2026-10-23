@@ -34,7 +34,7 @@ struct ErSceneStyle {
 
 struct ErSceneAttribute {
   QString text;
-  QString keyType;  // "" / "PK" / "FK" / "UK"
+  QString keyType; // "" / "PK" / "FK" / "UK"
   QString comment;
 };
 
@@ -86,9 +86,7 @@ struct ErScene : MermaidScene {
   void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
   SvgMarkerProjection svgMarkerProjection() const override;
-  const QVector<InteractionRegion>& interactionRegions() const override {
-    return interactions;
-  }
+  const QVector<InteractionRegion>& interactionRegions() const override { return interactions; }
 
   QRectF bounds;
   QVector<ErSceneEntity> entities;
@@ -104,9 +102,7 @@ struct ErScene : MermaidScene {
 // from the measured sizes recorded during layout; attribute row rects are
 // computed from the style line height. The result is safe to copy and reuse
 // across paint passes.
-ErScene buildErScene(const ErLayoutInput& input, const ErPlacementResult& placement,
-                     ErSceneStyle style = {},
-                     const QVector<style::ClassDef>& classDefs = {},
-                     const style::ThemeDefaults& themeDefaults = {});
+ErScene buildErScene(const ErLayoutInput& input, const ErPlacementResult& placement, ErSceneStyle style = {},
+                     const QVector<style::ClassDef>& classDefs = {}, const style::ThemeDefaults& themeDefaults = {});
 
-}  // namespace muffin::mermaid::er
+} // namespace muffin::mermaid::er

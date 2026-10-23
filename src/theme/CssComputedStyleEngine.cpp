@@ -69,27 +69,43 @@ bool selectorMatches(const ParsedSelector& selector, const CssElement& element, 
 // Accepts: `even`(2n), `odd`(2n+1), an integer N (the Nth, a=0), and `an+b`
 // forms: `2n`, `2n+1`, `n`, `n+3`, `-n+3`, `+3`. Returns valid=false for anything
 // else. `a=0` means "exactly the b-th" element.
-struct NthExpr { bool valid = false; int a = 0; int b = 0; };
+struct NthExpr {
+  bool valid = false;
+  int a = 0;
+  int b = 0;
+};
 NthExpr parseNth(const QString& arg) {
   NthExpr e;
   const QString s = arg.trimmed().toLower();
-  if (s == QStringLiteral("even")) { return {true, 2, 0}; }
-  if (s == QStringLiteral("odd")) { return {true, 2, 1}; }
+  if (s == QStringLiteral("even")) {
+    return {true, 2, 0};
+  }
+  if (s == QStringLiteral("odd")) {
+    return {true, 2, 1};
+  }
   static const QRegularExpression re(QStringLiteral("^([+-]?\\d*)n\\s*([+-]\\s*\\d+)?$"));
   const QRegularExpressionMatch m = re.match(s);
   if (m.hasMatch()) {
     const QString aStr = m.captured(1);
-    if (aStr.isEmpty() || aStr == QStringLiteral("+")) { e.a = 1; }
-    else if (aStr == QStringLiteral("-")) { e.a = -1; }
-    else { e.a = aStr.toInt(); }
+    if (aStr.isEmpty() || aStr == QStringLiteral("+")) {
+      e.a = 1;
+    } else if (aStr == QStringLiteral("-")) {
+      e.a = -1;
+    } else {
+      e.a = aStr.toInt();
+    }
     QString bStr = m.captured(2);
-    if (!bStr.isEmpty()) { e.b = bStr.replace(QStringLiteral(" "), QString()).toInt(); }
+    if (!bStr.isEmpty()) {
+      e.b = bStr.replace(QStringLiteral(" "), QString()).toInt();
+    }
     e.valid = true;
     return e;
   }
   bool ok = false;
   const int n = s.toInt(&ok);
-  if (ok && n > 0) { return {true, 0, n}; }  // bare N → exactly the Nth
+  if (ok && n > 0) {
+    return {true, 0, n};
+  } // bare N → exactly the Nth
   return e;
 }
 
@@ -97,8 +113,12 @@ NthExpr parseNth(const QString& arg) {
 // For a==0 that is p==b. The `a*k+b==p` re-check guards against C++ truncation
 // giving a spurious k.
 bool nthPositionMatches(int a, int b, int p) {
-  if (a == 0) { return p == b; }
-  if (a * p < 0 && (p - b) % a != 0) { return false; }  // quick reject on sign mismatch
+  if (a == 0) {
+    return p == b;
+  }
+  if (a * p < 0 && (p - b) % a != 0) {
+    return false;
+  } // quick reject on sign mismatch
   const int k = (p - b) / a;
   return k >= 0 && a * k + b == p;
 }
@@ -113,7 +133,9 @@ SimpleSelector parseCompound(QString compound) {
     if (compound.at(i) == QLatin1Char('*')) {
       ++j;
     } else {
-      while (j < n && isIdentChar(compound.at(j))) { ++j; }
+      while (j < n && isIdentChar(compound.at(j))) {
+        ++j;
+      }
       out.tag = compound.mid(i, j - i).toLower();
     }
     i = j;
@@ -122,32 +144,46 @@ SimpleSelector parseCompound(QString compound) {
     const QChar c = compound.at(i);
     if (c == QLatin1Char('#')) {
       int j = ++i;
-      while (j < n && isIdentChar(compound.at(j))) { ++j; }
+      while (j < n && isIdentChar(compound.at(j))) {
+        ++j;
+      }
       out.id = compound.mid(i, j - i);
       i = j;
     } else if (c == QLatin1Char('.')) {
       int j = ++i;
-      while (j < n && isIdentChar(compound.at(j))) { ++j; }
+      while (j < n && isIdentChar(compound.at(j))) {
+        ++j;
+      }
       const QString cls = compound.mid(i, j - i);
       out.classes << cls;
-      if (cls == QStringLiteral("md-focus")) { out.mdFocus = true; }
-      if (isTyporaEditorOnlyClass(cls)) { out.editorOnly = true; }
+      if (cls == QStringLiteral("md-focus")) {
+        out.mdFocus = true;
+      }
+      if (isTyporaEditorOnlyClass(cls)) {
+        out.editorOnly = true;
+      }
       i = j;
     } else if (c == QLatin1Char(':')) {
       const bool element = (i + 1 < n && compound.at(i + 1) == QLatin1Char(':'));
       int j = element ? i + 2 : i + 1;
       const int nameStart = j;
-      while (j < n && (compound.at(j).isLetterOrNumber() || compound.at(j) == QLatin1Char('-'))) { ++j; }
+      while (j < n && (compound.at(j).isLetterOrNumber() || compound.at(j) == QLatin1Char('-'))) {
+        ++j;
+      }
       const QString name = compound.mid(nameStart, j - nameStart).toLower();
       QString arg;
       if (j < n && compound.at(j) == QLatin1Char('(')) {
         int depth = 0;
         int end = -1;
         for (int k = j; k < n; ++k) {
-          if (compound.at(k) == QLatin1Char('(')) { ++depth; }
-          else if (compound.at(k) == QLatin1Char(')')) {
+          if (compound.at(k) == QLatin1Char('(')) {
+            ++depth;
+          } else if (compound.at(k) == QLatin1Char(')')) {
             --depth;
-            if (depth == 0) { end = k; break; }
+            if (depth == 0) {
+              end = k;
+              break;
+            }
           }
         }
         if (end >= 0) {
@@ -159,33 +195,53 @@ SimpleSelector parseCompound(QString compound) {
       }
       if (element || name == QStringLiteral("before") || name == QStringLiteral("after") ||
           name == QStringLiteral("selection") || name == QStringLiteral("marker")) {
-        if (out.pseudoElement.isEmpty()) { out.pseudoElement = name; }
-      } else if (name == QStringLiteral("hover")) { out.hover = true; }
-      else if (name == QStringLiteral("focus")) { out.focus = true; }
-      else if (name == QStringLiteral("active")) { out.active = true; }
-      else if (name == QStringLiteral("visited")) { out.visited = true; }
-      else if (name == QStringLiteral("first-child")) { out.firstChild = true; }
-      else if (name == QStringLiteral("last-child")) { out.lastChild = true; }
-      else if (name == QStringLiteral("only-child")) { out.onlyChild = true; }
-      else if (name == QStringLiteral("first-of-type")) { out.firstOfType = true; }
-      else if (name == QStringLiteral("nth-child") || name == QStringLiteral("nth-of-type")) {
+        if (out.pseudoElement.isEmpty()) {
+          out.pseudoElement = name;
+        }
+      } else if (name == QStringLiteral("hover")) {
+        out.hover = true;
+      } else if (name == QStringLiteral("focus")) {
+        out.focus = true;
+      } else if (name == QStringLiteral("active")) {
+        out.active = true;
+      } else if (name == QStringLiteral("visited")) {
+        out.visited = true;
+      } else if (name == QStringLiteral("first-child")) {
+        out.firstChild = true;
+      } else if (name == QStringLiteral("last-child")) {
+        out.lastChild = true;
+      } else if (name == QStringLiteral("only-child")) {
+        out.onlyChild = true;
+      } else if (name == QStringLiteral("first-of-type")) {
+        out.firstOfType = true;
+      } else if (name == QStringLiteral("nth-child") || name == QStringLiteral("nth-of-type")) {
         const NthExpr e = parseNth(arg);
-        if (!e.valid) { out.unsupported = true; }
-        else if (name == QStringLiteral("nth-child")) { out.nthChild = true; out.nthA = e.a; out.nthB = e.b; }
-        else { out.nthOfType = true; out.nthA = e.a; out.nthB = e.b; }
+        if (!e.valid) {
+          out.unsupported = true;
+        } else if (name == QStringLiteral("nth-child")) {
+          out.nthChild = true;
+          out.nthA = e.a;
+          out.nthB = e.b;
+        } else {
+          out.nthOfType = true;
+          out.nthA = e.a;
+          out.nthB = e.b;
+        }
       } else if (name == QLatin1String("is") || name == QLatin1String("where") || name == QLatin1String("not")) {
         std::vector<ParsedSelector> alternatives;
         for (const auto& argument : CssThemeParser::splitTopLevelCommas(arg)) {
           auto parsed = parseSelector(argument);
-          const bool supported = parsed.valid && std::none_of(parsed.parts.begin(), parsed.parts.end(), [](const auto& part) {
-                                   return part.simple.unsupported || !part.simple.pseudoElement.isEmpty();
-                                 });
+          const bool supported =
+              parsed.valid && std::none_of(parsed.parts.begin(), parsed.parts.end(), [](const auto& part) {
+                return part.simple.unsupported || !part.simple.pseudoElement.isEmpty();
+              });
           if (supported)
             alternatives.push_back(std::move(parsed));
           else if (name == QLatin1String("not"))
             out.unsupported = true;
         }
-        if (alternatives.empty()) out.unsupported = true;
+        if (alternatives.empty())
+          out.unsupported = true;
         if (name == QLatin1String("not"))
           out.exclusions.insert(out.exclusions.end(), alternatives.begin(), alternatives.end());
         else
@@ -197,18 +253,29 @@ SimpleSelector parseCompound(QString compound) {
         // partial/incorrect match.
         QString h = arg;
         bool direct = false;
-        if (h.startsWith(QLatin1Char('>'))) { direct = true; h = h.mid(1).trimmed(); }
+        if (h.startsWith(QLatin1Char('>'))) {
+          direct = true;
+          h = h.mid(1).trimmed();
+        }
         // Reject combinators inside the argument (descendant/child beyond the leading >).
-        static const QRegularExpression simpleHas(QStringLiteral("^(?:[a-zA-Z_][-a-zA-Z0-9_]*|\\*)?(?:\\.[-a-zA-Z_][-a-zA-Z0-9_]*)?$"));
-        if (!simpleHas.match(h).hasMatch()) { out.unsupported = true; }
-        else {
+        static const QRegularExpression simpleHas(
+            QStringLiteral("^(?:[a-zA-Z_][-a-zA-Z0-9_]*|\\*)?(?:\\.[-a-zA-Z_][-a-zA-Z0-9_]*)?$"));
+        if (!simpleHas.match(h).hasMatch()) {
+          out.unsupported = true;
+        } else {
           QString tagPart = h;
           QString clsPart;
           const int dot = h.indexOf(QLatin1Char('.'));
-          if (dot >= 0) { clsPart = h.mid(dot + 1).trimmed().toLower(); tagPart = h.left(dot).trimmed(); }
-          if (tagPart == QStringLiteral("*")) { tagPart.clear(); }
-          if (tagPart.isEmpty() && clsPart.isEmpty()) { out.unsupported = true; }
-          else {
+          if (dot >= 0) {
+            clsPart = h.mid(dot + 1).trimmed().toLower();
+            tagPart = h.left(dot).trimmed();
+          }
+          if (tagPart == QStringLiteral("*")) {
+            tagPart.clear();
+          }
+          if (tagPart.isEmpty() && clsPart.isEmpty()) {
+            out.unsupported = true;
+          } else {
             out.hasPresent = true;
             out.hasDirect = direct;
             out.hasTag = tagPart.toLower();
@@ -219,7 +286,9 @@ SimpleSelector parseCompound(QString compound) {
         // :root matches the document root element (html). Model it as a tag selector for
         // "html" so :root element declarations reach the root element (the adapter exposes
         // the root with tag "html"). :root variables are still collected at parse time.
-        if (out.tag.isEmpty()) { out.tag = QStringLiteral("html"); }
+        if (out.tag.isEmpty()) {
+          out.tag = QStringLiteral("html");
+        }
       } else {
         // Unsupported structural/content pseudos (:empty, :last-of-type, :only-of-type,
         // :lang, …) cannot be evaluated against our model. Treating only the base tag
@@ -235,8 +304,10 @@ SimpleSelector parseCompound(QString compound) {
       for (; close < n; ++close) {
         const QChar current = compound.at(close);
         if (inString) {
-          if (current == quote) inString = false;
-          else if (current == QLatin1Char('\\') && close + 1 < n) ++close;
+          if (current == quote)
+            inString = false;
+          else if (current == QLatin1Char('\\') && close + 1 < n)
+            ++close;
         } else if (current == QLatin1Char('"') || current == QLatin1Char('\'')) {
           inString = true;
           quote = current;
@@ -251,29 +322,34 @@ SimpleSelector parseCompound(QString compound) {
       }
       QString body = compound.mid(i + 1, close - i - 1).trimmed();
       CssAttributeSelector attr;
-      static const QRegularExpression attrRe(QStringLiteral(
-          "^([_a-zA-Z][-_a-zA-Z0-9:.]*)(?:\\s*(~=|\\|=|\\^=|\\$=|\\*=|=)\\s*"
-          "(?:\"((?:\\\\.|[^\"])*)\"|'((?:\\\\.|[^'])*)'|([^\\s]+))\\s*([iIsS])?)?$"));
+      static const QRegularExpression attrRe(
+          QStringLiteral("^([_a-zA-Z][-_a-zA-Z0-9:.]*)(?:\\s*(~=|\\|=|\\^=|\\$=|\\*=|=)\\s*"
+                         "(?:\"((?:\\\\.|[^\"])*)\"|'((?:\\\\.|[^'])*)'|([^\\s]+))\\s*([iIsS])?)?$"));
       const QRegularExpressionMatch match = attrRe.match(body);
       if (!match.hasMatch()) {
         out.unsupported = true;
       } else {
         attr.name = match.captured(1).toLower();
         const QString op = match.captured(2);
-        if (op == QLatin1String("=")) attr.op = CssAttributeSelector::Operator::Equals;
-        else if (op == QLatin1String("~=")) attr.op = CssAttributeSelector::Operator::IncludesWord;
-        else if (op == QLatin1String("|=")) attr.op = CssAttributeSelector::Operator::DashMatch;
-        else if (op == QLatin1String("^=")) attr.op = CssAttributeSelector::Operator::Prefix;
-        else if (op == QLatin1String("$=")) attr.op = CssAttributeSelector::Operator::Suffix;
-        else if (op == QLatin1String("*=")) attr.op = CssAttributeSelector::Operator::Contains;
-        attr.value = !match.captured(3).isNull() ? match.captured(3)
-                   : !match.captured(4).isNull() ? match.captured(4)
-                                                  : match.captured(5);
+        if (op == QLatin1String("="))
+          attr.op = CssAttributeSelector::Operator::Equals;
+        else if (op == QLatin1String("~="))
+          attr.op = CssAttributeSelector::Operator::IncludesWord;
+        else if (op == QLatin1String("|="))
+          attr.op = CssAttributeSelector::Operator::DashMatch;
+        else if (op == QLatin1String("^="))
+          attr.op = CssAttributeSelector::Operator::Prefix;
+        else if (op == QLatin1String("$="))
+          attr.op = CssAttributeSelector::Operator::Suffix;
+        else if (op == QLatin1String("*="))
+          attr.op = CssAttributeSelector::Operator::Contains;
+        attr.value = !match.captured(3).isNull()   ? match.captured(3)
+                     : !match.captured(4).isNull() ? match.captured(4)
+                                                   : match.captured(5);
         attr.value.replace(QStringLiteral("\\\""), QStringLiteral("\""));
         attr.value.replace(QStringLiteral("\\'"), QStringLiteral("'"));
         attr.value.replace(QStringLiteral("\\\\"), QStringLiteral("\\"));
-        attr.caseInsensitive = match.captured(6).compare(
-            QLatin1String("i"), Qt::CaseInsensitive) == 0;
+        attr.caseInsensitive = match.captured(6).compare(QLatin1String("i"), Qt::CaseInsensitive) == 0;
         out.attributes.push_back(std::move(attr));
       }
       i = close + 1;
@@ -310,15 +386,39 @@ ParsedSelector parseSelector(const QString& selector) {
     const QChar c = selector.at(i);
     if (inString) {
       cur += c;
-      if (c == quote) { inString = false; }
-      else if (c == QLatin1Char('\\') && i + 1 < selector.size()) { cur += selector.at(++i); }
+      if (c == quote) {
+        inString = false;
+      } else if (c == QLatin1Char('\\') && i + 1 < selector.size()) {
+        cur += selector.at(++i);
+      }
       continue;
     }
-    if (c == QLatin1Char('"') || c == QLatin1Char('\'')) { inString = true; quote = c; cur += c; continue; }
-    if (c == QLatin1Char('(')) { ++paren; cur += c; continue; }
-    if (c == QLatin1Char(')')) { paren = qMax(0, paren - 1); cur += c; continue; }
-    if (c == QLatin1Char('[')) { ++brk; cur += c; continue; }
-    if (c == QLatin1Char(']')) { brk = qMax(0, brk - 1); cur += c; continue; }
+    if (c == QLatin1Char('"') || c == QLatin1Char('\'')) {
+      inString = true;
+      quote = c;
+      cur += c;
+      continue;
+    }
+    if (c == QLatin1Char('(')) {
+      ++paren;
+      cur += c;
+      continue;
+    }
+    if (c == QLatin1Char(')')) {
+      paren = qMax(0, paren - 1);
+      cur += c;
+      continue;
+    }
+    if (c == QLatin1Char('[')) {
+      ++brk;
+      cur += c;
+      continue;
+    }
+    if (c == QLatin1Char(']')) {
+      brk = qMax(0, brk - 1);
+      cur += c;
+      continue;
+    }
     if (paren == 0 && brk == 0 && (c == QLatin1Char('>') || c == QLatin1Char('+') || c == QLatin1Char('~'))) {
       flush();
       nextRelation = c;
@@ -331,7 +431,9 @@ ParsedSelector parseSelector(const QString& selector) {
     cur += c;
   }
   flush();
-  if (compounds.isEmpty()) { return parsed; }
+  if (compounds.isEmpty()) {
+    return parsed;
+  }
   for (int i = 0; i < compounds.size(); ++i) {
     SelectorPart part;
     part.simple = parseCompound(compounds.at(i));
@@ -339,8 +441,10 @@ ParsedSelector parseSelector(const QString& selector) {
     parsed.interactive = parsed.interactive || part.simple.hover || part.simple.focus || part.simple.active ||
                          part.simple.visited || part.simple.mdFocus;
     for (const auto& group : part.simple.alternatives)
-      for (const auto& nested : group) parsed.interactive = parsed.interactive || nested.interactive;
-    for (const auto& nested : part.simple.exclusions) parsed.interactive = parsed.interactive || nested.interactive;
+      for (const auto& nested : group)
+        parsed.interactive = parsed.interactive || nested.interactive;
+    for (const auto& nested : part.simple.exclusions)
+      parsed.interactive = parsed.interactive || nested.interactive;
     parsed.parts.push_back(part);
   }
   // Mirror the flat mapper: a rule whose rightmost compound carries a Typora editor-only
@@ -352,19 +456,34 @@ ParsedSelector parseSelector(const QString& selector) {
 }
 
 bool stateMatches(const SimpleSelector& simple, const CssElementState& state, const CssElement& element) {
-  if (simple.unsupported) { return false; }
-  if (simple.hover && !state.hover) { return false; }
-  if (simple.focus && !state.focus) { return false; }
-  if (simple.active && !state.active) { return false; }
-  if (simple.visited && !state.visited) { return false; }
-  if (simple.mdFocus && !state.mdFocus) { return false; }
+  if (simple.unsupported) {
+    return false;
+  }
+  if (simple.hover && !state.hover) {
+    return false;
+  }
+  if (simple.focus && !state.focus) {
+    return false;
+  }
+  if (simple.active && !state.active) {
+    return false;
+  }
+  if (simple.visited && !state.visited) {
+    return false;
+  }
+  if (simple.mdFocus && !state.mdFocus) {
+    return false;
+  }
   if (state.subject) {
     const auto* origin = element.originatingElement ? element.originatingElement : &element;
-    if (simple.focus && origin != state.subject) return false;
+    if (simple.focus && origin != state.subject)
+      return false;
     if (simple.hover || simple.active || simple.mdFocus) {
       auto* descendant = state.subject;
-      while (descendant && descendant != origin) descendant = descendant->parent;
-      if (!descendant) return false;
+      while (descendant && descendant != origin)
+        descendant = descendant->parent;
+      if (!descendant)
+        return false;
     }
   }
   return true;
@@ -387,94 +506,140 @@ int typeIndexOf(const CssElement& element) {
 }
 
 bool hasTag(const CssElement& element, const QString& tag, bool directChild) {
-  if (element.navigator) { return element.navigator->hasTag(element, tag, directChild); }
+  if (element.navigator) {
+    return element.navigator->hasTag(element, tag, directChild);
+  }
   return (directChild ? element.hasChildTags : element.hasDescendantTags).contains(tag);
 }
 
 bool hasClass(const CssElement& element, const QString& className, bool directChild) {
-  if (element.navigator) { return element.navigator->hasClass(element, className, directChild); }
+  if (element.navigator) {
+    return element.navigator->hasClass(element, className, directChild);
+  }
   return (directChild ? element.hasChildClasses : element.hasDescendantClasses).contains(className);
 }
 
 bool simpleMatches(const SimpleSelector& simple, const CssElement& element, const CssElementState& state,
                    bool ignoreStates) {
-  if (simple.unsupported || (!ignoreStates && !stateMatches(simple, state, element))) return false;
+  if (simple.unsupported || (!ignoreStates && !stateMatches(simple, state, element)))
+    return false;
   const QString tag = element.tag.toLower();
   const QString id = element.id;
   const QString pseudo = element.pseudoElement.toLower();
-  if (!simple.tag.isEmpty() && simple.tag != tag) { return false; }
-  if (!simple.id.isEmpty() && simple.id != id) { return false; }
-  if (!simple.pseudoElement.isEmpty() && simple.pseudoElement != pseudo) { return false; }
-  if (simple.pseudoElement.isEmpty() && !pseudo.isEmpty()) { return false; }
+  if (!simple.tag.isEmpty() && simple.tag != tag) {
+    return false;
+  }
+  if (!simple.id.isEmpty() && simple.id != id) {
+    return false;
+  }
+  if (!simple.pseudoElement.isEmpty() && simple.pseudoElement != pseudo) {
+    return false;
+  }
+  if (simple.pseudoElement.isEmpty() && !pseudo.isEmpty()) {
+    return false;
+  }
   for (const QString& cls : simple.classes)
-    if (!element.classes.contains(cls)) return false;
-  if (!simple.notTag.isEmpty() && simple.notTag == tag) return false;
-  if (!simple.notId.isEmpty() && simple.notId == id) return false;
+    if (!element.classes.contains(cls))
+      return false;
+  if (!simple.notTag.isEmpty() && simple.notTag == tag)
+    return false;
+  if (!simple.notId.isEmpty() && simple.notId == id)
+    return false;
   for (const QString& cls : simple.notClasses)
-    if (element.classes.contains(cls)) return false;
+    if (element.classes.contains(cls))
+      return false;
   const auto& subject = element.originatingElement ? *element.originatingElement : element;
   for (const auto& group : simple.alternatives) {
-    if (std::none_of(group.begin(), group.end(), [&](const auto& selector) {
-          return selectorMatches(selector, subject, state, ignoreStates);
-        })) return false;
+    if (std::none_of(group.begin(), group.end(),
+                     [&](const auto& selector) { return selectorMatches(selector, subject, state, ignoreStates); }))
+      return false;
   }
   // Ignoring the state in :not(:hover) would incorrectly eliminate every
   // candidate. Dynamic exclusions must remain candidates until state matching.
   for (const auto& selector : simple.exclusions)
-    if ((!ignoreStates || !selector.interactive) && selectorMatches(selector, subject, state, ignoreStates)) return false;
+    if ((!ignoreStates || !selector.interactive) && selectorMatches(selector, subject, state, ignoreStates))
+      return false;
   // Structural pseudo-classes query the live navigator when present. Prototype
   // elements use their explicitly populated fields and otherwise fail to match.
-  if (simple.firstChild && !(element.navigator ? previousSiblingOf(element) == nullptr : element.childIndex == 0)) { return false; }
+  if (simple.firstChild && !(element.navigator ? previousSiblingOf(element) == nullptr : element.childIndex == 0)) {
+    return false;
+  }
   if (simple.lastChild && !(element.navigator ? nextSiblingOf(element) == nullptr
-                                               : element.childIndex >= 0 && element.nextSibling == nullptr)) { return false; }
-  if (simple.onlyChild && !(element.navigator ? previousSiblingOf(element) == nullptr && nextSiblingOf(element) == nullptr
-                                               : element.childIndex == 0 && element.nextSibling == nullptr)) { return false; }
-  if (simple.firstOfType && typeIndexOf(element) != 0) { return false; }
+                                              : element.childIndex >= 0 && element.nextSibling == nullptr)) {
+    return false;
+  }
+  if (simple.onlyChild &&
+      !(element.navigator ? previousSiblingOf(element) == nullptr && nextSiblingOf(element) == nullptr
+                          : element.childIndex == 0 && element.nextSibling == nullptr)) {
+    return false;
+  }
+  if (simple.firstOfType && typeIndexOf(element) != 0) {
+    return false;
+  }
   if (simple.nthChild) {
     const int index = childIndexOf(element);
-    if (index < 0 || !nthPositionMatches(simple.nthA, simple.nthB, index + 1)) { return false; }
+    if (index < 0 || !nthPositionMatches(simple.nthA, simple.nthB, index + 1)) {
+      return false;
+    }
   }
   if (simple.nthOfType) {
     const int index = typeIndexOf(element);
-    if (index < 0 || !nthPositionMatches(simple.nthA, simple.nthB, index + 1)) { return false; }
+    if (index < 0 || !nthPositionMatches(simple.nthA, simple.nthB, index + 1)) {
+      return false;
+    }
   }
   if (simple.hasPresent) {
-    if (!simple.hasTag.isEmpty() && !hasTag(element, simple.hasTag, simple.hasDirect)) { return false; }
-    if (!simple.hasClass.isEmpty() && !hasClass(element, simple.hasClass, simple.hasDirect)) { return false; }
+    if (!simple.hasTag.isEmpty() && !hasTag(element, simple.hasTag, simple.hasDirect)) {
+      return false;
+    }
+    if (!simple.hasClass.isEmpty() && !hasClass(element, simple.hasClass, simple.hasDirect)) {
+      return false;
+    }
   }
   QHash<QString, QString> attributes;
   if (!simple.attributes.isEmpty()) {
     for (auto it = element.attributes.constBegin(); it != element.attributes.constEnd(); ++it)
       attributes.insert(it.key().toLower(), it.value());
-    if (!element.id.isEmpty()) attributes.insert(QStringLiteral("id"), element.id);
-    if (!element.classes.isEmpty()) attributes.insert(QStringLiteral("class"), element.classes.join(QLatin1Char(' ')));
+    if (!element.id.isEmpty())
+      attributes.insert(QStringLiteral("id"), element.id);
+    if (!element.classes.isEmpty())
+      attributes.insert(QStringLiteral("class"), element.classes.join(QLatin1Char(' ')));
   }
   for (const CssAttributeSelector& selector : simple.attributes) {
     const auto found = attributes.constFind(selector.name);
-    if (found == attributes.constEnd()) return false;
-    if (selector.op == CssAttributeSelector::Operator::Exists) continue;
-    const Qt::CaseSensitivity cs = selector.caseInsensitive
-        ? Qt::CaseInsensitive : Qt::CaseSensitive;
+    if (found == attributes.constEnd())
+      return false;
+    if (selector.op == CssAttributeSelector::Operator::Exists)
+      continue;
+    const Qt::CaseSensitivity cs = selector.caseInsensitive ? Qt::CaseInsensitive : Qt::CaseSensitive;
     const QString& actual = found.value();
     bool matched = false;
     switch (selector.op) {
-      case CssAttributeSelector::Operator::Exists: matched = true; break;
-      case CssAttributeSelector::Operator::Equals:
-        matched = actual.compare(selector.value, cs) == 0; break;
-      case CssAttributeSelector::Operator::IncludesWord:
-        matched = actual.split(QRegularExpression(QStringLiteral("\\s+")),
-                               Qt::SkipEmptyParts).contains(selector.value, cs); break;
-      case CssAttributeSelector::Operator::DashMatch:
-        matched = actual.compare(selector.value, cs) == 0 ||
-                  actual.startsWith(selector.value + QLatin1Char('-'), cs); break;
-      case CssAttributeSelector::Operator::Prefix:
-        matched = actual.startsWith(selector.value, cs); break;
-      case CssAttributeSelector::Operator::Suffix:
-        matched = actual.endsWith(selector.value, cs); break;
-      case CssAttributeSelector::Operator::Contains:
-        matched = actual.contains(selector.value, cs); break;
+    case CssAttributeSelector::Operator::Exists:
+      matched = true;
+      break;
+    case CssAttributeSelector::Operator::Equals:
+      matched = actual.compare(selector.value, cs) == 0;
+      break;
+    case CssAttributeSelector::Operator::IncludesWord:
+      matched =
+          actual.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts).contains(selector.value, cs);
+      break;
+    case CssAttributeSelector::Operator::DashMatch:
+      matched = actual.compare(selector.value, cs) == 0 || actual.startsWith(selector.value + QLatin1Char('-'), cs);
+      break;
+    case CssAttributeSelector::Operator::Prefix:
+      matched = actual.startsWith(selector.value, cs);
+      break;
+    case CssAttributeSelector::Operator::Suffix:
+      matched = actual.endsWith(selector.value, cs);
+      break;
+    case CssAttributeSelector::Operator::Contains:
+      matched = actual.contains(selector.value, cs);
+      break;
     }
-    if (!matched) return false;
+    if (!matched)
+      return false;
   }
   return true;
 }
@@ -484,8 +649,10 @@ bool simpleMatches(const SimpleSelector& simple, const CssElement& element, cons
 // materializing every preceding sibling. kMaxMatcherSteps bounds pathological
 // selectors/structures without using the C++ call stack.
 bool selectorMatchesAt(const ParsedSelector& selector, int index, const CssElement* element,
-                        const CssElementState& targetState, bool ignoreStates) {
-  if (!element || index < 0) { return false; }
+                       const CssElementState& targetState, bool ignoreStates) {
+  if (!element || index < 0) {
+    return false;
+  }
   const int last = selector.parts.size() - 1;
   enum class WorkKind { Match, PreviousSibling };
   struct WorkItem {
@@ -498,12 +665,16 @@ bool selectorMatchesAt(const ParsedSelector& selector, int index, const CssEleme
   constexpr int kMaxMatcherSteps = 100000;
   int steps = 0;
   while (!stack.empty()) {
-    if (++steps > kMaxMatcherSteps) { return false; }
+    if (++steps > kMaxMatcherSteps) {
+      return false;
+    }
     const WorkItem work = stack.back();
     stack.pop_back();
     const int idx = work.index;
     const CssElement* el = work.element;
-    if (!el || idx < 0) { continue; }
+    if (!el || idx < 0) {
+      continue;
+    }
     if (work.kind == WorkKind::PreviousSibling) {
       if (const CssElement* previous = previousSiblingOf(*el)) {
         stack.push_back({idx, previous, WorkKind::PreviousSibling});
@@ -512,8 +683,12 @@ bool selectorMatchesAt(const ParsedSelector& selector, int index, const CssEleme
       continue;
     }
     const CssElementState state = idx == last || targetState.subject ? targetState : CssElementState{};
-    if (!simpleMatches(selector.parts.at(idx).simple, *el, state, ignoreStates)) { continue; }
-    if (idx == 0) { return true; }  // every part matched, left to right
+    if (!simpleMatches(selector.parts.at(idx).simple, *el, state, ignoreStates)) {
+      continue;
+    }
+    if (idx == 0) {
+      return true;
+    } // every part matched, left to right
     const QChar rel = selector.parts.at(idx).combinator;
     if (rel == QLatin1Char('>')) {
       stack.push_back({idx - 1, el->parent, WorkKind::Match});
@@ -526,7 +701,8 @@ bool selectorMatchesAt(const ParsedSelector& selector, int index, const CssEleme
       // materializing/walking every preceding paragraph for every heading.
       const auto& left = selector.parts.at(idx - 1).simple;
       if (!left.tag.isEmpty() && el->parent && el->parent->navigator &&
-          !el->parent->navigator->hasTag(*el->parent, left.tag, true)) continue;
+          !el->parent->navigator->hasTag(*el->parent, left.tag, true))
+        continue;
       stack.push_back({idx - 1, el, WorkKind::PreviousSibling});
     } else {
       // Descendant combinator (' '): any ancestor.
@@ -540,7 +716,9 @@ bool selectorMatchesAt(const ParsedSelector& selector, int index, const CssEleme
 
 bool selectorMatches(const ParsedSelector& selector, const CssElement& element, const CssElementState& state,
                      bool ignoreStates) {
-  if (!selector.valid || selector.exportOnly || selector.editorOnly || selector.parts.isEmpty()) { return false; }
+  if (!selector.valid || selector.exportOnly || selector.editorOnly || selector.parts.isEmpty()) {
+    return false;
+  }
   return selectorMatchesAt(selector, selector.parts.size() - 1, &element, state, ignoreStates);
 }
 
@@ -550,22 +728,25 @@ quint8 selectorStateMask(const ParsedSelector& selector) {
     const auto& simple = part.simple;
     mask |= (simple.hover ? 1 : 0) | ((simple.focus || simple.mdFocus) ? 2 : 0) | (simple.active ? 4 : 0);
     for (const auto& group : simple.alternatives)
-      for (const auto& nested : group) mask |= selectorStateMask(nested);
-    for (const auto& nested : simple.exclusions) mask |= selectorStateMask(nested);
+      for (const auto& nested : group)
+        mask |= selectorStateMask(nested);
+    for (const auto& nested : simple.exclusions)
+      mask |= selectorStateMask(nested);
   }
   return mask;
 }
-
 
 // applyStyleForElement / parentStyleFor are now CssComputedStyleEngine members
 // (they read the cached parse + sheet_). Their definitions sit below, next to
 // the constructor.
 
-}  // namespace
+} // namespace
 
 QString CssComputedStyle::rawValue(const QString& property) const {
   const QString key = property.startsWith(QStringLiteral("--")) ? property : property.toLower();
-  if (key.startsWith(QStringLiteral("--"))) { return customProperties_.value(key); }
+  if (key.startsWith(QStringLiteral("--"))) {
+    return customProperties_.value(key);
+  }
   return properties_.value(key);
 }
 
@@ -586,7 +767,8 @@ CssComputedStyle CssComputedStyle::withContainingWidth(qreal widthPx) const {
 
 CssLengthPercentage CssComputedStyle::length(const QString& property) const {
   const auto computed = computedLengths_.constFind(property.toLower());
-  if (computed != computedLengths_.cend()) return computed.value();
+  if (computed != computedLengths_.cend())
+    return computed.value();
   CssLengthContext context;
   context.emPx = fontSizePx * textScale;
   context.remPx = rootFontSizePx * textScale;
@@ -595,12 +777,12 @@ CssLengthPercentage CssComputedStyle::length(const QString& property) const {
 }
 
 CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEnvironment environment)
-    : CssComputedStyleEngine(sheet, environment, {}) {}
+    : CssComputedStyleEngine(sheet, environment, {}) {
+}
 
 CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEnvironment environment,
                                                std::shared_ptr<const QHash<QString, ParsedSelector>> selectorTemplates)
-    : sourceSheet_(std::make_shared<const CssThemeSheet>(sheet)),
-      sheet_(sheet.evaluated(environment)),
+    : sourceSheet_(std::make_shared<const CssThemeSheet>(sheet)), sheet_(sheet.evaluated(environment)),
       environment_(environment) {
   diag::ScopedPerfProbe perf("css.compileSelectors", cssDetailPerf());
   // Pre-parse every selector once. The match path (applyStyleForElement) reads
@@ -615,7 +797,8 @@ CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEn
   for (auto it = sheet_.variables().cbegin(); it != sheet_.variables().cend(); ++it)
     viewportUnits_ = viewportUnits_ || CssThemeParser::usesViewportUnits(it.value());
   for (const auto& animation : sheet_.keyframes())
-    for (const auto& stop : animation.stops) viewportUnits_ = viewportUnits_ || usesViewport(stop.declarations);
+    for (const auto& stop : animation.stops)
+      viewportUnits_ = viewportUnits_ || usesViewport(stop.declarations);
   qsizetype totalSelectors = 0;
   for (const CssRule& rule : rules) {
     totalSelectors += rule.selectors.size();
@@ -635,7 +818,8 @@ CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEn
       for (qsizetype i = 0; i + 1 < selector.parts.size(); ++i) {
         const auto& ancestor = selector.parts[i].simple;
         candidate.ancestorClasses += ancestor.classes;
-        if (blockTags.contains(ancestor.tag)) candidate.ancestorBlockTags.append(ancestor.tag);
+        if (blockTags.contains(ancestor.tag))
+          candidate.ancestorBlockTags.append(ancestor.tag);
       }
     return candidate;
   };
@@ -670,7 +854,8 @@ CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEn
         if (subject.pseudoElement == QLatin1String("before") || subject.pseudoElement == QLatin1String("after")) {
           const auto key = qMakePair(subject.tag == QLatin1String("*") ? QString() : subject.tag, subject.id);
           auto& candidates = selectorFeatures_.generatedPseudoSubjects[subject.pseudoElement];
-          if (!candidates.contains(key)) candidates.push_back(key);
+          if (!candidates.contains(key))
+            candidates.push_back(key);
         }
         bool interactive = ps.interactive;
         std::function<void(const ParsedSelector&)> features = [&](const ParsedSelector& selector) {
@@ -684,8 +869,10 @@ CssComputedStyleEngine::CssComputedStyleEngine(const CssThemeSheet& sheet, CssEn
             selectorFeatures_.needsTypeIndex =
                 selectorFeatures_.needsTypeIndex || simple.firstOfType || simple.nthOfType;
             for (const auto& group : simple.alternatives)
-              for (const auto& nested : group) features(nested);
-            for (const auto& nested : simple.exclusions) features(nested);
+              for (const auto& nested : group)
+                features(nested);
+            for (const auto& nested : simple.exclusions)
+              features(nested);
           }
         };
         features(ps);
@@ -730,50 +917,94 @@ std::shared_ptr<CssComputedStyleEngine> CssComputedStyleEngine::withEnvironment(
 
 namespace {
 std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const QHash<QString, QString>& vars) {
-  if(decl.property.startsWith("-webkit-mask")) {
-    auto canonical=decl;canonical.property.remove(0,8);
-    return expandDeclaration(canonical,vars);
+  if (decl.property.startsWith("-webkit-mask")) {
+    auto canonical = decl;
+    canonical.property.remove(0, 8);
+    return expandDeclaration(canonical, vars);
   }
   std::vector<CssDeclaration> result{decl};
   const QString property = decl.property, value = CssThemeParser::resolveVars(decl.value, vars).trimmed();
   const auto add = [&](const QString& key, const QString& v) { result.push_back({key, v, decl.important}); };
-  const QStringList sides{QStringLiteral("top"), QStringLiteral("right"), QStringLiteral("bottom"), QStringLiteral("left")};
-  const bool wide = value == QStringLiteral("inherit") || value == QStringLiteral("initial") || value == QStringLiteral("unset") ||
-                    value == QLatin1String("revert") || value == QLatin1String("revert-layer");
-  if(property == "mask") {
-    const QStringList fields{"image","position","size","repeat","origin","clip","mode","composite"};
+  const QStringList sides{QStringLiteral("top"), QStringLiteral("right"), QStringLiteral("bottom"),
+                          QStringLiteral("left")};
+  const bool wide = value == QStringLiteral("inherit") || value == QStringLiteral("initial") ||
+                    value == QStringLiteral("unset") || value == QLatin1String("revert") ||
+                    value == QLatin1String("revert-layer");
+  if (property == "mask") {
+    const QStringList fields{"image", "position", "size", "repeat", "origin", "clip", "mode", "composite"};
     QVector<QStringList> columns(fields.size());
-    for(const auto& layer:CssThemeParser::splitTopLevelCommas(value)) {
-      QStringList values{"none","0% 0%","auto","repeat","border-box","border-box","match-source","add"};
-      QString separated;int depth=0;
-      for(auto ch:layer) {if(ch=='(')++depth;if(ch==')')--depth;separated+=ch=='/' && depth==0?QString(" / "):QString(ch);}
-      QStringList position,size,repeats,boxes;bool sizing=false,imageSeen=false,modeSeen=false,compositeSeen=false;
-      for(const auto& token:splitTopLevelSpaces(separated)) {
-        const auto lower=token.toLower();
-        if(token=="/") {if(sizing || position.isEmpty())return {};sizing=true;continue;}
-        if(token.contains("gradient(",Qt::CaseInsensitive) || token.startsWith("url(",Qt::CaseInsensitive) || lower=="none") {
-          if(imageSeen)return {};imageSeen=true;values[0]=token;
-        }
-        else if(QStringList{"repeat","no-repeat","repeat-x","repeat-y","space","round"}.contains(lower))repeats<<lower;
-        else if(QStringList{"border-box","padding-box","content-box"}.contains(lower))boxes<<lower;
-        else if(QStringList{"alpha","luminance","match-source"}.contains(lower)) {if(modeSeen)return {};modeSeen=true;values[6]=lower;}
-        else if(QStringList{"add","subtract","intersect","exclude"}.contains(lower)) {if(compositeSeen)return {};compositeSeen=true;values[7]=lower;}
-        else (sizing?size:position)<<token;
+    for (const auto& layer : CssThemeParser::splitTopLevelCommas(value)) {
+      QStringList values{"none", "0% 0%", "auto", "repeat", "border-box", "border-box", "match-source", "add"};
+      QString separated;
+      int depth = 0;
+      for (auto ch : layer) {
+        if (ch == '(')
+          ++depth;
+        if (ch == ')')
+          --depth;
+        separated += ch == '/' && depth == 0 ? QString(" / ") : QString(ch);
       }
-      if(boxes.size()>2 || (sizing && size.isEmpty()))return {};
-      if(!position.isEmpty())values[1]=position.join(' ');
-      if(!size.isEmpty())values[2]=size.join(' ');
-      if(!repeats.isEmpty())values[3]=repeats.join(' ');
-      if(!boxes.isEmpty()) {values[4]=boxes[0];values[5]=boxes.size()>1?boxes[1]:boxes[0];}
-      for(qsizetype i=0;i<fields.size();++i)columns[i]<<values[i];
+      QStringList position, size, repeats, boxes;
+      bool sizing = false, imageSeen = false, modeSeen = false, compositeSeen = false;
+      for (const auto& token : splitTopLevelSpaces(separated)) {
+        const auto lower = token.toLower();
+        if (token == "/") {
+          if (sizing || position.isEmpty())
+            return {};
+          sizing = true;
+          continue;
+        }
+        if (token.contains("gradient(", Qt::CaseInsensitive) || token.startsWith("url(", Qt::CaseInsensitive) ||
+            lower == "none") {
+          if (imageSeen)
+            return {};
+          imageSeen = true;
+          values[0] = token;
+        } else if (QStringList{"repeat", "no-repeat", "repeat-x", "repeat-y", "space", "round"}.contains(lower))
+          repeats << lower;
+        else if (QStringList{"border-box", "padding-box", "content-box"}.contains(lower))
+          boxes << lower;
+        else if (QStringList{"alpha", "luminance", "match-source"}.contains(lower)) {
+          if (modeSeen)
+            return {};
+          modeSeen = true;
+          values[6] = lower;
+        } else if (QStringList{"add", "subtract", "intersect", "exclude"}.contains(lower)) {
+          if (compositeSeen)
+            return {};
+          compositeSeen = true;
+          values[7] = lower;
+        } else
+          (sizing ? size : position) << token;
+      }
+      if (boxes.size() > 2 || (sizing && size.isEmpty()))
+        return {};
+      if (!position.isEmpty())
+        values[1] = position.join(' ');
+      if (!size.isEmpty())
+        values[2] = size.join(' ');
+      if (!repeats.isEmpty())
+        values[3] = repeats.join(' ');
+      if (!boxes.isEmpty()) {
+        values[4] = boxes[0];
+        values[5] = boxes.size() > 1 ? boxes[1] : boxes[0];
+      }
+      for (qsizetype i = 0; i < fields.size(); ++i)
+        columns[i] << values[i];
     }
-    for(qsizetype i=0;i<fields.size();++i)add("mask-"+fields[i],wide?value:columns[i].join(','));
+    for (qsizetype i = 0; i < fields.size(); ++i)
+      add("mask-" + fields[i], wide ? value : columns[i].join(','));
   } else if (property == "transition" || property == "animation") {
     const bool animation = property == "animation";
-    const QStringList fields = animation
-        ? QStringList{"name", "duration", "timing-function", "delay", "iteration-count", "direction", "fill-mode", "play-state"}
-        : QStringList{"property", "duration", "timing-function", "delay"};
-    if (wide) { for (const auto& field : fields) add(property + '-' + field, value); return result; }
+    const QStringList fields =
+        animation ? QStringList{"name",      "duration",  "timing-function", "delay", "iteration-count",
+                                "direction", "fill-mode", "play-state"}
+                  : QStringList{"property", "duration", "timing-function", "delay"};
+    if (wide) {
+      for (const auto& field : fields)
+        add(property + '-' + field, value);
+      return result;
+    }
     QVector<QStringList> columns(fields.size());
     for (const auto& layer : CssThemeParser::splitTopLevelCommas(value)) {
       QStringList values = animation ? QStringList{"none", "0s", "ease", "0s", "1", "normal", "none", "running"}
@@ -782,41 +1013,63 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
       for (const auto& token : splitTopLevelSpaces(layer)) {
         const auto lower = token.toLower();
         if (lower.endsWith('s')) {
-          auto number = lower; number.chop(lower.endsWith("ms") ? 2 : 1);
-          bool ok = false; number.toDouble(&ok);
-          if (ok) { if (times >= 2) return {}; values[times++ == 0 ? 1 : 3] = token; continue; }
+          auto number = lower;
+          number.chop(lower.endsWith("ms") ? 2 : 1);
+          bool ok = false;
+          number.toDouble(&ok);
+          if (ok) {
+            if (times >= 2)
+              return {};
+            values[times++ == 0 ? 1 : 3] = token;
+            continue;
+          }
         }
-        if (QStringList{"linear", "ease", "ease-in", "ease-out", "ease-in-out", "step-start", "step-end"}.contains(lower) ||
-            lower.startsWith("cubic-bezier(") || lower.startsWith("steps(")) values[2] = token;
-        else if (animation && QStringList{"normal", "reverse", "alternate", "alternate-reverse"}.contains(lower)) values[5] = token;
-        else if (animation && QStringList{"forwards", "backwards", "both"}.contains(lower)) values[6] = token;
-        else if (animation && (lower == "running" || lower == "paused")) values[7] = token;
+        if (QStringList{"linear", "ease", "ease-in", "ease-out", "ease-in-out", "step-start", "step-end"}.contains(
+                lower) ||
+            lower.startsWith("cubic-bezier(") || lower.startsWith("steps("))
+          values[2] = token;
+        else if (animation && QStringList{"normal", "reverse", "alternate", "alternate-reverse"}.contains(lower))
+          values[5] = token;
+        else if (animation && QStringList{"forwards", "backwards", "both"}.contains(lower))
+          values[6] = token;
+        else if (animation && (lower == "running" || lower == "paused"))
+          values[7] = token;
         else {
-          bool numeric = false; token.toDouble(&numeric);
-          if (animation && (numeric || lower == "infinite")) values[4] = token;
-          else values[0] = token;
+          bool numeric = false;
+          token.toDouble(&numeric);
+          if (animation && (numeric || lower == "infinite"))
+            values[4] = token;
+          else
+            values[0] = token;
         }
       }
-      for (int i = 0; i < fields.size(); ++i) columns[i].append(values[i]);
+      for (int i = 0; i < fields.size(); ++i)
+        columns[i].append(values[i]);
     }
-    for (int i = 0; i < fields.size(); ++i) add(property + '-' + fields[i], columns[i].join(','));
+    for (int i = 0; i < fields.size(); ++i)
+      add(property + '-' + fields[i], columns[i].join(','));
     return result;
   }
   if (property == "grid-column" || property == "grid-row" || property == "grid-area") {
-    const QStringList fields = property == "grid-area" ? QStringList{"grid-row-start", "grid-column-start", "grid-row-end", "grid-column-end"}
-                                                      : QStringList{property + "-start", property + "-end"};
+    const QStringList fields =
+        property == "grid-area" ? QStringList{"grid-row-start", "grid-column-start", "grid-row-end", "grid-column-end"}
+                                : QStringList{property + "-start", property + "-end"};
     if (wide) {
-      for (const auto& field : fields) add(field, value);
+      for (const auto& field : fields)
+        add(field, value);
     } else {
       const auto parts = value.split('/');
-      if (parts.empty() || parts.size() > fields.size()) return {};
+      if (parts.empty() || parts.size() > fields.size())
+        return {};
       QStringList expanded;
       for (int i = 0; i < fields.size(); ++i) {
-        if (i < parts.size()) expanded.push_back(parts[i].trimmed());
+        if (i < parts.size())
+          expanded.push_back(parts[i].trimmed());
         else {
           const auto fallback = expanded[property == "grid-area" && i == 3 ? 1 : 0];
           const auto line = parseCssGridLine(fallback);
-          expanded.push_back(line && !line->name.isEmpty() && !line->span && !line->number ? fallback : QStringLiteral("auto"));
+          expanded.push_back(line && !line->name.isEmpty() && !line->span && !line->number ? fallback
+                                                                                           : QStringLiteral("auto"));
         }
         add(fields[i], expanded.back());
       }
@@ -830,7 +1083,8 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
       add("justify-" + suffix, value);
     } else {
       const auto parts = splitTopLevelSpaces(value);
-      if (parts.empty() || parts.size() > 2) return {};
+      if (parts.empty() || parts.size() > 2)
+        return {};
       add("align-" + suffix, parts[0]);
       add("justify-" + suffix, parts.size() == 1 ? parts[0] : parts[1]);
     }
@@ -843,7 +1097,8 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
                                  : property == "flex-flow" ? QStringList{"flex-direction", "flex-wrap"}
                                  : property == "gap"       ? QStringList{"row-gap", "column-gap"}
                                                            : QStringList{"overflow-x", "overflow-y"};
-      for (const auto& field : fields) add(field, value);
+      for (const auto& field : fields)
+        add(field, value);
     } else if (property == "flex") {
       QString grow = "1", shrink = "1", basis = "0%";
       const auto parts = splitTopLevelSpaces(value);
@@ -891,57 +1146,70 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
       add("flex-wrap", wrap);
     } else {
       const auto parts = splitTopLevelSpaces(value);
-      if (parts.empty() || parts.size() > 2) return {};
+      if (parts.empty() || parts.size() > 2)
+        return {};
       add(property == "gap" ? "row-gap" : "overflow-x", parts[0]);
       add(property == "gap" ? "column-gap" : "overflow-y", parts.size() == 2 ? parts[1] : parts[0]);
     }
     return result;
   }
-  if (wide && (property == QLatin1String("font") || property == QLatin1String("background") || property == QLatin1String("list-style") ||
-               property == QLatin1String("text-decoration"))) {
+  if (wide && (property == QLatin1String("font") || property == QLatin1String("background") ||
+               property == QLatin1String("list-style") || property == QLatin1String("text-decoration"))) {
     const QStringList fields =
-        property == QLatin1String("font")
-            ? QStringList{"font-size", "font-family", "line-height", "font-style", "font-weight", "font-variant", "font-stretch"}
+        property == QLatin1String("font") ? QStringList{"font-size",   "font-family",  "line-height", "font-style",
+                                                        "font-weight", "font-variant", "font-stretch"}
         : property == QLatin1String("background")
-            ? QStringList{"background-color",  "background-image",  "background-position", "background-position-x", "background-position-y", "background-size",
-                          "background-repeat", "background-origin", "background-clip",     "background-attachment"}
+            ? QStringList{"background-color",      "background-image",      "background-position",
+                          "background-position-x", "background-position-y", "background-size",
+                          "background-repeat",     "background-origin",     "background-clip",
+                          "background-attachment"}
         : property == QLatin1String("list-style")
             ? QStringList{"list-style-type", "list-style-position", "list-style-image"}
-            : QStringList{"text-decoration-line", "text-decoration-style", "text-decoration-color", "text-decoration-thickness"};
-    for (const auto& field : fields) add(field, value);
+            : QStringList{"text-decoration-line", "text-decoration-style", "text-decoration-color",
+                          "text-decoration-thickness"};
+    for (const auto& field : fields)
+      add(field, value);
     return result;
   }
-  if (property == QStringLiteral("margin") || property == QStringLiteral("padding") || property == QStringLiteral("border-width") ||
-      property == QStringLiteral("border-style") || property == QStringLiteral("border-color")) {
+  if (property == QStringLiteral("margin") || property == QStringLiteral("padding") ||
+      property == QStringLiteral("border-width") || property == QStringLiteral("border-style") ||
+      property == QStringLiteral("border-color")) {
     const auto parts = splitTopLevelSpaces(value);
-    if (parts.isEmpty() || parts.size() > 4) return result;
+    if (parts.isEmpty() || parts.size() > 4)
+      return result;
     const QString values[] = {parts[0], parts.size() > 1 ? parts[1] : parts[0], parts.size() > 2 ? parts[2] : parts[0],
                               parts.size() > 3 ? parts[3] : (parts.size() > 1 ? parts[1] : parts[0])};
     for (int i = 0; i < 4; ++i)
       add(property.startsWith(QStringLiteral("border-")) ? QStringLiteral("border-") + sides[i] + property.mid(6)
                                                          : property + QLatin1Char('-') + sides[i],
           values[i]);
-  } else if (property == QStringLiteral("border") || (property.startsWith(QStringLiteral("border-")) && sides.contains(property.mid(7)))) {
+  } else if (property == QStringLiteral("border") ||
+             (property.startsWith(QStringLiteral("border-")) && sides.contains(property.mid(7)))) {
     QString width = QStringLiteral("medium"), style = QStringLiteral("none"), color = QStringLiteral("currentColor");
     if (wide)
       width = style = color = value;
     else {
       bool widthSeen = false, styleSeen = false, colorSeen = false;
       for (const QString& part : splitTopLevelSpaces(value)) {
-        static const QSet<QString> styles{"none", "hidden", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"};
+        static const QSet<QString> styles{"none",   "hidden", "solid", "dotted", "dashed",
+                                          "double", "groove", "ridge", "inset",  "outset"};
         const auto keyword = part.toLower();
         const auto length = parseCssLengthPercentage(QStringView(part), {});
         if (styles.contains(keyword)) {
-          if (styleSeen) return {};
+          if (styleSeen)
+            return {};
           styleSeen = true;
           style = keyword;
-        } else if (keyword == QLatin1String("thin") || keyword == QLatin1String("medium") || keyword == QLatin1String("thick") ||
+        } else if (keyword == QLatin1String("thin") || keyword == QLatin1String("medium") ||
+                   keyword == QLatin1String("thick") ||
                    (length.status == CssLengthStatus::Valid && !length.hasPercentage)) {
-          if (widthSeen) return {};
+          if (widthSeen)
+            return {};
           widthSeen = true;
           width = part;
         } else if (isCssColorValue(part)) {
-          if (colorSeen) return {};
+          if (colorSeen)
+            return {};
           colorSeen = true;
           color = part;
         } else
@@ -949,15 +1217,18 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
       }
     }
     for (const QString& side : sides) {
-      if (property != QStringLiteral("border") && property != QStringLiteral("border-") + side) continue;
+      if (property != QStringLiteral("border") && property != QStringLiteral("border-") + side)
+        continue;
       add(QStringLiteral("border-") + side + QStringLiteral("-width"), width);
       add(QStringLiteral("border-") + side + QStringLiteral("-style"), style);
       add(QStringLiteral("border-") + side + QStringLiteral("-color"), color);
     }
   } else if (property == QStringLiteral("font")) {
-    static const QRegularExpression re(QStringLiteral(R"(^(.+?\s+)?([\d.]+(?:px|pt|em|rem|%))(?:\s*/\s*([^\s]+))?\s+(.+)$)"));
+    static const QRegularExpression re(
+        QStringLiteral(R"(^(.+?\s+)?([\d.]+(?:px|pt|em|rem|%))(?:\s*/\s*([^\s]+))?\s+(.+)$)"));
     const auto m = re.match(value);
-    if (!m.hasMatch()) return {};
+    if (!m.hasMatch())
+      return {};
     if (m.hasMatch()) {
       add(QStringLiteral("font-variant"), QStringLiteral("normal"));
       add(QStringLiteral("font-stretch"), QStringLiteral("normal"));
@@ -965,10 +1236,12 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
       add(QStringLiteral("font-family"), m.captured(4));
       add(QStringLiteral("line-height"), m.captured(3).isEmpty() ? QStringLiteral("normal") : m.captured(3));
       const auto prefix = splitTopLevelSpaces(m.captured(1));
-      add(QStringLiteral("font-style"), prefix.contains(QStringLiteral("italic")) ? QStringLiteral("italic") : QStringLiteral("normal"));
+      add(QStringLiteral("font-style"),
+          prefix.contains(QStringLiteral("italic")) ? QStringLiteral("italic") : QStringLiteral("normal"));
       QString weight = QStringLiteral("normal");
       for (const QString& token : prefix)
-        if (token == QStringLiteral("bold") || token.toInt() > 0) weight = token;
+        if (token == QStringLiteral("bold") || token.toInt() > 0)
+          weight = token;
       add(QStringLiteral("font-weight"), weight);
     }
   } else if (property == QStringLiteral("text-decoration")) {
@@ -978,26 +1251,32 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
     for (const auto& part : splitTopLevelSpaces(value)) {
       const auto keyword = part.toLower();
       if (QStringList{"none", "underline", "overline", "line-through"}.contains(keyword)) {
-        if (lines.contains(keyword)) return {};
+        if (lines.contains(keyword))
+          return {};
         lines << keyword;
       } else if (QStringList{"solid", "double", "dotted", "dashed", "wavy"}.contains(keyword)) {
-        if (styleSeen) return {};
+        if (styleSeen)
+          return {};
         styleSeen = true;
         style = part;
       } else if (isCssColorValue(part)) {
-        if (colorSeen) return {};
+        if (colorSeen)
+          return {};
         colorSeen = true;
         color = part;
       } else if (keyword == "auto" || keyword == "from-font" ||
                  parseCssLengthPercentage(QStringView(part), {}).status == CssLengthStatus::Valid) {
-        if (thicknessSeen) return {};
+        if (thicknessSeen)
+          return {};
         thicknessSeen = true;
         thickness = part;
       } else
         return {};
     }
-    if (lines.size() > 1 && lines.contains(QStringLiteral("none"))) return {};
-    add(QStringLiteral("text-decoration-line"), lines.isEmpty() ? QStringLiteral("none") : lines.join(QLatin1Char(' ')));
+    if (lines.size() > 1 && lines.contains(QStringLiteral("none")))
+      return {};
+    add(QStringLiteral("text-decoration-line"),
+        lines.isEmpty() ? QStringLiteral("none") : lines.join(QLatin1Char(' ')));
     add(QStringLiteral("text-decoration-style"), style);
     add(QStringLiteral("text-decoration-color"), color);
     add(QStringLiteral("text-decoration-thickness"), thickness);
@@ -1014,7 +1293,8 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
       for (const auto& layer : CssThemeParser::splitTopLevelCommas(value)) {
         auto parts = splitTopLevelSpaces(layer);
         if (parts.size() <= 2 && !parts.isEmpty()) {
-          if (parts.size() == 1) parts << "center";
+          if (parts.size() == 1)
+            parts << "center";
           if (parts[0] == "top" || parts[0] == "bottom" || parts[1] == "left" || parts[1] == "right")
             std::swap(parts[0], parts[1]);
           x << parts[0];
@@ -1029,44 +1309,68 @@ std::vector<CssDeclaration> expandDeclaration(const CssDeclaration& decl, const 
     add("background-position-y", y.join(','));
   } else if (property == QStringLiteral("background")) {
     add("background-color", "transparent");
-    const QStringList fields{"image", "position", "position-x", "position-y", "size", "repeat", "origin", "clip", "attachment"};
+    const QStringList fields{"image",  "position", "position-x", "position-y", "size",
+                             "repeat", "origin",   "clip",       "attachment"};
     QVector<QStringList> columns(fields.size());
     for (const auto& layer : CssThemeParser::splitTopLevelCommas(value)) {
       QStringList values{"none", "0% 0%", "0%", "0%", "auto", "repeat", "padding-box", "border-box", "scroll"};
       QString separated;
       int depth = 0;
       for (const auto ch : layer) {
-        if (ch == '(') ++depth;
-        if (ch == ')') --depth;
+        if (ch == '(')
+          ++depth;
+        if (ch == ')')
+          --depth;
         separated += ch == '/' && depth == 0 ? QStringLiteral(" / ") : QString(ch);
       }
       QStringList position, size, repeats, boxes;
       bool sizing = false;
       for (const QString& part : splitTopLevelSpaces(separated)) {
         const auto lower = part.toLower();
-        if (part == "/") { sizing = true; continue; }
-        if (isCssColorValue(part)) add("background-color", part);
-        else if (part.contains("gradient(", Qt::CaseInsensitive) || part.startsWith("url(", Qt::CaseInsensitive)) values[0] = part;
-        else if (QStringList{"repeat", "no-repeat", "repeat-x", "repeat-y", "space", "round"}.contains(lower)) repeats << lower;
-        else if (QStringList{"border-box", "padding-box", "content-box"}.contains(lower)) boxes << lower;
-        else if (QStringList{"scroll", "fixed", "local"}.contains(lower)) values[8] = lower;
-        else if (lower != "none") (sizing ? size : position) << part;
+        if (part == "/") {
+          sizing = true;
+          continue;
+        }
+        if (isCssColorValue(part))
+          add("background-color", part);
+        else if (part.contains("gradient(", Qt::CaseInsensitive) || part.startsWith("url(", Qt::CaseInsensitive))
+          values[0] = part;
+        else if (QStringList{"repeat", "no-repeat", "repeat-x", "repeat-y", "space", "round"}.contains(lower))
+          repeats << lower;
+        else if (QStringList{"border-box", "padding-box", "content-box"}.contains(lower))
+          boxes << lower;
+        else if (QStringList{"scroll", "fixed", "local"}.contains(lower))
+          values[8] = lower;
+        else if (lower != "none")
+          (sizing ? size : position) << part;
       }
       if (!position.isEmpty()) {
         values[1] = position.join(' ');
-        if (position.size() == 1) position << "center";
+        if (position.size() == 1)
+          position << "center";
         if (position.size() == 2) {
           if (position[0] == "top" || position[0] == "bottom" || position[1] == "left" || position[1] == "right")
             std::swap(position[0], position[1]);
-          values[2] = position[0]; values[3] = position[1];
-        } else { values[2] = "initial"; values[3] = "initial"; }
+          values[2] = position[0];
+          values[3] = position[1];
+        } else {
+          values[2] = "initial";
+          values[3] = "initial";
+        }
       }
-      if (!size.isEmpty()) values[4] = size.join(' ');
-      if (!repeats.isEmpty()) values[5] = repeats.join(' ');
-      if (!boxes.isEmpty()) { values[6] = boxes[0]; values[7] = boxes.size() > 1 ? boxes[1] : boxes[0]; }
-      for (qsizetype i = 0; i < fields.size(); ++i) columns[i] << values[i];
+      if (!size.isEmpty())
+        values[4] = size.join(' ');
+      if (!repeats.isEmpty())
+        values[5] = repeats.join(' ');
+      if (!boxes.isEmpty()) {
+        values[6] = boxes[0];
+        values[7] = boxes.size() > 1 ? boxes[1] : boxes[0];
+      }
+      for (qsizetype i = 0; i < fields.size(); ++i)
+        columns[i] << values[i];
     }
-    for (qsizetype i = 0; i < fields.size(); ++i) add("background-" + fields[i], columns[i].join(','));
+    for (qsizetype i = 0; i < fields.size(); ++i)
+      add("background-" + fields[i], columns[i].join(','));
   }
   return result;
 }
@@ -1078,46 +1382,62 @@ bool cssWide(const QString& value) {
 
 bool validDeclarationValue(const QString& property, const QString& raw, const QHash<QString, QString>&) {
   const QString value = raw.trimmed(), lower = value.toLower();
-  if (value.isEmpty()) return false;
-  if (cssWide(lower)) return true;
+  if (value.isEmpty())
+    return false;
+  if (cssWide(lower))
+    return true;
   if (property == "counter-reset" || property == "counter-set" || property == "counter-increment")
-    return parseCounterOperations(value,property == "counter-increment" ? 1 : 0).has_value();
-  if (property == "filter" || property == "backdrop-filter") return parseCssFilters(value).has_value();
-  if(property=="mask" || property.startsWith("mask-") || property.startsWith("-webkit-mask"))
-    return CssComputedStyleEngine::supportsDeclaration(property,value);
+    return parseCounterOperations(value, property == "counter-increment" ? 1 : 0).has_value();
+  if (property == "filter" || property == "backdrop-filter")
+    return parseCssFilters(value).has_value();
+  if (property == "mask" || property.startsWith("mask-") || property.startsWith("-webkit-mask"))
+    return CssComputedStyleEngine::supportsDeclaration(property, value);
   if (property == "background-repeat" || property == "background-blend-mode")
     return CssComputedStyleEngine::supportsDeclaration(property, value);
-  if (property == "content" && lower.contains("attr(")) return !parseContentTokens(value).empty();
+  if (property == "content" && lower.contains("attr("))
+    return !parseContentTokens(value).empty();
   const auto oneOf = [&](std::initializer_list<const char*> values) {
     return std::any_of(values.begin(), values.end(), [&](const char* v) { return lower == QLatin1String(v); });
   };
-  if (property == "aspect-ratio") return parseCssAspectRatio(value).has_value();
+  if (property == "aspect-ratio")
+    return parseCssAspectRatio(value).has_value();
   if (property == "font-weight") {
-    if(oneOf({"normal","bold","bolder","lighter"}))return true;
-    bool ok=false;const auto weight=value.toDouble(&ok);
-    return ok && std::isfinite(weight) && weight>=1 && weight<=1000;
+    if (oneOf({"normal", "bold", "bolder", "lighter"}))
+      return true;
+    bool ok = false;
+    const auto weight = value.toDouble(&ok);
+    return ok && std::isfinite(weight) && weight >= 1 && weight <= 1000;
   }
-  if (property == "font-style") return oneOf({"normal","italic","oblique"});
+  if (property == "font-style")
+    return oneOf({"normal", "italic", "oblique"});
   if (property == "display")
-    return oneOf({"none", "block", "inline", "inline-block", "flex", "inline-flex", "grid", "inline-grid", "flow-root", "table",
-                  "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-cell", "list-item"});
-  if (property == "grid-template-columns" || property == "grid-template-rows" || property == "grid-auto-columns" || property == "grid-auto-rows")
+    return oneOf({"none", "block", "inline", "inline-block", "flex", "inline-flex", "grid", "inline-grid", "flow-root",
+                  "table", "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-cell",
+                  "list-item"});
+  if (property == "grid-template-columns" || property == "grid-template-rows" || property == "grid-auto-columns" ||
+      property == "grid-auto-rows")
     return (property.startsWith("grid-template") || !lower.contains("repeat(")) &&
            parseCssGridTracks(raw, {}, property.startsWith("grid-template")).has_value();
-  if (property == "grid-template-areas") return parseCssGridAreas(raw).has_value();
-  if (property == "grid-column-start" || property == "grid-column-end" || property == "grid-row-start" || property == "grid-row-end")
+  if (property == "grid-template-areas")
+    return parseCssGridAreas(raw).has_value();
+  if (property == "grid-column-start" || property == "grid-column-end" || property == "grid-row-start" ||
+      property == "grid-row-end")
     return parseCssGridLine(raw).has_value();
   if (property == "grid-auto-flow") {
     auto parts = splitTopLevelSpaces(lower);
     parts.removeDuplicates();
-    return parts.size() <= 2 && !parts.empty() && std::all_of(parts.begin(), parts.end(), [](const QString& part) {
-      return part == "row" || part == "column" || part == "dense";
-    }) && !(parts.contains("row") && parts.contains("column")) && parts.size() == splitTopLevelSpaces(lower).size();
+    return parts.size() <= 2 && !parts.empty() &&
+           std::all_of(parts.begin(), parts.end(),
+                       [](const QString& part) { return part == "row" || part == "column" || part == "dense"; }) &&
+           !(parts.contains("row") && parts.contains("column")) && parts.size() == splitTopLevelSpaces(lower).size();
   }
   if (property == "justify-items" || property == "justify-self")
-    return oneOf({"normal", "stretch", "start", "end", "flex-start", "flex-end", "center"}) || (property == "justify-self" && lower == "auto");
-  if (property == "flex-direction") return oneOf({"row", "row-reverse", "column", "column-reverse"});
-  if (property == "flex-wrap") return oneOf({"nowrap", "wrap", "wrap-reverse"});
+    return oneOf({"normal", "stretch", "start", "end", "flex-start", "flex-end", "center"}) ||
+           (property == "justify-self" && lower == "auto");
+  if (property == "flex-direction")
+    return oneOf({"row", "row-reverse", "column", "column-reverse"});
+  if (property == "flex-wrap")
+    return oneOf({"nowrap", "wrap", "wrap-reverse"});
   if (property == "flex-grow" || property == "flex-shrink") {
     bool ok = false;
     const double n = lower.toDouble(&ok);
@@ -1129,21 +1449,28 @@ bool validDeclarationValue(const QString& property, const QString& raw, const QH
     return ok;
   }
   if (property == "justify-content")
-    return oneOf({"normal", "start", "end", "flex-start", "flex-end", "center", "space-between", "space-around", "space-evenly"});
+    return oneOf({"normal", "start", "end", "flex-start", "flex-end", "center", "space-between", "space-around",
+                  "space-evenly"});
   if (property == "align-items" || property == "align-self")
-    return oneOf(
-        {"normal", "auto", "stretch", "start", "end", "flex-start", "flex-end", "center", "baseline", "first baseline", "last baseline"});
+    return oneOf({"normal", "auto", "stretch", "start", "end", "flex-start", "flex-end", "center", "baseline",
+                  "first baseline", "last baseline"});
   if (property == "align-content")
-    return oneOf(
-        {"normal", "stretch", "start", "end", "flex-start", "flex-end", "center", "space-between", "space-around", "space-evenly"});
-  if (property == "overflow-x" || property == "overflow-y") return oneOf({"visible", "hidden", "clip", "auto", "scroll"});
-  if (property == "overflow-wrap") return oneOf({"normal", "break-word", "anywhere"});
-  if (property == "word-break") return oneOf({"normal", "break-all", "keep-all", "break-word"});
+    return oneOf({"normal", "stretch", "start", "end", "flex-start", "flex-end", "center", "space-between",
+                  "space-around", "space-evenly"});
+  if (property == "overflow-x" || property == "overflow-y")
+    return oneOf({"visible", "hidden", "clip", "auto", "scroll"});
+  if (property == "overflow-wrap")
+    return oneOf({"normal", "break-word", "anywhere"});
+  if (property == "word-break")
+    return oneOf({"normal", "break-all", "keep-all", "break-word"});
   if (property == "flex-basis" || property == "row-gap" || property == "column-gap") {
-    if (property == "flex-basis" && oneOf({"auto", "content", "min-content", "max-content", "fit-content"})) return true;
-    if (property != "flex-basis" && lower == "normal") return true;
+    if (property == "flex-basis" && oneOf({"auto", "content", "min-content", "max-content", "fit-content"}))
+      return true;
+    if (property != "flex-basis" && lower == "normal")
+      return true;
     const auto length = parseCssLengthPercentage(QStringView(lower), {});
-    return length.status == CssLengthStatus::Valid && (lower.startsWith("calc(") || (length.px >= 0 && length.fraction >= 0));
+    return length.status == CssLengthStatus::Valid &&
+           (lower.startsWith("calc(") || (length.px >= 0 && length.fraction >= 0));
   }
   if (property == QLatin1String("color") || property.endsWith(QLatin1String("-color"))) {
     const auto parts = property == QLatin1String("border-color") ? splitTopLevelSpaces(value) : QStringList{value};
@@ -1152,31 +1479,37 @@ bool validDeclarationValue(const QString& property, const QString& raw, const QH
   const bool padding = property == QLatin1String("padding") || property.startsWith(QLatin1String("padding-"));
   const bool margin = property == QLatin1String("margin") || property.startsWith(QLatin1String("margin-"));
   const bool borderWidth = property.startsWith(QLatin1String("border-")) && property.endsWith(QLatin1String("width"));
-  const bool size = property == QLatin1String("font-size") || property == QLatin1String("width") || property == QLatin1String("height") ||
-                    property.startsWith(QLatin1String("min-")) || property.startsWith(QLatin1String("max-"));
-  if (padding || margin || borderWidth || size || property == QLatin1String("line-height") || property == QLatin1String("letter-spacing") ||
-      property == QLatin1String("word-spacing")) {
+  const bool size = property == QLatin1String("font-size") || property == QLatin1String("width") ||
+                    property == QLatin1String("height") || property.startsWith(QLatin1String("min-")) ||
+                    property.startsWith(QLatin1String("max-"));
+  if (padding || margin || borderWidth || size || property == QLatin1String("line-height") ||
+      property == QLatin1String("letter-spacing") || property == QLatin1String("word-spacing")) {
     const auto parts = splitTopLevelSpaces(value);
-    const bool shorthand =
-        property == QLatin1String("padding") || property == QLatin1String("margin") || property == QLatin1String("border-width");
-    if (parts.isEmpty() || parts.size() > (shorthand ? 4 : 1)) return false;
+    const bool shorthand = property == QLatin1String("padding") || property == QLatin1String("margin") ||
+                           property == QLatin1String("border-width");
+    if (parts.isEmpty() || parts.size() > (shorthand ? 4 : 1))
+      return false;
     for (const auto& part : parts) {
       const auto keyword = part.toLower();
-      if ((margin || (size && property != QLatin1String("font-size"))) && keyword == QLatin1String("auto")) continue;
+      if ((margin || (size && property != QLatin1String("font-size"))) && keyword == QLatin1String("auto"))
+        continue;
       if (size && property != QLatin1String("font-size") &&
-          (keyword == QLatin1String("none") || keyword == QLatin1String("fit-content") || keyword == QLatin1String("min-content") ||
-           keyword == QLatin1String("max-content")))
+          (keyword == QLatin1String("none") || keyword == QLatin1String("fit-content") ||
+           keyword == QLatin1String("min-content") || keyword == QLatin1String("max-content")))
         continue;
-      if (borderWidth && (keyword == QLatin1String("thin") || keyword == QLatin1String("medium") || keyword == QLatin1String("thick")))
+      if (borderWidth &&
+          (keyword == QLatin1String("thin") || keyword == QLatin1String("medium") || keyword == QLatin1String("thick")))
         continue;
-      if ((property == QLatin1String("line-height") || property.endsWith(QLatin1String("spacing"))) && keyword == QLatin1String("normal"))
+      if ((property == QLatin1String("line-height") || property.endsWith(QLatin1String("spacing"))) &&
+          keyword == QLatin1String("normal"))
         continue;
-      if (property == QLatin1String("font-size") &&
-          QStringList{"xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large", "xxx-large", "smaller", "larger"}.contains(
-              keyword))
+      if (property == QLatin1String("font-size") && QStringList{"xx-small", "x-small", "small", "medium", "large",
+                                                                "x-large", "xx-large", "xxx-large", "smaller", "larger"}
+                                                        .contains(keyword))
         continue;
       const auto length = parseCssLengthPercentage(QStringView(part), {}, property == QLatin1String("line-height"));
-      if (length.status != CssLengthStatus::Valid || (borderWidth && length.hasPercentage)) return false;
+      if (length.status != CssLengthStatus::Valid || (borderWidth && length.hasPercentage))
+        return false;
       // calc() is range-clamped at used-value time, literal negatives are invalid.
       if (!margin && property != QLatin1String("letter-spacing") && property != QLatin1String("word-spacing") &&
           !keyword.startsWith(QLatin1String("calc(")) && (length.px < 0 || length.fraction < 0))
@@ -1185,142 +1518,257 @@ bool validDeclarationValue(const QString& property, const QString& raw, const QH
     return true;
   }
   if (property == QLatin1String("background")) {
-    const QStringList keywords{"none",   "repeat", "repeat-x",    "repeat-y",   "no-repeat",   "space", "round", "scroll",
-                               "fixed",  "local",  "padding-box", "border-box", "content-box", "left",  "right", "top",
-                               "bottom", "center", "cover",       "contain",    "auto",        "/"};
+    const QStringList keywords{"none",        "repeat",  "repeat-x", "repeat-y", "no-repeat",   "space",
+                               "round",       "scroll",  "fixed",    "local",    "padding-box", "border-box",
+                               "content-box", "left",    "right",    "top",      "bottom",      "center",
+                               "cover",       "contain", "auto",     "/"};
     int colors = 0;
     for (const auto& layer : CssThemeParser::splitTopLevelCommas(value)) {
       for (const auto& token : splitTopLevelSpaces(layer)) {
         if (isCssColorValue(token)) {
-          if (++colors > 1) return false;
+          if (++colors > 1)
+            return false;
           continue;
         }
         const auto part = token.toLower();
-        if (keywords.contains(part)) continue;
-        if ((part.startsWith(QLatin1String("url(")) || part.contains(QLatin1String("gradient("))) && part.endsWith(')')) continue;
+        if (keywords.contains(part))
+          continue;
+        if ((part.startsWith(QLatin1String("url(")) || part.contains(QLatin1String("gradient("))) && part.endsWith(')'))
+          continue;
         const auto length = parseCssLengthPercentage(QStringView(part), {});
-        if (length.status == CssLengthStatus::Valid) continue;
+        if (length.status == CssLengthStatus::Valid)
+          continue;
         // Position/size may share a slash with no surrounding spaces.
         if (part.contains('/') && !part.contains('(')) {
           bool valid = true;
           for (const auto& piece : part.split('/'))
-            valid =
-                valid && (keywords.contains(piece) || parseCssLengthPercentage(QStringView(piece), {}).status == CssLengthStatus::Valid);
-          if (valid) continue;
+            valid = valid && (keywords.contains(piece) ||
+                              parseCssLengthPercentage(QStringView(piece), {}).status == CssLengthStatus::Valid);
+          if (valid)
+            continue;
         }
         return false;
       }
     }
     return true;
   }
-  if (property == QLatin1String("box-sizing")) return lower == QLatin1String("content-box") || lower == QLatin1String("border-box");
+  if (property == QLatin1String("box-sizing"))
+    return lower == QLatin1String("content-box") || lower == QLatin1String("border-box");
   if (property == QLatin1String("border-style") ||
       (property.startsWith(QLatin1String("border-")) && property.endsWith(QLatin1String("-style")))) {
     const auto parts = splitTopLevelSpaces(lower);
-    const QStringList styles{"none", "hidden", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"};
+    const QStringList styles{"none",   "hidden", "solid", "dotted", "dashed",
+                             "double", "groove", "ridge", "inset",  "outset"};
     return parts.size() <= (property == QLatin1String("border-style") ? 4 : 1) &&
            std::all_of(parts.begin(), parts.end(), [&](const auto& part) { return styles.contains(part); });
   }
   return true;
 }
 
-}  // namespace
+} // namespace
 
 CssSelectorSupport CssComputedStyleEngine::selectorSupport(const QString& selector, QString* pseudoElement) {
   const auto parsed = parseSelector(selector);
-  if (pseudoElement) *pseudoElement = parsed.parts.isEmpty() ? QString{} : parsed.parts.back().simple.pseudoElement;
-  if (parsed.exportOnly) return CssSelectorSupport::ExportOnly;
-  if (parsed.editorOnly) return CssSelectorSupport::EditorOnly;
+  if (pseudoElement)
+    *pseudoElement = parsed.parts.isEmpty() ? QString{} : parsed.parts.back().simple.pseudoElement;
+  if (parsed.exportOnly)
+    return CssSelectorSupport::ExportOnly;
+  if (parsed.editorOnly)
+    return CssSelectorSupport::EditorOnly;
   if (!parsed.valid || std::any_of(parsed.parts.begin(), parsed.parts.end(), [](const auto& part) {
         const auto& simple = part.simple;
         return simple.unsupported || (!simple.pseudoElement.isEmpty() && simple.pseudoElement != "before" &&
-               simple.pseudoElement != "after" && simple.pseudoElement != "marker" && simple.pseudoElement != "selection");
-      })) return CssSelectorSupport::Unsupported;
+                                      simple.pseudoElement != "after" && simple.pseudoElement != "marker" &&
+                                      simple.pseudoElement != "selection");
+      }))
+    return CssSelectorSupport::Unsupported;
   return CssSelectorSupport::Supported;
 }
 
 bool CssComputedStyleEngine::supportsDeclaration(const QString& property, const QString& value) {
-  if (value.trimmed().isEmpty()) return false;
-  if (property.startsWith("--")) return true;
-  static const QSet<QString> validated = {
-      "color", "background-color", "border-color", "border-top-color", "border-right-color", "border-bottom-color", "border-left-color",
-      "display", "aspect-ratio", "box-sizing", "width", "height", "min-width", "min-height", "max-width", "max-height",
-      "margin", "margin-top", "margin-right", "margin-bottom", "margin-left", "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
-      "font-size", "font-weight", "font-style", "line-height", "letter-spacing", "word-spacing", "border-width", "border-top-width", "border-right-width", "border-bottom-width", "border-left-width",
-      "border-style", "border-top-style", "border-right-style", "border-bottom-style", "border-left-style",
-      "grid-template-columns", "grid-template-rows", "grid-template-areas", "grid-auto-columns", "grid-auto-rows", "grid-auto-flow",
-      "grid-column-start", "grid-column-end", "grid-row-start", "grid-row-end", "justify-items", "justify-self",
-      "flex-direction", "flex-wrap", "flex-grow", "flex-shrink", "flex-basis", "order", "justify-content", "align-items", "align-self", "align-content",
-      "overflow-x", "overflow-y", "overflow-wrap", "word-break", "row-gap", "column-gap"};
-  if (validated.contains(property)) return validDeclarationValue(property, value, {});
+  if (value.trimmed().isEmpty())
+    return false;
+  if (property.startsWith("--"))
+    return true;
+  static const QSet<QString> validated = {"color",
+                                          "background-color",
+                                          "border-color",
+                                          "border-top-color",
+                                          "border-right-color",
+                                          "border-bottom-color",
+                                          "border-left-color",
+                                          "display",
+                                          "aspect-ratio",
+                                          "box-sizing",
+                                          "width",
+                                          "height",
+                                          "min-width",
+                                          "min-height",
+                                          "max-width",
+                                          "max-height",
+                                          "margin",
+                                          "margin-top",
+                                          "margin-right",
+                                          "margin-bottom",
+                                          "margin-left",
+                                          "padding",
+                                          "padding-top",
+                                          "padding-right",
+                                          "padding-bottom",
+                                          "padding-left",
+                                          "font-size",
+                                          "font-weight",
+                                          "font-style",
+                                          "line-height",
+                                          "letter-spacing",
+                                          "word-spacing",
+                                          "border-width",
+                                          "border-top-width",
+                                          "border-right-width",
+                                          "border-bottom-width",
+                                          "border-left-width",
+                                          "border-style",
+                                          "border-top-style",
+                                          "border-right-style",
+                                          "border-bottom-style",
+                                          "border-left-style",
+                                          "grid-template-columns",
+                                          "grid-template-rows",
+                                          "grid-template-areas",
+                                          "grid-auto-columns",
+                                          "grid-auto-rows",
+                                          "grid-auto-flow",
+                                          "grid-column-start",
+                                          "grid-column-end",
+                                          "grid-row-start",
+                                          "grid-row-end",
+                                          "justify-items",
+                                          "justify-self",
+                                          "flex-direction",
+                                          "flex-wrap",
+                                          "flex-grow",
+                                          "flex-shrink",
+                                          "flex-basis",
+                                          "order",
+                                          "justify-content",
+                                          "align-items",
+                                          "align-self",
+                                          "align-content",
+                                          "overflow-x",
+                                          "overflow-y",
+                                          "overflow-wrap",
+                                          "word-break",
+                                          "row-gap",
+                                          "column-gap"};
+  if (validated.contains(property))
+    return validDeclarationValue(property, value, {});
   const auto lower = value.trimmed().toLower();
   if (property == "counter-reset" || property == "counter-set" || property == "counter-increment")
-    return cssWide(lower) || parseCounterOperations(value,property == "counter-increment" ? 1 : 0).has_value();
-  if(property.startsWith("-webkit-mask")) return supportsDeclaration(property.mid(8),value);
-  if(property=="mask" || property.startsWith("mask-")) {
-    if(cssWide(lower))return true;
-    if(property=="mask-image")return supportsDeclaration("background-image",value);
-    if(property=="mask-repeat")return supportsDeclaration("background-repeat",value);
-    const auto layers=CssThemeParser::splitTopLevelCommas(lower);
-    if(property=="mask") {
-      const auto declarations=expandDeclaration({property,value,false},{});
-      return declarations.size()==9 && std::all_of(declarations.begin()+1,declarations.end(),[](const auto& decl){return supportsDeclaration(decl.property,decl.value);});
+    return cssWide(lower) || parseCounterOperations(value, property == "counter-increment" ? 1 : 0).has_value();
+  if (property.startsWith("-webkit-mask"))
+    return supportsDeclaration(property.mid(8), value);
+  if (property == "mask" || property.startsWith("mask-")) {
+    if (cssWide(lower))
+      return true;
+    if (property == "mask-image")
+      return supportsDeclaration("background-image", value);
+    if (property == "mask-repeat")
+      return supportsDeclaration("background-repeat", value);
+    const auto layers = CssThemeParser::splitTopLevelCommas(lower);
+    if (property == "mask") {
+      const auto declarations = expandDeclaration({property, value, false}, {});
+      return declarations.size() == 9 &&
+             std::all_of(declarations.begin() + 1, declarations.end(),
+                         [](const auto& decl) { return supportsDeclaration(decl.property, decl.value); });
     }
-    for(const auto& layer:layers) {
-      if(property=="mask-mode") {if(layer!="alpha" && layer!="luminance" && layer!="match-source")return false;}
-      else if(property=="mask-composite") {if(!QStringList{"add","subtract","intersect","exclude"}.contains(layer))return false;}
-      else if(property=="mask-origin" || property=="mask-clip") {if(!QStringList{"border-box","padding-box","content-box"}.contains(layer))return false;}
-      else if(property=="mask-size") {
-        if(layer=="cover" || layer=="contain")continue;
-        const auto parts=splitTopLevelSpaces(layer);if(parts.isEmpty() || parts.size()>2)return false;
-        for(const auto& part:parts)if(part!="auto") {const auto v=parseCssLengthPercentage(QStringView(part),{});if(v.status!=CssLengthStatus::Valid || v.px<0 || v.fraction<0)return false;}
-      } else if(property=="mask-position") {
-        const auto parts=splitTopLevelSpaces(layer);if(parts.isEmpty() || parts.size()>4)return false;
-        for(const auto& part:parts)if(!QStringList{"left","right","top","bottom","center"}.contains(part) && parseCssLengthPercentage(QStringView(part),{}).status!=CssLengthStatus::Valid)return false;
-      } else return false;
+    for (const auto& layer : layers) {
+      if (property == "mask-mode") {
+        if (layer != "alpha" && layer != "luminance" && layer != "match-source")
+          return false;
+      } else if (property == "mask-composite") {
+        if (!QStringList{"add", "subtract", "intersect", "exclude"}.contains(layer))
+          return false;
+      } else if (property == "mask-origin" || property == "mask-clip") {
+        if (!QStringList{"border-box", "padding-box", "content-box"}.contains(layer))
+          return false;
+      } else if (property == "mask-size") {
+        if (layer == "cover" || layer == "contain")
+          continue;
+        const auto parts = splitTopLevelSpaces(layer);
+        if (parts.isEmpty() || parts.size() > 2)
+          return false;
+        for (const auto& part : parts)
+          if (part != "auto") {
+            const auto v = parseCssLengthPercentage(QStringView(part), {});
+            if (v.status != CssLengthStatus::Valid || v.px < 0 || v.fraction < 0)
+              return false;
+          }
+      } else if (property == "mask-position") {
+        const auto parts = splitTopLevelSpaces(layer);
+        if (parts.isEmpty() || parts.size() > 4)
+          return false;
+        for (const auto& part : parts)
+          if (!QStringList{"left", "right", "top", "bottom", "center"}.contains(part) &&
+              parseCssLengthPercentage(QStringView(part), {}).status != CssLengthStatus::Valid)
+            return false;
+      } else
+        return false;
     }
     return !layers.isEmpty();
   }
   if (property == "background-image") {
-    if (lower == "none" || cssWide(lower)) return true;
+    if (lower == "none" || cssWide(lower))
+      return true;
     const auto layers = CssThemeParser::splitTopLevelCommas(value);
-    if (layers.isEmpty()) return false;
+    if (layers.isEmpty())
+      return false;
     return std::all_of(layers.cbegin(), layers.cend(), [&](const auto& layer) {
-      if (layer.trimmed().compare("none", Qt::CaseInsensitive) == 0) return true;
+      if (layer.trimmed().compare("none", Qt::CaseInsensitive) == 0)
+        return true;
       const auto gradient = parseGradientSpec(layer, {});
       const auto urls = CssThemeParser::resourceUrls(layer);
       return (gradient.kind != GradientSpec::Kind::None && gradient.stops.size() >= 2) ||
-             (layer.trimmed().startsWith("url(", Qt::CaseInsensitive) && layer.trimmed().endsWith(')') && urls.size() == 1 && CssImageResources::supportsUrl(urls.front()));
+             (layer.trimmed().startsWith("url(", Qt::CaseInsensitive) && layer.trimmed().endsWith(')') &&
+              urls.size() == 1 && CssImageResources::supportsUrl(urls.front()));
     });
   }
   if (property == "background-repeat") {
-    if (cssWide(lower)) return true;
+    if (cssWide(lower))
+      return true;
     const auto layers = CssThemeParser::splitTopLevelCommas(lower);
     return !layers.isEmpty() && std::all_of(layers.begin(), layers.end(), [](const auto& layer) {
       const auto parts = splitTopLevelSpaces(layer);
-      if (parts.size() == 1 && (parts[0] == "repeat-x" || parts[0] == "repeat-y")) return true;
+      if (parts.size() == 1 && (parts[0] == "repeat-x" || parts[0] == "repeat-y"))
+        return true;
       return !parts.isEmpty() && parts.size() <= 2 && std::all_of(parts.begin(), parts.end(), [](const auto& part) {
         return part == "repeat" || part == "no-repeat" || part == "space" || part == "round";
       });
     });
   }
   if (property == "background-blend-mode") {
-    if (cssWide(lower)) return true;
+    if (cssWide(lower))
+      return true;
     const auto layers = CssThemeParser::splitTopLevelCommas(lower);
-    return !layers.isEmpty() && std::all_of(layers.begin(), layers.end(), [](const auto& layer) { return parseCssBlendMode(layer).has_value(); });
+    return !layers.isEmpty() && std::all_of(layers.begin(), layers.end(),
+                                            [](const auto& layer) { return parseCssBlendMode(layer).has_value(); });
   }
   if (property == "background") {
-    if (!validDeclarationValue(property, value, {})) return false;
+    if (!validDeclarationValue(property, value, {}))
+      return false;
     const auto expanded = expandDeclaration({property, value, false}, {});
     for (const auto& declaration : expanded)
-      if (declaration.property == "background-image" && !supportsDeclaration(declaration.property, declaration.value)) return false;
+      if (declaration.property == "background-image" && !supportsDeclaration(declaration.property, declaration.value))
+        return false;
     return true;
   }
-  if (property == "filter" || property == "backdrop-filter") return cssWide(lower) || parseCssFilters(value).has_value();
+  if (property == "filter" || property == "backdrop-filter")
+    return cssWide(lower) || parseCssFilters(value).has_value();
   if (property == "opacity") {
-    if (cssWide(lower)) return true;
+    if (cssWide(lower))
+      return true;
     QString number = lower;
-    if (number.endsWith('%')) number.chop(1);
+    if (number.endsWith('%'))
+      number.chop(1);
     bool ok = false;
     const auto n = number.toDouble(&ok);
     return ok && std::isfinite(n);
@@ -1331,21 +1779,32 @@ bool CssComputedStyleEngine::supportsDeclaration(const QString& property, const 
 namespace {
 bool mayMatchSubject(const SimpleSelector& simple, const CssElement& element) {
   if (simple.unsupported || (!simple.tag.isEmpty() && simple.tag != element.tag.toLower()) ||
-      (!simple.id.isEmpty() && simple.id != element.id) || simple.pseudoElement != element.pseudoElement.toLower()) return false;
-  for (const auto& name : simple.classes) if (!element.classes.contains(name)) return false;
+      (!simple.id.isEmpty() && simple.id != element.id) || simple.pseudoElement != element.pseudoElement.toLower())
+    return false;
+  for (const auto& name : simple.classes)
+    if (!element.classes.contains(name))
+      return false;
   for (const auto& attribute : simple.attributes) {
-    if (attribute.name == "id" && !element.id.isEmpty()) continue;
-    if (attribute.name == "class" && !element.classes.isEmpty()) continue;
+    if (attribute.name == "id" && !element.id.isEmpty())
+      continue;
+    if (attribute.name == "class" && !element.classes.isEmpty())
+      continue;
     bool exists = false;
     for (auto it = element.attributes.cbegin(); it != element.attributes.cend(); ++it)
-      if (it.key().compare(attribute.name, Qt::CaseInsensitive) == 0) { exists = true; break; }
-    if (!exists) return false;
+      if (it.key().compare(attribute.name, Qt::CaseInsensitive) == 0) {
+        exists = true;
+        break;
+      }
+    if (!exists)
+      return false;
   }
   const auto& subject = element.originatingElement ? *element.originatingElement : element;
   for (const auto& alternatives : simple.alternatives)
     if (std::none_of(alternatives.begin(), alternatives.end(), [&](const auto& alternative) {
-          return alternative.valid && !alternative.parts.isEmpty() && mayMatchSubject(alternative.parts.back().simple, subject);
-        })) return false;
+          return alternative.valid && !alternative.parts.isEmpty() &&
+                 mayMatchSubject(alternative.parts.back().simple, subject);
+        }))
+      return false;
   // Negations and structural/context/state predicates cannot exclude a subject
   // from this metadata-only index. The full matcher resolves all of them below.
   return true;
@@ -1355,15 +1814,17 @@ QByteArray subjectMetadata(const CssElement& element) {
   QByteArray key;
   QDataStream stream(&key, QIODevice::WriteOnly);
   QStringList attributes;
-  for (auto it = element.attributes.cbegin(); it != element.attributes.cend(); ++it) attributes.append(it.key().toLower());
+  for (auto it = element.attributes.cbegin(); it != element.attributes.cend(); ++it)
+    attributes.append(it.key().toLower());
   attributes.sort();
   auto classes = element.classes;
   classes.sort();
   stream << element.tag.toLower() << element.id << element.pseudoElement.toLower() << classes << attributes;
-  if (element.originatingElement) stream << subjectMetadata(*element.originatingElement);
+  if (element.originatingElement)
+    stream << subjectMetadata(*element.originatingElement);
   return key;
 }
-}  // namespace
+} // namespace
 
 bool CssComputedStyleEngine::structuralSelectorMatches(int selector, const CssElement& element) const {
   const auto& parsed = parsedSelectors_[selector];
@@ -1371,22 +1832,27 @@ bool CssComputedStyleEngine::structuralSelectorMatches(int selector, const CssEl
   const auto relation = parsed.parts.back().combinator;
   if (last < 1 || relation == '+' || relation == '~')
     return selectorMatches(parsed, element, {}, parsed.interactive);
-  if (!simpleMatches(parsed.parts.back().simple, element, {}, parsed.interactive)) return false;
+  if (!simpleMatches(parsed.parts.back().simple, element, {}, parsed.interactive))
+    return false;
   const auto prefixMatches = [&](const CssElement& ancestor) {
     const auto key = qMakePair(ancestor.cacheId, selector);
     if (ancestor.cacheId) {
-      if (const auto found = selectorPrefixCache_.constFind(key); found != selectorPrefixCache_.cend()) return found.value();
+      if (const auto found = selectorPrefixCache_.constFind(key); found != selectorPrefixCache_.cend())
+        return found.value();
     }
     const bool matches = selectorMatchesAt(parsed, last - 1, &ancestor, {}, parsed.interactive);
     if (ancestor.cacheId) {
-      if (selectorPrefixCache_.size() >= 8192) selectorPrefixCache_.clear();
+      if (selectorPrefixCache_.size() >= 8192)
+        selectorPrefixCache_.clear();
       selectorPrefixCache_.insert(key, matches);
     }
     return matches;
   };
   for (const auto* ancestor = element.parent; ancestor; ancestor = ancestor->parent) {
-    if (prefixMatches(*ancestor)) return true;
-    if (relation == '>') break;
+    if (prefixMatches(*ancestor))
+      return true;
+    if (relation == '>')
+      break;
   }
   return false;
 }
@@ -1394,7 +1860,8 @@ bool CssComputedStyleEngine::structuralSelectorMatches(int selector, const CssEl
 CssComputedStyleEngine::ElementMatches CssComputedStyleEngine::structuralMatches(const CssElement& element) const {
   if (element.cacheId) {
     const auto found = selectorMatchCache_.constFind(element.cacheId);
-    if (found != selectorMatchCache_.cend()) return found.value();
+    if (found != selectorMatchCache_.cend())
+      return found.value();
   }
   diag::ScopedPerfProbe detail("css.selectorMiss", cssDetailPerf());
   const auto& rules = sheet_.rules();
@@ -1407,11 +1874,14 @@ CssComputedStyleEngine::ElementMatches CssComputedStyleEngine::structuralMatches
       for (int si = ruleSelectorRange_[ri].first; si < ruleSelectorRange_[ri].second; ++si) {
         const auto& selector = parsedSelectors_[si];
         if (selector.valid && !selector.exportOnly && !selector.editorOnly && !selector.parts.isEmpty() &&
-            mayMatchSubject(selector.parts.back().simple, element)) rule.selectors.append(si);
+            mayMatchSubject(selector.parts.back().simple, element))
+          rule.selectors.append(si);
       }
-      if (!rule.selectors.isEmpty()) indices.push_back(std::move(rule));
+      if (!rule.selectors.isEmpty())
+        indices.push_back(std::move(rule));
     }
-    if (ruleCandidates_.size() >= 512) ruleCandidates_.clear();
+    if (ruleCandidates_.size() >= 512)
+      ruleCandidates_.clear();
     ruleCandidates_.insert(metadata, std::move(indices));
     candidates = ruleCandidates_.constFind(metadata);
   }
@@ -1420,7 +1890,8 @@ CssComputedStyleEngine::ElementMatches CssComputedStyleEngine::structuralMatches
     RuleCandidates rule{candidate.rule};
     for (const int si : candidate.selectors) {
       const auto& parsed = parsedSelectors_[si];
-      if (!structuralSelectorMatches(si, element)) continue;
+      if (!structuralSelectorMatches(si, element))
+        continue;
       if (parsed.interactive) {
         rule.interactiveSelectors.push_back(si);
         result.stateMask |= selectorStateMask(parsed);
@@ -1428,20 +1899,27 @@ CssComputedStyleEngine::ElementMatches CssComputedStyleEngine::structuralMatches
         rule.staticSelector = si;
       }
     }
-    if (rule.staticSelector >= 0 || !rule.interactiveSelectors.empty()) result.rules.push_back(std::move(rule));
+    if (rule.staticSelector >= 0 || !rule.interactiveSelectors.empty())
+      result.rules.push_back(std::move(rule));
   }
   if (element.cacheId) {
     quint64 key = result.stateMask;
     for (const auto& rule : result.rules) {
       key = qHashMulti(size_t(key), rule.rule, rule.staticSelector);
-      for (const auto selector : rule.interactiveSelectors) key = qHashMulti(size_t(key), selector);
+      for (const auto selector : rule.interactiveSelectors)
+        key = qHashMulti(size_t(key), selector);
     }
     bool shared = false;
     if (const auto bucket = sharedSelectorMatches_.constFind(key); bucket != sharedSelectorMatches_.cend())
       for (const auto& existing : *bucket)
-        if (existing == result) { result = existing; shared = true; break; }
+        if (existing == result) {
+          result = existing;
+          shared = true;
+          break;
+        }
     if (!shared) {
-      if (sharedSelectorMatches_.size() >= 512) sharedSelectorMatches_.clear();
+      if (sharedSelectorMatches_.size() >= 512)
+        sharedSelectorMatches_.clear();
       sharedSelectorMatches_[key].append(result);
     }
     selectorMatchCache_.insert(element.cacheId, result);
@@ -1449,8 +1927,8 @@ CssComputedStyleEngine::ElementMatches CssComputedStyleEngine::structuralMatches
   return result;
 }
 
-std::vector<CssComputedStyleEngine::RuleMatch> CssComputedStyleEngine::matchedRules(
-    const CssElement& element, const CssElementState& state) const {
+std::vector<CssComputedStyleEngine::RuleMatch>
+CssComputedStyleEngine::matchedRules(const CssElement& element, const CssElementState& state) const {
   diag::ScopedPerfProbe detail("css.matchedRules", cssDetailPerf());
   const auto candidates = structuralMatches(element);
   std::vector<RuleMatch> result;
@@ -1460,35 +1938,46 @@ std::vector<CssComputedStyleEngine::RuleMatch> CssComputedStyleEngine::matchedRu
     for (const int si : rule.interactiveSelectors) {
       if ((selected < 0 || parsedSelectors_[si].specificity > parsedSelectors_[selected].specificity ||
            (parsedSelectors_[si].specificity == parsedSelectors_[selected].specificity && si < selected)) &&
-          selectorMatches(parsedSelectors_[si], element, state)) selected = si;
+          selectorMatches(parsedSelectors_[si], element, state))
+        selected = si;
     }
-    if (selected >= 0) result.push_back({rule.rule, selected});
+    if (selected >= 0)
+      result.push_back({rule.rule, selected});
   }
   return result;
 }
 
 void CssComputedStyleEngine::forgetElements(const QVector<quint64>& identities) const {
   for (const auto id : identities) {
-    computedCache_.remove(id); selectorMatchCache_.remove(id);
-    interactionMaskCache_.remove(id); counterDependencyCache_.remove(id);
+    computedCache_.remove(id);
+    selectorMatchCache_.remove(id);
+    interactionMaskCache_.remove(id);
+    counterDependencyCache_.remove(id);
   }
   const QSet<quint64> removed(identities.begin(), identities.end());
   for (auto it = selectorPrefixCache_.begin(); it != selectorPrefixCache_.end();)
-    if (removed.contains(it.key().first)) it = selectorPrefixCache_.erase(it); else ++it;
+    if (removed.contains(it.key().first))
+      it = selectorPrefixCache_.erase(it);
+    else
+      ++it;
 }
 
 CssComputedStyleEngine::CacheStats CssComputedStyleEngine::cacheStats() const {
   CacheStats result{selectorMatchCache_.size(), resolvedStyleCount_};
-  for (const auto& bucket : cascadeCache_) result.cascades += bucket.size();
-  for (const auto& bucket : valueCache_) result.values += bucket.size();
-  for (const auto& bucket : sharedSelectorMatches_) result.matchSets += bucket.size();
+  for (const auto& bucket : cascadeCache_)
+    result.cascades += bucket.size();
+  for (const auto& bucket : valueCache_)
+    result.values += bucket.size();
+  for (const auto& bucket : sharedSelectorMatches_)
+    result.matchSets += bucket.size();
   return result;
 }
 
 QByteArray CssComputedStyleEngine::counterDependencySignature(const CssElement& element) const {
   if (element.cacheId) {
     const auto found = counterDependencyCache_.constFind(element.cacheId);
-    if (found != counterDependencyCache_.cend()) return found.value();
+    if (found != counterDependencyCache_.cend())
+      return found.value();
   }
   const auto relevant = [](const CssDeclaration& declaration) {
     return declaration.property.startsWith("counter-") || declaration.property.startsWith("--") ||
@@ -1499,25 +1988,31 @@ QByteArray CssComputedStyleEngine::counterDependencySignature(const CssElement& 
   const auto* parent = element.originatingElement ? element.originatingElement : element.parent;
   stream << (parent ? counterDependencySignature(*parent) : QByteArray{});
   for (const auto& match : matchedRules(element, {})) {
-    if (std::any_of(sheet_.rules()[match.rule].declarations.begin(), sheet_.rules()[match.rule].declarations.end(), relevant))
+    if (std::any_of(sheet_.rules()[match.rule].declarations.begin(), sheet_.rules()[match.rule].declarations.end(),
+                    relevant))
       stream << quint64(match.rule) << qint32(parsedSelectors_[match.selector].specificity);
   }
   stream << quint64(-1);
-  for (const auto& declaration : element.inlineDeclarations) if (relevant(declaration))
-    stream << declaration.property << declaration.value << declaration.important << declaration.resourceBaseDir;
-  if (element.cacheId) counterDependencyCache_.insert(element.cacheId, result);
+  for (const auto& declaration : element.inlineDeclarations)
+    if (relevant(declaration))
+      stream << declaration.property << declaration.value << declaration.important << declaration.resourceBaseDir;
+  if (element.cacheId)
+    counterDependencyCache_.insert(element.cacheId, result);
   return result;
 }
 
 quint8 CssComputedStyleEngine::interactiveStateMask(const CssElement& element) const {
   if (element.cacheId) {
     const auto found = interactionMaskCache_.constFind(element.cacheId);
-    if (found != interactionMaskCache_.cend()) return found.value();
+    if (found != interactionMaskCache_.cend())
+      return found.value();
   }
   quint8 mask = structuralMatches(element).stateMask;
   const auto* parent = element.originatingElement ? element.originatingElement : element.parent;
-  if (parent) mask |= interactiveStateMask(*parent);
-  if (element.cacheId) interactionMaskCache_.insert(element.cacheId, mask);
+  if (parent)
+    mask |= interactiveStateMask(*parent);
+  if (element.cacheId)
+    interactionMaskCache_.insert(element.cacheId, mask);
   return mask;
 }
 
@@ -1531,12 +2026,14 @@ void CssComputedStyleEngine::applyStyleForElement(const std::vector<RuleMatch>& 
     int specificity;
   };
   std::vector<Match> matches;
-  if (!presentationDeclarations.empty()) matches.push_back({&presentationDeclarations, {}, 0});
+  if (!presentationDeclarations.empty())
+    matches.push_back({&presentationDeclarations, {}, 0});
   for (const auto& match : matched) {
     const auto& selector = parsedSelectors_[match.selector];
     matches.push_back({&sheet_.rules()[match.rule].declarations, selector.selectorText, selector.specificity});
   }
-  if (!inlineDeclarations.empty()) matches.push_back({&inlineDeclarations, QStringLiteral("style attribute"), 1000000});
+  if (!inlineDeclarations.empty())
+    matches.push_back({&inlineDeclarations, QStringLiteral("style attribute"), 1000000});
   const bool reusable = inlineDeclarations.empty() && presentationDeclarations.empty();
   const CssComputedStyle cascadeInput = style;
   std::vector<std::pair<quintptr, int>> signature;
@@ -1563,23 +2060,28 @@ void CssComputedStyleEngine::applyStyleForElement(const std::vector<RuleMatch>& 
     for (const auto& match : matches)
       for (const auto& decl : *match.declarations) {
         ++order;
-        if (decl.property.startsWith(QStringLiteral("--")) != custom) continue;
+        if (decl.property.startsWith(QStringLiteral("--")) != custom)
+          continue;
         CssDeclaration resolved = decl;
         resolved.value = CssThemeParser::resolveResourceUrls(decl.value, decl.resourceBaseDir);
         if (!custom) {
           const bool variable = decl.value.contains(QStringLiteral("var("), Qt::CaseInsensitive);
           const auto substituted = CssThemeParser::substituteVars(resolved.value, style.customProperties_);
           if (!substituted || !validDeclarationValue(decl.property, *substituted, {})) {
-            if (!variable) continue;                   // syntax-invalid declarations never enter the cascade
-            resolved.value = QStringLiteral("unset");  // invalid at computed-value time
+            if (!variable)
+              continue;                               // syntax-invalid declarations never enter the cascade
+            resolved.value = QStringLiteral("unset"); // invalid at computed-value time
           } else
-            resolved.value = cssWide(substituted->trimmed().toLower()) ? substituted->trimmed().toLower() : *substituted;
+            resolved.value =
+                cssWide(substituted->trimmed().toLower()) ? substituted->trimmed().toLower() : *substituted;
           const auto components = expandDeclaration(resolved, {});
-          const bool valid = !components.empty() && std::all_of(components.begin(), components.end(), [&](const auto& component) {
-            return validDeclarationValue(component.property, component.value, {});
-          });
+          const bool valid =
+              !components.empty() && std::all_of(components.begin(), components.end(), [&](const auto& component) {
+                return validDeclarationValue(component.property, component.value, {});
+              });
           if (!valid) {
-            if (!variable) continue;
+            if (!variable)
+              continue;
             resolved.value = QStringLiteral("unset");
           }
         }
@@ -1587,7 +2089,8 @@ void CssComputedStyleEngine::applyStyleForElement(const std::vector<RuleMatch>& 
         for (const auto& component : expanded) {
           Candidate c{component.value, match.selector, component.important, match.specificity, ++order};
           const auto it = winners.constFind(component.property);
-          if (it == winners.constEnd() || cascadeBeats(c, it.value())) winners.insert(component.property, c);
+          if (it == winners.constEnd() || cascadeBeats(c, it.value()))
+            winners.insert(component.property, c);
         }
       }
   };
@@ -1608,7 +2111,8 @@ void CssComputedStyleEngine::applyStyleForElement(const std::vector<RuleMatch>& 
     style.computedLengths_.remove(it.key());
   }
   if (reusable) {
-    if (cascadeCache_.size() >= 2048) cascadeCache_.clear();
+    if (cascadeCache_.size() >= 2048)
+      cascadeCache_.clear();
     cascadeCache_[signatureHash].push_back({cascadeInput, style, std::move(signature)});
   }
 }
@@ -1681,20 +2185,23 @@ void CssComputedStyleEngine::computeValues(CssComputedStyle& style, const CssCom
                                                      {"border-left-color", "currentColor"}};
   for (auto it = style.properties_.begin(); it != style.properties_.end();) {
     const QString value = style.resolvedValue(it.key()).trimmed().toLower();
-    if (value == QStringLiteral("inherit") || (value == QStringLiteral("unset") && inheritedProperties().contains(it.key()))) {
+    if (value == QStringLiteral("inherit") ||
+        (value == QStringLiteral("unset") && inheritedProperties().contains(it.key()))) {
       const auto inherited = parent.properties_.constFind(it.key());
       if (inherited != parent.properties_.cend()) {
         it.value() = inherited.value();
-        if (parent.computedLengths_.contains(it.key())) style.computedLengths_.insert(it.key(), parent.computedLengths_.value(it.key()));
-        if (parent.computedGridTracks_.contains(it.key())) style.computedGridTracks_.insert(it.key(), parent.computedGridTracks_.value(it.key()));
+        if (parent.computedLengths_.contains(it.key()))
+          style.computedLengths_.insert(it.key(), parent.computedLengths_.value(it.key()));
+        if (parent.computedGridTracks_.contains(it.key()))
+          style.computedGridTracks_.insert(it.key(), parent.computedGridTracks_.value(it.key()));
         ++it;
       } else if (initialValues.contains(it.key())) {
         it.value() = initialValues.value(it.key());
         ++it;
       } else
         it = style.properties_.erase(it);
-    } else if (value == QStringLiteral("initial") || value == QStringLiteral("unset") || value == QLatin1String("revert") ||
-               value == QLatin1String("revert-layer")) {
+    } else if (value == QStringLiteral("initial") || value == QStringLiteral("unset") ||
+               value == QLatin1String("revert") || value == QLatin1String("revert-layer")) {
       if (initialValues.contains(it.key())) {
         it.value() = initialValues.value(it.key());
         ++it;
@@ -1704,13 +2211,18 @@ void CssComputedStyleEngine::computeValues(CssComputedStyle& style, const CssCom
       ++it;
   }
   const auto weight = style.resolvedValue("font-weight").trimmed().toLower();
-  if(weight=="bolder" || weight=="lighter") {
-    const auto inherited=parent.resolvedValue("font-weight").trimmed().toLower();
-    bool ok=false;const auto numeric=inherited.toDouble(&ok);
-    const qreal base=ok?numeric:inherited=="bold"?700:400;
-    const qreal computed=weight=="bolder" ? (base<350?400:base<550?700:qMax<qreal>(900,base))
-        : base<550?qMin<qreal>(100,base):base<750?400:700;
-    style.properties_.insert("font-weight",QString::number(computed));
+  if (weight == "bolder" || weight == "lighter") {
+    const auto inherited = parent.resolvedValue("font-weight").trimmed().toLower();
+    bool ok = false;
+    const auto numeric = inherited.toDouble(&ok);
+    const qreal base = ok ? numeric : inherited == "bold" ? 700 : 400;
+    const qreal computed = weight == "bolder" ? (base < 350   ? 400
+                                                 : base < 550 ? 700
+                                                              : qMax<qreal>(900, base))
+                           : base < 550       ? qMin<qreal>(100, base)
+                           : base < 750       ? 400
+                                              : 700;
+    style.properties_.insert("font-weight", QString::number(computed));
   }
   const QString raw = style.resolvedValue(QStringLiteral("font-size"));
   CssLengthContext context;
@@ -1718,8 +2230,9 @@ void CssComputedStyleEngine::computeValues(CssComputedStyle& style, const CssCom
   context.remPx = root ? 16.0 : parent.rootFontSizePx;
   context.viewportPx = QSizeF(environment_.viewportWidth, environment_.viewportHeight);
   const auto size = parseCssLengthPercentage(QStringView(raw), context);
-  static const QHash<QString, qreal> absoluteSizes{{"xx-small", 9}, {"x-small", 10}, {"small", 13},    {"medium", 16},
-                                                   {"large", 18},   {"x-large", 24}, {"xx-large", 32}, {"xxx-large", 48}};
+  static const QHash<QString, qreal> absoluteSizes{{"xx-small", 9},  {"x-small", 10},  {"small", 13},
+                                                   {"medium", 16},   {"large", 18},    {"x-large", 24},
+                                                   {"xx-large", 32}, {"xxx-large", 48}};
   style.fontSizePx = size.status == CssLengthStatus::Valid
                          ? qMax<qreal>(0, size.used(parent.fontSizePx))
                          : absoluteSizes.value(raw.toLower(), raw == QLatin1String("smaller")  ? parent.fontSizePx / 1.2
@@ -1730,7 +2243,8 @@ void CssComputedStyleEngine::computeValues(CssComputedStyle& style, const CssCom
   style.viewportPx = context.viewportPx;
   style.textScale = environment_.textScale;
   if (!raw.isEmpty())
-    style.properties_.insert(QStringLiteral("font-size"), QString::number(style.fontSizePx, 'g', 12) + QStringLiteral("px"));
+    style.properties_.insert(QStringLiteral("font-size"),
+                             QString::number(style.fontSizePx, 'g', 12) + QStringLiteral("px"));
   const QString line = style.resolvedValue(QStringLiteral("line-height"));
   bool number = false;
   line.toDouble(&number);
@@ -1740,20 +2254,25 @@ void CssComputedStyleEngine::computeValues(CssComputedStyle& style, const CssCom
     const auto height = parseCssLengthPercentage(QStringView(line), context);
     if (height.status == CssLengthStatus::Valid)
       style.properties_.insert(QStringLiteral("line-height"),
-                               QString::number(qMax<qreal>(0, height.used(style.fontSizePx)), 'g', 12) + QStringLiteral("px"));
+                               QString::number(qMax<qreal>(0, height.used(style.fontSizePx)), 'g', 12) +
+                                   QStringLiteral("px"));
   }
   // Freeze font-relative units in the defining element's scope. Percentages
   // remain symbolic, including when an explicit inherit copies a box length.
   for (auto it = style.properties_.cbegin(); it != style.properties_.cend(); ++it) {
-    if (style.computedLengths_.contains(it.key()) || it.key() == QLatin1String("font-size")) continue;
+    if (style.computedLengths_.contains(it.key()) || it.key() == QLatin1String("font-size"))
+      continue;
     context.emPx = style.fontSizePx * style.textScale;
     context.remPx = style.rootFontSizePx * style.textScale;
     const auto length = parseCssLengthPercentage(QStringView(it.value()), context);
-    if (length.status == CssLengthStatus::Valid) style.computedLengths_.insert(it.key(), length);
+    if (length.status == CssLengthStatus::Valid)
+      style.computedLengths_.insert(it.key(), length);
   }
   for (const auto* property : {"grid-template-columns", "grid-template-rows", "grid-auto-columns", "grid-auto-rows"}) {
-    if (style.computedGridTracks_.contains(property)) continue;
-    if (const auto tracks = parseCssGridTracks(style.resolvedValue(property), context)) style.computedGridTracks_.insert(property, *tracks);
+    if (style.computedGridTracks_.contains(property))
+      continue;
+    if (const auto tracks = parseCssGridTracks(style.resolvedValue(property), context))
+      style.computedGridTracks_.insert(property, *tracks);
   }
 }
 
@@ -1763,37 +2282,50 @@ quint64 CssComputedStyle::fingerprint() const {
   // Keep bounded snapshots so any public-map mutation detaches before a later
   // identity lookup. Scalars remain explicit inputs; hash equality alone never
   // establishes a cache hit. Do not retain image resources (not hash inputs).
-  struct FingerprintMemo { CssComputedStyle values; quint64 hash = 0; bool valid = false; };
+  struct FingerprintMemo {
+    CssComputedStyle values;
+    quint64 hash = 0;
+    bool valid = false;
+  };
   thread_local std::array<FingerprintMemo, 128> fingerprints;
   thread_local size_t nextFingerprint = 0;
   const auto cachedFingerprint = std::find_if(fingerprints.begin(), fingerprints.end(), [&](const auto& entry) {
     const auto& value = entry.values;
     return entry.valid && value.fontSizePx == fontSizePx && value.rootFontSizePx == rootFontSizePx &&
-        value.textScale == textScale && value.viewportPx == viewportPx && value.containingWidthPx == containingWidthPx &&
-        value.properties_.isSharedWith(properties_) && value.customProperties_.isSharedWith(customProperties_) &&
-        value.computedLengths_.isSharedWith(computedLengths_) && value.computedGridTracks_.isSharedWith(computedGridTracks_);
+           value.textScale == textScale && value.viewportPx == viewportPx &&
+           value.containingWidthPx == containingWidthPx && value.properties_.isSharedWith(properties_) &&
+           value.customProperties_.isSharedWith(customProperties_) &&
+           value.computedLengths_.isSharedWith(computedLengths_) &&
+           value.computedGridTracks_.isSharedWith(computedGridTracks_);
   });
-  if (cachedFingerprint != fingerprints.end()) return cachedFingerprint->hash;
-  quint64 result = qHashMulti(size_t(0), fontSizePx, rootFontSizePx, textScale, viewportPx.width(), viewportPx.height(), containingWidthPx);
-  for (auto it = properties_.cbegin(); it != properties_.cend(); ++it) result += qHashMulti(size_t(0), it.key(), it.value());
+  if (cachedFingerprint != fingerprints.end())
+    return cachedFingerprint->hash;
+  quint64 result = qHashMulti(size_t(0), fontSizePx, rootFontSizePx, textScale, viewportPx.width(), viewportPx.height(),
+                              containingWidthPx);
+  for (auto it = properties_.cbegin(); it != properties_.cend(); ++it)
+    result += qHashMulti(size_t(0), it.key(), it.value());
   // Inherited variable maps are implicitly shared. Hashing VLOOK's embedded
   // resources again for every inline/state defeats the computed-value cache.
   // Holding a bounded snapshot also makes mutations detach, so identity reuse
   // can never return a hash for old values (including direct map mutations).
-  struct VariablesHash { QHash<QString, QString> values; quint64 hash = 0; };
+  struct VariablesHash {
+    QHash<QString, QString> values;
+    quint64 hash = 0;
+  };
   // A document has several inherited scopes and interaction states in flight.
   // Four entries thrashed between VLOOK's root/paragraph/inline maps, rehashing
   // megabytes of embedded resources even on final-style cache hits. Keep a
   // bounded working set of shared map snapshots, validated by Qt storage identity.
   thread_local std::array<VariablesHash, 128> variablesHashes;
   thread_local size_t nextVariablesHash = 0;
-  const auto cached = std::find_if(variablesHashes.begin(), variablesHashes.end(), [&](const auto& entry) {
-    return entry.values.isSharedWith(customProperties_);
-  });
-  if (cached != variablesHashes.end()) result += cached->hash;
+  const auto cached = std::find_if(variablesHashes.begin(), variablesHashes.end(),
+                                   [&](const auto& entry) { return entry.values.isSharedWith(customProperties_); });
+  if (cached != variablesHashes.end())
+    result += cached->hash;
   else {
     quint64 hash = 0;
-    for (auto it = customProperties_.cbegin(); it != customProperties_.cend(); ++it) hash += qHashMulti(size_t(0), it.key(), it.value());
+    for (auto it = customProperties_.cbegin(); it != customProperties_.cend(); ++it)
+      hash += qHashMulti(size_t(0), it.key(), it.value());
     variablesHashes[nextVariablesHash++ % variablesHashes.size()] = {customProperties_, hash};
     result += hash;
   }
@@ -1803,20 +2335,25 @@ quint64 CssComputedStyle::fingerprint() const {
     quint64 hash = qHashMulti(size_t(0), it.key(), it->subgrid);
     if (it->nameRepeat) {
       hash = qHashMulti(size_t(hash), it->nameRepeat->index);
-      for (const auto& names : it->nameRepeat->names) hash = qHashMulti(size_t(hash), names);
+      for (const auto& names : it->nameRepeat->names)
+        hash = qHashMulti(size_t(hash), names);
     }
     const auto hashTracks = [&](const auto& tracks, const auto& names) {
       for (const auto& track : tracks) {
         hash = qHashMulti(size_t(hash), track.fitContent);
         for (const auto& value : {track.minimum, track.maximum})
-          hash = qHashMulti(size_t(hash), int(value.kind), value.length.px, value.length.fraction, value.length.hasPercentage, value.fraction);
+          hash = qHashMulti(size_t(hash), int(value.kind), value.length.px, value.length.fraction,
+                            value.length.hasPercentage, value.fraction);
       }
-      for (const auto& line : names) for (const auto& name : line) hash = qHashMulti(size_t(hash), name);
+      for (const auto& line : names)
+        for (const auto& name : line)
+          hash = qHashMulti(size_t(hash), name);
     };
     hashTracks(it->tracks, it->lineNames);
     if (it->automatic) {
       hash = qHashMulti(size_t(hash), it->automatic->index, it->automatic->fit);
-      for (const auto& name : it->automatic->beforeNames) hash = qHashMulti(size_t(hash), name);
+      for (const auto& name : it->automatic->beforeNames)
+        hash = qHashMulti(size_t(hash), name);
       hashTracks(it->automatic->tracks, it->automatic->lineNames);
     }
     result += hash;
@@ -1829,11 +2366,13 @@ quint64 CssComputedStyle::fingerprint() const {
 
 CssComputedStyle cssKeyframeStyle(CssComputedStyle base, const std::vector<CssDeclaration>& declarations) {
   for (const auto& declaration : declarations) {
-    if (declaration.important) continue;
+    if (declaration.important)
+      continue;
     auto resolved = declaration;
     resolved.value = CssThemeParser::resolveResourceUrls(declaration.value, declaration.resourceBaseDir);
     for (const auto& expanded : expandDeclaration(resolved, base.customProperties_)) {
-      if (expanded.property.startsWith("--")) base.customProperties_[expanded.property] = expanded.value;
+      if (expanded.property.startsWith("--"))
+        base.customProperties_[expanded.property] = expanded.value;
       else {
         base.properties_[expanded.property] = expanded.value;
         base.computedLengths_.remove(expanded.property);
@@ -1844,7 +2383,8 @@ CssComputedStyle cssKeyframeStyle(CssComputedStyle base, const std::vector<CssDe
 }
 
 CssComputedStyle CssComputedStyleEngine::parentStyleFor(const CssElement* parent) const {
-  if (parent) return styleFor(*parent);
+  if (parent)
+    return styleFor(*parent);
   CssComputedStyle initial;
   initial.customProperties_ = CssThemeParser::computeCustomProperties(sheet_.variables());
   return initial;
@@ -1878,25 +2418,30 @@ CssComputedStyle CssComputedStyleEngine::styleFor(const CssElement& element, con
     const auto node = computedCache_.constFind(element.cacheId);
     if (node != computedCache_.constEnd()) {
       const auto cached = node->constFind(cacheKey);
-      if (cached != node->constEnd()) return cached.value();
+      if (cached != node->constEnd())
+        return cached.value();
     }
   }
   const auto* inheritanceParent = element.originatingElement ? element.originatingElement : element.parent;
   const bool htmlRoot = !inheritanceParent && element.tag.compare(QLatin1String("html"), Qt::CaseInsensitive) == 0;
-  CssComputedStyle parent = htmlRoot ? CssComputedStyle{} : inheritanceParent && state.subject ? styleFor(*inheritanceParent, state)
-      : element.originatingElement ? styleFor(*element.originatingElement, state) : parentStyleFor(inheritanceParent);
+  CssComputedStyle parent = htmlRoot                             ? CssComputedStyle{}
+                            : inheritanceParent && state.subject ? styleFor(*inheritanceParent, state)
+                            : element.originatingElement         ? styleFor(*element.originatingElement, state)
+                                                                 : parentStyleFor(inheritanceParent);
   const auto matches = matchedRules(element, state);
   const bool root = !inheritanceParent;
   quint64 scopedKey = 0;
   if (cacheable) {
     diag::ScopedPerfProbe detail("css.finalLookup", cssDetailPerf());
     scopedKey = qHashMulti(size_t(0), root, parent.fingerprint());
-    for (const auto& match : matches) scopedKey = qHashMulti(scopedKey, match.rule, match.selector);
+    for (const auto& match : matches)
+      scopedKey = qHashMulti(scopedKey, match.rule, match.selector);
     const auto bucket = scopedComputedCache_.constFind(scopedKey);
     if (bucket != scopedComputedCache_.cend()) {
       for (const auto& cached : bucket.value())
         if (cached.root == root && cached.matches == matches && cached.parent == parent) {
-          if (!state.subject) computedCache_[element.cacheId].insert(cacheKey, cached.result);
+          if (!state.subject)
+            computedCache_[element.cacheId].insert(cacheKey, cached.result);
           return cached.result;
         }
     }
@@ -1910,7 +2455,8 @@ CssComputedStyle CssComputedStyleEngine::styleFor(const CssElement& element, con
   for (auto it = parent.properties_.cbegin(); it != parent.properties_.cend(); ++it)
     if (inheritedProperties().contains(it.key())) {
       style.properties_.insert(it.key(), it.value());
-      if (parent.computedLengths_.contains(it.key())) style.computedLengths_.insert(it.key(), parent.computedLengths_.value(it.key()));
+      if (parent.computedLengths_.contains(it.key()))
+        style.computedLengths_.insert(it.key(), parent.computedLengths_.value(it.key()));
     }
   applyStyleForElement(matches, style, inlineDeclarations, presentationDeclarations);
   if (!environment_.deferComputedValues) {
@@ -1929,7 +2475,8 @@ CssComputedStyle CssComputedStyleEngine::styleFor(const CssElement& element, con
     if (!found) {
       const auto input = style;
       computeValues(style, parent, root);
-      if (valueCache_.size() >= 2048) valueCache_.clear();
+      if (valueCache_.size() >= 2048)
+        valueCache_.clear();
       valueCache_[valueKey].push_back({input, parent, style, root});
     }
   }
@@ -1944,8 +2491,9 @@ CssComputedStyle CssComputedStyleEngine::styleFor(const CssElement& element, con
     }
     scopedComputedCache_[scopedKey].push_back({root, matches, parent, style});
     ++resolvedStyleCount_;
-    if (!state.subject) computedCache_[element.cacheId].insert(cacheKey, style);
+    if (!state.subject)
+      computedCache_[element.cacheId].insert(cacheKey, style);
   }
   return style;
 }
-}  // namespace muffin
+} // namespace muffin

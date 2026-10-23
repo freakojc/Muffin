@@ -60,8 +60,14 @@ bool HtmlDocument::parse(const QByteArray& utf8Html) {
   return true;
 }
 
-void* HtmlDocument::document() const { return doc_; }
-bool HtmlDocument::valid() const { return valid_; }
-QString HtmlDocument::errorString() const { return error_; }
+void* HtmlDocument::document() const {
+  return doc_;
+}
+bool HtmlDocument::valid() const {
+  return valid_;
+}
+QString HtmlDocument::errorString() const {
+  return error_;
+}
 
-}  // namespace muffin::html
+} // namespace muffin::html

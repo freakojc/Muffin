@@ -19,8 +19,8 @@ struct KanbanConfig {
   // `?? 8` followed by arithmetic Number coercion, and useMaxWidth is consumed
   // through ordinary JavaScript truthiness.
   QJsonValue sectionWidth = 200.0;
-  QJsonValue padding = 10.0;  // renderer actually reads mindmap.padding
-  QJsonValue useMaxWidth = true;  // renderer actually reads mindmap.useMaxWidth
+  QJsonValue padding = 10.0;     // renderer actually reads mindmap.padding
+  QJsonValue useMaxWidth = true; // renderer actually reads mindmap.useMaxWidth
   bool htmlLabels = true;
   bool markdownAutoWrap = true;
   QString ticketBaseUrl;
@@ -70,20 +70,20 @@ struct KanbanElementCss {
 struct KanbanCssOverrides {
   bool active = false;
   struct Section {
-    KanbanElementCss cluster;  // g.cluster (opacity/display surface)
-    KanbanElementCss box;      // the section <rect>
-    KanbanElementCss label;    // span.nodeLabel in .cluster-label
+    KanbanElementCss cluster; // g.cluster (opacity/display surface)
+    KanbanElementCss box;     // the section <rect>
+    KanbanElementCss label;   // span.nodeLabel in .cluster-label
   };
   struct ItemLabel {
-    KanbanElementCss group;    // g.label
-    KanbanElementCss bkg;      // the zero-sized label background <rect>
-    KanbanElementCss span;     // span.nodeLabel (.markdown-node-label on titles)
+    KanbanElementCss group; // g.label
+    KanbanElementCss bkg;   // the zero-sized label background <rect>
+    KanbanElementCss span;  // span.nodeLabel (.markdown-node-label on titles)
   };
   struct Item {
     KanbanElementCss node;     // g.node (opacity/display surface)
     KanbanElementCss box;      // rect.basic.label-container
-    QVector<ItemLabel> labels;  // title, ticket, assigned
-    KanbanElementCss priority;  // the priority strike <line>
+    QVector<ItemLabel> labels; // title, ticket, assigned
+    KanbanElementCss priority; // the priority strike <line>
   };
   QVector<Section> sections;
   QVector<Item> items;
@@ -144,14 +144,10 @@ struct KanbanItemGeometry {
 
 struct KanbanScene : MermaidScene {
   QRectF sceneBounds() const override { return bounds; }
-  QRectF renderBounds() const override {
-    return rasterBounds.isValid() ? rasterBounds : bounds;
-  }
+  QRectF renderBounds() const override { return rasterBounds.isValid() ? rasterBounds : bounds; }
   void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
-  const QVector<InteractionRegion>& interactionRegions() const override {
-    return interactions;
-  }
+  const QVector<InteractionRegion>& interactionRegions() const override { return interactions; }
 
   QRectF bounds;
   // Puppeteer's element screenshot uses the integer CSS client box even when
@@ -166,8 +162,7 @@ struct KanbanScene : MermaidScene {
   QVector<InteractionRegion> interactions;
 };
 
-KanbanScene buildKanbanScene(const KanbanData& data, KanbanConfig config,
-                             KanbanSceneStyle style,
+KanbanScene buildKanbanScene(const KanbanData& data, KanbanConfig config, KanbanSceneStyle style,
                              const KanbanCssOverrides* css = nullptr);
 
-}  // namespace muffin::mermaid::kanban
+} // namespace muffin::mermaid::kanban

@@ -31,8 +31,8 @@ void writeFile(const QString& path, const QByteArray& data) {
 void testDocumentDirectoryWinsOverWorkingDirectory() {
   QTemporaryDir root;
   QDir dir(root.path());
-  require(dir.mkpath(QStringLiteral("cwd")) && dir.mkpath(QStringLiteral("doc")) &&
-              dir.mkpath(QStringLiteral("dest")), QStringLiteral("Could not create fixture folders"));
+  require(dir.mkpath(QStringLiteral("cwd")) && dir.mkpath(QStringLiteral("doc")) && dir.mkpath(QStringLiteral("dest")),
+          QStringLiteral("Could not create fixture folders"));
   const QString wrong = dir.filePath(QStringLiteral("cwd/photo.png"));
   const QString correct = dir.filePath(QStringLiteral("doc/photo.png"));
   writeFile(wrong, QByteArrayLiteral("wrong"));
@@ -48,8 +48,8 @@ void testDocumentDirectoryWinsOverWorkingDirectory() {
   const QString md = QStringLiteral("![photo](photo.png)");
   DocumentSession session;
   session.setMarkdownText(md, false);
-  const auto moved = ImageFileOps::moveAllImages(session.document(), md, docDir,
-                                                QDir(dir.filePath(QStringLiteral("dest"))));
+  const auto moved =
+      ImageFileOps::moveAllImages(session.document(), md, docDir, QDir(dir.filePath(QStringLiteral("dest"))));
   require(QDir::setCurrent(previousCwd), QStringLiteral("Could not restore working directory"));
   require(moved.success && moved.movedCount == 1, QStringLiteral("Expected one image move"));
   require(QFileInfo::exists(wrong) && !QFileInfo::exists(correct),
@@ -92,18 +92,18 @@ void testBatchRewritePreservesImageSyntax() {
   const QString nested = dir.filePath(QStringLiteral("photo(1).png"));
   writeFile(spaced, QByteArrayLiteral("space"));
   writeFile(nested, QByteArrayLiteral("nested"));
-  const QString md = QStringLiteral(
-      "# Images\n\n"
-      "![first](<my image.png> \"keep title\")\n\n"
-      "> ![second](photo(1).png 'also keep')\n\n"
-      "![duplicate](my%20image.png)\n\n"
-      "![remote](https://example.com/original.png)\n");
+  const QString md = QStringLiteral("# Images\n\n"
+                                    "![first](<my image.png> \"keep title\")\n\n"
+                                    "> ![second](photo(1).png 'also keep')\n\n"
+                                    "![duplicate](my%20image.png)\n\n"
+                                    "![remote](https://example.com/original.png)\n");
   DocumentSession session;
   session.setMarkdownText(md, false);
   const QString url = QStringLiteral("https://cdn.example/new(1).png?a=1&b=2");
   int count = 0;
-  const QString rewritten = ImageFileOps::rewriteImageSources(session.document(), md, root.path(),
-      {{spaced, url}, {nested, QStringLiteral("https://cdn.example/nested.png")}}, &count);
+  const QString rewritten = ImageFileOps::rewriteImageSources(
+      session.document(), md, root.path(), {{spaced, url}, {nested, QStringLiteral("https://cdn.example/nested.png")}},
+      &count);
   require(count == 3 && rewritten.contains(QStringLiteral("\"keep title\"")) &&
               rewritten.contains(QStringLiteral("'also keep'")),
           QStringLiteral("Rewrite all local uses while preserving titles"));
@@ -115,7 +115,7 @@ void testBatchRewritePreservesImageSyntax() {
           QStringLiteral("Every rewritten image must remain parseable with the exact uploaded URL"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -130,21 +130,19 @@ int main(int argc, char** argv) {
   writeFile(dir.filePath(QStringLiteral("assets/photo.png")), QByteArrayLiteral("one"));
   writeFile(dir.filePath(QStringLiteral("assets/photo (1).png")), QByteArrayLiteral("two"));
 
-  const QString markdown = QStringLiteral(
-      "![first](assets/photo.png \"title\")\n"
-      "![same](assets/photo.png)\n"
-      "![spaced](<assets/photo (1).png>)\n");
+  const QString markdown = QStringLiteral("![first](assets/photo.png \"title\")\n"
+                                          "![same](assets/photo.png)\n"
+                                          "![spaced](<assets/photo (1).png>)\n");
   DocumentSession before;
   before.setMarkdownText(markdown, false);
 
-  const auto result = ImageFileOps::moveAllImages(
-      before.document(), markdown, root.path(), QDir(dir.filePath(QStringLiteral("moved"))));
+  const auto result = ImageFileOps::moveAllImages(before.document(), markdown, root.path(),
+                                                  QDir(dir.filePath(QStringLiteral("moved"))));
   require(result.success, QStringLiteral("Move-all failed: %1").arg(result.error));
   require(result.movedCount == 2, QStringLiteral("Duplicate references should move two unique files"));
   require(!QFileInfo::exists(dir.filePath(QStringLiteral("assets/photo.png"))),
           QStringLiteral("Original image was not moved"));
-  require(QFileInfo::exists(dir.filePath(QStringLiteral("moved/photo.png"))),
-          QStringLiteral("Moved image missing"));
+  require(QFileInfo::exists(dir.filePath(QStringLiteral("moved/photo.png"))), QStringLiteral("Moved image missing"));
   require(result.markdown.contains(QStringLiteral("![first](moved/photo.png \"title\")")),
           QStringLiteral("Title-bearing reference was not preserved"));
   require(result.markdown.count(QStringLiteral("moved/photo.png")) == 2,

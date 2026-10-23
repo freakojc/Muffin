@@ -22,12 +22,15 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString compactJson(const QJsonValue& value) {
-  if (value.isObject()) return QString::fromUtf8(QJsonDocument(value.toObject()).toJson(QJsonDocument::Compact));
-  if (value.isArray()) return QString::fromUtf8(QJsonDocument(value.toArray()).toJson(QJsonDocument::Compact));
+  if (value.isObject())
+    return QString::fromUtf8(QJsonDocument(value.toObject()).toJson(QJsonDocument::Compact));
+  if (value.isArray())
+    return QString::fromUtf8(QJsonDocument(value.toArray()).toJson(QJsonDocument::Compact));
   return QStringLiteral("<non-container>");
 }
 
@@ -42,10 +45,11 @@ void testDetection(const QJsonArray& cases) {
     const QJsonValue expected = fixture.value(QStringLiteral("diagramType"));
     try {
       const QString actual = detectDiagramType(source, config);
-      require(!expected.isNull(), QStringLiteral("Mermaid detector %1 should reject unknown input, got %2").arg(id, actual));
-      require(actual == expected.toString(),
-              QStringLiteral("Mermaid detector %1 mismatch: native=%2 upstream=%3")
-                  .arg(id, actual, expected.toString()));
+      require(!expected.isNull(),
+              QStringLiteral("Mermaid detector %1 should reject unknown input, got %2").arg(id, actual));
+      require(
+          actual == expected.toString(),
+          QStringLiteral("Mermaid detector %1 mismatch: native=%2 upstream=%3").arg(id, actual, expected.toString()));
       if (actual != QLatin1String("error") && actual != QLatin1String("---"))
         registeredIds.insert(actual);
     } catch (const UnknownDiagramError&) {
@@ -53,12 +57,10 @@ void testDetection(const QJsonArray& cases) {
     }
   }
   require(registeredIds.size() == 38,
-          QStringLiteral("Expected all 38 Mermaid 11.16 detector IDs, found %1")
-              .arg(registeredIds.size()));
+          QStringLiteral("Expected all 38 Mermaid 11.16 detector IDs, found %1").arg(registeredIds.size()));
   for (const QString& id : registeredIds)
     require(editor::findMermaidDiagram(id) != nullptr,
-            QStringLiteral("Registered Mermaid ID has no native adapter: %1")
-                .arg(id));
+            QStringLiteral("Registered Mermaid ID has no native adapter: %1").arg(id));
 }
 
 void testPreprocess(const QJsonArray& cases) {
@@ -72,8 +74,7 @@ void testPreprocess(const QJsonArray& cases) {
             QStringLiteral("Mermaid preprocess %1 code mismatch:\nnative:   <%2>\nupstream: <%3>")
                 .arg(id, actual.code, expected.value(QStringLiteral("code")).toString()));
     const bool expectedTitle = expected.contains(QStringLiteral("title"));
-    require(actual.hasTitle == expectedTitle,
-            QStringLiteral("Mermaid preprocess %1 title presence mismatch").arg(id));
+    require(actual.hasTitle == expectedTitle, QStringLiteral("Mermaid preprocess %1 title presence mismatch").arg(id));
     if (expectedTitle) {
       require(actual.title == expected.value(QStringLiteral("title")).toString(),
               QStringLiteral("Mermaid preprocess %1 title mismatch").arg(id));
@@ -86,13 +87,10 @@ void testPreprocess(const QJsonArray& cases) {
 }
 
 void requireJourneySourceConfig(const MermaidPreprocessResult& result, const QString& label) {
-  const QJsonObject themeVariables =
-      result.config.value(QStringLiteral("themeVariables")).toObject();
-  require(themeVariables.value(QStringLiteral("fillType0")).toString() ==
-              QLatin1String("#123456"),
+  const QJsonObject themeVariables = result.config.value(QStringLiteral("themeVariables")).toObject();
+  require(themeVariables.value(QStringLiteral("fillType0")).toString() == QLatin1String("#123456"),
           label + QStringLiteral(": fillType0 was not retained"));
-  require(themeVariables.value(QStringLiteral("textColor")).toString() ==
-              QLatin1String("#abcdef"),
+  require(themeVariables.value(QStringLiteral("textColor")).toString() == QLatin1String("#abcdef"),
           label + QStringLiteral(": textColor was not retained"));
   require(!themeVariables.contains(QStringLiteral("actor0")),
           label + QStringLiteral(": actor0 must be filtered from source config"));
@@ -111,41 +109,37 @@ void testJourneySourceConfigSanitization() {
   // allowed-key sanitizer here only for multiple init directives. A single
   // directive/frontmatter is sanitized later by addDirective, outside this
   // preprocessing port's result boundary.
-  const QString directive = QStringLiteral(
-      "%%{init: {\"themeVariables\": {\"fillType0\": \"#123456\", "
-      "\"textColor\": \"#abcdef\", \"actor0\": \"#fedcba\"}, \"journey\": {"
-      "\"actorColours\": [\"#111111\"], \"sectionFills\": [\"#222222\"], "
-      "\"sectionColours\": [\"#333333\"]}}}%%\n"
-      "%%{init: {\"theme\": \"default\"}}%%\njourney\nsection S\nT: 1");
-  requireJourneySourceConfig(preprocessDiagram(directive),
-                             QStringLiteral("multiple-init sanitizer"));
+  const QString directive = QStringLiteral("%%{init: {\"themeVariables\": {\"fillType0\": \"#123456\", "
+                                           "\"textColor\": \"#abcdef\", \"actor0\": \"#fedcba\"}, \"journey\": {"
+                                           "\"actorColours\": [\"#111111\"], \"sectionFills\": [\"#222222\"], "
+                                           "\"sectionColours\": [\"#333333\"]}}}%%\n"
+                                           "%%{init: {\"theme\": \"default\"}}%%\njourney\nsection S\nT: 1");
+  requireJourneySourceConfig(preprocessDiagram(directive), QStringLiteral("multiple-init sanitizer"));
 }
 
 void testRenderConfigSanitization() {
-  const QString source = QStringLiteral(
-      "%%{init: {\"fontFamily\":\"Noto Sans\",\"maxEdges\":1,"
-      "\"maxTextSize\":2,\"securityLevel\":\"loose\","
-      "\"themeCSS\":\".nodes > .node { fill:red; }\","
-      "\"flowchart\":{\"curve\":\"basis\"}}}%%\nflowchart LR\nA-->B");
+  const QString source = QStringLiteral("%%{init: {\"fontFamily\":\"Noto Sans\",\"maxEdges\":1,"
+                                        "\"maxTextSize\":2,\"securityLevel\":\"loose\","
+                                        "\"themeCSS\":\".nodes > .node { fill:red; }\","
+                                        "\"flowchart\":{\"curve\":\"basis\"}}}%%\nflowchart LR\nA-->B");
   const MermaidPreprocessResult pre = preprocessDiagram(source);
   require(pre.config.contains(QStringLiteral("maxEdges")),
           QStringLiteral("preprocess intermediate must retain single-init secure keys"));
   const QJsonObject effective = mermaidRenderConfig(pre.config);
-  require(!effective.contains(QStringLiteral("maxEdges")) &&
-              !effective.contains(QStringLiteral("maxTextSize")) &&
+  require(!effective.contains(QStringLiteral("maxEdges")) && !effective.contains(QStringLiteral("maxTextSize")) &&
               !effective.contains(QStringLiteral("securityLevel")),
           QStringLiteral("render config must remove Mermaid secure keys"));
   require(!effective.contains(QStringLiteral("themeCSS")),
           QStringLiteral("render config must remove strings containing angle brackets"));
-  require(effective.value(QStringLiteral("flowchart")).toObject()
-                  .value(QStringLiteral("curve")).toString() == QLatin1String("basis"),
+  require(effective.value(QStringLiteral("flowchart")).toObject().value(QStringLiteral("curve")).toString() ==
+              QLatin1String("basis"),
           QStringLiteral("render config removed a valid nested option"));
-  require(effective.value(QStringLiteral("themeVariables")).toObject()
-                  .value(QStringLiteral("fontFamily")).toString() == QLatin1String("Noto Sans"),
+  require(effective.value(QStringLiteral("themeVariables")).toObject().value(QStringLiteral("fontFamily")).toString() ==
+              QLatin1String("Noto Sans"),
           QStringLiteral("render config did not mirror top-level fontFamily"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

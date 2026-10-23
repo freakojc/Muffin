@@ -28,4 +28,4 @@ private:
   QHash<QString, std::function<void()>> handlers_;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -120,7 +120,7 @@ muffin::PrefsEditorPage::PrefsEditorPage(QWidget* parent) : PreferencesPage(pare
   spellCheckEnabledCheck_ = new QCheckBox(spellCard);
   auto* spellLangRow = new QHBoxLayout();
   spellLangRow->setSpacing(16);
-  spellLangRow->setContentsMargins(28, 0, 0, 0);  // indent under the checkbox
+  spellLangRow->setContentsMargins(28, 0, 0, 0); // indent under the checkbox
   spellCheckLanguageLabel_ = new QLabel(spellCard);
   spellCheckLanguageCombo_ = new QComboBox(spellCard);
   spellCheckLanguageCombo_->setMinimumWidth(260);
@@ -165,9 +165,7 @@ muffin::PrefsEditorPage::PrefsEditorPage(QWidget* parent) : PreferencesPage(pare
   wireBoolSetting(copyLineWhenNoSelectionCheck_, QStringLiteral("editor/copyLineNoSelection"));
   connect(lineBreakLfRadio_, &QRadioButton::toggled, this,
           [](bool checked) { QSettings().setValue(QStringLiteral("editor/defaultLineBreak"), checked ? 0 : 1); });
-  connect(spellCheckEnabledCheck_, &QCheckBox::toggled, this, [](bool on) {
-    SpellChecker::instance().setEnabled(on);
-  });
+  connect(spellCheckEnabledCheck_, &QCheckBox::toggled, this, [](bool on) { SpellChecker::instance().setEnabled(on); });
   connect(spellCheckLanguageCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
     const QString code = spellCheckLanguageCombo_->currentData().toString();
     if (!code.isEmpty()) {

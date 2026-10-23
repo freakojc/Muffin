@@ -36,8 +36,8 @@ struct DagreEdgeLabel {
   std::optional<qreal> y;
   std::optional<int> labelRank;
   bool nestingEdge = false;
-  bool reversed = false;  // set by acyclic.run, undone by acyclic.undo
-  std::optional<QString> forwardName;  // original edge name, stashed by acyclic.run
+  bool reversed = false;              // set by acyclic.run, undone by acyclic.undo
+  std::optional<QString> forwardName; // original edge name, stashed by acyclic.run
 };
 
 // A captured self-edge stored on its node before being re-inserted as a dummy.
@@ -53,7 +53,7 @@ struct DagreNodeLabel {
   std::optional<int> order;
   std::optional<qreal> x;
   std::optional<qreal> y;
-  QString dummy;  // type tag; empty = real node
+  QString dummy; // type tag; empty = real node
   // Compound-cluster border bookkeeping (nesting-graph / assignRankMinMax /
   // add-border-segments).
   std::optional<int> minRank;
@@ -62,7 +62,7 @@ struct DagreNodeLabel {
   QString borderBottom;
   QVector<QString> borderLeft;
   QVector<QString> borderRight;
-  QString borderType;  // "borderLeft" | "borderRight"
+  QString borderType; // "borderLeft" | "borderRight"
   // Transient single-string border ids used inside the order phase's layer graph
   // (buildLayerGraph sets these to borderLeft[rank]/borderRight[rank]).
   QString layerBorderLeft;
@@ -70,27 +70,27 @@ struct DagreNodeLabel {
   // Edge-dummy chain bookkeeping (normalize).
   std::optional<graphlib::Edge> edgeObj;
   std::optional<DagreEdgeLabel> edgeLabel;
-  QString labelpos;  // set on edge-label dummies
+  QString labelpos; // set on edge-label dummies
   // Self-edge re-insertion (layout.js removeSelfEdges/insertSelfEdges).
   QVector<DagreSelfEdge> selfEdges;
 };
 
 struct DagreGraphLabel {
-  QString rankdir = QStringLiteral("tb");  // tb | bt | lr | rl
+  QString rankdir = QStringLiteral("tb"); // tb | bt | lr | rl
   qreal nodesep = 50.0;
   qreal edgesep = 20.0;
   qreal ranksep = 50.0;
   qreal marginx = 0.0;
   qreal marginy = 0.0;
-  qreal nodePadding = 15.0;  // renderer input metadata; ignored by Dagre phases
+  qreal nodePadding = 15.0; // renderer input metadata; ignored by Dagre phases
   std::optional<int> maxRank;
   int nodeRankFactor = 0;
-  QString nestingRoot;            // node id of the virtual root (nesting-graph)
-  QVector<QString> dummyChains;   // chain-head node ids (normalize)
+  QString nestingRoot;          // node id of the virtual root (nesting-graph)
+  QVector<QString> dummyChains; // chain-head node ids (normalize)
   qreal width = 0.0;
   qreal height = 0.0;
   QString align;  // UL/UR/DL/DR override for BK balance; empty = median balance
-  QString ranker;  // "" | "network-simplex" | "tight-tree" | "longest-path"
+  QString ranker; // "" | "network-simplex" | "tight-tree" | "longest-path"
   // Deterministic dummy-id generator backing util.addDummyNode. JS uses a
   // module-global _.uniqueId counter; per-graph state keeps a layout reproducible
   // and independent of other layouts in the same process.
@@ -99,4 +99,4 @@ struct DagreGraphLabel {
 
 using DagreGraph = graphlib::Graph<DagreNodeLabel, DagreEdgeLabel, DagreGraphLabel>;
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

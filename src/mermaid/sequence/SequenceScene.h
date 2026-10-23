@@ -110,9 +110,7 @@ struct SequenceScene : MermaidScene {
   // The resolved viewport rect (logicalBounds + configured margins), computed
   // once at build time. renderBounds returns it so the generic image/canvas
   // paths treat sequence like any other family without a dispatch branch.
-  QRectF renderBounds() const override {
-    return viewportRect.isValid() ? viewportRect : sceneBounds();
-  }
+  QRectF renderBounds() const override { return viewportRect.isValid() ? viewportRect : sceneBounds(); }
   bool menusAlwaysOpen() const override { return forceMenus; }
   const QVector<InteractionRegion>& interactionRegions() const override { return interactionRegions_; }
 
@@ -134,7 +132,7 @@ struct SequenceScene : MermaidScene {
   QVector<SequenceLayoutNumber> sequenceNumbers;
   QVector<SequenceSceneMenu> menus;
   bool forceMenus = false;
-  QVector<InteractionRegion> interactionRegions_;  // precomputed at build
+  QVector<InteractionRegion> interactionRegions_; // precomputed at build
   SequenceSceneStyle style;
   // No handDrawn surface: mermaid 11.16's sequence renderer never branches on
   // config.look (a look:handDrawn source renders the identical classic SVG —
@@ -142,9 +140,7 @@ struct SequenceScene : MermaidScene {
   // deliberately excludes this family.
 };
 
-SequenceScene buildSequenceScene(const SequenceLayoutResult& layout,
-                                 SequenceSceneStyle style = {},
-                                 const SequencePreparedLabels& prepared = {},
-                                 bool requirePrepared = false);
+SequenceScene buildSequenceScene(const SequenceLayoutResult& layout, SequenceSceneStyle style = {},
+                                 const SequencePreparedLabels& prepared = {}, bool requirePrepared = false);
 
-}  // namespace muffin::mermaid::sequence
+} // namespace muffin::mermaid::sequence

@@ -101,4 +101,4 @@ private:
   QHash<QString, QString> cssSourcePaths_;
 };
 
-}  // namespace muffin
+} // namespace muffin

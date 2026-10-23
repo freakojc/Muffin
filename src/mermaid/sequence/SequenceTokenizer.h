@@ -86,4 +86,4 @@ private:
   bool labelMode_ = false;
 };
 
-}  // namespace muffin::mermaid::sequence
+} // namespace muffin::mermaid::sequence

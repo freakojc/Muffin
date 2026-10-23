@@ -47,17 +47,17 @@ QRect colorBBox(const QImage& image, const std::function<bool(QRgb)>& pred) {
   for (int y = 0; y < image.height(); ++y) {
     for (int x = 0; x < image.width(); ++x) {
       if (pred(image.pixel(x, y))) {
-        left = qMin(left, x); top = qMin(top, y);
-        right = qMax(right, x); bottom = qMax(bottom, y);
+        left = qMin(left, x);
+        top = qMin(top, y);
+        right = qMax(right, x);
+        bottom = qMax(bottom, y);
       }
     }
   }
   return right < left ? QRect() : QRect(left, top, right - left + 1, bottom - top + 1);
 }
 
-const std::function<bool(QRgb)> isRed = [](QRgb p) {
-  return qRed(p) > 150 && qGreen(p) < 90 && qBlue(p) < 90;
-};
+const std::function<bool(QRgb)> isRed = [](QRgb p) { return qRed(p) > 150 && qGreen(p) < 90 && qBlue(p) < 90; };
 
 // CSS padding reserves inline advance and grows the painted box. A theme with larger padding produces a wider
 // red background bbox than the default — relative (same code text / font), so
@@ -77,10 +77,14 @@ void testInlineCodeChipGrowsWithPadding() {
   const QRect paddedRed = colorBBox(paddedImg, isRed);
   require(baseRed.isValid() && paddedRed.isValid(),
           QStringLiteral("both chips should paint a red background (base=%1x%2 padded=%3x%4)")
-              .arg(baseRed.width()).arg(baseRed.height()).arg(paddedRed.width()).arg(paddedRed.height()));
+              .arg(baseRed.width())
+              .arg(baseRed.height())
+              .arg(paddedRed.width())
+              .arg(paddedRed.height()));
   // Extra 14px horizontal padding each side → ≥20px wider bbox (the default is 3).
-  require(paddedRed.width() > baseRed.width() + 20.0,
-          QStringLiteral("padding should widen the chip (base=%1 padded=%2)").arg(baseRed.width()).arg(paddedRed.width()));
+  require(
+      paddedRed.width() > baseRed.width() + 20.0,
+      QStringLiteral("padding should widen the chip (base=%1 padded=%2)").arg(baseRed.width()).arg(paddedRed.width()));
 }
 
 void testInlineBoxPaddingReservesFlowAndPreservesText() {
@@ -103,18 +107,23 @@ void testInlineBoxPaddingReservesFlowAndPreservesText() {
     }
     return cursor.x();
   };
-  const qreal codeBase = endpoint(QStringLiteral("#write{color:black}code{padding:0;border:none}"), QStringLiteral("a `ab` c\n"));
-  const qreal codePad = endpoint(QStringLiteral("#write{color:black}code{padding:0 14px;border:none}"), QStringLiteral("a `ab` c\n"));
-  require(qAbs(codePad - codeBase - 28) < .1, QStringLiteral("code padding must reserve exactly 28px in text flow: base=%1 padded=%2 delta=%3")
-                                                   .arg(codeBase).arg(codePad).arg(codePad-codeBase));
-  const qreal kbdBase =
-      endpoint(QStringLiteral("#write{color:black}kbd{padding:0;border:0 solid black}"), QStringLiteral("a <kbd>ab</kbd> c\n"));
-  const qreal kbdPad =
-      endpoint(QStringLiteral("#write{color:black}kbd{padding:0 12px;border:0 solid black}"), QStringLiteral("a <kbd>ab</kbd> c\n"));
+  const qreal codeBase =
+      endpoint(QStringLiteral("#write{color:black}code{padding:0;border:none}"), QStringLiteral("a `ab` c\n"));
+  const qreal codePad =
+      endpoint(QStringLiteral("#write{color:black}code{padding:0 14px;border:none}"), QStringLiteral("a `ab` c\n"));
+  require(qAbs(codePad - codeBase - 28) < .1,
+          QStringLiteral("code padding must reserve exactly 28px in text flow: base=%1 padded=%2 delta=%3")
+              .arg(codeBase)
+              .arg(codePad)
+              .arg(codePad - codeBase));
+  const qreal kbdBase = endpoint(QStringLiteral("#write{color:black}kbd{padding:0;border:0 solid black}"),
+                                 QStringLiteral("a <kbd>ab</kbd> c\n"));
+  const qreal kbdPad = endpoint(QStringLiteral("#write{color:black}kbd{padding:0 12px;border:0 solid black}"),
+                                QStringLiteral("a <kbd>ab</kbd> c\n"));
   require(qAbs(kbdPad - kbdBase - 24) < .1, QStringLiteral("kbd padding must reserve exactly 24px in text flow"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

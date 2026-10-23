@@ -4,8 +4,7 @@
 
 namespace muffin::mermaid::scene {
 
-QVector<QPointF> stitchEdgePolyline(const QVector<QPointF>& points,
-                                    const QVector<QVector<QPointF>>& segments) {
+QVector<QPointF> stitchEdgePolyline(const QVector<QPointF>& points, const QVector<QVector<QPointF>>& segments) {
   if (!points.isEmpty()) {
     return points;
   }
@@ -43,4 +42,4 @@ QPainterPath edgePolylinePath(const QString& path, const QVector<QPointF>& point
   return stroke;
 }
 
-}  // namespace muffin::mermaid::scene
+} // namespace muffin::mermaid::scene

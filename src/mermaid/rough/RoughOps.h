@@ -62,10 +62,8 @@ Drawable line(qreal x1, qreal y1, qreal x2, qreal y2, Options options = {});
 Drawable rectangle(qreal x, qreal y, qreal width, qreal height, Options options = {});
 Drawable polygon(const QVector<QPointF>& points, Options options = {});
 Drawable ellipse(qreal x, qreal y, qreal width, qreal height, Options options = {});
-Drawable arc(qreal x, qreal y, qreal width, qreal height,
-             qreal start, qreal stop, bool closed, Options options = {});
-Drawable path(const QPainterPath& source, Options options = {},
-              bool closed = false);
+Drawable arc(qreal x, qreal y, qreal width, qreal height, qreal start, qreal stop, bool closed, Options options = {});
+Drawable path(const QPainterPath& source, Options options = {}, bool closed = false);
 Drawable path(const QVector<PathCommand>& source, Options options = {});
 
 QPainterPath toPainterPath(const OpSet& set);
@@ -74,4 +72,4 @@ QRectF tightBounds(const Drawable& drawable);
 QString opTypeName(OpType type);
 QString opSetTypeName(OpSetType type);
 
-}  // namespace muffin::mermaid::rough
+} // namespace muffin::mermaid::rough

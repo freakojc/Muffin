@@ -47,7 +47,7 @@ public:
   // source offsets (which shift after edits) or retained AST addresses.
   QString semanticKey(const CssElement& element) const;
   const CssElement* linkForSourceRange(const MarkdownNode& owner, qsizetype start, qsizetype end,
-                                      const QString& href) const;
+                                       const QString& href) const;
   qsizetype materializedElementCount() const;
   // Drop inline/pseudo views of evicted layout blocks. Sparse block navigation
   // and its ancestors remain stable; returned identities can lose style memos.
@@ -105,4 +105,4 @@ QString cssTagForNode(const MarkdownNode& node);
 // offsets. Shared by style invalidation and counter program discovery.
 QByteArray cssSemanticSignature(const MarkdownNode& root);
 
-}  // namespace muffin
+} // namespace muffin

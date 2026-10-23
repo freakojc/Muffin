@@ -42,8 +42,8 @@ void waitUntil(const std::function<bool()>& ready, const char* message) {
   require(ready(), message);
 }
 
-void mouseEvent(QWidget* target, QEvent::Type type, const QPoint& pos,
-                Qt::MouseButton button = Qt::LeftButton, Qt::KeyboardModifiers modifiers = Qt::NoModifier) {
+void mouseEvent(QWidget* target, QEvent::Type type, const QPoint& pos, Qt::MouseButton button = Qt::LeftButton,
+                Qt::KeyboardModifiers modifiers = Qt::NoModifier) {
   QMouseEvent event(type, QPointF(pos), QPointF(target->mapToGlobal(pos)), button,
                     type == QEvent::MouseButtonRelease ? Qt::NoButton : button, modifiers);
   QApplication::sendEvent(target, &event);
@@ -77,7 +77,8 @@ struct FileTreeFixture {
     require(file.open(QIODevice::WriteOnly), "document fixture should open");
     file.write("# Document\n");
     file.close();
-    if (prepare) prepare(dir);
+    if (prepare)
+      prepare(dir);
     const auto rootRows = QDir(dir.path()).entryList(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot).size();
     sidebar.resize(320, 600);
     sidebar.setFolderRoot(dir.path());
@@ -86,10 +87,13 @@ struct FileTreeFixture {
     require(tree != nullptr, "file tree should exist");
     model = qobject_cast<FileTreeModel*>(tree->model());
     require(model != nullptr, "file tree should use a filesystem model");
-    waitUntil([&] {
-      folder = QPersistentModelIndex(model->index(dir.filePath(QStringLiteral("Folder"))));
-      return model->rowCount(tree->rootIndex()) == rootRows && folder.isValid() && !tree->visualRect(folder).isEmpty();
-    }, "file tree should load its root rows");
+    waitUntil(
+        [&] {
+          folder = QPersistentModelIndex(model->index(dir.filePath(QStringLiteral("Folder"))));
+          return model->rowCount(tree->rootIndex()) == rootRows && folder.isValid() &&
+                 !tree->visualRect(folder).isEmpty();
+        },
+        "file tree should load its root rows");
     QObject::connect(&sidebar, &SidebarWidget::fileOpenRequested, &sidebar, [this](const QString& path) {
       ++openedFiles;
       openedPath = path;
@@ -158,10 +162,12 @@ void testRightClickAndInlineRenameDoNotToggleFolder() {
   require(!f.tree->isExpanded(f.folder), "right-click should leave folder expansion unchanged");
   f.sidebar.beginInlineRename(f.dir.filePath(QStringLiteral("Folder")));
   QLineEdit* editor = nullptr;
-  waitUntil([&] {
-    editor = f.tree->viewport()->findChild<QLineEdit*>();
-    return editor && editor->isVisible();
-  }, "inline rename editor should open");
+  waitUntil(
+      [&] {
+        editor = f.tree->viewport()->findChild<QLineEdit*>();
+        return editor && editor->isVisible();
+      },
+      "inline rename editor should open");
   click(editor, editor->rect().center());
   require(!f.tree->isExpanded(f.folder), "clicking inside the rename editor must not toggle its folder");
   QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
@@ -176,7 +182,8 @@ void testToolbarIconsRetainTheirShapeAtHighDpi() {
     QRect bounds;
     for (int y = 0; y < image.height(); ++y) {
       for (int x = 0; x < image.width(); ++x) {
-        if (qAlpha(image.pixel(x, y)) > 0) bounds |= QRect(x, y, 1, 1);
+        if (qAlpha(image.pixel(x, y)) > 0)
+          bounds |= QRect(x, y, 1, 1);
       }
     }
     const qreal dpr = pixmap.devicePixelRatio();
@@ -186,8 +193,8 @@ void testToolbarIconsRetainTheirShapeAtHighDpi() {
     const auto theme = ThemeDefinition::builtIn(themeId);
     require(theme.has_value(), "toolbar icon test theme should exist");
     sidebar.applyTheme(*theme);
-    for (const auto* name : {"NewFileButton", "NewFolderButton", "RefreshFoldersButton",
-                             "SortFilesButton", "CollapseFoldersButton", "SearchFilesButton"}) {
+    for (const auto* name : {"NewFileButton", "NewFolderButton", "RefreshFoldersButton", "SortFilesButton",
+                             "CollapseFoldersButton", "SearchFilesButton"}) {
       const auto* button = sidebar.findChild<QToolButton*>(QString::fromLatin1(name));
       require(button && !button->icon().isNull(), "toolbar button should have an icon");
       for (const auto mode : {QIcon::Normal, QIcon::Disabled, QIcon::Active}) {
@@ -198,14 +205,24 @@ void testToolbarIconsRetainTheirShapeAtHighDpi() {
           require(pixmap.width() >= qRound(16 * dpr) && pixmap.height() >= qRound(16 * dpr),
                   "toolbar icons should supply enough pixels for high-DPI screens");
           const QRectF bounds = paintedBounds(pixmap);
-          require(!bounds.isEmpty() && qAbs(bounds.left() - reference.left()) <= 1.0 &&
-                      qAbs(bounds.top() - reference.top()) <= 1.0 &&
-                      qAbs(bounds.right() - reference.right()) <= 1.0 &&
-                      qAbs(bounds.bottom() - reference.bottom()) <= 1.0,
-                  QStringLiteral("%1 icon must retain its full shape at DPR %2, theme %3, mode %4: reference=%5,%6,%7,%8 actual=%9,%10,%11,%12")
-                      .arg(QString::fromLatin1(name)).arg(dpr).arg(themeId).arg(mode)
-                      .arg(reference.x()).arg(reference.y()).arg(reference.width()).arg(reference.height())
-                      .arg(bounds.x()).arg(bounds.y()).arg(bounds.width()).arg(bounds.height()));
+          require(
+              !bounds.isEmpty() && qAbs(bounds.left() - reference.left()) <= 1.0 &&
+                  qAbs(bounds.top() - reference.top()) <= 1.0 && qAbs(bounds.right() - reference.right()) <= 1.0 &&
+                  qAbs(bounds.bottom() - reference.bottom()) <= 1.0,
+              QStringLiteral(
+                  "%1 icon must retain its full shape at DPR %2, theme %3, mode %4: reference=%5,%6,%7,%8 actual=%9,%10,%11,%12")
+                  .arg(QString::fromLatin1(name))
+                  .arg(dpr)
+                  .arg(themeId)
+                  .arg(mode)
+                  .arg(reference.x())
+                  .arg(reference.y())
+                  .arg(reference.width())
+                  .arg(reference.height())
+                  .arg(bounds.x())
+                  .arg(bounds.y())
+                  .arg(bounds.width())
+                  .arg(bounds.height()));
         }
       }
     }
@@ -231,11 +248,13 @@ void testToolbarCollapsesFoldersAndRestoresState() {
   require(saved.contains("Folder") && saved.contains("Folder/Nested/Deep/Leaf"), "expansion stores relative paths");
   collapse->click();
   QApplication::processEvents();
-  require(f.sidebar.expandedFolders().isEmpty() && !f.tree->isExpanded(f.folder), "collapse all clears pending expansion");
+  require(f.sidebar.expandedFolders().isEmpty() && !f.tree->isExpanded(f.folder),
+          "collapse all clears pending expansion");
   f.sidebar.setFolderRoot({});
   f.sidebar.setFolderRoot(f.dir.path());
   f.sidebar.restoreExpandedFolders(saved + QStringList{"../", "missing", f.dir.path()});
-  waitUntil([&] { return f.tree->isExpanded(f.model->index(leafPath)); }, "nested state restores after reopening a workspace");
+  waitUntil([&] { return f.tree->isExpanded(f.model->index(leafPath)); },
+            "nested state restores after reopening a workspace");
   require(f.sidebar.expandedFolders() == saved, "restore excludes absolute, missing and outside workspace entries");
   f.tree->setExpanded(f.folder, false);
   const auto collapsedParent = f.sidebar.expandedFolders();
@@ -266,7 +285,8 @@ void testToolbarCollapsesFoldersAndRestoresState() {
     require(night.has_value(), "night appearance is available");
     f.sidebar.applyTheme(*night);
     QApplication::processEvents();
-    require(f.sidebar.grab().save(screenshot + QStringLiteral(".night.png")), "capture dark explorer toolbar appearance");
+    require(f.sidebar.grab().save(screenshot + QStringLiteral(".night.png")),
+            "capture dark explorer toolbar appearance");
   }
 }
 
@@ -275,8 +295,10 @@ void testClosingWorkspaceAndToolbarCreationTargets() {
   auto* newFile = f.sidebar.findChild<QToolButton*>("NewFileButton");
   auto* newFolder = f.sidebar.findChild<QToolButton*>("NewFolderButton");
   QString fileTarget, folderTarget;
-  QObject::connect(&f.sidebar, &SidebarWidget::newFileRequested, &f.sidebar, [&](const QString& path) { fileTarget = path; });
-  QObject::connect(&f.sidebar, &SidebarWidget::newFolderRequested, &f.sidebar, [&](const QString& path) { folderTarget = path; });
+  QObject::connect(&f.sidebar, &SidebarWidget::newFileRequested, &f.sidebar,
+                   [&](const QString& path) { fileTarget = path; });
+  QObject::connect(&f.sidebar, &SidebarWidget::newFolderRequested, &f.sidebar,
+                   [&](const QString& path) { folderTarget = path; });
   f.tree->setCurrentIndex(f.folder);
   newFile->click();
   newFolder->click();
@@ -290,7 +312,8 @@ void testClosingWorkspaceAndToolbarCreationTargets() {
   QApplication::processEvents();
   auto* empty = f.sidebar.findChild<QLabel*>("FilesEmptyLabel");
   require(f.sidebar.folderRoot().isEmpty() && !f.tree->isVisible() && empty && empty->isVisible() &&
-              !newFile->isEnabled() && !newFolder->isEnabled(), "closed workspace shows an empty tree with disabled creation controls");
+              !newFile->isEnabled() && !newFolder->isEnabled(),
+          "closed workspace shows an empty tree with disabled creation controls");
   f.sidebar.setCurrentDocument("document.md", f.dir.filePath("document.md"), false);
   require(f.sidebar.folderRoot().isEmpty() && f.sidebar.expandedFolders().isEmpty(),
           "pending loads and document notifications cannot reopen a closed workspace");
@@ -300,7 +323,8 @@ QStringList fileNames(FileTreeFixture& f) {
   QStringList result;
   for (int row = 0; row < f.model->rowCount(f.tree->rootIndex()); ++row) {
     const auto index = f.model->index(row, 0, f.tree->rootIndex());
-    if (!f.model->isDir(index)) result.append(f.model->fileName(index));
+    if (!f.model->isDir(index))
+      result.append(f.model->fileName(index));
   }
   return result;
 }
@@ -311,8 +335,10 @@ void testSortMenuAndPersistence() {
     const auto writeFile = [&](const QString& name, int size, qint64 modified) {
       QFile file(dir.filePath(name));
       require(file.open(QIODevice::WriteOnly), "create sortable fixture file");
-      require(file.write(QByteArray(size, 'x')) == size && file.flush(), "flush sortable fixture before setting its time");
-      require(file.setFileTime(QDateTime::fromSecsSinceEpoch(modified), QFileDevice::FileModificationTime), "set fixture modification time");
+      require(file.write(QByteArray(size, 'x')) == size && file.flush(),
+              "flush sortable fixture before setting its time");
+      require(file.setFileTime(QDateTime::fromSecsSinceEpoch(modified), QFileDevice::FileModificationTime),
+              "set fixture modification time");
       file.close();
       require(QFileInfo(file.fileName()).lastModified().toSecsSinceEpoch() == modified,
               "fixture modification time survives closing the file");
@@ -323,7 +349,8 @@ void testSortMenuAndPersistence() {
   });
   waitUntil([&] { return f.model->rowCount(f.tree->rootIndex()) == 5; }, "new files join the sorted tree");
   auto* menu = f.sidebar.findChild<QMenu*>("FileSortMenu");
-  require(menu && f.sidebar.findChild<QToolButton*>("SortFilesButton")->menu() == menu, "sort icon opens a dropdown menu");
+  require(menu && f.sidebar.findChild<QToolButton*>("SortFilesButton")->menu() == menu,
+          "sort icon opens a dropdown menu");
   const auto choose = [&](const char* name) {
     auto* action = menu->findChild<QAction*>(name);
     require(action && !action->text().isEmpty(), "sort option has a translated label");
@@ -335,28 +362,34 @@ void testSortMenuAndPersistence() {
   QPersistentModelIndex selected(f.tree->currentIndex());
   choose("SortByName");
   choose("SortAscending");
-  require(fileNames(f) == QStringList{"a.txt", "document.md", "note2.md", "note10.md"}, "filename sort uses natural numeric order");
+  require(fileNames(f) == QStringList{"a.txt", "document.md", "note2.md", "note10.md"},
+          "filename sort uses natural numeric order");
   choose("SortDescending");
-  require(fileNames(f) == QStringList{"note10.md", "note2.md", "document.md", "a.txt"}, "descending reverses file order without moving folders below files");
+  require(fileNames(f) == QStringList{"note10.md", "note2.md", "document.md", "a.txt"},
+          "descending reverses file order without moving folders below files");
   choose("SortBySize");
   require(fileNames(f) == QStringList{"a.txt", "document.md", "note10.md", "note2.md"}, "size sorting uses file sizes");
   choose("SortAscending");
   choose("SortByType");
   require(fileNames(f).last() == "a.txt", "type sorting groups filename extensions");
   choose("SortByModified");
-  require(fileNames(f) == QStringList{"note10.md", "a.txt", "note2.md", "document.md"}, "date sorting uses modification timestamps");
+  require(fileNames(f) == QStringList{"note10.md", "a.txt", "note2.md", "document.md"},
+          "date sorting uses modification timestamps");
   choose("SortByCreated");
   const auto names = fileNames(f);
   QDateTime previous;
   for (const auto& name : names) {
     const QFileInfo info(f.dir.filePath(name));
     const auto created = info.birthTime().isValid() ? info.birthTime() : info.lastModified();
-    require(!previous.isValid() || previous <= created, "creation dates are ordered with a fallback on unsupported filesystems");
+    require(!previous.isValid() || previous <= created,
+            "creation dates are ordered with a fallback on unsupported filesystems");
     previous = created;
   }
-  require(selected.isValid() && f.tree->currentIndex() == selected && f.model->fileName(selected) == "document.md", "sorting preserves the selected file");
+  require(selected.isValid() && f.tree->currentIndex() == selected && f.model->fileName(selected) == "document.md",
+          "sorting preserves the selected file");
   std::unique_ptr<QMimeData> mime(f.model->mimeData({selected}));
-  require(mime && mime->hasFormat(kMuffinFileTreeDragMime) && mime->hasUrls(), "sorting preserves the in-app file drag marker and URL");
+  require(mime && mime->hasFormat(kMuffinFileTreeDragMime) && mime->hasUrls(),
+          "sorting preserves the in-app file drag marker and URL");
   SidebarWidget restored;
   auto* restoredTree = restored.findChild<QTreeView*>("FileTree");
   auto* restoredModel = qobject_cast<FileTreeModel*>(restoredTree->model());
@@ -369,11 +402,18 @@ void testSortMenuAndPersistence() {
 void testRefreshRescansWithoutLosingState() {
   FileTreeFixture f;
   const auto inside = f.dir.filePath("Folder/Nested/inside.md");
-  { QFile file(inside); require(file.open(QIODevice::WriteOnly), "create selected nested file"); file.write("old"); }
+  {
+    QFile file(inside);
+    require(file.open(QIODevice::WriteOnly), "create selected nested file");
+    file.write("old");
+  }
   require(QDir(f.dir.path()).mkpath("Unloaded/Deep/Leaf"), "create unloaded subtree");
   f.sidebar.restoreExpandedFolders({"Folder", "Folder/Nested"});
-  waitUntil([&] { return f.tree->isExpanded(f.model->index(f.dir.filePath("Folder/Nested"))) && f.model->index(inside).isValid(); },
-            "nested selection is loaded before refresh");
+  waitUntil(
+      [&] {
+        return f.tree->isExpanded(f.model->index(f.dir.filePath("Folder/Nested"))) && f.model->index(inside).isValid();
+      },
+      "nested selection is loaded before refresh");
   f.tree->setCurrentIndex(f.model->index(inside));
   const auto saved = f.sidebar.expandedFolders();
   auto* oldSource = qobject_cast<QFileSystemModel*>(f.model->sourceModel());
@@ -383,24 +423,33 @@ void testRefreshRescansWithoutLosingState() {
   oldSource->setOption(QFileSystemModel::DontWatchForChanges, true);
   require(QFile::remove(f.dir.filePath("document.md")), "remove a file while notifications are disabled");
   const auto added = f.dir.filePath("Folder/Nested/added.md");
-  { QFile file(added); require(file.open(QIODevice::WriteOnly), "add file while notifications are disabled"); file.write("new"); }
+  {
+    QFile file(added);
+    require(file.open(QIODevice::WriteOnly), "add file while notifications are disabled");
+    file.write("new");
+  }
   auto* refresh = f.sidebar.findChild<QToolButton*>("RefreshFoldersButton");
   require(refresh && !refresh->toolTip().isEmpty(), "refresh button has a hint");
   refresh->click();
-  waitUntil([&] {
-    return f.model->sourceModel() != oldSource && f.model->index(added).isValid() &&
-        !f.model->index(f.dir.filePath("document.md")).isValid() &&
-        f.tree->isExpanded(f.model->index(f.dir.filePath("Folder/Nested"))) &&
-        f.model->filePath(f.tree->currentIndex()) == inside;
-  }, "manual refresh reloads missed changes and restores nested expansion and selection");
-  require(f.sidebar.expandedFolders() == saved && f.openedFiles == 0, "refresh preserves saved folders without opening a document");
+  waitUntil(
+      [&] {
+        return f.model->sourceModel() != oldSource && f.model->index(added).isValid() &&
+               !f.model->index(f.dir.filePath("document.md")).isValid() &&
+               f.tree->isExpanded(f.model->index(f.dir.filePath("Folder/Nested"))) &&
+               f.model->filePath(f.tree->currentIndex()) == inside;
+      },
+      "manual refresh reloads missed changes and restores nested expansion and selection");
+  require(f.sidebar.expandedFolders() == saved && f.openedFiles == 0,
+          "refresh preserves saved folders without opening a document");
   const auto unloaded = f.model->index(f.dir.filePath("Unloaded"));
-  require(!f.tree->isExpanded(unloaded) && f.model->canFetchMore(unloaded), "refresh leaves unrelated subtrees unloaded");
+  require(!f.tree->isExpanded(unloaded) && f.model->canFetchMore(unloaded),
+          "refresh leaves unrelated subtrees unloaded");
   f.sidebar.setFolderRoot({});
-  require(!refresh->isEnabled() && !f.sidebar.findChild<QToolButton*>("SortFilesButton")->isEnabled(), "closed workspace disables refresh and sort");
+  require(!refresh->isEnabled() && !f.sidebar.findChild<QToolButton*>("SortFilesButton")->isEnabled(),
+          "closed workspace disables refresh and sort");
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
@@ -415,12 +464,13 @@ int main(int argc, char** argv) {
   QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settings.path());
   runTest("testToolbarIconsRetainTheirShapeAtHighDpi", testToolbarIconsRetainTheirShapeAtHighDpi);
   runTest("testSortMenuAndPersistence", testSortMenuAndPersistence);
-  runTest("testSortMenuAndPersistenceInCLocale", +[] {
-    const QLocale previousLocale;
-    QLocale::setDefault(QLocale::c());
-    testSortMenuAndPersistence();
-    QLocale::setDefault(previousLocale);
-  });
+  runTest(
+      "testSortMenuAndPersistenceInCLocale", +[] {
+        const QLocale previousLocale;
+        QLocale::setDefault(QLocale::c());
+        testSortMenuAndPersistence();
+        QLocale::setDefault(previousLocale);
+      });
   runTest("testRefreshRescansWithoutLosingState", testRefreshRescansWithoutLosingState);
   runTest("testToolbarCollapsesFoldersAndRestoresState", testToolbarCollapsesFoldersAndRestoresState);
   runTest("testClosingWorkspaceAndToolbarCreationTargets", testClosingWorkspaceAndToolbarCreationTargets);

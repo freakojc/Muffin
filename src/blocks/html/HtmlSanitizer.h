@@ -10,4 +10,4 @@ public:
   QString sanitizedMermaidText(QString html) const;
 };
 
-}  // namespace muffin
+} // namespace muffin

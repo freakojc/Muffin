@@ -64,9 +64,8 @@ LayoutPositionIndex::split(std::unique_ptr<LayoutPositionToken> root, qsizetype 
   return {std::move(root), std::move(right)};
 }
 
-std::unique_ptr<LayoutPositionToken> LayoutPositionIndex::merge(
-    std::unique_ptr<LayoutPositionToken> left,
-    std::unique_ptr<LayoutPositionToken> right) {
+std::unique_ptr<LayoutPositionToken> LayoutPositionIndex::merge(std::unique_ptr<LayoutPositionToken> left,
+                                                                std::unique_ptr<LayoutPositionToken> right) {
   if (!left) {
     if (right) {
       right->parent = nullptr;
@@ -118,7 +117,8 @@ QVector<LayoutPositionToken*> LayoutPositionIndex::reset(qsizetype count) {
 
 void LayoutPositionIndex::clearAdjustments() {
   const auto clear = [](const auto& self, LayoutPositionToken* node) -> void {
-    if (!node) return;
+    if (!node)
+      return;
     node->value = node->lazy = 0;
     self(self, node->left.get());
     self(self, node->right.get());
@@ -160,10 +160,7 @@ qsizetype LayoutPositionIndex::rank(const LayoutPositionToken* token) const {
   return result;
 }
 
-void LayoutPositionIndex::replace(
-    qsizetype first,
-    qsizetype count,
-    std::unique_ptr<LayoutPositionToken> replacements) {
+void LayoutPositionIndex::replace(qsizetype first, qsizetype count, std::unique_ptr<LayoutPositionToken> replacements) {
   first = qBound<qsizetype>(0, first, size());
   count = qBound<qsizetype>(0, count, size() - first);
   auto [prefix, tail] = split(std::move(root_), first);
@@ -172,4 +169,4 @@ void LayoutPositionIndex::replace(
   root_ = merge(merge(std::move(prefix), std::move(replacements)), std::move(suffix));
 }
 
-}  // namespace muffin
+} // namespace muffin

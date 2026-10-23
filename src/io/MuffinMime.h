@@ -12,4 +12,4 @@ namespace muffin {
 // with the standard text/uri-list URLs the QFileSystemModel already produces.
 inline constexpr QLatin1StringView kMuffinFileTreeDragMime{"application/x-muffin-filetree"};
 
-}  // namespace muffin
+} // namespace muffin

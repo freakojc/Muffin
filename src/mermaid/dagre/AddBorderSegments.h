@@ -13,4 +13,4 @@ namespace muffin::mermaid::dagre {
 
 void addBorderSegments(DagreGraph& g);
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

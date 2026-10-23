@@ -20,13 +20,13 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 info::InfoErrorKind expectedKind(const QString& value) {
-  return value == QLatin1String("lexer") ? info::InfoErrorKind::Lexer
-                                         : info::InfoErrorKind::Parser;
+  return value == QLatin1String("lexer") ? info::InfoErrorKind::Lexer : info::InfoErrorKind::Parser;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -59,8 +59,7 @@ int main(int argc, char** argv) {
     }
     if (!detected) {
       require(!accept, id + QStringLiteral(": accepted source was not detected"));
-      require(fixture.value(QStringLiteral("reject")).toObject()
-                      .value(QStringLiteral("kind")).toString() ==
+      require(fixture.value(QStringLiteral("reject")).toObject().value(QStringLiteral("kind")).toString() ==
                   QLatin1String("no-diagram"),
               id + QStringLiteral(": detector mismatch"));
       ++rejected;
@@ -79,12 +78,9 @@ int main(int argc, char** argv) {
                       .arg(QString::fromUtf8(error.what())));
       }
       const QJsonObject ast = fixture.value(QStringLiteral("ast")).toObject();
-      require(data.title == ast.value(QStringLiteral("title")).toString(),
-              id + QStringLiteral("/title"));
-      require(data.accTitle == ast.value(QStringLiteral("accTitle")).toString(),
-              id + QStringLiteral("/accTitle"));
-      require(data.accDescr == ast.value(QStringLiteral("accDescr")).toString(),
-              id + QStringLiteral("/accDescr"));
+      require(data.title == ast.value(QStringLiteral("title")).toString(), id + QStringLiteral("/title"));
+      require(data.accTitle == ast.value(QStringLiteral("accTitle")).toString(), id + QStringLiteral("/accTitle"));
+      require(data.accDescr == ast.value(QStringLiteral("accDescr")).toString(), id + QStringLiteral("/accDescr"));
       continue;
     }
 
@@ -97,20 +93,17 @@ int main(int argc, char** argv) {
       threw = true;
       require(error.kind == expectedKind(expected.value(QStringLiteral("kind")).toString()),
               id + QStringLiteral("/kind"));
-      require(error.line == expected.value(QStringLiteral("line")).toInt(),
-              id + QStringLiteral("/line"));
+      require(error.line == expected.value(QStringLiteral("line")).toInt(), id + QStringLiteral("/line"));
       require(error.column == expected.value(QStringLiteral("column")).toInt(),
               QStringLiteral("%1/column native=%2 upstream=%3")
                   .arg(id)
                   .arg(error.column)
                   .arg(expected.value(QStringLiteral("column")).toInt()));
-      require(QString::fromUtf8(error.what()) ==
-                  expected.value(QStringLiteral("message")).toString(),
+      require(QString::fromUtf8(error.what()) == expected.value(QStringLiteral("message")).toString(),
               id + QStringLiteral("/message: ") + QString::fromUtf8(error.what()));
     }
     require(threw, id + QStringLiteral(": rejected source parsed"));
   }
-  std::fprintf(stderr, "Info parser: %d accepted, %d rejected\n", accepted,
-               rejected);
+  std::fprintf(stderr, "Info parser: %d accepted, %d rejected\n", accepted, rejected);
   return 0;
 }

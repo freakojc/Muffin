@@ -18,12 +18,12 @@ class CodeFenceScrollController final {
 public:
   struct Entry {
     qreal offset = 0.0;
-    qreal contentWidth = 0.0;  // pixel width of the longest source line; 0 until the builder measures it
+    qreal contentWidth = 0.0; // pixel width of the longest source line; 0 until the builder measures it
   };
 
   qreal offsetFor(NodeId id) const;
   qreal contentWidthFor(NodeId id) const;
-  Entry entryFor(NodeId id) const;  // default-constructed when absent
+  Entry entryFor(NodeId id) const; // default-constructed when absent
 
   void setOffset(NodeId id, qreal offset);
   void setContentWidth(NodeId id, qreal width);
@@ -42,4 +42,4 @@ private:
   QHash<NodeId, Entry> entries_;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -10,10 +10,10 @@
 #include <QDesktopServices>
 
 #if defined(Q_OS_WIN)
-#  define WIN32_LEAN_AND_MEAN
-#  define NOMINMAX
-#  include <windows.h>
-#  include <shellapi.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <shellapi.h>
 #endif
 
 namespace {
@@ -23,7 +23,7 @@ QString unsupportedError() {
   return QCoreApplication::translate("muffin::FilePathOps", "operation failed");
 }
 
-}  // namespace
+} // namespace
 
 bool muffin::FilePathOps::createFile(const QString& path, QString* error) {
   if (QFileInfo::exists(path)) {
@@ -77,19 +77,20 @@ bool muffin::FilePathOps::renamePath(const QString& oldPath, const QString& newP
   // effect. On a case-sensitive filesystem the canonical paths differ, so this branch is
   // skipped and the original failure stands.
   const QString oldCanonical = QFileInfo(oldPath).canonicalFilePath();
-  const bool caseOnly = !oldCanonical.isEmpty()
-      && oldPath != newPath
-      && oldCanonical == QFileInfo(newPath).canonicalFilePath();
+  const bool caseOnly =
+      !oldCanonical.isEmpty() && oldPath != newPath && oldCanonical == QFileInfo(newPath).canonicalFilePath();
   if (!caseOnly) {
     if (error) {
-      *error = QCoreApplication::translate("muffin::FilePathOps", "could not rename (target may exist or the move crosses volumes)");
+      *error = QCoreApplication::translate("muffin::FilePathOps",
+                                           "could not rename (target may exist or the move crosses volumes)");
     }
     return false;
   }
   const QString tempPath = uniqueDuplicatePath(oldPath);
   if (!QFile::rename(oldPath, tempPath)) {
     if (error) {
-      *error = QCoreApplication::translate("muffin::FilePathOps", "could not rename (case-change intermediate step failed)");
+      *error =
+          QCoreApplication::translate("muffin::FilePathOps", "could not rename (case-change intermediate step failed)");
     }
     return false;
   }
@@ -106,11 +107,11 @@ bool muffin::FilePathOps::renamePath(const QString& oldPath, const QString& newP
 
 bool muffin::FilePathOps::targetNameCollides(const QString& oldPath, const QString& newDir, const QString& newName) {
   if (newName.isEmpty()) {
-    return false;  // an empty name is invalid, not a collision (the caller rejects it separately)
+    return false; // an empty name is invalid, not a collision (the caller rejects it separately)
   }
   const QDir dir(newDir);
   if (!dir.exists()) {
-    return false;  // nothing to collide with
+    return false; // nothing to collide with
   }
   const QString oldCanonical = QFileInfo(oldPath).canonicalFilePath();
   const QStringList siblings = dir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
@@ -119,10 +120,10 @@ bool muffin::FilePathOps::targetNameCollides(const QString& oldPath, const QStri
       continue;
     }
     if (oldCanonical.isEmpty()) {
-      return true;  // a case-insensitive match is a collision when old can't be resolved
+      return true; // a case-insensitive match is a collision when old can't be resolved
     }
     if (QFileInfo(dir.filePath(sibling)).canonicalFilePath() != oldCanonical) {
-      return true;  // a different file already occupies this name
+      return true; // a different file already occupies this name
     }
     // Otherwise it's the entry being renamed itself (case-only) — not a collision; keep scanning.
   }
@@ -221,9 +222,8 @@ QString muffin::FilePathOps::uniqueDuplicatePath(const QString& srcPath) {
   const QString base = info.completeBaseName();
   const QString suffix = info.suffix();
   for (int i = 1; i < 10000; ++i) {
-    const QString candidateName = suffix.isEmpty()
-        ? QStringLiteral("%1 (%2)").arg(base).arg(i)
-        : QStringLiteral("%1 (%2).%3").arg(base).arg(i).arg(suffix);
+    const QString candidateName = suffix.isEmpty() ? QStringLiteral("%1 (%2)").arg(base).arg(i)
+                                                   : QStringLiteral("%1 (%2).%3").arg(base).arg(i).arg(suffix);
     const QString candidate = dir.filePath(candidateName);
     if (!QFileInfo::exists(candidate)) {
       return candidate;
@@ -249,9 +249,7 @@ QString muffin::FilePathOps::linkTargetForPath(const QString& filePath, const QS
     // file is on a different drive (Windows) or documentDir is empty. A leading ".." means
     // the file escapes documentDir upwards — treat that as "not inside the doc tree".
     const QString rel = QDir(documentDir).relativeFilePath(filePath);
-    const bool inside = !rel.isEmpty()
-        && !rel.startsWith(QStringLiteral(".."))
-        && !QFileInfo(rel).isAbsolute();
+    const bool inside = !rel.isEmpty() && !rel.startsWith(QStringLiteral("..")) && !QFileInfo(rel).isAbsolute();
     if (inside) {
       target = rel;
     }
@@ -269,20 +267,24 @@ QString muffin::FilePathOps::markdownLinkForFile(const QString& filePath, const 
 }
 
 bool muffin::FilePathOps::isSameOrDescendant(const QString& candidate, const QString& root) {
-  if (candidate.isEmpty() || root.isEmpty()) { return false; }
+  if (candidate.isEmpty() || root.isEmpty()) {
+    return false;
+  }
   const QString candidateAbs = QDir::cleanPath(QFileInfo(candidate).absoluteFilePath());
   const QString rootAbs = QDir::cleanPath(QFileInfo(root).absoluteFilePath());
-  if (candidateAbs == rootAbs) { return true; }
+  if (candidateAbs == rootAbs) {
+    return true;
+  }
   const QString relative = QDir(rootAbs).relativeFilePath(candidateAbs);
-  return relative != QStringLiteral("..")
-      && !relative.startsWith(QStringLiteral("../"))
-      && !QFileInfo(relative).isAbsolute();
+  return relative != QStringLiteral("..") && !relative.startsWith(QStringLiteral("../")) &&
+         !QFileInfo(relative).isAbsolute();
 }
 
-QString muffin::FilePathOps::remapDescendant(
-    const QString& candidate, const QString& oldRoot, const QString& newRoot) {
-  if (!isSameOrDescendant(candidate, oldRoot)) { return candidate; }
-  const QString relative = QDir(QFileInfo(oldRoot).absoluteFilePath()).relativeFilePath(
-      QFileInfo(candidate).absoluteFilePath());
+QString muffin::FilePathOps::remapDescendant(const QString& candidate, const QString& oldRoot, const QString& newRoot) {
+  if (!isSameOrDescendant(candidate, oldRoot)) {
+    return candidate;
+  }
+  const QString relative =
+      QDir(QFileInfo(oldRoot).absoluteFilePath()).relativeFilePath(QFileInfo(candidate).absoluteFilePath());
   return QFileInfo(QDir(newRoot).filePath(relative)).absoluteFilePath();
 }

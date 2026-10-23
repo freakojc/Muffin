@@ -36,69 +36,90 @@ MathAtomClass atomClassForNode(const MathParseNode& node) {
     return MathAtomClass::Ord;
   }
   if (node.type == MathNodeType::Class) {
-    if (node.mathClass == QStringLiteral("\\mathbin")) return MathAtomClass::Bin;
-    if (node.mathClass == QStringLiteral("\\mathrel")) return MathAtomClass::Rel;
-    if (node.mathClass == QStringLiteral("\\mathopen")) return MathAtomClass::Open;
-    if (node.mathClass == QStringLiteral("\\mathclose")) return MathAtomClass::Close;
-    if (node.mathClass == QStringLiteral("\\mathpunct")) return MathAtomClass::Punct;
-    if (node.mathClass == QStringLiteral("\\mathinner")) return MathAtomClass::Inner;
+    if (node.mathClass == QStringLiteral("\\mathbin"))
+      return MathAtomClass::Bin;
+    if (node.mathClass == QStringLiteral("\\mathrel"))
+      return MathAtomClass::Rel;
+    if (node.mathClass == QStringLiteral("\\mathopen"))
+      return MathAtomClass::Open;
+    if (node.mathClass == QStringLiteral("\\mathclose"))
+      return MathAtomClass::Close;
+    if (node.mathClass == QStringLiteral("\\mathpunct"))
+      return MathAtomClass::Punct;
+    if (node.mathClass == QStringLiteral("\\mathinner"))
+      return MathAtomClass::Inner;
     return MathAtomClass::Ord;
   }
-  if (node.type == MathNodeType::LeftRight || node.type == MathNodeType::Array || node.type == MathNodeType::HorizBrace ||
-      node.type == MathNodeType::XArrow) {
+  if (node.type == MathNodeType::LeftRight || node.type == MathNodeType::Array ||
+      node.type == MathNodeType::HorizBrace || node.type == MathNodeType::XArrow) {
     return MathAtomClass::Inner;
   }
   if (node.type == MathNodeType::RaiseBox || node.type == MathNodeType::VCenter) {
     return MathAtomClass::Unknown;
   }
   switch (node.type) {
-    case MathNodeType::Operator:
-      return MathAtomClass::Op;
-    case MathNodeType::Binary:
-      return MathAtomClass::Bin;
-    case MathNodeType::Relation:
-      return MathAtomClass::Rel;
-    case MathNodeType::Open:
-      return MathAtomClass::Open;
-    case MathNodeType::Close:
-      return MathAtomClass::Close;
-    case MathNodeType::Punct:
-      return MathAtomClass::Punct;
-    case MathNodeType::Inner:
-      return MathAtomClass::Inner;
-    default:
-      return MathAtomClass::Ord;
+  case MathNodeType::Operator:
+    return MathAtomClass::Op;
+  case MathNodeType::Binary:
+    return MathAtomClass::Bin;
+  case MathNodeType::Relation:
+    return MathAtomClass::Rel;
+  case MathNodeType::Open:
+    return MathAtomClass::Open;
+  case MathNodeType::Close:
+    return MathAtomClass::Close;
+  case MathNodeType::Punct:
+    return MathAtomClass::Punct;
+  case MathNodeType::Inner:
+    return MathAtomClass::Inner;
+  default:
+    return MathAtomClass::Ord;
   }
 }
 
 MathAtomClass atomClassForNodeType(MathNodeType type) {
   switch (type) {
-    case MathNodeType::Operator: return MathAtomClass::Op;
-    case MathNodeType::Binary: return MathAtomClass::Bin;
-    case MathNodeType::Relation: return MathAtomClass::Rel;
-    case MathNodeType::Open: return MathAtomClass::Open;
-    case MathNodeType::Close: return MathAtomClass::Close;
-    case MathNodeType::Punct: return MathAtomClass::Punct;
-    case MathNodeType::Inner: return MathAtomClass::Inner;
-    default: return MathAtomClass::Ord;
+  case MathNodeType::Operator:
+    return MathAtomClass::Op;
+  case MathNodeType::Binary:
+    return MathAtomClass::Bin;
+  case MathNodeType::Relation:
+    return MathAtomClass::Rel;
+  case MathNodeType::Open:
+    return MathAtomClass::Open;
+  case MathNodeType::Close:
+    return MathAtomClass::Close;
+  case MathNodeType::Punct:
+    return MathAtomClass::Punct;
+  case MathNodeType::Inner:
+    return MathAtomClass::Inner;
+  default:
+    return MathAtomClass::Ord;
   }
 }
 
 QString atomClassName(MathAtomClass atomClass) {
   switch (atomClass) {
-    case MathAtomClass::Op: return QStringLiteral("mop");
-    case MathAtomClass::Bin: return QStringLiteral("mbin");
-    case MathAtomClass::Rel: return QStringLiteral("mrel");
-    case MathAtomClass::Open: return QStringLiteral("mopen");
-    case MathAtomClass::Close: return QStringLiteral("mclose");
-    case MathAtomClass::Punct: return QStringLiteral("mpunct");
-    case MathAtomClass::Inner: return QStringLiteral("minner");
-    case MathAtomClass::Unknown:
-      return QString();
-    case MathAtomClass::Ord:
-    case MathAtomClass::Leftmost:
-    case MathAtomClass::Rightmost:
-      return QStringLiteral("mord");
+  case MathAtomClass::Op:
+    return QStringLiteral("mop");
+  case MathAtomClass::Bin:
+    return QStringLiteral("mbin");
+  case MathAtomClass::Rel:
+    return QStringLiteral("mrel");
+  case MathAtomClass::Open:
+    return QStringLiteral("mopen");
+  case MathAtomClass::Close:
+    return QStringLiteral("mclose");
+  case MathAtomClass::Punct:
+    return QStringLiteral("mpunct");
+  case MathAtomClass::Inner:
+    return QStringLiteral("minner");
+  case MathAtomClass::Unknown:
+    return QString();
+  case MathAtomClass::Ord:
+  case MathAtomClass::Leftmost:
+  case MathAtomClass::Rightmost:
+    return QStringLiteral("mord");
   }
   return QStringLiteral("mord");
 }
@@ -115,12 +136,14 @@ bool binRightCancels(MathAtomClass next) {
   if (next == MathAtomClass::Unknown) {
     return false;
   }
-  return next == MathAtomClass::Rightmost || next == MathAtomClass::Rel || next == MathAtomClass::Close || next == MathAtomClass::Punct;
+  return next == MathAtomClass::Rightmost || next == MathAtomClass::Rel || next == MathAtomClass::Close ||
+         next == MathAtomClass::Punct;
 }
 
 bool isPartialGroupNode(const MathParseNode& node) {
   return node.type == MathNodeType::Color || node.type == MathNodeType::Html || node.type == MathNodeType::Href ||
-         node.type == MathNodeType::Enclose || node.type == MathNodeType::Styling || node.type == MathNodeType::Sizing ||
+         node.type == MathNodeType::Enclose || node.type == MathNodeType::Styling ||
+         node.type == MathNodeType::Sizing ||
          (node.type == MathNodeType::Class && node.mathClass.isEmpty() && !node.fontClass.isEmpty());
 }
 
@@ -181,9 +204,10 @@ MathAtomClass atomClassForOuterNode(const MathParseNode& node, bool rightSide) {
   return MathAtomClass::Ord;
 }
 
-}  // namespace
+} // namespace
 
-MathBuilder::MathBuilder(MathOptions options) : options_(std::move(options)) {}
+MathBuilder::MathBuilder(MathOptions options) : options_(std::move(options)) {
+}
 
 struct MathBuilder::BuildItem {
   std::unique_ptr<MathRenderNode> node;
@@ -263,10 +287,14 @@ std::unique_ptr<MathRenderNode> MathBuilder::buildExpression(const QVector<MathP
     const MathParseNode& node = expression.first();
     if (node.type == MathNodeType::Styling) {
       MathStyle style = options_.style();
-      if (node.style == QStringLiteral("\\displaystyle")) style = MathStyle::display();
-      else if (node.style == QStringLiteral("\\textstyle")) style = MathStyle::textStyle();
-      else if (node.style == QStringLiteral("\\scriptstyle")) style = MathStyle::script();
-      else if (node.style == QStringLiteral("\\scriptscriptstyle")) style = MathStyle::scriptScript();
+      if (node.style == QStringLiteral("\\displaystyle"))
+        style = MathStyle::display();
+      else if (node.style == QStringLiteral("\\textstyle"))
+        style = MathStyle::textStyle();
+      else if (node.style == QStringLiteral("\\scriptstyle"))
+        style = MathStyle::script();
+      else if (node.style == QStringLiteral("\\scriptscriptstyle"))
+        style = MathStyle::scriptScript();
       glueCssEmPerMu = MathFontMetrics::globalMetrics(style.size()).cssEmPerMu;
     }
   }
@@ -323,7 +351,8 @@ std::vector<MathBuilder::BuildItem> MathBuilder::buildSpacedItems(std::vector<Bu
       if (previousNonspace >= 0) {
         const MathAtomClass previousClass = classes.at(previousNonspace);
         if (previousClass != MathAtomClass::Unknown && current != MathAtomClass::Unknown) {
-          const qreal spacing = spacingAfter(static_cast<int>(previousClass), static_cast<int>(current), item.tightSpacing, glueCssEmPerMu);
+          const qreal spacing = spacingAfter(static_cast<int>(previousClass), static_cast<int>(current),
+                                             item.tightSpacing, glueCssEmPerMu);
           if (spacing > 0.0) {
             auto glue = std::make_unique<MathRenderNode>();
             glue->kind = MathRenderKind::Span;
@@ -391,34 +420,39 @@ std::vector<MathBuilder::BuildItem> MathBuilder::buildNodeItems(const MathParseN
   if (node.type == MathNodeType::Color) {
     QColor color(node.color);
     if (!color.isValid()) {
-      static const QHash<QString, QColor> namedColors{
-          {QStringLiteral("red"), QColor(QStringLiteral("#df0030"))},
-          {QStringLiteral("blue"), QColor(QStringLiteral("#0057d8"))},
-          {QStringLiteral("green"), QColor(QStringLiteral("#008000"))},
-          {QStringLiteral("black"), QColor(QStringLiteral("#000000"))},
-          {QStringLiteral("white"), QColor(QStringLiteral("#ffffff"))},
-          {QStringLiteral("gray"), QColor(QStringLiteral("#808080"))},
-          {QStringLiteral("grey"), QColor(QStringLiteral("#808080"))},
-          {QStringLiteral("purple"), QColor(QStringLiteral("#800080"))},
-          {QStringLiteral("orange"), QColor(QStringLiteral("#ff8000"))}};
+      static const QHash<QString, QColor> namedColors{{QStringLiteral("red"), QColor(QStringLiteral("#df0030"))},
+                                                      {QStringLiteral("blue"), QColor(QStringLiteral("#0057d8"))},
+                                                      {QStringLiteral("green"), QColor(QStringLiteral("#008000"))},
+                                                      {QStringLiteral("black"), QColor(QStringLiteral("#000000"))},
+                                                      {QStringLiteral("white"), QColor(QStringLiteral("#ffffff"))},
+                                                      {QStringLiteral("gray"), QColor(QStringLiteral("#808080"))},
+                                                      {QStringLiteral("grey"), QColor(QStringLiteral("#808080"))},
+                                                      {QStringLiteral("purple"), QColor(QStringLiteral("#800080"))},
+                                                      {QStringLiteral("orange"), QColor(QStringLiteral("#ff8000"))}};
       color = namedColors.value(node.color, options_.color());
     }
     return MathBuilder(options_.withColor(color)).buildExpressionItems(node.body);
   }
   if (node.type == MathNodeType::Styling) {
     MathStyle style = options_.style();
-    if (node.style == QStringLiteral("\\displaystyle")) style = MathStyle::display();
-    else if (node.style == QStringLiteral("\\textstyle")) style = MathStyle::textStyle();
-    else if (node.style == QStringLiteral("\\scriptstyle")) style = MathStyle::script();
-    else if (node.style == QStringLiteral("\\scriptscriptstyle")) style = MathStyle::scriptScript();
+    if (node.style == QStringLiteral("\\displaystyle"))
+      style = MathStyle::display();
+    else if (node.style == QStringLiteral("\\textstyle"))
+      style = MathStyle::textStyle();
+    else if (node.style == QStringLiteral("\\scriptstyle"))
+      style = MathStyle::script();
+    else if (node.style == QStringLiteral("\\scriptscriptstyle"))
+      style = MathStyle::scriptScript();
     return MathBuilder(options_.havingStyle(style)).buildExpressionItems(node.body);
   }
   if (node.type == MathNodeType::Sizing) {
     static const QHash<QString, qreal> scales{
-        {QStringLiteral("\\tiny"), 0.5},       {QStringLiteral("\\sixptsize"), 0.55}, {QStringLiteral("\\scriptsize"), 0.7},
-        {QStringLiteral("\\footnotesize"), 0.8}, {QStringLiteral("\\small"), 0.9},      {QStringLiteral("\\normalsize"), 1.0},
-        {QStringLiteral("\\large"), 1.2},      {QStringLiteral("\\Large"), 1.44},      {QStringLiteral("\\LARGE"), 1.73},
-        {QStringLiteral("\\huge"), 2.07},      {QStringLiteral("\\Huge"), 2.49}};
+        {QStringLiteral("\\tiny"), 0.5},       {QStringLiteral("\\sixptsize"), 0.55},
+        {QStringLiteral("\\scriptsize"), 0.7}, {QStringLiteral("\\footnotesize"), 0.8},
+        {QStringLiteral("\\small"), 0.9},      {QStringLiteral("\\normalsize"), 1.0},
+        {QStringLiteral("\\large"), 1.2},      {QStringLiteral("\\Large"), 1.44},
+        {QStringLiteral("\\LARGE"), 1.73},     {QStringLiteral("\\huge"), 2.07},
+        {QStringLiteral("\\Huge"), 2.49}};
     return MathBuilder(options_.havingSizeScale(scales.value(node.size, 1.0))).buildExpressionItems(node.body);
   }
   if (node.type == MathNodeType::Href || node.type == MathNodeType::Html) {
@@ -443,56 +477,78 @@ qreal MathBuilder::spacingAfter(int previous, int current, bool tight, qreal glu
   const qreal thick = 5.0 * glueCssEmPerMu;
 
   if (tight) {
-    if (prev == MathAtomClass::Ord && next == MathAtomClass::Op) return thin;
-    if (prev == MathAtomClass::Op && (next == MathAtomClass::Ord || next == MathAtomClass::Op)) return thin;
-    if (prev == MathAtomClass::Close && next == MathAtomClass::Op) return thin;
-    if (prev == MathAtomClass::Inner && next == MathAtomClass::Op) return thin;
+    if (prev == MathAtomClass::Ord && next == MathAtomClass::Op)
+      return thin;
+    if (prev == MathAtomClass::Op && (next == MathAtomClass::Ord || next == MathAtomClass::Op))
+      return thin;
+    if (prev == MathAtomClass::Close && next == MathAtomClass::Op)
+      return thin;
+    if (prev == MathAtomClass::Inner && next == MathAtomClass::Op)
+      return thin;
     return 0.0;
   }
 
   switch (prev) {
-    case MathAtomClass::Ord:
-      if (next == MathAtomClass::Op) return thin;
-      if (next == MathAtomClass::Bin) return medium;
-      if (next == MathAtomClass::Rel) return thick;
-      if (next == MathAtomClass::Inner) return thin;
-      break;
-    case MathAtomClass::Op:
-      if (next == MathAtomClass::Ord || next == MathAtomClass::Op) return thin;
-      if (next == MathAtomClass::Rel) return thick;
-      if (next == MathAtomClass::Inner) return thin;
-      break;
-    case MathAtomClass::Bin:
-      if (next == MathAtomClass::Ord || next == MathAtomClass::Op || next == MathAtomClass::Open || next == MathAtomClass::Inner) return medium;
-      break;
-    case MathAtomClass::Rel:
-      if (next == MathAtomClass::Ord || next == MathAtomClass::Op || next == MathAtomClass::Open || next == MathAtomClass::Inner) return thick;
-      break;
-    case MathAtomClass::Close:
-      if (next == MathAtomClass::Op) return thin;
-      if (next == MathAtomClass::Bin) return medium;
-      if (next == MathAtomClass::Rel) return thick;
-      if (next == MathAtomClass::Inner) return thin;
-      break;
-    case MathAtomClass::Punct:
-      if (next == MathAtomClass::Ord || next == MathAtomClass::Op || next == MathAtomClass::Open || next == MathAtomClass::Close ||
-          next == MathAtomClass::Punct || next == MathAtomClass::Inner) {
-        return thin;
-      }
-      if (next == MathAtomClass::Rel) return thick;
-      break;
-    case MathAtomClass::Inner:
-      if (next == MathAtomClass::Ord || next == MathAtomClass::Op || next == MathAtomClass::Open || next == MathAtomClass::Punct ||
-          next == MathAtomClass::Inner) {
-        return thin;
-      }
-      if (next == MathAtomClass::Bin) return medium;
-      if (next == MathAtomClass::Rel) return thick;
-      break;
-    default:
-      break;
+  case MathAtomClass::Ord:
+    if (next == MathAtomClass::Op)
+      return thin;
+    if (next == MathAtomClass::Bin)
+      return medium;
+    if (next == MathAtomClass::Rel)
+      return thick;
+    if (next == MathAtomClass::Inner)
+      return thin;
+    break;
+  case MathAtomClass::Op:
+    if (next == MathAtomClass::Ord || next == MathAtomClass::Op)
+      return thin;
+    if (next == MathAtomClass::Rel)
+      return thick;
+    if (next == MathAtomClass::Inner)
+      return thin;
+    break;
+  case MathAtomClass::Bin:
+    if (next == MathAtomClass::Ord || next == MathAtomClass::Op || next == MathAtomClass::Open ||
+        next == MathAtomClass::Inner)
+      return medium;
+    break;
+  case MathAtomClass::Rel:
+    if (next == MathAtomClass::Ord || next == MathAtomClass::Op || next == MathAtomClass::Open ||
+        next == MathAtomClass::Inner)
+      return thick;
+    break;
+  case MathAtomClass::Close:
+    if (next == MathAtomClass::Op)
+      return thin;
+    if (next == MathAtomClass::Bin)
+      return medium;
+    if (next == MathAtomClass::Rel)
+      return thick;
+    if (next == MathAtomClass::Inner)
+      return thin;
+    break;
+  case MathAtomClass::Punct:
+    if (next == MathAtomClass::Ord || next == MathAtomClass::Op || next == MathAtomClass::Open ||
+        next == MathAtomClass::Close || next == MathAtomClass::Punct || next == MathAtomClass::Inner) {
+      return thin;
+    }
+    if (next == MathAtomClass::Rel)
+      return thick;
+    break;
+  case MathAtomClass::Inner:
+    if (next == MathAtomClass::Ord || next == MathAtomClass::Op || next == MathAtomClass::Open ||
+        next == MathAtomClass::Punct || next == MathAtomClass::Inner) {
+      return thin;
+    }
+    if (next == MathAtomClass::Bin)
+      return medium;
+    if (next == MathAtomClass::Rel)
+      return thick;
+    break;
+  default:
+    break;
   }
   return 0.0;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

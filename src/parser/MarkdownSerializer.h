@@ -24,4 +24,4 @@ private:
   QString tableDelimiter(TableAlignment alignment) const;
 };
 
-}  // namespace muffin
+} // namespace muffin

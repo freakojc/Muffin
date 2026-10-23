@@ -39,9 +39,8 @@ void SourcePositionIndex::update(SourcePositionToken* node) {
   }
   node->subtreeKindCounts.fill(0);
   for (quint8 kind = 0; kind < SourcePositionToken::kSiblingKindCount; ++kind) {
-    node->subtreeKindCounts[kind] =
-        (node->left ? node->left->subtreeKindCounts[kind] : 0) +
-        (node->right ? node->right->subtreeKindCounts[kind] : 0);
+    node->subtreeKindCounts[kind] = (node->left ? node->left->subtreeKindCounts[kind] : 0) +
+                                    (node->right ? node->right->subtreeKindCounts[kind] : 0);
   }
   if (node->siblingKind < SourcePositionToken::kSiblingKindCount) {
     ++node->subtreeKindCounts[node->siblingKind];
@@ -75,9 +74,8 @@ SourcePositionIndex::split(std::unique_ptr<SourcePositionToken> root, qsizetype 
   return {std::move(root), std::move(right)};
 }
 
-std::unique_ptr<SourcePositionToken> SourcePositionIndex::merge(
-    std::unique_ptr<SourcePositionToken> left,
-    std::unique_ptr<SourcePositionToken> right) {
+std::unique_ptr<SourcePositionToken> SourcePositionIndex::merge(std::unique_ptr<SourcePositionToken> left,
+                                                                std::unique_ptr<SourcePositionToken> right) {
   if (!left) {
     if (right) {
       right->parent = nullptr;
@@ -185,10 +183,7 @@ qsizetype SourcePositionIndex::typeRank(const SourcePositionToken* token) const 
   return result;
 }
 
-void SourcePositionIndex::replace(
-    qsizetype first,
-    qsizetype count,
-    std::unique_ptr<SourcePositionToken> replacements) {
+void SourcePositionIndex::replace(qsizetype first, qsizetype count, std::unique_ptr<SourcePositionToken> replacements) {
   first = qBound<qsizetype>(0, first, size());
   count = qBound<qsizetype>(0, count, size() - first);
   auto [prefix, tail] = split(std::move(root_), first);
@@ -197,4 +192,4 @@ void SourcePositionIndex::replace(
   root_ = merge(merge(std::move(prefix), std::move(replacements)), std::move(suffix));
 }
 
-}  // namespace muffin
+} // namespace muffin

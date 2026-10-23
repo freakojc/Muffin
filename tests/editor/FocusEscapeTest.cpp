@@ -42,12 +42,11 @@ void testCtrlTabEscapesEditorFocus() {
   sendKey(view, Qt::Key_Tab, Qt::ControlModifier);
   QApplication::processEvents();
   QWidget* focused = QApplication::focusWidget();
-  require(focused != view && focused != view->viewport(),
-          "ctrl+tab must move focus out of the editor canvas");
+  require(focused != view && focused != view->viewport(), "ctrl+tab must move focus out of the editor canvas");
 
   // Focus moved somewhere within the host (either sibling qualifies; tab order decides which).
   require(focused != nullptr && (focused == before || focused == after ||
-          (focused->parentWidget() != nullptr && focused->parentWidget()->isAncestorOf(&host))),
+                                 (focused->parentWidget() != nullptr && focused->parentWidget()->isAncestorOf(&host))),
           "focus should land on another widget in the window");
 
   // Plain Tab stays editor content: focus unchanged, no traversal.
@@ -91,7 +90,7 @@ void testFocusReturnsAfterEscape() {
   Q_UNUSED(line);
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {

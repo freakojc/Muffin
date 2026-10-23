@@ -56,8 +56,7 @@ private:
 
 class ClassTokenCursor {
 public:
-  ClassTokenCursor(const QVector<ClassToken>& tokens, qsizetype begin = 0,
-                   qsizetype end = -1);
+  ClassTokenCursor(const QVector<ClassToken>& tokens, qsizetype begin = 0, qsizetype end = -1);
 
   bool atEnd() const { return position_ >= end_; }
   qsizetype position() const { return position_; }
@@ -81,4 +80,4 @@ private:
 
 QString classTokenName(ClassTokenKind kind);
 
-}  // namespace muffin::mermaid::classdiagram
+} // namespace muffin::mermaid::classdiagram

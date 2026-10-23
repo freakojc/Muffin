@@ -42,7 +42,7 @@ public:
 
   // Painted-segment setters.
   void setCursorStatus(const QString& text);
-  void setWordCount(int words);            // drives the compact "N words" trigger.
+  void setWordCount(int words); // drives the compact "N words" trigger.
   void setBlockSource(const QString& text, const QString& toolTip);
   void setEncodingLineEnding(const QString& text);
   void setSpellLanguage(const QString& localeCode, bool enabled);
@@ -115,4 +115,4 @@ private:
   Hover hover_ = Hover::None;
 };
 
-}  // namespace muffin
+} // namespace muffin

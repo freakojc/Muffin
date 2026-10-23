@@ -30,12 +30,16 @@ constexpr double kPi = 3.14159265358979323846;
 // "-0" -> "0". Mirrors scripts/verify_pie_pathd.mjs (fmt), which reproduces all
 // 26 frozen slice paths byte-for-byte.
 QString fmt(qreal v) {
-  if (std::fabs(v) < 5e-4) return QStringLiteral("0");
+  if (std::fabs(v) < 5e-4)
+    return QStringLiteral("0");
   const double r = std::round(v * 1000.0) / 1000.0;
-  if (r == 0.0) return QStringLiteral("0");
+  if (r == 0.0)
+    return QStringLiteral("0");
   QString s = QString::number(r, 'f', 3);
-  while (s.endsWith(QLatin1Char('0'))) s.chop(1);
-  if (s.endsWith(QLatin1Char('.'))) s.chop(1);
+  while (s.endsWith(QLatin1Char('0')))
+    s.chop(1);
+  if (s.endsWith(QLatin1Char('.')))
+    s.chop(1);
   return s;
 }
 
@@ -70,32 +74,36 @@ QString arcPath(double startA, double endA, double outerR, double innerR) {
     const XY iStart = d3Point(innerR, startA);
     const XY iOpp = d3Point(innerR, startA + kPi);
     return QStringLiteral("M%1A%2,%2,0,1,1,%3A%2,%2,0,1,1,%4L%5A%6,%6,0,1,0,%7A%6,%6,0,1,0,%8Z")
-        .arg(fmtXY(oStart), fmt(outerR), fmtXY(opp), fmtXY(oStart), fmtXY(iStart),
-             fmt(innerR), fmtXY(iOpp), fmtXY(iStart));
+        .arg(fmtXY(oStart), fmt(outerR), fmtXY(opp), fmtXY(oStart), fmtXY(iStart), fmt(innerR), fmtXY(iOpp),
+             fmtXY(iStart));
   }
   const QString la = span > kPi ? QStringLiteral("1") : QStringLiteral("0");
-  QString d = QStringLiteral("M%1A%2,%2,0,%3,1,%4")
-                  .arg(fmtXY(oStart), fmt(outerR), la, fmtXY(oEnd));
-  if (innerR == 0.0) return d + QStringLiteral("L0,0Z");
+  QString d = QStringLiteral("M%1A%2,%2,0,%3,1,%4").arg(fmtXY(oStart), fmt(outerR), la, fmtXY(oEnd));
+  if (innerR == 0.0)
+    return d + QStringLiteral("L0,0Z");
   const XY iEnd = d3Point(innerR, endA);
   const XY iStart = d3Point(innerR, startA);
-  return d + QStringLiteral("L%1A%2,%2,0,%3,0,%4Z")
-                 .arg(fmtXY(iEnd), fmt(innerR), la, fmtXY(iStart));
+  return d + QStringLiteral("L%1A%2,%2,0,%3,0,%4Z").arg(fmtXY(iEnd), fmt(innerR), la, fmtXY(iStart));
 }
 
 // Round to 3 decimals as a numeric JSON value (mirrors the oracle's number()).
-double round3(double v) { return std::round(v * 1000.0) / 1000.0; }
+double round3(double v) {
+  return std::round(v * 1000.0) / 1000.0;
+}
 
 // (value/origSum*100).toFixed(0) — JS Number.prototype.toFixed rounds half away
 // from zero for positive values; the slice values are all >= 0 here.
 QString percentLabel(double value, double origSum) {
-  if (origSum <= 0.0) return QStringLiteral("0%");
+  if (origSum <= 0.0)
+    return QStringLiteral("0%");
   return QString::number(std::round(value / origSum * 100.0), 'f', 0) + QLatin1Char('%');
 }
 
-}  // namespace
+} // namespace
 
-QString formatPieCoord(qreal v) { return fmt(v); }
+QString formatPieCoord(qreal v) {
+  return fmt(v);
+}
 
 PieScene buildPieScene(const PieData& data, const PieConfig& config, PieSceneStyle style) {
   PieScene scene;
@@ -105,20 +113,18 @@ PieScene buildPieScene(const PieData& data, const PieConfig& config, PieSceneSty
   scene.margin = 40.0;
   scene.height = 450.0;
   scene.pieWidth = 450.0;
-  scene.centerX = scene.pieWidth / 2.0;   // 225
-  scene.centerY = scene.height / 2.0;     // 225
+  scene.centerX = scene.pieWidth / 2.0; // 225
+  scene.centerY = scene.height / 2.0;   // 225
   scene.legendRectSize = 18.0;
   scene.legendSpacing = 4.0;
-  scene.legendHeight = scene.legendRectSize + scene.legendSpacing;  // 22
+  scene.legendHeight = scene.legendRectSize + scene.legendSpacing; // 22
 
   // Resolved config.
   scene.textPosition = config.textPosition;
   scene.donutHole = config.donutHole;
   // donutHole clamps to (0, 0.9] (pieRenderer line 161).
-  scene.effectiveDonutHole =
-      (config.donutHole > 0.0 && config.donutHole <= 0.9) ? config.donutHole : 0.0;
-  scene.legendPosition = config.legendPosition.isEmpty() ? QStringLiteral("right")
-                                                         : config.legendPosition;
+  scene.effectiveDonutHole = (config.donutHole > 0.0 && config.donutHole <= 0.9) ? config.donutHole : 0.0;
+  scene.legendPosition = config.legendPosition.isEmpty() ? QStringLiteral("right") : config.legendPosition;
   scene.highlightSlice = config.highlightSlice;
   scene.highlightSliceIsString = config.highlightSliceIsString;
   scene.showData = data.showData;
@@ -127,12 +133,12 @@ PieScene buildPieScene(const PieData& data, const PieConfig& config, PieSceneSty
   scene.accTitle = data.accTitle;
   scene.accDescr = data.accDescr;
 
-  scene.radius = std::min(scene.pieWidth, scene.height) / 2.0 - scene.margin;  // 185
+  scene.radius = std::min(scene.pieWidth, scene.height) / 2.0 - scene.margin; // 185
   // Outer-circle radius uses the parseFontSize numeric prefix (upstream), NOT the
   // CSS paint width -- see PieSceneStyle::outerStrokeWidthGeom.
-  scene.outerRingRadius = scene.radius + scene.style.outerStrokeWidthGeom / 2.0;   // 186
-  scene.donutInnerRadius = scene.effectiveDonutHole * scene.radius;            // 0 solid
-  scene.labelRadius = scene.radius * scene.textPosition;                       // 138.75
+  scene.outerRingRadius = scene.radius + scene.style.outerStrokeWidthGeom / 2.0; // 186
+  scene.donutInnerRadius = scene.effectiveDonutHole * scene.radius;              // 0 solid
+  scene.labelRadius = scene.radius * scene.textPosition;                         // 138.75
 
   const QVector<PieSection>& sections = data.sections;
   scene.originalSum = pieOriginalSum(sections);
@@ -149,24 +155,22 @@ PieScene buildPieScene(const PieData& data, const PieConfig& config, PieSceneSty
   if (scene.originalSum > 0.0) {
     for (int i = 0; i < sections.size(); ++i) {
       const PieSection& s = sections.at(i);
-      if (s.value / scene.originalSum * 100.0 >= 1.0) drawn.append({&s, i});
+      if (s.value / scene.originalSum * 100.0 >= 1.0)
+        drawn.append({&s, i});
     }
   }
   scene.filteredSum = 0.0;
-  for (const Drawn& d : drawn) scene.filteredSum += d.section->value;
+  for (const Drawn& d : drawn)
+    scene.filteredSum += d.section->value;
 
   // Legends: ALL sections, source order (scaleOrdinal domain).
   for (int i = 0; i < sections.size(); ++i) {
     const PieSection& s = sections.at(i);
     PieLegendEntry entry;
     entry.label = s.label;
-    entry.text = scene.showData
-                     ? QStringLiteral("%1 [%2]")
-                           .arg(s.label, editor::jsNumberToString(s.value))
-                     : s.label;
+    entry.text = scene.showData ? QStringLiteral("%1 [%2]").arg(s.label, editor::jsNumberToString(s.value)) : s.label;
     entry.colorIndex = scene.style.palette.isEmpty() ? 0 : i % scene.style.palette.size();
-    entry.fill =
-        scene.style.palette.isEmpty() ? QString() : scene.style.palette.at(entry.colorIndex);
+    entry.fill = scene.style.palette.isEmpty() ? QString() : scene.style.palette.at(entry.colorIndex);
     scene.legends.append(entry);
   }
 
@@ -182,10 +186,8 @@ PieScene buildPieScene(const PieData& data, const PieConfig& config, PieSceneSty
       PieSliceGeometry g;
       g.label = s.label;
       g.value = s.value;
-      g.colorIndex = scene.style.palette.isEmpty() ? 0
-                      : dr.globalIndex % scene.style.palette.size();
-      g.fill = scene.style.palette.isEmpty() ? QString()
-                                             : scene.style.palette.at(g.colorIndex);
+      g.colorIndex = scene.style.palette.isEmpty() ? 0 : dr.globalIndex % scene.style.palette.size();
+      g.fill = scene.style.palette.isEmpty() ? QString() : scene.style.palette.at(g.colorIndex);
       g.startAngleDeg = round3(-90.0 + (a0 / (2.0 * kPi)) * 360.0);
       g.endAngleDeg = round3(-90.0 + (a1 / (2.0 * kPi)) * 360.0);
       g.midAngleDeg = round3((g.startAngleDeg + g.endAngleDeg) / 2.0);
@@ -211,7 +213,7 @@ PieScene buildPieScene(const PieData& data, const PieConfig& config, PieSceneSty
   // Canvas width (font-coupled): right legend -> pieWidth + margin + legend block.
   // The exact legend text width is measured in the painter; here we use a
   // reasonable default so the scene bounds are non-trivial before paint.
-  scene.totalWidth = scene.pieWidth + scene.margin;  // refined in the painter
+  scene.totalWidth = scene.pieWidth + scene.margin; // refined in the painter
   scene.bounds = QRectF(0.0, 0.0, scene.totalWidth, scene.height);
   return scene;
 }
@@ -264,8 +266,8 @@ QJsonObject PieScene::toJsonObject() const {
     o[QStringLiteral("fill")] = s.fill;
     o[QStringLiteral("cls")] = s.className;
     o[QStringLiteral("labelTransform")] =
-        QStringLiteral("translate(%1,%2)").arg(QString::number(s.centroidX, 'g', 17),
-                                                QString::number(s.centroidY, 'g', 17));
+        QStringLiteral("translate(%1,%2)")
+            .arg(QString::number(s.centroidX, 'g', 17), QString::number(s.centroidY, 'g', 17));
     slicesArray.append(o);
   }
 
@@ -286,9 +288,8 @@ QJsonObject PieScene::toJsonObject() const {
   expected[QStringLiteral("sliceCount")] = slices.size();
   expected[QStringLiteral("slices")] = slicesArray;
   expected[QStringLiteral("sums")] = sums;
-  expected[QStringLiteral("bounds")] =
-      QJsonArray{bounds.x(), bounds.y(), bounds.width(), bounds.height()};
+  expected[QStringLiteral("bounds")] = QJsonArray{bounds.x(), bounds.y(), bounds.width(), bounds.height()};
   return expected;
 }
 
-}  // namespace muffin::mermaid::pie
+} // namespace muffin::mermaid::pie

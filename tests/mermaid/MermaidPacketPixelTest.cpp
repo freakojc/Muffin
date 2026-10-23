@@ -24,17 +24,16 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QImage renderNative(const QString& source) {
-  const QString dataUrl =
-      editor::MermaidRenderCache::renderMermaidSourceToPng(source, 1.0).dataUrl;
+  const QString dataUrl = editor::MermaidRenderCache::renderMermaidSourceToPng(source, 1.0).dataUrl;
   const qsizetype comma = dataUrl.indexOf(QLatin1Char(','));
   QImage image;
   if (comma >= 0)
-    image.loadFromData(
-        QByteArray::fromBase64(dataUrl.mid(comma + 1).toLatin1()), "PNG");
+    image.loadFromData(QByteArray::fromBase64(dataUrl.mid(comma + 1).toLatin1()), "PNG");
   return image;
 }
 
@@ -59,10 +58,9 @@ qreal foregroundRgba(const QImage& native, const QImage& reference) {
     for (int x = 0; x < reference.width(); ++x) {
       const QColor a = native.pixelColor(x, y);
       const QColor b = reference.pixelColor(x, y);
-      if (a.alpha() < 16 && b.alpha() < 16) continue;
-      difference += std::abs(a.red() - b.red()) +
-                    std::abs(a.green() - b.green()) +
-                    std::abs(a.blue() - b.blue()) +
+      if (a.alpha() < 16 && b.alpha() < 16)
+        continue;
+      difference += std::abs(a.red() - b.red()) + std::abs(a.green() - b.green()) + std::abs(a.blue() - b.blue()) +
                     std::abs(a.alpha() - b.alpha());
       ++samples;
     }
@@ -70,7 +68,7 @@ qreal foregroundRgba(const QImage& native, const QImage& reference) {
   return samples ? 1.0 - difference / qreal(samples * 4 * 255) : 1.0;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -83,9 +81,8 @@ int main(int argc, char** argv) {
   require(file.open(QIODevice::ReadOnly), file.errorString());
   const QJsonObject manifest = QJsonDocument::fromJson(file.readAll()).object();
   require(manifest.value(QStringLiteral("fixtureSha256")).toString() ==
-              QLatin1String("1bd1e813cd59767e8a5b78703ef8a430292be841dd6ad5f84fe32895ebf99462") &&
-              manifest.value(QStringLiteral("upstream")).toObject()
-                      .value(QStringLiteral("version")).toString() ==
+                  QLatin1String("1bd1e813cd59767e8a5b78703ef8a430292be841dd6ad5f84fe32895ebf99462") &&
+              manifest.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
                   QLatin1String("11.16.0"),
           QStringLiteral("Packet pixel fixture provenance drifted"));
   const QJsonArray cases = manifest.value(QStringLiteral("cases")).toArray();
@@ -93,30 +90,25 @@ int main(int argc, char** argv) {
   for (const QJsonValue& value : cases) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
-    QImage reference(dir + QLatin1Char('/') +
-                     fixture.value(QStringLiteral("file")).toString());
+    QImage reference(dir + QLatin1Char('/') + fixture.value(QStringLiteral("file")).toString());
     require(!reference.isNull(), id + QStringLiteral(": reference PNG missing"));
-    QFile pngFile(dir + QLatin1Char('/') +
-                  fixture.value(QStringLiteral("file")).toString());
-    require(pngFile.open(QIODevice::ReadOnly),
-            id + QStringLiteral(": reference PNG unreadable"));
-    require(QString::fromLatin1(
-                QCryptographicHash::hash(pngFile.readAll(),
-                                         QCryptographicHash::Sha256)
-                    .toHex()) == fixture.value(QStringLiteral("sha256")).toString(),
+    QFile pngFile(dir + QLatin1Char('/') + fixture.value(QStringLiteral("file")).toString());
+    require(pngFile.open(QIODevice::ReadOnly), id + QStringLiteral(": reference PNG unreadable"));
+    require(QString::fromLatin1(QCryptographicHash::hash(pngFile.readAll(), QCryptographicHash::Sha256).toHex()) ==
+                fixture.value(QStringLiteral("sha256")).toString(),
             id + QStringLiteral(": reference PNG sha256 drifted"));
-    const QImage native =
-        renderNative(fixture.value(QStringLiteral("source")).toString());
+    const QImage native = renderNative(fixture.value(QStringLiteral("source")).toString());
     require(!native.isNull(), id + QStringLiteral(": production PNG failed"));
-    require(native.size() == reference.size(),
-            QStringLiteral("%1: native %2x%3 != browser %4x%5")
-                .arg(id).arg(native.width()).arg(native.height())
-                .arg(reference.width()).arg(reference.height()));
+    require(native.size() == reference.size(), QStringLiteral("%1: native %2x%3 != browser %4x%5")
+                                                   .arg(id)
+                                                   .arg(native.width())
+                                                   .arg(native.height())
+                                                   .arg(reference.width())
+                                                   .arg(reference.height()));
     const qreal iou = alphaIou(native, reference);
     const qreal rgba = foregroundRgba(native, reference);
     std::fprintf(stderr, "%s: IoU %.4f RGBA %.4f\n", qPrintable(id), iou, rgba);
-    require(iou >= 0.95 && rgba >= 0.95,
-            id + QStringLiteral(": Packet pixel parity below threshold"));
+    require(iou >= 0.95 && rgba >= 0.95, id + QStringLiteral(": Packet pixel parity below threshold"));
   }
   return 0;
 }

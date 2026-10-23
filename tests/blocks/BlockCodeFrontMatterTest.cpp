@@ -37,17 +37,20 @@ void testFrontMatterEnterEditsContentAndBlockAfterCreatesParagraph() {
     frontMatterHit.textOffset = QStringLiteral("title: 123").size();
     controller.activateHit(frontMatterHit);
     require(controller.frontMatterLiteral().isEditing(), "front matter click should enter edit mode");
-    require(controller.inputController().insertParagraphBreak(), "enter inside front matter should edit literal content");
+    require(controller.inputController().insertParagraphBreak(),
+            "enter inside front matter should edit literal content");
     require(session.markdownText().toString().startsWith(QStringLiteral("---\ntitle: 123\n213\n---")),
             "first front matter enter should split the current literal line immediately");
     frontMatter = firstBlockOfType(session, BlockType::FrontMatter);
-    require(frontMatter->literal() == QStringLiteral("title: 123\n213"), "front matter literal should preserve first inserted newline");
+    require(frontMatter->literal() == QStringLiteral("title: 123\n213"),
+            "front matter literal should preserve first inserted newline");
 
     frontMatterHit.blockId = frontMatter->id();
     frontMatterHit.textNodeId = frontMatter->id();
     frontMatterHit.textOffset = frontMatter->literal().size();
     controller.activateHit(frontMatterHit);
-    require(controller.inputController().insertParagraphBreak(), "enter at front matter end should edit literal content");
+    require(controller.inputController().insertParagraphBreak(),
+            "enter at front matter end should edit literal content");
     require(session.markdownText().toString().startsWith(QStringLiteral("---\ntitle: 123\n213\n\n---")),
             "front matter enter at end should preserve a new literal blank line");
 
@@ -58,13 +61,17 @@ void testFrontMatterEnterEditsContentAndBlockAfterCreatesParagraph() {
     blockAfterHit.textNodeId = frontMatter->id();
     controller.activateHit(blockAfterHit);
     require(!controller.frontMatterLiteral().isEditing(), "block-after click should leave front matter edit mode");
-    require(controller.selection().currentHit().zone == HitTestResult::Zone::BlockAfter, "block-after click should become current hit");
+    require(controller.selection().currentHit().zone == HitTestResult::Zone::BlockAfter,
+            "block-after click should become current hit");
     MarkdownNode* blockAfterNode = session.document().node(controller.selection().cursorPosition().blockId);
     require(blockAfterNode != nullptr, "block-after cursor should reference an existing node");
     const SourceRange blockAfterRange = blockAfterNode->sourceRange();
-    require(blockAfterRange.byteEnd >= blockAfterRange.byteStart, "block-after cursor node should have a valid source range");
-    require(blockAfterRange.byteEnd <= session.markdownText().toString().size(), "block-after cursor node source range should fit markdown text");
-    require(controller.inputController().insertParagraphBreak(), "enter after front matter block should create a paragraph boundary");
+    require(blockAfterRange.byteEnd >= blockAfterRange.byteStart,
+            "block-after cursor node should have a valid source range");
+    require(blockAfterRange.byteEnd <= session.markdownText().toString().size(),
+            "block-after cursor node source range should fit markdown text");
+    require(controller.inputController().insertParagraphBreak(),
+            "enter after front matter block should create a paragraph boundary");
     require(session.markdownText().toString().startsWith(QStringLiteral("---\ntitle: 123\n213\n\n---\n\n\nBody")),
             "block-after enter should create an empty paragraph after front matter");
   }
@@ -82,11 +89,14 @@ void testFrontMatterEnterEditsContentAndBlockAfterCreatesParagraph() {
     blockAfterHit.textNodeId = frontMatter->id();
     controller.activateHit(blockAfterHit);
 
-    require(!controller.frontMatterLiteral().isEditing(), "block-after text click should not enter front matter edit mode");
-    require(controller.inputController().insertText(QStringLiteral("OK")), "typing after front matter should create a paragraph");
+    require(!controller.frontMatterLiteral().isEditing(),
+            "block-after text click should not enter front matter edit mode");
+    require(controller.inputController().insertText(QStringLiteral("OK")),
+            "typing after front matter should create a paragraph");
     require(session.markdownText().toString() == QStringLiteral("---\ntitle: 123213\n---\nOK"),
             "typing after front matter should insert normal paragraph text after the block");
-    require(firstBlockOfType(session, BlockType::Paragraph) != nullptr, "typed block-after text should parse as a paragraph");
+    require(firstBlockOfType(session, BlockType::Paragraph) != nullptr,
+            "typed block-after text should parse as a paragraph");
   }
 }
 
@@ -122,9 +132,12 @@ void testComplexBlockActivationRoutesInput() {
   require(controller.tableController().currentCell().isValid(), "table click should activate current cell");
 
   require(controller.inputController().insertText(QStringLiteral("Z")), "table input should edit the active cell");
-  require(session.markdownText().toString().contains(QStringLiteral("oneZ")), "table input should update table cell text");
-  require(!session.markdownText().toString().contains(QStringLiteral("xZ")), "table input should not continue editing code fence");
-  require(!session.markdownText().toString().contains(QStringLiteral("x\n\n```")), "table input should not grow code fence trailing blank lines");
+  require(session.markdownText().toString().contains(QStringLiteral("oneZ")),
+          "table input should update table cell text");
+  require(!session.markdownText().toString().contains(QStringLiteral("xZ")),
+          "table input should not continue editing code fence");
+  require(!session.markdownText().toString().contains(QStringLiteral("x\n\n```")),
+          "table input should not grow code fence trailing blank lines");
 }
 
 // testCodeActivationKeepsClickedOffsetForTyping (lines 367-386)
@@ -194,18 +207,22 @@ void testWholeBlockDeleteUsesRemoveNodeCommand() {
   setSelection(controller.selection(), middle, 0, 4);
 
   require(controller.inputController().deleteSelection(), "whole block delete should work");
-  require(session.markdownText().toString() == QStringLiteral("alpha\n\ngamma"), "whole block delete markdown mismatch");
+  require(session.markdownText().toString() == QStringLiteral("alpha\n\ngamma"),
+          "whole block delete markdown mismatch");
   require(controller.undoStack().canUndo(), "whole block delete should push undo");
   EditTransaction transaction = controller.undoStack().takeUndo();
   require(transaction.isRemoveNodeCommand(), "whole block delete should use RemoveNodeCommand");
   require(transaction.removeNodeCommand().nodeType == BlockType::Paragraph, "remove node command type mismatch");
   require(transaction.removeNodeCommand().removedNode != nullptr, "remove node command snapshot missing");
-  require(transaction.removeNodeCommand().delta.removedText.contains(QStringLiteral("beta")), "remove node command removed text mismatch");
-  require(transaction.removeNodeCommand().delta.insertedText.isEmpty(), "remove node command inserted text should be empty");
+  require(transaction.removeNodeCommand().delta.removedText.contains(QStringLiteral("beta")),
+          "remove node command removed text mismatch");
+  require(transaction.removeNodeCommand().delta.insertedText.isEmpty(),
+          "remove node command inserted text should be empty");
   controller.undoStack().push(transaction);
 
   controller.undo();
-  require(session.markdownText().toString() == QStringLiteral("alpha\n\nbeta\n\ngamma"), "whole block delete undo mismatch");
+  require(session.markdownText().toString() == QStringLiteral("alpha\n\nbeta\n\ngamma"),
+          "whole block delete undo mismatch");
   controller.redo();
   require(session.markdownText().toString() == QStringLiteral("alpha\n\ngamma"), "whole block delete redo mismatch");
   require(controller.selection().hasCursor(), "whole block delete redo should keep cursor");
@@ -239,9 +256,12 @@ void testSwitchingBetweenCodeBlocksRoutesInputToClickedBlock() {
   controller.activateHit(secondHit);
   require(controller.inputController().insertText(QStringLiteral("B")), "second code input should work");
 
-  require(session.markdownText().toString().contains(QStringLiteral("Afirst")), "first code edit should remain in first code block");
-  require(session.markdownText().toString().contains(QStringLiteral("Bsecond")), "second code edit should target second code block");
-  require(!session.markdownText().toString().contains(QStringLiteral("BAfirst")), "second code input should not write into first code block");
+  require(session.markdownText().toString().contains(QStringLiteral("Afirst")),
+          "first code edit should remain in first code block");
+  require(session.markdownText().toString().contains(QStringLiteral("Bsecond")),
+          "second code edit should target second code block");
+  require(!session.markdownText().toString().contains(QStringLiteral("BAfirst")),
+          "second code input should not write into first code block");
 }
 
 // testCodeFenceEnterInsertsNewline (lines 532-558)
@@ -290,12 +310,14 @@ void testCodeFenceArrowKeyEnterInsertsNewline() {
   sendKey(&view, Qt::Key_Down);
   require(controller.codeFenceController().isEditing(), "keyboard navigation should enter code edit mode");
   require(controller.selection().cursorPosition().blockId == code->id(), "cursor should move to code block");
-  require(controller.selection().cursorPosition().text.textOffset == 0, "down arrow should land at start of code block literal");
+  require(controller.selection().cursorPosition().text.textOffset == 0,
+          "down arrow should land at start of code block literal");
 
   sendKey(&view, Qt::Key_Right);
   sendKey(&view, Qt::Key_Right);
   sendKey(&view, Qt::Key_Right);
-  require(controller.selection().cursorPosition().text.textOffset == code->literal().size(), "cursor should be at end of code literal");
+  require(controller.selection().cursorPosition().text.textOffset == code->literal().size(),
+          "cursor should be at end of code literal");
 
   require(controller.inputController().insertParagraphBreak(), "enter at end of code block should succeed");
   code = firstBlockOfType(session, BlockType::CodeFence);
@@ -328,13 +350,19 @@ void testKeyboardSwitchingBetweenCodeBlocksRoutesInputToTargetBlock() {
 
   sendKey(&view, Qt::Key_Down);
   secondCode = blockAt(session, 1);
-  require(controller.selection().cursorPosition().blockId == secondCode->id(), "cursor should move to second code block");
-  require(controller.codeFenceController().currentCodeFenceId() == secondCode->id(), "active code editor should switch to second block");
-  require(controller.inputController().insertText(QStringLiteral("B")), "second code input should work after keyboard switch");
+  require(controller.selection().cursorPosition().blockId == secondCode->id(),
+          "cursor should move to second code block");
+  require(controller.codeFenceController().currentCodeFenceId() == secondCode->id(),
+          "active code editor should switch to second block");
+  require(controller.inputController().insertText(QStringLiteral("B")),
+          "second code input should work after keyboard switch");
 
-  require(session.markdownText().toString().contains(QStringLiteral("Afirst")), "first code edit should remain in first code block");
-  require(session.markdownText().toString().contains(QStringLiteral("Bsecond")), "second code edit should target second code block");
-  require(!session.markdownText().toString().contains(QStringLiteral("BAfirst")), "second keyboard-routed input should not write into first code block");
+  require(session.markdownText().toString().contains(QStringLiteral("Afirst")),
+          "first code edit should remain in first code block");
+  require(session.markdownText().toString().contains(QStringLiteral("Bsecond")),
+          "second code edit should target second code block");
+  require(!session.markdownText().toString().contains(QStringLiteral("BAfirst")),
+          "second keyboard-routed input should not write into first code block");
 }
 
 // testBlockAfterTypingCreatesSeparateParagraphForParagraphBlock
@@ -354,18 +382,25 @@ void testBlockAfterTypingCreatesSeparateParagraphForParagraphBlock() {
   blockAfterHit.blockId = paragraph->id();
   blockAfterHit.textNodeId = paragraph->id();
   controller.activateHit(blockAfterHit);
-  require(controller.selection().currentHit().zone == HitTestResult::Zone::BlockAfter, "block-after click should set current hit zone");
+  require(controller.selection().currentHit().zone == HitTestResult::Zone::BlockAfter,
+          "block-after click should set current hit zone");
   require(controller.selection().cursorPosition().afterBlock, "block-after cursor should carry afterBlock flag");
 
-  require(controller.inputController().insertText(QStringLiteral("hello")), "typing after paragraph block should succeed");
-  require(session.markdownText().toString() == QStringLiteral("alpha\n\nhello"), "block-after typing should create a separate paragraph (blank-line separated)");
+  require(controller.inputController().insertText(QStringLiteral("hello")),
+          "typing after paragraph block should succeed");
+  require(session.markdownText().toString() == QStringLiteral("alpha\n\nhello"),
+          "block-after typing should create a separate paragraph (blank-line separated)");
   require(session.document().root().children().size() == 2, "block-after typing should add a second top-level block");
 
   MarkdownNode* newParagraph = blockAt(session, 1);
-  require(newParagraph != nullptr && newParagraph->type() == BlockType::Paragraph, "typed block-after text should parse as a paragraph");
-  require(controller.selection().cursorPosition().blockId == newParagraph->id(), "cursor should move into the new paragraph");
-  require(!controller.selection().cursorPosition().afterBlock, "cursor should leave the virtual trailing paragraph after typing");
-  require(controller.selection().currentHit().zone != HitTestResult::Zone::BlockAfter, "current hit zone should not stay BlockAfter after typing");
+  require(newParagraph != nullptr && newParagraph->type() == BlockType::Paragraph,
+          "typed block-after text should parse as a paragraph");
+  require(controller.selection().cursorPosition().blockId == newParagraph->id(),
+          "cursor should move into the new paragraph");
+  require(!controller.selection().cursorPosition().afterBlock,
+          "cursor should leave the virtual trailing paragraph after typing");
+  require(controller.selection().currentHit().zone != HitTestResult::Zone::BlockAfter,
+          "current hit zone should not stay BlockAfter after typing");
 }
 
 // testBlockAfterEnterInsertsBlankParagraph
@@ -385,7 +420,8 @@ void testBlockAfterEnterInsertsBlankParagraph() {
   controller.activateHit(blockAfterHit);
 
   require(controller.inputController().insertParagraphBreak(), "enter on block-after should succeed");
-  require(session.markdownText().toString() == QStringLiteral("alpha\n\n"), "block-after enter should append a blank paragraph");
+  require(session.markdownText().toString() == QStringLiteral("alpha\n\n"),
+          "block-after enter should append a blank paragraph");
   require(session.document().root().children().size() == 2, "block-after enter should add a second top-level block");
   require(blockAt(session, 1)->type() == BlockType::Paragraph, "appended block should be a paragraph");
 }
@@ -407,7 +443,8 @@ void testBlockAfterBackspaceIsHarmless() {
   controller.activateHit(blockAfterHit);
 
   controller.inputController().deleteBackward();
-  require(session.markdownText().toString() == QStringLiteral("alpha"), "backspace on trailing virtual paragraph should not change document");
+  require(session.markdownText().toString() == QStringLiteral("alpha"),
+          "backspace on trailing virtual paragraph should not change document");
   require(controller.selection().hasCursor(), "cursor should remain valid after backspace on trailing paragraph");
 }
 
@@ -428,13 +465,15 @@ void testBlockAfterUndoRestoresTrailingCursor() {
   controller.activateHit(blockAfterHit);
 
   require(controller.inputController().insertText(QStringLiteral("x")), "typing after paragraph block should succeed");
-  require(session.markdownText().toString() == QStringLiteral("alpha\n\nx"), "block-after typing should create a separate paragraph");
+  require(session.markdownText().toString() == QStringLiteral("alpha\n\nx"),
+          "block-after typing should create a separate paragraph");
   require(controller.undoStack().canUndo(), "block-after typing should push an undo entry");
 
   controller.undo();
   require(session.markdownText().toString() == QStringLiteral("alpha"), "undo should restore original document");
   require(controller.selection().cursorPosition().afterBlock, "undo should restore the trailing afterBlock caret");
-  require(controller.selection().currentHit().zone == HitTestResult::Zone::BlockAfter, "undo should restore BlockAfter hit zone");
+  require(controller.selection().currentHit().zone == HitTestResult::Zone::BlockAfter,
+          "undo should restore BlockAfter hit zone");
 }
 
 int main(int argc, char** argv) {

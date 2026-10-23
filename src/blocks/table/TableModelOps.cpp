@@ -12,7 +12,7 @@ int boundedIndex(int value, int minValue, int maxValue) {
   return std::clamp(value, minValue, maxValue);
 }
 
-}  // namespace
+} // namespace
 
 bool TableModelOps::isTable(const MarkdownNode& table) {
   return table.type() == BlockType::Table;
@@ -252,4 +252,4 @@ std::unique_ptr<MarkdownNode> TableModelOps::makeCell() {
   return cell;
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -5,7 +5,7 @@
 namespace muffin {
 
 ParseOptions markdownParseOptions() {
-  ParseOptions options;  // defaults match the parser: all GFM extensions + front matter on
+  ParseOptions options; // defaults match the parser: all GFM extensions + front matter on
   options.enableAutolink = QSettings().value(QStringLiteral("markdown/autoLink"), true).toBool();
   options.enableMath = QSettings().value(QStringLiteral("markdown/inlineMath"), true).toBool();
   options.relaxedInlineMath = QSettings().value(QStringLiteral("markdown/relaxedInlineMath"), true).toBool();
@@ -27,4 +27,4 @@ ParseOptions markdownParseOptions() {
   return options;
 }
 
-}  // namespace muffin
+} // namespace muffin

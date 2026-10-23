@@ -23,13 +23,12 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
-void near(qreal actual, qreal expected, const QString& path,
-          qreal tolerance = 0.025) {
+void near(qreal actual, qreal expected, const QString& path, qreal tolerance = 0.025) {
   require(std::isfinite(actual) && std::fabs(actual - expected) <= tolerance,
-          QStringLiteral("%1: %2 != %3").arg(path).arg(actual, 0, 'g', 17)
-              .arg(expected, 0, 'g', 17));
+          QStringLiteral("%1: %2 != %3").arg(path).arg(actual, 0, 'g', 17).arg(expected, 0, 'g', 17));
 }
 QVector<qreal> numbers(const QString& text) {
   QVector<qreal> result;
@@ -37,21 +36,16 @@ QVector<qreal> numbers(const QString& text) {
     result.append(token.toDouble());
   return result;
 }
-void compareRect(const QRectF& actual, const QJsonObject& expected,
-                 const QString& path, bool position = true,
+void compareRect(const QRectF& actual, const QJsonObject& expected, const QString& path, bool position = true,
                  qreal tolerance = 0.025) {
   if (position) {
-    near(actual.x(), expected.value(QStringLiteral("x")).toDouble(),
-         path + "/x", tolerance);
-    near(actual.y(), expected.value(QStringLiteral("y")).toDouble(),
-         path + "/y", tolerance);
+    near(actual.x(), expected.value(QStringLiteral("x")).toDouble(), path + "/x", tolerance);
+    near(actual.y(), expected.value(QStringLiteral("y")).toDouble(), path + "/y", tolerance);
   }
-  near(actual.width(), expected.value(QStringLiteral("width")).toDouble(),
-       path + "/width", tolerance);
-  near(actual.height(), expected.value(QStringLiteral("height")).toDouble(),
-       path + "/height", tolerance);
+  near(actual.width(), expected.value(QStringLiteral("width")).toDouble(), path + "/width", tolerance);
+  near(actual.height(), expected.value(QStringLiteral("height")).toDouble(), path + "/height", tolerance);
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
 #if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
@@ -83,13 +77,12 @@ int main(int argc, char** argv) {
     const QString id = fixture.value(QStringLiteral("id")).toString();
     const QString source = fixture.value(QStringLiteral("source")).toString();
     const auto entry = cache.getSync(editor::MermaidRenderCache::makeKey(source), source);
-    require(entry.status == editor::MermaidRenderStatus::Ready,
-            id + QStringLiteral(": ") + entry.errorMessage);
+    require(entry.status == editor::MermaidRenderStatus::Ready, id + QStringLiteral(": ") + entry.errorMessage);
     const auto scene = std::dynamic_pointer_cast<const ishikawa::IshikawaScene>(entry.scene);
     require(bool(scene), id + QStringLiteral(": expected IshikawaScene"));
     const QJsonObject expected = fixture.value(QStringLiteral("expected")).toObject();
-    const QJsonObject rootAttrs = expected.value(QStringLiteral("root")).toObject()
-                                      .value(QStringLiteral("attrs")).toObject();
+    const QJsonObject rootAttrs =
+        expected.value(QStringLiteral("root")).toObject().value(QStringLiteral("attrs")).toObject();
     const QVector<qreal> viewBox = numbers(rootAttrs.value(QStringLiteral("viewBox")).toString());
     require(viewBox.size() == 4, id + QStringLiteral("/viewBox"));
     near(scene->bounds.x(), viewBox[0], id + "/viewBox/x");
@@ -97,11 +90,9 @@ int main(int argc, char** argv) {
     near(scene->bounds.width(), viewBox[2], id + "/viewBox/width");
     near(scene->bounds.height(), viewBox[3], id + "/viewBox/height");
     compareRect(scene->contentBounds,
-                expected.value(QStringLiteral("graph")).toObject()
-                    .value(QStringLiteral("bbox")).toObject(),
+                expected.value(QStringLiteral("graph")).toObject().value(QStringLiteral("bbox")).toObject(),
                 id + QStringLiteral("/content"));
-    require(scene->useMaxWidth ==
-                (rootAttrs.value(QStringLiteral("width")).toString() == QLatin1String("100%")),
+    require(scene->useMaxWidth == (rootAttrs.value(QStringLiteral("width")).toString() == QLatin1String("100%")),
             id + QStringLiteral("/useMaxWidth"));
 
     const QJsonArray lines = expected.value(QStringLiteral("lines")).toArray();
@@ -126,8 +117,7 @@ int main(int argc, char** argv) {
       }
       require(scene->rects.size() == rects.size(), id + QStringLiteral("/rect count"));
       for (qsizetype i = 0; i < rects.size(); ++i)
-        compareRect(scene->rects.at(i).rect,
-                    rects.at(i).toObject().value(QStringLiteral("bbox")).toObject(),
+        compareRect(scene->rects.at(i).rect, rects.at(i).toObject().value(QStringLiteral("bbox")).toObject(),
                     QStringLiteral("%1/rect/%2").arg(id).arg(i), true, 0.04);
     } else {
       require(lines.isEmpty() && rects.isEmpty(), id + QStringLiteral("/rough DOM types"));
@@ -147,18 +137,19 @@ int main(int argc, char** argv) {
           headLocalCoordinates = path.className == QLatin1String("ishikawa-head");
         } else if (paintEntry.kind == ishikawa::IshikawaPrimitiveKind::Rect)
           drawable = &scene->rects.at(paintEntry.index).roughDrawable;
-        if (!drawable) continue;
+        if (!drawable)
+          continue;
         for (const auto& set : drawable->sets) {
           QRectF pathBounds = rough::tightBounds(set);
-          if (headLocalCoordinates) pathBounds.translate(0.0, -spineY);
+          if (headLocalCoordinates)
+            pathBounds.translate(0.0, -spineY);
           roughPaths.append(pathBounds);
         }
       }
       const QJsonArray paths = expected.value(QStringLiteral("paths")).toArray();
       require(roughPaths.size() == paths.size(), id + QStringLiteral("/path count"));
       for (qsizetype i = 0; i < paths.size(); ++i)
-        compareRect(roughPaths.at(i),
-                    paths.at(i).toObject().value(QStringLiteral("bbox")).toObject(),
+        compareRect(roughPaths.at(i), paths.at(i).toObject().value(QStringLiteral("bbox")).toObject(),
                     QStringLiteral("%1/path/%2").arg(id).arg(i), true, 0.03);
     }
     const QJsonArray texts = expected.value(QStringLiteral("texts")).toArray();
@@ -167,10 +158,8 @@ int main(int argc, char** argv) {
       const QJsonObject text = texts.at(i).toObject();
       require(scene->texts.at(i).source == text.value(QStringLiteral("value")).toString(),
               QStringLiteral("%1/text/%2/value").arg(id).arg(i));
-      compareRect(scene->texts.at(i).bounds,
-                  text.value(QStringLiteral("bbox")).toObject(),
-                  QStringLiteral("%1/text/%2").arg(id).arg(i), i != 0,
-                  0.04);
+      compareRect(scene->texts.at(i).bounds, text.value(QStringLiteral("bbox")).toObject(),
+                  QStringLiteral("%1/text/%2").arg(id).arg(i), i != 0, 0.04);
     }
     require(entry.metadata.title.isEmpty() && entry.metadata.accessibleTitle.isEmpty() &&
                 entry.metadata.accessibleDescription.isEmpty(),

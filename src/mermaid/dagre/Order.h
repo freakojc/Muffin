@@ -10,4 +10,4 @@ namespace muffin::mermaid::dagre {
 
 void order(DagreGraph& g);
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

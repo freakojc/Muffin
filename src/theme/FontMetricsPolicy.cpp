@@ -6,12 +6,15 @@
 
 qreal muffin::font_rendering::syntheticBoldAdvanceCorrection(const QFont& font) {
 #if defined(Q_OS_WIN)
-  if (font.weight() < QFont::DemiBold) return 0;
+  if (font.weight() < QFont::DemiBold)
+    return 0;
   const auto bold = QRawFont::fromFont(font);
   const auto os2 = bold.fontTable("OS/2");
-  if (!bold.isValid() || os2.size() < 6 || !bold.fontTable("fvar").isEmpty()) return 0;
+  if (!bold.isValid() || os2.size() < 6 || !bold.fontTable("fvar").isEmpty())
+    return 0;
   const auto faceWeight = qFromBigEndian<quint16>(os2.constData() + 4);
-  if (faceWeight < 1 || faceWeight >= QFont::DemiBold || faceWeight >= font.weight()) return 0;
+  if (faceWeight < 1 || faceWeight >= QFont::DemiBold || faceWeight >= font.weight())
+    return 0;
   auto originalFont = font;
   originalFont.setWeight(static_cast<QFont::Weight>(faceWeight));
   const auto original = QRawFont::fromFont(originalFont);

@@ -12,9 +12,8 @@ namespace muffin::mermaid::venn {
 enum class VennErrorKind { Lexer, Parser, Runtime };
 
 class VennParseError final : public std::runtime_error {
- public:
-  VennParseError(VennErrorKind kind, int line, int column, QString token,
-                 const QString& message);
+public:
+  VennParseError(VennErrorKind kind, int line, int column, QString token, const QString& message);
 
   VennErrorKind kind = VennErrorKind::Parser;
   int line = 1;
@@ -52,8 +51,8 @@ struct VennData {
 };
 
 class VennDiagram {
- public:
+public:
   static VennData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::venn
+} // namespace muffin::mermaid::venn

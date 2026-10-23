@@ -18,10 +18,10 @@ struct InlineHtmlFormatResult {
 
 class InlineHtmlRenderer {
 public:
- InlineHtmlFormatResult render(const QString& htmlFragment, qreal baseFontSize,
-                               const HtmlColorPalette& palette = HtmlColorPalette::defaultLight()) const;
+  InlineHtmlFormatResult render(const QString& htmlFragment, qreal baseFontSize,
+                                const HtmlColorPalette& palette = HtmlColorPalette::defaultLight()) const;
 
- static bool isRenderableTag(QStringView tagName);
+  static bool isRenderableTag(QStringView tagName);
 };
 
-}  // namespace muffin::html
+} // namespace muffin::html

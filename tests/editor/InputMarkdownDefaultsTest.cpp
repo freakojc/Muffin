@@ -17,9 +17,9 @@ using namespace muffin;
 // Quotes become curly and "--"/"---" collapse to en/em dashes, gated by markdown/convertOnInput.
 
 void testSmartQuotes() {
-  SettingsOverride mode("markdown/convertOnInput", 1);   // convert single chars while typing
+  SettingsOverride mode("markdown/convertOnInput", 1); // convert single chars while typing
   SettingsOverride quotes("markdown/smartQuotes", true);
-  SettingsOverride doubleStyle("markdown/doubleQuoteStyle", 0);  // 0 = curly
+  SettingsOverride doubleStyle("markdown/doubleQuoteStyle", 0); // 0 = curly
   DocumentSession session;
   SelectionController selection;
   UndoStack undoStack;
@@ -28,7 +28,7 @@ void testSmartQuotes() {
   wireInput(input, session, selection, undoStack, brushQueue);
 
   session.setMarkdownText(QStringLiteral("word"), false);
-  setCursor(selection, blockAt(session, 0), 4);  // end of "word"
+  setCursor(selection, blockAt(session, 0), 4); // end of "word"
   require(input.insertText(QStringLiteral("\"")), "typing a quote should succeed");
   // Preceding char is a letter -> closing curly quote (U+201D), and it must NOT auto-pair.
   require(session.markdownText().toString() == QStringLiteral("word") + QString::fromUtf8("\xe2\x80\x9d"),
@@ -46,7 +46,7 @@ void testSmartDashes() {
   wireInput(input, session, selection, undoStack, brushQueue);
 
   session.setMarkdownText(QStringLiteral("a-"), false);
-  setCursor(selection, blockAt(session, 0), 2);  // after the single '-'
+  setCursor(selection, blockAt(session, 0), 2); // after the single '-'
   require(input.insertText(QStringLiteral("-")), "typing a dash should succeed");
   // "--" -> en-dash (U+2013): the existing '-' + typed '-' collapse.
   require(session.markdownText().toString() == QStringLiteral("a") + QString::fromUtf8("\xe2\x80\x93"),
@@ -55,7 +55,7 @@ void testSmartDashes() {
 
 void testSmartEllipsis() {
   SettingsOverride mode("markdown/convertOnInput", 1);
-  SettingsOverride dashes("markdown/smartDashes", true);  // ellipsis rides on Smart Dashes
+  SettingsOverride dashes("markdown/smartDashes", true); // ellipsis rides on Smart Dashes
   DocumentSession session;
   SelectionController selection;
   UndoStack undoStack;
@@ -64,7 +64,7 @@ void testSmartEllipsis() {
   wireInput(input, session, selection, undoStack, brushQueue);
 
   session.setMarkdownText(QStringLiteral("a.."), false);
-  setCursor(selection, blockAt(session, 0), 3);  // after the two dots
+  setCursor(selection, blockAt(session, 0), 3); // after the two dots
   require(input.insertText(QStringLiteral(".")), "typing a dot should succeed");
   // "..." -> ellipsis (U+2026): the two existing dots + typed dot collapse.
   require(session.markdownText().toString() == QStringLiteral("a") + QString::fromUtf8("\xe2\x80\xa6"),
@@ -81,8 +81,8 @@ void testSmartDashEscapeKeepsLiteral() {
   InputController input;
   wireInput(input, session, selection, undoStack, brushQueue);
 
-  session.setMarkdownText(QStringLiteral("a\\-"), false);  // backslash-escaped dash
-  setCursor(selection, blockAt(session, 0), 3);  // after the escaped dash
+  session.setMarkdownText(QStringLiteral("a\\-"), false); // backslash-escaped dash
+  setCursor(selection, blockAt(session, 0), 3);           // after the escaped dash
   require(input.insertText(QStringLiteral("-")), "typing a dash should succeed");
   // The first dash is escaped, so the run must NOT collapse to an en-dash.
   require(session.markdownText().toString() == QStringLiteral("a\\--"),

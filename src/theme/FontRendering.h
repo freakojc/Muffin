@@ -4,7 +4,9 @@
 #include <QHash>
 #include <QStringList>
 
-namespace muffin { enum class TextBackend; }
+namespace muffin {
+enum class TextBackend;
+}
 namespace muffin::font_rendering {
 
 // Apply the platform screen-rasterization policy without changing any
@@ -33,4 +35,4 @@ QString fontFaceAliasKey(const QString& family, int weight, bool italic);
 QStringList cssFamilyList(const QString& raw, const QString& platformTail, const QHash<QString, QString>& aliases = {},
                           int weight = 400, bool italic = false);
 
-}  // namespace muffin::font_rendering
+} // namespace muffin::font_rendering

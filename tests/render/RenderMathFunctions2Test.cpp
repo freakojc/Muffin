@@ -25,10 +25,12 @@ namespace {
 
 void testRemainingKatexFunctionsPart2() {
   {
-    const QStringList symbolCommands{
-        QStringLiteral("\\zeta"), QStringLiteral("\\Xi"), QStringLiteral("\\oplus"), QStringLiteral("\\supseteq"),
-        QStringLiteral("\\approx"), QStringLiteral("\\Longleftrightarrow"), QStringLiteral("\\aleph"), QStringLiteral("\\clubsuit"),
-        QStringLiteral("\\nless"), QStringLiteral("\\Finv"), QStringLiteral("\\dashrightarrow")};
+    const QStringList symbolCommands{QStringLiteral("\\zeta"),          QStringLiteral("\\Xi"),
+                                     QStringLiteral("\\oplus"),         QStringLiteral("\\supseteq"),
+                                     QStringLiteral("\\approx"),        QStringLiteral("\\Longleftrightarrow"),
+                                     QStringLiteral("\\aleph"),         QStringLiteral("\\clubsuit"),
+                                     QStringLiteral("\\nless"),         QStringLiteral("\\Finv"),
+                                     QStringLiteral("\\dashrightarrow")};
     for (const QString& command : symbolCommands) {
       const math::MathSymbolInfo symbol = math::lookupSymbol(command);
       require(symbol.known, QStringLiteral("symbol table should include %1").arg(command));
@@ -39,9 +41,13 @@ void testRemainingKatexFunctionsPart2() {
     const QVector<math::MathParseNode> nodes = parser.parse();
     bool sawHtmlBranch = false, sawHbox = false, sawRmDeclaration = false;
     for (const math::MathParseNode& node : nodes) {
-      if (node.type == math::MathNodeType::Group && node.label == QStringLiteral("\\html@mathml") && !node.body.isEmpty()) sawHtmlBranch = true;
-      if (node.type == math::MathNodeType::Group && node.label == QStringLiteral("\\hbox")) sawHbox = true;
-      if (node.type == math::MathNodeType::Text && node.label == QStringLiteral("\\rm") && !node.body.isEmpty()) sawRmDeclaration = true;
+      if (node.type == math::MathNodeType::Group && node.label == QStringLiteral("\\html@mathml") &&
+          !node.body.isEmpty())
+        sawHtmlBranch = true;
+      if (node.type == math::MathNodeType::Group && node.label == QStringLiteral("\\hbox"))
+        sawHbox = true;
+      if (node.type == math::MathNodeType::Text && node.label == QStringLiteral("\\rm") && !node.body.isEmpty())
+        sawRmDeclaration = true;
     }
     require(sawHtmlBranch && sawHbox && sawRmDeclaration,
             QStringLiteral("htmlmathml hbox and old font declarations should preserve KaTeX-like parse semantics"));
@@ -58,14 +64,17 @@ void testRemainingKatexFunctionsPart2() {
                 colorNodes.first().rows.size() == 3,
             QStringLiteral("color declarations should stop at array row and environment boundaries"));
     std::unique_ptr<math::MathRenderNode> colorTree =
-        math::MathBuilder(math::MathOptions(math::MathStyle::display(), 16.0, QColor(QStringLiteral("#111111")), math::MathSettings())).buildExpression(colorNodes);
+        math::MathBuilder(math::MathOptions(math::MathStyle::display(), 16.0, QColor(QStringLiteral("#111111")),
+                                            math::MathSettings()))
+            .buildExpression(colorNodes);
     require(colorTree != nullptr && !renderTreeContainsValue(colorTree->toJson(), QStringLiteral("\\end")),
             QStringLiteral("color declarations should not leak environment delimiters into render tree"));
   }
   {
     const QStringList stretchyAccentLabels = {
-        QStringLiteral("\\overrightarrow"), QStringLiteral("\\overleftarrow"), QStringLiteral("\\Overrightarrow"),
-        QStringLiteral("\\overleftrightarrow"), QStringLiteral("\\overgroup"), QStringLiteral("\\overlinesegment"),
+        QStringLiteral("\\overrightarrow"),  QStringLiteral("\\overleftarrow"),
+        QStringLiteral("\\Overrightarrow"),  QStringLiteral("\\overleftrightarrow"),
+        QStringLiteral("\\overgroup"),       QStringLiteral("\\overlinesegment"),
         QStringLiteral("\\overleftharpoon"), QStringLiteral("\\overrightharpoon")};
     for (const QString& label : stretchyAccentLabels) {
       math::MathParser parser(QStringLiteral("%1{AB}").arg(label));
@@ -83,7 +92,8 @@ void testRemainingKatexFunctionsPart2() {
     parser.parse();
   } catch (const math::MathParseError& error) {
     threw = true;
-    require(error.tokenText() == QStringLiteral("\\definitelyUnsupported"), QStringLiteral("unsupported command error should keep token text"));
+    require(error.tokenText() == QStringLiteral("\\definitelyUnsupported"),
+            QStringLiteral("unsupported command error should keep token text"));
   }
   require(threw, QStringLiteral("throwOnError should raise MathParseError for unsupported commands"));
 
@@ -95,7 +105,8 @@ void testRemainingKatexFunctionsPart2() {
     parser.parse();
   } catch (const math::MathParseError& error) {
     threw = true;
-    require(error.message().contains(QStringLiteral("htmlExtension")), QStringLiteral("strict html extension should report category"));
+    require(error.message().contains(QStringLiteral("htmlExtension")),
+            QStringLiteral("strict html extension should report category"));
   }
   require(threw, QStringLiteral("strict error should throw on nonstrict html extension"));
 
@@ -107,7 +118,8 @@ void testRemainingKatexFunctionsPart2() {
     parser.parse();
   } catch (const math::MathParseError& error) {
     threw = true;
-    require(error.message().contains(QStringLiteral("unknownSymbol")), QStringLiteral("unknown command should report unknownSymbol"));
+    require(error.message().contains(QStringLiteral("unknownSymbol")),
+            QStringLiteral("unknown command should report unknownSymbol"));
   }
   require(threw, QStringLiteral("strict unknown command should throw unknownSymbol"));
 
@@ -145,7 +157,8 @@ void testRemainingKatexFunctionsPart2() {
     parser.parse();
   } catch (const math::MathParseError& error) {
     threw = true;
-    require(error.message().contains(QStringLiteral("mathVsTextUnits")), QStringLiteral("mkern em should report mathVsTextUnits"));
+    require(error.message().contains(QStringLiteral("mathVsTextUnits")),
+            QStringLiteral("mkern em should report mathVsTextUnits"));
   }
   require(threw, QStringLiteral("strict mkern with non-mu units should throw"));
 
@@ -155,7 +168,8 @@ void testRemainingKatexFunctionsPart2() {
     parser.parse();
   } catch (const math::MathParseError& error) {
     threw = true;
-    require(error.message().contains(QStringLiteral("mathVsTextUnits")), QStringLiteral("kern mu should report mathVsTextUnits"));
+    require(error.message().contains(QStringLiteral("mathVsTextUnits")),
+            QStringLiteral("kern mu should report mathVsTextUnits"));
   }
   require(threw, QStringLiteral("strict kern with mu units should throw"));
 
@@ -167,7 +181,8 @@ void testRemainingKatexFunctionsPart2() {
     parser.parse();
   } catch (const math::MathParseError& error) {
     threw = true;
-    require(error.message().contains(QStringLiteral("not trusted")), QStringLiteral("untrusted href should throw trust error"));
+    require(error.message().contains(QStringLiteral("not trusted")),
+            QStringLiteral("untrusted href should throw trust error"));
   }
   require(threw, QStringLiteral("untrusted href should be rejected when throwOnError is enabled"));
 
@@ -203,7 +218,8 @@ void testRemainingKatexFunctionsPart2() {
     parser.parse();
   } catch (const math::MathParseError& error) {
     threw = true;
-    require(error.message().contains(QStringLiteral("missing equals sign")), QStringLiteral("htmlData missing equals should throw"));
+    require(error.message().contains(QStringLiteral("missing equals sign")),
+            QStringLiteral("htmlData missing equals should throw"));
   }
   require(threw, QStringLiteral("htmlData missing equals should match KaTeX error behavior"));
 
@@ -233,17 +249,19 @@ void testRemainingKatexFunctionsPart2() {
   const BlockLayout* blockLayout = layout.block(mathBlock->id());
   require(blockLayout != nullptr && blockLayout->mathLayout() != nullptr && blockLayout->mathLayout()->valid(),
           QStringLiteral("remaining function block should have native layout"));
-  require(blockLayout->mathLayout()->size.width() > 80.0, QStringLiteral("remaining function layout should have measurable width"));
+  require(blockLayout->mathLayout()->size.width() > 80.0,
+          QStringLiteral("remaining function layout should have measurable width"));
 
   QImage image(QSize(880, qCeil(blockLayout->height()) + 50), QImage::Format_ARGB32);
   image.fill(theme.backgroundColor());
   QPainter painter(&image);
   blockLayout->paint(painter, theme, blockLayout->rect().top() - 12.0);
   painter.end();
-  require(changedPixelCount(image, theme.backgroundColor()) > 160, QStringLiteral("remaining function paint should draw visible pixels"));
+  require(changedPixelCount(image, theme.backgroundColor()) > 160,
+          QStringLiteral("remaining function paint should draw visible pixels"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

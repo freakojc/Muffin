@@ -15,4 +15,4 @@ void boxBlur(QImage& image, int radius, int passes = 3);
 // Used by text-shadow and filter rendering.
 QImage blurred(const QImage& src, qreal radius);
 
-}  // namespace muffin
+} // namespace muffin

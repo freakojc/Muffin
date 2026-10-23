@@ -15,10 +15,11 @@ void normalizeEdge(DagreGraph& g, const graphlib::Edge& e) {
   const DagreEdgeLabel edgeLabel = *g.edge(e);
   const std::optional<int> labelRank = edgeLabel.labelRank;
 
-  if (wRank == vRank + 1) return;
+  if (wRank == vRank + 1)
+    return;
   g.removeEdge(e);
 
-  DagreEdgeLabel chainLabel = edgeLabel;  // value-captured; faithful for output
+  DagreEdgeLabel chainLabel = edgeLabel; // value-captured; faithful for output
   QString cur = v;
   for (int i = 0, r = vRank + 1; r < wRank; ++i, ++r) {
     chainLabel.points.clear();
@@ -42,7 +43,8 @@ void normalizeEdge(DagreGraph& g, const graphlib::Edge& e) {
       g.setEdge(cur, dummy, seg, name);
     else
       g.setEdge(cur, dummy, seg);
-    if (i == 0) g.graph()->dummyChains.append(dummy);
+    if (i == 0)
+      g.graph()->dummyChains.append(dummy);
     cur = dummy;
   }
   DagreEdgeLabel seg;
@@ -53,12 +55,13 @@ void normalizeEdge(DagreGraph& g, const graphlib::Edge& e) {
     g.setEdge(cur, w, seg);
 }
 
-}  // namespace
+} // namespace
 
 void runNormalize(DagreGraph& g) {
   g.graph()->dummyChains.clear();
   const QList<graphlib::Edge> all = g.edges();
-  for (const graphlib::Edge& e : all) normalizeEdge(g, e);
+  for (const graphlib::Edge& e : all)
+    normalizeEdge(g, e);
 }
 
 void undoNormalize(DagreGraph& g) {
@@ -66,7 +69,8 @@ void undoNormalize(DagreGraph& g) {
   for (const QString& v0 : chains) {
     QString v = v0;
     DagreNodeLabel* node = g.node(v);
-    if (!node || !node->edgeObj.has_value() || !node->edgeLabel.has_value()) continue;
+    if (!node || !node->edgeObj.has_value() || !node->edgeLabel.has_value())
+      continue;
     const graphlib::Edge edgeObj = *node->edgeObj;
     DagreEdgeLabel base = *node->edgeLabel;
     base.points.clear();
@@ -74,7 +78,8 @@ void undoNormalize(DagreGraph& g) {
     base.y.reset();
     g.setEdge(edgeObj, base);
     DagreEdgeLabel* live = g.edge(edgeObj);
-    if (!live) continue;
+    if (!live)
+      continue;
     live->points.clear();
     while (node && !node->dummy.isEmpty()) {
       const QList<QString> sucs = g.successors(v);
@@ -93,4 +98,4 @@ void undoNormalize(DagreGraph& g) {
   }
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

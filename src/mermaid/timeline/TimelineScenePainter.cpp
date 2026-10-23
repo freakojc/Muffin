@@ -18,7 +18,8 @@ namespace muffin::mermaid::timeline {
 namespace {
 
 QColor brighten(QColor color, bool enabled) {
-  if (!enabled || !color.isValid()) return color;
+  if (!enabled || !color.isValid())
+    return color;
   color.setRed(std::min(255, qRound(color.red() * 1.2)));
   color.setGreen(std::min(255, qRound(color.green() * 1.2)));
   color.setBlue(std::min(255, qRound(color.blue() * 1.2)));
@@ -37,13 +38,13 @@ QStringList cssFontFamilies(const QString& expression) {
   return editor::cssFamilyList(expression);
 }
 
-editor::CssPixelFont paintFont(const QString& family, qreal size,
-                               QFont::Weight weight) {
+editor::CssPixelFont paintFont(const QString& family, qreal size, QFont::Weight weight) {
   const QStringList families = cssFontFamilies(family);
-  editor::CssPixelFont font =
-      editor::makeUnhintedCssPixelFont(families.first(), size);
-  if (families.size() > 1) font.font.setFamilies(families);
-  if (families.last().compare(QLatin1String("monospace"), Qt::CaseInsensitive) == 0) font.font.setStyleHint(QFont::Monospace);
+  editor::CssPixelFont font = editor::makeUnhintedCssPixelFont(families.first(), size);
+  if (families.size() > 1)
+    font.font.setFamilies(families);
+  if (families.last().compare(QLatin1String("monospace"), Qt::CaseInsensitive) == 0)
+    font.font.setStyleHint(QFont::Monospace);
   font.font.setWeight(weight);
   return font;
 }
@@ -69,7 +70,8 @@ QPainterPath nodePath(const TimelineNodeGeometry& node) {
 
 QColor inheritedColor(const TimelineScene& scene) {
   const QString value = scene.style.textColor.trimmed();
-  if (color::isParsableColor(value)) return color::toQColor(value);
+  if (color::isParsableColor(value))
+    return color::toQColor(value);
   return QColor(Qt::black);
 }
 
@@ -91,44 +93,37 @@ QColor cssCurrentColor(const QString& colorValue) {
   return color::isParsableColor(raw) ? color::toQColor(raw) : QColor(Qt::black);
 }
 
-}  // namespace
+} // namespace
 
-TimelinePaintState timelineElementFill(const QString& value, const QColor& root,
-                                       const QColor& currentColor) {
+TimelinePaintState timelineElementFill(const QString& value, const QColor& root, const QColor& currentColor) {
   const QString raw = value.trimmed();
   const QString lower = raw.toLower();
-  if (raw.isEmpty() || lower == QLatin1String("inherit") ||
-      lower == QLatin1String("unset") || lower == QLatin1String("revert") ||
-      lower == QLatin1String("revert-layer") ||
-      (!color::isParsableColor(raw) && lower != QLatin1String("none") &&
-       lower != QLatin1String("currentcolor") &&
+  if (raw.isEmpty() || lower == QLatin1String("inherit") || lower == QLatin1String("unset") ||
+      lower == QLatin1String("revert") || lower == QLatin1String("revert-layer") ||
+      (!color::isParsableColor(raw) && lower != QLatin1String("none") && lower != QLatin1String("currentcolor") &&
        lower != QLatin1String("initial")))
     return {.none = false, .color = root};
-  if (lower == QLatin1String("none")) return {.none = true, .color = QColor()};
-  if (lower == QLatin1String("currentcolor") ||
-      lower == QLatin1String("initial"))
+  if (lower == QLatin1String("none"))
+    return {.none = true, .color = QColor()};
+  if (lower == QLatin1String("currentcolor") || lower == QLatin1String("initial"))
     return {.none = false, .color = currentColor};
   return {.none = false, .color = color::toQColor(raw)};
 }
 
-TimelinePaintState timelineLineStroke(const QString& value,
-                                      const QColor& presentation,
-                                      const QColor& inheritedColor) {
+TimelinePaintState timelineLineStroke(const QString& value, const QColor& presentation, const QColor& inheritedColor) {
   const QString raw = value.trimmed();
-  const bool keyword =
-      raw.compare(QStringLiteral("none"), Qt::CaseInsensitive) == 0 ||
-      raw.compare(QStringLiteral("currentColor"), Qt::CaseInsensitive) == 0 ||
-      raw.compare(QStringLiteral("inherit"), Qt::CaseInsensitive) == 0 ||
-      raw.compare(QStringLiteral("initial"), Qt::CaseInsensitive) == 0 ||
-      raw.compare(QStringLiteral("unset"), Qt::CaseInsensitive) == 0 ||
-      raw.compare(QStringLiteral("revert"), Qt::CaseInsensitive) == 0;
+  const bool keyword = raw.compare(QStringLiteral("none"), Qt::CaseInsensitive) == 0 ||
+                       raw.compare(QStringLiteral("currentColor"), Qt::CaseInsensitive) == 0 ||
+                       raw.compare(QStringLiteral("inherit"), Qt::CaseInsensitive) == 0 ||
+                       raw.compare(QStringLiteral("initial"), Qt::CaseInsensitive) == 0 ||
+                       raw.compare(QStringLiteral("unset"), Qt::CaseInsensitive) == 0 ||
+                       raw.compare(QStringLiteral("revert"), Qt::CaseInsensitive) == 0;
   if (raw.isEmpty() || (!keyword && !color::isParsableColor(raw))) {
     // The stylesheet declaration was dropped; the element's presentation
     // attribute stroke remains active.
     return {.none = false, .color = presentation};
   }
-  return color::resolveSvgPaint(raw, color::SvgPaintKind::Stroke,
-                                inheritedColor);
+  return color::resolveSvgPaint(raw, color::SvgPaintKind::Stroke, inheritedColor);
 }
 
 namespace {
@@ -140,36 +135,26 @@ qreal effectiveOpacity(const TimelineElementCss& css) {
 // A themeCSS stroke-width resolves like any other CSS length: em/ex against
 // the root font, percentages against the viewBox diagonal.
 qreal cssStrokeWidthValue(const QString& raw, const TimelineScene& scene) {
-  CssLengthContext context = editor::pieCssLengthContext(
-      scene.style.fontFamily, scene.style.fontSize);
+  CssLengthContext context = editor::pieCssLengthContext(scene.style.fontFamily, scene.style.fontSize);
   context.viewportPx = scene.bounds.size();
-  const qreal diagonal =
-      std::hypot(scene.bounds.width(), scene.bounds.height()) /
-      std::sqrt(2.0);
+  const qreal diagonal = std::hypot(scene.bounds.width(), scene.bounds.height()) / std::sqrt(2.0);
   return editor::cssStrokeWidthPx(raw, context, diagonal);
 }
 
-QBrush gradientBrush(const TimelineScene& scene,
-                     const TimelineNodeGeometry& node) {
+QBrush gradientBrush(const TimelineScene& scene, const TimelineNodeGeometry& node) {
   QLinearGradient gradient(0.0, 0.0, node.width, 0.0);
-  gradient.setColorAt(0.0, brighten(color::toQColor(scene.style.gradientStart),
-                                    node.eventBrightness));
-  gradient.setColorAt(1.0, brighten(color::toQColor(scene.style.gradientStop),
-                                    node.eventBrightness));
+  gradient.setColorAt(0.0, brighten(color::toQColor(scene.style.gradientStart), node.eventBrightness));
+  gradient.setColorAt(1.0, brighten(color::toQColor(scene.style.gradientStop), node.eventBrightness));
   return QBrush(gradient);
 }
 
-void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node,
-               QPainter& painter) {
-  if (!std::isfinite(node.position.x()) ||
-      !std::isfinite(node.position.y()))
+void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node, QPainter& painter) {
+  if (!std::isfinite(node.position.x()) || !std::isfinite(node.position.y()))
     return;
   painter.save();
   painter.translate(node.position);
-  const bool validPathGeometry = std::isfinite(node.width) &&
-                                 std::isfinite(node.height);
-  const bool partialTopEdge = std::isfinite(node.width) &&
-                              !std::isfinite(node.height);
+  const bool validPathGeometry = std::isfinite(node.width) && std::isfinite(node.height);
+  const bool partialTopEdge = std::isfinite(node.width) && !std::isfinite(node.height);
   QPainterPath path;
   if (validPathGeometry) {
     path = nodePath(node);
@@ -179,16 +164,12 @@ void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node,
   }
   const QColor rootFill = rootSvgFill(scene).color;
   const QColor inherited = inheritedColor(scene);
-  color::SvgPaint fill = timelineElementFill(
-      node.boxCss.fill.isEmpty() ? node.fill : node.boxCss.fill, rootFill,
-      cssCurrentColor(node.boxCss.color));
-  const color::SvgPaint baseStroke = color::resolveSvgPaint(
-      node.stroke, color::SvgPaintKind::Stroke, inherited);
+  color::SvgPaint fill = timelineElementFill(node.boxCss.fill.isEmpty() ? node.fill : node.boxCss.fill, rootFill,
+                                             cssCurrentColor(node.boxCss.color));
+  const color::SvgPaint baseStroke = color::resolveSvgPaint(node.stroke, color::SvgPaintKind::Stroke, inherited);
   color::SvgPaint stroke = baseStroke;
   if (!node.boxCss.stroke.isEmpty())
-    stroke = timelineLineStroke(
-        node.boxCss.stroke,
-        baseStroke.none ? QColor(Qt::black) : baseStroke.color, inherited);
+    stroke = timelineLineStroke(node.boxCss.stroke, baseStroke.none ? QColor(Qt::black) : baseStroke.color, inherited);
   fill.color = brighten(fill.color, node.eventBrightness);
   stroke.color = brighten(stroke.color, node.eventBrightness);
   qreal strokeWidth = node.strokeWidth;
@@ -196,31 +177,22 @@ void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node,
     strokeWidth = cssStrokeWidthValue(node.boxCss.strokeWidth, scene);
   // The neo gradient stroke is the base rule's url() paint; a user stroke
   // declaration replaces it, a width-only declaration widens it.
-  const bool gradientStroke =
-      node.gradientStroke && node.boxCss.stroke.isEmpty();
+  const bool gradientStroke = node.gradientStroke && node.boxCss.stroke.isEmpty();
 
-  const qreal fillSourceAlpha =
-      validPathGeometry && !fill.none ? fill.color.alphaF() : 0.0;
+  const qreal fillSourceAlpha = validPathGeometry && !fill.none ? fill.color.alphaF() : 0.0;
   const QColor gradientStart = color::toQColor(scene.style.gradientStart);
   const QColor gradientStop = color::toQColor(scene.style.gradientStop);
-  const qreal outlineSourceAlpha =
-      gradientStroke && strokeWidth > 0.0
-          ? std::max(gradientStart.alphaF(), gradientStop.alphaF())
-          : !stroke.none && strokeWidth > 0.0 ? stroke.color.alphaF()
-                                              : 0.0;
+  const qreal outlineSourceAlpha = gradientStroke && strokeWidth > 0.0
+                                       ? std::max(gradientStart.alphaF(), gradientStop.alphaF())
+                                   : !stroke.none && strokeWidth > 0.0 ? stroke.color.alphaF()
+                                                                       : 0.0;
   const bool fillSourceVisible = fillSourceAlpha > 0.0;
   const bool outlineSourceVisible = outlineSourceAlpha > 0.0;
   if (node.boxCss.visible) {
-    if (!path.isEmpty() && node.dropShadow &&
-        (fillSourceVisible || outlineSourceVisible)) {
-      QColor shadow = scene.style.themeName.contains(QStringLiteral("dark"),
-                                                     Qt::CaseSensitive)
-                          ? QColor(Qt::white)
-                          : QColor(Qt::black);
-      shadow.setAlphaF(scene.style.themeName.contains(QStringLiteral("dark"),
-                                                     Qt::CaseSensitive)
-                           ? 0.2
-                           : 0.06);
+    if (!path.isEmpty() && node.dropShadow && (fillSourceVisible || outlineSourceVisible)) {
+      QColor shadow = scene.style.themeName.contains(QStringLiteral("dark"), Qt::CaseSensitive) ? QColor(Qt::white)
+                                                                                                : QColor(Qt::black);
+      shadow.setAlphaF(scene.style.themeName.contains(QStringLiteral("dark"), Qt::CaseSensitive) ? 0.2 : 0.06);
       shadow = brighten(shadow, node.eventBrightness);
       QPainterPath outline;
       if (outlineSourceVisible) {
@@ -233,7 +205,8 @@ void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node,
       painter.save();
       painter.translate(4.0, 4.0);
       auto paintShadow = [&](const QPainterPath& shape, qreal sourceAlpha) {
-        if (shape.isEmpty() || !(sourceAlpha > 0.0)) return;
+        if (shape.isEmpty() || !(sourceAlpha > 0.0))
+          return;
         QColor paint = shadow;
         paint.setAlphaF(std::clamp(shadow.alphaF() * sourceAlpha, 0.0, 1.0));
         painter.fillPath(shape, paint);
@@ -242,8 +215,7 @@ void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node,
         const QPainterPath overlap = path.intersected(outline);
         paintShadow(path.subtracted(outline), fillSourceAlpha);
         paintShadow(outline.subtracted(path), outlineSourceAlpha);
-        paintShadow(overlap, outlineSourceAlpha +
-                                 fillSourceAlpha * (1.0 - outlineSourceAlpha));
+        paintShadow(overlap, outlineSourceAlpha + fillSourceAlpha * (1.0 - outlineSourceAlpha));
       } else if (fillSourceVisible) {
         paintShadow(path, fillSourceAlpha);
       } else {
@@ -276,16 +248,14 @@ void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node,
     qreal dividerWidth = node.dividerWidth;
     if (!node.dividerCss.strokeWidth.isEmpty())
       dividerWidth = cssStrokeWidthValue(node.dividerCss.strokeWidth, scene);
-    if (node.dividerCss.visible && validPathGeometry && node.dividerVisible &&
-        dividerWidth > 0.0) {
+    if (node.dividerCss.visible && validPathGeometry && node.dividerVisible && dividerWidth > 0.0) {
       QPen divider;
       if (gradientStroke) {
         divider = QPen(gradientBrush(scene, node), dividerWidth);
       } else {
-        color::SvgPaint paint = timelineLineStroke(
-            node.dividerCss.stroke.isEmpty() ? node.dividerStroke
-                                             : node.dividerCss.stroke,
-            QColor(Qt::black), inherited);
+        color::SvgPaint paint =
+            timelineLineStroke(node.dividerCss.stroke.isEmpty() ? node.dividerStroke : node.dividerCss.stroke,
+                               QColor(Qt::black), inherited);
         paint.color = brighten(paint.color, node.eventBrightness);
         divider = paint.none ? QPen(Qt::NoPen) : QPen(paint.color, dividerWidth);
       }
@@ -293,28 +263,21 @@ void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node,
       painter.save();
       painter.setOpacity(effectiveOpacity(node.dividerCss));
       painter.setPen(divider);
-      painter.drawLine(QPointF(0.0, node.height),
-                       QPointF(node.width, node.height));
+      painter.drawLine(QPointF(0.0, node.height), QPointF(node.width, node.height));
       painter.restore();
     }
   }
 
   if (node.textCss.visible) {
-    color::SvgPaint textPaint = timelineElementFill(
-        node.textCss.fill.isEmpty() ? node.textFill : node.textCss.fill,
-        rootFill, cssCurrentColor(node.textCss.color));
-    const qreal fontSize = node.textCss.fontSize >= 0.0
-                               ? node.textCss.fontSize
-                               : scene.style.fontSize;
+    color::SvgPaint textPaint = timelineElementFill(node.textCss.fill.isEmpty() ? node.textFill : node.textCss.fill,
+                                                    rootFill, cssCurrentColor(node.textCss.color));
+    const qreal fontSize = node.textCss.fontSize >= 0.0 ? node.textCss.fontSize : scene.style.fontSize;
     if (!textPaint.none && fontSize > 0.0) {
       textPaint.color = brighten(textPaint.color, node.eventBrightness);
-      const QString family = node.textCss.fontFamily.isEmpty()
-                                 ? scene.style.fontFamily
-                                 : node.textCss.fontFamily;
+      const QString family = node.textCss.fontFamily.isEmpty() ? scene.style.fontFamily : node.textCss.fontFamily;
       const QFont::Weight weight =
           !node.textCss.fontWeight.isEmpty()
-              ? editor::cssFontWeightToQt(QJsonValue(node.textCss.fontWeight),
-                                          scene.style.nodeFontWeight)
+              ? editor::cssFontWeightToQt(QJsonValue(node.textCss.fontWeight), scene.style.nodeFontWeight)
               : scene.style.nodeFontWeight;
       editor::CssPixelFont font = paintFont(family, fontSize, weight);
       painter.save();
@@ -322,13 +285,12 @@ void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node,
       painter.setFont(font.font);
       painter.setPen(textPaint.color);
       for (const TimelineTextLine& line : node.textLines) {
-        if (line.visibleText.isEmpty()) continue;
+        if (line.visibleText.isEmpty())
+          continue;
         painter.save();
         painter.translate(node.textOffset + line.baseline);
         painter.scale(font.scale, font.scale);
-        drawDocumentText(painter, QPointF(-font.horizontalAdvance(line.visibleText) /
-                                     (2.0 * font.scale),
-                                 0.0),
+        drawDocumentText(painter, QPointF(-font.horizontalAdvance(line.visibleText) / (2.0 * font.scale), 0.0),
                          line.visibleText);
         painter.restore();
       }
@@ -338,11 +300,12 @@ void paintNode(const TimelineScene& scene, const TimelineNodeGeometry& node,
   painter.restore();
 }
 
-void paintArrow(const TimelineScene& scene, const TimelineLineGeometry& line,
-                QPainter& painter) {
-  if (!line.markerEnd || !line.markerResolved || !(line.strokeWidth > 0.0)) return;
+void paintArrow(const TimelineScene& scene, const TimelineLineGeometry& line, QPainter& painter) {
+  if (!line.markerEnd || !line.markerResolved || !(line.strokeWidth > 0.0))
+    return;
   const color::SvgPaint markerFill = rootSvgFill(scene);
-  if (markerFill.none) return;
+  if (markerFill.none)
+    return;
   const QPointF start = svgLinePoint(line.start);
   const QPointF end = svgLinePoint(line.end);
   const QPointF delta = end - start;
@@ -363,20 +326,18 @@ void paintArrow(const TimelineScene& scene, const TimelineLineGeometry& line,
   painter.restore();
 }
 
-void paintLine(const TimelineScene& scene, const TimelineLineGeometry& line,
-               QPainter& painter) {
-  if (!line.css.visible) return;
-  const QString raw = (line.css.stroke.isEmpty() ? line.stroke
-                                                 : line.css.stroke)
-                          .trimmed();
+void paintLine(const TimelineScene& scene, const TimelineLineGeometry& line, QPainter& painter) {
+  if (!line.css.visible)
+    return;
+  const QString raw = (line.css.stroke.isEmpty() ? line.stroke : line.css.stroke).trimmed();
   // The line's presentation attribute stroke="black" is the fallback when the
   // effective declaration was dropped.
-  color::SvgPaint stroke =
-      timelineLineStroke(raw, QColor(Qt::black), inheritedColor(scene));
+  color::SvgPaint stroke = timelineLineStroke(raw, QColor(Qt::black), inheritedColor(scene));
   qreal strokeWidth = line.strokeWidth;
   if (!line.css.strokeWidth.isEmpty())
     strokeWidth = cssStrokeWidthValue(line.css.strokeWidth, scene);
-  if (!(strokeWidth > 0.0)) return;
+  if (!(strokeWidth > 0.0))
+    return;
   if (!stroke.none) {
     painter.save();
     painter.setOpacity(effectiveOpacity(line.css));
@@ -399,19 +360,16 @@ void paintLine(const TimelineScene& scene, const TimelineLineGeometry& line,
 
 void paintTitle(const TimelineScene& scene, QPainter& painter) {
   const TimelineTitleGeometry& title = scene.titleGeometry;
-  if (!title.visible || !(title.fontSize > 0.0) || !title.css.visible) return;
-  const color::SvgPaint fill = timelineElementFill(
-      title.css.fill.isEmpty() ? title.fill : title.css.fill,
-      rootSvgFill(scene).color, cssCurrentColor(title.css.color));
-  if (fill.none) return;
-  const QString family = title.css.fontFamily.isEmpty()
-                             ? scene.style.fontFamily
-                             : title.css.fontFamily;
-  const QFont::Weight weight =
-      !title.css.fontWeight.isEmpty()
-          ? editor::cssFontWeightToQt(QJsonValue(title.css.fontWeight),
-                                      QFont::Bold)
-          : QFont::Bold;
+  if (!title.visible || !(title.fontSize > 0.0) || !title.css.visible)
+    return;
+  const color::SvgPaint fill = timelineElementFill(title.css.fill.isEmpty() ? title.fill : title.css.fill,
+                                                   rootSvgFill(scene).color, cssCurrentColor(title.css.color));
+  if (fill.none)
+    return;
+  const QString family = title.css.fontFamily.isEmpty() ? scene.style.fontFamily : title.css.fontFamily;
+  const QFont::Weight weight = !title.css.fontWeight.isEmpty()
+                                   ? editor::cssFontWeightToQt(QJsonValue(title.css.fontWeight), QFont::Bold)
+                                   : QFont::Bold;
   editor::CssPixelFont font = paintFont(family, title.fontSize, weight);
   painter.save();
   painter.setOpacity(effectiveOpacity(title.css));
@@ -429,23 +387,18 @@ struct PaintItem {
   int order = 0;
 };
 
-}  // namespace
+} // namespace
 
-void paintTimelineScene(const TimelineScene& scene, QPainter& painter,
-                        const MermaidPaintOptions& options) {
+void paintTimelineScene(const TimelineScene& scene, QPainter& painter, const MermaidPaintOptions& options) {
   QVector<PaintItem> items;
   for (qsizetype i = 0; i < scene.nodes.size(); ++i)
-    items.append({PaintItem::Kind::Node, static_cast<int>(i),
-                  scene.nodes.at(i).paintOrder});
+    items.append({PaintItem::Kind::Node, static_cast<int>(i), scene.nodes.at(i).paintOrder});
   for (qsizetype i = 0; i < scene.lines.size(); ++i)
-    items.append({PaintItem::Kind::Line, static_cast<int>(i),
-                  scene.lines.at(i).paintOrder});
+    items.append({PaintItem::Kind::Line, static_cast<int>(i), scene.lines.at(i).paintOrder});
   if (scene.titleGeometry.visible)
     items.append({PaintItem::Kind::Title, -1, scene.titleGeometry.paintOrder});
   std::stable_sort(items.begin(), items.end(),
-                   [](const PaintItem& a, const PaintItem& b) {
-                     return a.order < b.order;
-                   });
+                   [](const PaintItem& a, const PaintItem& b) { return a.order < b.order; });
 
   painter.save();
   painter.setRenderHint(QPainter::Antialiasing, true);
@@ -453,20 +406,17 @@ void paintTimelineScene(const TimelineScene& scene, QPainter& painter,
   for (const PaintItem& item : items) {
     if (item.kind == PaintItem::Kind::Node) {
       const TimelineNodeGeometry& node = scene.nodes.at(item.index);
-      if (mermaidPrimitiveIsVisible(
-              QRectF(node.position, QSizeF(node.width, node.height)), options))
+      if (mermaidPrimitiveIsVisible(QRectF(node.position, QSizeF(node.width, node.height)), options))
         paintNode(scene, node, painter);
     } else if (item.kind == PaintItem::Kind::Line) {
       const TimelineLineGeometry& line = scene.lines.at(item.index);
-      if (mermaidPrimitiveIsVisible(QRectF(line.start, line.end).normalized(),
-                                    options))
+      if (mermaidPrimitiveIsVisible(QRectF(line.start, line.end).normalized(), options))
         paintLine(scene, line, painter);
-    } else if (mermaidPrimitiveIsVisible(scene.titleGeometry.logicalBounds,
-                                         options)) {
+    } else if (mermaidPrimitiveIsVisible(scene.titleGeometry.logicalBounds, options)) {
       paintTitle(scene, painter);
     }
   }
   painter.restore();
 }
 
-}  // namespace muffin::mermaid::timeline
+} // namespace muffin::mermaid::timeline

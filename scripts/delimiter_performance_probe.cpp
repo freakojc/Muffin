@@ -23,18 +23,22 @@ void messages(QtMsgType type, const QMessageLogContext& context, const QString& 
     delimiterProfiles.append(QJsonDocument::fromJson(message.toUtf8()).object());
     return;
   }
-  if (type >= QtWarningMsg) std::fprintf(stderr, "%s\n", qPrintable(message));
-  if (type == QtFatalMsg) std::abort();
+  if (type >= QtWarningMsg)
+    std::fprintf(stderr, "%s\n", qPrintable(message));
+  if (type == QtFatalMsg)
+    std::abort();
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
-  if (argc != 4) return 2;
+  if (argc != 4)
+    return 2;
   const int mib = QString::fromLocal8Bit(argv[1]).toInt();
   const int repetitions = QString::fromLocal8Bit(argv[2]).toInt();
   const int iterations = QString::fromLocal8Bit(argv[3]).toInt();
-  if (mib < 1 || mib > 100 || repetitions < 1 || repetitions > 10000 || iterations < 1 || iterations > 20) return 2;
+  if (mib < 1 || mib > 100 || repetitions < 1 || repetitions > 10000 || iterations < 1 || iterations > 20)
+    return 2;
   QLoggingCategory::setFilterRules(QStringLiteral("muffin.perf*.debug=false"));
   qInstallMessageHandler(messages);
   const auto paragraph =
@@ -42,7 +46,8 @@ int main(int argc, char** argv) {
           .repeated(repetitions) +
       "\n\n";
   QString text;
-  while (text.size() < qsizetype(mib) * 1024 * 1024) text += paragraph;
+  while (text.size() < qsizetype(mib) * 1024 * 1024)
+    text += paragraph;
   QJsonArray rows;
   for (int i = 0; i < iterations; ++i) {
     delimiterProfiles = {};
@@ -51,7 +56,8 @@ int main(int argc, char** argv) {
     timer.start();
     auto parsed = muffin::CmarkGfmParser().parseDocumentProfiled(text, {});
     const double wallMs = timer.nsecsElapsed() / 1e6;
-    if (!parsed.root) return 3;
+    if (!parsed.root)
+      return 3;
     QJsonArray phases;
     for (const auto& phase : parsed.performanceMetrics.phases)
       phases.append(QJsonObject{{"name", phase.name},

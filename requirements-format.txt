@@ -1,0 +1,2 @@
+# Keep local formatting and CI output identical.
+clang-format==21.1.8

@@ -23,14 +23,18 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString kind(architecture::ArchitectureErrorKind value) {
   switch (value) {
-    case architecture::ArchitectureErrorKind::Lexer: return QStringLiteral("Lexer");
-    case architecture::ArchitectureErrorKind::Parser: return QStringLiteral("Parser");
-    case architecture::ArchitectureErrorKind::Runtime: return QStringLiteral("Runtime");
+  case architecture::ArchitectureErrorKind::Lexer:
+    return QStringLiteral("Lexer");
+  case architecture::ArchitectureErrorKind::Parser:
+    return QStringLiteral("Parser");
+  case architecture::ArchitectureErrorKind::Runtime:
+    return QStringLiteral("Runtime");
   }
   return {};
 }
@@ -39,8 +43,7 @@ bool present(const QJsonObject& object, QLatin1String key) {
   return object.contains(key) && !object.value(key).isNull();
 }
 
-void compareData(const architecture::ArchitectureData& data,
-                 const QJsonObject& db, const QString& id) {
+void compareData(const architecture::ArchitectureData& data, const QJsonObject& db, const QString& id) {
   require(data.title == db.value(QStringLiteral("title")).toString(), id + "/title");
   require(data.accTitle == db.value(QStringLiteral("accTitle")).toString(), id + "/accTitle");
   require(data.accDescr == db.value(QStringLiteral("accDescr")).toString(), id + "/accDescr");
@@ -70,7 +73,8 @@ void compareData(const architecture::ArchitectureData& data,
     require(actual.hasIcon == present(oracle, QLatin1String("icon")), path + "icon/presence");
     require(!actual.hasIcon || actual.icon == oracle.value(QStringLiteral("icon")).toString(), path + "icon");
     require(actual.hasIconText == present(oracle, QLatin1String("iconText")), path + "iconText/presence");
-    require(!actual.hasIconText || actual.iconText == oracle.value(QStringLiteral("iconText")).toString(), path + "iconText");
+    require(!actual.hasIconText || actual.iconText == oracle.value(QStringLiteral("iconText")).toString(),
+            path + "iconText");
     require(actual.hasTitle == present(oracle, QLatin1String("title")), path + "title/presence");
     require(!actual.hasTitle || actual.title == oracle.value(QStringLiteral("title")).toString(), path + "title");
     require(actual.hasParent == present(oracle, QLatin1String("in")), path + "parent/presence");
@@ -112,7 +116,8 @@ void compareData(const architecture::ArchitectureData& data,
     const auto& actual = data.alignments.at(i);
     const QJsonObject oracle = alignments.at(i).toObject();
     const QString direction = actual.direction == architecture::ArchitectureAlignment::Direction::Row
-        ? QStringLiteral("row") : QStringLiteral("column");
+                                  ? QStringLiteral("row")
+                                  : QStringLiteral("column");
     require(direction == oracle.value(QStringLiteral("direction")).toString(), id + "/alignment/direction");
     const QJsonArray members = oracle.value(QStringLiteral("members")).toArray();
     require(actual.members.size() == members.size(), id + "/alignment/member-count");
@@ -121,7 +126,7 @@ void compareData(const architecture::ArchitectureData& data,
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -177,18 +182,21 @@ int main(int argc, char** argv) {
                 id + QStringLiteral("/kind: %1 != %2")
                          .arg(kind(error.kind), oracle.value(QStringLiteral("kind")).toString()));
         if (error.kind != architecture::ArchitectureErrorKind::Runtime) {
-          require(error.line == oracle.value(QStringLiteral("line")).toInt(),
-                  id + QStringLiteral("/line: %1 != %2").arg(error.line).arg(oracle.value(QStringLiteral("line")).toInt()));
+          require(
+              error.line == oracle.value(QStringLiteral("line")).toInt(),
+              id + QStringLiteral("/line: %1 != %2").arg(error.line).arg(oracle.value(QStringLiteral("line")).toInt()));
           require(error.column == oracle.value(QStringLiteral("column")).toInt(),
-                  id + QStringLiteral("/column: %1 != %2").arg(error.column).arg(oracle.value(QStringLiteral("column")).toInt()));
+                  id + QStringLiteral("/column: %1 != %2")
+                           .arg(error.column)
+                           .arg(oracle.value(QStringLiteral("column")).toInt()));
         }
       }
       require(threw, id + QStringLiteral(": rejected source parsed"));
       continue;
     }
     ++accepted;
-    compareData(architecture::ArchitectureDiagram::parse(pre.code),
-                expected.value(QStringLiteral("db")).toObject(), id);
+    compareData(architecture::ArchitectureDiagram::parse(pre.code), expected.value(QStringLiteral("db")).toObject(),
+                id);
   }
   require(cases.size() == 58 && accepted == 37 && rejected == 21,
           QStringLiteral("Architecture grammar table not fully visited"));

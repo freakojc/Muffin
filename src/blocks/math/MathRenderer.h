@@ -19,4 +19,4 @@ public:
   MathRenderPlaceholder renderBlockPlaceholder(const QString& tex, const RenderTheme& theme) const;
 };
 
-}  // namespace muffin
+} // namespace muffin

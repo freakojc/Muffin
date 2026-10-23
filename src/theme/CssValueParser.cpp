@@ -18,16 +18,21 @@
 
 namespace muffin {
 
-QPair<CssLengthPercentage, CssLengthPercentage> parseCssPosition(const QString& value, const CssLengthContext& context) {
+QPair<CssLengthPercentage, CssLengthPercentage> parseCssPosition(const QString& value,
+                                                                 const CssLengthContext& context) {
   const auto percentage = [](qreal n) { return CssLengthPercentage{CssLengthStatus::Valid, 0, n, true}; };
   auto parts = splitTopLevelSpaces(value.trimmed().toLower());
-  if (parts.isEmpty()) return {percentage(0), percentage(0)};
+  if (parts.isEmpty())
+    return {percentage(0), percentage(0)};
   const auto horizontal = [](const QString& v) { return v == "left" || v == "right"; };
   const auto vertical = [](const QString& v) { return v == "top" || v == "bottom"; };
   const auto axis = [&](const QString& v) {
-    if (v == "center") return percentage(.5);
-    if (v == "right" || v == "bottom") return percentage(1);
-    if (v == "left" || v == "top") return percentage(0);
+    if (v == "center")
+      return percentage(.5);
+    if (v == "right" || v == "bottom")
+      return percentage(1);
+    if (v == "left" || v == "top")
+      return percentage(0);
     const auto n = parseCssLengthPercentage(QStringView(v), context);
     return n.status == CssLengthStatus::Valid ? n : percentage(0);
   };
@@ -46,13 +51,17 @@ QPair<CssLengthPercentage, CssLengthPercentage> parseCssPosition(const QString& 
           n.hasPercentage = n.hasPercentage || offset.hasPercentage;
         }
       }
-      if (vertical(edge)) y = n; else x = n;
+      if (vertical(edge))
+        y = n;
+      else
+        x = n;
     }
     return {x, y};
   }
-  if (parts.size() == 1) return vertical(parts[0]) ? qMakePair(percentage(.5), axis(parts[0]))
-                                                                : qMakePair(axis(parts[0]), percentage(.5));
-  if (vertical(parts[0]) || horizontal(parts[1])) std::swap(parts[0], parts[1]);
+  if (parts.size() == 1)
+    return vertical(parts[0]) ? qMakePair(percentage(.5), axis(parts[0])) : qMakePair(axis(parts[0]), percentage(.5));
+  if (vertical(parts[0]) || horizontal(parts[1]))
+    std::swap(parts[0], parts[1]);
   return {axis(parts[0]), axis(parts[1])};
 }
 
@@ -66,10 +75,14 @@ namespace {
 qreal channel255(const QString& part) {
   QString t = part.trimmed();
   const bool pct = t.endsWith(QLatin1Char('%'));
-  if (pct) { t.chop(1); }
+  if (pct) {
+    t.chop(1);
+  }
   bool ok = false;
   const double v = t.toDouble(&ok);
-  if (!ok) { return -1.0; }
+  if (!ok) {
+    return -1.0;
+  }
   return pct ? v / 100.0 * 255.0 : v;
 }
 
@@ -78,31 +91,47 @@ QColor parseFunctionalColor(const QString& fn, const QString& args) {
   auto alphaOf = [](const QString& p) -> int {
     QString a = p.trimmed();
     const bool pct = a.endsWith(QLatin1Char('%'));
-    if (pct) { a.chop(1); }
+    if (pct) {
+      a.chop(1);
+    }
     bool ok = false;
     const double av = a.toDouble(&ok);
-    if (!ok) { return 255; }
+    if (!ok) {
+      return 255;
+    }
     return qBound(0, qRound(pct ? av / 100.0 * 255.0 : (av <= 1.0 ? av * 255.0 : av)), 255);
   };
   if (fn == QStringLiteral("rgb") || fn == QStringLiteral("rgba")) {
-    if (parts.size() < 3) { return QColor(); }
+    if (parts.size() < 3) {
+      return QColor();
+    }
     const double r = channel255(parts[0]);
     const double g = channel255(parts[1]);
     const double b = channel255(parts[2]);
-    if (r < 0 || g < 0 || b < 0) { return QColor(); }
+    if (r < 0 || g < 0 || b < 0) {
+      return QColor();
+    }
     const int alpha = parts.size() >= 4 ? alphaOf(parts[3]) : 255;
     return QColor(qBound(0, qRound(r), 255), qBound(0, qRound(g), 255), qBound(0, qRound(b), 255), alpha);
   }
   if (fn == QStringLiteral("hsl") || fn == QStringLiteral("hsla")) {
-    if (parts.size() < 3) { return QColor(); }
+    if (parts.size() < 3) {
+      return QColor();
+    }
     QString h0 = parts[0].trimmed();
-    if (h0.endsWith(QStringLiteral("deg"))) { h0.chop(3); }
+    if (h0.endsWith(QStringLiteral("deg"))) {
+      h0.chop(3);
+    }
     bool ok = false;
     const double h = h0.toDouble(&ok);
-    if (!ok) { return QColor(); }
+    if (!ok) {
+      return QColor();
+    }
     auto sl = [](const QString& p) -> double {
       QString t = p.trimmed();
-      if (t.endsWith(QLatin1Char('%'))) { t.chop(1); }
+      if (t.endsWith(QLatin1Char('%'))) {
+        t.chop(1);
+      }
       return t.toDouble();
     };
     const double s = sl(parts[1]);
@@ -133,8 +162,10 @@ QColor parseFunctionalColor(const QString& fn, const QString& args) {
 // the whole value or embedded in a shorthand like `1px solid color-mix(...)`.
 QString findColorMixInner(const QString& s) {
   const int at = s.indexOf(QStringLiteral("color-mix("), 0, Qt::CaseInsensitive);
-  if (at < 0) { return QString(); }
-  const int openParen = at + QStringLiteral("color-mix").length();  // index of '('
+  if (at < 0) {
+    return QString();
+  }
+  const int openParen = at + QStringLiteral("color-mix").length(); // index of '('
   int depth = 0;
   for (int i = openParen; i < s.size(); ++i) {
     const QChar ch = s.at(i);
@@ -142,10 +173,12 @@ QString findColorMixInner(const QString& s) {
       ++depth;
     } else if (ch == QLatin1Char(')')) {
       --depth;
-      if (depth == 0) { return s.mid(openParen + 1, i - openParen - 1); }
+      if (depth == 0) {
+        return s.mid(openParen + 1, i - openParen - 1);
+      }
     }
   }
-  return QString();  // unbalanced — leave to the legacy fallback
+  return QString(); // unbalanced — leave to the legacy fallback
 }
 
 // Resolve one color-mix operand. `transparent` is a valid zero-alpha colour,
@@ -153,8 +186,12 @@ QString findColorMixInner(const QString& s) {
 // (extractColor is declared in the header; the call below resolves at link time.)
 QColor operandColor(const QString& token, const QHash<QString, QString>& vars) {
   const QString t = token.trimmed();
-  if (t.compare(QStringLiteral("transparent"), Qt::CaseInsensitive) == 0) { return QColor(0, 0, 0, 0); }
-  if (t.compare(QStringLiteral("currentcolor"), Qt::CaseInsensitive) == 0) { return QColor(); }  // unresolvable
+  if (t.compare(QStringLiteral("transparent"), Qt::CaseInsensitive) == 0) {
+    return QColor(0, 0, 0, 0);
+  }
+  if (t.compare(QStringLiteral("currentcolor"), Qt::CaseInsensitive) == 0) {
+    return QColor();
+  } // unresolvable
   return extractColor(t, vars);
 }
 
@@ -164,16 +201,21 @@ QColor blendColors(const QColor& c1, const QColor& c2, double w1, double w2) {
   const double a1 = c1.alphaF();
   const double a2 = c2.alphaF();
   const double ra = w1 * a1 + w2 * a2;
-  if (ra <= 0.0) { return QColor(0, 0, 0, 0); }
+  if (ra <= 0.0) {
+    return QColor(0, 0, 0, 0);
+  }
   const auto channel = [&](int v1, int v2) {
-    const double prem = w1 * (v1 / 255.0) * a1 + w2 * (v2 / 255.0) * a2;  // premultiplied
-    return qBound(0, qRound(prem / ra * 255.0), 255);                      // un-premultiply
+    const double prem = w1 * (v1 / 255.0) * a1 + w2 * (v2 / 255.0) * a2; // premultiplied
+    return qBound(0, qRound(prem / ra * 255.0), 255);                    // un-premultiply
   };
-  return QColor(channel(c1.red(), c2.red()), channel(c1.green(), c2.green()),
-                channel(c1.blue(), c2.blue()), qBound(0, qRound(ra * 255.0), 255));
+  return QColor(channel(c1.red(), c2.red()), channel(c1.green(), c2.green()), channel(c1.blue(), c2.blue()),
+                qBound(0, qRound(ra * 255.0), 255));
 }
 
-struct MixOperand { QColor color; double pct; };  // pct = -1 when no percentage given
+struct MixOperand {
+  QColor color;
+  double pct;
+}; // pct = -1 when no percentage given
 
 // Parse one operand group "<color> [<p>%]" → colour + optional weight.
 MixOperand readMixOperand(const QString& group, const QHash<QString, QString>& vars) {
@@ -196,10 +238,14 @@ QColor parseColorMix(const QString& inner, const QHash<QString, QString>& vars) 
   if (idx < groups.size() && groups[idx].trimmed().startsWith(QStringLiteral("in"), Qt::CaseInsensitive)) {
     ++idx;
   }
-  if (groups.size() - idx < 2) { return QColor(); }
+  if (groups.size() - idx < 2) {
+    return QColor();
+  }
   const MixOperand a = readMixOperand(groups[idx], vars);
   const MixOperand b = readMixOperand(groups[idx + 1], vars);
-  if (!a.color.isValid() || !b.color.isValid()) { return QColor(); }
+  if (!a.color.isValid() || !b.color.isValid()) {
+    return QColor();
+  }
   double w1, w2;
   if (a.pct < 0 && b.pct < 0) {
     w1 = w2 = 0.5;
@@ -211,7 +257,12 @@ QColor parseColorMix(const QString& inner, const QHash<QString, QString>& vars) 
     w2 = 1.0 - w1;
   } else {
     const double s = a.pct + b.pct;
-    if (s <= 0.0) { w1 = w2 = 0.5; } else { w1 = a.pct / s; w2 = b.pct / s; }
+    if (s <= 0.0) {
+      w1 = w2 = 0.5;
+    } else {
+      w1 = a.pct / s;
+      w2 = b.pct / s;
+    }
   }
   return blendColors(a.color, b.color, w1, w2);
 }
@@ -223,53 +274,72 @@ QColor parseColorMix(const QString& inner, const QHash<QString, QString>& vars) 
 
 QString gradientParenInner(const QString& s) {
   const int open = s.indexOf(QLatin1Char('('));
-  if (open < 0) { return s; }
+  if (open < 0) {
+    return s;
+  }
   int depth = 0;
   for (int i = open; i < s.size(); ++i) {
     const QChar c = s.at(i);
-    if (c == QLatin1Char('(')) { ++depth; }
-    else if (c == QLatin1Char(')')) { --depth; if (depth == 0) { return s.mid(open + 1, i - open - 1); } }
+    if (c == QLatin1Char('(')) {
+      ++depth;
+    } else if (c == QLatin1Char(')')) {
+      --depth;
+      if (depth == 0) {
+        return s.mid(open + 1, i - open - 1);
+      }
+    }
   }
   return s.mid(open + 1);
 }
 
 bool gradientPartIsColor(const QString& part, const QHash<QString, QString>& vars) {
-  if (part.contains(QStringLiteral("transparent"), Qt::CaseInsensitive)) { return true; }
+  if (part.contains(QStringLiteral("transparent"), Qt::CaseInsensitive)) {
+    return true;
+  }
   return extractColor(part, vars).isValid();
 }
 
 std::vector<GradientStop> parseGradientStops(const QString& part, const QHash<QString, QString>& vars,
-                                              const CssLengthContext& context, GradientSpec::Kind kind) {
+                                             const CssLengthContext& context, GradientSpec::Kind kind) {
   auto tokens = splitTopLevelSpaces(part);
   std::vector<CssLengthPercentage> positions;
   while (tokens.size() > 1 && positions.size() < 2) {
     CssLengthPercentage position;
     if (kind == GradientSpec::Kind::Conic) {
       static const QRegularExpression angle(QStringLiteral(R"(^([+-]?(?:\d*\.)?\d+)(deg|rad|turn|grad|%)?$)"),
-                                             QRegularExpression::CaseInsensitiveOption);
+                                            QRegularExpression::CaseInsensitiveOption);
       const auto match = angle.match(tokens.back());
       if (match.hasMatch()) {
         qreal turns = match.captured(1).toDouble();
         const auto unit = match.captured(2).toLower();
-        if (unit == "deg") turns /= 360;
-        else if (unit == "rad") turns /= 2 * qAcos(-1.0);
-        else if (unit == "grad") turns /= 400;
-        else if (unit == "%") turns /= 100;
-        else if (unit.isEmpty() && turns != 0) break;
+        if (unit == "deg")
+          turns /= 360;
+        else if (unit == "rad")
+          turns /= 2 * qAcos(-1.0);
+        else if (unit == "grad")
+          turns /= 400;
+        else if (unit == "%")
+          turns /= 100;
+        else if (unit.isEmpty() && turns != 0)
+          break;
         position = {CssLengthStatus::Valid, 0, turns, true};
       }
     } else {
       position = parseCssLengthPercentage(tokens.back(), context);
     }
-    if (position.status != CssLengthStatus::Valid) break;
+    if (position.status != CssLengthStatus::Valid)
+      break;
     positions.insert(positions.begin(), position);
     tokens.removeLast();
   }
   const auto color = extractColor(tokens.join(QLatin1Char(' ')), vars);
-  if (!color.isValid()) return {};
-  if (positions.empty()) return {{CssLengthPercentage{}, color}};
+  if (!color.isValid())
+    return {};
+  if (positions.empty())
+    return {{CssLengthPercentage{}, color}};
   std::vector<GradientStop> stops;
-  for (const auto& position : positions) stops.push_back({position, color});
+  for (const auto& position : positions)
+    stops.push_back({position, color});
   return stops;
 }
 
@@ -279,32 +349,48 @@ void parseGradientDirection(const QString& part, GradientSpec& spec, const CssLe
     bool ok = false;
     if (p.endsWith(QStringLiteral("deg"))) {
       const qreal a = p.left(p.size() - 3).trimmed().toDouble(&ok);
-      if (ok) { spec.angleDeg = a; }
+      if (ok) {
+        spec.angleDeg = a;
+      }
     } else if (p.endsWith(QStringLiteral("rad"))) {
       const qreal a = p.left(p.size() - 3).trimmed().toDouble(&ok);
-      if (ok) { spec.angleDeg = qRadiansToDegrees(a); }
+      if (ok) {
+        spec.angleDeg = qRadiansToDegrees(a);
+      }
     } else if (p.startsWith(QStringLiteral("to "))) {
       const QStringList sides = p.mid(3).split(QLatin1Char(' '), Qt::SkipEmptyParts);
       qreal dx = 0.0, dy = 0.0;
       for (const QString& s : sides) {
-        if (s == QStringLiteral("top")) { dy = -1.0; }
-        else if (s == QStringLiteral("bottom")) { dy = 1.0; }
-        else if (s == QStringLiteral("left")) { dx = -1.0; }
-        else if (s == QStringLiteral("right")) { dx = 1.0; }
+        if (s == QStringLiteral("top")) {
+          dy = -1.0;
+        } else if (s == QStringLiteral("bottom")) {
+          dy = 1.0;
+        } else if (s == QStringLiteral("left")) {
+          dx = -1.0;
+        } else if (s == QStringLiteral("right")) {
+          dx = 1.0;
+        }
       }
       if (dx != 0.0 || dy != 0.0) {
-        qreal a = qRadiansToDegrees(qAtan2(dx, -dy));  // CSS: 0=to top, clockwise
-        if (a < 0.0) { a += 360.0; }
+        qreal a = qRadiansToDegrees(qAtan2(dx, -dy)); // CSS: 0=to top, clockwise
+        if (a < 0.0) {
+          a += 360.0;
+        }
         spec.angleDeg = a;
       }
     }
   } else if (spec.kind == GradientSpec::Kind::Radial) {
     const auto shape = p.section(QStringLiteral(" at "), 0, 0);
-    if (shape.contains(QStringLiteral("circle"))) spec.radialShape = GradientSpec::RadialShape::Circle;
-    if (shape.contains(QStringLiteral("closest-side"))) spec.radialExtent = GradientSpec::RadialExtent::ClosestSide;
-    else if (shape.contains(QStringLiteral("farthest-side"))) spec.radialExtent = GradientSpec::RadialExtent::FarthestSide;
-    else if (shape.contains(QStringLiteral("closest-corner"))) spec.radialExtent = GradientSpec::RadialExtent::ClosestCorner;
-    else if (shape.contains(QStringLiteral("farthest-corner"))) spec.radialExtent = GradientSpec::RadialExtent::FarthestCorner;
+    if (shape.contains(QStringLiteral("circle")))
+      spec.radialShape = GradientSpec::RadialShape::Circle;
+    if (shape.contains(QStringLiteral("closest-side")))
+      spec.radialExtent = GradientSpec::RadialExtent::ClosestSide;
+    else if (shape.contains(QStringLiteral("farthest-side")))
+      spec.radialExtent = GradientSpec::RadialExtent::FarthestSide;
+    else if (shape.contains(QStringLiteral("closest-corner")))
+      spec.radialExtent = GradientSpec::RadialExtent::ClosestCorner;
+    else if (shape.contains(QStringLiteral("farthest-corner")))
+      spec.radialExtent = GradientSpec::RadialExtent::FarthestCorner;
     else {
       auto sizes = splitTopLevelSpaces(shape);
       sizes.removeAll(QStringLiteral("circle"));
@@ -316,20 +402,23 @@ void parseGradientDirection(const QString& part, GradientSpec& spec, const CssLe
           spec.radialExtent = GradientSpec::RadialExtent::Explicit;
           spec.radialRadiusX = x;
           spec.radialRadiusY = y;
-          if (sizes.size() == 1) spec.radialShape = GradientSpec::RadialShape::Circle;
+          if (sizes.size() == 1)
+            spec.radialShape = GradientSpec::RadialShape::Circle;
         }
       }
     }
     QString pos;
     const int atIdx = p.indexOf(QStringLiteral("at"));
-    if (atIdx >= 0) { pos = p.mid(atIdx + 2).trimmed(); }
+    if (atIdx >= 0) {
+      pos = p.mid(atIdx + 2).trimmed();
+    }
     static const QHash<QString, QPointF> named = {
-        {QStringLiteral("center"), QPointF(0.5, 0.5)}, {QStringLiteral("centre"), QPointF(0.5, 0.5)},
-        {QStringLiteral("top"), QPointF(0.5, 0.0)}, {QStringLiteral("bottom"), QPointF(0.5, 1.0)},
-        {QStringLiteral("left"), QPointF(0.0, 0.5)}, {QStringLiteral("right"), QPointF(1.0, 0.5)},
-        {QStringLiteral("top left"), QPointF(0.0, 0.0)}, {QStringLiteral("left top"), QPointF(0.0, 0.0)},
-        {QStringLiteral("top right"), QPointF(1.0, 0.0)}, {QStringLiteral("right top"), QPointF(1.0, 0.0)},
-        {QStringLiteral("bottom left"), QPointF(0.0, 1.0)}, {QStringLiteral("left bottom"), QPointF(0.0, 1.0)},
+        {QStringLiteral("center"), QPointF(0.5, 0.5)},       {QStringLiteral("centre"), QPointF(0.5, 0.5)},
+        {QStringLiteral("top"), QPointF(0.5, 0.0)},          {QStringLiteral("bottom"), QPointF(0.5, 1.0)},
+        {QStringLiteral("left"), QPointF(0.0, 0.5)},         {QStringLiteral("right"), QPointF(1.0, 0.5)},
+        {QStringLiteral("top left"), QPointF(0.0, 0.0)},     {QStringLiteral("left top"), QPointF(0.0, 0.0)},
+        {QStringLiteral("top right"), QPointF(1.0, 0.0)},    {QStringLiteral("right top"), QPointF(1.0, 0.0)},
+        {QStringLiteral("bottom left"), QPointF(0.0, 1.0)},  {QStringLiteral("left bottom"), QPointF(0.0, 1.0)},
         {QStringLiteral("bottom right"), QPointF(1.0, 1.0)}, {QStringLiteral("right bottom"), QPointF(1.0, 1.0)}};
     if (!pos.isEmpty()) {
       if (named.contains(pos)) {
@@ -340,17 +429,24 @@ void parseGradientDirection(const QString& part, GradientSpec& spec, const CssLe
           bool okx = false, oky = false;
           const qreal fx = xy.at(0).left(xy.at(0).size() - 1).toDouble(&okx) / 100.0;
           const qreal fy = xy.at(1).left(xy.at(1).size() - 1).toDouble(&oky) / 100.0;
-          if (okx && oky) { spec.radialCenter = QPointF(fx, fy); }
+          if (okx && oky) {
+            spec.radialCenter = QPointF(fx, fy);
+          }
         }
       } else {
         // Word combination: "center bottom", "top left", … Start centred and
         // apply each keyword (e.g. phycat's h2 `ellipse at center bottom`).
         QPointF c(0.5, 0.5);
         for (const QString& w : pos.split(QLatin1Char(' '), Qt::SkipEmptyParts)) {
-          if (w == QStringLiteral("top")) { c.setY(0.0); }
-          else if (w == QStringLiteral("bottom")) { c.setY(1.0); }
-          else if (w == QStringLiteral("left")) { c.setX(0.0); }
-          else if (w == QStringLiteral("right")) { c.setX(1.0); }
+          if (w == QStringLiteral("top")) {
+            c.setY(0.0);
+          } else if (w == QStringLiteral("bottom")) {
+            c.setY(1.0);
+          } else if (w == QStringLiteral("left")) {
+            c.setX(0.0);
+          } else if (w == QStringLiteral("right")) {
+            c.setX(1.0);
+          }
         }
         spec.radialCenter = c;
       }
@@ -363,34 +459,43 @@ void parseGradientDirection(const QString& part, GradientSpec& spec, const CssLe
 // vast majority of conic themes use. Angles accept deg/rad/turn/grad.
 void parseConicDirection(const QString& part, GradientSpec& spec) {
   const QString p = part.trimmed();
-  static const QRegularExpression fromRe(
-      QStringLiteral("from\\s+([+-]?\\d*\\.?\\d+)\\s*(deg|rad|turn|grad)?"),
-      QRegularExpression::CaseInsensitiveOption);
+  static const QRegularExpression fromRe(QStringLiteral("from\\s+([+-]?\\d*\\.?\\d+)\\s*(deg|rad|turn|grad)?"),
+                                         QRegularExpression::CaseInsensitiveOption);
   const QRegularExpressionMatch m = fromRe.match(p);
   if (m.hasMatch()) {
     bool ok = false;
     qreal n = m.captured(1).toDouble(&ok);
     if (ok) {
       const QString u = m.captured(2).toLower();
-      if (u == QStringLiteral("rad")) { n = qRadiansToDegrees(n); }
-      else if (u == QStringLiteral("turn")) { n *= 360.0; }
-      else if (u == QStringLiteral("grad")) { n *= 0.9; }
+      if (u == QStringLiteral("rad")) {
+        n = qRadiansToDegrees(n);
+      } else if (u == QStringLiteral("turn")) {
+        n *= 360.0;
+      } else if (u == QStringLiteral("grad")) {
+        n *= 0.9;
+      }
       spec.conicStartDeg = n;
     }
   }
 }
 
-}  // namespace
+} // namespace
 
 QColor extractColor(const QString& value, const QHash<QString, QString>& vars) {
   const QString resolved = CssThemeParser::resolveVars(value, vars).trimmed();
-  if (resolved.isEmpty()) { return QColor(); }
+  if (resolved.isEmpty()) {
+    return QColor();
+  }
   // color-mix() — evaluate before the #hex scanner can grab the operand verbatim.
   if (const QString mixInner = findColorMixInner(resolved); !mixInner.isEmpty()) {
-    if (QColor mixed = parseColorMix(mixInner, vars); mixed.isValid()) { return mixed; }
+    if (QColor mixed = parseColorMix(mixInner, vars); mixed.isValid()) {
+      return mixed;
+    }
   }
   QColor direct = cssColor(resolved);
-  if (direct.isValid()) { return direct; }
+  if (direct.isValid()) {
+    return direct;
+  }
   // Functional rgb()/rgba()/hsl()/hsla() — parsed numerically.
   static const QRegularExpression funcRe(QStringLiteral("(rgba?|hsla?)\\(([^)]*)\\)"),
                                          QRegularExpression::CaseInsensitiveOption);
@@ -398,14 +503,18 @@ QColor extractColor(const QString& value, const QHash<QString, QString>& vars) {
   while (fit.hasNext()) {
     const QRegularExpressionMatch m = fit.next();
     QColor c = parseFunctionalColor(m.captured(1).toLower(), m.captured(2));
-    if (c.isValid()) { return c; }
+    if (c.isValid()) {
+      return c;
+    }
   }
   // #hex token inside a shorthand (e.g. `1px solid #d0d7de`).
   static const QRegularExpression hexRe(QStringLiteral("#[0-9a-fA-F]{3,8}"));
   auto hit = hexRe.globalMatch(resolved);
   while (hit.hasNext()) {
     QColor c = cssColor(hit.next().captured(0));
-    if (c.isValid()) { return c; }
+    if (c.isValid()) {
+      return c;
+    }
   }
   // Bare named colour word (e.g. `red`) — last resort, skipping style keywords.
   static const QRegularExpression wordRe(QStringLiteral("[a-zA-Z]+"));
@@ -419,7 +528,9 @@ QColor extractColor(const QString& value, const QHash<QString, QString>& vars) {
       continue;
     }
     QColor c(w);
-    if (c.isValid()) { return c; }
+    if (c.isValid()) {
+      return c;
+    }
   }
   // Non-empty input survived no parse strategy — a malformed/unresolved colour that would
   // otherwise silently become "no value" upstream (and, reaching a QPainter brush unguarded,
@@ -434,14 +545,18 @@ bool isCssColorValue(const QString& raw) {
   if (value.compare(QLatin1String("currentcolor"), Qt::CaseInsensitive) == 0 ||
       value.compare(QLatin1String("transparent"), Qt::CaseInsensitive) == 0)
     return true;
-  if (cssColor(value).isValid()) return true;
+  if (cssColor(value).isValid())
+    return true;
   static const QRegularExpression function(QStringLiteral(R"(^(rgb|rgba|hsl|hsla|color-mix)\(.+\)$)"),
                                            QRegularExpression::CaseInsensitiveOption);
-  if (!function.match(value).hasMatch()) return false;
+  if (!function.match(value).hasMatch())
+    return false;
   int depth = 0;
   for (int i = value.indexOf('('); i < value.size(); ++i) {
-    if (value[i] == '(') ++depth;
-    if (value[i] == ')' && --depth == 0 && i != value.size() - 1) return false;
+    if (value[i] == '(')
+      ++depth;
+    if (value[i] == ')' && --depth == 0 && i != value.size() - 1)
+      return false;
   }
   return depth == 0 && extractColor(value, {}).isValid();
 }
@@ -458,26 +573,50 @@ QStringList splitTopLevelSpaces(const QString& text) {
     const QChar c = text.at(i);
     if (inString) {
       cur += c;
-      if (c == quote) { inString = false; }
+      if (c == quote) {
+        inString = false;
+      }
       continue;
     }
-    if (c == QLatin1Char('"') || c == QLatin1Char('\'')) { inString = true; quote = c; cur += c; continue; }
-    if (c == QLatin1Char('(')) { ++paren; cur += c; continue; }
-    if (c == QLatin1Char(')')) { if (paren > 0) --paren; cur += c; continue; }
+    if (c == QLatin1Char('"') || c == QLatin1Char('\'')) {
+      inString = true;
+      quote = c;
+      cur += c;
+      continue;
+    }
+    if (c == QLatin1Char('(')) {
+      ++paren;
+      cur += c;
+      continue;
+    }
+    if (c == QLatin1Char(')')) {
+      if (paren > 0)
+        --paren;
+      cur += c;
+      continue;
+    }
     if (paren == 0 && c.isSpace()) {
-      if (!cur.trimmed().isEmpty()) { out << cur.trimmed(); cur.clear(); }
+      if (!cur.trimmed().isEmpty()) {
+        out << cur.trimmed();
+        cur.clear();
+      }
     } else {
       cur += c;
     }
   }
-  if (!cur.trimmed().isEmpty()) { out << cur.trimmed(); }
+  if (!cur.trimmed().isEmpty()) {
+    out << cur.trimmed();
+  }
   return out;
 }
 
 // CSS length → points. Handles px/rem/em/%/pt/numbers relative to the supplied em size.
-qreal lengthToPt(const QString& value, const QHash<QString, QString>& vars, qreal emPx) { return pxToPt(lengthToPx(value, vars, emPx)); }
+qreal lengthToPt(const QString& value, const QHash<QString, QString>& vars, qreal emPx) {
+  return pxToPt(lengthToPx(value, vars, emPx));
+}
 
-qreal lengthToPx(const QString& value, const QHash<QString, QString>& vars, qreal emPx, qreal rootPx, qreal containingPx) {
+qreal lengthToPx(const QString& value, const QHash<QString, QString>& vars, qreal emPx, qreal rootPx,
+                 qreal containingPx) {
   CssLengthContext context;
   context.emPx = emPx;
   context.remPx = rootPx >= 0 ? rootPx : kRootEmPx;
@@ -485,24 +624,36 @@ qreal lengthToPx(const QString& value, const QHash<QString, QString>& vars, qrea
   return length.status == CssLengthStatus::Valid ? length.used(containingPx >= 0 ? containingPx : emPx) : 0;
 }
 
-QMarginsF boxToMarginsPx(const QString& value, const QHash<QString, QString>& vars, qreal emPx, qreal rootPx, qreal containingPx) {
+QMarginsF boxToMarginsPx(const QString& value, const QHash<QString, QString>& vars, qreal emPx, qreal rootPx,
+                         qreal containingPx) {
   const QStringList parts = splitTopLevelSpaces(CssThemeParser::resolveVars(value, vars));
-  if (parts.isEmpty()) { return QMarginsF(); }
+  if (parts.isEmpty()) {
+    return QMarginsF();
+  }
   qreal v[4] = {};
   for (int i = 0; i < qMin(4, parts.size()); ++i) {
     v[i] = lengthToPx(parts.at(i), vars, emPx, rootPx, containingPx);
   }
   qreal top = v[0], right = v[0], bottom = v[0], left = v[0];
-  if (parts.size() == 2) { right = left = v[1]; }
-  else if (parts.size() == 3) { right = left = v[1]; bottom = v[2]; }
-  else if (parts.size() >= 4) { right = v[1]; bottom = v[2]; left = v[3]; }
+  if (parts.size() == 2) {
+    right = left = v[1];
+  } else if (parts.size() == 3) {
+    right = left = v[1];
+    bottom = v[2];
+  } else if (parts.size() >= 4) {
+    right = v[1];
+    bottom = v[2];
+    left = v[3];
+  }
   return QMarginsF(left, top, right, bottom);
 }
 
 qreal borderWidthPx(const QString& value, const QHash<QString, QString>& vars, qreal emPx) {
   for (const QString& part : splitTopLevelSpaces(CssThemeParser::resolveVars(value, vars))) {
     const qreal px = lengthToPx(part, vars, emPx);
-    if (px > 0.0) { return px; }
+    if (px > 0.0) {
+      return px;
+    }
   }
   return 0.0;
 }
@@ -513,46 +664,73 @@ qreal shadowBlurPx(const QString& shadowRaw, const QHash<QString, QString>& vars
   for (const QString& p : parts) {
     const QString t = p.trimmed();
     // Only treat length tokens (leading digit/sign/dot); skip colour tokens like rgba(...).
-    if (t.isEmpty() || !(t.at(0).isDigit() || t.at(0) == QLatin1Char('+') ||
-                          t.at(0) == QLatin1Char('-') || t.at(0) == QLatin1Char('.'))) {
+    if (t.isEmpty() || !(t.at(0).isDigit() || t.at(0) == QLatin1Char('+') || t.at(0) == QLatin1Char('-') ||
+                         t.at(0) == QLatin1Char('.'))) {
       continue;
     }
-    nums.append(lengthToPx(t, vars, kRootEmPx));  // handles 15px / 0 / em
+    nums.append(lengthToPx(t, vars, kRootEmPx)); // handles 15px / 0 / em
   }
-  if (nums.size() >= 3) { return nums.at(2); }
-  if (nums.size() >= 2) { return 8.0; }
+  if (nums.size() >= 3) {
+    return nums.at(2);
+  }
+  if (nums.size() >= 2) {
+    return 8.0;
+  }
   return 0.0;
 }
 
-GradientSpec parseGradientSpec(const QString& raw, const QHash<QString, QString>& vars, const CssLengthContext& context) {
+GradientSpec parseGradientSpec(const QString& raw, const QHash<QString, QString>& vars,
+                               const CssLengthContext& context) {
   GradientSpec spec;
   const QString resolved = CssThemeParser::resolveVars(raw, vars).trimmed();
-  if (resolved.isEmpty()) { return spec; }
+  if (resolved.isEmpty()) {
+    return spec;
+  }
   QString inner;
   const auto startsWithKw = [&](const char* kw) {
     return resolved.startsWith(QString::fromLatin1(kw), Qt::CaseInsensitive);
   };
-  if (startsWithKw("linear-gradient")) { spec.kind = GradientSpec::Kind::Linear; inner = gradientParenInner(resolved); }
-  else if (startsWithKw("radial-gradient")) { spec.kind = GradientSpec::Kind::Radial; inner = gradientParenInner(resolved); }
-  else if (startsWithKw("conic-gradient")) { spec.kind = GradientSpec::Kind::Conic; inner = gradientParenInner(resolved); }
-  else { return spec; }
+  if (startsWithKw("linear-gradient")) {
+    spec.kind = GradientSpec::Kind::Linear;
+    inner = gradientParenInner(resolved);
+  } else if (startsWithKw("radial-gradient")) {
+    spec.kind = GradientSpec::Kind::Radial;
+    inner = gradientParenInner(resolved);
+  } else if (startsWithKw("conic-gradient")) {
+    spec.kind = GradientSpec::Kind::Conic;
+    inner = gradientParenInner(resolved);
+  } else {
+    return spec;
+  }
   const QStringList parts = CssThemeParser::splitTopLevelCommas(inner);
-  if (parts.isEmpty()) { spec.kind = GradientSpec::Kind::None; return spec; }
+  if (parts.isEmpty()) {
+    spec.kind = GradientSpec::Kind::None;
+    return spec;
+  }
   int idx = 0;
   if (!parts.first().trimmed().isEmpty() && !gradientPartIsColor(parts.first(), vars)) {
-    if (spec.kind == GradientSpec::Kind::Conic) { parseConicDirection(parts.first(), spec); }
-    else { parseGradientDirection(parts.first(), spec, context); }
+    if (spec.kind == GradientSpec::Kind::Conic) {
+      parseConicDirection(parts.first(), spec);
+    } else {
+      parseGradientDirection(parts.first(), spec, context);
+    }
     idx = 1;
   }
   std::vector<GradientStop> stops;
   for (; idx < parts.size(); ++idx) {
     const auto parsed = parseGradientStops(parts.at(idx), vars, context, spec.kind);
-    if (parsed.empty()) { spec.kind = GradientSpec::Kind::None; return spec; }
+    if (parsed.empty()) {
+      spec.kind = GradientSpec::Kind::None;
+      return spec;
+    }
     stops.insert(stops.end(), parsed.begin(), parsed.end());
   }
-  if (stops.empty()) { spec.kind = GradientSpec::Kind::None; return spec; }
+  if (stops.empty()) {
+    spec.kind = GradientSpec::Kind::None;
+    return spec;
+  }
   spec.stops = stops;
   return spec;
 }
 
-}  // namespace muffin
+} // namespace muffin

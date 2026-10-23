@@ -23,13 +23,11 @@ enum class UnsafeUrlHandling { ReplaceWithHash, DropAttribute };
 // differently; sanitizeNode handles that mode-specific exception below.
 const QSet<QString>& dropSubtreeTags() {
   static const QSet<QString> tags = {
-      QStringLiteral("script"),   QStringLiteral("style"),    QStringLiteral("iframe"),
-      QStringLiteral("frame"),    QStringLiteral("frameset"), QStringLiteral("object"),
-      QStringLiteral("embed"),    QStringLiteral("applet"),   QStringLiteral("param"),
-      QStringLiteral("link"),     QStringLiteral("meta"),     QStringLiteral("base"),
-      QStringLiteral("noscript"), QStringLiteral("template"), QStringLiteral("svg"),
-      QStringLiteral("math"),     QStringLiteral("title"),    QStringLiteral("head"),
-      QStringLiteral("noembed"),  QStringLiteral("xml")};
+      QStringLiteral("script"),   QStringLiteral("style"),    QStringLiteral("iframe"),  QStringLiteral("frame"),
+      QStringLiteral("frameset"), QStringLiteral("object"),   QStringLiteral("embed"),   QStringLiteral("applet"),
+      QStringLiteral("param"),    QStringLiteral("link"),     QStringLiteral("meta"),    QStringLiteral("base"),
+      QStringLiteral("noscript"), QStringLiteral("template"), QStringLiteral("svg"),     QStringLiteral("math"),
+      QStringLiteral("title"),    QStringLiteral("head"),     QStringLiteral("noembed"), QStringLiteral("xml")};
   return tags;
 }
 
@@ -38,58 +36,51 @@ const QSet<QString>& dropSubtreeTags() {
 // children survive, so unknown-but-inert elements don't hide their text.
 const QSet<QString>& safeTags() {
   static const QSet<QString> tags = {
-      QStringLiteral("div"),   QStringLiteral("span"),   QStringLiteral("p"),
-      QStringLiteral("h1"),    QStringLiteral("h2"),     QStringLiteral("h3"),
-      QStringLiteral("h4"),    QStringLiteral("h5"),     QStringLiteral("h6"),
-      QStringLiteral("b"),     QStringLiteral("i"),      QStringLiteral("u"),
-      QStringLiteral("s"),     QStringLiteral("strong"), QStringLiteral("em"),
-      QStringLiteral("del"),   QStringLiteral("ins"),    QStringLiteral("mark"),
-      QStringLiteral("sub"),   QStringLiteral("sup"),    QStringLiteral("kbd"),
-      QStringLiteral("small"), QStringLiteral("big"),    QStringLiteral("abbr"),
-      QStringLiteral("code"),  QStringLiteral("pre"),    QStringLiteral("blockquote"),
-      QStringLiteral("q"),     QStringLiteral("br"),     QStringLiteral("hr"),
-      QStringLiteral("img"),   QStringLiteral("a"),      QStringLiteral("ul"),
-      QStringLiteral("ol"),    QStringLiteral("li"),     QStringLiteral("table"),
-      QStringLiteral("thead"), QStringLiteral("tbody"),  QStringLiteral("tfoot"),
-      QStringLiteral("tr"),    QStringLiteral("th"),     QStringLiteral("td"),
-      QStringLiteral("caption"), QStringLiteral("col"),  QStringLiteral("colgroup"),
-      QStringLiteral("details"), QStringLiteral("summary"), QStringLiteral("section"),
-      QStringLiteral("article"), QStringLiteral("header"), QStringLiteral("footer"),
-      QStringLiteral("nav"),     QStringLiteral("main"),  QStringLiteral("aside"),
-      QStringLiteral("figure"),  QStringLiteral("figcaption"), QStringLiteral("label"),
-      QStringLiteral("input"),   QStringLiteral("button"), QStringLiteral("textarea"),
-      QStringLiteral("select"),  QStringLiteral("option"), QStringLiteral("optgroup"),
-      QStringLiteral("dl"),      QStringLiteral("dt"),    QStringLiteral("dd"),
-      QStringLiteral("wbr"),     QStringLiteral("bdi"),   QStringLiteral("bdo"),
-      QStringLiteral("time"),    QStringLiteral("cite"),  QStringLiteral("address")};
+      QStringLiteral("div"),      QStringLiteral("span"),    QStringLiteral("p"),          QStringLiteral("h1"),
+      QStringLiteral("h2"),       QStringLiteral("h3"),      QStringLiteral("h4"),         QStringLiteral("h5"),
+      QStringLiteral("h6"),       QStringLiteral("b"),       QStringLiteral("i"),          QStringLiteral("u"),
+      QStringLiteral("s"),        QStringLiteral("strong"),  QStringLiteral("em"),         QStringLiteral("del"),
+      QStringLiteral("ins"),      QStringLiteral("mark"),    QStringLiteral("sub"),        QStringLiteral("sup"),
+      QStringLiteral("kbd"),      QStringLiteral("small"),   QStringLiteral("big"),        QStringLiteral("abbr"),
+      QStringLiteral("code"),     QStringLiteral("pre"),     QStringLiteral("blockquote"), QStringLiteral("q"),
+      QStringLiteral("br"),       QStringLiteral("hr"),      QStringLiteral("img"),        QStringLiteral("a"),
+      QStringLiteral("ul"),       QStringLiteral("ol"),      QStringLiteral("li"),         QStringLiteral("table"),
+      QStringLiteral("thead"),    QStringLiteral("tbody"),   QStringLiteral("tfoot"),      QStringLiteral("tr"),
+      QStringLiteral("th"),       QStringLiteral("td"),      QStringLiteral("caption"),    QStringLiteral("col"),
+      QStringLiteral("colgroup"), QStringLiteral("details"), QStringLiteral("summary"),    QStringLiteral("section"),
+      QStringLiteral("article"),  QStringLiteral("header"),  QStringLiteral("footer"),     QStringLiteral("nav"),
+      QStringLiteral("main"),     QStringLiteral("aside"),   QStringLiteral("figure"),     QStringLiteral("figcaption"),
+      QStringLiteral("label"),    QStringLiteral("input"),   QStringLiteral("button"),     QStringLiteral("textarea"),
+      QStringLiteral("select"),   QStringLiteral("option"),  QStringLiteral("optgroup"),   QStringLiteral("dl"),
+      QStringLiteral("dt"),       QStringLiteral("dd"),      QStringLiteral("wbr"),        QStringLiteral("bdi"),
+      QStringLiteral("bdo"),      QStringLiteral("time"),    QStringLiteral("cite"),       QStringLiteral("address")};
   return tags;
 }
 
 // Void (self-closing) elements: emitted without a closing tag.
 const QSet<QString>& voidTags() {
-  static const QSet<QString> tags = {QStringLiteral("br"), QStringLiteral("hr"),
-      QStringLiteral("img"), QStringLiteral("input"), QStringLiteral("col"),
-      QStringLiteral("wbr"), QStringLiteral("area"), QStringLiteral("source"),
-      QStringLiteral("track")};
+  static const QSet<QString> tags = {QStringLiteral("br"),    QStringLiteral("hr"),     QStringLiteral("img"),
+                                     QStringLiteral("input"), QStringLiteral("col"),    QStringLiteral("wbr"),
+                                     QStringLiteral("area"),  QStringLiteral("source"), QStringLiteral("track")};
   return tags;
 }
 
 // Attributes kept on surviving elements (after the on* and URL checks).
 const QSet<QString>& safeAttributes() {
   static const QSet<QString> attrs = {
-      QStringLiteral("class"),   QStringLiteral("id"),      QStringLiteral("style"),
-      QStringLiteral("title"),   QStringLiteral("lang"),    QStringLiteral("dir"),
-      QStringLiteral("alt"),     QStringLiteral("width"),   QStringLiteral("height"),
-      QStringLiteral("colspan"), QStringLiteral("rowspan"), QStringLiteral("span"),
-      QStringLiteral("start"),   QStringLiteral("type"),    QStringLiteral("reversed"),
-      QStringLiteral("value"),   QStringLiteral("open"),    QStringLiteral("align"),
-      QStringLiteral("valign"),  QStringLiteral("color"),   QStringLiteral("size"),
-      QStringLiteral("href"),    QStringLiteral("src"),     QStringLiteral("cite"),
-      QStringLiteral("poster"),  QStringLiteral("background"), QStringLiteral("action"),
-      QStringLiteral("formaction"), QStringLiteral("srcset"), QStringLiteral("usemap"),
-      QStringLiteral("name"),    QStringLiteral("target"),  QStringLiteral("rel"),
-      QStringLiteral("datetime"), QStringLiteral("abbr"),  QStringLiteral("scope"),
-      QStringLiteral("headers"), QStringLiteral("summary"), QStringLiteral("nowrap"),
+      QStringLiteral("class"),       QStringLiteral("id"),          QStringLiteral("style"),
+      QStringLiteral("title"),       QStringLiteral("lang"),        QStringLiteral("dir"),
+      QStringLiteral("alt"),         QStringLiteral("width"),       QStringLiteral("height"),
+      QStringLiteral("colspan"),     QStringLiteral("rowspan"),     QStringLiteral("span"),
+      QStringLiteral("start"),       QStringLiteral("type"),        QStringLiteral("reversed"),
+      QStringLiteral("value"),       QStringLiteral("open"),        QStringLiteral("align"),
+      QStringLiteral("valign"),      QStringLiteral("color"),       QStringLiteral("size"),
+      QStringLiteral("href"),        QStringLiteral("src"),         QStringLiteral("cite"),
+      QStringLiteral("poster"),      QStringLiteral("background"),  QStringLiteral("action"),
+      QStringLiteral("formaction"),  QStringLiteral("srcset"),      QStringLiteral("usemap"),
+      QStringLiteral("name"),        QStringLiteral("target"),      QStringLiteral("rel"),
+      QStringLiteral("datetime"),    QStringLiteral("abbr"),        QStringLiteral("scope"),
+      QStringLiteral("headers"),     QStringLiteral("summary"),     QStringLiteral("nowrap"),
       QStringLiteral("cellpadding"), QStringLiteral("cellspacing"), QStringLiteral("border")};
   return attrs;
 }
@@ -97,10 +88,9 @@ const QSet<QString>& safeAttributes() {
 // Attributes whose value is a URL and must be scheme-checked.
 const QSet<QString>& urlAttributes() {
   static const QSet<QString> attrs = {
-      QStringLiteral("href"),     QStringLiteral("src"),   QStringLiteral("action"),
-      QStringLiteral("formaction"), QStringLiteral("background"), QStringLiteral("cite"),
-      QStringLiteral("poster"),   QStringLiteral("data"),  QStringLiteral("usemap"),
-      QStringLiteral("srcset"),   QStringLiteral("longdesc")};
+      QStringLiteral("href"),       QStringLiteral("src"),    QStringLiteral("action"),  QStringLiteral("formaction"),
+      QStringLiteral("background"), QStringLiteral("cite"),   QStringLiteral("poster"),  QStringLiteral("data"),
+      QStringLiteral("usemap"),     QStringLiteral("srcset"), QStringLiteral("longdesc")};
   return attrs;
 }
 
@@ -126,10 +116,8 @@ QString escapeAttribute(QString value) {
 // defense-in-depth in case sanitized output ever leaves the JS-free renderer.
 QString scrubStyle(const QString& value) {
   const QString lower = value.toLower();
-  if (lower.contains(QStringLiteral("javascript:")) ||
-      lower.contains(QStringLiteral("vbscript:")) ||
-      lower.contains(QStringLiteral("expression(")) ||
-      lower.contains(QStringLiteral("-moz-binding")) ||
+  if (lower.contains(QStringLiteral("javascript:")) || lower.contains(QStringLiteral("vbscript:")) ||
+      lower.contains(QStringLiteral("expression(")) || lower.contains(QStringLiteral("-moz-binding")) ||
       lower.contains(QStringLiteral("@import"))) {
     return QString();
   }
@@ -138,39 +126,39 @@ QString scrubStyle(const QString& value) {
 
 void sanitizeNode(lxb_dom_node_t* node, QString& out, UnsafeUrlHandling unsafeUrlHandling);
 
-void sanitizeChildren(lxb_dom_node_t* parent, QString& out,
-                      UnsafeUrlHandling unsafeUrlHandling) {
+void sanitizeChildren(lxb_dom_node_t* parent, QString& out, UnsafeUrlHandling unsafeUrlHandling) {
   for (lxb_dom_node_t* child = parent->first_child; child != nullptr; child = child->next) {
     sanitizeNode(child, out, unsafeUrlHandling);
   }
 }
 
-void sanitizeAttributes(lxb_dom_element_t* element, QString& out,
-                        UnsafeUrlHandling unsafeUrlHandling) {
+void sanitizeAttributes(lxb_dom_element_t* element, QString& out, UnsafeUrlHandling unsafeUrlHandling) {
   for (lxb_dom_attr_t* attr = lxb_dom_element_first_attribute(element); attr != nullptr;
        attr = lxb_dom_element_next_attribute(attr)) {
     size_t nameLen = 0;
     const lxb_char_t* nameData = lxb_dom_attr_qualified_name(attr, &nameLen);
     const QString name =
-        QString::fromUtf8(reinterpret_cast<const char*>(nameData), static_cast<int>(nameLen))
-            .toLower();
+        QString::fromUtf8(reinterpret_cast<const char*>(nameData), static_cast<int>(nameLen)).toLower();
 
     // Drop event handlers and any attribute outside the allowlist.
-    if (name.startsWith(QStringLiteral("on"))) continue;
-    if (!safeAttributes().contains(name)) continue;
+    if (name.startsWith(QStringLiteral("on")))
+      continue;
+    if (!safeAttributes().contains(name))
+      continue;
 
     size_t valueLen = 0;
     const lxb_char_t* valueData = lxb_dom_attr_value(attr, &valueLen);
     QString value =
-        valueData ? QString::fromUtf8(reinterpret_cast<const char*>(valueData), static_cast<int>(valueLen))
-                  : QString();
+        valueData ? QString::fromUtf8(reinterpret_cast<const char*>(valueData), static_cast<int>(valueLen)) : QString();
 
     if (name == QStringLiteral("style")) {
       value = scrubStyle(value);
-      if (value.isEmpty()) continue;
+      if (value.isEmpty())
+        continue;
     } else if (urlAttributes().contains(name)) {
       if (!isSafeUrl(value, true)) {
-        if (unsafeUrlHandling == UnsafeUrlHandling::DropAttribute) continue;
+        if (unsafeUrlHandling == UnsafeUrlHandling::DropAttribute)
+          continue;
         value = QStringLiteral("#");
       }
     }
@@ -183,8 +171,7 @@ void sanitizeAttributes(lxb_dom_element_t* element, QString& out,
   }
 }
 
-void sanitizeNode(lxb_dom_node_t* node, QString& out,
-                  UnsafeUrlHandling unsafeUrlHandling) {
+void sanitizeNode(lxb_dom_node_t* node, QString& out, UnsafeUrlHandling unsafeUrlHandling) {
   if (node->type == LXB_DOM_NODE_TYPE_TEXT) {
     size_t len = 0;
     const lxb_char_t* data = lxb_dom_node_text_content(node, &len);
@@ -194,23 +181,20 @@ void sanitizeNode(lxb_dom_node_t* node, QString& out,
     return;
   }
   if (node->type != LXB_DOM_NODE_TYPE_ELEMENT) {
-    return;  // comments, PIs, doctype — dropped
+    return; // comments, PIs, doctype — dropped
   }
 
   auto* element = lxb_dom_interface_element(node);
   size_t tagLen = 0;
   const lxb_char_t* tagData = lxb_dom_element_local_name(element, &tagLen);
-  const QString tag =
-      QString::fromUtf8(reinterpret_cast<const char*>(tagData), static_cast<int>(tagLen)).toLower();
+  const QString tag = QString::fromUtf8(reinterpret_cast<const char*>(tagData), static_cast<int>(tagLen)).toLower();
 
-  const bool mermaidSvg =
-      unsafeUrlHandling == UnsafeUrlHandling::DropAttribute &&
-      tag == QLatin1String("svg");
+  const bool mermaidSvg = unsafeUrlHandling == UnsafeUrlHandling::DropAttribute && tag == QLatin1String("svg");
   if (dropSubtreeTags().contains(tag) && !mermaidSvg) {
-    return;  // drop the entire subtree
+    return; // drop the entire subtree
   }
   if (!safeTags().contains(tag) && !mermaidSvg) {
-    sanitizeChildren(node, out, unsafeUrlHandling);  // unwrap: keep children, drop the wrapper
+    sanitizeChildren(node, out, unsafeUrlHandling); // unwrap: keep children, drop the wrapper
     return;
   }
 
@@ -218,7 +202,7 @@ void sanitizeNode(lxb_dom_node_t* node, QString& out,
   out += tag;
   sanitizeAttributes(element, out, unsafeUrlHandling);
   if (voidTags().contains(tag)) {
-    out += QLatin1Char('>');  // void: no closing tag, no children
+    out += QLatin1Char('>'); // void: no closing tag, no children
     return;
   }
   out += QLatin1Char('>');
@@ -235,8 +219,8 @@ QString sanitizeHtml(QString html, UnsafeUrlHandling unsafeUrlHandling) {
   }
 
   const QByteArray utf8 = html.toUtf8();
-  const lxb_status_t status = lxb_html_document_parse(
-      doc, reinterpret_cast<const lxb_char_t*>(utf8.constData()), static_cast<size_t>(utf8.size()));
+  const lxb_status_t status = lxb_html_document_parse(doc, reinterpret_cast<const lxb_char_t*>(utf8.constData()),
+                                                      static_cast<size_t>(utf8.size()));
   if (status != LXB_STATUS_OK) {
     lxb_html_document_destroy(doc);
     return escapeText(html);
@@ -251,7 +235,7 @@ QString sanitizeHtml(QString html, UnsafeUrlHandling unsafeUrlHandling) {
   return out;
 }
 
-}  // namespace
+} // namespace
 
 QString HtmlSanitizer::sanitizedPreview(QString html) const {
   return sanitizeHtml(std::move(html), UnsafeUrlHandling::ReplaceWithHash);
@@ -261,4 +245,4 @@ QString HtmlSanitizer::sanitizedMermaidText(QString html) const {
   return sanitizeHtml(std::move(html), UnsafeUrlHandling::DropAttribute);
 }
 
-}  // namespace muffin
+} // namespace muffin

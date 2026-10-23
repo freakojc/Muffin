@@ -20,30 +20,48 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 rough::Options optionsFromJson(const QJsonObject& json) {
   rough::Options options;
   if (json.contains(QStringLiteral("maxRandomnessOffset")))
     options.maxRandomnessOffset = json.value(QStringLiteral("maxRandomnessOffset")).toDouble();
-  if (json.contains(QStringLiteral("roughness"))) options.roughness = json.value(QStringLiteral("roughness")).toDouble();
-  if (json.contains(QStringLiteral("bowing"))) options.bowing = json.value(QStringLiteral("bowing")).toDouble();
-  if (json.contains(QStringLiteral("stroke"))) options.stroke = json.value(QStringLiteral("stroke")).toString();
-  if (json.contains(QStringLiteral("strokeWidth"))) options.strokeWidth = json.value(QStringLiteral("strokeWidth")).toDouble();
-  if (json.contains(QStringLiteral("fill"))) options.fill = json.value(QStringLiteral("fill")).toString();
-  if (json.contains(QStringLiteral("fillStyle"))) options.fillStyle = json.value(QStringLiteral("fillStyle")).toString();
-  if (json.contains(QStringLiteral("fillWeight"))) options.fillWeight = json.value(QStringLiteral("fillWeight")).toDouble();
-  if (json.contains(QStringLiteral("hachureAngle"))) options.hachureAngle = json.value(QStringLiteral("hachureAngle")).toDouble();
-  if (json.contains(QStringLiteral("hachureGap"))) options.hachureGap = json.value(QStringLiteral("hachureGap")).toDouble();
-  if (json.contains(QStringLiteral("curveTightness"))) options.curveTightness = json.value(QStringLiteral("curveTightness")).toDouble();
-  if (json.contains(QStringLiteral("curveFitting"))) options.curveFitting = json.value(QStringLiteral("curveFitting")).toDouble();
-  if (json.contains(QStringLiteral("curveStepCount"))) options.curveStepCount = json.value(QStringLiteral("curveStepCount")).toInt();
-  if (json.contains(QStringLiteral("seed"))) options.seed = static_cast<quint32>(json.value(QStringLiteral("seed")).toInt());
-  if (json.contains(QStringLiteral("disableMultiStroke"))) options.disableMultiStroke = json.value(QStringLiteral("disableMultiStroke")).toBool();
-  if (json.contains(QStringLiteral("disableMultiStrokeFill"))) options.disableMultiStrokeFill = json.value(QStringLiteral("disableMultiStrokeFill")).toBool();
-  if (json.contains(QStringLiteral("preserveVertices"))) options.preserveVertices = json.value(QStringLiteral("preserveVertices")).toBool();
-  if (json.contains(QStringLiteral("fillShapeRoughnessGain"))) options.fillShapeRoughnessGain = json.value(QStringLiteral("fillShapeRoughnessGain")).toDouble();
+  if (json.contains(QStringLiteral("roughness")))
+    options.roughness = json.value(QStringLiteral("roughness")).toDouble();
+  if (json.contains(QStringLiteral("bowing")))
+    options.bowing = json.value(QStringLiteral("bowing")).toDouble();
+  if (json.contains(QStringLiteral("stroke")))
+    options.stroke = json.value(QStringLiteral("stroke")).toString();
+  if (json.contains(QStringLiteral("strokeWidth")))
+    options.strokeWidth = json.value(QStringLiteral("strokeWidth")).toDouble();
+  if (json.contains(QStringLiteral("fill")))
+    options.fill = json.value(QStringLiteral("fill")).toString();
+  if (json.contains(QStringLiteral("fillStyle")))
+    options.fillStyle = json.value(QStringLiteral("fillStyle")).toString();
+  if (json.contains(QStringLiteral("fillWeight")))
+    options.fillWeight = json.value(QStringLiteral("fillWeight")).toDouble();
+  if (json.contains(QStringLiteral("hachureAngle")))
+    options.hachureAngle = json.value(QStringLiteral("hachureAngle")).toDouble();
+  if (json.contains(QStringLiteral("hachureGap")))
+    options.hachureGap = json.value(QStringLiteral("hachureGap")).toDouble();
+  if (json.contains(QStringLiteral("curveTightness")))
+    options.curveTightness = json.value(QStringLiteral("curveTightness")).toDouble();
+  if (json.contains(QStringLiteral("curveFitting")))
+    options.curveFitting = json.value(QStringLiteral("curveFitting")).toDouble();
+  if (json.contains(QStringLiteral("curveStepCount")))
+    options.curveStepCount = json.value(QStringLiteral("curveStepCount")).toInt();
+  if (json.contains(QStringLiteral("seed")))
+    options.seed = static_cast<quint32>(json.value(QStringLiteral("seed")).toInt());
+  if (json.contains(QStringLiteral("disableMultiStroke")))
+    options.disableMultiStroke = json.value(QStringLiteral("disableMultiStroke")).toBool();
+  if (json.contains(QStringLiteral("disableMultiStrokeFill")))
+    options.disableMultiStrokeFill = json.value(QStringLiteral("disableMultiStrokeFill")).toBool();
+  if (json.contains(QStringLiteral("preserveVertices")))
+    options.preserveVertices = json.value(QStringLiteral("preserveVertices")).toBool();
+  if (json.contains(QStringLiteral("fillShapeRoughnessGain")))
+    options.fillShapeRoughnessGain = json.value(QStringLiteral("fillShapeRoughnessGain")).toDouble();
   return options;
 }
 
@@ -79,19 +97,20 @@ rough::Drawable generate(const QJsonObject& fixture) {
 }
 
 bool sameOperations(const rough::Drawable& left, const rough::Drawable& right) {
-  if (left.sets.size() != right.sets.size()) return false;
+  if (left.sets.size() != right.sets.size())
+    return false;
   for (qsizetype i = 0; i < left.sets.size(); ++i) {
-    if (left.sets[i].type != right.sets[i].type ||
-        left.sets[i].ops.size() != right.sets[i].ops.size()) return false;
+    if (left.sets[i].type != right.sets[i].type || left.sets[i].ops.size() != right.sets[i].ops.size())
+      return false;
     for (qsizetype j = 0; j < left.sets[i].ops.size(); ++j)
       if (left.sets[i].ops[j].type != right.sets[i].ops[j].type ||
-          left.sets[i].ops[j].data != right.sets[i].ops[j].data) return false;
+          left.sets[i].ops[j].data != right.sets[i].ops[j].data)
+        return false;
   }
   return true;
 }
 
-void compareDrawable(const QString& id, const rough::Drawable& actual,
-                     const QJsonObject& expected) {
+void compareDrawable(const QString& id, const rough::Drawable& actual, const QJsonObject& expected) {
   require(actual.shape == expected.value(QStringLiteral("shape")).toString(),
           QStringLiteral("%1: drawable shape differs").arg(id));
   const QJsonArray expectedSets = expected.value(QStringLiteral("sets")).toArray();
@@ -103,9 +122,11 @@ void compareDrawable(const QString& id, const rough::Drawable& actual,
     require(rough::opSetTypeName(actualSet.type) == expectedSet.value(QStringLiteral("type")).toString(),
             QStringLiteral("%1 set %2: type differs").arg(id).arg(setIndex));
     const QJsonArray expectedOps = expectedSet.value(QStringLiteral("ops")).toArray();
-    require(actualSet.ops.size() == expectedOps.size(),
-            QStringLiteral("%1 set %2: op count %3 != %4")
-                .arg(id).arg(setIndex).arg(actualSet.ops.size()).arg(expectedOps.size()));
+    require(actualSet.ops.size() == expectedOps.size(), QStringLiteral("%1 set %2: op count %3 != %4")
+                                                            .arg(id)
+                                                            .arg(setIndex)
+                                                            .arg(actualSet.ops.size())
+                                                            .arg(expectedOps.size()));
     for (qsizetype opIndex = 0; opIndex < actualSet.ops.size(); ++opIndex) {
       const rough::Op& actualOp = actualSet.ops[opIndex];
       const QJsonObject expectedOp = expectedOps[opIndex].toObject();
@@ -117,13 +138,16 @@ void compareDrawable(const QString& id, const rough::Drawable& actual,
       for (qsizetype dataIndex = 0; dataIndex < actualOp.data.size(); ++dataIndex)
         require(std::abs(actualOp.data[dataIndex] - expectedData[dataIndex].toDouble()) <= 1e-9,
                 QStringLiteral("%1 set %2 op %3 data %4: %5 != %6")
-                    .arg(id).arg(setIndex).arg(opIndex).arg(dataIndex)
+                    .arg(id)
+                    .arg(setIndex)
+                    .arg(opIndex)
+                    .arg(dataIndex)
                     .arg(actualOp.data[dataIndex], 0, 'g', 16)
                     .arg(expectedData[dataIndex].toDouble(), 0, 'g', 16));
     }
   }
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   require(argc == 2, QStringLiteral("Expected rough operation fixture path"));
@@ -156,7 +180,8 @@ int main(int argc, char** argv) {
             QStringLiteral("%1: changing seed did not change operations").arg(id));
     for (const rough::OpSet& set : actual.sets) {
       setTypes.insert(rough::opSetTypeName(set.type));
-      for (const rough::Op& op : set.ops) opTypes.insert(rough::opTypeName(op.type));
+      for (const rough::Op& op : set.ops)
+        opTypes.insert(rough::opTypeName(op.type));
     }
   }
   require(cases.size() == 17 && kinds.size() == 6 && setTypes.size() == 3 && opTypes.size() == 3,

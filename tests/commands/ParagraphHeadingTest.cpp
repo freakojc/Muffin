@@ -92,20 +92,14 @@ void testHeadingUndoRedo() {
 
   const EditTransaction undo = undoStack.takeUndo();
   require(undo.isTextDeltaCommand(), "heading undo should use TextDeltaCommand");
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   selection.setCursorPosition(undo.textDeltaCommand().beforeCursor);
   require(session.markdownText().toString() == QStringLiteral("Hello"), "heading undo text mismatch");
 
   const EditTransaction redo = undoStack.takeRedo();
-  session.applyTextDelta(
-      redo.textDeltaCommand().delta.start,
-      redo.textDeltaCommand().delta.removedText.size(),
-      redo.textDeltaCommand().delta.insertedText,
-      true);
+  session.applyTextDelta(redo.textDeltaCommand().delta.start, redo.textDeltaCommand().delta.removedText.size(),
+                         redo.textDeltaCommand().delta.insertedText, true);
   selection.setCursorPosition(redo.textDeltaCommand().afterCursor);
   require(session.markdownText().toString() == QStringLiteral("## Hello"), "heading redo text mismatch");
 }
@@ -157,7 +151,8 @@ void testHeadingMultiBlockDocument() {
 
   setCursor(selection, blockAt(session, 1), 3);
   require(paragraph.setHeadingLevel(2), "convert second block to H2 should succeed");
-  require(session.markdownText().toString() == QStringLiteral("First\n\n## Second\n\nThird"), "multi-block H2 text mismatch");
+  require(session.markdownText().toString() == QStringLiteral("First\n\n## Second\n\nThird"),
+          "multi-block H2 text mismatch");
 
   require(blockAt(session, 0)->type() == BlockType::Paragraph, "first block should stay paragraph");
   require(blockAt(session, 2)->type() == BlockType::Paragraph, "third block should stay paragraph");

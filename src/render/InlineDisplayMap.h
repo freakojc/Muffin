@@ -47,4 +47,4 @@ private:
   QVector<DisplayOffsetMapEntry> displayOffsetMap_;
 };
 
-}  // namespace muffin
+} // namespace muffin

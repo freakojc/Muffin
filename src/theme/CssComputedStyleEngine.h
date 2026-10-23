@@ -60,15 +60,15 @@ struct CssElement {
   // case-insensitively; values follow normal CSS case-sensitive matching unless
   // the selector carries the `i` flag.
   QHash<QString, QString> attributes;
-  QString pseudoElement;  // "", "before", "after", "selection", "marker"
+  QString pseudoElement; // "", "before", "after", "selection", "marker"
   // A pseudo inherits from its originating element, but selectors navigate the
   // origin's parent/siblings (it is not a second DOM child of the host).
   const CssElement* originatingElement = nullptr;
   const CssElement* parent = nullptr;
-  const CssElement* previousSibling = nullptr;  // adapter only; prototype stays null
-  const CssElement* nextSibling = nullptr;      // adapter only
-  int childIndex = -1;   // 0-based position among the parent's element children; -1 ⇒ N/A
-  int typeIndex = -1;    // 0-based position among same-tag siblings; -1 ⇒ N/A
+  const CssElement* previousSibling = nullptr; // adapter only; prototype stays null
+  const CssElement* nextSibling = nullptr;     // adapter only
+  int childIndex = -1;                         // 0-based position among the parent's element children; -1 ⇒ N/A
+  int typeIndex = -1;                          // 0-based position among same-tag siblings; -1 ⇒ N/A
   // Precomputed descendant/child tag+class sets, populated by the adapter for
   // `:has(...)` support. `:has(img)` ⇒ hasDescendantTags contains "img"; `:has(.x)`
   // ⇒ hasDescendantClasses contains "x"; `:has(> img)` uses the *Child sets.
@@ -77,12 +77,11 @@ struct CssElement {
   QSet<QString> hasDescendantClasses;
   QSet<QString> hasChildTags;
   QSet<QString> hasChildClasses;
-  const CssElementNavigator* navigator = nullptr;  // live adapter only; never owned
+  const CssElementNavigator* navigator = nullptr; // live adapter only; never owned
 };
 
 struct CssAttributeSelector {
-  enum class Operator { Exists, Equals, IncludesWord, DashMatch, Prefix,
-                        Suffix, Contains };
+  enum class Operator { Exists, Equals, IncludesWord, DashMatch, Prefix, Suffix, Contains };
   QString name;
   QString value;
   Operator op = Operator::Exists;
@@ -102,29 +101,29 @@ struct CssElementState {
 
 class CssComputedStyle {
 public:
- bool operator==(const CssComputedStyle&) const = default;
- QString rawValue(const QString& property) const;
- QString resolvedValue(const QString& property) const;
- bool hasProperty(const QString& property) const;
- // Resolve a percentage/calc box value after layout has established the
- // containing block. Computed styles retain the authored value and this copy
- // supplies the used-value width without mutating the cached style.
- CssComputedStyle withContainingWidth(qreal widthPx) const;
- CssLengthPercentage length(const QString& property) const;
- quint64 fingerprint() const;
+  bool operator==(const CssComputedStyle&) const = default;
+  QString rawValue(const QString& property) const;
+  QString resolvedValue(const QString& property) const;
+  bool hasProperty(const QString& property) const;
+  // Resolve a percentage/calc box value after layout has established the
+  // containing block. Computed styles retain the authored value and this copy
+  // supplies the used-value width without mutating the cached style.
+  CssComputedStyle withContainingWidth(qreal widthPx) const;
+  CssLengthPercentage length(const QString& property) const;
+  quint64 fingerprint() const;
 
- const QHash<QString, QString>& customProperties() const { return customProperties_; }
+  const QHash<QString, QString>& customProperties() const { return customProperties_; }
 
- QHash<QString, QString> properties_;
- QHash<QString, QString> customProperties_;
- QHash<QString, CssLengthPercentage> computedLengths_;
- QHash<QString, CssGridTrackList> computedGridTracks_;
- qreal fontSizePx = 16.0;
- qreal rootFontSizePx = 16.0;
- qreal containingWidthPx = -1.0;
- qreal textScale = 1.0;
- QSizeF viewportPx{1024, 768};
- std::shared_ptr<CssImageResources> imageResources;
+  QHash<QString, QString> properties_;
+  QHash<QString, QString> customProperties_;
+  QHash<QString, CssLengthPercentage> computedLengths_;
+  QHash<QString, CssGridTrackList> computedGridTracks_;
+  qreal fontSizePx = 16.0;
+  qreal rootFontSizePx = 16.0;
+  qreal containingWidthPx = -1.0;
+  qreal textScale = 1.0;
+  QSizeF viewportPx{1024, 768};
+  std::shared_ptr<CssImageResources> imageResources;
 };
 
 // Selector parse tree. Pre-parsed once per sheet in the engine constructor and
@@ -151,8 +150,8 @@ struct SimpleSelector {
   bool lastChild = false;
   bool onlyChild = false;
   bool firstOfType = false;
-  bool nthChild = false;   // :nth-child(an+b) — matched against childIndex
-  bool nthOfType = false;  // :nth-of-type(an+b) — matched against typeIndex
+  bool nthChild = false;  // :nth-child(an+b) — matched against childIndex
+  bool nthOfType = false; // :nth-of-type(an+b) — matched against typeIndex
   int nthA = 0;
   int nthB = 0;
   // :has(<simple>) — descendant (default) or direct-child (`>`) tag/class probe.
@@ -171,7 +170,7 @@ struct SimpleSelector {
 
 struct SelectorPart {
   SimpleSelector simple;
-  QChar combinator;  // relation to the part on the left: ' ' descendant, '>' child, '+'/'~' sibling, 0 for leftmost
+  QChar combinator; // relation to the part on the left: ' ' descendant, '>' child, '+'/'~' sibling, 0 for leftmost
 };
 
 struct ParsedSelector {
@@ -183,7 +182,7 @@ struct ParsedSelector {
   // dropped at match time (selectorMatches) so editor hacks never apply. Mirrors exportOnly.
   bool editorOnly = false;
   int specificity = 0;
-  QString selectorText;  // original selector string (kept for Candidate.selector trace/debug)
+  QString selectorText; // original selector string (kept for Candidate.selector trace/debug)
 };
 
 struct CssCounterSubject {
@@ -196,15 +195,19 @@ struct CssCounterSubject {
   QStringList ancestorBlockTags;
   bool mayMatch(const CssElement& element) const {
     if ((!tag.isEmpty() && tag != element.tag) || (!id.isEmpty() && id != element.id) ||
-        !std::all_of(classes.begin(), classes.end(), [&](const auto& name) { return element.classes.contains(name); })) return false;
-    if (!std::all_of(ancestorBlockTags.begin(), ancestorBlockTags.end(), [&](const auto& tag) {
-      for (auto* ancestor = element.parent; ancestor; ancestor = ancestor->parent)
-        if (ancestor->tag == tag) return true;
+        !std::all_of(classes.begin(), classes.end(), [&](const auto& name) { return element.classes.contains(name); }))
       return false;
-    })) return false;
+    if (!std::all_of(ancestorBlockTags.begin(), ancestorBlockTags.end(), [&](const auto& tag) {
+          for (auto* ancestor = element.parent; ancestor; ancestor = ancestor->parent)
+            if (ancestor->tag == tag)
+              return true;
+          return false;
+        }))
+      return false;
     return std::all_of(ancestorClasses.begin(), ancestorClasses.end(), [&](const auto& name) {
       for (auto* ancestor = element.parent; ancestor; ancestor = ancestor->parent)
-        if (ancestor->classes.contains(name)) return true;
+        if (ancestor->classes.contains(name))
+          return true;
       return false;
     });
   }
@@ -225,151 +228,156 @@ enum class CssSelectorSupport { Supported, Unsupported, EditorOnly, ExportOnly }
 
 class CssComputedStyleEngine {
 public:
- // Feature queries share the cascade's value validation and only advertise
- // properties implemented by the document backend.
- static bool supportsDeclaration(const QString& property, const QString& value);
- // Shares the selector compiler. Supported syntax need not match a document.
- static CssSelectorSupport selectorSupport(const QString& selector, QString* pseudoElement = nullptr);
- explicit CssComputedStyleEngine(const CssThemeSheet& sheet, CssEnvironment environment = {});
- // Immutable environment snapshots reuse selector compilation while keeping
- // computed values/caches isolated from the previous theme and its copies.
- std::shared_ptr<CssComputedStyleEngine> withEnvironment(CssEnvironment environment) const;
- CssEnvironment environment() const { return environment_; }
- bool sameActiveRules(CssEnvironment environment) const { return sourceSheet_->sameActiveRules(environment_, environment); }
- bool hasViewportUnits() const { return viewportUnits_; }
- // The caller owns this snapshot exclusively. With unchanged active rules and
- // no viewport-dependent declarations, cached document styles remain valid.
- void updateViewportSize(qreal width, qreal height) {
-   environment_.viewportWidth = width;
-   environment_.viewportHeight = height;
-   // Inline HTML declarations can introduce viewport lengths even if the
-   // stylesheet has none. Selector matches and static node styles still apply.
-   valueCache_.clear();
- }
+  // Feature queries share the cascade's value validation and only advertise
+  // properties implemented by the document backend.
+  static bool supportsDeclaration(const QString& property, const QString& value);
+  // Shares the selector compiler. Supported syntax need not match a document.
+  static CssSelectorSupport selectorSupport(const QString& selector, QString* pseudoElement = nullptr);
+  explicit CssComputedStyleEngine(const CssThemeSheet& sheet, CssEnvironment environment = {});
+  // Immutable environment snapshots reuse selector compilation while keeping
+  // computed values/caches isolated from the previous theme and its copies.
+  std::shared_ptr<CssComputedStyleEngine> withEnvironment(CssEnvironment environment) const;
+  CssEnvironment environment() const { return environment_; }
+  bool sameActiveRules(CssEnvironment environment) const {
+    return sourceSheet_->sameActiveRules(environment_, environment);
+  }
+  bool hasViewportUnits() const { return viewportUnits_; }
+  // The caller owns this snapshot exclusively. With unchanged active rules and
+  // no viewport-dependent declarations, cached document styles remain valid.
+  void updateViewportSize(qreal width, qreal height) {
+    environment_.viewportWidth = width;
+    environment_.viewportHeight = height;
+    // Inline HTML declarations can introduce viewport lengths even if the
+    // stylesheet has none. Selector matches and static node styles still apply.
+    valueCache_.clear();
+  }
 
- CssComputedStyle styleFor(const CssElement& element) const;
- CssComputedStyle styleFor(const CssElement& element, const CssElementState& state) const;
- CssComputedStyle styleFor(const CssElement& element, const CssElementState& state,
-                           const std::vector<CssDeclaration>& inlineDeclarations) const;
- CssComputedStyle styleFor(const CssElement& element, const CssElementState& state, const std::vector<CssDeclaration>& inlineDeclarations,
-                           const std::vector<CssDeclaration>& presentationDeclarations) const;
- const CssSelectorFeatures& selectorFeatures() const { return selectorFeatures_; }
- // Potential state dependencies after structural matching, including inherited
- // rules. Bits match paint recipes: hover=1, focus/md-focus=2, active=4.
- quint8 interactiveStateMask(const CssElement& element) const;
- bool mayHaveInteractiveStyle(const CssElement& element) const { return interactiveStateMask(element) != 0; }
- // Exact matching inputs for counter programs: counter/content/display/custom
- // declarations and inherited contexts. No variable expansion or layout work.
- QByteArray counterDependencySignature(const CssElement& element) const;
- bool mayGeneratePseudo(const CssElement& origin, const QString& pseudo) const {
-   const auto candidates = selectorFeatures_.generatedPseudoSubjects.constFind(pseudo);
-   if (candidates == selectorFeatures_.generatedPseudoSubjects.cend()) return false;
-   for (const auto& subject : *candidates)
-     if ((subject.first.isEmpty() || subject.first == origin.tag.toLower()) &&
-         (subject.second.isEmpty() || subject.second == origin.id)) return true;
-   return false;
- }
- void clearCache() const {
-   computedCache_.clear();
-   selectorMatchCache_.clear();
-   selectorPrefixCache_.clear();
-   sharedSelectorMatches_.clear();
-   scopedComputedCache_.clear();
-   resolvedStyleCount_ = 0;
-   interactionMaskCache_.clear();
-   counterDependencyCache_.clear();
-   cascadeCache_.clear();
-   valueCache_.clear();
-   ++generation_;
- }
- quint64 generation() const { return generation_; }
- struct CacheStats {
-   qsizetype identities = 0, resolvedStyles = 0, cascades = 0, values = 0, matchSets = 0;
- };
- CacheStats cacheStats() const;
- // Release short-lived prototype identities without clearing live document
- // snapshots or cross-element cascade/value sharing.
- void forgetElements(const QVector<quint64>& identities) const;
+  CssComputedStyle styleFor(const CssElement& element) const;
+  CssComputedStyle styleFor(const CssElement& element, const CssElementState& state) const;
+  CssComputedStyle styleFor(const CssElement& element, const CssElementState& state,
+                            const std::vector<CssDeclaration>& inlineDeclarations) const;
+  CssComputedStyle styleFor(const CssElement& element, const CssElementState& state,
+                            const std::vector<CssDeclaration>& inlineDeclarations,
+                            const std::vector<CssDeclaration>& presentationDeclarations) const;
+  const CssSelectorFeatures& selectorFeatures() const { return selectorFeatures_; }
+  // Potential state dependencies after structural matching, including inherited
+  // rules. Bits match paint recipes: hover=1, focus/md-focus=2, active=4.
+  quint8 interactiveStateMask(const CssElement& element) const;
+  bool mayHaveInteractiveStyle(const CssElement& element) const { return interactiveStateMask(element) != 0; }
+  // Exact matching inputs for counter programs: counter/content/display/custom
+  // declarations and inherited contexts. No variable expansion or layout work.
+  QByteArray counterDependencySignature(const CssElement& element) const;
+  bool mayGeneratePseudo(const CssElement& origin, const QString& pseudo) const {
+    const auto candidates = selectorFeatures_.generatedPseudoSubjects.constFind(pseudo);
+    if (candidates == selectorFeatures_.generatedPseudoSubjects.cend())
+      return false;
+    for (const auto& subject : *candidates)
+      if ((subject.first.isEmpty() || subject.first == origin.tag.toLower()) &&
+          (subject.second.isEmpty() || subject.second == origin.id))
+        return true;
+    return false;
+  }
+  void clearCache() const {
+    computedCache_.clear();
+    selectorMatchCache_.clear();
+    selectorPrefixCache_.clear();
+    sharedSelectorMatches_.clear();
+    scopedComputedCache_.clear();
+    resolvedStyleCount_ = 0;
+    interactionMaskCache_.clear();
+    counterDependencyCache_.clear();
+    cascadeCache_.clear();
+    valueCache_.clear();
+    ++generation_;
+  }
+  quint64 generation() const { return generation_; }
+  struct CacheStats {
+    qsizetype identities = 0, resolvedStyles = 0, cascades = 0, values = 0, matchSets = 0;
+  };
+  CacheStats cacheStats() const;
+  // Release short-lived prototype identities without clearing live document
+  // snapshots or cross-element cascade/value sharing.
+  void forgetElements(const QVector<quint64>& identities) const;
 
 private:
- CssComputedStyleEngine(const CssThemeSheet& sheet, CssEnvironment environment,
-                        std::shared_ptr<const QHash<QString, ParsedSelector>> selectorTemplates);
- std::shared_ptr<const QHash<QString, ParsedSelector>> selectorTemplates_;
- struct RuleMatch {
-   std::size_t rule;
-   int selector;
-   bool operator==(const RuleMatch&) const = default;
- };
- struct RuleCandidates {
-   std::size_t rule;
-   int staticSelector = -1;
-   QVector<int> interactiveSelectors;
-   bool operator==(const RuleCandidates&) const = default;
- };
- struct ElementMatches {
-   QVector<RuleCandidates> rules;
-   quint8 stateMask = 0;
-   bool operator==(const ElementMatches&) const = default;
- };
- ElementMatches structuralMatches(const CssElement& element) const;
- bool structuralSelectorMatches(int selector, const CssElement& element) const;
- std::vector<RuleMatch> matchedRules(const CssElement& element, const CssElementState& state) const;
- void applyStyleForElement(const std::vector<RuleMatch>& matched, CssComputedStyle& style,
-                           const std::vector<CssDeclaration>& inlineDeclarations = {},
-                           const std::vector<CssDeclaration>& presentationDeclarations = {}) const;
- CssComputedStyle parentStyleFor(const CssElement* parent) const;
- void computeValues(CssComputedStyle& style, const CssComputedStyle& parent, bool root) const;
+  CssComputedStyleEngine(const CssThemeSheet& sheet, CssEnvironment environment,
+                         std::shared_ptr<const QHash<QString, ParsedSelector>> selectorTemplates);
+  std::shared_ptr<const QHash<QString, ParsedSelector>> selectorTemplates_;
+  struct RuleMatch {
+    std::size_t rule;
+    int selector;
+    bool operator==(const RuleMatch&) const = default;
+  };
+  struct RuleCandidates {
+    std::size_t rule;
+    int staticSelector = -1;
+    QVector<int> interactiveSelectors;
+    bool operator==(const RuleCandidates&) const = default;
+  };
+  struct ElementMatches {
+    QVector<RuleCandidates> rules;
+    quint8 stateMask = 0;
+    bool operator==(const ElementMatches&) const = default;
+  };
+  ElementMatches structuralMatches(const CssElement& element) const;
+  bool structuralSelectorMatches(int selector, const CssElement& element) const;
+  std::vector<RuleMatch> matchedRules(const CssElement& element, const CssElementState& state) const;
+  void applyStyleForElement(const std::vector<RuleMatch>& matched, CssComputedStyle& style,
+                            const std::vector<CssDeclaration>& inlineDeclarations = {},
+                            const std::vector<CssDeclaration>& presentationDeclarations = {}) const;
+  CssComputedStyle parentStyleFor(const CssElement* parent) const;
+  void computeValues(CssComputedStyle& style, const CssComputedStyle& parent, bool root) const;
 
- std::shared_ptr<const CssThemeSheet> sourceSheet_;
- CssThemeSheet sheet_;
- CssEnvironment environment_;
- bool viewportUnits_ = false;
- std::vector<ParsedSelector> parsedSelectors_;         // every selector of every rule, flattened
- std::vector<std::pair<int, int>> ruleSelectorRange_;  // per-rule [start,end) into parsedSelectors_
- CssSelectorFeatures selectorFeatures_;
- // Entries are scoped to an engine generation and explicit snapshot identity.
- // Temporary elements and caller-owned inline declarations bypass the cache.
- mutable QHash<quint64, QHash<quint8, CssComputedStyle>> computedCache_;
- mutable QHash<quint64, ElementMatches> selectorMatchCache_;
- // The same paragraph/host prefix is reached by many inline subjects. Cache
- // exact prefix matches by stable identity, never by approximate metadata.
- mutable QHash<QPair<quint64, int>, bool> selectorPrefixCache_;
- mutable QHash<quint64, QVector<ElementMatches>> sharedSelectorMatches_;
- mutable QHash<quint64, quint8> interactionMaskCache_;
- mutable QHash<quint64, QByteArray> counterDependencyCache_;
- struct ScopedComputedEntry {
-   bool root;
-   std::vector<RuleMatch> matches;
-   CssComputedStyle parent, result;
- };
- // Neither element identities nor temporary state subjects are inputs to the
- // cascade after matching. Share final results by complete rules/parent values.
- mutable QHash<quint64, std::vector<ScopedComputedEntry>> scopedComputedCache_;
- mutable qsizetype resolvedStyleCount_ = 0;
- struct CascadeCacheEntry {
-   CssComputedStyle input, result;
-   std::vector<std::pair<quintptr, int>> matches;
- };
- struct ValueCacheEntry {
-   CssComputedStyle input, parent, result;
-   bool root = false;
- };
- // Equivalent selector results and inherited inputs share immutable Qt maps.
- // Hash buckets also compare full inputs, so hash collisions cannot alias styles.
- mutable QHash<quint64, std::vector<CascadeCacheEntry>> cascadeCache_;
- mutable QHash<quint64, std::vector<ValueCacheEntry>> valueCache_;
- struct SubjectCandidates {
-   std::size_t rule;
-   QVector<int> selectors;
- };
- // Necessary rightmost conditions, including nested :is/:where. Ancestors,
- // siblings, positions, attribute values and states still use the full matcher.
- mutable QHash<QByteArray, std::vector<SubjectCandidates>> ruleCandidates_;
- mutable quint64 generation_ = 1;
+  std::shared_ptr<const CssThemeSheet> sourceSheet_;
+  CssThemeSheet sheet_;
+  CssEnvironment environment_;
+  bool viewportUnits_ = false;
+  std::vector<ParsedSelector> parsedSelectors_;        // every selector of every rule, flattened
+  std::vector<std::pair<int, int>> ruleSelectorRange_; // per-rule [start,end) into parsedSelectors_
+  CssSelectorFeatures selectorFeatures_;
+  // Entries are scoped to an engine generation and explicit snapshot identity.
+  // Temporary elements and caller-owned inline declarations bypass the cache.
+  mutable QHash<quint64, QHash<quint8, CssComputedStyle>> computedCache_;
+  mutable QHash<quint64, ElementMatches> selectorMatchCache_;
+  // The same paragraph/host prefix is reached by many inline subjects. Cache
+  // exact prefix matches by stable identity, never by approximate metadata.
+  mutable QHash<QPair<quint64, int>, bool> selectorPrefixCache_;
+  mutable QHash<quint64, QVector<ElementMatches>> sharedSelectorMatches_;
+  mutable QHash<quint64, quint8> interactionMaskCache_;
+  mutable QHash<quint64, QByteArray> counterDependencyCache_;
+  struct ScopedComputedEntry {
+    bool root;
+    std::vector<RuleMatch> matches;
+    CssComputedStyle parent, result;
+  };
+  // Neither element identities nor temporary state subjects are inputs to the
+  // cascade after matching. Share final results by complete rules/parent values.
+  mutable QHash<quint64, std::vector<ScopedComputedEntry>> scopedComputedCache_;
+  mutable qsizetype resolvedStyleCount_ = 0;
+  struct CascadeCacheEntry {
+    CssComputedStyle input, result;
+    std::vector<std::pair<quintptr, int>> matches;
+  };
+  struct ValueCacheEntry {
+    CssComputedStyle input, parent, result;
+    bool root = false;
+  };
+  // Equivalent selector results and inherited inputs share immutable Qt maps.
+  // Hash buckets also compare full inputs, so hash collisions cannot alias styles.
+  mutable QHash<quint64, std::vector<CascadeCacheEntry>> cascadeCache_;
+  mutable QHash<quint64, std::vector<ValueCacheEntry>> valueCache_;
+  struct SubjectCandidates {
+    std::size_t rule;
+    QVector<int> selectors;
+  };
+  // Necessary rightmost conditions, including nested :is/:where. Ancestors,
+  // siblings, positions, attribute values and states still use the full matcher.
+  mutable QHash<QByteArray, std::vector<SubjectCandidates>> ruleCandidates_;
+  mutable quint64 generation_ = 1;
 };
 
 // Keyframe declarations use the same shorthand expansion as the cascade, but
 // do not run selectors again. Important declarations are invalid in keyframes.
 CssComputedStyle cssKeyframeStyle(CssComputedStyle base, const std::vector<CssDeclaration>& declarations);
 
-}  // namespace muffin
+} // namespace muffin

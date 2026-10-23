@@ -54,7 +54,7 @@ bool loadDictFromResources(nuspell::Dictionary& dict, const QString& locale) {
   }
   return true;
 }
-}  // namespace
+} // namespace
 
 SpellChecker& SpellChecker::instance() {
   static SpellChecker s;
@@ -84,7 +84,7 @@ void SpellChecker::setLanguage(const QString& localeCode) {
   }
   const QString before = language();
   selectedLocale_ = localeCode.isEmpty() ? QString::fromLatin1(kDefaultLocale) : localeCode;
-  dictionary_.reset();  // reparse with the new dictionary on next use
+  dictionary_.reset(); // reparse with the new dictionary on next use
   if (language() != before) {
     emit languageChanged(language());
   }
@@ -118,7 +118,7 @@ QStringList SpellChecker::availableLanguages() {
   QDir dir(QString::fromLatin1(kResourcePrefix));
   const QStringList dicFiles = dir.entryList({QStringLiteral("*.dic")}, QDir::Files);
   for (const QString& file : dicFiles) {
-    codes << file.left(file.size() - 4);  // strip ".dic"
+    codes << file.left(file.size() - 4); // strip ".dic"
   }
   codes.sort();
   return codes;
@@ -180,4 +180,4 @@ void SpellChecker::ignoreWord(QStringView word) {
   ignoredWords_.insert(word.toString().toLower());
 }
 
-}  // namespace muffin
+} // namespace muffin

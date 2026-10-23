@@ -92,15 +92,14 @@ void testCtrlBackspaceDeletesWord() {
 
   session.setMarkdownText(QStringLiteral("beta gamma delta"), false);
   MarkdownNode* block = blockAt(session, 0);
-  const NodeId blockId = block->id();  // captured BEFORE the edit: the reparse may replace the node
+  const NodeId blockId = block->id(); // captured BEFORE the edit: the reparse may replace the node
   setCursor(selection, block, QStringLiteral("beta gamma delta").size());
 
   require(pressKey(input, &view, Qt::Key_Backspace, Qt::ControlModifier), "ctrl+backspace should be handled");
   const QString after = session.markdownText().toString();
   require(after.contains(QStringLiteral("gamma")), "ctrl+backspace must keep earlier words");
   require(!after.contains(QStringLiteral("delta")), "ctrl+backspace should remove the trailing word");
-  require(selection.cursorPosition().blockId == blockId,
-          "caret should stay in the edited block");
+  require(selection.cursorPosition().blockId == blockId, "caret should stay in the edited block");
   require(selection.cursorPosition().text.textOffset <= QStringLiteral("beta gamma ").size(),
           "caret should rest at (or before, after trailing-space reparse) the deletion start");
   require(undoStack.canUndo(), "ctrl+backspace should record an undo transaction");
@@ -138,7 +137,8 @@ void testCtrlBackspaceAtBlockStartMerges() {
   session.setMarkdownText(QStringLiteral("alpha\n\nbeta gamma"), false);
   setCursor(selection, blockAt(session, 1), 0);
 
-  require(pressKey(input, &view, Qt::Key_Backspace, Qt::ControlModifier), "ctrl+backspace at block start is still ours");
+  require(pressKey(input, &view, Qt::Key_Backspace, Qt::ControlModifier),
+          "ctrl+backspace at block start is still ours");
   require(session.markdownText().toString() == QStringLiteral("alphabeta gamma"),
           "ctrl+backspace at block start should merge with the previous block");
 }
@@ -159,7 +159,8 @@ void testCtrlHomeEndJump() {
 
   require(pressKey(input, &view, Qt::Key_End, Qt::ControlModifier), "ctrl+end should be handled");
   require(selection.cursorPosition().blockId == blockAt(session, 2)->id(), "ctrl+end should reach the last block");
-  require(selection.cursorPosition().text.textOffset == QStringLiteral("delta").size(), "ctrl+end should land at text end");
+  require(selection.cursorPosition().text.textOffset == QStringLiteral("delta").size(),
+          "ctrl+end should land at text end");
 
   require(pressKey(input, &view, Qt::Key_Home, Qt::ControlModifier), "ctrl+home should be handled");
   require(selection.cursorPosition().blockId == blockAt(session, 0)->id(), "ctrl+home should reach the first block");
@@ -193,7 +194,8 @@ void testCtrlArrowsInTableCell() {
   controller.attach(&session, &view);
   view.resize(900, 500);
 
-  session.setMarkdownText(QStringLiteral("| left words | right words |\n| --- | --- |\n| alpha beta | gamma delta |"), false);
+  session.setMarkdownText(QStringLiteral("| left words | right words |\n| --- | --- |\n| alpha beta | gamma delta |"),
+                          false);
   view.setDocument(session.document());
   MarkdownNode* table = blockAt(session, 0);
 
@@ -210,15 +212,14 @@ void testCtrlArrowsInTableCell() {
   hit.zone = HitTestResult::Zone::TableCell;
   hit.blockId = table->id();
   hit.textNodeId = cell->id();
-  hit.tableRow = 1;  // header (0) + body row
+  hit.tableRow = 1; // header (0) + body row
   hit.tableColumn = 1;
   hit.textOffset = 0;
   controller.activateHit(hit);
 
   InputController& input = controller.inputController();
   require(pressKey(input, &view, Qt::Key_Right, Qt::ControlModifier), "ctrl+right in a cell should be handled");
-  require(controller.selection().cursorPosition().text.nodeId == cell->id(),
-          "word movement must not leave the cell");
+  require(controller.selection().cursorPosition().text.nodeId == cell->id(), "word movement must not leave the cell");
   require(controller.selection().cursorPosition().text.textOffset == QStringLiteral("gamma ").size(),
           "ctrl+right in a cell should stop at the next word");
   const QString after = session.markdownText().toString();
@@ -237,7 +238,7 @@ void testCtrlUpDownMoveByParagraph() {
 
   session.setMarkdownText(QStringLiteral("first\n\n- item one\n- item two\n\nlast block"), false);
   MarkdownNode* list = blockAt(session, 1);
-  setCursor(selection, listItemAt(session, 1, 1), 4);  // middle of "item two"
+  setCursor(selection, listItemAt(session, 1, 1), 4); // middle of "item two"
 
   require(pressKey(input, &view, Qt::Key_Down, Qt::ControlModifier), "ctrl+down should be handled");
   require(selection.cursorPosition().blockId == blockAt(session, 2)->id(),

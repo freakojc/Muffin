@@ -22,12 +22,11 @@ namespace {
 // icon), so InlineLayout::buildLinkBeforeAtoms inserts flow-reserved
 // placeholders at every link run. This is the condition that exposed the bug.
 RenderTheme linkBeforeIconTheme() {
-  const QString css = QStringLiteral(
-      "#write { color:#000000; } a { color:#0000ff; }"
-      "#write a::before { content:''; background-color:#0000ff;"
-      " width:16px; height:16px; margin-right:6px;"
-      " -webkit-mask:url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'>"
-      "<path d='M0 0L10 10'/></svg>\") center/contain; }");
+  const QString css = QStringLiteral("#write { color:#000000; } a { color:#0000ff; }"
+                                     "#write a::before { content:''; background-color:#0000ff;"
+                                     " width:16px; height:16px; margin-right:6px;"
+                                     " -webkit-mask:url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'>"
+                                     "<path d='M0 0L10 10'/></svg>\") center/contain; }");
   return RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("t"), QString()));
 }
 
@@ -60,7 +59,8 @@ void testLinkBeforeIconDoesNotStaleMathAtomOffset() {
   const MarkdownNode* paragraph = findFirstBlock(session.document().root(), BlockType::Paragraph);
   require(paragraph != nullptr, QStringLiteral("fixture should contain a paragraph"));
   const BlockLayout* block = layout.block(paragraph->id());
-  require(block != nullptr && block->inlineLayout() != nullptr, QStringLiteral("paragraph should have an inline layout"));
+  require(block != nullptr && block->inlineLayout() != nullptr,
+          QStringLiteral("paragraph should have an inline layout"));
 
   const InlineNode* mathNode = nullptr;
   for (const InlineNode& node : paragraph->inlines()) {
@@ -84,10 +84,12 @@ void testLinkBeforeIconDoesNotStaleMathAtomOffset() {
   // even under offscreen metrics.
   require(reserved > nativeWidth * 0.5,
           QStringLiteral("inline math must reserve the native formula width when a link ::before icon precedes it "
-                         "(reserved=%1 native=%2)").arg(reserved).arg(nativeWidth));
+                         "(reserved=%1 native=%2)")
+              .arg(reserved)
+              .arg(nativeWidth));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

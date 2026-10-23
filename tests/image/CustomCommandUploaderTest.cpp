@@ -42,7 +42,7 @@ void testConfiguredCommandIsHonored() {
   QSettings().remove(QStringLiteral("image/uploadCommand"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

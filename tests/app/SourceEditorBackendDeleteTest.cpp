@@ -19,26 +19,16 @@ namespace {
 struct Harness {
   SourceEditorWidget editor;
   SourceEditorBackend backend;
-  Harness() : backend(&editor) {
-    editor.resize(720, 460);
-  }
-  void load(const QString& text) {
-    editor.setText(text);
-  }
+  Harness() : backend(&editor) { editor.resize(720, 460); }
+  void load(const QString& text) { editor.setText(text); }
   // Place the caret at a flat document position.
-  void placeAt(int position) {
-    editor.setCursorPosition(position);
-  }
+  void placeAt(int position) { editor.setCursorPosition(position); }
   // Select the closed interval [start, end] (end exclusive).
-  void select(int start, int end) {
-    editor.setSelection(start, end);
-  }
-  QString text() const {
-    return editor.text();
-  }
+  void select(int start, int end) { editor.setSelection(start, end); }
+  QString text() const { return editor.text(); }
 };
 
-}  // namespace
+} // namespace
 
 void testSourceDeleteForwardChar() {
   Harness h;
@@ -67,7 +57,7 @@ void testSourceDeleteBackwardChar() {
 void testSourceDeleteWord() {
   Harness h;
   h.load(QStringLiteral("hello world"));
-  h.placeAt(7);  // inside "world"
+  h.placeAt(7); // inside "world"
   h.backend.deleteRange(DeleteTarget::Word);
   require(h.text() == QStringLiteral("hello "), "delete word should remove \"world\"");
 }
@@ -85,16 +75,17 @@ void testSourceDeleteFormatSpan() {
 void testSourceDeleteLine() {
   Harness h;
   h.load(QStringLiteral("line1\nline2\nline3"));
-  h.placeAt(6);  // start of "line2"
+  h.placeAt(6); // start of "line2"
   h.backend.deleteRange(DeleteTarget::Line);
-  require(h.text() == QStringLiteral("line1\n\nline3"), "delete line should clear the line text, leaving an empty line");
+  require(h.text() == QStringLiteral("line1\n\nline3"),
+          "delete line should clear the line text, leaving an empty line");
 }
 
 // Block removes a middle line entirely (line text + its newline), joining neighbours.
 void testSourceDeleteBlockMiddle() {
   Harness h;
   h.load(QStringLiteral("line1\nline2\nline3"));
-  h.placeAt(6);  // inside "line2"
+  h.placeAt(6); // inside "line2"
   h.backend.deleteRange(DeleteTarget::Block);
   require(h.text() == QStringLiteral("line1\nline3"), "delete block on a middle line should remove the line and join");
 }
@@ -103,7 +94,7 @@ void testSourceDeleteBlockMiddle() {
 void testSourceDeleteBlockLast() {
   Harness h;
   h.load(QStringLiteral("line1\nline2"));
-  h.placeAt(6);  // inside "line2"
+  h.placeAt(6); // inside "line2"
   h.backend.deleteRange(DeleteTarget::Block);
   require(h.text() == QStringLiteral("line1\n"), "delete block on the last line should leave the previous line");
 }
@@ -152,13 +143,11 @@ void testReadOnlySourceRejectsMutationWithoutDamagingUndo() {
   h.editor.setReadOnly(true);
   h.editor.insertText(QStringLiteral(" ignored"));
   h.backend.undo();
-  require(h.text() == QStringLiteral("alpha!"),
-          "read-only input and undo must leave text and undo history unchanged");
+  require(h.text() == QStringLiteral("alpha!"), "read-only input and undo must leave text and undo history unchanged");
 
   h.editor.setReadOnly(false);
   h.backend.undo();
-  require(h.text() == QStringLiteral("alpha"),
-          "undo history should remain usable after read-only mode ends");
+  require(h.text() == QStringLiteral("alpha"), "undo history should remain usable after read-only mode ends");
 }
 
 void testSessionBackedBackspaceInListSeparator() {
@@ -193,20 +182,29 @@ void testSessionBackedBackspaceInListSeparator() {
 
       QString expected = original;
       expected.remove(caret - 1, 1);
-      require(session.markdownText().toString() == expected,
-              QStringLiteral("source Backspace on a blank line after a list must remove the preceding newline: blanks=%1, caret=%2, actual=[%3]")
-                  .arg(blankLines).arg(editor.cursorPosition()).arg(session.markdownText().toString()));
+      require(
+          session.markdownText().toString() == expected,
+          QStringLiteral(
+              "source Backspace on a blank line after a list must remove the preceding newline: blanks=%1, caret=%2, actual=[%3]")
+              .arg(blankLines)
+              .arg(editor.cursorPosition())
+              .arg(session.markdownText().toString()));
       require(editor.cursorPosition() == caret - 1, "source Backspace must move the caret back one character");
       require(session.lastParseWasLocalEdit(), "ordinary source separator edits must not reparse the entire document");
       const auto checkTree = [&session, blankLines](qsizetype expectedBlocks, const char* stage) {
         const auto& blocks = session.document().root().children();
-        require(static_cast<qsizetype>(blocks.size()) == expectedBlocks &&
-                    blocks.front()->type() == BlockType::List && blocks.front()->children().size() == 5,
-                QStringLiteral("source separator tree mismatch after %1 with %2 blank lines: expected=%3 actual=%4 firstType=%5 items=%6 source=[%7]")
-                    .arg(QString::fromLatin1(stage)).arg(blankLines).arg(expectedBlocks).arg(blocks.size())
-                    .arg(blocks.empty() ? -1 : static_cast<int>(blocks.front()->type()))
-                    .arg(blocks.empty() ? 0 : blocks.front()->children().size())
-                    .arg(session.markdownText().toString().replace(QLatin1Char('\n'), QStringLiteral("\\n"))));
+        require(
+            static_cast<qsizetype>(blocks.size()) == expectedBlocks && blocks.front()->type() == BlockType::List &&
+                blocks.front()->children().size() == 5,
+            QStringLiteral(
+                "source separator tree mismatch after %1 with %2 blank lines: expected=%3 actual=%4 firstType=%5 items=%6 source=[%7]")
+                .arg(QString::fromLatin1(stage))
+                .arg(blankLines)
+                .arg(expectedBlocks)
+                .arg(blocks.size())
+                .arg(blocks.empty() ? -1 : static_cast<int>(blocks.front()->type()))
+                .arg(blocks.empty() ? 0 : blocks.front()->children().size())
+                .arg(session.markdownText().toString().replace(QLatin1Char('\n'), QStringLiteral("\\n"))));
       };
       checkTree(blankLines == 1 ? 1 : 2, "Backspace");
       require(backend.canUndo(), "deleting a list separator should be undoable");
@@ -255,8 +253,7 @@ void testVirtualSourceViewportAffordances() {
           "large source documents should expose a vertical scrollbar");
   require(view->verticalScrollBar()->maximum() > 0 && view->verticalScrollBar()->isVisible(),
           "vertical scrollbar should be visible for overflowing source text");
-  require(view->viewport()->cursor().shape() == Qt::IBeamCursor,
-          "source text viewport should use an I-beam cursor");
+  require(view->viewport()->cursor().shape() == Qt::IBeamCursor, "source text viewport should use an I-beam cursor");
 
   const QImage viewportImage = view->viewport()->grab().toImage();
   bool foundDarkBodyPixel = false;
@@ -268,8 +265,7 @@ void testVirtualSourceViewportAffordances() {
       }
     }
   }
-  require(foundDarkBodyPixel,
-          "plain source text should use the theme body color, not the pale line-number color");
+  require(foundDarkBodyPixel, "plain source text should use the theme body color, not the pale line-number color");
 
   editor.setWordWrapEnabled(false);
   require(view->horizontalScrollBarPolicy() == Qt::ScrollBarAsNeeded,

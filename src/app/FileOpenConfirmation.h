@@ -31,4 +31,4 @@ private:
   QDialogButtonBox* buttons_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

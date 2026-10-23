@@ -36,7 +36,8 @@ QJsonObject memory() {
   return result;
 }
 void check(bool condition, const char* message) {
-  if (!condition) qFatal("cmark probe: %s", message);
+  if (!condition)
+    qFatal("cmark probe: %s", message);
 }
 QJsonObject fingerprint(cmark_node* root) {
   QCryptographicHash hash(QCryptographicHash::Sha256);
@@ -53,7 +54,8 @@ QJsonObject fingerprint(cmark_node* root) {
         << cmark_node_get_start_line(node) << cmark_node_get_start_column(node) << cmark_node_get_end_line(node)
         << cmark_node_get_end_column(node);
     hash.addData(bytes);
-    if (event == CMARK_EVENT_ENTER) ++nodes;
+    if (event == CMARK_EVENT_ENTER)
+      ++nodes;
   }
   cmark_iter_free(iterator);
   return {{"nodes", nodes}, {"sha256", QString::fromLatin1(hash.result().toHex())}};
@@ -69,33 +71,40 @@ QString workload(int mib, const QString& kind) {
       "[Muffin](https://example.com), <kbd>Ctrl</kbd> and $E=mc^2$.\n\n"
       "## Section heading\n\n> A quotation with **strong text**.\n\n1. First item\n2. Second item\n   1. Nested "
       "item\n\n- [x] Checked task\n- [ ] Pending task\n\n");
-  if (kind.startsWith("gui")) text = syntax;
+  if (kind.startsWith("gui"))
+    text = syntax;
   const auto block = kind == "extensions"
-                         ? syntax +
-                               "| a | b |\n|---|---|\n| **bold** | $x$ |\n\nhttps://example.com www.example.com "
-                               "a@example.com\n\n[^a]: footnote\n\nReference [^a].\n\n$$\nx+y\n$$\n\n"
+                         ? syntax + "| a | b |\n|---|---|\n| **bold** | $x$ |\n\nhttps://example.com www.example.com "
+                                    "a@example.com\n\n[^a]: footnote\n\nReference [^a].\n\n$$\nx+y\n$$\n\n"
                      : kind == "plain" ? QString("Plain text without inline syntax. ").repeated(36) + "\n\n"
                                        : paragraph;
   while (text.size() < qsizetype(mib) * 1024 * 1024) {
-    if (kind.startsWith("gui") && text.size() % 65536 < 1200) text += "# Heading\n\n";
+    if (kind.startsWith("gui") && text.size() % 65536 < 1200)
+      text += "# Heading\n\n";
     text += block;
   }
-  if (kind == "gui-footnote") text += "Reference [^a].\n\n[^a]: A footnote with **bold**.\n";
-  if (kind == "gui-undefined") text += "Reference [^missing].\n";
-  if (kind == "gui-email") text += "Emails a@example.com, mailto:b@example.org and c&#64;example.net.\n";
-  if (kind == "gui-noise") text += "Not emails @@@ invalid@host and `code@example.com`.\n";
+  if (kind == "gui-footnote")
+    text += "Reference [^a].\n\n[^a]: A footnote with **bold**.\n";
+  if (kind == "gui-undefined")
+    text += "Reference [^missing].\n";
+  if (kind == "gui-email")
+    text += "Emails a@example.com, mailto:b@example.org and c&#64;example.net.\n";
+  if (kind == "gui-noise")
+    text += "Not emails @@@ invalid@host and `code@example.com`.\n";
   return text;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
-  if (argc != 5) return 2;
+  if (argc != 5)
+    return 2;
   const int mib = QString::fromLocal8Bit(argv[1]).toInt();
   const auto kind = QString::fromLocal8Bit(argv[2]), mode = QString::fromLocal8Bit(argv[3]);
   const bool enabled = QString::fromLocal8Bit(argv[4]) == "stages";
 #ifdef MUFFIN_CMARK_ARCHIVE_CONTROL
-  if (enabled) return 2;
+  if (enabled)
+    return 2;
 #endif
   if (mib < 1 || mib > 30 ||
       !QStringList{"gui", "gui-footnote", "gui-undefined", "gui-email", "gui-noise", "plain", "extensions"}.contains(
@@ -113,7 +122,8 @@ int main(int argc, char** argv) {
   QJsonArray extensions;
   if (mode != "none")
     for (const auto* name : {"table", "autolink", "tasklist", "math"}) {
-      if (mode == "no-autolink" && QByteArray(name) == "autolink") continue;
+      if (mode == "no-autolink" && QByteArray(name) == "autolink")
+        continue;
       auto* extension = cmark_find_syntax_extension(name);
       check(extension && cmark_parser_attach_syntax_extension(parser, extension), "cannot attach production extension");
       extensions.append(name);
@@ -121,7 +131,8 @@ int main(int argc, char** argv) {
   const double setupMs = timer.nsecsElapsed() / 1e6;
   muffin_cmark_profile profile{};
 #ifndef MUFFIN_CMARK_ARCHIVE_CONTROL
-  if (enabled) muffin_cmark_profile_begin(parser, &profile);
+  if (enabled)
+    muffin_cmark_profile_begin(parser, &profile);
 #endif
   timer.restart();
   cmark_parser_feed(parser, bytes.constData(), size_t(bytes.size()));
@@ -131,7 +142,8 @@ int main(int argc, char** argv) {
   const double finishMs = timer.nsecsElapsed() / 1e6;
   const auto parsedMemory = memory();
 #ifndef MUFFIN_CMARK_ARCHIVE_CONTROL
-  if (enabled) muffin_cmark_profile_end();
+  if (enabled)
+    muffin_cmark_profile_end();
 #endif
   check(root != nullptr, "missing tree");
   const auto tree = fingerprint(root);

@@ -42,7 +42,8 @@ muffin::PrefsAppearancePage::PrefsAppearancePage(QWidget* parent) : PreferencesP
   // --- Card 2: Zoom ---
   auto* zoomCard = makeCard(this);
   auto* zoomCardLayout = new QVBoxLayout(zoomCard);
-  zoomCardLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin, kRowVerticalMargin);
+  zoomCardLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin,
+                                     kRowVerticalMargin);
   zoomCardLayout->setSpacing(kRowSpacing);
   zoomLabel_ = makeSectionLabel(zoomCard);
   auto* zoomRow = new QHBoxLayout();
@@ -62,7 +63,8 @@ muffin::PrefsAppearancePage::PrefsAppearancePage(QWidget* parent) : PreferencesP
   // --- Card 3: Font Size ---
   auto* fontSizeCard = makeCard(this);
   auto* fontSizeLayout = new QHBoxLayout(fontSizeCard);
-  fontSizeLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin, kRowVerticalMargin);
+  fontSizeLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin,
+                                     kRowVerticalMargin);
   fontSizeLayout->setSpacing(18);
   fontSizeLabel_ = makeSectionLabel(fontSizeCard);
   fontSizeCombo_ = new QComboBox(fontSizeCard);
@@ -76,8 +78,8 @@ muffin::PrefsAppearancePage::PrefsAppearancePage(QWidget* parent) : PreferencesP
   // --- Card 4: Content Width ---
   auto* contentWidthCard = makeCard(this);
   auto* contentWidthLayout = new QHBoxLayout(contentWidthCard);
-  contentWidthLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin,
-                                         kRowHorizontalMargin, kRowVerticalMargin);
+  contentWidthLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin,
+                                         kRowVerticalMargin);
   contentWidthLayout->setSpacing(18);
   contentWidthLabel_ = makeSectionLabel(contentWidthCard);
   contentWidthCombo_ = new QComboBox(contentWidthCard);
@@ -165,7 +167,7 @@ void muffin::PrefsAppearancePage::setAvailableThemes(const QVector<QPair<QString
   themeCombo_->blockSignals(true);
   themeCombo_->clear();
   for (const auto& entry : themes_) {
-    themeCombo_->addItem(entry.second, entry.first);  // text=label, data=id
+    themeCombo_->addItem(entry.second, entry.first); // text=label, data=id
   }
   polishComboBox(themeCombo_);
   const int index = themeCombo_->findData(current);
@@ -202,7 +204,8 @@ void muffin::PrefsAppearancePage::setContentWidthPx(int px) {
   setNumberComboValue(contentWidthCombo_, px);
 }
 
-void muffin::PrefsAppearancePage::addNumberItems(QComboBox* combo, const QVector<int>& values, const QString& suffix) const {
+void muffin::PrefsAppearancePage::addNumberItems(QComboBox* combo, const QVector<int>& values,
+                                                 const QString& suffix) const {
   combo->clear();
   for (int value : values) {
     combo->addItem(QStringLiteral("%1%2").arg(value).arg(suffix), value);

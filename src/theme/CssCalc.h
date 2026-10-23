@@ -26,7 +26,7 @@ struct CssLengthContext {
   qreal remPx = 16.0;
   qreal exPx = 8.0;
   qreal chPx = 8.0;
-  QSizeF viewportPx{1.0, 1.0};  // neutral placeholder; callers override it
+  QSizeF viewportPx{1.0, 1.0}; // neutral placeholder; callers override it
 };
 
 // Tri-state result so the caller applies its OWN fallback semantics: stroke-width
@@ -35,7 +35,7 @@ struct CssLengthContext {
 enum class CssLengthStatus { Missing, Invalid, Valid };
 struct CssLengthResult {
   CssLengthStatus status = CssLengthStatus::Missing;
-  qreal px = 0.0;  // meaningful only when status == Valid
+  qreal px = 0.0; // meaningful only when status == Valid
 };
 
 // Computed <length-percentage>. Percentages survive computation until the
@@ -49,16 +49,19 @@ struct CssLengthPercentage {
   qreal used(qreal containingPx) const { return px + fraction * containingPx; }
 };
 
-CssLengthPercentage parseCssLengthPercentage(QStringView value, const CssLengthContext& context, bool allowUnitless = false);
+CssLengthPercentage parseCssLengthPercentage(QStringView value, const CssLengthContext& context,
+                                             bool allowUnitless = false);
 
 struct CssBoxLengths {
-  std::array<CssLengthPercentage, 4> sides;  // top, right, bottom, left
+  std::array<CssLengthPercentage, 4> sides; // top, right, bottom, left
   QMarginsF used(QMarginsF fallback, qreal containingWidth, bool nonNegative = false) const {
     qreal values[]{fallback.top(), fallback.right(), fallback.bottom(), fallback.left()};
     for (int i = 0; i < 4; ++i) {
-      if (sides[i].status != CssLengthStatus::Valid) continue;
+      if (sides[i].status != CssLengthStatus::Valid)
+        continue;
       values[i] = sides[i].used(qMax<qreal>(0, containingWidth));
-      if (nonNegative) values[i] = qMax<qreal>(0, values[i]);
+      if (nonNegative)
+        values[i] = qMax<qreal>(0, values[i]);
     }
     return {values[3], values[0], values[1], values[2]};
   }
@@ -86,4 +89,4 @@ CssLengthResult resolveCssLengthToPx(QStringView value, const CssLengthContext& 
 // result to distinguish invalid from a valid zero. Variables must be resolved.
 qreal evalCalcPx(const QString& expression, qreal emPx, qreal rootPx, qreal containingPx);
 
-}  // namespace muffin
+} // namespace muffin

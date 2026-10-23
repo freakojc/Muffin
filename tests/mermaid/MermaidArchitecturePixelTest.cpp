@@ -20,18 +20,20 @@ namespace {
   std::fprintf(stderr, "FAIL: %s\n", qPrintable(message));
   std::exit(1);
 }
-void require(bool value, const QString& message) { if (!value) fail(message); }
+void require(bool value, const QString& message) {
+  if (!value)
+    fail(message);
+}
 QByteArray sha256(const QString& path) {
   QFile file(path);
-  if (!file.open(QIODevice::ReadOnly)) return {};
+  if (!file.open(QIODevice::ReadOnly))
+    return {};
   return QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex();
 }
 QImage nativePng(const QString& source) {
-  const QString dataUrl =
-      editor::MermaidRenderCache::renderMermaidSourceToPng(source, 1).dataUrl;
+  const QString dataUrl = editor::MermaidRenderCache::renderMermaidSourceToPng(source, 1).dataUrl;
   QImage image;
-  image.loadFromData(QByteArray::fromBase64(
-      dataUrl.mid(dataUrl.indexOf(QLatin1Char(',')) + 1).toLatin1()), "PNG");
+  image.loadFromData(QByteArray::fromBase64(dataUrl.mid(dataUrl.indexOf(QLatin1Char(',')) + 1).toLatin1()), "PNG");
   return image.convertToFormat(QImage::Format_RGBA8888);
 }
 qreal alphaIou(const QImage& actual, const QImage& expected) {
@@ -53,19 +55,17 @@ qreal rgbaScore(const QImage& actual, const QImage& expected) {
     for (int x = 0; x < expected.width(); ++x) {
       const QColor lhs = actual.pixelColor(x, y);
       const QColor rhs = expected.pixelColor(x, y);
-      if (lhs.alpha() < 16 && rhs.alpha() < 16) continue;
-      difference += std::abs(lhs.red() * lhs.alpha() / 255 -
-                             rhs.red() * rhs.alpha() / 255) +
-                    std::abs(lhs.green() * lhs.alpha() / 255 -
-                             rhs.green() * rhs.alpha() / 255) +
-                    std::abs(lhs.blue() * lhs.alpha() / 255 -
-                             rhs.blue() * rhs.alpha() / 255) +
+      if (lhs.alpha() < 16 && rhs.alpha() < 16)
+        continue;
+      difference += std::abs(lhs.red() * lhs.alpha() / 255 - rhs.red() * rhs.alpha() / 255) +
+                    std::abs(lhs.green() * lhs.alpha() / 255 - rhs.green() * rhs.alpha() / 255) +
+                    std::abs(lhs.blue() * lhs.alpha() / 255 - rhs.blue() * rhs.alpha() / 255) +
                     std::abs(lhs.alpha() - rhs.alpha());
       ++count;
     }
   return count ? 1.0 - difference / (count * 1020.0) : 1.0;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -89,21 +89,20 @@ int main(int argc, char** argv) {
   for (const QJsonValue& value : cases) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
-    const QString referencePath =
-        directory.filePath(fixture.value(QStringLiteral("file")).toString());
-    require(sha256(referencePath) ==
-                fixture.value(QStringLiteral("sha256")).toString().toLatin1(),
+    const QString referencePath = directory.filePath(fixture.value(QStringLiteral("file")).toString());
+    require(sha256(referencePath) == fixture.value(QStringLiteral("sha256")).toString().toLatin1(),
             id + QStringLiteral("/png-sha"));
     const QImage expected(referencePath);
-    const QImage actual =
-        nativePng(fixture.value(QStringLiteral("source")).toString());
+    const QImage actual = nativePng(fixture.value(QStringLiteral("source")).toString());
     require(!actual.isNull(), id + QStringLiteral("/native-png"));
-    require(actual.size() == expected.size(),
-            QStringLiteral("%1/size %2x%3 != %4x%5")
-                .arg(id).arg(actual.width()).arg(actual.height())
-                .arg(expected.width()).arg(expected.height()));
+    require(actual.size() == expected.size(), QStringLiteral("%1/size %2x%3 != %4x%5")
+                                                  .arg(id)
+                                                  .arg(actual.width())
+                                                  .arg(actual.height())
+                                                  .arg(expected.width())
+                                                  .arg(expected.height()));
     const qreal iou = alphaIou(actual, expected);
-    {  // TEMP DEBUG
+    { // TEMP DEBUG
       QDir temp(qEnvironmentVariable("TEMP"));
       actual.save(temp.filePath(id + QStringLiteral("-native.png")));
       expected.save(temp.filePath(id + QStringLiteral("-browser.png")));

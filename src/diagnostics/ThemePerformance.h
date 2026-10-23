@@ -27,17 +27,17 @@ struct ThemeTextPaintStats {
 MUFFIN_CORE_EXPORT void recordThemeTextPaint(qsizetype lines, qsizetype formats, qsizetype selections);
 MUFFIN_CORE_EXPORT ThemeTextPaintStats themeTextPaintStats();
 class MUFFIN_CORE_EXPORT ThemePerfScope {
- public:
+public:
   explicit ThemePerfScope(ThemePerfStage stage);
   ~ThemePerfScope();
   ThemePerfScope(const ThemePerfScope&) = delete;
   ThemePerfScope& operator=(const ThemePerfScope&) = delete;
 
- private:
+private:
   ThemePerfStage stage_;
   bool active_;
   ThemePerfScope* parent_ = nullptr;
   std::chrono::steady_clock::time_point start_;
   qint64 childNs_ = 0;
 };
-}  // namespace muffin
+} // namespace muffin

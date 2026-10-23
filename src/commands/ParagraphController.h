@@ -22,17 +22,17 @@ public:
   using EditorContextHolder::setContext;
 
   // Query methods for MainWindow enable/disable logic
-  int currentHeadingLevel() const;   // 0 = paragraph, 1-6 = heading
-  bool isOnEditableBlock() const;    // Paragraph or Heading (not ListItem)
+  int currentHeadingLevel() const; // 0 = paragraph, 1-6 = heading
+  bool isOnEditableBlock() const;  // Paragraph or Heading (not ListItem)
   // Eligible for insert-paragraph-before/after: Paragraph, Heading, CodeFence, or MathBlock.
   // Broader than isOnEditableBlock() because a paragraph may be inserted adjacent to a
   // literal block without editing its content.
   bool canInsertAdjacentParagraph() const;
 
   // Heading commands
-  bool setHeadingLevel(int level);   // 0 = paragraph, 1-6 = heading
-  bool promoteHeading();             // H2→H1
-  bool demoteHeading();              // H1→H2
+  bool setHeadingLevel(int level); // 0 = paragraph, 1-6 = heading
+  bool promoteHeading();           // H2→H1
+  bool demoteHeading();            // H1→H2
 
   // Block insert commands
   bool insertFormulaBlock();
@@ -64,8 +64,8 @@ public:
   bool insertAlert(AlertKind kind);
 
   // Caret queries backing menu enable state.
-  bool isOnListItem() const;  // caret is inside a list item
-  bool isOnTaskItem() const;  // caret is inside a GFM task-list item
+  bool isOnListItem() const; // caret is inside a list item
+  bool isOnTaskItem() const; // caret is inside a GFM task-list item
 
   // Paragraph insert commands
   bool insertParagraphBefore();
@@ -101,19 +101,12 @@ private:
   bool convertLiteralBlockToType(MarkdownNode& node, BlockType targetType);
   bool insertCodeBlockWithSplit();
   bool insertFormulaBlockWithSplit();
-  bool insertBlockAfterNode(MarkdownNode& node, const QString& blockSource,
-                            qsizetype cursorInBlock, const QString& label);
-  bool applyBlockDelta(
-      EditTransaction::Kind kind,
-      const QString& label,
-      qsizetype sourceStart,
-      qsizetype removedLength,
-      QString insertedText,
-      qsizetype nextCursorSourceOffset,
-      QVector<LocalEditNodeHint> nodeHints = {},
-      bool structureEdit = false);
+  bool insertBlockAfterNode(MarkdownNode& node, const QString& blockSource, qsizetype cursorInBlock,
+                            const QString& label);
+  bool applyBlockDelta(EditTransaction::Kind kind, const QString& label, qsizetype sourceStart, qsizetype removedLength,
+                       QString insertedText, qsizetype nextCursorSourceOffset,
+                       QVector<LocalEditNodeHint> nodeHints = {}, bool structureEdit = false);
   CursorPosition cursorForSourceOffset(qsizetype sourceOffset) const;
-
 };
 
-}  // namespace muffin
+} // namespace muffin

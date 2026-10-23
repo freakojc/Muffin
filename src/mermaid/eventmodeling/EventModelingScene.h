@@ -119,8 +119,7 @@ struct EventModelingRelationGeometry {
 struct EventModelingScene final : MermaidScene {
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override { return bounds; }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
 
   QRectF bounds;
@@ -136,15 +135,12 @@ struct EventModelingScene final : MermaidScene {
   EventModelingElementCss markerCss;
 };
 
-EventModelingScene buildEventModelingScene(const EventModelingData& data,
-                                            EventModelingConfig config,
-                                            EventModelingSceneStyle style,
-                                            const EventModelingCssOverrides* css =
-                                                nullptr);
+EventModelingScene buildEventModelingScene(const EventModelingData& data, EventModelingConfig config,
+                                           EventModelingSceneStyle style,
+                                           const EventModelingCssOverrides* css = nullptr);
 
 // Frame-type → (fill, stroke) presentation pair, shared with the themeCSS
 // DOM model so the adapter can stamp the same presentation attributes.
-QPair<QString, QString> eventModelingBoxPaint(const EventModelingFrame& frame,
-                                              const EventModelingSceneStyle& style);
+QPair<QString, QString> eventModelingBoxPaint(const EventModelingFrame& frame, const EventModelingSceneStyle& style);
 
-}  // namespace muffin::mermaid::eventmodeling
+} // namespace muffin::mermaid::eventmodeling

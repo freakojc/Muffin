@@ -32,9 +32,9 @@ namespace {
 struct ParsedAttribute {
   QString type;
   QString name;
-  QString keyType;  // "" / "PK" / "FK" / "UK"
+  QString keyType; // "" / "PK" / "FK" / "UK"
   QString comment;
-  QString core;     // line with any trailing quoted comment stripped, trimmed
+  QString core; // line with any trailing quoted comment stripped, trimmed
 };
 
 ParsedAttribute parseAttributeLine(const QString& line) {
@@ -44,19 +44,18 @@ ParsedAttribute parseAttributeLine(const QString& line) {
   if (firstQuote >= 0) {
     const int lastQuote = working.lastIndexOf(QLatin1Char('"'));
     if (lastQuote > firstQuote)
-      result.comment =
-          working.mid(firstQuote + 1, lastQuote - firstQuote - 1);
+      result.comment = working.mid(firstQuote + 1, lastQuote - firstQuote - 1);
     working = working.left(firstQuote);
   }
   result.core = working.trimmed();
-  const QStringList parts = working.split(
-      QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
-  if (!parts.isEmpty()) result.type = parts.first();
-  if (parts.size() >= 2) result.name = parts.at(1);
+  const QStringList parts = working.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
+  if (!parts.isEmpty())
+    result.type = parts.first();
+  if (parts.size() >= 2)
+    result.name = parts.at(1);
   for (int i = 2; i < parts.size(); ++i) {
     const QString& token = parts.at(i);
-    if (token == QLatin1String("PK") || token == QLatin1String("FK") ||
-        token == QLatin1String("UK")) {
+    if (token == QLatin1String("PK") || token == QLatin1String("FK") || token == QLatin1String("UK")) {
       result.keyType = token;
       break;
     }
@@ -79,8 +78,7 @@ QString attributeDisplayText(const ParsedAttribute& parsed) {
 
 // Bounding rect of the raw edge geometry (points + segments) used for culling
 // (IMPLEMENTATION_SPEC.md §6 pathBounds).
-QRectF edgePointsBounds(const QVector<QPointF>& points,
-                        const QVector<QVector<QPointF>>& segments) {
+QRectF edgePointsBounds(const QVector<QPointF>& points, const QVector<QVector<QPointF>>& segments) {
   QRectF bounds;
   bool initialized = false;
   auto include = [&](const QPointF& point) {
@@ -92,13 +90,17 @@ QRectF edgePointsBounds(const QVector<QPointF>& points,
       bounds = bounds.united(pixel);
     }
   };
-  for (const QPointF& point : points) include(point);
+  for (const QPointF& point : points)
+    include(point);
   for (const QVector<QPointF>& segment : segments)
-    for (const QPointF& point : segment) include(point);
+    for (const QPointF& point : segment)
+      include(point);
   return bounds;
 }
 
-qreal r3(qreal v) { return std::round(v * 1000.0) / 1000.0; }
+qreal r3(qreal v) {
+  return std::round(v * 1000.0) / 1000.0;
+}
 
 QJsonObject rectJson(const QRectF& r) {
   return {{QStringLiteral("x"), r3(r.x())},
@@ -124,20 +126,22 @@ QJsonArray pointsJson(const QVector<QPointF>& pts) {
 
 QString cardName(er::ErCardinality c) {
   switch (c) {
-    case er::ErCardinality::ExactlyOne: return QStringLiteral("ExactlyOne");
-    case er::ErCardinality::ZeroOrOne:  return QStringLiteral("ZeroOrOne");
-    case er::ErCardinality::OneOrMore:  return QStringLiteral("OneOrMore");
-    case er::ErCardinality::ZeroOrMore: return QStringLiteral("ZeroOrMore");
+  case er::ErCardinality::ExactlyOne:
+    return QStringLiteral("ExactlyOne");
+  case er::ErCardinality::ZeroOrOne:
+    return QStringLiteral("ZeroOrOne");
+  case er::ErCardinality::OneOrMore:
+    return QStringLiteral("OneOrMore");
+  case er::ErCardinality::ZeroOrMore:
+    return QStringLiteral("ZeroOrMore");
   }
   return {};
 }
 
-}  // namespace
+} // namespace
 
-er::ErScene er::buildErScene(const er::ErLayoutInput& input,
-                             const er::ErPlacementResult& placement,
-                             er::ErSceneStyle style,
-                             const QVector<muffin::mermaid::style::ClassDef>& classDefs,
+er::ErScene er::buildErScene(const er::ErLayoutInput& input, const er::ErPlacementResult& placement,
+                             er::ErSceneStyle style, const QVector<muffin::mermaid::style::ClassDef>& classDefs,
                              const muffin::mermaid::style::ThemeDefaults& themeDefaults) {
   er::ErScene scene;
   scene.style = std::move(style);
@@ -153,31 +157,25 @@ er::ErScene er::buildErScene(const er::ErLayoutInput& input,
     er::ErSceneEntity entity;
     entity.id = placed.id;
     const auto found = entitiesById.find(placed.id);
-    const er::ErLayoutEntityInput* source =
-        found != entitiesById.end() ? found.value() : nullptr;
+    const er::ErLayoutEntityInput* source = found != entitiesById.end() ? found.value() : nullptr;
     entity.name = source ? source->name : placed.id;
     // Resolve entity classDef / inline style via the shared cascade. Empty
     // resolved values fall back to scene.style (the painter checks).
     if (source) {
-      const QStringList classes = source->cssClasses.split(
-          QLatin1Char(' '), Qt::SkipEmptyParts);
-      const auto resolved = muffin::mermaid::style::resolveNodeStyle(
-          classes, source->styles, classDefs, themeDefaults);
+      const QStringList classes = source->cssClasses.split(QLatin1Char(' '), Qt::SkipEmptyParts);
+      const auto resolved = muffin::mermaid::style::resolveNodeStyle(classes, source->styles, classDefs, themeDefaults);
       entity.fill = resolved.fill;
       entity.stroke = resolved.stroke;
       entity.link = source->link;
       entity.tooltip = source->tooltip;
     }
-    entity.bounds =
-        QRectF(placed.center - QPointF(placed.size.width() / 2.0,
-                                       placed.size.height() / 2.0),
-               placed.size);
+    entity.bounds = QRectF(placed.center - QPointF(placed.size.width() / 2.0, placed.size.height() / 2.0), placed.size);
     entity.headerRect =
-        QRectF(entity.bounds.left(), entity.bounds.top(),
-               entity.bounds.width(), scene.style.lineHeight);
+        QRectF(entity.bounds.left(), entity.bounds.top(), entity.bounds.width(), scene.style.lineHeight);
     if (source) {
       for (const QString& line : source->attributeLines) {
-        if (line.trimmed().isEmpty()) continue;
+        if (line.trimmed().isEmpty())
+          continue;
         const ParsedAttribute parsed = parseAttributeLine(line);
         er::ErSceneAttribute attribute;
         attribute.text = attributeDisplayText(parsed);
@@ -189,16 +187,11 @@ er::ErScene er::buildErScene(const er::ErLayoutInput& input,
     // Stack one row rect (sized to the style line height) per attribute below
     // the header band; the painter reuses the pre-shaped FlowLabelDocument.
     for (qsizetype i = 0; i < entity.attributes.size(); ++i) {
-      const qreal rowTop =
-          entity.bounds.top() + scene.style.lineHeight * (i + 1);
-      entity.attributeRects.append(
-          QRectF(entity.bounds.left(), rowTop, entity.bounds.width(),
-                 scene.style.lineHeight));
-      entity.attributeDocuments.append(flowchart::parseFlowLabel(
-          entity.attributes.at(i).text, QStringLiteral("text")));
+      const qreal rowTop = entity.bounds.top() + scene.style.lineHeight * (i + 1);
+      entity.attributeRects.append(QRectF(entity.bounds.left(), rowTop, entity.bounds.width(), scene.style.lineHeight));
+      entity.attributeDocuments.append(flowchart::parseFlowLabel(entity.attributes.at(i).text, QStringLiteral("text")));
     }
-    entity.nameDocument =
-        flowchart::parseFlowLabel(entity.name, QStringLiteral("text"));
+    entity.nameDocument = flowchart::parseFlowLabel(entity.name, QStringLiteral("text"));
     if (!entity.link.isEmpty()) {
       // Mirror FlowScene: the whole entity box is the link region; the tooltip
       // doubles as the SVG <title>/aria-label.
@@ -220,8 +213,7 @@ er::ErScene er::buildErScene(const er::ErLayoutInput& input,
     relationship.segments = placed.segments;
     relationship.labelPosition = placed.labelPosition;
     const auto found = relationshipsById.find(placed.id);
-    const er::ErLayoutRelationshipInput* source =
-        found != relationshipsById.end() ? found.value() : nullptr;
+    const er::ErLayoutRelationshipInput* source = found != relationshipsById.end() ? found.value() : nullptr;
     if (source) {
       relationship.cardA = source->cardA;
       relationship.cardB = source->cardB;
@@ -233,21 +225,16 @@ er::ErScene er::buildErScene(const er::ErLayoutInput& input,
     // Edge label mirrors ClassScene edge label (parseFlowLabel + measureFlowLabel
     // + a centered labelBounds rect), using the plain-text "text" label type.
     if (!relationship.label.isEmpty()) {
-      relationship.labelDocument = flowchart::parseFlowLabel(
-          relationship.label, QStringLiteral("text"));
-      relationship.labelSize = flowchart::measureFlowLabel(
-          relationship.labelDocument, scene.style.fontFamily,
-          scene.style.fontSize, scene.style.lineHeight);
+      relationship.labelDocument = flowchart::parseFlowLabel(relationship.label, QStringLiteral("text"));
+      relationship.labelSize = flowchart::measureFlowLabel(relationship.labelDocument, scene.style.fontFamily,
+                                                           scene.style.fontSize, scene.style.lineHeight);
       if (relationship.labelPosition) {
-        relationship.labelBounds =
-            QRectF(*relationship.labelPosition -
-                       QPointF(relationship.labelSize.width() / 2.0,
-                               relationship.labelSize.height() / 2.0),
-                   relationship.labelSize);
+        relationship.labelBounds = QRectF(*relationship.labelPosition - QPointF(relationship.labelSize.width() / 2.0,
+                                                                                relationship.labelSize.height() / 2.0),
+                                          relationship.labelSize);
       }
     }
-    relationship.pathBounds =
-        edgePointsBounds(placed.points, placed.segments);
+    relationship.pathBounds = edgePointsBounds(placed.points, placed.segments);
     scene.relationships.append(std::move(relationship));
   }
 
@@ -329,63 +316,76 @@ QJsonObject er::ErScene::toJsonObject() const {
 muffin::mermaid::SvgMarkerProjection er::ErScene::svgMarkerProjection() const {
   using C = er::ErCardinality;
   SvgMarkerProjection projection;
-  const auto add = [&](QString key, qreal refX, qreal refY,
-                       qreal width, qreal height, QString path,
-                       bool circle, qreal cx, qreal cy, qreal radius) {
+  const auto add = [&](QString key, qreal refX, qreal refY, qreal width, qreal height, QString path, bool circle,
+                       qreal cx, qreal cy, qreal radius) {
     SvgMarkerDefinition definition;
     definition.key = key;
     definition.idSuffix = QStringLiteral("_er-") + key;
-    definition.refX = refX; definition.refY = refY;
-    definition.markerWidth = width; definition.markerHeight = height;
+    definition.refX = refX;
+    definition.refY = refY;
+    definition.markerWidth = width;
+    definition.markerHeight = height;
     if (circle) {
       SvgMarkerChild child;
-      child.tag = QStringLiteral("circle"); child.cx = cx; child.cy = cy;
-      child.radius = radius; child.fill = QStringLiteral("white");
+      child.tag = QStringLiteral("circle");
+      child.cx = cx;
+      child.cy = cy;
+      child.radius = radius;
+      child.fill = QStringLiteral("white");
       child.stroke = style.relationshipColor;
       definition.children.append(child);
     }
     SvgMarkerChild child;
-    child.tag = QStringLiteral("path"); child.path = std::move(path);
-    child.fill = QStringLiteral("none"); child.stroke = style.relationshipColor;
+    child.tag = QStringLiteral("path");
+    child.path = std::move(path);
+    child.fill = QStringLiteral("none");
+    child.stroke = style.relationshipColor;
     definition.children.append(child);
     projection.definitions.append(definition);
   };
-  add(QStringLiteral("onlyOneStart"), 0, 9, 18, 18,
-      QStringLiteral("M9,0 L9,18 M15,0 L15,18"), false, 0, 0, 0);
-  add(QStringLiteral("onlyOneEnd"), 18, 9, 18, 18,
-      QStringLiteral("M3,0 L3,18 M9,0 L9,18"), false, 0, 0, 0);
-  add(QStringLiteral("zeroOrOneStart"), 0, 9, 30, 18,
-      QStringLiteral("M9,0 L9,18"), true, 21, 9, 6);
-  add(QStringLiteral("zeroOrOneEnd"), 30, 9, 30, 18,
-      QStringLiteral("M21,0 L21,18"), true, 9, 9, 6);
-  add(QStringLiteral("oneOrMoreStart"), 18, 18, 45, 36,
-      QStringLiteral("M0,18 Q 18,0 36,18 Q 18,36 0,18 M42,9 L42,27"), false, 0, 0, 0);
-  add(QStringLiteral("oneOrMoreEnd"), 27, 18, 45, 36,
-      QStringLiteral("M3,9 L3,27 M9,18 Q27,0 45,18 Q27,36 9,18"), false, 0, 0, 0);
-  add(QStringLiteral("zeroOrMoreStart"), 18, 18, 57, 36,
-      QStringLiteral("M0,18 Q18,0 36,18 Q18,36 0,18"), true, 48, 18, 6);
-  add(QStringLiteral("zeroOrMoreEnd"), 39, 18, 57, 36,
-      QStringLiteral("M21,18 Q39,0 57,18 Q39,36 21,18"), true, 9, 18, 6);
+  add(QStringLiteral("onlyOneStart"), 0, 9, 18, 18, QStringLiteral("M9,0 L9,18 M15,0 L15,18"), false, 0, 0, 0);
+  add(QStringLiteral("onlyOneEnd"), 18, 9, 18, 18, QStringLiteral("M3,0 L3,18 M9,0 L9,18"), false, 0, 0, 0);
+  add(QStringLiteral("zeroOrOneStart"), 0, 9, 30, 18, QStringLiteral("M9,0 L9,18"), true, 21, 9, 6);
+  add(QStringLiteral("zeroOrOneEnd"), 30, 9, 30, 18, QStringLiteral("M21,0 L21,18"), true, 9, 9, 6);
+  add(QStringLiteral("oneOrMoreStart"), 18, 18, 45, 36, QStringLiteral("M0,18 Q 18,0 36,18 Q 18,36 0,18 M42,9 L42,27"),
+      false, 0, 0, 0);
+  add(QStringLiteral("oneOrMoreEnd"), 27, 18, 45, 36, QStringLiteral("M3,9 L3,27 M9,18 Q27,0 45,18 Q27,36 9,18"), false,
+      0, 0, 0);
+  add(QStringLiteral("zeroOrMoreStart"), 18, 18, 57, 36, QStringLiteral("M0,18 Q18,0 36,18 Q18,36 0,18"), true, 48, 18,
+      6);
+  add(QStringLiteral("zeroOrMoreEnd"), 39, 18, 57, 36, QStringLiteral("M21,18 Q39,0 57,18 Q39,36 21,18"), true, 9, 18,
+      6);
   const auto key = [](C card, bool start) {
     QString value;
     switch (card) {
-      case C::ExactlyOne: value = QStringLiteral("onlyOne"); break;
-      case C::ZeroOrOne: value = QStringLiteral("zeroOrOne"); break;
-      case C::OneOrMore: value = QStringLiteral("oneOrMore"); break;
-      case C::ZeroOrMore: value = QStringLiteral("zeroOrMore"); break;
+    case C::ExactlyOne:
+      value = QStringLiteral("onlyOne");
+      break;
+    case C::ZeroOrOne:
+      value = QStringLiteral("zeroOrOne");
+      break;
+    case C::OneOrMore:
+      value = QStringLiteral("oneOrMore");
+      break;
+    case C::ZeroOrMore:
+      value = QStringLiteral("zeroOrMore");
+      break;
     }
     return value + (start ? QStringLiteral("Start") : QStringLiteral("End"));
   };
   for (const ErSceneRelationship& source : relationships) {
     SvgMarkerEdge edge;
-    edge.id = source.id; edge.cssClass = QStringLiteral("relationshipLine");
-    edge.path = source.path; edge.markerStart = key(source.cardA, true);
+    edge.id = source.id;
+    edge.cssClass = QStringLiteral("relationshipLine");
+    edge.path = source.path;
+    edge.markerStart = key(source.cardA, true);
     edge.markerEnd = key(source.cardB, false);
     edge.stroke = style.relationshipColor;
     edge.strokeWidth = QString::number(style.relationshipStrokeWidth);
     // Chrome-computed dash on .edge-pattern-dashed is "8px, 8px" (the er
     // sheet's 8,8 overrides the common sheet's `3`); see er-geometry.json.
-    if (!source.identifying) edge.strokeDasharray = QStringLiteral("8,8");
+    if (!source.identifying)
+      edge.strokeDasharray = QStringLiteral("8,8");
     projection.edges.append(edge);
   }
   return projection;

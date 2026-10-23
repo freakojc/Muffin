@@ -24,21 +24,25 @@ struct BlockNode {};
 using BlockGraph = graphlib::Graph<BlockNode, double>;
 
 void addConflict(ConflictSet& conflicts, QString v, QString w) {
-  if (v > w) std::swap(v, w);
+  if (v > w)
+    std::swap(v, w);
   conflicts[v].insert(w);
 }
 
 bool hasConflict(const ConflictSet& conflicts, const QString& v, const QString& w) {
   QString a = v, b = w;
-  if (a > b) std::swap(a, b);
+  if (a > b)
+    std::swap(a, b);
   auto it = conflicts.constFind(a);
   return it != conflicts.cend() && it.value().contains(b);
 }
 
 QString findOtherInnerSegmentNode(const DagreGraph& g, const QString& v) {
-  if (g.node(v)->dummy.isEmpty()) return QString();
+  if (g.node(v)->dummy.isEmpty())
+    return QString();
   for (const QString& u : g.predecessors(v))
-    if (!g.node(u)->dummy.isEmpty()) return u;
+    if (!g.node(u)->dummy.isEmpty())
+      return u;
   return QString();
 }
 
@@ -76,8 +80,7 @@ ConflictSet findType1Conflicts(const DagreGraph& g, const QVector<QList<QString>
 
 ConflictSet findType2Conflicts(const DagreGraph& g, const QVector<QList<QString>>& layering) {
   ConflictSet conflicts;
-  auto scan = [&](const QList<QString>& south, int southPos, int southEnd, int prevNorthBorder,
-                  int nextNorthBorder) {
+  auto scan = [&](const QList<QString>& south, int southPos, int southEnd, int prevNorthBorder, int nextNorthBorder) {
     for (int i = southPos; i < southEnd; ++i) {
       const QString& v = south[i];
       if (g.node(v)->dummy == QLatin1String("border")) {
@@ -118,8 +121,7 @@ struct Alignment {
   QHash<QString, QString> align;
 };
 
-Alignment verticalAlignment(const DagreGraph& g, const QVector<QList<QString>>& layering,
-                            const ConflictSet& conflicts,
+Alignment verticalAlignment(const DagreGraph& g, const QVector<QList<QString>>& layering, const ConflictSet& conflicts,
                             const std::function<QList<QString>(const QString&)>& neighborFn) {
   Alignment result;
   QHash<QString, int> pos;
@@ -134,7 +136,8 @@ Alignment verticalAlignment(const DagreGraph& g, const QVector<QList<QString>>& 
     int prevIdx = -1;
     for (const QString& v : layer) {
       QList<QString> ws = neighborFn(v);
-      if (ws.isEmpty()) continue;
+      if (ws.isEmpty())
+        continue;
       std::sort(ws.begin(), ws.end(), [&](const QString& a, const QString& b) { return pos[a] < pos[b]; });
       const qreal mp = (ws.size() - 1) / 2.0;
       for (int i = static_cast<int>(std::floor(mp)); i <= static_cast<int>(std::ceil(mp)); ++i) {
@@ -151,12 +154,13 @@ Alignment verticalAlignment(const DagreGraph& g, const QVector<QList<QString>>& 
   return result;
 }
 
-qreal sepNodeWidth(const DagreGraph& g, const QString& v) { return g.node(v)->width; }  // NOLINT
+qreal sepNodeWidth(const DagreGraph& g, const QString& v) {
+  return g.node(v)->width;
+} // NOLINT
 
 // sep(nodeSep, edgeSep, reverseSep) closure -> distance(v, w)
-std::function<qreal(const DagreGraph&, const QString&, const QString&)> makeSep(qreal nodeSep,
-                                                                                 qreal edgeSep,
-                                                                                 bool reverseSep) {
+std::function<qreal(const DagreGraph&, const QString&, const QString&)> makeSep(qreal nodeSep, qreal edgeSep,
+                                                                                bool reverseSep) {
   return [nodeSep, edgeSep, reverseSep](const DagreGraph& g, const QString& v, const QString& w) {
     const DagreNodeLabel* vL = g.node(v);
     const DagreNodeLabel* wL = g.node(w);
@@ -165,20 +169,26 @@ std::function<qreal(const DagreGraph&, const QString&, const QString&)> makeSep(
     sum += vL->width / 2.0;
     if (!vL->labelpos.isEmpty()) {
       const QString lp = vL->labelpos.toLower();
-      if (lp == QLatin1String("l")) delta = -vL->width / 2.0;
-      else if (lp == QLatin1String("r")) delta = vL->width / 2.0;
+      if (lp == QLatin1String("l"))
+        delta = -vL->width / 2.0;
+      else if (lp == QLatin1String("r"))
+        delta = vL->width / 2.0;
     }
-    if (delta != 0.0) sum += reverseSep ? delta : -delta;
+    if (delta != 0.0)
+      sum += reverseSep ? delta : -delta;
     delta = 0.0;
     sum += (vL->dummy.isEmpty() ? nodeSep : edgeSep) / 2.0;
     sum += (wL->dummy.isEmpty() ? nodeSep : edgeSep) / 2.0;
     sum += wL->width / 2.0;
     if (!wL->labelpos.isEmpty()) {
       const QString lp = wL->labelpos.toLower();
-      if (lp == QLatin1String("l")) delta = wL->width / 2.0;
-      else if (lp == QLatin1String("r")) delta = -wL->width / 2.0;
+      if (lp == QLatin1String("l"))
+        delta = wL->width / 2.0;
+      else if (lp == QLatin1String("r"))
+        delta = -wL->width / 2.0;
     }
-    if (delta != 0.0) sum += reverseSep ? delta : -delta;
+    if (delta != 0.0)
+      sum += reverseSep ? delta : -delta;
     return sum;
   };
 }
@@ -206,10 +216,9 @@ BlockGraph buildBlockGraph(const DagreGraph& g, const QVector<QList<QString>>& l
   return blockG;
 }
 
-QHash<QString, qreal> horizontalCompaction(const DagreGraph& g,
-                                           const QVector<QList<QString>>& layering,
-                                           const QHash<QString, QString>& root,
-                                           const QHash<QString, QString>& align, bool reverseSep) {
+QHash<QString, qreal> horizontalCompaction(const DagreGraph& g, const QVector<QList<QString>>& layering,
+                                           const QHash<QString, QString>& root, const QHash<QString, QString>& align,
+                                           bool reverseSep) {
   QHash<QString, qreal> xs;
   BlockGraph blockG = buildBlockGraph(g, layering, root, reverseSep);
   const QString borderType = reverseSep ? QStringLiteral("borderLeft") : QStringLiteral("borderRight");
@@ -262,10 +271,12 @@ QHash<QString, qreal> horizontalCompaction(const DagreGraph& g,
   return result;
 }
 
-const QString& widthOf(const DagreGraph& g, const QString& v) { return v; }  // placeholder, unused
+const QString& widthOf(const DagreGraph& g, const QString& v) {
+  return v;
+} // placeholder, unused
 
 QHash<QString, qreal> findSmallestWidthAlignment(const DagreGraph& g,
-                                                  const QHash<QString, QHash<QString, qreal>>& xss) {
+                                                 const QHash<QString, QHash<QString, qreal>>& xss) {
   QString bestKey;
   qreal bestWidth = std::numeric_limits<qreal>::max();
   for (auto it = xss.cbegin(); it != xss.cend(); ++it) {
@@ -293,14 +304,16 @@ void alignCoordinates(QHash<QString, QHash<QString, qreal>>& xss, const QHash<QS
     for (const QString& horiz : {QStringLiteral("l"), QStringLiteral("r")}) {
       const QString alignment = vert + horiz;
       QHash<QString, qreal> xs = xss.value(alignment);
-      if (xs == alignTo) continue;
+      if (xs == alignTo)
+        continue;
       const QList<qreal> vals = xs.values();
       const qreal xsMin = *std::min_element(vals.begin(), vals.end());
       const qreal xsMax = *std::max_element(vals.begin(), vals.end());
       const qreal delta = horiz == QLatin1String("l") ? alignToMin - xsMin : alignToMax - xsMax;
       if (delta != 0.0) {
         QHash<QString, qreal> shifted;
-        for (auto it = xs.cbegin(); it != xs.cend(); ++it) shifted[it.key()] = it.value() + delta;
+        for (auto it = xs.cbegin(); it != xs.cend(); ++it)
+          shifted[it.key()] = it.value() + delta;
         xss[alignment] = shifted;
       }
     }
@@ -316,7 +329,8 @@ QHash<QString, qreal> balance(const QHash<QString, QHash<QString, qreal>>& xss, 
       result[v] = xss.value(align.toLower()).value(v);
     } else {
       QList<qreal> vals;
-      for (auto xit = xss.cbegin(); xit != xss.cend(); ++xit) vals.append(xit.value().value(v));
+      for (auto xit = xss.cbegin(); xit != xss.cend(); ++xit)
+        vals.append(xit.value().value(v));
       std::sort(vals.begin(), vals.end());
       result[v] = (vals.value(1) + vals.value(2)) / 2.0;
     }
@@ -324,14 +338,15 @@ QHash<QString, qreal> balance(const QHash<QString, QHash<QString, qreal>>& xss, 
   return result;
 }
 
-}  // namespace
+} // namespace
 
 QHash<QString, qreal> positionX(DagreGraph& g) {
   const QVector<QList<QString>> layering = buildLayerMatrix(g);
   ConflictSet conflicts = findType1Conflicts(g, layering);
   ConflictSet t2 = findType2Conflicts(g, layering);
   for (auto it = t2.cbegin(); it != t2.cend(); ++it)
-    for (const QString& w : it.value()) conflicts[it.key()].insert(w);
+    for (const QString& w : it.value())
+      conflicts[it.key()].insert(w);
 
   QHash<QString, QHash<QString, qreal>> xss;
   for (const QString& vert : {QStringLiteral("u"), QStringLiteral("d")}) {
@@ -341,14 +356,16 @@ QHash<QString, qreal> positionX(DagreGraph& g) {
     for (const QString& horiz : {QStringLiteral("l"), QStringLiteral("r")}) {
       QVector<QList<QString>> inner = adjusted;
       if (horiz == QLatin1String("r"))
-        for (QList<QString>& layer : inner) std::reverse(layer.begin(), layer.end());
+        for (QList<QString>& layer : inner)
+          std::reverse(layer.begin(), layer.end());
       auto neighborFn = [vert, &g](const QString& v) {
         return vert == QLatin1String("u") ? g.predecessors(v) : g.successors(v);
       };
       const Alignment al = verticalAlignment(g, inner, conflicts, neighborFn);
       QHash<QString, qreal> xs = horizontalCompaction(g, inner, al.root, al.align, horiz == QLatin1String("r"));
       if (horiz == QLatin1String("r"))
-        for (auto it = xs.begin(); it != xs.end(); ++it) it.value() = -it.value();
+        for (auto it = xs.begin(); it != xs.end(); ++it)
+          it.value() = -it.value();
       xss[vert + horiz] = xs;
     }
   }
@@ -359,4 +376,4 @@ QHash<QString, qreal> positionX(DagreGraph& g) {
   return balance(xss, align);
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

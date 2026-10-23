@@ -13,35 +13,40 @@ using namespace muffin;
 void testDefinitionBlocks() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "[1]: 2324222 \"1232\"\n\n"
-      "[2]:\n"
-      "  2324222\n\n"
-      "[^1]: This is the note.\n");
+  const QString markdown = QStringLiteral("[1]: 2324222 \"1232\"\n\n"
+                                          "[2]:\n"
+                                          "  2324222\n\n"
+                                          "[^1]: This is the note.\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for definition sample"));
   const MarkdownNode& linkOne = definitionByLabel(*parsed.root, BlockType::LinkDefinition, QStringLiteral("1"));
   require(linkOne.type() == BlockType::LinkDefinition, QStringLiteral("First definition should be link definition"));
   require(linkOne.definition().label == QStringLiteral("1"), QStringLiteral("Link definition label mismatch"));
-  require(linkOne.definition().destination == QStringLiteral("2324222"), QStringLiteral("Link definition destination mismatch"));
+  require(linkOne.definition().destination == QStringLiteral("2324222"),
+          QStringLiteral("Link definition destination mismatch"));
   require(linkOne.definition().title == QStringLiteral("1232"), QStringLiteral("Link definition title mismatch"));
 
   const MarkdownNode& linkTwo = definitionByLabel(*parsed.root, BlockType::LinkDefinition, QStringLiteral("2"));
   require(linkTwo.type() == BlockType::LinkDefinition, QStringLiteral("Second definition should be link definition"));
-  require(linkTwo.definition().label == QStringLiteral("2"), QStringLiteral("Continuation link definition label mismatch"));
-  require(linkTwo.definition().destination == QStringLiteral("2324222"), QStringLiteral("Continuation link destination mismatch"));
+  require(linkTwo.definition().label == QStringLiteral("2"),
+          QStringLiteral("Continuation link definition label mismatch"));
+  require(linkTwo.definition().destination == QStringLiteral("2324222"),
+          QStringLiteral("Continuation link destination mismatch"));
 
   const MarkdownNode& footnote = definitionByLabel(*parsed.root, BlockType::FootnoteDefinition, QStringLiteral("1"));
-  require(footnote.type() == BlockType::FootnoteDefinition, QStringLiteral("Third definition should be footnote definition"));
+  require(footnote.type() == BlockType::FootnoteDefinition,
+          QStringLiteral("Third definition should be footnote definition"));
   require(footnote.definition().label == QStringLiteral("1"), QStringLiteral("Footnote label mismatch"));
   require(footnote.definition().note == QStringLiteral("This is the note."), QStringLiteral("Footnote text mismatch"));
 
   ParseResult emptyTemplate = parser.parseDocument(QStringLiteral("[]:  \"\""), options);
   require(emptyTemplate.root != nullptr, QStringLiteral("Parser returned null root for empty definition template"));
-  require(emptyTemplate.root->children().size() == 1, QStringLiteral("Empty link definition template should render as one block"));
+  require(emptyTemplate.root->children().size() == 1,
+          QStringLiteral("Empty link definition template should render as one block"));
   const MarkdownNode& emptyLink = childAt(*emptyTemplate.root, 0);
-  require(emptyLink.type() == BlockType::LinkDefinition, QStringLiteral("Empty link definition template should not render as paragraph"));
+  require(emptyLink.type() == BlockType::LinkDefinition,
+          QStringLiteral("Empty link definition template should not render as paragraph"));
   require(emptyLink.definition().label.isEmpty(), QStringLiteral("Empty template label should stay empty"));
   require(emptyLink.definition().destination.isEmpty(), QStringLiteral("Empty template destination should stay empty"));
   require(emptyLink.definition().title.isEmpty(), QStringLiteral("Empty template title should stay empty"));
@@ -53,16 +58,17 @@ void testInvalidDefinitionLikeParagraphsStayParagraphs() {
   CmarkGfmParser parser;
   ParseOptions options;
 
-  const QString markdown = QStringLiteral(
-      "[x]: url trailing\n\n"
-      "[x]: <unterminated\n\n"
-      "[x]:\n");
+  const QString markdown = QStringLiteral("[x]: url trailing\n\n"
+                                          "[x]: <unterminated\n\n"
+                                          "[x]:\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for invalid definition sample"));
-  require(parsed.root->children().size() == 3, QStringLiteral("Invalid definition-like lines should stay as three blocks"));
+  require(parsed.root->children().size() == 3,
+          QStringLiteral("Invalid definition-like lines should stay as three blocks"));
   for (const auto& child : parsed.root->children()) {
-    require(child->type() == BlockType::Paragraph, QStringLiteral("Invalid definition-like line should remain paragraph"));
+    require(child->type() == BlockType::Paragraph,
+            QStringLiteral("Invalid definition-like line should remain paragraph"));
   }
 }
 
@@ -91,11 +97,13 @@ void testDefinitionSerializationRebuildsWhenFieldsDivergeFromSourceText() {
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for stale sourceText sample"));
-  MarkdownNode& link = const_cast<MarkdownNode&>(definitionByLabel(*parsed.root, BlockType::LinkDefinition, QStringLiteral("ref")));
+  MarkdownNode& link =
+      const_cast<MarkdownNode&>(definitionByLabel(*parsed.root, BlockType::LinkDefinition, QStringLiteral("ref")));
 
   DefinitionBlock definition = link.definition();
   definition.destination = QStringLiteral("https://new.example/path");
-  definition.destinationRange = {definition.destinationRange.start, definition.destinationRange.start + definition.destination.size()};
+  definition.destinationRange = {definition.destinationRange.start,
+                                 definition.destinationRange.start + definition.destination.size()};
   link.setDefinition(definition);
 
   MarkdownDocument document;
@@ -103,7 +111,8 @@ void testDefinitionSerializationRebuildsWhenFieldsDivergeFromSourceText() {
   MarkdownSerializer serializer;
   const QString serialized = serializer.serializeDocument(document);
   require(serialized == QStringLiteral("[ref]: <https://new.example/path> \"\""),
-          QStringLiteral("Serializer should rebuild edited destination without losing angle or empty title shape: %1").arg(serialized));
+          QStringLiteral("Serializer should rebuild edited destination without losing angle or empty title shape: %1")
+              .arg(serialized));
 }
 
 void testDefinitionSerializationRebuildsEditedTitle() {
@@ -113,7 +122,8 @@ void testDefinitionSerializationRebuildsEditedTitle() {
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for stale title sourceText sample"));
-  MarkdownNode& link = const_cast<MarkdownNode&>(definitionByLabel(*parsed.root, BlockType::LinkDefinition, QStringLiteral("ref")));
+  MarkdownNode& link =
+      const_cast<MarkdownNode&>(definitionByLabel(*parsed.root, BlockType::LinkDefinition, QStringLiteral("ref")));
 
   DefinitionBlock definition = link.definition();
   definition.title = QStringLiteral("new title");
@@ -134,8 +144,10 @@ void testDefinitionSerializationRebuildsParenthesizedTitleShape() {
   const QString markdown = QStringLiteral("[ref]: url (old title)");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
-  require(parsed.root != nullptr, QStringLiteral("Parser returned null root for parenthesized title sourceText sample"));
-  MarkdownNode& link = const_cast<MarkdownNode&>(definitionByLabel(*parsed.root, BlockType::LinkDefinition, QStringLiteral("ref")));
+  require(parsed.root != nullptr,
+          QStringLiteral("Parser returned null root for parenthesized title sourceText sample"));
+  MarkdownNode& link =
+      const_cast<MarkdownNode&>(definitionByLabel(*parsed.root, BlockType::LinkDefinition, QStringLiteral("ref")));
 
   DefinitionBlock definition = link.definition();
   definition.title = QStringLiteral("new title");
@@ -167,29 +179,23 @@ void testMultiLineFootnoteKeepsCmarkRange() {
 void testFootnoteDefinitionsRemainInSourceOrder() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "before\n\n"
-      "[^first]: first note\n\n"
-      "middle\n\n"
-      "[^second]: second note\n\n"
-      "after\n");
+  const QString markdown = QStringLiteral("before\n\n"
+                                          "[^first]: first note\n\n"
+                                          "middle\n\n"
+                                          "[^second]: second note\n\n"
+                                          "after\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
-  require(parsed.root != nullptr,
-          QStringLiteral("Parser returned null root for footnote source-order sample"));
+  require(parsed.root != nullptr, QStringLiteral("Parser returned null root for footnote source-order sample"));
   qsizetype previousStart = -1;
   for (const auto& child : parsed.root->children()) {
     const qsizetype start = child->sourceRange().byteStart;
     require(start >= previousStart,
-            QStringLiteral("Top-level source order regressed at offset %1 after %2")
-                .arg(start)
-                .arg(previousStart));
+            QStringLiteral("Top-level source order regressed at offset %1 after %2").arg(start).arg(previousStart));
     previousStart = start;
   }
-  const MarkdownNode& first = definitionByLabel(
-      *parsed.root, BlockType::FootnoteDefinition, QStringLiteral("first"));
-  const MarkdownNode& second = definitionByLabel(
-      *parsed.root, BlockType::FootnoteDefinition, QStringLiteral("second"));
+  const MarkdownNode& first = definitionByLabel(*parsed.root, BlockType::FootnoteDefinition, QStringLiteral("first"));
+  const MarkdownNode& second = definitionByLabel(*parsed.root, BlockType::FootnoteDefinition, QStringLiteral("second"));
   require(first.sourceRange().byteStart == markdown.indexOf(QStringLiteral("[^first]:")),
           QStringLiteral("First footnote source offset mismatch"));
   require(second.sourceRange().byteStart == markdown.indexOf(QStringLiteral("[^second]:")),
@@ -200,14 +206,13 @@ void testFootnoteDefinitionsRemainInSourceOrder() {
 
 void testCrossReferencedFootnotesKeepLabels() {
   CmarkGfmParser parser;
-  const QString markdown = QStringLiteral(
-      "[^a] &#94; &amp; [^b].\n\n"
-      "| a | b |\n|---|---|\n| [^a] | x |\n\n"
-      "[^b]: Other [^a].\n\n"
-      "[^b]: Other [^a].\n\n"
-      "`[^code]` \\[^escaped].\n\n"
-      "[^b]: Other [^a].\n\n"
-      "[^a]: Note **bold**.\n");
+  const QString markdown = QStringLiteral("[^a] &#94; &amp; [^b].\n\n"
+                                          "| a | b |\n|---|---|\n| [^a] | x |\n\n"
+                                          "[^b]: Other [^a].\n\n"
+                                          "[^b]: Other [^a].\n\n"
+                                          "`[^code]` \\[^escaped].\n\n"
+                                          "[^b]: Other [^a].\n\n"
+                                          "[^a]: Note **bold**.\n");
   const auto checkInlines = [&](const auto& self, const QVector<InlineNode>& inlines) -> int {
     int references = 0;
     for (const auto& node : inlines) {
@@ -228,7 +233,8 @@ void testCrossReferencedFootnotesKeepLabels() {
   };
   const auto countReferences = [&](const auto& self, const MarkdownNode& node) -> int {
     int count = checkInlines(checkInlines, node.inlines());
-    for (const auto& child : node.children()) count += self(self, *child);
+    for (const auto& child : node.children())
+      count += self(self, *child);
     return count;
   };
   for (int repeat = 0; repeat < 20; ++repeat) {
@@ -243,50 +249,42 @@ void testDenseDefinitionsRetainSourceOrderAndTypes() {
   QString markdown;
   markdown.reserve(definitionCount * 160);
   for (int index = 0; index < definitionCount; ++index) {
-    markdown += QStringLiteral(
-        "Paragraph %1 uses [link][ref-%1] and [^note-%1].\n\n"
-        "[ref-%1]: https://example.test/%1 \"Reference %1\"\n"
-        "[^note-%1]: Footnote %1.\n\n")
+    markdown += QStringLiteral("Paragraph %1 uses [link][ref-%1] and [^note-%1].\n\n"
+                               "[ref-%1]: https://example.test/%1 \"Reference %1\"\n"
+                               "[^note-%1]: Footnote %1.\n\n")
                     .arg(index);
   }
 
   CmarkGfmParser parser;
   ParseResult parsed = parser.parseDocument(markdown, ParseOptions{});
-  require(parsed.root != nullptr,
-          QStringLiteral("Parser returned null root for dense definitions"));
+  require(parsed.root != nullptr, QStringLiteral("Parser returned null root for dense definitions"));
 
   int linkDefinitions = 0;
   int footnoteDefinitions = 0;
   qsizetype previousStart = -1;
   for (const auto& child : parsed.root->children()) {
     const qsizetype sourceStart = child->sourceRange().byteStart;
-    require(sourceStart >= previousStart,
-            QStringLiteral("Dense definition source order regressed at %1 after %2")
-                .arg(sourceStart)
-                .arg(previousStart));
+    require(
+        sourceStart >= previousStart,
+        QStringLiteral("Dense definition source order regressed at %1 after %2").arg(sourceStart).arg(previousStart));
     previousStart = sourceStart;
     linkDefinitions += child->type() == BlockType::LinkDefinition ? 1 : 0;
     footnoteDefinitions += child->type() == BlockType::FootnoteDefinition ? 1 : 0;
   }
   require(linkDefinitions == definitionCount,
-          QStringLiteral("Dense parse produced %1/%2 link definitions")
-              .arg(linkDefinitions)
-              .arg(definitionCount));
-  require(footnoteDefinitions == definitionCount,
-          QStringLiteral("Dense parse produced %1/%2 footnote definitions")
-              .arg(footnoteDefinitions)
-              .arg(definitionCount));
+          QStringLiteral("Dense parse produced %1/%2 link definitions").arg(linkDefinitions).arg(definitionCount));
+  require(
+      footnoteDefinitions == definitionCount,
+      QStringLiteral("Dense parse produced %1/%2 footnote definitions").arg(footnoteDefinitions).arg(definitionCount));
 }
 
 void testIndentedDefinitionsAreNotDuplicated() {
-  const QString markdown = QStringLiteral(
-      "Use [link][ref] and [^note].\n\n"
-      "  [ref]: https://example.test/indented\n"
-      "  [^note]: Indented footnote.\n");
+  const QString markdown = QStringLiteral("Use [link][ref] and [^note].\n\n"
+                                          "  [ref]: https://example.test/indented\n"
+                                          "  [^note]: Indented footnote.\n");
   CmarkGfmParser parser;
   ParseResult parsed = parser.parseDocument(markdown, ParseOptions{});
-  require(parsed.root != nullptr,
-          QStringLiteral("Parser returned null root for indented definitions"));
+  require(parsed.root != nullptr, QStringLiteral("Parser returned null root for indented definitions"));
 
   int linkDefinitions = 0;
   int footnoteDefinitions = 0;
@@ -294,10 +292,8 @@ void testIndentedDefinitionsAreNotDuplicated() {
     linkDefinitions += child->type() == BlockType::LinkDefinition ? 1 : 0;
     footnoteDefinitions += child->type() == BlockType::FootnoteDefinition ? 1 : 0;
   }
-  require(linkDefinitions == 1,
-          QStringLiteral("Indented link definition should appear exactly once"));
-  require(footnoteDefinitions == 1,
-          QStringLiteral("Indented footnote definition should appear exactly once"));
+  require(linkDefinitions == 1, QStringLiteral("Indented link definition should appear exactly once"));
+  require(footnoteDefinitions == 1, QStringLiteral("Indented footnote definition should appear exactly once"));
 }
 
 void testDefinitionCommonMarkBoundaryMatrix() {
@@ -313,14 +309,14 @@ void testDefinitionCommonMarkBoundaryMatrix() {
   };
 
   const QVector<Case> cases{
-      {QStringLiteral("[brackets]: <https://example.test/a(b)>"), BlockType::LinkDefinition,
-       QStringLiteral("brackets"), QStringLiteral("https://example.test/a(b)"), QString()},
-      {QStringLiteral("[escaped]: https://example.test/a\\(b\\)"), BlockType::LinkDefinition,
-       QStringLiteral("escaped"), QStringLiteral("https://example.test/a\\(b\\)"), QString()},
-      {QStringLiteral("[empty-title]: url \"\""), BlockType::LinkDefinition,
-       QStringLiteral("empty-title"), QStringLiteral("url"), QString()},
-      {QStringLiteral("[paren-title]: url (paren title)"), BlockType::LinkDefinition,
-       QStringLiteral("paren-title"), QStringLiteral("url"), QStringLiteral("paren title")},
+      {QStringLiteral("[brackets]: <https://example.test/a(b)>"), BlockType::LinkDefinition, QStringLiteral("brackets"),
+       QStringLiteral("https://example.test/a(b)"), QString()},
+      {QStringLiteral("[escaped]: https://example.test/a\\(b\\)"), BlockType::LinkDefinition, QStringLiteral("escaped"),
+       QStringLiteral("https://example.test/a\\(b\\)"), QString()},
+      {QStringLiteral("[empty-title]: url \"\""), BlockType::LinkDefinition, QStringLiteral("empty-title"),
+       QStringLiteral("url"), QString()},
+      {QStringLiteral("[paren-title]: url (paren title)"), BlockType::LinkDefinition, QStringLiteral("paren-title"),
+       QStringLiteral("url"), QStringLiteral("paren title")},
       {QStringLiteral("[continued]:\n  https://example.test/next"), BlockType::LinkDefinition,
        QStringLiteral("continued"), QStringLiteral("https://example.test/next"), QString()},
       {QStringLiteral("    [indented]: url"), BlockType::CodeFence, QString(), QString(), QString()},
@@ -333,8 +329,10 @@ void testDefinitionCommonMarkBoundaryMatrix() {
 
   for (const Case& item : cases) {
     ParseResult parsed = parser.parseDocument(item.markdown, options);
-    require(parsed.root != nullptr, QStringLiteral("Parser returned null root for boundary case: %1").arg(item.markdown));
-    require(!parsed.root->children().empty(), QStringLiteral("Boundary case should produce at least one block: %1").arg(item.markdown));
+    require(parsed.root != nullptr,
+            QStringLiteral("Parser returned null root for boundary case: %1").arg(item.markdown));
+    require(!parsed.root->children().empty(),
+            QStringLiteral("Boundary case should produce at least one block: %1").arg(item.markdown));
     const MarkdownNode& block = childAt(*parsed.root, 0);
     require(block.type() == item.expectedType,
             QStringLiteral("Boundary case block type mismatch for '%1': expected %2 got %3")
@@ -342,10 +340,12 @@ void testDefinitionCommonMarkBoundaryMatrix() {
                 .arg(static_cast<int>(item.expectedType))
                 .arg(static_cast<int>(block.type())));
     if (item.expectedType == BlockType::LinkDefinition) {
-      require(block.definition().label == item.label, QStringLiteral("Boundary case label mismatch for %1").arg(item.markdown));
+      require(block.definition().label == item.label,
+              QStringLiteral("Boundary case label mismatch for %1").arg(item.markdown));
       require(block.definition().destination == item.destination,
               QStringLiteral("Boundary case destination mismatch for %1").arg(item.markdown));
-      require(block.definition().title == item.title, QStringLiteral("Boundary case title mismatch for %1").arg(item.markdown));
+      require(block.definition().title == item.title,
+              QStringLiteral("Boundary case title mismatch for %1").arg(item.markdown));
       require(block.definition().sourceText == item.markdown,
               QStringLiteral("Boundary case source shape should be preserved for %1").arg(item.markdown));
     }
@@ -358,7 +358,8 @@ void testMultiLineFootnoteSerializationPreservesContinuation() {
   const QString markdown = QStringLiteral("[^1]: first\n    second\n\nnext");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
-  require(parsed.root != nullptr, QStringLiteral("Parser returned null root for multiline footnote serialization test"));
+  require(parsed.root != nullptr,
+          QStringLiteral("Parser returned null root for multiline footnote serialization test"));
   const MarkdownNode& footnote = definitionByLabel(*parsed.root, BlockType::FootnoteDefinition, QStringLiteral("1"));
   require(footnote.type() == BlockType::FootnoteDefinition, QStringLiteral("Expected footnote definition"));
   require(!footnote.definition().sourceText.isEmpty(),
@@ -395,10 +396,9 @@ void testMixedIndentContinuationLine() {
 void testTableCellSourceRangesWithoutOuterPipes() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "Name | Value\n"
-      "--- | ---\n"
-      "left | right\n");
+  const QString markdown = QStringLiteral("Name | Value\n"
+                                          "--- | ---\n"
+                                          "left | right\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for bare table source range sample"));
@@ -408,10 +408,14 @@ void testTableCellSourceRangesWithoutOuterPipes() {
   require(table.type() == BlockType::Table, QStringLiteral("Expected bare table block"));
   const MarkdownNode& headerRow = childAt(table, 0);
   const MarkdownNode& bodyRow = childAt(table, 1);
-  require(sourceTextForNode(markdown, childAt(headerRow, 0)) == QStringLiteral("Name"), QStringLiteral("Bare first header source range mismatch"));
-  require(sourceTextForNode(markdown, childAt(headerRow, 1)) == QStringLiteral("Value"), QStringLiteral("Bare second header source range mismatch"));
-  require(sourceTextForNode(markdown, childAt(bodyRow, 0)) == QStringLiteral("left"), QStringLiteral("Bare first body source range mismatch"));
-  require(sourceTextForNode(markdown, childAt(bodyRow, 1)) == QStringLiteral("right"), QStringLiteral("Bare second body source range mismatch"));
+  require(sourceTextForNode(markdown, childAt(headerRow, 0)) == QStringLiteral("Name"),
+          QStringLiteral("Bare first header source range mismatch"));
+  require(sourceTextForNode(markdown, childAt(headerRow, 1)) == QStringLiteral("Value"),
+          QStringLiteral("Bare second header source range mismatch"));
+  require(sourceTextForNode(markdown, childAt(bodyRow, 0)) == QStringLiteral("left"),
+          QStringLiteral("Bare first body source range mismatch"));
+  require(sourceTextForNode(markdown, childAt(bodyRow, 1)) == QStringLiteral("right"),
+          QStringLiteral("Bare second body source range mismatch"));
 }
 
 int main(int argc, char** argv) {

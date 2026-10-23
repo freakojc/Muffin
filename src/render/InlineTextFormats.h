@@ -64,4 +64,4 @@ struct InlineFormatInput {
 
 QVector<QTextLayout::FormatRange> buildInlineTextFormats(const InlineFormatInput& input);
 
-}  // namespace muffin
+} // namespace muffin

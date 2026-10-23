@@ -23,8 +23,7 @@ class MUFFIN_UI_EXPORT TableToolbar : public QObject {
 public:
   explicit TableToolbar(QWidget* viewport, QObject* parent = nullptr);
 
-  void update(const HitTestResult& hit, const DocumentLayout* layout,
-              qreal scrollY, const QRect& viewportRect);
+  void update(const HitTestResult& hit, const DocumentLayout* layout, qreal scrollY, const QRect& viewportRect);
   void forceHide();
 
 signals:
@@ -47,7 +46,7 @@ private:
   QWidget* viewport_;
   QWidget* toolbar_ = nullptr;
   QBoxLayout* toolbarLayout_ = nullptr;
-  bool verticalToolbar_ = false;  // tracks the toolbar's current box-layout direction
+  bool verticalToolbar_ = false; // tracks the toolbar's current box-layout direction
   QToolButton* resizeButton_ = nullptr;
   QToolButton* alignLeftButton_ = nullptr;
   QToolButton* alignCenterButton_ = nullptr;
@@ -60,4 +59,4 @@ private:
   bool updating_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

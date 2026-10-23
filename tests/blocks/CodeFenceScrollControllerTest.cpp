@@ -39,7 +39,7 @@ void testRemapSurvivesReparse() {
   scroll.setOffset(old1, 80.0);
   scroll.setContentWidth(old2, 100.0);
   scroll.setOffset(old2, 10.0);
-  scroll.remapAfterReparse({{old1, new1}});  // old1 -> new1; old2 untouched
+  scroll.remapAfterReparse({{old1, new1}}); // old1 -> new1; old2 untouched
   require(scroll.offsetFor(new1) == 80.0, "remapped id keeps its offset");
   require(scroll.contentWidthFor(new1) == 400.0, "remapped id keeps its content width");
   require(scroll.offsetFor(old2) == 10.0, "an unmapped id is preserved as-is");

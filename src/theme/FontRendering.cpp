@@ -55,8 +55,10 @@ const QStringList& availableDocumentFamilies() {
 QString firstAvailableFontFamily(std::initializer_list<QString> candidates) {
   const QStringList& availableFamilies = availableDocumentFamilies();
   QString key;
-  for (const auto& candidate : candidates) key += candidate + QLatin1Char('\n');
-  if (const auto found = defaultFamilies.constFind(key); found != defaultFamilies.cend()) return *found;
+  for (const auto& candidate : candidates)
+    key += candidate + QLatin1Char('\n');
+  if (const auto found = defaultFamilies.constFind(key); found != defaultFamilies.cend())
+    return *found;
   for (const QString& candidate : candidates) {
     for (const QString& family : availableFamilies) {
       if (family.compare(candidate, Qt::CaseInsensitive) == 0) {
@@ -71,7 +73,7 @@ QString firstAvailableFontFamily(std::initializer_list<QString> candidates) {
   return result;
 }
 
-}  // namespace
+} // namespace
 // Resolved per-platform fallback families, cached until fonts change. Used both as
 // the legacy default (when a theme supplies no font) and as the substitution tail
 // appended after a theme-supplied family so missing glyphs (CJK, symbols) resolve.
@@ -185,7 +187,8 @@ QStringList splitCssFamilyExpression(const QString& raw) {
     }
     if (quote.isNull() && (character == QLatin1Char(',') || character == QLatin1Char('\n'))) {
       const QString value = token.trimmed();
-      if (!value.isEmpty()) result.append(value);
+      if (!value.isEmpty())
+        result.append(value);
       token.clear();
       continue;
     }
@@ -199,7 +202,8 @@ QStringList splitCssFamilyExpression(const QString& raw) {
     token.append(character);
   }
   const QString value = token.trimmed();
-  if (!value.isEmpty()) result.append(value);
+  if (!value.isEmpty())
+    result.append(value);
   return result;
 }
 
@@ -251,18 +255,23 @@ QString matchingFace(const QHash<QString, QString>& aliases, const QString& fami
   QString result = aliases.value(family.toLower());
   auto best = std::tuple(2, 3, 1001);
   for (auto face = aliases.cbegin(); face != aliases.cend(); ++face) {
-    if (!face.key().startsWith(prefix)) continue;
+    if (!face.key().startsWith(prefix))
+      continue;
     const auto descriptor = QStringView(face.key()).mid(prefix.size());
     const auto slash = descriptor.indexOf('/');
-    if (slash < 0) continue;
+    if (slash < 0)
+      continue;
     const int candidate = descriptor.left(slash).toInt();
-    if (candidate < 1 || candidate > 1000) continue;
+    if (candidate < 1 || candidate > 1000)
+      continue;
     const bool candidateItalic = descriptor.mid(slash + 1) == u"1";
     // CSS Fonts weight matching: 400..500 search upward to 500, then below
     // the requested weight, then above 500. Other weights search outward in
     // their preferred direction. Style matching precedes weight matching.
     const int group = weight >= 400 && weight <= 500
-                          ? (candidate >= weight && candidate <= 500 ? 0 : candidate < weight ? 1 : 2)
+                          ? (candidate >= weight && candidate <= 500 ? 0
+                             : candidate < weight                    ? 1
+                                                                     : 2)
                           : (weight < 400 ? (candidate <= weight ? 0 : 1) : (candidate >= weight ? 0 : 1));
     const auto rank = std::tuple(int(candidateItalic != italic), group, qAbs(candidate - weight));
     if (rank < best) {
@@ -272,7 +281,7 @@ QString matchingFace(const QHash<QString, QString>& aliases, const QString& fami
   }
   return result;
 }
-}  // namespace
+} // namespace
 
 QStringList cssFamilyList(const QString& raw, const QString& platformTail, const QHash<QString, QString>& aliases,
                           int weight, bool italic) {
@@ -292,11 +301,14 @@ QStringList cssFamilyList(const QString& raw, const QString& platformTail, const
     QString family = token;
     if (quoted || token.contains('\\')) {
       const auto decoded = parseContentTokens(quoted ? token : '"' + token + '"');
-      if (decoded.size() != 1) continue;
+      if (decoded.size() != 1)
+        continue;
       family = decoded.front().text;
     }
-    if (!quoted) family = family.simplified();
-    if (family.isEmpty()) continue;
+    if (!quoted)
+      family = family.simplified();
+    if (family.isEmpty())
+      continue;
     // @font-face: a CSS theme may declare `font-family: CascadiaCode` while the
     // font file's internal name (what QFontDatabase registers) is "Cascadia Code",
     // or `"LXGW WenKai"` whose internal name is 霞鹜文楷. Substitute the declared
@@ -331,7 +343,8 @@ QStringList cssFamilyList(const QString& raw, const QString& platformTail, const
       family = codeFamily();
     }
     const QString resolved = platformCssFamilyAlias(family, availableFamilies);
-    if (!resolved.isEmpty() && !out.contains(resolved, Qt::CaseInsensitive)) out << resolved;
+    if (!resolved.isEmpty() && !out.contains(resolved, Qt::CaseInsensitive))
+      out << resolved;
   }
   return out;
 }
@@ -340,7 +353,8 @@ QString documentFallbackTail() {
   const auto& bundled = bundledFallbackFamilies();
   QStringList families = bundled;
   const auto append = [&families](const QString& family) {
-    if (!family.isEmpty() && !families.contains(family, Qt::CaseInsensitive)) families.append(family);
+    if (!family.isEmpty() && !families.contains(family, Qt::CaseInsensitive))
+      families.append(family);
   };
   append(sansFamily());
   append(serifFamily());
@@ -348,4 +362,4 @@ QString documentFallbackTail() {
   return families.join(QLatin1Char('\n'));
 }
 
-}  // namespace muffin::font_rendering
+} // namespace muffin::font_rendering

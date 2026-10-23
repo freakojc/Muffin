@@ -14,7 +14,7 @@ namespace muffin::mermaid {
 struct MermaidRenderMetadata {
   QString diagramType;
   QString roleDescription;
-  QString cssClass;  // SVG root class suffix (e.g. "flowchart", "erDiagram")
+  QString cssClass; // SVG root class suffix (e.g. "flowchart", "erDiagram")
   QString title;
   QString accessibleTitle;
   QString accessibleDescription;
@@ -30,7 +30,7 @@ struct MermaidRenderMetadata {
   // family padding around the union). Families whose padding is already
   // folded into their scene bounds (state) pass their padding here instead
   // of diagramPadding.
-  qreal titleBandPadding = -1.0;  // < 0: use diagramPadding
+  qreal titleBandPadding = -1.0; // < 0: use diagramPadding
   QSizeF contentSize;
 
   // SVG-only root element contract. These values are retained beside the
@@ -55,7 +55,6 @@ struct MermaidRenderMetadata {
 };
 
 qreal measureMermaidTitleWidth(const MermaidRenderMetadata& metadata);
-void paintMermaidTitle(const MermaidRenderMetadata& metadata,
-                       QPainter& painter, const QRectF& titleRect);
+void paintMermaidTitle(const MermaidRenderMetadata& metadata, QPainter& painter, const QRectF& titleRect);
 
-}  // namespace muffin::mermaid
+} // namespace muffin::mermaid

@@ -14,7 +14,7 @@ using namespace muffin;
 // Builds a unique temp working directory for a test and tears it down on scope exit. The
 // collision/rename helpers resolve canonicalFilePath, so they need real entries on disk.
 class WorkDir {
- public:
+public:
   WorkDir() {
     path_ = QDir(QDir::tempPath()).filePath(QStringLiteral("muffin-rename-test-%1").arg(counter_++));
     QDir().mkpath(path_);
@@ -31,15 +31,15 @@ class WorkDir {
     f.close();
     return true;
   }
- private:
+
+private:
   QString path_;
   static qint64 counter_;
 };
 qint64 WorkDir::counter_ = 0;
 
 void requireEq(const QString& actual, const QString& expected, const QString& message) {
-  require(actual == expected,
-          QStringLiteral("%1\n   expected: %2\n   actual:   %3").arg(message, expected, actual));
+  require(actual == expected, QStringLiteral("%1\n   expected: %2\n   actual:   %3").arg(message, expected, actual));
 }
 
 // ---- targetNameCollides -----------------------------------------------------
@@ -110,10 +110,8 @@ void testCaseOnlyRenameLandsAsNewCase() {
   require(FilePathOps::renamePath(wd.file(QStringLiteral("low.md")), wd.file(QStringLiteral("LOW.md")), &error),
           QStringLiteral("case-only rename low.md → LOW.md succeeds"));
   const QStringList entries = QDir(wd.path()).entryList(QDir::Files | QDir::NoDotAndDotDot);
-  require(entries.contains(QStringLiteral("LOW.md")),
-          QStringLiteral("directory lists the new case LOW.md"));
-  require(!entries.contains(QStringLiteral("low.md")),
-          QStringLiteral("directory no longer lists the old case low.md"));
+  require(entries.contains(QStringLiteral("LOW.md")), QStringLiteral("directory lists the new case LOW.md"));
+  require(!entries.contains(QStringLiteral("low.md")), QStringLiteral("directory no longer lists the old case low.md"));
 }
 
 void testDescendantRemapping() {

@@ -74,9 +74,11 @@ void testHtmlTableAndListLayoutContract() {
   QVector<const html::HtmlBox*> listItems;
   collectChildrenWithTag(*root, html::HtmlTag::ListItem, listItems);
   require(listItems.size() == 4, QStringLiteral("html table/list fixture should contain four list items"));
-  require(listItems[0]->listMarker() == QStringLiteral("\u2022"), QStringLiteral("unordered list item should use bullet marker"));
+  require(listItems[0]->listMarker() == QStringLiteral("\u2022"),
+          QStringLiteral("unordered list item should use bullet marker"));
   require(listItems[2]->listMarker() == QStringLiteral("1."), QStringLiteral("ordered list item should start at 1"));
-  require(listItems[3]->listMarker() == QStringLiteral("2."), QStringLiteral("ordered list item should increment marker"));
+  require(listItems[3]->listMarker() == QStringLiteral("2."),
+          QStringLiteral("ordered list item should increment marker"));
 
   std::vector<std::unique_ptr<html::HtmlTextLayout>> textLayouts;
   html::HtmlLayoutEngine engine;
@@ -177,8 +179,7 @@ void testHtmlPreLayoutContract() {
   const auto& wrapLayout = textLayouts.at(static_cast<size_t>(preBlocks[1]->textLayoutIndex()));
   require(noWrapLayout != nullptr && noWrapLayout->layout != nullptr,
           QStringLiteral("pre no-wrap text layout should exist"));
-  require(wrapLayout != nullptr && wrapLayout->layout != nullptr,
-          QStringLiteral("pre-wrap text layout should exist"));
+  require(wrapLayout != nullptr && wrapLayout->layout != nullptr, QStringLiteral("pre-wrap text layout should exist"));
   require(!noWrapLayout->text.startsWith(QLatin1Char('\n')),
           QStringLiteral("pre layout should strip the initial source newline"));
   require(noWrapLayout->text.startsWith(QStringLiteral("void hello()")),
@@ -255,12 +256,10 @@ void testHtmlLinkWrappedSvgImagesPaintContract() {
   }
 
   html::HtmlRenderer renderer;
-  html::HtmlLayoutResult result = renderer.render(
-      QStringLiteral("<div><a href=\"LICENSE\"><img src=\"first.svg\" alt=\"License\">"
-                     "<img src=\"second.svg\" alt=\"Platform\"></a></div>"),
-      16.0,
-      320.0,
-      dir.path());
+  html::HtmlLayoutResult result =
+      renderer.render(QStringLiteral("<div><a href=\"LICENSE\"><img src=\"first.svg\" alt=\"License\">"
+                                     "<img src=\"second.svg\" alt=\"Platform\"></a></div>"),
+                      16.0, 320.0, dir.path());
   require(result.valid(), QStringLiteral("html linked svg images fixture should render"));
 
   const html::HtmlBox* root = result.root();
@@ -281,8 +280,7 @@ void testHtmlLinkWrappedSvgImagesPaintContract() {
 
   const QRect ink = imageInkBounds(output, Qt::white);
   require(!ink.isNull(), QStringLiteral("linked svg images should paint visible pixels"));
-  require(ink.width() >= 180 && ink.height() >= 18,
-          QStringLiteral("linked svg images should paint both badges"));
+  require(ink.width() >= 180 && ink.height() >= 18, QStringLiteral("linked svg images should paint both badges"));
 }
 
 void testHtmlLinkAndRelativeImageHitContract() {
@@ -302,8 +300,8 @@ void testHtmlLinkAndRelativeImageHitContract() {
   image.fill(QColor(80, 120, 200));
   require(image.save(imagePath), QStringLiteral("html relative image fixture should save image"));
 
-  html::HtmlLayoutResult imageResult =
-      renderer.render(QStringLiteral("<div><img src=\"asset.png\" width=\"32\" alt=\"asset\"></div>"), 16.0, 240.0, dir.path());
+  html::HtmlLayoutResult imageResult = renderer.render(
+      QStringLiteral("<div><img src=\"asset.png\" width=\"32\" alt=\"asset\"></div>"), 16.0, 240.0, dir.path());
   require(imageResult.valid(), QStringLiteral("html relative image fixture should render"));
   require(imageResult.size().height() >= 16.0 && imageResult.size().height() <= 40.0,
           QStringLiteral("html image width attr should preserve natural aspect ratio"));
@@ -314,11 +312,11 @@ void testHtmlLinkAndRelativeImageHitContract() {
 
 void testHtmlWrappedTextLinePositionsContract() {
   html::HtmlDocument document;
-  require(document.parse(QStringLiteral(
-              "<div style=\"text-align: justify; font-size: 16px;\">"
-              "Antidisestablishmentarianism Antidisestablishmentarianism Antidisestablishmentarianism "
-              "Antidisestablishmentarianism Antidisestablishmentarianism"
-              "</div>")),
+  require(document.parse(
+              QStringLiteral("<div style=\"text-align: justify; font-size: 16px;\">"
+                             "Antidisestablishmentarianism Antidisestablishmentarianism Antidisestablishmentarianism "
+                             "Antidisestablishmentarianism Antidisestablishmentarianism"
+                             "</div>")),
           QStringLiteral("html wrapped text fixture should parse"));
 
   html::HtmlBoxBuilder builder;
@@ -334,7 +332,8 @@ void testHtmlWrappedTextLinePositionsContract() {
 
   require(textLayouts.size() == 1, QStringLiteral("html wrapped text fixture should create one text layout"));
   const html::HtmlTextLayout* textLayout = textLayouts.front().get();
-  require(textLayout != nullptr && textLayout->layout != nullptr, QStringLiteral("html wrapped text layout should exist"));
+  require(textLayout != nullptr && textLayout->layout != nullptr,
+          QStringLiteral("html wrapped text layout should exist"));
   require(textLayout->layout->lineCount() > 1, QStringLiteral("html wrapped text should create multiple lines"));
 
   qreal previousY = textLayout->layout->lineAt(0).position().y();
@@ -347,7 +346,7 @@ void testHtmlWrappedTextLinePositionsContract() {
           QStringLiteral("html wrapped text height should include all lines"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

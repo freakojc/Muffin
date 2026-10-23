@@ -16,4 +16,4 @@ struct TextFileFormat {
   bool operator==(const TextFileFormat&) const = default;
 };
 
-}  // namespace muffin
+} // namespace muffin

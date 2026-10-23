@@ -30,7 +30,9 @@ namespace {
 // geometry (margin/padding/border/radius/fit-content) lives in elementStyles now.
 const ThemeElementStyle* elementStyleFor(const ThemeDefinition& d, const QString& key) {
   for (const ThemeElementStyle& s : d.elementStyles) {
-    if (s.key == key) { return &s; }
+    if (s.key == key) {
+      return &s;
+    }
   }
   return nullptr;
 }
@@ -41,7 +43,8 @@ void testResolveVars() {
   vars.insert(QStringLiteral("--deep"), QStringLiteral("var(--accent)"));
   require(CssThemeParser::resolveVars(QStringLiteral("var(--accent)"), vars) == QStringLiteral("#ff7096"),
           QStringLiteral("simple var() should resolve"));
-  require(CssThemeParser::resolveVars(QStringLiteral("1px solid var(--accent)"), vars) == QStringLiteral("1px solid #ff7096"),
+  require(CssThemeParser::resolveVars(QStringLiteral("1px solid var(--accent)"), vars) ==
+              QStringLiteral("1px solid #ff7096"),
           QStringLiteral("var() inside a shorthand should resolve in place"));
   require(CssThemeParser::resolveVars(QStringLiteral("var(--missing, #fb)"), vars) == QStringLiteral("#fb"),
           QStringLiteral("unknown var should use the fallback"));
@@ -50,8 +53,8 @@ void testResolveVars() {
 }
 
 void testSplitCommas() {
-  const QStringList parts = CssThemeParser::splitTopLevelCommas(
-      QStringLiteral("\"iA Writer Quattro\", \"Inter\", sans-serif"));
+  const QStringList parts =
+      CssThemeParser::splitTopLevelCommas(QStringLiteral("\"iA Writer Quattro\", \"Inter\", sans-serif"));
   require(parts.size() == 3, QStringLiteral("font stack should split into 3 families"));
   require(parts.at(0) == QStringLiteral("\"iA Writer Quattro\""), QStringLiteral("first family preserved with quotes"));
 }
@@ -71,8 +74,7 @@ void testCssColorHexAlphaOrder() {
   require(red4.red() == 0xff && red4.green() == 0 && red4.blue() == 0 && red4.alpha() == 0xff,
           QStringLiteral("#RGBA 4-digit alpha-last doubles each nibble"));
   // 6- and 3-digit hex are unaffected.
-  require(CssThemeMapper::resolveColor(QStringLiteral("#3db8bf"), {}).name(QColor::HexRgb)
-              == QStringLiteral("#3db8bf"),
+  require(CssThemeMapper::resolveColor(QStringLiteral("#3db8bf"), {}).name(QColor::HexRgb) == QStringLiteral("#3db8bf"),
           QStringLiteral("6-digit hex unchanged"));
   // rgb() and color-mix still resolve through the funnel unchanged.
   QColor rgb = CssThemeMapper::resolveColor(QStringLiteral("rgb(10, 20, 30)"), {});
@@ -122,17 +124,25 @@ void testSampleTheme() {
   require(d.colors.background.name(QColor::HexRgb) == QStringLiteral("#ffffff"),
           QStringLiteral("page background should come from #write (id beats body tag)"));
   require(d.colors.text.name(QColor::HexRgb) == QStringLiteral("#1f2328"), QStringLiteral("text colour from body"));
-  require(d.colors.link.name(QColor::HexRgb) == QStringLiteral("#2f6f9f"), QStringLiteral("link colour from base a, not a:hover"));
-  require(d.colors.codeBackground.name(QColor::HexRgb) == QStringLiteral("#fce4ec"), QStringLiteral("inline code background"));
-  require(d.colors.codeBlockBackground.name(QColor::HexRgb) == QStringLiteral("#f6f8fa"), QStringLiteral("fenced code background distinct from inline"));
+  require(d.colors.link.name(QColor::HexRgb) == QStringLiteral("#2f6f9f"),
+          QStringLiteral("link colour from base a, not a:hover"));
+  require(d.colors.codeBackground.name(QColor::HexRgb) == QStringLiteral("#fce4ec"),
+          QStringLiteral("inline code background"));
+  require(d.colors.codeBlockBackground.name(QColor::HexRgb) == QStringLiteral("#f6f8fa"),
+          QStringLiteral("fenced code background distinct from inline"));
   require(d.colors.highlight.red() == 255 && d.colors.highlight.green() == 220 && d.colors.highlight.blue() == 128,
           QStringLiteral("highlight colour resolved through var() including rgba"));
-  require(d.colors.quoteBorder.name(QColor::HexRgb) == QStringLiteral("#c8bfae"), QStringLiteral("quote border from blockquote border-left"));
-  require(d.colors.blockquoteBackground.name(QColor::HexRgb) == QStringLiteral("#fff8ee"), QStringLiteral("blockquote fill"));
+  require(d.colors.quoteBorder.name(QColor::HexRgb) == QStringLiteral("#c8bfae"),
+          QStringLiteral("quote border from blockquote border-left"));
+  require(d.colors.blockquoteBackground.name(QColor::HexRgb) == QStringLiteral("#fff8ee"),
+          QStringLiteral("blockquote fill"));
   require(d.colors.tableBorder.name(QColor::HexRgb) == QStringLiteral("#dfe2e5"), QStringLiteral("table border"));
-  require(d.colors.tableHeaderBackground.name(QColor::HexRgb) == QStringLiteral("#edf4ff"), QStringLiteral("table header background"));
-  require(d.colors.tableAlternateBackground.name(QColor::HexRgb) == QStringLiteral("#f6f8fa"), QStringLiteral("alternating row background"));
-  require(d.colors.selection.name(QColor::HexRgb) == QStringLiteral("#d7e8ff"), QStringLiteral("selection from ::selection"));
+  require(d.colors.tableHeaderBackground.name(QColor::HexRgb) == QStringLiteral("#edf4ff"),
+          QStringLiteral("table header background"));
+  require(d.colors.tableAlternateBackground.name(QColor::HexRgb) == QStringLiteral("#f6f8fa"),
+          QStringLiteral("alternating row background"));
+  require(d.colors.selection.name(QColor::HexRgb) == QStringLiteral("#d7e8ff"),
+          QStringLiteral("selection from ::selection"));
 
   require(d.typography.headingColor[0].name(QColor::HexRgb) == QStringLiteral("#111111"), QStringLiteral("h1 colour"));
   require(d.typography.headingColor[1].name(QColor::HexRgb) == QStringLiteral("#222222"), QStringLiteral("h2 colour"));
@@ -141,16 +151,20 @@ void testSampleTheme() {
   require(d.colors.headingAccentColor.name(QColor::HexRgb) == QStringLiteral("#ff7096"),
           QStringLiteral("h2 accent bar colour from border-left via var()"));
 
-  require(d.typography.bodyFont.section('\n',0,0) == QStringLiteral("\"iA Writer Quattro\""), QStringLiteral("body font stack should preserve first family and quotes"));
-  require(d.typography.codeFont.section('\n',0,0) == QStringLiteral("\"JetBrains Mono\""), QStringLiteral("code font stack should preserve first family and quotes"));
+  require(d.typography.bodyFont.section('\n', 0, 0) == QStringLiteral("\"iA Writer Quattro\""),
+          QStringLiteral("body font stack should preserve first family and quotes"));
+  require(d.typography.codeFont.section('\n', 0, 0) == QStringLiteral("\"JetBrains Mono\""),
+          QStringLiteral("code font stack should preserve first family and quotes"));
   require(qAbs(d.typography.bodySizePt - 12.0) < 0.01, QStringLiteral("16px body → 12pt"));
   require(qAbs(d.typography.lineHeight - 1.7) < 0.001, QStringLiteral("line-height multiplier"));
 
   require(d.colors.serifBody == true, QStringLiteral("--muffin-serif-body should flip serif body"));
   require(d.label == QStringLiteral("Sample Test Theme"), QStringLiteral("--muffin-label sets the display name"));
-  require(d.colors.chromeBackground.name(QColor::HexRgb) == QStringLiteral("#fafafa"), QStringLiteral("chrome background via --muffin-*"));
+  require(d.colors.chromeBackground.name(QColor::HexRgb) == QStringLiteral("#fafafa"),
+          QStringLiteral("chrome background via --muffin-*"));
   require(d.colors.canvas.name(QColor::HexRgb) == QStringLiteral("#f0f0f0"), QStringLiteral("canvas via --muffin-*"));
-  require(d.colors.accent.name(QColor::HexRgb) == QStringLiteral("#c2185b"), QStringLiteral("accent via --muffin-* overrides link-derived"));
+  require(d.colors.accent.name(QColor::HexRgb) == QStringLiteral("#c2185b"),
+          QStringLiteral("accent via --muffin-* overrides link-derived"));
   require(d.colors.isDark == false, QStringLiteral("light background → not dark"));
 }
 
@@ -167,37 +181,49 @@ void testWhiteyTypographySemantics() {
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("whitey-like"), QString());
   require(d.valid(), QStringLiteral("whitey-like CSS should produce a valid definition"));
   require(d.colors.serifBody, QStringLiteral("serif font stacks should flip the serif body flag"));
-  require(d.typography.bodyFont.contains(QStringLiteral("Palatino")) && d.typography.bodyFont.contains(QStringLiteral("Times")),
+  require(d.typography.bodyFont.contains(QStringLiteral("Palatino")) &&
+              d.typography.bodyFont.contains(QStringLiteral("Times")),
           QStringLiteral("body font stack should preserve Whitey's serif fallback families"));
-  require(qAbs(d.typography.bodySizePt - 14.25) < 0.01, QStringLiteral("19px root/body font-size should map to 14.25pt"));
-  require(qAbs(d.typography.lineHeight - 1.53) < 0.001, QStringLiteral("#write line-height should override body line-height"));
-  require(d.typography.bodyAlignment == Qt::AlignJustify, QStringLiteral("body text-align: justify should be captured"));
+  require(qAbs(d.typography.bodySizePt - 14.25) < 0.01,
+          QStringLiteral("19px root/body font-size should map to 14.25pt"));
+  require(qAbs(d.typography.lineHeight - 1.53) < 0.001,
+          QStringLiteral("#write line-height should override body line-height"));
+  require(d.typography.bodyAlignment == Qt::AlignJustify,
+          QStringLiteral("body text-align: justify should be captured"));
   for (int i = 0; i < 3; ++i) {
-    require(d.typography.headingAlignment[i] == Qt::AlignHCenter, QStringLiteral("h%1 text-align should be centered").arg(i + 1));
+    require(d.typography.headingAlignment[i] == Qt::AlignHCenter,
+            QStringLiteral("h%1 text-align should be centered").arg(i + 1));
     require(d.typography.headingFontWeightSet[i], QStringLiteral("h%1 font-weight should be explicit").arg(i + 1));
-    require(d.typography.headingFontWeight[i] == QFont::Normal, QStringLiteral("h%1 font-weight should be normal").arg(i + 1));
+    require(d.typography.headingFontWeight[i] == QFont::Normal,
+            QStringLiteral("h%1 font-weight should be normal").arg(i + 1));
   }
-  require(d.typography.headingItalicSet[2] && d.typography.headingItalic[2], QStringLiteral("h3 font-style: italic should be captured"));
-  require(qAbs(d.typography.headingSizePt[0] - 42.75) < 0.01, QStringLiteral("h1 3em should be relative to 19px body font"));
-  require(qAbs(elementStyleFor(d, QStringLiteral("h1"))->box.margin.top() - 91.2) < 0.5, QStringLiteral("h1 margin-top 1.6em should use h1 font-size as em"));
+  require(d.typography.headingItalicSet[2] && d.typography.headingItalic[2],
+          QStringLiteral("h3 font-style: italic should be captured"));
+  require(qAbs(d.typography.headingSizePt[0] - 42.75) < 0.01,
+          QStringLiteral("h1 3em should be relative to 19px body font"));
+  require(qAbs(elementStyleFor(d, QStringLiteral("h1"))->box.margin.top() - 91.2) < 0.5,
+          QStringLiteral("h1 margin-top 1.6em should use h1 font-size as em"));
 
   const PseudoElementRule* h2After = nullptr;
   for (const PseudoElementRule& r : d.decorations.pseudos) {
-    if (r.host == QStringLiteral("h2") && r.pseudo == QStringLiteral("after")) { h2After = &r; }
+    if (r.host == QStringLiteral("h2") && r.pseudo == QStringLiteral("after")) {
+      h2After = &r;
+    }
   }
   require(h2After != nullptr, QStringLiteral("Whitey h2:after should be captured as a pseudo decoration"));
   require(qAbs(h2After->size.width() - 100.0) < 0.01, QStringLiteral("h2:after width should be 100px"));
   require(qAbs(h2After->size.height() - 1.0) < 0.01, QStringLiteral("h2:after height should be 1px"));
-  require(h2After->borderBottomColor == QColor(QStringLiteral("#2f2f2f")), QStringLiteral("h2:after border-bottom colour should be captured"));
-  require(qAbs(h2After->borderBottomWidth - 1.0) < 0.01, QStringLiteral("h2:after border-bottom width should be captured"));
+  require(h2After->borderBottomColor == QColor(QStringLiteral("#2f2f2f")),
+          QStringLiteral("h2:after border-bottom colour should be captured"));
+  require(qAbs(h2After->borderBottomWidth - 1.0) < 0.01,
+          QStringLiteral("h2:after border-bottom width should be captured"));
 }
 
 void testHeadingFontSizeEmUsesInheritedFontButBoxEmUsesHeadingFont() {
-  const QString css = QStringLiteral(
-      "body { color:#333; font-size:16px; }"
-      "#write { font-size:20px; }"
-      "h1 { font-size:2em; margin-top:1.5em; padding-left:.25em; }"
-      "h1:hover { color:#3db8bf; }");
+  const QString css = QStringLiteral("body { color:#333; font-size:16px; }"
+                                     "#write { font-size:20px; }"
+                                     "h1 { font-size:2em; margin-top:1.5em; padding-left:.25em; }"
+                                     "h1:hover { color:#3db8bf; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("heading-em"), QString());
   const ThemeElementStyle* h1 = elementStyleFor(d, QStringLiteral("h1"));
   const ThemeElementStyle* h1Hover = elementStyleFor(d, QStringLiteral("h1:hover"));
@@ -223,23 +249,18 @@ void testHeadingFontSizeEmUsesInheritedFontButBoxEmUsesHeadingFont() {
 
 void testNumericFontWeightMapsToQtEnum() {
   // Qt 6 uses CSS weights directly, including values between named steps.
-  const QString css = QStringLiteral(
-      "h1 { font-weight: 400; }"   // → Normal
-      "h2 { font-weight: 700; }"   // → Bold
-      "h3 { font-weight: 300; }"   // → Light
-      "h4 { font-weight: 900; }"   // → Black
-      "h5 { font-weight: 760; }");
+  const QString css = QStringLiteral("h1 { font-weight: 400; }" // → Normal
+                                     "h2 { font-weight: 700; }" // → Bold
+                                     "h3 { font-weight: 300; }" // → Light
+                                     "h4 { font-weight: 900; }" // → Black
+                                     "h5 { font-weight: 760; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("weights"), QString());
   require(d.typography.headingFontWeight[0] == QFont::Normal,
           QStringLiteral("font-weight:400 should map to Normal, not Black"));
-  require(d.typography.headingFontWeight[1] == QFont::Bold,
-          QStringLiteral("font-weight:700 should map to Bold"));
-  require(d.typography.headingFontWeight[2] == QFont::Light,
-          QStringLiteral("font-weight:300 should map to Light"));
-  require(d.typography.headingFontWeight[3] == QFont::Black,
-          QStringLiteral("font-weight:900 should map to Black"));
-  require(d.typography.headingFontWeight[4] == 760,
-          QStringLiteral("font-weight:760 retains its CSS numeric value"));
+  require(d.typography.headingFontWeight[1] == QFont::Bold, QStringLiteral("font-weight:700 should map to Bold"));
+  require(d.typography.headingFontWeight[2] == QFont::Light, QStringLiteral("font-weight:300 should map to Light"));
+  require(d.typography.headingFontWeight[3] == QFont::Black, QStringLiteral("font-weight:900 should map to Black"));
+  require(d.typography.headingFontWeight[4] == 760, QStringLiteral("font-weight:760 retains its CSS numeric value"));
 }
 
 void testMistBlueFixture(const QString& path) {
@@ -249,10 +270,12 @@ void testMistBlueFixture(const QString& path) {
   const QString baseDir = QFileInfo(path).absolutePath();
   const ThemeDefinition d = CssThemeMapper::fromCss(text, QStringLiteral("mist-blue"), baseDir);
   require(d.valid(), QStringLiteral("real mist-blue theme should parse to a valid definition"));
-  require(d.page.viewportBackground.red() == 217 && d.page.viewportBackground.green() == 222 && d.page.viewportBackground.blue() == 232,
+  require(d.page.viewportBackground.red() == 217 && d.page.viewportBackground.green() == 222 &&
+              d.page.viewportBackground.blue() == 232,
           QStringLiteral("body background should become the viewport background"));
   // #write paper is now the page/card background, while body remains the outer viewport.
-  require(d.page.pageBackground.red() == 248 && d.page.pageBackground.green() == 250 && d.page.pageBackground.blue() == 253,
+  require(d.page.pageBackground.red() == 248 && d.page.pageBackground.green() == 250 &&
+              d.page.pageBackground.blue() == 253,
           QStringLiteral("#write paper should become the page card background"));
   require(d.colors.background.red() == 248 && d.colors.background.green() == 250 && d.colors.background.blue() == 253,
           QStringLiteral("legacy background should still be the page card colour"));
@@ -268,7 +291,8 @@ void testMistBlueFixture(const QString& path) {
   require(d.colors.codeBackground.red() == 226, QStringLiteral("inline code bg via var(--code-bg)"));
   require(d.colors.codeBlockBackground.red() == 224, QStringLiteral("fenced code bg via var(--code-block-bg)"));
   // p,li { font-family: var(--font-writing) } comes after html,body { var(--font-sans) } → writing wins.
-  require(d.typography.bodyFont.section('\n',0,0) == QStringLiteral("\"LXGW WenKai\""), QStringLiteral("body font should preserve the quoted writing family"));
+  require(d.typography.bodyFont.section('\n', 0, 0) == QStringLiteral("\"LXGW WenKai\""),
+          QStringLiteral("body font should preserve the quoted writing family"));
   require(qAbs(d.typography.bodySizePt - 12.0) < 0.01, QStringLiteral("body 16px should map to 12pt"));
   require(qAbs(d.typography.lineHeight - 1.78) < 0.001, QStringLiteral("body line-height should map"));
   require(qAbs(d.typography.headingSizePt[0] - 25.2) < 0.01, QStringLiteral("h1 2.1rem should map to 25.2pt"));
@@ -276,8 +300,10 @@ void testMistBlueFixture(const QString& path) {
   require(qAbs(elementStyleFor(d, QStringLiteral("p"))->box.margin.top() - 11.52) < 0.01 &&
               qAbs(elementStyleFor(d, QStringLiteral("p"))->box.margin.bottom() - 11.52) < 0.01,
           QStringLiteral("p margin 0.72em should map"));
-  require(qAbs(elementStyleFor(d, QStringLiteral("h2"))->box.padding.left() - 14.384) < 0.01, QStringLiteral("h2 padding-left 0.58em should use h2 font-size as em"));
-  require(elementStyleFor(d, QStringLiteral("h2"))->box.borderLeftColor.name(QColor::HexRgb) == QStringLiteral("#4c6f91"),
+  require(qAbs(elementStyleFor(d, QStringLiteral("h2"))->box.padding.left() - 14.384) < 0.01,
+          QStringLiteral("h2 padding-left 0.58em should use h2 font-size as em"));
+  require(elementStyleFor(d, QStringLiteral("h2"))->box.borderLeftColor.name(QColor::HexRgb) ==
+              QStringLiteral("#4c6f91"),
           QStringLiteral("h2 left border colour should map"));
   require(d.colors.isDark == false, QStringLiteral("mist-blue is a light theme"));
 }
@@ -304,8 +330,8 @@ const char* kPureVariableCss = R"(
 )";
 
 void testPureVariableTheme() {
-  const ThemeDefinition d = CssThemeMapper::fromCss(
-      QString::fromUtf8(kPureVariableCss), QStringLiteral("phycat"), QString());
+  const ThemeDefinition d =
+      CssThemeMapper::fromCss(QString::fromUtf8(kPureVariableCss), QStringLiteral("phycat"), QString());
   require(d.valid(), QStringLiteral("a variables-only theme should be valid via the --bg-color/--text-color fallback"));
   require(d.colors.text.name(QColor::HexRgb) == QStringLiteral("#d6deeb"),
           QStringLiteral("text should come from --text-color"));
@@ -383,14 +409,13 @@ void testBackgroundOnlySynthesisesText() {
 .MathJax { font-size:var(--math-font-size); }
 .footnotes-area { color: var(--text-color); }
 )";
-  const ThemeDefinition light = CssThemeMapper::fromCss(
-      QString::fromUtf8(lightCss), QStringLiteral("latex-like"), QString());
+  const ThemeDefinition light =
+      CssThemeMapper::fromCss(QString::fromUtf8(lightCss), QStringLiteral("latex-like"), QString());
   require(light.valid(), QStringLiteral("a background-only light theme should be valid"));
   require(light.colors.background == QColor(Qt::white), QStringLiteral("explicit white page background"));
   require(light.colors.text == QColor(QStringLiteral("#333333")),
           QStringLiteral("light page should inherit Typora-compatible host ink"));
-  require(light.colors.chromeText == light.colors.text,
-          QStringLiteral("derived chrome should share the readable ink"));
+  require(light.colors.chromeText == light.colors.text, QStringLiteral("derived chrome should share the readable ink"));
   require(light.page.viewportBackground == QColor(QStringLiteral("#f3f3f3")),
           QStringLiteral("a #write-only white page should sit on a distinct host canvas"));
   require(qAbs(light.page.pageMaxWidth - 21.0 * 96.0 / 2.54) < 0.01,
@@ -399,23 +424,21 @@ void testBackgroundOnlySynthesisesText() {
               qAbs(light.page.pagePadding.top() - 1.8 * 96.0 / 2.54) < 0.01,
           QStringLiteral("LaTeX page padding should resolve cm shorthand"));
   require(light.page.pageShadowColor == QColor(QStringLiteral("#cccccc")) &&
-              qAbs(light.page.pageShadowOffsetX) < 0.01 &&
-              qAbs(light.page.pageShadowOffsetY) < 0.01 &&
-              qAbs(light.page.pageShadowBlur - 24.0) < 0.01 &&
-              qAbs(light.page.pageShadowSpread - 12.0) < 0.01,
+              qAbs(light.page.pageShadowOffsetX) < 0.01 && qAbs(light.page.pageShadowOffsetY) < 0.01 &&
+              qAbs(light.page.pageShadowBlur - 24.0) < 0.01 && qAbs(light.page.pageShadowSpread - 12.0) < 0.01,
           QStringLiteral("LaTeX page shadow should preserve all four lengths"));
   require(qAbs(light.typography.mathSizePt - 9.5) < 0.01,
           QStringLiteral("MathJax 1em should inherit the #write 9.5pt font size"));
 
-  const ThemeDefinition dark = CssThemeMapper::fromCss(
-      QStringLiteral("#write { background:#181818; }"), QStringLiteral("dark-page"), QString());
+  const ThemeDefinition dark =
+      CssThemeMapper::fromCss(QStringLiteral("#write { background:#181818; }"), QStringLiteral("dark-page"), QString());
   require(dark.valid(), QStringLiteral("a background-only dark theme should be valid"));
   require(dark.colors.text == QColor(QStringLiteral("#dddddd")),
           QStringLiteral("dark page should inherit Typora-compatible host ink"));
   require(dark.colors.isDark, QStringLiteral("dark background-only theme should infer dark mode"));
 
-  const ThemeDefinition saturated = CssThemeMapper::fromCss(
-      QStringLiteral("#write { background:#0000ff; }"), QStringLiteral("blue-page"), QString());
+  const ThemeDefinition saturated =
+      CssThemeMapper::fromCss(QStringLiteral("#write { background:#0000ff; }"), QStringLiteral("blue-page"), QString());
   require(saturated.colors.text == QColor(QStringLiteral("#dddddd")),
           QStringLiteral("saturated blue should choose light ink by relative luminance, not HSL lightness"));
 }
@@ -429,17 +452,13 @@ void testStaticScreenMediaQueries() {
 @media not print { #write { border-radius:7px; } }
 @media print, screen { #write { max-width:700px; } }
 )";
-  const ThemeDefinition d = CssThemeMapper::fromCss(
-      QString::fromUtf8(css), QStringLiteral("screen-media"), QString());
+  const ThemeDefinition d = CssThemeMapper::fromCss(QString::fromUtf8(css), QStringLiteral("screen-media"), QString());
   require(d.colors.text == QColor(QStringLiteral("#111111")),
           QStringLiteral("print and unresolved responsive rules must not override screen ink"));
-  require(qAbs(d.page.pagePadding.left() - 18.0) < 0.01 &&
-              qAbs(d.page.pagePadding.top() - 12.0) < 0.01,
+  require(qAbs(d.page.pagePadding.left() - 18.0) < 0.01 && qAbs(d.page.pagePadding.top() - 12.0) < 0.01,
           QStringLiteral("only screen should apply its desktop padding"));
-  require(qAbs(d.page.pageBorderRadius - 7.0) < 0.01,
-          QStringLiteral("not print should match Muffin's screen medium"));
-  require(qAbs(d.page.pageMaxWidth - 700.0) < 0.01,
-          QStringLiteral("a media list with a screen branch should match"));
+  require(qAbs(d.page.pageBorderRadius - 7.0) < 0.01, QStringLiteral("not print should match Muffin's screen medium"));
+  require(qAbs(d.page.pageMaxWidth - 700.0) < 0.01, QStringLiteral("a media list with a screen branch should match"));
 }
 
 // Regression for the pixyll "everything turns black" bug: pixyll declares
@@ -453,9 +472,8 @@ void testPixyllHasNoInvalidBlackProneTokens() {
   const ThemeDefinition d = ThemeDefinition::fromCss(QStringLiteral(":/themes/pixyll.css"), QStringLiteral("pixyll"));
   require(d.valid(), QStringLiteral("pixyll.css should load from the QRC resource"));
   const auto mustBeValid = [](const QColor& c, const char* name) {
-    require(c.isValid(),
-            QStringLiteral("pixyll %1 must resolve to a valid colour (was the invalid→black trap)")
-                .arg(QString::fromLatin1(name)));
+    require(c.isValid(), QStringLiteral("pixyll %1 must resolve to a valid colour (was the invalid→black trap)")
+                             .arg(QString::fromLatin1(name)));
   };
   mustBeValid(d.colors.background, "background");
   mustBeValid(d.colors.chromeBackground, "chromeBackground");
@@ -550,8 +568,7 @@ void testColorMixResolvesTintedBackground() {
   require(d.colors.codeBackground.red() == 0 && d.colors.codeBackground.green() == 243 &&
               d.colors.codeBackground.blue() == 255,
           QStringLiteral("premultiplied blend keeps full chroma (cyan), only alpha drops"));
-  require(qAbs(d.colors.codeBackground.alphaF() - 0.1) < 0.02,
-          QStringLiteral("transparent 90% yields ~10% alpha"));
+  require(qAbs(d.colors.codeBackground.alphaF() - 0.1) < 0.02, QStringLiteral("transparent 90% yields ~10% alpha"));
   // The same evaluator resolves color-mix embedded in a border shorthand.
   require(d.colors.codeBorder.alpha() != 255 && d.colors.codeBorder.green() == 243,
           QStringLiteral("border shorthand color-mix(...) also resolves to a tinted edge"));
@@ -653,8 +670,7 @@ body.typora-export #write { border-radius: 44px; }
           QStringLiteral("export #write padding must not override live padding"));
   require(d.page.pageMarginExplicit && d.page.pageMargin.isNull(),
           QStringLiteral("live margin: 0 auto should still produce an explicit zero margin"));
-  require(d.page.pageBorderRadius == 0.0,
-          QStringLiteral("body.typora-export #write radius must not leak"));
+  require(d.page.pageBorderRadius == 0.0, QStringLiteral("body.typora-export #write radius must not leak"));
   require(d.typography.headingColor[1].name(QColor::HexRgb) == QStringLiteral("#d6deeb"),
           QStringLiteral("export h2 color must not override live h2 color"));
   for (const PseudoElementRule& rule : d.decorations.pseudos) {
@@ -665,15 +681,14 @@ body.typora-export #write { border-radius: 44px; }
 
 void testPageWidthPercentDoesNotCollapse() {
   const ThemeDefinition capped = CssThemeMapper::fromCss(
-      QStringLiteral("#write { width: 90%; max-width: 950px; color: #000; }"),
-      QStringLiteral("capped"), QString());
+      QStringLiteral("#write { width: 90%; max-width: 950px; color: #000; }"), QStringLiteral("capped"), QString());
   require(qAbs(capped.page.pageMaxWidth - 921.6) < 0.01,
           QStringLiteral("width:90% resolves against the default 1024px viewport and remains below its cap"));
 
-  const ThemeDefinition fill = CssThemeMapper::fromCss(
-      QStringLiteral("#write { width: 90%; color: #000; }"),
-      QStringLiteral("fill"), QString());
-  require(qAbs(fill.page.pageMaxWidth - 921.6) < 0.01, QStringLiteral("width:90% resolves to an actual containing-block width"));
+  const ThemeDefinition fill =
+      CssThemeMapper::fromCss(QStringLiteral("#write { width: 90%; color: #000; }"), QStringLiteral("fill"), QString());
+  require(qAbs(fill.page.pageMaxWidth - 921.6) < 0.01,
+          QStringLiteral("width:90% resolves to an actual containing-block width"));
 }
 
 // The chrome selection pair (combo popup selected row, dialog sidebar active tab, file-tree
@@ -686,31 +701,28 @@ void testPageWidthPercentDoesNotCollapse() {
 // --active-file-text-color for this tint.
 void testChromeSelectionPairIsReadable() {
   const QList<QPair<QString, QColor>> cases = {
-      {QStringLiteral("github"), QColor()},       // light theme, light selected fill
+      {QStringLiteral("github"), QColor()}, // light theme, light selected fill
       {QStringLiteral("newsprint"), QColor(0xff, 0xff, 0xff)},
-      {QStringLiteral("night"), QColor()},        // dark theme, chromeText is LIGHT
+      {QStringLiteral("night"), QColor()}, // dark theme, chromeText is LIGHT
       {QStringLiteral("pixyll"), QColor()},
       {QStringLiteral("whitey"), QColor()},
   };
   for (const auto& [id, expectedText] : cases) {
     const ThemeDefinition d = ThemeDefinition::fromCss(QStringLiteral(":/themes/%1.css").arg(id), id);
     const ThemeColors& k = d.colors;
-    require(k.chromeSelection.isValid(),
-            QStringLiteral("%1: chromeSelection should be derived").arg(id));
+    require(k.chromeSelection.isValid(), QStringLiteral("%1: chromeSelection should be derived").arg(id));
     require(k.chromeSelection.alpha() == 255,
             QStringLiteral("%1: chromeSelection must be opaque (a translucent fill composites "
-                           "against black in the Win11 combo popup)").arg(id));
-    require(k.chromeSelectionText.isValid(),
-            QStringLiteral("%1: chromeSelectionText should be derived").arg(id));
+                           "against black in the Win11 combo popup)")
+                .arg(id));
+    require(k.chromeSelectionText.isValid(), QStringLiteral("%1: chromeSelectionText should be derived").arg(id));
     const qreal contrast = qAbs(k.chromeSelectionText.lightnessF() - k.chromeSelection.lightnessF());
-    require(contrast >= 0.3,
-            QStringLiteral("%1: selection text/fill must contrast (fill %2 text %3, distance %4)")
-                .arg(id, k.chromeSelection.name(), k.chromeSelectionText.name())
-                .arg(contrast));
+    require(contrast >= 0.3, QStringLiteral("%1: selection text/fill must contrast (fill %2 text %3, distance %4)")
+                                 .arg(id, k.chromeSelection.name(), k.chromeSelectionText.name())
+                                 .arg(contrast));
     if (expectedText.isValid()) {
-      require(k.chromeSelectionText == expectedText,
-              QStringLiteral("%1: chromeSelectionText should be %2, got %3")
-                  .arg(id, expectedText.name(), k.chromeSelectionText.name()));
+      require(k.chromeSelectionText == expectedText, QStringLiteral("%1: chromeSelectionText should be %2, got %3")
+                                                         .arg(id, expectedText.name(), k.chromeSelectionText.name()));
     }
   }
 
@@ -729,11 +741,13 @@ void testChromeSelectionPairIsReadable() {
 // testFromDefinitionReproducesBuiltIns checks via ThemeManager, but here at the
 // CSS-source level and pinning the :/ resource registration.
 void testBuiltInCssResourcesReproduceFactories() {
-  struct Entry { const char* id; RenderTheme factory; };
+  struct Entry {
+    const char* id;
+    RenderTheme factory;
+  };
   const Entry entries[] = {
-      {"github", RenderTheme::github()},     {"newsprint", RenderTheme::newsprint()},
-      {"night", RenderTheme::night()},       {"pixyll", RenderTheme::pixyll()},
-      {"whitey", RenderTheme::whitey()},
+      {"github", RenderTheme::github()}, {"newsprint", RenderTheme::newsprint()}, {"night", RenderTheme::night()},
+      {"pixyll", RenderTheme::pixyll()}, {"whitey", RenderTheme::whitey()},
   };
   for (const Entry& e : entries) {
     const QString id = QString::fromLatin1(e.id);
@@ -776,15 +790,14 @@ void testFontFaceCaptureAcrossImport() {
     require(base.open(QIODevice::WriteOnly | QIODevice::Truncate), QStringLiteral("write base.css"));
     base.write("@font-face { font-family: \"TestFont\"; src: url(font.ttf) format('truetype'); }");
     base.close();
-    QFile font(subDir + QStringLiteral("/font.ttf"));  // must exist to be captured
+    QFile font(subDir + QStringLiteral("/font.ttf")); // must exist to be captured
     require(font.open(QIODevice::WriteOnly), QStringLiteral("write font.ttf"));
     font.write("dummy");
     font.close();
   }
   const QString topText = QStringLiteral("@import url(./sub/base.css);\n#write { color: #000; }");
   const CssThemeSheet sheet = CssThemeParser::parse(topText, root);
-  require(sheet.fontFaces().size() == 1,
-          QStringLiteral("the @font-face in the @import'd base should be captured"));
+  require(sheet.fontFaces().size() == 1, QStringLiteral("the @font-face in the @import'd base should be captured"));
   require(sheet.fontFaces().at(0).family == QStringLiteral("TestFont"),
           QStringLiteral("font-family should be captured with quotes stripped"));
   require(sheet.fontFaces().at(0).srcPath == QDir::cleanPath(subDir + QStringLiteral("/font.ttf")),
@@ -890,8 +903,8 @@ void testIntrinsicWidthIsUnbounded() {
             QStringLiteral("max-width: %1 should be unbounded, not the 860px default").arg(QString::fromLatin1(kw)));
   }
   // A concrete length still parses normally (regression guard).
-  const ThemeDefinition d = CssThemeMapper::fromCss(QStringLiteral("#write { max-width: 950px; }"),
-                                                    QStringLiteral("k"), QString());
+  const ThemeDefinition d =
+      CssThemeMapper::fromCss(QStringLiteral("#write { max-width: 950px; }"), QStringLiteral("k"), QString());
   require(qAbs(d.page.pageMaxWidth - 950.0) < 0.01, QStringLiteral("max-width: 950px should map to 950"));
 }
 
@@ -951,14 +964,16 @@ void testWriteMarginAutoProducesCardModel() {
 // every theme colour (var/color-mix/rgb/hex/named).
 void testParseGradientLinear() {
   QHash<QString, QString> vars;
-  const GradientSpec g = CssThemeMapper::parseGradient(
-      QStringLiteral("linear-gradient(45deg, #ffffff, #000000)"), vars);
+  const GradientSpec g =
+      CssThemeMapper::parseGradient(QStringLiteral("linear-gradient(45deg, #ffffff, #000000)"), vars);
   require(g.kind == GradientSpec::Kind::Linear, QStringLiteral("linear-gradient should parse as Linear"));
   require(qAbs(g.angleDeg - 45.0) < 0.01, QStringLiteral("45deg should set angleDeg=45"));
   require(g.stops.size() == 2, QStringLiteral("two stops expected"));
   require(g.stops.at(0).color == QColor(QStringLiteral("#ffffff")), QStringLiteral("first stop #ffffff"));
-  require(g.stops.at(0).position.status == CssLengthStatus::Missing, QStringLiteral("first stop defers its implicit position"));
-  require(g.stops.at(1).position.status == CssLengthStatus::Missing, QStringLiteral("last stop defers its implicit position"));
+  require(g.stops.at(0).position.status == CssLengthStatus::Missing,
+          QStringLiteral("first stop defers its implicit position"));
+  require(g.stops.at(1).position.status == CssLengthStatus::Missing,
+          QStringLiteral("last stop defers its implicit position"));
 }
 
 void testParseGradientRadialTransparent() {
@@ -1013,10 +1028,9 @@ void testPseudoExtractionGroupsByHost() {
 // A position:absolute blockquote ::before must capture its CSS left/top/font-size
 // so the painter can anchor the glyph (phycat's ✨) instead of a hardcoded inset.
 void testBlockquoteBeforeAbsoluteGeometry() {
-  const QString css = QStringLiteral(
-      "body { background: #fff; color: #333; }"
-      "blockquote::before { content: \"✨\"; position: absolute; "
-      "left: 16px; top: 18px; font-size: 20px; color: #3db8bf; }");
+  const QString css = QStringLiteral("body { background: #fff; color: #333; }"
+                                     "blockquote::before { content: \"✨\"; position: absolute; "
+                                     "left: 16px; top: 18px; font-size: 20px; color: #3db8bf; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("t"), QString());
   bool found = false;
   for (const PseudoElementRule& r : d.decorations.pseudos) {
@@ -1034,34 +1048,36 @@ void testBlockquoteBeforeAbsoluteGeometry() {
 // phycat draws the nested-list guide line via `li::before { border-left; left;
 // top; height: calc(100% - Npx) }`. It uses the common generated box model.
 void testListGuideExtraction() {
-  const QString css = QStringLiteral(
-      ":root { --guide: #3db8bf; }"
-      "body { background: #fff; color: #333; }"
-      "li::before { content: \"\"; border-left: .5px solid var(--guide); "
-      "left: -12.5px; top: 35px; height: calc(100% - 45px); }");
+  const QString css = QStringLiteral(":root { --guide: #3db8bf; }"
+                                     "body { background: #fff; color: #333; }"
+                                     "li::before { content: \"\"; border-left: .5px solid var(--guide); "
+                                     "left: -12.5px; top: 35px; height: calc(100% - 45px); }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("t"), QString());
   const auto found = std::find_if(d.decorations.pseudos.begin(), d.decorations.pseudos.end(),
-      [](const auto& rule) { return rule.host == "li" && rule.pseudo == "before"; });
+                                  [](const auto& rule) { return rule.host == "li" && rule.pseudo == "before"; });
   require(found != d.decorations.pseudos.end() && found->computed, "list guide uses the common computed pseudo style");
   const auto& style = *found->computed;
   require(style.resolvedValue("border-left-color") == "#3db8bf", "guide colour resolves custom properties");
   require(qAbs(style.length("border-left-width").px - .5) < .01, "guide border width");
   require(qAbs(style.length("left").px + 12.5) < .01 && qAbs(style.length("top").px - 35) < .01, "guide offsets");
-  require(style.length("height").fraction == 1 && style.length("height").px == -45, "guide calc stays deferred until layout");
+  require(style.length("height").fraction == 1 && style.length("height").px == -45,
+          "guide calc stays deferred until layout");
 }
 
 // #write::before texture overlay: background-color + mask-image + opacity + mask-size.
 void testWriteBeforeTextureCapture() {
-  const QString css = QStringLiteral(
-      ":root { --tint: #bd93f9; }"
-      "body { background: #0f111a; color: #d6deeb; }"
-      "#write { max-width: 950px; padding: 15px; margin: 0 auto; }"
-      "#write::before { content: \"\"; background-color: var(--tint); opacity: 0.05;"
-      "  mask-image: radial-gradient(#fff 1px, transparent 1px); mask-size: 20px 20px; }");
+  const QString css =
+      QStringLiteral(":root { --tint: #bd93f9; }"
+                     "body { background: #0f111a; color: #d6deeb; }"
+                     "#write { max-width: 950px; padding: 15px; margin: 0 auto; }"
+                     "#write::before { content: \"\"; background-color: var(--tint); opacity: 0.05;"
+                     "  mask-image: radial-gradient(#fff 1px, transparent 1px); mask-size: 20px 20px; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("t"), QString());
   const PseudoElementRule* rule = nullptr;
   for (const PseudoElementRule& r : d.decorations.pseudos) {
-    if (r.host == QStringLiteral("#write") && r.pseudo == QStringLiteral("before")) { rule = &r; }
+    if (r.host == QStringLiteral("#write") && r.pseudo == QStringLiteral("before")) {
+      rule = &r;
+    }
   }
   require(rule != nullptr, QStringLiteral("#write::before rule should be captured"));
   require(rule->maskTint == QColor(QStringLiteral("#bd93f9")), QStringLiteral("texture tint from background-color"));
@@ -1087,14 +1103,17 @@ void testWriteBeforeSvgMaskCapture() {
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("s"), QString());
   const PseudoElementRule* rule = nullptr;
   for (const PseudoElementRule& r : d.decorations.pseudos) {
-    if (r.host == QStringLiteral("#write") && r.pseudo == QStringLiteral("before")) { rule = &r; }
+    if (r.host == QStringLiteral("#write") && r.pseudo == QStringLiteral("before")) {
+      rule = &r;
+    }
   }
   require(rule != nullptr, QStringLiteral("#write::before rule should be captured for an SVG mask"));
   require(rule->maskPattern.kind == GradientSpec::Kind::None, QStringLiteral("SVG url() mask is not a gradient"));
-  const auto projected=CssThemeMapper::projectComputedStyle("#write::before",*rule->computed);
-  require(projected.paint.maskLayers.size()==1 && projected.paint.maskLayers.front().image.resource,
+  const auto projected = CssThemeMapper::projectComputedStyle("#write::before", *rule->computed);
+  require(projected.paint.maskLayers.size() == 1 && projected.paint.maskLayers.front().image.resource,
           QStringLiteral("SVG mask resolves through shared mask image resources"));
-  require(rule->svgData.isEmpty() && !rule->svgFromMask,QStringLiteral("live masks do not duplicate the legacy icon painter"));
+  require(rule->svgData.isEmpty() && !rule->svgFromMask,
+          QStringLiteral("live masks do not duplicate the legacy icon painter"));
   require(rule->maskTint == QColor(QStringLiteral("#bd93f9")), QStringLiteral("texture tint from background-color"));
   require(qAbs(rule->maskTile.width() - 20.0) < 0.01 && qAbs(rule->maskTile.height() - 20.0) < 0.01,
           QStringLiteral("mask-size 20px 20px captured"));
@@ -1105,15 +1124,16 @@ void testWriteBeforeSvgMaskCapture() {
 // against the host box at paint time. The map-time `size` field stays em-relative
 // (legacy fallback); only sizeRaw carries the literal for box-relative resolution.
 void testPseudoSizePercentRawPreserved() {
-  const QString css = QStringLiteral(
-      "body { background:#fff; color:#000; }"
-      "#write { max-width:950px; padding:15px; margin:0 auto; }"
-      "#write h3::before { content:''; position:absolute; width:5px; height:61%;"
-      "  background-color:#3db8bf; }");
+  const QString css = QStringLiteral("body { background:#fff; color:#000; }"
+                                     "#write { max-width:950px; padding:15px; margin:0 auto; }"
+                                     "#write h3::before { content:''; position:absolute; width:5px; height:61%;"
+                                     "  background-color:#3db8bf; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("p"), QString());
   const PseudoElementRule* rule = nullptr;
   for (const PseudoElementRule& r : d.decorations.pseudos) {
-    if (r.host == QStringLiteral("h3") && r.pseudo == QStringLiteral("before")) { rule = &r; }
+    if (r.host == QStringLiteral("h3") && r.pseudo == QStringLiteral("before")) {
+      rule = &r;
+    }
   }
   require(rule != nullptr, QStringLiteral("h3::before rule should be captured"));
   require(rule->absolute, QStringLiteral("position:absolute captured"));
@@ -1135,38 +1155,46 @@ void testLinkBeforeMaskIconAndMarkGradient() {
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("t"), QString());
   const PseudoElementRule* link = nullptr;
   for (const PseudoElementRule& r : d.decorations.pseudos) {
-    if (r.host == QStringLiteral("a") && r.pseudo == QStringLiteral("before")) { link = &r; }
+    if (r.host == QStringLiteral("a") && r.pseudo == QStringLiteral("before")) {
+      link = &r;
+    }
   }
   require(link != nullptr, QStringLiteral("a::before rule should be captured"));
-  const auto projected=CssThemeMapper::projectComputedStyle("a::before",*link->computed);
-  require(projected.paint.maskLayers.size()==1 && projected.paint.maskLayers.front().image.resource,
+  const auto projected = CssThemeMapper::projectComputedStyle("a::before", *link->computed);
+  require(projected.paint.maskLayers.size() == 1 && projected.paint.maskLayers.front().image.resource,
           QStringLiteral("inline pseudo SVG uses the shared mask compositor"));
-  require(link->backgroundColor == QColor(QStringLiteral("#00f3ff")), QStringLiteral("a::before background-color tint captured"));
+  require(link->backgroundColor == QColor(QStringLiteral("#00f3ff")),
+          QStringLiteral("a::before background-color tint captured"));
   bool markLinear = false;
   for (const ElementBackground& eb : d.decorations.backgrounds) {
-    if (eb.host == QStringLiteral("mark")) { markLinear = eb.gradient.kind == GradientSpec::Kind::Linear; }
+    if (eb.host == QStringLiteral("mark")) {
+      markLinear = eb.gradient.kind == GradientSpec::Kind::Linear;
+    }
   }
   require(markLinear, QStringLiteral("mark background-image linear gradient should be captured"));
 }
 
 // Phase 4: :hover box-shadow glow capture + `transition` duration.
 void testHoverEffectAndTransitionCapture() {
-  const QString css = QStringLiteral(
-      "body { background:#0f111a; color:#d6deeb; }"
-      "#write { max-width:950px; padding:15px; margin:0 auto; }"
-      "#write blockquote { transition: all .3s ease; }"
-      "#write blockquote:hover { box-shadow: 0 0 15px rgba(0,243,255,0.3); }");
+  const QString css = QStringLiteral("body { background:#0f111a; color:#d6deeb; }"
+                                     "#write { max-width:950px; padding:15px; margin:0 auto; }"
+                                     "#write blockquote { transition: all .3s ease; }"
+                                     "#write blockquote:hover { box-shadow: 0 0 15px rgba(0,243,255,0.3); }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("t"), QString());
   const HoverEffect* he = nullptr;
   for (const HoverEffect& h : d.decorations.hoverEffects) {
-    if (h.host == QStringLiteral("blockquote")) { he = &h; }
+    if (h.host == QStringLiteral("blockquote")) {
+      he = &h;
+    }
   }
   require(he != nullptr, QStringLiteral("blockquote :hover glow should be captured"));
   require(he->glowColor.isValid(), QStringLiteral("hover box-shadow glow colour resolves"));
   require(qAbs(he->glowBlur - 15.0) < 0.01, QStringLiteral("hover box-shadow blur 15px"));
   bool trans = false;
   for (const TransitionSpec& t : d.decorations.transitions) {
-    if (t.host == QStringLiteral("blockquote") && qAbs(t.durationMs - 300.0) < 0.01) { trans = true; }
+    if (t.host == QStringLiteral("blockquote") && qAbs(t.durationMs - 300.0) < 0.01) {
+      trans = true;
+    }
   }
   require(trans, QStringLiteral("blockquote transition .3s should parse to 300ms"));
 }
@@ -1176,25 +1204,28 @@ void testHoverEffectAndTransitionCapture() {
 // width (raw, for paint-time % resolution), and the `h1:hover` element style must
 // carry the hover text colour — both animate via the shared HoverAnimator phase.
 void testHoverPseudoWidthAndHoverColorCapture() {
-  const QString css = QStringLiteral(
-      "body { background:#fff; color:#222; }"
-      "#write { max-width:950px; padding:15px; margin:0 auto; }"
-      "#write h1 { color:#222; width:fit-content; }"
-      "#write h1::after { content:''; position:absolute; bottom:0; left:50%;"
-      "  width:40px; height:4px; background:linear-gradient(to right,#80F7C4,#3DB8D3); }"
-      "#write h1:not(.md-focus):hover { color:#3db8bf; }"
-      "#write h1:hover::after { width:100%; }");
+  const QString css = QStringLiteral("body { background:#fff; color:#222; }"
+                                     "#write { max-width:950px; padding:15px; margin:0 auto; }"
+                                     "#write h1 { color:#222; width:fit-content; }"
+                                     "#write h1::after { content:''; position:absolute; bottom:0; left:50%;"
+                                     "  width:40px; height:4px; background:linear-gradient(to right,#80F7C4,#3DB8D3); }"
+                                     "#write h1:not(.md-focus):hover { color:#3db8bf; }"
+                                     "#write h1:hover::after { width:100%; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("hover"), QString());
   const PseudoElementRule* after = nullptr;
   for (const PseudoElementRule& r : d.decorations.pseudos) {
-    if (r.host == QStringLiteral("h1") && r.pseudo == QStringLiteral("after")) { after = &r; }
+    if (r.host == QStringLiteral("h1") && r.pseudo == QStringLiteral("after")) {
+      after = &r;
+    }
   }
   require(after != nullptr, QStringLiteral("h1::after rule should be captured"));
   require(after->hoverWidthRaw == QStringLiteral("100%"),
           QStringLiteral("h1:hover::after width:100%% must attach to the base rule as hoverWidthRaw"));
   const ThemeElementStyle* hover = nullptr;
   for (const ThemeElementStyle& s : d.elementStyles) {
-    if (s.key == QStringLiteral("h1:hover")) { hover = &s; }
+    if (s.key == QStringLiteral("h1:hover")) {
+      hover = &s;
+    }
   }
   require(hover != nullptr, QStringLiteral("h1:hover element style should be captured"));
   require(hover->paint.color == QColor(QStringLiteral("#3db8bf")),
@@ -1207,28 +1238,31 @@ void testHoverPseudoWidthAndHoverColorCapture() {
 // parallel to hover, so the FocusAnimator phase can drive both. A :focus pseudo
 // width must NOT collide with :hover (single-state partition).
 void testFocusStyleAndPseudoWidthCapture() {
-  const QString css = QStringLiteral(
-      "body { background:#fff; color:#222; }"
-      "#write { max-width:950px; padding:15px; margin:0 auto; }"
-      "#write h1 { color:#222; width:fit-content; }"
-      "#write h1::after { content:''; position:absolute; bottom:0; left:50%;"
-      "  width:40px; height:4px; background:#3db8d3; }"
-      "#write h1:focus { color:#e63946; box-shadow:0 0 12px #e63946; }"
-      "#write h1:hover::after { width:100%; }"
-      "#write h1:focus::after { width:60%; }");
+  const QString css = QStringLiteral("body { background:#fff; color:#222; }"
+                                     "#write { max-width:950px; padding:15px; margin:0 auto; }"
+                                     "#write h1 { color:#222; width:fit-content; }"
+                                     "#write h1::after { content:''; position:absolute; bottom:0; left:50%;"
+                                     "  width:40px; height:4px; background:#3db8d3; }"
+                                     "#write h1:focus { color:#e63946; box-shadow:0 0 12px #e63946; }"
+                                     "#write h1:hover::after { width:100%; }"
+                                     "#write h1:focus::after { width:60%; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("focus"), QString());
   const ThemeElementStyle* focus = nullptr;
   for (const ThemeElementStyle& s : d.elementStyles) {
-    if (s.key == QStringLiteral("h1:focus")) { focus = &s; }
+    if (s.key == QStringLiteral("h1:focus")) {
+      focus = &s;
+    }
   }
   require(focus != nullptr, QStringLiteral("h1:focus element style should be captured"));
-  require(focus->paint.color == QColor(QStringLiteral("#e63946")),
-          QStringLiteral("h1:focus colour should resolve"));
-  require(focus->paint.boxShadowColor == QColor(QStringLiteral("#e63946")) && qAbs(focus->paint.boxShadowBlur - 12.0) < 0.01,
+  require(focus->paint.color == QColor(QStringLiteral("#e63946")), QStringLiteral("h1:focus colour should resolve"));
+  require(focus->paint.boxShadowColor == QColor(QStringLiteral("#e63946")) &&
+              qAbs(focus->paint.boxShadowBlur - 12.0) < 0.01,
           QStringLiteral("h1:focus box-shadow should resolve"));
   const PseudoElementRule* after = nullptr;
   for (const PseudoElementRule& r : d.decorations.pseudos) {
-    if (r.host == QStringLiteral("h1") && r.pseudo == QStringLiteral("after")) { after = &r; }
+    if (r.host == QStringLiteral("h1") && r.pseudo == QStringLiteral("after")) {
+      after = &r;
+    }
   }
   require(after != nullptr, QStringLiteral("h1::after rule should be captured"));
   require(after->hoverWidthRaw == QStringLiteral("100%"), QStringLiteral("hover width stays 100%"));
@@ -1243,8 +1277,8 @@ void testFocusStyleAndPseudoWidthCapture() {
 // underline. Qt has no double/dash-distinct strike; style maps to Qt's enum set.
 void testLinkTextDecorationShorthandAndLonghands() {
   // Shorthand carrying all three: underline + dotted + a colour + overline.
-  const QString shortCss = QStringLiteral(
-      "#write { color:#222; } a { text-decoration: underline dotted #ff0000 overline; }");
+  const QString shortCss =
+      QStringLiteral("#write { color:#222; } a { text-decoration: underline dotted #ff0000 overline; }");
   const ThemeDefinition sd = CssThemeMapper::fromCss(shortCss, QStringLiteral("decoshort"), QString());
   require(sd.typography.linkUnderlined, QStringLiteral("shorthand `underline` → linkUnderlined"));
   require(sd.typography.linkOverline, QStringLiteral("shorthand `overline` → linkOverline"));
@@ -1259,8 +1293,9 @@ void testLinkTextDecorationShorthandAndLonghands() {
       "a { text-decoration: underline solid; text-decoration-style: wavy; text-decoration-color: #00aa00; }"
       "a.none { text-decoration: none; }");
   const ThemeDefinition ld = CssThemeMapper::fromCss(longCss, QStringLiteral("decolong"), QString());
-  require(ld.typography.linkUnderlineStyle == int(QTextCharFormat::WaveUnderline),
-          QStringLiteral("text-decoration-style: wavy overrides shorthand (got %1)").arg(ld.typography.linkUnderlineStyle));
+  require(
+      ld.typography.linkUnderlineStyle == int(QTextCharFormat::WaveUnderline),
+      QStringLiteral("text-decoration-style: wavy overrides shorthand (got %1)").arg(ld.typography.linkUnderlineStyle));
   require(ld.typography.linkUnderlineColor == QColor(QStringLiteral("#00aa00")),
           QStringLiteral("text-decoration-color longhand → linkUnderlineColor"));
 }
@@ -1268,12 +1303,11 @@ void testLinkTextDecorationShorthandAndLonghands() {
 // CSS text-transform on an element maps to the int code ThemeElementTextStyle
 // carries (1=upper, 2=lower, 3=capitalize); absent/none → 0.
 void testTextTransformParse() {
-  const QString css = QStringLiteral(
-      "#write { color:#222; }"
-      "#write h1 { text-transform: uppercase; }"
-      "#write h2 { text-transform: capitalize; }"
-      "#write h3 { text-transform: lowercase; }"
-      "#write h4 { text-transform: none; }");
+  const QString css = QStringLiteral("#write { color:#222; }"
+                                     "#write h1 { text-transform: uppercase; }"
+                                     "#write h2 { text-transform: capitalize; }"
+                                     "#write h3 { text-transform: lowercase; }"
+                                     "#write h4 { text-transform: none; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("tt"), QString());
   require(elementStyleFor(d, QStringLiteral("h1"))->text.textTransform == 1, QStringLiteral("uppercase → 1"));
   require(elementStyleFor(d, QStringLiteral("h2"))->text.textTransform == 3, QStringLiteral("capitalize → 3"));
@@ -1288,7 +1322,8 @@ void testCalcEvaluation() {
           QStringLiteral("calc(2em + 4px) = 36"));
   require(qAbs(CssThemeMapper::resolveLengthPx(QStringLiteral("calc(100% - 45px)"), {}, 16.0, 200.0) - 155.0) < 0.01,
           QStringLiteral("calc(100% - 45px) @200%% = 155"));
-  require(qAbs(CssThemeMapper::resolveLengthPx(QStringLiteral("calc(calc(1em * 2) + 3px)"), {}, 16.0, -1.0) - 35.0) < 0.01,
+  require(qAbs(CssThemeMapper::resolveLengthPx(QStringLiteral("calc(calc(1em * 2) + 3px)"), {}, 16.0, -1.0) - 35.0) <
+              0.01,
           QStringLiteral("nested calc(calc(1em*2)+3px) = 35"));
   require(qAbs(CssThemeMapper::resolveLengthPx(QStringLiteral("calc(10px * 2 - 5px)"), {}, 16.0, -1.0) - 15.0) < 0.01,
           QStringLiteral("calc precedence: 10*2 - 5 = 15"));
@@ -1306,8 +1341,8 @@ void testCalcEvaluation() {
 
 // conic-gradient parses to Kind::Conic with the `from <angle>` start and stops.
 void testConicGradientParse() {
-  const GradientSpec g = CssThemeMapper::parseGradient(
-      QStringLiteral("conic-gradient(from 45deg, #ff0000, #00ff00 50%, #0000ff)"), {});
+  const GradientSpec g =
+      CssThemeMapper::parseGradient(QStringLiteral("conic-gradient(from 45deg, #ff0000, #00ff00 50%, #0000ff)"), {});
   require(g.kind == GradientSpec::Kind::Conic, QStringLiteral("conic kind"));
   require(qAbs(g.conicStartDeg - 45.0) < 0.01, QStringLiteral("from 45deg captured"));
   require(g.stops.size() >= 2, QStringLiteral("stops captured"));
@@ -1316,11 +1351,10 @@ void testConicGradientParse() {
 // CSS `text-shadow: <ox> <oy> <blur>? <color>` parses to the element's text style.
 // Only the first of a comma list is honoured; `none` ⇒ no shadow.
 void testTextShadowParse() {
-  const QString css = QStringLiteral(
-      "#write { color:#222222; }"
-      "#write h1 { text-shadow: 2px 3px 4px #ff0000; }"
-      "#write h2 { text-shadow: 1px 1px #00ff00, 0 0 8px #0000ff; }"  // second ignored
-      "#write h3 { text-shadow: none; }");
+  const QString css = QStringLiteral("#write { color:#222222; }"
+                                     "#write h1 { text-shadow: 2px 3px 4px #ff0000; }"
+                                     "#write h2 { text-shadow: 1px 1px #00ff00, 0 0 8px #0000ff; }" // second ignored
+                                     "#write h3 { text-shadow: none; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("ts"), QString());
   const TextShadow s1 = elementStyleFor(d, QStringLiteral("h1"))->text.textShadow;
   require(s1.present, QStringLiteral("h1 text-shadow present"));
@@ -1354,9 +1388,8 @@ void testFilterParse() {
 // CSS `backdrop-filter:` parses like `filter:` but into the separate backdrop*
 // fields (the two are independent: a theme can set one without the other).
 void testBackdropFilterParse() {
-  const QString css = QStringLiteral(
-      "#write { color:#222222; }"
-      "#write h2 { backdrop-filter: blur(6px) brightness(1.1) sepia(0.2); }");
+  const QString css = QStringLiteral("#write { color:#222222; }"
+                                     "#write h2 { backdrop-filter: blur(6px) brightness(1.1) sepia(0.2); }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("bf"), QString());
   const ThemeElementPaintStyle& p = elementStyleFor(d, QStringLiteral("h2"))->paint;
   require(p.backdropPresent, QStringLiteral("backdrop present"));
@@ -1368,22 +1401,25 @@ void testBackdropFilterParse() {
 
 // Phase 5: @keyframes capture + `animation:` shorthand parse.
 void testKeyframesAndAnimationParse() {
-  const QString css = QStringLiteral(
-      "body { background:#0f111a; color:#d6deeb; }"
-      "#write { max-width:950px; padding:15px; margin:0 auto; }"
-      "@keyframes pulse { 0% { opacity: 1 } 50% { opacity: .3 } 100% { opacity: 1 } }"
-      "#write h2 { animation: pulse 2s linear infinite; }");
+  const QString css = QStringLiteral("body { background:#0f111a; color:#d6deeb; }"
+                                     "#write { max-width:950px; padding:15px; margin:0 auto; }"
+                                     "@keyframes pulse { 0% { opacity: 1 } 50% { opacity: .3 } 100% { opacity: 1 } }"
+                                     "#write h2 { animation: pulse 2s linear infinite; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("t"), QString());
   const KeyframesDef* kf = nullptr;
   for (const KeyframesDef& k : d.decorations.keyframes) {
-    if (k.name == QStringLiteral("pulse")) { kf = &k; }
+    if (k.name == QStringLiteral("pulse")) {
+      kf = &k;
+    }
   }
   require(kf != nullptr, QStringLiteral("@keyframes pulse should be captured"));
   require(kf->stops.size() == 3, QStringLiteral("three stops (0/50/100%)"));
   require(kf->stops.at(1).position == 0.5, QStringLiteral("stops sorted; middle is 50%"));
   const AnimationDef* a = nullptr;
   for (const AnimationDef& an : d.decorations.animations) {
-    if (an.host == QStringLiteral("h2")) { a = &an; }
+    if (an.host == QStringLiteral("h2")) {
+      a = &an;
+    }
   }
   require(a != nullptr, QStringLiteral("h2 animation should be captured"));
   require(a->name == QStringLiteral("pulse"), QStringLiteral("animation name pulse"));
@@ -1396,9 +1432,15 @@ void testKeyframesAndAnimationParse() {
 void testKeyframeSampling() {
   KeyframesDef kf;
   kf.name = QStringLiteral("pulse");
-  KeyframeStop s0; s0.position = 0.0; s0.declarations.insert(QStringLiteral("opacity"), QStringLiteral("1.0"));
-  KeyframeStop s1; s1.position = 0.5; s1.declarations.insert(QStringLiteral("opacity"), QStringLiteral("0.3"));
-  KeyframeStop s2; s2.position = 1.0; s2.declarations.insert(QStringLiteral("opacity"), QStringLiteral("1.0"));
+  KeyframeStop s0;
+  s0.position = 0.0;
+  s0.declarations.insert(QStringLiteral("opacity"), QStringLiteral("1.0"));
+  KeyframeStop s1;
+  s1.position = 0.5;
+  s1.declarations.insert(QStringLiteral("opacity"), QStringLiteral("0.3"));
+  KeyframeStop s2;
+  s2.position = 1.0;
+  s2.declarations.insert(QStringLiteral("opacity"), QStringLiteral("1.0"));
   kf.stops = {s0, s1, s2};
   const AnimatedSample at0 = KeyframeSampler::sampleAtPhase(kf, 0.0);
   require(at0.hasOpacity && qAbs(at0.opacity - 1.0) < 0.01, QStringLiteral("phase 0 → opacity 1"));
@@ -1421,14 +1463,19 @@ void testHeadingFitContentDetection() {
 #write h5 { width:300px; }
 )";
   const ThemeDefinition d = CssThemeMapper::fromCss(QString::fromUtf8(css), QStringLiteral("t"), QString());
-  require(elementStyleFor(d, QStringLiteral("h1"))->box.widthFitContent, QStringLiteral("h1 width:fit-content should set the flag"));
-  require(elementStyleFor(d, QStringLiteral("h2"))->box.widthFitContent, QStringLiteral("h2 width:fit-content should set the flag"));
+  require(elementStyleFor(d, QStringLiteral("h1"))->box.widthFitContent,
+          QStringLiteral("h1 width:fit-content should set the flag"));
+  require(elementStyleFor(d, QStringLiteral("h2"))->box.widthFitContent,
+          QStringLiteral("h2 width:fit-content should set the flag"));
   const auto* h3 = elementStyleFor(d, QStringLiteral("h3"));
   require(h3->layout.sizes[0] == CssIntrinsicSize::MaxContent && !h3->box.widthFitContent,
           QStringLiteral("h3 width:max-content retains its distinct intrinsic size mode"));
-  require(!elementStyleFor(d, QStringLiteral("h4"))->box.widthFitContent, QStringLiteral("h4 width:90% must stay full-width"));
-  require(!elementStyleFor(d, QStringLiteral("h5"))->box.widthFitContent, QStringLiteral("h5 width:300px must stay full-width"));
-  require(!elementStyleFor(d, QStringLiteral("h6"))->box.widthFitContent, QStringLiteral("h6 with no width must stay full-width"));
+  require(!elementStyleFor(d, QStringLiteral("h4"))->box.widthFitContent,
+          QStringLiteral("h4 width:90% must stay full-width"));
+  require(!elementStyleFor(d, QStringLiteral("h5"))->box.widthFitContent,
+          QStringLiteral("h5 width:300px must stay full-width"));
+  require(!elementStyleFor(d, QStringLiteral("h6"))->box.widthFitContent,
+          QStringLiteral("h6 with no width must stay full-width"));
 }
 
 // Phase 2c latent fix: a host that carries a border-radius and/or border-top but
@@ -1449,17 +1496,23 @@ void testBorderOnlyHostProducesElementBackground() {
   const ElementBackground* h3 = nullptr;
   const ElementBackground* h4 = nullptr;
   for (const ElementBackground& eb : d.decorations.backgrounds) {
-    if (eb.host == QStringLiteral("h2")) { h2 = &eb; }
-    else if (eb.host == QStringLiteral("h3")) { h3 = &eb; }
-    else if (eb.host == QStringLiteral("h4")) { h4 = &eb; }
+    if (eb.host == QStringLiteral("h2")) {
+      h2 = &eb;
+    } else if (eb.host == QStringLiteral("h3")) {
+      h3 = &eb;
+    } else if (eb.host == QStringLiteral("h4")) {
+      h4 = &eb;
+    }
   }
-  require(h2 != nullptr, QStringLiteral("h2 with border-top/border-radius but no gradient should produce an element background"));
+  require(h2 != nullptr,
+          QStringLiteral("h2 with border-top/border-radius but no gradient should produce an element background"));
   require(h2->borderTopColor == QColor(QStringLiteral("#00f3ff")), QStringLiteral("h2 border-top colour captured"));
   require(qAbs(h2->borderTopWidth - 2.0) < 0.01, QStringLiteral("h2 border-top width captured"));
   require(qAbs(h2->borderRadius - 6.0) < 0.01, QStringLiteral("h2 border-radius captured"));
   require(h3 != nullptr, QStringLiteral("h3 with border-radius should produce an element background"));
   require(qAbs(h3->borderRadius - 10.0) < 0.01, QStringLiteral("h3 border-radius captured"));
-  require(h4 == nullptr, QStringLiteral("h4 with only background-colour must not produce an element background (built-in contract)"));
+  require(h4 == nullptr,
+          QStringLiteral("h4 with only background-colour must not produce an element background (built-in contract)"));
 }
 
 void testUnsupportedStructuralPseudosDoNotLeak() {
@@ -1480,9 +1533,10 @@ a:not(.md-toc-inner) { text-decoration:none; }
   require(d.colors.text.name(QColor::HexRgb) == QStringLiteral("#7e8c9f"),
           QStringLiteral("paragraph colour should become prose text colour"));
   require(d.typography.headingColor[2].name(QColor::HexRgb) == QStringLiteral("#d6deeb"),
-          QStringLiteral("heading should inherit #write colour, not paragraph muted colour or unsupported child pseudo colour"));
+          QStringLiteral(
+              "heading should inherit #write colour, not paragraph muted colour or unsupported child pseudo colour"));
   const auto marker = std::find_if(d.decorations.pseudos.begin(), d.decorations.pseudos.end(),
-      [](const auto& rule) { return rule.host == "h4" && rule.pseudo == "before"; });
+                                   [](const auto& rule) { return rule.host == "h4" && rule.pseudo == "before"; });
   require(marker != d.decorations.pseudos.end() && qAbs(marker->size.width() + marker->marginRight - 18) < .01,
           QStringLiteral("supported h4::before marker retains authored dimensions for inline layout"));
   require(!d.typography.linkUnderlined,
@@ -1490,19 +1544,18 @@ a:not(.md-toc-inner) { text-decoration:none; }
 }
 
 void testStructuralCapabilitiesComeFromParsedSelectors() {
-  const ThemeDefinition unsupported = CssThemeMapper::fromCss(
-      QStringLiteral("#write { color:#111111; } p:last-of-type { color:#ff0000; }"),
-      QStringLiteral("unsupported-structural"), QString());
+  const ThemeDefinition unsupported =
+      CssThemeMapper::fromCss(QStringLiteral("#write { color:#111111; } p:last-of-type { color:#ff0000; }"),
+                              QStringLiteral("unsupported-structural"), QString());
   require(!unsupported.hasStructuralRules,
           QStringLiteral("an unsupported pseudo must not activate the live structural path"));
 
-  const ThemeDefinition supported = CssThemeMapper::fromCss(
-      QStringLiteral("#write { color:#111111; } p:nth-of-type(2) { color:#ff0000; }"),
-      QStringLiteral("supported-structural"), QString());
+  const ThemeDefinition supported =
+      CssThemeMapper::fromCss(QStringLiteral("#write { color:#111111; } p:nth-of-type(2) { color:#ff0000; }"),
+                              QStringLiteral("supported-structural"), QString());
   require(supported.hasStructuralRules,
           QStringLiteral("a parsed nth-of-type selector should activate the live structural path"));
-  require(supported.hasNthOfType,
-          QStringLiteral("nth-of-type should request a type index from the live adapter"));
+  require(supported.hasNthOfType, QStringLiteral("nth-of-type should request a type index from the live adapter"));
 }
 
 // Phase 3: link `text-decoration` drives linkUnderlined; letter-spacing is
@@ -1522,9 +1575,10 @@ a { text-decoration:none; }
       QStringLiteral("a { color:#0000ff; text-decoration:underline; }"), QStringLiteral("u"), QString());
   require(underlined.typography.linkUnderlined, QStringLiteral("a { text-decoration:underline } → links underlined"));
 
-  const ThemeDefinition omitted = CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"),
-                                                          QStringLiteral("o"), QString());
-  require(omitted.typography.linkUnderlined, QStringLiteral("no text-decoration → default underlined (built-in parity)"));
+  const ThemeDefinition omitted =
+      CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"), QStringLiteral("o"), QString());
+  require(omitted.typography.linkUnderlined,
+          QStringLiteral("no text-decoration → default underlined (built-in parity)"));
 }
 
 // Phase 3b: inline-code chip geometry (padding/radius/border-width) from CSS
@@ -1538,24 +1592,28 @@ code { color:#00f3ff; padding:2px 6px; border-radius:6px; border:1px solid #8888
        box-shadow:0 0 1px 1px #c8d3df; }
 )";
   const ThemeDefinition d = CssThemeMapper::fromCss(QString::fromUtf8(css), QStringLiteral("b"), QString());
-  require(d.typography.inlineCodeTextColor.name(QColor::HexRgb) == QStringLiteral("#00f3ff"), QStringLiteral("code color should map to inline code text colour"));
+  require(d.typography.inlineCodeTextColor.name(QColor::HexRgb) == QStringLiteral("#00f3ff"),
+          QStringLiteral("code color should map to inline code text colour"));
   require(qAbs(d.typography.inlineCodePaddingH - 6.0) < 0.01, QStringLiteral("code padding horizontal → 6px"));
   require(qAbs(d.typography.inlineCodePaddingV - 2.0) < 0.01, QStringLiteral("code padding vertical → 2px"));
   require(qAbs(d.typography.inlineCodeBorderRadius - 6.0) < 0.01, QStringLiteral("code border-radius → 6"));
   require(qAbs(d.typography.inlineCodeBorderWidth - 1.0) < 0.01, QStringLiteral("declared code border-width → 1"));
   require(d.typography.inlineCodeShadowColor == QColor(QStringLiteral("#c8d3df")) &&
-              qAbs(d.typography.inlineCodeShadowOffsetX) < 0.01 &&
-              qAbs(d.typography.inlineCodeShadowOffsetY) < 0.01 &&
+              qAbs(d.typography.inlineCodeShadowOffsetX) < 0.01 && qAbs(d.typography.inlineCodeShadowOffsetY) < 0.01 &&
               qAbs(d.typography.inlineCodeShadowBlur - 1.0) < 0.01 &&
               qAbs(d.typography.inlineCodeShadowSpread - 1.0) < 0.01,
           QStringLiteral("code box-shadow should preserve offset, blur, and spread"));
 
-  const ThemeDefinition e = CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"),
-                                                    QStringLiteral("e"), QString());
-  require(qAbs(e.typography.inlineCodePaddingH - 2.0) < 0.01, QStringLiteral("default code paddingH comes from document CSS"));
-  require(qAbs(e.typography.inlineCodePaddingV) < 0.01, QStringLiteral("default code paddingV comes from document CSS"));
-  require(qAbs(e.typography.inlineCodeBorderRadius) < 0.01, QStringLiteral("default code radius comes from document CSS"));
-  require(qAbs(e.typography.inlineCodeBorderWidth - 0.0) < 0.01, QStringLiteral("no code rule → border-width 0 (declared-only)"));
+  const ThemeDefinition e =
+      CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"), QStringLiteral("e"), QString());
+  require(qAbs(e.typography.inlineCodePaddingH - 2.0) < 0.01,
+          QStringLiteral("default code paddingH comes from document CSS"));
+  require(qAbs(e.typography.inlineCodePaddingV) < 0.01,
+          QStringLiteral("default code paddingV comes from document CSS"));
+  require(qAbs(e.typography.inlineCodeBorderRadius) < 0.01,
+          QStringLiteral("default code radius comes from document CSS"));
+  require(qAbs(e.typography.inlineCodeBorderWidth - 0.0) < 0.01,
+          QStringLiteral("no code rule → border-width 0 (declared-only)"));
 
   // phycat-style: `code` is fully styled (bg/padding/radius) but declares NO
   // border → width stays 0, so no phantom edge is painted over the chip.
@@ -1564,7 +1622,8 @@ code { color:#00f3ff; padding:2px 6px; border-radius:6px; border:1px solid #8888
 code { color:#089ba3; background-color:#7aeaf018; padding:5px 5px; border-radius:6px; }
 )";
   const ThemeDefinition f = CssThemeMapper::fromCss(QString::fromUtf8(cssNoBorder), QStringLiteral("f"), QString());
-  require(qAbs(f.typography.inlineCodeBorderWidth - 0.0) < 0.01, QStringLiteral("styled code without border → width 0 (no phantom edge)"));
+  require(qAbs(f.typography.inlineCodeBorderWidth - 0.0) < 0.01,
+          QStringLiteral("styled code without border → width 0 (no phantom edge)"));
   require(qAbs(f.typography.inlineCodeBorderRadius - 6.0) < 0.01, QStringLiteral("styled code radius still honoured"));
 }
 
@@ -1577,10 +1636,11 @@ void testDeletedColorCapture() {
 del { color:#999999; }
 )";
   const ThemeDefinition d = CssThemeMapper::fromCss(QString::fromUtf8(css), QStringLiteral("del"), QString());
-  require(d.typography.delColor.name(QColor::HexRgb) == QStringLiteral("#999999"), QStringLiteral("del { color } → delColor"));
+  require(d.typography.delColor.name(QColor::HexRgb) == QStringLiteral("#999999"),
+          QStringLiteral("del { color } → delColor"));
 
-  const ThemeDefinition none = CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"),
-                                                      QStringLiteral("n"), QString());
+  const ThemeDefinition none =
+      CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"), QStringLiteral("n"), QString());
   require(none.typography.delColor == QColor(Qt::black), QStringLiteral("del inherits the computed prose color"));
 }
 
@@ -1593,19 +1653,24 @@ kbd { background-color:#333333; color:#d6deeb; font-family:CascadiaCode, Consola
       padding:4px 8px; border-radius:6px; border:1px solid #444444; box-shadow:0 4px 0 #222222; }
 )";
   const ThemeDefinition d = CssThemeMapper::fromCss(QString::fromUtf8(css), QStringLiteral("kb"), QString());
-  require(d.typography.kbdBackground.name(QColor::HexRgb) == QStringLiteral("#333333"), QStringLiteral("kbd background from CSS"));
-  require(d.typography.kbdTextColor.name(QColor::HexRgb) == QStringLiteral("#d6deeb"), QStringLiteral("kbd text colour from CSS"));
-  require(d.typography.kbdFont.startsWith(QStringLiteral("CascadiaCode")), QStringLiteral("kbd font-family first family"));
+  require(d.typography.kbdBackground.name(QColor::HexRgb) == QStringLiteral("#333333"),
+          QStringLiteral("kbd background from CSS"));
+  require(d.typography.kbdTextColor.name(QColor::HexRgb) == QStringLiteral("#d6deeb"),
+          QStringLiteral("kbd text colour from CSS"));
+  require(d.typography.kbdFont.startsWith(QStringLiteral("CascadiaCode")),
+          QStringLiteral("kbd font-family first family"));
   require(qAbs(d.typography.kbdPaddingH - 8.0) < 0.01, QStringLiteral("kbd horizontal padding → 8"));
   require(qAbs(d.typography.kbdPaddingV - 4.0) < 0.01, QStringLiteral("kbd vertical padding → 4"));
   require(qAbs(d.typography.kbdBorderRadius - 6.0) < 0.01, QStringLiteral("kbd border-radius → 6"));
-  require(d.typography.kbdBorderColor.name(QColor::HexRgb) == QStringLiteral("#444444"), QStringLiteral("kbd border colour"));
+  require(d.typography.kbdBorderColor.name(QColor::HexRgb) == QStringLiteral("#444444"),
+          QStringLiteral("kbd border colour"));
   require(qAbs(d.typography.kbdBorderWidth - 1.0) < 0.01, QStringLiteral("kbd border-width → 1"));
-  require(d.typography.kbdShadowColor.name(QColor::HexRgb) == QStringLiteral("#222222"), QStringLiteral("kbd box-shadow colour"));
+  require(d.typography.kbdShadowColor.name(QColor::HexRgb) == QStringLiteral("#222222"),
+          QStringLiteral("kbd box-shadow colour"));
 
   // Missing author rules use the same document defaults as live HTML.
-  const ThemeDefinition none = CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"),
-                                                       QStringLiteral("n"), QString());
+  const ThemeDefinition none =
+      CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"), QStringLiteral("n"), QString());
   require(none.typography.kbdBackground == QColor(Qt::white) && none.typography.kbdTextColor == QColor("#242729"),
           QStringLiteral("kbd uses shared document default colours"));
 }
@@ -1621,9 +1686,12 @@ kbd { border:1px solid #3db8bf; border-bottom-width:3px; border-bottom-color:#08
 )";
   const ThemeDefinition d = CssThemeMapper::fromCss(QString::fromUtf8(css), QStringLiteral("kbb"), QString());
   require(qAbs(d.typography.kbdBorderWidth - 1.0) < 0.01, QStringLiteral("uniform border-width → 1"));
-  require(qAbs(d.typography.kbdBorderBottomWidth - 3.0) < 0.01, QStringLiteral("border-bottom-width → 3 (thicker bottom)"));
-  require(d.typography.kbdBorderBottomColor.name(QColor::HexRgb) == QStringLiteral("#089ba3"), QStringLiteral("border-bottom-color captured"));
-  require(d.typography.kbdShadowColor.name(QColor::HexRgb) == QStringLiteral("#7aeaf0"), QStringLiteral("kbd box-shadow colour (depth strip)"));
+  require(qAbs(d.typography.kbdBorderBottomWidth - 3.0) < 0.01,
+          QStringLiteral("border-bottom-width → 3 (thicker bottom)"));
+  require(d.typography.kbdBorderBottomColor.name(QColor::HexRgb) == QStringLiteral("#089ba3"),
+          QStringLiteral("border-bottom-color captured"));
+  require(d.typography.kbdShadowColor.name(QColor::HexRgb) == QStringLiteral("#7aeaf0"),
+          QStringLiteral("kbd box-shadow colour (depth strip)"));
 
   // Shorthand expands into computed per-side values.
   const char* cssUniform = R"(
@@ -1636,31 +1704,36 @@ kbd { border:1px solid #3db8bf; }
 }
 
 void testComputedElementStylesCaptureMarkerAndQuoteParagraph() {
-  const QString css = QStringLiteral(
-      "#write { color:#111111; }"
-      "#write p { color:#222222; }"
-      "#write blockquote p { color:#089ba3; line-height:1.6; }"
-      "#write li::marker { color:#3db8bf; }"
-      "#write h2 { width:fit-content; }"
-      "#write h2:hover { box-shadow:0 0 16px #3db8bf; }");
+  const QString css = QStringLiteral("#write { color:#111111; }"
+                                     "#write p { color:#222222; }"
+                                     "#write blockquote p { color:#089ba3; line-height:1.6; }"
+                                     "#write li::marker { color:#3db8bf; }"
+                                     "#write h2 { width:fit-content; }"
+                                     "#write h2:hover { box-shadow:0 0 16px #3db8bf; }");
   const ThemeDefinition d = CssThemeMapper::fromCss(css, QStringLiteral("computed"), QString());
   const ThemeElementStyle* quoteP = nullptr;
   const ThemeElementStyle* marker = nullptr;
   const ThemeElementStyle* h2 = nullptr;
   const ThemeElementStyle* h2Hover = nullptr;
   for (const ThemeElementStyle& style : d.elementStyles) {
-    if (style.key == QStringLiteral("blockquote p")) { quoteP = &style; }
-    else if (style.key == QStringLiteral("li::marker")) { marker = &style; }
-    else if (style.key == QStringLiteral("h2")) { h2 = &style; }
-    else if (style.key == QStringLiteral("h2:hover")) { h2Hover = &style; }
+    if (style.key == QStringLiteral("blockquote p")) {
+      quoteP = &style;
+    } else if (style.key == QStringLiteral("li::marker")) {
+      marker = &style;
+    } else if (style.key == QStringLiteral("h2")) {
+      h2 = &style;
+    } else if (style.key == QStringLiteral("h2:hover")) {
+      h2Hover = &style;
+    }
   }
   require(quoteP != nullptr, QStringLiteral("blockquote p element style should exist"));
-  require(quoteP->paint.color.name(QColor::HexRgb) == QStringLiteral("#089ba3"), QStringLiteral("blockquote p colour captured"));
+  require(quoteP->paint.color.name(QColor::HexRgb) == QStringLiteral("#089ba3"),
+          QStringLiteral("blockquote p colour captured"));
   require(qAbs(quoteP->text.lineHeight - 1.6) < 0.01, QStringLiteral("blockquote p line-height captured"));
   require(marker != nullptr, QStringLiteral("li::marker element style should exist"));
-  require(marker->paint.color.name(QColor::HexRgb) == QStringLiteral("#3db8bf"), QStringLiteral("li::marker colour captured"));
-  require(h2 != nullptr && h2->box.widthFitContent,
-          QStringLiteral("h2 fit-content width flag captured"));
+  require(marker->paint.color.name(QColor::HexRgb) == QStringLiteral("#3db8bf"),
+          QStringLiteral("li::marker colour captured"));
+  require(h2 != nullptr && h2->box.widthFitContent, QStringLiteral("h2 fit-content width flag captured"));
   require(h2Hover != nullptr && h2Hover->paint.boxShadowBlur > 15.0 && h2Hover->paint.boxShadowColor.isValid(),
           QStringLiteral("h2:hover shadow captured via computed state"));
   const RenderTheme theme = RenderTheme::fromDefinition(d);
@@ -1686,11 +1759,12 @@ blockquote { padding:18px 20px 18px 48px; border:1px solid #aabbcc; border-radiu
   require(qAbs(bq->box.padding.right() - 20.0) < 0.01, QStringLiteral("blockquote padding-right → 20"));
   require(qAbs(bq->box.padding.bottom() - 18.0) < 0.01, QStringLiteral("blockquote padding-bottom → 18"));
   require(qAbs(bq->box.borderLeftWidth - 1.0) < 0.01, QStringLiteral("blockquote border-width → 1"));
-  require(bq->box.borderLeftColor.name(QColor::HexRgb) == QStringLiteral("#aabbcc"), QStringLiteral("blockquote border colour"));
+  require(bq->box.borderLeftColor.name(QColor::HexRgb) == QStringLiteral("#aabbcc"),
+          QStringLiteral("blockquote border colour"));
   require(qAbs(bq->box.borderRadius - 16.0) < 0.01, QStringLiteral("blockquote border-radius → 16"));
 
-  const ThemeDefinition plain = CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"),
-                                                        QStringLiteral("p"), QString());
+  const ThemeDefinition plain =
+      CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"), QStringLiteral("p"), QString());
   require(RenderTheme::fromDefinition(plain).elementBoxStyle(QStringLiteral("blockquote")).padding.left() == 16,
           QStringLiteral("unconfigured quote padding comes from the shared host stylesheet"));
 }
@@ -1714,13 +1788,14 @@ table { border-radius:6px; }
   require(qAbs(d.spacing.tableCellPadding.left() - 10.0) < 0.01, QStringLiteral("table cell padding-left → 10"));
   require(qAbs(d.spacing.tableBorderRadius - 6.0) < 0.01, QStringLiteral("table border-radius → 6"));
 
-  const ThemeDefinition none = CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"),
-                                                       QStringLiteral("n"), QString());
-  require(none.spacing.codeBlockPadding == QMarginsF(12, 10, 12, 10) && none.spacing.tableCellPadding == QMarginsF(12, 6, 12, 6),
+  const ThemeDefinition none =
+      CssThemeMapper::fromCss(QStringLiteral("#write { color:#000000; }"), QStringLiteral("n"), QString());
+  require(none.spacing.codeBlockPadding == QMarginsF(12, 10, 12, 10) &&
+              none.spacing.tableCellPadding == QMarginsF(12, 6, 12, 6),
           QStringLiteral("pre and td defaults come from the shared host stylesheet"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

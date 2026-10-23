@@ -79,8 +79,7 @@ void testTypeBlockquoteOpenerFromEmptyDocumentKeepsCaretValid() {
   require(quote != nullptr && quote->type() == BlockType::BlockQuote, "should now be a real blockquote");
   const MarkdownNode* inner = firstChild(*quote);
   require(inner != nullptr && inner->type() == BlockType::Paragraph, "blockquote should have a child paragraph");
-  require(selection.cursorPosition().blockId == inner->id(),
-          "caret must land inside the blockquote's child paragraph");
+  require(selection.cursorPosition().blockId == inner->id(), "caret must land inside the blockquote's child paragraph");
   require(selection.cursorPosition().text.textOffset == 1, "caret must sit after the typed 'H'");
 }
 

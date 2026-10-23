@@ -47,11 +47,13 @@ double fdlibmKernelSin(double x, double y, bool hasTail) {
   constexpr double s5 = -2.50507602534068634195e-08;
   constexpr double s6 = 1.58969099521155010221e-10;
   const uint32_t ix = highWord(x) & 0x7fffffffu;
-  if (ix < 0x3e400000u && int(x) == 0) return x;
+  if (ix < 0x3e400000u && int(x) == 0)
+    return x;
   const double z = x * x;
   const double v = z * x;
   const double r = s2 + z * (s3 + z * (s4 + z * (s5 + z * s6)));
-  if (!hasTail) return x + v * (s1 + z * r);
+  if (!hasTail)
+    return x + v * (s1 + z * r);
   return x - ((z * (half * y - v * r) - y) - v * s1);
 }
 
@@ -64,22 +66,20 @@ double fdlibmKernelCos(double x, double y) {
   constexpr double c5 = 2.08757232129817482790e-09;
   constexpr double c6 = -1.13596475577881948265e-11;
   const uint32_t ix = highWord(x) & 0x7fffffffu;
-  if (ix < 0x3e400000u && int(x) == 0) return one;
+  if (ix < 0x3e400000u && int(x) == 0)
+    return one;
   const double z = x * x;
   const double r = z * (c1 + z * (c2 + z * (c3 + z * (c4 + z * (c5 + z * c6)))));
   if (ix < 0x3fd33333u)
     return one - (0.5 * z - (z * r - x * y));
-  const double qx = ix > 0x3fe90000u
-      ? 0.28125
-      : withWords(ix - 0x00200000u);
+  const double qx = ix > 0x3fe90000u ? 0.28125 : withWords(ix - 0x00200000u);
   const double iz = 0.5 * z - qx;
   const double a = one - qx;
   return a - (iz - (z * r - x * y));
 }
 
 int fdlibmReducePiOverTwo(double x, double (&y)[2]) {
-  constexpr uint32_t npio2High[] = {
-      0x3ff921fbu, 0x400921fbu, 0x4012d97cu, 0x401921fbu};
+  constexpr uint32_t npio2High[] = {0x3ff921fbu, 0x400921fbu, 0x4012d97cu, 0x401921fbu};
   constexpr double half = 5.00000000000000000000e-01;
   constexpr double invpio2 = 6.36619772367581382433e-01;
   constexpr double pio2_1 = 1.57079632673412561417e+00;
@@ -164,27 +164,37 @@ int fdlibmReducePiOverTwo(double x, double (&y)[2]) {
 
 double v8Sin(double x) {
   const uint32_t ix = highWord(x) & 0x7fffffffu;
-  if (ix <= 0x3fe921fbu) return fdlibmKernelSin(x, 0.0, false);
+  if (ix <= 0x3fe921fbu)
+    return fdlibmKernelSin(x, 0.0, false);
   double y[2];
   const int n = fdlibmReducePiOverTwo(x, y);
   switch (n & 3) {
-    case 0: return fdlibmKernelSin(y[0], y[1], true);
-    case 1: return fdlibmKernelCos(y[0], y[1]);
-    case 2: return -fdlibmKernelSin(y[0], y[1], true);
-    default: return -fdlibmKernelCos(y[0], y[1]);
+  case 0:
+    return fdlibmKernelSin(y[0], y[1], true);
+  case 1:
+    return fdlibmKernelCos(y[0], y[1]);
+  case 2:
+    return -fdlibmKernelSin(y[0], y[1], true);
+  default:
+    return -fdlibmKernelCos(y[0], y[1]);
   }
 }
 
 double v8Cos(double x) {
   const uint32_t ix = highWord(x) & 0x7fffffffu;
-  if (ix <= 0x3fe921fbu) return fdlibmKernelCos(x, 0.0);
+  if (ix <= 0x3fe921fbu)
+    return fdlibmKernelCos(x, 0.0);
   double y[2];
   const int n = fdlibmReducePiOverTwo(x, y);
   switch (n & 3) {
-    case 0: return fdlibmKernelCos(y[0], y[1]);
-    case 1: return -fdlibmKernelSin(y[0], y[1], true);
-    case 2: return -fdlibmKernelCos(y[0], y[1]);
-    default: return fdlibmKernelSin(y[0], y[1], true);
+  case 0:
+    return fdlibmKernelCos(y[0], y[1]);
+  case 1:
+    return -fdlibmKernelSin(y[0], y[1], true);
+  case 2:
+    return -fdlibmKernelCos(y[0], y[1]);
+  default:
+    return fdlibmKernelSin(y[0], y[1], true);
   }
 }
 
@@ -197,18 +207,15 @@ struct Node {
   QPointF spring;
   QPointF repulsion;
 
-  QPointF center() const {
-    return {topLeft.x() + size.width() / 2.0,
-            topLeft.y() + size.height() / 2.0};
-  }
-  void setCenter(const QPointF& value) {
-    topLeft = {value.x() - size.width() / 2.0,
-               value.y() - size.height() / 2.0};
-  }
+  QPointF center() const { return {topLeft.x() + size.width() / 2.0, topLeft.y() + size.height() / 2.0}; }
+  void setCenter(const QPointF& value) { topLeft = {value.x() - size.width() / 2.0, value.y() - size.height() / 2.0}; }
   void moveBy(const QPointF& delta) { topLeft += delta; }
 };
 
-struct Edge { int start = -1; int end = -1; };
+struct Edge {
+  int start = -1;
+  int end = -1;
+};
 
 QRectF rect(const Node& n) {
   return QRectF(n.topLeft, n.size);
@@ -217,11 +224,12 @@ QRectF rect(const Node& n) {
 bool inclusiveIntersects(const QRectF& a, const QRectF& b) {
   // layout-base RectangleD::intersects uses strict `<` separation tests, so
   // touching edges still count as overlap (QRectF::intersects does not).
-  return !(a.right() < b.left() || a.bottom() < b.top() ||
-           b.right() < a.left() || b.bottom() < a.top());
+  return !(a.right() < b.left() || a.bottom() < b.top() || b.right() < a.left() || b.bottom() < a.top());
 }
 
-qreal sign(qreal v) { return v > 0 ? 1.0 : (v < 0 ? -1.0 : 0.0); }
+qreal sign(qreal v) {
+  return v > 0 ? 1.0 : (v < 0 ? -1.0 : 0.0);
+}
 
 struct RectIntersection {
   QPointF a;
@@ -243,11 +251,15 @@ RectIntersection intersectRects(const QRectF& a, const QRectF& b) {
     return {{p1x, p1y}, {p2x, p2y}, true};
 
   if (p1x == p2x) {
-    if (p1y > p2y) return {{p1x, a.top()}, {p2x, b.bottom()}, false};
-    if (p1y < p2y) return {{p1x, a.bottom()}, {p2x, b.top()}, false};
+    if (p1y > p2y)
+      return {{p1x, a.top()}, {p2x, b.bottom()}, false};
+    if (p1y < p2y)
+      return {{p1x, a.bottom()}, {p2x, b.top()}, false};
   } else if (p1y == p2y) {
-    if (p1x > p2x) return {{a.left(), p1y}, {b.right(), p2y}, false};
-    if (p1x < p2x) return {{a.right(), p1y}, {b.left(), p2y}, false};
+    if (p1x > p2x)
+      return {{a.left(), p1y}, {b.right(), p2y}, false};
+    if (p1x < p2x)
+      return {{a.right(), p1y}, {b.left(), p2y}, false};
   } else {
     const qreal slopeA = a.height() / a.width();
     const qreal slopeB = b.height() / b.width();
@@ -256,24 +268,21 @@ RectIntersection intersectRects(const QRectF& a, const QRectF& b) {
     bool foundB = false;
 
     if (-slopeA == lineSlope) {
-      result.a = p1x > p2x ? QPointF(a.left(), a.bottom())
-                            : QPointF(a.right(), a.top());
+      result.a = p1x > p2x ? QPointF(a.left(), a.bottom()) : QPointF(a.right(), a.top());
       foundA = true;
     } else if (slopeA == lineSlope) {
-      result.a = p1x > p2x ? QPointF(a.left(), a.top())
-                            : QPointF(a.right(), a.bottom());
+      result.a = p1x > p2x ? QPointF(a.left(), a.top()) : QPointF(a.right(), a.bottom());
       foundA = true;
     }
     if (-slopeB == lineSlope) {
-      result.b = p2x > p1x ? QPointF(b.left(), b.bottom())
-                            : QPointF(b.right(), b.top());
+      result.b = p2x > p1x ? QPointF(b.left(), b.bottom()) : QPointF(b.right(), b.top());
       foundB = true;
     } else if (slopeB == lineSlope) {
-      result.b = p2x > p1x ? QPointF(b.left(), b.top())
-                            : QPointF(b.right(), b.bottom());
+      result.b = p2x > p1x ? QPointF(b.left(), b.top()) : QPointF(b.right(), b.bottom());
       foundB = true;
     }
-    if (foundA && foundB) return result;
+    if (foundA && foundB)
+      return result;
 
     int directionA = 0;
     int directionB = 0;
@@ -295,18 +304,34 @@ RectIntersection intersectRects(const QRectF& a, const QRectF& b) {
 
     if (!foundA) {
       switch (directionA) {
-        case 1: result.a = {p1x + (-a.height() / 2.0) / lineSlope, a.top()}; break;
-        case 2: result.a = {a.right(), p1y + a.width() / 2.0 * lineSlope}; break;
-        case 3: result.a = {p1x + a.height() / 2.0 / lineSlope, a.bottom()}; break;
-        case 4: result.a = {a.left(), p1y + (-a.width() / 2.0) * lineSlope}; break;
+      case 1:
+        result.a = {p1x + (-a.height() / 2.0) / lineSlope, a.top()};
+        break;
+      case 2:
+        result.a = {a.right(), p1y + a.width() / 2.0 * lineSlope};
+        break;
+      case 3:
+        result.a = {p1x + a.height() / 2.0 / lineSlope, a.bottom()};
+        break;
+      case 4:
+        result.a = {a.left(), p1y + (-a.width() / 2.0) * lineSlope};
+        break;
       }
     }
     if (!foundB) {
       switch (directionB) {
-        case 1: result.b = {p2x + (-b.height() / 2.0) / lineSlope, b.top()}; break;
-        case 2: result.b = {b.right(), p2y + b.width() / 2.0 * lineSlope}; break;
-        case 3: result.b = {p2x + b.height() / 2.0 / lineSlope, b.bottom()}; break;
-        case 4: result.b = {b.left(), p2y + (-b.width() / 2.0) * lineSlope}; break;
+      case 1:
+        result.b = {p2x + (-b.height() / 2.0) / lineSlope, b.top()};
+        break;
+      case 2:
+        result.b = {b.right(), p2y + b.width() / 2.0 * lineSlope};
+        break;
+      case 3:
+        result.b = {p2x + b.height() / 2.0 / lineSlope, b.bottom()};
+        break;
+      case 4:
+        result.b = {b.left(), p2y + (-b.width() / 2.0) * lineSlope};
+        break;
       }
     }
   }
@@ -328,21 +353,27 @@ QPointF separationAmount(const QRectF& a, const QRectF& b) {
   const qreal dx = b.center().x() - a.center().x();
   const qreal dy = b.center().y() - a.center().y();
   qreal slope = std::abs(dy / dx);
-  if (qFuzzyIsNull(dx) && qFuzzyIsNull(dy)) slope = 1.0;
+  if (qFuzzyIsNull(dx) && qFuzzyIsNull(dy))
+    slope = 1.0;
   qreal moveY = slope * overlapX;
   qreal moveX = overlapY / slope;
-  if (overlapX < moveX) moveX = overlapX;
-  else moveY = overlapY;
+  if (overlapX < moveX)
+    moveX = overlapX;
+  else
+    moveY = overlapY;
   const qreal directionX = a.center().x() < b.center().x() ? -1.0 : 1.0;
   const qreal directionY = a.center().y() < b.center().y() ? -1.0 : 1.0;
   return QPointF(-directionX * (moveX / 2.0 + kIdealEdgeLength / 2.0),
                  -directionY * (moveY / 2.0 + kIdealEdgeLength / 2.0));
 }
 
-int otherEnd(const Edge& e, int n) { return e.start == n ? e.end : e.start; }
+int otherEnd(const Edge& e, int n) {
+  return e.start == n ? e.end : e.start;
+}
 
 int treeCenter(const QVector<Node>& nodes, const QVector<Edge>& edges) {
-  if (nodes.size() <= 2) return 0;
+  if (nodes.size() <= 2)
+    return 0;
   // Preserve layout-base 2.0.1's observable splice-while-iterating behavior.
   // It intentionally does not implement the mathematical tree centre: for a
   // three-node star it returns the first leaf. CoSE's radial orientation and
@@ -365,13 +396,15 @@ int treeCenter(const QVector<Node>& nodes, const QVector<Edge>& edges) {
   // getFlatForest exposes the BFS Set insertion order. A connected mindmap
   // visits every node; retain insertion order defensively for malformed input.
   for (int i = 0; i < nodes.size(); ++i)
-    if (!visited[i]) list.append(i);
+    if (!visited[i])
+      list.append(i);
   QVector<int> removed;
   QVector<int> degree(nodes.size());
   QVector<int> pending;
   for (int i = 0; i < nodes.size(); ++i) {
     degree[i] = nodes[i].edges.size();
-    if (degree[i] == 1) removed.append(i);
+    if (degree[i] == 1)
+      removed.append(i);
   }
   pending = removed;
   while (list.size() > 2) {
@@ -385,54 +418,60 @@ int treeCenter(const QVector<Node>& nodes, const QVector<Edge>& edges) {
       list.removeAt(i);
       for (int edgeIndex : nodes[node].edges) {
         const int neighbor = otherEnd(edges[edgeIndex], node);
-        if (removed.contains(neighbor)) continue;
+        if (removed.contains(neighbor))
+          continue;
         const int nextDegree = degree[neighbor] - 1;
-        if (nextDegree == 1) pending.append(neighbor);
+        if (nextDegree == 1)
+          pending.append(neighbor);
         degree[neighbor] = nextDegree;
       }
     }
     removed += pending;
-    if (list.size() <= 2) break;
+    if (list.size() <= 2)
+      break;
   }
   return list.isEmpty() ? 0 : list.first();
 }
 
-void radialBranch(QVector<Node>& nodes, const QVector<Edge>& edges, int node,
-                  int parent, qreal startAngle, qreal endAngle, qreal distance,
-                  qreal radialSeparation) {
+void radialBranch(QVector<Node>& nodes, const QVector<Edge>& edges, int node, int parent, qreal startAngle,
+                  qreal endAngle, qreal distance, qreal radialSeparation) {
   qreal halfInterval = ((endAngle - startAngle) + 1.0) / 2.0;
-  if (halfInterval < 0) halfInterval += 180.0;
+  if (halfInterval < 0)
+    halfInterval += 180.0;
   const qreal angle = std::fmod(halfInterval + startAngle, 360.0);
   const qreal theta = angle * 2.0 * std::numbers::pi_v<qreal> / 360.0;
-  nodes[node].setCenter(QPointF(distance * v8Cos(theta),
-                                distance * v8Sin(theta)));
+  nodes[node].setCenter(QPointF(distance * v8Cos(theta), distance * v8Sin(theta)));
 
   QVector<int> neighborEdges = nodes[node].edges;
   int childCount = neighborEdges.size() - (parent >= 0 ? 1 : 0);
-  if (childCount <= 0) return;
+  if (childCount <= 0)
+    return;
   int startIndex = 0;
   if (parent >= 0) {
     int parentEdge = -1;
     for (int i = 0; i < neighborEdges.size(); ++i)
-      if (otherEnd(edges[neighborEdges[i]], node) == parent) { parentEdge = i; break; }
+      if (otherEnd(edges[neighborEdges[i]], node) == parent) {
+        parentEdge = i;
+        break;
+      }
     startIndex = (parentEdge + 1) % neighborEdges.size();
   }
   const qreal step = std::abs(endAngle - startAngle) / childCount;
   int branch = 0;
-  for (int i = startIndex; branch != childCount;
-       i = (i + 1) % neighborEdges.size()) {
+  for (int i = startIndex; branch != childCount; i = (i + 1) % neighborEdges.size()) {
     const int neighbor = otherEnd(edges[neighborEdges[i]], node);
-    if (neighbor == parent) continue;
+    if (neighbor == parent)
+      continue;
     const qreal childStart = std::fmod(startAngle + branch * step, 360.0);
     const qreal childEnd = std::fmod(childStart + step, 360.0);
-    radialBranch(nodes, edges, neighbor, node, childStart, childEnd,
-                 distance + radialSeparation, radialSeparation);
+    radialBranch(nodes, edges, neighbor, node, childStart, childEnd, distance + radialSeparation, radialSeparation);
     ++branch;
   }
 }
 
 QRectF nodeBounds(const QVector<Node>& nodes) {
-  if (nodes.isEmpty()) return {};
+  if (nodes.isEmpty())
+    return {};
   qreal left = std::numeric_limits<qreal>::max();
   qreal right = -std::numeric_limits<qreal>::max();
   qreal top = std::numeric_limits<qreal>::max();
@@ -442,10 +481,14 @@ QRectF nodeBounds(const QVector<Node>& nodes) {
     const qreal nodeRight = n.topLeft.x() + n.size.width();
     const qreal nodeTop = n.topLeft.y();
     const qreal nodeBottom = n.topLeft.y() + n.size.height();
-    if (left > nodeLeft) left = nodeLeft;
-    if (right < nodeRight) right = nodeRight;
-    if (top > nodeTop) top = nodeTop;
-    if (bottom < nodeBottom) bottom = nodeBottom;
+    if (left > nodeLeft)
+      left = nodeLeft;
+    if (right < nodeRight)
+      right = nodeRight;
+    if (top > nodeTop)
+      top = nodeTop;
+    if (bottom < nodeBottom)
+      bottom = nodeBottom;
   }
   // LGraph.calculateBounds stores RectangleD(left, top, right-left,
   // bottom-top). Callers later recover max as x+width, so preserving this
@@ -454,16 +497,15 @@ QRectF nodeBounds(const QVector<Node>& nodes) {
 }
 
 void updateSurrounding(QVector<Node>& nodes) {
-  if (nodes.isEmpty()) return;
-  QRectF graphBounds = nodeBounds(nodes).adjusted(-kGraphMargin, -kGraphMargin,
-                                                   kGraphMargin, kGraphMargin);
-  const int columns = std::max(1, int(std::ceil(graphBounds.width() /
-                                                kRepulsionRange)));
-  const int rows = std::max(1, int(std::ceil(graphBounds.height() /
-                                             kRepulsionRange)));
-  QVector<QVector<QVector<int>>> grid(
-      columns, QVector<QVector<int>>(rows));
-  struct GridSpan { int sx=0, fx=0, sy=0, fy=0; };
+  if (nodes.isEmpty())
+    return;
+  QRectF graphBounds = nodeBounds(nodes).adjusted(-kGraphMargin, -kGraphMargin, kGraphMargin, kGraphMargin);
+  const int columns = std::max(1, int(std::ceil(graphBounds.width() / kRepulsionRange)));
+  const int rows = std::max(1, int(std::ceil(graphBounds.height() / kRepulsionRange)));
+  QVector<QVector<QVector<int>>> grid(columns, QVector<QVector<int>>(rows));
+  struct GridSpan {
+    int sx = 0, fx = 0, sy = 0, fy = 0;
+  };
   QVector<GridSpan> spans(nodes.size());
   for (int index = 0; index < nodes.size(); ++index) {
     const QRectF r = rect(nodes[index]);
@@ -489,13 +531,15 @@ void updateSurrounding(QVector<Node>& nodes) {
     const GridSpan span = spans[a];
     for (int x = span.sx - 1; x < span.fx + 2; ++x) {
       for (int y = span.sy - 1; y < span.fy + 2; ++y) {
-        if (x < 0 || y < 0 || x >= columns || y >= rows) continue;
+        if (x < 0 || y < 0 || x >= columns || y >= rows)
+          continue;
         for (int b : std::as_const(grid[x][y])) {
-          if (a == b || processed[b] || seen[b]) continue;
-          const qreal gapX = std::abs(nodes[a].center().x() - nodes[b].center().x())
-              - (nodes[a].size.width() + nodes[b].size.width()) / 2.0;
-          const qreal gapY = std::abs(nodes[a].center().y() - nodes[b].center().y())
-              - (nodes[a].size.height() + nodes[b].size.height()) / 2.0;
+          if (a == b || processed[b] || seen[b])
+            continue;
+          const qreal gapX = std::abs(nodes[a].center().x() - nodes[b].center().x()) -
+                             (nodes[a].size.width() + nodes[b].size.width()) / 2.0;
+          const qreal gapY = std::abs(nodes[a].center().y() - nodes[b].center().y()) -
+                             (nodes[a].size.height() + nodes[b].size.height()) / 2.0;
           if (gapX <= kRepulsionRange && gapY <= kRepulsionRange) {
             seen[b] = true;
             nodes[a].surrounding.append(b);
@@ -513,19 +557,21 @@ void springForces(QVector<Node>& nodes, const QVector<Edge>& edges) {
     Node& source = nodes[e.start];
     Node& target = nodes[e.end];
     const QRectF a = rect(source), b = rect(target);
-    if (inclusiveIntersects(a, b)) continue;
+    if (inclusiveIntersects(a, b))
+      continue;
     // LEdge.updateLength calls getIntersection(target, source), then takes
     // result[A] - result[B]. Preserve that order for floating-point parity.
     const RectIntersection clips = intersectRects(b, a);
     QPointF delta = clips.a - clips.b;
-    if (std::abs(delta.x()) < 1.0) delta.setX(sign(delta.x()));
-    if (std::abs(delta.y()) < 1.0) delta.setY(sign(delta.y()));
-    const qreal length = std::sqrt(delta.x() * delta.x()
-                                   + delta.y() * delta.y());
-    if (qFuzzyIsNull(length)) continue;
+    if (std::abs(delta.x()) < 1.0)
+      delta.setX(sign(delta.x()));
+    if (std::abs(delta.y()) < 1.0)
+      delta.setY(sign(delta.y()));
+    const qreal length = std::sqrt(delta.x() * delta.x() + delta.y() * delta.y());
+    if (qFuzzyIsNull(length))
+      continue;
     const qreal magnitude = kSpringStrength * (length - kIdealEdgeLength);
-    const QPointF force(magnitude * (delta.x() / length),
-                        magnitude * (delta.y() / length));
+    const QPointF force(magnitude * (delta.x() / length), magnitude * (delta.y() / length));
     source.spring += force;
     target.spring -= force;
   }
@@ -534,7 +580,8 @@ void springForces(QVector<Node>& nodes, const QVector<Edge>& edges) {
 void repulsionForces(QVector<Node>& nodes) {
   for (int i = 0; i < nodes.size(); ++i) {
     for (int j : std::as_const(nodes[i].surrounding)) {
-      Node& a = nodes[i]; Node& b = nodes[j];
+      Node& a = nodes[i];
+      Node& b = nodes[j];
       const QRectF ar = rect(a), br = rect(b);
       QPointF force;
       if (inclusiveIntersects(ar, br)) {
@@ -552,8 +599,7 @@ void repulsionForces(QVector<Node>& nodes) {
         const qreal d2 = QPointF::dotProduct(delta, delta);
         const qreal d = std::sqrt(d2);
         const qreal magnitude = kRepulsionStrength / d2;
-        force = QPointF(magnitude * delta.x() / d,
-                        magnitude * delta.y() / d);
+        force = QPointF(magnitude * delta.x() / d, magnitude * delta.y() / d);
       }
       a.repulsion -= force;
       b.repulsion += force;
@@ -561,16 +607,17 @@ void repulsionForces(QVector<Node>& nodes) {
   }
 }
 
-}  // namespace
+} // namespace
 
-MindmapCoseResult layoutMindmapCoseFlatTree(
-    const QVector<MindmapCoseNodeInput>& inputNodes,
-    const QVector<MindmapCoseEdgeInput>& inputEdges) {
+MindmapCoseResult layoutMindmapCoseFlatTree(const QVector<MindmapCoseNodeInput>& inputNodes,
+                                            const QVector<MindmapCoseEdgeInput>& inputEdges) {
   MindmapCoseResult result;
-  if (inputNodes.isEmpty()) return result;
+  if (inputNodes.isEmpty())
+    return result;
   QVector<Node> nodes;
   nodes.reserve(inputNodes.size());
-  for (const auto& in : inputNodes) nodes.append({in.id, in.size});
+  for (const auto& in : inputNodes)
+    nodes.append({in.id, in.size});
   QVector<Edge> edges;
   for (const auto& in : inputEdges) {
     if (in.start < 0 || in.end < 0 || in.start >= nodes.size() || in.end >= nodes.size())
@@ -583,12 +630,9 @@ MindmapCoseResult layoutMindmapCoseFlatTree(
 
   qreal radialSeparation = kIdealEdgeLength;
   for (const Node& n : nodes)
-    radialSeparation = std::max(
-        radialSeparation,
-        std::sqrt(n.size.width() * n.size.width()
-                  + n.size.height() * n.size.height()));
-  radialBranch(nodes, edges, treeCenter(nodes, edges), -1, 0.0, 359.0, 0.0,
-               radialSeparation);
+    radialSeparation =
+        std::max(radialSeparation, std::sqrt(n.size.width() * n.size.width() + n.size.height() * n.size.height()));
+  radialBranch(nodes, edges, treeCenter(nodes, edges), -1, 0.0, 359.0, 0.0, radialSeparation);
   QRectF radialBounds = nodeBounds(nodes);
   // positionNodesRadially first maps the component to (0,0), then transforms
   // the complete forest around layout-base's fixed world centre. Besides
@@ -606,15 +650,12 @@ MindmapCoseResult layoutMindmapCoseFlatTree(
   // algebraically folding them changes the final ulps and can send CoSE's
   // proof embedder into another stable basin.
   for (Node& n : nodes)
-    n.topLeft = QPointF(0.0, 0.0) +
-        (n.topLeft - radialBounds.topLeft());
+    n.topLeft = QPointF(0.0, 0.0) + (n.topLeft - radialBounds.topLeft());
   // radialLayout returns inverseTransformPoint(bounds.getMaxX/Y()). With the
   // unit transform this is (bounds.x + bounds.width) - bounds.x, not the
   // stored width directly; the extra add/subtract is observable in JS.
-  const QPointF componentExtent(radialBounds.right() - radialBounds.left(),
-                                radialBounds.bottom() - radialBounds.top());
-  const QPointF worldOrigin(1200.0 - componentExtent.x() / 2.0,
-                            900.0 - componentExtent.y() / 2.0);
+  const QPointF componentExtent(radialBounds.right() - radialBounds.left(), radialBounds.bottom() - radialBounds.top());
+  const QPointF worldOrigin(1200.0 - componentExtent.x() / 2.0, 900.0 - componentExtent.y() / 2.0);
   const QPointF graphLeftTop(-kGraphMargin, -kGraphMargin);
   for (Node& n : nodes)
     n.topLeft = worldOrigin + (n.topLeft - graphLeftTop);
@@ -628,23 +669,23 @@ MindmapCoseResult layoutMindmapCoseFlatTree(
     // CoSELayout.tick performs convergence/cooling immediately after
     // totalIterations++, using the displacement produced by the PREVIOUS tick.
     if (iteration % kConvergencePeriod == 0) {
-      const bool oscillating = iteration > kMaxIterations / 3
-          && std::abs(totalDisplacement - oldDisplacement) < 2.0;
+      const bool oscillating = iteration > kMaxIterations / 3 && std::abs(totalDisplacement - oldDisplacement) < 2.0;
       const bool converged = totalDisplacement < 1.5 * nodes.size();
       oldDisplacement = totalDisplacement;
       if (converged || oscillating) {
         break;
       }
       ++coolingCycle;
-      const qreal exponent = std::log(100.0 * (1.0 - finalTemperature))
-          / std::log(maxCoolingCycle);
-      cooling = std::max(1.0 - std::pow(qreal(coolingCycle), exponent) / 100.0,
-                         finalTemperature);
+      const qreal exponent = std::log(100.0 * (1.0 - finalTemperature)) / std::log(maxCoolingCycle);
+      cooling = std::max(1.0 - std::pow(qreal(coolingCycle), exponent) / 100.0, finalTemperature);
     }
     if (iteration % 10 == 1) {
       updateSurrounding(nodes);
     }
-    for (Node& n : nodes) { n.spring = {}; n.repulsion = {}; }
+    for (Node& n : nodes) {
+      n.spring = {};
+      n.repulsion = {};
+    }
     springForces(nodes, edges);
     repulsionForces(nodes);
     totalDisplacement = 0.0;
@@ -661,9 +702,8 @@ MindmapCoseResult layoutMindmapCoseFlatTree(
   const QRectF finalBounds = nodeBounds(nodes);
   result.centers.reserve(nodes.size());
   for (const Node& n : nodes)
-    result.centers.append(n.center() - finalBounds.topLeft()
-                          + QPointF(kGraphMargin, kGraphMargin));
+    result.centers.append(n.center() - finalBounds.topLeft() + QPointF(kGraphMargin, kGraphMargin));
   return result;
 }
 
-}  // namespace muffin::mermaid::mindmap
+} // namespace muffin::mermaid::mindmap

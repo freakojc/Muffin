@@ -61,7 +61,8 @@ void collectChildrenWithTag(const html::HtmlBox& box, html::HtmlTag tag, QVector
   }
 }
 
-void collectChildrenWithDisplay(const html::HtmlBox& box, html::HtmlDisplay display, QVector<const html::HtmlBox*>& out) {
+void collectChildrenWithDisplay(const html::HtmlBox& box, html::HtmlDisplay display,
+                                QVector<const html::HtmlBox*>& out) {
   for (const auto& child : box.children()) {
     if (child->style().display == display) {
       out.push_back(child.get());
@@ -108,11 +109,13 @@ struct HighlightFixture {
 };
 
 void requireHighlightsFixture(const TreeSitterHighlighter& highlighter, const HighlightFixture& fixture) {
-  require(highlighter.supportsLanguage(fixture.language), QStringLiteral("%1 highlighting should be registered").arg(fixture.language));
+  require(highlighter.supportsLanguage(fixture.language),
+          QStringLiteral("%1 highlighting should be registered").arg(fixture.language));
   const QVector<CodeHighlightSpan> spans = highlighter.highlight(fixture.language, fixture.code);
   require(!spans.isEmpty(), QStringLiteral("%1 should produce highlight spans").arg(fixture.language));
   for (CodeHighlightRole role : fixture.roles) {
-    require(hasRole(spans, role), QStringLiteral("%1 should highlight requested role %2").arg(fixture.language).arg(static_cast<int>(role)));
+    require(hasRole(spans, role),
+            QStringLiteral("%1 should highlight requested role %2").arg(fixture.language).arg(static_cast<int>(role)));
   }
 }
 
@@ -210,7 +213,8 @@ void testCodeFenceNoWrapSelectionGeometry() {
 void testHtmlBlockPreviewAndEditingHitTestContract() {
   RenderTheme theme = RenderTheme::github();
   DocumentSession session;
-  session.setMarkdownText(QStringLiteral("<div><a href=\"#\">unsafe link</a><script>alert('blocked')</script></div>"), false);
+  session.setMarkdownText(QStringLiteral("<div><a href=\"#\">unsafe link</a><script>alert('blocked')</script></div>"),
+                          false);
 
   const MarkdownNode* html = findFirstBlock(session.document().root(), BlockType::HtmlBlock);
   require(html != nullptr, QStringLiteral("html hit-test fixture should parse"));
@@ -218,10 +222,12 @@ void testHtmlBlockPreviewAndEditingHitTestContract() {
   DocumentLayout previewLayout;
   previewLayout.rebuild(session.document(), theme, 520.0);
   const BlockLayout* previewBlock = previewLayout.block(html->id());
-  require(previewBlock != nullptr && !previewBlock->literalEditing(), QStringLiteral("html preview block should layout"));
+  require(previewBlock != nullptr && !previewBlock->literalEditing(),
+          QStringLiteral("html preview block should layout"));
   const HitTestResult previewHit = previewBlock->hitTest(previewBlock->rect().center(), theme);
   require(previewHit.zone == HitTestResult::Zone::Html, QStringLiteral("html preview hit should target html zone"));
-  require(previewHit.cursorRect.top() == previewBlock->rect().top(), QStringLiteral("html preview cursor should align to rendered block"));
+  require(previewHit.cursorRect.top() == previewBlock->rect().top(),
+          QStringLiteral("html preview cursor should align to rendered block"));
   require(previewHit.textOffset == 0 || previewHit.textOffset == previewBlock->literal().size(),
           QStringLiteral("html preview hit should snap to block boundary, not raw source text"));
   require(previewBlock->selectionRectsForOffsets(0, previewBlock->literal().size(), theme).size() == 1,
@@ -231,9 +237,11 @@ void testHtmlBlockPreviewAndEditingHitTestContract() {
   editingLayout.setEditingHtmlBlock(html->id());
   editingLayout.rebuild(session.document(), theme, 520.0);
   const BlockLayout* editingBlock = editingLayout.block(html->id());
-  require(editingBlock != nullptr && editingBlock->literalEditing(), QStringLiteral("html editing block should layout as source"));
+  require(editingBlock != nullptr && editingBlock->literalEditing(),
+          QStringLiteral("html editing block should layout as source"));
   const QRectF sourceRect = editingBlock->literalContentRect(theme);
-  const HitTestResult editingHit = editingBlock->hitTest(QPointF(sourceRect.left() + 80.0, sourceRect.top() + theme.codeLineHeight() * 0.5), theme);
+  const HitTestResult editingHit =
+      editingBlock->hitTest(QPointF(sourceRect.left() + 80.0, sourceRect.top() + theme.codeLineHeight() * 0.5), theme);
   require(editingHit.textOffset > 0 && editingHit.textOffset < editingBlock->literal().size(),
           QStringLiteral("html editing hit should map into raw source text"));
 }
@@ -245,7 +253,8 @@ void testFrontMatterLayoutPreservesTrailingLiteralNewline() {
   withoutTrailingNewline.setMarkdownText(QStringLiteral("---\ntitle: Muffin\n---"), false);
   DocumentLayout compactLayout;
   compactLayout.rebuild(withoutTrailingNewline.document(), theme, 800.0);
-  const MarkdownNode* compactFrontMatter = findFirstBlock(withoutTrailingNewline.document().root(), BlockType::FrontMatter);
+  const MarkdownNode* compactFrontMatter =
+      findFirstBlock(withoutTrailingNewline.document().root(), BlockType::FrontMatter);
   require(compactFrontMatter != nullptr, QStringLiteral("compact front matter should parse"));
   const BlockLayout* compactBlock = compactLayout.block(compactFrontMatter->id());
   require(compactBlock != nullptr, QStringLiteral("compact front matter should layout"));
@@ -254,13 +263,16 @@ void testFrontMatterLayoutPreservesTrailingLiteralNewline() {
   withTrailingNewline.setMarkdownText(QStringLiteral("---\ntitle: Muffin\n\n---"), false);
   DocumentLayout expandedLayout;
   expandedLayout.rebuild(withTrailingNewline.document(), theme, 800.0);
-  const MarkdownNode* expandedFrontMatter = findFirstBlock(withTrailingNewline.document().root(), BlockType::FrontMatter);
+  const MarkdownNode* expandedFrontMatter =
+      findFirstBlock(withTrailingNewline.document().root(), BlockType::FrontMatter);
   require(expandedFrontMatter != nullptr, QStringLiteral("expanded front matter should parse"));
   const BlockLayout* expandedBlock = expandedLayout.block(expandedFrontMatter->id());
   require(expandedBlock != nullptr, QStringLiteral("expanded front matter should layout"));
 
-  require(expandedFrontMatter->literal().endsWith(QLatin1Char('\n')), QStringLiteral("expanded front matter literal should include user newline"));
-  require(expandedBlock->literal() == expandedFrontMatter->literal(), QStringLiteral("front matter layout should preserve trailing literal newline"));
+  require(expandedFrontMatter->literal().endsWith(QLatin1Char('\n')),
+          QStringLiteral("expanded front matter literal should include user newline"));
+  require(expandedBlock->literal() == expandedFrontMatter->literal(),
+          QStringLiteral("front matter layout should preserve trailing literal newline"));
   require(expandedBlock->rect().height() > compactBlock->rect().height() + theme.codeLineHeight() * 0.5,
           QStringLiteral("front matter trailing newline should reserve a visible empty line"));
 }
@@ -268,7 +280,8 @@ void testFrontMatterLayoutPreservesTrailingLiteralNewline() {
 void testDocumentLayoutInlineLayoutContract() {
   DocumentSession session;
   session.setMarkdownText(
-      QStringLiteral("alpha `code` beta gamma delta epsilon zeta eta theta\n\n| A | B |\n| --- | --- |\n| `one` | two |"),
+      QStringLiteral(
+          "alpha `code` beta gamma delta epsilon zeta eta theta\n\n| A | B |\n| --- | --- |\n| `one` | two |"),
       false);
 
   RenderTheme theme = RenderTheme::github();
@@ -278,23 +291,29 @@ void testDocumentLayoutInlineLayoutContract() {
   const MarkdownNode* paragraph = findFirstBlock(session.document().root(), BlockType::Paragraph);
   const MarkdownNode* table = findFirstBlock(session.document().root(), BlockType::Table);
   const MarkdownNode* tableCell = findFirstTableCell(session.document().root());
-  require(paragraph != nullptr && table != nullptr && tableCell != nullptr, QStringLiteral("inline layout document fixture missing blocks"));
+  require(paragraph != nullptr && table != nullptr && tableCell != nullptr,
+          QStringLiteral("inline layout document fixture missing blocks"));
 
   const BlockLayout* paragraphLayout = layout.block(paragraph->id());
   const BlockLayout* tableLayout = layout.block(table->id());
-  require(paragraphLayout != nullptr && paragraphLayout->inlineLayout() != nullptr, QStringLiteral("inline layout paragraph layout missing"));
-  require(tableLayout != nullptr && tableLayout->type() == BlockType::Table, QStringLiteral("inline layout table layout missing"));
+  require(paragraphLayout != nullptr && paragraphLayout->inlineLayout() != nullptr,
+          QStringLiteral("inline layout paragraph layout missing"));
+  require(tableLayout != nullptr && tableLayout->type() == BlockType::Table,
+          QStringLiteral("inline layout table layout missing"));
   const BlockLayout::TableCellLayout* cellLayout = findTableCellLayout(*tableLayout, tableCell->id());
   require(cellLayout != nullptr, QStringLiteral("inline layout table cell layout missing"));
 
-  require(paragraphLayout->inlineLayout()->height() > 0.0, QStringLiteral("paragraph inline layout should have height"));
+  require(paragraphLayout->inlineLayout()->height() > 0.0,
+          QStringLiteral("paragraph inline layout should have height"));
   require(paragraphLayout->inlineLayout()->size().height() == paragraphLayout->inlineLayout()->height(),
           QStringLiteral("paragraph inline layout size should expose height"));
   require(cellLayout->text.height() > 0.0, QStringLiteral("table cell inline layout should have height"));
-  require(cellLayout->text.size().height() == cellLayout->text.height(), QStringLiteral("table cell inline layout size should expose height"));
+  require(cellLayout->text.size().height() == cellLayout->text.height(),
+          QStringLiteral("table cell inline layout size should expose height"));
   for (const BlockLayout::TableRowLayout& row : tableLayout->tableRows()) {
     for (const BlockLayout::TableCellLayout& cell : row.cells) {
-      require(!cell.text.displayText().contains(QLatin1Char('|')), QStringLiteral("table cell layout should hide markdown pipe separators"));
+      require(!cell.text.displayText().contains(QLatin1Char('|')),
+              QStringLiteral("table cell layout should hide markdown pipe separators"));
     }
   }
 
@@ -305,7 +324,8 @@ void testDocumentLayoutInlineLayoutContract() {
     block->paint(painter, theme, 0.0);
   }
   painter.end();
-  require(changedPixelCount(image, theme.backgroundColor()) > 100, QStringLiteral("document inline layout paint should draw visible pixels"));
+  require(changedPixelCount(image, theme.backgroundColor()) > 100,
+          QStringLiteral("document inline layout paint should draw visible pixels"));
 
   const HitTestResult paragraphHit = layout.hitTest(paragraphLayout->rect().center(), theme);
   require(paragraphHit.isValid() && paragraphHit.zone == HitTestResult::Zone::Text,
@@ -322,13 +342,16 @@ void testDocumentLayoutInlineLayoutContract() {
 
 void testHtmlInlineLayoutOwnershipContract() {
   html::HtmlDocument document;
-  require(document.parse(QStringLiteral("<div><h1>HTML block sample</h1><p><a href=\"#\">safe link</a></p><script>alert('blocked')</script></div>")),
-          QStringLiteral("html ownership fixture should parse"));
+  require(
+      document.parse(QStringLiteral(
+          "<div><h1>HTML block sample</h1><p><a href=\"#\">safe link</a></p><script>alert('blocked')</script></div>")),
+      QStringLiteral("html ownership fixture should parse"));
 
   html::HtmlBoxBuilder builder;
   auto root = builder.build(document);
   require(root != nullptr, QStringLiteral("html ownership fixture should build box tree"));
-  require(!root->collectedText().contains(QStringLiteral("blocked")), QStringLiteral("html script text should not enter box tree"));
+  require(!root->collectedText().contains(QStringLiteral("blocked")),
+          QStringLiteral("html script text should not enter box tree"));
 
   html::HtmlStyleResolver resolver;
   resolver.resolve(*root, 16.0);
@@ -340,7 +363,8 @@ void testHtmlInlineLayoutOwnershipContract() {
   const html::HtmlBox* heading = firstChildWithTag(*root, html::HtmlTag::Heading1);
   const html::HtmlBox* paragraph = firstChildWithTag(*root, html::HtmlTag::Paragraph);
   const html::HtmlBox* anchor = firstChildWithTag(*root, html::HtmlTag::Anchor);
-  require(heading != nullptr && paragraph != nullptr && anchor != nullptr, QStringLiteral("html ownership fixture missing expected nodes"));
+  require(heading != nullptr && paragraph != nullptr && anchor != nullptr,
+          QStringLiteral("html ownership fixture missing expected nodes"));
   require(!root->ownsTextLayout(), QStringLiteral("html root must not own descendant text layout"));
   require(heading->ownsTextLayout(), QStringLiteral("html heading should own its inline text layout"));
   require(paragraph->ownsTextLayout(), QStringLiteral("html paragraph should own its inline text layout"));
@@ -371,10 +395,13 @@ void testHtmlInlineStyleAndTagSemanticsContract() {
 
   const html::HtmlBox* bordered = firstChildWithTag(*root, html::HtmlTag::Div);
   require(bordered != nullptr, QStringLiteral("html style semantics fixture missing bordered div"));
-  require(qFuzzyCompare(bordered->style().borderWidth.left(), 3.0), QStringLiteral("border-left should set left border"));
+  require(qFuzzyCompare(bordered->style().borderWidth.left(), 3.0),
+          QStringLiteral("border-left should set left border"));
   require(qFuzzyIsNull(bordered->style().borderWidth.top()), QStringLiteral("border-left should not set top border"));
-  require(qFuzzyIsNull(bordered->style().borderWidth.right()), QStringLiteral("border-left should not set right border"));
-  require(qFuzzyIsNull(bordered->style().borderWidth.bottom()), QStringLiteral("border-left should not set bottom border"));
+  require(qFuzzyIsNull(bordered->style().borderWidth.right()),
+          QStringLiteral("border-left should not set right border"));
+  require(qFuzzyIsNull(bordered->style().borderWidth.bottom()),
+          QStringLiteral("border-left should not set bottom border"));
 
   const html::HtmlBox* quote = firstChildWithTag(*root, html::HtmlTag::Quote);
   require(quote != nullptr, QStringLiteral("q tag should map to quote tag"));
@@ -384,21 +411,25 @@ void testHtmlInlineStyleAndTagSemanticsContract() {
   const html::HtmlBox* smallText = firstChildWithText(*root, QStringLiteral("small"));
   const html::HtmlBox* largeText = firstChildWithText(*root, QStringLiteral("large"));
   const html::HtmlBox* keyboard = firstChildWithTag(*root, html::HtmlTag::Kbd);
-  require(subText != nullptr && subText->style().fontSize < 16.0, QStringLiteral("sub text should inherit smaller font size"));
-  require(smallText != nullptr && smallText->style().fontSize < 16.0, QStringLiteral("small text should inherit smaller font size"));
+  require(subText != nullptr && subText->style().fontSize < 16.0,
+          QStringLiteral("sub text should inherit smaller font size"));
+  require(smallText != nullptr && smallText->style().fontSize < 16.0,
+          QStringLiteral("small text should inherit smaller font size"));
   require(largeText != nullptr && qFuzzyCompare(largeText->style().fontSize, 18.0),
           QStringLiteral("24 CSS px propagate as 18 native points"));
   require(keyboard != nullptr && keyboard->style().display == html::HtmlDisplay::Inline,
           QStringLiteral("kbd tag should remain inline"));
 
   const html::HtmlBox* hiddenText = firstChildWithText(*root, QStringLiteral("hidden child"));
-  require(hiddenText != nullptr && hiddenText->style().visible, QStringLiteral("hidden child starts with its own computed visibility"));
+  require(hiddenText != nullptr && hiddenText->style().visible,
+          QStringLiteral("hidden child starts with its own computed visibility"));
 
   std::vector<std::unique_ptr<html::HtmlTextLayout>> textLayouts;
   html::HtmlLayoutEngine engine;
   engine.layout(*root, 220.0, 16.0, textLayouts);
 
-  require(hiddenText->style().visible, QStringLiteral("layout must not mutate descendant visibility under hidden parent"));
+  require(hiddenText->style().visible,
+          QStringLiteral("layout must not mutate descendant visibility under hidden parent"));
   require(!textLayouts.empty(), QStringLiteral("html style semantics fixture should create text layouts"));
 
   bool sawSubSize = false;
@@ -444,9 +475,7 @@ void testHtmlVisibilityDetection() {
   // from content that actually draws pixels, mirroring paintBox()'s decisions exactly.
   html::HtmlRenderer renderer;
 
-  auto render = [&](const QString& html) {
-    return renderer.render(html, 16.0, 320.0);
-  };
+  auto render = [&](const QString& html) { return renderer.render(html, 16.0, 320.0); };
 
   const QVector<QString> invisible = {
       QStringLiteral("<div><br></div>"),
@@ -457,7 +486,8 @@ void testHtmlVisibilityDetection() {
   for (const QString& html : invisible) {
     const html::HtmlLayoutResult result = render(html);
     require(result.valid(), QStringLiteral("invisible fixture should build a valid box tree: %1").arg(html));
-    require(!result.hasVisibleContent(), QStringLiteral("scaffolding-only HTML should have no visible content: %1").arg(html));
+    require(!result.hasVisibleContent(),
+            QStringLiteral("scaffolding-only HTML should have no visible content: %1").arg(html));
   }
 
   const QVector<QString> visible = {
@@ -471,7 +501,8 @@ void testHtmlVisibilityDetection() {
   for (const QString& html : visible) {
     const html::HtmlLayoutResult result = render(html);
     require(result.valid(), QStringLiteral("visible fixture should build a valid box tree: %1").arg(html));
-    require(result.hasVisibleContent(), QStringLiteral("content-bearing HTML should have visible content: %1").arg(html));
+    require(result.hasVisibleContent(),
+            QStringLiteral("content-bearing HTML should have visible content: %1").arg(html));
   }
 }
 
@@ -513,12 +544,11 @@ void testHtmlTableRowspanCellSpansTallRows() {
   // The layout used to freeze the cell at its STARTING row's height, so a taller later spanned
   // row left the cell's background/border ending early — a hole under the spanning cell.
   html::HtmlRenderer renderer;
-  const html::HtmlLayoutResult result = renderer.render(
-      QStringLiteral("<table>"
-                     "<tr><td rowspan=\"2\">span</td><td>x</td></tr>"
-                     "<tr><td>a<br>b<br>c<br>d</td></tr>"
-                     "</table>"),
-      16.0, 320.0);
+  const html::HtmlLayoutResult result = renderer.render(QStringLiteral("<table>"
+                                                                       "<tr><td rowspan=\"2\">span</td><td>x</td></tr>"
+                                                                       "<tr><td>a<br>b<br>c<br>d</td></tr>"
+                                                                       "</table>"),
+                                                        16.0, 320.0);
   require(result.valid(), QStringLiteral("rowspan fixture should render"));
 
   const html::HtmlBox* spanCell = firstCellWithRowSpan(*result.root(), 2);
@@ -563,7 +593,7 @@ void testHtmlCollapsedDetailsGeometryAndHitTest() {
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
@@ -590,4 +620,3 @@ int main(int argc, char** argv) {
 #undef RUN_TEST
   return 0;
 }
-

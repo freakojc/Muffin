@@ -30,7 +30,8 @@ QImage renderHeadingImage(const RenderTheme& theme, const QString& markdown) {
   const BlockLayout* block = layout.block(heading->id());
   require(block != nullptr, QStringLiteral("heading block should be promoted"));
   const QRectF rect = block->rect();
-  require(rect.width() > 20.0 && rect.height() > 4.0, QStringLiteral("fit-content heading should have a measurable occupied box"));
+  require(rect.width() > 20.0 && rect.height() > 4.0,
+          QStringLiteral("fit-content heading should have a measurable occupied box"));
 
   QImage image(int(rect.width()), int(rect.height() + 4), QImage::Format_ARGB32_Premultiplied);
   image.fill(Qt::white);
@@ -47,31 +48,32 @@ QRect colorBBox(const QImage& image, const std::function<bool(QRgb)>& pred) {
   for (int y = 0; y < image.height(); ++y) {
     for (int x = 0; x < image.width(); ++x) {
       if (pred(image.pixel(x, y))) {
-        left = qMin(left, x); top = qMin(top, y);
-        right = qMax(right, x); bottom = qMax(bottom, y);
+        left = qMin(left, x);
+        top = qMin(top, y);
+        right = qMax(right, x);
+        bottom = qMax(bottom, y);
       }
     }
   }
   return right < left ? QRect() : QRect(left, top, right - left + 1, bottom - top + 1);
 }
 
-const std::function<bool(QRgb)> isGreen = [](QRgb p) {
-  return qGreen(p) > 120 && qRed(p) < 100 && qBlue(p) < 100;
-};
-const std::function<bool(QRgb)> isRed = [](QRgb p) {
-  return qRed(p) > 150 && qGreen(p) < 90 && qBlue(p) < 90;
-};
-bool isWhite(QRgb p) { return qRed(p) > 230 && qGreen(p) > 230 && qBlue(p) > 230; }
+const std::function<bool(QRgb)> isGreen = [](QRgb p) { return qGreen(p) > 120 && qRed(p) < 100 && qBlue(p) < 100; };
+const std::function<bool(QRgb)> isRed = [](QRgb p) { return qRed(p) > 150 && qGreen(p) < 90 && qBlue(p) < 90; };
+bool isWhite(QRgb p) {
+  return qRed(p) > 230 && qGreen(p) > 230 && qBlue(p) > 230;
+}
 
 // phycat-style h2: a fit-content pill with rounded corners, a fill, and a top
 // hairline. Exercises Phase 2c: paintElementBackground must round the box, fill
 // it, and draw the border-top — all clipped to the rounded shape.
 void testRoundedPillWithTopBorder() {
-  const QString css = QStringLiteral(
-      "#write { color:#000000; }"
-      "#write h2 { width:fit-content; padding:0 14px; border-radius:10px;"
-      "  background-image:linear-gradient(#00aa00,#00aa00); border-top:3px solid #d00000; }");
-  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("pill"), QString()));
+  const QString css =
+      QStringLiteral("#write { color:#000000; }"
+                     "#write h2 { width:fit-content; padding:0 14px; border-radius:10px;"
+                     "  background-image:linear-gradient(#00aa00,#00aa00); border-top:3px solid #d00000; }");
+  const RenderTheme theme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("pill"), QString()));
   const QImage img = renderHeadingImage(theme, QStringLiteral("## Hi\n"));
   const QRect green = colorBBox(img, isGreen);
   const QRect red = colorBBox(img, isRed);
@@ -87,17 +89,18 @@ void testRoundedPillWithTopBorder() {
   // Control: the same pill WITHOUT border-radius has a square corner — pixel(0,0)
   // is painted (red border-top spans the full square top), proving the rounding
   // above is what cut the corner.
-  const QString squareCss = QStringLiteral(
-      "#write { color:#000000; }"
-      "#write h2 { width:fit-content; padding:0 14px;"
-      "  background-image:linear-gradient(#00aa00,#00aa00); border-top:3px solid #d00000; }");
-  const RenderTheme squareTheme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(squareCss, QStringLiteral("sq"), QString()));
+  const QString squareCss =
+      QStringLiteral("#write { color:#000000; }"
+                     "#write h2 { width:fit-content; padding:0 14px;"
+                     "  background-image:linear-gradient(#00aa00,#00aa00); border-top:3px solid #d00000; }");
+  const RenderTheme squareTheme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(squareCss, QStringLiteral("sq"), QString()));
   const QImage squareImg = renderHeadingImage(squareTheme, QStringLiteral("## Hi\n"));
   require(!isWhite(squareImg.pixel(0, 0)),
           QStringLiteral("square-pill corner (0,0) should be painted, unlike the rounded pill"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

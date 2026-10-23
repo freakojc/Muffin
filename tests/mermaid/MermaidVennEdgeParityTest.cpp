@@ -23,34 +23,34 @@ namespace {
   std::fprintf(stderr, "FAIL: %s\n", qPrintable(message));
   std::exit(1);
 }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
-void near(qreal actual, qreal expected, const QString& path,
-          qreal tolerance = 1e-6) {
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
+void near(qreal actual, qreal expected, const QString& path, qreal tolerance = 1e-6) {
   require((std::isnan(actual) && std::isnan(expected)) ||
               (std::isfinite(actual) && std::fabs(actual - expected) <= tolerance),
-          QStringLiteral("%1: %2 != %3").arg(path)
-              .arg(actual, 0, 'g', 17).arg(expected, 0, 'g', 17));
+          QStringLiteral("%1: %2 != %3").arg(path).arg(actual, 0, 'g', 17).arg(expected, 0, 'g', 17));
 }
 QVector<qreal> numbers(const QString& text) {
-  static const QRegularExpression re(
-      QStringLiteral(R"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"));
+  static const QRegularExpression re(QStringLiteral(R"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"));
   QVector<qreal> result;
   auto matches = re.globalMatch(text);
-  while (matches.hasNext()) result.append(matches.next().captured().toDouble());
+  while (matches.hasNext())
+    result.append(matches.next().captured().toDouble());
   return result;
 }
 QColor computedColor(const QString& value) {
-  static const QRegularExpression rgb(QStringLiteral(
-      R"(^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\))"));
+  static const QRegularExpression rgb(QStringLiteral(R"(^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\))"));
   const auto match = rgb.match(value);
-  if (!match.hasMatch()) return color::toQColor(value);
-  QColor result(match.captured(1).toInt(), match.captured(2).toInt(),
-                match.captured(3).toInt());
-  if (!match.captured(4).isEmpty()) result.setAlphaF(match.captured(4).toDouble());
+  if (!match.hasMatch())
+    return color::toQColor(value);
+  QColor result(match.captured(1).toInt(), match.captured(2).toInt(), match.captured(3).toInt());
+  if (!match.captured(4).isEmpty())
+    result.setAlphaF(match.captured(4).toDouble());
   return result;
 }
-void samePaint(const QString& actual, const QString& expected,
-               const QString& path) {
+void samePaint(const QString& actual, const QString& expected, const QString& path) {
   if (expected == QLatin1String("none")) {
     require(actual.isEmpty() || actual == QLatin1String("none"), path + "/none");
     return;
@@ -59,8 +59,11 @@ void samePaint(const QString& actual, const QString& expected,
   require(a.isValid() && b.isValid() && a.rgba() == b.rgba(),
           path + QStringLiteral(": ") + actual + QStringLiteral(" != ") + expected);
 }
-qreal px(QString value) { value.remove(QStringLiteral("px")); return value.toDouble(); }
-}  // namespace
+qreal px(QString value) {
+  value.remove(QStringLiteral("px"));
+  return value.toDouble();
+}
+} // namespace
 
 int main(int argc, char** argv) {
 #if defined(Q_OS_MACOS)
@@ -78,13 +81,11 @@ int main(int argc, char** argv) {
   require(file.open(QIODevice::ReadOnly), file.errorString());
   const QByteArray bytes = file.readAll();
   require(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex() ==
-              QByteArrayLiteral(
-                  "236b612c4995ef2b112aab836587e070b950355bae7998f8cab9ae664c112ce7"),
+              QByteArrayLiteral("236b612c4995ef2b112aab836587e070b950355bae7998f8cab9ae664c112ce7"),
           QStringLiteral("Venn config fixture bytes changed"));
   const QJsonObject root = QJsonDocument::fromJson(bytes).object();
   require(root.value(QStringLiteral("fixtureSha256")).toString() ==
-              QLatin1String(
-                  "647cd5c6b1c6a22add6393874811b774f998426154fd40f5f5e6e482e98bc1b0"),
+              QLatin1String("647cd5c6b1c6a22add6393874811b774f998426154fd40f5f5e6e482e98bc1b0"),
           QStringLiteral("Venn config provenance changed"));
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
   require(cases.size() == 34, QStringLiteral("Expected 34 config cases"));
@@ -95,8 +96,7 @@ int main(int argc, char** argv) {
     const QString id = fixture.value(QStringLiteral("id")).toString();
     const QString source = fixture.value(QStringLiteral("source")).toString();
     const auto entry = cache.getSync(editor::MermaidRenderCache::makeKey(source), source);
-    require(entry.status == editor::MermaidRenderStatus::Ready,
-            id + QStringLiteral(": ") + entry.errorMessage);
+    require(entry.status == editor::MermaidRenderStatus::Ready, id + QStringLiteral(": ") + entry.errorMessage);
     const auto scene = std::dynamic_pointer_cast<const venn::VennScene>(entry.scene);
     require(bool(scene), id + QStringLiteral("/scene"));
     const QJsonObject expected = fixture.value(QStringLiteral("expected")).toObject();
@@ -104,14 +104,15 @@ int main(int argc, char** argv) {
     const QJsonObject attrs = rootObject.value(QStringLiteral("attrs")).toObject();
     require(scene->viewBoxAttribute == attrs.value(QStringLiteral("viewBox")).toString(),
             id + QStringLiteral("/viewBox"));
-    require(scene->useMaxWidth ==
-                (attrs.value(QStringLiteral("width")).toString() == QLatin1String("100%")),
+    require(scene->useMaxWidth == (attrs.value(QStringLiteral("width")).toString() == QLatin1String("100%")),
             id + QStringLiteral("/useMaxWidth"));
     const QJsonObject client = rootObject.value(QStringLiteral("client")).toObject();
     require(entry.naturalSize == QSize(qRound(client.value(QStringLiteral("width")).toDouble()),
                                        qRound(client.value(QStringLiteral("height")).toDouble())),
             QStringLiteral("%1/natural %2x%3 expected %4x%5")
-                .arg(id).arg(entry.naturalSize.width()).arg(entry.naturalSize.height())
+                .arg(id)
+                .arg(entry.naturalSize.width())
+                .arg(entry.naturalSize.height())
                 .arg(client.value(QStringLiteral("width")).toDouble())
                 .arg(client.value(QStringLiteral("height")).toDouble()));
 
@@ -136,8 +137,7 @@ int main(int argc, char** argv) {
       }
       const QJsonObject text = area.value(QStringLiteral("textElement")).toObject();
       samePaint(actual.label.fill,
-                text.value(QStringLiteral("computed")).toObject()
-                    .value(QStringLiteral("fill")).toString(),
+                text.value(QStringLiteral("computed")).toObject().value(QStringLiteral("fill")).toString(),
                 path + "/label");
     }
 
@@ -148,8 +148,7 @@ int main(int argc, char** argv) {
       require(scene->titleText.source == expectedTitle.value(QStringLiteral("text")).toString(),
               id + QStringLiteral("/title text"));
       samePaint(scene->titleText.fill,
-                expectedTitle.value(QStringLiteral("computed")).toObject()
-                    .value(QStringLiteral("fill")).toString(),
+                expectedTitle.value(QStringLiteral("computed")).toObject().value(QStringLiteral("fill")).toString(),
                 id + QStringLiteral("/title color"));
     }
     const QJsonArray foreign = expected.value(QStringLiteral("foreignObjects")).toArray();
@@ -163,14 +162,11 @@ int main(int argc, char** argv) {
       near(box.width(), objectAttrs.value(QStringLiteral("width")).toString().toDouble(), id + "/text/w");
       near(box.height(), objectAttrs.value(QStringLiteral("height")).toString().toDouble(), id + "/text/h");
     }
-    require(scene->debugCircles.size() ==
-                expected.value(QStringLiteral("debugCircles")).toArray().size(),
+    require(scene->debugCircles.size() == expected.value(QStringLiteral("debugCircles")).toArray().size(),
             id + QStringLiteral("/debug circles"));
-    require(scene->debugCells.size() ==
-                expected.value(QStringLiteral("debugCells")).toArray().size(),
+    require(scene->debugCells.size() == expected.value(QStringLiteral("debugCells")).toArray().size(),
             id + QStringLiteral("/debug cells"));
-    require(entry.metadata.title.isEmpty() && !entry.metadata.svgEmitAccessibleTitle,
-            id + QStringLiteral("/metadata"));
+    require(entry.metadata.title.isEmpty() && !entry.metadata.svgEmitAccessibleTitle, id + QStringLiteral("/metadata"));
   }
   std::puts("MermaidVennEdgeParityTest: 34/34 passed");
   return 0;

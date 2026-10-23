@@ -41,4 +41,4 @@ private:
   SortBy sortBy_ = SortBy::Name;
 };
 
-}  // namespace muffin
+} // namespace muffin

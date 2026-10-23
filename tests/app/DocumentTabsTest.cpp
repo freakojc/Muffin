@@ -77,7 +77,9 @@ void waitUntil(const std::function<bool()>& ready, const char* message) {
 
 QAction* action(MainWindow& window, const QString& text) {
   for (QAction* candidate : window.findChildren<QAction*>()) {
-    if (candidate->text() == text) { return candidate; }
+    if (candidate->text() == text) {
+      return candidate;
+    }
   }
   require(false, QStringLiteral("Missing action: %1").arg(text));
   return nullptr;
@@ -147,8 +149,9 @@ void exportPreferencesAndOutputs() {
   paper->setCurrentIndex(paper->findData("A5"));
   require(page->findChild<QDoubleSpinBox*>("ExportPdfWidth")->value() == 148.0, "preset dimensions update in the form");
   paper->setCurrentIndex(paper->findData("Custom"));
-  require(page->findChild<QDoubleSpinBox*>("ExportPdfWidth")->value() == 174.2
-      && page->findChild<QDoubleSpinBox*>("ExportPdfHeight")->value() == 230.5, "paper presets preserve custom dimensions");
+  require(page->findChild<QDoubleSpinBox*>("ExportPdfWidth")->value() == 174.2 &&
+              page->findChild<QDoubleSpinBox*>("ExportPdfHeight")->value() == 230.5,
+          "paper presets preserve custom dimensions");
   paper->setCurrentIndex(paper->findData("A5"));
   page->findChild<QCheckBox*>("ExportPdfLandscape")->setChecked(true);
   formats->setCurrentRow(2);
@@ -156,19 +159,22 @@ void exportPreferencesAndOutputs() {
   page->findChild<QComboBox*>("ExportTheme")->setCurrentIndex(1);
   page->findChild<QPlainTextEdit*>("ExportHtmlHead")->setPlainText("<meta name=\"author\" content=\"Muffin\">");
   formats->setCurrentRow(3);
-  require(!page->findChild<QCheckBox*>("ExportHtmlOutline")->isChecked()
-      && !page->findChild<QComboBox*>("ExportTheme"), "unstyled HTML has independent settings and no theme picker");
+  require(!page->findChild<QCheckBox*>("ExportHtmlOutline")->isChecked() && !page->findChild<QComboBox*>("ExportTheme"),
+          "unstyled HTML has independent settings and no theme picker");
   formats->setCurrentRow(4);
   page->findChild<QSpinBox*>("ExportImageWidth")->setValue(640);
   page->findChild<QComboBox*>("ExportImageScale")->setCurrentIndex(1);
   formats->setCurrentRow(5);
-  require(page->findChild<QLineEdit*>("ExportReferenceDocument") && !page->findChild<QLineEdit*>("ExportEpubCss"), "Word shows a reference template");
+  require(page->findChild<QLineEdit*>("ExportReferenceDocument") && !page->findChild<QLineEdit*>("ExportEpubCss"),
+          "Word shows a reference template");
   formats->setCurrentRow(8);
-  require(page->findChild<QLineEdit*>("ExportEpubCss") && page->findChild<QSpinBox*>("ExportTocDepth")
-      && !page->findChild<QLineEdit*>("ExportReferenceDocument"), "EPUB has CSS and TOC options");
+  require(page->findChild<QLineEdit*>("ExportEpubCss") && page->findChild<QSpinBox*>("ExportTocDepth") &&
+              !page->findChild<QLineEdit*>("ExportReferenceDocument"),
+          "EPUB has CSS and TOC options");
   formats->setCurrentRow(1);
-  require(page->findChild<QComboBox*>("ExportPdfPaper")->currentData() == "A5"
-      && page->findChild<QCheckBox*>("ExportPdfLandscape")->isChecked(), "switching formats retains independent settings");
+  require(page->findChild<QComboBox*>("ExportPdfPaper")->currentData() == "A5" &&
+              page->findChild<QCheckBox*>("ExportPdfLandscape")->isChecked(),
+          "switching formats retains independent settings");
   const auto captures = qEnvironmentVariable("MUFFIN_EXPORT_SCREENSHOT_DIR");
   if (!captures.isEmpty()) {
     QDir().mkpath(captures);
@@ -177,7 +183,8 @@ void exportPreferencesAndOutputs() {
       for (int row : {0, 1, 2, 3, 4, 5, 8}) {
         formats->setCurrentRow(row);
         QApplication::processEvents();
-        require(preferences.grab().save(QDir(captures).filePath(language + QString::number(row) + ".png")), "capture real export settings");
+        require(preferences.grab().save(QDir(captures).filePath(language + QString::number(row) + ".png")),
+                "capture real export settings");
       }
     }
     LanguageManager::instance().setLanguage("en");
@@ -214,9 +221,12 @@ void exportPreferencesAndOutputs() {
   };
   const auto html = f.directory.filePath("note.html");
   exportTo("HTML", html);
-  QFile out(html); require(out.open(QIODevice::ReadOnly), "read menu-exported HTML");
-  const auto contents = out.readAll(); out.close();
-  require(contents.contains("muffin-heading-1") && contents.contains("name=\"author\""), "HTML menu consumes its saved options");
+  QFile out(html);
+  require(out.open(QIODevice::ReadOnly), "read menu-exported HTML");
+  const auto contents = out.readAll();
+  out.close();
+  require(contents.contains("muffin-heading-1") && contents.contains("name=\"author\""),
+          "HTML menu consumes its saved options");
   require(contents.contains("--side-bar-bg-color"), "default light theme uses the bundled theme stylesheet");
   exportTo("PDF", f.directory.filePath("note.pdf"));
   const auto image = f.directory.filePath("note.png");
@@ -226,27 +236,34 @@ void exportPreferencesAndOutputs() {
   QSettings().setValue("export/docx/arguments", "--metadata title=Test");
   const auto word = f.directory.filePath("note.docx");
   exportTo("Word (.docx)", word);
-  QFile converted(word); require(converted.open(QIODevice::ReadOnly), "read fake converter output");
-  require(converted.readAll().contains("title=Test"), "Word menu passes its saved arguments"); converted.close();
+  QFile converted(word);
+  require(converted.open(QIODevice::ReadOnly), "read fake converter output");
+  require(converted.readAll().contains("title=Test"), "Word menu passes its saved arguments");
+  converted.close();
   QSettings().setValue("export/docx/arguments", "--fake-export-failure");
   QTimer dismiss;
   dismiss.setInterval(5);
   QObject::connect(&dismiss, &QTimer::timeout, &f.window, [] {
-    if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) box->accept();
+    if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget()))
+      box->accept();
   });
   // Choose the existing file and suppress only the expected failure message.
   QTimer choose;
   choose.setInterval(5);
   QObject::connect(&choose, &QTimer::timeout, &f.window, [&] {
     if (auto* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
-      dialog->setOption(QFileDialog::DontConfirmOverwrite, true); dialog->selectFile(word);
+      dialog->setOption(QFileDialog::DontConfirmOverwrite, true);
+      dialog->selectFile(word);
       QMetaObject::invokeMethod(dialog, "accept", Qt::DirectConnection);
     }
   });
-  dismiss.start(); choose.start();
+  dismiss.start();
+  choose.start();
   action(f.window, "Word (.docx)")->trigger();
-  dismiss.stop(); choose.stop();
-  require(converted.open(QIODevice::ReadOnly) && converted.readAll().contains("title=Test"), "failed conversion preserves an existing destination");
+  dismiss.stop();
+  choose.stop();
+  require(converted.open(QIODevice::ReadOnly) && converted.readAll().contains("title=Test"),
+          "failed conversion preserves an existing destination");
   QSettings().remove("export/pandocPath");
   QSettings().remove("export/docx/arguments");
 }
@@ -256,50 +273,74 @@ void noteLinkRewriting() {
   const auto oldPath = root + QStringLiteral("/notes/方案.md");
   const auto newPath = root + QStringLiteral("/archive/new name.md");
   const auto source = root + QStringLiteral("/index.md");
-  const QString before = QStringLiteral(
-      "# 项目总览\n\n[方案](notes/方案.md#第一节 \"保留标题\")\n\n"
-      "[引用][plan]\n\n[plan]: <notes/方案.md#第一节> \"定义标题\"\n\n"
-      "![图片](notes/方案.md)\n\n[网页](https://example.com/notes/方案.md)\n\n"
-      "`[代码](notes/方案.md)`\n\n```md\n[代码](notes/方案.md)\n```\n\n"
-      "[本页](#项目总览)\n\n[附件](assets/a.png)\n");
+  const QString before = QStringLiteral("# 项目总览\n\n[方案](notes/方案.md#第一节 \"保留标题\")\n\n"
+                                        "[引用][plan]\n\n[plan]: <notes/方案.md#第一节> \"定义标题\"\n\n"
+                                        "![图片](notes/方案.md)\n\n[网页](https://example.com/notes/方案.md)\n\n"
+                                        "`[代码](notes/方案.md)`\n\n```md\n[代码](notes/方案.md)\n```\n\n"
+                                        "[本页](#项目总览)\n\n[附件](assets/a.png)\n");
   int count = 0;
   const auto after = NoteLinks::rewrite(before, source, oldPath, newPath, &count);
   require(count == 3, QStringLiteral("rewrite inline, definition and image only, got %1: %2").arg(count).arg(after));
-  require(after.contains(QStringLiteral("[方案](archive/new%20name.md#%E7%AC%AC%E4%B8%80%E8%8A%82 \"保留标题\")")), "encoded path and fragment keep link title");
-  require(after.contains(QStringLiteral("[plan]: <archive/new%20name.md#%E7%AC%AC%E4%B8%80%E8%8A%82> \"定义标题\"")), "reference definition keeps angle delimiters and title");
-  require(after.contains(QStringLiteral("`[代码](notes/方案.md)`")) && after.contains(QStringLiteral("```md\n[代码](notes/方案.md)")), "code examples unchanged");
-  const auto outgoing = NoteLinks::rewrite(QStringLiteral("[总览](../index.md)\n\n![图](images/a.png)\n"), oldPath, oldPath, newPath, &count);
-  require(count == 1 && outgoing.contains(QStringLiteral("../notes/images/a.png")), "moving a note rebases its outgoing images");
-  const auto folder = NoteLinks::rewrite(QStringLiteral("[内链](方案.md)\n\n[外链](../index.md)\n"), oldPath,
-      root + QStringLiteral("/notes"), root + QStringLiteral("/deep/archive"), &count);
-  require(count == 1 && folder.contains(QStringLiteral("[内链](方案.md)")) && folder.contains(QStringLiteral("../../index.md")), "folder move preserves internal links and rebases outgoing ones");
-  const auto nested = NoteLinks::rewrite(QStringLiteral("[![a](notes/方案.md)](notes/方案.md)\n\n[x\\] y](notes/方案.md)\n"), source, oldPath, newPath, &count);
+  require(after.contains(QStringLiteral("[方案](archive/new%20name.md#%E7%AC%AC%E4%B8%80%E8%8A%82 \"保留标题\")")),
+          "encoded path and fragment keep link title");
+  require(after.contains(QStringLiteral("[plan]: <archive/new%20name.md#%E7%AC%AC%E4%B8%80%E8%8A%82> \"定义标题\"")),
+          "reference definition keeps angle delimiters and title");
+  require(after.contains(QStringLiteral("`[代码](notes/方案.md)`")) &&
+              after.contains(QStringLiteral("```md\n[代码](notes/方案.md)")),
+          "code examples unchanged");
+  const auto outgoing = NoteLinks::rewrite(QStringLiteral("[总览](../index.md)\n\n![图](images/a.png)\n"), oldPath,
+                                           oldPath, newPath, &count);
+  require(count == 1 && outgoing.contains(QStringLiteral("../notes/images/a.png")),
+          "moving a note rebases its outgoing images");
+  const auto folder =
+      NoteLinks::rewrite(QStringLiteral("[内链](方案.md)\n\n[外链](../index.md)\n"), oldPath,
+                         root + QStringLiteral("/notes"), root + QStringLiteral("/deep/archive"), &count);
+  require(count == 1 && folder.contains(QStringLiteral("[内链](方案.md)")) &&
+              folder.contains(QStringLiteral("../../index.md")),
+          "folder move preserves internal links and rebases outgoing ones");
+  const auto nested =
+      NoteLinks::rewrite(QStringLiteral("[![a](notes/方案.md)](notes/方案.md)\n\n[x\\] y](notes/方案.md)\n"), source,
+                         oldPath, newPath, &count);
   require(count == 3, QStringLiteral("nested images and escaped labels use source destinations: %1").arg(nested));
-  const auto codeLabels = NoteLinks::rewrite(QStringLiteral("[`a](notes/方案.md) b`](notes/方案.md)\n\n[`[unbalanced`](notes/方案.md)\n"), source, oldPath, newPath, &count);
-  require(count == 2 && codeLabels.contains(QStringLiteral("`a](notes/方案.md) b`"))
-      && codeLabels.contains(QStringLiteral("`[unbalanced`")), "bracket-like code inside link labels is never rewritten as a destination");
+  const auto codeLabels =
+      NoteLinks::rewrite(QStringLiteral("[`a](notes/方案.md) b`](notes/方案.md)\n\n[`[unbalanced`](notes/方案.md)\n"),
+                         source, oldPath, newPath, &count);
+  require(count == 2 && codeLabels.contains(QStringLiteral("`a](notes/方案.md) b`")) &&
+              codeLabels.contains(QStringLiteral("`[unbalanced`")),
+          "bracket-like code inside link labels is never rewritten as a destination");
   QTemporaryDir encodedFolder;
   const auto encodedPath = encodedFolder.filePath("index.md");
   TextFileFormat format;
-  format.encodingName = QStringLiteral("UTF-16LE"); format.writeBom = true; format.lineEnding = TextLineEnding::Crlf;
+  format.encodingName = QStringLiteral("UTF-16LE");
+  format.writeBom = true;
+  format.lineEnding = TextLineEnding::Crlf;
   QByteArray originalBytes;
-  require(FileController::encodeTextBytes(QStringLiteral("# Note\n\n[link](old.md)\n"), format, &originalBytes), "encode UTF-16 note");
-  QFile encodedFile(encodedPath); require(encodedFile.open(QIODevice::WriteOnly), "create encoded note");
-  require(encodedFile.write(originalBytes) == originalBytes.size(), "write UTF-16 note"); encodedFile.close();
-  const auto encoded = NoteLinks::prepare(encodedFolder.path(), encodedFolder.filePath("old.md"), encodedFolder.filePath(QStringLiteral("新 方案.md")), {}, {});
-  require(encoded.complete && encoded.changes.size() == 1 && encoded.changes[0].file.before == originalBytes, "encoding-aware preview retains exact original bytes");
-  QString decoded; TextFileFormat detected;
-  require(FileController::decodeTextBytes(encoded.changes[0].file.after, &decoded, &detected)
-      && detected.encodingName == format.encodingName && detected.writeBom && detected.lineEnding == TextLineEnding::Crlf,
-      "link updates preserve UTF-16 BOM and CRLF");
+  require(FileController::encodeTextBytes(QStringLiteral("# Note\n\n[link](old.md)\n"), format, &originalBytes),
+          "encode UTF-16 note");
+  QFile encodedFile(encodedPath);
+  require(encodedFile.open(QIODevice::WriteOnly), "create encoded note");
+  require(encodedFile.write(originalBytes) == originalBytes.size(), "write UTF-16 note");
+  encodedFile.close();
+  const auto encoded = NoteLinks::prepare(encodedFolder.path(), encodedFolder.filePath("old.md"),
+                                          encodedFolder.filePath(QStringLiteral("新 方案.md")), {}, {});
+  require(encoded.complete && encoded.changes.size() == 1 && encoded.changes[0].file.before == originalBytes,
+          "encoding-aware preview retains exact original bytes");
+  QString decoded;
+  TextFileFormat detected;
+  require(FileController::decodeTextBytes(encoded.changes[0].file.after, &decoded, &detected) &&
+              detected.encodingName == format.encodingName && detected.writeBom &&
+              detected.lineEnding == TextLineEnding::Crlf,
+          "link updates preserve UTF-16 BOM and CRLF");
 }
 
 void noteLinkNavigation() {
   Fixture f;
-  const auto aPath = f.file(QStringLiteral("总览.md"), QStringLiteral("# 总览\n\n")
-      + QStringLiteral("阅读段落 [方案](方案%20一.md#重复-1)\n\n").repeated(180));
-  const auto bPath = f.file(QStringLiteral("方案 一.md"), QStringLiteral("# 开头\n\n") + QStringLiteral("背景\n\n").repeated(160)
-      + QStringLiteral("## 重复\n\n一\n\n## 重复\n\n二\n\n## Hello World!\n\n结尾\n"));
+  const auto aPath =
+      f.file(QStringLiteral("总览.md"),
+             QStringLiteral("# 总览\n\n") + QStringLiteral("阅读段落 [方案](方案%20一.md#重复-1)\n\n").repeated(180));
+  const auto bPath = f.file(QStringLiteral("方案 一.md"),
+                            QStringLiteral("# 开头\n\n") + QStringLiteral("背景\n\n").repeated(160) +
+                                QStringLiteral("## 重复\n\n一\n\n## 重复\n\n二\n\n## Hello World!\n\n结尾\n"));
   auto* a = f.open(aPath);
   a->editorController.setCursorForSourceOffset(200);
   a->renderView->verticalScrollBar()->setValue(a->renderView->verticalScrollBar()->maximum() / 2);
@@ -308,23 +349,37 @@ void noteLinkNavigation() {
   QPoint linkPoint(-1, -1);
   for (int y = 4; y < a->renderView->viewport()->height() && linkPoint.x() < 0; y += 8)
     for (int x = 4; x < a->renderView->viewport()->width(); x += 8)
-      if (!a->renderView->hitTest(QPointF(x, y)).linkHref.isEmpty()) { linkPoint = QPoint(x, y); break; }
+      if (!a->renderView->hitTest(QPointF(x, y)).linkHref.isEmpty()) {
+        linkPoint = QPoint(x, y);
+        break;
+      }
   require(linkPoint.x() >= 0, "find rendered link in reading viewport");
   QTest::mouseClick(a->renderView->viewport(), Qt::LeftButton, Qt::ControlModifier, linkPoint);
-  waitUntil([&] { return f.current() != a && !f.current()->session.isOpenInProgress() && action(f.window, "Back")->isEnabled(); }, "local link opens and completes navigation");
+  waitUntil(
+      [&] {
+        return f.current() != a && !f.current()->session.isOpenInProgress() && action(f.window, "Back")->isEnabled();
+      },
+      "local link opens and completes navigation");
   auto* b = f.current();
   require(b->session.filePath() == bPath && !b->backend->isSourceMode(), "local Markdown uses live preview in a tab");
   const auto heading = NoteLinks::headingTarget(b->session.document().outline(), QStringLiteral("重复-1"));
-  require(b->editorController.selection().cursorPosition().blockId == heading, "duplicate Chinese heading anchor selected");
+  require(b->editorController.selection().cursorPosition().blockId == heading,
+          "duplicate Chinese heading anchor selected");
   action(f.window, "Back")->trigger();
-  waitUntil([&] { return f.current() == a && action(f.window, "Forward")->isEnabled(); }, "back returns to source note");
+  waitUntil([&] { return f.current() == a && action(f.window, "Forward")->isEnabled(); },
+            "back returns to source note");
   const auto restored = a->renderView->viewportPosition();
-  require(qAbs(restored.sourceOffset - original.sourceOffset) < 2 && qAbs(restored.screenOffset - original.screenOffset) < 2, "back preserves reading paragraph and pixel offset");
+  require(qAbs(restored.sourceOffset - original.sourceOffset) < 2 &&
+              qAbs(restored.screenOffset - original.screenOffset) < 2,
+          "back preserves reading paragraph and pixel offset");
   action(f.window, "Forward")->trigger();
-  waitUntil([&] { return f.current() == b && action(f.window, "Back")->isEnabled(); }, "forward returns to destination");
+  waitUntil([&] { return f.current() == b && action(f.window, "Back")->isEnabled(); },
+            "forward returns to destination");
   b->renderView->linkActivated(QStringLiteral("#hello-world"));
   QApplication::processEvents();
-  require(b->editorController.selection().cursorPosition().blockId == NoteLinks::headingTarget(b->session.document().outline(), "hello-world"), "current-file heading anchor resolves formatted slug");
+  require(b->editorController.selection().cursorPosition().blockId ==
+              NoteLinks::headingTarget(b->session.document().outline(), "hello-world"),
+          "current-file heading anchor resolves formatted slug");
   b->renderView->linkActivated(QStringLiteral("missing.md#标题"));
   QApplication::processEvents();
   require(f.current() == b && f.tabs->count() == 2, "missing local target does not open an empty tab");
@@ -332,7 +387,8 @@ void noteLinkNavigation() {
   action(f.window, "Back")->trigger();
   QApplication::processEvents();
   action(f.window, "Back")->trigger();
-  waitUntil([&] { return f.current()->session.filePath() == aPath && action(f.window, "Forward")->isEnabled(); }, "history reopens a closed note");
+  waitUntil([&] { return f.current()->session.filePath() == aPath && action(f.window, "Forward")->isEnabled(); },
+            "history reopens a closed note");
   auto* reopened = f.current();
   action(f.window, "Source Code Mode")->trigger();
   require(reopened->backend->isSourceMode(), "switch origin to source mode");
@@ -341,73 +397,98 @@ void noteLinkNavigation() {
   sourceView->verticalScrollBar()->setValue(sourceView->verticalScrollBar()->maximum() / 3);
   const auto sourcePosition = reopened->editor->viewportPosition();
   reopened->renderView->linkActivated(QStringLiteral("方案%20一.md#Hello%20World!"));
-  waitUntil([&] { return f.current() == b && action(f.window, "Back")->isEnabled(); }, "raw heading title and existing destination tab resolve");
+  waitUntil([&] { return f.current() == b && action(f.window, "Back")->isEnabled(); },
+            "raw heading title and existing destination tab resolve");
   action(f.window, "Back")->trigger();
-  waitUntil([&] { return f.current() == reopened && action(f.window, "Forward")->isEnabled(); }, "return from live preview to source note");
-  require(reopened->backend->isSourceMode() && qAbs(reopened->editor->viewportPosition().sourceOffset - sourcePosition.sourceOffset) < 2,
-      "history preserves source mode and reading location");
+  waitUntil([&] { return f.current() == reopened && action(f.window, "Forward")->isEnabled(); },
+            "return from live preview to source note");
+  require(reopened->backend->isSourceMode() &&
+              qAbs(reopened->editor->viewportPosition().sourceOffset - sourcePosition.sourceOffset) < 2,
+          "history preserves source mode and reading location");
 }
 
 void noteLinkRenamePreview() {
   for (bool sourceMode : {false, true}) {
-  Fixture f;
-  const auto target = f.file(QStringLiteral("方案.md"), QStringLiteral("# 方案\n\n正文\n"));
-  const auto index = f.file(QStringLiteral("总览.md"), QStringLiteral("# 总览\n\n[方案](方案.md#方案)\n"));
-  auto* source = f.open(index);
-  if (sourceMode) action(f.window, "Source Code Mode")->trigger();
-  f.window.openFolderAtPath(f.directory.path());
-  auto* sidebar = f.window.findChild<SidebarWidget*>();
-  const auto answer = [&](const QString& button) {
-    auto* timer = new QTimer(&f.window); timer->setInterval(5);
-    QObject::connect(timer, &QTimer::timeout, &f.window, [&, timer, button] {
-      auto* dialog = f.window.findChild<QDialog*>(QStringLiteral("NoteLinkPreview"));
-      if (!dialog || !dialog->isVisible()) return;
-      require(dialog->findChild<QTreeWidget*>("NoteLinkFiles")->topLevelItemCount() == 1, "preview lists affected note");
-      require(!dialog->findChild<QPlainTextEdit*>("NoteLinkDiff")->toPlainText().isEmpty(), "preview shows actual changed links");
-      if (qEnvironmentVariableIsSet("MUFFIN_NOTE_LINK_SCREENSHOT")) dialog->grab().save(qEnvironmentVariable("MUFFIN_NOTE_LINK_SCREENSHOT"));
-      timer->stop();
-      if (button.isEmpty()) dialog->reject();
-      else dialog->findChild<QPushButton*>(button)->click();
-      timer->deleteLater();
-    }); timer->start();
-  };
-  answer({});
-  sidebar->inlineCommitRequested(InlineEditContext{target, false, false}, QStringLiteral("新方案.md"));
-  require(QFileInfo::exists(target), "canceling preview leaves filename unchanged");
-  answer(QStringLiteral("NoteLinkApply"));
-  sidebar->inlineCommitRequested(InlineEditContext{target, false, false}, QStringLiteral("新方案.md"));
-  const auto renamed = f.directory.filePath(QStringLiteral("新方案.md"));
-  require(QFileInfo::exists(renamed) && !QFileInfo::exists(target), "rename completes after update preview");
-  require(source->session.markdownText().toString().contains(QStringLiteral("%E6%96%B0%E6%96%B9%E6%A1%88.md#%E6%96%B9%E6%A1%88")), "open clean note reloads updated link");
-  require(!source->session.document().isModified(), "clean note stays clean after disk update");
-  if (sourceMode) {
-    source->editor->moveDocumentEnd(); source->editor->insertText(QStringLiteral("\n未保存草稿\n"));
-  } else {
-    source->editorController.applyMarkdownTextWithUndo(source->session.markdownText().toString() + QStringLiteral("\n未保存草稿\n"), "draft");
-  }
-  answer(QStringLiteral("NoteLinkApply"));
-  const auto priorAnchor = source->editor->anchorPosition(), priorFocus = source->editor->cursorPosition();
-  sidebar->inlineCommitRequested(InlineEditContext{renamed, false, false}, QStringLiteral("最终.md"));
-  require(source->session.document().isModified() && source->session.markdownText().toString().contains(QStringLiteral("未保存草稿")), "dirty note updates in memory without losing draft");
-  QFile disk(index); require(disk.open(QIODevice::ReadOnly), "read note on disk");
-  const auto diskText = QString::fromUtf8(disk.readAll());
-  require(!diskText.contains(QStringLiteral("未保存草稿")) && diskText.contains(QStringLiteral("%E6%96%B0")), "dirty note is not silently saved");
-  source->backend->undo();
-  require(source->session.markdownText().toString().contains(QStringLiteral("%E6%96%B0")), "unsaved link update is one undoable step");
-  if (sourceMode) require(source->editor->anchorPosition() == priorAnchor && source->editor->cursorPosition() == priorFocus,
-      "source undo restores the selection before the batch update");
+    Fixture f;
+    const auto target = f.file(QStringLiteral("方案.md"), QStringLiteral("# 方案\n\n正文\n"));
+    const auto index = f.file(QStringLiteral("总览.md"), QStringLiteral("# 总览\n\n[方案](方案.md#方案)\n"));
+    auto* source = f.open(index);
+    if (sourceMode)
+      action(f.window, "Source Code Mode")->trigger();
+    f.window.openFolderAtPath(f.directory.path());
+    auto* sidebar = f.window.findChild<SidebarWidget*>();
+    const auto answer = [&](const QString& button) {
+      auto* timer = new QTimer(&f.window);
+      timer->setInterval(5);
+      QObject::connect(timer, &QTimer::timeout, &f.window, [&, timer, button] {
+        auto* dialog = f.window.findChild<QDialog*>(QStringLiteral("NoteLinkPreview"));
+        if (!dialog || !dialog->isVisible())
+          return;
+        require(dialog->findChild<QTreeWidget*>("NoteLinkFiles")->topLevelItemCount() == 1,
+                "preview lists affected note");
+        require(!dialog->findChild<QPlainTextEdit*>("NoteLinkDiff")->toPlainText().isEmpty(),
+                "preview shows actual changed links");
+        if (qEnvironmentVariableIsSet("MUFFIN_NOTE_LINK_SCREENSHOT"))
+          dialog->grab().save(qEnvironmentVariable("MUFFIN_NOTE_LINK_SCREENSHOT"));
+        timer->stop();
+        if (button.isEmpty())
+          dialog->reject();
+        else
+          dialog->findChild<QPushButton*>(button)->click();
+        timer->deleteLater();
+      });
+      timer->start();
+    };
+    answer({});
+    sidebar->inlineCommitRequested(InlineEditContext{target, false, false}, QStringLiteral("新方案.md"));
+    require(QFileInfo::exists(target), "canceling preview leaves filename unchanged");
+    answer(QStringLiteral("NoteLinkApply"));
+    sidebar->inlineCommitRequested(InlineEditContext{target, false, false}, QStringLiteral("新方案.md"));
+    const auto renamed = f.directory.filePath(QStringLiteral("新方案.md"));
+    require(QFileInfo::exists(renamed) && !QFileInfo::exists(target), "rename completes after update preview");
+    require(source->session.markdownText().toString().contains(
+                QStringLiteral("%E6%96%B0%E6%96%B9%E6%A1%88.md#%E6%96%B9%E6%A1%88")),
+            "open clean note reloads updated link");
+    require(!source->session.document().isModified(), "clean note stays clean after disk update");
+    if (sourceMode) {
+      source->editor->moveDocumentEnd();
+      source->editor->insertText(QStringLiteral("\n未保存草稿\n"));
+    } else {
+      source->editorController.applyMarkdownTextWithUndo(
+          source->session.markdownText().toString() + QStringLiteral("\n未保存草稿\n"), "draft");
+    }
+    answer(QStringLiteral("NoteLinkApply"));
+    const auto priorAnchor = source->editor->anchorPosition(), priorFocus = source->editor->cursorPosition();
+    sidebar->inlineCommitRequested(InlineEditContext{renamed, false, false}, QStringLiteral("最终.md"));
+    require(source->session.document().isModified() &&
+                source->session.markdownText().toString().contains(QStringLiteral("未保存草稿")),
+            "dirty note updates in memory without losing draft");
+    QFile disk(index);
+    require(disk.open(QIODevice::ReadOnly), "read note on disk");
+    const auto diskText = QString::fromUtf8(disk.readAll());
+    require(!diskText.contains(QStringLiteral("未保存草稿")) && diskText.contains(QStringLiteral("%E6%96%B0")),
+            "dirty note is not silently saved");
+    source->backend->undo();
+    require(source->session.markdownText().toString().contains(QStringLiteral("%E6%96%B0")),
+            "unsaved link update is one undoable step");
+    if (sourceMode)
+      require(source->editor->anchorPosition() == priorAnchor && source->editor->cursorPosition() == priorFocus,
+              "source undo restores the selection before the batch update");
   }
 }
 
 void noteLinkMoveAndConflicts() {
   Fixture f;
-  require(QDir().mkpath(f.directory.filePath("old/images")) && QDir().mkpath(f.directory.filePath("deep/archive")), "create move folders");
-  const auto target = f.file("old/plan.md", QStringLiteral("# Plan\n\n[Home](../index.md#home)\n\n![image](images/a.png)\n"));
+  require(QDir().mkpath(f.directory.filePath("old/images")) && QDir().mkpath(f.directory.filePath("deep/archive")),
+          "create move folders");
+  const auto target =
+      f.file("old/plan.md", QStringLiteral("# Plan\n\n[Home](../index.md#home)\n\n![image](images/a.png)\n"));
   const auto index = f.file("index.md", QStringLiteral("# Home\n\n[plan](old/plan.md#plan)\n"));
   auto* moved = f.open(target);
   f.window.openFolderAtPath(f.directory.path());
   const auto destination = f.directory.filePath("deep/archive/plan.md");
-  QTimer choose; choose.setInterval(5);
+  QTimer choose;
+  choose.setInterval(5);
   QObject::connect(&choose, &QTimer::timeout, &f.window, [&] {
     if (auto* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
       dialog->selectFile(destination);
@@ -415,202 +496,263 @@ void noteLinkMoveAndConflicts() {
       choose.stop();
     }
   });
-  QTimer apply; apply.setInterval(5);
+  QTimer apply;
+  apply.setInterval(5);
   QObject::connect(&apply, &QTimer::timeout, &f.window, [&] {
     auto* dialog = f.window.findChild<QDialog*>("NoteLinkPreview");
-    if (!dialog || !dialog->isVisible()) return;
-    require(dialog->findChild<QTreeWidget*>("NoteLinkFiles")->topLevelItemCount() == 2, "move preview includes incoming and outgoing links");
-    apply.stop(); dialog->findChild<QPushButton*>("NoteLinkApply")->click();
+    if (!dialog || !dialog->isVisible())
+      return;
+    require(dialog->findChild<QTreeWidget*>("NoteLinkFiles")->topLevelItemCount() == 2,
+            "move preview includes incoming and outgoing links");
+    apply.stop();
+    dialog->findChild<QPushButton*>("NoteLinkApply")->click();
   });
-  choose.start(); apply.start();
+  choose.start();
+  apply.start();
   action(f.window, "Move To...")->trigger();
-  require(moved->session.filePath() == destination && QFileInfo::exists(destination) && !QFileInfo::exists(target), "move updates the open tab and disk path");
-  require(moved->session.markdownText().toString().contains("../../old/images/a.png")
-      && moved->session.markdownText().toString().contains("../../index.md#home"), "moved note retains image and outgoing heading targets");
-  QFile incoming(index); require(incoming.open(QIODevice::ReadOnly), "read incoming links after move");
-  require(incoming.readAll().contains("deep/archive/plan.md#plan"), "incoming links follow moved note"); incoming.close();
+  require(moved->session.filePath() == destination && QFileInfo::exists(destination) && !QFileInfo::exists(target),
+          "move updates the open tab and disk path");
+  require(moved->session.markdownText().toString().contains("../../old/images/a.png") &&
+              moved->session.markdownText().toString().contains("../../index.md#home"),
+          "moved note retains image and outgoing heading targets");
+  QFile incoming(index);
+  require(incoming.open(QIODevice::ReadOnly), "read incoming links after move");
+  require(incoming.readAll().contains("deep/archive/plan.md#plan"), "incoming links follow moved note");
+  incoming.close();
 
   // Change a note on disk after preview; this must abort before renaming anything.
-  QTimer conflict; conflict.setInterval(5);
+  QTimer conflict;
+  conflict.setInterval(5);
   QObject::connect(&conflict, &QTimer::timeout, &f.window, [&] {
     if (auto* message = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
       require(message->text().contains("changed on disk"), "conflicting disk changes are explained");
-      conflict.stop(); message->accept(); return;
+      conflict.stop();
+      message->accept();
+      return;
     }
     auto* dialog = f.window.findChild<QDialog*>("NoteLinkPreview");
-    if (!dialog || !dialog->isVisible()) return;
-    QFile changed(index); require(changed.open(QIODevice::WriteOnly | QIODevice::Truncate), "edit disk after preview");
-    changed.write("external edit\n"); changed.close();
+    if (!dialog || !dialog->isVisible())
+      return;
+    QFile changed(index);
+    require(changed.open(QIODevice::WriteOnly | QIODevice::Truncate), "edit disk after preview");
+    changed.write("external edit\n");
+    changed.close();
     dialog->findChild<QPushButton*>("NoteLinkApply")->click();
   });
   conflict.start();
   f.window.findChild<SidebarWidget*>()->inlineCommitRequested(InlineEditContext{destination, false, false}, "other.md");
-  require(QFileInfo::exists(destination) && !QFileInfo::exists(f.directory.filePath("deep/archive/other.md")), "stale preview leaves path unchanged");
-  require(incoming.open(QIODevice::ReadOnly) && incoming.readAll() == "external edit\n", "stale preview preserves externally edited bytes");
+  require(QFileInfo::exists(destination) && !QFileInfo::exists(f.directory.filePath("deep/archive/other.md")),
+          "stale preview leaves path unchanged");
+  require(incoming.open(QIODevice::ReadOnly) && incoming.readAll() == "external edit\n",
+          "stale preview preserves externally edited bytes");
 }
 
 void continuousEditingWorkflow() {
   // Exercise the same document through real widget input and window commands,
   // without resetting its AST or history between individual editing operations.
-  for (bool source : {false, true}) for (bool reverse : {false, true}) {
-    Fixture f;
-    SettingsOverride copyMarkdown{"editor/copyAsMarkdown", true};
-    SettingsOverride indentSize{"editor/indentSize", 0};
-    const QString original = QString::fromUtf8("第一段开头。\n\n第二段内容。\n\n- 第一项\n- 第二项\n\n结尾。\n\n"
-        "## 标题\n\n> 引用 **加粗** 与 [链接](https://example.com)\n\n"
-        "| 列一 | 列二 |\n|---|---|\n| 中文 | 🙂 |\n\n```cpp\nint value = 123;\n```\n");
-    auto* document = f.open(f.file("workflow.md", original));
-    auto* mode = action(f.window, "Source Code Mode");
-    if (document->backend->isSourceMode() != source) mode->trigger();
-    QWidget* input = source ? static_cast<QWidget*>(document->editor->findChild<VirtualSourceEdit*>())
-                            : static_cast<QWidget*>(document->renderView);
-    require(input, "workflow has an input surface");
-    const auto select = [&](qsizetype start, qsizetype end) {
-      if (source) document->editor->setSelection(start, end);
-      else document->editorController.selection().setSelection({
-          document->editorController.cursorForSourceOffset(start), document->editorController.cursorForSourceOffset(end)});
-      input->setFocus();
+  for (bool source : {false, true})
+    for (bool reverse : {false, true}) {
+      Fixture f;
+      SettingsOverride copyMarkdown{"editor/copyAsMarkdown", true};
+      SettingsOverride indentSize{"editor/indentSize", 0};
+      const QString original =
+          QString::fromUtf8("第一段开头。\n\n第二段内容。\n\n- 第一项\n- 第二项\n\n结尾。\n\n"
+                            "## 标题\n\n> 引用 **加粗** 与 [链接](https://example.com)\n\n"
+                            "| 列一 | 列二 |\n|---|---|\n| 中文 | 🙂 |\n\n```cpp\nint value = 123;\n```\n");
+      auto* document = f.open(f.file("workflow.md", original));
+      auto* mode = action(f.window, "Source Code Mode");
+      if (document->backend->isSourceMode() != source)
+        mode->trigger();
+      QWidget* input = source ? static_cast<QWidget*>(document->editor->findChild<VirtualSourceEdit*>())
+                              : static_cast<QWidget*>(document->renderView);
+      require(input, "workflow has an input surface");
+      const auto select = [&](qsizetype start, qsizetype end) {
+        if (source)
+          document->editor->setSelection(start, end);
+        else
+          document->editorController.selection().setSelection({document->editorController.cursorForSourceOffset(start),
+                                                               document->editorController.cursorForSourceOffset(end)});
+        input->setFocus();
+        QApplication::processEvents();
+      };
+      const auto text = [&] { return document->session.markdownText().toString(); };
+      const auto expect = [&](const QString& expected, const char* step) {
+        require(text() == expected, QString::fromLatin1(step) + "\nExpected: " + expected + "\nActual: " + text());
+      };
+      select(5, 5);
+      QInputMethodEvent composing(QStringLiteral("zhongwen"), {});
+      QApplication::sendEvent(input, &composing);
+      expect(original, "preedit must not change document");
+      QInputMethodEvent commit;
+      const QString committed = QString::fromUtf8("中文🙂");
+      commit.setCommitString(committed);
+      QApplication::sendEvent(input, &commit);
+      QString typed = original;
+      typed.insert(5, committed);
+      expect(typed, "Chinese IME commits once at caret");
+
+      const auto start = typed.indexOf(committed);
+      const auto end = typed.indexOf(QString::fromUtf8("内容"));
+      select(reverse ? end : start, reverse ? start : end);
+      action(f.window, "Cut")->trigger();
+      QString cut = typed;
+      cut.remove(start, end - start);
+      expect(cut, "cross-paragraph cut removes the exact UTF-16 range");
+      require(QApplication::clipboard()->text() == typed.mid(start, end - start),
+              "cut preserves Chinese, emoji and paragraph breaks");
+      action(f.window, "Paste")->trigger();
+      expect(typed, "paste restores the cut range at the collapsed caret");
+
+      const auto listCaret = text().indexOf(QString::fromUtf8(source ? "- 第二项" : "第二项"));
+      select(listCaret, listCaret);
+      QTest::keyClick(input, Qt::Key_Tab);
+      require(QApplication::focusWidget() == input || QApplication::focusWidget() == input->focusProxy(),
+              "plain Tab keeps focus in the editing surface");
+      QString indented = typed;
+      indented.insert(typed.indexOf(QString::fromUtf8("- 第二项")), source ? "\t" : "  ");
+      expect(indented, "Tab nests the second list item");
+      action(f.window, "Undo")->trigger();
+      expect(typed, "undo list indent");
+      action(f.window, "Undo")->trigger();
+      expect(cut, "undo paste");
+      action(f.window, "Undo")->trigger();
+      expect(typed, "undo cut");
+      action(f.window, "Undo")->trigger();
+      expect(original, "undo Chinese commit");
+      for (const auto& expected : {typed, cut, typed, indented}) {
+        action(f.window, "Redo")->trigger();
+        expect(expected, "redo workflow in order");
+      }
+      select(text().indexOf(committed), text().indexOf(committed) + committed.size());
+      const auto viewport = source ? document->editor->viewportPosition() : document->renderView->viewportPosition();
+      auto* other = f.open(f.file("other.md", "Untouched document\n"));
+      require(other != document && other->session.markdownText().toString() == "Untouched document\n",
+              "second tab remains independent");
+      f.tabs->setCurrentWidget(document);
       QApplication::processEvents();
-    };
-    const auto text = [&] { return document->session.markdownText().toString(); };
-    const auto expect = [&](const QString& expected, const char* step) {
-      require(text() == expected, QString::fromLatin1(step) + "\nExpected: " + expected + "\nActual: " + text());
-    };
-    select(5, 5);
-    QInputMethodEvent composing(QStringLiteral("zhongwen"), {});
-    QApplication::sendEvent(input, &composing);
-    expect(original, "preedit must not change document");
-    QInputMethodEvent commit;
-    const QString committed = QString::fromUtf8("中文🙂");
-    commit.setCommitString(committed);
-    QApplication::sendEvent(input, &commit);
-    QString typed = original;
-    typed.insert(5, committed);
-    expect(typed, "Chinese IME commits once at caret");
-
-    const auto start = typed.indexOf(committed);
-    const auto end = typed.indexOf(QString::fromUtf8("内容"));
-    select(reverse ? end : start, reverse ? start : end);
-    action(f.window, "Cut")->trigger();
-    QString cut = typed; cut.remove(start, end - start);
-    expect(cut, "cross-paragraph cut removes the exact UTF-16 range");
-    require(QApplication::clipboard()->text() == typed.mid(start, end - start), "cut preserves Chinese, emoji and paragraph breaks");
-    action(f.window, "Paste")->trigger();
-    expect(typed, "paste restores the cut range at the collapsed caret");
-
-    const auto listCaret = text().indexOf(QString::fromUtf8(source ? "- 第二项" : "第二项"));
-    select(listCaret, listCaret);
-    QTest::keyClick(input, Qt::Key_Tab);
-    require(QApplication::focusWidget() == input || QApplication::focusWidget() == input->focusProxy(),
-            "plain Tab keeps focus in the editing surface");
-    QString indented = typed; indented.insert(typed.indexOf(QString::fromUtf8("- 第二项")), source ? "\t" : "  ");
-    expect(indented, "Tab nests the second list item");
-    action(f.window, "Undo")->trigger(); expect(typed, "undo list indent");
-    action(f.window, "Undo")->trigger(); expect(cut, "undo paste");
-    action(f.window, "Undo")->trigger(); expect(typed, "undo cut");
-    action(f.window, "Undo")->trigger(); expect(original, "undo Chinese commit");
-    for (const auto& expected : {typed, cut, typed, indented}) {
-      action(f.window, "Redo")->trigger(); expect(expected, "redo workflow in order");
+      expect(indented, "returning to tab retains unsaved workflow edits");
+      qsizetype selectedStart = -1, selectedEnd = -1;
+      if (source) {
+        selectedStart = document->editor->selectionStart();
+        selectedEnd = document->editor->selectionEnd();
+      } else {
+        require(BlockEditContextResolver(&document->session, &document->editorController.selection())
+                    .selectionSourceRange(selectedStart, selectedEnd),
+                "returned render selection has source range");
+      }
+      require(document->backend->isSourceMode() == source &&
+                  text().mid(selectedStart, selectedEnd - selectedStart) == committed,
+              "returning retains editor mode and UTF-16 selection");
+      const auto returned = source ? document->editor->viewportPosition() : document->renderView->viewportPosition();
+      require(returned.sourceOffset == viewport.sourceOffset, "returning retains reading anchor");
+      action(f.window, "Undo")->trigger();
+      expect(typed, "history survives tab switch");
+      action(f.window, "Redo")->trigger();
+      expect(indented, "redo survives tab switch");
+      QTest::keyClick(input, Qt::Key_A, Qt::ControlModifier);
+      QTest::keyClick(input, Qt::Key_Backspace);
+      expect({}, "select-all Backspace clears document after the entire editing workflow");
+      action(f.window, "Undo")->trigger();
+      expect(indented, "undo restores the complete mixed document");
+      action(f.window, "Redo")->trigger();
+      expect({}, "redo clears the complete mixed document again");
+      action(f.window, "Undo")->trigger();
+      expect(indented, "document remains recoverable after repeated delete/undo");
     }
-    select(text().indexOf(committed), text().indexOf(committed) + committed.size());
-    const auto viewport = source ? document->editor->viewportPosition() : document->renderView->viewportPosition();
-    auto* other = f.open(f.file("other.md", "Untouched document\n"));
-    require(other != document && other->session.markdownText().toString() == "Untouched document\n", "second tab remains independent");
-    f.tabs->setCurrentWidget(document);
-    QApplication::processEvents();
-    expect(indented, "returning to tab retains unsaved workflow edits");
-    qsizetype selectedStart = -1, selectedEnd = -1;
-    if (source) {
-      selectedStart = document->editor->selectionStart(); selectedEnd = document->editor->selectionEnd();
-    } else {
-      require(BlockEditContextResolver(&document->session, &document->editorController.selection())
-                  .selectionSourceRange(selectedStart, selectedEnd), "returned render selection has source range");
-    }
-    require(document->backend->isSourceMode() == source && text().mid(selectedStart, selectedEnd - selectedStart) == committed,
-            "returning retains editor mode and UTF-16 selection");
-    const auto returned = source ? document->editor->viewportPosition() : document->renderView->viewportPosition();
-    require(returned.sourceOffset == viewport.sourceOffset, "returning retains reading anchor");
-    action(f.window, "Undo")->trigger(); expect(typed, "history survives tab switch");
-    action(f.window, "Redo")->trigger(); expect(indented, "redo survives tab switch");
-    QTest::keyClick(input, Qt::Key_A, Qt::ControlModifier);
-    QTest::keyClick(input, Qt::Key_Backspace);
-    expect({}, "select-all Backspace clears document after the entire editing workflow");
-    action(f.window, "Undo")->trigger(); expect(indented, "undo restores the complete mixed document");
-    action(f.window, "Redo")->trigger(); expect({}, "redo clears the complete mixed document again");
-    action(f.window, "Undo")->trigger(); expect(indented, "document remains recoverable after repeated delete/undo");
-  }
 }
 
 void imeSelectionReplacementWorkflow() {
-  for (bool source : {false, true}) for (bool reverse : {false, true}) {
-    Fixture f;
-    const QString selected = QString::fromUtf8("中文🙂");
-    const QString original = QString::fromUtf8("开头：") + selected + QString::fromUtf8("，结尾。\n");
-    auto* document = f.open(f.file("ime-selection.md", original));
-    if (source) action(f.window, "Source Code Mode")->trigger();
-    QWidget* input = source ? static_cast<QWidget*>(document->editor->findChild<VirtualSourceEdit*>())
-                            : static_cast<QWidget*>(document->renderView);
-    const auto start = original.indexOf(selected), end = start + selected.size();
-    if (source) document->editor->setSelection(reverse ? end : start, reverse ? start : end);
-    else document->editorController.selection().setSelection({document->editorController.cursorForSourceOffset(reverse ? end : start),
-                                                            document->editorController.cursorForSourceOffset(reverse ? start : end)});
-    input->setFocus();
-    QInputMethodEvent composing(QStringLiteral("xinde"), {});
-    QApplication::sendEvent(input, &composing);
-    QInputMethodEvent cancel;
-    QApplication::sendEvent(input, &cancel);
-    require(document->session.markdownText().toString() == original && !document->backend->canUndo(),
-            "canceling Chinese composition preserves selected text and creates no undo entry");
-    QApplication::sendEvent(input, &composing);
-    QInputMethodEvent commit;
-    const QString replacement = QString::fromUtf8("新的文字");
-    commit.setCommitString(replacement);
-    QApplication::sendEvent(input, &commit);
-    const auto expected = QString(original).replace(start, end - start, replacement);
-    require(document->session.markdownText().toString() == expected, "Chinese commit replaces selection exactly once");
-    action(f.window, "Undo")->trigger();
-    require(document->session.markdownText().toString() == original && !document->backend->canUndo(),
-            "one undo restores replaced Chinese text and emoji");
-    qsizetype anchor = -1, focus = -1;
-    if (source) { anchor = document->editor->anchorPosition(); focus = document->editor->cursorPosition(); }
-    else {
-      const auto selection = document->editorController.selection().selection();
-      anchor = selection.anchor.text.sourceOffset; focus = selection.focus.text.sourceOffset;
+  for (bool source : {false, true})
+    for (bool reverse : {false, true}) {
+      Fixture f;
+      const QString selected = QString::fromUtf8("中文🙂");
+      const QString original = QString::fromUtf8("开头：") + selected + QString::fromUtf8("，结尾。\n");
+      auto* document = f.open(f.file("ime-selection.md", original));
+      if (source)
+        action(f.window, "Source Code Mode")->trigger();
+      QWidget* input = source ? static_cast<QWidget*>(document->editor->findChild<VirtualSourceEdit*>())
+                              : static_cast<QWidget*>(document->renderView);
+      const auto start = original.indexOf(selected), end = start + selected.size();
+      if (source)
+        document->editor->setSelection(reverse ? end : start, reverse ? start : end);
+      else
+        document->editorController.selection().setSelection(
+            {document->editorController.cursorForSourceOffset(reverse ? end : start),
+             document->editorController.cursorForSourceOffset(reverse ? start : end)});
+      input->setFocus();
+      QInputMethodEvent composing(QStringLiteral("xinde"), {});
+      QApplication::sendEvent(input, &composing);
+      QInputMethodEvent cancel;
+      QApplication::sendEvent(input, &cancel);
+      require(document->session.markdownText().toString() == original && !document->backend->canUndo(),
+              "canceling Chinese composition preserves selected text and creates no undo entry");
+      QApplication::sendEvent(input, &composing);
+      QInputMethodEvent commit;
+      const QString replacement = QString::fromUtf8("新的文字");
+      commit.setCommitString(replacement);
+      QApplication::sendEvent(input, &commit);
+      const auto expected = QString(original).replace(start, end - start, replacement);
+      require(document->session.markdownText().toString() == expected,
+              "Chinese commit replaces selection exactly once");
+      action(f.window, "Undo")->trigger();
+      require(document->session.markdownText().toString() == original && !document->backend->canUndo(),
+              "one undo restores replaced Chinese text and emoji");
+      qsizetype anchor = -1, focus = -1;
+      if (source) {
+        anchor = document->editor->anchorPosition();
+        focus = document->editor->cursorPosition();
+      } else {
+        const auto selection = document->editorController.selection().selection();
+        anchor = selection.anchor.text.sourceOffset;
+        focus = selection.focus.text.sourceOffset;
+      }
+      require(
+          anchor == (reverse ? end : start) && focus == (reverse ? start : end),
+          QStringLiteral("IME undo restores selection and direction: source=%1 reverse=%2 expected=%3,%4 actual=%5,%6")
+              .arg(source)
+              .arg(reverse)
+              .arg(reverse ? end : start)
+              .arg(reverse ? start : end)
+              .arg(anchor)
+              .arg(focus));
+      action(f.window, "Redo")->trigger();
+      require(document->session.markdownText().toString() == expected, "Chinese replacement redo is exact");
+      QTest::keyClicks(input, "x");
+      const auto continued = QString(expected).insert(start + replacement.size(), QLatin1Char('x'));
+      require(document->session.markdownText().toString() == continued,
+              "typing continues at the committed Chinese caret");
+      action(f.window, "Undo")->trigger();
+      require(document->session.markdownText().toString() == expected,
+              "replacement does not merge with following typing");
+      action(f.window, "Undo")->trigger();
+      require(document->session.markdownText().toString() == original,
+              "replacement remains a separate recoverable undo step");
     }
-    require(anchor == (reverse ? end : start) && focus == (reverse ? start : end),
-            QStringLiteral("IME undo restores selection and direction: source=%1 reverse=%2 expected=%3,%4 actual=%5,%6")
-                .arg(source).arg(reverse).arg(reverse ? end : start).arg(reverse ? start : end).arg(anchor).arg(focus));
-    action(f.window, "Redo")->trigger();
-    require(document->session.markdownText().toString() == expected, "Chinese replacement redo is exact");
-    QTest::keyClicks(input, "x");
-    const auto continued = QString(expected).insert(start + replacement.size(), QLatin1Char('x'));
-    require(document->session.markdownText().toString() == continued, "typing continues at the committed Chinese caret");
-    action(f.window, "Undo")->trigger();
-    require(document->session.markdownText().toString() == expected, "replacement does not merge with following typing");
-    action(f.window, "Undo")->trigger();
-    require(document->session.markdownText().toString() == original, "replacement remains a separate recoverable undo step");
-  }
 }
 
 void restrictedFormattingActions() {
   Fixture f;
-  const QString original = "alpha\n\nbeta\n\n- first\n- second\n\n| A | B |\n|---|---|\n| one | two |\n\n```cpp\ncode\n```\n";
+  const QString original =
+      "alpha\n\nbeta\n\n- first\n- second\n\n| A | B |\n|---|---|\n| one | two |\n\n```cpp\ncode\n```\n";
   auto* document = f.open(f.file("format-availability.md", original));
   auto* link = action(f.window, "Hyperlink");
   auto* underline = action(f.window, "Underline");
   const auto select = [&](qsizetype start, qsizetype end) {
     document->editorController.selection().setSelection({document->editorController.cursorForSourceOffset(start),
-                                                       document->editorController.cursorForSourceOffset(end)});
+                                                         document->editorController.cursorForSourceOffset(end)});
     QApplication::processEvents();
   };
   select(1, original.indexOf("beta") + 2);
-  require(!link->isEnabled() && !underline->isEnabled(), "single-block commands disabled for cross-paragraph selections");
+  require(!link->isEnabled() && !underline->isEnabled(),
+          "single-block commands disabled for cross-paragraph selections");
   require(link->toolTip().contains("single paragraph") && underline->statusTip().contains("single paragraph"),
           "unavailable commands explain how to make the selection valid");
   for (auto* menu : f.window.findChildren<QMenu*>()) {
-    if (menu->actions().contains(link)) require(menu->toolTipsVisible(), "format menu exposes disabled command explanations");
+    if (menu->actions().contains(link))
+      require(menu->toolTipsVisible(), "format menu exposes disabled command explanations");
   }
-  link->trigger(); underline->trigger();
+  link->trigger();
+  underline->trigger();
   require(document->session.markdownText().toString() == original && !document->backend->canUndo(),
           "disabled actions do not mutate text or history");
   select(original.indexOf("one"), original.indexOf("two") + 2);
@@ -642,11 +784,15 @@ void restrictedFormattingActions() {
   select(original.indexOf("second"), original.indexOf("second") + 6);
   require(link->isEnabled() && underline->isEnabled(), "nested list text supports single-block commands");
   select(1, 4);
-  require(link->isEnabled() && link->toolTip() != MainWindow::tr("Select text within a single paragraph or table cell, or place the caret in editable text."),
+  require(link->isEnabled() &&
+              link->toolTip() !=
+                  MainWindow::tr(
+                      "Select text within a single paragraph or table cell, or place the caret in editable text."),
           "valid selection clears the unavailable explanation");
   action(f.window, "Source Code Mode")->trigger();
   QApplication::processEvents();
-  require(!underline->isEnabled() && underline->toolTip().contains("live editing"), "source formatting limit explains which mode to use");
+  require(!underline->isEnabled() && underline->toolTip().contains("live editing"),
+          "source formatting limit explains which mode to use");
   document->editor->setSelection(4, 1); // backwards selection
   QApplication::processEvents();
   require(link->isEnabled(), "source single-line link enabled");
@@ -669,7 +815,8 @@ void restrictedFormattingActions() {
   require(!link->isEnabled(), "returning refreshes the original restricted selection");
   LanguageManager::instance().setLanguage("zh_CN");
   QApplication::processEvents();
-  require(link->toolTip() == MainWindow::tr("Select text within one line, or place the caret where you want to insert the link."),
+  require(link->toolTip() ==
+              MainWindow::tr("Select text within one line, or place the caret where you want to insert the link."),
           "unavailable explanation follows UI language");
   LanguageManager::instance().setLanguage("en");
   QApplication::processEvents();
@@ -678,7 +825,8 @@ void restrictedFormattingActions() {
 void workspaceSearchAndReplace() {
   Fixture f;
   const QString screenshotDirectory = qEnvironmentVariable("MUFFIN_SEARCH_SCREENSHOT_DIR");
-  if (!screenshotDirectory.isEmpty()) QDir().mkpath(screenshotDirectory);
+  if (!screenshotDirectory.isEmpty())
+    QDir().mkpath(screenshotDirectory);
   QDir(f.directory.path()).mkpath("04.Study/English");
   QDir(f.directory.path()).mkpath("06.Notes/English");
   const auto a = f.file("04.Study/English/words.md", "# Notes\n[link](old-term)\nold-term\n");
@@ -694,7 +842,8 @@ void workspaceSearchAndReplace() {
     field->setText("04/words");
     waitUntil([&] { return matches->count() == 1; }, "find unexpanded deep file");
     require(picker->selectedPath() == a, "path query distinguishes duplicate names");
-    if (!screenshotDirectory.isEmpty()) picker->grab().save(QDir(screenshotDirectory).filePath("quick-open.png"));
+    if (!screenshotDirectory.isEmpty())
+      picker->grab().save(QDir(screenshotDirectory).filePath("quick-open.png"));
     picker->accept();
   });
   quick->trigger();
@@ -711,7 +860,8 @@ void workspaceSearchAndReplace() {
   panel->findChild<QLineEdit*>("WorkspaceSearchQuery")->setText("old-term");
   panel->findChild<QPushButton*>("WorkspaceSearchRun")->click();
   auto* tree = panel->findChild<QTreeWidget*>("WorkspaceSearchResults");
-  waitUntil([&] { return panel->result().complete && panel->result().matches == 3 && tree->topLevelItemCount() == 2; }, "search disk and dirty buffer");
+  waitUntil([&] { return panel->result().complete && panel->result().matches == 3 && tree->topLevelItemCount() == 2; },
+            "search disk and dirty buffer");
   auto* searchToggle = sidebar->findChild<QToolButton*>("SearchFilesButton");
   auto* filesTab = sidebar->findChild<QToolButton*>("FilesTabButton");
   auto* outlineTab = sidebar->findChild<QToolButton*>("OutlineTabButton");
@@ -721,28 +871,34 @@ void workspaceSearchAndReplace() {
   searchToggle->click();
   require(sidebar->panel() == SidebarWidget::Panel::Files && !searchToggle->isChecked(), "magnifier returns to files");
   searchToggle->click();
-  require(sidebar->panel() == SidebarWidget::Panel::Search &&
-              tree->topLevelItemCount() == 2 && panel->result().matches == 3 && sidebar->expandedFolders() == expanded,
+  require(sidebar->panel() == SidebarWidget::Panel::Search && tree->topLevelItemCount() == 2 &&
+              panel->result().matches == 3 && sidebar->expandedFolders() == expanded,
           "switching back to search preserves query results and file expansion");
   require(f.window.focusWidget() == panel->focusWidget(), "search toggle targets the query field for keyboard input");
   outlineTab->click();
-  require(sidebar->panel() == SidebarWidget::Panel::Outline && !searchToggle->isVisible(), "outline keeps its own view");
+  require(sidebar->panel() == SidebarWidget::Panel::Outline && !searchToggle->isVisible(),
+          "outline keeps its own view");
   searchAction->trigger();
   filesTab->click();
   require(sidebar->panel() == SidebarWidget::Panel::Files, "file tab also exits search");
   searchAction->trigger();
   QTreeWidgetItem* item = nullptr;
   for (int i = 0; i < tree->topLevelItemCount(); ++i) {
-    if (tree->topLevelItem(i)->toolTip(0) == a) item = tree->topLevelItem(i)->child(0);
+    if (tree->topLevelItem(i)->toolTip(0) == a)
+      item = tree->topLevelItem(i)->child(0);
   }
   require(item, "first file has a content hit");
   tree->itemClicked(item, 0);
-  waitUntil([&] { return f.current()->backend->isSourceMode() && f.current()->editor->selectedText() == "old-term"; }, "link target is exactly selected in source");
+  waitUntil([&] { return f.current()->backend->isSourceMode() && f.current()->editor->selectedText() == "old-term"; },
+            "link target is exactly selected in source");
   require(f.current() == first && f.tabs->count() == 2, "search reuses existing tab");
-  require(first->searchSourceFallback && !QSettings().value("view/sourceMode").toBool(), "hidden hit only temporarily enters source mode");
+  require(first->searchSourceFallback && !QSettings().value("view/sourceMode").toBool(),
+          "hidden hit only temporarily enters source mode");
   tree->itemClicked(item->parent()->child(1), 0);
-  waitUntil([&] { return !first->backend->isSourceMode() && first->editorController.selection().hasCursor(); }, "ordinary text returns to live editing after a hidden hit");
-  require(!first->searchSourceFallback && first->editorController.selection().selection().anchor.text.sourceOffset == 25,
+  waitUntil([&] { return !first->backend->isSourceMode() && first->editorController.selection().hasCursor(); },
+            "ordinary text returns to live editing after a hidden hit");
+  require(!first->searchSourceFallback &&
+              first->editorController.selection().selection().anchor.text.sourceOffset == 25,
           "live selection retains the precise source range");
   if (!screenshotDirectory.isEmpty()) {
     f.window.grab().save(QDir(screenshotDirectory).filePath("sidebar.png"));
@@ -753,19 +909,23 @@ void workspaceSearchAndReplace() {
   QObject::connect(&dirty->session, &DocumentSession::externalFileChanged, &f.window, [&] { ++externalChanges; });
   panel->activate(true);
   auto* replaceButton = panel->findChild<QPushButton*>("WorkspaceReplacePreview");
-  require(replaceButton && replaceButton->isVisible() && replaceButton->isEnabled(), "folder replacement has an available sidebar button");
+  require(replaceButton && replaceButton->isVisible() && replaceButton->isEnabled(),
+          "folder replacement has an available sidebar button");
   bool previewCanceled = false;
   QTimer::singleShot(0, [&] {
     auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
-    require(dialog && dialog->findChild<QPushButton*>("FolderReplaceConfirm"), "replacement button opens a preview with a confirmation action");
+    require(dialog && dialog->findChild<QPushButton*>("FolderReplaceConfirm"),
+            "replacement button opens a preview with a confirmation action");
     previewCanceled = true;
     dialog->reject();
   });
   replaceButton->click();
   require(previewCanceled && panel->result().complete && panel->result().matches == 3 && replaceButton->isEnabled(),
           "canceling the preview preserves complete results and permits another replacement attempt");
-  require(first->session.markdownText().toString().contains("old-term"), "canceling a preview preserves the open document");
-  QFile unchanged(a); require(unchanged.open(QIODevice::ReadOnly), "read original after canceled preview");
+  require(first->session.markdownText().toString().contains("old-term"),
+          "canceling a preview preserves the open document");
+  QFile unchanged(a);
+  require(unchanged.open(QIODevice::ReadOnly), "read original after canceled preview");
   require(!unchanged.readAll().contains("new-term"), "preview does not write files before confirmation");
   unchanged.close();
   bool confirmed = false, completed = false;
@@ -773,19 +933,25 @@ void workspaceSearchAndReplace() {
   responder.setInterval(5);
   QObject::connect(&responder, &QTimer::timeout, [&] {
     auto* modal = QApplication::activeModalWidget();
-    if (!modal) return;
+    if (!modal)
+      return;
     if (auto* button = modal->findChild<QPushButton*>("FolderReplaceConfirm")) {
       if (!confirmed) {
         auto* files = modal->findChild<QTreeWidget*>("FolderReplaceFiles");
         require(files && files->topLevelItemCount() == 2, "preview includes editable and skipped files");
-        require(files->topLevelItem(0)->checkState(0) == Qt::Checked && !(files->topLevelItem(1)->flags() & Qt::ItemIsEnabled), "dirty file excluded from preview");
-        if (!screenshotDirectory.isEmpty()) modal->grab().save(QDir(screenshotDirectory).filePath("preview.png"));
-        confirmed = true; button->click();
+        require(files->topLevelItem(0)->checkState(0) == Qt::Checked &&
+                    !(files->topLevelItem(1)->flags() & Qt::ItemIsEnabled),
+                "dirty file excluded from preview");
+        if (!screenshotDirectory.isEmpty())
+          modal->grab().save(QDir(screenshotDirectory).filePath("preview.png"));
+        confirmed = true;
+        button->click();
       }
     } else if (auto* message = qobject_cast<QMessageBox*>(modal)) {
       // QMessageBox deliberately ignores window titles on macOS.
       require(message->objectName() == "FolderReplaceReport", "only the folder replacement report should be shown");
-      completed = true; message->accept();
+      completed = true;
+      message->accept();
     }
   });
   responder.start();
@@ -793,27 +959,40 @@ void workspaceSearchAndReplace() {
   responder.stop();
   require(confirmed && completed, "replacement was explicitly confirmed and finished");
   require(externalChanges == 0, "folder replacement must not emit self-write external-change notifications");
-  require(first->session.markdownText().toString().contains("new-term") && !first->session.document().isModified(), "open clean buffer updated after disk replacement");
-  require(dirty->session.markdownText().toString() == "unsaved old-term\n" && dirty->session.document().isModified(), "dirty buffer preserved");
-  QFile disk(a); require(disk.open(QIODevice::ReadOnly), "read replaced file");
+  require(first->session.markdownText().toString().contains("new-term") && !first->session.document().isModified(),
+          "open clean buffer updated after disk replacement");
+  require(dirty->session.markdownText().toString() == "unsaved old-term\n" && dirty->session.document().isModified(),
+          "dirty buffer preserved");
+  QFile disk(a);
+  require(disk.open(QIODevice::ReadOnly), "read replaced file");
   require(disk.readAll().contains("new-term"), "disk replacement applied");
   disk.close();
   bool restoreConfirmed = false, restoreCompleted = false;
   QObject::disconnect(&responder, nullptr, nullptr, nullptr);
   QObject::connect(&responder, &QTimer::timeout, [&] {
     auto* message = qobject_cast<QMessageBox*>(QApplication::activeModalWidget());
-    if (!message) return;
+    if (!message)
+      return;
     if (message->icon() == QMessageBox::Question) {
-      for (auto* button : message->buttons()) if (button->text() == "Restore Originals") { restoreConfirmed = true; button->click(); return; }
+      for (auto* button : message->buttons())
+        if (button->text() == "Restore Originals") {
+          restoreConfirmed = true;
+          button->click();
+          return;
+        }
     } else {
       require(message->objectName() == "FolderRestoreReport", "only the folder restoration report should be shown");
-      restoreCompleted = true; message->accept();
+      restoreCompleted = true;
+      message->accept();
     }
   });
-  responder.start(); action(f.window, "Undo Folder Replacement")->trigger(); responder.stop();
+  responder.start();
+  action(f.window, "Undo Folder Replacement")->trigger();
+  responder.stop();
   require(restoreConfirmed && restoreCompleted, "restore explicitly confirmed and completed");
   require(externalChanges == 0, "restoring open files must not emit self-write external-change notifications");
-  require(first->session.markdownText().toString().contains("old-term") && !first->session.document().isModified(), "restored open buffer is synchronized");
+  require(first->session.markdownText().toString().contains("old-term") && !first->session.document().isModified(),
+          "restored open buffer is synchronized");
   require(disk.open(QIODevice::ReadOnly) && disk.readAll().contains("old-term"), "restore updates disk");
 }
 
@@ -838,7 +1017,8 @@ void fileTreeOpeningPreservesScrollPosition() {
     const auto index = tree->indexAt(QPoint(40, y));
     const auto path = model->filePath(index);
     const auto row = tree->visualRect(index);
-    require(index.isValid() && row.top() >= 0 && row.bottom() < tree->viewport()->height(), "target row is fully visible");
+    require(index.isValid() && row.top() >= 0 && row.bottom() < tree->viewport()->height(),
+            "target row is fully visible");
     const int position = bar->value();
     for (int repeat = 0; repeat < 2; ++repeat) {
       int scrollChanges = 0;
@@ -846,8 +1026,9 @@ void fileTreeOpeningPreservesScrollPosition() {
       const QPoint point(row.left() + 40, row.center().y());
       QTest::mouseClick(tree->viewport(), Qt::LeftButton, Qt::NoModifier, point);
       QTest::mouseDClick(tree->viewport(), Qt::LeftButton, Qt::NoModifier, point);
-      waitUntil([&] { return f.current()->session.filePath() == path && !f.current()->session.isAsyncParseInProgress(); },
-                "double-click opens the selected note in the editor");
+      waitUntil(
+          [&] { return f.current()->session.filePath() == path && !f.current()->session.isAsyncParseInProgress(); },
+          "double-click opens the selected note in the editor");
       QTest::qWait(40); // include queued document/status updates after the open
       QObject::disconnect(monitor);
       require(scrollChanges == 0 && bar->value() == position && tree->visualRect(index).top() == row.top(),
@@ -855,13 +1036,14 @@ void fileTreeOpeningPreservesScrollPosition() {
     }
   }
   const auto distant = model->index(paths[70]);
-  require(tree->visualRect(distant).top() >= tree->viewport()->height(), "external navigation target starts below the viewport");
+  require(tree->visualRect(distant).top() >= tree->viewport()->height(),
+          "external navigation target starts below the viewport");
   f.open(paths[70]);
   QApplication::processEvents();
   const auto revealed = tree->visualRect(distant);
-  require(tree->currentIndex() == distant && revealed.top() >= 0
-      && qAbs(revealed.bottom() - (tree->viewport()->height() - 1)) <= 1,
-      "opening an offscreen file scrolls only far enough to reveal it");
+  require(tree->currentIndex() == distant && revealed.top() >= 0 &&
+              qAbs(revealed.bottom() - (tree->viewport()->height() - 1)) <= 1,
+          "opening an offscreen file scrolls only far enough to reveal it");
   bar->setValue(bar->maximum() / 2 + 3);
   const int browsedPosition = bar->value();
   sidebar->setCurrentDocument("note-070.md", paths[70], true);
@@ -890,13 +1072,20 @@ void workspaceSidebarWidth() {
       QApplication::processEvents();
       require(sidebar->width() == width, "switching sidebar content preserves the user-selected width");
     };
-    magnifier->click(); unchanged();
-    magnifier->click(); unchanged();
-    find->trigger(); unchanged();
-    replace->trigger(); unchanged();
-    outline->click(); unchanged();
-    find->trigger(); unchanged();
-    files->click(); unchanged();
+    magnifier->click();
+    unchanged();
+    magnifier->click();
+    unchanged();
+    find->trigger();
+    unchanged();
+    replace->trigger();
+    unchanged();
+    outline->click();
+    unchanged();
+    find->trigger();
+    unchanged();
+    files->click();
+    unchanged();
   }
   // An already visible sidebar must not replay its opening animation when a
   // menu command or shortcut selects a different panel.
@@ -922,31 +1111,38 @@ void workspaceRenderedNavigation() {
   SettingsOverride startup("files/startupBehavior", 1);
   SettingsOverride sessionState("session/window", QVariantMap{});
   Fixture f;
-  const QString text = QString::fromUtf8(
-      "# 标题 needle\n\n中文😀 **needle** [needle](https://example.test/needle)\n\n"
-      "- list needle\n\n> quote needle\n\n| column |\n| --- |\n| needle |\n\n"
-      "```cpp\n// needle\n```\n\n![needle](image.png)\n\n$needle$\n");
+  const QString text = QString::fromUtf8("# 标题 needle\n\n中文😀 **needle** [needle](https://example.test/needle)\n\n"
+                                         "- list needle\n\n> quote needle\n\n| column |\n| --- |\n| needle |\n\n"
+                                         "```cpp\n// needle\n```\n\n![needle](image.png)\n\n$needle$\n");
   const auto path = f.file("rendered.md", text);
   f.window.openFolderAtPath(f.directory.path());
   auto* panel = f.window.findChild<SidebarWidget*>()->searchPanel();
   const auto jump = [&](qsizetype start, bool source) {
     require(start >= 0, "fixture match exists");
     panel->resultActivated(path, WorkspaceSearch::fingerprint(text), start, 6);
-    waitUntil([&] { return !f.current()->session.isOpenInProgress() && f.current()->backend->isSourceMode() == source; }, "search navigation completes in the intended mode");
+    waitUntil(
+        [&] { return !f.current()->session.isOpenInProgress() && f.current()->backend->isSourceMode() == source; },
+        "search navigation completes in the intended mode");
     auto* document = f.current();
     if (source) {
-      require(document->editor->selectionStart() == start && document->editor->selectedText() == "needle", "source fallback selects the exact hidden range");
+      require(document->editor->selectionStart() == start && document->editor->selectedText() == "needle",
+              "source fallback selects the exact hidden range");
     } else {
       const auto range = document->editorController.selection().selection();
-      require(range.anchor.text.sourceOffset == start && range.focus.text.sourceOffset == start + 6, "live selection covers the exact Unicode source range");
+      require(range.anchor.text.sourceOffset == start && range.focus.text.sourceOffset == start + 6,
+              "live selection covers the exact Unicode source range");
       const auto rect = document->renderView->effectiveCursorRect();
       const auto scroll = document->renderView->verticalScrollBar()->value();
-      require(!rect.isEmpty() && rect.bottom() >= scroll && rect.top() <= scroll + document->renderView->viewport()->height(), "live match is visible in the viewport");
+      require(!rect.isEmpty() && rect.bottom() >= scroll &&
+                  rect.top() <= scroll + document->renderView->viewport()->height(),
+              "live match is visible in the viewport");
     }
   };
-  for (const auto& prefix : {QString::fromUtf8("标题 "), QString("**"), QString("["), QString("list "), QString("quote "), QString("| "), QString("// ")}) {
+  for (const auto& prefix : {QString::fromUtf8("标题 "), QString("**"), QString("["), QString("list "),
+                             QString("quote "), QString("| "), QString("// ")}) {
     qsizetype start = text.indexOf(prefix) + prefix.size();
-    if (prefix == "| ") start = text.indexOf("| needle") + 2;
+    if (prefix == "| ")
+      start = text.indexOf("| needle") + 2;
     jump(start, false);
   }
   jump(text.indexOf("test/needle") + 5, true);
@@ -955,26 +1151,35 @@ void workspaceRenderedNavigation() {
   jump(text.indexOf("quote needle") + 6, false);
   QSettings().remove("session/window");
   jump(text.indexOf("$needle") + 1, true);
-  waitUntil([&] {
-    const auto snapshot = QSettings().value("session/window").toMap().value("views").toList();
-    return snapshot.size() == 1 && !snapshot[0].toMap().value("sourceMode").toBool();
-  }, "temporary source fallback is not persisted as the user's preferred mode");
+  waitUntil(
+      [&] {
+        const auto snapshot = QSettings().value("session/window").toMap().value("views").toList();
+        return snapshot.size() == 1 && !snapshot[0].toMap().value("sourceMode").toBool();
+      },
+      "temporary source fallback is not persisted as the user's preferred mode");
   // Explicit user mode choices override the temporary fallback policy.
   auto* source = action(f.window, "Source Code Mode");
-  source->trigger(); source->trigger();
+  source->trigger();
+  source->trigger();
   jump(text.indexOf("list needle") + 5, true);
   require(!f.current()->searchSourceFallback, "manual source mode is respected");
   source->trigger();
   jump(text.indexOf("list needle") + 5, false);
   // An async open must reveal a distant match after its layout is ready.
   QString distant;
-  for (int i = 0; i < 500; ++i) distant += QStringLiteral("Paragraph %1 with ordinary text.\n\n").arg(i);
+  for (int i = 0; i < 500; ++i)
+    distant += QStringLiteral("Paragraph %1 with ordinary text.\n\n").arg(i);
   distant += "Distant needle.\n";
   const auto deepPath = f.file("distant.md", distant);
   const auto offset = distant.indexOf("needle");
   jump(text.indexOf("test/needle") + 5, true);
   panel->resultActivated(deepPath, WorkspaceSearch::fingerprint(distant), offset, 6);
-  waitUntil([&] { return !f.current()->session.isOpenInProgress() && f.current()->editorController.selection().selection().anchor.text.sourceOffset == offset; }, "async navigation selects a distant live match");
+  waitUntil(
+      [&] {
+        return !f.current()->session.isOpenInProgress() &&
+               f.current()->editorController.selection().selection().anchor.text.sourceOffset == offset;
+      },
+      "async navigation selects a distant live match");
   require(!f.current()->backend->isSourceMode(), "new files default to live editing");
 }
 
@@ -1009,7 +1214,8 @@ void fileOpenProtectionSettingsAndBoundaries() {
   require(file_open_protection::warningsForFile(noSuffix).extension, "extensionless file needs confirmation");
   edit->setText(QStringLiteral("*.MD; .BINARY，log txt、.TXT"));
   addExtension->click();
-  require(!file_open_protection::warningsForFile(unknown).extension, "custom extensions accept dots, wildcards and separators");
+  require(!file_open_protection::warningsForFile(unknown).extension,
+          "custom extensions accept dots, wildcards and separators");
   require(edit->text().isEmpty() && !addExtension->isEnabled(), "adding clears the field and prevents empty additions");
   const int count = chips->layout()->count();
   edit->setText(QStringLiteral(".binary *.BINARY"));
@@ -1020,8 +1226,11 @@ void fileOpenProtectionSettingsAndBoundaries() {
   }
   require(file_open_protection::warningsForFile(text).extension, "empty allowlist warns for every extension");
   resetExtensions->click();
-  require(chips->layout()->count() == file_open_protection::normalizedTextExtensions(file_open_protection::defaultTextExtensions()).size()
-      && !file_open_protection::warningsForFile(text).extension, "restore defaults restores the allowed extensions");
+  require(
+      chips->layout()->count() ==
+              file_open_protection::normalizedTextExtensions(file_open_protection::defaultTextExtensions()).size() &&
+          !file_open_protection::warningsForFile(text).extension,
+      "restore defaults restores the allowed extensions");
   QFile large(unknown);
   require(large.open(QIODevice::ReadWrite), "open sparse size fixture");
   require(large.resize(100LL * 1024 * 1024), "resize to exactly the default limit");
@@ -1035,12 +1244,15 @@ void fileOpenProtectionSettingsAndBoundaries() {
   extensionCheck->setChecked(false);
   sizeCheck->setChecked(false);
   require(!edit->isEnabled() && !spin->isEnabled() && !units->isEnabled(), "disabled guards disable their fields");
-  require(!resetExtensions->isEnabled() && !chips->isEnabled(), "disabled extension protection also disables chips and reset");
-  require(!file_open_protection::warningsForFile(unknown).any(), "guards can be disabled independently of their values");
+  require(!resetExtensions->isEnabled() && !chips->isEnabled(),
+          "disabled extension protection also disables chips and reset");
+  require(!file_open_protection::warningsForFile(unknown).any(),
+          "guards can be disabled independently of their values");
   PrefsFilesPage reopened;
-  require(!reopened.findChild<QCheckBox*>("extensionProtection")->isChecked()
-      && !reopened.findChild<QCheckBox*>("sizeProtection")->isChecked()
-      && reopened.findChild<QDoubleSpinBox*>("sizeLimitValue")->value() == 200, "guard settings persist");
+  require(!reopened.findChild<QCheckBox*>("extensionProtection")->isChecked() &&
+              !reopened.findChild<QCheckBox*>("sizeProtection")->isChecked() &&
+              reopened.findChild<QDoubleSpinBox*>("sizeLimitValue")->value() == 200,
+          "guard settings persist");
   if (const auto capture = qEnvironmentVariable("MUFFIN_OPEN_GUARD_SCREENSHOT"); !capture.isEmpty()) {
     SettingsOverride captureExtensions{"files/extensionProtection", true};
     SettingsOverride captureSize{"files/sizeProtection", true};
@@ -1056,7 +1268,8 @@ void fileOpenProtectionSettingsAndBoundaries() {
     auto* protection = preferences.findChild<QWidget*>("fileOpenProtection");
     const auto captureProtection = [&](const QString& suffix) {
       const QRect area(protection->mapTo(&preferences, QPoint()), protection->size());
-      require(preferences.grab().copy(area).save(capture + suffix), "capture protection layout with its dialog background");
+      require(preferences.grab().copy(area).save(capture + suffix),
+              "capture protection layout with its dialog background");
     };
     captureProtection(QStringLiteral(".protection.light.png"));
     auto* capturedUnits = preferences.findChild<QComboBox*>("sizeLimitUnit");
@@ -1079,9 +1292,8 @@ void unsavedMermaidRendersAfterLeavingSource() {
   SettingsOverride source{"editor/showMermaidAsSource", false};
   Fixture f;
   auto* tab = f.current();
-  QApplication::clipboard()->setText(QStringLiteral(
-      "```mermaid\nflowchart TD\nA[开始] --> B{是否保存？}\n"
-      "B -->|是| C[保存文件]\nB -->|否| D[继续编辑]\n```\n\nafter\n"));
+  QApplication::clipboard()->setText(QStringLiteral("```mermaid\nflowchart TD\nA[开始] --> B{是否保存？}\n"
+                                                    "B -->|是| C[保存文件]\nB -->|否| D[继续编辑]\n```\n\nafter\n"));
   QTest::keyClick(tab->renderView, Qt::Key_V, Qt::ControlModifier);
   QApplication::processEvents();
   auto& root = tab->session.document().root();
@@ -1092,19 +1304,23 @@ void unsavedMermaidRendersAfterLeavingSource() {
   CursorPosition cursor;
   cursor.blockId = cursor.text.nodeId = fence;
   tab->editorController.selection().setCursorPosition(cursor);
-  waitUntil([&] {
-    const auto* block = tab->renderView->blockLayoutForNode(fence);
-    return block && block->mermaidState() == BlockLayout::MermaidState::Ready;
-  }, "focused Mermaid validates its source asynchronously");
+  waitUntil(
+      [&] {
+        const auto* block = tab->renderView->blockLayoutForNode(fence);
+        return block && block->mermaidState() == BlockLayout::MermaidState::Ready;
+      },
+      "focused Mermaid validates its source asynchronously");
   require(!tab->renderView->blockLayoutForNode(fence)->isMermaidRendered(),
           "the focused Mermaid fence retains editable source");
   cursor.blockId = cursor.text.nodeId = paragraph->id();
   cursor.text.textOffset = 1;
   tab->editorController.selection().setCursorPosition(cursor);
-  waitUntil([&] {
-    const auto* block = tab->renderView->blockLayoutForNode(fence);
-    return block && block->isMermaidRendered();
-  }, "unsaved Mermaid renders after the cursor leaves its source");
+  waitUntil(
+      [&] {
+        const auto* block = tab->renderView->blockLayoutForNode(fence);
+        return block && block->isMermaidRendered();
+      },
+      "unsaved Mermaid renders after the cursor leaves its source");
   require(tab->session.filePath().isEmpty() && tab->session.document().isModified(),
           "Mermaid renders without saving or assigning a document path");
 
@@ -1119,13 +1335,15 @@ void unsavedMermaidRendersAfterLeavingSource() {
   const QRectF rect = endTab->renderView->nodeRect(endFence);
   const QPointF trailing(rect.left(), rect.bottom() + endTab->renderView->theme().blockSpacing() + 5);
   QTest::mouseClick(endTab->renderView->viewport(), Qt::LeftButton, Qt::NoModifier,
-      (trailing - QPointF(0, endTab->renderView->verticalScrollBar()->value())).toPoint());
+                    (trailing - QPointF(0, endTab->renderView->verticalScrollBar()->value())).toPoint());
   require(endTab->editorController.selection().cursorPosition().afterBlock,
           "click below the final Mermaid fence reaches the trailing empty line");
-  waitUntil([&] {
-    const auto* block = endTab->renderView->blockLayoutForNode(endFence);
-    return block && block->isMermaidRendered();
-  }, "unsaved Mermaid at document end renders from the trailing empty line");
+  waitUntil(
+      [&] {
+        const auto* block = endTab->renderView->blockLayoutForNode(endFence);
+        return block && block->isMermaidRendered();
+      },
+      "unsaved Mermaid at document end renders from the trailing empty line");
   require(endTab->session.filePath().isEmpty(), "trailing-line rendering needs no saved path");
 }
 
@@ -1153,8 +1371,8 @@ void fileSizeUnitsConvertPersistAndProtectAtByteBoundaries() {
   require(spin->value() == 513 && file_open_protection::sizeLimitBytes() == 513 * 1024,
           "fractional GB display does not round an existing KB threshold");
   PrefsFilesPage reopened;
-  require(reopened.findChild<QComboBox*>("sizeLimitUnit")->currentText() == "KB"
-      && reopened.findChild<QDoubleSpinBox*>("sizeLimitValue")->value() == 513,
+  require(reopened.findChild<QComboBox*>("sizeLimitUnit")->currentText() == "KB" &&
+              reopened.findChild<QDoubleSpinBox*>("sizeLimitValue")->value() == 513,
           "both the value and selected unit persist");
   QTemporaryDir directory;
   QFile file(directory.filePath("boundary.md"));
@@ -1190,12 +1408,13 @@ void fileOpenConfirmationDefersReadingAndPreservesTabs() {
   require(f.window.openFile(path), "guard accepts open request");
   auto* pending = f.current();
   require(pending != original && pending->pendingOpenPath == path, "guard has its own pending tab");
-  require(pending->session.isOpenInProgress() && !pending->session.isAsyncParseInProgress()
-      && pending->session.filePath().isEmpty() && pending->session.markdownText().isEmpty(),
-      "no file identity, text or parser before confirmation");
+  require(pending->session.isOpenInProgress() && !pending->session.isAsyncParseInProgress() &&
+              pending->session.filePath().isEmpty() && pending->session.markdownText().isEmpty(),
+          "no file identity, text or parser before confirmation");
   require(pending->openConfirmation->isVisible(), "confirmation is displayed inside the document area");
-  require(pending->openConfirmation->findChild<QLabel*>("extensionWarning")->isVisible()
-      && !pending->openConfirmation->findChild<QLabel*>("sizeWarning")->isVisible(), "extension warning alone");
+  require(pending->openConfirmation->findChild<QLabel*>("extensionWarning")->isVisible() &&
+              !pending->openConfirmation->findChild<QLabel*>("sizeWarning")->isVisible(),
+          "extension warning alone");
   if (const auto capture = qEnvironmentVariable("MUFFIN_OPEN_GUARD_SCREENSHOT"); !capture.isEmpty()) {
     require(f.window.grab().save(capture + ".extension.png"), "capture extension warning");
     LanguageManager::instance().setLanguage(QStringLiteral("zh_CN"));
@@ -1213,7 +1432,8 @@ void fileOpenConfirmationDefersReadingAndPreservesTabs() {
   options.enableAutolink = false;
   pending->session.setParseOptions(options);
   require(!pending->session.isAsyncParseInProgress(), "preferences do not start an unconfirmed parse");
-  require(f.window.openFile(path) && f.tabs->count() == 2 && f.current() == pending, "duplicate open reuses confirmation");
+  require(f.window.openFile(path) && f.tabs->count() == 2 && f.current() == pending,
+          "duplicate open reuses confirmation");
   f.tabs->setCurrentWidget(original);
   require(original->session.markdownText().toString() == originalText, "other documents remain usable");
   f.tabs->setCurrentWidget(pending);
@@ -1227,7 +1447,8 @@ void fileOpenConfirmationDefersReadingAndPreservesTabs() {
   f.file("guard.binary", "Read only after confirmation\n");
   pending->openConfirmation->findChild<QPushButton*>("confirmFileOpen")->click();
   waitUntil([&] { return !pending->session.isOpenInProgress(); }, "confirmed file finishes loading");
-  require(pending->session.filePath() == path && pending->session.markdownText().toString() == "Read only after confirmation\n",
+  require(pending->session.filePath() == path &&
+              pending->session.markdownText().toString() == "Read only after confirmation\n",
           "confirmation opens current bytes");
   require(pending->pendingOpenPath.isEmpty() && !pending->openConfirmation->isVisible(), "guard clears after opening");
 }
@@ -1244,28 +1465,33 @@ void fileOpenSizeConfirmationAndStartupCancellation() {
   require(file.open(QIODevice::ReadWrite) && file.resize(1024 * 1024 + 1), "large fixture");
   file.close();
   require(f.window.openFile(path) && f.current() == startup, "guard reuses pristine startup tab");
-  require(!startup->openConfirmation->findChild<QLabel*>("extensionWarning")->isVisible()
-      && startup->openConfirmation->findChild<QLabel*>("sizeWarning")->isVisible(), "size warning alone");
+  require(!startup->openConfirmation->findChild<QLabel*>("extensionWarning")->isVisible() &&
+              startup->openConfirmation->findChild<QLabel*>("sizeWarning")->isVisible(),
+          "size warning alone");
   if (const auto capture = qEnvironmentVariable("MUFFIN_OPEN_GUARD_SCREENSHOT"); !capture.isEmpty()) {
     require(f.window.grab().save(capture + ".size.png"), "capture size warning");
   }
   action(f.window, "Source Code Mode")->trigger();
-  require(startup->openConfirmation->isVisible() && startup->editor->isReadOnly(), "source mode keeps guard visible and read-only");
+  require(startup->openConfirmation->isVisible() && startup->editor->isReadOnly(),
+          "source mode keeps guard visible and read-only");
   startup->openConfirmation->findChild<QPushButton*>("cancelFileOpen")->click();
-  require(f.tabs->count() == 1 && f.current() == startup && !startup->session.isOpenInProgress()
-      && startup->pendingOpenPath.isEmpty() && !startup->editor->isReadOnly(), "startup cancel restores editable empty document");
+  require(f.tabs->count() == 1 && f.current() == startup && !startup->session.isOpenInProgress() &&
+              startup->pendingOpenPath.isEmpty() && !startup->editor->isReadOnly(),
+          "startup cancel restores editable empty document");
   const QString combined = f.file("large.binary", "Combined warning\n");
   file.setFileName(combined);
   require(file.open(QIODevice::ReadWrite) && file.resize(1024 * 1024 + 1), "combined warning fixture");
   file.close();
   require(f.window.openFile(combined), "request file triggering both guards");
-  require(startup->openConfirmation->findChild<QLabel*>("extensionWarning")->isVisible()
-      && startup->openConfirmation->findChild<QLabel*>("sizeWarning")->isVisible(), "both warnings share one confirmation page");
+  require(startup->openConfirmation->findChild<QLabel*>("extensionWarning")->isVisible() &&
+              startup->openConfirmation->findChild<QLabel*>("sizeWarning")->isVisible(),
+          "both warnings share one confirmation page");
   f.file("large.binary", "Confirmed combined warning\n");
   startup->openConfirmation->findChild<QPushButton*>("confirmFileOpen")->click();
   waitUntil([&] { return !startup->session.isOpenInProgress(); }, "combined confirmation loads");
-  require(startup->backend->isSourceMode() && !startup->editor->isReadOnly()
-      && startup->session.markdownText().toString() == "Confirmed combined warning\n", "confirmed open preserves source mode");
+  require(startup->backend->isSourceMode() && !startup->editor->isReadOnly() &&
+              startup->session.markdownText().toString() == "Confirmed combined warning\n",
+          "confirmed open preserves source mode");
   const QString pendingClose = f.file("close.binary", "Never loaded\n");
   require(f.window.openFile(pendingClose), "create pending tab to close");
   f.close(f.current());
@@ -1284,7 +1510,8 @@ void sessionRestoreKeepsUnconfirmedFilesSeparate() {
   Fixture f;
   const QString unknown = f.file("restore.binary", "Unconfirmed text\n");
   const QString known = f.file("restore.md", "Confirmed text\n");
-  QSettings().setValue("session/window", QVariantMap{{"version", 1}, {"files", QStringList{unknown, known}}, {"active", 0}});
+  QSettings().setValue("session/window",
+                       QVariantMap{{"version", 1}, {"files", QStringList{unknown, known}}, {"active", 0}});
   f.window.restoreStartupFile();
   require(f.tabs->count() == 2, "session restore creates exactly one tab per file");
   auto* pending = f.current();
@@ -1307,8 +1534,8 @@ public:
     QObject::connect(&timer, &QTimer::timeout, &timer, [this, answer] {
       if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
         ++count;
-        require(box->button(answer) != nullptr, QStringLiteral("Unexpected dialog: %1 — %2")
-            .arg(box->windowTitle(), box->text()));
+        require(box->button(answer) != nullptr,
+                QStringLiteral("Unexpected dialog: %1 — %2").arg(box->windowTitle(), box->text()));
         box->button(answer)->click();
       }
       require(count < 10, "unexpected repeated prompts");
@@ -1324,7 +1551,9 @@ QString contents(const QString& path) {
 }
 
 QAction* tabMenuAction(QMenu& menu, const QString& text) {
-  for (auto* item : menu.actions()) if (item->text() == MainWindow::tr(text.toUtf8().constData())) return item;
+  for (auto* item : menu.actions())
+    if (item->text() == MainWindow::tr(text.toUtf8().constData()))
+      return item;
   require(false, QStringLiteral("Missing tab menu action: %1").arg(text));
   return nullptr;
 }
@@ -1359,9 +1588,10 @@ public:
   explicit TabCloseSideStyle(QTabBar::ButtonPosition side)
       : QProxyStyle(QStyleFactory::create(QStringLiteral("Fusion"))), side_(side) {}
 
-  int styleHint(StyleHint hint, const QStyleOption* option = nullptr,
-                const QWidget* widget = nullptr, QStyleHintReturn* data = nullptr) const override {
-    if (hint == SH_TabBar_CloseButtonPosition) return side_;
+  int styleHint(StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr,
+                QStyleHintReturn* data = nullptr) const override {
+    if (hint == SH_TabBar_CloseButtonPosition)
+      return side_;
     return QProxyStyle::styleHint(hint, option, widget, data);
   }
 
@@ -1372,7 +1602,8 @@ private:
 void tabButtonsHaveSingleOwnerAcrossPlatformStyles() {
   const QString originalStyle = QApplication::style()->objectName();
   const auto restoreStyle = qScopeGuard([&] {
-    if (auto* style = QStyleFactory::create(originalStyle)) QApplication::setStyle(style);
+    if (auto* style = QStyleFactory::create(originalStyle))
+      QApplication::setStyle(style);
   });
   // macOS creates native close buttons on the left and paints them on hover.
   // Exercise that style hint here too, rather than relying on the host OS.
@@ -1395,8 +1626,7 @@ void tabButtonsHaveSingleOwnerAcrossPlatformStyles() {
                 "each tab should expose exactly its custom close or pin control");
         if (bar->isVisible()) {
           QTest::mouseMove(bar, bar->tabRect(index).center());
-          require(bar->tabButton(index, QTabBar::LeftSide) == nullptr,
-                  "hover must not expose a second close control");
+          require(bar->tabButton(index, QTabBar::LeftSide) == nullptr, "hover must not expose a second close control");
         }
       }
     };
@@ -1429,7 +1659,9 @@ void tabButtonsHaveSingleOwnerAcrossPlatformStyles() {
 
 MainWindow* otherWindow(const QList<QWidget*>& before) {
   for (auto* widget : QApplication::topLevelWidgets()) {
-    if (!before.contains(widget)) if (auto* window = qobject_cast<MainWindow*>(widget)) return window;
+    if (!before.contains(widget))
+      if (auto* window = qobject_cast<MainWindow*>(widget))
+        return window;
   }
   require(false, "new editor window exists");
   return nullptr;
@@ -1494,7 +1726,8 @@ void pinnedTabsSurviveBulkCloseAndRestore() {
   b->editorController.applyMarkdownTextWithUndo("Edited B\n", "edit");
   triggerTabMenu(f.window, pinned, "Pin Tab");
   require(pinned->pinned && f.tabs->widget(0) == pinned, "pin puts the tab at the front");
-  require(f.tabs->tabBar()->tabButton(0, QTabBar::RightSide)->objectName() == "PinTabButton", "pin replaces accidental close button");
+  require(f.tabs->tabBar()->tabButton(0, QTabBar::RightSide)->objectName() == "PinTabButton",
+          "pin replaces accidental close button");
   if (const auto capture = qEnvironmentVariable("MUFFIN_TAB_MENU_SCREENSHOT"); !capture.isEmpty()) {
     LanguageManager::instance().setLanguage(QStringLiteral("zh_CN"));
     withTabMenu(f.window, b, [&](QMenu& menu) {
@@ -1511,7 +1744,8 @@ void pinnedTabsSurviveBulkCloseAndRestore() {
     Fixture restored;
     restored.window.restoreStartupFile();
     auto* restoredPin = static_cast<DocumentTab*>(restored.tabs->widget(0));
-    require(restoredPin->pinned && restoredPin->session.filePath() == pinned->session.filePath(), "session restores pin and order");
+    require(restoredPin->pinned && restoredPin->session.filePath() == pinned->session.filePath(),
+            "session restores pin and order");
   }
   action(f.window, "New")->trigger();
   auto* blank = f.current();
@@ -1554,8 +1788,9 @@ void movingTabsPreservesHistoryAndRebindsWindowLifetime() {
   require(movedTabs->currentWidget() == document && f.tabs->count() == 1 && f.current() == other,
           "move transfers the same editing page and preserves the source's other tab");
   waitUntil([&] { return !document->pendingViewState; }, "moved viewport restored");
-  require(document->editor->canUndo() && document->editor->anchorPosition() == 32 && document->editor->cursorPosition() == 64
-      && source->verticalScrollBar()->value() == scroll, "move retains source undo, selection and scroll");
+  require(document->editor->canUndo() && document->editor->anchorPosition() == 32 &&
+              document->editor->cursorPosition() == 64 && source->verticalScrollBar()->value() == scroll,
+          "move retains source undo, selection and scroll");
   triggerTabMenu(*movedWindow, document, "Pin Tab");
   const auto beforeAgain = QApplication::topLevelWidgets();
   triggerTabMenu(*movedWindow, document, "Move Tab to New Window");
@@ -1565,7 +1800,8 @@ void movingTabsPreservesHistoryAndRebindsWindowLifetime() {
   deleteTestWindow(movedWindow);
   QApplication::processEvents();
   action(*finalWindow, "Undo")->trigger();
-  require(document->session.markdownText().toString() != edited && !document->session.markdownText().toString().contains("Unsaved move"),
+  require(document->session.markdownText().toString() != edited &&
+              !document->session.markdownText().toString().contains("Unsaved move"),
           "undo still works after the previous owning window is destroyed");
   action(*finalWindow, "Redo")->trigger();
   require(finalWindow->saveCurrentDocument() && contents(path) == edited, "save is rebound to the destination window");
@@ -1585,13 +1821,17 @@ void copyingTabsIncludesUnsavedContentAndIndependentBuffers() {
   auto* copyTabs = copiedWindow->findChild<QTabWidget*>("DocumentTabs");
   auto* copy = static_cast<DocumentTab*>(copyTabs->currentWidget());
   waitUntil([&] { return !copy->pendingViewState; }, "copied caret restored");
-  require(copy != document && f.current() == other && f.tabs->count() == 2 && copy->session.document().isModified()
-      && copy->session.markdownText().toString() == "Unsaved copy\n", "copy includes unsaved text without removing the original");
-  require(copy->session.filePath() == document->session.filePath() && copy->session.fileFormat().lineEnding == TextLineEnding::Crlf
-      && copy->session.fileBaselineMtime() == document->session.fileBaselineMtime()
-      && copy->session.fileBaselineSize() == document->session.fileBaselineSize(), "copy retains path, encoding and disk conflict baseline");
+  require(copy != document && f.current() == other && f.tabs->count() == 2 && copy->session.document().isModified() &&
+              copy->session.markdownText().toString() == "Unsaved copy\n",
+          "copy includes unsaved text without removing the original");
+  require(copy->session.filePath() == document->session.filePath() &&
+              copy->session.fileFormat().lineEnding == TextLineEnding::Crlf &&
+              copy->session.fileBaselineMtime() == document->session.fileBaselineMtime() &&
+              copy->session.fileBaselineSize() == document->session.fileBaselineSize(),
+          "copy retains path, encoding and disk conflict baseline");
   copy->editorController.applyMarkdownTextWithUndo("Independent copy\n", "edit copy");
-  require(document->session.markdownText().toString() == "Unsaved copy\n", "editing the copy leaves the original buffer intact");
+  require(document->session.markdownText().toString() == "Unsaved copy\n",
+          "editing the copy leaves the original buffer intact");
   deleteTestWindow(copiedWindow);
   action(f.window, "New")->trigger();
   auto* untitled = f.current();
@@ -1600,9 +1840,11 @@ void copyingTabsIncludesUnsavedContentAndIndependentBuffers() {
   const auto beforeUntitled = QApplication::topLevelWidgets();
   triggerTabMenu(f.window, untitled, "Copy Tab to New Window");
   auto* untitledWindow = otherWindow(beforeUntitled);
-  auto* untitledCopy = static_cast<DocumentTab*>(untitledWindow->findChild<QTabWidget*>("DocumentTabs")->currentWidget());
-  require(untitledCopy->session.filePath().isEmpty() && untitledCopy->session.document().isModified()
-      && untitledCopy->session.markdownText().toString() == "Untitled copy" && untitledCopy->backend->isSourceMode(),
+  auto* untitledCopy =
+      static_cast<DocumentTab*>(untitledWindow->findChild<QTabWidget*>("DocumentTabs")->currentWidget());
+  require(untitledCopy->session.filePath().isEmpty() && untitledCopy->session.document().isModified() &&
+              untitledCopy->session.markdownText().toString() == "Untitled copy" &&
+              untitledCopy->backend->isSourceMode(),
           "untitled copies retain text and mode and still require Save As");
   withTabMenu(*untitledWindow, untitledCopy, [&](QMenu& menu) {
     require(!tabMenuAction(menu, "Copy Path")->isEnabled(), "untitled copy has no path to copy");
@@ -1619,15 +1861,14 @@ void pendingTabsDisableWindowTransfer() {
   require(f.window.openFile(path), "request protected file");
   auto* pending = f.current();
   withTabMenu(f.window, pending, [&](QMenu& menu) {
-    require(!tabMenuAction(menu, "Move Tab to New Window")->isEnabled()
-        && !tabMenuAction(menu, "Copy Tab to New Window")->isEnabled(), "unconfirmed buffers cannot transfer as empty documents");
+    require(!tabMenuAction(menu, "Move Tab to New Window")->isEnabled() &&
+                !tabMenuAction(menu, "Copy Tab to New Window")->isEnabled(),
+            "unconfirmed buffers cannot transfer as empty documents");
     require(tabMenuAction(menu, "Copy Path")->isEnabled(), "pending file still has a path to copy");
   });
   triggerTabMenu(f.window, pending, "Close Tab");
   require(f.tabs->count() == 1, "context close cancels the protected open without reading it");
 }
-
-
 
 void closeFolder(MainWindow& window) {
   auto* sidebar = window.findChild<SidebarWidget*>();
@@ -1639,10 +1880,14 @@ void closeFolder(MainWindow& window) {
     QAction* close = nullptr;
     bool collapse = false, expand = false, search = false;
     for (auto* item : menu->actions()) {
-      if (item->text() == "Expand All Folders") expand = true;
-      if (item->text() == QString::fromUtf8("Find in Folder…")) search = true;
-      if (item->text() == "Close Folder") close = item;
-      if (item->text() == "Collapse All Folders") collapse = true;
+      if (item->text() == "Expand All Folders")
+        expand = true;
+      if (item->text() == QString::fromUtf8("Find in Folder…"))
+        search = true;
+      if (item->text() == "Close Folder")
+        close = item;
+      if (item->text() == "Collapse All Folders")
+        collapse = true;
     }
     require(close && collapse && expand && search, "context menu exposes folder search, expand, collapse, and close");
     close->trigger();
@@ -1662,18 +1907,19 @@ void tabBarOnlyForMultipleDocuments() {
     QApplication::processEvents();
     require(f.tabs->count() == 1 && !bar->isVisible() && !plus->isVisible(),
             "single document hides tab bar and new-tab button");
-    require(f.current()->mapTo(f.tabs, QPoint(0, 0)).y() <= 1,
-            "hidden tab strip leaves no empty row above the editor");
+    require(f.current()->mapTo(f.tabs, QPoint(0, 0)).y() <= 1, "hidden tab strip leaves no empty row above the editor");
   };
   checkSingle();
-  const QString first = f.file(QStringLiteral("README.md"), QStringLiteral("# Single document\n\nWrite without a tab strip.\n"));
+  const QString first =
+      f.file(QStringLiteral("README.md"), QStringLiteral("# Single document\n\nWrite without a tab strip.\n"));
   const QString second = f.file(QStringLiteral("example.md"), QStringLiteral("# Second document\n"));
   sidebar->fileOpenRequested(first);
   DocumentTab* a = f.current();
   checkSingle();
   require(a->session.filePath() == first, "sidebar opens the first document");
   if (const QString screenshot = qEnvironmentVariable("MUFFIN_TAB_SCREENSHOT"); !screenshot.isEmpty()) {
-    require(f.window.grab().save(screenshot + QStringLiteral(".single.png")), "save single-document appearance capture");
+    require(f.window.grab().save(screenshot + QStringLiteral(".single.png")),
+            "save single-document appearance capture");
   }
   sidebar->fileOpenRequested(second);
   DocumentTab* b = f.current();
@@ -1692,7 +1938,8 @@ void tabBarOnlyForMultipleDocuments() {
   checkSingle();
   {
     AnswerPrompts answer(QMessageBox::Ok);
-    require(!f.window.openFile(f.directory.filePath(QStringLiteral("missing.md"))), "failed second open reports failure");
+    require(!f.window.openFile(f.directory.filePath(QStringLiteral("missing.md"))),
+            "failed second open reports failure");
     checkSingle();
   }
 }
@@ -1716,9 +1963,11 @@ void formatActionsFollowSelectionAndDocumentChanges() {
   for (int i = 0; i < tokens.size(); ++i) {
     at(tokens[i]);
     const auto expected = document->renderCommands.currentInlineFormats();
-    const bool checked[]{expected.bold, expected.italic, expected.underline, expected.code, expected.inlineMath, expected.strikethrough};
+    const bool checked[]{expected.bold, expected.italic,     expected.underline,
+                         expected.code, expected.inlineMath, expected.strikethrough};
     for (int j = 0; j < names.size(); ++j)
-      require(action(f.window, names[j])->isChecked() == checked[j], "format menu must match current selection snapshot");
+      require(action(f.window, names[j])->isChecked() == checked[j],
+              "format menu must match current selection snapshot");
   }
   at("bold");
   auto* second = f.open(f.file("plain.md", "plain second document\n"));
@@ -1726,7 +1975,8 @@ void formatActionsFollowSelectionAndDocumentChanges() {
   plain.blockId = plain.text.nodeId = second->session.document().root().children().front()->id();
   second->editorController.selection().setCursorPosition(plain);
   QApplication::processEvents();
-  for (const auto& name : names) require(!action(f.window, name)->isChecked(), "format snapshot must not leak across tabs");
+  for (const auto& name : names)
+    require(!action(f.window, name)->isChecked(), "format snapshot must not leak across tabs");
   f.tabs->setCurrentWidget(document);
   QApplication::processEvents();
   require(action(f.window, "Bold")->isChecked(), "reactivating tab refreshes formatting");
@@ -1735,13 +1985,12 @@ void formatActionsFollowSelectionAndDocumentChanges() {
 void sharedCursorQueriesMatchIndependentQueries() {
   Fixture f;
   auto* document = f.current();
-  const QStringList sources{
-      "**bold** *italic* <u>under</u> `code` $x$ ~~strike~~ plain\n",
-      "prefix ![alt](image.png) and <img src=\"other.png\"> suffix\n",
-      "<img src=\"standalone.png\">\n",
-      "- **nested** ![alt](list.png)\n",
-      "| A | B |\n|---|---|\n| **bold** | ![alt](cell.png) |\n",
-      "```cpp\ntext\n```\n"};
+  const QStringList sources{"**bold** *italic* <u>under</u> `code` $x$ ~~strike~~ plain\n",
+                            "prefix ![alt](image.png) and <img src=\"other.png\"> suffix\n",
+                            "<img src=\"standalone.png\">\n",
+                            "- **nested** ![alt](list.png)\n",
+                            "| A | B |\n|---|---|\n| **bold** | ![alt](cell.png) |\n",
+                            "```cpp\ntext\n```\n"};
   bool sawImage = false, sawBold = false;
   for (const auto& source : sources) {
     document->session.setMarkdownText(source, true);
@@ -1762,9 +2011,11 @@ void sharedCursorQueriesMatchIndependentQueries() {
       const auto formats = document->renderCommands.currentInlineFormats();
       require(shared.formats.bold == formats.bold && shared.formats.italic == formats.italic &&
                   shared.formats.underline == formats.underline && shared.formats.code == formats.code &&
-                  shared.formats.strikethrough == formats.strikethrough && shared.formats.inlineMath == formats.inlineMath,
+                  shared.formats.strikethrough == formats.strikethrough &&
+                  shared.formats.inlineMath == formats.inlineMath,
               "shared formats match individual query at each source position");
-      require(shared.imageSource == document->renderCommands.imageSrcAtCursor(), "shared image query matches individual query");
+      require(shared.imageSource == document->renderCommands.imageSrcAtCursor(),
+              "shared image query matches individual query");
     }
     auto range = document->editorController.selection().selection();
     range.anchor.text.textOffset = 0;
@@ -1774,7 +2025,8 @@ void sharedCursorQueriesMatchIndependentQueries() {
     const auto formats = document->renderCommands.currentInlineFormats();
     require(shared.formats.bold == formats.bold && shared.formats.italic == formats.italic &&
                 shared.formats.underline == formats.underline && shared.formats.code == formats.code &&
-                shared.formats.strikethrough == formats.strikethrough && shared.formats.inlineMath == formats.inlineMath,
+                shared.formats.strikethrough == formats.strikethrough &&
+                shared.formats.inlineMath == formats.inlineMath,
             "selection queries retain independent format semantics");
   }
   require(sawImage && sawBold, "query fixtures exercise images and formatted spans");
@@ -1892,7 +2144,8 @@ void sourceStateAndKeyboardNavigation() {
   empty->editor->undo();
   require(empty->session.markdownText().isEmpty() && empty->editor->canRedo(), "empty draft retains redo history");
   f.open(f.file(QStringLiteral("d.md"), QStringLiteral("D\n")));
-  require(f.tabs->count() == 6 && f.tabs->indexOf(empty) >= 0, "opening a file preserves an empty draft's redo history");
+  require(f.tabs->count() == 6 && f.tabs->indexOf(empty) >= 0,
+          "opening a file preserves an empty draft's redo history");
 }
 
 void closesWithSaveDiscardAndCancel() {
@@ -1941,36 +2194,46 @@ void closesWithSaveDiscardAndCancel() {
 
 void backgroundLoadingAndPersistence() {
   Fixture f;
-  const QString first = f.file(QStringLiteral("large.md"), QStringLiteral("# Large\n\n") + QStringLiteral("Long paragraph.\n\n").repeated(12000));
+  const QString first = f.file(QStringLiteral("large.md"),
+                               QStringLiteral("# Large\n\n") + QStringLiteral("Long paragraph.\n\n").repeated(12000));
   const QString second = f.file(QStringLiteral("small.md"), QStringLiteral("# Small\n\nSmall body.\n"));
   require(f.window.openFile(first), "start async large open");
   DocumentTab* a = f.current();
   require(a->session.isAsyncParseInProgress(), "large document still loading");
   require(f.window.openFile(second), "open second while first is parsing");
   DocumentTab* b = f.current();
-  waitUntil([a, b] { return !a->session.isAsyncParseInProgress() && !b->session.isAsyncParseInProgress(); }, "both parses finish");
-  require(f.current() == b && f.window.windowTitle().startsWith(QStringLiteral("small.md")), "background parse leaves active title intact");
-  require(a->session.markdownText().toString().contains(QStringLiteral("Large")) && b->editor->text().contains(QStringLiteral("Small")),
+  waitUntil([a, b] { return !a->session.isAsyncParseInProgress() && !b->session.isAsyncParseInProgress(); },
+            "both parses finish");
+  require(f.current() == b && f.window.windowTitle().startsWith(QStringLiteral("small.md")),
+          "background parse leaves active title intact");
+  require(a->session.markdownText().toString().contains(QStringLiteral("Large")) &&
+              b->editor->text().contains(QStringLiteral("Small")),
           "parses update the owning documents");
   a->session.setMarkdownText(QStringLiteral("Dirty A\n"), true);
   b->session.setMarkdownText(QStringLiteral("Dirty B\n"), true);
   QMetaObject::invokeMethod(a->draftTimer, "timeout", Qt::DirectConnection);
   QMetaObject::invokeMethod(b->draftTimer, "timeout", Qt::DirectConnection);
   DraftRecovery recovery;
-  waitUntil([&] { return a->lastDraftSnapshotRevision == a->session.document().revision() &&
-                         b->lastDraftSnapshotRevision == b->session.document().revision(); }, "background drafts committed");
+  waitUntil(
+      [&] {
+        return a->lastDraftSnapshotRevision == a->session.document().revision() &&
+               b->lastDraftSnapshotRevision == b->session.document().revision();
+      },
+      "background drafts committed");
   const auto drafts = recovery.pendingDrafts();
   require(drafts.size() == 2 && a->draftKey != b->draftKey, "each tab has its own recovery snapshot");
   {
     SettingsOverride autoSave("files/autoSave", true);
     QMetaObject::invokeMethod(a->autoSaveTimer, "timeout", Qt::DirectConnection);
     require(contents(first) == QStringLiteral("Dirty A\n"), "background autosave writes A");
-    require(b->session.document().isModified() && contents(second).contains(QStringLiteral("Small")), "autosave leaves B unsaved");
+    require(b->session.document().isModified() && contents(second).contains(QStringLiteral("Small")),
+            "autosave leaves B unsaved");
     waitUntil([&] { return recovery.pendingDrafts().size() == 1; }, "saving A leaves B recovery snapshot");
   }
   a->session.setMarkdownText(QStringLiteral("Save All A\n"), true);
   action(f.window, QStringLiteral("Save All Open Files..."))->trigger();
-  require(contents(first) == QStringLiteral("Save All A\n") && contents(second) == QStringLiteral("Dirty B\n"), "Save All includes inactive tabs");
+  require(contents(first) == QStringLiteral("Save All A\n") && contents(second) == QStringLiteral("Dirty B\n"),
+          "Save All includes inactive tabs");
   require(f.current() == b, "Save All retains active tab");
   waitUntil([&] { return recovery.pendingDrafts().isEmpty(); }, "Save All clears saved drafts asynchronously");
 
@@ -2032,7 +2295,9 @@ void openFailuresAndConflictingSaveAs() {
     action(f.window, QStringLiteral("Save As..."))->trigger();
     require(answer.count == 1 && a->session.document().isModified(),
             QStringLiteral("Save As refuses another open document (prompts=%1, modified=%2, path=%3)")
-                .arg(answer.count).arg(a->session.document().isModified()).arg(a->session.filePath()));
+                .arg(answer.count)
+                .arg(a->session.document().isModified())
+                .arg(a->session.filePath()));
     require(contents(second) == QStringLiteral("B\n") && b->session.markdownText().toString() == QStringLiteral("B\n"),
             "conflicting Save As preserves both disk and open B");
   }
@@ -2044,7 +2309,8 @@ void openFailuresAndConflictingSaveAs() {
     b->session.setMarkdownText(QStringLiteral("Discard B\n"), true);
     AnswerPrompts answer(QMessageBox::Discard);
     f.close(b);
-    require(answer.count == 1 && contents(second) == QStringLiteral("B\n"), "closing with Discard never saves on switch");
+    require(answer.count == 1 && contents(second) == QStringLiteral("B\n"),
+            "closing with Discard never saves on switch");
   }
 }
 
@@ -2052,20 +2318,25 @@ void renameFolderAndTranslateTabs() {
   Fixture f;
   const QString folder = f.directory.filePath(QStringLiteral("folder"));
   require(QDir().mkpath(folder), "create folder for rename");
-  DocumentTab* a = f.open(f.file(QStringLiteral("folder/a.md"), QStringLiteral("# First document\n\nEditing one document keeps the others open.\n")));
-  DocumentTab* b = f.open(f.file(QStringLiteral("folder/b.md"), QStringLiteral("# Second document\n\nSwitch tabs without losing your place.\n")));
+  DocumentTab* a = f.open(f.file(QStringLiteral("folder/a.md"),
+                                 QStringLiteral("# First document\n\nEditing one document keeps the others open.\n")));
+  DocumentTab* b = f.open(f.file(QStringLiteral("folder/b.md"),
+                                 QStringLiteral("# Second document\n\nSwitch tabs without losing your place.\n")));
   a->session.setMarkdownText(QStringLiteral("# First document\n\nUnsaved changes in another tab.\n"), true);
   auto* sidebar = f.window.findChild<SidebarWidget*>();
   sidebar->inlineCommitRequested(InlineEditContext{folder, false, true}, QStringLiteral("renamed"));
   const QString renamed = f.directory.filePath(QStringLiteral("renamed"));
-  require(a->session.filePath() == renamed + QStringLiteral("/a.md") && b->session.filePath() == renamed + QStringLiteral("/b.md"),
+  require(a->session.filePath() == renamed + QStringLiteral("/a.md") &&
+              b->session.filePath() == renamed + QStringLiteral("/b.md"),
           "folder rename updates both active and inactive paths");
   require(f.window.saveCurrentDocument(), "renamed active file saves");
   require(f.window.openFile(a->session.filePath()) && f.tabs->count() == 2 && f.current() == a,
           "renamed inactive file reuses its tab");
 
   for (const LanguageInfo& language : LanguageManager::instance().availableLanguages()) {
-    if (language.code == QStringLiteral("system")) { continue; }
+    if (language.code == QStringLiteral("system")) {
+      continue;
+    }
     require(LanguageManager::instance().setLanguage(language.code), "tab language loads");
     const QString close = MainWindow::tr("Close Tab");
     require(!close.isEmpty(), "translated close label");
@@ -2076,7 +2347,8 @@ void renameFolderAndTranslateTabs() {
     require(button->toolTip() == close && button->accessibleName() == close, "existing close button retranslates");
     auto* plus = f.window.findChild<QToolButton*>(QStringLiteral("NewTabButton"));
     require(plus->toolTip().startsWith(MainWindow::tr("New Tab")), "new-tab tooltip retranslates");
-    require(f.tabs->tabBar()->accessibleName() == MainWindow::tr("Open Documents"), "tab bar accessible name retranslates");
+    require(f.tabs->tabBar()->accessibleName() == MainWindow::tr("Open Documents"),
+            "tab bar accessible name retranslates");
   }
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
   if (const QString screenshot = qEnvironmentVariable("MUFFIN_TAB_SCREENSHOT"); !screenshot.isEmpty()) {
@@ -2103,8 +2375,10 @@ void hiddenTabsDeferThemeChanges() {
   require(a->pendingTheme && a->pendingTheme->backgroundColor() != first, "repeated changes coalesce to latest theme");
   const auto expected = b->renderView->theme().backgroundColor();
   f.tabs->setCurrentWidget(a);
-  require(!a->pendingTheme && a->renderView->theme().backgroundColor() == expected, "activation applies latest snapshot once");
-  require(a->session.document().revision() == revision && a->renderView->cursorPosition().text.nodeId == cursor.text.nodeId,
+  require(!a->pendingTheme && a->renderView->theme().backgroundColor() == expected,
+          "activation applies latest snapshot once");
+  require(a->session.document().revision() == revision &&
+              a->renderView->cursorPosition().text.nodeId == cursor.text.nodeId,
           "deferred theme preserves document and cursor identity");
 }
 
@@ -2119,8 +2393,8 @@ void hiddenTabsMergeThemeAndResourceChanges() {
     loader.store(url, image);
   };
   store(30);
-  auto* a = f.open(f.file(
-      "resources-a.md", "![image](" + url + ")\n\n" + QString("Text with **bold** and wrapping words. ").repeated(30)));
+  auto* a = f.open(f.file("resources-a.md", "![image](" + url + ")\n\n" +
+                                                QString("Text with **bold** and wrapping words. ").repeated(30)));
   const auto imageId = a->session.document().root().children()[0]->id();
   const auto textId = a->session.document().root().children()[1]->id();
   CursorPosition cursor;
@@ -2170,8 +2444,8 @@ void hiddenTabsMergeThemeAndResourceChanges() {
   fresh.setCursorPosition(cursor);
   QApplication::processEvents();
   if (fresh.viewport()->size() != a->renderView->viewport()->size() || fresh.effectiveCursorRect() != caret) {
-    qWarning() << "Activated viewport/caret" << a->renderView->viewport()->size() << caret
-               << "fresh viewport/caret" << fresh.viewport()->size() << fresh.effectiveCursorRect();
+    qWarning() << "Activated viewport/caret" << a->renderView->viewport()->size() << caret << "fresh viewport/caret"
+               << fresh.viewport()->size() << fresh.effectiveCursorRect();
   }
   require(fresh.viewport()->size() == a->renderView->viewport()->size() && fresh.effectiveCursorRect() == caret,
           "activated layout and font metrics agree with a newly built view");
@@ -2233,18 +2507,22 @@ void sessionRestoresOrderActiveFolderAndExpansion() {
 
   Fixture restored;
   restored.window.restoreStartupFile();
-  waitUntil([&] {
-    for (int i = 0; i < restored.tabs->count(); ++i)
-      if (static_cast<DocumentTab*>(restored.tabs->widget(i))->session.isAsyncParseInProgress()) return false;
-    return true;
-  }, "restored documents finish loading");
+  waitUntil(
+      [&] {
+        for (int i = 0; i < restored.tabs->count(); ++i)
+          if (static_cast<DocumentTab*>(restored.tabs->widget(i))->session.isAsyncParseInProgress())
+            return false;
+        return true;
+      },
+      "restored documents finish loading");
   require(openPaths(restored) == expected && restored.current()->session.filePath() == b,
           "startup restores ordered tabs and active file");
   auto* restoredSidebar = restored.window.findChild<SidebarWidget*>();
   auto* restoredTree = restoredSidebar->findChild<QTreeView*>("FileTree");
   auto* restoredModel = qobject_cast<FileTreeModel*>(restoredTree->model());
-  waitUntil([&] { return restoredTree->isExpanded(restoredModel->index(original.directory.filePath("Folder/Nested"))); },
-            "startup restores asynchronously loaded nested folder expansion");
+  waitUntil(
+      [&] { return restoredTree->isExpanded(restoredModel->index(original.directory.filePath("Folder/Nested"))); },
+      "startup restores asynchronously loaded nested folder expansion");
   require(!restoredTree->isExpanded(restoredModel->index(original.directory.filePath("Folder"))),
           "exit prompts and queued parse notifications preserve a collapsed folder containing the active file");
   require(restoredSidebar->folderRoot() == original.directory.path(), "startup restores the workspace root");
@@ -2263,13 +2541,13 @@ void closedFilesAndFolderStayClosed() {
           "closing a file immediately removes it from the persisted session");
   closeFolder(f.window);
   auto* sidebar = f.window.findChild<SidebarWidget*>();
-  require(sidebar->folderRoot().isEmpty() && f.current() == second,
-          "closing a workspace retains its open documents");
+  require(sidebar->folderRoot().isEmpty() && f.current() == second, "closing a workspace retains its open documents");
   sidebar->setCurrentDocument("b.md", b, false);
   require(sidebar->folderRoot().isEmpty(), "document refresh does not reopen an explicitly closed workspace");
   Fixture filesOnly;
   filesOnly.window.restoreStartupFile();
-  require(openPaths(filesOnly) == QStringList{b} && filesOnly.window.findChild<SidebarWidget*>()->folderRoot().isEmpty(),
+  require(openPaths(filesOnly) == QStringList{b} &&
+              filesOnly.window.findChild<SidebarWidget*>()->folderRoot().isEmpty(),
           "files can be restored with no workspace");
   action(f.window, "Close Tab")->trigger();
   const auto closed = QSettings().value("session/window").toMap();
@@ -2288,8 +2566,10 @@ void startupPreferenceAndMissingFiles() {
   SettingsOverride session("session/window", QVariantMap{});
   Fixture source;
   const QString a = source.file("available.md", "# Available\n");
-  const QVariantMap snapshot{{"version", 1}, {"files", QStringList{source.directory.filePath("gone.md"), a}},
-                            {"active", 1}, {"folder", source.directory.filePath("removed")}};
+  const QVariantMap snapshot{{"version", 1},
+                             {"files", QStringList{source.directory.filePath("gone.md"), a}},
+                             {"active", 1},
+                             {"folder", source.directory.filePath("removed")}};
   QSettings().setValue("session/window", snapshot);
   Fixture fresh;
   fresh.window.restoreStartupFile();
@@ -2301,8 +2581,8 @@ void startupPreferenceAndMissingFiles() {
   require(openPaths(restored) == QStringList{a} && restored.current()->session.filePath() == a &&
               restored.window.findChild<SidebarWidget*>()->folderRoot().isEmpty(),
           "default restores valid files while silently skipping removed files and folders");
-  QSettings().setValue("session/window", QVariantMap{{"version", 1}, {"files", QStringList{}},
-                                                   {"folder", source.directory.path()}});
+  QSettings().setValue("session/window",
+                       QVariantMap{{"version", 1}, {"files", QStringList{}}, {"folder", source.directory.path()}});
   Fixture folderOnly;
   folderOnly.window.restoreStartupFile();
   require(folderOnly.current()->session.filePath().isEmpty() && folderOnly.tabs->count() == 1 &&
@@ -2344,7 +2624,8 @@ void sessionPreservesEmptyTabAndExplicitReveal() {
   f.open(b);
   // Opening a file may reuse an empty tab. Create the placeholder after both
   // real files are open, then move it between them.
-  if (blank->session.filePath() == b) action(f.window, "New")->trigger();
+  if (blank->session.filePath() == b)
+    action(f.window, "New")->trigger();
   f.tabs->tabBar()->moveTab(2, 1);
   f.tabs->setCurrentIndex(1);
   require(f.current()->session.filePath().isEmpty(), "middle tab is an empty placeholder");
@@ -2363,7 +2644,11 @@ void sessionPreservesEmptyTabAndExplicitReveal() {
 QString readingFixtureText() {
   QString text;
   for (int i = 0; i < 180; ++i)
-    text += QStringLiteral("Paragraph %1 中文 😀 with **bold**, *italic*, $$E=mc^2$$ and words that wrap across the viewport. ").arg(i).repeated(3) + "\n\n";
+    text += QStringLiteral(
+                "Paragraph %1 中文 😀 with **bold**, *italic*, $$E=mc^2$$ and words that wrap across the viewport. ")
+                .arg(i)
+                .repeated(3) +
+            "\n\n";
   return text;
 }
 
@@ -2397,15 +2682,16 @@ void sessionRestoresSelectionsModesAndIndependentReadingPositions() {
   auto* rendered = original.open(original.file("rendered.md", text));
   const auto focus = text.indexOf("Paragraph 20") + 6;
   const auto anchor = focus + 14;
-  rendered->editorController.selection().setSelection(
-      {rendered->editorController.cursorForSourceOffset(anchor), rendered->editorController.cursorForSourceOffset(focus)});
+  rendered->editorController.selection().setSelection({rendered->editorController.cursorForSourceOffset(anchor),
+                                                       rendered->editorController.cursorForSourceOffset(focus)});
   const auto savedSelection = rendered->editorController.selection().selection();
   const auto readingOffset = text.indexOf("Paragraph 130");
   rendered->renderView->scrollToNode(rendered->session.document().topLevelBlockAtOffset(readingOffset)->id());
   rendered->renderView->verticalScrollBar()->setValue(rendered->renderView->verticalScrollBar()->value() + 41);
   QApplication::processEvents();
   const auto renderedPosition = rendered->renderView->viewportPosition();
-  require(!renderedPosition.atStart && renderedPosition.sourceOffset > anchor, "rendered viewport is far below its selection");
+  require(!renderedPosition.atStart && renderedPosition.sourceOffset > anchor,
+          "rendered viewport is far below its selection");
 
   auto* source = original.open(original.file("source.md", text));
   action(original.window, "Source Code Mode")->trigger();
@@ -2421,7 +2707,8 @@ void sessionRestoresSelectionsModesAndIndependentReadingPositions() {
   require(original.window.close(), "mixed-mode session closes");
   const auto saved = QSettings().value("session/window").toMap();
   const auto views = saved.value("views").toList();
-  require(views.size() == 2 && !views[0].toMap().value("sourceMode").toBool() && views[1].toMap().value("sourceMode").toBool(),
+  require(views.size() == 2 && !views[0].toMap().value("sourceMode").toBool() &&
+              views[1].toMap().value("sourceMode").toBool(),
           "session persists each tab's own mode");
 
   Fixture restored;
@@ -2438,7 +2725,8 @@ void sessionRestoresSelectionsModesAndIndependentReadingPositions() {
           "active tab's restored mode updates the shared mode controls");
   requireReadingPosition(active, renderedPosition);
   auto* hidden = static_cast<DocumentTab*>(restored.tabs->widget(1));
-  require(hidden->pendingViewState.has_value() && hidden->backend->isSourceMode(), "background page defers geometry restoration");
+  require(hidden->pendingViewState.has_value() && hidden->backend->isSourceMode(),
+          "background page defers geometry restoration");
   // A session save before first activation must keep the unconsumed state.
   closeFolder(restored.window);
   require(QSettings().value("session/window").toMap().value("views").toList()[1] == views[1],
@@ -2463,7 +2751,8 @@ void sessionRestoresSelectionsModesAndIndependentReadingPositions() {
   hidden->editor->insertText(QStringLiteral("replacement"));
   QString edited = text;
   edited.replace(focus, anchor - focus, QStringLiteral("replacement"));
-  require(hidden->session.markdownText().toString() == edited, "typing replaces the restored source selection at the original coordinates");
+  require(hidden->session.markdownText().toString() == edited,
+          "typing replaces the restored source selection at the original coordinates");
 }
 
 void sessionViewRestorationWaitsForShowAndBoundsChangedFiles() {
@@ -2472,11 +2761,13 @@ void sessionViewRestorationWaitsForShowAndBoundsChangedFiles() {
   SettingsOverride geometry("window/geometry", QByteArray{});
   Fixture files;
   const auto path = files.file("shortened.md", QStringLiteral("Hello 中文 😀\n"));
-  const QVariantMap view{{"version", 1}, {"sourceMode", true}, {"hasCursor", true},
-                         {"anchor", qlonglong(9999999)}, {"focus", -8},
-                         {"viewport", QVariantMap{{"source", qlonglong(9999999)}, {"screenY", 0}, {"start", false}}}};
-  QSettings().setValue("session/window", QVariantMap{{"version", 1}, {"files", QStringList{path}},
-      {"active", 0}, {"views", QVariantList{view}}});
+  const QVariantMap view{
+      {"version", 1},      {"sourceMode", true},
+      {"hasCursor", true}, {"anchor", qlonglong(9999999)},
+      {"focus", -8},       {"viewport", QVariantMap{{"source", qlonglong(9999999)}, {"screenY", 0}, {"start", false}}}};
+  QSettings().setValue(
+      "session/window",
+      QVariantMap{{"version", 1}, {"files", QStringList{path}}, {"active", 0}, {"views", QVariantList{view}}});
   MainWindow restored;
   restored.resize(900, 660);
   restored.restoreStartupFile();
@@ -2488,27 +2779,29 @@ void sessionViewRestorationWaitsForShowAndBoundsChangedFiles() {
   require(document->pendingViewState.has_value(), "startup before show keeps saved state pending");
   restored.show();
   waitForRestoredView(document);
-  require(document->editor->anchorPosition() == document->session.markdownText().size() && document->editor->cursorPosition() == 0,
+  require(document->editor->anchorPosition() == document->session.markdownText().size() &&
+              document->editor->cursorPosition() == 0,
           "changed or shortened documents clamp selection endpoints to valid UTF-16 source positions");
-  require(!document->session.document().isModified() && !document->editor->canUndo(), "restoration never edits text or adds undo history");
+  require(!document->session.document().isModified() && !document->editor->canUndo(),
+          "restoration never edits text or adds undo history");
 }
 
 void sessionRestoresNestedAndLiteralCoordinates() {
   SettingsOverride startup("files/startupBehavior", 1);
   SettingsOverride session("session/window", QVariantMap{});
   Fixture original;
-  const QStringList samples{
-      QStringLiteral("# Heading\n\n- outer\n  - Nested 中文 **bold** 😀 text\n\nTail\n"),
-      QStringLiteral("| Column | Other |\n| --- | --- |\n| Cell 中文 text | value |\n"),
-      QStringLiteral("```cpp\n// Literal 中文 😀 text\nint x = 2;\n```\n"),
-      QStringLiteral("$$\n\\text{中文} + x\n$$\n"),
-      QStringLiteral("---\ntitle: 中文\n---\n\nBody\n")};
+  const QStringList samples{QStringLiteral("# Heading\n\n- outer\n  - Nested 中文 **bold** 😀 text\n\nTail\n"),
+                            QStringLiteral("| Column | Other |\n| --- | --- |\n| Cell 中文 text | value |\n"),
+                            QStringLiteral("```cpp\n// Literal 中文 😀 text\nint x = 2;\n```\n"),
+                            QStringLiteral("$$\n\\text{中文} + x\n$$\n"),
+                            QStringLiteral("---\ntitle: 中文\n---\n\nBody\n")};
   QList<QPair<qsizetype, qsizetype>> expected;
   for (int i = 0; i < samples.size(); ++i) {
     auto* document = original.open(original.file(QStringLiteral("nested-%1.md").arg(i), samples[i]));
     const auto focus = samples[i].indexOf(QStringLiteral("中文"));
     const auto anchor = focus + 2;
-    SelectionRange range{document->editorController.cursorForSourceOffset(anchor), document->editorController.cursorForSourceOffset(focus)};
+    SelectionRange range{document->editorController.cursorForSourceOffset(anchor),
+                         document->editorController.cursorForSourceOffset(focus)};
     if (i >= 2) {
       // Typing through a literal controller also yields block-local source
       // offsets; persistence must canonicalize these rather than save them raw.
@@ -2527,26 +2820,32 @@ void sessionRestoresNestedAndLiteralCoordinates() {
     auto* document = restored.current();
     waitForRestoredView(document);
     const auto selection = document->editorController.selection().selection();
-    require(selection.anchor.text.sourceOffset == expected[i].first && selection.focus.text.sourceOffset == expected[i].second,
+    require(selection.anchor.text.sourceOffset == expected[i].first &&
+                selection.focus.text.sourceOffset == expected[i].second,
             "nested list, table cell and code fence selections retain UTF-16 coordinates after restart");
-    require(document->editorController.inputController().insertText(QStringLiteral("重启")), "restored literal or nested selection accepts input");
+    require(document->editorController.inputController().insertText(QStringLiteral("重启")),
+            "restored literal or nested selection accepts input");
     QString edited = samples[i];
     edited.replace(expected[i].second, 2, QStringLiteral("重启"));
-    require(document->session.markdownText().toString() == edited, "typing into a restored nested or literal selection targets its original source");
+    require(document->session.markdownText().toString() == edited,
+            "typing into a restored nested or literal selection targets its original source");
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   // A deterministic converter process for export plumbing tests. Actual
   // Pandoc need not be installed on CI, and can fail after partial output.
-  if (argc == 2 && QByteArray(argv[1]) == "--version") return 0;
+  if (argc == 2 && QByteArray(argv[1]) == "--version")
+    return 0;
   QStringList converterArgs;
-  for (int i = 1; i < argc; ++i) converterArgs << QString::fromLocal8Bit(argv[i]);
+  for (int i = 1; i < argc; ++i)
+    converterArgs << QString::fromLocal8Bit(argv[i]);
   if (converterArgs.contains("-o") && converterArgs.contains("-t")) {
     QFile output(converterArgs.value(converterArgs.indexOf("-o") + 1));
-    if (!output.open(QIODevice::WriteOnly)) return 1;
+    if (!output.open(QIODevice::WriteOnly))
+      return 1;
     output.write(converterArgs.join('\n').toUtf8());
     return converterArgs.contains("--fake-export-failure") ? 1 : 0;
   }
@@ -2574,8 +2873,10 @@ int main(int argc, char** argv) {
   QSettings().setValue(QStringLiteral("files/autoSave"), false);
   LanguageManager::instance().setLanguage(QStringLiteral("en"));
   const auto runSessionViewTests = [] {
-    runTest("sessionRestoresSelectionsModesAndIndependentReadingPositions", sessionRestoresSelectionsModesAndIndependentReadingPositions);
-    runTest("sessionViewRestorationWaitsForShowAndBoundsChangedFiles", sessionViewRestorationWaitsForShowAndBoundsChangedFiles);
+    runTest("sessionRestoresSelectionsModesAndIndependentReadingPositions",
+            sessionRestoresSelectionsModesAndIndependentReadingPositions);
+    runTest("sessionViewRestorationWaitsForShowAndBoundsChangedFiles",
+            sessionViewRestorationWaitsForShowAndBoundsChangedFiles);
     runTest("sessionRestoresNestedAndLiteralCoordinates", sessionRestoresNestedAndLiteralCoordinates);
   };
   if (QCoreApplication::arguments().contains(QStringLiteral("--session-view-state"))) {
@@ -2585,39 +2886,50 @@ int main(int argc, char** argv) {
     return 0;
   }
   runTest("fileTreeOpeningPreservesScrollPosition", fileTreeOpeningPreservesScrollPosition);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--sidebar-file-open"))) return 0;
+  if (QCoreApplication::arguments().contains(QStringLiteral("--sidebar-file-open")))
+    return 0;
   runTest("exportPreferencesAndOutputs", exportPreferencesAndOutputs);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--export-options"))) return 0;
+  if (QCoreApplication::arguments().contains(QStringLiteral("--export-options")))
+    return 0;
   runTest("noteLinkRewriting", noteLinkRewriting);
   runTest("noteLinkNavigation", noteLinkNavigation);
   runTest("noteLinkRenamePreview", noteLinkRenamePreview);
   runTest("noteLinkMoveAndConflicts", noteLinkMoveAndConflicts);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--note-links"))) return 0;
+  if (QCoreApplication::arguments().contains(QStringLiteral("--note-links")))
+    return 0;
   runTest("continuousEditingWorkflow", continuousEditingWorkflow);
   runTest("imeSelectionReplacementWorkflow", imeSelectionReplacementWorkflow);
   runTest("restrictedFormattingActions", restrictedFormattingActions);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--editing-workflow"))) return 0;
+  if (QCoreApplication::arguments().contains(QStringLiteral("--editing-workflow")))
+    return 0;
   runTest("workspaceSearchAndReplace", workspaceSearchAndReplace);
   runTest("workspaceSidebarWidth", workspaceSidebarWidth);
   runTest("workspaceRenderedNavigation", workspaceRenderedNavigation);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--workspace-search"))) return 0;
+  if (QCoreApplication::arguments().contains(QStringLiteral("--workspace-search")))
+    return 0;
   runTest("tabButtonsHaveSingleOwnerAcrossPlatformStyles", tabButtonsHaveSingleOwnerAcrossPlatformStyles);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--tab-buttons"))) return 0;
+  if (QCoreApplication::arguments().contains(QStringLiteral("--tab-buttons")))
+    return 0;
   runTest("fileOpenProtectionSettingsAndBoundaries", fileOpenProtectionSettingsAndBoundaries);
   runTest("unsavedMermaidRendersAfterLeavingSource", unsavedMermaidRendersAfterLeavingSource);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--unsaved-mermaid"))) return 0;
-  runTest("fileSizeUnitsConvertPersistAndProtectAtByteBoundaries", fileSizeUnitsConvertPersistAndProtectAtByteBoundaries);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--unsaved-mermaid")))
+    return 0;
+  runTest("fileSizeUnitsConvertPersistAndProtectAtByteBoundaries",
+          fileSizeUnitsConvertPersistAndProtectAtByteBoundaries);
   runTest("fileOpenConfirmationDefersReadingAndPreservesTabs", fileOpenConfirmationDefersReadingAndPreservesTabs);
   runTest("fileOpenSizeConfirmationAndStartupCancellation", fileOpenSizeConfirmationAndStartupCancellation);
   runTest("sessionRestoreKeepsUnconfirmedFilesSeparate", sessionRestoreKeepsUnconfirmedFilesSeparate);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--file-open-protection"))) return 0;
+  if (QCoreApplication::arguments().contains(QStringLiteral("--file-open-protection")))
+    return 0;
   runSessionViewTests();
   runTest("tabMenuTargetsBackgroundTabsAndStopsOnCancel", tabMenuTargetsBackgroundTabsAndStopsOnCancel);
   runTest("pinnedTabsSurviveBulkCloseAndRestore", pinnedTabsSurviveBulkCloseAndRestore);
   runTest("movingTabsPreservesHistoryAndRebindsWindowLifetime", movingTabsPreservesHistoryAndRebindsWindowLifetime);
-  runTest("copyingTabsIncludesUnsavedContentAndIndependentBuffers", copyingTabsIncludesUnsavedContentAndIndependentBuffers);
+  runTest("copyingTabsIncludesUnsavedContentAndIndependentBuffers",
+          copyingTabsIncludesUnsavedContentAndIndependentBuffers);
   runTest("pendingTabsDisableWindowTransfer", pendingTabsDisableWindowTransfer);
-  if (QCoreApplication::arguments().contains(QStringLiteral("--tab-context-menu"))) return 0;
+  if (QCoreApplication::arguments().contains(QStringLiteral("--tab-context-menu")))
+    return 0;
   runTest("sessionRestoresOrderActiveFolderAndExpansion", sessionRestoresOrderActiveFolderAndExpansion);
   runTest("closedFilesAndFolderStayClosed", closedFilesAndFolderStayClosed);
   runTest("startupPreferenceAndMissingFiles", startupPreferenceAndMissingFiles);

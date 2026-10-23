@@ -70,4 +70,4 @@ private:
   EditorView* view_;
 };
 
-}  // namespace muffin
+} // namespace muffin

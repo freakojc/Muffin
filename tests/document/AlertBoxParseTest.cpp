@@ -20,7 +20,7 @@ const MarkdownNode* firstBlockOfType(const MarkdownNode& root, BlockType type) {
   }
   return nullptr;
 }
-}  // namespace
+} // namespace
 
 void testAlertKindsRecognized() {
   CmarkGfmParser parser;
@@ -30,11 +30,8 @@ void testAlertKindsRecognized() {
     AlertKind kind;
   };
   const Case cases[] = {
-      {"NOTE", AlertKind::Note},
-      {"TIP", AlertKind::Tip},
-      {"IMPORTANT", AlertKind::Important},
-      {"WARNING", AlertKind::Warning},
-      {"CAUTION", AlertKind::Caution},
+      {"NOTE", AlertKind::Note},       {"TIP", AlertKind::Tip},         {"IMPORTANT", AlertKind::Important},
+      {"WARNING", AlertKind::Warning}, {"CAUTION", AlertKind::Caution},
   };
   for (const Case& c : cases) {
     const QString markdown = QStringLiteral("> [!%1]\n> body text").arg(QString::fromLatin1(c.marker));
@@ -80,8 +77,7 @@ void testEnableAlertBoxFalseLeavesQuotePlain() {
   ParseResult result = parser.parseDocument(QStringLiteral("> [!NOTE]\n> body"), options);
   const MarkdownNode* quote = firstBlockOfType(*result.root, BlockType::BlockQuote);
   require(quote != nullptr, "should parse as a blockquote");
-  require(quote->alertKind() == AlertKind::None,
-          "with enableAlertBox=false the marker must not be recognized");
+  require(quote->alertKind() == AlertKind::None, "with enableAlertBox=false the marker must not be recognized");
 }
 
 int main(int argc, char** argv) {

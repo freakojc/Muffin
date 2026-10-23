@@ -8,29 +8,26 @@ namespace muffin::math {
 namespace {
 
 const QHash<QString, qreal>& texPtPerUnit() {
-  static const QHash<QString, qreal> units{
-      {QStringLiteral("pt"), 1.0},
-      {QStringLiteral("mm"), 7227.0 / 2540.0},
-      {QStringLiteral("cm"), 7227.0 / 254.0},
-      {QStringLiteral("in"), 72.27},
-      {QStringLiteral("bp"), 803.0 / 800.0},
-      {QStringLiteral("pc"), 12.0},
-      {QStringLiteral("dd"), 1238.0 / 1157.0},
-      {QStringLiteral("cc"), 14856.0 / 1157.0},
-      {QStringLiteral("nd"), 685.0 / 642.0},
-      {QStringLiteral("nc"), 1370.0 / 107.0},
-      {QStringLiteral("sp"), 1.0 / 65536.0},
-      {QStringLiteral("px"), 803.0 / 800.0}};
+  static const QHash<QString, qreal> units{{QStringLiteral("pt"), 1.0},
+                                           {QStringLiteral("mm"), 7227.0 / 2540.0},
+                                           {QStringLiteral("cm"), 7227.0 / 254.0},
+                                           {QStringLiteral("in"), 72.27},
+                                           {QStringLiteral("bp"), 803.0 / 800.0},
+                                           {QStringLiteral("pc"), 12.0},
+                                           {QStringLiteral("dd"), 1238.0 / 1157.0},
+                                           {QStringLiteral("cc"), 14856.0 / 1157.0},
+                                           {QStringLiteral("nd"), 685.0 / 642.0},
+                                           {QStringLiteral("nc"), 1370.0 / 107.0},
+                                           {QStringLiteral("sp"), 1.0 / 65536.0},
+                                           {QStringLiteral("px"), 803.0 / 800.0}};
   return units;
 }
 
-}  // namespace
+} // namespace
 
 qreal sizeTextToEm(const QString& sizeText) {
   static const QHash<QString, qreal> relativeToEm{
-      {QStringLiteral("em"), 1.0},
-      {QStringLiteral("ex"), 0.431},
-      {QStringLiteral("mu"), 1.0 / 18.0}};
+      {QStringLiteral("em"), 1.0}, {QStringLiteral("ex"), 0.431}, {QStringLiteral("mu"), 1.0 / 18.0}};
   static const QRegularExpression re(QStringLiteral("^([+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+))\\s*([a-zA-Z]+)?$"));
   const QRegularExpressionMatch match = re.match(sizeText.trimmed());
   if (!match.hasMatch()) {
@@ -47,11 +44,10 @@ qreal sizeTextToEm(const QString& sizeText) {
   return 0.0;
 }
 
-qreal dimensionToPoints(const QString& sizeText, qreal fontPointSize, qreal absoluteReferencePointSize, qreal textFontPointSize) {
+qreal dimensionToPoints(const QString& sizeText, qreal fontPointSize, qreal absoluteReferencePointSize,
+                        qreal textFontPointSize) {
   static const QHash<QString, qreal> relativeToEm{
-      {QStringLiteral("em"), 1.0},
-      {QStringLiteral("ex"), 0.431},
-      {QStringLiteral("mu"), 1.0 / 18.0}};
+      {QStringLiteral("em"), 1.0}, {QStringLiteral("ex"), 0.431}, {QStringLiteral("mu"), 1.0 / 18.0}};
 
   static const QRegularExpression re(QStringLiteral("^([+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+))\\s*([a-zA-Z]+)?$"));
   const QRegularExpressionMatch match = re.match(sizeText.trimmed());
@@ -77,4 +73,4 @@ qreal dimensionToPoints(const QString& sizeText, qreal fontPointSize, qreal abso
   return 0.0;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

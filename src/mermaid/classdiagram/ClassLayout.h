@@ -30,8 +30,8 @@ struct ClassLayoutNodeInput {
   std::optional<qreal> padding;
   bool isGroup = false;
   QString look = QStringLiteral("classic");
-  QString link;      // click/href interaction directive target
-  QString tooltip;   // click tooltip directive
+  QString link;    // click/href interaction directive target
+  QString tooltip; // click tooltip directive
 };
 
 struct ClassLayoutEdgeInput {
@@ -56,9 +56,8 @@ struct ClassLayoutInput {
   QString direction = QStringLiteral("TB");
   qreal nodeSpacing = 50.0;
   qreal rankSpacing = 50.0;
-  QStringList markers = {QStringLiteral("aggregation"), QStringLiteral("extension"),
-                         QStringLiteral("composition"), QStringLiteral("dependency"),
-                         QStringLiteral("lollipop")};
+  QStringList markers = {QStringLiteral("aggregation"), QStringLiteral("extension"), QStringLiteral("composition"),
+                         QStringLiteral("dependency"), QStringLiteral("lollipop")};
 };
 
 struct ClassLayoutOptions {
@@ -150,23 +149,18 @@ struct ClassPlacementResult {
   QPointF sourceOrigin;
 };
 
-ClassLayoutInput buildClassLayoutInput(const ClassDiagramData& data,
-                                       ClassLayoutOptions options = {});
+ClassLayoutInput buildClassLayoutInput(const ClassDiagramData& data, ClassLayoutOptions options = {});
 
-QVector<ClassBoxGeometry> layoutClassBoxes(
-    const ClassLayoutInput& input, const ClassLayoutMeasurements& measurements,
-    ClassLayoutOptions options = {});
+QVector<ClassBoxGeometry> layoutClassBoxes(const ClassLayoutInput& input, const ClassLayoutMeasurements& measurements,
+                                           ClassLayoutOptions options = {});
 
-ClassLayoutMeasurements measureClassLayoutLabels(
-    const ClassLayoutInput& input, ClassLabelMeasureOptions options = {});
+ClassLayoutMeasurements measureClassLayoutLabels(const ClassLayoutInput& input, ClassLabelMeasureOptions options = {});
 
-ClassDagreMeasurements measureClassDagreInput(
-    const ClassLayoutInput& input, const QVector<ClassBoxGeometry>& boxes,
-    ClassLabelMeasureOptions options = {}, bool handDrawn = false,
-    quint32 handDrawnSeed = 0);
+ClassDagreMeasurements measureClassDagreInput(const ClassLayoutInput& input, const QVector<ClassBoxGeometry>& boxes,
+                                              ClassLabelMeasureOptions options = {}, bool handDrawn = false,
+                                              quint32 handDrawnSeed = 0);
 
-ClassPlacementResult layoutClassDiagramDagre(
-    const ClassLayoutInput& input, const ClassDagreMeasurements& measurements,
-    bool handDrawn = false, quint32 handDrawnSeed = 0);
+ClassPlacementResult layoutClassDiagramDagre(const ClassLayoutInput& input, const ClassDagreMeasurements& measurements,
+                                             bool handDrawn = false, quint32 handDrawnSeed = 0);
 
-}  // namespace muffin::mermaid::classdiagram
+} // namespace muffin::mermaid::classdiagram

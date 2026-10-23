@@ -18,7 +18,7 @@ namespace {
 // native stack; this is a resource limit, not an estimate of stack-frame size.
 // Linear scanning does not accumulate depth.
 constexpr int kMaxMathDepth = 512;
-}  // namespace
+} // namespace
 
 // The guard lives in the suspended continuation and releases its depth on both
 // success and failure. Check before incrementing: a throwing constructor has
@@ -34,12 +34,14 @@ public:
   ~DepthGuard() { --parser_.depth_; }
   DepthGuard(const DepthGuard&) = delete;
   DepthGuard& operator=(const DepthGuard&) = delete;
+
 private:
   MathParser& parser_;
 };
 
 MathParser::MathParser(QString input, MathSettings settings)
-    : lexer_(MathMacroExpander(settings).expand(std::move(input))), settings_(std::move(settings)) {}
+    : lexer_(MathMacroExpander(settings).expand(std::move(input))), settings_(std::move(settings)) {
+}
 
 QVector<MathParseNode> MathParser::parse() {
   return parseExpression().run();
@@ -68,7 +70,8 @@ MathParseTask<QVector<MathParseNode>> MathParser::parseExpression(const QString&
     if (!prevBreakTokens.isEmpty() && prevBreakTokens.contains(next.text)) {
       break;
     }
-    if (const MathFunctionSpec* function = MathFunctionRegistry::lookup(next.text); function != nullptr && function->infix) {
+    if (const MathFunctionSpec* function = MathFunctionRegistry::lookup(next.text);
+        function != nullptr && function->infix) {
       const MathToken infix = lexer_.next();
       MathParseNode fraction = co_await parseInfixFraction(infix, std::move(nodes), breakOn);
       nodes.clear();
@@ -94,7 +97,8 @@ MathParseTask<QVector<MathParseNode>> MathParser::parseExpressionUntilAny(const 
     if (next.text == QStringLiteral("EOF") || next.text == QStringLiteral("}")) {
       break;
     }
-    if (const MathFunctionSpec* function = MathFunctionRegistry::lookup(next.text); function != nullptr && function->infix) {
+    if (const MathFunctionSpec* function = MathFunctionRegistry::lookup(next.text);
+        function != nullptr && function->infix) {
       const MathToken infix = lexer_.next();
       MathParseNode fraction = co_await parseInfixFractionUntilAny(infix, std::move(nodes), breakTokens);
       nodes.clear();
@@ -134,43 +138,53 @@ bool isSupportedUnicodeCodepoint(QChar ch) {
 
 bool isBigOperatorCommand(const QString& token) {
   static const QSet<QString> commands{
-      QStringLiteral("\\coprod"),    QStringLiteral("\\bigvee"),    QStringLiteral("\\bigwedge"), QStringLiteral("\\biguplus"),
-      QStringLiteral("\\bigcap"),    QStringLiteral("\\bigcup"),    QStringLiteral("\\intop"),    QStringLiteral("\\prod"),
-      QStringLiteral("\\sum"),       QStringLiteral("\\bigotimes"), QStringLiteral("\\bigoplus"), QStringLiteral("\\bigodot"),
-      QStringLiteral("\\bigsqcup"),  QStringLiteral("\\smallint"),  QStringLiteral("\u220f"),     QStringLiteral("\u2210"),
-      QStringLiteral("\u2211"),      QStringLiteral("\u22c0"),      QStringLiteral("\u22c1"),     QStringLiteral("\u22c2"),
-      QStringLiteral("\u22c3"),      QStringLiteral("\u2a00"),      QStringLiteral("\u2a01"),     QStringLiteral("\u2a02"),
+      QStringLiteral("\\coprod"),    QStringLiteral("\\bigvee"),   QStringLiteral("\\bigwedge"),
+      QStringLiteral("\\biguplus"),  QStringLiteral("\\bigcap"),   QStringLiteral("\\bigcup"),
+      QStringLiteral("\\intop"),     QStringLiteral("\\prod"),     QStringLiteral("\\sum"),
+      QStringLiteral("\\bigotimes"), QStringLiteral("\\bigoplus"), QStringLiteral("\\bigodot"),
+      QStringLiteral("\\bigsqcup"),  QStringLiteral("\\smallint"), QStringLiteral("\u220f"),
+      QStringLiteral("\u2210"),      QStringLiteral("\u2211"),     QStringLiteral("\u22c0"),
+      QStringLiteral("\u22c1"),      QStringLiteral("\u22c2"),     QStringLiteral("\u22c3"),
+      QStringLiteral("\u2a00"),      QStringLiteral("\u2a01"),     QStringLiteral("\u2a02"),
       QStringLiteral("\u2a04"),      QStringLiteral("\u2a06")};
   return commands.contains(token);
 }
 
 bool isIntegralOperatorCommand(const QString& token) {
-  static const QSet<QString> commands{
-      QStringLiteral("\\int"),   QStringLiteral("\\iint"),   QStringLiteral("\\iiint"), QStringLiteral("\\oint"),
-      QStringLiteral("\\oiint"), QStringLiteral("\\oiiint"), QStringLiteral("\u222b"),  QStringLiteral("\u222c"),
-      QStringLiteral("\u222d"),  QStringLiteral("\u222e"),   QStringLiteral("\u222f"),  QStringLiteral("\u2230")};
+  static const QSet<QString> commands{QStringLiteral("\\int"),  QStringLiteral("\\iint"),  QStringLiteral("\\iiint"),
+                                      QStringLiteral("\\oint"), QStringLiteral("\\oiint"), QStringLiteral("\\oiiint"),
+                                      QStringLiteral("\u222b"), QStringLiteral("\u222c"),  QStringLiteral("\u222d"),
+                                      QStringLiteral("\u222e"), QStringLiteral("\u222f"),  QStringLiteral("\u2230")};
   return commands.contains(token);
 }
 
 bool isLimitOperatorCommand(const QString& token) {
-  static const QSet<QString> commands{
-      QStringLiteral("\\det"),  QStringLiteral("\\gcd"), QStringLiteral("\\inf"), QStringLiteral("\\lim"),
-      QStringLiteral("\\max"),  QStringLiteral("\\min"), QStringLiteral("\\Pr"),  QStringLiteral("\\sup"),
-      QStringLiteral("\\arg"),  QStringLiteral("\\dim"), QStringLiteral("\\hom"), QStringLiteral("\\ker")};
+  static const QSet<QString> commands{QStringLiteral("\\det"), QStringLiteral("\\gcd"), QStringLiteral("\\inf"),
+                                      QStringLiteral("\\lim"), QStringLiteral("\\max"), QStringLiteral("\\min"),
+                                      QStringLiteral("\\Pr"),  QStringLiteral("\\sup"), QStringLiteral("\\arg"),
+                                      QStringLiteral("\\dim"), QStringLiteral("\\hom"), QStringLiteral("\\ker")};
   return commands.contains(token);
 }
 
 QString canonicalOperatorName(const QString& token) {
-  static const QHash<QString, QString> bigOps{
-      {QStringLiteral("\u220f"), QStringLiteral("\\prod")},      {QStringLiteral("\u2210"), QStringLiteral("\\coprod")},
-      {QStringLiteral("\u2211"), QStringLiteral("\\sum")},       {QStringLiteral("\u22c0"), QStringLiteral("\\bigwedge")},
-      {QStringLiteral("\u22c1"), QStringLiteral("\\bigvee")},    {QStringLiteral("\u22c2"), QStringLiteral("\\bigcap")},
-      {QStringLiteral("\u22c3"), QStringLiteral("\\bigcup")},    {QStringLiteral("\u2a00"), QStringLiteral("\\bigodot")},
-      {QStringLiteral("\u2a01"), QStringLiteral("\\bigoplus")},  {QStringLiteral("\u2a02"), QStringLiteral("\\bigotimes")},
-      {QStringLiteral("\u2a04"), QStringLiteral("\\biguplus")},  {QStringLiteral("\u2a06"), QStringLiteral("\\bigsqcup")},
-      {QStringLiteral("\u222b"), QStringLiteral("\\int")},       {QStringLiteral("\u222c"), QStringLiteral("\\iint")},
-      {QStringLiteral("\u222d"), QStringLiteral("\\iiint")},     {QStringLiteral("\u222e"), QStringLiteral("\\oint")},
-      {QStringLiteral("\u222f"), QStringLiteral("\\oiint")},     {QStringLiteral("\u2230"), QStringLiteral("\\oiiint")}};
+  static const QHash<QString, QString> bigOps{{QStringLiteral("\u220f"), QStringLiteral("\\prod")},
+                                              {QStringLiteral("\u2210"), QStringLiteral("\\coprod")},
+                                              {QStringLiteral("\u2211"), QStringLiteral("\\sum")},
+                                              {QStringLiteral("\u22c0"), QStringLiteral("\\bigwedge")},
+                                              {QStringLiteral("\u22c1"), QStringLiteral("\\bigvee")},
+                                              {QStringLiteral("\u22c2"), QStringLiteral("\\bigcap")},
+                                              {QStringLiteral("\u22c3"), QStringLiteral("\\bigcup")},
+                                              {QStringLiteral("\u2a00"), QStringLiteral("\\bigodot")},
+                                              {QStringLiteral("\u2a01"), QStringLiteral("\\bigoplus")},
+                                              {QStringLiteral("\u2a02"), QStringLiteral("\\bigotimes")},
+                                              {QStringLiteral("\u2a04"), QStringLiteral("\\biguplus")},
+                                              {QStringLiteral("\u2a06"), QStringLiteral("\\bigsqcup")},
+                                              {QStringLiteral("\u222b"), QStringLiteral("\\int")},
+                                              {QStringLiteral("\u222c"), QStringLiteral("\\iint")},
+                                              {QStringLiteral("\u222d"), QStringLiteral("\\iiint")},
+                                              {QStringLiteral("\u222e"), QStringLiteral("\\oint")},
+                                              {QStringLiteral("\u222f"), QStringLiteral("\\oiint")},
+                                              {QStringLiteral("\u2230"), QStringLiteral("\\oiiint")}};
   return bigOps.value(token, token);
 }
 
@@ -200,9 +214,10 @@ QString longestKnownSizeUnitPrefix(const QString& text) {
   return {};
 }
 
-}  // namespace
+} // namespace
 
-MathParseTask<MathParseNode> MathParser::parseInfixFraction(const MathToken& token, QVector<MathParseNode> numerator, const QString& breakOn) {
+MathParseTask<MathParseNode> MathParser::parseInfixFraction(const MathToken& token, QVector<MathParseNode> numerator,
+                                                            const QString& breakOn) {
   qreal lineThickness = -1.0;
   if (token.text == QStringLiteral("\\above")) {
     lineThickness = sizeTextToEm((co_await parseSizeText(token.text)));
@@ -211,7 +226,9 @@ MathParseTask<MathParseNode> MathParser::parseInfixFraction(const MathToken& tok
   co_return (co_await makeInfixFraction(token, std::move(numerator), std::move(denominator), lineThickness));
 }
 
-MathParseTask<MathParseNode> MathParser::parseInfixFractionUntilAny(const MathToken& token, QVector<MathParseNode> numerator, const QVector<QString>& breakTokens) {
+MathParseTask<MathParseNode> MathParser::parseInfixFractionUntilAny(const MathToken& token,
+                                                                    QVector<MathParseNode> numerator,
+                                                                    const QVector<QString>& breakTokens) {
   qreal lineThickness = -1.0;
   if (token.text == QStringLiteral("\\above")) {
     lineThickness = sizeTextToEm((co_await parseSizeText(token.text)));
@@ -220,10 +237,8 @@ MathParseTask<MathParseNode> MathParser::parseInfixFractionUntilAny(const MathTo
   co_return (co_await makeInfixFraction(token, std::move(numerator), std::move(denominator), lineThickness));
 }
 
-MathParseTask<MathParseNode> MathParser::makeInfixFraction(const MathToken& token,
-                                            QVector<MathParseNode> numerator,
-                                            QVector<MathParseNode> denominator,
-                                            qreal lineThickness) {
+MathParseTask<MathParseNode> MathParser::makeInfixFraction(const MathToken& token, QVector<MathParseNode> numerator,
+                                                           QVector<MathParseNode> denominator, qreal lineThickness) {
   MathParseNode frac;
   frac.type = MathNodeType::Fraction;
   frac.numerator = std::move(numerator);
@@ -304,40 +319,74 @@ MathParseTask<MathParseNode> MathParser::parseAtom() {
 MathParseTask<MathParseNode> MathParser::parseFunction(const MathToken& token, const MathFunctionSpec& function) {
   reportFunctionPolicy(token, function);
   switch (function.handlerKind) {
-  case MathFunctionHandlerKind::Fraction: co_return (co_await parseFraction(token));
-  case MathFunctionHandlerKind::Sqrt: co_return (co_await parseSqrt(token));
-  case MathFunctionHandlerKind::Accent: co_return (co_await parseAccent(token));
-  case MathFunctionHandlerKind::AccentUnder: co_return (co_await parseAccentUnder(token));
-  case MathFunctionHandlerKind::HorizBrace: co_return (co_await parseHorizBrace(token));
-  case MathFunctionHandlerKind::XArrow: co_return (co_await parseXArrow(token));
-  case MathFunctionHandlerKind::Underline: co_return (co_await parseUnderline(token));
-  case MathFunctionHandlerKind::Overline: co_return (co_await parseOverline(token));
-  case MathFunctionHandlerKind::Phantom: co_return (co_await parsePhantom(token));
-  case MathFunctionHandlerKind::Smash: co_return (co_await parseSmash(token));
-  case MathFunctionHandlerKind::Rule: co_return (co_await parseRule(token));
-  case MathFunctionHandlerKind::Kern: co_return (co_await parseKern(token));
-  case MathFunctionHandlerKind::RaiseBox: co_return (co_await parseRaiseBox(token));
-  case MathFunctionHandlerKind::VCenter: co_return (co_await parseVCenter(token));
-  case MathFunctionHandlerKind::Lap: co_return (co_await parseLap(token));
-  case MathFunctionHandlerKind::Enclose: co_return (co_await parseEnclose(token));
-  case MathFunctionHandlerKind::IncludeGraphics: co_return (co_await parseIncludeGraphics(token, function));
-  case MathFunctionHandlerKind::MathChoice: co_return (co_await parseMathChoice(token));
-  case MathFunctionHandlerKind::Href: co_return (co_await parseHref(token, function));
-  case MathFunctionHandlerKind::Url: co_return (co_await parseUrl(token, function));
-  case MathFunctionHandlerKind::Html: co_return (co_await parseHtml(token, function));
-  case MathFunctionHandlerKind::Tag: co_return (co_await parseTag(token));
-  case MathFunctionHandlerKind::Verb: co_return (co_await parseVerb(token));
-  case MathFunctionHandlerKind::Styling: co_return (co_await parseStyling(token));
-  case MathFunctionHandlerKind::Sizing: co_return (co_await parseSizing(token));
-  case MathFunctionHandlerKind::MathClass: co_return (co_await parseMathClass(token));
-  case MathFunctionHandlerKind::Stack: co_return (co_await parseStack(token));
-  case MathFunctionHandlerKind::Text: co_return (co_await parseText(token, function));
-  case MathFunctionHandlerKind::Color: co_return (co_await parseColor(token));
-  case MathFunctionHandlerKind::DelimSizing: co_return (co_await parseDelimSizing(token, function));
-  case MathFunctionHandlerKind::OperatorName: co_return (co_await parseOperatorName(token));
-  case MathFunctionHandlerKind::Operator: co_return (co_await parseOperator(token));
-  case MathFunctionHandlerKind::BeginEnvironment: co_return (co_await parseScripts((co_await parseBeginEnvironment())));
-  case MathFunctionHandlerKind::LeftRight: co_return (co_await parseScripts((co_await parseLeftRight())));
+  case MathFunctionHandlerKind::Fraction:
+    co_return (co_await parseFraction(token));
+  case MathFunctionHandlerKind::Sqrt:
+    co_return (co_await parseSqrt(token));
+  case MathFunctionHandlerKind::Accent:
+    co_return (co_await parseAccent(token));
+  case MathFunctionHandlerKind::AccentUnder:
+    co_return (co_await parseAccentUnder(token));
+  case MathFunctionHandlerKind::HorizBrace:
+    co_return (co_await parseHorizBrace(token));
+  case MathFunctionHandlerKind::XArrow:
+    co_return (co_await parseXArrow(token));
+  case MathFunctionHandlerKind::Underline:
+    co_return (co_await parseUnderline(token));
+  case MathFunctionHandlerKind::Overline:
+    co_return (co_await parseOverline(token));
+  case MathFunctionHandlerKind::Phantom:
+    co_return (co_await parsePhantom(token));
+  case MathFunctionHandlerKind::Smash:
+    co_return (co_await parseSmash(token));
+  case MathFunctionHandlerKind::Rule:
+    co_return (co_await parseRule(token));
+  case MathFunctionHandlerKind::Kern:
+    co_return (co_await parseKern(token));
+  case MathFunctionHandlerKind::RaiseBox:
+    co_return (co_await parseRaiseBox(token));
+  case MathFunctionHandlerKind::VCenter:
+    co_return (co_await parseVCenter(token));
+  case MathFunctionHandlerKind::Lap:
+    co_return (co_await parseLap(token));
+  case MathFunctionHandlerKind::Enclose:
+    co_return (co_await parseEnclose(token));
+  case MathFunctionHandlerKind::IncludeGraphics:
+    co_return (co_await parseIncludeGraphics(token, function));
+  case MathFunctionHandlerKind::MathChoice:
+    co_return (co_await parseMathChoice(token));
+  case MathFunctionHandlerKind::Href:
+    co_return (co_await parseHref(token, function));
+  case MathFunctionHandlerKind::Url:
+    co_return (co_await parseUrl(token, function));
+  case MathFunctionHandlerKind::Html:
+    co_return (co_await parseHtml(token, function));
+  case MathFunctionHandlerKind::Tag:
+    co_return (co_await parseTag(token));
+  case MathFunctionHandlerKind::Verb:
+    co_return (co_await parseVerb(token));
+  case MathFunctionHandlerKind::Styling:
+    co_return (co_await parseStyling(token));
+  case MathFunctionHandlerKind::Sizing:
+    co_return (co_await parseSizing(token));
+  case MathFunctionHandlerKind::MathClass:
+    co_return (co_await parseMathClass(token));
+  case MathFunctionHandlerKind::Stack:
+    co_return (co_await parseStack(token));
+  case MathFunctionHandlerKind::Text:
+    co_return (co_await parseText(token, function));
+  case MathFunctionHandlerKind::Color:
+    co_return (co_await parseColor(token));
+  case MathFunctionHandlerKind::DelimSizing:
+    co_return (co_await parseDelimSizing(token, function));
+  case MathFunctionHandlerKind::OperatorName:
+    co_return (co_await parseOperatorName(token));
+  case MathFunctionHandlerKind::Operator:
+    co_return (co_await parseOperator(token));
+  case MathFunctionHandlerKind::BeginEnvironment:
+    co_return (co_await parseScripts((co_await parseBeginEnvironment())));
+  case MathFunctionHandlerKind::LeftRight:
+    co_return (co_await parseScripts((co_await parseLeftRight())));
   }
 
   co_return (co_await parseScripts(parseSymbol(token)));
@@ -359,10 +408,14 @@ MathParseTask<MathParseNode> MathParser::parseFraction(const MathToken& token) {
     const QString thickness = (co_await parseRawGroupText(token.text)).trimmed();
     frac.lineThickness = thickness.isEmpty() ? -1.0 : sizeTextToEm(thickness);
     const QString styleText = (co_await parseRawGroupText(token.text)).trimmed();
-    if (styleText == QStringLiteral("0")) frac.style = QStringLiteral("\\displaystyle");
-    else if (styleText == QStringLiteral("1")) frac.style = QStringLiteral("\\textstyle");
-    else if (styleText == QStringLiteral("2")) frac.style = QStringLiteral("\\scriptstyle");
-    else if (styleText == QStringLiteral("3")) frac.style = QStringLiteral("\\scriptscriptstyle");
+    if (styleText == QStringLiteral("0"))
+      frac.style = QStringLiteral("\\displaystyle");
+    else if (styleText == QStringLiteral("1"))
+      frac.style = QStringLiteral("\\textstyle");
+    else if (styleText == QStringLiteral("2"))
+      frac.style = QStringLiteral("\\scriptstyle");
+    else if (styleText == QStringLiteral("3"))
+      frac.style = QStringLiteral("\\scriptscriptstyle");
     frac.numerator = (co_await parseRequiredGroup(token.text));
     frac.denominator = (co_await parseRequiredGroup(token.text));
     if (!left.isEmpty() || !right.isEmpty()) {
@@ -472,8 +525,10 @@ MathParseTask<MathParseNode> MathParser::parseSmash(const MathToken& token) {
     smash.smashDepth = true;
   } else {
     for (QChar ch : option) {
-      if (ch == QLatin1Char('t')) smash.smashHeight = true;
-      else if (ch == QLatin1Char('b')) smash.smashDepth = true;
+      if (ch == QLatin1Char('t'))
+        smash.smashHeight = true;
+      else if (ch == QLatin1Char('b'))
+        smash.smashDepth = true;
     }
   }
   smash.base = (co_await parseRequiredGroup(token.text));
@@ -537,7 +592,8 @@ MathParseTask<MathParseNode> MathParser::parseEnclose(const MathToken& token) {
   co_return (co_await parseScripts(std::move(enclose)));
 }
 
-MathParseTask<MathParseNode> MathParser::parseIncludeGraphics(const MathToken& token, const MathFunctionSpec& function) {
+MathParseTask<MathParseNode> MathParser::parseIncludeGraphics(const MathToken& token,
+                                                              const MathFunctionSpec& function) {
   MathParseNode graphics;
   graphics.type = MathNodeType::IncludeGraphics;
   const QString options = parseOptionalBracketText();
@@ -548,10 +604,14 @@ MathParseTask<MathParseNode> MathParser::parseIncludeGraphics(const MathToken& t
     }
     const QString key = keyValue.at(0).trimmed();
     const QString value = keyValue.at(1).trimmed();
-    if (key == QStringLiteral("width")) graphics.width = value;
-    else if (key == QStringLiteral("height")) graphics.height = value;
-    else if (key == QStringLiteral("totalheight")) graphics.totalHeight = value;
-    else if (key == QStringLiteral("alt")) graphics.alt = value;
+    if (key == QStringLiteral("width"))
+      graphics.width = value;
+    else if (key == QStringLiteral("height"))
+      graphics.height = value;
+    else if (key == QStringLiteral("totalheight"))
+      graphics.totalHeight = value;
+    else if (key == QStringLiteral("alt"))
+      graphics.alt = value;
   }
   graphics.href = (co_await parseRawGroupText(token.text));
   if (!ensureTrusted(token, function, trustContextForNode(token, function, graphics))) {
@@ -628,10 +688,12 @@ MathParseTask<MathParseNode> MathParser::parseVerb(const MathToken& token) {
   MathToken delimiter;
   const QString body = lexer_.readVerbBody(starred, ok, delimiter);
   if (delimiter.text == QStringLiteral("EOF")) {
-    co_return (co_await parseScripts(errorNode(QStringLiteral("\\verb ended by end of line instead of matching delimiter"), &delimiter)));
+    co_return (co_await parseScripts(
+        errorNode(QStringLiteral("\\verb ended by end of line instead of matching delimiter"), &delimiter)));
   }
   if (!ok) {
-    co_return (co_await parseScripts(errorNode(QStringLiteral("\\verb ended by end of line instead of matching delimiter"), &delimiter)));
+    co_return (co_await parseScripts(
+        errorNode(QStringLiteral("\\verb ended by end of line instead of matching delimiter"), &delimiter)));
   }
   if (starred) {
     verb.label = QStringLiteral("\\verb*");
@@ -673,24 +735,34 @@ MathParseTask<MathParseNode> MathParser::parseMathClass(const MathToken& token) 
     if (source.isEmpty()) {
       klass.mathClass = QStringLiteral("\\mathord");
     } else {
-      const MathNodeType sourceType = source.first().type == MathNodeType::Class ? classNodeType(source.first().mathClass) : source.first().type;
-      if (sourceType == MathNodeType::Binary) klass.mathClass = QStringLiteral("\\mathbin");
-      else if (sourceType == MathNodeType::Relation) klass.mathClass = QStringLiteral("\\mathrel");
-      else klass.mathClass = QStringLiteral("\\mathord");
+      const MathNodeType sourceType =
+          source.first().type == MathNodeType::Class ? classNodeType(source.first().mathClass) : source.first().type;
+      if (sourceType == MathNodeType::Binary)
+        klass.mathClass = QStringLiteral("\\mathbin");
+      else if (sourceType == MathNodeType::Relation)
+        klass.mathClass = QStringLiteral("\\mathrel");
+      else
+        klass.mathClass = QStringLiteral("\\mathord");
     }
     klass.body = (co_await parseRequiredGroup(token.text));
     co_return (co_await parseScripts(std::move(klass)));
   }
   MathParseNode klass;
   klass.type = MathNodeType::Class;
-  klass.mathClass = (token.text == QStringLiteral("\\boldsymbol") || token.text == QStringLiteral("\\bm")) ? QStringLiteral("\\mathord") : token.text;
+  klass.mathClass = (token.text == QStringLiteral("\\boldsymbol") || token.text == QStringLiteral("\\bm"))
+                        ? QStringLiteral("\\mathord")
+                        : token.text;
   klass.body = (co_await parseRequiredGroup(token.text));
   if (token.text == QStringLiteral("\\boldsymbol") || token.text == QStringLiteral("\\bm")) {
     klass.fontClass = QStringLiteral("mathbf");
     if (!klass.body.isEmpty()) {
-      const MathNodeType bodyType = klass.body.first().type == MathNodeType::Class ? classNodeType(klass.body.first().mathClass) : klass.body.first().type;
-      if (bodyType == MathNodeType::Binary) klass.mathClass = QStringLiteral("\\mathbin");
-      else if (bodyType == MathNodeType::Relation) klass.mathClass = QStringLiteral("\\mathrel");
+      const MathNodeType bodyType = klass.body.first().type == MathNodeType::Class
+                                        ? classNodeType(klass.body.first().mathClass)
+                                        : klass.body.first().type;
+      if (bodyType == MathNodeType::Binary)
+        klass.mathClass = QStringLiteral("\\mathbin");
+      else if (bodyType == MathNodeType::Relation)
+        klass.mathClass = QStringLiteral("\\mathrel");
     }
   }
   co_return (co_await parseScripts(std::move(klass)));
@@ -718,9 +790,13 @@ MathParseTask<MathParseNode> MathParser::parseStack(const MathToken& token) {
   if (token.text == QStringLiteral("\\stackrel")) {
     klass.mathClass = QStringLiteral("\\mathrel");
   } else if (!baseBody.isEmpty()) {
-    const MathNodeType baseType = baseBody.first().type == MathNodeType::Class ? classNodeType(baseBody.first().mathClass) : baseBody.first().type;
-    if (baseType == MathNodeType::Binary) klass.mathClass = QStringLiteral("\\mathbin");
-    else if (baseType == MathNodeType::Relation) klass.mathClass = QStringLiteral("\\mathrel");
+    const MathNodeType baseType = baseBody.first().type == MathNodeType::Class
+                                      ? classNodeType(baseBody.first().mathClass)
+                                      : baseBody.first().type;
+    if (baseType == MathNodeType::Binary)
+      klass.mathClass = QStringLiteral("\\mathbin");
+    else if (baseType == MathNodeType::Relation)
+      klass.mathClass = QStringLiteral("\\mathrel");
   }
   klass.body.push_back(std::move(shifted));
   co_return (co_await parseScripts(std::move(klass)));
@@ -760,26 +836,31 @@ MathParseTask<MathParseNode> MathParser::parseText(const MathToken& token, const
     co_return (co_await parseScripts(std::move(node)));
   }
   const auto fontClassForCommand = [](const QString& command) {
-    if (command == QStringLiteral("\\mathbf") || command == QStringLiteral("\\textbf") || command == QStringLiteral("\\bold") ||
-        command == QStringLiteral("\\bf") || command == QStringLiteral("\\boldsymbol") || command == QStringLiteral("\\bm")) {
+    if (command == QStringLiteral("\\mathbf") || command == QStringLiteral("\\textbf") ||
+        command == QStringLiteral("\\bold") || command == QStringLiteral("\\bf") ||
+        command == QStringLiteral("\\boldsymbol") || command == QStringLiteral("\\bm")) {
       return QStringLiteral("mathbf");
     }
-    if (command == QStringLiteral("\\mathit") || command == QStringLiteral("\\textit") || command == QStringLiteral("\\it")) {
+    if (command == QStringLiteral("\\mathit") || command == QStringLiteral("\\textit") ||
+        command == QStringLiteral("\\it")) {
       return QStringLiteral("mathit");
     }
     if (command == QStringLiteral("\\mathnormal")) {
       return QStringLiteral("mathnormal");
     }
-    if (command == QStringLiteral("\\mathsf") || command == QStringLiteral("\\mathsfit") || command == QStringLiteral("\\sf") || command == QStringLiteral("\\textsf")) {
+    if (command == QStringLiteral("\\mathsf") || command == QStringLiteral("\\mathsfit") ||
+        command == QStringLiteral("\\sf") || command == QStringLiteral("\\textsf")) {
       return QStringLiteral("sans");
     }
-    if (command == QStringLiteral("\\mathtt") || command == QStringLiteral("\\tt") || command == QStringLiteral("\\texttt")) {
+    if (command == QStringLiteral("\\mathtt") || command == QStringLiteral("\\tt") ||
+        command == QStringLiteral("\\texttt")) {
       return QStringLiteral("typewriter");
     }
     if (command == QStringLiteral("\\mathbb") || command == QStringLiteral("\\Bbb")) {
       return QStringLiteral("amsrm");
     }
-    if (command == QStringLiteral("\\mathcal") || command == QStringLiteral("\\cal") || command == QStringLiteral("\\mathscr")) {
+    if (command == QStringLiteral("\\mathcal") || command == QStringLiteral("\\cal") ||
+        command == QStringLiteral("\\mathscr")) {
       return QStringLiteral("mathcal");
     }
     if (command == QStringLiteral("\\mathfrak") || command == QStringLiteral("\\frak")) {
@@ -792,9 +873,8 @@ MathParseTask<MathParseNode> MathParser::parseText(const MathToken& token, const
     text.type = MathNodeType::Text;
     text.label = token.text;
     text.fontClass = fontClassForCommand(token.text);
-    QVector<QString> textBreaks = {
-        QStringLiteral("&"), QStringLiteral("\\\\"), QStringLiteral("\\cr"),
-        QStringLiteral("\\end"), QStringLiteral("\\hline"), QStringLiteral("\\hdashline")};
+    QVector<QString> textBreaks = {QStringLiteral("&"),     QStringLiteral("\\\\"),    QStringLiteral("\\cr"),
+                                   QStringLiteral("\\end"), QStringLiteral("\\hline"), QStringLiteral("\\hdashline")};
     for (const QString& outer : outerBreakTokens_) {
       if (!textBreaks.contains(outer)) {
         textBreaks.push_back(outer);
@@ -839,9 +919,8 @@ MathParseTask<MathParseNode> MathParser::parseColor(const MathToken& token) {
     color.color = (co_await parseRawGroupText(token.text));
     // Build break tokens from the standard set plus any outer context
     // (e.g. \right inside \left...\right).
-    QVector<QString> colorBreaks = {
-        QStringLiteral("&"), QStringLiteral("\\\\"), QStringLiteral("\\cr"),
-        QStringLiteral("\\end"), QStringLiteral("\\hline"), QStringLiteral("\\hdashline")};
+    QVector<QString> colorBreaks = {QStringLiteral("&"),     QStringLiteral("\\\\"),    QStringLiteral("\\cr"),
+                                    QStringLiteral("\\end"), QStringLiteral("\\hline"), QStringLiteral("\\hdashline")};
     for (const QString& outer : outerBreakTokens_) {
       if (!colorBreaks.contains(outer)) {
         colorBreaks.push_back(outer);
@@ -893,7 +972,6 @@ MathParseTask<MathParseNode> MathParser::parseOperator(const MathToken& token) {
   co_return (co_await parseScripts(std::move(op)));
 }
 
-
 MathParseTask<QVector<MathParseNode>> MathParser::parseGroup() {
   if (lexer_.peek().text == QStringLiteral("{")) {
     lexer_.consume();
@@ -913,8 +991,8 @@ MathParseTask<QVector<MathParseNode>> MathParser::parseScriptGroup() {
   }
 
   const MathToken token = lexer_.next();
-  if (token.text == QStringLiteral("EOF") || token.text == QStringLiteral("^") || token.text == QStringLiteral("_") || token.text == QStringLiteral("}") ||
-      token.text == QStringLiteral("&")) {
+  if (token.text == QStringLiteral("EOF") || token.text == QStringLiteral("^") || token.text == QStringLiteral("_") ||
+      token.text == QStringLiteral("}") || token.text == QStringLiteral("&")) {
     co_return QVector<MathParseNode>{errorNode(QStringLiteral("Expected script argument"), &token)};
   }
   if (token.text == QStringLiteral("{")) {
@@ -946,17 +1024,10 @@ MathParseTask<QVector<MathParseNode>> MathParser::parseRequiredGroup(const QStri
 }
 
 bool MathParser::canStartRequiredArgument(const MathToken& token) const {
-  static const QSet<QString> invalidStarts{
-      QStringLiteral("EOF"),
-      QStringLiteral("}"),
-      QStringLiteral("]"),
-      QStringLiteral("&"),
-      QStringLiteral("\\\\"),
-      QStringLiteral("\\cr"),
-      QStringLiteral("\\end"),
-      QStringLiteral("\\right"),
-      QStringLiteral("^"),
-      QStringLiteral("_")};
+  static const QSet<QString> invalidStarts{QStringLiteral("EOF"),   QStringLiteral("}"),       QStringLiteral("]"),
+                                           QStringLiteral("&"),     QStringLiteral("\\\\"),    QStringLiteral("\\cr"),
+                                           QStringLiteral("\\end"), QStringLiteral("\\right"), QStringLiteral("^"),
+                                           QStringLiteral("_")};
   return !invalidStarts.contains(token.text);
 }
 
@@ -985,23 +1056,21 @@ MathParseTask<QString> MathParser::parseRawGroupText(const QString& command) {
         if (func->handlerKind == MathFunctionHandlerKind::Accent && func->numArgs == 1) {
           // Text accent: consume argument but output accent mark + base text
           // separately (KaTeX renders them as separate glyph elements)
-          const QString accentChar = lookupSymbol(token.text).known
-              ? lookupSymbol(token.text).replacement
-              : token.text.mid(1);
+          const QString accentChar =
+              lookupSymbol(token.text).known ? lookupSymbol(token.text).replacement : token.text.mid(1);
           text += accentChar;
           text += (co_await parseRawGroupTextArgument());
           continue;
         }
-        if (func->numArgs == 0 && (func->typeName == QStringLiteral("text") ||
-                                    func->typeName == QStringLiteral("font") ||
-                                    func->typeName == QStringLiteral("sizing") ||
-                                    func->typeName == QStringLiteral("styling"))) {
+        if (func->numArgs == 0 &&
+            (func->typeName == QStringLiteral("text") || func->typeName == QStringLiteral("font") ||
+             func->typeName == QStringLiteral("sizing") || func->typeName == QStringLiteral("styling"))) {
           // Font/style/sizing declaration (\rm, \it, \bf, \sf, \tt, \tiny, etc.)
           // In flat text extraction these are no-ops — skip
           continue;
         }
-        if (func->numArgs >= 1 && (func->typeName == QStringLiteral("text") ||
-                                    func->typeName == QStringLiteral("font"))) {
+        if (func->numArgs >= 1 &&
+            (func->typeName == QStringLiteral("text") || func->typeName == QStringLiteral("font"))) {
           // Nested text/font command (\textbf{...}, \mathrm{...}) inside \text{...}
           // Recursively extract the text content
           text += (co_await parseRawGroupText(token.text));
@@ -1015,10 +1084,10 @@ MathParseTask<QString> MathParser::parseRawGroupText(const QString& command) {
     }
   }
   // Form text ligatures (matching KaTeX's formLigatures in Parser.ts)
-  text.replace(QStringLiteral("---"), QString(QChar(0x2014)));  // em dash
-  text.replace(QStringLiteral("--"), QString(QChar(0x2013)));   // en dash
-  text.replace(QStringLiteral("``"), QString(QChar(0x201C)));   // left double quote
-  text.replace(QStringLiteral("''"), QString(QChar(0x201D)));   // right double quote
+  text.replace(QStringLiteral("---"), QString(QChar(0x2014))); // em dash
+  text.replace(QStringLiteral("--"), QString(QChar(0x2013)));  // en dash
+  text.replace(QStringLiteral("``"), QString(QChar(0x201C)));  // left double quote
+  text.replace(QStringLiteral("''"), QString(QChar(0x201D)));  // right double quote
   co_return text;
 }
 
@@ -1195,9 +1264,11 @@ void MathParser::reportFunctionPolicy(const MathToken& token, const MathFunction
   }
 
   if (function.strictCategory == QStringLiteral("htmlExtension")) {
-    settings_.reportNonstrict(function.strictCategory, QStringLiteral("HTML extension is disabled on strict mode"), &token);
+    settings_.reportNonstrict(function.strictCategory, QStringLiteral("HTML extension is disabled on strict mode"),
+                              &token);
   } else if (function.strictCategory == QStringLiteral("mathVsTextAccents")) {
-    settings_.reportNonstrict(function.strictCategory, QStringLiteral("LaTeX's accent %1 works only in text mode").arg(token.text), &token);
+    settings_.reportNonstrict(function.strictCategory,
+                              QStringLiteral("LaTeX's accent %1 works only in text mode").arg(token.text), &token);
   } else if (function.strictCategory == QStringLiteral("mathVsSout") && token.text == QStringLiteral("\\sout")) {
     settings_.reportNonstrict(function.strictCategory, QStringLiteral("\\sout is a text-mode extension"), &token);
   }
@@ -1217,22 +1288,24 @@ void MathParser::reportKernUnitPolicy(const MathToken& token, const QString& siz
                               &token);
   } else if (!mathFunction && muUnit) {
     settings_.reportNonstrict(QStringLiteral("mathVsTextUnits"),
-                              QStringLiteral("LaTeX's %1 doesn't support mu units").arg(token.text),
-                              &token);
+                              QStringLiteral("LaTeX's %1 doesn't support mu units").arg(token.text), &token);
   }
 }
 
-bool MathParser::ensureTrusted(const MathToken& token, const MathFunctionSpec& function, const MathTrustContext& context) {
+bool MathParser::ensureTrusted(const MathToken& token, const MathFunctionSpec& function,
+                               const MathTrustContext& context) {
   if (!function.requiresTrust || settings_.isTrusted(context)) {
     return true;
   }
   if (settings_.throwOnError) {
-    throw MathParseError(QStringLiteral("Function %1 is not trusted").arg(token.text), token.text, token.position, token.endPosition);
+    throw MathParseError(QStringLiteral("Function %1 is not trusted").arg(token.text), token.text, token.position,
+                         token.endPosition);
   }
   return false;
 }
 
-MathTrustContext MathParser::trustContextForNode(const MathToken& token, const MathFunctionSpec& function, const MathParseNode& node) const {
+MathTrustContext MathParser::trustContextForNode(const MathToken& token, const MathFunctionSpec& function,
+                                                 const MathParseNode& node) const {
   MathTrustContext context;
   context.command = token.text;
   if (function.handlerKind == MathFunctionHandlerKind::Href || function.handlerKind == MathFunctionHandlerKind::Url ||
@@ -1255,7 +1328,8 @@ MathTrustContext MathParser::trustContextForNode(const MathToken& token, const M
         const qsizetype equals = item.indexOf(QLatin1Char('='));
         if (equals < 0) {
           if (settings_.throwOnError) {
-            throw MathParseError(QStringLiteral("\\htmlData key/value '%1' missing equals sign").arg(item), token.text, token.position, token.endPosition);
+            throw MathParseError(QStringLiteral("\\htmlData key/value '%1' missing equals sign").arg(item), token.text,
+                                 token.position, token.endPosition);
           }
           context.attributes.insert(QStringLiteral("data-error"), item);
           continue;
@@ -1314,12 +1388,18 @@ bool MathParser::isHtmlCommand(const QString& token) const {
 }
 
 MathNodeType MathParser::classNodeType(const QString& mathClass) const {
-  if (mathClass == QStringLiteral("\\mathbin")) return MathNodeType::Binary;
-  if (mathClass == QStringLiteral("\\mathrel")) return MathNodeType::Relation;
-  if (mathClass == QStringLiteral("\\mathopen")) return MathNodeType::Open;
-  if (mathClass == QStringLiteral("\\mathclose")) return MathNodeType::Close;
-  if (mathClass == QStringLiteral("\\mathpunct")) return MathNodeType::Punct;
-  if (mathClass == QStringLiteral("\\mathinner")) return MathNodeType::Inner;
+  if (mathClass == QStringLiteral("\\mathbin"))
+    return MathNodeType::Binary;
+  if (mathClass == QStringLiteral("\\mathrel"))
+    return MathNodeType::Relation;
+  if (mathClass == QStringLiteral("\\mathopen"))
+    return MathNodeType::Open;
+  if (mathClass == QStringLiteral("\\mathclose"))
+    return MathNodeType::Close;
+  if (mathClass == QStringLiteral("\\mathpunct"))
+    return MathNodeType::Punct;
+  if (mathClass == QStringLiteral("\\mathinner"))
+    return MathNodeType::Inner;
   return MathNodeType::Ord;
 }
 
@@ -1339,27 +1419,36 @@ MathNodeType MathParser::delimiterSizingCommandType(const QString& token) const 
 }
 
 QString MathParser::delimiterReplacement(const QString& token) const {
-  if (token == QStringLiteral("\\{") || token == QStringLiteral("\\lbrace")) return QStringLiteral("\\lbrace");
-  if (token == QStringLiteral("\\}") || token == QStringLiteral("\\rbrace")) return QStringLiteral("\\rbrace");
-  if (token == QStringLiteral("\\langle")) return QStringLiteral("\u27e8");
-  if (token == QStringLiteral("\\rangle")) return QStringLiteral("\u27e9");
-  if (token == QStringLiteral("\\lvert") || token == QStringLiteral("\\rvert") || token == QStringLiteral("\\vert")) return QStringLiteral("|");
-  if (token == QStringLiteral("\\lVert") || token == QStringLiteral("\\rVert") || token == QStringLiteral("\\Vert") || token == QStringLiteral("\\|")) {
+  if (token == QStringLiteral("\\{") || token == QStringLiteral("\\lbrace"))
+    return QStringLiteral("\\lbrace");
+  if (token == QStringLiteral("\\}") || token == QStringLiteral("\\rbrace"))
+    return QStringLiteral("\\rbrace");
+  if (token == QStringLiteral("\\langle"))
+    return QStringLiteral("\u27e8");
+  if (token == QStringLiteral("\\rangle"))
+    return QStringLiteral("\u27e9");
+  if (token == QStringLiteral("\\lvert") || token == QStringLiteral("\\rvert") || token == QStringLiteral("\\vert"))
+    return QStringLiteral("|");
+  if (token == QStringLiteral("\\lVert") || token == QStringLiteral("\\rVert") || token == QStringLiteral("\\Vert") ||
+      token == QStringLiteral("\\|")) {
     return QStringLiteral("\u2016");
   }
-  if (token == QStringLiteral("\\lfloor")) return QStringLiteral("\u230a");
-  if (token == QStringLiteral("\\rfloor")) return QStringLiteral("\u230b");
-  if (token == QStringLiteral("\\lceil")) return QStringLiteral("\u2308");
-  if (token == QStringLiteral("\\rceil")) return QStringLiteral("\u2309");
-  if (token == QStringLiteral("\\backslash")) return QStringLiteral("\\");
+  if (token == QStringLiteral("\\lfloor"))
+    return QStringLiteral("\u230a");
+  if (token == QStringLiteral("\\rfloor"))
+    return QStringLiteral("\u230b");
+  if (token == QStringLiteral("\\lceil"))
+    return QStringLiteral("\u2308");
+  if (token == QStringLiteral("\\rceil"))
+    return QStringLiteral("\u2309");
+  if (token == QStringLiteral("\\backslash"))
+    return QStringLiteral("\\");
   return token;
 }
 
 MathParseNode MathParser::parseSymbol(const MathToken& token) {
-  if (inTextBody_ &&
-      std::all_of(token.text.cbegin(), token.text.cend(), [](QChar character) {
-        return character.isSpace() ||
-               character.category() == QChar::Other_Format;
+  if (inTextBody_ && std::all_of(token.text.cbegin(), token.text.cend(), [](QChar character) {
+        return character.isSpace() || character.category() == QChar::Other_Format;
       })) {
     MathParseNode text;
     text.type = MathNodeType::Text;
@@ -1425,17 +1514,17 @@ MathParseNode MathParser::parseSymbol(const MathToken& token) {
         if (accentCp >= 0x0300 && accentCp <= 0x036F) {
           // Map combining diacritical marks to LaTeX accent commands.
           static const QHash<ushort, QString> accentMap = {
-            {0x0300, QStringLiteral("\\`")},   // grave
-            {0x0301, QStringLiteral("\\'")},  // acute
-            {0x0302, QStringLiteral("\\^")},   // circumflex
-            {0x0303, QStringLiteral("\\~")},  // tilde
-            {0x0304, QStringLiteral("\\=")},   // macron
-            {0x0306, QStringLiteral("\\u")},   // breve
-            {0x0307, QStringLiteral("\\.")},   // dot above
-            {0x0308, QStringLiteral("\\\"")}, // diaeresis
-            {0x030A, QStringLiteral("\\r")},   // ring above
-            {0x030C, QStringLiteral("\\v")},   // caron
-            {0x0327, QStringLiteral("\\c")},   // cedilla
+              {0x0300, QStringLiteral("\\`")},  // grave
+              {0x0301, QStringLiteral("\\'")},  // acute
+              {0x0302, QStringLiteral("\\^")},  // circumflex
+              {0x0303, QStringLiteral("\\~")},  // tilde
+              {0x0304, QStringLiteral("\\=")},  // macron
+              {0x0306, QStringLiteral("\\u")},  // breve
+              {0x0307, QStringLiteral("\\.")},  // dot above
+              {0x0308, QStringLiteral("\\\"")}, // diaeresis
+              {0x030A, QStringLiteral("\\r")},  // ring above
+              {0x030C, QStringLiteral("\\v")},  // caron
+              {0x0327, QStringLiteral("\\c")},  // cedilla
           };
           const auto it = accentMap.constFind(accentCp);
           if (it != accentMap.constEnd()) {
@@ -1464,8 +1553,7 @@ MathParseNode MathParser::parseSymbol(const MathToken& token) {
     node.error = QStringLiteral("Unsupported command %1").arg(token.text);
     if (token.text.startsWith(QLatin1Char('\\')) && settings_.strictEnabled()) {
       settings_.reportNonstrict(QStringLiteral("unknownSymbol"),
-                                QStringLiteral("Unrecognized command %1").arg(token.text),
-                                &token);
+                                QStringLiteral("Unrecognized command %1").arg(token.text), &token);
     }
     if (settings_.throwOnError) {
       throw MathParseError(node.error, token.text, token.position, token.endPosition);
@@ -1473,9 +1561,9 @@ MathParseNode MathParser::parseSymbol(const MathToken& token) {
   } else if (isUnicodeToken(token.text) && settings_.strictEnabled()) {
     const QChar ch = token.text.at(0);
     if (!isSupportedUnicodeCodepoint(ch)) {
-      settings_.reportNonstrict(QStringLiteral("unknownSymbol"),
-                                QStringLiteral("Unrecognized Unicode character \"%1\" (%2)").arg(token.text).arg(ch.unicode()),
-                                &token);
+      settings_.reportNonstrict(
+          QStringLiteral("unknownSymbol"),
+          QStringLiteral("Unrecognized Unicode character \"%1\" (%2)").arg(token.text).arg(ch.unicode()), &token);
     } else {
       settings_.reportNonstrict(QStringLiteral("unicodeTextInMathMode"),
                                 QStringLiteral("Unicode text character \"%1\" used in math mode").arg(token.text),
@@ -1489,12 +1577,14 @@ MathParseNode MathParser::applyOperatorLimitsModifier(MathParseNode base, const 
   MathParseNode* op = nullptr;
   if (base.type == MathNodeType::Operator) {
     op = &base;
-  } else if (base.type == MathNodeType::Class && !base.body.isEmpty() && base.body.first().type == MathNodeType::Operator) {
+  } else if (base.type == MathNodeType::Class && !base.body.isEmpty() &&
+             base.body.first().type == MathNodeType::Operator) {
     op = &base.body.first();
   }
   if (op == nullptr) {
     if (settings_.throwOnError) {
-      throw MathParseError(QStringLiteral("%1 must follow a math operator").arg(token.text), token.text, token.position, token.endPosition);
+      throw MathParseError(QStringLiteral("%1 must follow a math operator").arg(token.text), token.text, token.position,
+                           token.endPosition);
     }
     return base;
   }
@@ -1536,7 +1626,8 @@ void MathParser::expect(const QString& token, const QString& context) {
   }
   if (settings_.throwOnError) {
     const MathToken next = lexer_.peek();
-    throw MathParseError(QStringLiteral("Expected %1 in %2").arg(token, context), next.text, next.position, next.endPosition);
+    throw MathParseError(QStringLiteral("Expected %1 in %2").arg(token, context), next.text, next.position,
+                         next.endPosition);
   }
 }
 
@@ -1554,4 +1645,4 @@ MathParseNode MathParser::errorNode(QString message, const MathToken* token) {
   return node;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

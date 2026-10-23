@@ -10,6 +10,7 @@ class PrefsExportPage final : public PreferencesPage {
 public:
   explicit PrefsExportPage(QWidget* parent = nullptr);
   void retranslateUi() override;
+
 private:
   void rebuildPage();
   void refreshPandocStatus();
@@ -19,4 +20,4 @@ private:
   QLineEdit* pandocPathEdit_ = nullptr;
   QLabel* pandocStatus_ = nullptr;
 };
-}  // namespace muffin
+} // namespace muffin

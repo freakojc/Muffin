@@ -12,8 +12,7 @@ enum class C4ErrorKind { Lexer, Parser, Runtime };
 
 class C4ParseError : public std::runtime_error {
 public:
-  C4ParseError(C4ErrorKind kind, int line, int column, QString token,
-               const QString& message);
+  C4ParseError(C4ErrorKind kind, int line, int column, QString token, const QString& message);
 
   C4ErrorKind kind;
   int line;
@@ -76,4 +75,4 @@ public:
   static C4Data parse(const QString& source, bool wrap = false);
 };
 
-}  // namespace muffin::mermaid::c4
+} // namespace muffin::mermaid::c4

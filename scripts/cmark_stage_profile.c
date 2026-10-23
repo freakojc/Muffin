@@ -7,10 +7,12 @@
 static muffin_cmark_profile* active_profile;
 static uint64_t stage_start[2];
 static void muffin_probe_stage_begin(int stage) {
-  if (active_profile) stage_start[stage] = muffin_cmark_clock_ns();
+  if (active_profile)
+    stage_start[stage] = muffin_cmark_clock_ns();
 }
 static void muffin_probe_stage_end(int stage) {
-  if (!active_profile) return;
+  if (!active_profile)
+    return;
   if (stage == 0)
     active_profile->inline_walk_ns += muffin_cmark_clock_ns() - stage_start[stage];
   else
@@ -47,12 +49,14 @@ void muffin_probe_parse_inlines(cmark_parser* parser, cmark_node* parent, cmark_
 void muffin_probe_consolidate_text_nodes(cmark_node* root) {
   uint64_t start = active_profile ? muffin_cmark_clock_ns() : 0;
   cmark_consolidate_text_nodes(root);
-  if (active_profile) active_profile->consolidate_ns += muffin_cmark_clock_ns() - start;
+  if (active_profile)
+    active_profile->consolidate_ns += muffin_cmark_clock_ns() - start;
 }
 void muffin_probe_consolidate_with_callback(cmark_node* root, cmark_consolidated_text_func callback, void* data) {
   uint64_t start = active_profile ? muffin_cmark_clock_ns() : 0;
   cmark_consolidate_text_nodes_with_callback(root, callback, data);
-  if (active_profile) active_profile->consolidate_ns += muffin_cmark_clock_ns() - start;
+  if (active_profile)
+    active_profile->consolidate_ns += muffin_cmark_clock_ns() - start;
 }
 static cmark_node* profile_postprocess(cmark_syntax_extension* extension, cmark_parser* parser, cmark_node* root) {
   uint64_t start = muffin_cmark_clock_ns();
@@ -72,7 +76,8 @@ void muffin_cmark_profile_begin(cmark_parser* parser, muffin_cmark_profile* prof
     if (ext->postprocess_func) {
       // In the production extension set only autolink has a postprocessor.
       // Reject new hooks instead of silently attributing another extension.
-      if (wrapped_extension || strcmp(ext->name, "autolink") != 0) abort();
+      if (wrapped_extension || strcmp(ext->name, "autolink") != 0)
+        abort();
       wrapped_extension = ext;
       original_postprocess = ext->postprocess_func;
       ext->postprocess_func = profile_postprocess;
@@ -81,7 +86,8 @@ void muffin_cmark_profile_begin(cmark_parser* parser, muffin_cmark_profile* prof
 }
 void muffin_cmark_profile_end(void) {
   muffin_cmark_autolink_profile_end();
-  if (wrapped_extension) wrapped_extension->postprocess_func = original_postprocess;
+  if (wrapped_extension)
+    wrapped_extension->postprocess_func = original_postprocess;
   wrapped_extension = NULL;
   original_postprocess = NULL;
   active_profile = NULL;

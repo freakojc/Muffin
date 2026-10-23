@@ -37,4 +37,4 @@ private:
   bool flushScheduled_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

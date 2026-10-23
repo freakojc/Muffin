@@ -74,8 +74,7 @@ void testRealExecutablePathIsHonored() {
 // asserted here. The test binary stands in for a real executable.
 void testFindFirstExistingReturnsFirstExecutable() {
   const QString self = QCoreApplication::applicationFilePath();
-  const QString got =
-      muffin::PandocRunner::findFirstExistingExecutable({QStringLiteral("/no/such/a"), self});
+  const QString got = muffin::PandocRunner::findFirstExistingExecutable({QStringLiteral("/no/such/a"), self});
   require(got == self, QStringLiteral("findFirstExistingExecutable should return the first real executable"));
 }
 
@@ -88,15 +87,16 @@ void testFindFirstExistingReturnsEmptyForGarbage() {
 void testFindFirstExistingSkipsNonExecutables() {
   const QString self = QCoreApplication::applicationFilePath();
   // Empty entries and nonexistent paths are skipped; the real executable wins.
-  const QString got = muffin::PandocRunner::findFirstExistingExecutable(
-      {QString(), QStringLiteral("/no/such/b"), self});
+  const QString got =
+      muffin::PandocRunner::findFirstExistingExecutable({QString(), QStringLiteral("/no/such/b"), self});
   require(got == self, QStringLiteral("findFirstExistingExecutable should skip bad entries and return the executable"));
 }
 
 bool sameExistingDirectory(const QString& actualPath, const QString& expectedPath) {
   const QFileInfo actual(actualPath);
   const QFileInfo expected(expectedPath);
-  if (!actual.isDir() || !expected.isDir()) return false;
+  if (!actual.isDir() || !expected.isDir())
+    return false;
   const QString canonicalActual = actual.canonicalFilePath();
   return !canonicalActual.isEmpty() && canonicalActual == expected.canonicalFilePath();
 }
@@ -130,7 +130,7 @@ void checkWorkingDirectoryAndProgressLabel(const QString& workDir) {
     }
   });
   const auto result = muffin::PandocRunner::run(nullptr, {QStringLiteral("--fake-pandoc")},
-                                               {.workDir = workDir, .progressLabel = label});
+                                                {.workDir = workDir, .progressLabel = label});
   require(result.ran && result.exitCode == 0, QStringLiteral("Import process should start"));
   const QString actualDirectory = QString::fromUtf8(result.out);
   require(sameExistingDirectory(actualDirectory, workDir),
@@ -154,16 +154,17 @@ void testWorkingDirectoryAndProgressLabelAreIndependent() {
 #endif
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (argc == 2 && QByteArray(argv[1]) == "--fake-pandoc") {
     const QByteArray cwd = QDir::currentPath().toUtf8();
     std::fwrite(cwd.constData(), 1, cwd.size(), stdout);
-    QThread::msleep(300);  // let the parent exercise its responsive progress loop
+    QThread::msleep(300); // let the parent exercise its responsive progress loop
     return 0;
   }
-  if (qgetenv("QT_QPA_PLATFORM").isEmpty()) qputenv("QT_QPA_PLATFORM", "offscreen");
+  if (qgetenv("QT_QPA_PLATFORM").isEmpty())
+    qputenv("QT_QPA_PLATFORM", "offscreen");
   QApplication app(argc, argv);
   QCoreApplication::setOrganizationName(QStringLiteral("Muffin"));
   QCoreApplication::setApplicationName(QStringLiteral("MuffinTests"));

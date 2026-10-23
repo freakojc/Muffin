@@ -22,12 +22,14 @@ namespace {
   std::fprintf(stderr, "FAIL: %s\n", qPrintable(message));
   std::exit(1);
 }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 QByteArray sha256(const QString& path) {
   QFile file(path);
-  return file.open(QIODevice::ReadOnly)
-             ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
-             : QByteArray();
+  return file.open(QIODevice::ReadOnly) ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
+                                        : QByteArray();
 }
 QImage decode(const QString& url) {
   QImage image;
@@ -53,7 +55,8 @@ qreal rgbaSimilarity(const QImage& a, const QImage& b) {
   for (int y = 0; y < b.height(); ++y)
     for (int x = 0; x < b.width(); ++x) {
       const QColor x1 = a.pixelColor(x, y), x2 = b.pixelColor(x, y);
-      if (x1.alpha() < 32 && x2.alpha() < 32) continue;
+      if (x1.alpha() < 32 && x2.alpha() < 32)
+        continue;
       ++count;
       const auto premul = [](int c, int alpha) { return c * alpha / 255; };
       difference += std::abs(premul(x1.red(), x1.alpha()) - premul(x2.red(), x2.alpha()));
@@ -63,7 +66,7 @@ qreal rgbaSimilarity(const QImage& a, const QImage& b) {
     }
   return count ? 1.0 - difference / (count * 1020.0) : 1.0;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -87,14 +90,16 @@ int main(int argc, char** argv) {
     require(sha256(path) == fixture.value(QStringLiteral("sha256")).toString().toLatin1(),
             id + QStringLiteral(" browser PNG drifted"));
     const QImage reference(path);
-    const QImage native = decode(editor::MermaidRenderCache::renderMermaidSourceToPng(
-                                     fixture.value(QStringLiteral("source")).toString(), 1.0)
-                                     .dataUrl);
+    const QImage native = decode(
+        editor::MermaidRenderCache::renderMermaidSourceToPng(fixture.value(QStringLiteral("source")).toString(), 1.0)
+            .dataUrl);
     require(!native.isNull() && !reference.isNull(), id + QStringLiteral(" PNG decode"));
-    require(native.size() == reference.size(),
-            QStringLiteral("%1: native %2x%3 != browser %4x%5")
-                .arg(id).arg(native.width()).arg(native.height())
-                .arg(reference.width()).arg(reference.height()));
+    require(native.size() == reference.size(), QStringLiteral("%1: native %2x%3 != browser %4x%5")
+                                                   .arg(id)
+                                                   .arg(native.width())
+                                                   .arg(native.height())
+                                                   .arg(reference.width())
+                                                   .arg(reference.height()));
     const qreal iou = alphaIou(native, reference);
     const qreal rgba = rgbaSimilarity(native, reference);
     std::fprintf(stderr, "%s iou=%.6f rgba=%.6f\n", qPrintable(id), iou, rgba);

@@ -84,15 +84,13 @@ void testIndentedCode() {
           QStringLiteral("indented code block"));
 }
 void testMermaidAccessibilityMetadata() {
-  const QString out = serialize(QStringLiteral(
-      "```mermaid\n"
-      "---\ntitle: Visible flow title\n---\n"
-      "flowchart TB\n"
-      "accTitle: Accessible flow name\n"
-      "accDescr: Detailed & safe description\n"
-      "A --> B\n```"));
-  require(out.contains(QStringLiteral("<svg")) &&
-              out.contains(QStringLiteral("class=\"mfn-mermaid flowchart\"")) &&
+  const QString out = serialize(QStringLiteral("```mermaid\n"
+                                               "---\ntitle: Visible flow title\n---\n"
+                                               "flowchart TB\n"
+                                               "accTitle: Accessible flow name\n"
+                                               "accDescr: Detailed & safe description\n"
+                                               "A --> B\n```"));
+  require(out.contains(QStringLiteral("<svg")) && out.contains(QStringLiteral("class=\"mfn-mermaid flowchart\"")) &&
               !out.contains(QStringLiteral("data:image/png")),
           QStringLiteral("supported Mermaid diagram must export as inline SVG"));
   require(out.contains(QStringLiteral("role=\"graphics-document document\"")) &&
@@ -100,44 +98,36 @@ void testMermaidAccessibilityMetadata() {
               out.contains(QStringLiteral("aria-labelledby=\"")) &&
               out.contains(QStringLiteral("aria-describedby=\"")) &&
               out.contains(QStringLiteral(">Accessible flow name</title>")) &&
-              out.contains(QStringLiteral(
-                  ">Detailed &amp; safe description</desc>")),
+              out.contains(QStringLiteral(">Detailed &amp; safe description</desc>")),
           QStringLiteral("Mermaid HTML export must preserve accessible metadata"));
 
-  const QString titleFallback = serialize(QStringLiteral(
-      "```mermaid\n---\ntitle: Title fallback\n---\n"
-      "flowchart TB\nA --> B\n```"));
+  const QString titleFallback = serialize(QStringLiteral("```mermaid\n---\ntitle: Title fallback\n---\n"
+                                                         "flowchart TB\nA --> B\n```"));
   require(titleFallback.contains(QStringLiteral(">Title fallback</title>")),
           QStringLiteral("visible Mermaid title must be the SVG title fallback"));
 
   muffin::MarkdownHtmlOptions absoluteOptions;
-  absoluteOptions.documentUrl =
-      QUrl::fromLocalFile(QStringLiteral("G:/exports/report.html"));
-  const QString absoluteMarkers = serialize(QStringLiteral(
-      "```mermaid\n"
-      "%%{init: {\"arrowMarkerAbsolute\": true}}%%\n"
-      "flowchart LR\nA --> B\n```"), {}, absoluteOptions);
-  require(absoluteMarkers.contains(QStringLiteral(
-              "marker-end=\"url(file:///G:/exports/report.html#")),
+  absoluteOptions.documentUrl = QUrl::fromLocalFile(QStringLiteral("G:/exports/report.html"));
+  const QString absoluteMarkers = serialize(QStringLiteral("```mermaid\n"
+                                                           "%%{init: {\"arrowMarkerAbsolute\": true}}%%\n"
+                                                           "flowchart LR\nA --> B\n```"),
+                                            {}, absoluteOptions);
+  require(absoluteMarkers.contains(QStringLiteral("marker-end=\"url(file:///G:/exports/report.html#")),
           QStringLiteral("Mermaid HTML document URL did not reach marker export"));
 
-  const QString repeated = serialize(QStringLiteral(
-      "```mermaid\nflowchart TB\nA --> B\n```\n\n"
-      "```mermaid\nflowchart TB\nA --> B\n```"));
+  const QString repeated = serialize(QStringLiteral("```mermaid\nflowchart TB\nA --> B\n```\n\n"
+                                                    "```mermaid\nflowchart TB\nA --> B\n```"));
   const auto rootIdAt = [&repeated](qsizetype svgOffset) {
     const qsizetype idStart = repeated.indexOf(QStringLiteral(" id=\""), svgOffset);
     const qsizetype valueStart = idStart < 0 ? -1 : idStart + 5;
-    const qsizetype valueEnd = valueStart < 0
-        ? -1 : repeated.indexOf(QLatin1Char('"'), valueStart);
-    return valueEnd < 0 ? QString()
-                        : repeated.mid(valueStart, valueEnd - valueStart);
+    const qsizetype valueEnd = valueStart < 0 ? -1 : repeated.indexOf(QLatin1Char('"'), valueStart);
+    return valueEnd < 0 ? QString() : repeated.mid(valueStart, valueEnd - valueStart);
   };
   const qsizetype firstSvg = repeated.indexOf(QStringLiteral("<svg"));
   const qsizetype secondSvg = repeated.indexOf(QStringLiteral("<svg"), firstSvg + 1);
   const QString firstRootId = rootIdAt(firstSvg);
   const QString secondRootId = rootIdAt(secondSvg);
-  require(firstSvg >= 0 && secondSvg > firstSvg &&
-              !firstRootId.isEmpty() && firstRootId != secondRootId,
+  require(firstSvg >= 0 && secondSvg > firstSvg && !firstRootId.isEmpty() && firstRootId != secondRootId,
           QStringLiteral("multiple Mermaid SVG roots must have distinct IDs"));
 }
 void testHtmlBlockRaw() {
@@ -158,7 +148,11 @@ void testAlertNote() {
   require(!out.contains(QStringLiteral("[!NOTE]")), QStringLiteral("alert marker must be stripped"));
 }
 void testAlertAllKinds() {
-  struct Case { QLatin1String marker; QLatin1String cls; QLatin1String title; };
+  struct Case {
+    QLatin1String marker;
+    QLatin1String cls;
+    QLatin1String title;
+  };
   const Case cases[] = {
       {QLatin1String("[!NOTE]"), QLatin1String("note"), QLatin1String("Note")},
       {QLatin1String("[!TIP]"), QLatin1String("tip"), QLatin1String("Tip")},
@@ -193,7 +187,7 @@ void testHighlight() {
           QStringLiteral("highlight renders as <mark> when enabled"));
 }
 void testHighlightDefaultOff() {
-  const QString out = serialize(QStringLiteral("==x=="));  // enableHighlight defaults false
+  const QString out = serialize(QStringLiteral("==x==")); // enableHighlight defaults false
   require(out.contains(QStringLiteral("==x==")), QStringLiteral("highlight stays literal when disabled"));
   require(!out.contains(QStringLiteral("<mark>")), QStringLiteral("no <mark> when disabled"));
 }
@@ -209,7 +203,8 @@ void testStrikethrough() {
 }
 void testEmphasisStrongCode() {
   require(serialize(QStringLiteral("*i*")) == QStringLiteral("<p><em>i</em></p>\n"), QStringLiteral("emphasis"));
-  require(serialize(QStringLiteral("**b**")) == QStringLiteral("<p><strong>b</strong></p>\n"), QStringLiteral("strong"));
+  require(serialize(QStringLiteral("**b**")) == QStringLiteral("<p><strong>b</strong></p>\n"),
+          QStringLiteral("strong"));
   require(serialize(QStringLiteral("`c`")) == QStringLiteral("<p><code>c</code></p>\n"), QStringLiteral("inline code"));
 }
 void testInlineMath() {
@@ -220,7 +215,8 @@ void testInlineMath() {
 
 void testDoubleDollarInlineMath() {
   const QString out = serialize(QStringLiteral("before $$\\frac{a}{b}$$ after"));
-  require(out.contains(QStringLiteral("<span class=\"mfn-inline-math\" data-display=\"true\" data-tex=\"\\frac{a}{b}\">\\frac{a}{b}</span>")),
+  require(out.contains(QStringLiteral(
+              "<span class=\"mfn-inline-math\" data-display=\"true\" data-tex=\"\\frac{a}{b}\">\\frac{a}{b}</span>")),
           QStringLiteral("Double-dollar math should preserve display style in HTML"));
 }
 void testMathBlock() {
@@ -234,7 +230,8 @@ void testLink() {
   require(serialize(QStringLiteral("[t](http://x)")) == QStringLiteral("<p><a href=\"http://x\">t</a></p>\n"),
           QStringLiteral("link without title"));
   const QString withTitle = serialize(QStringLiteral("[t](http://x \"T\")"));
-  require(withTitle.contains(QStringLiteral("<a href=\"http://x\" title=\"T\">t</a>")), QStringLiteral("link with title"));
+  require(withTitle.contains(QStringLiteral("<a href=\"http://x\" title=\"T\">t</a>")),
+          QStringLiteral("link with title"));
 }
 void testImage() {
   const QString out = serialize(QStringLiteral("![alt](http://x)"));
@@ -259,7 +256,8 @@ void testSoftBreakNewline() {
           QStringLiteral("soft break as newline when break off"));
 }
 void testLineBreak() {
-  require(serialize(QStringLiteral("a  \nb")) == QStringLiteral("<p>a<br />\nb</p>\n"), QStringLiteral("hard line break"));
+  require(serialize(QStringLiteral("a  \nb")) == QStringLiteral("<p>a<br />\nb</p>\n"),
+          QStringLiteral("hard line break"));
 }
 void testHtmlInline() {
   const QString out = serialize(QStringLiteral("text <b>bold</b> more"));
@@ -289,7 +287,8 @@ void testFootnoteReference() {
   const QString out = serialize(QStringLiteral("text[^1]\n\n[^1]: note"));
   require(out.contains(QStringLiteral("<sup class=\"footnote-ref\"><a href=\"#fn:1\">1</a></sup>")),
           QStringLiteral("footnote ref as superscript link"));
-  require(out.contains(QStringLiteral("<section class=\"footnotes\">")), QStringLiteral("footnotes hoisted to section"));
+  require(out.contains(QStringLiteral("<section class=\"footnotes\">")),
+          QStringLiteral("footnotes hoisted to section"));
   require(out.contains(QStringLiteral("id=\"fn:1\"")), QStringLiteral("footnote def anchor"));
   require(out.contains(QStringLiteral("<p>note</p>")), QStringLiteral("footnote def body"));
 }
@@ -313,8 +312,8 @@ void testOrderedListStart() {
 void testTaskList() {
   require(serialize(QStringLiteral("- [ ] x")).contains(QStringLiteral("<input type=\"checkbox\" disabled=\"\" /> ")),
           QStringLiteral("unchecked tasklist checkbox"));
-  require(serialize(QStringLiteral("- [x] x")).contains(
-              QStringLiteral("<input type=\"checkbox\" checked=\"\" disabled=\"\" /> ")),
+  require(serialize(QStringLiteral("- [x] x"))
+              .contains(QStringLiteral("<input type=\"checkbox\" checked=\"\" disabled=\"\" /> ")),
           QStringLiteral("checked tasklist checkbox"));
 }
 void testNestedList() {
@@ -360,10 +359,9 @@ void testEncodedUrlsPreserveEscapesAndSafety() {
   require(serialize(QStringLiteral("[x](100%done.md)")).contains(QStringLiteral("100%25done.md")),
           QStringLiteral("a literal percent must be encoded"));
 
-  for (const QString& unsafe : {QStringLiteral("javascript:alert(1)"),
-                                QStringLiteral("java&#x09;script:alert(1)"),
-                                QStringLiteral("vbscript:evil"),
-                                QStringLiteral("data:text/html,%3Cscript%3Ebad%3C/script%3E")}) {
+  for (const QString& unsafe :
+       {QStringLiteral("javascript:alert(1)"), QStringLiteral("java&#x09;script:alert(1)"),
+        QStringLiteral("vbscript:evil"), QStringLiteral("data:text/html,%3Cscript%3Ebad%3C/script%3E")}) {
     require(!serialize(QStringLiteral("[x](%1)").arg(unsafe)).contains(QStringLiteral("href=")),
             QStringLiteral("URL escape preservation must not weaken scheme filtering"));
   }
@@ -372,7 +370,7 @@ void testEncodedUrlsPreserveEscapesAndSafety() {
   const QString encodedScheme = serialize(QStringLiteral("[x](%6aavascript:alert(1))"));
   require(!encodedScheme.contains(QStringLiteral("href=\"javascript:")),
           QStringLiteral("encoded URLs must never be decoded into an executable scheme"));
-  const QString quote = serialize(QStringLiteral("[x](https://example.com/?q=%22&x=&quot;bad)") );
+  const QString quote = serialize(QStringLiteral("[x](https://example.com/?q=%22&x=&quot;bad)"));
   require(quote.contains(QStringLiteral("%22&amp;x=&quot;bad")),
           QStringLiteral("encoded and literal quotes must remain inside the attribute"));
 }
@@ -405,7 +403,7 @@ void testSerializeSourceReadsSettings() {
   s.setValue(QStringLiteral("markdown/renderEmoji"), true);
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication::setOrganizationName(QStringLiteral("MuffinTest"));

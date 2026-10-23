@@ -29,6 +29,7 @@ public:
     ~Scope();
     Scope(const Scope&) = delete;
     Scope& operator=(const Scope&) = delete;
+
   private:
     CmarkParseAllocator* previous_;
     CmarkParseAllocator* allocator_;
@@ -67,4 +68,4 @@ private:
   Statistics statistics_;
 };
 
-}  // namespace muffin
+} // namespace muffin

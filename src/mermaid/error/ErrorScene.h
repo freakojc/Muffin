@@ -54,8 +54,8 @@ struct ErrorTextStyle {
 // structural selectors can split them.
 struct ErrorIconCss {
   QString fill;
-  QString stroke;             // empty = none (the initial value)
-  qreal strokeWidthPx = 1.0;  // SVG initial stroke-width
+  QString stroke;            // empty = none (the initial value)
+  qreal strokeWidthPx = 1.0; // SVG initial stroke-width
   bool visible = true;
   qreal opacity = 1.0;
 };
@@ -63,10 +63,10 @@ struct ErrorIconCss {
 struct ErrorTextCss {
   QString fill;
   QString stroke;
-  qreal strokeWidthPx = 1.0;  // SVG initial stroke-width
+  qreal strokeWidthPx = 1.0; // SVG initial stroke-width
   QString fontFamily;
-  QString fontWeight;         // empty = 400
-  qreal fontSize = -1.0;      // < 0 = presentation attribute value
+  QString fontWeight;    // empty = 400
+  qreal fontSize = -1.0; // < 0 = presentation attribute value
   bool visible = true;
   qreal opacity = 1.0;
 };
@@ -85,28 +85,24 @@ struct ErrorElementCss {
 
 struct ErrorTextGeometry {
   QString text;
-  QPointF anchor{0.0, 0.0};   // presentation x/y (y = alphabetic baseline)
-  qreal fontSize = 0.0;       // presentation font-size in viewBox units
+  QPointF anchor{0.0, 0.0}; // presentation x/y (y = alphabetic baseline)
+  qreal fontSize = 0.0;     // presentation font-size in viewBox units
 };
 
 struct ErrorScene final : MermaidScene {
   QVector<QPainterPath> iconPaths;
-  ErrorTextGeometry headline{QStringLiteral("Syntax error in text"),
-                             QPointF(1440.0, 250.0), 150.0};
-  ErrorTextGeometry version{QStringLiteral("mermaid version 11.16.0"),
-                            QPointF(1250.0, 400.0), 100.0};
+  ErrorTextGeometry headline{QStringLiteral("Syntax error in text"), QPointF(1440.0, 250.0), 150.0};
+  ErrorTextGeometry version{QStringLiteral("mermaid version 11.16.0"), QPointF(1250.0, 400.0), 100.0};
   ErrorTextStyle style;
   ErrorElementCss css;
 
   QRectF viewBoxBounds{0.0, 0.0, 2412.0, 512.0};
   // Client box: max-width 512 + viewBox aspect, LayoutUnit-floored to 1/64
   // (Chromium's replaced-element layout; the fixture's clientRect height).
-  QRectF bounds{0.0, 0.0, 512.0,
-                std::floor((512.0 * 512.0 / 2412.0) * 64.0) / 64.0};
+  QRectF bounds{0.0, 0.0, 512.0, std::floor((512.0 * 512.0 / 2412.0) * 64.0) / 64.0};
 
   QRectF sceneBounds() const override { return bounds; }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
   // SVG export keeps the fractional client box (108.671875) instead of the
   // raster-rounded 109 the integer canvas would write.
@@ -119,4 +115,4 @@ QStringList errorIconPathData();
 
 ErrorScene buildErrorScene(ErrorTextStyle style);
 
-}  // namespace muffin::mermaid::error
+} // namespace muffin::mermaid::error

@@ -28,7 +28,8 @@ QRect inkBounds(const QImage& image) {
   QRect bounds;
   for (int y = 0; y < image.height(); ++y)
     for (int x = 0; x < image.width(); ++x)
-      if (qAlpha(image.pixel(x, y)) > 32) bounds = bounds.united(QRect(x, y, 1, 1));
+      if (qAlpha(image.pixel(x, y)) > 32)
+        bounds = bounds.united(QRect(x, y, 1, 1));
   return bounds;
 }
 
@@ -48,7 +49,8 @@ void glyphCoordinates() {
     const auto runs = line.glyphRuns();
     require(!runs.isEmpty(), "logical glyph runs available");
     QSet<QString> families;
-    QImage fromLayout(950, 120, QImage::Format_ARGB32_Premultiplied), fromGlyphs(fromLayout.size(), fromLayout.format());
+    QImage fromLayout(950, 120, QImage::Format_ARGB32_Premultiplied),
+        fromGlyphs(fromLayout.size(), fromLayout.format());
     fromLayout.fill(Qt::transparent);
     fromGlyphs.fill(Qt::transparent);
     {
@@ -59,7 +61,8 @@ void glyphCoordinates() {
       QPainter painter(&fromGlyphs);
       for (const auto& run : runs) {
         require(run.stringIndexes().size() == run.glyphIndexes().size(), "glyph source indices preserved");
-        require(qAbs(run.rawFont().pixelSize() - textFontPixelSize(font)) < .02, "raw font exposes logical fractional size");
+        require(qAbs(run.rawFont().pixelSize() - textFontPixelSize(font)) < .02,
+                "raw font exposes logical fractional size");
         require(run.boundingRect().right() < 950, "glyph bounds never expose shaping-device coordinates");
         families.insert(run.rawFont().familyName());
         for (int i = 0; i < run.glyphIndexes().size(); ++i) {
@@ -75,10 +78,11 @@ void glyphCoordinates() {
             "pinned mixed-script font fallback");
     const auto a = inkBounds(fromLayout), b = inkBounds(fromGlyphs);
     require(!a.isEmpty() && !b.isEmpty(), "both glyph and layout painters produce text");
-    require(qAbs(a.left() - b.left()) <= 1 && qAbs(a.right() - b.right()) <= 1 &&
-                qAbs(a.top() - b.top()) <= 1 && qAbs(a.bottom() - b.bottom()) <= 1,
+    require(qAbs(a.left() - b.left()) <= 1 && qAbs(a.right() - b.right()) <= 1 && qAbs(a.top() - b.top()) <= 1 &&
+                qAbs(a.bottom() - b.bottom()) <= 1,
             "prepared glyph painting agrees with shared layout extent");
-    if (backend == TextBackend::Native) require(fromLayout == fromGlyphs, "native glyph painting stays pixel-identical");
+    if (backend == TextBackend::Native)
+      require(fromLayout == fromGlyphs, "native glyph painting stays pixel-identical");
   }
 }
 
@@ -86,7 +90,8 @@ void flowLabels() {
   const auto family = MermaidFontRegistry::cssFamilyStack();
   for (qreal size : {16., 18.4, 28.8}) {
     for (qreal width : {110., 260.}) {
-      auto label = parseFlowLabel(QString::fromUtf8("A long **bold** and *italic* 中文标签 with office AV fi and more words"), "markdown");
+      auto label = parseFlowLabel(
+          QString::fromUtf8("A long **bold** and *italic* 中文标签 with office AV fi and more words"), "markdown");
       label.underline = true;
       label.letterSpacingPx = .3;
       label = wrapFlowLabel(label, family, size, width);
@@ -104,19 +109,20 @@ void flowLabels() {
           require(!run.preparedGlyphs.isEmpty(), "paint consumes full-line prepared glyphs");
           sawBold = sawBold || run.fontWeight >= QFont::Bold;
           sawItalic = sawItalic || run.fontItalic;
-          sawCjkFallback = sawCjkFallback ||
-              run.fontFamily.contains(QStringLiteral("CJK"), Qt::CaseInsensitive);
+          sawCjkFallback = sawCjkFallback || run.fontFamily.contains(QStringLiteral("CJK"), Qt::CaseInsensitive);
           if (documentTextBackend() == TextBackend::Native)
             require(!run.preparedOutline, "native FlowLabel keeps the glyph-run paint path");
-          require(qAbs(run.preparedGlyphs.rawFont().pixelSize() - textFontPixelSize(makeFlowLabelFont(family, size))) < .02,
+          require(qAbs(run.preparedGlyphs.rawFont().pixelSize() - textFontPixelSize(makeFlowLabelFont(family, size))) <
+                      .02,
                   "FlowLabel retains the common backend size");
         }
       }
-      require(sawBold && sawItalic && sawCjkFallback,
-              "FlowLabel preserves bold, italic, and CJK fallback runs");
-      require(qAbs(totalHeight - measured.size.height()) < .001, "layout height sums the same line boxes used by painting");
+      require(sawBold && sawItalic && sawCjkFallback, "FlowLabel preserves bold, italic, and CJK fallback runs");
+      require(qAbs(totalHeight - measured.size.height()) < .001,
+              "layout height sums the same line boxes used by painting");
       for (qreal zoom : {.8, 1., 1.25, 2.}) {
-        QImage image(qCeil((width + 60) * zoom), qCeil((measured.size.height() + 60) * zoom), QImage::Format_ARGB32_Premultiplied);
+        QImage image(qCeil((width + 60) * zoom), qCeil((measured.size.height() + 60) * zoom),
+                     QImage::Format_ARGB32_Premultiplied);
         image.fill(Qt::transparent);
         {
           QPainter painter(&image);
@@ -153,27 +159,26 @@ void flowLabels() {
   // painted repeatedly during Mermaid zoom and expose events.  The layout
   // cache must reuse its prepared glyph runs while still invalidating on a
   // public document mutation.
-  auto cachedLabel = parseFlowLabel(QStringLiteral("cached FlowLabel label"),
-                                    QStringLiteral("markdown"));
+  auto cachedLabel = parseFlowLabel(QStringLiteral("cached FlowLabel label"), QStringLiteral("markdown"));
   resetFlowLabelLayoutCacheStats();
   const auto first = layoutFlowLabel(cachedLabel, family, 18.4, 27.6);
   const auto second = layoutFlowLabel(cachedLabel, family, 18.4, 27.6);
   const auto cacheAfterHit = flowLabelLayoutCacheStats();
   require(first.size == second.size && first.lines.size() == second.lines.size(),
           "FlowLabel cached metrics match the initial layout");
-  require(cacheAfterHit.misses == 1 && cacheAfterHit.hits >= 1,
-          "FlowLabel repeats reuse the immutable layout cache");
+  require(cacheAfterHit.misses == 1 && cacheAfterHit.hits >= 1, "FlowLabel repeats reuse the immutable layout cache");
   cachedLabel.text += QStringLiteral(" changed");
   layoutFlowLabel(cachedLabel, family, 18.4, 27.6);
-  require(flowLabelLayoutCacheStats().misses == 2,
-          "FlowLabel content mutation invalidates cached metrics");
+  require(flowLabelLayoutCacheStats().misses == 2, "FlowLabel content mutation invalidates cached metrics");
 }
 
 QStringList diagramSources() {
   return {
       QString::fromUtf8("flowchart LR\nA[\"A long 中文标签 with office and italic words\"]-->B[Done]"),
-      QString::fromUtf8("gantt\ndateFormat YYYY-MM-DD\ntodayMarker off\nsection 中文计划\nA long task label :a, 2024-01-01, 3d"),
-      QString::fromUtf8("C4Context\nPerson(user, \"中文用户\", \"A long description\")\nSystem(app, \"Muffin\")\nRel(user, app, \"Uses\")"),
+      QString::fromUtf8(
+          "gantt\ndateFormat YYYY-MM-DD\ntodayMarker off\nsection 中文计划\nA long task label :a, 2024-01-01, 3d"),
+      QString::fromUtf8(
+          "C4Context\nPerson(user, \"中文用户\", \"A long description\")\nSystem(app, \"Muffin\")\nRel(user, app, \"Uses\")"),
       QString::fromUtf8("journey\ntitle 中文旅程\nsection Work\nA long label with many words: 5: Me"),
       QString::fromUtf8("venn-beta\nset A[中文标签]: 10"),
       QString::fromUtf8("mindmap\n  root((中文主题))\n    A long child label\n    Another child"),
@@ -184,17 +189,22 @@ QImage paintDocument(DocumentLayout& layout, const RenderTheme& theme, int width
   QImage image(width, qCeil(layout.totalHeight()) + 1, QImage::Format_ARGB32_Premultiplied);
   image.fill(Qt::transparent);
   QPainter painter(&image);
-  for (const auto* block : layout.promotedBlocks()) block->paint(painter, theme, 0);
+  for (const auto* block : layout.promotedBlocks())
+    block->paint(painter, theme, 0);
   return image;
 }
 
 void cacheAndDocument() {
   MermaidRenderCache cache;
   for (const auto& body : diagramSources()) {
-    const QString source = QStringLiteral("%%{init:{\"fontFamily\":\"Noto Sans\",\"themeVariables\":{\"fontFamily\":\"Noto Sans\",\"fontSize\":\"18.4px\"}}}%%\n") + body;
+    const QString source =
+        QStringLiteral(
+            "%%{init:{\"fontFamily\":\"Noto Sans\",\"themeVariables\":{\"fontFamily\":\"Noto Sans\",\"fontSize\":\"18.4px\"}}}%%\n") +
+        body;
     const auto key = MermaidRenderCache::makeKey(source);
     const auto entry = cache.getSync(key, source);
-    require(entry.status == mermaid_editor::MermaidRenderStatus::Ready && entry.scene, "each migrated family builds a scene: " + body);
+    require(entry.status == mermaid_editor::MermaidRenderStatus::Ready && entry.scene,
+            "each migrated family builds a scene: " + body);
     require(entry.scene == cache.getSync(key, source).scene, "immutable scene cache reuses text measurements");
     require(entry.naturalSize.width() > 0 && entry.naturalSize.height() > 0, "scene has finite positive extent");
     DocumentSession session;
@@ -207,8 +217,8 @@ void cacheAndDocument() {
         for (auto* layout : {&eager, &lazy}) {
           layout->setMermaidRenderCache(&cache);
           layout->setMermaidSyncMode(true);
-          layout->rebuild(session.document(), theme, width, {}, {}, layout == &eager ? DocumentLayout::BuildPolicy::Eager
-                                                                                  : DocumentLayout::BuildPolicy::Lazy);
+          layout->rebuild(session.document(), theme, width, {}, {},
+                          layout == &eager ? DocumentLayout::BuildPolicy::Eager : DocumentLayout::BuildPolicy::Lazy);
           layout->buildAll(theme);
         }
         require(qAbs(eager.totalHeight() - lazy.totalHeight()) < .001, "full/lazy Mermaid document height agrees");
@@ -216,23 +226,27 @@ void cacheAndDocument() {
           const auto* expected = lazy.block(actual->nodeId());
           require(expected && expected->rect() == actual->rect(), "full/lazy allocated block geometry agrees");
           if (const auto* text = actual->inlineLayout()) {
-            require(expected->inlineLayout() && text->cursorRectForSourceOffset(2) == expected->inlineLayout()->cursorRectForSourceOffset(2),
+            require(expected->inlineLayout() &&
+                        text->cursorRectForSourceOffset(2) == expected->inlineLayout()->cursorRectForSourceOffset(2),
                     "neighboring text caret agrees");
-            require(text->selectionRectsForSourceOffsets(0, 3) == expected->inlineLayout()->selectionRectsForSourceOffsets(0, 3),
+            require(text->selectionRectsForSourceOffsets(0, 3) ==
+                        expected->inlineLayout()->selectionRectsForSourceOffsets(0, 3),
                     "neighboring text selection agrees");
           }
         }
         // Prime FreeType's first-use glyph raster cache before comparing pixels.
         paintDocument(eager, theme, width);
         paintDocument(lazy, theme, width);
-        require(paintDocument(eager, theme, width) == paintDocument(lazy, theme, width), "full/lazy diagram painting agrees at each zoom and width");
+        require(paintDocument(eager, theme, width) == paintDocument(lazy, theme, width),
+                "full/lazy diagram painting agrees at each zoom and width");
       }
     }
   }
 }
 
 void benchmark() {
-  if (!qEnvironmentVariableIsSet("MUFFIN_TEXT_BENCH")) return;
+  if (!qEnvironmentVariableIsSet("MUFFIN_TEXT_BENCH"))
+    return;
   const bool cjkDense = qEnvironmentVariable("MUFFIN_TEXT_BENCH_WORKLOAD") == "cjk";
   const auto family = MermaidFontRegistry::cssFamilyStack();
   QVector<FlowLabelDocument> labels;
@@ -241,9 +255,12 @@ void benchmark() {
   const auto before = diag::workingSetBytes();
   timer.start();
   for (int i = 0; i < 300; ++i) {
-    auto label = parseFlowLabel((cjkDense
-        ? QStringLiteral("中文标签 %1 **粗体文字** *斜体文字* 字体回退与连续缩放测试，长标签应正确换行且复用布局。")
-        : QStringLiteral("Label %1 **bold** *italic* 中文标签 office fi more words")).arg(i), "markdown");
+    auto label = parseFlowLabel(
+        (cjkDense ? QStringLiteral(
+                        "中文标签 %1 **粗体文字** *斜体文字* 字体回退与连续缩放测试，长标签应正确换行且复用布局。")
+                  : QStringLiteral("Label %1 **bold** *italic* 中文标签 office fi more words"))
+            .arg(i),
+        "markdown");
     label.letterSpacingPx = .7;
     label.wordSpacingPx = .3;
     labels.push_back(wrapFlowLabel(label, family, 28.8, 260));
@@ -267,7 +284,10 @@ void benchmark() {
   paint(1);
   const auto warmMs = timer.elapsed(), warm = diag::workingSetBytes();
   const auto warmCache = flowLabelLayoutCacheStats();
-  const auto zoomPass = [&] { for (int i = 0; i < 24; ++i) paint(.8 + i * 1.2 / 23); };
+  const auto zoomPass = [&] {
+    for (int i = 0; i < 24; ++i)
+      paint(.8 + i * 1.2 / 23);
+  };
   timer.restart();
   zoomPass();
   const auto firstZoomMs = timer.elapsed(), firstZoomMemory = diag::workingSetBytes();
@@ -292,22 +312,23 @@ void benchmark() {
     for (int i = 0; i < sources.size(); ++i)
       require(cache.getSync(keys[i], sources[i]).scene == scenes[i].scene, "cached scene reused without rebuilding");
   require(cache.size() == sources.size(), "scene cache bounded for repeated requests");
-  std::fprintf(stdout,
+  std::fprintf(
+      stdout,
       "[mermaid-bench] backend=%s workload=%s labels=300 shapeMs=%lld coldPaintMs=%lld warmPaintMs=%lld zoomFrames=24 firstZoomMs=%lld secondZoomMs=%lld "
       "memoryBefore=%lld measured=%lld cold=%lld warm=%lld firstZoomMemory=%lld secondZoomMemory=%lld "
       "layoutCacheShape=%llu/%llu layoutCacheCold=%llu/%llu layoutCacheWarm=%llu/%llu "
       "layoutCacheFirstZoom=%llu/%llu layoutCacheSecondZoom=%llu/%llu scenes=6 sceneMs=%lld cacheRequests=6000 cacheMs=%lld\n",
-      documentTextBackend() == TextBackend::Native ? "native" : "fractional", cjkDense ? "cjk" : "mixed", (long long)shapeMs, (long long)coldMs, (long long)warmMs,
-      (long long)firstZoomMs, (long long)secondZoomMs, (long long)before, (long long)measured, (long long)cold, (long long)warm,
-      (long long)firstZoomMemory, (long long)secondZoomMemory,
-      static_cast<unsigned long long>(shapeCache.hits), static_cast<unsigned long long>(shapeCache.misses),
-      static_cast<unsigned long long>(coldCache.hits), static_cast<unsigned long long>(coldCache.misses),
-      static_cast<unsigned long long>(warmCache.hits), static_cast<unsigned long long>(warmCache.misses),
-      static_cast<unsigned long long>(firstZoomCache.hits), static_cast<unsigned long long>(firstZoomCache.misses),
-      static_cast<unsigned long long>(secondZoomCache.hits), static_cast<unsigned long long>(secondZoomCache.misses),
-      (long long)sceneMs, (long long)timer.elapsed());
+      documentTextBackend() == TextBackend::Native ? "native" : "fractional", cjkDense ? "cjk" : "mixed",
+      (long long)shapeMs, (long long)coldMs, (long long)warmMs, (long long)firstZoomMs, (long long)secondZoomMs,
+      (long long)before, (long long)measured, (long long)cold, (long long)warm, (long long)firstZoomMemory,
+      (long long)secondZoomMemory, static_cast<unsigned long long>(shapeCache.hits),
+      static_cast<unsigned long long>(shapeCache.misses), static_cast<unsigned long long>(coldCache.hits),
+      static_cast<unsigned long long>(coldCache.misses), static_cast<unsigned long long>(warmCache.hits),
+      static_cast<unsigned long long>(warmCache.misses), static_cast<unsigned long long>(firstZoomCache.hits),
+      static_cast<unsigned long long>(firstZoomCache.misses), static_cast<unsigned long long>(secondZoomCache.hits),
+      static_cast<unsigned long long>(secondZoomCache.misses), (long long)sceneMs, (long long)timer.elapsed());
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");

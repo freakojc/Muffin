@@ -16,8 +16,8 @@ struct WorkspaceFiles {
 // Metadata only, independent of file-tree expansion. Safe on a worker thread.
 class MUFFIN_UI_EXPORT WorkspaceFileIndex final {
 public:
-  static WorkspaceFiles scan(const QString& root, const QStringList& extensions,
-                             const SearchCancellation& cancel, int limit = 200000);
+  static WorkspaceFiles scan(const QString& root, const QStringList& extensions, const SearchCancellation& cancel,
+                             int limit = 200000);
   static QStringList textExtensions();
   static QString pathKey(const QString& path);
   static bool contains(const QString& root, const QString& path);
@@ -27,4 +27,4 @@ public:
   // Space-separated terms are ANDed; slash-separated segments match in order.
   static int score(const QString& query, const QString& relativePath);
 };
-}  // namespace muffin
+} // namespace muffin

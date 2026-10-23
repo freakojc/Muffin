@@ -10,8 +10,7 @@ enum class InfoErrorKind { Lexer, Parser };
 
 class InfoParseError : public std::runtime_error {
 public:
-  InfoParseError(const QString& message, int line, int column,
-                 InfoErrorKind kind);
+  InfoParseError(const QString& message, int line, int column, InfoErrorKind kind);
 
   int line = 0;
   int column = 0;
@@ -29,4 +28,4 @@ public:
   static InfoData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::info
+} // namespace muffin::mermaid::info

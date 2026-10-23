@@ -59,29 +59,19 @@ struct CompiledQuery {
 };
 
 struct ParserDeleter {
-  void operator()(TSParser* parser) const {
-    ts_parser_delete(parser);
-  }
+  void operator()(TSParser* parser) const { ts_parser_delete(parser); }
 };
 
 struct TreeDeleter {
-  void operator()(TSTree* tree) const {
-    ts_tree_delete(tree);
-  }
+  void operator()(TSTree* tree) const { ts_tree_delete(tree); }
 };
 
 struct QueryCursorDeleter {
-  void operator()(TSQueryCursor* cursor) const {
-    ts_query_cursor_delete(cursor);
-  }
+  void operator()(TSQueryCursor* cursor) const { ts_query_cursor_delete(cursor); }
 };
 
-void addLanguage(
-    QHash<QString, LanguageSpec>& specs,
-    QString canonical,
-    const TSLanguage* (*language)(),
-    QStringList queryPaths,
-    std::initializer_list<const char*> aliases) {
+void addLanguage(QHash<QString, LanguageSpec>& specs, QString canonical, const TSLanguage* (*language)(),
+                 QStringList queryPaths, std::initializer_list<const char*> aliases) {
   const LanguageSpec spec{canonical, language, std::move(queryPaths)};
   specs.insert(canonical, spec);
   for (const char* alias : aliases) {
@@ -100,32 +90,65 @@ void ensureQueryResourcesRegistered() {
 const QHash<QString, LanguageSpec>& languageSpecs() {
   static const QHash<QString, LanguageSpec> specs = [] {
     QHash<QString, LanguageSpec> result;
-    addLanguage(result, QStringLiteral("bash"), tree_sitter_bash, {QStringLiteral(":/tree-sitter/queries/bash/highlights.scm")}, {"sh", "shell", "zsh"});
-    addLanguage(result, QStringLiteral("c"), tree_sitter_c, {QStringLiteral(":/tree-sitter/queries/c/highlights.scm")}, {"h"});
-    addLanguage(result, QStringLiteral("cpp"), tree_sitter_cpp, {QStringLiteral(":/tree-sitter/queries/c/highlights.scm"), QStringLiteral(":/tree-sitter/queries/cpp/highlights.scm")}, {"c++", "cc", "cxx", "hpp", "hxx"});
-    addLanguage(result, QStringLiteral("csharp"), tree_sitter_c_sharp, {QStringLiteral(":/tree-sitter/queries/csharp/highlights.scm")}, {"cs", "c#"});
-    addLanguage(result, QStringLiteral("css"), tree_sitter_css, {QStringLiteral(":/tree-sitter/queries/css/highlights.scm")}, {});
-    addLanguage(result, QStringLiteral("go"), tree_sitter_go, {QStringLiteral(":/tree-sitter/queries/go/highlights.scm")}, {"golang"});
-    addLanguage(result, QStringLiteral("html"), tree_sitter_html, {QStringLiteral(":/tree-sitter/queries/html/highlights.scm")}, {"htm"});
-    addLanguage(result, QStringLiteral("ini"), tree_sitter_ini, {QStringLiteral(":/tree-sitter/queries/ini/highlights.scm")}, {"conf"});
-    addLanguage(result, QStringLiteral("java"), tree_sitter_java, {QStringLiteral(":/tree-sitter/queries/java/highlights.scm")}, {});
-    addLanguage(result, QStringLiteral("javascript"), tree_sitter_javascript, {QStringLiteral(":/tree-sitter/queries/javascript/highlights.scm")}, {"js", "jsx", "mjs", "cjs"});
-    addLanguage(result, QStringLiteral("json"), tree_sitter_json, {QStringLiteral(":/tree-sitter/queries/json/highlights.scm")}, {});
-    addLanguage(result, QStringLiteral("lua"), tree_sitter_lua, {QStringLiteral(":/tree-sitter/queries/lua/highlights.scm")}, {});
-    addLanguage(result, QStringLiteral("markdown"), tree_sitter_markdown, {QStringLiteral(":/tree-sitter/queries/markdown/highlights.scm")}, {"md"});
-    addLanguage(result, QStringLiteral("objective-c"), tree_sitter_objc, {QStringLiteral(":/tree-sitter/queries/objc/highlights.scm")}, {"objc", "obj-c", "m", "mm"});
-    addLanguage(result, QStringLiteral("php"), tree_sitter_php_only, {QStringLiteral(":/tree-sitter/queries/php/highlights.scm")}, {});
-    addLanguage(result, QStringLiteral("powershell"), tree_sitter_powershell, {QStringLiteral(":/tree-sitter/queries/powershell/highlights.scm")}, {"ps1", "psm1"});
-    addLanguage(result, QStringLiteral("python"), tree_sitter_python, {QStringLiteral(":/tree-sitter/queries/python/highlights.scm")}, {"py"});
-    addLanguage(result, QStringLiteral("qml"), tree_sitter_qmljs, {QStringLiteral(":/tree-sitter/queries/qmljs/highlights.scm")}, {"qmljs"});
-    addLanguage(result, QStringLiteral("r"), tree_sitter_r, {QStringLiteral(":/tree-sitter/queries/r/highlights.scm")}, {});
-    addLanguage(result, QStringLiteral("ruby"), tree_sitter_ruby, {QStringLiteral(":/tree-sitter/queries/ruby/highlights.scm")}, {"rb"});
-    addLanguage(result, QStringLiteral("rust"), tree_sitter_rust, {QStringLiteral(":/tree-sitter/queries/rust/highlights.scm")}, {"rs"});
-    addLanguage(result, QStringLiteral("toml"), tree_sitter_toml, {QStringLiteral(":/tree-sitter/queries/toml/highlights.scm")}, {});
-    addLanguage(result, QStringLiteral("typescript"), tree_sitter_typescript, {QStringLiteral(":/tree-sitter/queries/javascript/highlights.scm"), QStringLiteral(":/tree-sitter/queries/typescript/highlights.scm")}, {"ts"});
-    addLanguage(result, QStringLiteral("tsx"), tree_sitter_tsx, {QStringLiteral(":/tree-sitter/queries/javascript/highlights.scm"), QStringLiteral(":/tree-sitter/queries/typescript/highlights.scm"), QStringLiteral(":/tree-sitter/queries/tsx/highlights.scm")}, {});
-    addLanguage(result, QStringLiteral("xml"), tree_sitter_xml, {QStringLiteral(":/tree-sitter/queries/xml/highlights.scm")}, {});
-    addLanguage(result, QStringLiteral("yaml"), tree_sitter_yaml, {QStringLiteral(":/tree-sitter/queries/yaml/highlights.scm")}, {"yml"});
+    addLanguage(result, QStringLiteral("bash"), tree_sitter_bash,
+                {QStringLiteral(":/tree-sitter/queries/bash/highlights.scm")}, {"sh", "shell", "zsh"});
+    addLanguage(result, QStringLiteral("c"), tree_sitter_c, {QStringLiteral(":/tree-sitter/queries/c/highlights.scm")},
+                {"h"});
+    addLanguage(result, QStringLiteral("cpp"), tree_sitter_cpp,
+                {QStringLiteral(":/tree-sitter/queries/c/highlights.scm"),
+                 QStringLiteral(":/tree-sitter/queries/cpp/highlights.scm")},
+                {"c++", "cc", "cxx", "hpp", "hxx"});
+    addLanguage(result, QStringLiteral("csharp"), tree_sitter_c_sharp,
+                {QStringLiteral(":/tree-sitter/queries/csharp/highlights.scm")}, {"cs", "c#"});
+    addLanguage(result, QStringLiteral("css"), tree_sitter_css,
+                {QStringLiteral(":/tree-sitter/queries/css/highlights.scm")}, {});
+    addLanguage(result, QStringLiteral("go"), tree_sitter_go,
+                {QStringLiteral(":/tree-sitter/queries/go/highlights.scm")}, {"golang"});
+    addLanguage(result, QStringLiteral("html"), tree_sitter_html,
+                {QStringLiteral(":/tree-sitter/queries/html/highlights.scm")}, {"htm"});
+    addLanguage(result, QStringLiteral("ini"), tree_sitter_ini,
+                {QStringLiteral(":/tree-sitter/queries/ini/highlights.scm")}, {"conf"});
+    addLanguage(result, QStringLiteral("java"), tree_sitter_java,
+                {QStringLiteral(":/tree-sitter/queries/java/highlights.scm")}, {});
+    addLanguage(result, QStringLiteral("javascript"), tree_sitter_javascript,
+                {QStringLiteral(":/tree-sitter/queries/javascript/highlights.scm")}, {"js", "jsx", "mjs", "cjs"});
+    addLanguage(result, QStringLiteral("json"), tree_sitter_json,
+                {QStringLiteral(":/tree-sitter/queries/json/highlights.scm")}, {});
+    addLanguage(result, QStringLiteral("lua"), tree_sitter_lua,
+                {QStringLiteral(":/tree-sitter/queries/lua/highlights.scm")}, {});
+    addLanguage(result, QStringLiteral("markdown"), tree_sitter_markdown,
+                {QStringLiteral(":/tree-sitter/queries/markdown/highlights.scm")}, {"md"});
+    addLanguage(result, QStringLiteral("objective-c"), tree_sitter_objc,
+                {QStringLiteral(":/tree-sitter/queries/objc/highlights.scm")}, {"objc", "obj-c", "m", "mm"});
+    addLanguage(result, QStringLiteral("php"), tree_sitter_php_only,
+                {QStringLiteral(":/tree-sitter/queries/php/highlights.scm")}, {});
+    addLanguage(result, QStringLiteral("powershell"), tree_sitter_powershell,
+                {QStringLiteral(":/tree-sitter/queries/powershell/highlights.scm")}, {"ps1", "psm1"});
+    addLanguage(result, QStringLiteral("python"), tree_sitter_python,
+                {QStringLiteral(":/tree-sitter/queries/python/highlights.scm")}, {"py"});
+    addLanguage(result, QStringLiteral("qml"), tree_sitter_qmljs,
+                {QStringLiteral(":/tree-sitter/queries/qmljs/highlights.scm")}, {"qmljs"});
+    addLanguage(result, QStringLiteral("r"), tree_sitter_r, {QStringLiteral(":/tree-sitter/queries/r/highlights.scm")},
+                {});
+    addLanguage(result, QStringLiteral("ruby"), tree_sitter_ruby,
+                {QStringLiteral(":/tree-sitter/queries/ruby/highlights.scm")}, {"rb"});
+    addLanguage(result, QStringLiteral("rust"), tree_sitter_rust,
+                {QStringLiteral(":/tree-sitter/queries/rust/highlights.scm")}, {"rs"});
+    addLanguage(result, QStringLiteral("toml"), tree_sitter_toml,
+                {QStringLiteral(":/tree-sitter/queries/toml/highlights.scm")}, {});
+    addLanguage(result, QStringLiteral("typescript"), tree_sitter_typescript,
+                {QStringLiteral(":/tree-sitter/queries/javascript/highlights.scm"),
+                 QStringLiteral(":/tree-sitter/queries/typescript/highlights.scm")},
+                {"ts"});
+    addLanguage(result, QStringLiteral("tsx"), tree_sitter_tsx,
+                {QStringLiteral(":/tree-sitter/queries/javascript/highlights.scm"),
+                 QStringLiteral(":/tree-sitter/queries/typescript/highlights.scm"),
+                 QStringLiteral(":/tree-sitter/queries/tsx/highlights.scm")},
+                {});
+    addLanguage(result, QStringLiteral("xml"), tree_sitter_xml,
+                {QStringLiteral(":/tree-sitter/queries/xml/highlights.scm")}, {});
+    addLanguage(result, QStringLiteral("yaml"), tree_sitter_yaml,
+                {QStringLiteral(":/tree-sitter/queries/yaml/highlights.scm")}, {"yml"});
     return result;
   }();
   return specs;
@@ -161,12 +184,8 @@ CompiledQuery* compiledQueryFor(const LanguageSpec& spec) {
 
   uint32_t errorOffset = 0;
   TSQueryError errorType = TSQueryErrorNone;
-  compiled->query.reset(ts_query_new(
-      spec.language(),
-      compiled->text.constData(),
-      static_cast<uint32_t>(compiled->text.size()),
-      &errorOffset,
-      &errorType));
+  compiled->query.reset(ts_query_new(spec.language(), compiled->text.constData(),
+                                     static_cast<uint32_t>(compiled->text.size()), &errorOffset, &errorType));
   if (!compiled->query) {
     return nullptr;
   }
@@ -177,8 +196,10 @@ CompiledQuery* compiledQueryFor(const LanguageSpec& spec) {
 }
 
 QString nodeText(const QString& text, const QVector<qsizetype>& byteToUtf16, TSNode node) {
-  const qsizetype start = byteToUtf16.at(qBound<int>(0, static_cast<int>(ts_node_start_byte(node)), byteToUtf16.size() - 1));
-  const qsizetype end = byteToUtf16.at(qBound<int>(0, static_cast<int>(ts_node_end_byte(node)), byteToUtf16.size() - 1));
+  const qsizetype start =
+      byteToUtf16.at(qBound<int>(0, static_cast<int>(ts_node_start_byte(node)), byteToUtf16.size() - 1));
+  const qsizetype end =
+      byteToUtf16.at(qBound<int>(0, static_cast<int>(ts_node_end_byte(node)), byteToUtf16.size() - 1));
   return text.mid(start, end - start);
 }
 
@@ -204,13 +225,9 @@ const TSQueryCapture* captureByName(TSQuery* query, const TSQueryMatch& match, u
   return nullptr;
 }
 
-bool stringPredicateMatches(
-    const QString& op,
-    TSQuery* query,
-    const TSQueryMatch& match,
-    const QVector<TSQueryPredicateStep>& steps,
-    const QString& text,
-    const QVector<qsizetype>& byteToUtf16) {
+bool stringPredicateMatches(const QString& op, TSQuery* query, const TSQueryMatch& match,
+                            const QVector<TSQueryPredicateStep>& steps, const QString& text,
+                            const QVector<qsizetype>& byteToUtf16) {
   if (steps.size() < 3 || steps.at(1).type != TSQueryPredicateStepTypeCapture) {
     return true;
   }
@@ -239,7 +256,8 @@ bool stringPredicateMatches(
 
   if (op == QStringLiteral("any-of?")) {
     for (qsizetype i = 2; i < steps.size(); ++i) {
-      if (steps.at(i).type == TSQueryPredicateStepTypeString && capturedText == queryStringValue(query, steps.at(i).value_id)) {
+      if (steps.at(i).type == TSQueryPredicateStepTypeString &&
+          capturedText == queryStringValue(query, steps.at(i).value_id)) {
         return true;
       }
     }
@@ -249,11 +267,8 @@ bool stringPredicateMatches(
   return true;
 }
 
-bool predicatesMatch(
-    TSQuery* query,
-    const TSQueryMatch& match,
-    const QString& text,
-    const QVector<qsizetype>& byteToUtf16) {
+bool predicatesMatch(TSQuery* query, const TSQueryMatch& match, const QString& text,
+                     const QVector<qsizetype>& byteToUtf16) {
   uint32_t stepCount = 0;
   const TSQueryPredicateStep* rawSteps = ts_query_predicates_for_pattern(query, match.pattern_index, &stepCount);
   QVector<TSQueryPredicateStep> steps;
@@ -333,34 +348,34 @@ CodeHighlightRole roleForCapture(QStringView capture) {
 
 int priority(CodeHighlightRole role) {
   switch (role) {
-    case CodeHighlightRole::Plain:
-      return 0;
-    case CodeHighlightRole::Variable:
-      return 1;
-    case CodeHighlightRole::Punctuation:
-      return 2;
-    case CodeHighlightRole::Operator:
-      return 3;
-    case CodeHighlightRole::Property:
-      return 4;
-    case CodeHighlightRole::Type:
-      return 5;
-    case CodeHighlightRole::Constant:
-      return 6;
-    case CodeHighlightRole::Function:
-      return 7;
-    case CodeHighlightRole::Number:
-      return 8;
-    case CodeHighlightRole::String:
-      return 9;
-    case CodeHighlightRole::Keyword:
-      return 10;
-    case CodeHighlightRole::Preprocessor:
-      return 11;
-    case CodeHighlightRole::Escape:
-      return 12;
-    case CodeHighlightRole::Comment:
-      return 13;
+  case CodeHighlightRole::Plain:
+    return 0;
+  case CodeHighlightRole::Variable:
+    return 1;
+  case CodeHighlightRole::Punctuation:
+    return 2;
+  case CodeHighlightRole::Operator:
+    return 3;
+  case CodeHighlightRole::Property:
+    return 4;
+  case CodeHighlightRole::Type:
+    return 5;
+  case CodeHighlightRole::Constant:
+    return 6;
+  case CodeHighlightRole::Function:
+    return 7;
+  case CodeHighlightRole::Number:
+    return 8;
+  case CodeHighlightRole::String:
+    return 9;
+  case CodeHighlightRole::Keyword:
+    return 10;
+  case CodeHighlightRole::Preprocessor:
+    return 11;
+  case CodeHighlightRole::Escape:
+    return 12;
+  case CodeHighlightRole::Comment:
+    return 13;
   }
   return 0;
 }
@@ -396,9 +411,10 @@ QVector<qsizetype> byteToUtf16Map(const QString& text, const QByteArray& bytes) 
 }
 
 QVector<CodeHighlightSpan> normalizeSpans(QVector<CodeHighlightSpan> spans, qsizetype textSize) {
-  spans.erase(std::remove_if(spans.begin(), spans.end(), [textSize](const CodeHighlightSpan& span) {
-                return span.start < 0 || span.end <= span.start || span.start >= textSize;
-              }),
+  spans.erase(std::remove_if(spans.begin(), spans.end(),
+                             [textSize](const CodeHighlightSpan& span) {
+                               return span.start < 0 || span.end <= span.start || span.start >= textSize;
+                             }),
               spans.end());
   for (CodeHighlightSpan& span : spans) {
     span.start = qBound<qsizetype>(0, span.start, textSize);
@@ -415,9 +431,8 @@ QVector<CodeHighlightSpan> normalizeSpans(QVector<CodeHighlightSpan> spans, qsiz
     events.push_back({span.start, span.role, 1});
     events.push_back({span.end, span.role, -1});
   }
-  std::sort(events.begin(), events.end(), [](const Event& left, const Event& right) {
-    return left.offset < right.offset;
-  });
+  std::sort(events.begin(), events.end(),
+            [](const Event& left, const Event& right) { return left.offset < right.offset; });
 
   // Sweep capture boundaries once. Scanning every capture at every boundary
   // made highlighting a long code fence quadratic, including on caret moves.
@@ -432,10 +447,12 @@ QVector<CodeHighlightSpan> normalizeSpans(QVector<CodeHighlightSpan> spans, qsiz
       active[rank] += event.delta;
       roles[rank] = event.role;
     } while (i < events.size() && events[i].offset == start);
-    if (i == events.size()) break;
+    if (i == events.size())
+      break;
     const qsizetype end = events[i].offset;
     int bestPriority = int(active.size()) - 1;
-    while (bestPriority > 0 && active[bestPriority] == 0) --bestPriority;
+    while (bestPriority > 0 && active[bestPriority] == 0)
+      --bestPriority;
     if (bestPriority == 0) {
       continue;
     }
@@ -449,7 +466,7 @@ QVector<CodeHighlightSpan> normalizeSpans(QVector<CodeHighlightSpan> spans, qsiz
   return result;
 }
 
-}  // namespace
+} // namespace
 
 QVector<CodeHighlightSpan> TreeSitterHighlighter::highlight(const QString& language, const QString& text) const {
   const QString key = language.trimmed().toLower();
@@ -508,4 +525,4 @@ bool TreeSitterHighlighter::supportsLanguage(const QString& language) const {
   return languageSpecs().contains(language.trimmed().toLower());
 }
 
-}  // namespace muffin
+} // namespace muffin

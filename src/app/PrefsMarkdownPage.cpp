@@ -136,7 +136,7 @@ muffin::PrefsMarkdownPage::PrefsMarkdownPage(QWidget* parent) : PreferencesPage(
   smartQuotesCheck_ = new QCheckBox(punctCard);
   auto* quotesRow = new QHBoxLayout();
   quotesRow->setSpacing(10);
-  quotesRow->addSpacing(28);  // indent under checkbox
+  quotesRow->addSpacing(28); // indent under checkbox
   singleQuoteCombo_ = new QComboBox(punctCard);
   singleQuoteCombo_->setMinimumWidth(100);
   doubleQuoteCombo_ = new QComboBox(punctCard);
@@ -235,7 +235,7 @@ muffin::PrefsMarkdownPage::PrefsMarkdownPage(QWidget* parent) : PreferencesPage(
   connect(convertOnRenderingCheck_, &QCheckBox::toggled, this, [this](bool on) {
     convertOnInputCombo_->setEnabled(!on);
     if (on && convertOnInputCombo_->currentIndex() != 0) {
-      convertOnInputCombo_->setCurrentIndex(0);  // zeroes markdown/convertOnInput via its wire
+      convertOnInputCombo_->setCurrentIndex(0); // zeroes markdown/convertOnInput via its wire
     }
   });
   wireBoolSetting(remapUnicodeCheck_, QStringLiteral("markdown/remapUnicode"));
@@ -255,14 +255,13 @@ void muffin::PrefsMarkdownPage::retranslateUi() {
   // Card 1: Syntax Preferences
   syntaxLabel_->setText(tr("Markdown Syntax Preferences"));
   strictModeCheck_->setText(tr("Strict Mode"));
-  strictModeCheck_->setToolTip(tr(
-      "Strict Mode turns off tables, strikethrough and task lists for plain CommonMark "
-      "structure. Inline extensions (formulas, auto links, sub/superscript, etc.) always "
-      "follow their own switches and are not affected by Strict Mode."));
+  strictModeCheck_->setToolTip(tr("Strict Mode turns off tables, strikethrough and task lists for plain CommonMark "
+                                  "structure. Inline extensions (formulas, auto links, sub/superscript, etc.) always "
+                                  "follow their own switches and are not affected by Strict Mode."));
   breakOnSingleNewlineCheck_->setText(tr("Break on Single Newline"));
-  breakOnSingleNewlineCheck_->setToolTip(tr(
-      "Render a single line break as a new line. "
-      "Turn off for strict CommonMark, which joins soft-wrapped lines into one paragraph."));
+  breakOnSingleNewlineCheck_->setToolTip(
+      tr("Render a single line break as a new line. "
+         "Turn off for strict CommonMark, which joins soft-wrapped lines into one paragraph."));
   headingStyleLabel_->setText(tr("Heading Style"));
   rebuildCombo(headingStyleCombo_, {QStringLiteral("atx (#)"), QStringLiteral("setext (===)")});
   unorderedListLabel_->setText(tr("Unordered List"));
@@ -275,16 +274,16 @@ void muffin::PrefsMarkdownPage::retranslateUi() {
   autoLinkCheck_->setText(tr("Auto Recognize Links"));
   inlineMathCheck_->setText(tr("Inline Formula") + QStringLiteral(" ($\\LaTeX$)"));
   relaxedInlineMathCheck_->setText(tr("Allow Spaces Inside Formula Delimiters") + QStringLiteral(" ($ x $)"));
-  relaxedInlineMathCheck_->setToolTip(tr(
-      "Accept spaces or tabs next to inline formula delimiters. Turn this off for Pandoc-style "
-      "parsing that avoids ambiguous currency text."));
+  relaxedInlineMathCheck_->setToolTip(
+      tr("Accept spaces or tabs next to inline formula delimiters. Turn this off for Pandoc-style "
+         "parsing that avoids ambiguous currency text."));
   subscriptCheck_->setText(tr("Subscript") + QStringLiteral(" (H~2~O)"));
   superscriptCheck_->setText(tr("Superscript") + QStringLiteral(" (X^2^)"));
   highlightCheck_->setText(tr("Highlight") + QStringLiteral(" (==key==)"));
   renderEmojiCheck_->setText(tr("Render Emoji Shortcodes") + QStringLiteral(" (:smile:)"));
-  renderEmojiCheck_->setToolTip(tr(
-      "Convert GitHub-style shortcodes like :smile: and :heart: into emoji glyphs when rendering. "
-      "Turn off to keep the literal :shortcode: text (e.g. for technical documentation)."));
+  renderEmojiCheck_->setToolTip(
+      tr("Convert GitHub-style shortcodes like :smile: and :heart: into emoji glyphs when rendering. "
+         "Turn off to keep the literal :shortcode: text (e.g. for technical documentation)."));
   alertBoxCheck_->setText(tr("Github Style Alert Box"));
   diagramsCheck_->setText(tr("Mermaid Diagrams"));
   diagramOptionsButton_->setText(tr("Diagram Options"));
@@ -294,8 +293,14 @@ void muffin::PrefsMarkdownPage::retranslateUi() {
   convertOnInputLabel_->setText(tr("Convert on Input"));
   rebuildCombo(convertOnInputCombo_, {tr("No conversion"), tr("When typing"), tr("Always")});
   smartQuotesCheck_->setText(tr("Smart Quotes"));
-  rebuildCombo(singleQuoteCombo_, {QString::fromUtf8("\xe2\x80\x98" "abc" "\xe2\x80\x99"), QStringLiteral("'abc'")});
-  rebuildCombo(doubleQuoteCombo_, {QString::fromUtf8("\xe2\x80\x9c" "abc" "\xe2\x80\x9d"), QStringLiteral("\"abc\"")});
+  rebuildCombo(singleQuoteCombo_, {QString::fromUtf8("\xe2\x80\x98"
+                                                     "abc"
+                                                     "\xe2\x80\x99"),
+                                   QStringLiteral("'abc'")});
+  rebuildCombo(doubleQuoteCombo_, {QString::fromUtf8("\xe2\x80\x9c"
+                                                     "abc"
+                                                     "\xe2\x80\x9d"),
+                                   QStringLiteral("\"abc\"")});
   smartDashesCheck_->setText(tr("Smart Dashes"));
   convertOnRenderingCheck_->setText(tr("Convert on Rendering"));
   remapUnicodeCheck_->setText(tr("Remap Unicode Punctuation on Parse"));
@@ -307,7 +312,8 @@ void muffin::PrefsMarkdownPage::retranslateUi() {
   codeIndentLabel_->setText(tr("Code Indent"));
   rebuildCombo(codeIndentCombo_, {QStringLiteral("2"), QStringLiteral("4"), QStringLiteral("8")});
   defaultLangLabel_->setText(tr("Default Code Block Language"));
-  rebuildCombo(defaultLangCombo_, {tr("(empty)"), QStringLiteral("cpp"), QStringLiteral("python"), QStringLiteral("javascript"), QStringLiteral("java")});
+  rebuildCombo(defaultLangCombo_, {tr("(empty)"), QStringLiteral("cpp"), QStringLiteral("python"),
+                                   QStringLiteral("javascript"), QStringLiteral("java")});
   autoLangLabel_->setText(tr("Automatically add code block language"));
   rebuildCombo(autoLangCombo_, {tr("When inserting code blocks via Markdown code"), tr("Always"), tr("Never")});
 }

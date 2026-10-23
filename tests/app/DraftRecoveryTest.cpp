@@ -15,7 +15,6 @@
 #include <future>
 #include <atomic>
 
-
 // Exercises DraftRecovery's pure data I/O against a temp directory: snapshot →
 // pendingDrafts → loadDraft → markClean/discard, plus the untitled-key and
 // overwrite-same-key behaviors the crash-recovery flow relies on.
@@ -53,7 +52,7 @@ void testAsyncOpenNeverSnapshotsPreviousDocument() {
   session.setMarkdownText(QStringLiteral("unsaved A"), true);
   require(recovery.snapshotSession(session, oldKey), QStringLiteral("Stable dirty document must be recoverable"));
   require(recovery.pendingDrafts().size() == 1, QStringLiteral("A snapshot missing"));
-  recovery.markClean(oldPath, oldKey);  // user chose Discard before opening B
+  recovery.markClean(oldPath, oldKey); // user chose Discard before opening B
   session.openDocumentAsync(QStringLiteral("disk B"));
   session.setFilePath(newPath);
   require(session.isAsyncParseInProgress(), QStringLiteral("Async fixture should be pending before event processing"));
@@ -73,7 +72,8 @@ void testAsyncOpenNeverSnapshotsPreviousDocument() {
   const auto drafts = recovery.pendingDrafts();
   require(drafts.size() == 1 && drafts.first().sourcePath == newPath && drafts.first().key == newKey,
           QStringLiteral("New draft must have B's identity"));
-  require(recovery.loadDraft(drafts.first()) == QStringLiteral("edited B"), QStringLiteral("New draft must contain B's edits"));
+  require(recovery.loadDraft(drafts.first()) == QStringLiteral("edited B"),
+          QStringLiteral("New draft must contain B's edits"));
 }
 
 void testEmptyDirectoryHasNoDrafts() {
@@ -142,13 +142,18 @@ void testBackgroundSnapshotsOwnTextCoalesceAndClean() {
   std::atomic<int> calls{0};
   QStringList seen;
   DraftSnapshotWriter writer(dir.path(), [&](const PieceTable& text, const QString& path, const QString& key) {
-    if (++calls == 1) { started.set_value(); gate.wait(); }
+    if (++calls == 1) {
+      started.set_value();
+      gate.wait();
+    }
     seen.append(text.toString());
     return recovery.snapshot(text.toString(), path, key);
   });
   int completions = 0;
-  QObject::connect(&writer, &DraftSnapshotWriter::snapshotFinished, &writer,
-                   [&](const QString&, quint64, bool saved) { require(saved, "background write failed"); ++completions; });
+  QObject::connect(&writer, &DraftSnapshotWriter::snapshotFinished, &writer, [&](const QString&, quint64, bool saved) {
+    require(saved, "background write failed");
+    ++completions;
+  });
   const QString key = DraftRecovery::createDraftKey();
   {
     DocumentSession session;
@@ -162,8 +167,7 @@ void testBackgroundSnapshotsOwnTextCoalesceAndClean() {
     require(!writer.request(session, key), "same in-flight revision must not enqueue twice");
     require(session.applyTextDelta(0, 8, QStringLiteral("second"), true), "edit while snapshot is running");
     require(writer.request(session, key), "new revision accepted");
-    require(writer.queueStats().pending == 1 &&
-                writer.queueStats().pendingCodeUnits == session.markdownText().size(),
+    require(writer.queueStats().pending == 1 && writer.queueStats().pendingCodeUnits == session.markdownText().size(),
             "pending snapshot accounting must track the coalesced revision");
     session.setMarkdownText(QString(), true);
     require(writer.request(session, key), "intentional empty revision replaces pending request");
@@ -175,7 +179,8 @@ void testBackgroundSnapshotsOwnTextCoalesceAndClean() {
               writer.queueStats().runningCodeUnits == 0 && writer.queueStats().pendingCodeUnits == 0,
           "drained queue must retain no pending or running text accounting");
   QCoreApplication::processEvents();
-  require(seen == QStringList{QStringLiteral("original **中文**"), QString()}, "snapshot isolation or coalescing failed");
+  require(seen == QStringList{QStringLiteral("original **中文**"), QString()},
+          "snapshot isolation or coalescing failed");
   require(completions == 2, "successful revisions must be acknowledged after commit");
   const auto drafts = recovery.pendingDrafts();
   require(drafts.size() == 1 && drafts.first().charCount == 0, "latest empty draft must win");
@@ -195,7 +200,10 @@ void testCleanInvalidatesRunningAndQueuedCompletions() {
   int completions = 0;
   {
     DraftSnapshotWriter writer(dir.path(), [&](const PieceTable& text, const QString& path, const QString& identity) {
-      if (++calls == 1) { started.set_value(); gate.wait(); }
+      if (++calls == 1) {
+        started.set_value();
+        gate.wait();
+      }
       return recovery.snapshot(text.toString(), path, identity);
     });
     QObject::connect(&writer, &DraftSnapshotWriter::snapshotFinished, &writer,
@@ -231,7 +239,8 @@ void testBackgroundFailureRetriesAndBusySessionsAreSkipped() {
   QTemporaryDir dir;
   std::atomic<int> calls{0};
   DocumentSession session;
-  DraftSnapshotWriter writer(dir.path(), [&](const PieceTable&, const QString&, const QString&) { return ++calls > 1; });
+  DraftSnapshotWriter writer(dir.path(),
+                             [&](const PieceTable&, const QString&, const QString&) { return ++calls > 1; });
   const auto key = DraftRecovery::createDraftKey();
   QVector<bool> results;
   QObject::connect(&writer, &DraftSnapshotWriter::snapshotFinished, &writer,
@@ -385,7 +394,7 @@ void testPruneLeavesUntitledAndStrayFiles() {
   require(QFile::exists(stray), QStringLiteral("Stray file left untouched by prune"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

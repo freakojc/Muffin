@@ -88,7 +88,7 @@ void muffin::UpdateChecker::maybeAutoCheck() {
 
   const QDateTime lastChecked = settings.value(QStringLiteral("update/lastChecked")).toDateTime();
   if (lastChecked.isValid() && lastChecked.secsTo(QDateTime::currentDateTime()) < 86400) {
-    return;  // Less than 24 hours since last check
+    return; // Less than 24 hours since last check
   }
 
   checkForUpdates(nullptr);

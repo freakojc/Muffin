@@ -52,7 +52,10 @@ void testToggleCodeBlockSplitAtStart() {
   require(md.contains(QLatin1String("Hello")), "text should be preserved after code fence");
   bool foundCodeFence = false;
   for (const auto& child : session.document().root().children()) {
-    if (child->type() == BlockType::CodeFence) { foundCodeFence = true; break; }
+    if (child->type() == BlockType::CodeFence) {
+      foundCodeFence = true;
+      break;
+    }
   }
   require(foundCodeFence, "document should contain a CodeFence block");
 }
@@ -69,8 +72,7 @@ void testToggleCodeBlockSplitAtEnd() {
   setSourceCursor(selection, blockAt(session, 0), 5, 5);
   require(paragraph.toggleCodeBlock(), "split code block at end should succeed");
 
-  require(session.markdownText().toString() == QStringLiteral("Hello\n\n```\n\n```\n\n"),
-          "split at end text mismatch");
+  require(session.markdownText().toString() == QStringLiteral("Hello\n\n```\n\n```\n\n"), "split at end text mismatch");
   require(blockAt(session, 0)->type() == BlockType::Paragraph, "first block should be paragraph");
   require(blockAt(session, 1)->type() == BlockType::CodeFence, "second block should be code fence");
 }

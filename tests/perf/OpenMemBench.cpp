@@ -37,7 +37,7 @@ void countTree(const muffin::MarkdownNode& node, long long& blocks, long long& i
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -54,8 +54,7 @@ int main(int argc, char** argv) {
     // Smoke default so the registered ctest passes with no args (just verifies the harness
     // compiles+runs). Override MUFFIN_BENCH_FILE (or pass argv[1]) for a real measurement.
     path = QStringLiteral("(smoke)");
-    text = QStringLiteral(
-        "# Smoke\n\nA **bold** and _em_ and `code` and [link](http://x) line.\n\n$$E=mc^2$$\n");
+    text = QStringLiteral("# Smoke\n\nA **bold** and _em_ and `code` and [link](http://x) line.\n\n$$E=mc^2$$\n");
   } else {
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly)) {
@@ -66,8 +65,7 @@ int main(int argc, char** argv) {
     text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
     text.replace(QLatin1Char('\r'), QLatin1Char('\n'));
   }
-  std::fprintf(stdout, "file: %s  (%lld chars)\n", path.toUtf8().constData(),
-               static_cast<long long>(text.size()));
+  std::fprintf(stdout, "file: %s  (%lld chars)\n", path.toUtf8().constData(), static_cast<long long>(text.size()));
   std::fflush(stdout);
 
   muffin::DocumentSession session;

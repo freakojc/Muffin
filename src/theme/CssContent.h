@@ -29,9 +29,8 @@ std::vector<ContentToken> parseContentTokens(const QString& content);
 // value; `chain(name)` returns its ancestor-chain values (outermost first) for
 // `counters(name, sep)` (which joins them with the separator). Literal tokens are
 // appended verbatim. `attribute(name)` distinguishes absent from present-empty.
-QString resolveContentTokens(const std::vector<ContentToken>& tokens,
-                             const std::function<int(const QString&)>& value,
+QString resolveContentTokens(const std::vector<ContentToken>& tokens, const std::function<int(const QString&)>& value,
                              const std::function<QVector<int>(const QString&)>& chain,
                              const std::function<std::optional<QString>(const QString&)>& attribute = {});
 
-}  // namespace muffin
+} // namespace muffin

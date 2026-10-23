@@ -39,7 +39,7 @@ MarkdownNode* literalBlock(DocumentSession& session, BlockType type) {
   return firstBlockOfType(session, type);
 }
 
-}  // namespace
+} // namespace
 
 // Code fence + empty paragraph: backspace folds the empty paragraph into the code block. The caret
 // must land inside the block at the end of its content (the user's exact scenario).
@@ -49,11 +49,13 @@ void testCodeFenceBackspaceEmptyParagraphMergesIntoBlock() {
   setCursor(h.selection, blockAt(h.session, 1), 0);
 
   require(h.input.deleteBackward(), "code-fence empty-paragraph backspace should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("```\n1231\n```"), "code-fence empty merge text mismatch");
+  require(h.session.markdownText().toString() == QStringLiteral("```\n1231\n```"),
+          "code-fence empty merge text mismatch");
   MarkdownNode* code = literalBlock(h.session, BlockType::CodeFence);
   require(code != nullptr, "code fence should survive the merge");
   require(code->literal() == QStringLiteral("1231"), "code fence content should be unchanged by empty merge");
-  require(h.selection.cursorPosition().blockId == code->id(), "code-fence empty merge cursor should be inside the block");
+  require(h.selection.cursorPosition().blockId == code->id(),
+          "code-fence empty merge cursor should be inside the block");
   require(h.selection.cursorPosition().text.textOffset == 4, "code-fence empty merge cursor should sit at content end");
 }
 
@@ -65,18 +67,22 @@ void testCodeFenceBackspaceNonEmptyParagraphAppendsToLastLine() {
   setCursor(h.selection, blockAt(h.session, 1), 0);
 
   require(h.input.deleteBackward(), "code-fence paragraph backspace should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("```\n1231hello\n```"), "code-fence append merge text mismatch");
+  require(h.session.markdownText().toString() == QStringLiteral("```\n1231hello\n```"),
+          "code-fence append merge text mismatch");
   MarkdownNode* code = literalBlock(h.session, BlockType::CodeFence);
   require(code != nullptr, "code fence should survive the append merge");
   require(code->literal() == QStringLiteral("1231hello"), "code fence content should include the paragraph text");
-  require(h.selection.cursorPosition().blockId == code->id(), "code-fence append merge cursor should be inside the block");
-  require(h.selection.cursorPosition().text.textOffset == 9, "code-fence append merge cursor should sit after the grafted text");
+  require(h.selection.cursorPosition().blockId == code->id(),
+          "code-fence append merge cursor should be inside the block");
+  require(h.selection.cursorPosition().text.textOffset == 9,
+          "code-fence append merge cursor should sit after the grafted text");
 
   // A following block survives intact: only the paragraph directly after the fence is consumed.
   h.session.setMarkdownText(QStringLiteral("```\n1231\n```\n\nhello\n\nworld"), false);
   setCursor(h.selection, blockAt(h.session, 1), 0);
   require(h.input.deleteBackward(), "code-fence paragraph backspace with trailing block should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("```\n1231hello\n```\n\nworld"), "code-fence merge should preserve the following block");
+  require(h.session.markdownText().toString() == QStringLiteral("```\n1231hello\n```\n\nworld"),
+          "code-fence merge should preserve the following block");
   require(literalBlock(h.session, BlockType::CodeFence)->literal() == QStringLiteral("1231hello"),
           "code fence content should include grafted text with trailing block present");
 }
@@ -89,7 +95,8 @@ void testCodeFenceBackspaceGraftsRawParagraphSource() {
   setCursor(h.selection, blockAt(h.session, 1), 0);
 
   require(h.input.deleteBackward(), "code-fence formatted-paragraph backspace should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("```\n1231**bold**\n```"), "code-fence raw graft text mismatch");
+  require(h.session.markdownText().toString() == QStringLiteral("```\n1231**bold**\n```"),
+          "code-fence raw graft text mismatch");
   require(literalBlock(h.session, BlockType::CodeFence)->literal() == QStringLiteral("1231**bold**"),
           "code fence content should graft raw paragraph source");
 }
@@ -102,7 +109,8 @@ void testMathDollarBackspaceAppendsToLastLine() {
   setCursor(h.selection, blockAt(h.session, 1), 0);
 
   require(h.input.deleteBackward(), "math $$ paragraph backspace should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("$$\na=bhello\n$$"), "math $$ append merge text mismatch");
+  require(h.session.markdownText().toString() == QStringLiteral("$$\na=bhello\n$$"),
+          "math $$ append merge text mismatch");
   MarkdownNode* math = literalBlock(h.session, BlockType::MathBlock);
   require(math != nullptr, "math block should survive the merge");
   require(math->literal() == QStringLiteral("a=bhello"), "math content should include the paragraph text");
@@ -117,7 +125,8 @@ void testMathBracketBackspaceAppendsToLastLine() {
   setCursor(h.selection, blockAt(h.session, 1), 0);
 
   require(h.input.deleteBackward(), "math \\[ paragraph backspace should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("\\[\na=bhello\n\\]"), "math \\[ append merge text mismatch");
+  require(h.session.markdownText().toString() == QStringLiteral("\\[\na=bhello\n\\]"),
+          "math \\[ append merge text mismatch");
   MarkdownNode* math = literalBlock(h.session, BlockType::MathBlock);
   require(math != nullptr, "math bracket block should survive the merge");
   require(math->literal() == QStringLiteral("a=bhello"), "math bracket content should include the paragraph text");
@@ -141,7 +150,8 @@ void testMathBlockFollowedByOneBlankLineFoldsParagraphIntoBlock() {
           "math block + one blank line should fold the paragraph into the block (no spurious empty paragraph)");
   MarkdownNode* math = literalBlock(h.session, BlockType::MathBlock);
   require(math != nullptr, "math block should survive the fold");
-  require(math->literal() == QStringLiteral("a=bhello"), "fold should graft the paragraph text onto the last content line");
+  require(math->literal() == QStringLiteral("a=bhello"),
+          "fold should graft the paragraph text onto the last content line");
   require(h.selection.cursorPosition().blockId == math->id(), "math fold cursor should be inside the block");
   require(h.selection.cursorPosition().text.textOffset == 8, "math fold cursor should sit after the grafted text");
 }
@@ -158,7 +168,8 @@ void testLiteralBackspaceMergeProducesSnapshotUndo() {
   EditTransaction undo = h.undoStack.takeUndo();
   require(undo.isSnapshot(), "code-fence merge should use a snapshot undo command");
   require(undo.before().markdownText == before, "code-fence merge undo before text mismatch");
-  require(undo.after().markdownText == h.session.markdownText().toString(), "code-fence merge undo after text mismatch");
+  require(undo.after().markdownText == h.session.markdownText().toString(),
+          "code-fence merge undo after text mismatch");
 }
 
 // Regression guard: a paragraph whose previous sibling is a normal paragraph still uses the generic
@@ -190,7 +201,8 @@ void testBuilderProducesLiteralMergeCommand() {
   require(command.hasLocalEdit(), "literal-merge command should carry a local edit");
   require(command.sourceStart == 8, "literal-merge source start should sit after the code content");
   require(command.removedLength == 11, "literal-merge removed length should span fence, separator and paragraph");
-  require(command.insertedText == QStringLiteral("hello\n```"), "literal-merge inserted text should graft text then relocate the fence");
+  require(command.insertedText == QStringLiteral("hello\n```"),
+          "literal-merge inserted text should graft text then relocate the fence");
   require(command.fallbackSourceOffset == 13, "literal-merge fallback cursor should sit after the grafted text");
   require(command.structureEdit, "literal-merge should be flagged as a structure edit");
   require(command.label == QStringLiteral("Merge Into Block"), "literal-merge label mismatch");

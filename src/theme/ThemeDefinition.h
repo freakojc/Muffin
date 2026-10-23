@@ -20,7 +20,7 @@
 
 namespace muffin {
 
-class CssThemeSheet;  // forward-decl; full type lives in CssThemeParser.h
+class CssThemeSheet; // forward-decl; full type lives in CssThemeParser.h
 class CssComputedStyle;
 class CssComputedStyleEngine;
 class CssImageResource;
@@ -58,22 +58,22 @@ struct ThemeColors {
   // gives `pre` a different shade than `code` is honoured. Invalid → codeBackground.
   QColor codeBlockBackground;
   // P5 cheap decorations the paint engine can already draw. Invalid → unused.
-  QColor headingAccentColor;    // h2 left accent bar
-  QColor blockquoteBackground;  // blockquote fill
+  QColor headingAccentColor;   // h2 left accent bar
+  QColor blockquoteBackground; // blockquote fill
 
   // --- Chrome / dialog (previously hard-coded per-widget) ---
-  QColor chromeBackground;  // main window + dialog base background
-  QColor chromeText;        // menu bar / dialog primary text
-  QColor chromeMuted;       // active secondary text (toolbar, sidebar, scrollbar)
-  QColor chromeDisabled;    // disabled/ghosted text + controls (clearly faded)
-  QColor surface;           // cards, panels, sidebar, list backgrounds
-  QColor canvas;            // tone behind cards/dialog panels (slightly distinct
-                            //   from surface for depth; equals chromeBackground
-                            //   when a theme doesn't distinguish them)
-  QColor border;            // generic chrome border (menus, cards, splitter)
-  QColor hover;             // hover background (menu items, list rows, buttons)
-  QColor selected;          // selected item background (list rows, checked tabs)
-  QColor accent;            // focus / links / checked-indicator
+  QColor chromeBackground; // main window + dialog base background
+  QColor chromeText;       // menu bar / dialog primary text
+  QColor chromeMuted;      // active secondary text (toolbar, sidebar, scrollbar)
+  QColor chromeDisabled;   // disabled/ghosted text + controls (clearly faded)
+  QColor surface;          // cards, panels, sidebar, list backgrounds
+  QColor canvas;           // tone behind cards/dialog panels (slightly distinct
+                           //   from surface for depth; equals chromeBackground
+                           //   when a theme doesn't distinguish them)
+  QColor border;           // generic chrome border (menus, cards, splitter)
+  QColor hover;            // hover background (menu items, list rows, buttons)
+  QColor selected;         // selected item background (list rows, checked tabs)
+  QColor accent;           // focus / links / checked-indicator
   // Selected-row fill + its PAIRED text for chrome surfaces (combo popups, dialog
   // sidebars, file trees). Derived in normalizeColors: `selected` is authored for
   // the EDITOR's text selection, so it may be translucent (newsprint:
@@ -96,18 +96,18 @@ struct ThemeColors {
 // Compatibility fields for JSON and existing integrations. LegacyThemeAdapter
 // lowers input fields to CSS; the native renderer reads computed element styles.
 struct ThemeTypography {
-  QString bodyFont;       // paragraph + list text
-  QString headingFont;    // h1-h6 (empty → bodyFont / platform stack)
-  QString codeFont;       // inline + fenced code
-  QString mathFont;       // math blocks (empty → platform math stack)
+  QString bodyFont;    // paragraph + list text
+  QString headingFont; // h1-h6 (empty → bodyFont / platform stack)
+  QString codeFont;    // inline + fenced code
+  QString mathFont;    // math blocks (empty → platform math stack)
 
   // Point sizes at the 16px / 100% reference (same scale as RenderTheme's
   // hard-coded sizes). Zero → fall back to the built-in size.
   qreal bodySizePt = 0.0;
-  qreal mathSizePt = 0.0;           // `.MathJax { font-size }`; 0 -> built-in
-  qreal lineHeight = 0.0;           // unitless CSS line-height multiplier
-  qreal headingSizePt[6] = {};      // h1..h6; 0 → fall back
-  qreal headingLineHeight[6] = {};  // h1..h6; 0 → lineHeight/default
+  qreal mathSizePt = 0.0;          // `.MathJax { font-size }`; 0 -> built-in
+  qreal lineHeight = 0.0;          // unitless CSS line-height multiplier
+  qreal headingSizePt[6] = {};     // h1..h6; 0 → fall back
+  qreal headingLineHeight[6] = {}; // h1..h6; 0 → lineHeight/default
 
   // Per-heading text colour. Invalid → fall back to the body text colour.
   QColor headingColor[6];
@@ -130,18 +130,18 @@ struct ThemeTypography {
   // it natively), so layout/estimate/paint/hit-test stay consistent for free;
   // 0 = unchanged. linkUnderlined drives `a` underline from CSS `text-decoration`
   // (phycat sets `text-decoration:none`); default true preserves built-ins.
-  qreal letterSpacing = 0.0;        // body + heading (inherited from #write/body)
-  qreal codeLetterSpacing = 0.0;    // inline + fenced code
-  QColor inlineCodeTextColor;       // `code { color }`; invalid → inherit prose text
-  QColor delColor;                  // `del { color }` (phycat mutes deleted text); invalid → inherit prose
-  bool linkUnderlined = true;       // `a { text-decoration }` — false when `none`
+  qreal letterSpacing = 0.0;     // body + heading (inherited from #write/body)
+  qreal codeLetterSpacing = 0.0; // inline + fenced code
+  QColor inlineCodeTextColor;    // `code { color }`; invalid → inherit prose text
+  QColor delColor;               // `del { color }` (phycat mutes deleted text); invalid → inherit prose
+  bool linkUnderlined = true;    // `a { text-decoration }` — false when `none`
   // CSS `a { text-decoration: <line> <style> <color> }`. Underline style maps to a
   // QTextCharFormat::UnderlineStyle value; -1 ⇒ unset (SingleUnderline). Qt has no
   // separate colour for strike/overline (always the text colour), so these apply
   // to the link underline only. colour invalid → inherits the link text colour.
-  int linkUnderlineStyle = -1;      // QTextCharFormat::UnderlineStyle; -1 ⇒ Single
-  QColor linkUnderlineColor;        // `text-decoration-color` on `a`; invalid → link colour
-  bool linkOverline = false;        // `text-decoration-line: overline` on `a`
+  int linkUnderlineStyle = -1; // QTextCharFormat::UnderlineStyle; -1 ⇒ Single
+  QColor linkUnderlineColor;   // `text-decoration-color` on `a`; invalid → link colour
+  bool linkOverline = false;   // `text-decoration-line: overline` on `a`
   // Phase 3b: inline-code chip geometry from CSS `code` (paint-only box; advance
   // stays = text advance so editing/cursor/hit-test are unaffected). Padding +
   // radius defaults reproduce the legacy hardcoded chip (-3/+6 padding, radius 3).
@@ -161,9 +161,9 @@ struct ThemeTypography {
   qreal inlineCodeShadowSpread = 0.0;
   // Phase 3c: HTML <kbd> keycap box driven by CSS `kbd`. Invalid/zero → fall
   // back to the legacy light/dark keycap heuristic so built-ins are unchanged.
-  QColor kbdBackground;           // `kbd { background-color }`
-  QColor kbdTextColor;            // `kbd { color }`
-  QString kbdFont;                // `kbd { font-family }`
+  QColor kbdBackground; // `kbd { background-color }`
+  QColor kbdTextColor;  // `kbd { color }`
+  QString kbdFont;      // `kbd { font-family }`
   qreal kbdPaddingH = 0.0;
   qreal kbdPaddingV = 0.0;
   qreal kbdBorderRadius = 0.0;
@@ -174,7 +174,7 @@ struct ThemeTypography {
   // → fall back to the uniform border width/colour so the legacy keycap is intact.
   qreal kbdBorderBottomWidth = 0.0;
   QColor kbdBorderBottomColor;
-  QColor kbdShadowColor;          // bottom-edge "raised key" line colour
+  QColor kbdShadowColor; // bottom-edge "raised key" line colour
 };
 
 // The CSS-theme page model: body/html paint the viewport, while #write is a centered
@@ -237,7 +237,7 @@ struct ThemeBlockSpacing {
 // optional on every decoration that holds one.
 struct GradientStop {
   bool operator==(const GradientStop&) const = default;
-  CssLengthPercentage position;  // Missing = distribute at used-value time
+  CssLengthPercentage position; // Missing = distribute at used-value time
   QColor color;
 };
 struct GradientSpec {
@@ -245,15 +245,15 @@ struct GradientSpec {
   enum class Kind { None, Linear, Radial, Conic };
   Kind kind = Kind::None;
   std::vector<GradientStop> stops;
-  qreal angleDeg = 180.0;                       // linear: CSS angle (0=to top, 90=to right)
-  QPointF radialCenter = QPointF(0.5, 0.5);     // radial: center as fractions of target rect
+  qreal angleDeg = 180.0;                   // linear: CSS angle (0=to top, 90=to right)
+  QPointF radialCenter = QPointF(0.5, 0.5); // radial: center as fractions of target rect
   enum class RadialShape { Ellipse, Circle };
   enum class RadialExtent { FarthestCorner, ClosestCorner, FarthestSide, ClosestSide, Explicit };
   RadialShape radialShape = RadialShape::Ellipse;
   RadialExtent radialExtent = RadialExtent::FarthestCorner;
   CssLengthPercentage radialRadiusX, radialRadiusY;
-  QPointF conicCenter = QPointF(0.5, 0.5);      // conic: center as fractions of target rect
-  qreal conicStartDeg = 0.0;                    // conic: CSS `from <angle>` (0=12 o'clock, clockwise)
+  QPointF conicCenter = QPointF(0.5, 0.5); // conic: center as fractions of target rect
+  qreal conicStartDeg = 0.0;               // conic: CSS `from <angle>` (0=12 o'clock, clockwise)
 };
 
 // A parsed piece of a CSS `content` value: literal, counter, or string attribute.
@@ -263,33 +263,33 @@ struct GradientSpec {
 struct ContentToken {
   enum class Kind { Literal, Counter, Counters, Attribute };
   Kind kind = Kind::Literal;
-  QString text;    // Literal: text; Counter/Counters: counter name; Attribute: attribute name
-  QString style;   // Counter/Counters: list-style-type (empty ⇒ decimal)
-  QString sep;     // Counters: the separator string
-  QString fallback;  // Attribute: string fallback when the originating attribute is absent
+  QString text;     // Literal: text; Counter/Counters: counter name; Attribute: attribute name
+  QString style;    // Counter/Counters: list-style-type (empty ⇒ decimal)
+  QString sep;      // Counters: the separator string
+  QString fallback; // Attribute: string fallback when the originating attribute is absent
 };
 
 struct PseudoElementRule {
   // Immutable result of the common cascade. Resolve box-relative lengths and
   // image geometry against the host at used-value time, without another cascade.
   std::shared_ptr<const CssComputedStyle> computed;
-  QString host;           // "h2","blockquote","a","#write","li","pre",…
-  QString pseudo;         // "before" | "after"
-  QString content;        // decoded text; live origins resolve attr() before layout
+  QString host;    // "h2","blockquote","a","#write","li","pre",…
+  QString pseudo;  // "before" | "after"
+  QString content; // decoded text; live origins resolve attr() before layout
   // `content` split into tokens so heading ::before content like `counter(h1) ". "`
   // can be resolved against the live counter state at layout time (mirrors
   // ThemeDecorations::listMarkerContent). Empty for content with no counter() —
   // the painter then draws `content` verbatim (the legacy literal fast path).
   std::vector<ContentToken> contentTokens;
-  QByteArray svgData;     // decoded url(data:image/svg+xml,…)
-  bool svgFromMask = false;  // svgData came from `mask:` → render as alpha mask tinted with `color`/`backgroundColor`
+  QByteArray svgData;       // decoded url(data:image/svg+xml,…)
+  bool svgFromMask = false; // svgData came from `mask:` → render as alpha mask tinted with `color`/`backgroundColor`
   GradientSpec background;
   QColor backgroundColor;
-  QColor color;           // currentColor for text/icon
-  QColor maskTint;        // texture ::before background-color
-  GradientSpec maskPattern;          // mask-image (radial-gradient dots, …)
-  QSizeF maskTile = QSizeF(20, 20);  // mask-size
-  QSizeF size;            // width/height (invalid/0 ⇒ content/auto)
+  QColor color;                     // currentColor for text/icon
+  QColor maskTint;                  // texture ::before background-color
+  GradientSpec maskPattern;         // mask-image (radial-gradient dots, …)
+  QSizeF maskTile = QSizeF(20, 20); // mask-size
+  QSizeF size;                      // width/height (invalid/0 ⇒ content/auto)
   // The var-resolved raw width/height declarations, carried so the painter can
   // resolve a `%` against the HOST box (e.g. heading height) instead of the
   // em-relative value `size` bakes at map-time. phycat's `h3::before { height:
@@ -307,7 +307,7 @@ struct PseudoElementRule {
   // widens toward this on focus, animated by the FocusAnimator phase. Applied after
   // the hover widening so the two compose. Empty ⇒ no focus widening.
   QString focusWidthRaw;
-  QMarginsF insets;       // top/left/bottom/right offsets (absolute pseudo left/top)
+  QMarginsF insets; // top/left/bottom/right offsets (absolute pseudo left/top)
   QColor borderBottomColor;
   qreal borderBottomWidth = 0.0;
   // Phase 2b: heading pseudo geometry. `absolute` (position:absolute) anchors the
@@ -325,7 +325,7 @@ struct PseudoElementRule {
   // font-size:20px). 0 ⇒ inherit the host's font/top behaviour. `left` already
   // lives in insets.left(); `top` has its own slot so the painter can tell an
   // explicit top from "unset" (QMarginsF defaults every side to 0).
-  qreal insetsTop = -1.0;  // < 0 ⇒ unset (fall back to text-baseline anchoring)
+  qreal insetsTop = -1.0; // < 0 ⇒ unset (fall back to text-baseline anchoring)
   qreal fontSizePx = 0.0;
   qreal opacity = 1.0;
   bool present = false;
@@ -335,9 +335,9 @@ struct PseudoElementRule {
 // element like `h2 { background-image: radial-gradient(...) }` paints behind its
 // content. phycat's h2 "fusion glass" glow and hr gradient live here.
 struct ElementBackground {
-  QString host;  // "h2","blockquote","hr",…
+  QString host; // "h2","blockquote","hr",…
   GradientSpec gradient;
-  QColor color;       // solid background-color (paint under the gradient)
+  QColor color; // solid background-color (paint under the gradient)
   qreal opacity = 1.0;
   // Phase 2c: a fit-content heading pill (phycat h2) rounds its corners and may
   // carry a top hairline. Both paint on the same box as the gradient fill.
@@ -385,20 +385,20 @@ struct AnimationDef {
   QString name;
   qreal durationMs = 0.0;
   qreal delayMs = 0.0;
-  int iterations = 1;   // -1 = infinite
+  int iterations = 1; // -1 = infinite
   enum class Direction { Normal, Reverse, Alternate, AlternateReverse };
   Direction direction = Direction::Normal;
-  QString easing;  // "linear"/"ease"/"ease-in-out"/cubic-bezier(...) — sampler parses
+  QString easing; // "linear"/"ease"/"ease-in-out"/cubic-bezier(...) — sampler parses
 };
 
 // Pseudo-element decorations + hover effects + transitions (+ future @keyframes).
 struct ThemeDecorations {
   std::vector<PseudoElementRule> pseudos;     // ::before/::after, host-keyed
-  std::vector<ElementBackground> backgrounds;  // element own background, host-keyed
-  std::vector<HoverEffect> hoverEffects;       // :hover glow/tint, host-keyed
-  std::vector<TransitionSpec> transitions;     // transition duration, host-keyed
-  std::vector<KeyframesDef> keyframes;         // @keyframes defs, name-keyed
-  std::vector<AnimationDef> animations;        // host → animation binding
+  std::vector<ElementBackground> backgrounds; // element own background, host-keyed
+  std::vector<HoverEffect> hoverEffects;      // :hover glow/tint, host-keyed
+  std::vector<TransitionSpec> transitions;    // transition duration, host-keyed
+  std::vector<KeyframesDef> keyframes;        // @keyframes defs, name-keyed
+  std::vector<AnimationDef> animations;       // host → animation binding
   // `li::marker { content: … counter(list-item) … }` parsed into tokens. Non-empty
   // ⇒ the marker text is content-driven (counter resolved per item at layout time),
   // overriding list-style-type.
@@ -411,8 +411,8 @@ struct ThemeDecorations {
   // Keyed by host and pseudo ("h1", "h1::before", "h1::after", ...),
   // plus "#write" for the document-root reset.
   struct CounterOps {
-    QVector<QPair<QString, int>> resets;      // name → reset value (default 0)
-    QVector<QPair<QString, int>> increments;  // name → increment step (default 1)
+    QVector<QPair<QString, int>> resets;     // name → reset value (default 0)
+    QVector<QPair<QString, int>> increments; // name → increment step (default 1)
   };
   QHash<QString, CounterOps> hostCounterOps;
   // True iff some heading ::before/::after rule has a counter()/counters() token. Gates the
@@ -451,13 +451,13 @@ struct ThemeElementBoxStyle {
 struct ThemeBackgroundLayer {
   bool operator==(const ThemeBackgroundLayer&) const = default;
   GradientSpec image;
-  QImage bitmap;  // compatibility view of decoded raster sources
-  std::shared_ptr<const CssImageResource> resource;  // raster or resolution-independent SVG
+  QImage bitmap;                                    // compatibility view of decoded raster sources
+  std::shared_ptr<const CssImageResource> resource; // raster or resolution-independent SVG
   // Percent positions are relative to the remaining space after sizing the
   // image, rather than to the box itself (CSS Backgrounds used values).
   CssLengthPercentage positionX{CssLengthStatus::Valid, 0, 0, true};
   CssLengthPercentage positionY{CssLengthStatus::Valid, 0, 0, true};
-  CssLengthPercentage sizeX, sizeY;  // missing = auto
+  CssLengthPercentage sizeX, sizeY; // missing = auto
   enum class SizeMode { Explicit, Cover, Contain };
   SizeMode sizeMode = SizeMode::Explicit;
   enum class Repeat { Repeat, NoRepeat, Space, Round };
@@ -481,8 +481,8 @@ struct ThemeElementPaintStyle {
   std::vector<ThemeMaskLayer> maskLayers;
   QColor color;
   QColor backgroundColor;
-  std::vector<ThemeBackgroundLayer> backgroundLayers;  // CSS order: front to back; none retains its slot
-  QString backgroundColorClip = QStringLiteral("border-box");  // clip of the bottom image layer
+  std::vector<ThemeBackgroundLayer> backgroundLayers;         // CSS order: front to back; none retains its slot
+  QString backgroundColorClip = QStringLiteral("border-box"); // clip of the bottom image layer
   QColor boxShadowColor;
   qreal boxShadowOffsetX = 0;
   qreal boxShadowOffsetY = 0;
@@ -501,10 +501,10 @@ struct ThemeElementPaintStyle {
   // CSS `filter:` applied to the element's own background box (subtree content is
   // not filtered). Defaults leave the image unchanged; present ⇒ any filter set.
   qreal filterBlur = 0.0;
-  qreal filterBrightness = 1.0;   // 1 = unchanged
+  qreal filterBrightness = 1.0; // 1 = unchanged
   qreal filterContrast = 1.0;
-  qreal filterGrayscale = 0.0;    // 0..1
-  qreal filterSepia = 0.0;        // 0..1
+  qreal filterGrayscale = 0.0; // 0..1
+  qreal filterSepia = 0.0;     // 0..1
   qreal filterHueRotateDeg = 0.0;
   qreal filterOpacity = 1.0;
   bool filterPresent = false;
@@ -541,7 +541,7 @@ struct ThemeElementTextStyle {
   qreal lineHeight = 0.0;
   qreal wordSpacing = 0.0;
   qreal letterSpacing = 0.0;
-  int decorationLines = 0;  // underline=1, overline=2, line-through=4
+  int decorationLines = 0; // underline=1, overline=2, line-through=4
   int underlineStyle = -1;
   QColor decorationColor;
   int fontWeight = 0;
@@ -553,14 +553,14 @@ struct ThemeElementTextStyle {
   // the TextTransform enum in InlineProjection.h). int (not the enum) keeps this
   // header free of a projection include.
   int textTransform = 0;
-  TextShadow textShadow;  // CSS `text-shadow` on the element; present=false ⇒ none
+  TextShadow textShadow; // CSS `text-shadow` on the element; present=false ⇒ none
   qreal strokeWidth = 0;
   QColor strokeColor;
 };
 
 struct ThemeElementStyle {
-  quint64 fingerprint = 0;  // computed declarations, inheritance and environment
-  QString key;  // e.g. "h2", "blockquote p", "li::marker"
+  quint64 fingerprint = 0; // computed declarations, inheritance and environment
+  QString key;             // e.g. "h2", "blockquote p", "li::marker"
   ThemeElementBoxStyle box;
   ThemeElementPaintStyle paint;
   ThemeElementTextStyle text;
@@ -573,8 +573,8 @@ struct ThemeElementStyle {
 // custom themes are loaded from JSON files (see fromJson) and merged into the
 // same registry, so the rest of the app never has to special-case them.
 struct ThemeDefinition {
-  QString id;         // machine name, e.g. "newsprint" (also the JSON file stem)
-  QString label;      // display name, e.g. "Newsprint"
+  QString id;    // machine name, e.g. "newsprint" (also the JSON file stem)
+  QString label; // display name, e.g. "Newsprint"
   ThemeColors colors;
   ThemeTypography typography;
   ThemePage page;
@@ -588,8 +588,8 @@ struct ThemeDefinition {
   // :only-of-type). When false (every bundled theme), the structural builder skips the per-sibling
   // typeCounts QString-hash maintenance — the dominant cost of the per-splice sibling re-link.
   bool hasNthOfType = false;
-  qreal bodyFontPx = 16.0;                         // body font size in CSS px for projections
-  std::shared_ptr<CssThemeSheet> sourceSheet;      // Immutable CSS, including responsive conditions.
+  qreal bodyFontPx = 16.0;                    // body font size in CSS px for projections
+  std::shared_ptr<CssThemeSheet> sourceSheet; // Immutable CSS, including responsive conditions.
   // Mapping already compiled these exact source rules. Reuse its immutable
   // template, with fresh per-document caches; reject it after source mutation.
   std::shared_ptr<const CssComputedStyleEngine> preparedEngine;
@@ -625,7 +625,7 @@ struct ThemeDefinition {
   // Code") or `"LXGW WenKai"` (internal 霞鹜文楷) resolves to the bundled font.
   static QString fontFamilyAlias(const QString& declaredName);
   // GUI thread only; register the evaluated sheet's active local/embedded faces.
-  static QHash<QString,QString> registerFonts(const CssThemeSheet& sheet);
+  static QHash<QString, QString> registerFonts(const CssThemeSheet& sheet);
 
   // The built-in themes, in display order. Each carries a chrome palette that
   // matches its document palette (so e.g. the warm "newsprint" theme warms the
@@ -635,4 +635,4 @@ struct ThemeDefinition {
   static std::optional<ThemeDefinition> builtIn(const QString& id);
 };
 
-}  // namespace muffin
+} // namespace muffin

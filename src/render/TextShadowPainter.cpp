@@ -55,8 +55,9 @@ QVector<QRect> islands(const QRegion& region, int halo) {
 // disjoint paint-only overrides, resolve formats before drawing instead. No
 // font/shaping property changes, and the original line geometry is retained.
 std::unique_ptr<TextLayout> shadowTextWithFormats(const TextLayout& source,
-                                                 const QList<TextLayout::FormatRange>& overrides) {
-  if (overrides.isEmpty()) return {};
+                                                  const QList<TextLayout::FormatRange>& overrides) {
+  if (overrides.isEmpty())
+    return {};
   for (int i = 0; i < overrides.size(); ++i) {
     const auto& range = overrides[i];
     for (const auto property : range.format.properties().keys())
@@ -66,8 +67,7 @@ std::unique_ptr<TextLayout> shadowTextWithFormats(const TextLayout& source,
           property != QTextFormat::TextOutline)
         return {};
     for (int j = 0; j < i; ++j)
-      if (range.start < overrides[j].start + overrides[j].length &&
-          overrides[j].start < range.start + range.length)
+      if (range.start < overrides[j].start + overrides[j].length && overrides[j].start < range.start + range.length)
         return {};
   }
   auto text = std::make_unique<TextLayout>(source.text(), source.font(), source.backend());
@@ -93,7 +93,7 @@ std::unique_ptr<TextLayout> shadowTextWithFormats(const TextLayout& source,
   text->endLayout();
   return text;
 }
-}  // namespace
+} // namespace
 
 struct TextShadowPainter::Owner {
   std::weak_ptr<Store> cache = store;
@@ -104,7 +104,8 @@ struct TextShadowPainter::Owner {
   ~Owner() {
     if (const auto current = cache.lock())
       for (const auto& key : current->images.keys())
-        if (key.owner == id) current->images.remove(key);
+        if (key.owner == id)
+          current->images.remove(key);
   }
 };
 
@@ -114,13 +115,16 @@ TextShadowRasterStats textShadowRasterStats() {
   result.cacheEntries = store->images.size();
   return result;
 }
-void resetTextShadowRasterStats() { stats = {}; }
+void resetTextShadowRasterStats() {
+  stats = {};
+}
 
 void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF origin, const TextShadow& shadow,
                               qreal zoom, const QVector<QRectF>& rects,
                               const QList<TextLayout::FormatRange>& formats) const {
   diag::ScopedPerfProbe perf("paint.textShadow", shadowPerf());
-  if (!shadow.present || !shadow.color.isValid() || shadow.color.alpha() == 0 || !text.lineCount()) return;
+  if (!shadow.present || !shadow.color.isValid() || shadow.color.alpha() == 0 || !text.lineCount())
+    return;
   const qreal dpr = painter.device()->devicePixelRatioF();
   const qreal blur = qMax<qreal>(0, shadow.blur * zoom * dpr);
   const int radius = blur > 0 ? qMax(1, qRound(blur)) : 0;
@@ -147,7 +151,7 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
   if (!rects.isEmpty()) {
     for (auto rect : rects) {
       rect.adjust(-1, 0, 1,
-                  0);  // Retain the existing inline glyph/decoration clip.
+                  0); // Retain the existing inline glyph/decoration clip.
       sourceClip.addRect(rect);
       source += physical(rect);
     }
@@ -167,15 +171,18 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
       source += physical(text.lineAt(i).naturalTextRect().adjusted(-overhang, -overhang, overhang, overhang));
   }
   auto visible = cssPaintDeviceBounds(painter);
-  if (painter.hasClipping()) visible = visible.intersected(painter.clipBoundingRect());
+  if (painter.hasClipping())
+    visible = visible.intersected(painter.clipBoundingRect());
   const auto demand = physical(visible.translated(-origin - offset));
   QByteArray inputs;
   {
     QDataStream stream(&inputs, QIODevice::WriteOnly);
     stream << dpr << radius << shadow.color << rects << quint64(formats.size());
-    for (const auto& format : formats) stream << format.start << format.length << format.format;
+    for (const auto& format : formats)
+      stream << format.start << format.length << format.format;
   }
-  if (!owner_) owner_ = std::make_shared<Owner>();
+  if (!owner_)
+    owner_ = std::make_shared<Owner>();
   std::unique_ptr<TextLayout> formattedText;
   bool preparedFormats = false;
   for (auto area : islands(source, halo)) {
@@ -210,7 +217,8 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
       {
         diag::ScopedPerfProbe maskPerf("paint.shadowMask", shadowPerf());
         mask = QImage(area.size(), QImage::Format_ARGB32_Premultiplied);
-        if (mask.isNull()) continue;
+        if (mask.isNull())
+          continue;
         mask.setDevicePixelRatio(dpr);
         mask.fill(Qt::transparent);
         QPainter target(&mask);
@@ -232,7 +240,8 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
         // temporarily scales the painter by 1/64. A separate coverage image
         // keeps clipping independent of that glyph/outline paint transform.
         raster = QImage(area.size(), QImage::Format_ARGB32_Premultiplied);
-        if (raster.isNull()) continue;
+        if (raster.isNull())
+          continue;
         raster.fill(Qt::transparent);
         {
           QPainter coverage(&raster);
@@ -256,7 +265,8 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
       {
         diag::ScopedPerfProbe tintPerf("paint.shadowTint", shadowPerf());
         raster = QImage(area.size(), QImage::Format_ARGB32_Premultiplied);
-        if (raster.isNull()) continue;
+        if (raster.isNull())
+          continue;
         raster.setDevicePixelRatio(dpr);
         raster.fill(Qt::transparent);
         QPainter target(&raster);
@@ -271,7 +281,8 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
         boxBlur(raster, radius, blurPasses);
       }
       if (raster.sizeInBytes() <= cacheBudget && inputs.size() <= 65536) {
-        if (store->images.size() >= maxEntries) store->images.remove(store->images.keys().front());
+        if (store->images.size() >= maxEntries)
+          store->images.remove(store->images.keys().front());
         store->images.insert(key, new QImage(raster), int(raster.sizeInBytes()));
       }
     }
@@ -279,4 +290,4 @@ void TextShadowPainter::paint(QPainter& painter, const TextLayout& text, QPointF
     painter.drawImage(anchor + QPointF(area.topLeft()) / dpr, raster);
   }
 }
-}  // namespace muffin
+} // namespace muffin

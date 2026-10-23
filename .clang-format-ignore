@@ -1,0 +1,9 @@
+# Upstream sources, fixtures, generated files, and local build/scratch trees.
+third_party/**
+tests/vendor/**
+tests/fixtures/**
+build/**
+cmake-build-*/**
+node_modules/**
+work/**
+src/mermaid/MermaidConfigKeys.inc

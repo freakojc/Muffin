@@ -63,8 +63,7 @@ struct GanttParseError : std::runtime_error {
   int column = 1;
   GanttErrorKind kind = GanttErrorKind::Parser;
 
-  GanttParseError(const QString& message, int line = 0, int column = 1,
-                  GanttErrorKind kind = GanttErrorKind::Parser);
+  GanttParseError(const QString& message, int line = 0, int column = 1, GanttErrorKind kind = GanttErrorKind::Parser);
 };
 
 class GanttDiagram {
@@ -72,4 +71,4 @@ public:
   static GanttData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::gantt
+} // namespace muffin::mermaid::gantt

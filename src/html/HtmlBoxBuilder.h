@@ -9,13 +9,13 @@ namespace muffin::html {
 class HtmlDocument;
 
 class HtmlBoxBuilder {
- public:
+public:
   HtmlBoxBuilder();
   ~HtmlBoxBuilder();
 
   std::unique_ptr<HtmlBox> build(const HtmlDocument& document);
 
- private:
+private:
   HtmlTag mapTag(void* node) const;
   void buildChildren(HtmlBox& parent, void* parentNode);
   std::unique_ptr<HtmlBox> buildNode(void* node);
@@ -26,4 +26,4 @@ class HtmlBoxBuilder {
   static QString toRoman(int n);
 };
 
-}  // namespace muffin::html
+} // namespace muffin::html

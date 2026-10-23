@@ -24,51 +24,53 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 int orderIndex(const QJsonArray& order, const QString& value) {
   for (qsizetype index = 0; index < order.size(); ++index)
-    if (order.at(index).toString() == value) return static_cast<int>(index);
+    if (order.at(index).toString() == value)
+      return static_cast<int>(index);
   return -1;
 }
 
 int nativeMathCount(const classdiagram::ClassScene& scene) {
   int count = 0;
-  const auto add = [&](const classdiagram::ClassSceneLabel& label) {
-    count += label.document.math.size();
-  };
+  const auto add = [&](const classdiagram::ClassSceneLabel& label) { count += label.document.math.size(); };
   for (const auto& node : scene.nodes) {
-    for (const auto& label : node.annotationLabels) add(label);
-    for (const auto& label : node.nameLabels) add(label);
-    for (const auto& label : node.memberLabels) add(label);
-    for (const auto& label : node.methodLabels) add(label);
+    for (const auto& label : node.annotationLabels)
+      add(label);
+    for (const auto& label : node.nameLabels)
+      add(label);
+    for (const auto& label : node.memberLabels)
+      add(label);
+    for (const auto& label : node.methodLabels)
+      add(label);
   }
   for (const auto& edge : scene.edges) {
-    if (edge.label.isEmpty()) continue;
-    count += flowchart::parseFlowLabel(
-        edge.label, QStringLiteral("markdown"), true).math.size();
+    if (edge.label.isEmpty())
+      continue;
+    count += flowchart::parseFlowLabel(edge.label, QStringLiteral("markdown"), true).math.size();
   }
   for (const auto& cluster : scene.clusters) {
-    if (cluster.label.isEmpty()) continue;
-    count += flowchart::parseFlowLabel(
-        cluster.label, QStringLiteral("markdown"), true).math.size();
+    if (cluster.label.isEmpty())
+      continue;
+    count += flowchart::parseFlowLabel(cluster.label, QStringLiteral("markdown"), true).math.size();
   }
   return count;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QGuiApplication app(argc, argv);
   require(argc == 2, QStringLiteral("Expected class SVG structural manifest"));
   QFile file(QString::fromLocal8Bit(argv[1]));
-  require(file.open(QIODevice::ReadOnly),
-          QStringLiteral("Could not open class SVG structural manifest"));
+  require(file.open(QIODevice::ReadOnly), QStringLiteral("Could not open class SVG structural manifest"));
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
-  require(root.value(QStringLiteral("mermaidVersion")).toString() ==
-              QLatin1String("11.16.0") &&
+  require(root.value(QStringLiteral("mermaidVersion")).toString() == QLatin1String("11.16.0") &&
               root.value(QStringLiteral("fixtureSha256")).toString() ==
-              QLatin1String("b5a2e8750ee0c7fdb296b52e534e35055e4071057c2296fbe69be93f3fef0c2b"),
+                  QLatin1String("b5a2e8750ee0c7fdb296b52e534e35055e4071057c2296fbe69be93f3fef0c2b"),
           QStringLiteral("Class SVG structural fixture drifted"));
 
   editor::MermaidRenderCache cache;
@@ -81,40 +83,33 @@ int main(int argc, char** argv) {
   int tspanEntries = 0;
   int markerEntries = 0;
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
-  require(cases.size() == 20,
-          QStringLiteral("Class SVG structural matrix must retain 20 cases"));
+  require(cases.size() == 20, QStringLiteral("Class SVG structural matrix must retain 20 cases"));
   for (const QJsonValue& value : cases) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
-    require(!id.isEmpty() && !ids.contains(id),
-            QStringLiteral("Duplicate class structural case: %1").arg(id));
+    require(!id.isEmpty() && !ids.contains(id), QStringLiteral("Duplicate class structural case: %1").arg(id));
     ids.insert(id);
     const QString source = fixture.value(QStringLiteral("source")).toString();
     const auto entry = cache.getSync(cache.makeKey(source), source);
     const auto* classScene = dynamic_cast<const classdiagram::ClassScene*>(entry.scene.get());
     require(entry.status == editor::MermaidRenderStatus::Ready && classScene != nullptr,
-            QStringLiteral("%1 native class scene failed: %2")
-                .arg(id, entry.errorMessage));
+            QStringLiteral("%1 native class scene failed: %2").arg(id, entry.errorMessage));
     const auto& scene = *classScene;
     const QJsonObject structure = fixture.value(QStringLiteral("svgStructure")).toObject();
     const QJsonObject rootAttributes = structure.value(QStringLiteral("root")).toObject();
-    require(rootAttributes.value(QStringLiteral("xmlns")).toString() ==
-                QLatin1String("http://www.w3.org/2000/svg") &&
-                rootAttributes.value(QStringLiteral("class")).toString() ==
-                QLatin1String("classDiagram") &&
+    require(rootAttributes.value(QStringLiteral("xmlns")).toString() == QLatin1String("http://www.w3.org/2000/svg") &&
+                rootAttributes.value(QStringLiteral("class")).toString() == QLatin1String("classDiagram") &&
                 rootAttributes.value(QStringLiteral("role")).toString() ==
-                QLatin1String("graphics-document document") &&
-                rootAttributes.value(QStringLiteral("aria-roledescription")).toString() ==
-                QLatin1String("class"),
+                    QLatin1String("graphics-document document") &&
+                rootAttributes.value(QStringLiteral("aria-roledescription")).toString() == QLatin1String("class"),
             QStringLiteral("%1 root SVG role/class drifted").arg(id));
-    const QStringList viewBox = rootAttributes.value(QStringLiteral("viewBox"))
-                                    .toString().split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    const QStringList viewBox =
+        rootAttributes.value(QStringLiteral("viewBox")).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts);
     const QJsonObject expectedViewBox = fixture.value(QStringLiteral("viewBox")).toObject();
     require(viewBox.size() == 4 &&
-                std::abs(viewBox.at(2).toDouble() -
-                         expectedViewBox.value(QStringLiteral("width")).toDouble()) < 0.001 &&
-                std::abs(viewBox.at(3).toDouble() -
-                         expectedViewBox.value(QStringLiteral("height")).toDouble()) < 0.001,
+                std::abs(viewBox.at(2).toDouble() - expectedViewBox.value(QStringLiteral("width")).toDouble()) <
+                    0.001 &&
+                std::abs(viewBox.at(3).toDouble() - expectedViewBox.value(QStringLiteral("height")).toDouble()) < 0.001,
             QStringLiteral("%1 root viewBox drifted").arg(id));
 
     const QJsonObject counts = structure.value(QStringLiteral("counts")).toObject();
@@ -124,16 +119,13 @@ int main(int argc, char** argv) {
                 counts.value(QStringLiteral("defs")).toInt() >= 1,
             QStringLiteral("%1 browser/native structural counts differ").arg(id));
     const QJsonArray browserEdges =
-        fixture.value(QStringLiteral("structure")).toObject()
-            .value(QStringLiteral("edgePaths")).toArray();
+        fixture.value(QStringLiteral("structure")).toObject().value(QStringLiteral("edgePaths")).toArray();
     require(browserEdges.size() == scene.edges.size(),
             QStringLiteral("%1 browser/native edge-style count differs").arg(id));
     for (qsizetype index = 0; index < scene.edges.size(); ++index) {
       const auto& nativeEdge = scene.edges.at(index);
-      const QJsonObject browserStyle = browserEdges.at(index).toObject()
-          .value(QStringLiteral("style")).toObject();
-      const QString browserDash =
-          browserStyle.value(QStringLiteral("strokeDasharray")).toString();
+      const QJsonObject browserStyle = browserEdges.at(index).toObject().value(QStringLiteral("style")).toObject();
+      const QString browserDash = browserStyle.value(QStringLiteral("strokeDasharray")).toString();
       QString expectedDash = nativeEdge.strokeDasharray;
       if (expectedDash.isEmpty()) {
         if (nativeEdge.pattern == QLatin1String("dashed"))
@@ -144,22 +136,21 @@ int main(int argc, char** argv) {
           expectedDash = QStringLiteral("0px");
       }
       require(browserDash == expectedDash &&
-                  browserStyle.value(QStringLiteral("strokeLinecap")).toString() ==
-                      QLatin1String("butt"),
+                  browserStyle.value(QStringLiteral("strokeLinecap")).toString() == QLatin1String("butt"),
               QStringLiteral("%1/edge/%2 browser dash contract drifted: %3 vs %4")
-                  .arg(id).arg(index).arg(browserDash, expectedDash));
+                  .arg(id)
+                  .arg(index)
+                  .arg(browserDash, expectedDash));
     }
     const QJsonArray labels = structure.value(QStringLiteral("labelContainers")).toArray();
     int htmlLabels = 0;
     int svgLabels = 0;
     for (const QJsonValue& labelValue : labels) {
       const QJsonObject label = labelValue.toObject();
-      const bool htmlBacked =
-          label.value(QStringLiteral("foreignObjectCount")).toInt() == 1;
+      const bool htmlBacked = label.value(QStringLiteral("foreignObjectCount")).toInt() == 1;
       const bool svgBacked = label.value(QStringLiteral("textCount")).toInt() >= 1 &&
                              label.value(QStringLiteral("tspanCount")).toInt() >= 1;
-      require(label.value(QStringLiteral("tag")).toString() == QLatin1String("g") &&
-                  htmlBacked != svgBacked &&
+      require(label.value(QStringLiteral("tag")).toString() == QLatin1String("g") && htmlBacked != svgBacked &&
                   !label.value(QStringLiteral("class")).toString().isEmpty(),
               QStringLiteral("%1 label container structure drifted").arg(id));
       htmlLabels += htmlBacked;
@@ -183,8 +174,7 @@ int main(int argc, char** argv) {
       const QJsonObject attributes = marker.value(QStringLiteral("attributes")).toObject();
       const QString markerId = attributes.value(QStringLiteral("id")).toString();
       const qsizetype separator = markerId.lastIndexOf(QLatin1String("_class-"));
-      require(separator >= 0 &&
-                  !attributes.value(QStringLiteral("refX")).toString().isEmpty() &&
+      require(separator >= 0 && !attributes.value(QStringLiteral("refX")).toString().isEmpty() &&
                   !attributes.value(QStringLiteral("refY")).toString().isEmpty() &&
                   !attributes.value(QStringLiteral("markerWidth")).toString().isEmpty() &&
                   !attributes.value(QStringLiteral("markerHeight")).toString().isEmpty() &&
@@ -193,9 +183,7 @@ int main(int argc, char** argv) {
               QStringLiteral("%1 marker attributes are incomplete").arg(id));
       const QString suffix = markerId.mid(separator + 7);
       require(std::any_of(scene.markers.cbegin(), scene.markers.cend(),
-                          [&](const auto& candidate) {
-                            return candidate.suffix == suffix;
-                          }),
+                          [&](const auto& candidate) { return candidate.suffix == suffix; }),
               QStringLiteral("%1 native marker %2 is missing").arg(id, suffix));
     }
     markerEntries += markers.size();
@@ -216,19 +204,17 @@ int main(int argc, char** argv) {
       ++ariaCases;
       require(!data.accTitle.isEmpty() && !data.accDescription.isEmpty() &&
                   structure.value(QStringLiteral("ariaTitle")).toString() == data.accTitle &&
-                  structure.value(QStringLiteral("ariaDescription")).toString() ==
-                      data.accDescription,
+                  structure.value(QStringLiteral("ariaDescription")).toString() == data.accDescription,
               QStringLiteral("%1 accessibility title/description drifted").arg(id));
     } else {
       require(data.accTitle.isEmpty() && data.accDescription.isEmpty(),
               QStringLiteral("%1 lost accessibility references").arg(id));
     }
   }
-  require(ariaCases == 1 && mathCases == 2 && labelContainers == 74 &&
-              svgTextContainers == 6 && tspanEntries == 19 &&
+  require(ariaCases == 1 && mathCases == 2 && labelContainers == 74 && svgTextContainers == 6 && tspanEntries == 19 &&
               markerEntries == 380 && orderedEntries >= 1073,
           QStringLiteral("Class SVG structural coverage matrix regressed"));
-  qDebug() << "MermaidClassSvgStructuralTest:" << cases.size()
-           << "cases," << orderedEntries << "ordered DOM entries passed";
+  qDebug() << "MermaidClassSvgStructuralTest:" << cases.size() << "cases," << orderedEntries
+           << "ordered DOM entries passed";
   return 0;
 }

@@ -18,10 +18,20 @@ qsizetype markdownLabelEnd(QStringView source) {
   bool escaped = false;
   for (qsizetype i = 2; i < source.size(); ++i) {
     const QChar c = source.at(i);
-    if (escaped) { escaped = false; continue; }
-    if (c == QLatin1Char('\\')) { escaped = true; continue; }
-    if (c == QLatin1Char('[')) { ++depth; }
-    if (c == QLatin1Char(']') && --depth == 0) { return i; }
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (c == QLatin1Char('\\')) {
+      escaped = true;
+      continue;
+    }
+    if (c == QLatin1Char('[')) {
+      ++depth;
+    }
+    if (c == QLatin1Char(']') && --depth == 0) {
+      return i;
+    }
   }
   return -1;
 }
@@ -45,7 +55,7 @@ QString decodedAttribute(const QString& value) {
   const QByteArray bytes = value.toUtf8();
   cmark_strbuf decoded = CMARK_BUF_INIT(cmark_get_default_mem_allocator());
   houdini_unescape_html_f(&decoded, reinterpret_cast<const uint8_t*>(bytes.constData()),
-                         static_cast<bufsize_t>(bytes.size()));
+                          static_cast<bufsize_t>(bytes.size()));
   const QString result = QString::fromUtf8(cmark_strbuf_cstr(&decoded), cmark_strbuf_len(&decoded));
   cmark_strbuf_free(&decoded);
   return result;
@@ -60,15 +70,13 @@ const QRegularExpression kAttrNameRE(QStringLiteral(R"re(([\w:-]+)\s*=)re"));
 // Mirrors the projection layer's extractHtmlAttr: src="...", src='...'.
 QRegularExpression quotedAttrRE(const QString& name) {
   return QRegularExpression(
-      QStringLiteral(R"re((?:^|\s)%1\s*=\s*(?:"([^"]*)"|'([^']*)'))re")
-          .arg(QRegularExpression::escape(name)),
+      QStringLiteral(R"re((?:^|\s)%1\s*=\s*(?:"([^"]*)"|'([^']*)'))re").arg(QRegularExpression::escape(name)),
       QRegularExpression::CaseInsensitiveOption);
 }
 
 // Matches the whole style attribute including its quotes; cap 1 = "..." value, cap 2 = '...' value.
-const QRegularExpression kStyleAttrRE(
-    QStringLiteral(R"re(style\s*=\s*(?:"([^"]*)"|'([^']*)'))re"),
-    QRegularExpression::CaseInsensitiveOption);
+const QRegularExpression kStyleAttrRE(QStringLiteral(R"re(style\s*=\s*(?:"([^"]*)"|'([^']*)'))re"),
+                                      QRegularExpression::CaseInsensitiveOption);
 
 QString extractAttr(const QString& tag, const QString& name) {
   const auto m = quotedAttrRE(name).match(tag);
@@ -130,8 +138,7 @@ QString setStyleAttr(QString tag, const QString& styleValue) {
       }
       tag.remove(removeStart, m.capturedEnd() - removeStart);
     } else {
-      tag.replace(m.capturedStart(), m.capturedLength(),
-                  QStringLiteral("style=\"%1\"").arg(styleValue));
+      tag.replace(m.capturedStart(), m.capturedLength(), QStringLiteral("style=\"%1\"").arg(styleValue));
     }
     return tag;
   }
@@ -154,10 +161,9 @@ QString setStyleAttr(QString tag, const QString& styleValue) {
 
 // Matches a single <img ...> opening tag (img is a void element — no closer). [^>]* stops at the
 // first '>', which holds for img tags whose attribute values don't contain '>'. Case-insensitive.
-const QRegularExpression kImgTagRE(QStringLiteral(R"(<img\b[^>]*>)"),
-                                  QRegularExpression::CaseInsensitiveOption);
+const QRegularExpression kImgTagRE(QStringLiteral(R"(<img\b[^>]*>)"), QRegularExpression::CaseInsensitiveOption);
 
-}  // namespace
+} // namespace
 
 Image parse(const QString& source) {
   Image img;
@@ -175,7 +181,9 @@ Image parse(const QString& source) {
         parseCmarkDocument(bytes.constData(), bytes.size(), CMARK_OPT_DEFAULT), cmark_node_free);
     cmark_node* paragraph = document ? cmark_node_first_child(document.get()) : nullptr;
     cmark_node* image = paragraph ? cmark_node_first_child(paragraph) : nullptr;
-    if (!image || cmark_node_get_type(image) != CMARK_NODE_IMAGE) { return img; }
+    if (!image || cmark_node_get_type(image) != CMARK_NODE_IMAGE) {
+      return img;
+    }
     img.syntax = Syntax::Markdown;
     img.alt = imageAlt(image);
     img.src = QString::fromUtf8(cmark_node_get_url(image));
@@ -209,18 +217,28 @@ Image parse(const QString& source) {
 SourceLocation findSource(QStringView source) {
   qsizetype left = 0;
   qsizetype right = source.size();
-  while (left < right && source.at(left).isSpace()) { ++left; }
-  while (right > left && source.at(right - 1).isSpace()) { --right; }
+  while (left < right && source.at(left).isSpace()) {
+    ++left;
+  }
+  while (right > left && source.at(right - 1).isSpace()) {
+    --right;
+  }
   const QStringView s = source.mid(left, right - left);
 
   if (s.startsWith(QStringLiteral("!["))) {
     const qsizetype labelEnd = markdownLabelEnd(s);
-    const qsizetype openParen = labelEnd >= 0 && labelEnd + 1 < s.size() &&
-        s.at(labelEnd + 1) == QLatin1Char('(') ? labelEnd + 1 : -1;
-    if (openParen < 0) { return {}; }
+    const qsizetype openParen =
+        labelEnd >= 0 && labelEnd + 1 < s.size() && s.at(labelEnd + 1) == QLatin1Char('(') ? labelEnd + 1 : -1;
+    if (openParen < 0) {
+      return {};
+    }
     qsizetype start = openParen + 1;
-    while (start < s.size() && s.at(start).isSpace()) { ++start; }
-    if (start >= s.size()) { return {}; }
+    while (start < s.size() && s.at(start).isSpace()) {
+      ++start;
+    }
+    if (start >= s.size()) {
+      return {};
+    }
     if (s.at(start) == QLatin1Char('<')) {
       const qsizetype close = s.indexOf(QLatin1Char('>'), start + 1);
       return close < 0 ? SourceLocation{} : SourceLocation{true, left + start, left + close + 1};
@@ -240,7 +258,9 @@ SourceLocation findSource(QStringView source) {
       } else if (ch == QLatin1Char('(')) {
         ++depth;
       } else if (ch == QLatin1Char(')')) {
-        if (depth == 0) { break; }
+        if (depth == 0) {
+          break;
+        }
         --depth;
       } else if (ch.isSpace() && depth == 0) {
         break;
@@ -252,7 +272,9 @@ SourceLocation findSource(QStringView source) {
   if (s.left(4).compare(QStringLiteral("<img"), Qt::CaseInsensitive) == 0) {
     const QRegularExpression sourceAttribute = quotedAttrRE(QStringLiteral("src"));
     const QRegularExpressionMatch match = sourceAttribute.matchView(s);
-    if (!match.hasMatch()) { return {}; }
+    if (!match.hasMatch()) {
+      return {};
+    }
     const int capture = match.captured(1).isNull() ? 2 : 1;
     return {true, left + match.capturedStart(capture), left + match.capturedEnd(capture)};
   }
@@ -261,7 +283,9 @@ SourceLocation findSource(QStringView source) {
 
 QString replaceSource(const QString& source, const QString& replacement) {
   const SourceLocation location = findSource(source);
-  if (!location.found) { return source; }
+  if (!location.found) {
+    return source;
+  }
   QString value = QDir::fromNativeSeparators(replacement);
   if (source.trimmed().startsWith(QStringLiteral("!["))) {
     const bool wasBracketed = source.at(location.start) == QLatin1Char('<');
@@ -290,7 +314,9 @@ QString markdownImage(const QString& alt, const QString& href, const QString& ti
 
 int zoomPercent(const QString& source) {
   // Markdown images cannot encode zoom; avoid parsing them again while rendering.
-  if (source.trimmed().startsWith(QStringLiteral("!["))) { return 100; }
+  if (source.trimmed().startsWith(QStringLiteral("!["))) {
+    return 100;
+  }
   const Image img = parse(source);
   if (img.syntax == Syntax::None) {
     return 100;
@@ -304,7 +330,7 @@ int zoomPercent(const QString& source) {
     return 100;
   }
   static const QRegularExpression zoomRE(QStringLiteral(R"re(zoom\s*:\s*(\d+(?:\.\d+)?)\s*%)re"),
-                                        QRegularExpression::CaseInsensitiveOption);
+                                         QRegularExpression::CaseInsensitiveOption);
   const auto m = zoomRE.match(style);
   if (!m.hasMatch()) {
     return 100;
@@ -331,7 +357,7 @@ QString setZoom(const QString& source, int percent) {
     const QString tag = source.trimmed();
     const QString style = extractAttr(tag, QStringLiteral("style"));
     if (style.isEmpty()) {
-      return source;  // nothing to remove
+      return source; // nothing to remove
     }
     const QString remaining = assembleStyle(withoutZoom(parseDecls(style)));
     return setStyleAttr(tag, remaining);
@@ -370,4 +396,4 @@ ImgTagLocation findImgTag(QStringView source) {
   return {true, m.capturedStart(), m.capturedEnd()};
 }
 
-}  // namespace muffin::image_syntax
+} // namespace muffin::image_syntax

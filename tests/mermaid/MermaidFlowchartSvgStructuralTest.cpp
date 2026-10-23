@@ -27,7 +27,8 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 qreal number(const QJsonObject& attributes, const QString& name) {
@@ -68,29 +69,27 @@ int layerIndex(const QJsonArray& layers, const QString& cssClass) {
 }
 
 QString markerReference(const QString& value) {
-  static const QRegularExpression type(
-      QStringLiteral(R"((point|circle|cross)(Start|End))"));
+  static const QRegularExpression type(QStringLiteral(R"((point|circle|cross)(Start|End))"));
   const auto match = type.match(value);
   return match.hasMatch() ? match.captured(1) + match.captured(2) : QString();
 }
 
 QString browserLook(flowchart::FlowLook look) {
-  if (look == flowchart::FlowLook::Neo) return QStringLiteral("neo");
+  if (look == flowchart::FlowLook::Neo)
+    return QStringLiteral("neo");
   if (look == flowchart::FlowLook::HandDrawn)
     return QStringLiteral("handDrawn");
   return QStringLiteral("classic");
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QGuiApplication app(argc, argv);
   require(argc == 2, QStringLiteral("Expected flowchart SVG structural manifest"));
   QFile file(QString::fromLocal8Bit(argv[1]));
-  require(file.open(QIODevice::ReadOnly),
-          QStringLiteral("Cannot open flowchart SVG structural manifest"));
+  require(file.open(QIODevice::ReadOnly), QStringLiteral("Cannot open flowchart SVG structural manifest"));
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
-  require(root.value(QStringLiteral("upstream")).toObject()
-                  .value(QStringLiteral("version")).toString() ==
+  require(root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
               QLatin1String("11.16.0"),
           QStringLiteral("Flowchart SVG structural upstream drifted"));
   MermaidFontRegistry::ensureLoaded();
@@ -106,34 +105,32 @@ int main(int argc, char** argv) {
 
   for (const QJsonValue& value : root.value(QStringLiteral("cases")).toArray()) {
     const QJsonObject fixture = value.toObject();
-    if (!fixture.contains(QStringLiteral("svgStructural"))) continue;
+    if (!fixture.contains(QStringLiteral("svgStructural")))
+      continue;
     ++structuralCases;
     const QString id = fixture.value(QStringLiteral("id")).toString();
     structuralKinds.insert(fixture.value(QStringLiteral("svgStructural")).toString());
     const QString source = fixture.value(QStringLiteral("source")).toString();
-    const QJsonObject structure = fixture.value(QStringLiteral("content")).toObject()
-                                      .value(QStringLiteral("svgStructure")).toObject();
+    const QJsonObject structure =
+        fixture.value(QStringLiteral("content")).toObject().value(QStringLiteral("svgStructure")).toObject();
     require(!structure.isEmpty(), QStringLiteral("%1 has no SVG structure").arg(id));
 
     const QJsonObject rootAttributes = structure.value(QStringLiteral("root")).toObject();
-    require(rootAttributes.value(QStringLiteral("class")).toString()
-                    .split(QLatin1Char(' ')).contains(QStringLiteral("flowchart")) &&
-                rootAttributes.value(QStringLiteral("xmlns")).toString() ==
-                    QLatin1String("http://www.w3.org/2000/svg") &&
-                rootAttributes.value(QStringLiteral("role")).toString() ==
-                    QLatin1String("graphics-document document") &&
-                rootAttributes.value(QStringLiteral("aria-roledescription")).toString() ==
-                    QLatin1String("flowchart-v2"),
-            QStringLiteral("%1 root SVG role/class drifted").arg(id));
-    const QStringList viewBox = rootAttributes.value(QStringLiteral("viewBox")).toString()
-                                    .split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    require(
+        rootAttributes.value(QStringLiteral("class"))
+                .toString()
+                .split(QLatin1Char(' '))
+                .contains(QStringLiteral("flowchart")) &&
+            rootAttributes.value(QStringLiteral("xmlns")).toString() == QLatin1String("http://www.w3.org/2000/svg") &&
+            rootAttributes.value(QStringLiteral("role")).toString() == QLatin1String("graphics-document document") &&
+            rootAttributes.value(QStringLiteral("aria-roledescription")).toString() == QLatin1String("flowchart-v2"),
+        QStringLiteral("%1 root SVG role/class drifted").arg(id));
+    const QStringList viewBox =
+        rootAttributes.value(QStringLiteral("viewBox")).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts);
     const QJsonObject content = fixture.value(QStringLiteral("content")).toObject();
-    require(viewBox.size() == 4 && viewBox.at(2).toDouble() > 0.0 &&
-                viewBox.at(3).toDouble() > 0.0 &&
-                std::abs(viewBox.at(2).toDouble() -
-                         content.value(QStringLiteral("width")).toDouble()) < 0.001 &&
-                std::abs(viewBox.at(3).toDouble() -
-                         content.value(QStringLiteral("height")).toDouble()) < 0.001,
+    require(viewBox.size() == 4 && viewBox.at(2).toDouble() > 0.0 && viewBox.at(3).toDouble() > 0.0 &&
+                std::abs(viewBox.at(2).toDouble() - content.value(QStringLiteral("width")).toDouble()) < 0.001 &&
+                std::abs(viewBox.at(3).toDouble() - content.value(QStringLiteral("height")).toDouble()) < 0.001,
             QStringLiteral("%1 root viewBox is invalid").arg(id));
 
     const flowchart::Flowchart chart = flowchart::Flowchart::parse(source);
@@ -144,8 +141,7 @@ int main(int argc, char** argv) {
       ++ariaCases;
       require(!data.accTitle.isEmpty() && !data.accDescription.isEmpty() &&
                   structure.value(QStringLiteral("ariaTitle")).toString() == data.accTitle &&
-                  structure.value(QStringLiteral("ariaDescription")).toString() ==
-                      data.accDescription &&
+                  structure.value(QStringLiteral("ariaDescription")).toString() == data.accDescription &&
                   labelledBy.contains(QLatin1String("chart-title-diagram")) &&
                   describedBy.contains(QLatin1String("chart-desc-diagram")),
               QStringLiteral("%1 accessibility structure drifted").arg(id));
@@ -155,225 +151,211 @@ int main(int argc, char** argv) {
     }
 
     const QJsonArray layers = structure.value(QStringLiteral("layerOrder")).toArray();
-    require(containsLayer(layers, QStringLiteral("clusters")) &&
-                containsLayer(layers, QStringLiteral("edgePaths")) &&
-                containsLayer(layers, QStringLiteral("edgeLabels")) &&
-                containsLayer(layers, QStringLiteral("nodes")) &&
-                layerIndex(layers, QStringLiteral("clusters")) <
-                    layerIndex(layers, QStringLiteral("edgePaths")) &&
-                layerIndex(layers, QStringLiteral("edgePaths")) <
-                    layerIndex(layers, QStringLiteral("edgeLabels")) &&
-                layerIndex(layers, QStringLiteral("edgeLabels")) <
-                    layerIndex(layers, QStringLiteral("nodes")),
+    require(containsLayer(layers, QStringLiteral("clusters")) && containsLayer(layers, QStringLiteral("edgePaths")) &&
+                containsLayer(layers, QStringLiteral("edgeLabels")) && containsLayer(layers, QStringLiteral("nodes")) &&
+                layerIndex(layers, QStringLiteral("clusters")) < layerIndex(layers, QStringLiteral("edgePaths")) &&
+                layerIndex(layers, QStringLiteral("edgePaths")) < layerIndex(layers, QStringLiteral("edgeLabels")) &&
+                layerIndex(layers, QStringLiteral("edgeLabels")) < layerIndex(layers, QStringLiteral("nodes")),
             QStringLiteral("%1 SVG layer order drifted").arg(id));
     const QJsonArray domOrder = structure.value(QStringLiteral("domOrder")).toArray();
     require(!domOrder.isEmpty(), QStringLiteral("%1 DOM order is empty").arg(id));
     orderedEntries += domOrder.size();
 
     flowchart::FlowTextOptions textOptions;
-    const bool fixedNoto = fixture.value(QStringLiteral("fontMode")).toString() ==
-                           QLatin1String("noto");
-    textOptions.fontFamily = fixedNoto ? MermaidFontRegistry::primaryFamily()
-                                       : QStringLiteral("Arial");
-    const flowchart::FlowLook look = flowchart::parseFlowLook(
-        fixture.value(QStringLiteral("look")).toString(QStringLiteral("classic")));
+    const bool fixedNoto = fixture.value(QStringLiteral("fontMode")).toString() == QLatin1String("noto");
+    textOptions.fontFamily = fixedNoto ? MermaidFontRegistry::primaryFamily() : QStringLiteral("Arial");
+    const flowchart::FlowLook look =
+        flowchart::parseFlowLook(fixture.value(QStringLiteral("look")).toString(QStringLiteral("classic")));
     textOptions.look = look;
     const auto theme = flowtheme::resolveFlowTheme(
         themeId(fixture.value(QStringLiteral("theme")).toString()),
-        {{QStringLiteral("fontFamily"), fixedNoto
-              ? MermaidFontRegistry::cssFamilyStack() : QStringLiteral("Arial")}});
+        {{QStringLiteral("fontFamily"), fixedNoto ? MermaidFontRegistry::cssFamilyStack() : QStringLiteral("Arial")}});
     const QMap<QString, QSizeF> sizes = flowchart::measureFlowchartNodes(data, textOptions);
     flowchart::FlowLayoutOptions options;
     options.look = look;
     for (const flowchart::FlowEdge& edge : data.edges) {
-      if (edge.text.isEmpty()) continue;
+      if (edge.text.isEmpty())
+        continue;
       const auto prepared = flowchart::layoutFlowchartEdgeLabel(edge, textOptions);
       options.measuredEdgeLabels.insert(edge.id, prepared.size);
       options.preparedEdgeLabels.insert(edge.id, prepared);
     }
     for (const flowchart::FlowSubgraph& cluster : data.subgraphs)
       if (!cluster.title.isEmpty())
-        options.measuredClusterLabels.insert(
-            cluster.id, flowchart::measureFlowchartClusterLabel(cluster, textOptions));
+        options.measuredClusterLabels.insert(cluster.id, flowchart::measureFlowchartClusterLabel(cluster, textOptions));
     const auto layout = flowchart::layoutFlowchartNodes(data, sizes, options);
-    const flowscene::FlowScene scene = flowscene::buildFlowScene(
-        data, layout, theme, look);
+    const flowscene::FlowScene scene = flowscene::buildFlowScene(data, layout, theme, look);
 
     const QJsonArray edgeLabels = structure.value(QStringLiteral("edgeLabels")).toArray();
     int edgeLabelForeignObjects = 0;
     for (const QJsonValue& label : edgeLabels)
-      edgeLabelForeignObjects += label.toObject()
-          .value(QStringLiteral("foreignObjectCount")).toInt();
+      edgeLabelForeignObjects += label.toObject().value(QStringLiteral("foreignObjectCount")).toInt();
     const QJsonArray browserNodes = structure.value(QStringLiteral("nodes")).toArray();
     int nodeForeignObjects = 0;
     for (const QJsonValue& node : browserNodes)
-      nodeForeignObjects += node.toObject()
-          .value(QStringLiteral("foreignObjectCount")).toInt();
+      nodeForeignObjects += node.toObject().value(QStringLiteral("foreignObjectCount")).toInt();
     const QJsonArray clusters = structure.value(QStringLiteral("clusters")).toArray();
     int clusterForeignObjects = 0;
     for (const QJsonValue& cluster : clusters)
-      clusterForeignObjects += cluster.toObject()
-          .value(QStringLiteral("foreignObjectCount")).toInt();
+      clusterForeignObjects += cluster.toObject().value(QStringLiteral("foreignObjectCount")).toInt();
     const QJsonObject counts = structure.value(QStringLiteral("counts")).toObject();
-    const int expectedForeignObjects = nodeForeignObjects +
-        edgeLabelForeignObjects + clusterForeignObjects +
-        counts.value(QStringLiteral("detachedEdgeLabelForeignObjects")).toInt();
+    const int expectedForeignObjects = nodeForeignObjects + edgeLabelForeignObjects + clusterForeignObjects +
+                                       counts.value(QStringLiteral("detachedEdgeLabelForeignObjects")).toInt();
     require(counts.value(QStringLiteral("defs")).toInt() >= 2 &&
                 counts.value(QStringLiteral("nodes")).toInt() == scene.nodes.size() &&
                 counts.value(QStringLiteral("edgePaths")).toInt() == scene.edges.size() &&
                 counts.value(QStringLiteral("clusters")).toInt() == scene.clusters.size() &&
-                counts.value(QStringLiteral("foreignObject")).toInt() ==
-                    expectedForeignObjects,
+                counts.value(QStringLiteral("foreignObject")).toInt() == expectedForeignObjects,
             QStringLiteral("%1 browser/native structural counts differ").arg(id));
 
-    require(browserNodes.size() == scene.nodes.size(),
-            QStringLiteral("%1 node attribute array size drifted").arg(id));
+    require(browserNodes.size() == scene.nodes.size(), QStringLiteral("%1 node attribute array size drifted").arg(id));
     for (qsizetype index = 0; index < browserNodes.size(); ++index) {
       const QJsonObject node = browserNodes.at(index).toObject();
       const QJsonObject attributes = node.value(QStringLiteral("attributes")).toObject();
       const bool nodeClassMatches = look == flowchart::FlowLook::HandDrawn
-          ? !attributes.value(QStringLiteral("class")).toString().isEmpty()
-          : attributes.value(QStringLiteral("class")).toString()
-                .split(QLatin1Char(' ')).contains(QStringLiteral("node"));
+                                        ? !attributes.value(QStringLiteral("class")).toString().isEmpty()
+                                        : attributes.value(QStringLiteral("class"))
+                                              .toString()
+                                              .split(QLatin1Char(' '))
+                                              .contains(QStringLiteral("node"));
       require(nodeClassMatches &&
-                  attributes.value(QStringLiteral("id")).toString()
-                      .contains(QLatin1Char('-') + scene.nodes.at(index).id +
-                                QLatin1Char('-')) &&
+                  attributes.value(QStringLiteral("id"))
+                      .toString()
+                      .contains(QLatin1Char('-') + scene.nodes.at(index).id + QLatin1Char('-')) &&
                   !node.value(QStringLiteral("shapeTag")).toString().isEmpty() &&
-                  node.value(QStringLiteral("shapeAttributes")).toObject()
-                      .value(QStringLiteral("class")).toString()
+                  node.value(QStringLiteral("shapeAttributes"))
+                      .toObject()
+                      .value(QStringLiteral("class"))
+                      .toString()
                       .contains(QLatin1String("label-container")) &&
-                  node.value(QStringLiteral("labelTag")).toString() ==
-                      QLatin1String("foreignObject") &&
+                  node.value(QStringLiteral("labelTag")).toString() == QLatin1String("foreignObject") &&
                   !node.value(QStringLiteral("labelText")).toString().isEmpty(),
-              QStringLiteral("%1 node %2 container structure drifted")
-                  .arg(id, scene.nodes.at(index).id));
+              QStringLiteral("%1 node %2 container structure drifted").arg(id, scene.nodes.at(index).id));
     }
 
     const QJsonArray browserEdges = structure.value(QStringLiteral("edges")).toArray();
-    require(browserEdges.size() == scene.edges.size(),
-            QStringLiteral("%1 edge attribute array size drifted").arg(id));
+    require(browserEdges.size() == scene.edges.size(), QStringLiteral("%1 edge attribute array size drifted").arg(id));
     for (qsizetype index = 0; index < browserEdges.size(); ++index) {
-      const QJsonObject attributes = browserEdges.at(index).toObject()
-                                         .value(QStringLiteral("attributes")).toObject();
+      const QJsonObject attributes = browserEdges.at(index).toObject().value(QStringLiteral("attributes")).toObject();
       const auto& edge = scene.edges.at(index);
-      require(attributes.value(QStringLiteral("data-edge")).toString() ==
-                      QLatin1String("true") &&
-                  attributes.value(QStringLiteral("class")).toString()
-                      .contains(QLatin1String("flowchart-link")) &&
+      require(attributes.value(QStringLiteral("data-edge")).toString() == QLatin1String("true") &&
+                  attributes.value(QStringLiteral("class")).toString().contains(QLatin1String("flowchart-link")) &&
                   attributes.value(QStringLiteral("data-id")).toString() == edge.id &&
-                  attributes.value(QStringLiteral("data-look")).toString() ==
-                      browserLook(look) &&
+                  attributes.value(QStringLiteral("data-look")).toString() == browserLook(look) &&
                   !attributes.value(QStringLiteral("d")).toString().isEmpty() &&
-                  markerReference(attributes.value(QStringLiteral("marker-start")).toString()) ==
-                      edge.markerStart &&
-                  markerReference(attributes.value(QStringLiteral("marker-end")).toString()) ==
-                      edge.markerEnd,
+                  markerReference(attributes.value(QStringLiteral("marker-start")).toString()) == edge.markerStart &&
+                  markerReference(attributes.value(QStringLiteral("marker-end")).toString()) == edge.markerEnd,
               QStringLiteral("%1 edge %2 structural attributes differ").arg(id, edge.id));
-      if (fixture.value(QStringLiteral("svgStructural")).toString() ==
-          QLatin1String("animated")) {
-        const QJsonObject computed = browserEdges.at(index).toObject()
-                                         .value(QStringLiteral("computed")).toObject();
-        require(edge.animated &&
-                    computed.value(QStringLiteral("animationName")).toString() !=
-                        QLatin1String("none") &&
-                    computed.value(QStringLiteral("animationDuration")).toString() !=
-                        QLatin1String("0s") &&
+      if (fixture.value(QStringLiteral("svgStructural")).toString() == QLatin1String("animated")) {
+        const QJsonObject computed = browserEdges.at(index).toObject().value(QStringLiteral("computed")).toObject();
+        require(edge.animated && computed.value(QStringLiteral("animationName")).toString() != QLatin1String("none") &&
+                    computed.value(QStringLiteral("animationDuration")).toString() != QLatin1String("0s") &&
                     !computed.value(QStringLiteral("animationTimingFunction")).toString().isEmpty(),
                 QStringLiteral("%1 animated edge structure drifted").arg(id));
       }
     }
 
     const QJsonArray markers = structure.value(QStringLiteral("markers")).toArray();
-    if (!markers.isEmpty()) ++markerCases;
+    if (!markers.isEmpty())
+      ++markerCases;
     for (const QJsonValue& markerValue : markers) {
       const QJsonObject marker = markerValue.toObject();
       const QString type = marker.value(QStringLiteral("type")).toString();
-      if (type.isEmpty()) continue;
+      if (type.isEmpty())
+        continue;
       markerTypes.insert(type);
       const QJsonObject attributes = marker.value(QStringLiteral("attributes")).toObject();
       const flowscene::MarkerGeometry geometry = flowscene::markerGeometry(type);
       const QJsonObject child = marker.value(QStringLiteral("childAttributes")).toObject();
       const bool childGeometryMatches = geometry.tag == QLatin1String("path")
-          ? child.value(QStringLiteral("d")).toString() == geometry.pathData
-          : std::abs(number(child, QStringLiteral("cx")) - geometry.cx) < 0.001 &&
-                std::abs(number(child, QStringLiteral("cy")) - geometry.cy) < 0.001 &&
-                std::abs(number(child, QStringLiteral("r")) - geometry.r) < 0.001;
-      require(!geometry.tag.isEmpty() &&
-                  attributes.value(QStringLiteral("viewBox")).toString() == geometry.viewBox &&
+                                            ? child.value(QStringLiteral("d")).toString() == geometry.pathData
+                                            : std::abs(number(child, QStringLiteral("cx")) - geometry.cx) < 0.001 &&
+                                                  std::abs(number(child, QStringLiteral("cy")) - geometry.cy) < 0.001 &&
+                                                  std::abs(number(child, QStringLiteral("r")) - geometry.r) < 0.001;
+      require(!geometry.tag.isEmpty() && attributes.value(QStringLiteral("viewBox")).toString() == geometry.viewBox &&
                   std::abs(number(attributes, QStringLiteral("refX")) - geometry.refX) < 0.001 &&
                   std::abs(number(attributes, QStringLiteral("refY")) - geometry.refY) < 0.001 &&
-                  std::abs(number(attributes, QStringLiteral("markerWidth")) -
-                           geometry.markerWidth) < 0.001 &&
-                  std::abs(number(attributes, QStringLiteral("markerHeight")) -
-                           geometry.markerHeight) < 0.001 &&
+                  std::abs(number(attributes, QStringLiteral("markerWidth")) - geometry.markerWidth) < 0.001 &&
+                  std::abs(number(attributes, QStringLiteral("markerHeight")) - geometry.markerHeight) < 0.001 &&
                   attributes.value(QStringLiteral("orient")).toString() == QLatin1String("auto") &&
-                  attributes.value(QStringLiteral("markerUnits")).toString() ==
-                      QLatin1String("userSpaceOnUse") &&
+                  attributes.value(QStringLiteral("markerUnits")).toString() == QLatin1String("userSpaceOnUse") &&
                   marker.value(QStringLiteral("childTag")).toString() == geometry.tag &&
-                  child.value(QStringLiteral("class")).toString()
-                      .contains(QLatin1String("arrowMarkerPath")) &&
+                  child.value(QStringLiteral("class")).toString().contains(QLatin1String("arrowMarkerPath")) &&
                   childGeometryMatches,
               QStringLiteral("%1 marker %2 geometry drifted").arg(id, type));
     }
 
-    if (!edgeLabels.isEmpty()) ++edgeLabelCases;
-    require(edgeLabels.size() == scene.edges.size(),
-            QStringLiteral("%1 edge label count drifted").arg(id));
+    if (!edgeLabels.isEmpty())
+      ++edgeLabelCases;
+    require(edgeLabels.size() == scene.edges.size(), QStringLiteral("%1 edge label count drifted").arg(id));
     for (qsizetype index = 0; index < edgeLabels.size(); ++index) {
       const QJsonValue& labelValue = edgeLabels.at(index);
       const QJsonObject label = labelValue.toObject();
       require(label.value(QStringLiteral("contentTag")).toString() == QLatin1String("g") &&
-                  label.value(QStringLiteral("contentAttributes")).toObject()
-                      .value(QStringLiteral("class")).toString().contains(QLatin1String("label")) &&
-                  !label.value(QStringLiteral("contentAttributes")).toObject()
-                      .value(QStringLiteral("data-id")).toString().isEmpty() &&
+                  label.value(QStringLiteral("contentAttributes"))
+                      .toObject()
+                      .value(QStringLiteral("class"))
+                      .toString()
+                      .contains(QLatin1String("label")) &&
+                  !label.value(QStringLiteral("contentAttributes"))
+                       .toObject()
+                       .value(QStringLiteral("data-id"))
+                       .toString()
+                       .isEmpty() &&
                   label.value(QStringLiteral("backgroundTag")).toString().isEmpty() &&
                   label.value(QStringLiteral("tspanCount")).toInt() > 0,
               QStringLiteral("%1 edge label container drifted").arg(id));
       const bool hasText = !scene.edges.at(index).label.text.isEmpty();
       require(label.value(QStringLiteral("text")).toString().isEmpty() == !hasText &&
-                  (!hasText || !label.value(QStringLiteral("attributes")).toObject()
-                                    .value(QStringLiteral("transform")).toString().isEmpty()),
+                  (!hasText || !label.value(QStringLiteral("attributes"))
+                                    .toObject()
+                                    .value(QStringLiteral("transform"))
+                                    .toString()
+                                    .isEmpty()),
               QStringLiteral("%1 edge label visibility/transform drifted").arg(id));
     }
 
-    if (!clusters.isEmpty()) ++clusterLabelCases;
+    if (!clusters.isEmpty())
+      ++clusterLabelCases;
     for (const QJsonValue& clusterValue : clusters) {
       const QJsonObject cluster = clusterValue.toObject();
       const QString clusterShape = cluster.value(QStringLiteral("shapeTag")).toString();
-      const bool clusterShapeMatches = look == flowchart::FlowLook::HandDrawn
-          ? (clusterShape == QLatin1String("g") || clusterShape == QLatin1String("path"))
-          : clusterShape == QLatin1String("rect");
+      const bool clusterShapeMatches = look == flowchart::FlowLook::HandDrawn ? (clusterShape == QLatin1String("g") ||
+                                                                                 clusterShape == QLatin1String("path"))
+                                                                              : clusterShape == QLatin1String("rect");
       require(clusterShapeMatches &&
-                  cluster.value(QStringLiteral("attributes")).toObject()
-                      .value(QStringLiteral("class")).toString().contains(QLatin1String("cluster")) &&
+                  cluster.value(QStringLiteral("attributes"))
+                      .toObject()
+                      .value(QStringLiteral("class"))
+                      .toString()
+                      .contains(QLatin1String("cluster")) &&
                   cluster.value(QStringLiteral("labelTag")).toString() == QLatin1String("g") &&
-                  cluster.value(QStringLiteral("labelAttributes")).toObject()
-                      .value(QStringLiteral("class")).toString().contains(QLatin1String("cluster-label")) &&
-                  cluster.value(QStringLiteral("labelContentTag")).toString() ==
-                      QLatin1String("text") &&
-                  !cluster.value(QStringLiteral("labelAttributes")).toObject()
-                      .value(QStringLiteral("transform")).toString().isEmpty() &&
+                  cluster.value(QStringLiteral("labelAttributes"))
+                      .toObject()
+                      .value(QStringLiteral("class"))
+                      .toString()
+                      .contains(QLatin1String("cluster-label")) &&
+                  cluster.value(QStringLiteral("labelContentTag")).toString() == QLatin1String("text") &&
+                  !cluster.value(QStringLiteral("labelAttributes"))
+                       .toObject()
+                       .value(QStringLiteral("transform"))
+                       .toString()
+                       .isEmpty() &&
                   !cluster.value(QStringLiteral("labelText")).toString().isEmpty(),
               QStringLiteral("%1 cluster label structure drifted").arg(id));
     }
   }
 
-  require(structuralCases >= 17 && markerCases >= 12 && edgeLabelCases >= 10 &&
-              clusterLabelCases >= 10 && ariaCases >= 1 && orderedEntries >= 250 &&
-              structuralKinds.contains(QStringLiteral("compound-self-parallel")) &&
-              structuralKinds.contains(QStringLiteral("cluster-direction")) &&
-              structuralKinds.contains(QStringLiteral("animated")) &&
-              structuralKinds.contains(QStringLiteral("redux")) &&
-              structuralKinds.contains(QStringLiteral("hand-drawn")) &&
-              markerTypes.contains(QStringLiteral("pointEnd")) &&
-              markerTypes.contains(QStringLiteral("circleStart")) &&
-              markerTypes.contains(QStringLiteral("circleEnd")) &&
-              markerTypes.contains(QStringLiteral("crossStart")) &&
-              markerTypes.contains(QStringLiteral("crossEnd")),
-          QStringLiteral("Flowchart SVG structural coverage regressed"));
-  qDebug() << "MermaidFlowchartSvgStructuralTest:" << structuralCases
-           << "cases," << orderedEntries << "ordered DOM entries passed";
+  require(
+      structuralCases >= 17 && markerCases >= 12 && edgeLabelCases >= 10 && clusterLabelCases >= 10 && ariaCases >= 1 &&
+          orderedEntries >= 250 && structuralKinds.contains(QStringLiteral("compound-self-parallel")) &&
+          structuralKinds.contains(QStringLiteral("cluster-direction")) &&
+          structuralKinds.contains(QStringLiteral("animated")) && structuralKinds.contains(QStringLiteral("redux")) &&
+          structuralKinds.contains(QStringLiteral("hand-drawn")) && markerTypes.contains(QStringLiteral("pointEnd")) &&
+          markerTypes.contains(QStringLiteral("circleStart")) && markerTypes.contains(QStringLiteral("circleEnd")) &&
+          markerTypes.contains(QStringLiteral("crossStart")) && markerTypes.contains(QStringLiteral("crossEnd")),
+      QStringLiteral("Flowchart SVG structural coverage regressed"));
+  qDebug() << "MermaidFlowchartSvgStructuralTest:" << structuralCases << "cases," << orderedEntries
+           << "ordered DOM entries passed";
   return 0;
 }

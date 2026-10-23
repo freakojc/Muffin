@@ -23,4 +23,4 @@ const QHash<QString, QString>& emojiShortcodeMap();
 // never scans far. Returns the whole token length (both colons + name) on a hit.
 qsizetype emojiShortcodeLengthAt(QStringView source, qsizetype i);
 
-}  // namespace muffin
+} // namespace muffin

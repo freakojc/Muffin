@@ -28,14 +28,16 @@ struct ExpandDepthFrame {
 };
 
 bool spaceAfterDotsToken(const QString& token) {
-  static const QSet<QString> tokens{
-      QStringLiteral(")"),        QStringLiteral("]"),       QStringLiteral("\\rbrack"),
-      QStringLiteral("\\}"),      QStringLiteral("\\rbrace"), QStringLiteral("\\rangle"),
-      QStringLiteral("\\rceil"),  QStringLiteral("\\rfloor"), QStringLiteral("\\rgroup"),
-      QStringLiteral("\\rmoustache"), QStringLiteral("\\right"), QStringLiteral("\\bigr"),
-      QStringLiteral("\\biggr"),  QStringLiteral("\\Bigr"), QStringLiteral("\\Biggr"),
-      QStringLiteral("$"),        QStringLiteral(";"),       QStringLiteral("."),
-      QStringLiteral(",")};
+  static const QSet<QString> tokens{QStringLiteral(")"),        QStringLiteral("]"),
+                                    QStringLiteral("\\rbrack"), QStringLiteral("\\}"),
+                                    QStringLiteral("\\rbrace"), QStringLiteral("\\rangle"),
+                                    QStringLiteral("\\rceil"),  QStringLiteral("\\rfloor"),
+                                    QStringLiteral("\\rgroup"), QStringLiteral("\\rmoustache"),
+                                    QStringLiteral("\\right"),  QStringLiteral("\\bigr"),
+                                    QStringLiteral("\\biggr"),  QStringLiteral("\\Bigr"),
+                                    QStringLiteral("\\Biggr"),  QStringLiteral("$"),
+                                    QStringLiteral(";"),        QStringLiteral("."),
+                                    QStringLiteral(",")};
   return tokens.contains(token);
 }
 
@@ -153,7 +155,7 @@ QVector<MacroToken> reversedTokensFromString(const QString& input, qsizetype pos
   return tokens;
 }
 
-}  // namespace
+} // namespace
 
 class MathMacroExpander::TokenStream {
 public:
@@ -164,13 +166,9 @@ public:
     }
   }
 
-  bool empty() const {
-    return stack_.isEmpty();
-  }
+  bool empty() const { return stack_.isEmpty(); }
 
-  MacroToken future() {
-    return stack_.isEmpty() ? MacroToken{QStringLiteral("EOF"), -1, -1} : stack_.last();
-  }
+  MacroToken future() { return stack_.isEmpty() ? MacroToken{QStringLiteral("EOF"), -1, -1} : stack_.last(); }
 
   MacroToken popToken() {
     if (stack_.isEmpty()) {
@@ -179,9 +177,7 @@ public:
     return stack_.takeLast();
   }
 
-  void pushToken(MacroToken token) {
-    stack_.push_back(std::move(token));
-  }
+  void pushToken(MacroToken token) { stack_.push_back(std::move(token)); }
 
   void pushTokens(const QVector<MacroToken>& reversedTokens) {
     for (const MacroToken& token : reversedTokens) {
@@ -224,9 +220,7 @@ public:
     return result;
   }
 
-  QString consumeArgText() {
-    return tokensToString(consumeArg());
-  }
+  QString consumeArgText() { return tokensToString(consumeArg()); }
 
   QString consumeCommandArgument() {
     QVector<MacroToken> arg = consumeArg();
@@ -311,7 +305,7 @@ QVector<MacroToken> applyArgs(QVector<MacroToken> body, const QVector<QVector<Ma
   return expanded;
 }
 
-}  // namespace
+} // namespace
 
 MathMacroExpander::MathMacroExpander(MathSettings settings, std::shared_ptr<int> sharedExpansionCount)
     : settings_(std::move(settings)),
@@ -398,9 +392,8 @@ MathMacroExpander::MathMacroExpander(MathSettings settings, std::shared_ptr<int>
   //////////////////////////////////////////////////////////////////////
   // amsmath (KaTeX macros.ts:369-540)
   defineMacro(QStringLiteral("\\substack"), QStringLiteral("\\begin{subarray}{c}#1\\end{subarray}"), 1);
-  defineMacro(QStringLiteral("\\colon"),
-              QStringLiteral("\\nobreak\\mskip2mu\\mathpunct{}"
-                             "\\mathchoice{\\mkern-3mu}{\\mkern-3mu}{}{}{:}\\mskip6mu"));
+  defineMacro(QStringLiteral("\\colon"), QStringLiteral("\\nobreak\\mskip2mu\\mathpunct{}"
+                                                        "\\mathchoice{\\mkern-3mu}{\\mkern-3mu}{}{}{:}\\mskip6mu"));
   defineMacro(QStringLiteral("\\iff"), QStringLiteral("\\DOTSB\\;\\Longleftrightarrow\\;"));
   defineMacro(QStringLiteral("\\implies"), QStringLiteral("\\DOTSB\\;\\Longrightarrow\\;"));
   defineMacro(QStringLiteral("\\impliedby"), QStringLiteral("\\DOTSB\\;\\Longleftarrow\\;"));
@@ -410,11 +403,11 @@ MathMacroExpander::MathMacroExpander(MathSettings settings, std::shared_ptr<int>
   defineMacro(QStringLiteral("\\dotsm"), QStringLiteral("\\cdots"));
   defineMacro(QStringLiteral("\\dotsi"), QStringLiteral("\\!\\cdots"));
   defineMacro(QStringLiteral("\\dotsx"), QStringLiteral("\\ldots\\,"));
-  defineMacro(QStringLiteral("\\bmod"),
-              QStringLiteral("\\mathchoice{\\mskip1mu}{\\mskip1mu}{\\mskip5mu}{\\mskip5mu}"
-                             "\\mathbin{\\rm mod}"
-                             "\\mathchoice{\\mskip1mu}{\\mskip1mu}{\\mskip5mu}{\\mskip5mu}"));
-  defineMacro(QStringLiteral("\\pod"), QStringLiteral("\\allowbreak\\mathchoice{\\mkern18mu}{\\mkern8mu}{\\mkern8mu}{\\mkern8mu}(#1)"), 1);
+  defineMacro(QStringLiteral("\\bmod"), QStringLiteral("\\mathchoice{\\mskip1mu}{\\mskip1mu}{\\mskip5mu}{\\mskip5mu}"
+                                                       "\\mathbin{\\rm mod}"
+                                                       "\\mathchoice{\\mskip1mu}{\\mskip1mu}{\\mskip5mu}{\\mskip5mu}"));
+  defineMacro(QStringLiteral("\\pod"),
+              QStringLiteral("\\allowbreak\\mathchoice{\\mkern18mu}{\\mkern8mu}{\\mkern8mu}{\\mkern8mu}(#1)"), 1);
   defineMacro(QStringLiteral("\\pmod"), QStringLiteral("\\pod{{\\rm mod}\\mkern6mu#1}"), 1);
   defineMacro(QStringLiteral("\\mod"),
               QStringLiteral("\\allowbreak\\mathchoice{\\mkern18mu}{\\mkern12mu}{\\mkern12mu}{\\mkern12mu}"
@@ -601,8 +594,7 @@ MathMacroExpander::MathMacroExpander(MathSettings settings, std::shared_ptr<int>
   // are properly parsed. KaTeX uses \textrm{\html@mathml{...}{...}} but our
   // \textrm handler uses parseRawGroupText which doesn't parse commands.
   // latexRaiseA = Main-Regular T.height - 0.7*A.height ≈ 0.205em.
-  defineMacro(QStringLiteral("\\TeX"),
-              QStringLiteral("\\mathrm{T\\kern-.1667em\\raisebox{-.5ex}{E}\\kern-.125emX}"));
+  defineMacro(QStringLiteral("\\TeX"), QStringLiteral("\\mathrm{T\\kern-.1667em\\raisebox{-.5ex}{E}\\kern-.125emX}"));
   defineMacro(QStringLiteral("\\LaTeX"),
               QStringLiteral("\\mathrm{L\\kern-.36em\\raisebox{0.205em}{\\scriptstyle A}\\kern-.15em\\TeX}"));
   defineMacro(QStringLiteral("\\KaTeX"),
@@ -619,7 +611,8 @@ MathMacroExpander::MathMacroExpander(MathSettings settings, std::shared_ptr<int>
   // \Set and \Braket use braketHelper pattern (KaTeX macros.ts:919-968):
   // dynamically redefine | as \middle\vert within the group.
   defineMacro(QStringLiteral("\\Set"), QStringLiteral("\\bra@set{\\{\\,}{\\mid}{}{\\,\\}}"));
-  defineMacro(QStringLiteral("\\Braket"), QStringLiteral("\\bra@ket{\\left\\langle}{\\,\\middle\\vert\\,}{\\,\\middle\\vert\\,}{\\right\\rangle}"));
+  defineMacro(QStringLiteral("\\Braket"),
+              QStringLiteral("\\bra@ket{\\left\\langle}{\\,\\middle\\vert\\,}{\\,\\middle\\vert\\,}{\\right\\rangle}"));
   // \bra@ket and \bra@set are handled specially in expandOnce()
   defineMacro(QStringLiteral("\\bra@ket"), QString());
   defineMacro(QStringLiteral("\\bra@set"), QString());
@@ -716,7 +709,8 @@ void MathMacroExpander::undefineMacro(const QString& name, bool global) {
 void MathMacroExpander::countExpansion(int amount, qsizetype position, qsizetype endPosition) {
   *expansionCount_ += amount;
   if (settings_.maxExpand >= 0 && *expansionCount_ > settings_.maxExpand) {
-    throw MathParseError(QStringLiteral("Too many expansions: infinite loop or need to increase maxExpand setting"), {}, position, endPosition);
+    throw MathParseError(QStringLiteral("Too many expansions: infinite loop or need to increase maxExpand setting"), {},
+                         position, endPosition);
   }
 }
 
@@ -863,9 +857,10 @@ MathParseTask<bool> MathMacroExpander::expandOnce(TokenStream& stream) {
     co_return true;
   }
 
-  if (actualCommand == QStringLiteral("\\def") || actualCommand == QStringLiteral("\\gdef") || actualCommand == QStringLiteral("\\edef") ||
-      actualCommand == QStringLiteral("\\xdef")) {
-    const bool global = globalPrefix || actualCommand == QStringLiteral("\\gdef") || actualCommand == QStringLiteral("\\xdef");
+  if (actualCommand == QStringLiteral("\\def") || actualCommand == QStringLiteral("\\gdef") ||
+      actualCommand == QStringLiteral("\\edef") || actualCommand == QStringLiteral("\\xdef")) {
+    const bool global =
+        globalPrefix || actualCommand == QStringLiteral("\\gdef") || actualCommand == QStringLiteral("\\xdef");
     const QString name = stream.consumeCommandArgument();
     const QString parameterText = stream.consumeUntilGroupStart();
     QString replacement = stream.consumeArgText();
@@ -921,13 +916,15 @@ MathParseTask<bool> MathMacroExpander::expandOnce(TokenStream& stream) {
     co_return true;
   }
 
-  if (actualCommand == QStringLiteral("\\dotso") || actualCommand == QStringLiteral("\\dotsc") || actualCommand == QStringLiteral("\\cdots")) {
+  if (actualCommand == QStringLiteral("\\dotso") || actualCommand == QStringLiteral("\\dotsc") ||
+      actualCommand == QStringLiteral("\\cdots")) {
     const QString next = stream.future().text;
     QString replacement;
     if (actualCommand == QStringLiteral("\\cdots")) {
       replacement = spaceAfterDotsToken(next) ? QStringLiteral("\\@cdots\\,") : QStringLiteral("\\@cdots");
     } else if (actualCommand == QStringLiteral("\\dotsc")) {
-      replacement = spaceAfterDotsToken(next) && next != QStringLiteral(",") ? QStringLiteral("\\ldots\\,") : QStringLiteral("\\ldots");
+      replacement = spaceAfterDotsToken(next) && next != QStringLiteral(",") ? QStringLiteral("\\ldots\\,")
+                                                                             : QStringLiteral("\\ldots");
     } else {
       replacement = spaceAfterDotsToken(next) ? QStringLiteral("\\ldots\\,") : QStringLiteral("\\ldots");
     }
@@ -947,7 +944,9 @@ MathParseTask<bool> MathMacroExpander::expandOnce(TokenStream& stream) {
       next = stream.popToken();
     } else if (next.text == QStringLiteral("`")) {
       next = stream.popToken();
-      const QChar ch = next.text.startsWith(QLatin1Char('\\')) && next.text.size() > 1 ? next.text.at(1) : (next.text.isEmpty() ? QChar() : next.text.at(0));
+      const QChar ch = next.text.startsWith(QLatin1Char('\\')) && next.text.size() > 1
+                           ? next.text.at(1)
+                           : (next.text.isEmpty() ? QChar() : next.text.at(0));
       stream.pushTokens(reversedTokensFromString(QStringLiteral("\\text{%1}").arg(ch), token.position));
       countExpansion(1, token.position, token.endPosition);
       co_return true;
@@ -988,4 +987,4 @@ MathParseTask<bool> MathMacroExpander::expandOnce(TokenStream& stream) {
   co_return true;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

@@ -32,18 +32,18 @@ namespace muffin::mermaid::quadrant {
 // hex / non-numeric radius / non-Npx stroke-width, matching upstream errors.
 // Used by both classDef and point-inline stylesOpt (inline overrides classDef).
 struct QuadrantStyles {
-  QString color;         // hex (fill) or empty
-  QString strokeColor;   // hex or empty
-  QString strokeWidth;   // "Npx" or empty
-  qreal radius = -1.0;   // -1 = unset; JS parseInt result is stored as Number
+  QString color;       // hex (fill) or empty
+  QString strokeColor; // hex or empty
+  QString strokeWidth; // "Npx" or empty
+  qreal radius = -1.0; // -1 = unset; JS parseInt result is stored as Number
 };
 
 struct QuadrantPoint {
   QString label;
-  double x = 0.0;  // [0,1]
-  double y = 0.0;  // [0,1]
-  QString className;        // set via `<label>:::<class>: [...]`; "" when unclassed
-  QuadrantStyles inlineStyles;  // set via `[x, y] key: value, ...` after the bracket
+  double x = 0.0;              // [0,1]
+  double y = 0.0;              // [0,1]
+  QString className;           // set via `<label>:::<class>: [...]`; "" when unclassed
+  QuadrantStyles inlineStyles; // set via `[x, y] key: value, ...` after the bracket
 };
 
 struct QuadrantClassDef {
@@ -59,7 +59,7 @@ struct QuadrantData {
   QString xAxisLeftText, xAxisRightText;
   QString yAxisBottomText, yAxisTopText;
   QString quadrant1Text, quadrant2Text, quadrant3Text, quadrant4Text;
-  QVector<QuadrantPoint> points;  // source order; the scene reverses for render
+  QVector<QuadrantPoint> points; // source order; the scene reverses for render
   QVector<QuadrantClassDef> classDefs;
 };
 
@@ -73,4 +73,4 @@ struct QuadrantParseError : std::runtime_error {
   QuadrantParseError(const QString& message, int line = 0);
 };
 
-}  // namespace muffin::mermaid::quadrant
+} // namespace muffin::mermaid::quadrant

@@ -12,4 +12,4 @@ namespace muffin {
 cmark_node* finishCmarkParse(cmark_parser* parser);
 cmark_node* parseCmarkDocument(const char* bytes, size_t length, int options);
 
-}  // namespace muffin
+} // namespace muffin

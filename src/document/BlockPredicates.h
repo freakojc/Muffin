@@ -12,8 +12,8 @@ namespace muffin {
 // render and editor subsystems (previously duplicated verbatim in BlockLayout/InputController/
 // BlockEditContext).
 inline bool isLiteralBlockType(BlockType type) {
-  return type == BlockType::CodeFence || type == BlockType::MathBlock ||
-         type == BlockType::HtmlBlock || type == BlockType::FrontMatter;
+  return type == BlockType::CodeFence || type == BlockType::MathBlock || type == BlockType::HtmlBlock ||
+         type == BlockType::FrontMatter;
 }
 
 // Inline-editable text blocks (the caret is anchored as a visible/source offset into the block's
@@ -50,12 +50,12 @@ inline qsizetype definitionSelectableLength(const MarkdownNode& node) {
   if (!definition.markerRange.isValid()) {
     return 0;
   }
-  const qsizetype end = definition.sourceRange.isValid()
-                            ? definition.sourceRange.end
-                            : qMax(definition.markerRange.end,
-                                   qMax(definition.destinationRange.end,
-                                        qMax(definition.titleRange.end, definition.noteRange.end)));
+  const qsizetype end =
+      definition.sourceRange.isValid()
+          ? definition.sourceRange.end
+          : qMax(definition.markerRange.end,
+                 qMax(definition.destinationRange.end, qMax(definition.titleRange.end, definition.noteRange.end)));
   return qMax<qsizetype>(0, end - definition.markerRange.start);
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -14,18 +14,24 @@
 namespace {
 
 MarkdownNode* findLiteral(MarkdownNode& node, BlockType type) {
-  if (node.type() == type) return &node;
+  if (node.type() == type)
+    return &node;
   for (const auto& child : node.children())
-    if (auto* found = findLiteral(*child, type)) return found;
+    if (auto* found = findLiteral(*child, type))
+      return found;
   return nullptr;
 }
 
 HitTestResult::Zone sourceZone(BlockType type) {
   switch (type) {
-    case BlockType::MathBlock: return HitTestResult::Zone::Math;
-    case BlockType::HtmlBlock: return HitTestResult::Zone::Html;
-    case BlockType::FrontMatter: return HitTestResult::Zone::FrontMatter;
-    default: return HitTestResult::Zone::Code;
+  case BlockType::MathBlock:
+    return HitTestResult::Zone::Math;
+  case BlockType::HtmlBlock:
+    return HitTestResult::Zone::Html;
+  case BlockType::FrontMatter:
+    return HitTestResult::Zone::FrontMatter;
+  default:
+    return HitTestResult::Zone::Code;
   }
 }
 
@@ -82,54 +88,70 @@ void verifyRoundTrip(Fixture& fixture) {
           "IME font must be the source block's resolved font");
   for (qsizetype offset = 0; offset <= source.size(); ++offset) {
     // A UTF-16 surrogate pair and a combining sequence have one visual caret.
-    if (offset < source.size() && (source[offset].isLowSurrogate() || source[offset].isMark())) continue;
+    if (offset < source.size() && (source[offset].isLowSurrogate() || source[offset].isMark()))
+      continue;
     CursorPosition position;
     position.blockId = position.text.nodeId = fixture.id;
     position.text.textOffset = offset;
     const auto caret = fixture.view.hitForCursorPosition(position);
     const auto clicked = fixture.view.hitTest(fixture.view.mapDocumentToViewport(caret.cursorRect.center()));
-    require(clicked.blockId == fixture.id && clicked.textOffset == offset,
-            QStringLiteral("caret/click offset mismatch: type=%1 zoom=%2 offset=%3 hit=%4 caret=(%5,%6) content=(%7,%8,%9) direct=%10")
-                .arg(int(fixture.node().type())).arg(theme.zoomPercent()).arg(offset).arg(clicked.textOffset)
-                .arg(caret.cursorRect.x()).arg(caret.cursorRect.y())
-                .arg(fixture.block().literalContentRect(theme).x()).arg(fixture.block().literalContentRect(theme).y())
-                .arg(fixture.block().literalContentRect(theme).width())
-                .arg(fixture.block().literalTextLayout(theme).offsetAtPoint(caret.cursorRect.center() - fixture.block().literalContentRect(theme).topLeft())));
+    require(
+        clicked.blockId == fixture.id && clicked.textOffset == offset,
+        QStringLiteral(
+            "caret/click offset mismatch: type=%1 zoom=%2 offset=%3 hit=%4 caret=(%5,%6) content=(%7,%8,%9) direct=%10")
+            .arg(int(fixture.node().type()))
+            .arg(theme.zoomPercent())
+            .arg(offset)
+            .arg(clicked.textOffset)
+            .arg(caret.cursorRect.x())
+            .arg(caret.cursorRect.y())
+            .arg(fixture.block().literalContentRect(theme).x())
+            .arg(fixture.block().literalContentRect(theme).y())
+            .arg(fixture.block().literalContentRect(theme).width())
+            .arg(fixture.block().literalTextLayout(theme).offsetAtPoint(
+                caret.cursorRect.center() - fixture.block().literalContentRect(theme).topLeft())));
     requireNear(clicked.cursorRect.x(), caret.cursorRect.x(), "click and programmatic caret x");
     requireNear(clicked.cursorRect.y(), caret.cursorRect.y(), "click and programmatic caret y");
     const int line = fixture.block().literalVisualLineIndexForOffset(offset, theme);
-    require(fixture.block().literalOffsetAtVisualLineX(line,
-                caret.cursorRect.left() - fixture.block().literalContentRect(theme).left(), theme) == offset,
+    require(fixture.block().literalOffsetAtVisualLineX(
+                line, caret.cursorRect.left() - fixture.block().literalContentRect(theme).left(), theme) == offset,
             "vertical navigation must use the painted source line and column");
   }
 
   qsizetype offset = qMin<qsizetype>(7, source.size());
-  while (offset < source.size() && (source[offset].isLowSurrogate() || source[offset].isMark())) ++offset;
+  while (offset < source.size() && (source[offset].isLowSurrogate() || source[offset].isMark()))
+    ++offset;
   fixture.cursor(offset);
-  const auto clicked = fixture.view.hitTest(fixture.view.mapDocumentToViewport(fixture.view.effectiveCursorRect().center()));
+  const auto clicked =
+      fixture.view.hitTest(fixture.view.mapDocumentToViewport(fixture.view.effectiveCursorRect().center()));
   fixture.controller.activateHit(clicked);
   const QRectF before = fixture.view.hitForCursorPosition(fixture.controller.selection().cursorPosition()).cursorRect;
   requireNear(fixture.view.effectiveCursorRect().x(), before.x(), "activated click caret x");
-  require(fixture.controller.inputController().insertText(QStringLiteral("Z")), "typing at a clicked source caret should work");
+  require(fixture.controller.inputController().insertText(QStringLiteral("Z")),
+          "typing at a clicked source caret should work");
   QString expected = source;
   expected.insert(offset, QLatin1Char('Z'));
   fixture.id = fixture.controller.selection().cursorPosition().blockId;
   require(fixture.node().literal() == expected,
           QStringLiteral("typing must edit the visible caret: type=%1 clicked=%2 expected=[%3] actual=[%4]")
-              .arg(int(fixture.node().type())).arg(clicked.textOffset).arg(expected, fixture.node().literal()));
+              .arg(int(fixture.node().type()))
+              .arg(clicked.textOffset)
+              .arg(expected, fixture.node().literal()));
   require(fixture.controller.inputController().deleteBackward(), "source backspace should work");
   fixture.id = fixture.controller.selection().cursorPosition().blockId;
   require(fixture.node().literal() == source, "backspace should remove precisely the character just inserted");
   require(fixture.session.markdownText().toString() == markdownBefore,
           QStringLiteral("typing/backspace must preserve surrounding Markdown: type=%1 before=[%2] after=[%3]")
-              .arg(int(fixture.node().type())).arg(markdownBefore, fixture.session.markdownText().toString()));
+              .arg(int(fixture.node().type()))
+              .arg(markdownBefore, fixture.session.markdownText().toString()));
 }
 
 void testRealThemesAndZoom() {
   const QString line = QStringLiteral("abcdefghijklmnopqrstuvwxyz").repeated(3);
   for (const QString id : {QStringLiteral("github"), QStringLiteral("newsprint"), QStringLiteral("night"),
-                          QStringLiteral("pixyll"), QStringLiteral("whitey")}) {
-    require(QFile::exists(QStringLiteral(":/themes/%1.css").arg(id)), "real theme resources must be embedded in this test");
+                           QStringLiteral("pixyll"), QStringLiteral("whitey")}) {
+    require(QFile::exists(QStringLiteral(":/themes/%1.css").arg(id)),
+            "real theme resources must be embedded in this test");
     const auto definition = ThemeDefinition::builtIn(id);
     require(definition.has_value(), "built-in theme must load instead of silently falling back");
     for (int zoom : {100, 125, 150}) {
@@ -149,15 +171,19 @@ void testRealThemesAndZoom() {
 
 void testScopedCssAndOtherSourceBlocks() {
   const auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
-      "pre{font-family:Consolas;font-size:12px;line-height:1.5}h1 + pre{font-size:24px;line-height:2}", "source-local", {}));
+      "pre{font-family:Consolas;font-size:12px;line-height:1.5}h1 + pre{font-size:24px;line-height:2}", "source-local",
+      {}));
   Fixture scoped(theme, QStringLiteral("# Heading\n\n```\nabcdefghijklmnop\n1234567890\n```"), BlockType::CodeFence);
-  require(scoped.block().literalFont() != scoped.view.theme().codeFont(), "fixture must exercise live-node CSS rather than global style");
+  require(scoped.block().literalFont() != scoped.view.theme().codeFont(),
+          "fixture must exercise live-node CSS rather than global style");
   verifyRoundTrip(scoped);
   Fixture html(RenderTheme::pixyll(), QStringLiteral("  <div>\n  abcdefghijklmnop\n  </div>\n"), BlockType::HtmlBlock);
   verifyRoundTrip(html);
-  Fixture frontMatter(RenderTheme::github(), QStringLiteral("---\ntitle: abcdefghijklmnop\nkey: value\n---\n"), BlockType::FrontMatter);
+  Fixture frontMatter(RenderTheme::github(), QStringLiteral("---\ntitle: abcdefghijklmnop\nkey: value\n---\n"),
+                      BlockType::FrontMatter);
   verifyRoundTrip(frontMatter);
-  Fixture invalidMath(RenderTheme::pixyll(), QStringLiteral("$$\n\\unknowncommand{{\nabcdefghijklmnop\n$$"), BlockType::MathBlock);
+  Fixture invalidMath(RenderTheme::pixyll(), QStringLiteral("$$\n\\unknowncommand{{\nabcdefghijklmnop\n$$"),
+                      BlockType::MathBlock);
   verifyRoundTrip(invalidMath);
   Fixture unicode(RenderTheme::github(), QString::fromUtf8("```\n中文\tfoo😀ébar\n\nend\n```"), BlockType::CodeFence);
   verifyRoundTrip(unicode);
@@ -165,8 +191,10 @@ void testScopedCssAndOtherSourceBlocks() {
 
 void testSourcePaintUsesTheMeasuredGlyphs() {
   const auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
-      "pre{font-family:Consolas;font-size:19px;line-height:2;background:white;border:0;padding:8px;color:black}", "source-paint", {}));
-  Fixture fixture(theme, QStringLiteral("```\nabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz\nxyz123\n```"), BlockType::CodeFence);
+      "pre{font-family:Consolas;font-size:19px;line-height:2;background:white;border:0;padding:8px;color:black}",
+      "source-paint", {}));
+  Fixture fixture(theme, QStringLiteral("```\nabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz\nxyz123\n```"),
+                  BlockType::CodeFence);
   const auto& block = fixture.block();
   const auto content = block.literalContentRect(fixture.view.theme());
   QImage actual(900, 800, QImage::Format_ARGB32_Premultiplied), expected(actual.size(), actual.format());
@@ -189,7 +217,8 @@ void testSourcePaintUsesTheMeasuredGlyphs() {
       layout.beginLayout();
       for (;;) {
         auto line = layout.createLine();
-        if (!line.isValid()) break;
+        if (!line.isValid())
+          break;
         line.setLineWidth(content.width());
         const qreal height = qMax(block.literalLineHeight(), line.height());
         line.setPosition({0, y + (height - line.height()) * .5});
@@ -208,8 +237,10 @@ void testSelectionAndLayoutChanges() {
   const QString source = QStringLiteral("alpha beta gamma delta epsilon zeta eta theta ").repeated(3) +
                          QStringLiteral("\nsecond line with trailing spaces   \n\nend");
   for (const auto type : {BlockType::MathBlock, BlockType::CodeFence}) {
-    Fixture fixture(RenderTheme::pixyll(), type == BlockType::MathBlock
-        ? QStringLiteral("$$\n%1\n$$").arg(source) : QStringLiteral("```\n%1\n```").arg(source), type);
+    Fixture fixture(RenderTheme::pixyll(),
+                    type == BlockType::MathBlock ? QStringLiteral("$$\n%1\n$$").arg(source)
+                                                 : QStringLiteral("```\n%1\n```").arg(source),
+                    type);
     const auto& theme = fixture.view.theme();
     const auto first = fixture.block().literalVisualCursorRect(2, theme);
     const auto last = fixture.block().literalVisualCursorRect(7, theme);
@@ -244,7 +275,8 @@ int pixelsNearColor(const QImage& image, QRect area, const QColor& color) {
   for (int y = area.top(); y <= area.bottom(); ++y)
     for (int x = area.left(); x <= area.right(); ++x) {
       const auto pixel = image.pixelColor(x, y);
-      if (qAbs(pixel.red() - color.red()) + qAbs(pixel.green() - color.green()) + qAbs(pixel.blue() - color.blue()) < 45)
+      if (qAbs(pixel.red() - color.red()) + qAbs(pixel.green() - color.green()) + qAbs(pixel.blue() - color.blue()) <
+          45)
         ++result;
     }
   return result;
@@ -252,11 +284,12 @@ int pixelsNearColor(const QImage& image, QRect area, const QColor& color) {
 
 void testCodeHighlightColorsReachPaintedGlyphs() {
   const QString source = QStringLiteral("#include <QApplication>\n\nint main(int argc, char** argv) {\n"
-      "  // 中文 😀\n  QApplication app(argc, argv);\n  return app.exec();\n}\n");
+                                        "  // 中文 😀\n  QApplication app(argc, argv);\n  return app.exec();\n}\n");
   for (const auto& name : {QStringLiteral("github"), QStringLiteral("night")}) {
     const auto definition = ThemeDefinition::builtIn(name);
     require(definition.has_value(), "code highlight fixture theme exists");
-    Fixture fixture(RenderTheme::fromDefinition(*definition), QStringLiteral("```cpp\n%1```\n").arg(source), BlockType::CodeFence, 900);
+    Fixture fixture(RenderTheme::fromDefinition(*definition), QStringLiteral("```cpp\n%1```\n").arg(source),
+                    BlockType::CodeFence, 900);
     const auto& theme = fixture.view.theme();
     const auto& block = fixture.block();
     require(!block.codeHighlightSpans().isEmpty(), "C++ syntax parser supplies highlight spans to the block");
@@ -267,7 +300,8 @@ void testCodeHighlightColorsReachPaintedGlyphs() {
       block.paint(painter, theme, 0);
     }
     if (const auto path = qEnvironmentVariable("MUFFIN_CODE_HIGHLIGHT_SCREENSHOT"); !path.isEmpty())
-      require(image.save(path + QLatin1Char('.') + name + QStringLiteral(".png")), "capture actual code highlight painting");
+      require(image.save(path + QLatin1Char('.') + name + QStringLiteral(".png")),
+              "capture actual code highlight painting");
     const auto requireTokenColor = [&](const QString& token, CodeHighlightRole role) {
       const auto start = source.indexOf(token);
       const auto color = theme.codeHighlightColor(role);
@@ -308,14 +342,17 @@ QImage sourcePaintOracle(const QString& text, const QFont& font, qreal width, qr
     layout.setTextOption(option);
     QList<TextLayout::FormatRange> local;
     for (const auto& range : formats) {
-      const int first = qMax(start, range.start), last = qMin(start + int(paragraph.size()), range.start + range.length);
-      if (first < last) local.append({first - start, last - first, range.format});
+      const int first = qMax(start, range.start),
+                last = qMin(start + int(paragraph.size()), range.start + range.length);
+      if (first < last)
+        local.append({first - start, last - first, range.format});
     }
     layout.setFormats(local);
     layout.beginLayout();
     for (;;) {
       auto line = layout.createLine();
-      if (!line.isValid()) break;
+      if (!line.isValid())
+        break;
       line.setLineWidth(width);
       const auto height = qMax(lineHeight, line.height());
       line.setPosition({0, y + (height - line.height()) * .5});
@@ -347,23 +384,32 @@ void testSourcePaintFormatCascadeAndInvalidation() {
     QTextCharFormat base, syntax;
     base.setForeground(Qt::black);
     syntax.setForeground(color);
-    const QList<TextLayout::FormatRange> formats{{0, int(source.size()), base}, {keyword, 6, syntax},
-        {keyword + 2, 2, base}, {keyword + 2, 13, diagnostic}};
+    const QList<TextLayout::FormatRange> formats{
+        {0, int(source.size()), base}, {keyword, 6, syntax}, {keyword + 2, 2, base}, {keyword + 2, 13, diagnostic}};
     // Independent expected display ranges, including the hole occupied by IME.
     const QList<TextLayout::FormatRange> expectedFormats{
-        {0, int(display.size()), base}, {keyword, 4, syntax}, {keyword + 7, 2, syntax}, {keyword + 2, 2, base},
-        {keyword + 2, 2, diagnostic}, {keyword + 7, 11, diagnostic}, {keyword + 4, 3, ime}};
+        {0, int(display.size()), base}, {keyword, 4, syntax},          {keyword + 7, 2, syntax}, {keyword + 2, 2, base},
+        {keyword + 2, 2, diagnostic},   {keyword + 7, 11, diagnostic}, {keyword + 4, 3, ime}};
     const auto expected = sourcePaintOracle(display, font, 135, 28, expectedFormats, Qt::black);
     for (int repeat = 0; repeat < 2; ++repeat) {
       QImage actual(expected.size(), expected.format());
       actual.fill(Qt::white);
-      { QPainter painter(&actual); painter.setPen(Qt::black); layout.draw(painter, {8, 8}, formats); }
-      require(actual == expected, "cached source formats merge syntax, diagnostics and IME across physical lines and wrapping");
+      {
+        QPainter painter(&actual);
+        painter.setPen(Qt::black);
+        layout.draw(painter, {8, 8}, formats);
+      }
+      require(actual == expected,
+              "cached source formats merge syntax, diagnostics and IME across physical lines and wrapping");
     }
   }
   QImage plain(500, 700, QImage::Format_ARGB32_Premultiplied);
   plain.fill(Qt::white);
-  { QPainter painter(&plain); painter.setPen(Qt::black); layout.draw(painter, {8, 8}, {}); }
+  {
+    QPainter painter(&plain);
+    painter.setPen(Qt::black);
+    layout.draw(painter, {8, 8}, {});
+  }
   require(plain == sourcePaintOracle(display, font, 135, 28, {{keyword + 4, 3, ime}}, Qt::black),
           "removing source styles discards cached colors and diagnostics while retaining IME");
 }
@@ -382,18 +428,33 @@ void testClippedSourcePaintMatchesFullPaint() {
                            {row.size() * 30 + 8, QStringLiteral("COMPOSITION"), {{0, 11, ime}}, 5});
   for (const QColor color : {QColor(Qt::blue), QColor(Qt::magenta)}) {
     syntax.setForeground(color);
-    const QList<TextLayout::FormatRange> formats{{0, int(source.size()), base}, {5, int(source.size() - 10), syntax},
-        {int(row.size() * 25), int(row.size() * 12), diagnostic}, {int(row.size() * 31 + 4), 8, base}};
+    const QList<TextLayout::FormatRange> formats{{0, int(source.size()), base},
+                                                 {5, int(source.size() - 10), syntax},
+                                                 {int(row.size() * 25), int(row.size() * 12), diagnostic},
+                                                 {int(row.size() * 31 + 4), 8, base}};
     QImage full(200, qCeil(layout.height()) + 16, QImage::Format_ARGB32_Premultiplied);
     full.fill(Qt::white);
-    { QPainter painter(&full); painter.setPen(Qt::black); layout.draw(painter, {8, 8}, formats); }
+    {
+      QPainter painter(&full);
+      painter.setPen(Qt::black);
+      layout.draw(painter, {8, 8}, formats);
+    }
     for (int y : {0, int(layout.height() / 2) + 17, int(layout.height()) - 120, int(layout.height()) + 20}) {
       QImage clipped(200, 100, full.format()), expected(200, 100, full.format());
-      clipped.fill(Qt::white); expected.fill(Qt::white);
+      clipped.fill(Qt::white);
+      expected.fill(Qt::white);
       const QRect dirty(3, 9, 181, 71);
-      { QPainter painter(&expected); painter.setClipRect(dirty); painter.drawImage(0, -y, full); }
-      { QPainter painter(&clipped); painter.setPen(Qt::black); painter.setClipRect(dirty);
-        layout.draw(painter, {8, 8 - qreal(y)}, formats); }
+      {
+        QPainter painter(&expected);
+        painter.setClipRect(dirty);
+        painter.drawImage(0, -y, full);
+      }
+      {
+        QPainter painter(&clipped);
+        painter.setPen(Qt::black);
+        painter.setClipRect(dirty);
+        layout.draw(painter, {8, 8 - qreal(y)}, formats);
+      }
       require(clipped == expected, "clipped source must match a full paint through wrapped rows, diagnostics and IME");
     }
   }
@@ -410,11 +471,14 @@ void testOverflowingTrailingSpaceCarets() {
         "pre{font-family:monospace;font-size:20px;line-height:1.5;padding:0}", "source-overflow", {});
     bool exercisedOverflow = false;
     for (int width = 300; width <= 460 && !exercisedOverflow; ++width) {
-      Fixture fixture(RenderTheme::fromDefinition(themeDefinition), type == BlockType::MathBlock
-          ? QStringLiteral("$$\n%1\n$$").arg(source) : QStringLiteral("```\n%1\n```").arg(source), type, width);
+      Fixture fixture(RenderTheme::fromDefinition(themeDefinition),
+                      type == BlockType::MathBlock ? QStringLiteral("$$\n%1\n$$").arg(source)
+                                                   : QStringLiteral("```\n%1\n```").arg(source),
+                      type, width);
       const auto& theme = fixture.view.theme();
       const auto caret = fixture.block().literalVisualCursorRect(firstLine.size(), theme);
-      if (caret.left() <= fixture.block().rect().right() + 2) continue;
+      if (caret.left() <= fixture.block().rect().right() + 2)
+        continue;
       exercisedOverflow = true;
       verifyRoundTrip(fixture);
     }
@@ -424,7 +488,8 @@ void testOverflowingTrailingSpaceCarets() {
 
 void testHorizontalScrollAndNavigation() {
   SettingsOverride wrapOff("markdown/codeBlockWrap", false);
-  Fixture fixture(RenderTheme::github(), QStringLiteral("```\n%1\n%1\n```").arg(QString(180, QLatin1Char('a'))), BlockType::CodeFence);
+  Fixture fixture(RenderTheme::github(), QStringLiteral("```\n%1\n%1\n```").arg(QString(180, QLatin1Char('a'))),
+                  BlockType::CodeFence);
   fixture.cursor(100);
   const auto& theme = fixture.view.theme();
   const auto& block = fixture.block();
@@ -434,10 +499,13 @@ void testHorizontalScrollAndNavigation() {
   const auto clicked = fixture.view.hitTest(fixture.view.mapDocumentToViewport(visible.center()));
   require(clicked.textOffset == 100, "scrolled visible caret must hit the same edit offset");
   requireNear(visible.x(), block.literalVisualCursorRect(100, theme).x() - offset, "horizontal caret transform");
-  require(pressKey(fixture.controller.inputController(), &fixture.view, Qt::Key_Down), "Down inside source should work");
-  require(fixture.controller.selection().cursorPosition().text.textOffset == 281, "Down should preserve the actual code column");
+  require(pressKey(fixture.controller.inputController(), &fixture.view, Qt::Key_Down),
+          "Down inside source should work");
+  require(fixture.controller.selection().cursorPosition().text.textOffset == 281,
+          "Down should preserve the actual code column");
   require(pressKey(fixture.controller.inputController(), &fixture.view, Qt::Key_Up), "Up inside source should work");
-  require(fixture.controller.selection().cursorPosition().text.textOffset == 100, "Up should return to the original column");
+  require(fixture.controller.selection().cursorPosition().text.textOffset == 100,
+          "Up should return to the original column");
 
   const QString committed = fixture.node().literal();
   QInputMethodEvent composition(QString(50, QLatin1Char('M')), {{QInputMethodEvent::Cursor, 50, 1, {}}});
@@ -462,10 +530,10 @@ void testHorizontalScrollAndNavigation() {
 
 void testPreeditReflowsSourceAndCommitsAtCaret() {
   for (const auto type : {BlockType::MathBlock, BlockType::CodeFence, BlockType::HtmlBlock, BlockType::FrontMatter}) {
-    const QString markdown = type == BlockType::MathBlock ? QStringLiteral("$$\nabcdefghijk\n$$") :
-        type == BlockType::HtmlBlock ? QStringLiteral("<div>abcdefghijk</div>\n") :
-        type == BlockType::FrontMatter ? QStringLiteral("---\ntitle: abcdefghijk\n---") :
-        QStringLiteral("```\nabcdefghijk\n```");
+    const QString markdown = type == BlockType::MathBlock     ? QStringLiteral("$$\nabcdefghijk\n$$")
+                             : type == BlockType::HtmlBlock   ? QStringLiteral("<div>abcdefghijk</div>\n")
+                             : type == BlockType::FrontMatter ? QStringLiteral("---\ntitle: abcdefghijk\n---")
+                                                              : QStringLiteral("```\nabcdefghijk\n```");
     Fixture fixture(RenderTheme::pixyll(), markdown, type, 420, 125);
     const qsizetype offset = type == BlockType::HtmlBlock ? 6 : 3;
     fixture.cursor(offset);
@@ -494,13 +562,14 @@ void testPreeditReflowsSourceAndCommitsAtCaret() {
     QTextCharFormat enlarged;
     enlarged.setFontPointSize(48);
     QInputMethodEvent reformat(composition, {{QInputMethodEvent::Cursor, 8, 1, {}},
-        {QInputMethodEvent::TextFormat, 0, int(composition.size()), enlarged}});
+                                             {QInputMethodEvent::TextFormat, 0, int(composition.size()), enlarged}});
     QApplication::sendEvent(&fixture.view, &reformat);
     require(fixture.block().literalPreeditCursorRect(fixture.view.theme()).height() > moved.height(),
             "same-text IME format changes must reshape source and caret together");
     QInputMethodEvent cancel;
     QApplication::sendEvent(&fixture.view, &cancel);
-    require(!fixture.block().literalTextLayout(fixture.view.theme()).hasPreedit(), "cancel must remove the display splice");
+    require(!fixture.block().literalTextLayout(fixture.view.theme()).hasPreedit(),
+            "cancel must remove the display splice");
     require(fixture.session.markdownText().toString() == before, "cancel must preserve committed text");
     QInputMethodEvent commit(QStringLiteral("next"), {{QInputMethodEvent::Cursor, 2, 1, {}}});
     commit.setCommitString(QStringLiteral("XYZ"));
@@ -517,7 +586,7 @@ void testPreeditReflowsSourceAndCommitsAtCaret() {
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");

@@ -58,4 +58,4 @@ private:
   int unreadable_ = 0;
 };
 
-}  // namespace muffin
+} // namespace muffin

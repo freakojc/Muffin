@@ -10,7 +10,6 @@
 #include <QScrollBar>
 #include <QSettings>
 
-
 #include "render/BlockLayout.h"
 #include "document/TopLevelRangeChange.h"
 
@@ -63,8 +62,7 @@ void testRefreshVisibleBlocksRebuildsStampedBlock() {
     SettingsOverride wrapOn("markdown/codeBlockWrap", true);
     require(view.refreshVisibleBlocks(session.document()), "second refresh should succeed");
     const BlockLayout* restored = view.blockLayoutForNode(fence->id());
-    require(qAbs(restored->rect().height() - wrappedHeight) < 0.5,
-            "wrap-on rebuild must restore the wrapped height");
+    require(qAbs(restored->rect().height() - wrappedHeight) < 0.5, "wrap-on rebuild must restore the wrapped height");
   }
 }
 
@@ -92,12 +90,12 @@ void testRefreshBlocksStillHonorsStamp() {
 // Records the region Qt asks the viewport to repaint. QWidget::grab() full-renders, so dirty-rect
 // bugs are invisible to pixel captures — the only honest observable is the paint event's region.
 class PaintRegionSpy final : public QObject {
- public:
+public:
   using QObject::QObject;
   QRect boundingRect;
   bool sawPaint = false;
 
- protected:
+protected:
   bool eventFilter(QObject* watched, QEvent* event) override {
     if (event->type() == QEvent::Paint) {
       sawPaint = true;
@@ -126,8 +124,9 @@ void testRefreshTopLevelRangeDirtiesCaretRects() {
   view.repaint();
   QApplication::processEvents();
 
-  const QRect caretViewportRect =
-      view.effectiveCursorRect().translated(0.0, -static_cast<qreal>(view.verticalScrollBar()->value())).toAlignedRect();
+  const QRect caretViewportRect = view.effectiveCursorRect()
+                                      .translated(0.0, -static_cast<qreal>(view.verticalScrollBar()->value()))
+                                      .toAlignedRect();
 
   PaintRegionSpy spy;
   view.viewport()->installEventFilter(&spy);
@@ -147,7 +146,7 @@ void testRefreshTopLevelRangeDirtiesCaretRects() {
   view.viewport()->removeEventFilter(&spy);
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {

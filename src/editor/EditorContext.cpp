@@ -25,4 +25,4 @@ BlockEditContextResolver EditorContext::contextResolver() const {
   return BlockEditContextResolver(session, selection);
 }
 
-}  // namespace muffin
+} // namespace muffin

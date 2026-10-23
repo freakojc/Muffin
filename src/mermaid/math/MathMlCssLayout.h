@@ -13,15 +13,7 @@
 
 namespace muffin::math {
 
-enum class MathCssBoxRole {
-  Root,
-  Row,
-  Glyph,
-  Fraction,
-  Radical,
-  SupSub,
-  Array
-};
+enum class MathCssBoxRole { Root, Row, Glyph, Fraction, Radical, SupSub, Array };
 
 struct MathCssBox {
   MathCssBoxRole role = MathCssBoxRole::Row;
@@ -92,16 +84,9 @@ struct MathCssRowOperation {
   qreal lineAscent = 0.0;
 };
 
-enum class MathCssVerticalGlyphKind {
-  FixedVariant,
-  Assembly
-};
+enum class MathCssVerticalGlyphKind { FixedVariant, Assembly };
 
-enum class MathCssVerticalScalePolicy {
-  PreserveVariantScale,
-  FitTargetExtent,
-  FitSelectedExtent
-};
+enum class MathCssVerticalScalePolicy { PreserveVariantScale, FitTargetExtent, FitSelectedExtent };
 
 struct MathCssVerticalGlyphPart {
   quint32 glyphIndex = 0;
@@ -115,8 +100,7 @@ struct MathCssVerticalGlyphPart {
 
 struct MathCssVerticalGlyphOperation {
   MathCssVerticalGlyphKind kind = MathCssVerticalGlyphKind::FixedVariant;
-  MathCssVerticalScalePolicy scalePolicy =
-      MathCssVerticalScalePolicy::PreserveVariantScale;
+  MathCssVerticalScalePolicy scalePolicy = MathCssVerticalScalePolicy::PreserveVariantScale;
   bool clipToBlockExtent = false;
   QRectF target;
   QString character;
@@ -256,17 +240,9 @@ struct MathCssLeftRightOperation {
   qreal lineAscent = 0.0;
 };
 
-enum class MathCssHorizontalGlyphKind {
-  FixedVariant,
-  Assembly,
-  ShapedText
-};
+enum class MathCssHorizontalGlyphKind { FixedVariant, Assembly, ShapedText };
 
-enum class MathCssHorizontalScalePolicy {
-  StretchToTarget,
-  PreserveVariantScale,
-  StretchInkToPlacementExtent
-};
+enum class MathCssHorizontalScalePolicy { StretchToTarget, PreserveVariantScale, StretchInkToPlacementExtent };
 
 struct MathCssHorizontalGlyphPart {
   quint32 glyphIndex = 0;
@@ -279,8 +255,7 @@ struct MathCssHorizontalGlyphPart {
 
 struct MathCssHorizontalGlyphOperation {
   MathCssHorizontalGlyphKind kind = MathCssHorizontalGlyphKind::FixedVariant;
-  MathCssHorizontalScalePolicy scalePolicy =
-      MathCssHorizontalScalePolicy::StretchToTarget;
+  MathCssHorizontalScalePolicy scalePolicy = MathCssHorizontalScalePolicy::StretchToTarget;
   QRectF target;
   QString character;
   qreal selectionTarget = 0.0;
@@ -310,27 +285,11 @@ struct MathCssAccentOperation {
   qreal lineAscent = 0.0;
 };
 
-enum class MathCssPaintKind {
-  GlyphRun,
-  Row,
-  LeftRight,
-  MiddleDelimiter,
-  Fraction,
-  Radical,
-  SupSub,
-  Array,
-  Accent
-};
+enum class MathCssPaintKind { GlyphRun, Row, LeftRight, MiddleDelimiter, Fraction, Radical, SupSub, Array, Accent };
 
-using MathCssPaintPayload = std::variant<MathCssGlyphRunGroupOperation,
-                                         MathCssRowOperation,
-                                         MathCssLeftRightOperation,
-                                         MathCssMiddlePaintOperation,
-                                         MathCssFractionPaint,
-                                         MathCssScriptOperation,
-                                         MathCssRadicalOperation,
-                                         MathCssArrayOperation,
-                                         MathCssAccentOperation>;
+using MathCssPaintPayload = std::variant<MathCssGlyphRunGroupOperation, MathCssRowOperation, MathCssLeftRightOperation,
+                                         MathCssMiddlePaintOperation, MathCssFractionPaint, MathCssScriptOperation,
+                                         MathCssRadicalOperation, MathCssArrayOperation, MathCssAccentOperation>;
 
 struct MathCssPaintOperation {
   MathCssPaintPayload payload;
@@ -389,17 +348,13 @@ struct MathMlPaintOperationBuildResult {
 // Models Chromium's native MathML CSS boxes produced by Mermaid/KaTeX. The
 // render tree is built at renderFontPixelSize while native MathML has its own
 // fixed CSS root size (16px in Mermaid 11.16.0 sequence labels).
-MathCssBox layoutMathMlCssBox(const MathLayoutResult& layout,
-                              qreal renderFontPixelSize,
+MathCssBox layoutMathMlCssBox(const MathLayoutResult& layout, qreal renderFontPixelSize,
                               qreal cssRootFontPixelSize = 16.0);
-std::optional<MathCssAccentBox> layoutMathMlAccentBox(
-    const MathLayoutResult& layout, qreal renderFontPixelSize,
-    qreal cssRootFontPixelSize = 16.0);
-std::optional<MathCssFractionBox> layoutMathMlFractionBox(
-    const MathLayoutResult& layout, qreal renderFontPixelSize,
-    qreal cssRootFontPixelSize = 16.0);
-MathMlPaintOperationBuildResult buildMathMlPaintOperations(
-    const MathLayoutResult& layout, qreal renderFontPixelSize,
-    qreal cssRootFontPixelSize = 16.0);
+std::optional<MathCssAccentBox> layoutMathMlAccentBox(const MathLayoutResult& layout, qreal renderFontPixelSize,
+                                                      qreal cssRootFontPixelSize = 16.0);
+std::optional<MathCssFractionBox> layoutMathMlFractionBox(const MathLayoutResult& layout, qreal renderFontPixelSize,
+                                                          qreal cssRootFontPixelSize = 16.0);
+MathMlPaintOperationBuildResult buildMathMlPaintOperations(const MathLayoutResult& layout, qreal renderFontPixelSize,
+                                                           qreal cssRootFontPixelSize = 16.0);
 
-}  // namespace muffin::math
+} // namespace muffin::math

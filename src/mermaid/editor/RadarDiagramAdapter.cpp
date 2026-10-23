@@ -19,21 +19,20 @@
 namespace muffin::mermaid::editor {
 namespace {
 
-QJsonValue scalarConfig(const QJsonObject& object, QLatin1String key,
-                        const QJsonValue& fallback) {
+QJsonValue scalarConfig(const QJsonObject& object, QLatin1String key, const QJsonValue& fallback) {
   const QJsonValue value = object.value(key);
-  return value.isUndefined() || value.isNull() || value.isArray() ||
-                 value.isObject()
-             ? fallback
-             : value;
+  return value.isUndefined() || value.isNull() || value.isArray() || value.isObject() ? fallback : value;
 }
 
 QString jsString(const QJsonValue& value) {
-  if (value.isString()) return value.toString();
-  if (value.isDouble()) return jsNumberToString(value.toDouble());
+  if (value.isString())
+    return value.toString();
+  if (value.isDouble())
+    return jsNumberToString(value.toDouble());
   if (value.isBool())
     return value.toBool() ? QStringLiteral("true") : QStringLiteral("false");
-  if (value.isNull()) return QStringLiteral("null");
+  if (value.isNull())
+    return QStringLiteral("null");
   return value.isArray() ? QString() : QStringLiteral("[object Object]");
 }
 
@@ -48,7 +47,8 @@ struct JsAddValue {
 };
 
 JsAddValue jsAddValue(const QJsonValue& value) {
-  if (value.isString()) return {true, value.toString(), 0.0};
+  if (value.isString())
+    return {true, value.toString(), 0.0};
   return {false, QString(), jsNumberValue(value)};
 }
 
@@ -63,16 +63,14 @@ JsAddValue jsAdd(const JsAddValue& left, const JsAddValue& right) {
 }
 
 qreal jsNumeric(const JsAddValue& value) {
-  return qreal(value.string ? jsNumberValue(QJsonValue(value.text))
-                            : value.number);
+  return qreal(value.string ? jsNumberValue(QJsonValue(value.text)) : value.number);
 }
 
 struct RadarDiagramImpl : Diagram {
   QStringList ids() const override { return {QStringLiteral("radar")}; }
   QString cssClass() const override { return QStringLiteral("radar"); }
 
-  MermaidRenderEntry render(const MermaidPreprocessResult& pre,
-                            const QString& type,
+  MermaidRenderEntry render(const MermaidPreprocessResult& pre, const QString& type,
                             const QString& theme) const override {
     radar::RadarData data = radar::RadarDiagram::parse(pre.code);
     // populateCommonDb only applies a truthy final AST title. An empty source
@@ -83,23 +81,16 @@ struct RadarDiagramImpl : Diagram {
 
     const QString configuredTheme = themeFromConfig(pre.config);
     const QString effectiveTheme = configuredTheme.isEmpty() ? theme : configuredTheme;
-    const flowtheme::FlowThemeVariables themeVars = flowtheme::resolveFlowTheme(
-        themeIdFromName(effectiveTheme), themeOverrides(pre.config));
+    const flowtheme::FlowThemeVariables themeVars =
+        flowtheme::resolveFlowTheme(themeIdFromName(effectiveTheme), themeOverrides(pre.config));
 
-    const QJsonObject rawConfig =
-        pre.config.value(QStringLiteral("radar")).toObject();
-    const QJsonValue rawWidth =
-        scalarConfig(rawConfig, QLatin1String("width"), QJsonValue(600.0));
-    const QJsonValue rawHeight =
-        scalarConfig(rawConfig, QLatin1String("height"), QJsonValue(600.0));
-    const QJsonValue rawTop =
-        scalarConfig(rawConfig, QLatin1String("marginTop"), QJsonValue(50.0));
-    const QJsonValue rawRight =
-        scalarConfig(rawConfig, QLatin1String("marginRight"), QJsonValue(50.0));
-    const QJsonValue rawBottom =
-        scalarConfig(rawConfig, QLatin1String("marginBottom"), QJsonValue(50.0));
-    const QJsonValue rawLeft =
-        scalarConfig(rawConfig, QLatin1String("marginLeft"), QJsonValue(50.0));
+    const QJsonObject rawConfig = pre.config.value(QStringLiteral("radar")).toObject();
+    const QJsonValue rawWidth = scalarConfig(rawConfig, QLatin1String("width"), QJsonValue(600.0));
+    const QJsonValue rawHeight = scalarConfig(rawConfig, QLatin1String("height"), QJsonValue(600.0));
+    const QJsonValue rawTop = scalarConfig(rawConfig, QLatin1String("marginTop"), QJsonValue(50.0));
+    const QJsonValue rawRight = scalarConfig(rawConfig, QLatin1String("marginRight"), QJsonValue(50.0));
+    const QJsonValue rawBottom = scalarConfig(rawConfig, QLatin1String("marginBottom"), QJsonValue(50.0));
+    const QJsonValue rawLeft = scalarConfig(rawConfig, QLatin1String("marginLeft"), QJsonValue(50.0));
 
     radar::RadarConfig config;
     config.width = qreal(jsNumberValue(rawWidth));
@@ -108,14 +99,13 @@ struct RadarDiagramImpl : Diagram {
     config.marginRight = qreal(jsNumberValue(rawRight));
     config.marginBottom = qreal(jsNumberValue(rawBottom));
     config.marginLeft = qreal(jsNumberValue(rawLeft));
-    config.axisScaleFactor = qreal(jsNumberValue(scalarConfig(
-        rawConfig, QLatin1String("axisScaleFactor"), QJsonValue(1.0))));
-    config.axisLabelFactor = qreal(jsNumberValue(scalarConfig(
-        rawConfig, QLatin1String("axisLabelFactor"), QJsonValue(1.05))));
-    config.curveTension = qreal(jsNumberValue(scalarConfig(
-        rawConfig, QLatin1String("curveTension"), QJsonValue(0.17))));
-    const QJsonValue rawUseMaxWidth = scalarConfig(
-        rawConfig, QLatin1String("useMaxWidth"), QJsonValue(true));
+    config.axisScaleFactor =
+        qreal(jsNumberValue(scalarConfig(rawConfig, QLatin1String("axisScaleFactor"), QJsonValue(1.0))));
+    config.axisLabelFactor =
+        qreal(jsNumberValue(scalarConfig(rawConfig, QLatin1String("axisLabelFactor"), QJsonValue(1.05))));
+    config.curveTension =
+        qreal(jsNumberValue(scalarConfig(rawConfig, QLatin1String("curveTension"), QJsonValue(0.17))));
+    const QJsonValue rawUseMaxWidth = scalarConfig(rawConfig, QLatin1String("useMaxWidth"), QJsonValue(true));
     config.useMaxWidth = truthyConfigValue(rawUseMaxWidth);
 
     const JsAddValue width = jsAddValue(rawWidth);
@@ -137,72 +127,47 @@ struct RadarDiagramImpl : Diagram {
     style.fontFamily = firstFontFamily(themeVars.fontFamily);
     style.textColor = themeVars.textColor;
     style.titleColor = themeVars.titleColor;
-    const CssLengthContext rootContext =
-        pieCssLengthContext(style.fontFamily, 16.0);
+    const CssLengthContext rootContext = pieCssLengthContext(style.fontFamily, 16.0);
     const qreal rootFontSize = cssFontSizePx(themeVars.fontSize, rootContext);
-    const CssLengthContext lengthContext =
-        pieCssLengthContext(style.fontFamily, rootFontSize);
+    const CssLengthContext lengthContext = pieCssLengthContext(style.fontFamily, rootFontSize);
     style.titleFontSize = rootFontSize;
-    for (const QString& color : themeVars.cScale) style.palette.append(color);
-    style.themeColorLimit =
-        jsThemeColorLimit(pre.config).value_or(themeVars.themeColorLimit);
+    for (const QString& color : themeVars.cScale)
+      style.palette.append(color);
+    style.themeColorLimit = jsThemeColorLimit(pre.config).value_or(themeVars.themeColorLimit);
 
     // buildRadarStyleOptions clean-merges the nested themeVariables.radar over
     // the theme defaults. The similarly named config.radar style keys are kept
     // by source sanitization but are not passed to styles(), hence intentionally
     // remain inert here.
     const QJsonObject radarTheme =
-        pre.config.value(QStringLiteral("themeVariables"))
-            .toObject()
-            .value(QStringLiteral("radar"))
-            .toObject();
-    const QJsonValue axisColor = scalarConfig(
-        radarTheme, QLatin1String("axisColor"), QJsonValue(themeVars.lineColor));
-    const QJsonValue axisStroke = scalarConfig(
-        radarTheme, QLatin1String("axisStrokeWidth"), QJsonValue(2.0));
-    const QJsonValue axisLabelSize = scalarConfig(
-        radarTheme, QLatin1String("axisLabelFontSize"), QJsonValue(12.0));
-    const QJsonValue curveOpacity = scalarConfig(
-        radarTheme, QLatin1String("curveOpacity"), QJsonValue(0.5));
-    const QJsonValue curveStroke = scalarConfig(
-        radarTheme, QLatin1String("curveStrokeWidth"), QJsonValue(2.0));
-    const QJsonValue graticuleColor = scalarConfig(
-        radarTheme, QLatin1String("graticuleColor"),
-        QJsonValue(QStringLiteral("#DEDEDE")));
-    const QJsonValue graticuleStroke = scalarConfig(
-        radarTheme, QLatin1String("graticuleStrokeWidth"), QJsonValue(1.0));
-    const QJsonValue graticuleOpacity = scalarConfig(
-        radarTheme, QLatin1String("graticuleOpacity"), QJsonValue(0.3));
-    const QJsonValue legendSize = scalarConfig(
-        radarTheme, QLatin1String("legendFontSize"), QJsonValue(12.0));
+        pre.config.value(QStringLiteral("themeVariables")).toObject().value(QStringLiteral("radar")).toObject();
+    const QJsonValue axisColor = scalarConfig(radarTheme, QLatin1String("axisColor"), QJsonValue(themeVars.lineColor));
+    const QJsonValue axisStroke = scalarConfig(radarTheme, QLatin1String("axisStrokeWidth"), QJsonValue(2.0));
+    const QJsonValue axisLabelSize = scalarConfig(radarTheme, QLatin1String("axisLabelFontSize"), QJsonValue(12.0));
+    const QJsonValue curveOpacity = scalarConfig(radarTheme, QLatin1String("curveOpacity"), QJsonValue(0.5));
+    const QJsonValue curveStroke = scalarConfig(radarTheme, QLatin1String("curveStrokeWidth"), QJsonValue(2.0));
+    const QJsonValue graticuleColor =
+        scalarConfig(radarTheme, QLatin1String("graticuleColor"), QJsonValue(QStringLiteral("#DEDEDE")));
+    const QJsonValue graticuleStroke = scalarConfig(radarTheme, QLatin1String("graticuleStrokeWidth"), QJsonValue(1.0));
+    const QJsonValue graticuleOpacity = scalarConfig(radarTheme, QLatin1String("graticuleOpacity"), QJsonValue(0.3));
+    const QJsonValue legendSize = scalarConfig(radarTheme, QLatin1String("legendFontSize"), QJsonValue(12.0));
 
     const qreal diagonal =
-        std::sqrt(*config.totalWidth * *config.totalWidth +
-                  *config.totalHeight * *config.totalHeight) /
-        std::sqrt(2.0);
+        std::sqrt(*config.totalWidth * *config.totalWidth + *config.totalHeight * *config.totalHeight) / std::sqrt(2.0);
     style.axisColor = jsString(axisColor);
     style.axisLabelColor = style.axisColor;
-    style.axisStrokeWidth =
-        cssStrokeWidthPx(jsString(axisStroke), lengthContext, diagonal);
-    style.axisLabelFontSize =
-        cssFontSizePx(jsString(axisLabelSize) + QStringLiteral("px"),
-                      lengthContext);
+    style.axisStrokeWidth = cssStrokeWidthPx(jsString(axisStroke), lengthContext, diagonal);
+    style.axisLabelFontSize = cssFontSizePx(jsString(axisLabelSize) + QStringLiteral("px"), lengthContext);
     style.curveOpacity = cssOpacity(jsString(curveOpacity));
-    style.curveStrokeWidth =
-        cssStrokeWidthPx(jsString(curveStroke), lengthContext, diagonal);
+    style.curveStrokeWidth = cssStrokeWidthPx(jsString(curveStroke), lengthContext, diagonal);
     style.graticuleColor = jsString(graticuleColor);
-    style.graticuleStrokeWidth =
-        cssStrokeWidthPx(jsString(graticuleStroke), lengthContext, diagonal);
+    style.graticuleStrokeWidth = cssStrokeWidthPx(jsString(graticuleStroke), lengthContext, diagonal);
     style.graticuleOpacity = cssOpacity(jsString(graticuleOpacity));
-    style.legendFontSize =
-        cssFontSizePx(jsString(legendSize) + QStringLiteral("px"),
-                      lengthContext);
+    style.legendFontSize = cssFontSizePx(jsString(legendSize) + QStringLiteral("px"), lengthContext);
 
-    radar::RadarScene scene =
-        radar::buildRadarScene(data, std::move(config), std::move(style));
+    radar::RadarScene scene = radar::buildRadarScene(data, std::move(config), std::move(style));
 
-    const QString themeCss =
-        pre.config.value(QStringLiteral("themeCSS")).toString();
+    const QString themeCss = pre.config.value(QStringLiteral("themeCSS")).toString();
     if (!themeCss.trimmed().isEmpty()) {
       using csscascade::ElementInput;
       using csscascade::ElementStyle;
@@ -215,11 +180,15 @@ struct RadarDiagramImpl : Diagram {
       root.fontFamily = scene.style.fontFamily;
       root.fontSize = QString::number(rootFontSize) + QStringLiteral("px");
       root.fontWeight = QStringLiteral("400");
-      elements.append({QStringLiteral("svg"), {}, QStringLiteral("svg"),
-                       QStringLiteral("diagram-root"), {QStringLiteral("radar")},
-                       {}, root, {}});
-      elements.append({QStringLiteral("frame"), QStringLiteral("svg"),
-                       QStringLiteral("g"), {}, {}, {}, root, {}});
+      elements.append({QStringLiteral("svg"),
+                       {},
+                       QStringLiteral("svg"),
+                       QStringLiteral("diagram-root"),
+                       {QStringLiteral("radar")},
+                       {},
+                       root,
+                       {}});
+      elements.append({QStringLiteral("frame"), QStringLiteral("svg"), QStringLiteral("g"), {}, {}, {}, root, {}});
       for (qsizetype i = 0; i < scene.graticules.size(); ++i) {
         const auto& ring = scene.graticules.at(i);
         ElementStyle value = root;
@@ -229,9 +198,12 @@ struct RadarDiagramImpl : Diagram {
         value.fillOpacity = QString::number(ring.fillOpacity);
         elements.append({QStringLiteral("graticule-%1").arg(i),
                          QStringLiteral("frame"),
-                         ring.circle ? QStringLiteral("circle")
-                                     : QStringLiteral("polygon"),
-                         {}, {QStringLiteral("radarGraticule")}, {}, value, {}});
+                         ring.circle ? QStringLiteral("circle") : QStringLiteral("polygon"),
+                         {},
+                         {QStringLiteral("radarGraticule")},
+                         {},
+                         value,
+                         {}});
       }
       for (qsizetype i = 0; i < scene.axes.size(); ++i) {
         const auto& axis = scene.axes.at(i);
@@ -239,14 +211,24 @@ struct RadarDiagramImpl : Diagram {
         line.stroke = axis.lineStroke;
         line.strokeWidth = QString::number(axis.lineStrokeWidth) + QStringLiteral("px");
         elements.append({QStringLiteral("axis-line-%1").arg(i),
-                         QStringLiteral("frame"), QStringLiteral("line"), {},
-                         {QStringLiteral("radarAxisLine")}, {}, line, {}});
+                         QStringLiteral("frame"),
+                         QStringLiteral("line"),
+                         {},
+                         {QStringLiteral("radarAxisLine")},
+                         {},
+                         line,
+                         {}});
         ElementStyle label = root;
         label.color = axis.labelColor;
         label.fontSize = QString::number(axis.labelFontSize) + QStringLiteral("px");
         elements.append({QStringLiteral("axis-label-%1").arg(i),
-                         QStringLiteral("frame"), QStringLiteral("text"), {},
-                         {QStringLiteral("radarAxisLabel")}, {}, label, {}});
+                         QStringLiteral("frame"),
+                         QStringLiteral("text"),
+                         {},
+                         {QStringLiteral("radarAxisLabel")},
+                         {},
+                         label,
+                         {}});
       }
       for (qsizetype i = 0; i < scene.curves.size(); ++i) {
         const auto& curve = scene.curves.at(i);
@@ -259,16 +241,17 @@ struct RadarDiagramImpl : Diagram {
         value.strokeOpacity = QString::number(curve.strokeOpacity);
         elements.append({QStringLiteral("curve-%1").arg(i),
                          QStringLiteral("frame"),
-                         curve.polygon ? QStringLiteral("polygon")
-                                       : QStringLiteral("path"),
-                         {}, {QStringLiteral("radarCurve-%1").arg(curve.colorIndex)},
-                         {}, value, {}});
+                         curve.polygon ? QStringLiteral("polygon") : QStringLiteral("path"),
+                         {},
+                         {QStringLiteral("radarCurve-%1").arg(curve.colorIndex)},
+                         {},
+                         value,
+                         {}});
       }
       for (qsizetype i = 0; i < scene.legends.size(); ++i) {
         const auto& legend = scene.legends.at(i);
         const QString group = QStringLiteral("legend-%1").arg(i);
-        elements.append({group, QStringLiteral("frame"), QStringLiteral("g"),
-                         {}, {}, {}, root, {}});
+        elements.append({group, QStringLiteral("frame"), QStringLiteral("g"), {}, {}, {}, root, {}});
         ElementStyle box = root;
         box.fill = legend.boxFill;
         box.stroke = legend.boxStroke;
@@ -276,32 +259,43 @@ struct RadarDiagramImpl : Diagram {
         box.color = legend.boxColor;
         box.fillOpacity = QString::number(legend.boxFillOpacity);
         box.strokeOpacity = QString::number(legend.boxStrokeOpacity);
-        elements.append({group + QStringLiteral("-box"), group,
-                         QStringLiteral("rect"), {},
+        elements.append({group + QStringLiteral("-box"),
+                         group,
+                         QStringLiteral("rect"),
+                         {},
                          {QStringLiteral("radarLegendBox-%1").arg(legend.colorIndex)},
-                         {}, box, {}});
+                         {},
+                         box,
+                         {}});
         ElementStyle text = root;
         text.fill = legend.textFill;
         text.color = legend.textColor;
         text.fontSize = QString::number(legend.textFontSize) + QStringLiteral("px");
-        elements.append({group + QStringLiteral("-text"), group,
-                         QStringLiteral("text"), {},
-                         {QStringLiteral("radarLegendText")}, {}, text, {}});
+        elements.append({group + QStringLiteral("-text"),
+                         group,
+                         QStringLiteral("text"),
+                         {},
+                         {QStringLiteral("radarLegendText")},
+                         {},
+                         text,
+                         {}});
       }
       ElementStyle title = root;
       title.color = scene.titleColor;
       title.fontSize = QString::number(scene.titleFontSize) + QStringLiteral("px");
-      elements.append({QStringLiteral("title"), QStringLiteral("frame"),
-                       QStringLiteral("text"), {},
-                       {QStringLiteral("radarTitle")}, {}, title, {}});
+      elements.append({QStringLiteral("title"),
+                       QStringLiteral("frame"),
+                       QStringLiteral("text"),
+                       {},
+                       {QStringLiteral("radarTitle")},
+                       {},
+                       title,
+                       {}});
 
       const auto css = csscascade::resolveElements(themeCss, elements);
-      const CssLengthContext cssContext = pieCssLengthContext(
-          firstFontFamily(scene.style.fontFamily), rootFontSize);
-      const qreal cssDiagonal =
-          std::hypot(scene.bounds.width(), scene.bounds.height()) / std::sqrt(2.0);
-      const auto font = [&](const ElementStyle& value, QString& family,
-                            qreal& size, QFont::Weight& weight) {
+      const CssLengthContext cssContext = pieCssLengthContext(firstFontFamily(scene.style.fontFamily), rootFontSize);
+      const qreal cssDiagonal = std::hypot(scene.bounds.width(), scene.bounds.height()) / std::sqrt(2.0);
+      const auto font = [&](const ElementStyle& value, QString& family, qreal& size, QFont::Weight& weight) {
         family = value.fontFamily;
         size = cssFontSizePx(value.fontSize, cssContext);
         weight = cssFontWeightToQt(QJsonValue(value.fontWeight), QFont::Normal);
@@ -357,44 +351,40 @@ struct RadarDiagramImpl : Diagram {
         const auto text = css.value(group + QStringLiteral("-text"));
         legend.textFill = text.fill;
         legend.textColor = text.color;
-        font(text, legend.textFontFamily, legend.textFontSize,
-             legend.textFontWeight);
+        font(text, legend.textFontFamily, legend.textFontSize, legend.textFontWeight);
         legend.textOpacity = text.effectiveOpacity;
         legend.textVisible = text.displayed();
       }
       const auto titleValue = css.value(QStringLiteral("title"));
       scene.titleFill = titleValue.fill;
       scene.titleColor = titleValue.color;
-      font(titleValue, scene.titleFontFamily, scene.titleFontSize,
-           scene.titleFontWeight);
+      font(titleValue, scene.titleFontFamily, scene.titleFontSize, scene.titleFontWeight);
       scene.titleOpacity = titleValue.effectiveOpacity;
       scene.titleVisible = titleValue.displayed();
     }
 
     // Radar draws its title at the top of the fixed viewBox. Suppress the
     // shared external title band while retaining the accessibility metadata.
-    MermaidRenderMetadata metadata = renderMetadata(
-        pre, type, QString(), data.accTitle, data.accDescr,
-        scene.style.textColor, scene.style.fontFamily,
-        scene.style.titleFontSize, 25.0, 0.0);
+    MermaidRenderMetadata metadata =
+        renderMetadata(pre, type, QString(), data.accTitle, data.accDescr, scene.style.textColor,
+                       scene.style.fontFamily, scene.style.titleFontSize, 25.0, 0.0);
     metadata.title = QString();
     metadata.svgUseMaxWidth = scene.config.useMaxWidth;
 
     MermaidRenderEntry entry;
     entry.status = MermaidRenderStatus::Ready;
-    entry.naturalSize = QSize(qCeil(scene.bounds.width()),
-                              qCeil(scene.bounds.height()));
+    entry.naturalSize = QSize(qCeil(scene.bounds.width()), qCeil(scene.bounds.height()));
     entry.scene = std::make_shared<const radar::RadarScene>(std::move(scene));
     finalizeReadyEntry(entry, std::move(metadata));
     return entry;
   }
 };
 
-}  // namespace
+} // namespace
 
 const Diagram& radarDiagramAdapter() {
   static const RadarDiagramImpl impl;
   return impl;
 }
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

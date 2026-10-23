@@ -70,8 +70,8 @@ struct JourneyActor {
   int position = 0;
   qreal y = 60.0;
   qreal maxLineWidth = 0.0;
-  JourneyElementCss circle;  // legend circle.actor-N
-  JourneyElementCss text;    // legend text.legend lines
+  JourneyElementCss circle; // legend circle.actor-N
+  JourneyElementCss text;   // legend text.legend lines
 };
 
 struct JourneySectionGeometry {
@@ -83,9 +83,9 @@ struct JourneySectionGeometry {
   QString fill;
   bool cssFillActive = false;
   int colorIndex = 0;
-  JourneyElementCss box;    // rect.journey-section.section-type-N
-  JourneyElementCss label;  // foreignObject div.label (HTML color semantics)
-  JourneyElementCss svgText;  // switch > text fallback (SVG fill semantics)
+  JourneyElementCss box;     // rect.journey-section.section-type-N
+  JourneyElementCss label;   // foreignObject div.label (HTML color semantics)
+  JourneyElementCss svgText; // switch > text fallback (SVG fill semantics)
 };
 
 struct JourneyTaskGeometry {
@@ -102,13 +102,13 @@ struct JourneyTaskGeometry {
   double score = 0.0;
   QPointF faceCenter;
   QStringList people;
-  JourneyElementCss box;      // rect.task.task-type-N
-  JourneyElementCss label;    // foreignObject div.label
-  JourneyElementCss svgText;  // switch > text fallback
-  JourneyElementCss line;     // line.task-line
-  JourneyElementCss face;     // circle.face
-  JourneyElementCss mouth;    // path.mouth / line.mouth
-  QVector<JourneyElementCss> peopleCircles;  // person circle.actor-N
+  JourneyElementCss box;                    // rect.task.task-type-N
+  JourneyElementCss label;                  // foreignObject div.label
+  JourneyElementCss svgText;                // switch > text fallback
+  JourneyElementCss line;                   // line.task-line
+  JourneyElementCss face;                   // circle.face
+  JourneyElementCss mouth;                  // path.mouth / line.mouth
+  QVector<JourneyElementCss> peopleCircles; // person circle.actor-N
 };
 
 // themeCSS resolutions keyed to the DOM enumeration the renderer emits:
@@ -119,7 +119,7 @@ struct JourneyTaskGeometry {
 struct JourneyCssOverrides {
   bool active = false;
   JourneyElementCss root;
-  JourneyElementCss measureText;  // wrap/maxWidth probe text (classless <text>)
+  JourneyElementCss measureText; // wrap/maxWidth probe text (classless <text>)
   JourneyElementCss title;
   JourneyElementCss axis;
   QVector<JourneyElementCss> actorCircles;
@@ -140,9 +140,7 @@ struct JourneyScene : MermaidScene {
   QRectF renderBounds() const override { return bounds; }
   void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
-  const QVector<InteractionRegion>& interactionRegions() const override {
-    return interactions;
-  }
+  const QVector<InteractionRegion>& interactionRegions() const override { return interactions; }
 
   QRectF bounds;
   QRectF upstreamViewBox;
@@ -161,13 +159,12 @@ struct JourneyScene : MermaidScene {
   QVector<JourneySectionGeometry> sections;
   QVector<JourneyTaskGeometry> tasks;
   QVector<InteractionRegion> interactions;
-  JourneyElementCss rootCss;   // svg element (fill inheritance source)
-  JourneyElementCss titleCss;  // title text element
-  JourneyElementCss axisCss;   // bottom axis line element
+  JourneyElementCss rootCss;  // svg element (fill inheritance source)
+  JourneyElementCss titleCss; // title text element
+  JourneyElementCss axisCss;  // bottom axis line element
 };
 
-JourneyScene buildJourneyScene(const JourneyData& data, JourneyConfig config,
-                               JourneySceneStyle style,
+JourneyScene buildJourneyScene(const JourneyData& data, JourneyConfig config, JourneySceneStyle style,
                                const JourneyCssOverrides* css = nullptr);
 
 // The actor enumeration upstream renders: legend display order is the JS
@@ -190,12 +187,12 @@ JourneyActorRoster journeyActorRoster(const JourneyData& data);
 // Line wrapping for one actor name at the measurement font (upstream
 // drawActorLegend's hidden probe <text>: classless, so plain `text` rules
 // apply but .legend does not).
-QStringList wrapJourneyActorLabel(const QString& actor, qreal maxLabelWidth,
-                                  qreal fontPixelSize, const QString& fontFamily);
+QStringList wrapJourneyActorLabel(const QString& actor, qreal maxLabelWidth, qreal fontPixelSize,
+                                  const QString& fontFamily);
 
 // The rect presentation-attribute fill for section/task color index N
 // (config journey.sectionFills palette) — the value the CSS cascade falls
 // back to when the theme emits no fillType rules.
 QString journeySectionPresentationFill(int colorIndex);
 
-}  // namespace muffin::mermaid::journey
+} // namespace muffin::mermaid::journey

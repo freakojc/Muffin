@@ -50,7 +50,8 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 // theme base passed to the resolver: Noto Sans @ 16px, Normal weight, 24px line.
@@ -61,12 +62,12 @@ requirement::RequirementTextStyle resolve(const QStringList& css) {
   return requirement::resolveRequirementTextStyle(css, kFamily, kSize, QFont::Normal, kLine);
 }
 
-const requirement::RequirementSceneNode* nodeOf(const editor::MermaidRenderEntry& e,
-                                                 const QString& id) {
+const requirement::RequirementSceneNode* nodeOf(const editor::MermaidRenderEntry& e, const QString& id) {
   const auto* scene = dynamic_cast<const requirement::RequirementScene*>(e.scene.get());
   require(scene != nullptr, QStringLiteral("missing Requirement scene"));
   for (const auto& n : scene->nodes)
-    if (n.id == id) return &n;
+    if (n.id == id)
+      return &n;
   return nullptr;
 }
 struct Rendered {
@@ -75,8 +76,7 @@ struct Rendered {
 };
 Rendered renderNode(editor::MermaidRenderCache& cache, const QString& source, const QString& id) {
   const auto entry = cache.getSync(cache.makeKey(source), source);
-  require(entry.status == editor::MermaidRenderStatus::Ready,
-          QStringLiteral("did not render: ") + entry.errorMessage);
+  require(entry.status == editor::MermaidRenderStatus::Ready, QStringLiteral("did not render: ") + entry.errorMessage);
   Rendered out{dynamic_cast<const requirement::RequirementScene*>(entry.scene.get()), nullptr};
   require(out.scene != nullptr, QStringLiteral("missing scene"));
   out.node = nodeOf(entry, id);
@@ -101,7 +101,8 @@ qint64 inkTotal(const QImage& img) {
   qint64 n = 0;
   for (int y = 0; y < img.height(); ++y)
     for (int x = 0; x < img.width(); ++x)
-      if (qAlpha(img.pixel(x, y)) > 32) ++n;
+      if (qAlpha(img.pixel(x, y)) > 32)
+        ++n;
   return n;
 }
 
@@ -109,10 +110,9 @@ qint64 inkTotal(const QImage& img) {
 // (RequirementScenePainter::paintRow -> flowchart::paintFlowLabel) — into a
 // transparent image at a KNOWN rect, for geometric inspection of the painted
 // text-decoration band (Y, thickness, horizontal span).
-QImage paintLabelImage(const flowchart::FlowLabelDocument& doc, const QRectF& rect,
-                       const QString& family, qreal size, qreal lineH) {
-  QImage img(QSize(static_cast<int>(std::ceil(rect.width())) + 2,
-                   static_cast<int>(std::ceil(rect.height())) + 2),
+QImage paintLabelImage(const flowchart::FlowLabelDocument& doc, const QRectF& rect, const QString& family, qreal size,
+                       qreal lineH) {
+  QImage img(QSize(static_cast<int>(std::ceil(rect.width())) + 2, static_cast<int>(std::ceil(rect.height())) + 2),
              QImage::Format_ARGB32);
   img.fill(Qt::transparent);
   QPainter p(&img);
@@ -123,7 +123,9 @@ QImage paintLabelImage(const flowchart::FlowLabelDocument& doc, const QRectF& re
   return img;
 }
 
-inline bool isInk(QRgb pixel) { return qAlpha(pixel) > 32; }
+inline bool isInk(QRgb pixel) {
+  return qAlpha(pixel) > 32;
+}
 
 // A detected horizontal decoration band: the rows where `decorated` has ink that
 // `base` does not. Because the text glyphs are identical between the two, the
@@ -132,8 +134,8 @@ inline bool isInk(QRgb pixel) { return qAlpha(pixel) > 32; }
 // a wrong Y, wrong thickness, or a line drawn on the wrong visual line fails.
 struct DecoBand {
   bool found = false;
-  int yMin = 0, yMax = 0;  // band row range (thickness = yMax - yMin + 1)
-  int xMin = 0, xMax = 0;  // horizontal extent across the band rows
+  int yMin = 0, yMax = 0; // band row range (thickness = yMax - yMin + 1)
+  int xMin = 0, xMax = 0; // horizontal extent across the band rows
   qreal centerY() const { return (yMin + yMax) / 2.0; }
 };
 DecoBand decorationBand(const QImage& base, const QImage& decorated) {
@@ -146,19 +148,23 @@ DecoBand decorationBand(const QImage& base, const QImage& decorated) {
     const QRgb* d = reinterpret_cast<const QRgb*>(decorated.constScanLine(y));
     qint64 c = 0;
     for (int x = 0; x < w; ++x)
-      if (isInk(d[x]) && !isInk(b[x])) ++c;
+      if (isInk(d[x]) && !isInk(b[x]))
+        ++c;
     perRow[y] = c;
   }
   qint64 maxCount = 0;
-  for (qint64 c : perRow) maxCount = std::max(maxCount, c);
-  if (maxCount < 8) return band;  // no substantial decoration ink
+  for (qint64 c : perRow)
+    maxCount = std::max(maxCount, c);
+  if (maxCount < 8)
+    return band; // no substantial decoration ink
   band.found = true;
   band.yMin = h;
   band.yMax = 0;
   band.xMin = w;
   band.xMax = 0;
   for (int y = 0; y < h; ++y) {
-    if (perRow[y] * 2 < maxCount) continue;  // not a dense band row
+    if (perRow[y] * 2 < maxCount)
+      continue; // not a dense band row
     band.yMin = std::min(band.yMin, y);
     band.yMax = std::max(band.yMax, y);
     const QRgb* b = reinterpret_cast<const QRgb*>(base.constScanLine(y));
@@ -177,7 +183,8 @@ DecoBand decorationBand(const QImage& base, const QImage& decorated) {
 // inline Math region — the diff-based band can't see decoration painted OVER
 // glyphs, so continuity is checked on the painted row directly).
 int longestInkRun(const QImage& img, int y) {
-  if (y < 0 || y >= img.height()) return 0;
+  if (y < 0 || y >= img.height())
+    return 0;
   const QRgb* row = reinterpret_cast<const QRgb*>(img.constScanLine(y));
   int best = 0, run = 0;
   for (int x = 0; x < img.width(); ++x) {
@@ -196,7 +203,11 @@ int longestInkRun(const QImage& img, int y) {
 // in both Muffin and the Chrome oracle, so the ink center is a common reference
 // that cancels per-renderer vertical centering. Only referenced by the Windows
 // Chrome-oracle section, hence [[maybe_unused]] (compiled out elsewhere).
-struct InkExtent { int yMin; int yMax; bool any; };
+struct InkExtent {
+  int yMin;
+  int yMax;
+  bool any;
+};
 [[maybe_unused]] InkExtent inkExtentOf(const QImage& img) {
   InkExtent e{img.height(), -1, false};
   for (int y = 0; y < img.height(); ++y) {
@@ -221,15 +232,15 @@ void pixelSizeCatcher(QtMsgType type, const QMessageLogContext&, const QString& 
       msg.contains(QStringLiteral("Pixel size")))
     g_pixelSizeWarnings.append(msg);
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
   QGuiApplication app(argc, argv);
   MermaidFontRegistry::ensureLoaded();
-  muffin::math::MathFontRegistry::ensureLoaded();  // bundles KaTeX_Main (a serif
-                                                   // face) used by the ex/ch
-                                                   // font-coupling assertion below.
+  muffin::math::MathFontRegistry::ensureLoaded(); // bundles KaTeX_Main (a serif
+                                                  // face) used by the ex/ch
+                                                  // font-coupling assertion below.
   editor::MermaidRenderCache cache;
   const QString head = QStringLiteral("requirementDiagram\n");
 
@@ -240,43 +251,33 @@ int main(int argc, char** argv) {
     require(s.fontWeight == QFont::Normal, QStringLiteral("default weight Normal"));
     require(s.fontStyle == QFont::StyleNormal, QStringLiteral("default style Normal"));
     require(s.fontFamily.isEmpty(), QStringLiteral("default family empty (use theme)"));
-    require(s.lineHeightPx < 0.0 && !s.lineHeightNormal,
-            QStringLiteral("default lineHeight < 0 (use theme 1.5)"));
-    require(s.letterSpacingPx == 0.0 && s.wordSpacingPx == 0.0,
-            QStringLiteral("default spacing 0"));
+    require(s.lineHeightPx < 0.0 && !s.lineHeightNormal, QStringLiteral("default lineHeight < 0 (use theme 1.5)"));
+    require(s.letterSpacingPx == 0.0 && s.wordSpacingPx == 0.0, QStringLiteral("default spacing 0"));
     require(!s.underline && !s.overline && !s.strikeOut, QStringLiteral("default no decoration"));
-    require(s.transform == requirement::RequirementTextTransform::None,
-            QStringLiteral("default no transform"));
+    require(s.transform == requirement::RequirementTextTransform::None, QStringLiteral("default no transform"));
     require(!s.color.isValid(), QStringLiteral("default color invalid (use theme)"));
   }
 
   // ===== 2. font-size: exact font-independent values + Chrome 10000px cap =====
   {
     require(qAbs(resolve({"font-size:2em"}).fontSizePx - 128.0) < 1e-6,
-            QStringLiteral("font-size:2em -> N^3*16 = 128; got %1")
-                .arg(resolve({"font-size:2em"}).fontSizePx));
-    require(qAbs(resolve({"font-size:3em"}).fontSizePx - 432.0) < 1e-6,
-            QStringLiteral("font-size:3em -> 27*16 = 432"));
+            QStringLiteral("font-size:2em -> N^3*16 = 128; got %1").arg(resolve({"font-size:2em"}).fontSizePx));
+    require(qAbs(resolve({"font-size:3em"}).fontSizePx - 432.0) < 1e-6, QStringLiteral("font-size:3em -> 27*16 = 432"));
     require(qAbs(resolve({"font-size:2rem"}).fontSizePx - 32.0) < 1e-6,
             QStringLiteral("font-size:2rem -> 2*16 = 32 (html root, no compound)"));
     require(qAbs(resolve({"font-size:12pt"}).fontSizePx - 16.0) < 1e-6,
             QStringLiteral("font-size:12pt -> 12*4/3 = 16"));
-    require(qAbs(resolve({"font-size:4vw"}).fontSizePx - 32.0) < 1e-6,
-            QStringLiteral("font-size:4vw -> 4%*800 = 32"));
+    require(qAbs(resolve({"font-size:4vw"}).fontSizePx - 32.0) < 1e-6, QStringLiteral("font-size:4vw -> 4%*800 = 32"));
     require(qAbs(resolve({"font-size:10em"}).fontSizePx - 10000.0) < 1e-6,
-            QStringLiteral("font-size:10em -> capped at 10000; got %1")
-                .arg(resolve({"font-size:10em"}).fontSizePx));
+            QStringLiteral("font-size:10em -> capped at 10000; got %1").arg(resolve({"font-size:10em"}).fontSizePx));
     require(qAbs(resolve({"font-size:100em"}).fontSizePx - 10000.0) < 1e-6,
             QStringLiteral("font-size:100em -> capped at 10000"));
-    require(qAbs(resolve({"font-size:0"}).fontSizePx - 0.0) < 1e-6,
-            QStringLiteral("font-size:0 -> 0 (collapse)"));
+    require(qAbs(resolve({"font-size:0"}).fontSizePx - 0.0) < 1e-6, QStringLiteral("font-size:0 -> 0 (collapse)"));
     // Negative font-size -> inert (use theme): -1em resolves Valid(-16) but
     // font-size rejects negatives upstream, so the resolver keeps the default.
-    require(resolve({"font-size:-1em"}).fontSizePx < 0.0,
-            QStringLiteral("font-size:-1em -> inert (theme default)"));
+    require(resolve({"font-size:-1em"}).fontSizePx < 0.0, QStringLiteral("font-size:-1em -> inert (theme default)"));
     // Invalid -> inert.
-    require(resolve({"font-size:foo"}).fontSizePx < 0.0,
-            QStringLiteral("font-size:foo -> inert"));
+    require(resolve({"font-size:foo"}).fontSizePx < 0.0, QStringLiteral("font-size:foo -> inert"));
   }
 
   // ===== 3. ex/ch font coupling (3-layer; relative — bundled-font dependent) =====
@@ -297,16 +298,14 @@ int main(int argc, char** argv) {
     // registered face.)
     const qreal ex10serif = resolve({"font-size:10ex", "font-family:KaTeX_Main"}).fontSizePx;
     require(qAbs(ex10serif - ex10) > 1e-3,
-            QStringLiteral("10ex with KaTeX_Main differs from default font; %1 vs %2")
-                .arg(ex10serif).arg(ex10));
+            QStringLiteral("10ex with KaTeX_Main differs from default font; %1 vs %2").arg(ex10serif).arg(ex10));
   }
 
   // ===== 4. font-weight: bolder compounds 3 layers (400->700->900); absolute fixed =====
   {
     require(resolve({"font-weight:bolder"}).fontWeight == QFont::Black,
             QStringLiteral("bolder -> 900 (3-layer from 400)"));
-    require(resolve({"font-weight:lighter"}).fontWeight == QFont::Thin,
-            QStringLiteral("lighter -> 100 (caps)"));
+    require(resolve({"font-weight:lighter"}).fontWeight == QFont::Thin, QStringLiteral("lighter -> 100 (caps)"));
     require(resolve({"font-weight:900"}).fontWeight == QFont::Black, QStringLiteral("900 -> 900"));
     require(resolve({"font-weight:bold"}).fontWeight == QFont::Bold, QStringLiteral("bold -> 700"));
     require(resolve({"font-weight:normal"}).fontWeight == QFont::Normal, QStringLiteral("normal -> 400"));
@@ -330,16 +329,13 @@ int main(int argc, char** argv) {
     require(resolve({"font-weight:initial"}).fontWeightResolved, QStringLiteral("initial -> resolved"));
     require(resolve({"font-weight:unset"}).fontWeightResolved, QStringLiteral("unset -> resolved"));
     require(resolve({"font-weight:revert"}).fontWeightResolved, QStringLiteral("revert -> resolved"));
-    require(resolve({"font-weight:revert-layer"}).fontWeightResolved,
-            QStringLiteral("revert-layer -> resolved"));
+    require(resolve({"font-weight:revert-layer"}).fontWeightResolved, QStringLiteral("revert-layer -> resolved"));
     require(resolve({"font-weight:inherit"}).fontWeight == QFont::Normal,
             QStringLiteral("inherit -> Normal (parent is Normal)"));
-    require(resolve({"font-weight:initial"}).fontWeight == QFont::Normal,
-            QStringLiteral("initial -> Normal"));
+    require(resolve({"font-weight:initial"}).fontWeight == QFont::Normal, QStringLiteral("initial -> Normal"));
     require(resolve({"font-weight:revert-layer"}).fontWeight == QFont::Normal,
             QStringLiteral("revert-layer -> Normal"));
-    require(resolve({"font-weight:1e2"}).fontWeight == QFont::Thin,
-            QStringLiteral("1e2 -> 100 (Thin)"));
+    require(resolve({"font-weight:1e2"}).fontWeight == QFont::Thin, QStringLiteral("1e2 -> 100 (Thin)"));
     require(resolve({"font-weight:1e2"}).fontWeightResolved, QStringLiteral("1e2 -> resolved"));
   }
 
@@ -349,49 +345,42 @@ int main(int argc, char** argv) {
     using Doc = flowchart::FlowLabelDocument;
     const auto hasBoldRange = [](const Doc& d) {
       for (const auto& f : d.formats)
-        if (f.format.fontWeight() >= QFont::Bold) return true;
+        if (f.format.fontWeight() >= QFont::Bold)
+          return true;
       return false;
     };
     // Default (no font-weight): name row (bold=true) gets the reqTitle bold range.
     const Doc nameDefault =
-        requirement::requirementRowDocument(QStringLiteral("A"), true,
-                                            requirement::RequirementTextStyle{}, kSize);
-    require(nameDefault.baseWeight == QFont::Normal,
-            QStringLiteral("default name row baseWeight Normal"));
-    require(hasBoldRange(nameDefault),
-            QStringLiteral("default name row applies the reqTitle bold range"));
+        requirement::requirementRowDocument(QStringLiteral("A"), true, requirement::RequirementTextStyle{}, kSize);
+    require(nameDefault.baseWeight == QFont::Normal, QStringLiteral("default name row baseWeight Normal"));
+    require(hasBoldRange(nameDefault), QStringLiteral("default name row applies the reqTitle bold range"));
     // Declared valid font-weight (100): the name row uses it; NO default-bold range.
     requirement::RequirementTextStyle s100;
     s100.fontWeight = QFont::Thin;
     s100.fontWeightResolved = true;
-    const Doc name100 =
-        requirement::requirementRowDocument(QStringLiteral("A"), true, s100, kSize);
-    require(name100.baseWeight == QFont::Thin,
-            QStringLiteral("font-weight:100 -> name row baseWeight Thin(100)"));
-    require(!hasBoldRange(name100),
-            QStringLiteral("font-weight:100 suppresses the name-row default bold"));
+    const Doc name100 = requirement::requirementRowDocument(QStringLiteral("A"), true, s100, kSize);
+    require(name100.baseWeight == QFont::Thin, QStringLiteral("font-weight:100 -> name row baseWeight Thin(100)"));
+    require(!hasBoldRange(name100), QStringLiteral("font-weight:100 suppresses the name-row default bold"));
     // bolder (->900): same — the resolved weight stands, no bold override to 700.
     requirement::RequirementTextStyle sBolder;
     sBolder.fontWeight = QFont::Black;
     sBolder.fontWeightResolved = true;
-    const Doc nameBolder =
-        requirement::requirementRowDocument(QStringLiteral("A"), true, sBolder, kSize);
+    const Doc nameBolder = requirement::requirementRowDocument(QStringLiteral("A"), true, sBolder, kSize);
     require(nameBolder.baseWeight == QFont::Black && !hasBoldRange(nameBolder),
             QStringLiteral("font-weight:bolder -> name row Black, no default-bold override"));
     // A body row (bold=false) never gets the range regardless.
-    const Doc bodyDefault =
-        requirement::requirementRowDocument(QStringLiteral("Text: hi"), false,
-                                            requirement::RequirementTextStyle{}, kSize);
+    const Doc bodyDefault = requirement::requirementRowDocument(QStringLiteral("Text: hi"), false,
+                                                                requirement::RequirementTextStyle{}, kSize);
     require(!hasBoldRange(bodyDefault), QStringLiteral("body row never bold by default"));
     // Production path (resolveRequirementTextStyle -> requirementRowDocument), not
     // hand-built styles: a VALID font-weight declaration — including the CSS-wide
     // keywords (probe: inherit/initial/unset/revert/revert-layer all -> 400) and a
     // numeric — suppresses the name row's default bold on BOTH rows; only a truly
     // invalid value ("foo") or an unset keeps the reqTitle default bold.
-    const auto checkNameBold = [&](const QStringList& css, bool expectBoldRange,
-                                   QFont::Weight expectWeight, const QString& label) {
-      const requirement::RequirementTextStyle s = requirement::resolveRequirementTextStyle(
-          css, kFamily, kSize, QFont::Normal, kLine);
+    const auto checkNameBold = [&](const QStringList& css, bool expectBoldRange, QFont::Weight expectWeight,
+                                   const QString& label) {
+      const requirement::RequirementTextStyle s =
+          requirement::resolveRequirementTextStyle(css, kFamily, kSize, QFont::Normal, kLine);
       require(s.fontWeight == expectWeight,
               QStringLiteral("%1: resolved weight %2 == %3").arg(label).arg(s.fontWeight).arg(expectWeight));
       require(s.fontWeightResolved == !expectBoldRange,
@@ -420,13 +409,11 @@ int main(int argc, char** argv) {
     require(resolve({"font-style:italic"}).fontStyle == QFont::StyleItalic, QStringLiteral("italic"));
     require(resolve({"font-style:oblique"}).fontStyle == QFont::StyleItalic,
             QStringLiteral("oblique -> StyleItalic (== italic upstream)"));
-    require(resolve({"font-family:DefinitelyMissing,sans-serif"}).fontFamily ==
-                QStringLiteral("DefinitelyMissing"),
+    require(resolve({"font-family:DefinitelyMissing,sans-serif"}).fontFamily == QStringLiteral("DefinitelyMissing"),
             QStringLiteral("font-family keeps only the first comma token"));
     require(resolve({"font-family:Arial"}).fontFamily == QStringLiteral("Arial"),
             QStringLiteral("font-family bare token"));
-    require(resolve({"color:#0000ff"}).color == QColor(QStringLiteral("#0000ff")),
-            QStringLiteral("color parsed"));
+    require(resolve({"color:#0000ff"}).color == QColor(QStringLiteral("#0000ff")), QStringLiteral("color parsed"));
     require(!resolve({"color:notacolor"}).color.isValid(), QStringLiteral("invalid color -> invalid"));
     require(resolve({"text-decoration:underline"}).underline, QStringLiteral("underline"));
     require(resolve({"text-decoration:overline"}).overline, QStringLiteral("overline"));
@@ -435,10 +422,10 @@ int main(int argc, char** argv) {
     const auto combo = resolve({"text-decoration:underline overline"});
     require(!combo.underline && !combo.overline && !combo.strikeOut,
             QStringLiteral("multi-keyword decoration -> none (lexer drops it)"));
-    require(resolve({"text-transform:uppercase"}).transform ==
-                requirement::RequirementTextTransform::UpperCase, QStringLiteral("uppercase"));
-    require(resolve({"text-transform:capitalize"}).transform ==
-                requirement::RequirementTextTransform::Capitalize, QStringLiteral("capitalize"));
+    require(resolve({"text-transform:uppercase"}).transform == requirement::RequirementTextTransform::UpperCase,
+            QStringLiteral("uppercase"));
+    require(resolve({"text-transform:capitalize"}).transform == requirement::RequirementTextTransform::Capitalize,
+            QStringLiteral("capitalize"));
   }
 
   // ===== 6. line-height: normal / multiplier / length / zero / negative =====
@@ -447,14 +434,11 @@ int main(int argc, char** argv) {
     require(!resolve({"line-height:2"}).lineHeightNormal, QStringLiteral("2 is not 'normal'"));
     require(qAbs(resolve({"line-height:2"}).lineHeightPx - 32.0) < 1e-6,
             QStringLiteral("line-height:2 -> 2*16 = 32 (unitless multiplier)"));
-    require(qAbs(resolve({"line-height:2em"}).lineHeightPx - 32.0) < 1e-6,
-            QStringLiteral("line-height:2em -> 32"));
-    require(qAbs(resolve({"line-height:20px"}).lineHeightPx - 20.0) < 1e-6,
-            QStringLiteral("line-height:20px -> 20"));
+    require(qAbs(resolve({"line-height:2em"}).lineHeightPx - 32.0) < 1e-6, QStringLiteral("line-height:2em -> 32"));
+    require(qAbs(resolve({"line-height:20px"}).lineHeightPx - 20.0) < 1e-6, QStringLiteral("line-height:20px -> 20"));
     require(qAbs(resolve({"line-height:0"}).lineHeightPx - 0.0) < 1e-6,
             QStringLiteral("line-height:0 -> 0 (collapse)"));
-    require(resolve({"line-height:-1"}).lineHeightPx < 0.0,
-            QStringLiteral("line-height:-1 -> inert (theme)"));
+    require(resolve({"line-height:-1"}).lineHeightPx < 0.0, QStringLiteral("line-height:-1 -> inert (theme)"));
     // em basis is the COMPOUNDED font-size: font-size:2em(128) + line-height:2em -> 256.
     require(qAbs(resolve({"font-size:2em", "line-height:2em"}).lineHeightPx - 256.0) < 1e-6,
             QStringLiteral("line-height:2em with font-size:2em -> 2*128 = 256"));
@@ -466,8 +450,7 @@ int main(int argc, char** argv) {
             QStringLiteral("line-height:1e1 -> 10*16 = 160 (unitless multiplier); got %1")
                 .arg(resolve({"line-height:1e1"}).lineHeightPx));
     require(qAbs(resolve({"line-height:1e-1"}).lineHeightPx - 1.6) < 1e-6,
-            QStringLiteral("line-height:1e-1 -> 0.1*16 = 1.6; got %1")
-                .arg(resolve({"line-height:1e-1"}).lineHeightPx));
+            QStringLiteral("line-height:1e-1 -> 0.1*16 = 1.6; got %1").arg(resolve({"line-height:1e-1"}).lineHeightPx));
     require(qAbs(resolve({"line-height:2e0"}).lineHeightPx - 32.0) < 1e-6,
             QStringLiteral("line-height:2e0 -> 2*16 = 32"));
     require(qAbs(resolve({"line-height:1e1px"}).lineHeightPx - 10.0) < 1e-6,
@@ -494,8 +477,7 @@ int main(int argc, char** argv) {
     require(cap("**fo**o") == QStringLiteral("**Fo**o"),
             QStringLiteral("markdown marker transparent: **fo**o -> **Fo**o; got %1").arg(cap("**fo**o")));
     require(cap("foo**bar**baz") == QStringLiteral("Foo**bar**baz"),
-            QStringLiteral("one word across **: foo**bar**baz -> Foo**bar**baz; got %1")
-                .arg(cap("foo**bar**baz")));
+            QStringLiteral("one word across **: foo**bar**baz -> Foo**bar**baz; got %1").arg(cap("foo**bar**baz")));
     require(cap("a$$x$$b") == QStringLiteral("A$$x$$B"),
             QStringLiteral("math box is a word boundary: a$$x$$b -> A$$x$$B; got %1").arg(cap("a$$x$$b")));
     require(cap("don't it's") == QStringLiteral("Don't It's"),
@@ -512,24 +494,20 @@ int main(int argc, char** argv) {
             QStringLiteral("letter-led with mid digits: -> Abc123def; got %1").arg(cap("abc123def")));
     require(cap("hello world") == QStringLiteral("Hello World"),
             QStringLiteral("plain multiword; got %1").arg(cap("hello world")));
-    require(cap("a/b/c") == QStringLiteral("A/B/C"),
-            QStringLiteral("slash is a boundary; got %1").arg(cap("a/b/c")));
+    require(cap("a/b/c") == QStringLiteral("A/B/C"), QStringLiteral("slash is a boundary; got %1").arg(cap("a/b/c")));
   }
 
   // ===== 9. applyRequirementTextTransform — upper/lower with math preserved =====
   {
     using TT = requirement::RequirementTextTransform;
-    require(requirement::applyRequirementTextTransform("a$$x$$b", TT::UpperCase) ==
-                QStringLiteral("A$$x$$B"),
+    require(requirement::applyRequirementTextTransform("a$$x$$b", TT::UpperCase) == QStringLiteral("A$$x$$B"),
             QStringLiteral("upper: math preserved; -> A$$x$$B"));
-    require(requirement::applyRequirementTextTransform("straße", TT::UpperCase) ==
-                QStringLiteral("STRASSE"),
+    require(requirement::applyRequirementTextTransform("straße", TT::UpperCase) == QStringLiteral("STRASSE"),
             QStringLiteral("upper: ß -> SS (Unicode default case mapping)"));
-    require(requirement::applyRequirementTextTransform("**bold**", TT::UpperCase) ==
-                QStringLiteral("**BOLD**"),
+    require(requirement::applyRequirementTextTransform("**bold**", TT::UpperCase) == QStringLiteral("**BOLD**"),
             QStringLiteral("upper: markdown markers preserved, text cased"));
-    require(requirement::applyRequirementTextTransform("ABC", TT::LowerCase) ==
-                QStringLiteral("abc"), QStringLiteral("lower"));
+    require(requirement::applyRequirementTextTransform("ABC", TT::LowerCase) == QStringLiteral("abc"),
+            QStringLiteral("lower"));
     require(requirement::applyRequirementTextTransform("abc", TT::None) == QStringLiteral("abc"),
             QStringLiteral("none: unchanged"));
   }
@@ -542,7 +520,8 @@ int main(int argc, char** argv) {
     const auto measure = [&](const QStringList& css) {
       // Inject css by resolving against a node whose cssStyles we set.
       requirement::RequirementLayoutInput in = input;
-      for (auto& n : in.nodes) n.cssStyles = css;
+      for (auto& n : in.nodes)
+        n.cssStyles = css;
       return requirement::measureRequirementLayoutInput(in, kFamily, kSize, QFont::Normal).value("A");
     };
     const auto base = measure({});
@@ -561,11 +540,11 @@ int main(int argc, char** argv) {
     const qreal naturalRow = QFontMetricsF(flowchart::makeFlowLabelFont(kFamily, kSize)).height();
     require(!lhn.rowHeights.isEmpty() && qAbs(lhn.rowHeights.at(0) - naturalRow) < 1e-3,
             QStringLiteral("line-height:normal -> row height = QFontMetricsF height (%1); got %2")
-                .arg(naturalRow).arg(lhn.rowHeights.isEmpty() ? -1.0 : lhn.rowHeights.at(0)));
+                .arg(naturalRow)
+                .arg(lhn.rowHeights.isEmpty() ? -1.0 : lhn.rowHeights.at(0)));
     // font-size:2em -> box much larger.
     const auto fs2 = measure({"font-size:2em"});
-    require(fs2.boxSize.height() > base.boxSize.height() * 3.0,
-            QStringLiteral("font-size:2em -> much taller box"));
+    require(fs2.boxSize.height() > base.boxSize.height() * 3.0, QStringLiteral("font-size:2em -> much taller box"));
   }
 
   // ===== 11. Production render path: resolved fields reach the scene =====
@@ -573,60 +552,57 @@ int main(int argc, char** argv) {
     // Default (no labelStyle) -> resolved text all-defaults (byte-identical base).
     const auto r = renderNode(cache, head + "requirement A {\n id: \"1\"\n text: hello\n}", "A");
     require(r.node->text.fontSizePx < 0.0, QStringLiteral("default node.text.fontSizePx < 0"));
-    require(!r.node->rows.isEmpty() &&
-                qAbs(r.node->rows.at(0).fontPixelSize - r.scene->style.fontSize) < 1e-6,
+    require(!r.node->rows.isEmpty() && qAbs(r.node->rows.at(0).fontPixelSize - r.scene->style.fontSize) < 1e-6,
             QStringLiteral("default row.fontPixelSize == theme fontSize (effective)"));
     // font-size:2em -> node.text.fontSizePx == 128 and rows carry 128.
-    const auto r2 = renderNode(cache,
-        head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A font-size:2em", "A");
+    const auto r2 =
+        renderNode(cache, head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A font-size:2em", "A");
     require(qAbs(r2.node->text.fontSizePx - 128.0) < 1e-6,
-            QStringLiteral("font-size:2em -> node.text.fontSizePx=128; got %1")
-                .arg(r2.node->text.fontSizePx));
+            QStringLiteral("font-size:2em -> node.text.fontSizePx=128; got %1").arg(r2.node->text.fontSizePx));
     require(!r2.node->rows.isEmpty() && qAbs(r2.node->rows.at(0).fontPixelSize - 128.0) < 1e-6,
             QStringLiteral("row.fontPixelSize == 128"));
     // text-transform:uppercase -> a row's document.text is uppercased.
-    const auto r3 = renderNode(cache,
-        head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A text-transform:uppercase", "A");
+    const auto r3 =
+        renderNode(cache, head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A text-transform:uppercase", "A");
     bool foundUpper = false;
     for (const auto& row : r3.node->rows)
-      if (row.document.text.contains(QStringLiteral("HELLO"))) foundUpper = true;
+      if (row.document.text.contains(QStringLiteral("HELLO")))
+        foundUpper = true;
     require(foundUpper, QStringLiteral("text-transform:uppercase reaches a row document"));
     // color:#0000ff -> rows carry blue.
-    const auto r4 = renderNode(cache,
-        head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A color:#0000ff", "A");
+    const auto r4 =
+        renderNode(cache, head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A color:#0000ff", "A");
     require(!r4.node->rows.isEmpty() && r4.node->rows.at(0).color == QColor(QStringLiteral("#0000ff")),
             QStringLiteral("color reaches row.color"));
     // text-decoration:underline -> a row's document.underline is set.
-    const auto r5 = renderNode(cache,
-        head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A text-decoration:underline", "A");
+    const auto r5 = renderNode(
+        cache, head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A text-decoration:underline", "A");
     bool foundUnderline = false;
     for (const auto& row : r5.node->rows)
-      if (row.document.underline) foundUnderline = true;
+      if (row.document.underline)
+        foundUnderline = true;
     require(foundUnderline, QStringLiteral("text-decoration:underline reaches a row document"));
     // font-size:0 / line-height:0 -> the node collapses to the 20x20 min box and
     // every scene row is ZERO-size with NO document (a 0px QFont is never built,
     // matching upstream's skip-font/measure/paint — STEP0F §2).
-    const auto rFs0 = renderNode(cache,
-        head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A font-size:0", "A");
-    require(qAbs(rFs0.node->size.width() - 20.0) < 1e-6 &&
-                qAbs(rFs0.node->size.height() - 20.0) < 1e-6,
+    const auto rFs0 =
+        renderNode(cache, head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A font-size:0", "A");
+    require(qAbs(rFs0.node->size.width() - 20.0) < 1e-6 && qAbs(rFs0.node->size.height() - 20.0) < 1e-6,
             QStringLiteral("font-size:0 -> 20x20 box; got %1x%2")
-                .arg(rFs0.node->size.width()).arg(rFs0.node->size.height()));
+                .arg(rFs0.node->size.width())
+                .arg(rFs0.node->size.height()));
     require(!rFs0.node->rows.isEmpty(), QStringLiteral("font-size:0 node still has rows"));
     for (const auto& row : rFs0.node->rows) {
       require(row.size.width() == 0.0 && row.size.height() == 0.0,
-              QStringLiteral("font-size:0 -> row zero-size; got %1x%2")
-                  .arg(row.size.width()).arg(row.size.height()));
-      require(row.document.text.isEmpty(),
-              QStringLiteral("font-size:0 -> no document built (no 0px QFont)"));
+              QStringLiteral("font-size:0 -> row zero-size; got %1x%2").arg(row.size.width()).arg(row.size.height()));
+      require(row.document.text.isEmpty(), QStringLiteral("font-size:0 -> no document built (no 0px QFont)"));
     }
-    const auto rLh0 = renderNode(cache,
-        head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A line-height:0", "A");
+    const auto rLh0 =
+        renderNode(cache, head + "requirement A {\n id: \"1\"\n text: hello\n}\nstyle A line-height:0", "A");
     require(!rLh0.node->rows.isEmpty(), QStringLiteral("line-height:0 node still has rows"));
     for (const auto& row : rLh0.node->rows)
       require(row.size.width() == 0.0 && row.size.height() == 0.0,
-              QStringLiteral("line-height:0 -> row zero-size; got %1x%2")
-                  .arg(row.size.width()).arg(row.size.height()));
+              QStringLiteral("line-height:0 -> row zero-size; got %1x%2").arg(row.size.width()).arg(row.size.height()));
   }
 
   // ===== 12. Painter ink: font-size:0 collapses text end-to-end =====
@@ -666,22 +642,18 @@ int main(int argc, char** argv) {
       d.formattingContext = flowchart::FlowLabelFormattingContext::FlowForeignObjectFlex;
       return d;
     };
-    auto paint = [&](const FlowLabelDocument& d) {
-      return paintLabelImage(d, rect, family, size, lineH);
-    };
+    auto paint = [&](const FlowLabelDocument& d) { return paintLabelImage(d, rect, family, size, lineH); };
 
     const QFont font = flowchart::makeFlowLabelFont(family, size);
     const QFontMetricsF fm(font);
-    const QString word = QStringLiteral("hello hello");  // no descenders -> clean bands
+    const QString word = QStringLiteral("hello hello"); // no descenders -> clean bands
     const FlowLabelDocument baseDoc = makeDoc(word);
     const QImage baseImg = paint(baseDoc);
     // Predicted baseline from the SAME layout paintFlowLabel uses internally; the
     // single centered line has lineTop == rect.top() (== 0), so each decoration's
     // center Y == baseline +/- the QFontMetricsF position.
-    const qreal baseline =
-        flowchart::layoutFlowLabel(baseDoc, family, size, lineH).lines.at(0).baseline;
-    const qreal textWidth =
-        flowchart::layoutFlowLabel(baseDoc, family, size, lineH).lines.at(0).width;
+    const qreal baseline = flowchart::layoutFlowLabel(baseDoc, family, size, lineH).lines.at(0).baseline;
+    const qreal textWidth = flowchart::layoutFlowLabel(baseDoc, family, size, lineH).lines.at(0).width;
     const int expectedThick = std::max(1, static_cast<int>(std::round(fm.lineWidth())));
 
     struct Kind {
@@ -701,22 +673,28 @@ int main(int argc, char** argv) {
       FlowLabelDocument d = makeDoc(word);
       (d.*kinds[k].flag) = true;
       const DecoBand band = decorationBand(baseImg, paint(d));
-      require(band.found,
-              QStringLiteral("%1: decoration paints a band").arg(kinds[k].name));
+      require(band.found, QStringLiteral("%1: decoration paints a band").arg(kinds[k].name));
       const int thickness = band.yMax - band.yMin + 1;
       require(thickness >= expectedThick && thickness <= expectedThick + 1,
               QStringLiteral("%1: thickness %2 ~ lineWidth(%3); got [%4,%5]")
-                  .arg(kinds[k].name).arg(thickness).arg(expectedThick).arg(band.yMin).arg(band.yMax));
-      require(std::abs(band.centerY() - kinds[k].predictedY) < 2.0,
-              QStringLiteral("%1: center Y %2 ~ predicted %3").arg(kinds[k].name)
-                  .arg(band.centerY()).arg(kinds[k].predictedY));
+                  .arg(kinds[k].name)
+                  .arg(thickness)
+                  .arg(expectedThick)
+                  .arg(band.yMin)
+                  .arg(band.yMax));
+      require(std::abs(band.centerY() - kinds[k].predictedY) < 2.0, QStringLiteral("%1: center Y %2 ~ predicted %3")
+                                                                        .arg(kinds[k].name)
+                                                                        .arg(band.centerY())
+                                                                        .arg(kinds[k].predictedY));
       bands[k] = band;
       thicknesses[k] = thickness;
     }
     // Distinct, ordered bands: overline (top) < strikeOut (mid) < underline (bottom).
     require(bands[1].centerY() < bands[2].centerY() && bands[2].centerY() < bands[0].centerY(),
             QStringLiteral("overline(%1) < strikeOut(%2) < underline(%3) Y")
-                .arg(bands[1].centerY()).arg(bands[2].centerY()).arg(bands[0].centerY()));
+                .arg(bands[1].centerY())
+                .arg(bands[2].centerY())
+                .arg(bands[0].centerY()));
     // Horizontal span ~= the full text advance (the underline is one line over
     // the whole row, not a truncated/wrong width), centered in the rect.
     const qreal span = bands[0].xMax - bands[0].xMin + 1;
@@ -724,8 +702,7 @@ int main(int argc, char** argv) {
             QStringLiteral("underline span %1 ~ text advance %2").arg(span).arg(textWidth));
     const qreal mid = (bands[0].xMin + bands[0].xMax) / 2.0;
     require(std::abs(mid - (rect.left() + rect.width() / 2.0)) < 6.0,
-            QStringLiteral("underline centered in rect (mid %1 ~ %2)")
-                .arg(mid).arg(rect.left() + rect.width() / 2.0));
+            QStringLiteral("underline centered in rect (mid %1 ~ %2)").arg(mid).arg(rect.left() + rect.width() / 2.0));
 
     // Math continuity: the underline is one continuous fillRect across the inline
     // Math region. The decoration is painted AFTER the glyphs (on top of them), so
@@ -742,12 +719,10 @@ int main(int argc, char** argv) {
       const QImage painted = paint(d);
       const DecoBand band = decorationBand(mathBaseImg, painted);
       require(band.found, QStringLiteral("underline paints over the Math line"));
-      const qreal mathAdvance =
-          flowchart::layoutFlowLabel(mathBase, family, size, lineH).lines.at(0).width;
+      const qreal mathAdvance = flowchart::layoutFlowLabel(mathBase, family, size, lineH).lines.at(0).width;
       const int bestRun = longestInkRun(painted, (band.yMin + band.yMax) / 2);
       require(bestRun >= mathAdvance - 6.0,
-              QStringLiteral("underline continuous across Math (run %1 >= advance %2)")
-                  .arg(bestRun).arg(mathAdvance));
+              QStringLiteral("underline continuous across Math (run %1 >= advance %2)").arg(bestRun).arg(mathAdvance));
     }
   }
 
@@ -769,11 +744,11 @@ int main(int argc, char** argv) {
     // The measure path builds a natural-height QFont for line-height:normal; it
     // must short-circuit on font-size:0 before that, and collapse on line-height:0.
     const QString src = head + "requirement A {\n id: \"1\"\n text: hello\n}\n";
-    const auto baseInput = requirement::buildRequirementLayoutInput(
-        requirement::RequirementDiagram::parse(src).data());
+    const auto baseInput = requirement::buildRequirementLayoutInput(requirement::RequirementDiagram::parse(src).data());
     auto measureWith = [&](const QStringList& css) {
       auto in = baseInput;
-      for (auto& n : in.nodes) n.cssStyles = css;
+      for (auto& n : in.nodes)
+        n.cssStyles = css;
       requirement::measureRequirementLayoutInput(in, kFamily, kSize, QFont::Normal);
     };
     measureWith({QStringLiteral("font-size:0"), QStringLiteral("line-height:normal")});
@@ -818,16 +793,19 @@ int main(int argc, char** argv) {
       d.formattingContext = flowchart::FlowLabelFormattingContext::FlowForeignObjectFlex;
       return d;
     };
-    auto paint = [&](const FlowLabelDocument& d) {
-      return paintLabelImage(d, rect, family, size, lineH);
-    };
+    auto paint = [&](const FlowLabelDocument& d) { return paintLabelImage(d, rect, family, size, lineH); };
     const QString word = QStringLiteral("hello hello");
     const QImage baseImg = paint(makeDoc(word));
     const InkExtent ink = inkExtentOf(baseImg);
     require(ink.any, QStringLiteral("baseline 'hello hello' has text ink"));
     const qreal inkCenter = (ink.yMin + ink.yMax) / 2.0;
 
-    struct ChromeOracle { QString name; bool FlowLabelDocument::* flag; qreal thickness; qreal delta; };
+    struct ChromeOracle {
+      QString name;
+      bool FlowLabelDocument::* flag;
+      qreal thickness;
+      qreal delta;
+    };
     const ChromeOracle oracle[] = {
         {QStringLiteral("underline"), &FlowLabelDocument::underline, 1.0, 7.5},
         {QStringLiteral("overline"), &FlowLabelDocument::overline, 1.0, -11.5},
@@ -845,12 +823,14 @@ int main(int argc, char** argv) {
       require(thickness >= o.thickness && thickness <= o.thickness + 1.0,
               QStringLiteral("%1: thickness %2 ~ Chrome %3").arg(o.name).arg(thickness).arg(o.thickness));
       // Y offset from the text ink center, within an anti-aliasing/sub-pixel budget.
-      require(std::abs(delta - o.delta) <= 2.5,
-              QStringLiteral("%1: delta-from-ink-center %2 ~ Chrome %3 (diff %4)")
-                  .arg(o.name).arg(delta).arg(o.delta).arg(delta - o.delta));
+      require(std::abs(delta - o.delta) <= 2.5, QStringLiteral("%1: delta-from-ink-center %2 ~ Chrome %3 (diff %4)")
+                                                    .arg(o.name)
+                                                    .arg(delta)
+                                                    .arg(o.delta)
+                                                    .arg(delta - o.delta));
     }
   }
-#endif  // Q_OS_WIN (Chrome-oracle section 15)
+#endif // Q_OS_WIN (Chrome-oracle section 15)
 
   qDebug() << "MermaidRequirementTextStyleTest: passed";
   return 0;

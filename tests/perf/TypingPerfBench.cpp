@@ -85,8 +85,8 @@ void report(const char* scenario, qsizetype docBytes, qsizetype blockCount, qsiz
     byLabel[label].push_back(ms);
   }
 
-  std::fprintf(stdout, "\n=== %s  (doc=%lldB, %lld top-level blocks, %lld inlines, %d iters) ===\n",
-               scenario, static_cast<long long>(docBytes), static_cast<long long>(blockCount),
+  std::fprintf(stdout, "\n=== %s  (doc=%lldB, %lld top-level blocks, %lld inlines, %d iters) ===\n", scenario,
+               static_cast<long long>(docBytes), static_cast<long long>(blockCount),
                static_cast<long long>(inlineCount), iters);
   std::fprintf(stdout, "%-34s %8s %8s %10s %6s\n", "phase", "median", "max", "sum(ms)", "n");
 
@@ -105,8 +105,8 @@ void report(const char* scenario, qsizetype docBytes, qsizetype blockCount, qsiz
   }
   std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) { return a.sum > b.sum; });
   for (const Row& r : rows) {
-    std::fprintf(stdout, "%-34s %8.3f %8.3f %10.2f %6zu\n", r.label.toUtf8().constData(),
-                 r.median, r.max, r.sum, r.count);
+    std::fprintf(stdout, "%-34s %8.3f %8.3f %10.2f %6zu\n", r.label.toUtf8().constData(), r.median, r.max, r.sum,
+                 r.count);
   }
   std::fflush(stdout);
 }
@@ -128,7 +128,7 @@ void typeAt(muffin::DocumentSession& session, qsizetype offset, int iters) {
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -161,15 +161,15 @@ int main(int argc, char** argv) {
   QElapsedTimer setup;
   setup.start();
   session.setMarkdownText(doc, false);
-  std::fprintf(stdout, "setup (full parse of %lldB): %.1f ms\n",
-               static_cast<long long>(doc.size()), setup.elapsed() / 1.0);
+  std::fprintf(stdout, "setup (full parse of %lldB): %.1f ms\n", static_cast<long long>(doc.size()),
+               setup.elapsed() / 1.0);
 
   qsizetype blocks = 0;
   qsizetype inlines = 0;
   countTree(session.document().root(), blocks, inlines);
   std::fprintf(stdout, "tree: %lld top-level blocks, %lld total nodes, %lld inlines\n",
-               static_cast<long long>(session.document().root().children().size()),
-               static_cast<long long>(blocks), static_cast<long long>(inlines));
+               static_cast<long long>(session.document().root().children().size()), static_cast<long long>(blocks),
+               static_cast<long long>(inlines));
 
   // Report the OPEN-parse phase breakdown before any typing probe clears the buffer — these are the
   // 100MB setup parse.* / session.* values, which the per-scenario reports would otherwise drop.

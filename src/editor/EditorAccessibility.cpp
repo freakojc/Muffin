@@ -50,7 +50,8 @@ struct TextBoundaries {
     start = text->lastIndexOf(QLatin1Char('\n'), offset - 1) + 1;
     const qsizetype nl = text->indexOf(QLatin1Char('\n'), offset);
     end = nl < 0 ? text->size() : nl;
-    if (start < 0) start = 0;
+    if (start < 0)
+      start = 0;
   }
 
   void wordAt(qsizetype offset, qsizetype& start, qsizetype& end) const {
@@ -68,8 +69,8 @@ struct TextBoundaries {
   }
 };
 
-QString boundaryText(const QString& text, QAccessible::TextBoundaryType boundary, int offset,
-                     int* startOffset, int* endOffset) {
+QString boundaryText(const QString& text, QAccessible::TextBoundaryType boundary, int offset, int* startOffset,
+                     int* endOffset) {
   const TextBoundaries bounds{&text};
   const qsizetype clamped = offset < 0 ? qsizetype(0) : (offset > text.size() ? text.size() : qsizetype(offset));
   qsizetype start = 0;
@@ -87,7 +88,7 @@ QString boundaryText(const QString& text, QAccessible::TextBoundaryType boundary
     bounds.lineAt(clamped, start, end);
   } else if (boundary == QAccessible::WordBoundary) {
     bounds.wordAt(clamped, start, end);
-  } else {  // ParagraphBoundary / SentenceBoundary / NoBoundary
+  } else { // ParagraphBoundary / SentenceBoundary / NoBoundary
     bounds.lineAt(clamped, start, end);
   }
   *startOffset = static_cast<int>(start);
@@ -99,8 +100,7 @@ QString boundaryText(const QString& text, QAccessible::TextBoundaryType boundary
 
 class EditorViewAccessible final : public QAccessibleWidget, public QAccessibleTextInterface {
 public:
-  explicit EditorViewAccessible(EditorView* view)
-      : QAccessibleWidget(view, QAccessible::EditableText), view_(view) {}
+  explicit EditorViewAccessible(EditorView* view) : QAccessibleWidget(view, QAccessible::EditableText), view_(view) {}
 
   // QAccessibleInterface
   QAccessible::Role role() const override { return QAccessible::EditableText; }
@@ -217,9 +217,7 @@ public:
       }
     }
   }
-  int characterCount() const override {
-    return static_cast<int>(flatText().size());
-  }
+  int characterCount() const override { return static_cast<int>(flatText().size()); }
   void setCursorPosition(int position) override {
     if (EditorController* controller = editorController()) {
       controller->setCursorForSourceOffset(position);
@@ -227,8 +225,7 @@ public:
   }
   QString text(int startOffset, int endOffset) const override {
     const QString flat = flatText();
-    return flat.mid(qBound(0, startOffset, static_cast<int>(flat.size())),
-                    qMax(0, endOffset - startOffset));
+    return flat.mid(qBound(0, startOffset, static_cast<int>(flat.size())), qMax(0, endOffset - startOffset));
   }
   QString textBeforeOffset(int offset, QAccessible::TextBoundaryType boundaryType, int* startOffset,
                            int* endOffset) const override {
@@ -305,9 +302,7 @@ public:
     return QAccessibleWidget::interface_cast(type);
   }
 
-  void addSelection(int startOffset, int endOffset) override {
-    edit_->setSelection(startOffset, endOffset);
-  }
+  void addSelection(int startOffset, int endOffset) override { edit_->setSelection(startOffset, endOffset); }
   QString attributes(int offset, int* startOffset, int* endOffset) const override {
     *startOffset = offset;
     *endOffset = offset + 1;
@@ -353,8 +348,7 @@ public:
   void setCursorPosition(int position) override { edit_->setCursorPosition(position, false); }
   QString text(int startOffset, int endOffset) const override {
     const QString flat = edit_->text();
-    return flat.mid(qBound(0, startOffset, static_cast<int>(flat.size())),
-                    qMax(0, endOffset - startOffset));
+    return flat.mid(qBound(0, startOffset, static_cast<int>(flat.size())), qMax(0, endOffset - startOffset));
   }
   QString textBeforeOffset(int offset, QAccessible::TextBoundaryType boundaryType, int* startOffset,
                            int* endOffset) const override {
@@ -396,7 +390,7 @@ QAccessibleInterface* editorAccessibleFactory(const QString& classname, QObject*
   return nullptr;
 }
 
-}  // namespace
+} // namespace
 
 namespace muffin {
 namespace a11y {
@@ -425,10 +419,10 @@ EditorController* controllerFor(const EditorView* view) {
   return controllerRegistry().value(view, nullptr);
 }
 
-}  // namespace a11y
+} // namespace a11y
 
 void installEditorAccessibility() {
   QAccessible::installFactory(&editorAccessibleFactory);
 }
 
-}  // namespace muffin
+} // namespace muffin

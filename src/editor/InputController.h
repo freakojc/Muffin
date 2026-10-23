@@ -66,17 +66,10 @@ public:
   bool selectionSourceRange(qsizetype& start, qsizetype& end) const;
   CursorPosition cursorForSourceOffset(qsizetype sourceOffset, bool preferLaterEmptyAtOffset = false) const;
 
-  void performLocalEdit(
-      EditTransaction::Kind kind,
-      const QString& label,
-      qsizetype sourceStart,
-      qsizetype removedLength,
-      QString insertedText,
-      CursorPosition preferredCursor,
-      qsizetype fallbackSourceOffset,
-      QVector<LocalEditNodeHint> nodeHints = {},
-      bool preferLaterEmptyAtOffset = false,
-      bool structureEdit = false);
+  void performLocalEdit(EditTransaction::Kind kind, const QString& label, qsizetype sourceStart,
+                        qsizetype removedLength, QString insertedText, CursorPosition preferredCursor,
+                        qsizetype fallbackSourceOffset, QVector<LocalEditNodeHint> nodeHints = {},
+                        bool preferLaterEmptyAtOffset = false, bool structureEdit = false);
 
   bool eventFilter(QObject* watched, QEvent* event) override;
 
@@ -134,14 +127,14 @@ private:
   // Standard removal range: extend [blockStart, blockEnd] to swallow the inter-block separator
   // (the next block's leading bytes, or the previous block's trailing bytes) so the deletion
   // leaves no blank line. Returns false if the resulting range is empty.
-  bool computeStandardRemovalRange(qsizetype blockStart, qsizetype blockEnd, int nodeIndex,
-                                   qsizetype& deleteStart, qsizetype& deleteEnd) const;
+  bool computeStandardRemovalRange(qsizetype blockStart, qsizetype blockEnd, int nodeIndex, qsizetype& deleteStart,
+                                   qsizetype& deleteEnd) const;
   // Apply a top-level block deletion: capture undo state, optionally exit a literal editor
   // first, apply the text delta, place the post-edit caret, push the undo transaction, and
   // flush the brush queue synchronously. `exitLiteralEditorFirst` is set by the literal handler.
-  bool removeTopLevelBlock(MarkdownNode& node, int nodeIndex, qsizetype blockStart,
-                           qsizetype deleteStart, qsizetype deleteEnd, EditTransaction::Kind kind,
-                           const QString& label, bool exitLiteralEditorFirst);
+  bool removeTopLevelBlock(MarkdownNode& node, int nodeIndex, qsizetype blockStart, qsizetype deleteStart,
+                           qsizetype deleteEnd, EditTransaction::Kind kind, const QString& label,
+                           bool exitLiteralEditorFirst);
   bool collapseTrailingCaretToEndOfLastBlock();
   // True for a top-level block that hosts NO inline-editable text anywhere AND is not a literal
   // block (code/math/html/front matter edit through their own controllers; lists/tables/quotes have
@@ -166,11 +159,13 @@ private:
   // navigation, which fires per key press).
   CursorPosition cursorForSourceInNode(MarkdownNode& node, qsizetype sourceOffset) const;
   CursorPosition cursorForSourceInContext(const BlockEditContext& context, qsizetype sourceOffset) const;
-  CursorPosition cursorAfterEdit(CursorPosition preferredCursor, qsizetype fallbackSourceOffset, bool preferLaterEmptyAtOffset = false) const;
+  CursorPosition cursorAfterEdit(CursorPosition preferredCursor, qsizetype fallbackSourceOffset,
+                                 bool preferLaterEmptyAtOffset = false) const;
   // A caret that sits block-after a non-text top-level block (thematic break, etc.) — the only kind
   // of caret an offset on such a block can resolve to, since they host no inline-editable text.
   CursorPosition cursorForBlockAfter(const MarkdownNode& host, qsizetype sourceOffset) const;
-  MarkdownNode* paragraphAtSourceOffset(MarkdownNode& node, qsizetype sourceOffset, bool preferLaterEmptyAtOffset = false) const;
+  MarkdownNode* paragraphAtSourceOffset(MarkdownNode& node, qsizetype sourceOffset,
+                                        bool preferLaterEmptyAtOffset = false) const;
   MarkdownNode* selectableBlockByDirection(NodeId current, int direction) const;
   // The neighbour block in DOCUMENT ORDER, climbing out of containers (lists / block quotes) so a
   // nested caret can reach the editable block that visually follows/precedes it. Unlike
@@ -213,26 +208,15 @@ private:
   void setHitOrExtend(HitTestResult hit, bool extendSelection);
   void clearVerticalNavigationX();
   void applyEdit(EditTransaction::Kind kind, const QString& label, QString nextText, qsizetype nextSourceOffset);
-  void applyEdit(EditTransaction::Kind kind, const QString& label, QString nextText, qsizetype nextSourceOffset, bool preferLaterEmptyAtOffset);
-  void applyLocalEdit(
-      EditTransaction::Kind kind,
-      const QString& label,
-      qsizetype sourceStart,
-      qsizetype removedLength,
-      QString insertedText,
-      CursorPosition preferredCursor,
-      qsizetype fallbackSourceOffset,
-      QVector<LocalEditNodeHint> nodeHints = {},
-      bool preferLaterEmptyAtOffset = false,
-      bool structureEdit = false);
-  void applyEdit(
-      EditTransaction::Kind kind,
-      const QString& label,
-      QString nextText,
-      CursorPosition preferredCursor,
-      qsizetype fallbackSourceOffset,
-      QVector<LocalEditNodeHint> nodeHints = {},
-      bool preferLaterEmptyAtOffset = false);
+  void applyEdit(EditTransaction::Kind kind, const QString& label, QString nextText, qsizetype nextSourceOffset,
+                 bool preferLaterEmptyAtOffset);
+  void applyLocalEdit(EditTransaction::Kind kind, const QString& label, qsizetype sourceStart, qsizetype removedLength,
+                      QString insertedText, CursorPosition preferredCursor, qsizetype fallbackSourceOffset,
+                      QVector<LocalEditNodeHint> nodeHints = {}, bool preferLaterEmptyAtOffset = false,
+                      bool structureEdit = false);
+  void applyEdit(EditTransaction::Kind kind, const QString& label, QString nextText, CursorPosition preferredCursor,
+                 qsizetype fallbackSourceOffset, QVector<LocalEditNodeHint> nodeHints = {},
+                 bool preferLaterEmptyAtOffset = false);
   QString printableText(QKeyEvent* event) const;
 
   LiteralBlockController* activeLiteralEditor() const;
@@ -245,7 +229,7 @@ private:
   bool hasVerticalNavigationX_ = false;
   qreal verticalNavigationX_ = 0.0;
   CursorPosition verticalNavigationCursor_;
-  qsizetype emojiColonStart_ = -1;  // source offset of the leading ':' of the active shortcode
+  qsizetype emojiColonStart_ = -1; // source offset of the leading ':' of the active shortcode
 };
 
-}  // namespace muffin
+} // namespace muffin

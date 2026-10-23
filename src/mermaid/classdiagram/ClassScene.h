@@ -140,9 +140,7 @@ struct ClassScene : MermaidScene {
   void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
   SvgMarkerProjection svgMarkerProjection() const override;
-  const QVector<InteractionRegion>& interactionRegions() const override {
-    return interactions;
-  }
+  const QVector<InteractionRegion>& interactionRegions() const override { return interactions; }
 
   QRectF bounds;
   QVector<ClassSceneCluster> clusters;
@@ -159,14 +157,10 @@ struct ClassScene : MermaidScene {
 
 QVector<ClassMarkerDefinition> classMarkerDefinitions();
 
-ClassScene buildClassScene(const ClassLayoutInput& input,
-                           const QVector<ClassBoxGeometry>& boxes,
-                           const ClassLayoutMeasurements& measurements,
-                           const ClassPlacementResult& placement,
-                           ClassSceneStyle style = {},
-                           const QVector<style::ClassDef>& classDefs = {},
-                           const style::ThemeDefaults& themeDefaults = {},
-                           bool handDrawn = false,
+ClassScene buildClassScene(const ClassLayoutInput& input, const QVector<ClassBoxGeometry>& boxes,
+                           const ClassLayoutMeasurements& measurements, const ClassPlacementResult& placement,
+                           ClassSceneStyle style = {}, const QVector<style::ClassDef>& classDefs = {},
+                           const style::ThemeDefaults& themeDefaults = {}, bool handDrawn = false,
                            quint32 handDrawnSeed = 0);
 
-}  // namespace muffin::mermaid::classdiagram
+} // namespace muffin::mermaid::classdiagram

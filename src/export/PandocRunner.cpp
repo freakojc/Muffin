@@ -44,20 +44,19 @@ QStringList wellKnownPandocCandidates() {
     paths << QDir(userProfile).filePath(QStringLiteral("scoop/shims/pandoc.exe"));
   }
 #elif defined(Q_OS_MACOS)
-  paths << QStringLiteral("/opt/homebrew/bin/pandoc")   // Apple Silicon Homebrew
-        << QStringLiteral("/usr/local/bin/pandoc")      // Intel Homebrew
-        << QStringLiteral("/opt/local/bin/pandoc")      // MacPorts
-        << QStringLiteral("/Library/TeX/texbin/pandoc");  // MacTeX bundle
+  paths << QStringLiteral("/opt/homebrew/bin/pandoc")    // Apple Silicon Homebrew
+        << QStringLiteral("/usr/local/bin/pandoc")       // Intel Homebrew
+        << QStringLiteral("/opt/local/bin/pandoc")       // MacPorts
+        << QStringLiteral("/Library/TeX/texbin/pandoc"); // MacTeX bundle
 #else
-  paths << QStringLiteral("/usr/bin/pandoc") << QStringLiteral("/usr/local/bin/pandoc")
-        << QStringLiteral("/bin/pandoc") << QStringLiteral("/snap/bin/pandoc")
-        << QStringLiteral("/opt/pandoc/bin/pandoc")
+  paths << QStringLiteral("/usr/bin/pandoc") << QStringLiteral("/usr/local/bin/pandoc") << QStringLiteral("/bin/pandoc")
+        << QStringLiteral("/snap/bin/pandoc") << QStringLiteral("/opt/pandoc/bin/pandoc")
         << QDir::home().filePath(QStringLiteral(".local/bin/pandoc"));
 #endif
   return paths;
 }
 
-}  // namespace
+} // namespace
 
 QString PandocRunner::resolvedExecutable() {
   QSettings settings;
@@ -196,4 +195,4 @@ PandocResult PandocRunner::run(QWidget* parent, const QStringList& args, const P
   return result;
 }
 
-}  // namespace muffin
+} // namespace muffin

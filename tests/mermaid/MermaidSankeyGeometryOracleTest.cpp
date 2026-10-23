@@ -12,7 +12,7 @@
 using namespace muffin::mermaid;
 using namespace sankey_test;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
   QGuiApplication app(argc, argv);
   MermaidFontRegistry::ensureLoaded();
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
           QStringLiteral("Sankey geometry provenance changed"));
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
   require(cases.size() == 16, QStringLiteral("Expected 16 geometry cases"));
-  for (const QJsonValue &value : cases)
+  for (const QJsonValue& value : cases)
     compareCase(value.toObject());
   std::puts("MermaidSankeyGeometryOracleTest: 16/16 passed");
   return 0;

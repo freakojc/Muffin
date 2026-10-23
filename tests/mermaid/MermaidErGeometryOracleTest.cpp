@@ -40,10 +40,10 @@ using namespace muffin::mermaid;
 namespace {
 
 // Asserted (font-independent) tolerances.
-constexpr qreal kHeight = 1.5;        // entity height: row-model parity
+constexpr qreal kHeight = 1.5; // entity height: row-model parity
 // Reported (font-coupled) — printed, not failed.
-constexpr qreal kReport = 0.5;        // report width/x/y deltas above this
-constexpr qreal kPath = 2.0;          // relationship path report threshold
+constexpr qreal kReport = 0.5; // report width/x/y deltas above this
+constexpr qreal kPath = 2.0;   // relationship path report threshold
 
 // mermaid alias-entity quirks (sized by id not alias; alias+attribute edge case).
 const QSet<QString> kSkippedCases = {QStringLiteral("entity-alias")};
@@ -54,15 +54,15 @@ const QSet<QString> kSkippedCases = {QStringLiteral("entity-alias")};
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 qreal boundsField(const QJsonValue& entity, const char* field) {
-  return entity.toObject().value(QStringLiteral("bounds")).toObject()
-      .value(QLatin1String(field)).toDouble();
+  return entity.toObject().value(QStringLiteral("bounds")).toObject().value(QLatin1String(field)).toDouble();
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -75,8 +75,7 @@ int main(int argc, char** argv) {
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
   require(root.value(QStringLiteral("mermaidVersion")).toString() == QLatin1String("11.16.0"),
           QStringLiteral("ER geometry: mermaidVersion drifted"));
-  require(root.value(QStringLiteral("oracle")).toString().startsWith(
-              QLatin1String("erDiagram.render")),
+  require(root.value(QStringLiteral("oracle")).toString().startsWith(QLatin1String("erDiagram.render")),
           QStringLiteral("ER geometry: oracle contract drifted"));
 
   editor::MermaidRenderCache cache;
@@ -84,8 +83,7 @@ int main(int argc, char** argv) {
     const QJsonObject fixture = caseValue.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
     if (kSkippedCases.contains(id)) {
-      std::fprintf(stderr, "[ER geometry] %s: skipped (mermaid alias-entity quirk)\n",
-                   qPrintable(id));
+      std::fprintf(stderr, "[ER geometry] %s: skipped (mermaid alias-entity quirk)\n", qPrintable(id));
       continue;
     }
     const QString source = fixture.value(QStringLiteral("source")).toString();
@@ -96,8 +94,8 @@ int main(int argc, char** argv) {
             id + QStringLiteral(": native ER render failed: ") + entry.errorMessage);
     const QJsonObject actual = erScene->toJsonObject();
 
-    QStringList assertErrors;   // font-independent parity (heights, cardinality)
-    QStringList reportNotes;    // font-coupled (widths, positions, paths)
+    QStringList assertErrors; // font-independent parity (heights, cardinality)
+    QStringList reportNotes;  // font-coupled (widths, positions, paths)
 
     // Entities: match by id. Assert height; report width/x/y.
     QHash<QString, QJsonValue> expectedEntityById;
@@ -111,14 +109,14 @@ int main(int argc, char** argv) {
       }
       const QJsonValue exp = expectedEntityById.value(entityId);
       const QString prefix = id + QStringLiteral("/entity/%1").arg(entityId);
-      assertErrors += parity::compareNumber(boundsField(e, "height"), boundsField(exp, "height"),
-                                            parity::Tier{kHeight}, prefix + "/height");
-      reportNotes += parity::compareNumber(boundsField(e, "width"), boundsField(exp, "width"),
-                                           parity::Tier{kReport}, prefix + "/width");
-      reportNotes += parity::compareNumber(boundsField(e, "x"), boundsField(exp, "x"),
-                                           parity::Tier{kReport}, prefix + "/x");
-      reportNotes += parity::compareNumber(boundsField(e, "y"), boundsField(exp, "y"),
-                                           parity::Tier{kReport}, prefix + "/y");
+      assertErrors += parity::compareNumber(boundsField(e, "height"), boundsField(exp, "height"), parity::Tier{kHeight},
+                                            prefix + "/height");
+      reportNotes += parity::compareNumber(boundsField(e, "width"), boundsField(exp, "width"), parity::Tier{kReport},
+                                           prefix + "/width");
+      reportNotes +=
+          parity::compareNumber(boundsField(e, "x"), boundsField(exp, "x"), parity::Tier{kReport}, prefix + "/x");
+      reportNotes +=
+          parity::compareNumber(boundsField(e, "y"), boundsField(exp, "y"), parity::Tier{kReport}, prefix + "/y");
     }
 
     // Relationships: match by (cardA, cardB, identifying). Assert those; report path.
@@ -132,7 +130,8 @@ int main(int argc, char** argv) {
       const bool identifying = rel.value(QStringLiteral("identifying")).toBool();
       int match = -1;
       for (int i = 0; i < expectedRels.size(); ++i) {
-        if (consumed[i]) continue;
+        if (consumed[i])
+          continue;
         const QJsonObject c = expectedRels[i].toObject();
         if (c.value(QStringLiteral("cardA")).toString() == cardA &&
             c.value(QStringLiteral("cardB")).toString() == cardB &&
@@ -143,8 +142,8 @@ int main(int argc, char** argv) {
       }
       const QString prefix = id + QStringLiteral("/rel/%1-%2").arg(cardA, cardB);
       if (match < 0) {
-        assertErrors << prefix + QStringLiteral(": no mermaid reference for %1/%2 ident=%3")
-                            .arg(cardA, cardB).arg(identifying);
+        assertErrors
+            << prefix + QStringLiteral(": no mermaid reference for %1/%2 ident=%3").arg(cardA, cardB).arg(identifying);
         continue;
       }
       consumed[match] = 1;
@@ -156,10 +155,9 @@ int main(int argc, char** argv) {
         const QJsonObject matched = expectedRels[match].toObject();
         if (matched.value(QStringLiteral("strokeDasharray")).toString() != QLatin1String("8px, 8px") ||
             matched.value(QStringLiteral("strokeWidth")).toString() != QLatin1String("1px")) {
-          assertErrors << prefix + QStringLiteral(
-                           ": expected non-identifying dash 8px,8px@1px, fixture says %1 @ %2")
-                               .arg(matched.value(QStringLiteral("strokeDasharray")).toString(),
-                                    matched.value(QStringLiteral("strokeWidth")).toString());
+          assertErrors << prefix + QStringLiteral(": expected non-identifying dash 8px,8px@1px, fixture says %1 @ %2")
+                                       .arg(matched.value(QStringLiteral("strokeDasharray")).toString(),
+                                            matched.value(QStringLiteral("strokeWidth")).toString());
         }
       }
       reportNotes += parity::comparePath(rel.value(QStringLiteral("path")).toString(),
@@ -168,12 +166,14 @@ int main(int argc, char** argv) {
     }
 
     if (!reportNotes.isEmpty()) {
-      std::fprintf(stderr, "[ER geometry] %s: %llu font-coupled delta(s) (reported, not asserted):\n",
-                   qPrintable(id), static_cast<unsigned long long>(reportNotes.size()));
-      for (const QString& n : reportNotes) std::fprintf(stderr, "  %s\n", qPrintable(n));
+      std::fprintf(stderr, "[ER geometry] %s: %llu font-coupled delta(s) (reported, not asserted):\n", qPrintable(id),
+                   static_cast<unsigned long long>(reportNotes.size()));
+      for (const QString& n : reportNotes)
+        std::fprintf(stderr, "  %s\n", qPrintable(n));
     }
     if (!assertErrors.isEmpty()) {
-      for (const QString& e : assertErrors) std::fprintf(stderr, "%s\n", qPrintable(e));
+      for (const QString& e : assertErrors)
+        std::fprintf(stderr, "%s\n", qPrintable(e));
       fail(id + QStringLiteral(": ER geometry parity regression (height/cardinality)"));
     }
   }

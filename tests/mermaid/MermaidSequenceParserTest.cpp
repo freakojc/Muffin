@@ -20,13 +20,14 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString json(const QJsonObject& value) {
   return QString::fromUtf8(QJsonDocument(value).toJson(QJsonDocument::Indented));
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -37,11 +38,12 @@ int main(int argc, char** argv) {
   require(root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
               QLatin1String("11.16.0"),
           QStringLiteral("Sequence fixture version drifted"));
-  const QJsonObject grammar=root.value(QStringLiteral("upstream")).toObject()
-                                .value(QStringLiteral("grammar")).toObject();
-  require(grammar.value(QStringLiteral("url")).toString().endsWith(
-              QLatin1String("/sequence/parser/sequenceDiagram.jison"))&&
-              grammar.value(QStringLiteral("sha256")).toString()==
+  const QJsonObject grammar =
+      root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("grammar")).toObject();
+  require(grammar.value(QStringLiteral("url"))
+                  .toString()
+                  .endsWith(QLatin1String("/sequence/parser/sequenceDiagram.jison")) &&
+              grammar.value(QStringLiteral("sha256")).toString() ==
                   QLatin1String("8771148ef56c2b98b021597a53585e45acc088cb321a3d457d265eca352fb40f"),
           QStringLiteral("Sequence upstream grammar contract drifted"));
   require(root.value(QStringLiteral("fixtureDigest")).toString() ==
@@ -49,8 +51,7 @@ int main(int argc, char** argv) {
           QStringLiteral("Sequence fixture changed; audit DB/production diagnostics and update its digest"));
 
   const QJsonArray productions = root.value(QStringLiteral("productions")).toArray();
-  require(productions.size() == 105,
-          QStringLiteral("Expected all 105 sequenceDiagram.jison productions"));
+  require(productions.size() == 105, QStringLiteral("Expected all 105 sequenceDiagram.jison productions"));
   int coveredProductions = 0;
   int unreachableProductions = 0;
   int negativeOnlyProductions = 0;
@@ -58,12 +59,12 @@ int main(int argc, char** argv) {
     const QJsonObject production = productions[i].toObject();
     require(production.value(QStringLiteral("id")).toInt() == i + 1 &&
                 !production.value(QStringLiteral("lhs")).toString().isEmpty() &&
-                production.value(QStringLiteral("alternative")).toInt()>0&&
-                production.value(QStringLiteral("rhs")).toArray().size()==
-                    production.value(QStringLiteral("rhsLength")).toInt()&&
-                production.value(QStringLiteral("terminals")).isArray()&&
-                production.value(QStringLiteral("nullableBoundaries")).isArray()&&
-                production.value(QStringLiteral("separatorTerminals")).isArray()&&
+                production.value(QStringLiteral("alternative")).toInt() > 0 &&
+                production.value(QStringLiteral("rhs")).toArray().size() ==
+                    production.value(QStringLiteral("rhsLength")).toInt() &&
+                production.value(QStringLiteral("terminals")).isArray() &&
+                production.value(QStringLiteral("nullableBoundaries")).isArray() &&
+                production.value(QStringLiteral("separatorTerminals")).isArray() &&
                 !production.value(QStringLiteral("native")).toString().isEmpty(),
             QStringLiteral("Sequence production table is incomplete at %1").arg(i + 1));
     if (production.value(QStringLiteral("status")).toString() == QLatin1String("covered")) {
@@ -74,16 +75,19 @@ int main(int argc, char** argv) {
       const QString status = production.value(QStringLiteral("status")).toString();
       require(status == QLatin1String("unreachable") || status == QLatin1String("negative-only"),
               QStringLiteral("Sequence production %1 remains unclassified").arg(i + 1));
-      if (status == QLatin1String("unreachable")) ++unreachableProductions;
-      else ++negativeOnlyProductions;
+      if (status == QLatin1String("unreachable"))
+        ++unreachableProductions;
+      else
+        ++negativeOnlyProductions;
       require(!production.value(QStringLiteral("reason")).toString().isEmpty(),
               QStringLiteral("Uncovered sequence production is unclassified"));
     }
   }
-  require(coveredProductions == 98 && unreachableProductions == 6 &&
-              negativeOnlyProductions == 1,
+  require(coveredProductions == 98 && unreachableProductions == 6 && negativeOnlyProductions == 1,
           QStringLiteral("Sequence production matrix regressed: %1 covered, %2 unreachable, %3 negative")
-              .arg(coveredProductions).arg(unreachableProductions).arg(negativeOnlyProductions));
+              .arg(coveredProductions)
+              .arg(unreachableProductions)
+              .arg(negativeOnlyProductions));
 
   QSet<QString> ids;
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
@@ -98,44 +102,41 @@ int main(int argc, char** argv) {
     require(!tokens.isEmpty() && tokens.first().kind == SequenceTokenKind::Header,
             QStringLiteral("Sequence tokenizer missed header for %1").arg(id));
     for (const SequenceToken& token : tokens)
-      require(token.kind != SequenceTokenKind::Invalid,
-              QStringLiteral("Invalid sequence token in %1 at %2:%3: %4")
-                  .arg(id).arg(token.line).arg(token.column).arg(token.text));
+      require(token.kind != SequenceTokenKind::Invalid, QStringLiteral("Invalid sequence token in %1 at %2:%3: %4")
+                                                            .arg(id)
+                                                            .arg(token.line)
+                                                            .arg(token.column)
+                                                            .arg(token.text));
 
     QJsonObject actual;
     try {
       actual = SequenceDiagram::parse(source).toJson();
     } catch (const std::exception& error) {
-      fail(QStringLiteral("Sequence parser failed for %1: %2")
-               .arg(id, QString::fromUtf8(error.what())));
+      fail(QStringLiteral("Sequence parser failed for %1: %2").arg(id, QString::fromUtf8(error.what())));
     }
     const QJsonObject expected = fixture.value(QStringLiteral("expected")).toObject();
-    require(actual == expected,
-            QStringLiteral("Sequence DB mismatch for %1\nNative:\n%2\nUpstream:\n%3")
-                .arg(id, json(actual), json(expected)));
+    require(actual == expected, QStringLiteral("Sequence DB mismatch for %1\nNative:\n%2\nUpstream:\n%3")
+                                    .arg(id, json(actual), json(expected)));
   }
 
   {
-    const QString mathLabel = QStringLiteral(
-        "sequenceDiagram\nA->>B:start\n"
-        "Note over A,B:$$p+\\sum_{i=1}^{n}+q:100%#ok$$");
+    const QString mathLabel = QStringLiteral("sequenceDiagram\nA->>B:start\n"
+                                             "Note over A,B:$$p+\\sum_{i=1}^{n}+q:100%#ok$$");
     const QVector<SequenceToken> tokens = SequenceTokenizer(mathLabel).tokenize();
     require(std::none_of(tokens.cbegin(), tokens.cend(),
-                         [](const SequenceToken& token) {
-                           return token.kind == SequenceTokenKind::Invalid;
-                         }),
+                         [](const SequenceToken& token) { return token.kind == SequenceTokenKind::Invalid; }),
             QStringLiteral("Math label lexical state emitted an invalid token"));
     const SequenceDiagram diagram = SequenceDiagram::parse(mathLabel);
     require(!diagram.data().messages.isEmpty() &&
-                diagram.data().messages.back().message.toString() ==
-                    QLatin1String("$$p+\\sum_{i=1}^{n}+q:100%#ok$$"),
+                diagram.data().messages.back().message.toString() == QLatin1String("$$p+\\sum_{i=1}^{n}+q:100%#ok$$"),
             QStringLiteral("Math label lexical state lost opaque punctuation"));
   }
 
   QSet<int> diagnosticCodes;
   for (const QJsonValue& value : root.value(QStringLiteral("invalidCases")).toArray()) {
     const QJsonObject fixture = value.toObject();
-    if (!fixture.value(QStringLiteral("rejected")).toBool()) continue;
+    if (!fixture.value(QStringLiteral("rejected")).toBool())
+      continue;
     bool rejected = false;
     try {
       SequenceDiagram::parse(fixture.value(QStringLiteral("source")).toString());
@@ -161,9 +162,9 @@ int main(int argc, char** argv) {
            SequenceErrorCode::InvalidDestroyMessage,
            SequenceErrorCode::DuplicateParticipant,
        })
-    require(diagnosticCodes.contains(static_cast<int>(code)),
-            QStringLiteral("Sequence diagnostic code lacks an upstream-invalid case: %1")
-                .arg(sequenceErrorCodeName(code)));
+    require(
+        diagnosticCodes.contains(static_cast<int>(code)),
+        QStringLiteral("Sequence diagnostic code lacks an upstream-invalid case: %1").arg(sequenceErrorCodeName(code)));
 
   try {
     SequenceLimits limits;
@@ -175,7 +176,7 @@ int main(int argc, char** argv) {
             QStringLiteral("Sequence resource limit has the wrong diagnostic code"));
   }
 
-  qDebug() << "MermaidSequenceParserTest:" << cases.size() << "DB cases," <<
-      coveredProductions << "of" << productions.size() << "productions covered";
+  qDebug() << "MermaidSequenceParserTest:" << cases.size() << "DB cases," << coveredProductions << "of"
+           << productions.size() << "productions covered";
   return 0;
 }

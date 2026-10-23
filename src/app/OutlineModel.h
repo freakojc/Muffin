@@ -41,4 +41,4 @@ private:
   bool foldable_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

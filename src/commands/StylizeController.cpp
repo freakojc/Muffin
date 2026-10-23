@@ -12,42 +12,37 @@
 #include <algorithm>
 
 namespace muffin {
-namespace {
-}  // namespace
+namespace {} // namespace
 
 // ============================================================================
 // Public entry points
 // ============================================================================
 
-StylizeController::StylizeController(QObject* parent) : QObject(parent) {}
+StylizeController::StylizeController(QObject* parent) : QObject(parent) {
+}
 
 bool StylizeController::toggleBold() {
-  return toggleStyle(InlineType::Strong,
-                     QStringLiteral("**"), QStringLiteral("**"),
-                     EditTransaction::Kind::InsertText, QStringLiteral("Bold"));
+  return toggleStyle(InlineType::Strong, QStringLiteral("**"), QStringLiteral("**"), EditTransaction::Kind::InsertText,
+                     QStringLiteral("Bold"));
 }
 
 bool StylizeController::toggleItalic() {
-  return toggleStyle(InlineType::Emphasis,
-                     QStringLiteral("*"), QStringLiteral("*"),
-                     EditTransaction::Kind::InsertText, QStringLiteral("Italic"));
+  return toggleStyle(InlineType::Emphasis, QStringLiteral("*"), QStringLiteral("*"), EditTransaction::Kind::InsertText,
+                     QStringLiteral("Italic"));
 }
 
 bool StylizeController::toggleCode() {
-  return toggleStyle(InlineType::Code,
-                     QStringLiteral("`"), QStringLiteral("`"),
-                     EditTransaction::Kind::InsertText, QStringLiteral("Code"));
+  return toggleStyle(InlineType::Code, QStringLiteral("`"), QStringLiteral("`"), EditTransaction::Kind::InsertText,
+                     QStringLiteral("Code"));
 }
 
 bool StylizeController::toggleStrikethrough() {
-  return toggleStyle(InlineType::Strikethrough,
-                     QStringLiteral("~~"), QStringLiteral("~~"),
+  return toggleStyle(InlineType::Strikethrough, QStringLiteral("~~"), QStringLiteral("~~"),
                      EditTransaction::Kind::InsertText, QStringLiteral("Strikethrough"));
 }
 
 bool StylizeController::toggleInlineMath() {
-  return toggleStyle(InlineType::InlineMath,
-                     QStringLiteral("$"), QStringLiteral("$"),
+  return toggleStyle(InlineType::InlineMath, QStringLiteral("$"), QStringLiteral("$"),
                      EditTransaction::Kind::InsertText, QStringLiteral("Inline Formula"));
 }
 
@@ -114,12 +109,11 @@ bool StylizeController::clearFormatting() {
   // Underline uses raw HTML (<u></u>), collected separately from the text.
   QVector<MarkerSpan> spans;
   collectClearFormattingSpans(context.editableNode->inlines(), contentOffset, spans);
-  const QVector<MarkerSpan> underline =
-      collectHtmlUnderlineMarkers(contentText, 0, contentText.size());
+  const QVector<MarkerSpan> underline = collectHtmlUnderlineMarkers(contentText, 0, contentText.size());
   spans.append(underline);
 
   if (spans.isEmpty()) {
-    return false;  // nothing to clear
+    return false; // nothing to clear
   }
 
   // Merge overlapping/adjacent spans so each source char is removed exactly once.
@@ -141,8 +135,7 @@ bool StylizeController::clearFormatting() {
   // Remove in reverse to keep earlier offsets valid. Track how far the cursor
   // shifts left: fully-preceding spans move it by their length; a span straddling
   // the cursor snaps it back to the span's start.
-  const qsizetype localCursor =
-      qBound<qsizetype>(0, context.cursorSourceOffset - contentBase, contentText.size());
+  const qsizetype localCursor = qBound<qsizetype>(0, context.cursorSourceOffset - contentBase, contentText.size());
   QString newText = contentText;
   qsizetype cursorShift = 0;
   for (auto it = merged.rbegin(); it != merged.rend(); ++it) {
@@ -158,12 +151,10 @@ bool StylizeController::clearFormatting() {
   const qsizetype nextLocal = qBound<qsizetype>(0, localCursor - cursorShift, newText.size());
   const qsizetype nextSource = contentBase + nextLocal;
 
-  return applyStyleDelta(
-      EditTransaction::Kind::InsertText, QStringLiteral("Clear Formatting"),
-      contentBase, contentEnd - contentBase, std::move(newText),
-      nextSource, nextSource,
-      QVector<LocalEditNodeHint>{
-          LocalEditNodeHint{context.editableNode->id(), contentBase, context.editableNode->type()}});
+  return applyStyleDelta(EditTransaction::Kind::InsertText, QStringLiteral("Clear Formatting"), contentBase,
+                         contentEnd - contentBase, std::move(newText), nextSource, nextSource,
+                         QVector<LocalEditNodeHint>{
+                             LocalEditNodeHint{context.editableNode->id(), contentBase, context.editableNode->type()}});
 }
 
 bool StylizeController::toggleUnderlineCollapsed(const BlockEditContext& context) {
@@ -172,9 +163,8 @@ bool StylizeController::toggleUnderlineCollapsed(const BlockEditContext& context
   }
 
   const qsizetype contentBase = context.contentRange.byteStart;
-  const qsizetype localOffset = qBound<qsizetype>(
-      0, context.cursorSourceOffset - contentBase,
-      context.contentText.size());
+  const qsizetype localOffset =
+      qBound<qsizetype>(0, context.cursorSourceOffset - contentBase, context.contentText.size());
 
   QString contentText = context.contentText;
 
@@ -189,11 +179,10 @@ bool StylizeController::toggleUnderlineCollapsed(const BlockEditContext& context
     if (openPos >= 0) {
       closePos = contentText.indexOf(QLatin1String("</u>"), openPos + 3);
     }
-    if (openPos >= 0 && closePos >= 0 && closePos > openPos &&
-        localOffset >= openPos + 3 && localOffset <= closePos) {
+    if (openPos >= 0 && closePos >= 0 && closePos > openPos && localOffset >= openPos + 3 && localOffset <= closePos) {
       // Cursor is inside <u>...</u> → REMOVE tags
-      constexpr qsizetype openLen = 3;   // "<u>"
-      constexpr qsizetype closeLen = 4;  // "</u>"
+      constexpr qsizetype openLen = 3;  // "<u>"
+      constexpr qsizetype closeLen = 4; // "</u>"
 
       contentText.remove(closePos, closeLen);
       contentText.remove(openPos, openLen);
@@ -212,15 +201,11 @@ bool StylizeController::toggleUnderlineCollapsed(const BlockEditContext& context
       cursor = qBound<qsizetype>(0, cursor, contentText.size());
 
       const qsizetype nextSourceOffset = contentBase + cursor;
-      return applyStyleDelta(
-          EditTransaction::Kind::InsertText, QStringLiteral("Underline"),
-          contentBase,
-          context.contentRange.byteEnd - contentBase,
-          std::move(contentText),
-          nextSourceOffset, nextSourceOffset,
-          QVector<LocalEditNodeHint>{
-              LocalEditNodeHint{context.editableNode->id(), contentBase,
-                                context.editableNode->type()}});
+      return applyStyleDelta(EditTransaction::Kind::InsertText, QStringLiteral("Underline"), contentBase,
+                             context.contentRange.byteEnd - contentBase, std::move(contentText), nextSourceOffset,
+                             nextSourceOffset,
+                             QVector<LocalEditNodeHint>{LocalEditNodeHint{context.editableNode->id(), contentBase,
+                                                                          context.editableNode->type()}});
     }
   }
 
@@ -231,34 +216,25 @@ bool StylizeController::toggleUnderlineCollapsed(const BlockEditContext& context
     contentText.insert(wordSourceStart, QStringLiteral("<u>"));
     const qsizetype adjStart = wordSourceStart + 3;
     const qsizetype adjEnd = wordSourceEnd + 3;
-    return applyStyleDelta(
-        EditTransaction::Kind::InsertText, QStringLiteral("Underline"),
-        contentBase,
-        context.contentRange.byteEnd - contentBase,
-        std::move(contentText),
-        contentBase + adjStart, contentBase + adjEnd,
-        QVector<LocalEditNodeHint>{
-            LocalEditNodeHint{context.editableNode->id(), contentBase,
-                              context.editableNode->type()}});
+    return applyStyleDelta(EditTransaction::Kind::InsertText, QStringLiteral("Underline"), contentBase,
+                           context.contentRange.byteEnd - contentBase, std::move(contentText), contentBase + adjStart,
+                           contentBase + adjEnd,
+                           QVector<LocalEditNodeHint>{LocalEditNodeHint{context.editableNode->id(), contentBase,
+                                                                        context.editableNode->type()}});
   }
 
   // No word found → insert empty <u></u> skeleton
   contentText.insert(localOffset, QStringLiteral("<u></u>"));
   const qsizetype nextSourceOffset = contentBase + localOffset + 3;
-  return applyStyleDelta(
-      EditTransaction::Kind::InsertText, QStringLiteral("Underline"),
-      contentBase,
-      context.contentRange.byteEnd - contentBase,
-      std::move(contentText),
-      nextSourceOffset, nextSourceOffset,
-      QVector<LocalEditNodeHint>{
-          LocalEditNodeHint{context.editableNode->id(), contentBase,
-                            context.editableNode->type()}});
+  return applyStyleDelta(EditTransaction::Kind::InsertText, QStringLiteral("Underline"), contentBase,
+                         context.contentRange.byteEnd - contentBase, std::move(contentText), nextSourceOffset,
+                         nextSourceOffset,
+                         QVector<LocalEditNodeHint>{
+                             LocalEditNodeHint{context.editableNode->id(), contentBase, context.editableNode->type()}});
 }
 
-bool StylizeController::toggleUnderlineRange(
-    const BlockEditContext& context,
-    qsizetype localSelStart, qsizetype localSelEnd) {
+bool StylizeController::toggleUnderlineRange(const BlockEditContext& context, qsizetype localSelStart,
+                                             qsizetype localSelEnd) {
   if (!context.editableNode) {
     return false;
   }
@@ -266,43 +242,32 @@ bool StylizeController::toggleUnderlineRange(
   const qsizetype contentBase = context.contentRange.byteStart;
 
   // 1. Detect underline state via source text
-  const bool allUnderlined = hasUnderlineInRange(
-      context.contentText, localSelStart, localSelEnd);
+  const bool allUnderlined = hasUnderlineInRange(context.contentText, localSelStart, localSelEnd);
 
   // 2. Collect <u>/</u> marker positions
-  QVector<MarkerSpan> markers = collectHtmlUnderlineMarkers(
-      context.contentText, localSelStart, localSelEnd);
+  QVector<MarkerSpan> markers = collectHtmlUnderlineMarkers(context.contentText, localSelStart, localSelEnd);
 
   // 3. Build toggled content (reuse the generic builder)
-  ToggledContent result = buildToggledContent(
-      context.contentText, markers,
-      localSelStart, localSelEnd,
-      allUnderlined,
-      QStringLiteral("<u>"), QStringLiteral("</u>"));
+  ToggledContent result = buildToggledContent(context.contentText, markers, localSelStart, localSelEnd, allUnderlined,
+                                              QStringLiteral("<u>"), QStringLiteral("</u>"));
 
   // 4. Apply
   const qsizetype nextAnchorSource = contentBase + result.adjustedSelStart;
   const qsizetype nextFocusSource = contentBase + result.adjustedSelEnd;
 
-  return applyStyleDelta(
-      EditTransaction::Kind::InsertText, QStringLiteral("Underline"),
-      contentBase,
-      context.contentRange.byteEnd - contentBase,
-      std::move(result.text),
-      nextAnchorSource, nextFocusSource,
-      QVector<LocalEditNodeHint>{
-          LocalEditNodeHint{context.editableNode->id(), contentBase,
-                            context.editableNode->type()}});
+  return applyStyleDelta(EditTransaction::Kind::InsertText, QStringLiteral("Underline"), contentBase,
+                         context.contentRange.byteEnd - contentBase, std::move(result.text), nextAnchorSource,
+                         nextFocusSource,
+                         QVector<LocalEditNodeHint>{
+                             LocalEditNodeHint{context.editableNode->id(), contentBase, context.editableNode->type()}});
 }
 
 // ============================================================================
 // Underline detection helpers
 // ============================================================================
 
-bool StylizeController::hasUnderlineInRange(
-    const QString& contentText,
-    qsizetype localSourceStart,
-    qsizetype localSourceEnd) const {
+bool StylizeController::hasUnderlineInRange(const QString& contentText, qsizetype localSourceStart,
+                                            qsizetype localSourceEnd) const {
   // Detect underline from source text: check if [localSourceStart, localSourceEnd)
   // is fully within a <u>/</u> pair.  We cannot use projection htmlFormatData()
   // because when the cursor/selection is on the <u> group, the projection renders
@@ -310,19 +275,16 @@ bool StylizeController::hasUnderlineInRange(
   const qsizetype openPos = contentText.lastIndexOf(QLatin1String("<u>"), localSourceStart);
   if (openPos >= 0) {
     const qsizetype closePos = contentText.indexOf(QLatin1String("</u>"), openPos + 3);
-    if (closePos >= 0 &&
-        openPos + 3 <= localSourceStart &&
-        closePos >= localSourceEnd) {
+    if (closePos >= 0 && openPos + 3 <= localSourceStart && closePos >= localSourceEnd) {
       return true;
     }
   }
   return false;
 }
 
-QVector<StylizeController::MarkerSpan>
-StylizeController::collectHtmlUnderlineMarkers(
-    const QString& contentText,
-    qsizetype localSelStart, qsizetype localSelEnd) const {
+QVector<StylizeController::MarkerSpan> StylizeController::collectHtmlUnderlineMarkers(const QString& contentText,
+                                                                                      qsizetype localSelStart,
+                                                                                      qsizetype localSelEnd) const {
   QVector<MarkerSpan> markers;
 
   const QLatin1String openTag("<u>");
@@ -358,9 +320,8 @@ StylizeController::collectHtmlUnderlineMarkers(
 // Main dispatch: toggleStyle
 // ============================================================================
 
-bool StylizeController::toggleStyle(
-    InlineType type, QString openMarker, QString closeMarker,
-    EditTransaction::Kind kind, QString label) {
+bool StylizeController::toggleStyle(InlineType type, QString openMarker, QString closeMarker,
+                                    EditTransaction::Kind kind, QString label) {
   if (!ctx_.hasSession() || !ctx_.hasCursor()) {
     return false;
   }
@@ -390,8 +351,7 @@ bool StylizeController::toggleStyle(
   if (!resolver.selectionContext(context, localStart, localEnd)) {
     return false;
   }
-  return toggleRange(context, localStart, localEnd,
-                     type, openMarker, closeMarker, kind, label);
+  return toggleRange(context, localStart, localEnd, type, openMarker, closeMarker, kind, label);
 }
 
 // ============================================================================
@@ -399,10 +359,8 @@ bool StylizeController::toggleStyle(
 // Uses ICU BreakIterator for dictionary-based CJK word segmentation.
 // ============================================================================
 
-bool StylizeController::findWordRange(
-    const BlockEditContext& context,
-    qsizetype& localSourceStart,
-    qsizetype& localSourceEnd) const {
+bool StylizeController::findWordRange(const BlockEditContext& context, qsizetype& localSourceStart,
+                                      qsizetype& localSourceEnd) const {
   const QString& visible = context.visibleText;
   if (visible.isEmpty()) {
     return false;
@@ -437,10 +395,8 @@ bool StylizeController::findWordRange(
 // Collapsed cursor toggle
 // ============================================================================
 
-bool StylizeController::toggleCollapsed(
-    const BlockEditContext& context, InlineType type,
-    const QString& openMarker, const QString& closeMarker,
-    EditTransaction::Kind kind, const QString& label) {
+bool StylizeController::toggleCollapsed(const BlockEditContext& context, InlineType type, const QString& openMarker,
+                                        const QString& closeMarker, EditTransaction::Kind kind, const QString& label) {
   if (!context.editableNode || context.editableNode->inlines().isEmpty()) {
     return false;
   }
@@ -450,15 +406,13 @@ bool StylizeController::toggleCollapsed(
   // via the content OFFSET (contentBase - the top-level block's byteStart). contentBase stays
   // absolute for cursor/source-offset arithmetic.
   const qsizetype contentOffset = contentBase - context.editableNode->topLevelBlock()->sourceRange().byteStart;
-  const qsizetype localOffset = qBound<qsizetype>(
-      0, context.cursorSourceOffset - contentBase,
-      context.contentText.size());
+  const qsizetype localOffset =
+      qBound<qsizetype>(0, context.cursorSourceOffset - contentBase, context.contentText.size());
 
   QString contentText = context.contentText;
   qsizetype nextAnchorLocal = -1;
 
-  const InlineNode* wrapping = findWrappingNode(
-      context.editableNode->inlines(), type, contentOffset, localOffset);
+  const InlineNode* wrapping = findWrappingNode(context.editableNode->inlines(), type, contentOffset, localOffset);
 
   if (wrapping) {
     // ── REMOVE: strip open/close markers ──
@@ -494,8 +448,7 @@ bool StylizeController::toggleCollapsed(
     // ── Try word-wrap (select word, then apply markers) ──
     qsizetype wordSourceStart = -1, wordSourceEnd = -1;
     if (findWordRange(context, wordSourceStart, wordSourceEnd)) {
-      return toggleRange(context, wordSourceStart, wordSourceEnd,
-                         type, openMarker, closeMarker, kind, label);
+      return toggleRange(context, wordSourceStart, wordSourceEnd, type, openMarker, closeMarker, kind, label);
     }
 
     // ── No word found → INSERT SKELETON ──
@@ -505,28 +458,19 @@ bool StylizeController::toggleCollapsed(
   }
 
   const qsizetype nextSourceOffset = contentBase + nextAnchorLocal;
-  return applyStyleDelta(
-      kind, label,
-      contentBase,
-      context.contentRange.byteEnd - contentBase,
-      std::move(contentText),
-      nextSourceOffset, nextSourceOffset,
-      QVector<LocalEditNodeHint>{
-          LocalEditNodeHint{context.editableNode->id(),
-                            contentBase,
-                            context.editableNode->type()}});
+  return applyStyleDelta(kind, label, contentBase, context.contentRange.byteEnd - contentBase, std::move(contentText),
+                         nextSourceOffset, nextSourceOffset,
+                         QVector<LocalEditNodeHint>{
+                             LocalEditNodeHint{context.editableNode->id(), contentBase, context.editableNode->type()}});
 }
 
 // ============================================================================
 // Selection range toggle
 // ============================================================================
 
-bool StylizeController::toggleRange(
-    const BlockEditContext& context,
-    qsizetype localSelStart, qsizetype localSelEnd,
-    InlineType type,
-    const QString& openMarker, const QString& closeMarker,
-    EditTransaction::Kind kind, const QString& label) {
+bool StylizeController::toggleRange(const BlockEditContext& context, qsizetype localSelStart, qsizetype localSelEnd,
+                                    InlineType type, const QString& openMarker, const QString& closeMarker,
+                                    EditTransaction::Kind kind, const QString& label) {
   if (!context.editableNode || context.editableNode->inlines().isEmpty()) {
     return false;
   }
@@ -534,51 +478,38 @@ bool StylizeController::toggleRange(
   const qsizetype contentBase = context.contentRange.byteStart;
 
   // 1. Detect style state
-  const bool allHasStyle = hasStyleInRange(
-      context.inlineProjection, type, localSelStart, localSelEnd);
+  const bool allHasStyle = hasStyleInRange(context.inlineProjection, type, localSelStart, localSelEnd);
 
   // 2. Collect overlapping markers from InlineNode tree
-  QVector<MarkerSpan> markers = collectOverlappingMarkers(
-      context.editableNode->inlines(), type,
-      contentBase, localSelStart, localSelEnd);
+  QVector<MarkerSpan> markers =
+      collectOverlappingMarkers(context.editableNode->inlines(), type, contentBase, localSelStart, localSelEnd);
 
   // 3. Build toggled content
-  ToggledContent result = buildToggledContent(
-      context.contentText, markers,
-      localSelStart, localSelEnd,
-      allHasStyle, openMarker, closeMarker);
+  ToggledContent result = buildToggledContent(context.contentText, markers, localSelStart, localSelEnd, allHasStyle,
+                                              openMarker, closeMarker);
 
   // 4. Compute cursor positions
   const qsizetype nextAnchorSource = contentBase + result.adjustedSelStart;
   const qsizetype nextFocusSource = contentBase + result.adjustedSelEnd;
 
-  return applyStyleDelta(
-      kind, label,
-      contentBase,
-      context.contentRange.byteEnd - contentBase,
-      std::move(result.text),
-      nextAnchorSource, nextFocusSource,
-      QVector<LocalEditNodeHint>{
-          LocalEditNodeHint{context.editableNode->id(),
-                            contentBase,
-                            context.editableNode->type()}});
+  return applyStyleDelta(kind, label, contentBase, context.contentRange.byteEnd - contentBase, std::move(result.text),
+                         nextAnchorSource, nextFocusSource,
+                         QVector<LocalEditNodeHint>{
+                             LocalEditNodeHint{context.editableNode->id(), contentBase, context.editableNode->type()}});
 }
 
 // ============================================================================
 // Multi-block toggle
 // ============================================================================
 
-bool StylizeController::toggleMultiBlock(
-    InlineType type,
-    const QString& openMarker, const QString& closeMarker,
-    EditTransaction::Kind kind, const QString& label) {
+bool StylizeController::toggleMultiBlock(InlineType type, const QString& openMarker, const QString& closeMarker,
+                                         EditTransaction::Kind kind, const QString& label) {
   if (!ctx_.hasSession() || !ctx_.hasCursor()) {
     return false;
   }
 
   const SelectionRange sel = ctx_.selection->selection();
-  if (sel.isCollapsed() || !sel.anchor.isValid() || !sel.focus.isValid() ||
-      sel.anchor.blockId == sel.focus.blockId) {
+  if (sel.isCollapsed() || !sel.anchor.isValid() || !sel.focus.isValid() || sel.anchor.blockId == sel.focus.blockId) {
     return false;
   }
 
@@ -602,13 +533,10 @@ bool StylizeController::toggleMultiBlock(
   QVector<EditBlock> blocks;
   const auto collect = [&](const auto& self, MarkdownNode& node) -> void {
     const bool isParagraphInList =
-        node.type() == BlockType::Paragraph &&
-        node.parent() && node.parent()->type() == BlockType::ListItem;
+        node.type() == BlockType::Paragraph && node.parent() && node.parent()->type() == BlockType::ListItem;
 
-    if (!isParagraphInList &&
-        (node.type() == BlockType::Paragraph ||
-         node.type() == BlockType::Heading ||
-         node.type() == BlockType::ListItem)) {
+    if (!isParagraphInList && (node.type() == BlockType::Paragraph || node.type() == BlockType::Heading ||
+                               node.type() == BlockType::ListItem)) {
 
       // Resolve the editable node (list item → primary paragraph)
       MarkdownNode* editable = &node;
@@ -623,8 +551,7 @@ bool StylizeController::toggleMultiBlock(
         }
       }
 
-      if (editable->type() != BlockType::Paragraph &&
-          editable->type() != BlockType::Heading) {
+      if (editable->type() != BlockType::Paragraph && editable->type() != BlockType::Heading) {
         for (const auto& child : node.children()) {
           self(self, *child);
         }
@@ -640,10 +567,8 @@ bool StylizeController::toggleMultiBlock(
           block.editableNode = editable;
           block.contentBase = cBase;
           block.contentEnd = cEnd;
-          block.localSelStart = qBound<qsizetype>(0, absSelStart - cBase,
-                                                   ctx.contentText.size());
-          block.localSelEnd = qBound<qsizetype>(0, absSelEnd - cBase,
-                                                 ctx.contentText.size());
+          block.localSelStart = qBound<qsizetype>(0, absSelStart - cBase, ctx.contentText.size());
+          block.localSelEnd = qBound<qsizetype>(0, absSelEnd - cBase, ctx.contentText.size());
           if (block.localSelStart < block.localSelEnd) {
             blocks.push_back(block);
           }
@@ -667,9 +592,7 @@ bool StylizeController::toggleMultiBlock(
 
   // Sort blocks in reverse source order for safe editing
   std::sort(blocks.begin(), blocks.end(),
-            [](const EditBlock& a, const EditBlock& b) {
-              return a.contentBase > b.contentBase;
-            });
+            [](const EditBlock& a, const EditBlock& b) { return a.contentBase > b.contentBase; });
 
   // Process each block
   const PieceTable& markdown = ctx_.session->markdownText();
@@ -683,16 +606,10 @@ bool StylizeController::toggleMultiBlock(
   qsizetype nextFocusSource = -1;
 
   const bool anchorFirst = sel.anchor.blockId == sel.focus.blockId
-                               ? true  // shouldn't happen in multi-block
+                               ? true // shouldn't happen in multi-block
                                : ctx_.session->document().node(sel.anchor.blockId) &&
-                                     ctx_.session->document()
-                                         .node(sel.anchor.blockId)
-                                         ->sourceRange()
-                                         .byteStart <=
-                                     ctx_.session->document()
-                                         .node(sel.focus.blockId)
-                                         ->sourceRange()
-                                         .byteStart;
+                                     ctx_.session->document().node(sel.anchor.blockId)->sourceRange().byteStart <=
+                                         ctx_.session->document().node(sel.focus.blockId)->sourceRange().byteStart;
 
   for (const EditBlock& block : blocks) {
     const qsizetype relBase = block.contentBase - totalStart;
@@ -705,17 +622,13 @@ bool StylizeController::toggleMultiBlock(
       continue;
     }
 
-    const bool allHasStyle = hasStyleInRange(
-        ctx.inlineProjection, type, block.localSelStart, block.localSelEnd);
+    const bool allHasStyle = hasStyleInRange(ctx.inlineProjection, type, block.localSelStart, block.localSelEnd);
 
-    QVector<MarkerSpan> markers = collectOverlappingMarkers(
-        block.editableNode->inlines(), type,
-        block.contentBase, block.localSelStart, block.localSelEnd);
+    QVector<MarkerSpan> markers = collectOverlappingMarkers(block.editableNode->inlines(), type, block.contentBase,
+                                                            block.localSelStart, block.localSelEnd);
 
-    ToggledContent result = buildToggledContent(
-        ctx.contentText, markers,
-        block.localSelStart, block.localSelEnd,
-        allHasStyle, openMarker, closeMarker);
+    ToggledContent result = buildToggledContent(ctx.contentText, markers, block.localSelStart, block.localSelEnd,
+                                                allHasStyle, openMarker, closeMarker);
 
     // Replace the block's content in the accumulated replacement string
     const qsizetype oldLen = block.contentEnd - block.contentBase;
@@ -759,16 +672,11 @@ bool StylizeController::toggleMultiBlock(
 
   QVector<LocalEditNodeHint> nodeHints;
   for (const EditBlock& block : blocks) {
-    nodeHints.push_back(LocalEditNodeHint{
-        block.editableNode->id(), block.contentBase, block.editableNode->type()});
+    nodeHints.push_back(LocalEditNodeHint{block.editableNode->id(), block.contentBase, block.editableNode->type()});
   }
 
-  return applyStyleDelta(
-      kind, label,
-      totalStart, totalEnd - totalStart,
-      std::move(replacement),
-      nextAnchorSource, nextFocusSource,
-      std::move(nodeHints));
+  return applyStyleDelta(kind, label, totalStart, totalEnd - totalStart, std::move(replacement), nextAnchorSource,
+                         nextFocusSource, std::move(nodeHints));
 }
 
 // ============================================================================
@@ -787,8 +695,7 @@ bool StylizeController::insertLink() {
 
   // Cross-block links not supported
   if (sel.anchor.blockId != sel.focus.blockId) {
-    emit unsupportedStyleRequested(
-        QStringLiteral("Link currently supports a single editable block selection."));
+    emit unsupportedStyleRequested(QStringLiteral("Link currently supports a single editable block selection."));
     return false;
   }
 
@@ -800,23 +707,17 @@ bool StylizeController::insertLink() {
       return false;
     }
     const qsizetype contentBase = context.contentRange.byteStart;
-    const qsizetype localOffset = qBound<qsizetype>(
-        0, context.cursorSourceOffset - contentBase,
-        context.contentText.size());
+    const qsizetype localOffset =
+        qBound<qsizetype>(0, context.cursorSourceOffset - contentBase, context.contentText.size());
 
     QString contentText = context.contentText;
     contentText.insert(localOffset, QStringLiteral("[](url)"));
-    const qsizetype nextOffset = contentBase + localOffset + 1;  // cursor after [
+    const qsizetype nextOffset = contentBase + localOffset + 1; // cursor after [
 
-    return applyStyleDelta(
-        EditTransaction::Kind::InsertText, QStringLiteral("Link"),
-        contentBase,
-        context.contentRange.byteEnd - contentBase,
-        std::move(contentText),
-        nextOffset, nextOffset,
-        QVector<LocalEditNodeHint>{
-            LocalEditNodeHint{context.editableNode->id(), contentBase,
-                              context.editableNode->type()}});
+    return applyStyleDelta(EditTransaction::Kind::InsertText, QStringLiteral("Link"), contentBase,
+                           context.contentRange.byteEnd - contentBase, std::move(contentText), nextOffset, nextOffset,
+                           QVector<LocalEditNodeHint>{LocalEditNodeHint{context.editableNode->id(), contentBase,
+                                                                        context.editableNode->type()}});
   }
 
   qsizetype localStart = -1, localEnd = -1;
@@ -827,23 +728,16 @@ bool StylizeController::insertLink() {
   const qsizetype contentBase = context.contentRange.byteStart;
   const QString& contentText = context.contentText;
   const QString selected = contentText.mid(localStart, localEnd - localStart);
-  const QString replacement =
-      contentText.left(localStart) +
-      QStringLiteral("[") + selected + QStringLiteral("](url)") +
-      contentText.mid(localEnd);
+  const QString replacement = contentText.left(localStart) + QStringLiteral("[") + selected + QStringLiteral("](url)") +
+                              contentText.mid(localEnd);
 
   const qsizetype nextAnchor = contentBase + localStart + 1;
   const qsizetype nextFocus = contentBase + localStart + 1 + selected.size();
 
-  return applyStyleDelta(
-      EditTransaction::Kind::InsertText, QStringLiteral("Link"),
-      contentBase,
-      context.contentRange.byteEnd - contentBase,
-      std::move(replacement),
-      nextAnchor, nextFocus,
-      QVector<LocalEditNodeHint>{
-          LocalEditNodeHint{context.editableNode->id(), contentBase,
-                            context.editableNode->type()}});
+  return applyStyleDelta(EditTransaction::Kind::InsertText, QStringLiteral("Link"), contentBase,
+                         context.contentRange.byteEnd - contentBase, std::move(replacement), nextAnchor, nextFocus,
+                         QVector<LocalEditNodeHint>{
+                             LocalEditNodeHint{context.editableNode->id(), contentBase, context.editableNode->type()}});
 }
 
 bool StylizeController::insertImage() {
@@ -857,8 +751,7 @@ bool StylizeController::insertImage() {
   }
 
   if (sel.anchor.blockId != sel.focus.blockId) {
-    emit unsupportedStyleRequested(
-        QStringLiteral("Image currently supports a single editable block selection."));
+    emit unsupportedStyleRequested(QStringLiteral("Image currently supports a single editable block selection."));
     return false;
   }
 
@@ -870,23 +763,17 @@ bool StylizeController::insertImage() {
       return false;
     }
     const qsizetype contentBase = context.contentRange.byteStart;
-    const qsizetype localOffset = qBound<qsizetype>(
-        0, context.cursorSourceOffset - contentBase,
-        context.contentText.size());
+    const qsizetype localOffset =
+        qBound<qsizetype>(0, context.cursorSourceOffset - contentBase, context.contentText.size());
 
     QString contentText = context.contentText;
     contentText.insert(localOffset, QStringLiteral("![](url)"));
-    const qsizetype nextOffset = contentBase + localOffset + 2;  // cursor after ![
+    const qsizetype nextOffset = contentBase + localOffset + 2; // cursor after ![
 
-    return applyStyleDelta(
-        EditTransaction::Kind::InsertText, QStringLiteral("Image"),
-        contentBase,
-        context.contentRange.byteEnd - contentBase,
-        std::move(contentText),
-        nextOffset, nextOffset,
-        QVector<LocalEditNodeHint>{
-            LocalEditNodeHint{context.editableNode->id(), contentBase,
-                              context.editableNode->type()}});
+    return applyStyleDelta(EditTransaction::Kind::InsertText, QStringLiteral("Image"), contentBase,
+                           context.contentRange.byteEnd - contentBase, std::move(contentText), nextOffset, nextOffset,
+                           QVector<LocalEditNodeHint>{LocalEditNodeHint{context.editableNode->id(), contentBase,
+                                                                        context.editableNode->type()}});
   }
 
   qsizetype localStart = -1, localEnd = -1;
@@ -897,38 +784,29 @@ bool StylizeController::insertImage() {
   const qsizetype contentBase = context.contentRange.byteStart;
   const QString& contentText = context.contentText;
   const QString selected = contentText.mid(localStart, localEnd - localStart);
-  const QString replacement =
-      contentText.left(localStart) +
-      QStringLiteral("![") + selected + QStringLiteral("](url)") +
-      contentText.mid(localEnd);
+  const QString replacement = contentText.left(localStart) + QStringLiteral("![") + selected +
+                              QStringLiteral("](url)") + contentText.mid(localEnd);
 
   const qsizetype nextAnchor = contentBase + localStart + 2;
   const qsizetype nextFocus = contentBase + localStart + 2 + selected.size();
 
-  return applyStyleDelta(
-      EditTransaction::Kind::InsertText, QStringLiteral("Image"),
-      contentBase,
-      context.contentRange.byteEnd - contentBase,
-      std::move(replacement),
-      nextAnchor, nextFocus,
-      QVector<LocalEditNodeHint>{
-          LocalEditNodeHint{context.editableNode->id(), contentBase,
-                            context.editableNode->type()}});
+  return applyStyleDelta(EditTransaction::Kind::InsertText, QStringLiteral("Image"), contentBase,
+                         context.contentRange.byteEnd - contentBase, std::move(replacement), nextAnchor, nextFocus,
+                         QVector<LocalEditNodeHint>{
+                             LocalEditNodeHint{context.editableNode->id(), contentBase, context.editableNode->type()}});
 }
 
 // ============================================================================
 // Style detection
 // ============================================================================
 
-bool StylizeController::hasStyleInRange(
-    const InlineProjection& projection, InlineType type,
-    qsizetype localSourceStart, qsizetype localSourceEnd) const {
+bool StylizeController::hasStyleInRange(const InlineProjection& projection, InlineType type, qsizetype localSourceStart,
+                                        qsizetype localSourceEnd) const {
   bool foundContent = false;
 
   for (const auto& span : projection.spans()) {
     // Skip non-content spans
-    if (span.kind == InlineSpanKind::OpenMarker ||
-        span.kind == InlineSpanKind::CloseMarker ||
+    if (span.kind == InlineSpanKind::OpenMarker || span.kind == InlineSpanKind::CloseMarker ||
         span.kind == InlineSpanKind::HiddenSyntax) {
       continue;
     }
@@ -942,25 +820,23 @@ bool StylizeController::hasStyleInRange(
 
     bool hasStyle = false;
     switch (type) {
-      case InlineType::Strong:
-        hasStyle = span.bold;
-        break;
-      case InlineType::Emphasis:
-        hasStyle = span.italic;
-        break;
-      case InlineType::Strikethrough:
-        hasStyle = span.strike;
-        break;
-      case InlineType::Code:
-        hasStyle = (span.type == InlineType::Code &&
-                    span.kind == InlineSpanKind::Text);
-        break;
-      case InlineType::InlineMath:
-        hasStyle = (span.type == InlineType::InlineMath &&
-                    span.kind == InlineSpanKind::Text);
-        break;
-      default:
-        break;
+    case InlineType::Strong:
+      hasStyle = span.bold;
+      break;
+    case InlineType::Emphasis:
+      hasStyle = span.italic;
+      break;
+    case InlineType::Strikethrough:
+      hasStyle = span.strike;
+      break;
+    case InlineType::Code:
+      hasStyle = (span.type == InlineType::Code && span.kind == InlineSpanKind::Text);
+      break;
+    case InlineType::InlineMath:
+      hasStyle = (span.type == InlineType::InlineMath && span.kind == InlineSpanKind::Text);
+      break;
+    default:
+      break;
     }
 
     if (!hasStyle) {
@@ -975,9 +851,8 @@ bool StylizeController::hasStyleInRange(
 // InlineNode tree helpers
 // ============================================================================
 
-const InlineNode* StylizeController::findWrappingNode(
-    const QVector<InlineNode>& inlines, InlineType type,
-    qsizetype contentBase, qsizetype localSourceOffset) const {
+const InlineNode* StylizeController::findWrappingNode(const QVector<InlineNode>& inlines, InlineType type,
+                                                      qsizetype contentBase, qsizetype localSourceOffset) const {
   for (const InlineNode& node : inlines) {
     if (node.type() == type) {
       const InlineRange content = node.contentRange();
@@ -992,8 +867,7 @@ const InlineNode* StylizeController::findWrappingNode(
 
     // Recurse into children (for nested formatting like bold > italic)
     if (!node.children().isEmpty()) {
-      if (const InlineNode* found =
-              findWrappingNode(node.children(), type, contentBase, localSourceOffset)) {
+      if (const InlineNode* found = findWrappingNode(node.children(), type, contentBase, localSourceOffset)) {
         return found;
       }
     }
@@ -1001,23 +875,19 @@ const InlineNode* StylizeController::findWrappingNode(
   return nullptr;
 }
 
-QVector<StylizeController::MarkerSpan>
-StylizeController::collectOverlappingMarkers(
-    const QVector<InlineNode>& inlines, InlineType targetType,
-    qsizetype contentBase,
-    qsizetype localSelStart, qsizetype localSelEnd) const {
+QVector<StylizeController::MarkerSpan> StylizeController::collectOverlappingMarkers(const QVector<InlineNode>& inlines,
+                                                                                    InlineType targetType,
+                                                                                    qsizetype contentBase,
+                                                                                    qsizetype localSelStart,
+                                                                                    qsizetype localSelEnd) const {
   QVector<MarkerSpan> markers;
-  collectOverlappingMarkersRecursive(
-      inlines, targetType, contentBase,
-      localSelStart, localSelEnd, markers);
+  collectOverlappingMarkersRecursive(inlines, targetType, contentBase, localSelStart, localSelEnd, markers);
   return markers;
 }
 
-void StylizeController::collectOverlappingMarkersRecursive(
-    const QVector<InlineNode>& inlines, InlineType targetType,
-    qsizetype contentBase,
-    qsizetype localSelStart, qsizetype localSelEnd,
-    QVector<MarkerSpan>& markers) const {
+void StylizeController::collectOverlappingMarkersRecursive(const QVector<InlineNode>& inlines, InlineType targetType,
+                                                           qsizetype contentBase, qsizetype localSelStart,
+                                                           qsizetype localSelEnd, QVector<MarkerSpan>& markers) const {
   for (const InlineNode& node : inlines) {
     if (node.type() == targetType) {
       const InlineRange content = node.contentRange();
@@ -1030,34 +900,29 @@ void StylizeController::collectOverlappingMarkersRecursive(
 
         // Does this node's content overlap with the selection?
         if (localContentStart < localSelEnd && localContentEnd > localSelStart) {
-          markers.append({openRange.start - contentBase,
-                          openRange.end - contentBase});
-          markers.append({closeRange.start - contentBase,
-                          closeRange.end - contentBase});
+          markers.append({openRange.start - contentBase, openRange.end - contentBase});
+          markers.append({closeRange.start - contentBase, closeRange.end - contentBase});
         }
       }
 
       // Recurse into children of this node to find same-type markers
       // at deeper nesting levels (unlikely but safe to handle)
       if (!node.children().isEmpty()) {
-        collectOverlappingMarkersRecursive(
-            node.children(), targetType, contentBase,
-            localSelStart, localSelEnd, markers);
+        collectOverlappingMarkersRecursive(node.children(), targetType, contentBase, localSelStart, localSelEnd,
+                                           markers);
       }
     } else {
       // Not the target type, recurse into children
       if (!node.children().isEmpty()) {
-        collectOverlappingMarkersRecursive(
-            node.children(), targetType, contentBase,
-            localSelStart, localSelEnd, markers);
+        collectOverlappingMarkersRecursive(node.children(), targetType, contentBase, localSelStart, localSelEnd,
+                                           markers);
       }
     }
   }
 }
 
-void StylizeController::collectClearFormattingSpans(
-    const QVector<InlineNode>& inlines, qsizetype contentBase,
-    QVector<MarkerSpan>& spans) const {
+void StylizeController::collectClearFormattingSpans(const QVector<InlineNode>& inlines, qsizetype contentBase,
+                                                    QVector<MarkerSpan>& spans) const {
   for (const InlineNode& node : inlines) {
     const InlineType type = node.type();
     const bool isStyling = type == InlineType::Emphasis || type == InlineType::Strong ||
@@ -1090,18 +955,15 @@ void StylizeController::collectClearFormattingSpans(
 // Content builder
 // ============================================================================
 
-StylizeController::ToggledContent StylizeController::buildToggledContent(
-    const QString& contentText,
-    const QVector<MarkerSpan>& markers,
-    qsizetype localSelStart, qsizetype localSelEnd,
-    bool allHasStyle,
-    const QString& openMarker, const QString& closeMarker) const {
+StylizeController::ToggledContent StylizeController::buildToggledContent(const QString& contentText,
+                                                                         const QVector<MarkerSpan>& markers,
+                                                                         qsizetype localSelStart, qsizetype localSelEnd,
+                                                                         bool allHasStyle, const QString& openMarker,
+                                                                         const QString& closeMarker) const {
   // Sort markers by position ascending
   QVector<MarkerSpan> sorted = markers;
   std::sort(sorted.begin(), sorted.end(),
-            [](const MarkerSpan& a, const MarkerSpan& b) {
-              return a.localStart < b.localStart;
-            });
+            [](const MarkerSpan& a, const MarkerSpan& b) { return a.localStart < b.localStart; });
 
   // Build result left-to-right, skipping marker ranges
   QString result;
@@ -1133,12 +995,9 @@ StylizeController::ToggledContent StylizeController::buildToggledContent(
       // Marker entirely after selection — no impact on selection offsets
     } else {
       // Marker overlaps with selection
-      const qsizetype overlapBeforeSel =
-          qMax<qsizetype>(0, localSelStart - mStart);
-      const qsizetype overlapInSel =
-          qMin(mEnd, localSelEnd) - qMax(mStart, localSelStart);
-      const qsizetype overlapAfterSel =
-          qMax<qsizetype>(0, mEnd - localSelEnd);
+      const qsizetype overlapBeforeSel = qMax<qsizetype>(0, localSelStart - mStart);
+      const qsizetype overlapInSel = qMin(mEnd, localSelEnd) - qMax(mStart, localSelStart);
+      const qsizetype overlapAfterSel = qMax<qsizetype>(0, mEnd - localSelEnd);
       Q_UNUSED(overlapAfterSel);
       removedBeforeSelStart += overlapBeforeSel;
       removedBeforeSelEnd += overlapBeforeSel + qMax<qsizetype>(0, overlapInSel);
@@ -1176,34 +1035,24 @@ StylizeController::ToggledContent StylizeController::buildToggledContent(
 // Delta application (unchanged)
 // ============================================================================
 
-bool StylizeController::applyStyleDelta(
-    EditTransaction::Kind kind,
-    const QString& label,
-    qsizetype sourceStart,
-    qsizetype removedLength,
-    QString insertedText,
-    qsizetype nextAnchorSourceOffset,
-    qsizetype nextFocusSourceOffset,
-    QVector<LocalEditNodeHint> nodeHints) {
+bool StylizeController::applyStyleDelta(EditTransaction::Kind kind, const QString& label, qsizetype sourceStart,
+                                        qsizetype removedLength, QString insertedText, qsizetype nextAnchorSourceOffset,
+                                        qsizetype nextFocusSourceOffset, QVector<LocalEditNodeHint> nodeHints) {
   if (!ctx_.hasSession() || sourceStart < 0 || removedLength < 0 ||
       sourceStart + removedLength > ctx_.session->markdownText().size()) {
     return false;
   }
 
   const CursorPosition beforeCursor =
-      ctx_.selection && ctx_.selection->hasCursor()
-          ? ctx_.selection->cursorPosition()
-          : CursorPosition();
-  const QString removedText =
-      ctx_.session->markdownText().mid(sourceStart, removedLength);
+      ctx_.selection && ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : CursorPosition();
+  const QString removedText = ctx_.session->markdownText().mid(sourceStart, removedLength);
   QVector<NodeId> affectedNodes;
   for (const LocalEditNodeHint& hint : nodeHints) {
     if (hint.nodeId.isValid() && !affectedNodes.contains(hint.nodeId)) {
       affectedNodes.push_back(hint.nodeId);
     }
   }
-  if (!ctx_.session->applyTextDelta(sourceStart, removedLength, insertedText,
-                                     true, std::move(nodeHints))) {
+  if (!ctx_.session->applyTextDelta(sourceStart, removedLength, insertedText, true, std::move(nodeHints))) {
     return false;
   }
 
@@ -1213,21 +1062,17 @@ bool StylizeController::applyStyleDelta(
   if (ctx_.selection && nextSelection.focus.isValid()) {
     ctx_.selection->setSelection(nextSelection);
   }
-  if (nextSelection.anchor.blockId.isValid() &&
-      !affectedNodes.contains(nextSelection.anchor.blockId)) {
+  if (nextSelection.anchor.blockId.isValid() && !affectedNodes.contains(nextSelection.anchor.blockId)) {
     affectedNodes.push_back(nextSelection.anchor.blockId);
   }
-  if (nextSelection.focus.blockId.isValid() &&
-      !affectedNodes.contains(nextSelection.focus.blockId)) {
+  if (nextSelection.focus.blockId.isValid() && !affectedNodes.contains(nextSelection.focus.blockId)) {
     affectedNodes.push_back(nextSelection.focus.blockId);
   }
   if (ctx_.undoStack && beforeCursor.isValid() && nextSelection.focus.isValid()) {
-    ctx_.undoStack->push(EditTransaction(
-        kind, label,
-        TextDeltaCommand{
-            TextDelta{sourceStart, removedText, insertedText},
-            beforeCursor, nextSelection.focus,
-            std::move(affectedNodes)}));
+    ctx_.undoStack->push(
+        EditTransaction(kind, label,
+                        TextDeltaCommand{TextDelta{sourceStart, removedText, insertedText}, beforeCursor,
+                                         nextSelection.focus, std::move(affectedNodes)}));
   }
   if (ctx_.brushQueue) {
     if (!affectedNodes.isEmpty()) {
@@ -1246,8 +1091,7 @@ CursorPosition StylizeController::cursorForSourceOffset(qsizetype sourceOffset) 
   }
 
   auto resolver = ctx_.contextResolver();
-  MarkdownNode* node = resolver.nodeAtContentSourceOffset(
-      ctx_.session->document().root(), sourceOffset);
+  MarkdownNode* node = resolver.nodeAtContentSourceOffset(ctx_.session->document().root(), sourceOffset);
   if (!node) {
     return cursor;
   }
@@ -1259,10 +1103,10 @@ CursorPosition StylizeController::cursorForSourceOffset(qsizetype sourceOffset) 
 
   cursor.blockId = node->id();
   cursor.text.nodeId = context.editableNode ? context.editableNode->id() : node->id();
-  cursor.text.textOffset = qBound<qsizetype>(
-      0, sourceOffset - context.contentRange.byteStart, context.contentText.size());
+  cursor.text.textOffset =
+      qBound<qsizetype>(0, sourceOffset - context.contentRange.byteStart, context.contentText.size());
   cursor.text.sourceOffset = sourceOffset;
   return cursor;
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -45,7 +45,8 @@ QImage paint(DocumentLayout& layout, const RenderTheme& theme, int width) {
   QImage result(width, qMin(2400, qMax(1, qCeil(layout.totalHeight()))), QImage::Format_ARGB32_Premultiplied);
   result.fill(theme.backgroundColor());
   QPainter painter(&result);
-  for (const auto* block : layout.promotedBlocks()) block->paint(painter, theme, 0);
+  for (const auto* block : layout.promotedBlocks())
+    block->paint(painter, theme, 0);
   return result;
 }
 void sameTree(const BlockLayout& actual, const BlockLayout& expected) {
@@ -56,14 +57,16 @@ void sameTree(const BlockLayout& actual, const BlockLayout& expected) {
   if (const auto* text = actual.inlineLayout()) {
     require(expected.inlineLayout() && text->displayText() == expected.inlineLayout()->displayText(),
             "incremental/full displayed text agrees");
-    require(text->cursorRectForSourceOffset(1) == expected.inlineLayout()->cursorRectForSourceOffset(1), "incremental/full caret agrees");
+    require(text->cursorRectForSourceOffset(1) == expected.inlineLayout()->cursorRectForSourceOffset(1),
+            "incremental/full caret agrees");
     require(text->selectionRectsForSourceOffsets(0, 2) == expected.inlineLayout()->selectionRectsForSourceOffsets(0, 2),
             "incremental/full selection agrees");
   }
   for (size_t i = 0; i < std::min(actual.children().size(), expected.children().size()); ++i)
     sameTree(*actual.children()[i], *expected.children()[i]);
 }
-void sameFresh(DocumentLayout& layout, const DocumentSession& session, const RenderTheme& theme, int width, bool pixels = true) {
+void sameFresh(DocumentLayout& layout, const DocumentSession& session, const RenderTheme& theme, int width,
+               bool pixels = true) {
   for (const auto policy : {DocumentLayout::BuildPolicy::Eager, DocumentLayout::BuildPolicy::Lazy}) {
     DocumentLayout fresh;
     fresh.rebuild(session.document(), theme, width, {}, {}, policy);
@@ -72,7 +75,8 @@ void sameFresh(DocumentLayout& layout, const DocumentSession& session, const Ren
     for (const auto* block : layout.promotedBlocks()) {
       const auto* expected = fresh.block(block->nodeId());
       require(expected, "full layout contains reused block identity");
-      if (expected) sameTree(*block, *expected);
+      if (expected)
+        sameTree(*block, *expected);
     }
     if (pixels) {
       // Qt's FreeType outline rasterizer can produce different edge coverage on
@@ -87,15 +91,19 @@ void sameFresh(DocumentLayout& layout, const DocumentSession& session, const Ren
         if (actual.size() == expected.size())
           for (int y = 0; y < actual.height(); ++y)
             for (int x = 0; x < actual.width(); ++x)
-              if (actual.pixel(x, y) != expected.pixel(x, y)) difference = difference.united(QRect(x, y, 1, 1));
-        qWarning().noquote() << "Pixel mismatch: zoom" << theme.zoomPercent() << "width" << width << "policy" << int(policy) << "difference"
-                             << difference << "source" << session.markdownText().toString().left(240);
+              if (actual.pixel(x, y) != expected.pixel(x, y))
+                difference = difference.united(QRect(x, y, 1, 1));
+        qWarning().noquote() << "Pixel mismatch: zoom" << theme.zoomPercent() << "width" << width << "policy"
+                             << int(policy) << "difference" << difference << "source"
+                             << session.markdownText().toString().left(240);
         for (const auto* block : layout.promotedBlocks()) {
           const auto* other = fresh.block(block->nodeId());
-          if (!other) continue;
+          if (!other)
+            continue;
           const auto a = block->inlineTextOrigin(), b = other->inlineTextOrigin();
-          qWarning().noquote() << "Origins" << int(block->type()) << QString::number(a.x(), 'g', 17) << QString::number(a.y(), 'g', 17)
-                               << QString::number(b.x(), 'g', 17) << QString::number(b.y(), 'g', 17);
+          qWarning().noquote() << "Origins" << int(block->type()) << QString::number(a.x(), 'g', 17)
+                               << QString::number(a.y(), 'g', 17) << QString::number(b.x(), 'g', 17)
+                               << QString::number(b.y(), 'g', 17);
         }
         const auto stem = QString("resource-pixels-%1-%2").arg(failures).arg(int(policy));
         actual.save(stem + "-actual.png");
@@ -106,14 +114,15 @@ void sameFresh(DocumentLayout& layout, const DocumentSession& session, const Ren
   }
 }
 RenderTheme formattingTheme(const QString& display, bool fixedImage = false, bool subgrid = false) {
-  return RenderTheme::fromDefinition(CssThemeMapper::fromCss(
-      "#write{max-width:none;padding:0;margin:0;display:" + display +
-          ";grid-template-columns:210px 190px;align-items:start}blockquote{display:grid;" +
-          (subgrid ? QString("grid-column:span 2;grid-template-columns:subgrid;") : QString("grid-template-columns:100px 100px;")) +
-          "align-items:start;padding:0;margin:0}"
-          "p{font:16px Arial;line-height:20px;margin:0;min-width:0}img{max-width:100%" +
-          (fixedImage ? QString(";width:80px;height:40px") : QString()) + "}",
-      "resource-reuse", {}));
+  return RenderTheme::fromDefinition(
+      CssThemeMapper::fromCss("#write{max-width:none;padding:0;margin:0;display:" + display +
+                                  ";grid-template-columns:210px 190px;align-items:start}blockquote{display:grid;" +
+                                  (subgrid ? QString("grid-column:span 2;grid-template-columns:subgrid;")
+                                           : QString("grid-template-columns:100px 100px;")) +
+                                  "align-items:start;padding:0;margin:0}"
+                                  "p{font:16px Arial;line-height:20px;margin:0;min-width:0}img{max-width:100%" +
+                                  (fixedImage ? QString(";width:80px;height:40px") : QString()) + "}",
+                              "resource-reuse", {}));
 }
 void resourceVersions() {
   auto& resources = LayoutResources::instance();
@@ -127,7 +136,8 @@ void resourceVersions() {
     snapshot = inner.dependencies;
   }
   resources.publish(key, "80x40");
-  require(resources.matches(snapshot, false) && !resources.matches(snapshot), "paint and metric versions differ independently");
+  require(resources.matches(snapshot, false) && !resources.matches(snapshot),
+          "paint and metric versions differ independently");
   require(outer.dependencies.contains(key), "nested resource reads propagate to enclosing dependency scope");
   resources.publish(key, "80x60");
   require(!resources.matches(snapshot, false), "changed natural size invalidates measurements");
@@ -136,8 +146,10 @@ void imageUpdates() {
   for (const auto& display : {QString("flex"), QString("grid")})
     for (bool fixed : {false, true})
       for (bool subgrid : {false, true}) {
-        if (subgrid && display != "grid") continue;
-        const auto url = "https://example.invalid/" + display + (fixed ? "fixed" : "natural") + (subgrid ? "subgrid" : "") + ".png";
+        if (subgrid && display != "grid")
+          continue;
+        const auto url =
+            "https://example.invalid/" + display + (fixed ? "fixed" : "natural") + (subgrid ? "subgrid" : "") + ".png";
         auto& loader = ImageLoader::instance();
         loader.store(url, image({60, 30}, Qt::red));
         DocumentSession session;
@@ -153,7 +165,8 @@ void imageUpdates() {
         const auto red = paint(layout, theme, 420);
         loader.store(url, image({60, 30}, Qt::blue));
         auto update = layout.refreshResources(theme);
-        require(update.updatedBlocks == 1 && !update.geometryChanged, "same-size image update only dirties its owning subtree");
+        require(update.updatedBlocks == 1 && !update.geometryChanged,
+                "same-size image update only dirties its owning subtree");
         require(layout.block(quote) == before && layout.block(quote)->children()[1].get() == sibling,
                 "paint-only update preserves layout and text shaping");
         require(layout.formattingReuseStats().solvedContexts == 0 && layout.formattingReuseStats().builtLayouts == 0,
@@ -171,7 +184,8 @@ void imageUpdates() {
         else
           require(update.geometryChanged, "natural image size change propagates layout geometry");
         sameFresh(layout, session, theme, 420);
-        require(layout.refreshResources(theme).updatedBlocks == 0, "consumed resource versions do not trigger another refresh");
+        require(layout.refreshResources(theme).updatedBlocks == 0,
+                "consumed resource versions do not trigger another refresh");
       }
 }
 void asyncAndLocalImages() {
@@ -193,8 +207,10 @@ void asyncAndLocalImages() {
     QCoreApplication::processEvents();
     QThread::msleep(1);
   }
-  require(ImageLoader::instance().cached(url).size() == QSize(90, 70), "file watcher updates the shared image resource");
-  require(ImageLoader::instance().cached(path).size() == QSize(90, 70), "file watcher updates every URL alias for the same file");
+  require(ImageLoader::instance().cached(url).size() == QSize(90, 70),
+          "file watcher updates the shared image resource");
+  require(ImageLoader::instance().cached(path).size() == QSize(90, 70),
+          "file watcher updates every URL alias for the same file");
   require(layout.refreshResources(theme).updatedBlocks == 1, "local image watcher invalidates owning block");
   sameFresh(layout, session, theme, 420);
   QTcpServer server;
@@ -233,7 +249,8 @@ void editorResources() {
   loader.store(url, image({60, 30}, Qt::red));
   DocumentSession session;
   QString source = "![image](" + url + ")\n\n";
-  for (int i = 0; i < 100; ++i) source += QString("Paragraph %1 for viewport pinning.\n\n").arg(i);
+  for (int i = 0; i < 100; ++i)
+    source += QString("Paragraph %1 for viewport pinning.\n\n").arg(i);
   session.setMarkdownText(source, false);
   EditorView view;
   view.resize(700, 350);
@@ -247,7 +264,8 @@ void editorResources() {
   loader.store(url, image({60, 30}, Qt::green));
   require(view.blockLayoutForNode(imageId) == retainedImage, "resource signals defer editor work to the event loop");
   QCoreApplication::processEvents();
-  require(view.blockLayoutForNode(imageId) == retainedImage, "coalesced paint-only notifications retain editor image layout");
+  require(view.blockLayoutForNode(imageId) == retainedImage,
+          "coalesced paint-only notifications retain editor image layout");
   const auto textId = session.document().root().children()[8]->id();
   view.scrollToNode(textId);
   CursorPosition cursor;
@@ -274,7 +292,8 @@ void editorResources() {
   require(view.nodeRect(imageId).height() < 180, "resource callback skips stale document during asynchronous open");
   view.setLoading(false);
   QCoreApplication::processEvents();
-  require(view.nodeRect(imageId).height() >= 180, "leaving loading consumes deferred resources even without installing a document");
+  require(view.nodeRect(imageId).height() >= 180,
+          "leaving loading consumes deferred resources even without installing a document");
   view.setLoading(true);
   loader.store(url, image({60, 240}, Qt::blue));
   QCoreApplication::processEvents();
@@ -333,7 +352,7 @@ void hiddenEditorResources() {
           "hidden image and font notifications retain old geometry and dependency snapshots");
 
   view.show();
-  view.refreshPendingResources();  // Same synchronous barrier used by a tab owner.
+  view.refreshPendingResources(); // Same synchronous barrier used by a tab owner.
   require(view.nodeRect(imageId).height() >= 160 &&
               view.blockLayoutForNode(textId)->reuse.resources.value(LayoutResources::fontKey()) ==
                   resources.read(LayoutResources::fontKey()),
@@ -360,7 +379,7 @@ void hiddenEditorResources() {
   view.setLoading(true);
   view.hide();
   loader.store(url, image({60, 210}, Qt::red));
-  view.setLoading(false);  // Cancellation while hidden must retain the update.
+  view.setLoading(false); // Cancellation while hidden must retain the update.
   QCoreApplication::processEvents();
   require(view.nodeRect(imageId).height() < 210, "cancelled hidden load leaves resource work deferred");
   view.show();
@@ -383,7 +402,7 @@ void hiddenEditorResources() {
   loader.store(url, image({60, 280}, Qt::blue));
   closing->hide();
   delete closing;
-  QCoreApplication::processEvents();  // The queued callback must not outlive its receiver.
+  QCoreApplication::processEvents(); // The queued callback must not outlive its receiver.
   require(QFontDatabase::removeApplicationFont(fontId), "remove deferred registration fixture");
 }
 void nestedEdits() {
@@ -419,8 +438,9 @@ void htmlResources() {
     ImageLoader::instance().store(url, image({50, 30}, Qt::red));
     DocumentSession session;
     const auto markup = QString("<img src=\"%1\" style=\"width:50px;height:30px\">").arg(url);
-    session.setMarkdownText(block ? "<div>" + markup + "</div>\n\nneighbor"
-                                  : "before <span style=\"display:inline-grid\">" + markup + "</span> after\n\nneighbor",
+    session.setMarkdownText(block
+                                ? "<div>" + markup + "</div>\n\nneighbor"
+                                : "before <span style=\"display:inline-grid\">" + markup + "</span> after\n\nneighbor",
                             false);
     auto theme = formattingTheme("grid");
     DocumentLayout layout;
@@ -428,7 +448,8 @@ void htmlResources() {
     const auto before = paint(layout, theme, 420);
     ImageLoader::instance().store(url, image({50, 30}, Qt::blue));
     auto update = layout.refreshResources(theme);
-    require(update.updatedBlocks == 1 && !update.geometryChanged, "HTML resource snapshot identifies paint-only update");
+    require(update.updatedBlocks == 1 && !update.geometryChanged,
+            "HTML resource snapshot identifies paint-only update");
     require(paint(layout, theme, 420) != before, "retained HTML image does not keep private stale pixels");
     sameFresh(layout, session, theme, 420);
     ImageLoader::instance().store(url, image({120, 80}, Qt::green));
@@ -457,13 +478,15 @@ void listMarkerEdits() {
             "wider authored marker invalidates the shared gutter of unchanged list items");
     sameFresh(layout, session, theme, 420);
     const auto* retained = layout.block(second);
-    require(session.applyTextDelta(8, 0, "new ", true, {{list, 0, BlockType::List}}), "edit list body without changing marker geometry");
+    require(session.applyTextDelta(8, 0, "new ", true, {{list, 0, BlockType::List}}),
+            "edit list body without changing marker geometry");
     range = session.lastLocalTopLevelRangeChange();
     if (range.isValid())
       layout.rebuildTopLevelRange(range, session.document(), theme, {});
     else
       layout.rebuildBlock(list, session.document(), theme, {});
-    require(layout.block(second) == retained, "list body edits retain siblings with unchanged marker and gutter dependencies");
+    require(layout.block(second) == retained,
+            "list body edits retain siblings with unchanged marker and gutter dependencies");
     sameFresh(layout, session, theme, 420);
   }
 }
@@ -471,11 +494,11 @@ void htmlStructuralEdits() {
   for (const auto& display : {QString("block"), QString("flex"), QString("grid")}) {
     DocumentSession session;
     session.setMarkdownText("# Title\n\nbefore <span><kbd>key</kbd></span> after\n\nneighbor", false);
-    auto theme = RenderTheme::fromDefinition(
-        CssThemeMapper::fromCss("#write{max-width:none;padding:0;margin:0;display:" + display +
-                                    ";grid-template-columns:200px 200px;align-items:start}p{font:16px Arial;margin:0;min-width:0}"
-                                    "kbd{padding:2px;border:1px solid black}h1 + p span kbd{padding:14px;color:red}",
-                                "html-structural-reuse", {}));
+    auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
+        "#write{max-width:none;padding:0;margin:0;display:" + display +
+            ";grid-template-columns:200px 200px;align-items:start}p{font:16px Arial;margin:0;min-width:0}"
+            "kbd{padding:2px;border:1px solid black}h1 + p span kbd{padding:14px;color:red}",
+        "html-structural-reuse", {}));
     DocumentLayout layout;
     layout.rebuild(session.document(), theme, 600);
     const auto paragraph = session.document().root().children()[1]->id();
@@ -499,11 +522,13 @@ void fontsAndMermaid() {
   const auto before = resources.read(LayoutResources::fontKey());
   // A real application-font database notification exercises versioning even if
   // the test's Arial text happens not to use the newly registered face.
-  QDirIterator fonts(QStringLiteral(MUFFIN_BINARY_DIR "/theme-fonts"), {"*.ttf"}, QDir::Files, QDirIterator::Subdirectories);
+  QDirIterator fonts(QStringLiteral(MUFFIN_BINARY_DIR "/theme-fonts"), {"*.ttf"}, QDir::Files,
+                     QDirIterator::Subdirectories);
   if (fonts.hasNext()) {
     const int id = QFontDatabase::addApplicationFont(fonts.next());
     require(id >= 0, "register generated native font");
-    require(resources.read(LayoutResources::fontKey()).geometry > before.geometry, "font database change advances metric generation");
+    require(resources.read(LayoutResources::fontKey()).geometry > before.geometry,
+            "font database change advances metric generation");
     require(layout.refreshResources(theme).updatedBlocks == 2, "font generation invalidates text-dependent blocks");
     sameFresh(layout, session, theme, 420);
     QFontDatabase::removeApplicationFont(id);
@@ -531,19 +556,22 @@ void fontsAndMermaid() {
     diagrams.refreshResources(theme);
     QThread::msleep(1);
   }
-  require(diagrams.block(fence)->mermaidState() == BlockLayout::MermaidState::Ready, "asynchronous Mermaid replaces loading geometry");
+  require(diagrams.block(fence)->mermaidState() == BlockLayout::MermaidState::Ready,
+          "asynchronous Mermaid replaces loading geometry");
   require(diagrams.block(neighbor) == retained, "Mermaid completion retains unrelated block");
   for (auto policy : {DocumentLayout::BuildPolicy::Eager, DocumentLayout::BuildPolicy::Lazy}) {
     DocumentLayout fresh;
     fresh.setMermaidRenderCache(&cache);
     fresh.rebuild(diagram.document(), theme, 420, {}, {}, policy);
     fresh.buildAll(theme);
-    require(paint(diagrams, theme, 420) == paint(fresh, theme, 420), "Mermaid resource refresh agrees with full/lazy painting");
+    require(paint(diagrams, theme, 420) == paint(fresh, theme, 420),
+            "Mermaid resource refresh agrees with full/lazy painting");
   }
   const auto key = MermaidRenderCache::makeKey(mermaidSource);
   const auto version = resources.read(cache.resourceKey(key));
   cache.clear();
-  require(resources.read(cache.resourceKey(key)).geometry > version.geometry, "clearing Mermaid cache invalidates retained entries");
+  require(resources.read(cache.resourceKey(key)).geometry > version.geometry,
+          "clearing Mermaid cache invalidates retained entries");
 }
 void realThemes() {
   for (const auto& name : {QString("newsprint"), QString("github"), QString("night")})
@@ -551,7 +579,8 @@ void realThemes() {
       for (int width : {900, 1500}) {
         const auto definition = ThemeDefinition::builtIn(name);
         require(definition.has_value(), "real bundled theme exists");
-        if (!definition) continue;
+        if (!definition)
+          continue;
         auto theme = RenderTheme::fromDefinition(*definition, zoom);
         theme.updateForViewport(width, 900);
         DocumentSession session;
@@ -563,7 +592,8 @@ void realThemes() {
         layout.rebuild(session.document(), theme, width);
         const auto id = session.document().root().children()[1]->id();
         const auto start = session.document().root().children()[1]->sourceRange().byteStart;
-        require(session.applyTextDelta(start, 0, "Inserted text ", true, {{id, start, BlockType::Paragraph}}), "real theme text edit");
+        require(session.applyTextDelta(start, 0, "Inserted text ", true, {{id, start, BlockType::Paragraph}}),
+                "real theme text edit");
         const auto range = session.lastLocalTopLevelRangeChange();
         if (range.isValid())
           layout.rebuildTopLevelRange(range, session.document(), theme, {});
@@ -573,14 +603,16 @@ void realThemes() {
       }
 }
 void responsiveResize() {
-  for (const auto& source : {QString("# Heading\n\nParagraph with enough words to wrap around the fixed page column.\n\nTail"),
-                             QString("<div style='font-size:3vw'>HTML with viewport font</div>\n\nTail"),
-                             QString("Text <span style='font-size:3vw'>inline viewport font</span> tail\n\nTail"),
-                             QString("Text <b style='font-size:3vw'>simple HTML viewport font</b> tail\n\nTail")}) {
+  for (const auto& source :
+       {QString("# Heading\n\nParagraph with enough words to wrap around the fixed page column.\n\nTail"),
+        QString("<div style='font-size:3vw'>HTML with viewport font</div>\n\nTail"),
+        QString("Text <span style='font-size:3vw'>inline viewport font</span> tail\n\nTail"),
+        QString("Text <b style='font-size:3vw'>simple HTML viewport font</b> tail\n\nTail")}) {
     DocumentSession session;
     session.setMarkdownText(source, false);
     auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
-        "#write{max-width:500px;padding:20px}p{margin:12px 0}@media(min-width:900px){p{font-size:24px}}", "resize", {}));
+        "#write{max-width:500px;padding:20px}p{margin:12px 0}@media(min-width:900px){p{font-size:24px}}", "resize",
+        {}));
     theme.updateForViewport(700, 600);
     DocumentLayout layout;
     layout.rebuild(session.document(), theme, 700, {}, {}, DocumentLayout::BuildPolicy::Lazy);
@@ -597,9 +629,10 @@ void responsiveResize() {
       if (width == 850) {
         require(!changed, "ordinary resize reuses theme projections");
         require(translated, "lazy resize retains the document index, including HTML viewport styles");
-        if (source.startsWith('#')) require(layout.block(id) == previous, "unchanged column reuses native layout objects");
+        if (source.startsWith('#'))
+          require(layout.block(id) == previous, "unchanged column reuses native layout objects");
       }
-      layout.buildAll(theme);  // lazy viewport invalidation measures detail on demand
+      layout.buildAll(theme); // lazy viewport invalidation measures detail on demand
       sameFresh(layout, session, theme, width);
       const auto* paragraph = layout.block(session.document().root().children().back()->id());
       const auto caret = paragraph->inlineLayout()->cursorRect(1).translated(paragraph->inlineTextOrigin());
@@ -610,11 +643,13 @@ void responsiveResize() {
   DocumentSession session;
   session.setMarkdownText("first\n\nsecond", false);
   BlockLayoutBuilder builder;
-  auto fixed = RenderTheme::fromDefinition(CssThemeMapper::fromCss("p{height:100px;box-sizing:border-box;padding:10px}", "fixed", {}));
+  auto fixed = RenderTheme::fromDefinition(
+      CssThemeMapper::fromCss("p{height:100px;box-sizing:border-box;padding:10px}", "fixed", {}));
   builder.refreshRenderSettings();
   require(builder.estimateHeight(*session.document().root().children()[0], fixed, 500).height == 100,
           "lazy estimates honor explicit box sizing/height");
-  auto constrained = RenderTheme::fromDefinition(CssThemeMapper::fromCss("p{min-height:130px;box-sizing:border-box}", "constrained", {}));
+  auto constrained = RenderTheme::fromDefinition(
+      CssThemeMapper::fromCss("p{min-height:130px;box-sizing:border-box}", "constrained", {}));
   builder.refreshRenderSettings();
   require(builder.estimateHeight(*session.document().root().children()[1], constrained, 500).height == 130,
           "new estimate pass discards the previous theme's cached box constraints");
@@ -628,15 +663,20 @@ QJsonObject timing(const std::vector<double>& values) {
           {"max_ms", sorted.back()}};
 }
 void performance() {
-  const int count = qBound(
-      20, qEnvironmentVariableIntValue("MUFFIN_LAYOUT_BENCH_BLOCKS") > 0 ? qEnvironmentVariableIntValue("MUFFIN_LAYOUT_BENCH_BLOCKS") : 120,
-      10000);
-  const int iterations = qBound(
-      2, qEnvironmentVariableIntValue("MUFFIN_LAYOUT_BENCH_ITERS") > 0 ? qEnvironmentVariableIntValue("MUFFIN_LAYOUT_BENCH_ITERS") : 4,
-      100);
+  const int count = qBound(20,
+                           qEnvironmentVariableIntValue("MUFFIN_LAYOUT_BENCH_BLOCKS") > 0
+                               ? qEnvironmentVariableIntValue("MUFFIN_LAYOUT_BENCH_BLOCKS")
+                               : 120,
+                           10000);
+  const int iterations = qBound(2,
+                                qEnvironmentVariableIntValue("MUFFIN_LAYOUT_BENCH_ITERS") > 0
+                                    ? qEnvironmentVariableIntValue("MUFFIN_LAYOUT_BENCH_ITERS")
+                                    : 4,
+                                100);
   QString source;
   for (int i = 0; i < count; ++i)
-    source += QString("Paragraph %1 with **bold**, `code`, and enough text to wrap under responsive themes.\n\n").arg(i);
+    source +=
+        QString("Paragraph %1 with **bold**, `code`, and enough text to wrap under responsive themes.\n\n").arg(i);
   DocumentSession session;
   session.setMarkdownText(source, false);
   auto theme = RenderTheme::newsprint();
@@ -683,7 +723,8 @@ void performance() {
     ImageLoader::instance().store(url, image({640, 480}, Qt::blue));
     loaded.refreshResources(theme);
     loads.push_back(timer.nsecsElapsed() / 1e6);
-    require(loaded.formattingReuseStats().builtLayouts == 1, "long document image completion builds only the image block");
+    require(loaded.formattingReuseStats().builtLayouts == 1,
+            "long document image completion builds only the image block");
     timer.restart();
     DocumentLayout fullLoad;
     fullLoad.rebuild(images.document(), theme, width, {}, {}, DocumentLayout::BuildPolicy::Lazy);
@@ -709,7 +750,7 @@ void performance() {
     file.write(bytes);
   }
 }
-}  // namespace
+} // namespace
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
   QCoreApplication::setOrganizationName("MuffinResourceTests");

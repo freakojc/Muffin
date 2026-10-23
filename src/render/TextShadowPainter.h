@@ -17,14 +17,14 @@ void resetTextShadowRasterStats();
 // One owner per immutable shaped layout. Rebuilding/destroying the layout
 // releases its entries from a thread-local, byte-bounded LRU shared by views.
 class TextShadowPainter {
- public:
+public:
   void reset() { owner_.reset(); }
   void paint(QPainter& painter, const TextLayout& text, QPointF origin, const TextShadow& shadow, qreal zoom,
              const QVector<QRectF>& rects = {}, const QList<TextLayout::FormatRange>& formats = {}) const;
 
- private:
+private:
   struct Owner;
   mutable std::shared_ptr<Owner> owner_;
 };
 
-}  // namespace muffin
+} // namespace muffin

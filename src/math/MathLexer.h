@@ -34,4 +34,4 @@ private:
   bool preserveSpaces_ = false;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

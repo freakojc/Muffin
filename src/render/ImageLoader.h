@@ -13,7 +13,9 @@
 #include "Export.h"
 
 namespace muffin {
-namespace diag { struct MemoryAccounting; }
+namespace diag {
+struct MemoryAccounting;
+}
 
 /// Shared image cache with asynchronous remote loading and local file watching.
 /// Publishes paint/geometry versions and notifies via imageReady().
@@ -38,13 +40,13 @@ public:
   void request(const QString& url);
 
 signals:
- /// Emitted when decoded image content changes, including failed downloads.
- void imageReady(QString url);
+  /// Emitted when decoded image content changes, including failed downloads.
+  void imageReady(QString url);
 
 private:
   explicit ImageLoader(QObject* parent = nullptr);
 
-  QNetworkAccessManager* network_ = nullptr;  // Owned; torn down on aboutToQuit (see .cpp).
+  QNetworkAccessManager* network_ = nullptr; // Owned; torn down on aboutToQuit (see .cpp).
   QHash<QString, QImage> cache_;
   QSet<QString> pending_;
   QFileSystemWatcher files_;
@@ -52,4 +54,4 @@ private:
   QHash<QString, QByteArray> fileIdentities_;
 };
 
-}  // namespace muffin
+} // namespace muffin

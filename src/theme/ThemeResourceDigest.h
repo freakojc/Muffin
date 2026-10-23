@@ -17,4 +17,4 @@ MUFFIN_CORE_EXPORT QByteArray themeResourceDigest(const QString& path);
 // only for this call; does not copy or retain the complete input buffer.
 MUFFIN_CORE_EXPORT QByteArray themeContentDigest(QByteArrayView bytes);
 
-}  // namespace muffin
+} // namespace muffin

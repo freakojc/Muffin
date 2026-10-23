@@ -173,4 +173,4 @@ private:
   QMetaObject::Connection directoryLoadedConn_;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -40,15 +40,11 @@ struct ElementStyle {
   qreal effectiveStrokeOpacity = 1.0;
 
   bool displayed() const {
-    return ancestorRenderable &&
-           display.compare(QStringLiteral("none"), Qt::CaseInsensitive) != 0 &&
+    return ancestorRenderable && display.compare(QStringLiteral("none"), Qt::CaseInsensitive) != 0 &&
            visibility.compare(QStringLiteral("hidden"), Qt::CaseInsensitive) != 0 &&
            visibility.compare(QStringLiteral("collapse"), Qt::CaseInsensitive) != 0;
   }
-  bool hasBox() const {
-    return ancestorHasBox &&
-           display.compare(QStringLiteral("none"), Qt::CaseInsensitive) != 0;
-  }
+  bool hasBox() const { return ancestorHasBox && display.compare(QStringLiteral("none"), Qt::CaseInsensitive) != 0; }
 };
 
 struct FlowchartProjection {
@@ -81,21 +77,16 @@ struct ElementInput {
   QString presentationStyle;
 };
 
-QHash<QString, ElementStyle> resolveElements(
-    const QString& themeCss, const QVector<ElementInput>& elements,
-    const QString& builtInCss = QString());
+QHash<QString, ElementStyle> resolveElements(const QString& themeCss, const QVector<ElementInput>& elements,
+                                             const QString& builtInCss = QString());
 
 // Builds the lightweight SVG DOM that Mermaid's flowchart renderer creates,
 // applies built-in rules followed by source themeCSS, then applies the actual
 // inline !important classDef/style declarations. The result is shared by
 // measurement and scene construction so CSS that changes text metrics also
 // changes Dagre input exactly once.
-FlowchartProjection resolveFlowchart(
-    const flowchart::FlowchartData& data,
-    const flowtheme::FlowThemeVariables& theme,
-    const QString& themeCss,
-    bool swimlane = false,
-    const QString& look = QStringLiteral("classic"),
-    bool htmlLabels = true);
+FlowchartProjection resolveFlowchart(const flowchart::FlowchartData& data, const flowtheme::FlowThemeVariables& theme,
+                                     const QString& themeCss, bool swimlane = false,
+                                     const QString& look = QStringLiteral("classic"), bool htmlLabels = true);
 
-}  // namespace muffin::mermaid::csscascade
+} // namespace muffin::mermaid::csscascade

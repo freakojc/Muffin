@@ -7,14 +7,17 @@ namespace muffin::layout_rules {
 
 bool isInsideBlockquote(const MarkdownNode& node) {
   for (const MarkdownNode* p = node.parent(); p; p = p->parent()) {
-    if (p->type() == BlockType::BlockQuote) { return true; }
+    if (p->type() == BlockType::BlockQuote) {
+      return true;
+    }
   }
   return false;
 }
 
 QMarginsF blockMarginForFlow(const MarkdownNode& node, const RenderTheme& theme, bool fast, qreal containingWidth) {
   if (!fast && node.type() == BlockType::Paragraph && isInsideBlockquote(node)) {
-    const ThemeElementBoxStyle quoteParagraph = theme.elementBoxStyle(QStringLiteral("blockquote p"), &node, containingWidth);
+    const ThemeElementBoxStyle quoteParagraph =
+        theme.elementBoxStyle(QStringLiteral("blockquote p"), &node, containingWidth);
     if (quoteParagraph.marginSpecified) {
       return quoteParagraph.margin;
     }
@@ -43,15 +46,20 @@ bool isTightListItemSiblingPair(const MarkdownNode& prev, const MarkdownNode& ne
 }
 
 bool isTightListNestedChildPair(const MarkdownNode& prev, const MarkdownNode& next) {
-  if (prev.type() != BlockType::Paragraph || next.type() != BlockType::List) { return false; }
+  if (prev.type() != BlockType::Paragraph || next.type() != BlockType::List) {
+    return false;
+  }
   const MarkdownNode* item = next.parent();
   const MarkdownNode* list = item ? item->parent() : nullptr;
-  return item && item == prev.parent() && item->type() == BlockType::ListItem && list && list->type() == BlockType::List && list->listTight();
+  return item && item == prev.parent() && item->type() == BlockType::ListItem && list &&
+         list->type() == BlockType::List && list->listTight();
 }
 
 qreal spacingBetweenInFlow(const MarkdownNode& prev, const MarkdownNode& next, const RenderTheme& theme, bool fast,
                            qreal containingWidth) {
-  if (isTightListItemSiblingPair(prev, next) || isTightListNestedChildPair(prev, next)) { return 0.0; }
+  if (isTightListItemSiblingPair(prev, next) || isTightListNestedChildPair(prev, next)) {
+    return 0.0;
+  }
   const qreal after = spacingAfterInFlow(prev, theme, fast, containingWidth);
   const qreal before = spacingBeforeInFlow(next, theme, fast, containingWidth);
   return (hasCssFlowMargin(prev, theme, fast, containingWidth) || hasCssFlowMargin(next, theme, fast, containingWidth))
@@ -120,4 +128,4 @@ QVector<InlineNode> primaryInlinesForListItem(const MarkdownNode& node) {
   return {};
 }
 
-}  // namespace muffin::layout_rules
+} // namespace muffin::layout_rules

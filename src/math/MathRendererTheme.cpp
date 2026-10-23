@@ -12,18 +12,16 @@ qreal MathRenderer::katexRootFontPixelSize(const RenderTheme& theme) {
   return theme.mathFont().pointSizeF() * kCssPixelsPerPoint * kKatexRootFontScale;
 }
 
-MathLayoutResult MathRenderer::render(const QString& tex, const RenderTheme& theme,
-                                      bool displayMode, qreal maxWidth) const {
+MathLayoutResult MathRenderer::render(const QString& tex, const RenderTheme& theme, bool displayMode,
+                                      qreal maxWidth) const {
   MathSettings settings;
   settings.displayMode = displayMode;
   return render(tex, theme, displayMode, settings, maxWidth);
 }
 
-MathLayoutResult MathRenderer::render(const QString& tex, const RenderTheme& theme,
-                                      bool displayMode, const MathSettings& settings,
-                                      qreal maxWidth) const {
-  return render(tex, katexRootFontPixelSize(theme), theme.textColor(),
-                displayMode, settings, maxWidth);
+MathLayoutResult MathRenderer::render(const QString& tex, const RenderTheme& theme, bool displayMode,
+                                      const MathSettings& settings, qreal maxWidth) const {
+  return render(tex, katexRootFontPixelSize(theme), theme.textColor(), displayMode, settings, maxWidth);
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

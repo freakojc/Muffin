@@ -37,4 +37,4 @@ inline MarkdownNode* previousSiblingAcrossContainers(MarkdownNode& node) {
   return nullptr;
 }
 
-}  // namespace muffin
+} // namespace muffin

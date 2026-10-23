@@ -17,14 +17,17 @@ using namespace muffin;
 
 namespace {
 MarkdownNode* findEmptyParagraph(MarkdownNode* node) {
-  if (!node) return nullptr;
+  if (!node)
+    return nullptr;
   if (node->type() == BlockType::Paragraph) {
     const SourceRange r = node->sourceRange();
-    if (r.byteStart == r.byteEnd) return node;
+    if (r.byteStart == r.byteEnd)
+      return node;
   }
   MarkdownNode* found = nullptr;
   for (const auto& c : node->children()) {
-    if (MarkdownNode* f = findEmptyParagraph(c.get())) found = f;
+    if (MarkdownNode* f = findEmptyParagraph(c.get()))
+      found = f;
   }
   return found;
 }
@@ -59,7 +62,7 @@ struct Harness {
     controller.activateHit(hit);
   }
 };
-}  // namespace
+} // namespace
 
 // Table corruption guard: backspace on an empty paragraph after a table must NOT eat the
 // table's closing pipes. Previously the empty paragraph merged into a table cell, truncating
@@ -106,11 +109,10 @@ void testEmptyParagraphBetweenTableAndNextBlock() {
   Harness h;
   const QString table = QStringLiteral("| a | b |\n|---|---|\n| 1 | 2 |");
   const QString following = QStringLiteral("after");
-  h.load(table + QStringLiteral("\n\n") + following);  // [Table, Paragraph("after")]
+  h.load(table + QStringLiteral("\n\n") + following); // [Table, Paragraph("after")]
 
   const auto& kids0 = h.session.document().root().children();
-  require(kids0.size() == 2 && kids0.at(0)->type() == BlockType::Table &&
-              kids0.at(1)->type() == BlockType::Paragraph,
+  require(kids0.size() == 2 && kids0.at(0)->type() == BlockType::Table && kids0.at(1)->type() == BlockType::Paragraph,
           "setup should be [Table, Paragraph]");
 
   // Create the mid-document empty paragraph by splitting the following paragraph at its start
@@ -131,8 +133,7 @@ void testEmptyParagraphBetweenTableAndNextBlock() {
   require(result.contains(QStringLiteral("| 1 | 2 |")), "table closing pipes must be intact (no corruption)");
   require(result.contains(following), "following block must survive");
   const auto& kids = h.session.document().root().children();
-  require(kids.size() == 2 && kids.at(0)->type() == BlockType::Table &&
-              kids.at(1)->type() == BlockType::Paragraph,
+  require(kids.size() == 2 && kids.at(0)->type() == BlockType::Table && kids.at(1)->type() == BlockType::Paragraph,
           "empty paragraph should be removed, leaving [Table, Paragraph]");
 
   const CursorPosition c = h.controller.selection().cursorPosition();
@@ -183,15 +184,16 @@ void testEmptyParagraphBetweenListAndNextBlock() {
             QStringLiteral("Backspace must preserve the entire preceding list: %1 -> %2")
                 .arg(original, h.session.markdownText().toString()));
     const auto& blocks = h.session.document().root().children();
-    require(blocks.size() == 2 && blocks.front()->type() == BlockType::List &&
-                blocks.front()->children().size() == 5 && blocks.back()->type() == BlockType::Paragraph,
+    require(blocks.size() == 2 && blocks.front()->type() == BlockType::List && blocks.front()->children().size() == 5 &&
+                blocks.back()->type() == BlockType::Paragraph,
             "deleting a separator must preserve the list in the parsed document");
     const auto cursor = h.controller.selection().cursorPosition();
     const MarkdownNode* block = h.session.document().node(cursor.blockId);
     require(block && !cursor.afterBlock && block->parent() && block->parent()->type() == BlockType::List,
             "Backspace should retreat into the final list item");
     require(cursor.text.textOffset == 1, "caret should land after the final list item's text");
-    require(h.controller.inputController().insertText(QStringLiteral("!")), "the restored caret should remain editable");
+    require(h.controller.inputController().insertText(QStringLiteral("!")),
+            "the restored caret should remain editable");
     require(h.session.markdownText().toString() == list + QStringLiteral("!\n\n123"),
             "typing after Backspace should edit the last list item rather than the following paragraph");
     h.controller.undo();
@@ -217,7 +219,8 @@ void testEmptyParagraphAfterContainerWithLiteralTail() {
     const QString original = before + QStringLiteral("\n\n123");
     h.load(original);
     setCursor(h.controller.selection(), h.session.document().root().children().back().get(), 0);
-    require(h.controller.inputController().insertParagraphBreak(), "Enter should create a blank paragraph after the container");
+    require(h.controller.inputController().insertParagraphBreak(),
+            "Enter should create a blank paragraph after the container");
     const QString withBlank = h.session.markdownText().toString();
     h.placeInEmptyParagraph();
     require(h.controller.inputController().deleteBackward(), "Backspace after a container should be handled");
@@ -254,13 +257,13 @@ void testEmptyParagraphAfterCommonBlocks() {
     QString source;
   };
   const Case cases[] = {
-    {"paragraph", QStringLiteral("alpha")},
-    {"heading", QStringLiteral("## Title")},
-    {"ordered-list", QStringLiteral("1. first\n2. second")},
-    {"unordered-list", QStringLiteral("- first\n- second")},
-    {"code-fence", QStringLiteral("```\ncode line\n```")},
-    {"math-block", QStringLiteral("$$\nx^2\n$$")},
-    {"block-quote", QStringLiteral("> quote line")},
+      {"paragraph", QStringLiteral("alpha")},
+      {"heading", QStringLiteral("## Title")},
+      {"ordered-list", QStringLiteral("1. first\n2. second")},
+      {"unordered-list", QStringLiteral("- first\n- second")},
+      {"code-fence", QStringLiteral("```\ncode line\n```")},
+      {"math-block", QStringLiteral("$$\nx^2\n$$")},
+      {"block-quote", QStringLiteral("> quote line")},
   };
   for (const auto& k : cases) {
     Harness h;

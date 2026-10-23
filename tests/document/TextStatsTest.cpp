@@ -35,7 +35,7 @@ void testWordRulesMatchContiguousText() {
   require(text_stats::countWords(text) == 4, "word rule count mismatch");
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

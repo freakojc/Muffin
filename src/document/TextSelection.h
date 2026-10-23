@@ -10,9 +10,7 @@ struct TextPosition {
   qsizetype sourceOffset = -1;
   bool inMeta = false;
 
-  bool isValid() const {
-    return nodeId.isValid();
-  }
+  bool isValid() const { return nodeId.isValid(); }
 };
 
 struct CursorPosition {
@@ -23,9 +21,7 @@ struct CursorPosition {
   // layout rebuilds; never set for a caret inside real block content.
   bool afterBlock = false;
 
-  bool isValid() const {
-    return blockId.isValid();
-  }
+  bool isValid() const { return blockId.isValid(); }
 };
 
 struct SelectionRange {
@@ -46,14 +42,11 @@ struct SelectionRange {
   // position (the historical omission made cross-cell selections masquerade as collapsed).
   bool isCollapsed() const {
     return anchor.blockId == focus.blockId && anchor.text.nodeId == focus.text.nodeId &&
-           anchor.text.textOffset == focus.text.textOffset &&
-           anchor.text.sourceOffset == focus.text.sourceOffset && anchor.text.inMeta == focus.text.inMeta &&
-           anchor.afterBlock == focus.afterBlock;
+           anchor.text.textOffset == focus.text.textOffset && anchor.text.sourceOffset == focus.text.sourceOffset &&
+           anchor.text.inMeta == focus.text.inMeta && anchor.afterBlock == focus.afterBlock;
   }
 
-  bool isSingleBlock() const {
-    return anchor.blockId.isValid() && anchor.blockId == focus.blockId;
-  }
+  bool isSingleBlock() const { return anchor.blockId.isValid() && anchor.blockId == focus.blockId; }
 
   // True when anchor and focus address the same text node — the ONLY case where
   // startOffset()/endOffset() (min/max of the two textOffsets) are comparable quantities.
@@ -63,13 +56,9 @@ struct SelectionRange {
     return anchor.blockId.isValid() && anchor.blockId == focus.blockId && anchor.text.nodeId == focus.text.nodeId;
   }
 
-  qsizetype startOffset() const {
-    return qMin(anchor.text.textOffset, focus.text.textOffset);
-  }
+  qsizetype startOffset() const { return qMin(anchor.text.textOffset, focus.text.textOffset); }
 
-  qsizetype endOffset() const {
-    return qMax(anchor.text.textOffset, focus.text.textOffset);
-  }
+  qsizetype endOffset() const { return qMax(anchor.text.textOffset, focus.text.textOffset); }
 };
 
-}  // namespace muffin
+} // namespace muffin

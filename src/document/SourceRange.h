@@ -12,13 +12,9 @@ struct SourceRange {
   int columnStart = 0;
   int columnEnd = 0;
 
-  bool containsByte(qsizetype byteOffset) const {
-    return byteOffset >= byteStart && byteOffset <= byteEnd;
-  }
+  bool containsByte(qsizetype byteOffset) const { return byteOffset >= byteStart && byteOffset <= byteEnd; }
 
-  qsizetype byteLength() const {
-    return byteEnd >= byteStart ? byteEnd - byteStart : 0;
-  }
+  qsizetype byteLength() const { return byteEnd >= byteStart ? byteEnd - byteStart : 0; }
 };
 
-}  // namespace muffin
+} // namespace muffin

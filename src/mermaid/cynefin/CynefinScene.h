@@ -173,13 +173,11 @@ struct CynefinScene final : MermaidScene {
   CynefinElementCss arrowHeadCss;
 
   QRectF sceneBounds() const override { return bounds; }
-  void paint(QPainter &painter,
-             const MermaidPaintOptions &options = {}) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options = {}) const override;
   QJsonObject toJsonObject() const override;
 };
 
-CynefinScene buildCynefinScene(const CynefinData &data, CynefinConfig config,
-                               CynefinSceneStyle style,
-                               const CynefinCssOverrides *css = nullptr);
+CynefinScene buildCynefinScene(const CynefinData& data, CynefinConfig config, CynefinSceneStyle style,
+                               const CynefinCssOverrides* css = nullptr);
 
 } // namespace muffin::mermaid::cynefin

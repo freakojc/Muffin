@@ -22,8 +22,10 @@ private:
   std::vector<BuildItem> buildSpacedItems(std::vector<BuildItem> items, qreal glueCssEmPerMu);
   std::vector<BuildItem> buildNodeItems(const MathParseNode& node);
   std::unique_ptr<MathRenderNode> makeSpanFromItems(std::vector<BuildItem> items);
-  std::unique_ptr<MathRenderNode> makeSymbol(const QString& text, MathNodeType type, const MathOptions& options, const QString& forcedFontClass = {});
-  std::unique_ptr<MathRenderNode> makeTextSpan(const QString& text, MathNodeType type, const MathOptions& options, const QString& forcedFontClass);
+  std::unique_ptr<MathRenderNode> makeSymbol(const QString& text, MathNodeType type, const MathOptions& options,
+                                             const QString& forcedFontClass = {});
+  std::unique_ptr<MathRenderNode> makeTextSpan(const QString& text, MathNodeType type, const MathOptions& options,
+                                               const QString& forcedFontClass);
   std::unique_ptr<MathRenderNode> makeSpacing(const MathParseNode& node);
   std::unique_ptr<MathRenderNode> makeSpan(std::vector<std::unique_ptr<MathRenderNode>> children);
   std::unique_ptr<MathRenderNode> makeSupSub(const MathParseNode& node);
@@ -68,4 +70,4 @@ private:
   MathOptions options_;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

@@ -43,4 +43,4 @@ private:
   bool checking_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

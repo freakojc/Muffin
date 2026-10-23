@@ -69,4 +69,4 @@ public:
   virtual ParseResult parseBlock(QStringView markdown, BlockType context, const ParseOptions& options) = 0;
 };
 
-}  // namespace muffin
+} // namespace muffin

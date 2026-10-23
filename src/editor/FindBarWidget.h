@@ -57,4 +57,4 @@ private:
   QWidget* replaceRow_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -8,12 +8,12 @@
 
 namespace muffin {
 
-SearchResults DocumentSearch::findAll(const QString& text, const QString& pattern,
-                                      SearchOptions options) {
+SearchResults DocumentSearch::findAll(const QString& text, const QString& pattern, SearchOptions options) {
   SearchResults result;
-  if (pattern.isEmpty()) { return result; }
-  const QString expression = options.regularExpression
-      ? pattern : QRegularExpression::escape(pattern);
+  if (pattern.isEmpty()) {
+    return result;
+  }
+  const QString expression = options.regularExpression ? pattern : QRegularExpression::escape(pattern);
   QRegularExpression::PatternOptions patternOptions;
   if (!options.caseSensitive) {
     patternOptions |= QRegularExpression::CaseInsensitiveOption;
@@ -39,28 +39,30 @@ SearchResults DocumentSearch::findAll(const QString& text, const QString& patter
   return result;
 }
 
-SearchResults DocumentSearch::findAll(const PieceTable& text, const QString& pattern,
-                                      SearchOptions options) {
+SearchResults DocumentSearch::findAll(const PieceTable& text, const QString& pattern, SearchOptions options) {
   if (options.regularExpression) {
     return findAll(text.toString(), pattern, options);
   }
 
   SearchResults result;
-  if (pattern.isEmpty()) return result;
+  if (pattern.isEmpty())
+    return result;
 
   const auto normalized = [caseSensitive = options.caseSensitive](QChar ch) {
     return caseSensitive ? ch : ch.toCaseFolded();
   };
   QVector<QChar> needle;
   needle.reserve(pattern.size());
-  for (QChar ch : pattern) needle.push_back(normalized(ch));
+  for (QChar ch : pattern)
+    needle.push_back(normalized(ch));
 
   QVector<qsizetype> fallback(needle.size(), 0);
   for (qsizetype i = 1, matched = 0; i < needle.size(); ++i) {
     while (matched > 0 && needle.at(i) != needle.at(matched)) {
       matched = fallback.at(matched - 1);
     }
-    if (needle.at(i) == needle.at(matched)) ++matched;
+    if (needle.at(i) == needle.at(matched))
+      ++matched;
     fallback[i] = matched;
   }
 
@@ -72,10 +74,11 @@ SearchResults DocumentSearch::findAll(const PieceTable& text, const QString& pat
       while (matched > 0 && ch != needle.at(matched)) {
         matched = fallback.at(matched - 1);
       }
-      if (ch == needle.at(matched)) ++matched;
+      if (ch == needle.at(matched))
+        ++matched;
       if (matched == needle.size()) {
         result.matches.push_back(SearchMatch{logical - needle.size() + 1, needle.size(), {}});
-        matched = 0;  // QRegularExpression::globalMatch reports non-overlapping matches.
+        matched = 0; // QRegularExpression::globalMatch reports non-overlapping matches.
       }
       ++logical;
     }
@@ -83,16 +86,17 @@ SearchResults DocumentSearch::findAll(const PieceTable& text, const QString& pat
   return result;
 }
 
-QString DocumentSearch::expandReplacement(const QString& replacement,
-                                          const SearchMatch& match,
+QString DocumentSearch::expandReplacement(const QString& replacement, const SearchMatch& match,
                                           bool regularExpression) {
-  if (!regularExpression) { return replacement; }
+  if (!regularExpression) {
+    return replacement;
+  }
   QString expanded;
   expanded.reserve(replacement.size());
   for (qsizetype i = 0; i < replacement.size(); ++i) {
     const QChar ch = replacement.at(i);
-    if ((ch == QLatin1Char('$') || ch == QLatin1Char('\\'))
-        && i + 1 < replacement.size() && replacement.at(i + 1).isDigit()) {
+    if ((ch == QLatin1Char('$') || ch == QLatin1Char('\\')) && i + 1 < replacement.size() &&
+        replacement.at(i + 1).isDigit()) {
       int capture = 0;
       qsizetype j = i + 1;
       while (j < replacement.size() && replacement.at(j).isDigit()) {
@@ -110,18 +114,20 @@ QString DocumentSearch::expandReplacement(const QString& replacement,
   return expanded;
 }
 
-SearchResults DocumentSearch::replaceAll(const QString& text, const QString& pattern,
-                                         const QString& replacement, SearchOptions options,
-                                         QString* output) {
+SearchResults DocumentSearch::replaceAll(const QString& text, const QString& pattern, const QString& replacement,
+                                         SearchOptions options, QString* output) {
   SearchResults result = findAll(text, pattern, options);
-  if (!result.valid) { return result; }
+  if (!result.valid) {
+    return result;
+  }
   QString replaced = text;
   for (auto it = result.matches.crbegin(); it != result.matches.crend(); ++it) {
-    replaced.replace(it->start, it->length,
-                     expandReplacement(replacement, *it, options.regularExpression));
+    replaced.replace(it->start, it->length, expandReplacement(replacement, *it, options.regularExpression));
   }
-  if (output) { *output = std::move(replaced); }
+  if (output) {
+    *output = std::move(replaced);
+  }
   return result;
 }
 
-}  // namespace muffin
+} // namespace muffin

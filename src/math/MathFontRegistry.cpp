@@ -41,4 +41,4 @@ void MathFontRegistry::ensureLoaded() {
   loaded = true;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

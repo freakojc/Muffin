@@ -21,13 +21,21 @@ bool mayStartPendingMarker(QStringView source) {
   // whitespace/digits and container prefixes: trimmed math markers and markers
   // nested in quotes/lists must still reach the original checks.
   for (const QChar ch : source) {
-    if (ch.isSpace()) continue;
+    if (ch.isSpace())
+      continue;
     switch (ch.unicode()) {
-      case '#': case '-': case '+': case '*': case '`':
-      case '~': case '$': case '\\': case '>':
-        return true;
-      default:
-        return ch.isDigit();
+    case '#':
+    case '-':
+    case '+':
+    case '*':
+    case '`':
+    case '~':
+    case '$':
+    case '\\':
+    case '>':
+      return true;
+    default:
+      return ch.isDigit();
     }
   }
   return false;
@@ -121,8 +129,7 @@ qsizetype pendingMarkerStartInLine(QStringView line) {
     return 0;
   }
   const qsizetype contentStart = containerContentStart(line);
-  if (contentStart > 0 && contentStart < line.size() &&
-      detectPendingBlockMarker(line.mid(contentStart)).isValid()) {
+  if (contentStart > 0 && contentStart < line.size() && detectPendingBlockMarker(line.mid(contentStart)).isValid()) {
     return contentStart;
   }
   return -1;
@@ -140,7 +147,7 @@ QStringView pendingMarkerParagraphText(QStringView markdown, const MarkdownNode&
   return markdown.mid(range.byteStart, end - range.byteStart);
 }
 
-}  // namespace
+} // namespace
 
 bool PendingBlockMarker::isValid() const {
   return kind != PendingBlockMarkerKind::None;
@@ -214,20 +221,20 @@ PendingBlockMarker detectPendingBlockMarkerForNode(QStringView markdown, const M
   }
 
   switch (node.type()) {
-    case BlockType::Paragraph:
-      return marker;
-    case BlockType::Heading:
-      return marker.kind == PendingBlockMarkerKind::Heading ? marker : PendingBlockMarker();
-    case BlockType::List:
-      return marker.kind == PendingBlockMarkerKind::List ? marker : PendingBlockMarker();
-    case BlockType::CodeFence:
-      return marker.kind == PendingBlockMarkerKind::CodeFence ? marker : PendingBlockMarker();
-    case BlockType::MathBlock:
-      return marker.kind == PendingBlockMarkerKind::MathDollar || marker.kind == PendingBlockMarkerKind::MathBracket
-                 ? marker
-                 : PendingBlockMarker();
-    default:
-      return {};
+  case BlockType::Paragraph:
+    return marker;
+  case BlockType::Heading:
+    return marker.kind == PendingBlockMarkerKind::Heading ? marker : PendingBlockMarker();
+  case BlockType::List:
+    return marker.kind == PendingBlockMarkerKind::List ? marker : PendingBlockMarker();
+  case BlockType::CodeFence:
+    return marker.kind == PendingBlockMarkerKind::CodeFence ? marker : PendingBlockMarker();
+  case BlockType::MathBlock:
+    return marker.kind == PendingBlockMarkerKind::MathDollar || marker.kind == PendingBlockMarkerKind::MathBracket
+               ? marker
+               : PendingBlockMarker();
+  default:
+    return {};
   }
 }
 
@@ -274,7 +281,7 @@ void demoteEmptyBlockQuoteToParagraph(QStringView markdown, MarkdownNode& node) 
   const SourceRange range = node.sourceRange();
   const qsizetype end = qMin(range.byteEnd, markdown.size());
   if (range.byteStart < 0 || end <= range.byteStart) {
-    return;  // no usable source text to surface as a paragraph
+    return; // no usable source text to surface as a paragraph
   }
   const QStringView text = markdown.mid(range.byteStart, end - range.byteStart);
   node.setType(BlockType::Paragraph);
@@ -340,11 +347,8 @@ qsizetype pendingBlockMarkerOffset(QStringView markdown, qsizetype offset) {
   return markerStart >= 0 ? lineStart + markerStart : -1;
 }
 
-QVector<qsizetype> shiftPendingMarkerOffsets(
-    const QVector<qsizetype>& preEditOffsets,
-    qsizetype sourceStart,
-    qsizetype removedLength,
-    qsizetype insertedLength) {
+QVector<qsizetype> shiftPendingMarkerOffsets(const QVector<qsizetype>& preEditOffsets, qsizetype sourceStart,
+                                             qsizetype removedLength, qsizetype insertedLength) {
   const qsizetype sourceEnd = sourceStart + removedLength;
   const qsizetype delta = insertedLength - removedLength;
   QVector<qsizetype> shifted;
@@ -360,4 +364,4 @@ QVector<qsizetype> shiftPendingMarkerOffsets(
   return shifted;
 }
 
-}  // namespace muffin
+} // namespace muffin

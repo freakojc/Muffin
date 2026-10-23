@@ -27,8 +27,7 @@ struct MindmapCoseResult {
 // deliberately outside this module. The radial initialization, rectangular
 // clipping, FR-grid neighborhood, force constants, proof cooling schedule and
 // final graph-margin transform are direct ports of those packages.
-MindmapCoseResult layoutMindmapCoseFlatTree(
-    const QVector<MindmapCoseNodeInput>& nodes,
-    const QVector<MindmapCoseEdgeInput>& edges);
+MindmapCoseResult layoutMindmapCoseFlatTree(const QVector<MindmapCoseNodeInput>& nodes,
+                                            const QVector<MindmapCoseEdgeInput>& edges);
 
-}  // namespace muffin::mermaid::mindmap
+} // namespace muffin::mermaid::mindmap

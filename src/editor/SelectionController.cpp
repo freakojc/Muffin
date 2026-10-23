@@ -4,7 +4,8 @@
 
 namespace muffin {
 
-SelectionController::SelectionController(QObject* parent) : QObject(parent) {}
+SelectionController::SelectionController(QObject* parent) : QObject(parent) {
+}
 
 bool SelectionController::hasCursor() const {
   return hasCursor_;
@@ -75,4 +76,4 @@ void SelectionController::clear() {
   emit selectionChanged(selection_, currentHit_);
 }
 
-}  // namespace muffin
+} // namespace muffin

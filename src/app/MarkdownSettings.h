@@ -10,4 +10,4 @@ namespace muffin {
 // cosmetic / insertion-side markdown/* settings are instead read inline at their use sites.
 ParseOptions markdownParseOptions();
 
-}  // namespace muffin
+} // namespace muffin

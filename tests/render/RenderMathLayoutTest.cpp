@@ -20,34 +20,42 @@ void testMathRenderingLayout() {
   RenderTheme theme = RenderTheme::github();
 
   CmarkGfmParser parser;
-  ParseResult parsed = parser.parseDocument(QStringLiteral("before $x_i^2 + \\frac{a}{b}$ after\n\n$$\n\\sqrt{x} = \\frac{1}{2}\n$$"), {});
+  ParseResult parsed = parser.parseDocument(
+      QStringLiteral("before $x_i^2 + \\frac{a}{b}$ after\n\n$$\n\\sqrt{x} = \\frac{1}{2}\n$$"), {});
   require(parsed.root != nullptr, QStringLiteral("math render parse should produce document"));
 
   DocumentLayout documentLayout;
   MarkdownDocument document;
-  document.setMarkdownText(QStringLiteral("before $x_i^2 + \\frac{a}{b}$ after\n\n$$\n\\sqrt{x} = \\frac{1}{2}\n$$"), std::move(parsed.root));
+  document.setMarkdownText(QStringLiteral("before $x_i^2 + \\frac{a}{b}$ after\n\n$$\n\\sqrt{x} = \\frac{1}{2}\n$$"),
+                           std::move(parsed.root));
   documentLayout.rebuild(document, theme, 800.0);
 
   const MarkdownNode* mathBlock = findFirstBlock(document.root(), BlockType::MathBlock);
   require(mathBlock != nullptr, QStringLiteral("math block should parse"));
   const BlockLayout* mathBlockLayout = documentLayout.block(mathBlock->id());
   require(mathBlockLayout != nullptr, QStringLiteral("math block layout should exist"));
-  require(mathBlockLayout->mathLayout() != nullptr && mathBlockLayout->mathLayout()->valid(), QStringLiteral("math block should have native math layout"));
+  require(mathBlockLayout->mathLayout() != nullptr && mathBlockLayout->mathLayout()->valid(),
+          QStringLiteral("math block should have native math layout"));
   const auto mathInsets = LayoutBox::insets(mathBlockLayout->cssBoxGeometry().usedBox);
   require(qAbs(mathBlockLayout->height() -
                std::ceil(mathBlockLayout->mathLayout()->size.height() + mathInsets.top() + mathInsets.bottom())) <= 1.0,
           QStringLiteral("inactive math block height includes its saved padding and borders"));
-  require(!mathBlockLayout->literalEditing(), QStringLiteral("inactive math block should render native formula instead of literal source"));
+  require(!mathBlockLayout->literalEditing(),
+          QStringLiteral("inactive math block should render native formula instead of literal source"));
 
-  const math::MathLayoutResult blockFormulaLayout = math::MathRenderer().render(QStringLiteral("\\sqrt{x} = \\frac{1}{2}"), theme, true);
+  const math::MathLayoutResult blockFormulaLayout =
+      math::MathRenderer().render(QStringLiteral("\\sqrt{x} = \\frac{1}{2}"), theme, true);
   require(blockFormulaLayout.valid(), QStringLiteral("display math renderer should render sample formula directly"));
   require(qAbs(blockFormulaLayout.size.width() - blockFormulaLayout.root->width) < 0.01 &&
-              qAbs(blockFormulaLayout.size.height() - (blockFormulaLayout.root->height + blockFormulaLayout.root->depth)) < 0.01,
+              qAbs(blockFormulaLayout.size.height() -
+                   (blockFormulaLayout.root->height + blockFormulaLayout.root->depth)) < 0.01,
           QStringLiteral("display math renderer should expose pure KaTeX root bbox without block padding"));
 
   HitTestResult inactiveMathHit = mathBlockLayout->hitTest(mathBlockLayout->rect().center(), theme);
-  require(inactiveMathHit.zone == HitTestResult::Zone::Math, QStringLiteral("inactive math block hit should target math zone"));
-  require(inactiveMathHit.cursorRect.left() == mathBlockLayout->rect().right() || inactiveMathHit.cursorRect.left() == mathBlockLayout->rect().left(),
+  require(inactiveMathHit.zone == HitTestResult::Zone::Math,
+          QStringLiteral("inactive math block hit should target math zone"));
+  require(inactiveMathHit.cursorRect.left() == mathBlockLayout->rect().right() ||
+              inactiveMathHit.cursorRect.left() == mathBlockLayout->rect().left(),
           QStringLiteral("inactive math block cursor should be atomic at block edge"));
 
   SelectionRange mathEditingSelection;
@@ -64,7 +72,8 @@ void testMathRenderingLayout() {
   const QPointF editingSourcePoint(
       editingMathBlockLayout->rect().left() + theme.elementBoxStyle(QStringLiteral("pre")).padding.left() +
           QFontMetricsF(theme.codeFont()).horizontalAdvance(QStringLiteral("\\sqrt")),
-      editingMathBlockLayout->rect().top() + theme.elementBoxStyle(QStringLiteral("pre")).padding.top() + theme.codeLineHeight() * 1.5);
+      editingMathBlockLayout->rect().top() + theme.elementBoxStyle(QStringLiteral("pre")).padding.top() +
+          theme.codeLineHeight() * 1.5);
   HitTestResult editingMathHit = editingMathBlockLayout->hitTest(editingSourcePoint, theme);
   require(editingMathHit.zone == HitTestResult::Zone::Math &&
               editingMathHit.cursorRect.left() > editingMathBlockLayout->rect().left() &&
@@ -76,12 +85,14 @@ void testMathRenderingLayout() {
   const MarkdownNode* paragraph = findFirstBlock(document.root(), BlockType::Paragraph);
   require(paragraph != nullptr, QStringLiteral("math inline paragraph should parse"));
   const BlockLayout* paragraphLayout = documentLayout.block(paragraph->id());
-  require(paragraphLayout != nullptr && paragraphLayout->inlineLayout() != nullptr, QStringLiteral("math inline layout should exist"));
-  require(!paragraphLayout->inlineLayout()->displayText().contains(QStringLiteral("\\frac")), QStringLiteral("collapsed inline math should render as atom"));
-  require(paragraphLayout->inlineLayout()->mathAtomCount() == 1, QStringLiteral("collapsed inline math should create one native math atom"));
+  require(paragraphLayout != nullptr && paragraphLayout->inlineLayout() != nullptr,
+          QStringLiteral("math inline layout should exist"));
+  require(!paragraphLayout->inlineLayout()->displayText().contains(QStringLiteral("\\frac")),
+          QStringLiteral("collapsed inline math should render as atom"));
+  require(paragraphLayout->inlineLayout()->mathAtomCount() == 1,
+          QStringLiteral("collapsed inline math should create one native math atom"));
 
-  const QString userInlineMathSample =
-      QStringLiteral("行内公式使用单美元符号：$E = mc^2$ 和 $a_1 + b_1 = c_1$。");
+  const QString userInlineMathSample = QStringLiteral("行内公式使用单美元符号：$E = mc^2$ 和 $a_1 + b_1 = c_1$。");
   ParseResult userParsed = parser.parseDocument(userInlineMathSample, {});
   require(userParsed.root != nullptr, QStringLiteral("user inline math sample should parse"));
   MarkdownDocument userDocument;
@@ -146,7 +157,8 @@ void testMathRenderingLayout() {
             QStringLiteral("collapsed inline math placeholder should reserve the native math box width exactly"));
 
     const QColor transparent(Qt::transparent);
-    QImage directImage(QSize(qCeil(formulaLayout.size.width()) + 32, qCeil(formulaLayout.size.height()) + 32), QImage::Format_ARGB32);
+    QImage directImage(QSize(qCeil(formulaLayout.size.width()) + 32, qCeil(formulaLayout.size.height()) + 32),
+                       QImage::Format_ARGB32);
     directImage.fill(transparent);
     {
       QPainter painter(&directImage);
@@ -160,9 +172,12 @@ void testMathRenderingLayout() {
     QVector<InlineNode> mathOnlyInlines;
     mathOnlyInlines.push_back(InlineNode::inlineMath(QStringLiteral("E=mc^2")));
     InlineLayout mathOnlyLayout;
-    mathOnlyLayout.build(mathOnlyInlines, QStringLiteral("$E=mc^2$"), theme, 360.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
-    require(mathOnlyLayout.mathAtomCount() == 1, QStringLiteral("isolated inline formula should collapse to one math atom"));
-    require(mathOnlyLayout.displayText().size() == 1, QStringLiteral("isolated inline formula should use a single QTextLayout placeholder"));
+    mathOnlyLayout.build(mathOnlyInlines, QStringLiteral("$E=mc^2$"), theme, 360.0, theme.paragraphFont(),
+                         InlineLayout::BuildOptions{});
+    require(mathOnlyLayout.mathAtomCount() == 1,
+            QStringLiteral("isolated inline formula should collapse to one math atom"));
+    require(mathOnlyLayout.displayText().size() == 1,
+            QStringLiteral("isolated inline formula should use a single QTextLayout placeholder"));
 
     QImage inlineImage(QSize(360, qCeil(mathOnlyLayout.height()) + 32), QImage::Format_ARGB32);
     inlineImage.fill(transparent);
@@ -175,7 +190,8 @@ void testMathRenderingLayout() {
     const QRect inlineInk = imageInkBounds(inlineImage, transparent);
     require(!inlineInk.isEmpty(), QStringLiteral("inline layout formula paint should produce ink"));
 
-    const qreal isolatedReservedWidth = mathOnlyLayout.cursorRect(QStringLiteral("E=mc^2").size()).left() - mathOnlyLayout.cursorRect(0).left();
+    const qreal isolatedReservedWidth =
+        mathOnlyLayout.cursorRect(QStringLiteral("E=mc^2").size()).left() - mathOnlyLayout.cursorRect(0).left();
     require(qAbs(isolatedReservedWidth - formulaLayout.size.width()) < 1.5,
             QStringLiteral("isolated inline formula cursor span should match native formula width"));
     require(qAbs(inlineInk.width() - directInk.width()) <= 2,
@@ -227,22 +243,26 @@ void testMathRenderingLayout() {
 void testUserSampleHeadingLanguageAndInlineMath() {
   RenderTheme theme = RenderTheme::github();
   CmarkGfmParser parser;
-  const QString markdown = QStringLiteral(
-      "# Muffin Markdown Example\n\n"
-      "中文 | English\n\n"
-      "Plain text can mix **bold**, *italic*, ~~strikethrough~~, `inline code`, "
-      "inline HTML <kbd>Ctrl</kbd> + <kbd>S</kbd>, links such as [Muffin](https://example.com), "
-      "autolinks like https://example.com, and inline math $E = mc^2$.");
+  const QString markdown =
+      QStringLiteral("# Muffin Markdown Example\n\n"
+                     "中文 | English\n\n"
+                     "Plain text can mix **bold**, *italic*, ~~strikethrough~~, `inline code`, "
+                     "inline HTML <kbd>Ctrl</kbd> + <kbd>S</kbd>, links such as [Muffin](https://example.com), "
+                     "autolinks like https://example.com, and inline math $E = mc^2$.");
   ParseResult parsed = parser.parseDocument(markdown, {});
   require(parsed.root != nullptr, QStringLiteral("user markdown sample should parse"));
-  require(parsed.root->children().size() >= 3, QStringLiteral("user markdown sample should keep three top-level blocks"));
+  require(parsed.root->children().size() >= 3,
+          QStringLiteral("user markdown sample should keep three top-level blocks"));
 
   const NodeId headingId = parsed.root->children().at(0)->id();
   const NodeId languageId = parsed.root->children().at(1)->id();
   const NodeId bodyId = parsed.root->children().at(2)->id();
-  require(parsed.root->children().at(0)->type() == BlockType::Heading, QStringLiteral("sample first block should stay a heading"));
-  require(parsed.root->children().at(1)->type() == BlockType::Paragraph, QStringLiteral("sample language line should stay a paragraph"));
-  require(parsed.root->children().at(2)->type() == BlockType::Paragraph, QStringLiteral("sample body should stay one paragraph"));
+  require(parsed.root->children().at(0)->type() == BlockType::Heading,
+          QStringLiteral("sample first block should stay a heading"));
+  require(parsed.root->children().at(1)->type() == BlockType::Paragraph,
+          QStringLiteral("sample language line should stay a paragraph"));
+  require(parsed.root->children().at(2)->type() == BlockType::Paragraph,
+          QStringLiteral("sample body should stay one paragraph"));
 
   for (const auto& child : parsed.root->children()) {
     child->relativizeDescendants();
@@ -318,9 +338,8 @@ void testExtendedMathFunctionRendering() {
   RenderTheme theme = RenderTheme::github();
 
   CmarkGfmParser parser;
-  const QString markdown = QStringLiteral(
-      "$$\n\\hat{x}+\\bar{y}+\\vec{v}+\\Bigl(\\operatorname{rank}_A B\\Bigr)+"
-      "\\sum_{i=1}^{n} i+\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}\n$$");
+  const QString markdown = QStringLiteral("$$\n\\hat{x}+\\bar{y}+\\vec{v}+\\Bigl(\\operatorname{rank}_A B\\Bigr)+"
+                                          "\\sum_{i=1}^{n} i+\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}\n$$");
   ParseResult parsed = parser.parseDocument(markdown, {});
   require(parsed.root != nullptr, QStringLiteral("extended math parse should produce document"));
 
@@ -334,7 +353,8 @@ void testExtendedMathFunctionRendering() {
   const BlockLayout* blockLayout = layout.block(mathBlock->id());
   require(blockLayout != nullptr && blockLayout->mathLayout() != nullptr && blockLayout->mathLayout()->valid(),
           QStringLiteral("extended math block should have native layout"));
-  require(blockLayout->mathLayout()->size.width() > 120.0, QStringLiteral("extended math layout should include function width"));
+  require(blockLayout->mathLayout()->size.width() > 120.0,
+          QStringLiteral("extended math layout should include function width"));
   require(blockLayout->mathLayout()->size.height() > theme.mathFont().pointSizeF() * 2.0,
           QStringLiteral("extended math layout should include scripts/array height"));
 
@@ -356,7 +376,7 @@ void testExtendedMathFunctionRendering() {
   require(changedPixels > 100, QStringLiteral("extended math paint should draw visible pixels"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

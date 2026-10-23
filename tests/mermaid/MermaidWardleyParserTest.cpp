@@ -24,33 +24,31 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 void close(qreal actual, qreal expected, const QString& field) {
   require(std::abs(actual - expected) <= 1e-9,
-          field + QStringLiteral(": %1 != %2")
-                      .arg(actual, 0, 'g', 17)
-                      .arg(expected, 0, 'g', 17));
+          field + QStringLiteral(": %1 != %2").arg(actual, 0, 'g', 17).arg(expected, 0, 'g', 17));
 }
 
 QString kind(wardley::WardleyErrorKind value) {
   switch (value) {
-    case wardley::WardleyErrorKind::Lexer: return QStringLiteral("Lexer");
-    case wardley::WardleyErrorKind::Parser: return QStringLiteral("Parser");
-    case wardley::WardleyErrorKind::Runtime: return QStringLiteral("Runtime");
+  case wardley::WardleyErrorKind::Lexer:
+    return QStringLiteral("Lexer");
+  case wardley::WardleyErrorKind::Parser:
+    return QStringLiteral("Parser");
+  case wardley::WardleyErrorKind::Runtime:
+    return QStringLiteral("Runtime");
   }
   return {};
 }
 
-void compareData(const wardley::WardleyData& data, const QJsonObject& db,
-                 const QString& id) {
-  require(data.title == db.value(QStringLiteral("title")).toString(),
-          id + QStringLiteral("/title"));
-  require(data.accTitle == db.value(QStringLiteral("accTitle")).toString(),
-          id + QStringLiteral("/accTitle"));
-  require(data.accDescr == db.value(QStringLiteral("accDescr")).toString(),
-          id + QStringLiteral("/accDescr"));
+void compareData(const wardley::WardleyData& data, const QJsonObject& db, const QString& id) {
+  require(data.title == db.value(QStringLiteral("title")).toString(), id + QStringLiteral("/title"));
+  require(data.accTitle == db.value(QStringLiteral("accTitle")).toString(), id + QStringLiteral("/accTitle"));
+  require(data.accDescr == db.value(QStringLiteral("accDescr")).toString(), id + QStringLiteral("/accDescr"));
   const QJsonObject expected = db.value(QStringLiteral("data")).toObject();
 
   const QJsonArray nodes = expected.value(QStringLiteral("nodes")).toArray();
@@ -68,12 +66,16 @@ void compareData(const wardley::WardleyData& data, const QJsonObject& db,
     const bool hasY = oracle.contains(QStringLiteral("labelOffsetY"));
     require(actual.labelOffsetX.has_value() == hasX, path + "labelOffsetX/presence");
     require(actual.labelOffsetY.has_value() == hasY, path + "labelOffsetY/presence");
-    if (hasX) close(*actual.labelOffsetX, oracle.value(QStringLiteral("labelOffsetX")).toDouble(), path + "labelOffsetX");
-    if (hasY) close(*actual.labelOffsetY, oracle.value(QStringLiteral("labelOffsetY")).toDouble(), path + "labelOffsetY");
+    if (hasX)
+      close(*actual.labelOffsetX, oracle.value(QStringLiteral("labelOffsetX")).toDouble(), path + "labelOffsetX");
+    if (hasY)
+      close(*actual.labelOffsetY, oracle.value(QStringLiteral("labelOffsetY")).toDouble(), path + "labelOffsetY");
     require(actual.inPipeline == oracle.value(QStringLiteral("inPipeline")).toBool(), path + "inPipeline");
-    require(actual.isPipelineParent == oracle.value(QStringLiteral("isPipelineParent")).toBool(), path + "isPipelineParent");
+    require(actual.isPipelineParent == oracle.value(QStringLiteral("isPipelineParent")).toBool(),
+            path + "isPipelineParent");
     require(actual.inertia == oracle.value(QStringLiteral("inertia")).toBool(), path + "inertia");
-    require(actual.sourceStrategy == oracle.value(QStringLiteral("sourceStrategy")).toString(), path + "sourceStrategy");
+    require(actual.sourceStrategy == oracle.value(QStringLiteral("sourceStrategy")).toString(),
+            path + "sourceStrategy");
   }
 
   const QJsonArray links = expected.value(QStringLiteral("links")).toArray();
@@ -138,19 +140,23 @@ void compareData(const wardley::WardleyData& data, const QJsonObject& db,
     close(data.notes.at(i).coordinate.x(), item.value(QStringLiteral("x")).toDouble(), id + "/note/x");
     close(data.notes.at(i).coordinate.y(), item.value(QStringLiteral("y")).toDouble(), id + "/note/y");
   }
-  const auto compareArrows = [&](const QVector<wardley::WardleyAccelerator>& actual,
-                                 const QJsonArray& oracle,
+  const auto compareArrows = [&](const QVector<wardley::WardleyAccelerator>& actual, const QJsonArray& oracle,
                                  const QString& name) {
     require(actual.size() == oracle.size(), id + QLatin1Char('/') + name + "-count");
     for (qsizetype i = 0; i < oracle.size(); ++i) {
       const QJsonObject item = oracle.at(i).toObject();
-      require(actual.at(i).name == item.value(QStringLiteral("name")).toString(), id + QLatin1Char('/') + name + "/name");
-      close(actual.at(i).coordinate.x(), item.value(QStringLiteral("x")).toDouble(), id + QLatin1Char('/') + name + "/x");
-      close(actual.at(i).coordinate.y(), item.value(QStringLiteral("y")).toDouble(), id + QLatin1Char('/') + name + "/y");
+      require(actual.at(i).name == item.value(QStringLiteral("name")).toString(),
+              id + QLatin1Char('/') + name + "/name");
+      close(actual.at(i).coordinate.x(), item.value(QStringLiteral("x")).toDouble(),
+            id + QLatin1Char('/') + name + "/x");
+      close(actual.at(i).coordinate.y(), item.value(QStringLiteral("y")).toDouble(),
+            id + QLatin1Char('/') + name + "/y");
     }
   };
-  compareArrows(data.accelerators, expected.value(QStringLiteral("accelerators")).toArray(), QStringLiteral("accelerator"));
-  compareArrows(data.deaccelerators, expected.value(QStringLiteral("deaccelerators")).toArray(), QStringLiteral("deaccelerator"));
+  compareArrows(data.accelerators, expected.value(QStringLiteral("accelerators")).toArray(),
+                QStringLiteral("accelerator"));
+  compareArrows(data.deaccelerators, expected.value(QStringLiteral("deaccelerators")).toArray(),
+                QStringLiteral("deaccelerator"));
 
   const bool hasBox = expected.contains(QStringLiteral("annotationsBox"));
   require(data.annotationsBox.has_value() == hasBox, id + "/annotationsBox/presence");
@@ -177,7 +183,7 @@ void compareData(const wardley::WardleyData& data, const QJsonObject& db,
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -218,8 +224,7 @@ int main(int argc, char** argv) {
     }
     if (!detected) {
       require(!accept, id + QStringLiteral(": accepted source was not detected"));
-      require(expected.value(QStringLiteral("error")).toObject()
-                      .value(QStringLiteral("name")).toString() ==
+      require(expected.value(QStringLiteral("error")).toObject().value(QStringLiteral("name")).toString() ==
                   QLatin1String("UnknownDiagramError"),
               id + QStringLiteral(": detector mismatch"));
       ++rejected;
@@ -235,9 +240,8 @@ int main(int argc, char** argv) {
         const QJsonObject oracle = expected.value(QStringLiteral("error")).toObject();
         require(kind(error.kind) == oracle.value(QStringLiteral("kind")).toString(), id + "/kind");
         require(error.line == oracle.value(QStringLiteral("line")).toInt(),
-                id + QStringLiteral("/line %1 != %2")
-                         .arg(error.line)
-                         .arg(oracle.value(QStringLiteral("line")).toInt()));
+                id +
+                    QStringLiteral("/line %1 != %2").arg(error.line).arg(oracle.value(QStringLiteral("line")).toInt()));
         require(error.column == oracle.value(QStringLiteral("column")).toInt(),
                 id + QStringLiteral("/column %1 != %2")
                          .arg(error.column)
@@ -247,8 +251,7 @@ int main(int argc, char** argv) {
       continue;
     }
     ++accepted;
-    compareData(wardley::WardleyDiagram::parse(pre.code),
-                expected.value(QStringLiteral("db")).toObject(), id);
+    compareData(wardley::WardleyDiagram::parse(pre.code), expected.value(QStringLiteral("db")).toObject(), id);
   }
   require(cases.size() == 46 && accepted == 30 && rejected == 16,
           QStringLiteral("Wardley grammar table not fully visited"));

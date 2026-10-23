@@ -30,10 +30,17 @@ QString escapeText(QStringView text) {
   out.reserve(text.size());
   for (const QChar ch : text) {
     switch (ch.unicode()) {
-      case '&': out += QStringLiteral("&amp;"); break;
-      case '<': out += QStringLiteral("&lt;"); break;
-      case '>': out += QStringLiteral("&gt;"); break;
-      default: out += ch;
+    case '&':
+      out += QStringLiteral("&amp;");
+      break;
+    case '<':
+      out += QStringLiteral("&lt;");
+      break;
+    case '>':
+      out += QStringLiteral("&gt;");
+      break;
+    default:
+      out += ch;
     }
   }
   return out;
@@ -57,7 +64,8 @@ QString escapeHref(QStringView url) {
     if (u < 0x20 || ch == QLatin1Char(' ')) {
       out += QLatin1Char('%');
       const QString hex = QString::number(u, 16).toUpper();
-      if (hex.size() < 2) out += QLatin1Char('0');
+      if (hex.size() < 2)
+        out += QLatin1Char('0');
       out += hex;
     } else if (ch == QLatin1Char('%')) {
       // Safety is checked before escaping. Keep existing URL escapes byte-for-byte;
@@ -88,11 +96,20 @@ QString escapeAttr(QStringView text) {
   out.reserve(text.size());
   for (const QChar ch : text) {
     switch (ch.unicode()) {
-      case '&': out += QStringLiteral("&amp;"); break;
-      case '<': out += QStringLiteral("&lt;"); break;
-      case '>': out += QStringLiteral("&gt;"); break;
-      case '"': out += QStringLiteral("&quot;"); break;
-      default: out += ch;
+    case '&':
+      out += QStringLiteral("&amp;");
+      break;
+    case '<':
+      out += QStringLiteral("&lt;");
+      break;
+    case '>':
+      out += QStringLiteral("&gt;");
+      break;
+    case '"':
+      out += QStringLiteral("&quot;");
+      break;
+    default:
+      out += ch;
     }
   }
   return out;
@@ -117,7 +134,7 @@ QString decodeEmoji(const QString& text) {
         if (it != map.constEnd()) {
           out += it.value();
         } else {
-          out += text.mid(i, len);  // defensive: lengthAt should imply a known name
+          out += text.mid(i, len); // defensive: lengthAt should imply a known name
         }
         i += len;
         continue;
@@ -130,44 +147,66 @@ QString decodeEmoji(const QString& text) {
 
 QString alertKindName(AlertKind kind) {
   switch (kind) {
-    case AlertKind::Note: return QStringLiteral("NOTE");
-    case AlertKind::Tip: return QStringLiteral("TIP");
-    case AlertKind::Important: return QStringLiteral("IMPORTANT");
-    case AlertKind::Warning: return QStringLiteral("WARNING");
-    case AlertKind::Caution: return QStringLiteral("CAUTION");
-    default: return QString();
+  case AlertKind::Note:
+    return QStringLiteral("NOTE");
+  case AlertKind::Tip:
+    return QStringLiteral("TIP");
+  case AlertKind::Important:
+    return QStringLiteral("IMPORTANT");
+  case AlertKind::Warning:
+    return QStringLiteral("WARNING");
+  case AlertKind::Caution:
+    return QStringLiteral("CAUTION");
+  default:
+    return QString();
   }
 }
 
 QString alertKindClass(AlertKind kind) {
   switch (kind) {
-    case AlertKind::Note: return QStringLiteral("note");
-    case AlertKind::Tip: return QStringLiteral("tip");
-    case AlertKind::Important: return QStringLiteral("important");
-    case AlertKind::Warning: return QStringLiteral("warning");
-    case AlertKind::Caution: return QStringLiteral("caution");
-    default: return QString();
+  case AlertKind::Note:
+    return QStringLiteral("note");
+  case AlertKind::Tip:
+    return QStringLiteral("tip");
+  case AlertKind::Important:
+    return QStringLiteral("important");
+  case AlertKind::Warning:
+    return QStringLiteral("warning");
+  case AlertKind::Caution:
+    return QStringLiteral("caution");
+  default:
+    return QString();
   }
 }
 
 QString alertKindTitle(AlertKind kind) {
   switch (kind) {
-    case AlertKind::Note: return QStringLiteral("Note");
-    case AlertKind::Tip: return QStringLiteral("Tip");
-    case AlertKind::Important: return QStringLiteral("Important");
-    case AlertKind::Warning: return QStringLiteral("Warning");
-    case AlertKind::Caution: return QStringLiteral("Caution");
-    default: return QString();
+  case AlertKind::Note:
+    return QStringLiteral("Note");
+  case AlertKind::Tip:
+    return QStringLiteral("Tip");
+  case AlertKind::Important:
+    return QStringLiteral("Important");
+  case AlertKind::Warning:
+    return QStringLiteral("Warning");
+  case AlertKind::Caution:
+    return QStringLiteral("Caution");
+  default:
+    return QString();
   }
 }
 
 // Returns the alignment attribute for a table column, or empty for the default (no colon).
 QString alignAttr(TableAlignment a) {
   switch (a) {
-    case TableAlignment::Left: return QStringLiteral(" align=\"left\"");
-    case TableAlignment::Center: return QStringLiteral(" align=\"center\"");
-    case TableAlignment::Right: return QStringLiteral(" align=\"right\"");
-    default: return QString();
+  case TableAlignment::Left:
+    return QStringLiteral(" align=\"left\"");
+  case TableAlignment::Center:
+    return QStringLiteral(" align=\"center\"");
+  case TableAlignment::Right:
+    return QStringLiteral(" align=\"right\"");
+  default:
+    return QString();
   }
 }
 
@@ -207,7 +246,7 @@ QVector<InlineNode> stripAlertMarker(QVector<InlineNode> inlines, AlertKind kind
 struct Serializer {
   QString out;
   MarkdownHtmlOptions opts;
-  HtmlSanitizer sanitizer;  // sanitizes raw HTML blocks/inlines so export can't carry an XSS payload
+  HtmlSanitizer sanitizer; // sanitizes raw HTML blocks/inlines so export can't carry an XSS payload
   qsizetype mermaidInstanceIndex = 0;
   // Footnote definitions are hoisted to a trailing <section> (mirrors cmark), collected during the
   // block walk and emitted once at the end.
@@ -221,19 +260,41 @@ struct Serializer {
 
   void emitBlock(const MarkdownNode& node) {
     switch (node.type()) {
-      case BlockType::Paragraph: emitParagraph(node); break;
-      case BlockType::Heading: emitHeading(node); break;
-      case BlockType::BlockQuote: emitBlockQuote(node); break;
-      case BlockType::List: emitList(node); break;
-      case BlockType::ThematicBreak: out += QStringLiteral("<hr />\n"); break;
-      case BlockType::CodeFence: emitCode(node); break;
-      case BlockType::HtmlBlock: out += sanitizer.sanitizedPreview(node.literal()); break;  // XSS-sanitized
-      case BlockType::MathBlock: emitMathBlock(node); break;
-      case BlockType::Table: emitTable(node); break;
-      case BlockType::FootnoteDefinition: footnotes.append(&node); break;  // hoist to trailing section
-      case BlockType::FrontMatter:
-      case BlockType::LinkDefinition: break;  // editor metadata / reference def — not rendered
-      default: break;  // Document/ListItem/TableRow/TableCell handled structurally by their parent
+    case BlockType::Paragraph:
+      emitParagraph(node);
+      break;
+    case BlockType::Heading:
+      emitHeading(node);
+      break;
+    case BlockType::BlockQuote:
+      emitBlockQuote(node);
+      break;
+    case BlockType::List:
+      emitList(node);
+      break;
+    case BlockType::ThematicBreak:
+      out += QStringLiteral("<hr />\n");
+      break;
+    case BlockType::CodeFence:
+      emitCode(node);
+      break;
+    case BlockType::HtmlBlock:
+      out += sanitizer.sanitizedPreview(node.literal());
+      break; // XSS-sanitized
+    case BlockType::MathBlock:
+      emitMathBlock(node);
+      break;
+    case BlockType::Table:
+      emitTable(node);
+      break;
+    case BlockType::FootnoteDefinition:
+      footnotes.append(&node);
+      break; // hoist to trailing section
+    case BlockType::FrontMatter:
+    case BlockType::LinkDefinition:
+      break; // editor metadata / reference def — not rendered
+    default:
+      break; // Document/ListItem/TableRow/TableCell handled structurally by their parent
     }
   }
 
@@ -256,17 +317,17 @@ struct Serializer {
   }
 
   void emitCode(const MarkdownNode& node) {
-    const QString lang = node.codeLanguage();  // already the first whitespace-delimited token
+    const QString lang = node.codeLanguage(); // already the first whitespace-delimited token
     // Keep Mermaid HTML self-contained without a browser-side Mermaid runtime.
     // On render failure, fall through to source so content is never lost.
     if (lang == QLatin1String("mermaid")) {
-      const auto rendered =
-          mermaid::editor::MermaidRenderCache::renderMermaidSourceToSvg(
-              node.literal(), mermaidInstanceIndex++, opts.documentUrl);
+      const auto rendered = mermaid::editor::MermaidRenderCache::renderMermaidSourceToSvg(
+          node.literal(), mermaidInstanceIndex++, opts.documentUrl);
       if (!rendered.svg.isEmpty()) {
         out += QString::fromUtf8(rendered.svg);
         out += QLatin1Char('\n');
-        out += QStringLiteral("<details class=\"mfn-mermaid-source\"><summary>") + escapeText(QStringLiteral("source")) +
+        out += QStringLiteral("<details class=\"mfn-mermaid-source\"><summary>") +
+               escapeText(QStringLiteral("source")) +
                QStringLiteral("</summary><pre><code class=\"language-mermaid\">") + escapeText(node.literal()) +
                QStringLiteral("</code></pre></details>\n");
         return;
@@ -282,9 +343,9 @@ struct Serializer {
   }
 
   void emitMathBlock(const MarkdownNode& node) {
-    const QString tex = node.literal();  // inner tex, $$ delimiters already stripped
-    out += QStringLiteral("<div class=\"mfn-math-block\" data-tex=\"") + escapeAttr(tex) +
-           QStringLiteral("\">") + escapeText(tex) + QStringLiteral("</div>\n");
+    const QString tex = node.literal(); // inner tex, $$ delimiters already stripped
+    out += QStringLiteral("<div class=\"mfn-math-block\" data-tex=\"") + escapeAttr(tex) + QStringLiteral("\">") +
+           escapeText(tex) + QStringLiteral("</div>\n");
   }
 
   void emitBlockQuote(const MarkdownNode& node) {
@@ -297,8 +358,7 @@ struct Serializer {
     }
     out += QStringLiteral("<blockquote class=\"markdown-alert markdown-alert-") + alertKindClass(kind) +
            QStringLiteral("\">\n");
-    out += QStringLiteral("<p class=\"markdown-alert-title\">") + alertKindTitle(kind) +
-           QStringLiteral("</p>\n");
+    out += QStringLiteral("<p class=\"markdown-alert-title\">") + alertKindTitle(kind) + QStringLiteral("</p>\n");
     bool markerStripped = false;
     for (const auto& child : node.children()) {
       if (!markerStripped && child->type() == BlockType::Paragraph) {
@@ -333,9 +393,8 @@ struct Serializer {
   void emitListItem(const MarkdownNode& item, bool tight) {
     out += QStringLiteral("<li>");
     if (item.isTaskItem()) {
-      out += item.taskChecked()
-                 ? QStringLiteral("<input type=\"checkbox\" checked=\"\" disabled=\"\" /> ")
-                 : QStringLiteral("<input type=\"checkbox\" disabled=\"\" /> ");
+      out += item.taskChecked() ? QStringLiteral("<input type=\"checkbox\" checked=\"\" disabled=\"\" /> ")
+                                : QStringLiteral("<input type=\"checkbox\" disabled=\"\" /> ");
     }
     for (const auto& child : item.children()) {
       // Tight list: paragraph content emitted without a <p> wrapper (cmark tight-list rule).
@@ -409,13 +468,19 @@ struct Serializer {
       bool hasHtml = false;
       while (j < inlines.size()) {
         const InlineType tj = inlines.at(j).type();
-        if (tj != InlineType::Text && tj != InlineType::HtmlInline) { break; }
-        if (tj == InlineType::HtmlInline) { hasHtml = true; }
+        if (tj != InlineType::Text && tj != InlineType::HtmlInline) {
+          break;
+        }
+        if (tj == InlineType::HtmlInline) {
+          hasHtml = true;
+        }
         ++j;
       }
       if (hasHtml) {
         QString raw;
-        for (int k = i; k < j; ++k) { raw += inlines.at(k).text(); }
+        for (int k = i; k < j; ++k) {
+          raw += inlines.at(k).text();
+        }
         out += sanitizer.sanitizedPreview(raw);
       } else {
         for (int k = i; k < j; ++k) {
@@ -428,30 +493,54 @@ struct Serializer {
 
   void emitInline(const InlineNode& node) {
     switch (node.type()) {
-      case InlineType::Text:
-        out += escapeText(opts.renderEmoji ? decodeEmoji(node.text()) : node.text());
-        break;
-      case InlineType::SoftBreak:
-        out += opts.breakOnSingleNewline ? QStringLiteral("<br />\n") : QStringLiteral("\n");
-        break;
-      case InlineType::LineBreak:
-        out += QStringLiteral("<br />\n");
-        break;
-      case InlineType::Emphasis: wrapInline(QLatin1String("em"), node); break;
-      case InlineType::Strong: wrapInline(QLatin1String("strong"), node); break;
-      case InlineType::Strikethrough: wrapInline(QLatin1String("del"), node); break;
-      case InlineType::Highlight: wrapInline(QLatin1String("mark"), node); break;
-      case InlineType::Subscript: wrapInline(QLatin1String("sub"), node); break;
-      case InlineType::Superscript: wrapInline(QLatin1String("sup"), node); break;
-      case InlineType::Code:
-        out += QStringLiteral("<code>") + escapeText(node.text()) + QStringLiteral("</code>");
-        break;
-      case InlineType::InlineMath: emitInlineMath(node); break;
-      case InlineType::Link: emitLink(node); break;
-      case InlineType::Image: emitImage(node); break;
-      case InlineType::HtmlInline: out += sanitizer.sanitizedPreview(node.text()); break;  // XSS-sanitized
-      case InlineType::FootnoteReference: emitFootnoteRef(node); break;
-      default: out += escapeText(node.text()); break;
+    case InlineType::Text:
+      out += escapeText(opts.renderEmoji ? decodeEmoji(node.text()) : node.text());
+      break;
+    case InlineType::SoftBreak:
+      out += opts.breakOnSingleNewline ? QStringLiteral("<br />\n") : QStringLiteral("\n");
+      break;
+    case InlineType::LineBreak:
+      out += QStringLiteral("<br />\n");
+      break;
+    case InlineType::Emphasis:
+      wrapInline(QLatin1String("em"), node);
+      break;
+    case InlineType::Strong:
+      wrapInline(QLatin1String("strong"), node);
+      break;
+    case InlineType::Strikethrough:
+      wrapInline(QLatin1String("del"), node);
+      break;
+    case InlineType::Highlight:
+      wrapInline(QLatin1String("mark"), node);
+      break;
+    case InlineType::Subscript:
+      wrapInline(QLatin1String("sub"), node);
+      break;
+    case InlineType::Superscript:
+      wrapInline(QLatin1String("sup"), node);
+      break;
+    case InlineType::Code:
+      out += QStringLiteral("<code>") + escapeText(node.text()) + QStringLiteral("</code>");
+      break;
+    case InlineType::InlineMath:
+      emitInlineMath(node);
+      break;
+    case InlineType::Link:
+      emitLink(node);
+      break;
+    case InlineType::Image:
+      emitImage(node);
+      break;
+    case InlineType::HtmlInline:
+      out += sanitizer.sanitizedPreview(node.text());
+      break; // XSS-sanitized
+    case InlineType::FootnoteReference:
+      emitFootnoteRef(node);
+      break;
+    default:
+      out += escapeText(node.text());
+      break;
     }
   }
 
@@ -464,14 +553,15 @@ struct Serializer {
   void emitInlineMath(const InlineNode& node) {
     const QString tex = node.text();
     out += QStringLiteral("<span class=\"mfn-inline-math\"");
-    if (node.marker() == QStringLiteral("$$")) out += QStringLiteral(" data-display=\"true\"");
-    out += QStringLiteral(" data-tex=\"") + escapeAttr(tex) +
-           QStringLiteral("\">") + escapeText(tex) + QStringLiteral("</span>");
+    if (node.marker() == QStringLiteral("$$"))
+      out += QStringLiteral(" data-display=\"true\"");
+    out += QStringLiteral(" data-tex=\"") + escapeAttr(tex) + QStringLiteral("\">") + escapeText(tex) +
+           QStringLiteral("</span>");
   }
 
   void emitLink(const InlineNode& node) {
     if (!isSafeUrl(node.href(), false)) {
-      emitInlines(node.children());  // unsafe scheme: emit label text only, no href
+      emitInlines(node.children()); // unsafe scheme: emit label text only, no href
       return;
     }
     out += QStringLiteral("<a href=\"") + escapeHref(node.href()) + QStringLiteral("\"");
@@ -484,8 +574,8 @@ struct Serializer {
   }
 
   void emitImage(const InlineNode& node) {
-    if (!isSafeUrl(node.href(), true)) {  // href holds the src (InlineNode::image factory)
-      return;  // cmark omits a dangerous image entirely
+    if (!isSafeUrl(node.href(), true)) { // href holds the src (InlineNode::image factory)
+      return;                            // cmark omits a dangerous image entirely
     }
     out += QStringLiteral("<img src=\"") + escapeHref(node.href()) + QStringLiteral("\" alt=\"") +
            escapeAttr(node.alt()) + QStringLiteral("\"");
@@ -497,15 +587,15 @@ struct Serializer {
 
   void emitFootnoteRef(const InlineNode& node) {
     // href is "#fn:<label>" (internal anchor, always safe); text is the ordinal.
-    out += QStringLiteral("<sup class=\"footnote-ref\"><a href=\"") + escapeHref(node.href()) +
-           QStringLiteral("\">") + escapeText(node.text()) + QStringLiteral("</a></sup>");
+    out += QStringLiteral("<sup class=\"footnote-ref\"><a href=\"") + escapeHref(node.href()) + QStringLiteral("\">") +
+           escapeText(node.text()) + QStringLiteral("</a></sup>");
   }
 };
 
-}  // namespace
+} // namespace
 
 QString MarkdownHtmlSerializer::serializeSource(QStringView markdown) {
-  ParseOptions options;  // defaults: all GFM extensions + front matter + alertBox ON
+  ParseOptions options; // defaults: all GFM extensions + front matter + alertBox ON
   QSettings s;
   options.enableHighlight = s.value(QStringLiteral("markdown/highlight"), false).toBool();
   options.enableSubscript = s.value(QStringLiteral("markdown/subscript"), false).toBool();
@@ -541,4 +631,4 @@ QString MarkdownHtmlSerializer::serializeTree(const MarkdownNode& root, const Ma
   return s.out;
 }
 
-}  // namespace muffin
+} // namespace muffin

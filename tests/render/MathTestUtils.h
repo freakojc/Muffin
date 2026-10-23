@@ -58,7 +58,8 @@ inline QJsonArray flattenNativeMetrics(const QJsonObject& node, const QString& p
   if (node.contains(QStringLiteral("text"))) {
     metric.insert(QStringLiteral("text"), node.value(QStringLiteral("text")));
   }
-  for (const QString& key : {QStringLiteral("width"), QStringLiteral("height"), QStringLiteral("depth"), QStringLiteral("shift")}) {
+  for (const QString& key :
+       {QStringLiteral("width"), QStringLiteral("height"), QStringLiteral("depth"), QStringLiteral("shift")}) {
     if (jsonHasNumber(node, key)) {
       metric.insert(key, node.value(key));
     }
@@ -91,7 +92,8 @@ inline QMap<QString, QJsonObject> flatMetricsByPath(const QJsonArray& flat) {
   return result;
 }
 
-inline void dumpBuilderMetricDiffs(const QString& id, const QJsonObject& nativeRoot, const QJsonObject& golden, qreal em) {
+inline void dumpBuilderMetricDiffs(const QString& id, const QJsonObject& nativeRoot, const QJsonObject& golden,
+                                   qreal em) {
   QJsonObject goldenRoot = golden.value(QStringLiteral("root")).toObject();
   QJsonObject goldenHtml;
   if (findRenderTreeClass(goldenRoot, QStringLiteral("katex-html"), goldenHtml)) {
@@ -118,7 +120,8 @@ inline void dumpBuilderMetricDiffs(const QString& id, const QJsonObject& nativeR
     ++compared;
     QStringList parts;
     qreal nodeWorst = 0.0;
-    for (const QString& key : {QStringLiteral("width"), QStringLiteral("height"), QStringLiteral("depth"), QStringLiteral("shift")}) {
+    for (const QString& key :
+         {QStringLiteral("width"), QStringLiteral("height"), QStringLiteral("depth"), QStringLiteral("shift")}) {
       if (!jsonHasNumber(goldenNode, key) || !jsonHasNumber(nativeNode, key)) {
         continue;
       }
@@ -137,11 +140,9 @@ inline void dumpBuilderMetricDiffs(const QString& id, const QJsonObject& nativeR
     if (nodeWorst > worstDiff && !parts.isEmpty()) {
       worstDiff = nodeWorst;
       worstLine = QStringLiteral("%1 path=%2 nativeKind=%3 katexKind=%4 %5")
-                      .arg(id,
-                           path.isEmpty() ? QStringLiteral("<root>") : path,
+                      .arg(id, path.isEmpty() ? QStringLiteral("<root>") : path,
                            nativeNode.value(QStringLiteral("kind")).toString(),
-                           goldenNode.value(QStringLiteral("kind")).toString(),
-                           parts.join(QStringLiteral("; ")));
+                           goldenNode.value(QStringLiteral("kind")).toString(), parts.join(QStringLiteral("; ")));
     }
   }
   if (!worstLine.isEmpty()) {
@@ -217,17 +218,14 @@ inline QRectF nativeGlyphInkRect(const muffin::math::MathRenderNode& node, QPoin
     return {};
   }
 
-  return QRectF((origin.x() + ink.x() - padding) / em,
-                (origin.y() - node.height + ink.y() - padding) / em,
-                ink.width() / em,
-                ink.height() / em);
+  return QRectF((origin.x() + ink.x() - padding) / em, (origin.y() - node.height + ink.y() - padding) / em,
+                ink.width() / em, ink.height() / em);
 }
 
-inline void collectNativeGlyphItems(const muffin::math::MathRenderNode& node,
-                                    QPointF origin,
-                                    qreal em,
+inline void collectNativeGlyphItems(const muffin::math::MathRenderNode& node, QPointF origin, qreal em,
                                     QVector<GlyphAuditItem>& out) {
-  const QRectF domRect(origin.x() / em, (origin.y() - node.height) / em, node.width / em, (node.height + node.depth) / em);
+  const QRectF domRect(origin.x() / em, (origin.y() - node.height) / em, node.width / em,
+                       (node.height + node.depth) / em);
   if (node.kind == muffin::math::MathRenderKind::Symbol || node.kind == muffin::math::MathRenderKind::Error) {
     GlyphAuditItem item;
     item.kind = QStringLiteral("glyph");
@@ -254,45 +252,55 @@ inline void collectNativeGlyphItems(const muffin::math::MathRenderNode& node,
   }
 
   switch (node.kind) {
-    case muffin::math::MathRenderKind::Span: {
-      qreal x = origin.x();
-      for (const auto& child : node.children) {
-        collectNativeGlyphItems(*child, QPointF(x + child->xOffset, origin.y() + child->yOffset + child->shift), em, out);
-        x += child->width;
-      }
-      return;
+  case muffin::math::MathRenderKind::Span: {
+    qreal x = origin.x();
+    for (const auto& child : node.children) {
+      collectNativeGlyphItems(*child, QPointF(x + child->xOffset, origin.y() + child->yOffset + child->shift), em, out);
+      x += child->width;
     }
-    case muffin::math::MathRenderKind::SupSub: {
-      if (!node.children.empty()) {
-        const auto& base = node.children.at(0);
-        collectNativeGlyphItems(*base, QPointF(origin.x() + base->xOffset, origin.y() + base->yOffset), em, out);
-      }
-      for (size_t i = 1; i < node.children.size(); ++i) {
-        const auto& child = node.children.at(i);
-        collectNativeGlyphItems(*child, QPointF(origin.x() + child->xOffset, origin.y() + child->yOffset + child->shift), em, out);
-      }
-      return;
+    return;
+  }
+  case muffin::math::MathRenderKind::SupSub: {
+    if (!node.children.empty()) {
+      const auto& base = node.children.at(0);
+      collectNativeGlyphItems(*base, QPointF(origin.x() + base->xOffset, origin.y() + base->yOffset), em, out);
     }
-    case muffin::math::MathRenderKind::Fraction: {
-      if (node.children.size() == 2) {
-        const auto& numerator = node.children.at(0);
-        const auto& denominator = node.children.at(1);
-        collectNativeGlyphItems(*numerator, QPointF(origin.x() + (node.width - numerator->width) / 2.0, origin.y() + numerator->shift), em, out);
-        collectNativeGlyphItems(*denominator, QPointF(origin.x() + (node.width - denominator->width) / 2.0, origin.y() + denominator->shift), em, out);
-      } else if (node.children.size() >= 3) {
-        const auto& numerator = node.children.at(0);
-        const auto& denominator = node.children.at(2);
-        collectNativeGlyphItems(*numerator, QPointF(origin.x() + (node.width - numerator->width) / 2.0, origin.y() + numerator->shift), em, out);
-        collectNativeGlyphItems(*denominator, QPointF(origin.x() + (node.width - denominator->width) / 2.0, origin.y() + denominator->shift), em, out);
-      }
-      return;
+    for (size_t i = 1; i < node.children.size(); ++i) {
+      const auto& child = node.children.at(i);
+      collectNativeGlyphItems(*child, QPointF(origin.x() + child->xOffset, origin.y() + child->yOffset + child->shift),
+                              em, out);
     }
-    default:
-      break;
+    return;
+  }
+  case muffin::math::MathRenderKind::Fraction: {
+    if (node.children.size() == 2) {
+      const auto& numerator = node.children.at(0);
+      const auto& denominator = node.children.at(1);
+      collectNativeGlyphItems(
+          *numerator, QPointF(origin.x() + (node.width - numerator->width) / 2.0, origin.y() + numerator->shift), em,
+          out);
+      collectNativeGlyphItems(
+          *denominator, QPointF(origin.x() + (node.width - denominator->width) / 2.0, origin.y() + denominator->shift),
+          em, out);
+    } else if (node.children.size() >= 3) {
+      const auto& numerator = node.children.at(0);
+      const auto& denominator = node.children.at(2);
+      collectNativeGlyphItems(
+          *numerator, QPointF(origin.x() + (node.width - numerator->width) / 2.0, origin.y() + numerator->shift), em,
+          out);
+      collectNativeGlyphItems(
+          *denominator, QPointF(origin.x() + (node.width - denominator->width) / 2.0, origin.y() + denominator->shift),
+          em, out);
+    }
+    return;
+  }
+  default:
+    break;
   }
 
   for (const auto& child : node.children) {
-    collectNativeGlyphItems(*child, QPointF(origin.x() + child->xOffset, origin.y() + child->yOffset + child->shift), em, out);
+    collectNativeGlyphItems(*child, QPointF(origin.x() + child->xOffset, origin.y() + child->yOffset + child->shift),
+                            em, out);
   }
 }
 
@@ -317,10 +325,8 @@ inline QVector<GlyphAuditItem> nativeVisibleGlyphItems(const muffin::math::MathR
 
 inline QRectF glyphJsonRect(const QJsonObject& item, const QString& key) {
   const QJsonObject rect = item.value(key).toObject();
-  return QRectF(rect.value(QStringLiteral("x")).toDouble(),
-                rect.value(QStringLiteral("y")).toDouble(),
-                rect.value(QStringLiteral("width")).toDouble(),
-                rect.value(QStringLiteral("height")).toDouble());
+  return QRectF(rect.value(QStringLiteral("x")).toDouble(), rect.value(QStringLiteral("y")).toDouble(),
+                rect.value(QStringLiteral("width")).toDouble(), rect.value(QStringLiteral("height")).toDouble());
 }
 
 inline QVector<QJsonObject> katexVisibleGlyphItems(const QJsonObject& golden) {
@@ -333,7 +339,9 @@ inline QVector<QJsonObject> katexVisibleGlyphItems(const QJsonObject& golden) {
     const QJsonObject item = value.toObject();
     const QString kind = item.value(QStringLiteral("kind")).toString();
     const QString text = item.value(QStringLiteral("text")).toString();
-    const QJsonObject rect = item.value(item.contains(QStringLiteral("domRect")) ? QStringLiteral("domRect") : QStringLiteral("rect")).toObject();
+    const QJsonObject rect =
+        item.value(item.contains(QStringLiteral("domRect")) ? QStringLiteral("domRect") : QStringLiteral("rect"))
+            .toObject();
     if (kind == QStringLiteral("glyph") && !text.isEmpty() && text != QString::fromUtf8("\xE2\x80\x8B") &&
         rect.value(QStringLiteral("width")).toDouble() > 0.0001) {
       visible.push_back(item);
@@ -342,12 +350,8 @@ inline QVector<QJsonObject> katexVisibleGlyphItems(const QJsonObject& golden) {
   return visible;
 }
 
-inline void compareKatexGlyphs(const QString& id,
-                               const muffin::math::MathRenderNode& root,
-                               const QJsonObject& golden,
-                               qreal em,
-                               qreal xTolerance,
-                               qreal widthTolerance) {
+inline void compareKatexGlyphs(const QString& id, const muffin::math::MathRenderNode& root, const QJsonObject& golden,
+                               qreal em, qreal xTolerance, qreal widthTolerance) {
   if (golden.value(QStringLiteral("error")).toBool()) {
     return;
   }
@@ -377,7 +381,9 @@ inline void compareKatexGlyphs(const QString& id,
                 .arg(i)
                 .arg(nativeGlyph.text, katexText));
 
-    const QRectF katexRect = glyphJsonRect(katexGlyph, katexGlyph.contains(QStringLiteral("domRect")) ? QStringLiteral("domRect") : QStringLiteral("rect"));
+    const QRectF katexRect =
+        glyphJsonRect(katexGlyph, katexGlyph.contains(QStringLiteral("domRect")) ? QStringLiteral("domRect")
+                                                                                 : QStringLiteral("rect"));
     requireCloseMetric(nativeGlyph.domRect.x(), katexRect.x(), xTolerance,
                        QStringLiteral("KaTeX glyph x for %1 #%2 '%3'").arg(id).arg(i).arg(nativeGlyph.text));
     if (nativeGlyph.text != QString(QChar(0xe020))) {
@@ -387,7 +393,8 @@ inline void compareKatexGlyphs(const QString& id,
   }
 }
 
-inline void dumpGlyphDiffs(const QString& id, const muffin::math::MathRenderNode& root, const QJsonObject& golden, qreal em) {
+inline void dumpGlyphDiffs(const QString& id, const muffin::math::MathRenderNode& root, const QJsonObject& golden,
+                           qreal em) {
   const QVector<GlyphAuditItem> nativeAll = nativeGlyphItems(root, em);
   QVector<GlyphAuditItem> nativeGlyphs;
   QVector<GlyphAuditItem> nativeSpaces;
@@ -445,7 +452,8 @@ inline void dumpGlyphDiffs(const QString& id, const muffin::math::MathRenderNode
     if (i < katexVisibleGlyphs.size()) {
       const QJsonObject item = katexVisibleGlyphs.at(i);
       katexText = item.value(QStringLiteral("text")).toString();
-      katexDomRect = glyphJsonRect(item, item.contains(QStringLiteral("domRect")) ? QStringLiteral("domRect") : QStringLiteral("rect"));
+      katexDomRect = glyphJsonRect(item, item.contains(QStringLiteral("domRect")) ? QStringLiteral("domRect")
+                                                                                  : QStringLiteral("rect"));
       const QJsonValue inkValue = item.value(QStringLiteral("inkRect"));
       if (inkValue.isObject()) {
         katexInkRect = glyphJsonRect(item, QStringLiteral("inkRect"));
@@ -453,7 +461,8 @@ inline void dumpGlyphDiffs(const QString& id, const muffin::math::MathRenderNode
       }
     }
     qInfo().noquote()
-        << QStringLiteral("#%1 '%2'/'%3' dom native x=%4 w=%5 adv=%6 glyphW=%7 italic=%8 | katex x=%9 w=%10 | dx=%11 dw=%12")
+        << QStringLiteral(
+               "#%1 '%2'/'%3' dom native x=%4 w=%5 adv=%6 glyphW=%7 italic=%8 | katex x=%9 w=%10 | dx=%11 dw=%12")
                .arg(i)
                .arg(nativeText, katexText)
                .arg(nativeDomRect.x(), 0, 'f', 4)
@@ -466,18 +475,18 @@ inline void dumpGlyphDiffs(const QString& id, const muffin::math::MathRenderNode
                .arg(nativeDomRect.x() - katexDomRect.x(), 0, 'f', 4)
                .arg(nativeGlyphWidth - katexDomRect.width(), 0, 'f', 4);
     if (nativeHasInk || katexHasInk) {
-      qInfo().noquote()
-          << QStringLiteral("   ink native x=%1 y=%2 w=%3 h=%4 | katex x=%5 y=%6 w=%7 h=%8 | dx=%9 dw=%10")
-                 .arg(nativeInkRect.x(), 0, 'f', 4)
-                 .arg(nativeInkRect.y(), 0, 'f', 4)
-                 .arg(nativeInkRect.width(), 0, 'f', 4)
-                 .arg(nativeInkRect.height(), 0, 'f', 4)
-                 .arg(katexInkRect.x(), 0, 'f', 4)
-                 .arg(katexInkRect.y(), 0, 'f', 4)
-                 .arg(katexInkRect.width(), 0, 'f', 4)
-                 .arg(katexInkRect.height(), 0, 'f', 4)
-                 .arg(nativeInkRect.x() - katexInkRect.x(), 0, 'f', 4)
-                 .arg(nativeInkRect.width() - katexInkRect.width(), 0, 'f', 4);
+      qInfo().noquote() << QStringLiteral(
+                               "   ink native x=%1 y=%2 w=%3 h=%4 | katex x=%5 y=%6 w=%7 h=%8 | dx=%9 dw=%10")
+                               .arg(nativeInkRect.x(), 0, 'f', 4)
+                               .arg(nativeInkRect.y(), 0, 'f', 4)
+                               .arg(nativeInkRect.width(), 0, 'f', 4)
+                               .arg(nativeInkRect.height(), 0, 'f', 4)
+                               .arg(katexInkRect.x(), 0, 'f', 4)
+                               .arg(katexInkRect.y(), 0, 'f', 4)
+                               .arg(katexInkRect.width(), 0, 'f', 4)
+                               .arg(katexInkRect.height(), 0, 'f', 4)
+                               .arg(nativeInkRect.x() - katexInkRect.x(), 0, 'f', 4)
+                               .arg(nativeInkRect.width() - katexInkRect.width(), 0, 'f', 4);
     }
   }
 
@@ -485,11 +494,10 @@ inline void dumpGlyphDiffs(const QString& id, const muffin::math::MathRenderNode
     qInfo().noquote() << QStringLiteral("Glyph glue for %1:").arg(id);
     for (int i = 0; i < nativeSpaces.size(); ++i) {
       const GlyphAuditItem& item = nativeSpaces.at(i);
-      qInfo().noquote()
-          << QStringLiteral("  native space #%1 x=%2 w=%3")
-                 .arg(i)
-                 .arg(item.domRect.x(), 0, 'f', 4)
-                 .arg(item.domRect.width(), 0, 'f', 4);
+      qInfo().noquote() << QStringLiteral("  native space #%1 x=%2 w=%3")
+                               .arg(i)
+                               .arg(item.domRect.x(), 0, 'f', 4)
+                               .arg(item.domRect.width(), 0, 'f', 4);
     }
   }
 }
@@ -511,10 +519,8 @@ inline QRect nativeInkBounds(const muffin::math::MathRenderNode& root) {
   return imageInkBounds(image, background);
 }
 
-inline BBoxAuditEntry makeBBoxAuditEntry(const QString& id,
-                                         const muffin::math::MathRenderNode& root,
-                                         const QJsonObject& golden,
-                                         qreal nativeEm) {
+inline BBoxAuditEntry makeBBoxAuditEntry(const QString& id, const muffin::math::MathRenderNode& root,
+                                         const QJsonObject& golden, qreal nativeEm) {
   const qreal katexRootFontPx = golden.value(QStringLiteral("rootFontPx")).toDouble(19.36);
   require(katexRootFontPx > 0.0, QStringLiteral("KaTeX bbox for %1 should include rootFontPx").arg(id));
   const QRectF katexBox = jsonRect(golden, QStringLiteral("bbox"));
@@ -537,11 +543,8 @@ inline BBoxAuditEntry makeBBoxAuditEntry(const QString& id,
   return entry;
 }
 
-inline void compareKatexBrowserBBox(const QString& id,
-                                    const muffin::math::MathRenderNode& root,
-                                    const QJsonObject& golden,
-                                    qreal nativeEm,
-                                    qreal widthTolerance,
+inline void compareKatexBrowserBBox(const QString& id, const muffin::math::MathRenderNode& root,
+                                    const QJsonObject& golden, qreal nativeEm, qreal widthTolerance,
                                     qreal heightTolerance) {
   if (golden.value(QStringLiteral("error")).toBool()) {
     return;
@@ -560,12 +563,8 @@ inline void compareKatexBrowserBBox(const QString& id,
           QStringLiteral("Native painted ink bbox for %1 should not be empty").arg(id));
 }
 
-inline void compareKatexInkBBox(const QString& id,
-                                const muffin::math::MathRenderNode& root,
-                                const QJsonObject& golden,
-                                qreal nativeEm,
-                                qreal widthTolerance,
-                                qreal heightTolerance) {
+inline void compareKatexInkBBox(const QString& id, const muffin::math::MathRenderNode& root, const QJsonObject& golden,
+                                qreal nativeEm, qreal widthTolerance, qreal heightTolerance) {
   if (golden.value(QStringLiteral("error")).toBool()) {
     return;
   }
@@ -582,14 +581,9 @@ inline void compareKatexInkBBox(const QString& id,
                      QStringLiteral("KaTeX ink bbox height for %1").arg(id));
 }
 
-inline void compareKatexBuilderRootMetrics(const QString& id,
-                                           const muffin::math::MathRenderNode& root,
-                                           const QJsonObject& nativeDump,
-                                           const QJsonObject& golden,
-                                           qreal em,
-                                           qreal heightTolerance,
-                                           qreal depthTolerance,
-                                           qreal shiftTolerance) {
+inline void compareKatexBuilderRootMetrics(const QString& id, const muffin::math::MathRenderNode& root,
+                                           const QJsonObject& nativeDump, const QJsonObject& golden, qreal em,
+                                           qreal heightTolerance, qreal depthTolerance, qreal shiftTolerance) {
   const QJsonObject goldenRoot = golden.value(QStringLiteral("root")).toObject();
   require(!goldenRoot.isEmpty(), QStringLiteral("KaTeX golden metrics for %1 should include root").arg(id));
   if (renderTreeContainsClass(goldenRoot, QStringLiteral("katex-error"))) {
@@ -604,9 +598,15 @@ inline void compareKatexBuilderRootMetrics(const QString& id,
   if (findRenderTreeText(nativeDump, QStringLiteral("katex-html"), katexHtml)) {
     nativeMetricsRoot = katexHtml;
   }
-  const qreal nativeHeight = jsonHasNumber(nativeMetricsRoot, QStringLiteral("height")) ? jsonNumber(nativeMetricsRoot, QStringLiteral("height")) : root.height;
-  const qreal nativeDepth = jsonHasNumber(nativeMetricsRoot, QStringLiteral("depth")) ? jsonNumber(nativeMetricsRoot, QStringLiteral("depth")) : root.depth;
-  const qreal nativeWidth = jsonHasNumber(nativeMetricsRoot, QStringLiteral("width")) ? jsonNumber(nativeMetricsRoot, QStringLiteral("width")) : root.width;
+  const qreal nativeHeight = jsonHasNumber(nativeMetricsRoot, QStringLiteral("height"))
+                                 ? jsonNumber(nativeMetricsRoot, QStringLiteral("height"))
+                                 : root.height;
+  const qreal nativeDepth = jsonHasNumber(nativeMetricsRoot, QStringLiteral("depth"))
+                                ? jsonNumber(nativeMetricsRoot, QStringLiteral("depth"))
+                                : root.depth;
+  const qreal nativeWidth = jsonHasNumber(nativeMetricsRoot, QStringLiteral("width"))
+                                ? jsonNumber(nativeMetricsRoot, QStringLiteral("width"))
+                                : root.width;
   const qreal actualHeight = nativeHeight / em;
   const qreal actualDepth = nativeDepth / em;
   if (jsonHasNumber(goldenRoot, QStringLiteral("height"))) {
@@ -626,7 +626,7 @@ inline void compareKatexBuilderRootMetrics(const QString& id,
   require(!goldenFlat.isEmpty(), QStringLiteral("KaTeX golden metrics for %1 should include flat nodes").arg(id));
   const qreal goldenMaxShift = maxAbsFlatMetric(goldenFlat, QStringLiteral("shift"));
   if (goldenMaxShift > 0.0) {
-    requireCloseMetric(maxAbsJsonMetric(nativeMetricsRoot, QStringLiteral("shift")) / em, goldenMaxShift, shiftTolerance,
-                       QStringLiteral("KaTeX builder max shift for %1").arg(id));
+    requireCloseMetric(maxAbsJsonMetric(nativeMetricsRoot, QStringLiteral("shift")) / em, goldenMaxShift,
+                       shiftTolerance, QStringLiteral("KaTeX builder max shift for %1").arg(id));
   }
 }

@@ -67,7 +67,8 @@ void testLineStartOffsetCache() {
   LineStartOffsetCache singleLine{QStringView(single)};
   require(singleLine.lineCount() == 1, QStringLiteral("Single line count mismatch"));
   require(singleLine.offsetForLineColumn(1, 2) == 1, QStringLiteral("Single line column offset mismatch"));
-  require(singleLine.offsetForLineColumn(1, 99) == single.size(), QStringLiteral("Single line column should clamp to line end"));
+  require(singleLine.offsetForLineColumn(1, 99) == single.size(),
+          QStringLiteral("Single line column should clamp to line end"));
   require(singleLine.lineEndOffset(1) == single.size(), QStringLiteral("Single line end mismatch"));
 
   const QString multiple = QStringLiteral("ab\ncd\n");
@@ -75,19 +76,26 @@ void testLineStartOffsetCache() {
   require(multipleLines.lineCount() == 3, QStringLiteral("Trailing newline should create final empty line"));
   require(multipleLines.offsetForLineColumn(2, 1) == 3, QStringLiteral("Second line start mismatch"));
   require(multipleLines.lineEndOffset(2) == 5, QStringLiteral("Second line end mismatch"));
-  require(multipleLines.offsetForLineColumn(3, 1) == multiple.size(), QStringLiteral("Final empty line start mismatch"));
+  require(multipleLines.offsetForLineColumn(3, 1) == multiple.size(),
+          QStringLiteral("Final empty line start mismatch"));
   require(multipleLines.lineForOffset(4) == 2, QStringLiteral("Offset to line lookup mismatch"));
 
   const QString unicode = QString::fromUtf8("a\U0001F600中\nz");
   LineStartOffsetCache unicodeLines{QStringView(unicode)};
   require(unicodeLines.offsetForLineColumn(1, 2) == 1, QStringLiteral("Unicode BMP prefix offset mismatch"));
   require(unicodeLines.offsetForLineColumn(1, 3) == 2, QStringLiteral("Emoji UTF-16 offset mismatch"));
-  require(unicodeLines.lineEndOffset(1) == unicode.indexOf(QLatin1Char('\n')), QStringLiteral("Unicode line end mismatch"));
-  require(unicodeLines.offsetForLineColumn(2, 1) == unicode.indexOf(QLatin1Char('\n')) + 1, QStringLiteral("Unicode second line start mismatch"));
-  require(unicodeLines.offsetForLineByteColumn(QStringView(unicode), 1, 2) == 1, QStringLiteral("Unicode byte column ASCII offset mismatch"));
-  require(unicodeLines.offsetForLineByteColumn(QStringView(unicode), 1, 3) == 1, QStringLiteral("Unicode byte column inside emoji should snap to emoji start"));
-  require(unicodeLines.offsetForLineByteColumn(QStringView(unicode), 1, 6) == 3, QStringLiteral("Unicode byte column CJK start mismatch"));
-  require(unicodeLines.offsetForLineByteColumn(QStringView(unicode), 1, 9) == unicode.indexOf(QLatin1Char('\n')), QStringLiteral("Unicode byte column line end mismatch"));
+  require(unicodeLines.lineEndOffset(1) == unicode.indexOf(QLatin1Char('\n')),
+          QStringLiteral("Unicode line end mismatch"));
+  require(unicodeLines.offsetForLineColumn(2, 1) == unicode.indexOf(QLatin1Char('\n')) + 1,
+          QStringLiteral("Unicode second line start mismatch"));
+  require(unicodeLines.offsetForLineByteColumn(QStringView(unicode), 1, 2) == 1,
+          QStringLiteral("Unicode byte column ASCII offset mismatch"));
+  require(unicodeLines.offsetForLineByteColumn(QStringView(unicode), 1, 3) == 1,
+          QStringLiteral("Unicode byte column inside emoji should snap to emoji start"));
+  require(unicodeLines.offsetForLineByteColumn(QStringView(unicode), 1, 6) == 3,
+          QStringLiteral("Unicode byte column CJK start mismatch"));
+  require(unicodeLines.offsetForLineByteColumn(QStringView(unicode), 1, 9) == unicode.indexOf(QLatin1Char('\n')),
+          QStringLiteral("Unicode byte column line end mismatch"));
 }
 
 // Differential fuzz: applyEdit must produce a lineStarts_ vector byte-identical to a from-scratch
@@ -154,15 +162,18 @@ void testInlineSourceRangesUseUtf8Columns() {
   require(parsed.root->children().size() == 1, QStringLiteral("Unexpected inline source range block count"));
 
   const MarkdownNode& paragraph = childAt(*parsed.root, 0);
-  require(paragraph.type() == BlockType::Paragraph, QStringLiteral("Expected paragraph for inline source range sample"));
+  require(paragraph.type() == BlockType::Paragraph,
+          QStringLiteral("Expected paragraph for inline source range sample"));
   require(paragraph.inlines().size() >= 2, QStringLiteral("Expected styled inline source range sample"));
   const InlineNode& strong = paragraph.inlines().at(1);
   require(strong.type() == InlineType::Strong, QStringLiteral("Expected strong inline in source range sample"));
 
   const qsizetype expectedStart = markdown.indexOf(QStringLiteral("**"));
   const qsizetype expectedEnd = expectedStart + QStringLiteral("**中**").size();
-  require(strong.sourceStart() == expectedStart, QStringLiteral("Strong inline source start should use QString offset"));
-  require(strong.sourceEnd() == expectedEnd, QStringLiteral("Strong inline source end should be half-open QString offset"));
+  require(strong.sourceStart() == expectedStart,
+          QStringLiteral("Strong inline source start should use QString offset"));
+  require(strong.sourceEnd() == expectedEnd,
+          QStringLiteral("Strong inline source end should be half-open QString offset"));
 }
 
 void testFinalParagraphSourceRangeWithoutTrailingNewline() {
@@ -176,8 +187,10 @@ void testFinalParagraphSourceRangeWithoutTrailingNewline() {
 
   const MarkdownNode& paragraph = childAt(*parsed.root, 1);
   require(paragraph.type() == BlockType::Paragraph, QStringLiteral("Expected final paragraph"));
-  require(paragraph.sourceRange().byteEnd == markdown.size(), QStringLiteral("Final paragraph source range should end at document size"));
-  require(sourceTextForNode(markdown, paragraph) == QStringLiteral("Last paragraph"), QStringLiteral("Final paragraph source text mismatch"));
+  require(paragraph.sourceRange().byteEnd == markdown.size(),
+          QStringLiteral("Final paragraph source range should end at document size"));
+  require(sourceTextForNode(markdown, paragraph) == QStringLiteral("Last paragraph"),
+          QStringLiteral("Final paragraph source text mismatch"));
 }
 
 void testEmptyDocumentHasEditableParagraph() {
@@ -198,12 +211,11 @@ void testEmptyDocumentHasEditableParagraph() {
 void testBasicParseAndSerialize() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "# Title\n\n"
-      "Hello **bold** and ~~gone~~.\n\n"
-      "| A | B |\n"
-      "| :- | -: |\n"
-      "| 1 | 2 |\n");
+  const QString markdown = QStringLiteral("# Title\n\n"
+                                          "Hello **bold** and ~~gone~~.\n\n"
+                                          "| A | B |\n"
+                                          "| :- | -: |\n"
+                                          "| 1 | 2 |\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root"));
@@ -240,8 +252,7 @@ void testBasicParseAndSerialize() {
   require(serialized.contains(QStringLiteral("# Title")), QStringLiteral("Serialized heading missing"));
   require(serialized.contains(QStringLiteral("**bold**")), QStringLiteral("Serialized strong missing"));
   require(serialized.contains(QStringLiteral("~~gone~~")), QStringLiteral("Serialized strikethrough missing"));
-  require(serialized.contains(QStringLiteral("| :--- | ---: |")),
-          QStringLiteral("Serialized table delimiter missing"));
+  require(serialized.contains(QStringLiteral("| :--- | ---: |")), QStringLiteral("Serialized table delimiter missing"));
 }
 
 void testSetextHeadingParseAndSerialize() {
@@ -287,10 +298,9 @@ void testSetextHeadingParseAndSerialize() {
 void testTableCellSourceRanges() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "| Name | Value | Note |\n"
-      "| --- | --- | --- |\n"
-      "| C++20 | a\\|b | [x](u) |\n");
+  const QString markdown = QStringLiteral("| Name | Value | Note |\n"
+                                          "| --- | --- | --- |\n"
+                                          "| C++20 | a\\|b | [x](u) |\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for table source range sample"));
@@ -302,11 +312,16 @@ void testTableCellSourceRanges() {
 
   const MarkdownNode& headerRow = childAt(table, 0);
   const MarkdownNode& bodyRow = childAt(table, 1);
-  require(sourceTextForNode(markdown, childAt(headerRow, 0)) == QStringLiteral("Name"), QStringLiteral("Header cell source range includes table syntax"));
-  require(sourceTextForNode(markdown, childAt(headerRow, 1)) == QStringLiteral("Value"), QStringLiteral("Second header cell source range mismatch"));
-  require(sourceTextForNode(markdown, childAt(bodyRow, 0)) == QStringLiteral("C++20"), QStringLiteral("Body cell source range mismatch"));
-  require(sourceTextForNode(markdown, childAt(bodyRow, 1)) == QStringLiteral("a\\|b"), QStringLiteral("Escaped pipe cell source range mismatch"));
-  require(sourceTextForNode(markdown, childAt(bodyRow, 2)) == QStringLiteral("[x](u)"), QStringLiteral("Inline markdown cell source range mismatch"));
+  require(sourceTextForNode(markdown, childAt(headerRow, 0)) == QStringLiteral("Name"),
+          QStringLiteral("Header cell source range includes table syntax"));
+  require(sourceTextForNode(markdown, childAt(headerRow, 1)) == QStringLiteral("Value"),
+          QStringLiteral("Second header cell source range mismatch"));
+  require(sourceTextForNode(markdown, childAt(bodyRow, 0)) == QStringLiteral("C++20"),
+          QStringLiteral("Body cell source range mismatch"));
+  require(sourceTextForNode(markdown, childAt(bodyRow, 1)) == QStringLiteral("a\\|b"),
+          QStringLiteral("Escaped pipe cell source range mismatch"));
+  require(sourceTextForNode(markdown, childAt(bodyRow, 2)) == QStringLiteral("[x](u)"),
+          QStringLiteral("Inline markdown cell source range mismatch"));
 }
 
 void testTaskListAndLooseListRoundTrip() {
@@ -331,8 +346,10 @@ void testTaskListAndLooseListRoundTrip() {
   MarkdownDocument tightDoc;
   tightDoc.setMarkdownText(tight, std::move(parsedTight.root));
   const QString tightSerialized = serializer.serializeDocument(tightDoc);
-  require(tightSerialized.contains(QStringLiteral("[x] done")), QStringLiteral("Checked checkbox dropped on serialization"));
-  require(tightSerialized.contains(QStringLiteral("[ ] todo")), QStringLiteral("Unchecked checkbox dropped on serialization"));
+  require(tightSerialized.contains(QStringLiteral("[x] done")),
+          QStringLiteral("Checked checkbox dropped on serialization"));
+  require(tightSerialized.contains(QStringLiteral("[ ] todo")),
+          QStringLiteral("Unchecked checkbox dropped on serialization"));
 
   ParseResult reparsedTight = parser.parseDocument(tightSerialized, options);
   require(reparsedTight.root != nullptr, QStringLiteral("Re-parsed task list root is null"));
@@ -377,12 +394,11 @@ void testTaskListAndLooseListRoundTrip() {
 void testProfiledParseMetrics() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "# Heading\n\n"
-      "Paragraph with **strong** and [link](https://example.com).\n\n"
-      "| A | B |\n"
-      "| - | - |\n"
-      "| 1 | 2 |\n");
+  const QString markdown = QStringLiteral("# Heading\n\n"
+                                          "Paragraph with **strong** and [link](https://example.com).\n\n"
+                                          "| A | B |\n"
+                                          "| - | - |\n"
+                                          "| 1 | 2 |\n");
 
   ParseResult regular = parser.parseDocument(markdown, options);
   require(regular.performanceMetrics.isEmpty(),
@@ -392,8 +408,7 @@ void testProfiledParseMetrics() {
   const ParsePerformanceMetrics& metrics = profiled.performanceMetrics;
   require(profiled.root != nullptr, QStringLiteral("Profiled parser returned a null root"));
   require(!metrics.isEmpty(), QStringLiteral("Profiled parser returned no phase metrics"));
-  require(metrics.totalElapsedNs >= 0,
-          QStringLiteral("Profiled parser returned a negative total duration"));
+  require(metrics.totalElapsedNs >= 0, QStringLiteral("Profiled parser returned a negative total duration"));
   require(metrics.workingSetBytesBefore >= 0 && metrics.workingSetBytesAfter >= 0,
           QStringLiteral("Profiled parser returned an invalid working-set sample"));
 
@@ -402,15 +417,11 @@ void testProfiledParseMetrics() {
   bool sawSourceOffsets = false;
   for (const ParsePhasePerformance& phase : metrics.phases) {
     require(!phase.name.isEmpty(), QStringLiteral("Profiled parser returned an unnamed phase"));
-    require(phase.elapsedNs >= 0,
-            QStringLiteral("Profiled parser returned a negative phase duration"));
-    require(phase.workingSetBytesAfter >= 0,
-            QStringLiteral("Profiled parser returned an invalid phase working set"));
+    require(phase.elapsedNs >= 0, QStringLiteral("Profiled parser returned a negative phase duration"));
+    require(phase.workingSetBytesAfter >= 0, QStringLiteral("Profiled parser returned an invalid phase working set"));
     sawCmark = sawCmark || phase.name == QStringLiteral("parse.cmark");
-    sawConvertBlock =
-        sawConvertBlock || phase.name == QStringLiteral("parse.convertBlock");
-    sawSourceOffsets =
-        sawSourceOffsets || phase.name == QStringLiteral("parse.annotateSourceOffsets");
+    sawConvertBlock = sawConvertBlock || phase.name == QStringLiteral("parse.convertBlock");
+    sawSourceOffsets = sawSourceOffsets || phase.name == QStringLiteral("parse.annotateSourceOffsets");
   }
   require(sawCmark && sawConvertBlock && sawSourceOffsets,
           QStringLiteral("Profiled parser omitted a required full-parse phase"));
@@ -419,7 +430,7 @@ void testProfiledParseMetrics() {
 void testParagraphBeforeTableRetainsSourceRanges() {
   const QString prefix = QStringLiteral("# Before\n\n");
   for (const QString& paragraph : {QStringLiteral("plain **text**"), QStringLiteral("first\nsecond **text**"),
-                                    QString::fromUtf8("中文 **段落**")}) {
+                                   QString::fromUtf8("中文 **段落**")}) {
     const QString markdown = prefix + paragraph + QStringLiteral("\n| A |\n|---|\n| B |\n\nend");
     CmarkGfmParser parser;
     ParseResult parsed = parser.parseDocument(markdown, {});
@@ -437,7 +448,7 @@ void testParagraphBeforeTableRetainsSourceRanges() {
             "table header cell must point to its own text");
     for (const auto& in : before.inlines()) {
       require(in.sourceStart() < 0 || (in.sourceStart() >= before.sourceRange().byteStart &&
-                                     in.sourceEnd() <= before.sourceRange().byteEnd),
+                                       in.sourceEnd() <= before.sourceRange().byteEnd),
               "split paragraph inline ranges must stay inside their paragraph");
     }
   }

@@ -51,7 +51,9 @@ int blackPixelCount(const QImage& image) {
   for (int y = 0; y < image.height(); ++y) {
     for (int x = 0; x < image.width(); ++x) {
       const QRgb p = image.pixel(x, y);
-      if (qRed(p) < 30 && qGreen(p) < 30 && qBlue(p) < 30) { ++n; }
+      if (qRed(p) < 30 && qGreen(p) < 30 && qBlue(p) < 30) {
+        ++n;
+      }
     }
   }
   return n;
@@ -61,16 +63,18 @@ int blackPixelCount(const QImage& image) {
 // header/stripe tokens stay invalid; the renderer must fall back to the page background,
 // not paint black.
 void testUndeclaredTableBackgroundIsNotBlack() {
-  const QString css = QStringLiteral(
-      "#write { color:#444444; background:#fefefe; }"
-      "table, table th, table td { border:1px solid #dddddd; }");  // no background declared
-  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("nobg"), QString()));
+  const QString css =
+      QStringLiteral("#write { color:#444444; background:#fefefe; }"
+                     "table, table th, table td { border:1px solid #dddddd; }"); // no background declared
+  const RenderTheme theme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("nobg"), QString()));
   require(!theme.tableHeaderBackgroundColor().isValid(),
           QStringLiteral("precondition: a theme with no th bg must leave the header token invalid"));
   require(!theme.tableAlternateBackgroundColor().isValid(),
           QStringLiteral("precondition: a theme with no tr:nth-child bg must leave the stripe token invalid"));
 
-  const QImage image = renderTableImage(theme, QStringLiteral("| H1 | H2 |\n| --- | --- |\n| a | b |\n| c | d |\n"), QColor("#fefefe"));
+  const QImage image =
+      renderTableImage(theme, QStringLiteral("| H1 | H2 |\n| --- | --- |\n| a | b |\n| c | d |\n"), QColor("#fefefe"));
   const int black = blackPixelCount(image);
   require(black == 0,
           QStringLiteral("table with no declared bg must have no solid-black cells (got %1 black px)").arg(black));
@@ -79,25 +83,29 @@ void testUndeclaredTableBackgroundIsNotBlack() {
 // A theme that DOES declare header + stripe backgrounds still paints them (regression
 // guard: the validity fallback must not suppress declared colours).
 void testDeclaredTableBackgroundPaints() {
-  const QString css = QStringLiteral(
-      "#write { color:#000000; }"
-      "table th { background:#1122aa; }"               // distinct blue header
-      "tbody tr:nth-child(even) { background:#22aa55; }");  // distinct green stripe
+  const QString css = QStringLiteral("#write { color:#000000; }"
+                                     "table th { background:#1122aa; }"                   // distinct blue header
+                                     "tbody tr:nth-child(even) { background:#22aa55; }"); // distinct green stripe
   const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("bg"), QString()));
-  const QImage image = renderTableImage(theme, QStringLiteral("| H1 | H2 |\n| --- | --- |\n| a | b |\n| c | d |\n"), Qt::white);
+  const QImage image =
+      renderTableImage(theme, QStringLiteral("| H1 | H2 |\n| --- | --- |\n| a | b |\n| c | d |\n"), Qt::white);
   bool hasBlue = false, hasGreen = false;
   for (int y = 0; y < image.height() && !(hasBlue && hasGreen); ++y) {
     for (int x = 0; x < image.width() && !(hasBlue && hasGreen); ++x) {
       const QRgb p = image.pixel(x, y);
-      if (qBlue(p) > 120 && qRed(p) < 80) { hasBlue = true; }
-      if (qGreen(p) > 120 && qRed(p) < 100 && qBlue(p) < 100) { hasGreen = true; }
+      if (qBlue(p) > 120 && qRed(p) < 80) {
+        hasBlue = true;
+      }
+      if (qGreen(p) > 120 && qRed(p) < 100 && qBlue(p) < 100) {
+        hasGreen = true;
+      }
     }
   }
   require(hasBlue, QStringLiteral("declared header background (#1122aa) should paint"));
   require(hasGreen, QStringLiteral("declared stripe background (#22aa55) should paint"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

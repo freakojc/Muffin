@@ -11,12 +11,12 @@ namespace muffin {
 // targets power the Delete Range submenu (delete the current word / format
 // span / line / block). Implementations select the target unit and delete it.
 enum class DeleteTarget {
-  Forward,     // delete selection, else one char forward
-  Backward,    // delete selection, else one char backward
-  Word,        // delete the word at the cursor
-  FormatSpan,  // delete the inline format span at the cursor
-  Line,        // clear the current line/block content, keep the container
-  Block,       // remove the whole current block
+  Forward,    // delete selection, else one char forward
+  Backward,   // delete selection, else one char backward
+  Word,       // delete the word at the cursor
+  FormatSpan, // delete the inline format span at the cursor
+  Line,       // clear the current line/block content, keep the container
+  Block,      // remove the whole current block
 };
 
 class EditorBackend {
@@ -33,18 +33,18 @@ public:
   void deleteForward() { deleteRange(DeleteTarget::Forward); }
   virtual void selectAll() = 0;
   virtual void selectLine() = 0;
-  virtual void selectBlock() = 0;        // whole current paragraph / block
-  virtual void selectWord() = 0;         // word at the caret
+  virtual void selectBlock() = 0; // whole current paragraph / block
+  virtual void selectWord() = 0;  // word at the caret
   virtual void selectFormatSpan() = 0;
   virtual void moveLineUp() = 0;
   virtual void moveLineDown() = 0;
 
   // Caret navigation for the Edit ▸ Select ▸ "Jump to" group.
-  virtual void moveDocumentStart() = 0;  // caret to start of document
-  virtual void moveDocumentEnd() = 0;    // caret to end of document
-  virtual void moveLineStart() = 0;      // caret to start of current line/block
-  virtual void moveLineEnd() = 0;        // caret to end of current line/block
-  virtual void selectNextOccurrence() = 0;  // select the next occurrence of the current selection/word
+  virtual void moveDocumentStart() = 0;    // caret to start of document
+  virtual void moveDocumentEnd() = 0;      // caret to end of document
+  virtual void moveLineStart() = 0;        // caret to start of current line/block
+  virtual void moveLineEnd() = 0;          // caret to end of current line/block
+  virtual void selectNextOccurrence() = 0; // select the next occurrence of the current selection/word
 
   // Undo/Redo
   virtual bool canUndo() const = 0;
@@ -89,4 +89,4 @@ public:
   virtual QString cursorStatusText() const = 0;
 };
 
-}  // namespace muffin
+} // namespace muffin

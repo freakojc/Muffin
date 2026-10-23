@@ -22,7 +22,7 @@ MarkdownNode* listItem(const DocumentSession& session, qsizetype index) {
   require(index >= 0 && index < static_cast<qsizetype>(list->children().size()), "list item index out of range");
   return list->children().at(static_cast<size_t>(index)).get();
 }
-}  // namespace
+} // namespace
 
 void testToggleUncheckedToChecked() {
   DocumentSession session;
@@ -85,7 +85,8 @@ void testToggleUppercaseXNormalizesToLowercase() {
   require(session.markdownText().toString() == QStringLiteral("- [ ] done"), "[X] should uncheck to [ ]");
   // Toggling back re-checks with a normalized lowercase x.
   require(paragraph.toggleTaskListItem(listItem(session, 0)->id()), "toggle back should succeed");
-  require(session.markdownText().toString() == QStringLiteral("- [x] done"), "re-check should normalize to lowercase [x]");
+  require(session.markdownText().toString() == QStringLiteral("- [x] done"),
+          "re-check should normalize to lowercase [x]");
 }
 
 void testToggleUndoRestores() {
@@ -104,11 +105,8 @@ void testToggleUndoRestores() {
   require(session.markdownText().toString() == QStringLiteral("- [x] task"), "should be checked after toggle");
 
   const EditTransaction undo = requireTextDeltaCommand(undoStack, "toggle task undo should be a TextDeltaCommand");
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   require(session.markdownText().toString() == original, "undo should restore the original marker");
 }
 
@@ -148,7 +146,8 @@ void testTogglePreservesCaret() {
   require(paragraph.toggleTaskListItem(listItem(session, 1)->id()), "toggling the second item should succeed");
   require(selection.cursorPosition().text.sourceOffset == caretBefore,
           "a 1-character marker swap must not shift the caret");
-  require(session.markdownText().toString() == QStringLiteral("- [ ] alpha\n- [ ] beta"), "second item should be unchecked");
+  require(session.markdownText().toString() == QStringLiteral("- [ ] alpha\n- [ ] beta"),
+          "second item should be unchecked");
 }
 
 int main(int argc, char** argv) {

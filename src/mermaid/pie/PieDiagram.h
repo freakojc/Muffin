@@ -62,7 +62,7 @@ struct PieData {
   QString title;
   QString accTitle;
   QString accDescr;
-  QVector<PieSection> sections;  // insertion order; first-write-wins dedup
+  QVector<PieSection> sections; // insertion order; first-write-wins dedup
   bool showData = false;
 };
 
@@ -90,4 +90,4 @@ double pieOriginalSum(const QVector<PieSection>& sections);
 // is >= 1% (value/origSum*100 >= 1). Zero when the original sum is 0.
 int pieDrawCount(const QVector<PieSection>& sections);
 
-}  // namespace muffin::mermaid::pie
+} // namespace muffin::mermaid::pie

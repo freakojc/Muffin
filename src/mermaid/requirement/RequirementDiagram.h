@@ -60,25 +60,25 @@ struct RequirementEnumDisplay {
 
 struct RequirementNode {
   QString name;
-  QString type;             // display type ("Functional Requirement", ...)
+  QString type; // display type ("Functional Requirement", ...)
   QString requirementId;
   QString text;
-  QString risk;             // "" / "Low" / "Medium" / "High"
-  QString verifyMethod;     // "" / "Analysis" / "Demonstration" / "Inspection" / "Test"
+  QString risk;         // "" / "Low" / "Medium" / "High"
+  QString verifyMethod; // "" / "Analysis" / "Demonstration" / "Inspection" / "Test"
   QStringList cssClasses = {QStringLiteral("default")};
   QStringList cssStyles;
 };
 
 struct ElementNode {
   QString name;
-  QString type;             // user-supplied element type (free text)
+  QString type; // user-supplied element type (free text)
   QString docRef;
   QStringList cssClasses = {QStringLiteral("default")};
   QStringList cssStyles;
 };
 
 struct Relationship {
-  QString type;             // "contains" / "copies" / "derives" / ...
+  QString type; // "contains" / "copies" / "derives" / ...
   QString src;
   QString dst;
 };
@@ -119,4 +119,4 @@ struct RequirementParseError : std::runtime_error {
 // keyword is not a recognized requirement type. Used by the parser.
 QString requirementTypeDisplay(const QString& keyword);
 
-}  // namespace muffin::mermaid::requirement
+} // namespace muffin::mermaid::requirement

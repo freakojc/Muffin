@@ -42,7 +42,9 @@ private:
   QStringView markdown_;
   std::shared_ptr<const QString> sharedSource_;
   qsizetype sourceBase_ = 0;
-  struct ByteCheckpoint { qsizetype column, offset; };
+  struct ByteCheckpoint {
+    qsizetype column, offset;
+  };
   // Parser-local scratch, never a mutable cache on the shared document index.
   // One checkpoint per 64 UTF-16 units bounds memory even for a huge line.
   mutable int cachedLine_ = -1;
@@ -51,4 +53,4 @@ private:
   mutable QVector<ByteCheckpoint> byteCheckpoints_;
 };
 
-}  // namespace muffin
+} // namespace muffin

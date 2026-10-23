@@ -11,8 +11,7 @@ enum class CynefinErrorKind { Lexer, Parser, Runtime };
 
 class CynefinParseError : public std::runtime_error {
 public:
-  CynefinParseError(CynefinErrorKind kind, int line, int column,
-                    QString token, const QString &message);
+  CynefinParseError(CynefinErrorKind kind, int line, int column, QString token, const QString& message);
 
   CynefinErrorKind kind;
   int line;
@@ -47,7 +46,7 @@ struct CynefinData {
 
 class CynefinDiagram {
 public:
-  static CynefinData parse(const QString &source);
+  static CynefinData parse(const QString& source);
 };
 
 } // namespace muffin::mermaid::cynefin

@@ -21,7 +21,8 @@ void BlockFormattingCache::beginPass(bool incremental, QSet<NodeId> dirty) {
     measurements_.clear();
     solutions_.clear();
   }
-  for (auto& entry : measurements_) entry->measurements->hits = entry->measurements->misses = 0;
+  for (auto& entry : measurements_)
+    entry->measurements->hits = entry->measurements->misses = 0;
 }
 
 std::optional<QByteArray> BlockFormattingCache::signature(NodeId id) const {
@@ -49,24 +50,30 @@ const QByteArray& BlockFormattingCache::themeSignature(const RenderTheme& theme)
     if (sheet) {
       sheetStream << quint64(sheet->rules().size());
       for (const auto& rule : sheet->rules()) {
-        sheetStream << rule.selectors << rule.mediaQueries << rule.supportQueries << rule.darkScope << quint64(rule.declarations.size());
-        for (const auto& declaration : rule.declarations) sheetStream << declaration.property << declaration.value << declaration.important;
+        sheetStream << rule.selectors << rule.mediaQueries << rule.supportQueries << rule.darkScope
+                    << quint64(rule.declarations.size());
+        for (const auto& declaration : rule.declarations)
+          sheetStream << declaration.property << declaration.value << declaration.important;
       }
       auto variables = sheet->variables().keys();
       variables.sort();
       sheetStream << quint64(variables.size());
-      for (const auto& variable : variables) sheetStream << variable << sheet->variables().value(variable);
+      for (const auto& variable : variables)
+        sheetStream << variable << sheet->variables().value(variable);
       sheetStream << quint64(sheet->fontFaces().size());
-      for (const auto& face : sheet->fontFaces()) sheetStream << face.family << face.srcPath << face.weight << face.style;
+      for (const auto& face : sheet->fontFaces())
+        sheetStream << face.family << face.srcPath << face.weight << face.style;
     }
     themeSignature_ = QCryptographicHash::hash(sheetData, QCryptographicHash::Sha256);
   }
   return themeSignature_;
 }
 
-std::shared_ptr<BlockFormattingCache::Measurement> BlockFormattingCache::measurement(NodeId id, const QByteArray& signature) {
+std::shared_ptr<BlockFormattingCache::Measurement> BlockFormattingCache::measurement(NodeId id,
+                                                                                     const QByteArray& signature) {
   auto& entry = measurements_[id];
-  if (!entry || signature.isEmpty() || entry->signature != signature || !LayoutResources::instance().matches(entry->resources, false)) {
+  if (!entry || signature.isEmpty() || entry->signature != signature ||
+      !LayoutResources::instance().matches(entry->resources, false)) {
     entry = std::make_shared<Measurement>();
     entry->signature = signature;
   }
@@ -95,8 +102,8 @@ QPair<quint64, quint64> BlockFormattingCache::finishPass() {
 }
 
 BlockFormattingCache::SolveResult BlockFormattingCache::solve(NodeId id, const ThemeElementStyle& style,
-                                                        const std::vector<CssFormattingItem>& items, qreal width, qreal height,
-                                                        const CssGridInheritance& inherited) {
+                                                              const std::vector<CssFormattingItem>& items, qreal width,
+                                                              qreal height, const CssGridInheritance& inherited) {
   QByteArray inputs;
   QDataStream stream(&inputs, QIODevice::WriteOnly);
   stream << style.fingerprint << themeSignature_ << cssMeasureKey({width, width, height, height, inherited});
@@ -105,9 +112,10 @@ BlockFormattingCache::SolveResult BlockFormattingCache::solve(NodeId id, const T
     stream << quint64(children.size());
     for (const auto& child : children) {
       byIdentity.insert(child.measurementIdentity, &child);
-      stream << child.measurementIdentity << child.style.fingerprint << child.intrinsic.minContent << child.intrinsic.maxContent
-             << bool(child.naturalSize);
-      if (child.naturalSize) stream << *child.naturalSize;
+      stream << child.measurementIdentity << child.style.fingerprint << child.intrinsic.minContent
+             << child.intrinsic.maxContent << bool(child.naturalSize);
+      if (child.naturalSize)
+        stream << *child.naturalSize;
       if (child.children)
         self(self, *child.children);
       else
@@ -142,9 +150,10 @@ BlockFormattingCache::SolveResult BlockFormattingCache::solve(NodeId id, const T
   entry->pass = pass_;
   auto& solutions = solutions_[id];
   std::erase_if(solutions, [&](const auto& old) { return old->inputs == inputs; });
-  if (solutions.size() >= 16) solutions.erase(solutions.begin());
+  if (solutions.size() >= 16)
+    solutions.erase(solutions.begin());
   solutions.push_back(std::move(entry));
   return {std::move(result), false};
 }
 
-}  // namespace muffin
+} // namespace muffin

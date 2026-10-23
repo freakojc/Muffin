@@ -13,8 +13,7 @@
 using namespace muffin;
 
 void requireEq(const QString& actual, const QString& expected, const QString& message) {
-  require(actual == expected,
-          QStringLiteral("%1\n   expected: %2\n   actual:   %3").arg(message, expected, actual));
+  require(actual == expected, QStringLiteral("%1\n   expected: %2\n   actual:   %3").arg(message, expected, actual));
 }
 
 // linkTargetForPath resolves relative to documentDir when the file lives inside it (a direct
@@ -22,13 +21,12 @@ void requireEq(const QString& actual, const QString& expected, const QString& me
 // (backslash on Windows), so expected values are built with QDir::toNativeSeparators to keep
 // the test cross-platform. Paths need not exist on disk — QDir/QFileInfo operate on strings.
 void testRelativeInsideDocumentDir() {
-  const QString base = QDir::tempPath();  // absolute, platform-appropriate root
+  const QString base = QDir::tempPath(); // absolute, platform-appropriate root
   const QString docDir = base + QStringLiteral("/proj");
   const QString file = docDir + QStringLiteral("/note.md");
 
   const QString target = FilePathOps::linkTargetForPath(file, docDir);
-  requireEq(target, QStringLiteral("note.md"),
-            QStringLiteral("sibling file in documentDir → bare filename"));
+  requireEq(target, QStringLiteral("note.md"), QStringLiteral("sibling file in documentDir → bare filename"));
 }
 
 void testRelativeInSubdirectory() {
@@ -44,7 +42,7 @@ void testRelativeInSubdirectory() {
 void testParentEscapeFallsBackToAbsolute() {
   const QString base = QDir::tempPath();
   const QString docDir = base + QStringLiteral("/proj");
-  const QString file = base + QStringLiteral("/note.md");  // in the parent of docDir
+  const QString file = base + QStringLiteral("/note.md"); // in the parent of docDir
 
   const QString target = FilePathOps::linkTargetForPath(file, docDir);
   requireEq(target, QDir::toNativeSeparators(QFileInfo(file).absoluteFilePath()),
@@ -91,16 +89,17 @@ void testMarkdownLinkAbsoluteFallback() {
   const QString link = FilePathOps::markdownLinkForFile(file, docDir);
   const QString expected =
       QStringLiteral("[up here.md](<%1>)").arg(QDir::fromNativeSeparators(QFileInfo(file).absoluteFilePath()));
-  requireEq(link, expected,
-            QStringLiteral("markdownLinkForFile absolute fallback wraps absolute target"));
+  requireEq(link, expected, QStringLiteral("markdownLinkForFile absolute fallback wraps absolute target"));
 }
 
 const InlineNode* findLink(const MarkdownNode& node) {
   for (const auto& in : node.inlines()) {
-    if (in.type() == InlineType::Link) return &in;
+    if (in.type() == InlineType::Link)
+      return &in;
   }
   for (const auto& child : node.children()) {
-    if (const InlineNode* link = findLink(*child)) return link;
+    if (const InlineNode* link = findLink(*child))
+      return link;
   }
   return nullptr;
 }
@@ -108,17 +107,19 @@ const InlineNode* findLink(const MarkdownNode& node) {
 void testGeneratedLinksParseAndResolve() {
   const QString docDir = QDir::tempPath() + QStringLiteral("/muffin-link-doc");
   for (const QString& name : {QStringLiteral("read me.pdf"), QStringLiteral("x](y)[z].pdf"),
-                             QStringLiteral("literal%20#&amp;.pdf"), QStringLiteral("nested/示例 (1).md")}) {
+                              QStringLiteral("literal%20#&amp;.pdf"), QStringLiteral("nested/示例 (1).md")}) {
     const QString path = QDir(docDir).filePath(name);
     DocumentSession session;
     session.setMarkdownText(FilePathOps::markdownLinkForFile(path, docDir), false);
     const InlineNode* link = findLink(session.document().root());
     require(link, QStringLiteral("Generated link must parse: %1").arg(name));
-    requireEq(resolvedUrlForDocumentResource(link->href(), QDir(docDir).filePath(QStringLiteral("doc.md"))).toLocalFile(),
-              QDir::fromNativeSeparators(QFileInfo(path).absoluteFilePath()),
-              QStringLiteral("Parsed destination must name the original file"));
+    requireEq(
+        resolvedUrlForDocumentResource(link->href(), QDir(docDir).filePath(QStringLiteral("doc.md"))).toLocalFile(),
+        QDir::fromNativeSeparators(QFileInfo(path).absoluteFilePath()),
+        QStringLiteral("Parsed destination must name the original file"));
     QString label;
-    for (const auto& child : link->children()) label += child.text();
+    for (const auto& child : link->children())
+      label += child.text();
     requireEq(label, QFileInfo(path).fileName(), QStringLiteral("Link label must preserve the literal filename"));
   }
 }

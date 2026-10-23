@@ -17,8 +17,7 @@ using namespace muffin::mermaid;
 namespace {
 
 // Pin this disclaimer so nobody mistakes the fixture for real-mermaid parity.
-const QString kOracle =
-    QStringLiteral("ErScene::toJsonObject (Muffin self-snapshot, not real-mermaid)");
+const QString kOracle = QStringLiteral("ErScene::toJsonObject (Muffin self-snapshot, not real-mermaid)");
 
 struct ErCase {
   const char* id;
@@ -35,33 +34,29 @@ struct ErCase {
 // and rename the test to ...OracleTest.
 const ErCase kCases[] = {
     {"two-entities-identifying", "erDiagram\nCUSTOMER ||--|| ORDER : places"},
-    {"cardinality-types",
-     "erDiagram\n"
-     "A ||--o{ B : one_to_many\n"
-     "A ||--o| C : one_to_zero_or_one\n"
-     "A }|--|{ D : one_or_more\n"
-     "A }o--o{ E : zero_or_more"},
-    {"entity-attributes-keys",
-     "erDiagram\n"
-     "CUSTOMER {\n"
-     "  string id PK \"primary key\"\n"
-     "  string email UK\n"
-     "  int account_id FK\n"
-     "  string name \"display name\"\n"
-     "}\n"
-     "CUSTOMER ||--o{ ORDER : places"},
-    {"multi-entity-roles",
-     "erDiagram\n"
-     "CUSTOMER ||--o{ ORDER : places\n"
-     "ORDER ||--|{ LINE_ITEM : contains\n"
-     "PRODUCT ||--o{ LINE_ITEM : \"ordered as\""},
+    {"cardinality-types", "erDiagram\n"
+                          "A ||--o{ B : one_to_many\n"
+                          "A ||--o| C : one_to_zero_or_one\n"
+                          "A }|--|{ D : one_or_more\n"
+                          "A }o--o{ E : zero_or_more"},
+    {"entity-attributes-keys", "erDiagram\n"
+                               "CUSTOMER {\n"
+                               "  string id PK \"primary key\"\n"
+                               "  string email UK\n"
+                               "  int account_id FK\n"
+                               "  string name \"display name\"\n"
+                               "}\n"
+                               "CUSTOMER ||--o{ ORDER : places"},
+    {"multi-entity-roles", "erDiagram\n"
+                           "CUSTOMER ||--o{ ORDER : places\n"
+                           "ORDER ||--|{ LINE_ITEM : contains\n"
+                           "PRODUCT ||--o{ LINE_ITEM : \"ordered as\""},
     {"non-identifying", "erDiagram\nCUSTOMER }o..o{ ORDER : has"},
-    {"single-entity",
-     "erDiagram\n"
-     "ACCOUNT {\n"
-     "  string id PK\n"
-     "  string name\n"
-     "}"},
+    {"single-entity", "erDiagram\n"
+                      "ACCOUNT {\n"
+                      "  string id PK\n"
+                      "  string name\n"
+                      "}"},
 };
 
 [[noreturn]] void fail(const QString& message) {
@@ -70,11 +65,11 @@ const ErCase kCases[] = {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
-QJsonObject renderEr(editor::MermaidRenderCache& cache, const QString& source,
-                     const QString& id) {
+QJsonObject renderEr(editor::MermaidRenderCache& cache, const QString& source, const QString& id) {
   const auto entry = cache.getSync(cache.makeKey(source), source);
   const auto* erScene = dynamic_cast<const er::ErScene*>(entry.scene.get());
   require(entry.status == editor::MermaidRenderStatus::Ready && erScene != nullptr,
@@ -100,11 +95,11 @@ int emitFixture(const QString& outPath) {
   QJsonObject upstream;
   upstream[QStringLiteral("package")] = QStringLiteral("mermaid");
   upstream[QStringLiteral("version")] = QStringLiteral("11.16.0");
-  upstream[QStringLiteral("notes")] = QStringLiteral(
-      "REGRESSION GUARD ONLY. Generated from Muffin's own er::ErScene::toJsonObject(); "
-      "NOT a real-mermaid reference. Real puppeteer/mermaid 11.16.0 parity deferred "
-      "until the G:/github/mermaid-cli checkout is restored "
-      "(docs/mermaid-architecture.md step 5).");
+  upstream[QStringLiteral("notes")] =
+      QStringLiteral("REGRESSION GUARD ONLY. Generated from Muffin's own er::ErScene::toJsonObject(); "
+                     "NOT a real-mermaid reference. Real puppeteer/mermaid 11.16.0 parity deferred "
+                     "until the G:/github/mermaid-cli checkout is restored "
+                     "(docs/mermaid-architecture.md step 5).");
   QJsonObject root;
   root[QStringLiteral("upstream")] = upstream;
   root[QStringLiteral("mermaidVersion")] = QStringLiteral("11.16.0");
@@ -118,7 +113,7 @@ int emitFixture(const QString& outPath) {
   return 0;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -127,15 +122,15 @@ int main(int argc, char** argv) {
 
   require(argc == 2, QStringLiteral("Expected ER scene regression fixture path"));
   const QString fixturePath = QString::fromLocal8Bit(argv[1]);
-  if (!qgetenv("MUFFIN_GENERATE_ER_FIXTURE").isEmpty()) return emitFixture(fixturePath);
+  if (!qgetenv("MUFFIN_GENERATE_ER_FIXTURE").isEmpty())
+    return emitFixture(fixturePath);
 
   QFile file(fixturePath);
   require(file.open(QIODevice::ReadOnly), file.errorString());
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
   require(root.value(QStringLiteral("mermaidVersion")).toString() == QLatin1String("11.16.0"),
           QStringLiteral("ER regression: mermaidVersion drifted"));
-  require(root.value(QStringLiteral("fontMode")).toString() ==
-              QLatin1String("bundled-noto-2.13b171"),
+  require(root.value(QStringLiteral("fontMode")).toString() == QLatin1String("bundled-noto-2.13b171"),
           QStringLiteral("ER regression: fontMode drifted"));
   require(root.value(QStringLiteral("oracle")).toString() == kOracle,
           QStringLiteral("ER regression: oracle disclaimer drifted"));
@@ -151,20 +146,19 @@ int main(int argc, char** argv) {
   for (const ErCase& c : kCases) {
     const QString id = QString::fromLatin1(c.id);
     const QString source = QString::fromUtf8(c.source);
-    require(fixtureById.contains(id),
-            id + QStringLiteral(": missing from fixture (regenerate with "
-                                "MUFFIN_GENERATE_ER_FIXTURE=1)"));
+    require(fixtureById.contains(id), id + QStringLiteral(": missing from fixture (regenerate with "
+                                                          "MUFFIN_GENERATE_ER_FIXTURE=1)"));
     const QJsonObject fixture = fixtureById.value(id);
     require(fixture.value(QStringLiteral("source")).toString() == source,
             id + QStringLiteral(": fixture source drifted"));
 
     const QJsonObject actual = renderEr(cache, source, id);
     const QJsonObject expected = fixture.value(QStringLiteral("expected")).toObject();
-    const QStringList errors = parity::compareJson(actual, expected, parity::kCoordinate, id,
-                                                    {},
-                                                    {QStringLiteral("path")});
+    const QStringList errors =
+        parity::compareJson(actual, expected, parity::kCoordinate, id, {}, {QStringLiteral("path")});
     if (!errors.isEmpty()) {
-      for (const QString& error : errors) std::fprintf(stderr, "%s\n", qPrintable(error));
+      for (const QString& error : errors)
+        std::fprintf(stderr, "%s\n", qPrintable(error));
       fail(id + QStringLiteral(": ER scene regression mismatch"));
     }
     totalEntities += actual.value(QStringLiteral("entities")).toArray().size();
@@ -173,11 +167,8 @@ int main(int argc, char** argv) {
       totalAttributes += entity.toObject().value(QStringLiteral("attributes")).toArray().size();
   }
 
-  require(totalEntities >= 8,
-          QStringLiteral("ER coverage regressed: %1 entities").arg(totalEntities));
-  require(totalRelationships >= 4,
-          QStringLiteral("ER coverage regressed: %1 relationships").arg(totalRelationships));
-  require(totalAttributes >= 5,
-          QStringLiteral("ER coverage regressed: %1 attributes").arg(totalAttributes));
+  require(totalEntities >= 8, QStringLiteral("ER coverage regressed: %1 entities").arg(totalEntities));
+  require(totalRelationships >= 4, QStringLiteral("ER coverage regressed: %1 relationships").arg(totalRelationships));
+  require(totalAttributes >= 5, QStringLiteral("ER coverage regressed: %1 attributes").arg(totalAttributes));
   return 0;
 }

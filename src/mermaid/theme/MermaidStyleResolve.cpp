@@ -26,20 +26,22 @@ struct StyleMap {
 // Split a "key:value" style string on the first ":" (mermaid's rule).
 QPair<QString, QString> splitStyle(const QString& style) {
   const int colon = style.indexOf(QLatin1Char(':'));
-  if (colon < 0) return {style.trimmed(), QString()};
+  if (colon < 0)
+    return {style.trimmed(), QString()};
   return {style.left(colon).trimmed(), style.mid(colon + 1).trimmed()};
 }
 
 // getCompiledStyles: for each class name, push that class's declarations.
-StyleMap compileClassMap(const QStringList& classNames,
-                         const QVector<ClassDef>& classDefs) {
+StyleMap compileClassMap(const QStringList& classNames, const QVector<ClassDef>& classDefs) {
   StyleMap map;
   for (const QString& name : classNames) {
     for (const ClassDef& def : classDefs) {
-      if (def.id != name) continue;
+      if (def.id != name)
+        continue;
       for (const QString& s : def.declarations) {
         const auto [k, v] = splitStyle(s);
-        if (!k.isEmpty()) map.insert(k, v);
+        if (!k.isEmpty())
+          map.insert(k, v);
       }
       break;
     }
@@ -61,15 +63,15 @@ StyleMap compileStyles(const QStringList& classes, const QStringList& inlineStyl
   StyleMap map = compileClassMap(names, classDefs);
   for (const QString& s : inlineStyles) {
     const auto [k, v] = splitStyle(s);
-    if (!k.isEmpty()) map.insert(k, v);
+    if (!k.isEmpty())
+      map.insert(k, v);
   }
   return map;
 }
 
-}  // namespace
+} // namespace
 
-QStringList compiledClassStyles(const QStringList& classNames,
-                                const QVector<ClassDef>& classDefs) {
+QStringList compiledClassStyles(const QStringList& classNames, const QVector<ClassDef>& classDefs) {
   const StyleMap map = compileClassMap(classNames, classDefs);
   QStringList out;
   out.reserve(map.entries.size());
@@ -80,19 +82,18 @@ QStringList compiledClassStyles(const QStringList& classNames,
 
 bool isLabelStyle(const QString& key) {
   static const QStringList keys = {
-      QStringLiteral("color"), QStringLiteral("font-size"), QStringLiteral("font-family"),
-      QStringLiteral("font-weight"), QStringLiteral("font-style"), QStringLiteral("text-decoration"),
-      QStringLiteral("text-align"), QStringLiteral("text-transform"), QStringLiteral("line-height"),
-      QStringLiteral("letter-spacing"), QStringLiteral("word-spacing"), QStringLiteral("text-shadow"),
-      QStringLiteral("text-overflow"), QStringLiteral("white-space"), QStringLiteral("word-wrap"),
-      QStringLiteral("word-break"), QStringLiteral("overflow-wrap"), QStringLiteral("hyphens"),
+      QStringLiteral("color"),          QStringLiteral("font-size"),      QStringLiteral("font-family"),
+      QStringLiteral("font-weight"),    QStringLiteral("font-style"),     QStringLiteral("text-decoration"),
+      QStringLiteral("text-align"),     QStringLiteral("text-transform"), QStringLiteral("line-height"),
+      QStringLiteral("letter-spacing"), QStringLiteral("word-spacing"),   QStringLiteral("text-shadow"),
+      QStringLiteral("text-overflow"),  QStringLiteral("white-space"),    QStringLiteral("word-wrap"),
+      QStringLiteral("word-break"),     QStringLiteral("overflow-wrap"),  QStringLiteral("hyphens"),
   };
   return keys.contains(key);
 }
 
 ResolvedNodeStyle resolveNodeStyle(const QStringList& classes, const QStringList& inlineStyles,
-                                   const QVector<ClassDef>& classDefs,
-                                   const ThemeDefaults& theme) {
+                                   const QVector<ClassDef>& classDefs, const ThemeDefaults& theme) {
   const StyleMap map = compileStyles(classes, inlineStyles, classDefs);
 
   // styles2String: split into labelStyles/nodeStyles, each `!important`, joined ';'.
@@ -114,24 +115,29 @@ ResolvedNodeStyle resolveNodeStyle(const QStringList& classes, const QStringList
     return it == map.index.constEnd() ? QString() : map.entries.at(it.value()).second;
   };
   r.fill = lookup(QStringLiteral("fill"));
-  if (r.fill.isEmpty()) r.fill = theme.mainBkg;
+  if (r.fill.isEmpty())
+    r.fill = theme.mainBkg;
   r.stroke = lookup(QStringLiteral("stroke"));
-  if (r.stroke.isEmpty()) r.stroke = theme.nodeBorder;
+  if (r.stroke.isEmpty())
+    r.stroke = theme.nodeBorder;
   r.strokeWidth = lookup(QStringLiteral("stroke-width"));
-  if (r.strokeWidth.isEmpty()) r.strokeWidth = QString::number(theme.strokeWidth) + QStringLiteral("px");
+  if (r.strokeWidth.isEmpty())
+    r.strokeWidth = QString::number(theme.strokeWidth) + QStringLiteral("px");
   r.color = lookup(QStringLiteral("color"));
-  if (r.color.isEmpty()) r.color = theme.nodeTextColor.isEmpty() ? theme.textColor : theme.nodeTextColor;
+  if (r.color.isEmpty())
+    r.color = theme.nodeTextColor.isEmpty() ? theme.textColor : theme.nodeTextColor;
   r.fontFamily = lookup(QStringLiteral("font-family"));
-  if (r.fontFamily.isEmpty()) r.fontFamily = theme.fontFamily;
+  if (r.fontFamily.isEmpty())
+    r.fontFamily = theme.fontFamily;
   r.fontSize = lookup(QStringLiteral("font-size"));
-  if (r.fontSize.isEmpty()) r.fontSize = theme.fontSize;
+  if (r.fontSize.isEmpty())
+    r.fontSize = theme.fontSize;
   r.fontWeight = lookup(QStringLiteral("font-weight"));
   return r;
 }
 
-ResolvedEdgeStyle resolveEdgeStyle(const QString& pattern, const QStringList& linkStyles,
-                                   bool animate, const QString& animation,
-                                   const ThemeDefaults& theme) {
+ResolvedEdgeStyle resolveEdgeStyle(const QString& pattern, const QStringList& linkStyles, bool animate,
+                                   const QString& animation, const ThemeDefaults& theme) {
   ResolvedEdgeStyle r;
   r.stroke = theme.lineColor;
   r.strokeWidth = QString::number(theme.strokeWidth) + QStringLiteral("px");
@@ -148,14 +154,19 @@ ResolvedEdgeStyle resolveEdgeStyle(const QString& pattern, const QStringList& li
   // linkStyle overrides (key:value, the auto "fill:none" already appended).
   for (const QString& s : linkStyles) {
     const auto [key, value] = splitStyle(s);
-    if (key == QStringLiteral("stroke")) r.stroke = value;
-    else if (key == QStringLiteral("stroke-width")) r.strokeWidth = value;
-    else if (key == QStringLiteral("stroke-dasharray")) r.strokeDasharray = value;
-    else if (key == QStringLiteral("fill")) r.fill = value;
+    if (key == QStringLiteral("stroke"))
+      r.stroke = value;
+    else if (key == QStringLiteral("stroke-width"))
+      r.strokeWidth = value;
+    else if (key == QStringLiteral("stroke-dasharray"))
+      r.strokeDasharray = value;
+    else if (key == QStringLiteral("fill"))
+      r.fill = value;
   }
   // Mermaid's edge-animation CSS applies this with !important (wins over all).
-  if (animate || !animation.isEmpty()) r.strokeDasharray = QStringLiteral("9,5");
+  if (animate || !animation.isEmpty())
+    r.strokeDasharray = QStringLiteral("9,5");
   return r;
 }
 
-}  // namespace muffin::mermaid::style
+} // namespace muffin::mermaid::style

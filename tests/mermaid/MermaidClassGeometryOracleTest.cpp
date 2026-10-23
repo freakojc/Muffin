@@ -45,9 +45,9 @@ using namespace muffin::mermaid;
 namespace {
 
 // Asserted (font-independent) tolerances.
-constexpr qreal kHeight = 1.5;   // class node height: compartment row-model parity
+constexpr qreal kHeight = 1.5; // class node height: compartment row-model parity
 // Reported (font-coupled) — printed, not failed.
-constexpr qreal kReport = 0.5;   // class node width: per-glyph advance (Qt vs Chrome)
+constexpr qreal kReport = 0.5; // class node width: per-glyph advance (Qt vs Chrome)
 
 [[noreturn]] void fail(const QString& message) {
   std::fprintf(stderr, "%s\n", qPrintable(message));
@@ -55,7 +55,8 @@ constexpr qreal kReport = 0.5;   // class node width: per-glyph advance (Qt vs C
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 // Normalize a marker field to a canonical token: Muffin's "none" and mermaid's
@@ -74,12 +75,13 @@ QString edgeTuple(const QJsonObject& edge) {
 
 QStringList sortedTuples(const QJsonArray& edges) {
   QStringList tuples;
-  for (const QJsonValue& e : edges) tuples << edgeTuple(e.toObject());
+  for (const QJsonValue& e : edges)
+    tuples << edgeTuple(e.toObject());
   std::sort(tuples.begin(), tuples.end());
   return tuples;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -92,8 +94,7 @@ int main(int argc, char** argv) {
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
   require(root.value(QStringLiteral("mermaidVersion")).toString() == QLatin1String("11.16.0"),
           QStringLiteral("Class geometry: mermaidVersion drifted"));
-  require(root.value(QStringLiteral("oracle")).toString().startsWith(
-              QLatin1String("classDiagram.render")),
+  require(root.value(QStringLiteral("oracle")).toString().startsWith(QLatin1String("classDiagram.render")),
           QStringLiteral("Class geometry: oracle contract drifted"));
 
   editor::MermaidRenderCache cache;
@@ -118,11 +119,11 @@ int main(int argc, char** argv) {
 
     // Counts (font-independent topology).
     if (actualNodes.size() != expectedNodes.size())
-      assertErrors << id + QStringLiteral(": node count %1 != mermaid %2")
-                          .arg(actualNodes.size()).arg(expectedNodes.size());
+      assertErrors
+          << id + QStringLiteral(": node count %1 != mermaid %2").arg(actualNodes.size()).arg(expectedNodes.size());
     if (actualEdges.size() != expectedEdges.size())
-      assertErrors << id + QStringLiteral(": edge count %1 != mermaid %2")
-                          .arg(actualEdges.size()).arg(expectedEdges.size());
+      assertErrors
+          << id + QStringLiteral(": edge count %1 != mermaid %2").arg(actualEdges.size()).arg(expectedEdges.size());
 
     // Edge-tuple multiset (font-independent arrow parity).
     const QStringList expectedTuples = sortedTuples(expectedEdges);
@@ -151,27 +152,28 @@ int main(int argc, char** argv) {
       const QJsonObject exp = expectedNodeById.value(nodeId).toObject();
       const QString prefix = id + QStringLiteral("/node/%1").arg(nodeId);
       // Height + divider count are font-independent (asserted).
-      assertErrors += parity::compareNumber(node.value(QStringLiteral("height")).toDouble(),
-                                            exp.value(QStringLiteral("height")).toDouble(),
-                                            heightTier, prefix + "/height");
+      assertErrors +=
+          parity::compareNumber(node.value(QStringLiteral("height")).toDouble(),
+                                exp.value(QStringLiteral("height")).toDouble(), heightTier, prefix + "/height");
       const int actualDiv = static_cast<int>(node.value(QStringLiteral("dividers")).toDouble());
       const int expectedDiv = static_cast<int>(exp.value(QStringLiteral("dividers")).toDouble());
       if (actualDiv != expectedDiv)
-        assertErrors << prefix + QStringLiteral("/dividers: muffin=%1 mermaid=%2")
-                            .arg(actualDiv).arg(expectedDiv);
+        assertErrors << prefix + QStringLiteral("/dividers: muffin=%1 mermaid=%2").arg(actualDiv).arg(expectedDiv);
       // Width is font-coupled (reported only).
-      reportNotes += parity::compareNumber(node.value(QStringLiteral("width")).toDouble(),
-                                           exp.value(QStringLiteral("width")).toDouble(),
-                                           reportTier, prefix + "/width");
+      reportNotes +=
+          parity::compareNumber(node.value(QStringLiteral("width")).toDouble(),
+                                exp.value(QStringLiteral("width")).toDouble(), reportTier, prefix + "/width");
     }
 
     if (!reportNotes.isEmpty()) {
       std::fprintf(stderr, "[Class geometry] %s: %llu font-coupled delta(s) (reported, not asserted):\n",
                    qPrintable(id), static_cast<unsigned long long>(reportNotes.size()));
-      for (const QString& note : reportNotes) std::fprintf(stderr, "  %s\n", qPrintable(note));
+      for (const QString& note : reportNotes)
+        std::fprintf(stderr, "  %s\n", qPrintable(note));
     }
     if (!assertErrors.isEmpty()) {
-      for (const QString& e : assertErrors) std::fprintf(stderr, "%s\n", qPrintable(e));
+      for (const QString& e : assertErrors)
+        std::fprintf(stderr, "%s\n", qPrintable(e));
       fail(id + QStringLiteral(": class geometry parity regression (topology/edge tuples/height/dividers)"));
     }
   }

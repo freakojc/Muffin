@@ -16,9 +16,15 @@ using muffin::mermaid::flowchart::nativeShapeCanonicalNames;
 using muffin::mermaid::flowchart::upstreamShortNames;
 
 namespace {
-[[noreturn]] void fail(const QString& message) { qCritical().noquote() << message; std::exit(1); }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
-}  // namespace
+[[noreturn]] void fail(const QString& message) {
+  qCritical().noquote() << message;
+  std::exit(1);
+}
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
+} // namespace
 
 int main() {
   const QStringList upstream = upstreamShortNames();
@@ -48,10 +54,13 @@ int main() {
   require(canonicalShape(QStringLiteral("round")) == QLatin1String("round"), QStringLiteral("legacy 'round'"));
   require(canonicalShape(QStringLiteral("rounded")) == QLatin1String("round"), QStringLiteral("shortName 'rounded'"));
   require(canonicalShape(QStringLiteral("event")) == QLatin1String("round"), QStringLiteral("alias 'event'"));
-  require(canonicalShape(QStringLiteral("dbl-circ")) == QLatin1String("double_circle"), QStringLiteral("shortName 'dbl-circ'"));
-  require(canonicalShape(QStringLiteral("double-circle")) == QLatin1String("double_circle"), QStringLiteral("alias 'double-circle'"));
+  require(canonicalShape(QStringLiteral("dbl-circ")) == QLatin1String("double_circle"),
+          QStringLiteral("shortName 'dbl-circ'"));
+  require(canonicalShape(QStringLiteral("double-circle")) == QLatin1String("double_circle"),
+          QStringLiteral("alias 'double-circle'"));
   require(canonicalShape(QStringLiteral("tri")) == QLatin1String("triangle"), QStringLiteral("shortName 'tri'"));
-  require(canonicalShape(QStringLiteral("unknown-shape")) == QLatin1String("rect"), QStringLiteral("unknown shape must fall back to rect"));
+  require(canonicalShape(QStringLiteral("unknown-shape")) == QLatin1String("rect"),
+          QStringLiteral("unknown shape must fall back to rect"));
 
   // 3. The native (ported) set must cover the 13 legacy shapes and be a subset
   //    of what the map can produce. Report the pending diff; it must empty by
@@ -60,11 +69,14 @@ int main() {
   QStringList pending;
   for (const QString& sn : upstream) {
     const QString canon = canonicalShape(sn);
-    if (!nativeSet.contains(canon)) pending << QStringLiteral("%1->%2").arg(sn, canon);
+    if (!nativeSet.contains(canon))
+      pending << QStringLiteral("%1->%2").arg(sn, canon);
   }
   const int ported = upstream.size() - pending.size();
   qInfo().noquote() << QStringLiteral("shape registry: %1/%2 upstream shapes ported (%3 pending)")
-                           .arg(ported).arg(upstream.size()).arg(pending.size());
+                           .arg(ported)
+                           .arg(upstream.size())
+                           .arg(pending.size());
 
   return 0;
 }

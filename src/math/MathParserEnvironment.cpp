@@ -21,7 +21,7 @@ QVector<std::shared_ptr<MathParseNode>> toSharedNodes(QVector<MathParseNode> nod
   return shared;
 }
 
-}  // namespace
+} // namespace
 
 MathParseTask<MathParseNode> MathParser::parseBeginEnvironment() {
   const QString name = (co_await parseRawGroupText(QStringLiteral("\\begin")));
@@ -30,12 +30,11 @@ MathParseTask<MathParseNode> MathParser::parseBeginEnvironment() {
       name == QStringLiteral("matrix*") || name == QStringLiteral("pmatrix*") || name == QStringLiteral("bmatrix*") ||
       name == QStringLiteral("Bmatrix*") || name == QStringLiteral("vmatrix*") || name == QStringLiteral("Vmatrix*") ||
       name == QStringLiteral("array") || name == QStringLiteral("darray") || name == QStringLiteral("smallmatrix") ||
-      name == QStringLiteral("subarray") ||
-      name == QStringLiteral("cases") || name == QStringLiteral("dcases") || name == QStringLiteral("rcases") ||
-      name == QStringLiteral("drcases") || name == QStringLiteral("aligned") || name == QStringLiteral("split") ||
-      name == QStringLiteral("align") || name == QStringLiteral("align*") || name == QStringLiteral("gathered") ||
-      name == QStringLiteral("gather") || name == QStringLiteral("gather*") || name == QStringLiteral("alignedat") ||
-      name == QStringLiteral("alignat") || name == QStringLiteral("alignat*") ||
+      name == QStringLiteral("subarray") || name == QStringLiteral("cases") || name == QStringLiteral("dcases") ||
+      name == QStringLiteral("rcases") || name == QStringLiteral("drcases") || name == QStringLiteral("aligned") ||
+      name == QStringLiteral("split") || name == QStringLiteral("align") || name == QStringLiteral("align*") ||
+      name == QStringLiteral("gathered") || name == QStringLiteral("gather") || name == QStringLiteral("gather*") ||
+      name == QStringLiteral("alignedat") || name == QStringLiteral("alignat") || name == QStringLiteral("alignat*") ||
       name == QStringLiteral("equation") || name == QStringLiteral("equation*")) {
     co_return (co_await parseArrayEnvironment(name));
   }
@@ -52,7 +51,8 @@ MathParseTask<MathParseNode> MathParser::parseArrayEnvironment(const QString& na
 
   configureArrayEnvironment(array, name);
 
-  if ((name == QStringLiteral("array") || name == QStringLiteral("darray")) && lexer_.peek().text == QStringLiteral("{")) {
+  if ((name == QStringLiteral("array") || name == QStringLiteral("darray")) &&
+      lexer_.peek().text == QStringLiteral("{")) {
     const QString preamble = (co_await parseRawGroupText(QStringLiteral("\\begin{array}")));
     parseArrayPreamble(array, preamble);
   } else if (name == QStringLiteral("subarray") && lexer_.peek().text == QStringLiteral("{")) {
@@ -106,7 +106,8 @@ MathParseTask<MathParseNode> MathParser::parseArrayEnvironment(const QString& na
       lexer_.consume();
       const QString endName = (co_await parseRawGroupText(QStringLiteral("\\end")));
       if (endName != name && settings_.throwOnError) {
-        throw MathParseError(QStringLiteral("Mismatch: \\begin{%1} ended by \\end{%2}").arg(name, endName), QStringLiteral("\\end"), lexer_.peek().position);
+        throw MathParseError(QStringLiteral("Mismatch: \\begin{%1} ended by \\end{%2}").arg(name, endName),
+                             QStringLiteral("\\end"), lexer_.peek().position);
       }
       break;
     }
@@ -114,9 +115,9 @@ MathParseTask<MathParseNode> MathParser::parseArrayEnvironment(const QString& na
     MathArrayCell cell;
     // Keep initializer lists outside await expressions for GCC's coroutine
     // lowering, and keep the break-token storage alive across suspension.
-    const QVector<QString> cellBreaks{
-        QStringLiteral("&"), QStringLiteral("\\\\"), QStringLiteral("\\cr"),
-        QStringLiteral("\\end"), QStringLiteral("\\hline"), QStringLiteral("\\hdashline")};
+    const QVector<QString> cellBreaks{QStringLiteral("&"),       QStringLiteral("\\\\"),
+                                      QStringLiteral("\\cr"),    QStringLiteral("\\end"),
+                                      QStringLiteral("\\hline"), QStringLiteral("\\hdashline")};
     const QVector<MathParseNode> body = co_await parseExpressionUntilAny(cellBreaks);
     cell.body = toSharedNodes(body);
     row.push_back(std::move(cell));
@@ -152,11 +153,13 @@ MathParseTask<MathParseNode> MathParser::parseArrayEnvironment(const QString& na
     }
   }
 
-  const int colCount = std::accumulate(array.rows.cbegin(), array.rows.cend(), 0, [](int current, const QVector<MathArrayCell>& cells) {
-    return qMax(current, cells.size());
-  });
+  const int colCount =
+      std::accumulate(array.rows.cbegin(), array.rows.cend(), 0,
+                      [](int current, const QVector<MathArrayCell>& cells) { return qMax(current, cells.size()); });
   while (array.columnAlignments.size() < colCount) {
-    array.columnAlignments += array.columnAlignments.isEmpty() ? QLatin1Char('c') : array.columnAlignments.at(array.columnAlignments.size() - 1);
+    array.columnAlignments += array.columnAlignments.isEmpty()
+                                  ? QLatin1Char('c')
+                                  : array.columnAlignments.at(array.columnAlignments.size() - 1);
   }
   int alignCount = 0;
   for (const MathArrayColumn& column : array.columns) {
@@ -317,7 +320,8 @@ void MathParser::configureArrayEnvironment(MathParseNode& array, const QString& 
              baseName == QStringLiteral("align") || baseName == QStringLiteral("alignat") ||
              baseName == QStringLiteral("alignedat")) {
     array.addJot = true;
-    array.colSeparationType = baseName.contains(QStringLiteral("at")) ? QStringLiteral("alignat") : QStringLiteral("align");
+    array.colSeparationType =
+        baseName.contains(QStringLiteral("at")) ? QStringLiteral("alignat") : QStringLiteral("align");
     array.columns.clear();
     array.columnAlignments = QStringLiteral("rlrlrl");
     for (int i = 0; i < 6; ++i) {
@@ -392,7 +396,8 @@ MathParseTask<MathParseNode> MathParser::parseCDEnvironment() {
         if (lexer_.peek().text == QStringLiteral("<")) {
           ++ltCount;
           lexer_.consume();
-          if (ltCount >= 2) break;
+          if (ltCount >= 2)
+            break;
         } else {
           if (ltCount > 0) {
             entry.label += QStringLiteral("<");
@@ -425,7 +430,8 @@ MathParseTask<MathParseNode> MathParser::parseCDEnvironment() {
         if (lexer_.peek().text == QStringLiteral("A")) {
           ++aCount;
           lexer_.consume();
-          if (aCount >= 2) break;
+          if (aCount >= 2)
+            break;
         } else {
           if (aCount > 0) {
             entry.label += QStringLiteral("A");
@@ -558,4 +564,4 @@ MathParseTask<MathParseNode> MathParser::parseCDEnvironment() {
   co_return result;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

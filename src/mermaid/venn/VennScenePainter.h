@@ -8,7 +8,6 @@ namespace muffin::mermaid::venn {
 
 struct VennScene;
 
-void paintVennScene(const VennScene& scene, QPainter& painter,
-                    const MermaidPaintOptions& options = {});
+void paintVennScene(const VennScene& scene, QPainter& painter, const MermaidPaintOptions& options = {});
 
-}  // namespace muffin::mermaid::venn
+} // namespace muffin::mermaid::venn

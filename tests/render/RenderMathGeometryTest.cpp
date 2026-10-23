@@ -33,7 +33,8 @@ const auto requireMathSnippetLayout = [](const QString& tex, const QString& labe
   math::MathOptions mathOptions(math::MathStyle::display(), 16.0, QColor(QStringLiteral("#111111")), settings);
   math::MathBuilder mathBuilder{mathOptions};
   std::unique_ptr<math::MathRenderNode> mathRoot = mathBuilder.buildExpression(mathTree);
-  require(mathRoot != nullptr && mathRoot->width > 0.0, label + QStringLiteral(" direct math builder should produce layout"));
+  require(mathRoot != nullptr && mathRoot->width > 0.0,
+          label + QStringLiteral(" direct math builder should produce layout"));
   RenderTheme theme = RenderTheme::github();
   CmarkGfmParser parser;
   const QString markdown = QStringLiteral("$$\n%1\n$$").arg(tex);
@@ -53,15 +54,18 @@ const auto requireMathSnippetLayout = [](const QString& tex, const QString& labe
 void testStrictMathGeometryFeatures1() {
   // Delimiters, environments, array preamble
   math::MathSettings delimiterSettings;
-  math::MathOptions delimiterOptions(math::MathStyle::display(), 16.0, QColor(QStringLiteral("#111111")), delimiterSettings);
+  math::MathOptions delimiterOptions(math::MathStyle::display(), 16.0, QColor(QStringLiteral("#111111")),
+                                     delimiterSettings);
   std::unique_ptr<math::MathRenderNode> biggParen =
       math::MathDelimiter::makeSized(QStringLiteral("("), 4, math::MathNodeType::Open, delimiterOptions);
   require(biggParen != nullptr && biggParen->fontClass == QStringLiteral("size4"),
           QStringLiteral("Bigg delimiter should use KaTeX Size4 font"));
   std::unique_ptr<math::MathRenderNode> tallBrace =
       math::MathDelimiter::makeLeftRight(QStringLiteral("{"), 95.0, 55.0, math::MathNodeType::Open, delimiterOptions);
-  require(tallBrace != nullptr && !tallBrace->children.empty(), QStringLiteral("tall left brace should use stacked delimiter pieces"));
-  require(tallBrace->height + tallBrace->depth > 80.0, QStringLiteral("stacked delimiter should grow to target height"));
+  require(tallBrace != nullptr && !tallBrace->children.empty(),
+          QStringLiteral("tall left brace should use stacked delimiter pieces"));
+  require(tallBrace->height + tallBrace->depth > 80.0,
+          QStringLiteral("stacked delimiter should grow to target height"));
   std::unique_ptr<math::MathRenderNode> tallBracket =
       math::MathDelimiter::makeLeftRight(QStringLiteral("["), 95.0, 55.0, math::MathNodeType::Open, delimiterOptions);
   require(tallBracket != nullptr && !tallBracket->svgPath.isEmpty() && tallBracket->viewBox.width() > 0.0,
@@ -76,70 +80,80 @@ void testStrictMathGeometryFeatures1() {
   const QPainterPath sqrtPainterPath =
       math::MathSvgGeometry::painterPathFromSvgPath(sqrtSize2, sqrtViewBox, sqrtTarget);
   const QRectF sqrtInk = sqrtPainterPath.boundingRect();
-  require(sqrtInk.width() > sqrtTarget.width() * 0.99 &&
-              sqrtInk.height() > sqrtTarget.height() * 0.85,
+  require(sqrtInk.width() > sqrtTarget.width() * 0.99 && sqrtInk.height() > sqrtTarget.height() * 0.85,
           QStringLiteral("KaTeX sqrt path should preserve ordered x/y coordinates and full vinculum"));
   require(sqrtPainterPath.fillRule() == Qt::WindingFill,
           QStringLiteral("KaTeX SVG paths should use the SVG nonzero fill rule"));
-  const QPainterPath slicedSqrt = math::MathSvgGeometry::painterPathFromSvgPath(
-      sqrtSize2, sqrtViewBox, sqrtTarget, Qt::KeepAspectRatioByExpanding);
+  const QPainterPath slicedSqrt =
+      math::MathSvgGeometry::painterPathFromSvgPath(sqrtSize2, sqrtViewBox, sqrtTarget, Qt::KeepAspectRatioByExpanding);
   require(slicedSqrt.boundingRect().width() > sqrtTarget.width() * 100.0 &&
               slicedSqrt.boundingRect().height() > sqrtTarget.height() * 0.85,
           QStringLiteral("KaTeX sqrt slice should scale by height before its parent clips width"));
 
   const auto sqrtNodes = math::MathParser(QStringLiteral("\\sqrt{x_i^2}"), delimiterSettings).parse();
-  std::unique_ptr<math::MathRenderNode> sqrtRoot =
-      math::MathBuilder(delimiterOptions).buildExpression(sqrtNodes);
-  const std::function<const math::MathRenderNode*(const math::MathRenderNode*,
-                                                   math::MathSemanticKind)> findSemantic =
-      [&](const math::MathRenderNode* node,
-          math::MathSemanticKind kind) -> const math::MathRenderNode* {
-    if (node == nullptr) return nullptr;
-    if (node->semanticKind == kind) return node;
+  std::unique_ptr<math::MathRenderNode> sqrtRoot = math::MathBuilder(delimiterOptions).buildExpression(sqrtNodes);
+  const std::function<const math::MathRenderNode*(const math::MathRenderNode*, math::MathSemanticKind)> findSemantic =
+      [&](const math::MathRenderNode* node, math::MathSemanticKind kind) -> const math::MathRenderNode* {
+    if (node == nullptr)
+      return nullptr;
+    if (node->semanticKind == kind)
+      return node;
     for (const auto& child : node->children)
-      if (const auto* result = findSemantic(child.get(), kind)) return result;
+      if (const auto* result = findSemantic(child.get(), kind))
+        return result;
     return nullptr;
   };
-  const math::MathRenderNode* radicalBox =
-      findSemantic(sqrtRoot.get(), math::MathSemanticKind::Radical);
+  const math::MathRenderNode* radicalBox = findSemantic(sqrtRoot.get(), math::MathSemanticKind::Radical);
   const std::function<const math::MathRenderNode*(const math::MathRenderNode*)> findRadicalPath =
       [&](const math::MathRenderNode* node) -> const math::MathRenderNode* {
-    if (node == nullptr) return nullptr;
-    if (node->pathName.startsWith(QStringLiteral("sqrt"))) return node;
+    if (node == nullptr)
+      return nullptr;
+    if (node->pathName.startsWith(QStringLiteral("sqrt")))
+      return node;
     for (const auto& child : node->children)
-      if (const auto* result = findRadicalPath(child.get())) return result;
+      if (const auto* result = findRadicalPath(child.get()))
+        return result;
     return nullptr;
   };
   const math::MathRenderNode* radicalPath = findRadicalPath(sqrtRoot.get());
-  require(radicalBox != nullptr && radicalPath != nullptr &&
-              radicalPath->paintWidth > radicalPath->width,
+  require(radicalBox != nullptr && radicalPath != nullptr && radicalPath->paintWidth > radicalPath->width,
           QStringLiteral("KaTeX sqrt SVG should paint across its expression while advancing by the delimiter"));
-  for (const auto& [source, kind] : {
-           std::pair{QStringLiteral("\\frac{a}{b}"), math::MathSemanticKind::Fraction},
-           std::pair{QStringLiteral("x_i^2"), math::MathSemanticKind::SupSub},
-           std::pair{QStringLiteral("\\begin{matrix}a&b\\\\c&d\\end{matrix}"),
-                     math::MathSemanticKind::Array}}) {
+  for (const auto& [source, kind] :
+       {std::pair{QStringLiteral("\\frac{a}{b}"), math::MathSemanticKind::Fraction},
+        std::pair{QStringLiteral("x_i^2"), math::MathSemanticKind::SupSub},
+        std::pair{QStringLiteral("\\begin{matrix}a&b\\\\c&d\\end{matrix}"), math::MathSemanticKind::Array}}) {
     const auto nodes = math::MathParser(source, delimiterSettings).parse();
     const auto root = math::MathBuilder(delimiterOptions).buildExpression(nodes);
     require(findSemantic(root.get(), kind) != nullptr,
             QStringLiteral("Math render tree should preserve semantic box kind for %1").arg(source));
   }
 
-  requireMathSnippetLayout(QStringLiteral("\\left\\lbrace\\frac{\\frac{a}{b}}{\\frac{c}{d}}\\right\\rbrace"), QStringLiteral("stacked brace delimiter"));
-  requireMathSnippetLayout(QStringLiteral("\\left[\\begin{matrix}a\\\\\\frac{b}{c}\\\\d\\end{matrix}\\right]"), QStringLiteral("stacked bracket matrix delimiter"));
-  requireMathSnippetLayout(QStringLiteral("\\left|\\frac{a}{\\frac{b}{c}}\\right|+\\left\\langle\\frac{x}{y}\\right\\rangle"), QStringLiteral("vertical and angle delimiter"));
-  requireMathSnippetLayout(QStringLiteral("\\bigl( a \\bigr)+\\Bigl[ b \\Bigr]+\\biggl\\lbrace c \\biggr\\rbrace+\\Biggl| d \\Biggr|"), QStringLiteral("sized delimiter"));
-  requireMathSnippetLayout(QStringLiteral("\\begin{cases}x^2,&x>0\\\\0,&x=0\\end{cases}+\\begin{smallmatrix}a&b\\\\c&d\\end{smallmatrix}"),
-                           QStringLiteral("cases and smallmatrix environments"));
-  requireMathSnippetLayout(QStringLiteral("\\begin{aligned}a&=b+c\\\\d&=e+f\\end{aligned}+\\begin{gathered}x+y\\\\z\\end{gathered}"),
-                           QStringLiteral("aligned and gathered environments"));
-  requireMathSnippetLayout(QStringLiteral("\\begin{array}{|c:rl@{}c|}\\hline\\hdashline a&b&c&d\\cr e&f&g&h\\\\[0.4em]\\hline\\end{array}"),
-                           QStringLiteral("array preamble separators cr and row gap"));
+  requireMathSnippetLayout(QStringLiteral("\\left\\lbrace\\frac{\\frac{a}{b}}{\\frac{c}{d}}\\right\\rbrace"),
+                           QStringLiteral("stacked brace delimiter"));
+  requireMathSnippetLayout(QStringLiteral("\\left[\\begin{matrix}a\\\\\\frac{b}{c}\\\\d\\end{matrix}\\right]"),
+                           QStringLiteral("stacked bracket matrix delimiter"));
+  requireMathSnippetLayout(
+      QStringLiteral("\\left|\\frac{a}{\\frac{b}{c}}\\right|+\\left\\langle\\frac{x}{y}\\right\\rangle"),
+      QStringLiteral("vertical and angle delimiter"));
+  requireMathSnippetLayout(
+      QStringLiteral("\\bigl( a \\bigr)+\\Bigl[ b \\Bigr]+\\biggl\\lbrace c \\biggr\\rbrace+\\Biggl| d \\Biggr|"),
+      QStringLiteral("sized delimiter"));
+  requireMathSnippetLayout(
+      QStringLiteral("\\begin{cases}x^2,&x>0\\\\0,&x=0\\end{cases}+\\begin{smallmatrix}a&b\\\\c&d\\end{smallmatrix}"),
+      QStringLiteral("cases and smallmatrix environments"));
+  requireMathSnippetLayout(
+      QStringLiteral("\\begin{aligned}a&=b+c\\\\d&=e+f\\end{aligned}+\\begin{gathered}x+y\\\\z\\end{gathered}"),
+      QStringLiteral("aligned and gathered environments"));
+  requireMathSnippetLayout(
+      QStringLiteral("\\begin{array}{|c:rl@{}c|}\\hline\\hdashline a&b&c&d\\cr e&f&g&h\\\\[0.4em]\\hline\\end{array}"),
+      QStringLiteral("array preamble separators cr and row gap"));
 
   {
-    math::MathParser parser(QStringLiteral("\\begin{array}{|c:rl@{}c|}\\hline\\hdashline a&b&c&d\\cr e&f&g&h\\\\[0.4em]\\hline\\end{array}"));
+    math::MathParser parser(QStringLiteral(
+        "\\begin{array}{|c:rl@{}c|}\\hline\\hdashline a&b&c&d\\cr e&f&g&h\\\\[0.4em]\\hline\\end{array}"));
     const QVector<math::MathParseNode> nodes = parser.parse();
-    require(!nodes.isEmpty() && nodes.first().type == math::MathNodeType::Array, QStringLiteral("array parser should produce array node"));
+    require(!nodes.isEmpty() && nodes.first().type == math::MathNodeType::Array,
+            QStringLiteral("array parser should produce array node"));
     const math::MathParseNode& array = nodes.first();
     int separators = 0;
     for (const math::MathArrayColumn& column : array.columns) {
@@ -148,8 +162,10 @@ void testStrictMathGeometryFeatures1() {
       }
     }
     require(separators >= 3, QStringLiteral("array preamble should preserve solid and dashed separators"));
-    require(array.arrayLines.size() == 3 && array.arrayLines.at(1).dashed, QStringLiteral("array should preserve multiple hline and hdashline entries"));
-    require(!array.rowGaps.isEmpty() && array.rowGaps.last() > 0.0, QStringLiteral("array row gap should parse optional newline size"));
+    require(array.arrayLines.size() == 3 && array.arrayLines.at(1).dashed,
+            QStringLiteral("array should preserve multiple hline and hdashline entries"));
+    require(!array.rowGaps.isEmpty() && array.rowGaps.last() > 0.0,
+            QStringLiteral("array row gap should parse optional newline size"));
   }
 }
 
@@ -170,7 +186,8 @@ void testStrictMathGeometryFeatures2() {
     bool sawExplicitLim = false;
     bool sawMathopBody = false;
     for (const math::MathParseNode& node : nodes) {
-      if (node.type == math::MathNodeType::SupSub && !node.base.isEmpty() && node.base.first().type == math::MathNodeType::Operator) {
+      if (node.type == math::MathNodeType::SupSub && !node.base.isEmpty() &&
+          node.base.first().type == math::MathNodeType::Operator) {
         const math::MathParseNode& op = node.base.first();
         if (op.label == QStringLiteral("\\lim") && op.explicitLimits && op.limits) {
           sawExplicitLim = true;
@@ -183,11 +200,15 @@ void testStrictMathGeometryFeatures2() {
     require(sawExplicitLim && sawMathopBody, QStringLiteral("limits should apply to lim and mathop operators"));
 
     math::MathOptions displayOpts(math::MathStyle::display(), 16.0, QColor(QStringLiteral("#111111")), settings);
-    std::unique_ptr<math::MathRenderNode> displaySum = math::MathBuilder(displayOpts).buildExpression(
-        QVector<math::MathParseNode>{math::MathParser(QStringLiteral("\\sum"), settings).parse().first()});
+    std::unique_ptr<math::MathRenderNode> displaySum =
+        math::MathBuilder(displayOpts)
+            .buildExpression(
+                QVector<math::MathParseNode>{math::MathParser(QStringLiteral("\\sum"), settings).parse().first()});
     math::MathOptions textOptions(math::MathStyle::textStyle(), 16.0, QColor(QStringLiteral("#111111")), settings);
-    std::unique_ptr<math::MathRenderNode> textSum = math::MathBuilder(textOptions).buildExpression(
-        QVector<math::MathParseNode>{math::MathParser(QStringLiteral("\\sum"), settings).parse().first()});
+    std::unique_ptr<math::MathRenderNode> textSum =
+        math::MathBuilder(textOptions)
+            .buildExpression(
+                QVector<math::MathParseNode>{math::MathParser(QStringLiteral("\\sum"), settings).parse().first()});
     require(!displaySum->children.empty() && displaySum->children.front()->fontClass == QStringLiteral("size2"),
             QStringLiteral("display large operator should use KaTeX Size2 font"));
     require(!textSum->children.empty() && textSum->children.front()->fontClass == QStringLiteral("size1"),
@@ -199,20 +220,16 @@ void testStrictMathGeometryFeatures2() {
     individualChildren.push_back(math::MathVListChild{makeTestLayoutBox(4.0, 2.0, 1.0), 3.0});
     individualChildren.push_back(math::MathVListChild{makeTestLayoutBox(3.0, 1.0, 0.5), -2.0});
     auto individual = math::makeLayoutVListIndividualShift(std::move(individualChildren));
-    require(individual->children.size() == 2 &&
-                qAbs(individual->children.front()->shift - 3.0) < 0.01 &&
-                qAbs(individual->children.back()->shift + 2.0) < 0.01 &&
-                qAbs(individual->height - 3.0) < 0.01 &&
+    require(individual->children.size() == 2 && qAbs(individual->children.front()->shift - 3.0) < 0.01 &&
+                qAbs(individual->children.back()->shift + 2.0) < 0.01 && qAbs(individual->height - 3.0) < 0.01 &&
                 qAbs(individual->depth - 4.0) < 0.01,
             QStringLiteral("native individualShift VList should match KaTeX getVListChildrenAndDepth semantics"));
 
     std::vector<math::MathVListEntry> shiftEntries;
     shiftEntries.push_back(math::makeLayoutVListElem(math::MathVListChild{makeTestLayoutBox(4.0, 2.0, 1.0)}));
     auto shifted = math::makeLayoutVListShift(0.5, std::move(shiftEntries));
-    require(shifted->children.size() == 1 &&
-                qAbs(shifted->children.front()->shift - 0.5) < 0.01 &&
-                qAbs(shifted->height - 1.5) < 0.01 &&
-                qAbs(shifted->depth - 1.5) < 0.01,
+    require(shifted->children.size() == 1 && qAbs(shifted->children.front()->shift - 0.5) < 0.01 &&
+                qAbs(shifted->height - 1.5) < 0.01 && qAbs(shifted->depth - 1.5) < 0.01,
             QStringLiteral("native shift VList should position baseline relative to first child like KaTeX"));
 
     std::vector<math::MathVListEntry> bottomEntries;
@@ -234,16 +251,18 @@ void testStrictMathGeometryFeatures2() {
     const QVector<math::MathParseNode> integralNodes = math::MathParser(QStringLiteral("\\int_0^1"), settings).parse();
     require(!integralNodes.isEmpty() && integralNodes.first().type == math::MathNodeType::SupSub,
             QStringLiteral("integral limits syntax should parse as supsub"));
-    require(!integralNodes.first().base.isEmpty() && integralNodes.first().base.first().type == math::MathNodeType::Operator,
+    require(!integralNodes.first().base.isEmpty() &&
+                integralNodes.first().base.first().type == math::MathNodeType::Operator,
             QStringLiteral("integral supsub base should remain an operator"));
     require(integralNodes.first().base.first().label == QStringLiteral("\\int") &&
-                integralNodes.first().base.first().opSymbol &&
-                !integralNodes.first().base.first().limits,
+                integralNodes.first().base.first().opSymbol && !integralNodes.first().base.first().limits,
             QStringLiteral("integral operators should match KaTeX op.ts no-limits symbol category"));
 
-    std::unique_ptr<math::MathRenderNode> integralSupSub = math::MathBuilder(displayOptions).buildExpression(integralNodes);
+    std::unique_ptr<math::MathRenderNode> integralSupSub =
+        math::MathBuilder(displayOptions).buildExpression(integralNodes);
     std::unique_ptr<math::MathRenderNode> sumLimits =
-        math::MathBuilder(displayOptions).buildExpression(math::MathParser(QStringLiteral("\\sum_0^1"), settings).parse());
+        math::MathBuilder(displayOptions)
+            .buildExpression(math::MathParser(QStringLiteral("\\sum_0^1"), settings).parse());
     require(integralSupSub != nullptr && !integralSupSub->children.empty() &&
                 integralSupSub->children.front()->kind == math::MathRenderKind::Span &&
                 integralSupSub->children.front()->children.size() == 2 &&
@@ -253,7 +272,8 @@ void testStrictMathGeometryFeatures2() {
                 sumLimits->children.front()->kind == math::MathRenderKind::VList,
             QStringLiteral("sum should render display limits through native KaTeX VList layout"));
     const math::MathRenderNode& sumVList = *sumLimits->children.front();
-    require(sumVList.children.size() == 3, QStringLiteral("sum limits VList should contain base, superscript, and subscript"));
+    require(sumVList.children.size() == 3,
+            QStringLiteral("sum limits VList should contain base, superscript, and subscript"));
     bool sawLimitBase = false;
     bool sawUpperLimit = false;
     bool sawLowerLimit = false;
@@ -285,17 +305,18 @@ void testStrictMathGeometryFeatures2() {
             QStringLiteral("operator limits should preserve KaTeX baseShift and upper/lower individual shifts"));
     const math::MathRenderNode& integralScripts = *integralSupSub->children.front();
     const math::MathRenderNode& integralScriptVList = *integralScripts.children.back();
-    require(integralScriptVList.children.size() == 2 &&
-                integralScriptVList.children.front()->shift > 0.0 &&
+    require(integralScriptVList.children.size() == 2 && integralScriptVList.children.front()->shift > 0.0 &&
                 integralScriptVList.children.back()->shift < 0.0,
             QStringLiteral("ordinary supsub VList should preserve KaTeX sub and sup individual shifts"));
     require(integralScriptVList.children.front()->xOffset < integralScriptVList.children.back()->xOffset,
             QStringLiteral("integral side scripts should use KaTeX side-script italic correction"));
-    require(integralScriptVList.width > integralScriptVList.children.back()->xOffset + integralScriptVList.children.back()->width,
+    require(integralScriptVList.width >
+                integralScriptVList.children.back()->xOffset + integralScriptVList.children.back()->width,
             QStringLiteral("ordinary supsub VList width should include KaTeX scriptspace marginRight"));
 
     std::unique_ptr<math::MathRenderNode> integralThenOrd =
-        math::MathBuilder(displayOptions).buildExpression(math::MathParser(QStringLiteral("\\int_0^1x"), settings).parse());
+        math::MathBuilder(displayOptions)
+            .buildExpression(math::MathParser(QStringLiteral("\\int_0^1x"), settings).parse());
     require(integralThenOrd != nullptr && integralThenOrd->children.size() >= 2,
             QStringLiteral("integral followed by ord should build adjacent atoms"));
     require(integralThenOrd->children.front()->width >= integralScripts.width,
@@ -328,22 +349,27 @@ void testStrictMathGeometryFeatures2() {
     QVector<math::MathParseNode> topLevelCrNodes = math::MathParser(QStringLiteral("a\\\\b"), settings).parse();
     require(topLevelCrNodes.size() == 3 && topLevelCrNodes.at(1).type == math::MathNodeType::Cr,
             QStringLiteral("top-level double backslash should parse as KaTeX cr node"));
-    std::unique_ptr<math::MathRenderNode> topLevelCr =
-        math::MathBuilder(displayOpts).buildExpression(topLevelCrNodes);
+    std::unique_ptr<math::MathRenderNode> topLevelCr = math::MathBuilder(displayOpts).buildExpression(topLevelCrNodes);
     std::unique_ptr<math::MathRenderNode> topLevelCrGap =
-        math::MathBuilder(displayOpts).buildExpression(math::MathParser(QStringLiteral("a\\\\[0.4em]b"), settings).parse());
-    require(topLevelCr != nullptr && topLevelCr->kind == math::MathRenderKind::VList && topLevelCr->children.size() == 2,
+        math::MathBuilder(displayOpts)
+            .buildExpression(math::MathParser(QStringLiteral("a\\\\[0.4em]b"), settings).parse());
+    require(topLevelCr != nullptr && topLevelCr->kind == math::MathRenderKind::VList &&
+                topLevelCr->children.size() == 2,
             QStringLiteral("top-level cr should render as native KaTeX newline VList"));
-    require(topLevelCrGap->height + topLevelCrGap->depth > topLevelCr->height + topLevelCr->depth + displayOpts.fontPointSize() * 0.3,
+    require(topLevelCrGap->height + topLevelCrGap->depth >
+                topLevelCr->height + topLevelCr->depth + displayOpts.fontPointSize() * 0.3,
             QStringLiteral("top-level cr optional size should increase native newline gap"));
 
     std::unique_ptr<math::MathRenderNode> defaultArray =
-        math::MathBuilder(displayOpts).buildExpression(math::MathParser(QStringLiteral("\\begin{array}{c}a\\\\b\\end{array}"), settings).parse());
+        math::MathBuilder(displayOpts)
+            .buildExpression(math::MathParser(QStringLiteral("\\begin{array}{c}a\\\\b\\end{array}"), settings).parse());
     std::unique_ptr<math::MathRenderNode> gapArray =
-        math::MathBuilder(displayOpts).buildExpression(math::MathParser(QStringLiteral("\\begin{array}{c}a\\\\[0.4em]b\\end{array}"), settings).parse());
-    require(defaultArray != nullptr && gapArray != nullptr,
-            QStringLiteral("array row gap comparison should build"));
-    require(gapArray->height + gapArray->depth > defaultArray->height + defaultArray->depth + displayOpts.fontPointSize() * 0.3,
+        math::MathBuilder(displayOpts)
+            .buildExpression(
+                math::MathParser(QStringLiteral("\\begin{array}{c}a\\\\[0.4em]b\\end{array}"), settings).parse());
+    require(defaultArray != nullptr && gapArray != nullptr, QStringLiteral("array row gap comparison should build"));
+    require(gapArray->height + gapArray->depth >
+                defaultArray->height + defaultArray->depth + displayOpts.fontPointSize() * 0.3,
             QStringLiteral("positive array row gap should include KaTeX arstrutDepth plus requested gap"));
     require(!defaultArray->children.empty() && defaultArray->children.front()->kind == math::MathRenderKind::Array,
             QStringLiteral("array individualShift comparison should unwrap root hlist"));
@@ -359,8 +385,10 @@ void testStrictMathGeometryFeatures2() {
     require(firstColumn.children.size() >= 2,
             QStringLiteral("array individualShift comparison should find row wrapper cells"));
     const qreal baselineDelta = firstColumn.children.at(1)->shift - firstColumn.children.at(0)->shift;
-    require(qAbs(baselineDelta - (firstColumn.children.at(0)->depth + firstColumn.children.at(1)->height)) < displayOpts.fontPointSize() * 0.2,
-            QStringLiteral("array row baselines should follow KaTeX makeVList individualShift row.pos-offset semantics"));
+    require(
+        qAbs(baselineDelta - (firstColumn.children.at(0)->depth + firstColumn.children.at(1)->height)) <
+            displayOpts.fontPointSize() * 0.2,
+        QStringLiteral("array row baselines should follow KaTeX makeVList individualShift row.pos-offset semantics"));
     require(!firstColumn.children.at(0)->children.empty() &&
                 firstColumn.children.at(0)->height > firstColumn.children.at(0)->children.front()->height,
             QStringLiteral("array row wrapper should keep KaTeX arstrut height separate from real cell content"));
@@ -368,15 +396,15 @@ void testStrictMathGeometryFeatures2() {
 
   RenderTheme theme = RenderTheme::github();
   CmarkGfmParser parser;
-  const QString markdown = QStringLiteral(
-      "$$\n"
-      "\\left(\\frac{a}{b}+\\sqrt{\\frac{c}{d}}+\\sqrt{\\frac{\\frac{a}{b}}{\\frac{c}{d}}}\\right)"
-      "+\\widehat{abcdef}+\\widetilde{abcdef}+\\overleftrightarrow{AB}"
-      "+\\begin{array}{rcl}\\hline x&=&1\\\\longname&=&\\frac{a}{b}\\\\\\hline\\end{array}"
-      "+\\begin{cases}x,&x>0\\\\0,&x=0\\end{cases}+\\begin{aligned}a&=b\\\\c&=d\\end{aligned}"
-      "+\\binom{n}{k}+\\underline{text}+\\overline{abc}+\\text{hello}"
-      "+\\underbrace{x+y}_{n}+\\overbrace{a+b}^{m}+\\underleftrightarrow{AB}"
-      "\n$$");
+  const QString markdown =
+      QStringLiteral("$$\n"
+                     "\\left(\\frac{a}{b}+\\sqrt{\\frac{c}{d}}+\\sqrt{\\frac{\\frac{a}{b}}{\\frac{c}{d}}}\\right)"
+                     "+\\widehat{abcdef}+\\widetilde{abcdef}+\\overleftrightarrow{AB}"
+                     "+\\begin{array}{rcl}\\hline x&=&1\\\\longname&=&\\frac{a}{b}\\\\\\hline\\end{array}"
+                     "+\\begin{cases}x,&x>0\\\\0,&x=0\\end{cases}+\\begin{aligned}a&=b\\\\c&=d\\end{aligned}"
+                     "+\\binom{n}{k}+\\underline{text}+\\overline{abc}+\\text{hello}"
+                     "+\\underbrace{x+y}_{n}+\\overbrace{a+b}^{m}+\\underleftrightarrow{AB}"
+                     "\n$$");
   ParseResult parsed = parser.parseDocument(markdown, {});
   require(parsed.root != nullptr, QStringLiteral("strict geometry parse should produce document"));
 
@@ -411,7 +439,7 @@ void testStrictMathGeometryFeatures2() {
   require(changedPixels > 120, QStringLiteral("strict geometry math paint should draw visible pixels"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

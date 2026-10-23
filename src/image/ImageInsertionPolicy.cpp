@@ -34,7 +34,7 @@ ImageInsertAction effectiveAction(QSettings& settings, const ImageInsertRequest&
                          static_cast<int>(ImageInsertAction::CopyToCustomFolder));
   ImageInsertAction action = static_cast<ImageInsertAction>(raw);
   if (action == ImageInsertAction::Upload) {
-    return action;  // already uploading
+    return action; // already uploading
   }
   const bool allowYaml = settings.value(QStringLiteral("image/allowYamlUpload"), false).toBool();
   if (!allowYaml || req.documentText.isEmpty()) {
@@ -46,10 +46,10 @@ ImageInsertAction effectiveAction(QSettings& settings, const ImageInsertRequest&
     return action;
   }
   const QStringList lines = head.split(QChar('\n'));
-  for (int i = 1; i < lines.size(); ++i) {  // skip the opening "---"
+  for (int i = 1; i < lines.size(); ++i) { // skip the opening "---"
     const QString line = lines[i].trimmed();
     if (line == QStringLiteral("---") || line == QStringLiteral("...")) {
-      break;  // end of frontmatter
+      break; // end of frontmatter
     }
     if (line.startsWith(QStringLiteral("muffin-image-upload"), Qt::CaseInsensitive) &&
         line.contains(QStringLiteral("true"), Qt::CaseInsensitive)) {
@@ -63,23 +63,23 @@ ImageInsertAction effectiveAction(QSettings& settings, const ImageInsertRequest&
 QString copyDestination(ImageInsertAction action, const QString& documentPath, QSettings& settings) {
   const QString docDir = QFileInfo(documentPath).absolutePath();
   switch (action) {
-    case ImageInsertAction::CopyToCurrentFolder:
-      return docDir;
-    case ImageInsertAction::CopyToAssets:
-      return docDir.isEmpty() ? QString() : QDir(docDir).filePath(QStringLiteral("assets"));
-    case ImageInsertAction::CopyToFilenameAssets: {
-      if (docDir.isEmpty()) {
-        return QString();
-      }
-      // $(filename) = the document's base name (no extension).
-      const QString base = QFileInfo(documentPath).completeBaseName();
-      const QString folder = base.isEmpty() ? QStringLiteral("assets") : (base + QStringLiteral(".assets"));
-      return QDir(docDir).filePath(folder);
-    }
-    case ImageInsertAction::CopyToCustomFolder:
-      return settings.value(QStringLiteral("image/customFolder")).toString();
-    default:
+  case ImageInsertAction::CopyToCurrentFolder:
+    return docDir;
+  case ImageInsertAction::CopyToAssets:
+    return docDir.isEmpty() ? QString() : QDir(docDir).filePath(QStringLiteral("assets"));
+  case ImageInsertAction::CopyToFilenameAssets: {
+    if (docDir.isEmpty()) {
       return QString();
+    }
+    // $(filename) = the document's base name (no extension).
+    const QString base = QFileInfo(documentPath).completeBaseName();
+    const QString folder = base.isEmpty() ? QStringLiteral("assets") : (base + QStringLiteral(".assets"));
+    return QDir(docDir).filePath(folder);
+  }
+  case ImageInsertAction::CopyToCustomFolder:
+    return settings.value(QStringLiteral("image/customFolder")).toString();
+  default:
+    return QString();
   }
 }
 
@@ -138,17 +138,18 @@ QString downloadNetworkImage(const QString& url) {
   if (suffix.isEmpty()) {
     suffix = QStringLiteral("png");
   }
-  const QString tempPath = QDir::tempPath() + QStringLiteral("/muffin_rehost_%1.%2")
-                                                   .arg(QString::number(qint64(image.cacheKey())), suffix);
+  const QString tempPath =
+      QDir::tempPath() + QStringLiteral("/muffin_rehost_%1.%2").arg(QString::number(qint64(image.cacheKey())), suffix);
   if (!image.save(tempPath, suffix.toUtf8().constData())) {
     return {};
   }
   return tempPath;
 }
 
-}  // namespace
+} // namespace
 
-ImageInsertResult ImageInsertionPolicy::resolveHref(const ImageInsertRequest& req, QSettings& settings, QWidget* parent) {
+ImageInsertResult ImageInsertionPolicy::resolveHref(const ImageInsertRequest& req, QSettings& settings,
+                                                    QWidget* parent) {
   ImageInsertResult result;
   result.alt = req.alt;
 
@@ -165,7 +166,7 @@ ImageInsertResult ImageInsertionPolicy::resolveHref(const ImageInsertRequest& re
     QDir saveDir(docDir);
     if (docDir.isEmpty()) {
       QString base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-      if (base.isEmpty()) {  // headless/odd environments: fall back to the OS temp dir.
+      if (base.isEmpty()) { // headless/odd environments: fall back to the OS temp dir.
         base = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
       }
       saveDir = QDir(base + QStringLiteral("/muffin-user-images"));
@@ -198,7 +199,7 @@ ImageInsertResult ImageInsertionPolicy::resolveHref(const ImageInsertRequest& re
   if (network && action != ImageInsertAction::None) {
     const QString downloaded = downloadNetworkImage(sourcePath);
     if (downloaded.isEmpty()) {
-      action = ImageInsertAction::None;  // couldn't fetch; keep the original URL
+      action = ImageInsertAction::None; // couldn't fetch; keep the original URL
       result.error = QStringLiteral("could not download the network image; left the URL as-is");
     } else {
       sourcePath = downloaded;
@@ -216,7 +217,7 @@ ImageInsertResult ImageInsertionPolicy::resolveHref(const ImageInsertRequest& re
     const CustomCommandResult uploaded = CustomCommandUploader::upload(parent, {sourcePath});
     if (uploaded.canceled) {
       result.error = QStringLiteral("upload canceled");
-      return result;  // ok stays false → caller inserts nothing
+      return result; // ok stays false → caller inserts nothing
     }
     if (uploaded.ran && !uploaded.urls.isEmpty()) {
       result.href = uploaded.urls.first();
@@ -226,8 +227,8 @@ ImageInsertResult ImageInsertionPolicy::resolveHref(const ImageInsertRequest& re
     }
     // Upload failed — fall back to a local href so the user still sees the image,
     // and surface the reason as a non-fatal warning.
-    result.error = uploaded.error.isEmpty() ? QStringLiteral("upload failed; inserted the local path instead")
-                                            : uploaded.error;
+    result.error =
+        uploaded.error.isEmpty() ? QStringLiteral("upload failed; inserted the local path instead") : uploaded.error;
     result.href = formatLocalHref(sourcePath, docDir, settings);
     result.ok = true;
     return result;
@@ -259,4 +260,4 @@ ImageInsertResult ImageInsertionPolicy::resolveHref(const ImageInsertRequest& re
   return result;
 }
 
-}  // namespace muffin
+} // namespace muffin

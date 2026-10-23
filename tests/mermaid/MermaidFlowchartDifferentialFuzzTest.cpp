@@ -33,7 +33,8 @@ QString artifactRepositoryRoot;
 
 void configureFailureArtifacts(const QString& fixturePath) {
   QDir directory = QFileInfo(fixturePath).absoluteDir();
-  for (int depth = 0; depth < 3; ++depth) directory.cdUp();
+  for (int depth = 0; depth < 3; ++depth)
+    directory.cdUp();
   artifactRepositoryRoot = directory.absolutePath();
 }
 
@@ -50,20 +51,18 @@ void configureFailureArtifacts(const QString& fixturePath) {
       sourceFile.write(item.value(QStringLiteral("source")).toString().toUtf8());
       sourceFile.write("\n");
       sourceFile.close();
-      const QString script = QDir(artifactRepositoryRoot).filePath(
-          QStringLiteral("scripts/minimize_mermaid_flowchart_difference.mjs"));
-      const QString mermaidRoot = QDir(artifactRepositoryRoot).filePath(
-          QStringLiteral("../mermaid-cli/node_modules/mermaid"));
+      const QString script =
+          QDir(artifactRepositoryRoot).filePath(QStringLiteral("scripts/minimize_mermaid_flowchart_difference.mjs"));
+      const QString mermaidRoot =
+          QDir(artifactRepositoryRoot).filePath(QStringLiteral("../mermaid-cli/node_modules/mermaid"));
       if (QFileInfo::exists(script) && QFileInfo::exists(mermaidRoot)) {
         QProcess minimizer;
         minimizer.setWorkingDirectory(artifactRepositoryRoot);
         minimizer.start(QStringLiteral("node"),
-                        {script, sourcePath, mermaidRoot,
-                         QCoreApplication::applicationFilePath(), minimizedPath});
+                        {script, sourcePath, mermaidRoot, QCoreApplication::applicationFilePath(), minimizedPath});
         minimizer.waitForFinished(-1);
         item.insert(QStringLiteral("minimizerExitCode"), minimizer.exitCode());
-        item.insert(QStringLiteral("minimizerOutput"),
-                    QString::fromUtf8(minimizer.readAllStandardOutput()));
+        item.insert(QStringLiteral("minimizerOutput"), QString::fromUtf8(minimizer.readAllStandardOutput()));
       }
       if (QFile minimized(minimizedPath); minimized.open(QIODevice::ReadOnly))
         item.insert(QStringLiteral("minimizedSource"), QString::fromUtf8(minimized.readAll()));
@@ -77,7 +76,8 @@ void configureFailureArtifacts(const QString& fixturePath) {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString json(const QJsonObject& value) {
@@ -86,16 +86,20 @@ QString json(const QJsonObject& value) {
 
 QString errorClass(FlowchartErrorCategory category) {
   switch (category) {
-    case FlowchartErrorCategory::MissingHeader: return QStringLiteral("detection");
-    case FlowchartErrorCategory::LinkStyleBounds: return QStringLiteral("semantic");
-    case FlowchartErrorCategory::Syntax:
-    case FlowchartErrorCategory::UnclosedSubgraph:
-    case FlowchartErrorCategory::UnexpectedEnd:
-    case FlowchartErrorCategory::InvalidNode:
-    case FlowchartErrorCategory::InvalidDirective:
-      return QStringLiteral("syntax");
-    case FlowchartErrorCategory::LimitExceeded: return QStringLiteral("limit");
-    case FlowchartErrorCategory::SecurityViolation: return QStringLiteral("security");
+  case FlowchartErrorCategory::MissingHeader:
+    return QStringLiteral("detection");
+  case FlowchartErrorCategory::LinkStyleBounds:
+    return QStringLiteral("semantic");
+  case FlowchartErrorCategory::Syntax:
+  case FlowchartErrorCategory::UnclosedSubgraph:
+  case FlowchartErrorCategory::UnexpectedEnd:
+  case FlowchartErrorCategory::InvalidNode:
+  case FlowchartErrorCategory::InvalidDirective:
+    return QStringLiteral("syntax");
+  case FlowchartErrorCategory::LimitExceeded:
+    return QStringLiteral("limit");
+  case FlowchartErrorCategory::SecurityViolation:
+    return QStringLiteral("security");
   }
   return QStringLiteral("unknown");
 }
@@ -105,7 +109,8 @@ int runOracle() {
   QTextStream output(stdout, QIODevice::WriteOnly);
   while (!input.atEnd()) {
     const QString line = input.readLine();
-    if (line.isEmpty()) continue;
+    if (line.isEmpty())
+      continue;
     QJsonParseError requestError;
     const QJsonDocument request = QJsonDocument::fromJson(line.toUtf8(), &requestError);
     QJsonObject response;
@@ -119,7 +124,8 @@ int runOracle() {
         if (requestObject.value(QStringLiteral("tokenize")).toBool()) {
           QJsonArray tokens;
           for (const auto& token : muffin::mermaid::flowchart::FlowchartTokenizer(
-                   source, requestObject.value(QStringLiteral("document")).toBool()).tokenize()) {
+                                       source, requestObject.value(QStringLiteral("document")).toBool())
+                                       .tokenize()) {
             QJsonObject value;
             value.insert(QStringLiteral("kind"), muffin::mermaid::flowchart::flowTokenName(token.kind));
             value.insert(QStringLiteral("text"), token.text);
@@ -134,8 +140,7 @@ int runOracle() {
           continue;
         }
         response.insert(QStringLiteral("ok"), true);
-        response.insert(QStringLiteral("ast"),
-                        Flowchart::parse(source).toJson());
+        response.insert(QStringLiteral("ast"), Flowchart::parse(source).toJson());
       } catch (const muffin::mermaid::flowchart::FlowchartParseError& error) {
         response.insert(QStringLiteral("ok"), false);
         response.insert(QStringLiteral("category"), static_cast<int>(error.category()));
@@ -148,8 +153,7 @@ int runOracle() {
         response.insert(QStringLiteral("length"), static_cast<qint64>(error.length()));
         response.insert(QStringLiteral("production"), error.diagnostic().production);
         response.insert(QStringLiteral("actual"), error.diagnostic().actual);
-        response.insert(QStringLiteral("expected"),
-                        QJsonArray::fromStringList(error.diagnostic().expected));
+        response.insert(QStringLiteral("expected"), QJsonArray::fromStringList(error.diagnostic().expected));
         response.insert(QStringLiteral("error"), QString::fromUtf8(error.what()));
       }
     }
@@ -159,11 +163,12 @@ int runOracle() {
   return 0;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
-  if (argc == 2 && QByteArray(argv[1]) == QByteArrayLiteral("--oracle")) return runOracle();
+  if (argc == 2 && QByteArray(argv[1]) == QByteArrayLiteral("--oracle"))
+    return runOracle();
   require(argc == 2, QStringLiteral("Expected differential fuzz fixture path"));
   const QString overrideFixture = qEnvironmentVariable("MUFFIN_FLOWCHART_DIFFERENTIAL_FIXTURE");
   QFile file(overrideFixture.isEmpty() ? QString::fromLocal8Bit(argv[1]) : overrideFixture);
@@ -175,8 +180,8 @@ int main(int argc, char** argv) {
           QStringLiteral("Invalid differential fuzz fixture"));
 
   const QJsonObject root = fixture.object();
-  require(root.value(QStringLiteral("upstream")).toObject()
-                  .value(QStringLiteral("version")).toString() == QLatin1String("11.16.0"),
+  require(root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
+              QLatin1String("11.16.0"),
           QStringLiteral("Differential fuzz oracle version drifted"));
   const QJsonObject generator = root.value(QStringLiteral("generator")).toObject();
   const quint32 seed = generator.value(QStringLiteral("seed")).toVariant().toULongLong();
@@ -209,16 +214,19 @@ int main(int argc, char** argv) {
     } catch (const std::exception& parseError) {
       failDifferential(
           QStringLiteral("Differential fuzz parse failure\ncase: %1\nseed: 0x%2\nfeatures: %3\nsource:\n%4\nerror: %5")
-              .arg(id).arg(seed, 0, 16).arg(features, source,
-                           QString::fromUtf8(parseError.what())),
+              .arg(id)
+              .arg(seed, 0, 16)
+              .arg(features, source, QString::fromUtf8(parseError.what())),
           item);
     }
     const QJsonObject expected = item.value(QStringLiteral("expected")).toObject();
     if (actual != expected) {
       failDifferential(
-          QStringLiteral("Differential fuzz mismatch\ncase: %1\nseed: 0x%2\nfeatures: %3\nsource:\n%4\nNative:\n%5\nUpstream:\n%6")
-              .arg(id).arg(seed, 0, 16).arg(features, source,
-                           json(actual), json(expected)),
+          QStringLiteral(
+              "Differential fuzz mismatch\ncase: %1\nseed: 0x%2\nfeatures: %3\nsource:\n%4\nNative:\n%5\nUpstream:\n%6")
+              .arg(id)
+              .arg(seed, 0, 16)
+              .arg(features, source, json(actual), json(expected)),
           item);
     }
   }
@@ -261,21 +269,23 @@ int main(int argc, char** argv) {
       rejected = true;
       const QString actualClass = errorClass(nativeError.category());
       if (actualClass != expectedClass) {
-        failDifferential(QStringLiteral("Differential negative error-class mismatch\ncase: %1\nsource:\n%2\n"
-                            "native class: %3 (category=%4, line=%5, column=%6)\n"
-                            "upstream class: %7 (line=%8, summary=%9)")
-                 .arg(id, source, actualClass)
-                 .arg(static_cast<int>(nativeError.category()))
-                 .arg(nativeError.line()).arg(nativeError.column())
-                 .arg(expectedClass)
-                 .arg(upstreamError.value(QStringLiteral("raw")).toObject()
-                          .value(QStringLiteral("line")).toInt())
-                 .arg(upstreamError.value(QStringLiteral("summary")).toString()), item);
+        failDifferential(
+            QStringLiteral("Differential negative error-class mismatch\ncase: %1\nsource:\n%2\n"
+                           "native class: %3 (category=%4, line=%5, column=%6)\n"
+                           "upstream class: %7 (line=%8, summary=%9)")
+                .arg(id, source, actualClass)
+                .arg(static_cast<int>(nativeError.category()))
+                .arg(nativeError.line())
+                .arg(nativeError.column())
+                .arg(expectedClass)
+                .arg(upstreamError.value(QStringLiteral("raw")).toObject().value(QStringLiteral("line")).toInt())
+                .arg(upstreamError.value(QStringLiteral("summary")).toString()),
+            item);
       }
       if (nativeError.code() == FlowchartErrorCode::Generic)
-        failDifferential(
-            QStringLiteral("Differential negative case has a generic diagnostic code: %1\n%2")
-                .arg(id, QString::fromUtf8(nativeError.what())), item);
+        failDifferential(QStringLiteral("Differential negative case has a generic diagnostic code: %1\n%2")
+                             .arg(id, QString::fromUtf8(nativeError.what())),
+                         item);
       const QString upstreamStage = upstreamError.value(QStringLiteral("stage")).toString();
       const QString nativeStage = flowchartErrorStageName(nativeError.stage());
       const QString nativeCode = flowchartErrorCodeName(nativeError.code());
@@ -283,66 +293,64 @@ int main(int argc, char** argv) {
       ++diagnosticCodeCounts[nativeCode];
       const QJsonArray originProductions = item.value(QStringLiteral("originProductions")).toArray();
       if (originProductions.isEmpty()) {
-        const QString key = QStringLiteral("curated|%1|%2|%3")
-                                .arg(mutationOperator, upstreamStage, nativeCode);
+        const QString key = QStringLiteral("curated|%1|%2|%3").arg(mutationOperator, upstreamStage, nativeCode);
         diagnosticMatrix.insert(key);
         ++diagnosticMatrixCounts[key];
       } else {
         for (const QJsonValue& production : originProductions) {
-          const QString key = QStringLiteral("%1|%2|%3|%4")
-                                  .arg(production.toInt()).arg(mutationOperator,
-                                       upstreamStage, nativeCode);
+          const QString key =
+              QStringLiteral("%1|%2|%3|%4").arg(production.toInt()).arg(mutationOperator, upstreamStage, nativeCode);
           diagnosticMatrix.insert(key);
           ++diagnosticMatrixCounts[key];
         }
       }
       const bool compatibleStage = upstreamStage == nativeStage ||
-                                   (upstreamStage == QLatin1String("parser") &&
-                                    nativeStage == QLatin1String("lexer"));
+                                   (upstreamStage == QLatin1String("parser") && nativeStage == QLatin1String("lexer"));
       if (!compatibleStage)
-        failDifferential(
-            QStringLiteral("Differential negative stage mismatch for %1: native=%2 upstream=%3")
-                .arg(id, nativeStage, upstreamStage), item);
+        failDifferential(QStringLiteral("Differential negative stage mismatch for %1: native=%2 upstream=%3")
+                             .arg(id, nativeStage, upstreamStage),
+                         item);
       const QJsonObject expectedPosition =
           upstreamStage == QLatin1String("parser") && nativeStage == QLatin1String("lexer")
-            ? upstreamError.value(QStringLiteral("refinement")).toObject()
-            : upstreamError.value(QStringLiteral("normalized")).toObject();
+              ? upstreamError.value(QStringLiteral("refinement")).toObject()
+              : upstreamError.value(QStringLiteral("normalized")).toObject();
       const bool compareLine = upstreamError.value(QStringLiteral("compareLine")).toBool();
       const bool compareColumn = upstreamError.value(QStringLiteral("compareColumn")).toBool();
       if (compareLine)
         ++stableLineCount;
       if (compareLine && nativeError.line() != expectedPosition.value(QStringLiteral("line")).toInt()) {
-        positionMismatches.push_back(
-            QStringLiteral("%1 line: native=%2 upstream=%3 (%4)")
-                .arg(id).arg(nativeError.line())
-                .arg(expectedPosition.value(QStringLiteral("line")).toInt())
-                .arg(expectedPosition.value(QStringLiteral("basis")).toString()));
-        if (positionFailureItem.isEmpty()) positionFailureItem = item;
+        positionMismatches.push_back(QStringLiteral("%1 line: native=%2 upstream=%3 (%4)")
+                                         .arg(id)
+                                         .arg(nativeError.line())
+                                         .arg(expectedPosition.value(QStringLiteral("line")).toInt())
+                                         .arg(expectedPosition.value(QStringLiteral("basis")).toString()));
+        if (positionFailureItem.isEmpty())
+          positionFailureItem = item;
       }
       if (compareColumn)
         ++stableColumnCount;
       if (compareColumn && nativeError.column() != expectedPosition.value(QStringLiteral("column")).toInt()) {
-        positionMismatches.push_back(
-            QStringLiteral("%1 column: native=%2 upstream=%3 (%4)")
-                .arg(id).arg(nativeError.column())
-                .arg(expectedPosition.value(QStringLiteral("column")).toInt())
-                .arg(expectedPosition.value(QStringLiteral("basis")).toString()));
-        if (positionFailureItem.isEmpty()) positionFailureItem = item;
+        positionMismatches.push_back(QStringLiteral("%1 column: native=%2 upstream=%3 (%4)")
+                                         .arg(id)
+                                         .arg(nativeError.column())
+                                         .arg(expectedPosition.value(QStringLiteral("column")).toInt())
+                                         .arg(expectedPosition.value(QStringLiteral("basis")).toString()));
+        if (positionFailureItem.isEmpty())
+          positionFailureItem = item;
       }
       actualClassCounts.insert(actualClass, actualClassCounts.value(actualClass).toInt() + 1);
     } catch (const std::exception& nativeError) {
       failDifferential(QStringLiteral("Differential negative case threw an unclassified native exception\n"
-                          "case: %1\nsource:\n%2\nerror: %3")
-               .arg(id, source, QString::fromUtf8(nativeError.what())), item);
+                                      "case: %1\nsource:\n%2\nerror: %3")
+                           .arg(id, source, QString::fromUtf8(nativeError.what())),
+                       item);
     }
     if (!rejected)
-      failDifferential(QStringLiteral("Differential negative case succeeded natively: %1\n%2")
-                           .arg(id, source), item);
+      failDifferential(QStringLiteral("Differential negative case succeeded natively: %1\n%2").arg(id, source), item);
   }
   require(actualClassCounts == generator.value(QStringLiteral("negativeClassCounts")).toObject(),
           QStringLiteral("Differential negative error-class metadata drifted"));
-  require(negativeOriginProductions.size() ==
-              generator.value(QStringLiteral("negativeOriginProductionCount")).toInt(),
+  require(negativeOriginProductions.size() == generator.value(QStringLiteral("negativeOriginProductionCount")).toInt(),
           QStringLiteral("Differential negative origin-production metadata drifted"));
   if (!positionMismatches.isEmpty())
     failDifferential(QStringLiteral("Differential negative position mismatches:\n%1")
@@ -351,13 +359,11 @@ int main(int argc, char** argv) {
   const QJsonObject diagnosticCoverage = root.value(QStringLiteral("diagnosticCoverage")).toObject();
   for (const QJsonValue& code : diagnosticCoverage.value(QStringLiteral("requiredCodes")).toArray())
     require(diagnosticCodes.contains(code.toString()),
-            QStringLiteral("Required flowchart diagnostic code is uncovered: %1")
-                .arg(code.toString()));
+            QStringLiteral("Required flowchart diagnostic code is uncovered: %1").arg(code.toString()));
   QJsonObject actualCodeCounts;
   for (auto it = diagnosticCodeCounts.cbegin(); it != diagnosticCodeCounts.cend(); ++it)
     actualCodeCounts.insert(it.key(), it.value());
-  const QJsonObject expectedCodeCounts =
-      diagnosticCoverage.value(QStringLiteral("codeCounts")).toObject();
+  const QJsonObject expectedCodeCounts = diagnosticCoverage.value(QStringLiteral("codeCounts")).toObject();
   require(actualCodeCounts == expectedCodeCounts,
           QStringLiteral("Flowchart diagnostic code coverage changed\nexpected: %1\nactual: %2")
               .arg(QString::fromUtf8(QJsonDocument(expectedCodeCounts).toJson(QJsonDocument::Compact)),
@@ -373,22 +379,19 @@ int main(int argc, char** argv) {
           QStringLiteral("Stable error-line differential coverage changed"));
   require(stableColumnCount == diagnosticCoverage.value(QStringLiteral("stableColumnCount")).toInt(),
           QStringLiteral("Stable error-column differential coverage changed"));
-  for (const QString& requiredOperator : {
-           QStringLiteral("delete-required-terminal"),
-           QStringLiteral("replace-terminal-class"),
-           QStringLiteral("duplicate-separator"),
-           QStringLiteral("truncate-recursive-production"),
-           QStringLiteral("break-paired-delimiter"),
-           QStringLiteral("insert-nullable-boundary-token")})
+  for (const QString& requiredOperator :
+       {QStringLiteral("delete-required-terminal"), QStringLiteral("replace-terminal-class"),
+        QStringLiteral("duplicate-separator"), QStringLiteral("truncate-recursive-production"),
+        QStringLiteral("break-paired-delimiter"), QStringLiteral("insert-nullable-boundary-token")})
     require(mutationOperators.contains(requiredOperator),
-            QStringLiteral("Production-aware mutation operator is uncovered: %1")
-                .arg(requiredOperator));
+            QStringLiteral("Production-aware mutation operator is uncovered: %1").arg(requiredOperator));
   qDebug().noquote() << "Flowchart diagnostic codes:" << QStringList(diagnosticCodes.values()).join(", ")
                      << "matrix entries:" << diagnosticMatrix.size();
-  qDebug().noquote() << QStringLiteral(
-                            "Flowchart differential fuzz: %1 positive + %2 negative cases matched "
-                            "Mermaid 11.16.0 (seed=0x%3, %4 productions)")
-                            .arg(cases.size()).arg(negativeCases.size()).arg(seed, 0, 16)
+  qDebug().noquote() << QStringLiteral("Flowchart differential fuzz: %1 positive + %2 negative cases matched "
+                                       "Mermaid 11.16.0 (seed=0x%3, %4 productions)")
+                            .arg(cases.size())
+                            .arg(negativeCases.size())
+                            .arg(seed, 0, 16)
                             .arg(coveredProductions.size());
   return 0;
 }

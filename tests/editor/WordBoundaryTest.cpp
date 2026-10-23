@@ -92,7 +92,7 @@ void testEmptyAndSingle() {
   require(nextWordOffset(nonWord, 0) == 1, "single non-word char next");
 }
 
-}  // namespace
+} // namespace
 
 int main() {
   runTest("asciiWords", testAsciiWords);

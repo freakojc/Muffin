@@ -222,4 +222,4 @@ private:
   mutable QList<int> layoutLru_;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -62,11 +62,10 @@ public:
   static bool targetNameCollides(const QString& oldPath, const QString& newDir, const QString& newName);
 
   static bool isSameOrDescendant(const QString& candidate, const QString& root);
-  static QString remapDescendant(const QString& candidate, const QString& oldRoot,
-                                 const QString& newRoot);
+  static QString remapDescendant(const QString& candidate, const QString& oldRoot, const QString& newRoot);
 
 private:
   FilePathOps() = delete;
 };
 
-}  // namespace muffin
+} // namespace muffin

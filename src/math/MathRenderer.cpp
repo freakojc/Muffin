@@ -12,7 +12,8 @@ constexpr qreal kKatexLineBoxHeightEm = 1.13636;
 constexpr qreal kKatexLineBoxHeightAboveBaselineEm = 0.88889;
 constexpr qreal kKatexLineBoxDepthBelowBaselineEm = kKatexLineBoxHeightEm - kKatexLineBoxHeightAboveBaselineEm;
 
-std::unique_ptr<MathRenderNode> makeNamedSpan(QString name, std::vector<std::unique_ptr<MathRenderNode>> children = {}) {
+std::unique_ptr<MathRenderNode> makeNamedSpan(QString name,
+                                              std::vector<std::unique_ptr<MathRenderNode>> children = {}) {
   auto span = std::make_unique<MathRenderNode>();
   span->kind = MathRenderKind::Span;
   span->text = std::move(name);
@@ -46,9 +47,9 @@ bool isPostOperatorSpace(const MathRenderNode& node) {
 }
 
 QString outerAtomClass(const MathRenderNode& node, bool rightSide) {
-  if ((node.kind == MathRenderKind::Span || node.kind == MathRenderKind::VList || node.kind == MathRenderKind::Phantom) &&
-      !node.children.empty() &&
-      (node.atomClass.isEmpty() || node.atomClass == QStringLiteral("mord"))) {
+  if ((node.kind == MathRenderKind::Span || node.kind == MathRenderKind::VList ||
+       node.kind == MathRenderKind::Phantom) &&
+      !node.children.empty() && (node.atomClass.isEmpty() || node.atomClass == QStringLiteral("mord"))) {
     const auto& child = rightSide ? node.children.back() : node.children.front();
     if (child) {
       const QString nested = outerAtomClass(*child, rightSide);
@@ -102,7 +103,8 @@ std::vector<std::unique_ptr<MathRenderNode>> splitIntoKatexBases(std::unique_ptr
   return bases;
 }
 
-std::unique_ptr<MathRenderNode> wrapKatexRoot(std::unique_ptr<MathRenderNode> body, const MathOptions& options, bool displayMode) {
+std::unique_ptr<MathRenderNode> wrapKatexRoot(std::unique_ptr<MathRenderNode> body, const MathOptions& options,
+                                              bool displayMode) {
   auto bases = splitIntoKatexBases(std::move(body));
   if (bases.empty()) {
     bases.push_back(makeBase({}));
@@ -129,20 +131,17 @@ std::unique_ptr<MathRenderNode> wrapKatexRoot(std::unique_ptr<MathRenderNode> bo
   return root;
 }
 
-}  // namespace
+} // namespace
 
-MathLayoutResult MathRenderer::render(const QString& tex, qreal rootFontPixelSize,
-                                      const QColor& color, bool displayMode,
-                                      qreal maxWidth) const {
+MathLayoutResult MathRenderer::render(const QString& tex, qreal rootFontPixelSize, const QColor& color,
+                                      bool displayMode, qreal maxWidth) const {
   MathSettings settings;
   settings.displayMode = displayMode;
   return render(tex, rootFontPixelSize, color, displayMode, settings, maxWidth);
 }
 
-MathLayoutResult MathRenderer::render(const QString& tex, qreal rootFontPixelSize,
-                                      const QColor& color, bool displayMode,
-                                      const MathSettings& inputSettings,
-                                      qreal maxWidth) const {
+MathLayoutResult MathRenderer::render(const QString& tex, qreal rootFontPixelSize, const QColor& color,
+                                      bool displayMode, const MathSettings& inputSettings, qreal maxWidth) const {
   MathFontRegistry::ensureLoaded();
 
   MathSettings settings = inputSettings;
@@ -179,4 +178,4 @@ MathLayoutResult MathRenderer::render(const QString& tex, qreal rootFontPixelSiz
   return result;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

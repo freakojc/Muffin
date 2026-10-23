@@ -10,15 +10,13 @@
 namespace muffin::mermaid::sankey {
 namespace {
 
-[[noreturn]] void parserError(int line, int column, const QString &token,
-                              const QString &detail) {
+[[noreturn]] void parserError(int line, int column, const QString& token, const QString& detail) {
   throw SankeyParseError(SankeyErrorKind::Parser, line, column, token, detail);
 }
 
 bool asciiFieldChar(QChar c) {
   const ushort u = c.unicode();
-  return (u >= 0x20 && u <= 0x21) || (u >= 0x23 && u <= 0x2b) ||
-         (u >= 0x2d && u <= 0x7e);
+  return (u >= 0x20 && u <= 0x21) || (u >= 0x23 && u <= 0x2b) || (u >= 0x2d && u <= 0x7e);
 }
 
 struct CsvField {
@@ -26,22 +24,18 @@ struct CsvField {
   int end = 0;
 };
 
-CsvField parseField(const QString &text, int start, int line) {
+CsvField parseField(const QString& text, int start, int line) {
   if (start >= text.size())
-    parserError(line, start + 1, QStringLiteral("EOF"),
-                QStringLiteral("Expected Sankey CSV field"));
+    parserError(line, start + 1, QStringLiteral("EOF"), QStringLiteral("Expected Sankey CSV field"));
   if (text.at(start) != QLatin1Char('"')) {
     int i = start;
-    while (i < text.size() && text.at(i) != QLatin1Char(',') &&
-           text.at(i) != QLatin1Char('\n')) {
+    while (i < text.size() && text.at(i) != QLatin1Char(',') && text.at(i) != QLatin1Char('\n')) {
       if (!asciiFieldChar(text.at(i)))
-        parserError(line, i + 1, text.mid(i, 1),
-                    QStringLiteral("Invalid Sankey CSV character"));
+        parserError(line, i + 1, text.mid(i, 1), QStringLiteral("Invalid Sankey CSV character"));
       ++i;
     }
     if (i == start)
-      parserError(line, start + 1, text.mid(start, 1),
-                  QStringLiteral("Expected Sankey CSV field"));
+      parserError(line, start + 1, text.mid(start, 1), QStringLiteral("Expected Sankey CSV field"));
     return {text.mid(start, i - start), i};
   }
 
@@ -57,60 +51,51 @@ CsvField parseField(const QString &text, int start, int line) {
       }
       return {value, i + 1};
     }
-    if (c != QLatin1Char(',') && c != QLatin1Char('\n') &&
-        c != QLatin1Char('\r') && !asciiFieldChar(c))
-      parserError(line, i + 1, text.mid(i, 1),
-                  QStringLiteral("Invalid escaped Sankey CSV character"));
+    if (c != QLatin1Char(',') && c != QLatin1Char('\n') && c != QLatin1Char('\r') && !asciiFieldChar(c))
+      parserError(line, i + 1, text.mid(i, 1), QStringLiteral("Invalid escaped Sankey CSV character"));
     if (c == QLatin1Char('\n'))
       ++line;
     value += c;
     ++i;
   }
-  parserError(line, start + 1, QStringLiteral("EOF"),
-              QStringLiteral("Unterminated Sankey CSV field"));
+  parserError(line, start + 1, QStringLiteral("EOF"), QStringLiteral("Unterminated Sankey CSV field"));
 }
 
-double jsParseFloat(const QString &source) {
+double jsParseFloat(const QString& source) {
   static const QRegularExpression number(QStringLiteral(
       R"(^[\x{0009}-\x{000D}\x{0020}\x{00A0}\x{FEFF}]*(?:([+-]?Infinity)|([+-]?(?:(?:\d+\.?\d*)|(?:\.\d+))(?:[eE][+-]?\d+)?)))"));
   const auto match = number.match(source);
   if (!match.hasMatch())
     return std::numeric_limits<double>::quiet_NaN();
   if (!match.captured(1).isEmpty())
-    return match.captured(1).startsWith(QLatin1Char('-'))
-               ? -std::numeric_limits<double>::infinity()
-               : std::numeric_limits<double>::infinity();
+    return match.captured(1).startsWith(QLatin1Char('-')) ? -std::numeric_limits<double>::infinity()
+                                                          : std::numeric_limits<double>::infinity();
   return match.captured(2).toDouble();
 }
 
 } // namespace
 
-SankeyParseError::SankeyParseError(SankeyErrorKind errorKind, int errorLine,
-                                   int errorColumn, QString errorToken,
-                                   const QString &message)
-    : std::runtime_error(message.toStdString()), kind(errorKind),
-      line(errorLine), column(errorColumn), token(std::move(errorToken)) {}
+SankeyParseError::SankeyParseError(SankeyErrorKind errorKind, int errorLine, int errorColumn, QString errorToken,
+                                   const QString& message)
+    : std::runtime_error(message.toStdString()), kind(errorKind), line(errorLine), column(errorColumn),
+      token(std::move(errorToken)) {
+}
 
-SankeyData SankeyDiagram::parse(const QString &source) {
+SankeyData SankeyDiagram::parse(const QString& source) {
   QString text = source;
-  static const QRegularExpression horizontalEdges(
-      QStringLiteral(R"(^[^\S\n\r]+|[^\S\n\r]+$)"));
+  static const QRegularExpression horizontalEdges(QStringLiteral(R"(^[^\S\n\r]+|[^\S\n\r]+$)"));
   text.replace(horizontalEdges, QString());
-  text.replace(QRegularExpression(QStringLiteral(R"([\n\r]+)")),
-               QStringLiteral("\n"));
+  text.replace(QRegularExpression(QStringLiteral(R"([\n\r]+)")), QStringLiteral("\n"));
   text = text.trimmed();
 
-  static const QRegularExpression header(
-      QStringLiteral(R"(^(sankey(?:-beta)?)(?=\b))"),
-      QRegularExpression::CaseInsensitiveOption);
+  static const QRegularExpression header(QStringLiteral(R"(^(sankey(?:-beta)?)(?=\b))"),
+                                         QRegularExpression::CaseInsensitiveOption);
   const auto headerMatch = header.match(text);
   if (!headerMatch.hasMatch())
     parserError(1, 1, text.left(16), QStringLiteral("Expected Sankey header"));
   int cursor = headerMatch.capturedEnd();
   if (cursor >= text.size() || text.at(cursor) != QLatin1Char('\n'))
-    parserError(1, cursor + 1,
-                cursor >= text.size() ? QStringLiteral("EOF")
-                                      : text.mid(cursor, 1),
+    parserError(1, cursor + 1, cursor >= text.size() ? QStringLiteral("EOF") : text.mid(cursor, 1),
                 QStringLiteral("Expected newline after Sankey header"));
   ++cursor;
 
@@ -123,24 +108,19 @@ SankeyData SankeyDiagram::parse(const QString &source) {
     line += sourceField.value.count(QLatin1Char('\n'));
     cursor = sourceField.end;
     if (cursor >= text.size() || text.at(cursor) != QLatin1Char(','))
-      parserError(line, cursor + 1,
-                  cursor >= text.size() ? QStringLiteral("EOF")
-                                        : text.mid(cursor, 1),
+      parserError(line, cursor + 1, cursor >= text.size() ? QStringLiteral("EOF") : text.mid(cursor, 1),
                   QStringLiteral("Expected comma after Sankey source"));
     CsvField targetField = parseField(text, cursor + 1, line);
     line += targetField.value.count(QLatin1Char('\n'));
     cursor = targetField.end;
     if (cursor >= text.size() || text.at(cursor) != QLatin1Char(','))
-      parserError(line, cursor + 1,
-                  cursor >= text.size() ? QStringLiteral("EOF")
-                                        : text.mid(cursor, 1),
+      parserError(line, cursor + 1, cursor >= text.size() ? QStringLiteral("EOF") : text.mid(cursor, 1),
                   QStringLiteral("Expected comma after Sankey target"));
     CsvField valueField = parseField(text, cursor + 1, line);
     line += valueField.value.count(QLatin1Char('\n'));
     cursor = valueField.end;
     if (cursor < text.size() && text.at(cursor) != QLatin1Char('\n'))
-      parserError(line, cursor + 1, text.mid(cursor, 1),
-                  QStringLiteral("Expected newline after Sankey record"));
+      parserError(line, cursor + 1, text.mid(cursor, 1), QStringLiteral("Expected newline after Sankey record"));
 
     auto clean = [&](QString value) {
       value = value.trimmed();
@@ -149,7 +129,7 @@ SankeyData SankeyDiagram::parse(const QString &source) {
     };
     const QString sourceId = clean(sourceField.value);
     const QString targetId = clean(targetField.value);
-    auto addNode = [&](const QString &id) {
+    auto addNode = [&](const QString& id) {
       if (!byId.contains(id)) {
         byId.insert(id, result.nodes.size());
         result.nodes.append({id});
@@ -157,16 +137,14 @@ SankeyData SankeyDiagram::parse(const QString &source) {
     };
     addNode(sourceId);
     addNode(targetId);
-    result.links.append(
-        {sourceId, targetId, jsParseFloat(valueField.value.trimmed())});
+    result.links.append({sourceId, targetId, jsParseFloat(valueField.value.trimmed())});
     if (cursor < text.size()) {
       ++cursor;
       ++line;
     }
   }
   if (result.links.isEmpty())
-    parserError(1, text.size() + 1, QStringLiteral("EOF"),
-                QStringLiteral("Expected Sankey CSV record"));
+    parserError(1, text.size() + 1, QStringLiteral("EOF"), QStringLiteral("Expected Sankey CSV record"));
   return result;
 }
 

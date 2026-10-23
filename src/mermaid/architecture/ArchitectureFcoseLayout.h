@@ -29,8 +29,7 @@ struct ArchitectureFcoseResult {
   QHash<QString, QRectF> groups;
 };
 
-ArchitectureFcoseResult layoutArchitectureFcose(
-    const ArchitectureData& data, const ArchitectureFcoseOptions& options,
-    const QHash<QString, qreal>& renderedNodeHeights);
+ArchitectureFcoseResult layoutArchitectureFcose(const ArchitectureData& data, const ArchitectureFcoseOptions& options,
+                                                const QHash<QString, qreal>& renderedNodeHeights);
 
-}  // namespace muffin::mermaid::architecture
+} // namespace muffin::mermaid::architecture

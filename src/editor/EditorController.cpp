@@ -33,42 +33,39 @@ struct PerfTimer : diag::ScopedPerfProbe {
 };
 
 LiteralBlockSpec frontMatterSpec() {
-  return LiteralBlockSpec{
-      BlockType::FrontMatter,
-      HitTestResult::Zone::FrontMatter,
-      QStringLiteral("No front matter is active."),
-      QStringLiteral("Edit Front Matter"),
-      QStringLiteral("Backspace Front Matter"),
-      QStringLiteral("Delete Front Matter Text"),
-      QStringLiteral("Delete Front Matter Selection"),
-      QStringLiteral("Set Front Matter Content"),
-      QStringLiteral("  ")};
+  return LiteralBlockSpec{BlockType::FrontMatter,
+                          HitTestResult::Zone::FrontMatter,
+                          QStringLiteral("No front matter is active."),
+                          QStringLiteral("Edit Front Matter"),
+                          QStringLiteral("Backspace Front Matter"),
+                          QStringLiteral("Delete Front Matter Text"),
+                          QStringLiteral("Delete Front Matter Selection"),
+                          QStringLiteral("Set Front Matter Content"),
+                          QStringLiteral("  ")};
 }
 
 LiteralBlockSpec htmlSpec() {
-  return LiteralBlockSpec{
-      BlockType::HtmlBlock,
-      HitTestResult::Zone::Html,
-      QStringLiteral("No HTML block is active."),
-      QStringLiteral("Edit HTML Block"),
-      QStringLiteral("Backspace HTML Block"),
-      QStringLiteral("Delete HTML Block Text"),
-      QStringLiteral("Delete HTML Block Selection"),
-      QStringLiteral("Set HTML Block"),
-      QStringLiteral("  ")};
+  return LiteralBlockSpec{BlockType::HtmlBlock,
+                          HitTestResult::Zone::Html,
+                          QStringLiteral("No HTML block is active."),
+                          QStringLiteral("Edit HTML Block"),
+                          QStringLiteral("Backspace HTML Block"),
+                          QStringLiteral("Delete HTML Block Text"),
+                          QStringLiteral("Delete HTML Block Selection"),
+                          QStringLiteral("Set HTML Block"),
+                          QStringLiteral("  ")};
 }
 
 LiteralBlockSpec mathSpec() {
-  return LiteralBlockSpec{
-      BlockType::MathBlock,
-      HitTestResult::Zone::Math,
-      QStringLiteral("No math block is active."),
-      QStringLiteral("Edit Math Block"),
-      QStringLiteral("Backspace Math Block"),
-      QStringLiteral("Delete Math Block Text"),
-      QStringLiteral("Delete Math Block Selection"),
-      QStringLiteral("Set Math Block TeX"),
-      QStringLiteral("  ")};
+  return LiteralBlockSpec{BlockType::MathBlock,
+                          HitTestResult::Zone::Math,
+                          QStringLiteral("No math block is active."),
+                          QStringLiteral("Edit Math Block"),
+                          QStringLiteral("Backspace Math Block"),
+                          QStringLiteral("Delete Math Block Text"),
+                          QStringLiteral("Delete Math Block Selection"),
+                          QStringLiteral("Set Math Block TeX"),
+                          QStringLiteral("  ")};
 }
 
 MarkdownNode* primaryParagraphOrSelf(MarkdownNode& node) {
@@ -84,28 +81,28 @@ MarkdownNode* primaryParagraphOrSelf(MarkdownNode& node) {
 
 qsizetype selectableTextLength(const MarkdownNode& node) {
   switch (node.type()) {
-    case BlockType::Paragraph:
-    case BlockType::Heading:
-    case BlockType::TableCell:
-      return InlineProjection::plainTextForInlines(node.inlines()).size();
-    case BlockType::ListItem:
-      for (const auto& child : node.children()) {
-        if (child->type() == BlockType::Paragraph || child->type() == BlockType::Heading)
-          return selectableTextLength(*child);
-      }
-      return 0;
-    case BlockType::FrontMatter:
-    case BlockType::CodeFence:
-    case BlockType::MathBlock:
-    case BlockType::HtmlBlock:
-      return node.literal().size();
-    case BlockType::LinkDefinition:
-    case BlockType::FootnoteDefinition:
-      return definitionSelectableLength(node);
-    case BlockType::Table:
-      return 1;
-    default:
-      return 0;
+  case BlockType::Paragraph:
+  case BlockType::Heading:
+  case BlockType::TableCell:
+    return InlineProjection::plainTextForInlines(node.inlines()).size();
+  case BlockType::ListItem:
+    for (const auto& child : node.children()) {
+      if (child->type() == BlockType::Paragraph || child->type() == BlockType::Heading)
+        return selectableTextLength(*child);
+    }
+    return 0;
+  case BlockType::FrontMatter:
+  case BlockType::CodeFence:
+  case BlockType::MathBlock:
+  case BlockType::HtmlBlock:
+    return node.literal().size();
+  case BlockType::LinkDefinition:
+  case BlockType::FootnoteDefinition:
+    return definitionSelectableLength(node);
+  case BlockType::Table:
+    return 1;
+  default:
+    return 0;
   }
 }
 
@@ -147,9 +144,11 @@ MarkdownNode* documentSelectionEdge(MarkdownNode& node, bool first) {
     const auto& children = node.children();
     for (size_t i = 0; i < children.size(); ++i) {
       auto* child = children[first ? i : children.size() - i - 1].get();
-      if (child->type() == BlockType::Unknown) continue;
+      if (child->type() == BlockType::Unknown)
+        continue;
       // The primary list paragraph is painted and edited by its ListItem.
-      if (node.type() == BlockType::ListItem && child == primaryParagraphOrSelf(node)) return &node;
+      if (node.type() == BlockType::ListItem && child == primaryParagraphOrSelf(node))
+        return &node;
       return documentSelectionEdge(*child, first);
     }
   }
@@ -162,14 +161,17 @@ bool fillSourceOffsetForTextHit(const DocumentSession& session, HitTestResult& h
     return false;
   }
 
-  MarkdownNode* node = session.document().node(hit.zone == HitTestResult::Zone::TableCell ? hit.textNodeId : hit.blockId);
+  MarkdownNode* node =
+      session.document().node(hit.zone == HitTestResult::Zone::TableCell ? hit.textNodeId : hit.blockId);
   if (!node) {
     return false;
   }
 
-  if ((node->type() == BlockType::LinkDefinition || node->type() == BlockType::FootnoteDefinition) && hit.sourceOffset >= 0) {
+  if ((node->type() == BlockType::LinkDefinition || node->type() == BlockType::FootnoteDefinition) &&
+      hit.sourceOffset >= 0) {
     const DefinitionBlock definition = node->definition();
-    const qsizetype blockStart = definition.markerRange.isValid() ? definition.markerRange.start : node->sourceRange().byteStart;
+    const qsizetype blockStart =
+        definition.markerRange.isValid() ? definition.markerRange.start : node->sourceRange().byteStart;
     hit.textNodeId = node->id();
     hit.textOffset = qMax<qsizetype>(0, hit.sourceOffset - blockStart);
     return true;
@@ -184,11 +186,10 @@ bool fillSourceOffsetForTextHit(const DocumentSession& session, HitTestResult& h
   const SourceRange range = editable->sourceRange();
   const PieceTable& markdown = session.markdownText();
   qsizetype start = range.byteEnd > range.byteStart
-                     ? range.byteStart
-                     : sourceOffsetForLineColumn(markdown, range.lineStart, qMax(1, range.columnStart));
-  const qsizetype end = range.byteEnd > range.byteStart
-                         ? range.byteEnd
-                         : sourceOffsetForLineEnd(markdown, range.lineEnd);
+                        ? range.byteStart
+                        : sourceOffsetForLineColumn(markdown, range.lineStart, qMax(1, range.columnStart));
+  const qsizetype end =
+      range.byteEnd > range.byteStart ? range.byteEnd : sourceOffsetForLineEnd(markdown, range.lineEnd);
   if (start < 0 || end < start) {
     return false;
   }
@@ -221,14 +222,12 @@ bool fillSourceOffsetForTextHit(const DocumentSession& session, HitTestResult& h
   return true;
 }
 
-}  // namespace
+} // namespace
 
 EditorController::EditorController(QObject* parent)
-    : QObject(parent),
-      frontMatterLiteral_(frontMatterSpec()),
-      htmlLiteral_(htmlSpec()),
-      mathLiteral_(mathSpec()) {
-  frontMatterLiteral_.setRejectedHandler([this](QString reason) { emit frontMatterCommandRejected(std::move(reason)); });
+    : QObject(parent), frontMatterLiteral_(frontMatterSpec()), htmlLiteral_(htmlSpec()), mathLiteral_(mathSpec()) {
+  frontMatterLiteral_.setRejectedHandler(
+      [this](QString reason) { emit frontMatterCommandRejected(std::move(reason)); });
   htmlLiteral_.setRejectedHandler([this](QString reason) { emit htmlCommandRejected(std::move(reason)); });
   mathLiteral_.setRejectedHandler([this](QString reason) { emit mathCommandRejected(std::move(reason)); });
 }
@@ -246,10 +245,14 @@ void EditorController::attach(DocumentSession* session, EditorView* view) {
     a11y::registerController(view_, this);
   }
 
-  const EditorContext ctx{session_, &selection_, &undoStack_, &brushQueue_, view_,
-      {{static_cast<int>(BlockType::FrontMatter), &frontMatterLiteral_},
-       {static_cast<int>(BlockType::HtmlBlock),   &htmlLiteral_},
-       {static_cast<int>(BlockType::MathBlock),   &mathLiteral_}}};
+  const EditorContext ctx{session_,
+                          &selection_,
+                          &undoStack_,
+                          &brushQueue_,
+                          view_,
+                          {{static_cast<int>(BlockType::FrontMatter), &frontMatterLiteral_},
+                           {static_cast<int>(BlockType::HtmlBlock), &htmlLiteral_},
+                           {static_cast<int>(BlockType::MathBlock), &mathLiteral_}}};
 
   inputController_.setContext(ctx);
   inputController_.setCodeFenceController(&codeFenceController_);
@@ -266,8 +269,9 @@ void EditorController::attach(DocumentSession* session, EditorView* view) {
 
   if (view_) {
     connect(view_, &EditorView::blockClicked, this, &EditorController::activateHit);
-    connect(view_, &EditorView::selectionChanged, &selection_,
-            static_cast<void (SelectionController::*)(SelectionRange, HitTestResult)>(&SelectionController::setSelection));
+    connect(
+        view_, &EditorView::selectionChanged, &selection_,
+        static_cast<void (SelectionController::*)(SelectionRange, HitTestResult)>(&SelectionController::setSelection));
     connect(view_, &EditorView::textCommitted, &inputController_, &InputController::insertText);
     connect(view_, &EditorView::htmlEditToggleRequested, this, [this](NodeId blockId) {
       if (!blockId.isValid()) {
@@ -303,57 +307,58 @@ void EditorController::attach(DocumentSession* session, EditorView* view) {
     });
   }
   connect(&inputController_, &InputController::selectAllRequested, this, &EditorController::selectAll);
-  connect(&selection_, &SelectionController::selectionChanged, this, [this](SelectionRange selection, HitTestResult hit) {
-    // A command (e.g. insert-paragraph-before/after) may have moved the caret off the literal
-    // block being edited; leave that editor so the caret and the next keystroke follow the caret.
-    {
-      PerfTimer t("selectionChanged.reconcileLiteral");
-      inputController_.reconcileLiteralEditorForCursor();
-    }
-    if (view_) {
-      if (selection.focus.isValid() && !selection.isCollapsed()) {
-        view_->setSelectionRange(selection);
-      } else if (selection.focus.isValid()) {
-        view_->setCursorPosition(selection.focus);
-      } else {
-        view_->clearCursor();
-      }
-    }
-    {
-      PerfTimer t("selectionChanged.cursorChangedEmit");
-      emit cursorChanged(hit);
-    }
-    // Screen-reader notifications. Guarded by isActive() so the bridge stays dormant (zero cost)
-    // when no assistive technology is attached. A collapsed caret reports its source offset; a
-    // real selection reports the whole range (the selection event also carries the focus end).
-    if (QAccessible::isActive() && view_ != nullptr) {
-      if (selection.isCollapsed()) {
-        QAccessibleTextCursorEvent event(view_, static_cast<int>(qMax<qsizetype>(0, hit.sourceOffset)));
-        QAccessible::updateAccessibility(&event);
-      } else {
-        qsizetype start = 0;
-        qsizetype end = 0;
-        if (inputController_.selectionSourceRange(start, end) && end > start) {
-          QAccessibleTextSelectionEvent event(view_, static_cast<int>(start), static_cast<int>(end));
-          QAccessible::updateAccessibility(&event);
-        }
-      }
-    }
-    {
-      PerfTimer t("selectionChanged.stateChangedEmit");
-      emit stateChanged();
-    }
-  });
+  connect(&selection_, &SelectionController::selectionChanged, this,
+          [this](SelectionRange selection, HitTestResult hit) {
+            // A command (e.g. insert-paragraph-before/after) may have moved the caret off the literal
+            // block being edited; leave that editor so the caret and the next keystroke follow the caret.
+            {
+              PerfTimer t("selectionChanged.reconcileLiteral");
+              inputController_.reconcileLiteralEditorForCursor();
+            }
+            if (view_) {
+              if (selection.focus.isValid() && !selection.isCollapsed()) {
+                view_->setSelectionRange(selection);
+              } else if (selection.focus.isValid()) {
+                view_->setCursorPosition(selection.focus);
+              } else {
+                view_->clearCursor();
+              }
+            }
+            {
+              PerfTimer t("selectionChanged.cursorChangedEmit");
+              emit cursorChanged(hit);
+            }
+            // Screen-reader notifications. Guarded by isActive() so the bridge stays dormant (zero cost)
+            // when no assistive technology is attached. A collapsed caret reports its source offset; a
+            // real selection reports the whole range (the selection event also carries the focus end).
+            if (QAccessible::isActive() && view_ != nullptr) {
+              if (selection.isCollapsed()) {
+                QAccessibleTextCursorEvent event(view_, static_cast<int>(qMax<qsizetype>(0, hit.sourceOffset)));
+                QAccessible::updateAccessibility(&event);
+              } else {
+                qsizetype start = 0;
+                qsizetype end = 0;
+                if (inputController_.selectionSourceRange(start, end) && end > start) {
+                  QAccessibleTextSelectionEvent event(view_, static_cast<int>(start), static_cast<int>(end));
+                  QAccessible::updateAccessibility(&event);
+                }
+              }
+            }
+            {
+              PerfTimer t("selectionChanged.stateChangedEmit");
+              emit stateChanged();
+            }
+          });
   connect(&undoStack_, &UndoStack::stateChanged, this, &EditorController::stateChanged);
   connect(&brushQueue_, &BrushQueue::refreshRequested, this, [this](const BrushQueue::RefreshRequest& request) {
     if (!session_ || !view_) {
       return;
     }
     qCDebug(controllerPerf).nospace() << "refresh.consumer fullLayoutDirty=" << request.fullLayoutDirty
-        << " rangeValid=" << request.topLevelRangeDirty.isValid()
-        << " rangeRev=" << request.topLevelRangeDirty.documentRevision
-        << " docRev=" << session_->document().revision()
-        << " dirtyBlocks=" << request.layoutDirtyBlocks.size();
+                                      << " rangeValid=" << request.topLevelRangeDirty.isValid()
+                                      << " rangeRev=" << request.topLevelRangeDirty.documentRevision
+                                      << " docRev=" << session_->document().revision()
+                                      << " dirtyBlocks=" << request.layoutDirtyBlocks.size();
     if (request.fullLayoutDirty) {
       qCDebug(controllerPerf) << "refresh.consumer → setDocument (fullLayoutDirty) ← FULL REBUILD";
       view_->setDocument(session_->document(), session_->filePath());
@@ -363,8 +368,11 @@ void EditorController::attach(DocumentSession* session, EditorView* view) {
       const bool rangeOk = request.topLevelRangeDirty.documentRevision == session_->document().revision() &&
                            view_->refreshTopLevelRange(request.topLevelRangeDirty, session_->document());
       if (!rangeOk) {
-        qCDebug(controllerPerf).nospace() << "refresh.consumer → setDocument (range "
-            << (request.topLevelRangeDirty.documentRevision != session_->document().revision() ? "revisionMismatch" : "refreshTopLevelRangeFailed")
+        qCDebug(controllerPerf).nospace()
+            << "refresh.consumer → setDocument (range "
+            << (request.topLevelRangeDirty.documentRevision != session_->document().revision()
+                    ? "revisionMismatch"
+                    : "refreshTopLevelRangeFailed")
             << ") ← FULL REBUILD";
         view_->setDocument(session_->document(), session_->filePath());
         return;
@@ -393,14 +401,14 @@ void EditorController::attach(DocumentSession* session, EditorView* view) {
       }
       return;
     }
-    if (!request.layoutDirtyBlocks.isEmpty() && !view_->refreshBlocks(request.layoutDirtyBlocks, session_->document())) {
+    if (!request.layoutDirtyBlocks.isEmpty() &&
+        !view_->refreshBlocks(request.layoutDirtyBlocks, session_->document())) {
       qCDebug(controllerPerf) << "refresh.consumer → setDocument (refreshBlocks failed) ← FULL REBUILD";
       view_->setDocument(session_->document(), session_->filePath());
     }
   });
   if (session_ != nullptr) {
-    connect(session_, &DocumentSession::documentAboutToBeReplaced,
-            this, &EditorController::clearHistoryAndSelection);
+    connect(session_, &DocumentSession::documentAboutToBeReplaced, this, &EditorController::clearHistoryAndSelection);
   }
   if (session_ != nullptr && view_ != nullptr) {
     // Local text deltas carry position + inserted text (the removed text is no longer available
@@ -410,8 +418,8 @@ void EditorController::attach(DocumentSession* session, EditorView* view) {
             [this](qsizetype start, qsizetype removedLength, QString insertedText) {
               Q_UNUSED(removedLength);
               if (QAccessible::isActive() && view_ != nullptr) {
-                QAccessibleTextUpdateEvent event(
-                    view_, static_cast<int>(qMax<qsizetype>(0, start)), QString(), std::move(insertedText));
+                QAccessibleTextUpdateEvent event(view_, static_cast<int>(qMax<qsizetype>(0, start)), QString(),
+                                                 std::move(insertedText));
                 QAccessible::updateAccessibility(&event);
               }
             });
@@ -477,7 +485,9 @@ const UndoStack& EditorController::undoStack() const {
 }
 
 void EditorController::applyMarkdownTextWithUndo(QString text, const QString& label) {
-  if (!session_) { return; }
+  if (!session_) {
+    return;
+  }
   const QString beforeText = session_->markdownText().toString();
   const CursorPosition beforeCursor = selection_.hasCursor() ? selection_.cursorPosition() : CursorPosition();
   session_->applyMarkdownText(std::move(text), true);
@@ -486,7 +496,8 @@ void EditorController::applyMarkdownTextWithUndo(QString text, const QString& la
   // restores it to a known spot. The batch op's own caret move (e.g. Find jumping to the match) is
   // driven by the caller/view after this returns.
   undoStack_.push(EditTransaction(EditTransaction::Kind::ReplaceDocumentText, label,
-      DocumentSnapshot{beforeText, beforeCursor, {}}, DocumentSnapshot{afterText, beforeCursor, {}}));
+                                  DocumentSnapshot{beforeText, beforeCursor, {}},
+                                  DocumentSnapshot{afterText, beforeCursor, {}}));
 }
 
 InputController& EditorController::inputController() {
@@ -553,15 +564,18 @@ void EditorController::undo() {
   if (range.anchor.isValid() && range.focus.isValid()) {
     const auto remap = [this](const CursorPosition& stored) {
       auto cursor = stored.text.sourceOffset >= 0 && !stored.afterBlock
-          ? cursorForSourceOffset(stored.text.sourceOffset) : remapSnapshotCursor(stored);
+                        ? cursorForSourceOffset(stored.text.sourceOffset)
+                        : remapSnapshotCursor(stored);
       // Document selections include syntax outside the visible text. Keep
       // their explicit endpoints authoritative after remapping reparsed nodes.
-      if (stored.text.sourceOffset >= 0) cursor.text.sourceOffset = stored.text.sourceOffset;
+      if (stored.text.sourceOffset >= 0)
+        cursor.text.sourceOffset = stored.text.sourceOffset;
       cursor.text.inMeta = stored.text.inMeta;
       return cursor;
     };
     const auto anchor = remap(range.anchor), focus = remap(range.focus);
-    if (anchor.isValid() && focus.isValid()) selection_.setSelection({anchor, focus});
+    if (anchor.isValid() && focus.isValid())
+      selection_.setSelection({anchor, focus});
   }
 }
 
@@ -667,7 +681,8 @@ bool EditorController::selectCurrentWord() {
     return false;
   }
 
-  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_),
+                                    const_cast<SelectionController*>(&selection_));
   BlockEditContext context;
   if (!resolver.current(context)) {
     return false;
@@ -770,7 +785,8 @@ bool EditorController::selectCurrentBlockForRemoval() {
     return false;
   }
 
-  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_),
+                                    const_cast<SelectionController*>(&selection_));
   qsizetype blockStart = -1;
   qsizetype blockEnd = -1;
   if (!resolver.blockSourceRange(*current, blockStart, blockEnd) || blockEnd <= blockStart) {
@@ -801,7 +817,8 @@ bool EditorController::selectCurrentFormatSpan() {
     return false;
   }
 
-  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_),
+                                    const_cast<SelectionController*>(&selection_));
   BlockEditContext context;
   if (!resolver.current(context)) {
     return false;
@@ -863,9 +880,7 @@ bool EditorController::selectCurrentFormatSpan() {
 
 namespace {
 
-void accumulateUnderlineAtOffset(CursorFormatState& state,
-                                 const InlineProjection& proj,
-                                 qsizetype offset) {
+void accumulateUnderlineAtOffset(CursorFormatState& state, const InlineProjection& proj, qsizetype offset) {
   const auto& spans = proj.spans();
   for (const auto& hd : proj.htmlFormatData()) {
     for (const auto& fs : hd.formatSpans) {
@@ -875,9 +890,7 @@ void accumulateUnderlineAtOffset(CursorFormatState& state,
       const qsizetype fmtStart = hd.displayStart + fs.start;
       const qsizetype fmtEnd = fmtStart + fs.length;
       for (const auto& span : spans) {
-        if (span.kind == InlineSpanKind::HtmlContent &&
-            span.displayStart >= fmtStart &&
-            span.displayEnd <= fmtEnd &&
+        if (span.kind == InlineSpanKind::HtmlContent && span.displayStart >= fmtStart && span.displayEnd <= fmtEnd &&
             offset >= span.visibleStart && offset <= span.visibleEnd) {
           state.underline = true;
         }
@@ -905,12 +918,13 @@ bool isSpanUnderlined(const InlineProjectionSpan& span, const InlineProjection& 
   return false;
 }
 
-}  // namespace
+} // namespace
 
 namespace {
 CursorFormatState cursorFormatsForContext(const BlockEditContext& context, const SelectionRange& sel) {
   CursorFormatState state;
-  if (!sel.isCollapsed() && (!sel.isSingleBlock() || !sel.isSingleTextNode())) return state;
+  if (!sel.isCollapsed() && (!sel.isSingleBlock() || !sel.isSingleTextNode()))
+    return state;
   const auto& spans = context.inlineProjection.spans();
 
   if (sel.isCollapsed()) {
@@ -922,11 +936,16 @@ CursorFormatState cursorFormatsForContext(const BlockEditContext& context, const
         continue;
       }
       if (offset >= span.visibleStart && offset <= span.visibleEnd) {
-        if (span.bold) state.bold = true;
-        if (span.italic) state.italic = true;
-        if (span.strike) state.strikethrough = true;
-        if (span.type == InlineType::Code && span.kind == InlineSpanKind::Text) state.code = true;
-        if (span.type == InlineType::InlineMath && span.kind == InlineSpanKind::Text) state.inlineMath = true;
+        if (span.bold)
+          state.bold = true;
+        if (span.italic)
+          state.italic = true;
+        if (span.strike)
+          state.strikethrough = true;
+        if (span.type == InlineType::Code && span.kind == InlineSpanKind::Text)
+          state.code = true;
+        if (span.type == InlineType::InlineMath && span.kind == InlineSpanKind::Text)
+          state.inlineMath = true;
       }
     }
     accumulateUnderlineAtOffset(state, context.inlineProjection, offset);
@@ -971,13 +990,10 @@ CursorFormatState cursorFormatsForContext(const BlockEditContext& context, const
       if (!refSet) {
         ref = spanFmt;
         refSet = true;
-      } else if (spanFmt.bold != ref.bold ||
-                 spanFmt.italic != ref.italic ||
-                 spanFmt.underline != ref.underline ||
-                 spanFmt.strikethrough != ref.strikethrough ||
-                 spanFmt.code != ref.code ||
+      } else if (spanFmt.bold != ref.bold || spanFmt.italic != ref.italic || spanFmt.underline != ref.underline ||
+                 spanFmt.strikethrough != ref.strikethrough || spanFmt.code != ref.code ||
                  spanFmt.inlineMath != ref.inlineMath) {
-        return state;  // Inconsistent → all false
+        return state; // Inconsistent → all false
       }
     }
     if (refSet) {
@@ -987,15 +1003,12 @@ CursorFormatState cursorFormatsForContext(const BlockEditContext& context, const
       if (!state.underline && !context.contentText.isEmpty()) {
         qsizetype selSrcStart = -1, selSrcEnd = -1;
         if (context.inlineProjection.sourceOffsetForVisibleOffset(selStart, selSrcStart) &&
-            context.inlineProjection.sourceOffsetForVisibleOffset(selEnd, selSrcEnd) &&
-            selSrcStart >= 0 && selSrcEnd >= 0) {
-          const qsizetype openPos = context.contentText.lastIndexOf(
-              QLatin1String("<u>"), selSrcStart);
+            context.inlineProjection.sourceOffsetForVisibleOffset(selEnd, selSrcEnd) && selSrcStart >= 0 &&
+            selSrcEnd >= 0) {
+          const qsizetype openPos = context.contentText.lastIndexOf(QLatin1String("<u>"), selSrcStart);
           if (openPos >= 0) {
-            const qsizetype closePos = context.contentText.indexOf(
-                QLatin1String("</u>"), openPos + 3);
-            if (closePos >= 0 && openPos + 3 <= selSrcStart &&
-                closePos >= selSrcEnd) {
+            const qsizetype closePos = context.contentText.indexOf(QLatin1String("</u>"), openPos + 3);
+            if (closePos >= 0 && openPos + 3 <= selSrcStart && closePos >= selSrcEnd) {
               state.underline = true;
             }
           }
@@ -1007,15 +1020,19 @@ CursorFormatState cursorFormatsForContext(const BlockEditContext& context, const
   return state;
 }
 
-}  // namespace
+} // namespace
 
 CursorFormatState EditorController::queryCursorFormatState() const {
-  if (!session_ || !selection_.hasCursor()) return {};
+  if (!session_ || !selection_.hasCursor())
+    return {};
   const auto sel = selection_.selection();
-  if (!sel.isCollapsed() && (!sel.isSingleBlock() || !sel.isSingleTextNode())) return {};
+  if (!sel.isCollapsed() && (!sel.isSingleBlock() || !sel.isSingleTextNode()))
+    return {};
   BlockEditContext context;
-  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
-  return resolver.current(context) && context.inlineProjection.isValid() ? cursorFormatsForContext(context, sel) : CursorFormatState{};
+  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_),
+                                    const_cast<SelectionController*>(&selection_));
+  return resolver.current(context) && context.inlineProjection.isValid() ? cursorFormatsForContext(context, sel)
+                                                                         : CursorFormatState{};
 }
 
 bool EditorController::selectWordAtCursor(const BlockEditContext& context) {
@@ -1137,17 +1154,9 @@ bool EditorController::swapTopLevelBlocks(MarkdownNode& upper, MarkdownNode& low
   }
 
   const QString combined = lowerText + upperText;
-  inputController_.performLocalEdit(
-      EditTransaction::Kind::ReplaceDocumentText,
-      QStringLiteral("Move Block"),
-      upperStart,
-      lowerEnd - upperStart,
-      combined,
-      CursorPosition{},
-      newCursorOffset,
-      {},
-      false,
-      true);
+  inputController_.performLocalEdit(EditTransaction::Kind::ReplaceDocumentText, QStringLiteral("Move Block"),
+                                    upperStart, lowerEnd - upperStart, combined, CursorPosition{}, newCursorOffset, {},
+                                    false, true);
   return true;
 }
 
@@ -1163,25 +1172,25 @@ void EditorController::exitAllLiteralEditModes() {
 
 bool EditorController::enterLiteralEditMode(HitTestResult::Zone zone) {
   switch (zone) {
-    case HitTestResult::Zone::Code:
-      return codeFenceController_.enterEditMode();
-    default: {
-      LiteralBlockController* ctrl = literalForZone(zone);
-      return ctrl ? ctrl->enterEditMode() : false;
-    }
+  case HitTestResult::Zone::Code:
+    return codeFenceController_.enterEditMode();
+  default: {
+    LiteralBlockController* ctrl = literalForZone(zone);
+    return ctrl ? ctrl->enterEditMode() : false;
+  }
   }
 }
 
 LiteralBlockController* EditorController::literalForZone(HitTestResult::Zone zone) {
   switch (zone) {
-    case HitTestResult::Zone::FrontMatter:
-      return &frontMatterLiteral_;
-    case HitTestResult::Zone::Html:
-      return &htmlLiteral_;
-    case HitTestResult::Zone::Math:
-      return &mathLiteral_;
-    default:
-      return nullptr;
+  case HitTestResult::Zone::FrontMatter:
+    return &frontMatterLiteral_;
+  case HitTestResult::Zone::Html:
+    return &htmlLiteral_;
+  case HitTestResult::Zone::Math:
+    return &mathLiteral_;
+  default:
+    return nullptr;
   }
 }
 
@@ -1257,8 +1266,7 @@ const InlineProjectionSpan* imageAtomSpanAtCursor(const BlockEditContext& contex
 // Resolve such an image straight from the block's source text: find the <img ...> tag and return its
 // absolute source range. Returns false when the block holds no <img> tag.
 template <typename Text>
-bool htmlBlockImageRange(const MarkdownNode& block, const Text& markdown,
-                         qsizetype& outStart, qsizetype& outEnd) {
+bool htmlBlockImageRange(const MarkdownNode& block, const Text& markdown, qsizetype& outStart, qsizetype& outEnd) {
   const SourceRange range = block.sourceRange();
   const QString blockText = markdown.mid(range.byteStart, range.byteEnd - range.byteStart);
   const image_syntax::ImgTagLocation tag = image_syntax::findImgTag(blockText);
@@ -1269,7 +1277,7 @@ bool htmlBlockImageRange(const MarkdownNode& block, const Text& markdown,
   outEnd = range.byteStart + tag.end;
   return true;
 }
-}  // namespace
+} // namespace
 
 // The HtmlBlock under the cursor when it is an <img> block, else null. Clicking a rendered HTML
 // block enters HTML edit mode (htmlLiteral_ holds the block); when not editing, fall back to the
@@ -1297,7 +1305,8 @@ QString EditorController::imageSrcAtCursor() const {
     return {};
   }
   {
-    BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+    BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_),
+                                      const_cast<SelectionController*>(&selection_));
     BlockEditContext context;
     if (resolver.current(context) && context.inlineProjection.isValid()) {
       const InlineProjectionSpan* span = imageAtomSpanAtCursor(context);
@@ -1318,12 +1327,15 @@ QString EditorController::imageSrcAtCursor() const {
 
 CursorCommandState EditorController::queryCursorCommandState() const {
   CursorCommandState state;
-  if (!session_ || !selection_.hasCursor()) return state;
+  if (!session_ || !selection_.hasCursor())
+    return state;
   BlockEditContext context;
-  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_),
+                                    const_cast<SelectionController*>(&selection_));
   if (resolver.current(context) && context.inlineProjection.isValid()) {
     state.formats = cursorFormatsForContext(context, selection_.selection());
-    if (const auto* image = imageAtomSpanAtCursor(context)) state.imageSource = image->href;
+    if (const auto* image = imageAtomSpanAtCursor(context))
+      state.imageSource = image->href;
   }
   // The image fallback is shared with imageSrcAtCursor, including HTML blocks.
   if (state.imageSource.isEmpty()) {
@@ -1341,7 +1353,8 @@ bool EditorController::imageSourceRangeAtCursor(qsizetype& outStart, qsizetype& 
     return false;
   }
   {
-    BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+    BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_),
+                                      const_cast<SelectionController*>(&selection_));
     BlockEditContext context;
     if (resolver.current(context) && context.inlineProjection.isValid() && context.editableNode) {
       const InlineProjectionSpan* span = imageAtomSpanAtCursor(context);
@@ -1358,7 +1371,7 @@ bool EditorController::imageSourceRangeAtCursor(qsizetype& outStart, qsizetype& 
         for (const auto& inlineNode : context.editableNode->inlines()) {
           const bool isImageNode = inlineNode.type() == InlineType::Image;
           const bool isHtmlImg = inlineNode.type() == InlineType::HtmlInline &&
-              inlineNode.text().trimmed().startsWith(QStringLiteral("<img"), Qt::CaseInsensitive);
+                                 inlineNode.text().trimmed().startsWith(QStringLiteral("<img"), Qt::CaseInsensitive);
           if (!(isImageNode || isHtmlImg)) {
             continue;
           }
@@ -1392,9 +1405,8 @@ void EditorController::activateHit(HitTestResult hit) {
 
   // Preserve HTML edit mode when clicking within the editing block — the click
   // is for cursor repositioning in the source text, not for exiting edit mode.
-  const bool preserveHtmlEdit = hit.zone == HitTestResult::Zone::Html &&
-                                htmlLiteral_.isEditing() &&
-                                htmlLiteral_.currentBlockId() == hit.blockId;
+  const bool preserveHtmlEdit =
+      hit.zone == HitTestResult::Zone::Html && htmlLiteral_.isEditing() && htmlLiteral_.currentBlockId() == hit.blockId;
   if (!preserveHtmlEdit) {
     exitAllLiteralEditModes();
   }
@@ -1405,7 +1417,8 @@ void EditorController::activateHit(HitTestResult hit) {
   if (hit.zone == HitTestResult::Zone::SelectBlock && session_) {
     const MarkdownNode* node = session_->document().node(hit.blockId);
     if (node) {
-      BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+      BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_),
+                                        const_cast<SelectionController*>(&selection_));
       qsizetype blockStart = 0;
       qsizetype blockEnd = 0;
       if (resolver.blockSourceRange(*node, blockStart, blockEnd) && blockEnd > blockStart) {
@@ -1436,4 +1449,4 @@ void EditorController::activateHit(HitTestResult hit) {
   selection_.setHitResult(hit);
 }
 
-}  // namespace muffin
+} // namespace muffin

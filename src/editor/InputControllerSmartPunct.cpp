@@ -36,7 +36,7 @@ int doubleQuoteStyleIndex() {
   return qBound(0, QSettings().value(QStringLiteral("markdown/doubleQuoteStyle"), 0).toInt(), 1);
 }
 
-}  // namespace
+} // namespace
 
 bool InputController::trySmartDashes(QChar ch) {
   if (ch != QLatin1Char('-') || smartPunctuationMode() == 0 || !smartDashesEnabled()) {
@@ -56,14 +56,14 @@ bool InputController::trySmartDashes(QChar ch) {
   // Honor a backslash escape on the first dash of the run (mirrors tryAutoPairOrWrap's guard).
   if (off >= 2 && md.at(off - 1) == QLatin1Char('-') && md.at(off - 2) == QLatin1Char('-') &&
       !(off >= 3 && md.at(off - 3) == QLatin1Char('\\'))) {
-    applyLocalEdit(EditTransaction::Kind::InsertText, QStringLiteral("Smart Dash"),
-                   off - 2, 2, smartpunct::kEmDash, CursorPosition(), off - 1, {}, false, false);
+    applyLocalEdit(EditTransaction::Kind::InsertText, QStringLiteral("Smart Dash"), off - 2, 2, smartpunct::kEmDash,
+                   CursorPosition(), off - 1, {}, false, false);
     return true;
   }
   // "--" → en-dash: one dash precedes the caret (and isn't escaped).
   if (md.at(off - 1) == QLatin1Char('-') && !(off >= 2 && md.at(off - 2) == QLatin1Char('\\'))) {
-    applyLocalEdit(EditTransaction::Kind::InsertText, QStringLiteral("Smart Dash"),
-                   off - 1, 1, smartpunct::kEnDash, CursorPosition(), off, {}, false, false);
+    applyLocalEdit(EditTransaction::Kind::InsertText, QStringLiteral("Smart Dash"), off - 1, 1, smartpunct::kEnDash,
+                   CursorPosition(), off, {}, false, false);
     return true;
   }
   return false;
@@ -88,8 +88,8 @@ bool InputController::trySmartEllipsis(QChar ch) {
   // escape on the first dot of the run.
   if (off >= 2 && md.at(off - 1) == QLatin1Char('.') && md.at(off - 2) == QLatin1Char('.') &&
       !(off >= 3 && md.at(off - 3) == QLatin1Char('\\'))) {
-    applyLocalEdit(EditTransaction::Kind::InsertText, QStringLiteral("Smart Ellipsis"),
-                   off - 2, 2, smartpunct::kEllipsis, CursorPosition(), off - 1, {}, false, false);
+    applyLocalEdit(EditTransaction::Kind::InsertText, QStringLiteral("Smart Ellipsis"), off - 2, 2,
+                   smartpunct::kEllipsis, CursorPosition(), off - 1, {}, false, false);
     return true;
   }
   return false;
@@ -101,15 +101,15 @@ QString InputController::maybeConvertSmartPunctuation(QString text) {
     return text;
   }
   if (mode == 1 && text.size() != 1) {
-    return text;  // "when typing" converts only single-character keystrokes
+    return text; // "when typing" converts only single-character keystrokes
   }
   const int doubleStyle = doubleQuoteStyleIndex();
   const int singleStyle = singleQuoteStyleIndex();
   if (doubleStyle == 1 && singleStyle == 1) {
-    return text;  // both quote styles set to straight → nothing to convert
+    return text; // both quote styles set to straight → nothing to convert
   }
   if (ctx_.selection && ctx_.selection->hasCursor() && !ctx_.selection->selection().isCollapsed()) {
-    return text;  // selection path is owned by auto-pair/wrap & replace
+    return text; // selection path is owned by auto-pair/wrap & replace
   }
 
   BlockEditContextResolver resolver = contextResolver();
@@ -141,4 +141,4 @@ QString InputController::maybeConvertSmartPunctuation(QString text) {
   return out;
 }
 
-}  // namespace muffin
+} // namespace muffin

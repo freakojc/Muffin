@@ -60,4 +60,4 @@ public:
   static void clearPromptForDefault();
 };
 
-}  // namespace muffin
+} // namespace muffin

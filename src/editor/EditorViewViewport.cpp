@@ -30,7 +30,7 @@ struct PerfTimer : diag::ScopedPerfProbe {
   explicit PerfTimer(const char* label) : diag::ScopedPerfProbe(label, viewPerf()) {}
 };
 
-}  // namespace
+} // namespace
 
 // ─── coordinate / hit-test queries ───────────────────────────────────────────
 
@@ -65,9 +65,11 @@ ViewportPosition EditorView::viewportPosition() const {
   ViewportPosition position;
   position.atStart = qFuzzyIsNull(scrollY());
   const auto anchor = captureViewportAnchor();
-  if (!anchor.valid || !document_) return position;
+  if (!anchor.valid || !document_)
+    return position;
   const auto* node = document_->node(anchor.nodeId);
-  if (!node) return position;
+  if (!node)
+    return position;
   position.sourceOffset = node->sourceRange().byteStart;
   position.screenOffset = anchor.screenOffset;
   // A source position on the first visible text row is more stable than a
@@ -82,17 +84,21 @@ ViewportPosition EditorView::viewportPosition() const {
 }
 
 void EditorView::restoreViewportPosition(const ViewportPosition& position, CursorPosition textPosition) {
-  if (!layout_ || !document_ || position.sourceOffset < 0) return;
+  if (!layout_ || !document_ || position.sourceOffset < 0)
+    return;
   stopScrollAnimation();
   viewportScrollRemainder_ = 0.0;
   if (position.atStart) {
     verticalScrollBar()->setValue(0);
     return;
   }
-  auto* node = document_->topLevelBlockAtOffset(qBound<qsizetype>(0, position.sourceOffset, document_->markdownText().size()));
-  if (!node) return;
+  auto* node =
+      document_->topLevelBlockAtOffset(qBound<qsizetype>(0, position.sourceOffset, document_->markdownText().size()));
+  if (!node)
+    return;
   const auto slot = layout_->topLevelIndexFor(node->id());
-  if (slot < 0) return;
+  if (slot < 0)
+    return;
   {
     ScopedViewportPin pin(*this);
     layout_->ensureBuilt(slot, slot, theme_);
@@ -100,7 +106,8 @@ void EditorView::restoreViewportPosition(const ViewportPosition& position, Curso
   const auto anchorY = [&] {
     if (position.textAnchor && textPosition.isValid()) {
       const auto hit = hitForCursorPosition(textPosition);
-      if (!hit.cursorRect.isEmpty()) return hit.cursorRect.top();
+      if (!hit.cursorRect.isEmpty())
+        return hit.cursorRect.top();
     }
     return layout_->slotTop(slot);
   };
@@ -122,7 +129,8 @@ QRectF EditorView::effectiveCursorRect() const {
        cursorHit_.zone == HitTestResult::Zone::Html || cursorHit_.zone == HitTestResult::Zone::FrontMatter)) {
     if (const auto* block = layout_->blockIfPromoted(cursorHit_.blockId)) {
       const QRectF compositionCursor = block->literalPreeditCursorRect(theme_);
-      if (!compositionCursor.isEmpty()) cursor = compositionCursor;
+      if (!compositionCursor.isEmpty())
+        cursor = compositionCursor;
     }
   }
   if (cursor.isEmpty()) {
@@ -304,12 +312,9 @@ HitTestResult EditorView::hitTest(QPointF viewportPos) const {
     const auto openIt = openSequenceMenus_.constFind(hostId);
     if (openIt != openSequenceMenus_.cend() && !openIt->isEmpty()) {
       if (const BlockLayout* block = layout_->blockIfPromoted(hostId)) {
-        const HitTestResult interactive = block->hitTest(
-            documentPos, theme_, codeFenceScroll_, &openIt.value());
-        if (interactive.isValid() &&
-            (!interactive.linkHref.isEmpty() ||
-             !interactive.toolTip.isEmpty() ||
-             !interactive.mermaidMenuActorId.isEmpty())) {
+        const HitTestResult interactive = block->hitTest(documentPos, theme_, codeFenceScroll_, &openIt.value());
+        if (interactive.isValid() && (!interactive.linkHref.isEmpty() || !interactive.toolTip.isEmpty() ||
+                                      !interactive.mermaidMenuActorId.isEmpty())) {
           hit = interactive;
         }
       }
@@ -333,11 +338,13 @@ HitTestResult EditorView::hitTest(QPointF viewportPos) const {
 void EditorView::scrollContentsBy(int dx, int dy) {
   // Wheel/slider/navigation changes establish a new reading position. Clear
   // before ensureVisibleBuilt captures its anchor, rather than after promotion.
-  if (dy != 0 && !inScrollBuild_) viewportScrollRemainder_ = 0.0;
+  if (dy != 0 && !inScrollBuild_)
+    viewportScrollRemainder_ = 0.0;
   QAbstractScrollArea::scrollContentsBy(dx, dy);
   if (layout_ && document_) {
     ensureVisibleBuilt();
-    if (!inScrollBuild_ && isVisible()) viewportPrefetchTimer_->start(120);
+    if (!inScrollBuild_ && isVisible())
+      viewportPrefetchTimer_->start(120);
   }
   updateCodeLanguageEditor();
   updateTableToolbar();
@@ -359,11 +366,13 @@ void EditorView::ensureVisibleBuilt() {
   // so the snap is absorbed entirely into the scrollbar range/value and never moves the content.
   ScopedViewportPin pin(*this);
   layout_->ensureBuilt(range.first, range.second, theme_);
-  if (isVisible() && viewportPrefetchTimer_ && !viewportPrefetchTimer_->isActive()) viewportPrefetchTimer_->start(120);
+  if (isVisible() && viewportPrefetchTimer_ && !viewportPrefetchTimer_->isActive())
+    viewportPrefetchTimer_->start(120);
 }
 
 void EditorView::prefetchViewport() {
-  if (!layout_ || !document_ || loading_ || !isVisible() || inScrollBuild_) return;
+  if (!layout_ || !document_ || loading_ || !isVisible() || inScrollBuild_)
+    return;
   if (layout_->hasPendingViewportEstimates()) {
     viewportPrefetchTimer_->start(120);
     return;
@@ -383,11 +392,13 @@ void EditorView::prefetchViewport() {
     }
     {
       PerfTimer trimPerf("view.prefetch.trim");
-      layout_->trimDetails(range.first, range.second, theme_,
-                           {cursorPosition_.blockId, selection_.anchor.blockId, selection_.focus.blockId, editingHtmlBlockId_});
+      layout_->trimDetails(
+          range.first, range.second, theme_,
+          {cursorPosition_.blockId, selection_.anchor.blockId, selection_.focus.blockId, editingHtmlBlockId_});
     }
   }
-  if (!complete) viewportPrefetchTimer_->start(16);
+  if (!complete)
+    viewportPrefetchTimer_->start(16);
 }
 
 EditorView::ViewportAnchor EditorView::captureViewportAnchor(NodeId preferNode) const {
@@ -397,7 +408,7 @@ EditorView::ViewportAnchor EditorView::captureViewportAnchor(NodeId preferNode) 
   }
   qsizetype slot = -1;
   if (preferNode.isValid()) {
-    slot = layout_->topLevelIndexFor(preferNode);  // honor the caller's preferred block (e.g. cursor)
+    slot = layout_->topLevelIndexFor(preferNode); // honor the caller's preferred block (e.g. cursor)
   }
   if (slot < 0) {
     // Default reference: the topmost block visible at the top of the viewport.
@@ -409,7 +420,7 @@ EditorView::ViewportAnchor EditorView::captureViewportAnchor(NodeId preferNode) 
     return anchor;
   }
   anchor.valid = true;
-  anchor.nodeId = layout_->slotNodeId(slot);  // node id survives re-parse / reorder / full rebuild
+  anchor.nodeId = layout_->slotNodeId(slot); // node id survives re-parse / reorder / full rebuild
   anchor.screenOffset = layout_->slotTop(slot) - scrollY();
   return anchor;
 }
@@ -422,7 +433,7 @@ bool EditorView::restoreViewportAnchor(const ViewportAnchor& anchor) {
   const qsizetype slot = layout_->topLevelIndexFor(anchor.nodeId);
   if (slot < 0) {
     viewportScrollRemainder_ = 0.0;
-    return false;  // block removed by the change — leave cursor-follow to decide
+    return false; // block removed by the change — leave cursor-follow to decide
   }
   QScrollBar* bar = verticalScrollBar();
   const qreal previousScroll = scrollY();
@@ -430,15 +441,16 @@ bool EditorView::restoreViewportAnchor(const ViewportAnchor& anchor) {
   const int target = qBound(bar->minimum(), qRound(logicalScroll), bar->maximum());
   // Keep the fraction even if the integer value does not change. A clamped
   // boundary cannot preserve the anchor, so discard its unreachable remainder.
-  viewportScrollRemainder_ = logicalScroll >= bar->minimum() && logicalScroll <= bar->maximum()
-      ? logicalScroll - target : 0.0;
+  viewportScrollRemainder_ =
+      logicalScroll >= bar->minimum() && logicalScroll <= bar->maximum() ? logicalScroll - target : 0.0;
   // Suppress the valueChanged -> scrollContentsBy -> ensureVisibleBuilt cascade whether or not a
   // ScopedViewportPin already holds the guard.
   const bool prev = inScrollBuild_;
   inScrollBuild_ = true;
   bar->setValue(target);
   inScrollBuild_ = prev;
-  if (scrollY() == previousScroll) return false;
+  if (scrollY() == previousScroll)
+    return false;
   // A fractional-only move emits no scrollbar signal. Paint, hit testing,
   // caret and inline controls must still share the same precise origin.
   updateCodeLanguageEditor();
@@ -453,8 +465,8 @@ EditorView::ScopedViewportPin::ScopedViewportPin(EditorView& view, NodeId prefer
 }
 
 EditorView::ScopedViewportPin::~ScopedViewportPin() {
-  view_.updateScrollBars();           // range may have changed; value clamp is harmless under the guard
-  view_.restoreViewportAnchor(anchor_);  // re-derive value so the captured block stays on screen
+  view_.updateScrollBars();             // range may have changed; value clamp is harmless under the guard
+  view_.restoreViewportAnchor(anchor_); // re-derive value so the captured block stays on screen
   view_.inScrollBuild_ = prevGuard_;
 }
 
@@ -496,19 +508,20 @@ void EditorView::applyScrollBarStyle() {
   // handle's side margins inset the visible thumb. 14px hit with 3px insets keeps
   // the slim ~8px look while making the thumb easy to grab — the old 8px width
   // with 2px insets left a ~4px thumb, under 3 physical pixels at 150% DPI.
-  setStyleSheet(QStringLiteral(
-      "EditorView { background:%1; border:0; }"
-      "QScrollBar:vertical { background:%1; width:14px; margin:0; }"
-      "QScrollBar::handle:vertical { background:#b7b7b7; min-height:54px; border-radius:4px; margin:2px 3px; }"
-      "QScrollBar::handle:vertical:hover { background:#999999; }"
-      "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; border:0; background:transparent; }"
-      "QScrollBar:add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }"
-      "QScrollBar:horizontal { background:%1; height:14px; margin:0; }"
-      "QScrollBar::handle:horizontal { background:#b7b7b7; min-width:54px; border-radius:4px; margin:3px 2px; }"
-      "QScrollBar::handle:horizontal:hover { background:#999999; }"
-      "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width:0; border:0; background:transparent; }"
-      "QScrollBar:add-page:horizontal, QScrollBar::sub-page:horizontal { background:transparent; }")
-                    .arg(background));
+  setStyleSheet(
+      QStringLiteral(
+          "EditorView { background:%1; border:0; }"
+          "QScrollBar:vertical { background:%1; width:14px; margin:0; }"
+          "QScrollBar::handle:vertical { background:#b7b7b7; min-height:54px; border-radius:4px; margin:2px 3px; }"
+          "QScrollBar::handle:vertical:hover { background:#999999; }"
+          "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; border:0; background:transparent; }"
+          "QScrollBar:add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }"
+          "QScrollBar:horizontal { background:%1; height:14px; margin:0; }"
+          "QScrollBar::handle:horizontal { background:#b7b7b7; min-width:54px; border-radius:4px; margin:3px 2px; }"
+          "QScrollBar::handle:horizontal:hover { background:#999999; }"
+          "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width:0; border:0; background:transparent; }"
+          "QScrollBar:add-page:horizontal, QScrollBar::sub-page:horizontal { background:transparent; }")
+          .arg(background));
 }
 
 // ─── scrollable code-fence horizontal scroll ─────────────────────────────────
@@ -535,7 +548,7 @@ bool EditorView::scrollCodeFenceHorizontally(QWheelEvent* event, bool horizontal
   const qreal maxW = block->codeMaxLineWidth();
   const qreal visibleW = block->literalContentRect(theme_).width();
   if (maxW <= visibleW + 0.5) {
-    return false;  // not scrollable (wrap on, or no overflowing line)
+    return false; // not scrollable (wrap on, or no overflowing line)
   }
   const int delta = horizontal ? event->angleDelta().x() : event->angleDelta().y();
   const qreal step = TextFontMetrics(theme_.codeFont()).horizontalAdvance(QLatin1Char('M')) * 3.0;
@@ -555,7 +568,7 @@ void EditorView::dragCodeFenceScrollBarTo(NodeId blockId, QPointF viewportPos) {
     return;
   }
   const qreal maxW = block->codeMaxLineWidth();
-  const QRectF content = block->literalContentRect(theme_);  // document space
+  const QRectF content = block->literalContentRect(theme_); // document space
   const qreal visibleW = content.width();
   const qreal totalW = qMax(maxW, visibleW);
   if (totalW <= visibleW + 0.5) {
@@ -587,12 +600,13 @@ void EditorView::ensureCodeFenceCursorVisible() {
   const QRectF content = block->literalContentRect(theme_);
   const qreal visibleW = content.width();
   if (maxW <= visibleW + 0.5) {
-    return;  // wrap on sets maxW to 0; otherwise no overflow
+    return; // wrap on sets maxW to 0; otherwise no overflow
   }
   QRectF caret = cursorHit_.cursorRect;
   if (!preedit_.isEmpty()) {
     const auto compositionCaret = block->literalPreeditCursorRect(theme_);
-    if (!compositionCaret.isEmpty()) caret = compositionCaret;
+    if (!compositionCaret.isEmpty())
+      caret = compositionCaret;
   }
   const qreal caretX = caret.left() - content.left();
   const qreal current = codeFenceScroll_->offsetFor(cursorHit_.blockId);
@@ -616,4 +630,4 @@ void EditorView::ensureCodeFenceCursorVisible() {
   }
 }
 
-}  // namespace muffin
+} // namespace muffin

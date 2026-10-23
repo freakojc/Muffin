@@ -33,8 +33,8 @@ QPointF circlePoint(double r, double deg) {
   return QPointF(r * std::cos(rad), r * std::sin(rad));
 }
 
-void drawCenteredBaseline(QPainter& painter, const editor::CssPixelFont& font,
-                          const QPointF& anchor, const QString& text) {
+void drawCenteredBaseline(QPainter& painter, const editor::CssPixelFont& font, const QPointF& anchor,
+                          const QString& text) {
   painter.save();
   painter.translate(anchor);
   painter.scale(font.scale, font.scale);
@@ -44,8 +44,7 @@ void drawCenteredBaseline(QPainter& painter, const editor::CssPixelFont& font,
   painter.restore();
 }
 
-void drawLeftBaseline(QPainter& painter, const editor::CssPixelFont& font,
-                      const QPointF& anchor, const QString& text) {
+void drawLeftBaseline(QPainter& painter, const editor::CssPixelFont& font, const QPointF& anchor, const QString& text) {
   painter.save();
   painter.translate(anchor);
   painter.scale(font.scale, font.scale);
@@ -54,8 +53,7 @@ void drawLeftBaseline(QPainter& painter, const editor::CssPixelFont& font,
   painter.restore();
 }
 
-editor::CssPixelFont textFont(const QString& family, qreal size,
-                              const QString& weight) {
+editor::CssPixelFont textFont(const QString& family, qreal size, const QString& weight) {
   editor::CssPixelFont font = editor::makeCssPixelFont(family, size);
   font.font.setWeight(editor::cssFontWeightToQt(QJsonValue(weight), QFont::Normal));
   return font;
@@ -82,7 +80,8 @@ QPainterPath buildSlicePath(double startDeg, double endDeg, double outerR, doubl
     // Full circle. Solid -> disk; donut -> annulus (outer minus inner, even-odd).
     p.setFillRule(Qt::OddEvenFill);
     p.addEllipse(outerRect);
-    if (innerR > 0.0) p.addEllipse(QRectF(-innerR, -innerR, 2.0 * innerR, 2.0 * innerR));
+    if (innerR > 0.0)
+      p.addEllipse(QRectF(-innerR, -innerR, 2.0 * innerR, 2.0 * innerR));
     return p;
   }
   if (innerR == 0.0) {
@@ -100,15 +99,14 @@ QPainterPath buildSlicePath(double startDeg, double endDeg, double outerR, doubl
   return p;
 }
 
-}  // namespace
+} // namespace
 
 // Theme colors arrive as CSS strings (hex / hsl() / rgba() / named / ...). The
 // shared color::toQColor parses every notation the way the browser does. Paint
 // values that are none / currentColor / inherit / garbage are resolved per
 // property by color::resolveSvgPaint (fill/text -> color or NoBrush/hide;
 // stroke -> color or NoPen).
-void paintPieScene(const PieScene& scene, QPainter& painter,
-                   const MermaidPaintOptions& /*options*/) {
+void paintPieScene(const PieScene& scene, QPainter& painter, const MermaidPaintOptions& /*options*/) {
   const QColor inherited = color::toQColor(scene.style.inheritedColor);
   painter.save();
   painter.translate(scene.centerX, scene.centerY);
@@ -130,8 +128,7 @@ void paintPieScene(const PieScene& scene, QPainter& painter,
   // Outer ring (pieOuterCircle: stroke, no fill). stroke-width:0 / stroke:none /
   // invalid stroke -> NoPen (SVG draws nothing); a negative/invalid width also
   // resolved to NoPen via cssStrokeWidthPx returning 0 only for an explicit 0.
-  const auto outerStroke =
-      color::resolveSvgPaint(scene.style.outerStrokeColor, color::SvgPaintKind::Stroke, inherited);
+  const auto outerStroke = color::resolveSvgPaint(scene.style.outerStrokeColor, color::SvgPaintKind::Stroke, inherited);
   painter.setBrush(Qt::NoBrush);
   if (outerStroke.none || scene.style.outerStrokeWidth <= 0.0)
     painter.setPen(Qt::NoPen);
@@ -143,17 +140,16 @@ void paintPieScene(const PieScene& scene, QPainter& painter,
   // slice gets the upstream "highlighted" class: scale 1.05 about the chart
   // center + opacity 1. `=hover` (highlightedOnHover) is hover-only upstream —
   // no static paint change.
-  const auto sliceStroke =
-      color::resolveSvgPaint(scene.style.sliceStrokeColor, color::SvgPaintKind::Stroke, inherited);
+  const auto sliceStroke = color::resolveSvgPaint(scene.style.sliceStrokeColor, color::SvgPaintKind::Stroke, inherited);
   const bool sliceNoPen = sliceStroke.none || scene.style.sliceStrokeWidth <= 0.0;
   painter.setOpacity(scene.style.pieOpacity);
   for (const PieSliceGeometry& s : scene.slices) {
-    if (!scene.style.sliceVisible) break;  // display:none removes all slices
+    if (!scene.style.sliceVisible)
+      break; // display:none removes all slices
     const bool highlighted = s.className.contains(QStringLiteral("highlighted")) &&
                              !s.className.contains(QStringLiteral("highlightedOnHover"));
     const auto fill = resolvePieFill(s.fill, inherited);
-    const QPainterPath wedge =
-        buildSlicePath(s.startAngleDeg, s.endAngleDeg, s.outerRadius, s.innerRadius);
+    const QPainterPath wedge = buildSlicePath(s.startAngleDeg, s.endAngleDeg, s.outerRadius, s.innerRadius);
     painter.setBrush(fill.none ? Qt::NoBrush : QBrush(fill.color));
     if (sliceNoPen)
       painter.setPen(Qt::NoPen);
@@ -162,7 +158,7 @@ void paintPieScene(const PieScene& scene, QPainter& painter,
     if (highlighted) {
       painter.save();
       painter.setOpacity(1.0);
-      painter.scale(1.05, 1.05);  // about the chart center (origin after translate)
+      painter.scale(1.05, 1.05); // about the chart center (origin after translate)
       painter.drawPath(wedge);
       painter.restore();
     } else {
@@ -177,26 +173,21 @@ void paintPieScene(const PieScene& scene, QPainter& painter,
     const auto sectionPaint =
         color::resolveSvgPaint(scene.style.sectionTextColor, color::SvgPaintKind::Text, inherited);
     if (!sectionPaint.none) {
-      const editor::CssPixelFont sliceFont = textFont(
-          scene.style.sectionFontFamily, scene.style.sectionFontSize,
-          scene.style.sectionFontWeight);
+      const editor::CssPixelFont sliceFont =
+          textFont(scene.style.sectionFontFamily, scene.style.sectionFontSize, scene.style.sectionFontWeight);
       painter.setPen(sectionPaint.color);
       for (const PieSliceGeometry& s : scene.slices)
-        drawCenteredBaseline(painter, sliceFont, QPointF(s.centroidX, s.centroidY),
-                             s.percentage);
+        drawCenteredBaseline(painter, sliceFont, QPointF(s.centroidX, s.centroidY), s.percentage);
     }
   }
-  painter.restore();  // pie subgroup
+  painter.restore(); // pie subgroup
 
   // Title (pieTitleText, in the main group — not shifted), centered at y=-200.
-  if (!scene.title.isEmpty() && scene.style.titleVisible &&
-      scene.style.titleFontSize > 0.0) {
-    const auto titlePaint =
-        color::resolveSvgPaint(scene.style.titleColor, color::SvgPaintKind::Text, inherited);
+  if (!scene.title.isEmpty() && scene.style.titleVisible && scene.style.titleFontSize > 0.0) {
+    const auto titlePaint = color::resolveSvgPaint(scene.style.titleColor, color::SvgPaintKind::Text, inherited);
     if (!titlePaint.none) {
-      const editor::CssPixelFont titleFont = textFont(
-          scene.style.titleFontFamily, scene.style.titleFontSize,
-          scene.style.titleFontWeight);
+      const editor::CssPixelFont titleFont =
+          textFont(scene.style.titleFontFamily, scene.style.titleFontSize, scene.style.titleFontWeight);
       painter.setPen(titlePaint.color);
       const qreal ty = -(scene.height - 50.0) / 2.0;
       // SVG positions this <text> by its baseline at y=-200. QRectF overloads
@@ -214,23 +205,20 @@ void paintPieScene(const PieScene& scene, QPainter& painter,
   if (!scene.legends.isEmpty()) {
     const QString& pos = scene.legendPosition;
     const qreal rectBlock = scene.legendRectSize + scene.legendSpacing;
-    const qreal horizontal = pos == QStringLiteral("left")
-                                 ? -scene.radius - rectBlock
-                             : (pos == QStringLiteral("top") || pos == QStringLiteral("bottom") ||
-                                pos == QStringLiteral("center"))
-                                 ? -scene.longestLegendWidth / 2.0 - rectBlock
-                                 : 12.0 * scene.legendRectSize;  // right (default)
-    const qreal offset = pos == QStringLiteral("top") ? scene.radius
-                          : pos == QStringLiteral("bottom") ? -scene.radius - scene.legendHeight
-                                                             : scene.legendHeight * n / 2.0;
+    const qreal horizontal =
+        pos == QStringLiteral("left") ? -scene.radius - rectBlock
+        : (pos == QStringLiteral("top") || pos == QStringLiteral("bottom") || pos == QStringLiteral("center"))
+            ? -scene.longestLegendWidth / 2.0 - rectBlock
+            : 12.0 * scene.legendRectSize; // right (default)
+    const qreal offset = pos == QStringLiteral("top")      ? scene.radius
+                         : pos == QStringLiteral("bottom") ? -scene.radius - scene.legendHeight
+                                                           : scene.legendHeight * n / 2.0;
     const auto legendTextPaint =
         color::resolveSvgPaint(scene.style.legendTextColor, color::SvgPaintKind::Text, inherited);
-    const bool drawLegendText = scene.style.legendTextVisible &&
-                                scene.style.legendFontSize > 0.0 &&
-                                !legendTextPaint.none;
-    const editor::CssPixelFont legendFont = textFont(
-        scene.style.legendFontFamily, scene.style.legendFontSize,
-        scene.style.legendFontWeight);
+    const bool drawLegendText =
+        scene.style.legendTextVisible && scene.style.legendFontSize > 0.0 && !legendTextPaint.none;
+    const editor::CssPixelFont legendFont =
+        textFont(scene.style.legendFontFamily, scene.style.legendFontSize, scene.style.legendFontWeight);
     for (int i = 0; i < n; ++i) {
       const PieLegendEntry& e = scene.legends.at(i);
       const qreal vertical = i * scene.legendHeight - offset;
@@ -252,4 +240,4 @@ void paintPieScene(const PieScene& scene, QPainter& painter,
   painter.restore();
 }
 
-}  // namespace muffin::mermaid::pie
+} // namespace muffin::mermaid::pie

@@ -120,11 +120,9 @@ struct TreeViewNodeGeometry {
 struct TreeViewScene final : MermaidScene {
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override {
-    return QRectF(bounds.topLeft(),
-                  QSizeF(qRound(bounds.width()), qRound(bounds.height())));
+    return QRectF(bounds.topLeft(), QSizeF(qRound(bounds.width()), qRound(bounds.height())));
   }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
 
   QRectF bounds;
@@ -138,8 +136,6 @@ struct TreeViewScene final : MermaidScene {
   QStringList iconDefs;
 };
 
-TreeViewScene buildTreeViewScene(const TreeViewData& data,
-                                 TreeViewConfig config,
-                                 TreeViewSceneStyle style);
+TreeViewScene buildTreeViewScene(const TreeViewData& data, TreeViewConfig config, TreeViewSceneStyle style);
 
-}  // namespace muffin::mermaid::treeview
+} // namespace muffin::mermaid::treeview

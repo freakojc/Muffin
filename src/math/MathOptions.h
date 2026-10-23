@@ -42,4 +42,4 @@ private:
   MathSettings settings_;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

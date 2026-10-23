@@ -44,7 +44,7 @@ public:
     LayoutStyleCache* styleCache = nullptr;
     InlineProjectionState projectionState;
     const MarkdownNode* styleNode = nullptr;
-    QString documentPath;  // resource base belongs to this layout/document, never global CWD
+    QString documentPath; // resource base belongs to this layout/document, never global CWD
     qsizetype sourceBase = -1;
     qsizetype pendingPrefixLength = 0;
     QVector<InlineSourceReplacement> sourceReplacements;
@@ -86,8 +86,8 @@ public:
     // shifts them by the caret's display offset when splicing into the composed text.
     QString preeditText;
     QVector<QTextLayout::FormatRange> preeditFormats;
-    int preeditCursor = -1;                       // composition caret within the preedit (-1 = none)
-    qsizetype preeditInsertAtSourceOffset = -1;   // caret CONTENT-LOCAL source offset in this block
+    int preeditCursor = -1;                     // composition caret within the preedit (-1 = none)
+    qsizetype preeditInsertAtSourceOffset = -1; // caret CONTENT-LOCAL source offset in this block
     // Generated heading pseudo-elements are supplied by the same resolved theme
     // tree as the host. They are inserted into the inline display stream before
     // shaping so wrapping, hit testing and painting share one geometry.
@@ -104,9 +104,10 @@ public:
   InlineLayout& operator=(InlineLayout&&) noexcept = default;
 
   void build(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width, const QFont& baseFont);
-  void build(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width, const QFont& baseFont, BuildOptions options);
-  void build(const QVector<InlineNode>& inlines, QString sourceText, const RenderTheme& theme, qreal width, const QFont& baseFont,
+  void build(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width, const QFont& baseFont,
              BuildOptions options);
+  void build(const QVector<InlineNode>& inlines, QString sourceText, const RenderTheme& theme, qreal width,
+             const QFont& baseFont, BuildOptions options);
 
   QSizeF size() const;
   qreal height() const;
@@ -154,7 +155,8 @@ public:
   QVector<QRectF> generatedPseudoRects() const;
   QVector<QRectF> htmlAtomRects() const {
     QVector<QRectF> result;
-    for (const auto& atom : htmlAtoms_) result.push_back(atom.rect);
+    for (const auto& atom : htmlAtoms_)
+      result.push_back(atom.rect);
     return result;
   }
   int visualLineCount() const;
@@ -266,13 +268,13 @@ private:
   void buildInlineBoxSpacing();
   void buildGeneratedPseudoAtoms(const RenderTheme& theme, const QFont& baseFont, qreal width,
                                  const BuildOptions& options);
-  void insertGeneratedPseudoText(const QString& text, const PseudoElementRule& rule,
-                                 GeneratedPseudoAtom::Kind kind, const QFont& font,
-                                 qreal width, qreal height, qreal marginLeft, qreal marginRight,
-                                 bool before, qsizetype projectionAnchor, qsizetype visibleAnchor,
-                                 QString href = {}, qsizetype layoutPosition = -1);
+  void insertGeneratedPseudoText(const QString& text, const PseudoElementRule& rule, GeneratedPseudoAtom::Kind kind,
+                                 const QFont& font, qreal width, qreal height, qreal marginLeft, qreal marginRight,
+                                 bool before, qsizetype projectionAnchor, qsizetype visibleAnchor, QString href = {},
+                                 qsizetype layoutPosition = -1);
   void buildMathAtoms(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width);
-  void buildImageAtoms(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width, const QString& documentPath);
+  void buildImageAtoms(const QVector<InlineNode>& inlines, const RenderTheme& theme, qreal width,
+                       const QString& documentPath);
   QString texForInlineMathSpan(const QVector<InlineNode>& inlines, const InlineProjectionSpan& span) const;
   void buildTextLayout(const RenderTheme& theme, qreal width, const QFont& baseFont);
   QString shapingText() const;
@@ -299,14 +301,17 @@ private:
   void paintGeneratedPseudoAtoms(QPainter& painter, QPointF origin, CssPaintContext* context, const QString& identity,
                                  qreal hoverPhase, qreal focusPhase, qsizetype focusSourceOffset) const;
   int generatedPseudoState(const GeneratedPseudoAtom& atom, QPainter& painter, QPointF origin,
-                           const CssPaintContext& context, qreal hoverPhase, qreal focusPhase, qsizetype focusSourceOffset) const;
+                           const CssPaintContext& context, qreal hoverPhase, qreal focusPhase,
+                           qsizetype focusSourceOffset) const;
   void paintImagePreview(QPainter& painter, QPointF origin) const;
-  QVector<QTextLayout::FormatRange> textLayoutFormats(const RenderTheme& theme, const QFont& baseFont, const QString& layoutText) const;
+  QVector<QTextLayout::FormatRange> textLayoutFormats(const RenderTheme& theme, const QFont& baseFont,
+                                                      const QString& layoutText) const;
   qsizetype visibleOffsetForDisplayOffset(qsizetype displayOffset) const;
   qsizetype displayOffsetForVisibleOffset(qsizetype visibleOffset) const;
   qsizetype projectionDisplayOffsetForLayoutOffset(qsizetype layoutOffset, InlineProjectionBias bias) const;
   qsizetype layoutDisplayOffsetForProjectionOffset(qsizetype projectionOffset, InlineProjectionBias bias) const;
-  bool layoutDisplayOffsetForSourceOffset(qsizetype sourceOffset, InlineProjectionBias bias, qsizetype& layoutOffset) const;
+  bool layoutDisplayOffsetForSourceOffset(qsizetype sourceOffset, InlineProjectionBias bias,
+                                          qsizetype& layoutOffset) const;
   DisplayOffsetRange layoutDisplayRangeForProjectionRange(qsizetype projectionStart, qsizetype projectionEnd) const;
   struct TextLayoutPointHit;
   TextLayoutPointHit textLayoutHitForPoint(QPointF localPos) const;
@@ -318,17 +323,18 @@ private:
   mutable TextShadowPainter shadowPainter_;
   QSizeF size_;
 
-  QColor baseTextColorOverride_;  // invalid → theme.textColor() for plain runs
-  QColor hoverTextColor_;         // invalid → no hover recolour (CSS :hover colour)
-  QColor focusTextColor_;         // invalid → no focus recolour (CSS :focus colour)
-  QColor baseRunColor_;           // the element base colour the own-text runs render in
-  QVector<QPair<int, int>> hoverRecolourRanges_;  // display-offset runs that inherit the base colour (used by both hover and focus recolour)
+  QColor baseTextColorOverride_; // invalid → theme.textColor() for plain runs
+  QColor hoverTextColor_;        // invalid → no hover recolour (CSS :hover colour)
+  QColor focusTextColor_;        // invalid → no focus recolour (CSS :focus colour)
+  QColor baseRunColor_;          // the element base colour the own-text runs render in
+  QVector<QPair<int, int>>
+      hoverRecolourRanges_; // display-offset runs that inherit the base colour (used by both hover and focus recolour)
   qreal lineHeightMultiplier_ = 0.0;
   qreal zoomScale_ = 1;
   Qt::Alignment alignment_;
   QTextOption::WrapMode wrapMode_ = QTextOption::WrapAtWordBoundaryOrAnywhere;
   bool anywhereMinimum_ = false;
-  TextShadow textShadow_;  // present=false ⇒ no shadow
+  TextShadow textShadow_; // present=false ⇒ no shadow
   std::shared_ptr<const LayoutBox> codeStyle_;
   QVector<LayoutBox> inlineBoxes_;
   QVector<QRectF> lineBoxes_;
@@ -367,13 +373,13 @@ private:
   // buildTextLayout (splice), the decoration painters (toLayoutOffset), and preeditCursorRect.
   QString preeditText_;
   QVector<QTextLayout::FormatRange> preeditFormats_;
-  int preeditCursor_ = -1;                 // composition caret within the preedit
+  int preeditCursor_ = -1; // composition caret within the preedit
   qsizetype preeditInsertAtSourceOffset_ = -1;
   QVector<MathAtom> mathAtoms_;
   QVector<ImageAtom> imageAtoms_;
   QVector<HtmlAtom> htmlAtoms_;
-  QVector<ImageAtom> previewAtoms_;   // Active images rendered as block preview below text
-  qreal previewHeight_ = 0.0;         // Total height of image previews
+  QVector<ImageAtom> previewAtoms_; // Active images rendered as block preview below text
+  qreal previewHeight_ = 0.0;       // Total height of image previews
   QVector<HtmlFormatSpan> htmlFormatSpans_;
 
   QVector<InlineSpacer> inlineSpacers_;
@@ -382,4 +388,4 @@ private:
   std::function<bool(QStringView)> isMisspelled_;
 };
 
-}  // namespace muffin
+} // namespace muffin

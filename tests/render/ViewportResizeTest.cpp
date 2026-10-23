@@ -13,7 +13,10 @@ namespace {
 void testOpaqueViewportSkipsParentPaintAndTracksTheme() {
   struct Parent : QWidget {
     int paints = 0;
-    void paintEvent(QPaintEvent* event) override { ++paints; QWidget::paintEvent(event); }
+    void paintEvent(QPaintEvent* event) override {
+      ++paints;
+      QWidget::paintEvent(event);
+    }
   } parent;
   parent.resize(840, 640);
   EditorView view(&parent);
@@ -21,9 +24,9 @@ void testOpaqueViewportSkipsParentPaintAndTracksTheme() {
   DocumentSession session;
   session.setMarkdownText("ordinary paragraph\n", false);
   view.setDocument(session.document());
-  const auto definition = CssThemeMapper::fromCss(
-      "html,body{background:#123456}#write{background:transparent}"
-      "@media(max-width:600px){html,body{background:rgba(20,40,60,.5)}}", "opacity", {});
+  const auto definition = CssThemeMapper::fromCss("html,body{background:#123456}#write{background:transparent}"
+                                                  "@media(max-width:600px){html,body{background:rgba(20,40,60,.5)}}",
+                                                  "opacity", {});
   view.setTheme(RenderTheme::fromDefinition(definition));
   parent.show();
   QApplication::processEvents();
@@ -37,11 +40,13 @@ void testOpaqueViewportSkipsParentPaintAndTracksTheme() {
   require(parent.paints == 0, "caret-size update must not repaint the parent under an opaque viewport");
   view.resize(500, 600);
   QApplication::processEvents();
-  require(view.theme().viewportBackgroundColor().alpha() < 255 && !view.viewport()->testAttribute(Qt::WA_OpaquePaintEvent),
+  require(view.theme().viewportBackgroundColor().alpha() < 255 &&
+              !view.viewport()->testAttribute(Qt::WA_OpaquePaintEvent),
           "responsive translucent background restores parent composition");
   view.resize(800, 600);
   QApplication::processEvents();
-  require(view.viewport()->testAttribute(Qt::WA_OpaquePaintEvent), "returning to a solid media bucket restores opacity");
+  require(view.viewport()->testAttribute(Qt::WA_OpaquePaintEvent),
+          "returning to a solid media bucket restores opacity");
 }
 
 RenderTheme resizeTheme() {
@@ -63,8 +68,10 @@ void testLazyResizeRetainsIndicesAndMatchesFreshLayout() {
   DocumentSession session;
   QString markdown;
   for (int i = 0; i < 400; ++i) {
-    markdown += QStringLiteral("Paragraph %1 **bold** with wrapping words and a soft\nbreak. ").arg(i).repeated(3) + "\n\n";
-    if (i % 50 == 0) markdown += "- nested **list** item with words\n  - child item\n\n```cpp\nint value = 42;\n```\n\n";
+    markdown +=
+        QStringLiteral("Paragraph %1 **bold** with wrapping words and a soft\nbreak. ").arg(i).repeated(3) + "\n\n";
+    if (i % 50 == 0)
+      markdown += "- nested **list** item with words\n  - child item\n\n```cpp\nint value = 42;\n```\n\n";
   }
   session.setMarkdownText(markdown, false);
   auto theme = resizeTheme();
@@ -141,7 +148,8 @@ void testHtmlViewportUnitsAndEditsDuringResize() {
   require(layout.relayoutForViewportWidth(theme, 1200, changed), "HTML viewport change should be incremental");
   require(layout.block(html, theme)->height() > before + 40, "height-only resize must update HTML vh units");
   const auto first = session.document().root().children().front()->id();
-  require(session.applyTextDelta(5, 0, "\n\nnew paragraph\n\n", true, {{first, 5, BlockType::Paragraph}}), "edit during resize");
+  require(session.applyTextDelta(5, 0, "\n\nnew paragraph\n\n", true, {{first, 5, BlockType::Paragraph}}),
+          "edit during resize");
   const auto range = session.lastLocalTopLevelRangeChange();
   require(range.isValid() && layout.rebuildTopLevelRange(range, session.document(), theme, {}).rebuilt,
           "structural edits must work with unfinished viewport estimates");
@@ -157,8 +165,10 @@ void testHtmlResizeInvalidatesOnlyViewportStyles() {
     const bool dynamic = scenario != 0;
     DocumentSession session;
     session.setMarkdownText(scenario == 0 ? "before <kbd>static</kbd> after"
-                            : scenario == 1 ? "before <span style=\"font-size:5vh\"><em>dynamic</em></span> after"
-                                            : "before <span style=\"display:inline-block;font-size:5vh\">dynamic</span> after", false);
+                            : scenario == 1
+                                ? "before <span style=\"font-size:5vh\"><em>dynamic</em></span> after"
+                                : "before <span style=\"display:inline-block;font-size:5vh\">dynamic</span> after",
+                            false);
     auto theme = resizeTheme();
     theme.updateForViewport(1200, 700);
     DocumentLayout layout;
@@ -170,7 +180,8 @@ void testHtmlResizeInvalidatesOnlyViewportStyles() {
     const bool changed = theme.updateForViewport(1200, 1000);
     require(!changed, "inline HTML does not change theme projections");
     require(layout.relayoutForViewportWidth(theme, 1200, changed), "HTML resize remains incremental");
-    if (!dynamic) require(!layout.hasPendingViewportEstimates(), "static HTML needs no reflow when only height changes");
+    if (!dynamic)
+      require(!layout.hasPendingViewportEstimates(), "static HTML needs no reflow when only height changes");
     layout.buildAll(theme);
     if (!dynamic) {
       require(theme.elementStyleForNode(node, "p") == snapshot && theme.cssElementForNode(node) == element,
@@ -191,8 +202,11 @@ void testHtmlResizeInvalidatesOnlyViewportStyles() {
 
 void testResizeKeepsReadingPositionWithOffscreenCaret() {
   DocumentSession session;
-  session.setMarkdownText(QStringLiteral("a paragraph with enough words to wrap at a narrow width. ").repeated(4)
-                              .append("\n\n").repeated(80), false);
+  session.setMarkdownText(QStringLiteral("a paragraph with enough words to wrap at a narrow width. ")
+                              .repeated(4)
+                              .append("\n\n")
+                              .repeated(80),
+                          false);
   EditorView view;
   view.resize(700, 400);
   view.setDocument(session.document());
@@ -209,7 +223,8 @@ void testResizeKeepsReadingPositionWithOffscreenCaret() {
   require(qAbs(after - before) < 1, "resize must keep the reading block anchored, even with the caret at the start");
   QElapsedTimer timer;
   timer.start();
-  while (timer.elapsed() < 300) QApplication::processEvents();
+  while (timer.elapsed() < 300)
+    QApplication::processEvents();
   require(qAbs(view.nodeRect(anchor).top() - view.verticalScrollBar()->value() - before) < 1,
           "idle height estimation must preserve the same reading anchor");
 }
@@ -217,16 +232,20 @@ void testResizeKeepsReadingPositionWithOffscreenCaret() {
 void testLongDocumentResizeDoesNotAccumulateRounding() {
   // Offscreen views use eager layout. The minimal/native runs exercise the
   // same deferred estimates used by the application.
-  if (QApplication::platformName() == QLatin1String("offscreen")) return;
+  if (QApplication::platformName() == QLatin1String("offscreen"))
+    return;
   DocumentSession session;
   session.setMarkdownText(QStringLiteral("A paragraph with enough words for multiple lines while resizing. ")
-                              .repeated(6).append("\n\n").repeated(12000), false);
+                              .repeated(6)
+                              .append("\n\n")
+                              .repeated(12000),
+                          false);
   EditorView view;
   view.setAttribute(Qt::WA_DontShowOnScreen);
   view.resize(1000, 500);
-  view.setTheme(RenderTheme::fromDefinition(CssThemeMapper::fromCss(
-      "#write{max-width:900px;padding:20px}p{font-size:17px;line-height:1.65;margin:13.3px 0}",
-      "resize-rounding", {})));
+  view.setTheme(RenderTheme::fromDefinition(
+      CssThemeMapper::fromCss("#write{max-width:900px;padding:20px}p{font-size:17px;line-height:1.65;margin:13.3px 0}",
+                              "resize-rounding", {})));
   view.setDocument(session.document());
   view.show();
   QApplication::processEvents();
@@ -237,7 +256,8 @@ void testLongDocumentResizeDoesNotAccumulateRounding() {
   auto* estimates = view.findChild<QTimer*>("viewportEstimates");
   require(estimates, "deferred viewport estimate timer exists");
   const auto stopTimers = [&] {
-    for (auto* timer : view.findChildren<QTimer*>()) timer->stop();
+    for (auto* timer : view.findChildren<QTimer*>())
+      timer->stop();
   };
   stopTimers();
   const auto screenY = [&] { return view.mapDocumentToViewport(view.nodeRect(anchor).topLeft()).y(); };
@@ -261,9 +281,10 @@ void testLongDocumentResizeDoesNotAccumulateRounding() {
       QMetaObject::invokeMethod(estimates, "timeout", Qt::DirectConnection);
       complete = !estimates->isActive();
       stopTimers();
-      require(qAbs(screenY() - before) < .001,
-              QStringLiteral("reading anchor drifted during toggle %1, slice %2: %3px")
-                  .arg(toggle).arg(slice).arg(screenY() - before));
+      require(qAbs(screenY() - before) < .001, QStringLiteral("reading anchor drifted during toggle %1, slice %2: %3px")
+                                                   .arg(toggle)
+                                                   .arg(slice)
+                                                   .arg(screenY() - before));
       require(readingImage() == referenceImage,
               QStringLiteral("visible text pixels changed during idle toggle %1, slice %2").arg(toggle).arg(slice));
       stopTimers();
@@ -286,19 +307,23 @@ void testLongDocumentResizeDoesNotAccumulateRounding() {
         before = screenY();
         referenceImage = readingImage();
       }
-      if (complete) break;
+      if (complete)
+        break;
     }
     require(complete, "long document resize estimates finish");
-    if (toggle == 3) require(view.verticalScrollBar()->value() == 0, "idle estimates do not pull away from the document start");
+    if (toggle == 3)
+      require(view.verticalScrollBar()->value() == 0, "idle estimates do not pull away from the document start");
   }
 }
 
 void testBudgetedPrefetchAndEviction() {
   DocumentSession session;
-  session.setMarkdownText(QString("A **bold** *em* paragraph with words for wrapping. ").repeated(3).append("\n\n").repeated(160), false);
+  session.setMarkdownText(
+      QString("A **bold** *em* paragraph with words for wrapping. ").repeated(3).append("\n\n").repeated(160), false);
   auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
       "p{margin:12px 0}p:nth-child(3n){margin-top:19px}strong:hover{color:red}em:focus{color:blue}"
-      "p::before{content:counter(n) '. ';counter-increment:n}", "eviction", {}));
+      "p::before{content:counter(n) '. ';counter-increment:n}",
+      "eviction", {}));
   DocumentLayout layout;
   layout.rebuild(session.document(), theme, 700, {}, {}, DocumentLayout::BuildPolicy::Lazy);
   require(!layout.prefetch(0, 20, theme, 1, 1000) && layout.residentDetailCount() == 1,
@@ -321,12 +346,16 @@ void testBudgetedPrefetchAndEviction() {
   const auto evicted = layout.trimDetails(100, 103, theme, {caret}, 8);
   require(evicted == layout.slotCount() - 8 && layout.residentDetailCount() == 8,
           QString("far detail residency must be bounded: slots=%1 evicted=%2 retained=%3")
-              .arg(layout.slotCount()).arg(evicted).arg(layout.residentDetailCount()));
-  require(layout.blockIfPromoted(caret) && layout.blockIfPromoted(nodes[101]->id()) && !layout.blockIfPromoted(nodes[30]->id()),
+              .arg(layout.slotCount())
+              .arg(evicted)
+              .arg(layout.residentDetailCount()));
+  require(layout.blockIfPromoted(caret) && layout.blockIfPromoted(nodes[101]->id()) &&
+              !layout.blockIfPromoted(nodes[30]->id()),
           "only unprotected distant geometry is released");
   require(qAbs(total - layout.totalHeight()) < .01 && qAbs(top - layout.slotTop(100)) < .01,
           "eviction must retain measured heights and position tokens");
-  require(theme.styleCacheStats().elements < before / 2, "evicted inline semantic views must be released with layout detail");
+  require(theme.styleCacheStats().elements < before / 2,
+          "evicted inline semantic views must be released with layout detail");
   for (int i = 0; i < 3; ++i) {
     layout.ensureBuilt(0, 20, theme);
     layout.trimDetails(0, 4, theme, {caret}, 8);
@@ -340,7 +369,8 @@ void testBudgetedPrefetchAndEviction() {
   layout.buildAll(theme);
   auto freshTheme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
       "p{margin:12px 0}p:nth-child(3n){margin-top:19px}strong:hover{color:red}em:focus{color:blue}"
-      "p::before{content:counter(n) '. ';counter-increment:n}", "eviction", {}));
+      "p::before{content:counter(n) '. ';counter-increment:n}",
+      "eviction", {}));
   DocumentLayout fresh;
   fresh.rebuild(session.document(), freshTheme, 700);
   require(qAbs(layout.totalHeight() - fresh.totalHeight()) < .01, "rebuilt evicted geometry must match full layout");
@@ -356,10 +386,12 @@ void testBudgetedPrefetchAndEviction() {
 }
 
 void benchmarkLargeResize() {
-  if (!qEnvironmentVariableIsSet("MUFFIN_RESIZE_BENCH")) return;
+  if (!qEnvironmentVariableIsSet("MUFFIN_RESIZE_BENCH"))
+    return;
   DocumentSession session;
   QString markdown;
-  for (int i = 0; i < 50000; ++i) markdown += QStringLiteral("Paragraph %1 repeated words for wrapping. ").arg(i).repeated(4) + "\n\n";
+  for (int i = 0; i < 50000; ++i)
+    markdown += QStringLiteral("Paragraph %1 repeated words for wrapping. ").arg(i).repeated(4) + "\n\n";
   session.setMarkdownText(markdown, false);
   auto theme = resizeTheme();
   theme.updateForViewport(1000, 700);
@@ -371,21 +403,25 @@ void benchmarkLargeResize() {
   for (int i = 0; i < 24; ++i) {
     const int width = 500 + (i % 7) * 50;
     const bool changed = theme.updateForViewport(width, 700);
-    if (fullRebuild) layout.rebuild(session.document(), theme, width, {}, {}, DocumentLayout::BuildPolicy::Lazy);
-    else require(layout.relayoutForViewportWidth(theme, width, changed), "benchmark must use incremental resize");
+    if (fullRebuild)
+      layout.rebuild(session.document(), theme, width, {}, {}, DocumentLayout::BuildPolicy::Lazy);
+    else
+      require(layout.relayoutForViewportWidth(theme, width, changed), "benchmark must use incremental resize");
     layout.visibleBlocks({0, 0, qreal(width), 700}, theme);
   }
   std::cout << "[resize-bench] mode=" << (fullRebuild ? "full" : "incremental") << " blocks=" << layout.slotCount()
             << " frames=24 totalMs=" << timer.elapsed() << '\n';
 }
 void benchmarkEditorResize() {
-  if (!qEnvironmentVariableIsSet("MUFFIN_RESIZE_VIEW_BENCH")) return;
+  if (!qEnvironmentVariableIsSet("MUFFIN_RESIZE_VIEW_BENCH"))
+    return;
   QFile file(qEnvironmentVariable("MUFFIN_RESIZE_DOCUMENT"));
   require(file.open(QIODevice::ReadOnly), "open resize benchmark document");
   DocumentSession session;
   session.setMarkdownText(QString::fromUtf8(file.readAll()), false);
   const auto cssPath = qEnvironmentVariable("MUFFIN_RESIZE_THEME");
-  auto theme = cssPath.isEmpty() ? resizeTheme() : RenderTheme::fromDefinition(ThemeDefinition::fromCss(cssPath, "resize-benchmark"));
+  auto theme = cssPath.isEmpty() ? resizeTheme()
+                                 : RenderTheme::fromDefinition(ThemeDefinition::fromCss(cssPath, "resize-benchmark"));
   EditorView view;
   view.resize(1000, 700);
   view.setTheme(theme);
@@ -411,9 +447,10 @@ void benchmarkEditorResize() {
               << " p50Ms=" << values[values.size() / 2] << " p95Ms=" << values[values.size() * 95 / 100]
               << " maxMs=" << values.back() << '\n';
   };
-  report(resizeMs, "resize"); report(frameMs, "frame");
+  report(resizeMs, "resize");
+  report(frameMs, "frame");
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty())

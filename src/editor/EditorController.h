@@ -59,9 +59,9 @@ public:
   // Caret navigation for the Edit ▸ Select ▸ "Jump to" group.
   bool moveDocumentStart();
   bool moveDocumentEnd();
-  bool moveBlockStart();   // start of the current block's text (≈ line start)
-  bool moveBlockEnd();     // end of the current block's text (≈ line end)
-  bool selectNextOccurrence();  // select the next occurrence of the current selection/word
+  bool moveBlockStart();       // start of the current block's text (≈ line start)
+  bool moveBlockEnd();         // end of the current block's text (≈ line end)
+  bool selectNextOccurrence(); // select the next occurrence of the current selection/word
   // Apply a full-document text replacement (re-parse) as ONE undoable step. Use this instead of
   // session->applyMarkdownText for batch operations (Find/Replace, image transforms, Upload/Move
   // All Images) so they land on the undo stack — otherwise Ctrl+Z skips them entirely.
@@ -131,4 +131,4 @@ private:
   ClipboardController clipboardController_;
 };
 
-}  // namespace muffin
+} // namespace muffin

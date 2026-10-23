@@ -21,15 +21,16 @@ namespace muffin {
 inline bool isTyporaEditorOnlyClass(const QString& cls) {
   if (cls.startsWith(QStringLiteral("md-toc")) || cls.startsWith(QStringLiteral("outline-")) ||
       cls.startsWith(QStringLiteral("megamenu")) || cls.startsWith(QStringLiteral("modal-")) ||
-      cls.startsWith(QStringLiteral("ty-"))) { return true; }
+      cls.startsWith(QStringLiteral("ty-"))) {
+    return true;
+  }
   static const QSet<QString> exact = {
-      QStringLiteral("md-meta"), QStringLiteral("md-meta-block"),
-      QStringLiteral("md-comment"), QStringLiteral("md-raw"), QStringLiteral("md-rawblock"),
-      QStringLiteral("md-search-hit"), QStringLiteral("md-search-panel"),
-      QStringLiteral("md-search-input"), QStringLiteral("md-search-tip"),
-      QStringLiteral("md-expand"), QStringLiteral("sidebar-content"), QStringLiteral("footer-item"),
+      QStringLiteral("md-meta"),         QStringLiteral("md-meta-block"),   QStringLiteral("md-comment"),
+      QStringLiteral("md-raw"),          QStringLiteral("md-rawblock"),     QStringLiteral("md-search-hit"),
+      QStringLiteral("md-search-panel"), QStringLiteral("md-search-input"), QStringLiteral("md-search-tip"),
+      QStringLiteral("md-expand"),       QStringLiteral("sidebar-content"), QStringLiteral("footer-item"),
   };
   return exact.contains(cls);
 }
 
-}  // namespace muffin
+} // namespace muffin

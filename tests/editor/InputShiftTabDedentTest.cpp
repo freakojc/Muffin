@@ -47,10 +47,10 @@ void sendBackTab(EditorController& controller, EditorView& view) {
   QKeyEvent backtab(QEvent::KeyPress, Qt::Key_Backtab, Qt::ShiftModifier);
   controller.inputController().eventFilter(&view, &backtab);
 }
-}  // namespace
+} // namespace
 
 void testShiftTabDedentsSelectedLines() {
-  SettingsOverride indent("markdown/codeIndent", 1);  // 4 spaces
+  SettingsOverride indent("markdown/codeIndent", 1); // 4 spaces
   DocumentSession session;
   EditorView view;
   EditorController controller;
@@ -65,7 +65,7 @@ void testShiftTabDedentsSelectedLines() {
 }
 
 void testShiftTabMinRuleStripsOnlyPresentSpaces() {
-  SettingsOverride indent("markdown/codeIndent", 1);  // 4 spaces
+  SettingsOverride indent("markdown/codeIndent", 1); // 4 spaces
   DocumentSession session;
   EditorView view;
   EditorController controller;
@@ -81,7 +81,7 @@ void testShiftTabMinRuleStripsOnlyPresentSpaces() {
 }
 
 void testShiftTabCollapsedCaretDedentsLine() {
-  SettingsOverride indent("markdown/codeIndent", 1);  // 4 spaces
+  SettingsOverride indent("markdown/codeIndent", 1); // 4 spaces
   DocumentSession session;
   EditorView view;
   EditorController controller;
@@ -103,7 +103,7 @@ void testShiftTabCollapsedCaretDedentsLine() {
 }
 
 void testShiftTabUnindentedLineIsNoop() {
-  SettingsOverride indent("markdown/codeIndent", 1);  // 4 spaces
+  SettingsOverride indent("markdown/codeIndent", 1); // 4 spaces
   DocumentSession session;
   EditorView view;
   EditorController controller;

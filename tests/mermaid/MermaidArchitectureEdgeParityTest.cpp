@@ -23,13 +23,13 @@ int main(int argc, char** argv) {
   const QJsonObject root = QJsonDocument::fromJson(bytes).object();
   require(root.value(QStringLiteral("fixtureSha256")).toString() ==
                   QLatin1String("88462c6eb1186769901fbff4a9b115cacc82a2ba5dfdc7f63ad0ac0ad77865fe") &&
-              root.value(QStringLiteral("upstream")).toObject()
-                      .value(QStringLiteral("version")).toString() ==
+              root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
                   QLatin1String("11.16.0"),
           QStringLiteral("Architecture config provenance changed"));
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
   require(cases.size() == 41, QStringLiteral("Architecture config case count"));
-  for (const QJsonValue& value : cases) compareConfigCase(value.toObject());
+  for (const QJsonValue& value : cases)
+    compareConfigCase(value.toObject());
   std::puts("MermaidArchitectureEdgeParityTest: 41/41 passed");
   return 0;
 }

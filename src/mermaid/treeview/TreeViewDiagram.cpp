@@ -21,14 +21,12 @@ constexpr QChar kThinBranch(0x251c);
 constexpr QChar kHeavyBranch(0x2523);
 
 bool isBoxChar(QChar ch) {
-  return ch == kThinHorizontal || ch == kHeavyHorizontal ||
-         ch == kThinVertical || ch == kHeavyVertical || ch == kThinEnd ||
-         ch == kHeavyEnd || ch == kThinBranch || ch == kHeavyBranch;
+  return ch == kThinHorizontal || ch == kHeavyHorizontal || ch == kThinVertical || ch == kHeavyVertical ||
+         ch == kThinEnd || ch == kHeavyEnd || ch == kThinBranch || ch == kHeavyBranch;
 }
 
 bool isBranchChar(QChar ch) {
-  return ch == kThinEnd || ch == kHeavyEnd || ch == kThinBranch ||
-         ch == kHeavyBranch;
+  return ch == kThinEnd || ch == kHeavyEnd || ch == kThinBranch || ch == kHeavyBranch;
 }
 
 bool isDashChar(QChar ch) {
@@ -56,8 +54,7 @@ struct PreprocessedSource {
 };
 
 bool metadataLine(const QString& line) {
-  static const QRegularExpression expression(
-      QStringLiteral(R"(^\s*(title[\t ]|accTitle[\t ]*:|accDescr[\t ]*[:{]))"));
+  static const QRegularExpression expression(QStringLiteral(R"(^\s*(title[\t ]|accTitle[\t ]*:|accDescr[\t ]*[:{]))"));
   return expression.match(line).hasMatch();
 }
 
@@ -76,7 +73,8 @@ bool decorationOnly(const QString& line) {
 
 int firstBranchIndex(const QString& line) {
   for (int i = 0; i < line.size(); ++i)
-    if (isBranchChar(line.at(i))) return i;
+    if (isBranchChar(line.at(i)))
+      return i;
   return -1;
 }
 
@@ -85,8 +83,8 @@ bool containsBoxChar(const QString& line) {
 }
 
 [[noreturn]] void preprocessError(int line, const QString& message) {
-  throw TreeViewParseError(QStringLiteral("Line %1: %2").arg(line).arg(message),
-                           line, 0, TreeViewErrorKind::Preprocess);
+  throw TreeViewParseError(QStringLiteral("Line %1: %2").arg(line).arg(message), line, 0,
+                           TreeViewErrorKind::Preprocess);
 }
 
 PreprocessedSource preprocessBoxDrawing(const QString& input) {
@@ -101,13 +99,13 @@ PreprocessedSource preprocessBoxDrawing(const QString& input) {
       break;
     }
   }
-  if (keywordIndex < 0) return {input, {}};
+  if (keywordIndex < 0)
+    return {input, {}};
 
   QStringList contentLines;
   for (int i = keywordIndex + 1; i < lines.size(); ++i) {
     const QString& line = lines.at(i);
-    if (line.trimmed().isEmpty() || commentLine(line) || metadataLine(line) ||
-        decorationOnly(line))
+    if (line.trimmed().isEmpty() || commentLine(line) || metadataLine(line) || decorationOnly(line))
       continue;
     QString normalized = line;
     normalized.replace(QLatin1Char('\t'), QStringLiteral("    "));
@@ -131,7 +129,8 @@ PreprocessedSource preprocessBoxDrawing(const QString& input) {
     output.append(line);
     lineMap.insert(output.size(), originalLine);
   };
-  for (int i = 0; i <= keywordIndex; ++i) append(lines.at(i), i + 1);
+  for (int i = 0; i <= keywordIndex; ++i)
+    append(lines.at(i), i + 1);
 
   for (int i = keywordIndex + 1; i < lines.size(); ++i) {
     const QString& line = lines.at(i);
@@ -140,7 +139,8 @@ PreprocessedSource preprocessBoxDrawing(const QString& input) {
       append(line, originalLine);
       continue;
     }
-    if (decorationOnly(line)) continue;
+    if (decorationOnly(line))
+      continue;
 
     QString normalized = line;
     normalized.replace(QLatin1Char('\t'), QStringLiteral("    "));
@@ -148,16 +148,15 @@ PreprocessedSource preprocessBoxDrawing(const QString& input) {
     if (branch >= 0) {
       const int depth = qRound(qreal(branch) / qreal(segmentWidth)) + 1;
       int pos = branch + 1;
-      while (pos < normalized.size() && isDashChar(normalized.at(pos))) ++pos;
+      while (pos < normalized.size() && isDashChar(normalized.at(pos)))
+        ++pos;
       while (pos < normalized.size() && normalized.at(pos) == QLatin1Char(' '))
         ++pos;
       const QString content = normalized.mid(pos).trimmed();
       if (content.isEmpty()) {
-        preprocessError(
-            originalLine,
-            QStringLiteral("Empty node ") + QChar(0x2014) +
-                QStringLiteral(" expected a filename or directory name after "
-                               "the box-drawing prefix"));
+        preprocessError(originalLine, QStringLiteral("Empty node ") + QChar(0x2014) +
+                                          QStringLiteral(" expected a filename or directory name after "
+                                                         "the box-drawing prefix"));
       }
       append(QString(depth * 4, QLatin1Char(' ')) + content, originalLine);
       continue;
@@ -170,18 +169,16 @@ PreprocessedSource preprocessBoxDrawing(const QString& input) {
         break;
       }
     }
-    if (onlyDecorations) continue;
+    if (onlyDecorations)
+      continue;
     if (containsBoxChar(normalized)) {
       append(line, originalLine);
     } else if (!normalized.isEmpty() && normalized.front().isSpace()) {
-      preprocessError(
-          originalLine,
-          QStringLiteral("Unexpected indentation without box-drawing "
-                         "characters. In box-drawing format, use ") +
-              QChar(0x251c) + QChar(0x2500) + QChar(0x2500) +
-              QStringLiteral(" or ") + QChar(0x2514) + QChar(0x2500) +
-              QChar(0x2500) +
-              QStringLiteral(" prefixes for indented nodes."));
+      preprocessError(originalLine, QStringLiteral("Unexpected indentation without box-drawing "
+                                                   "characters. In box-drawing format, use ") +
+                                        QChar(0x251c) + QChar(0x2500) + QChar(0x2500) + QStringLiteral(" or ") +
+                                        QChar(0x2514) + QChar(0x2500) + QChar(0x2500) +
+                                        QStringLiteral(" prefixes for indented nodes."));
     } else {
       append(line, originalLine);
     }
@@ -195,68 +192,70 @@ int originalLine(const QHash<int, int>& lineMap, int line) {
 
 qsizetype lineOffset(const QStringList& lines, int lineIndex, int column) {
   qsizetype result = 0;
-  for (int i = 0; i < lineIndex; ++i) result += lines.at(i).size() + 1;
+  for (int i = 0; i < lineIndex; ++i)
+    result += lines.at(i).size() + 1;
   return result + column;
 }
 
-[[noreturn]] void lexerError(const QStringList& lines,
-                             const QHash<int, int>& lineMap, int lineIndex,
-                             int column, QChar character,
-                             qsizetype skipped = 1) {
+[[noreturn]] void lexerError(const QStringList& lines, const QHash<int, int>& lineMap, int lineIndex, int column,
+                             QChar character, qsizetype skipped = 1) {
   const int mappedLine = originalLine(lineMap, lineIndex + 1);
   const qsizetype offset = lineOffset(lines, lineIndex, column);
-  throw TreeViewParseError(
-      QStringLiteral("Parsing failed: Lexer error on line %1, column %2: "
-                     "unexpected character: ->%3<- at offset: %4, skipped %5 "
-                     "characters.")
-          .arg(mappedLine)
-          .arg(column + 1)
-          .arg(character)
-          .arg(offset)
-          .arg(skipped),
-      mappedLine, column + 1, TreeViewErrorKind::Lexer);
+  throw TreeViewParseError(QStringLiteral("Parsing failed: Lexer error on line %1, column %2: "
+                                          "unexpected character: ->%3<- at offset: %4, skipped %5 "
+                                          "characters.")
+                               .arg(mappedLine)
+                               .arg(column + 1)
+                               .arg(character)
+                               .arg(offset)
+                               .arg(skipped),
+                           mappedLine, column + 1, TreeViewErrorKind::Lexer);
 }
 
-[[noreturn]] void parserError(const QHash<int, int>& lineMap, int lineIndex,
-                              int column, const QString& expected,
+[[noreturn]] void parserError(const QHash<int, int>& lineMap, int lineIndex, int column, const QString& expected,
                               const QString& found) {
   const int mappedLine = originalLine(lineMap, lineIndex + 1);
-  throw TreeViewParseError(
-      QStringLiteral("Parsing failed: Parse error on line %1, column %2: "
-                     "Expecting %3 but found `%4`.")
-          .arg(mappedLine)
-          .arg(column + 1)
-          .arg(expected, found),
-      mappedLine, column + 1, TreeViewErrorKind::Parser);
+  throw TreeViewParseError(QStringLiteral("Parsing failed: Parse error on line %1, column %2: "
+                                          "Expecting %3 but found `%4`.")
+                               .arg(mappedLine)
+                               .arg(column + 1)
+                               .arg(expected, found),
+                           mappedLine, column + 1, TreeViewErrorKind::Parser);
 }
 
 bool isClassStart(QChar ch) {
-  return (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z')) ||
-         (ch >= QLatin1Char('a') && ch <= QLatin1Char('z')) ||
+  return (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z')) || (ch >= QLatin1Char('a') && ch <= QLatin1Char('z')) ||
          ch == QLatin1Char('_');
 }
 
 bool isWordOrHyphen(QChar ch) {
-  return ch.isLetterOrNumber() || ch == QLatin1Char('_') ||
-         ch == QLatin1Char('-');
+  return ch.isLetterOrNumber() || ch == QLatin1Char('_') || ch == QLatin1Char('-');
 }
 
 int validClassAnnotationAt(const QString& line, int position) {
   int pos = position;
-  if (pos >= line.size() || !isInlineWhitespace(line.at(pos))) return -1;
-  while (pos < line.size() && isInlineWhitespace(line.at(pos))) ++pos;
-  if (line.mid(pos, 3) != QLatin1String(":::")) return -1;
+  if (pos >= line.size() || !isInlineWhitespace(line.at(pos)))
+    return -1;
+  while (pos < line.size() && isInlineWhitespace(line.at(pos)))
+    ++pos;
+  if (line.mid(pos, 3) != QLatin1String(":::"))
+    return -1;
   pos += 3;
-  while (pos < line.size() && isInlineWhitespace(line.at(pos))) ++pos;
+  while (pos < line.size() && isInlineWhitespace(line.at(pos)))
+    ++pos;
   return pos < line.size() && isClassStart(line.at(pos)) ? pos : -1;
 }
 
 bool annotationBoundaryAt(const QString& line, int position) {
   int pos = position;
-  if (pos >= line.size() || !isInlineWhitespace(line.at(pos))) return false;
-  while (pos < line.size() && isInlineWhitespace(line.at(pos))) ++pos;
-  if (line.mid(pos, 2) == QLatin1String("##")) return true;
-  if (line.mid(pos, 5) == QLatin1String("icon(")) return true;
+  if (pos >= line.size() || !isInlineWhitespace(line.at(pos)))
+    return false;
+  while (pos < line.size() && isInlineWhitespace(line.at(pos)))
+    ++pos;
+  if (line.mid(pos, 2) == QLatin1String("##"))
+    return true;
+  if (line.mid(pos, 5) == QLatin1String("icon("))
+    return true;
   return validClassAnnotationAt(line, position) >= 0;
 }
 
@@ -269,9 +268,7 @@ struct ParsedNode {
   QString description;
 };
 
-QVector<ParsedNode> parseNodeLine(const QStringList& lines,
-                                  const QHash<int, int>& lineMap,
-                                  int lineIndex) {
+QVector<ParsedNode> parseNodeLine(const QStringList& lines, const QHash<int, int>& lineMap, int lineIndex) {
   const QString& line = lines.at(lineIndex);
   QVector<ParsedNode> result;
   int pos = 0;
@@ -287,25 +284,26 @@ QVector<ParsedNode> parseNodeLine(const QStringList& lines,
     node.level = first ? indentation : 0;
     first = false;
 
-    if (line.at(pos) == QLatin1Char('"') ||
-        line.at(pos) == QLatin1Char('\'')) {
+    if (line.at(pos) == QLatin1Char('"') || line.at(pos) == QLatin1Char('\'')) {
       const QChar quote = line.at(pos++);
       const int end = line.indexOf(quote, pos);
-      if (end < 0) lexerError(lines, lineMap, lineIndex, pos - 1, quote);
+      if (end < 0)
+        lexerError(lines, lineMap, lineIndex, pos - 1, quote);
       node.name = line.mid(pos, end - pos);
       pos = end + 1;
     } else {
-      if (line.mid(pos, 3) == QLatin1String(":::") ||
-          line.mid(pos, 5) == QLatin1String("icon(") ||
+      if (line.mid(pos, 3) == QLatin1String(":::") || line.mid(pos, 5) == QLatin1String("icon(") ||
           line.mid(pos, 2) == QLatin1String("##"))
         lexerError(lines, lineMap, lineIndex, pos, line.at(pos));
       const int begin = pos;
       while (pos < line.size()) {
-        if (annotationBoundaryAt(line, pos)) break;
+        if (annotationBoundaryAt(line, pos))
+          break;
         ++pos;
       }
       int end = pos;
-      while (end > begin && isInlineWhitespace(line.at(end - 1))) --end;
+      while (end > begin && isInlineWhitespace(line.at(end - 1)))
+        --end;
       node.name = line.mid(begin, end - begin);
       if (node.name.isEmpty())
         lexerError(lines, lineMap, lineIndex, begin, line.at(begin));
@@ -314,15 +312,18 @@ QVector<ParsedNode> parseNodeLine(const QStringList& lines,
     bool descriptionConsumed = false;
     while (pos < line.size()) {
       const int whitespaceBegin = pos;
-      while (pos < line.size() && isInlineWhitespace(line.at(pos))) ++pos;
-      if (pos >= line.size()) break;
+      while (pos < line.size() && isInlineWhitespace(line.at(pos)))
+        ++pos;
+      if (pos >= line.size())
+        break;
 
       if (line.mid(pos, 3) == QLatin1String(":::")) {
         const int nameStart = validClassAnnotationAt(line, whitespaceBegin);
         if (nameStart < 0)
           lexerError(lines, lineMap, lineIndex, pos, line.at(pos));
         int end = nameStart + 1;
-        while (end < line.size() && isWordOrHyphen(line.at(end))) ++end;
+        while (end < line.size() && isWordOrHyphen(line.at(end)))
+          ++end;
         node.cssClass = line.mid(nameStart, end - nameStart);
         pos = end;
         continue;
@@ -332,11 +333,13 @@ QVector<ParsedNode> parseNodeLine(const QStringList& lines,
         const int tokenStart = pos;
         pos += 5;
         const int valueStart = pos;
-        while (pos < line.size() && isWordOrHyphen(line.at(pos))) ++pos;
+        while (pos < line.size() && isWordOrHyphen(line.at(pos)))
+          ++pos;
         if (pos < line.size() && line.at(pos) == QLatin1Char(':')) {
           ++pos;
           const int suffix = pos;
-          while (pos < line.size() && isWordOrHyphen(line.at(pos))) ++pos;
+          while (pos < line.size() && isWordOrHyphen(line.at(pos)))
+            ++pos;
           if (pos == suffix)
             lexerError(lines, lineMap, lineIndex, tokenStart, line.at(tokenStart));
         }
@@ -344,15 +347,15 @@ QVector<ParsedNode> parseNodeLine(const QStringList& lines,
           lexerError(lines, lineMap, lineIndex, tokenStart, line.at(tokenStart));
         node.hasIcon = true;
         node.icon = line.mid(valueStart, pos - valueStart);
-        if (node.icon.isEmpty()) node.icon = QStringLiteral("none");
+        if (node.icon.isEmpty())
+          node.icon = QStringLiteral("none");
         ++pos;
         continue;
       }
 
       if (line.mid(pos, 2) == QLatin1String("##")) {
         pos += 2;
-        node.description =
-            HtmlSanitizer().sanitizedMermaidText(line.mid(pos).trimmed());
+        node.description = HtmlSanitizer().sanitizedMermaidText(line.mid(pos).trimmed());
         pos = line.size();
         descriptionConsumed = true;
         break;
@@ -364,14 +367,14 @@ QVector<ParsedNode> parseNodeLine(const QStringList& lines,
       break;
     }
     result.append(std::move(node));
-    if (descriptionConsumed) break;
+    if (descriptionConsumed)
+      break;
   }
   return result;
 }
 
 void addNode(TreeViewData& data, QVector<int>& stack, ParsedNode parsed) {
-  while (!stack.isEmpty() &&
-         parsed.level <= data.nodes.at(stack.back()).level)
+  while (!stack.isEmpty() && parsed.level <= data.nodes.at(stack.back()).level)
     stack.pop_back();
   const int parent = stack.isEmpty() ? data.rootIndex : stack.back();
 
@@ -380,7 +383,8 @@ void addNode(TreeViewData& data, QVector<int>& stack, ParsedNode parsed) {
   node.level = parsed.level;
   node.name = std::move(parsed.name);
   node.directory = node.name.endsWith(QLatin1Char('/'));
-  if (node.directory) node.name.chop(1);
+  if (node.directory)
+    node.name.chop(1);
   node.hasIcon = parsed.hasIcon;
   node.icon = std::move(parsed.icon);
   node.cssClass = std::move(parsed.cssClass);
@@ -390,15 +394,12 @@ void addNode(TreeViewData& data, QVector<int>& stack, ParsedNode parsed) {
   stack.append(data.nodes.back().id);
 }
 
-}  // namespace
+} // namespace
 
-TreeViewParseError::TreeViewParseError(const QString& message, int errorLine,
-                                       int errorColumn,
+TreeViewParseError::TreeViewParseError(const QString& message, int errorLine, int errorColumn,
                                        TreeViewErrorKind errorKind)
-    : std::runtime_error(message.toUtf8().constData()),
-      line(errorLine),
-      column(errorColumn),
-      kind(errorKind) {}
+    : std::runtime_error(message.toUtf8().constData()), line(errorLine), column(errorColumn), kind(errorKind) {
+}
 
 TreeViewData TreeViewDiagram::parse(const QString& source) {
   const PreprocessedSource preprocessed = preprocessBoxDrawing(source);
@@ -416,16 +417,13 @@ TreeViewData TreeViewDiagram::parse(const QString& source) {
   data.nodes.append(std::move(root));
 
   int lineIndex = 0;
-  while (lineIndex < lines.size() &&
-         (lines.at(lineIndex).trimmed().isEmpty() ||
-          commentLine(lines.at(lineIndex))))
+  while (lineIndex < lines.size() && (lines.at(lineIndex).trimmed().isEmpty() || commentLine(lines.at(lineIndex))))
     ++lineIndex;
   if (lineIndex >= lines.size())
-    parserError(preprocessed.lineMap, qMax(0, lines.size() - 1), 0,
-                QStringLiteral("token of type 'treeView-beta'"), QString());
+    parserError(preprocessed.lineMap, qMax(0, lines.size() - 1), 0, QStringLiteral("token of type 'treeView-beta'"),
+                QString());
   if (lines.at(lineIndex).trimmed() != QLatin1String("treeView-beta")) {
-    parserError(preprocessed.lineMap, lineIndex, 0,
-                QStringLiteral("token of type 'treeView-beta'"),
+    parserError(preprocessed.lineMap, lineIndex, 0, QStringLiteral("token of type 'treeView-beta'"),
                 lines.at(lineIndex).trimmed());
   }
   ++lineIndex;
@@ -440,32 +438,27 @@ TreeViewData TreeViewDiagram::parse(const QString& source) {
       continue;
     }
 
-    if (metadataOpen &&
-        (trimmed == QLatin1String("title") ||
-         trimmed.startsWith(QLatin1String("title ")) ||
-         trimmed.startsWith(QLatin1String("title\t")))) {
+    if (metadataOpen && (trimmed == QLatin1String("title") || trimmed.startsWith(QLatin1String("title ")) ||
+                         trimmed.startsWith(QLatin1String("title\t")))) {
       data.title = sanitizeMetadata(trimmed.mid(5));
       ++lineIndex;
       continue;
     }
-    static const QRegularExpression accTitle(
-        QStringLiteral(R"(^[\t ]*accTitle[\t ]*:(.*)$)"));
+    static const QRegularExpression accTitle(QStringLiteral(R"(^[\t ]*accTitle[\t ]*:(.*)$)"));
     const QRegularExpressionMatch accTitleMatch = accTitle.match(line);
     if (metadataOpen && accTitleMatch.hasMatch()) {
       data.accTitle = sanitizeMetadata(accTitleMatch.captured(1));
       ++lineIndex;
       continue;
     }
-    static const QRegularExpression accDescrLine(
-        QStringLiteral(R"(^[\t ]*accDescr[\t ]*:(.*)$)"));
+    static const QRegularExpression accDescrLine(QStringLiteral(R"(^[\t ]*accDescr[\t ]*:(.*)$)"));
     const QRegularExpressionMatch accDescrMatch = accDescrLine.match(line);
     if (metadataOpen && accDescrMatch.hasMatch()) {
       data.accDescr = sanitizeMetadata(accDescrMatch.captured(1));
       ++lineIndex;
       continue;
     }
-    static const QRegularExpression accDescrBlock(
-        QStringLiteral(R"(^[\t ]*accDescr\s*\{(.*)$)"));
+    static const QRegularExpression accDescrBlock(QStringLiteral(R"(^[\t ]*accDescr\s*\{(.*)$)"));
     const QRegularExpressionMatch blockMatch = accDescrBlock.match(line);
     if (metadataOpen && blockMatch.hasMatch()) {
       QString body = blockMatch.captured(1);
@@ -475,24 +468,22 @@ TreeViewData TreeViewDiagram::parse(const QString& source) {
         close = body.indexOf(QLatin1Char('}'));
       }
       if (close < 0)
-        lexerError(lines, preprocessed.lineMap, lineIndex - 1,
-                   lines.at(lineIndex - 1).size(), QChar());
+        lexerError(lines, preprocessed.lineMap, lineIndex - 1, lines.at(lineIndex - 1).size(), QChar());
       data.accDescr = normalizeAccDescr(body.left(close));
       ++lineIndex;
       continue;
     }
 
     if (!metadataOpen && metadataLine(line)) {
-      parserError(preprocessed.lineMap, lineIndex, 0,
-                  QStringLiteral("token of type 'TreeNode'"), trimmed);
+      parserError(preprocessed.lineMap, lineIndex, 0, QStringLiteral("token of type 'TreeNode'"), trimmed);
     }
     metadataOpen = false;
-    const QVector<ParsedNode> parsed =
-        parseNodeLine(lines, preprocessed.lineMap, lineIndex);
-    for (ParsedNode node : parsed) addNode(data, stack, std::move(node));
+    const QVector<ParsedNode> parsed = parseNodeLine(lines, preprocessed.lineMap, lineIndex);
+    for (ParsedNode node : parsed)
+      addNode(data, stack, std::move(node));
     ++lineIndex;
   }
   return data;
 }
 
-}  // namespace muffin::mermaid::treeview
+} // namespace muffin::mermaid::treeview

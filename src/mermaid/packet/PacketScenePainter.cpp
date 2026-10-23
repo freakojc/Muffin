@@ -20,23 +20,22 @@ QStringList cssFontFamilies(const QString& expression) {
 
 editor::CssPixelFont textFont(const PacketScene& scene, qreal size) {
   const QStringList families = cssFontFamilies(scene.style.fontFamily);
-  editor::CssPixelFont font =
-      editor::makeUnhintedCssPixelFont(families.first(), size);
-  if (families.size() > 1) font.font.setFamilies(families);
+  editor::CssPixelFont font = editor::makeUnhintedCssPixelFont(families.first(), size);
+  if (families.size() > 1)
+    font.font.setFamilies(families);
   return font;
 }
 
 color::SvgPaint rootFill(const PacketScene& scene) {
   const QString value = scene.style.inheritedColor.trimmed();
   const QString lower = value.toLower();
-  if (lower == QLatin1String("none")) return {true, {}};
+  if (lower == QLatin1String("none"))
+    return {true, {}};
   if (lower == QLatin1String("transparent"))
     return {false, QColor(Qt::transparent)};
-  if (lower == QLatin1String("currentcolor") ||
-      lower == QLatin1String("initial") ||
-      lower == QLatin1String("inherit") || lower == QLatin1String("unset") ||
-      lower == QLatin1String("revert") || value.isEmpty() ||
-      !color::isParsableColor(value))
+  if (lower == QLatin1String("currentcolor") || lower == QLatin1String("initial") ||
+      lower == QLatin1String("inherit") || lower == QLatin1String("unset") || lower == QLatin1String("revert") ||
+      value.isEmpty() || !color::isParsableColor(value))
     return {false, QColor(Qt::black)};
   return {false, color::toQColor(value)};
 }
@@ -45,13 +44,12 @@ color::SvgPaint textPaint(const PacketScene& scene, const QString& value) {
   const color::SvgPaint root = rootFill(scene);
   const QString trimmed = value.trimmed();
   const QString lower = trimmed.toLower();
-  if (lower == QLatin1String("none")) return {true, {}};
-  if (lower == QLatin1String("currentcolor") ||
-      lower == QLatin1String("initial"))
+  if (lower == QLatin1String("none"))
+    return {true, {}};
+  if (lower == QLatin1String("currentcolor") || lower == QLatin1String("initial"))
     return {false, QColor(Qt::black)};
-  if (trimmed.isEmpty() || lower == QLatin1String("inherit") ||
-      lower == QLatin1String("unset") || lower == QLatin1String("revert") ||
-      !color::isParsableColor(trimmed))
+  if (trimmed.isEmpty() || lower == QLatin1String("inherit") || lower == QLatin1String("unset") ||
+      lower == QLatin1String("revert") || !color::isParsableColor(trimmed))
     return root;
   return {false, color::toQColor(trimmed)};
 }
@@ -61,23 +59,26 @@ QColor inheritedColor(const PacketScene& scene) {
   return root.none ? QColor(Qt::black) : root.color;
 }
 
-void drawPacketText(const PacketScene& scene, QPainter& painter,
-                    const PacketTextGeometry& text) {
+void drawPacketText(const PacketScene& scene, QPainter& painter, const PacketTextGeometry& text) {
   // SVG white-space:normal trims only CSS-collapsible ASCII whitespace.
   // NBSP and the other Unicode Zs separators remain visible glyph advances.
   const QString visible = text::collapsedSvgText(text.text);
-  if (visible.isEmpty() || !(text.fontSize > 0.0) ||
-      !std::isfinite(text.position.x()) || !std::isfinite(text.position.y()))
+  if (visible.isEmpty() || !(text.fontSize > 0.0) || !std::isfinite(text.position.x()) ||
+      !std::isfinite(text.position.y()))
     return;
   const color::SvgPaint paint = textPaint(scene, text.fill);
-  if (paint.none) return;
+  if (paint.none)
+    return;
   const editor::CssPixelFont font = textFont(scene, text.fontSize);
-  if (!(font.scale > 0.0)) return;
+  if (!(font.scale > 0.0))
+    return;
   const TextFontMetrics metrics(font.font);
   const qreal advance = metrics.horizontalAdvance(visible) * font.scale;
   qreal x = 0.0;
-  if (text.anchor == PacketTextAnchor::Middle) x = -advance / 2.0;
-  else if (text.anchor == PacketTextAnchor::End) x = -advance;
+  if (text.anchor == PacketTextAnchor::Middle)
+    x = -advance / 2.0;
+  else if (text.anchor == PacketTextAnchor::End)
+    x = -advance;
   qreal y = 0.0;
   if (text.baseline == PacketTextBaseline::Middle)
     y = metrics.xHeight() * font.scale / 2.0;
@@ -91,12 +92,11 @@ void drawPacketText(const PacketScene& scene, QPainter& painter,
 }
 
 QPen strokePen(const PacketScene& scene, const PacketBlockGeometry& block) {
-  const color::SvgPaint paint = color::resolveSvgPaint(
-      block.stroke, color::SvgPaintKind::Stroke, inheritedColor(scene));
-  if (paint.none || block.strokeWidth == 0.0) return QPen(Qt::NoPen);
-  const qreal width = block.strokeWidth > 0.0 && std::isfinite(block.strokeWidth)
-                          ? block.strokeWidth
-                          : 1.0;
+  const color::SvgPaint paint =
+      color::resolveSvgPaint(block.stroke, color::SvgPaintKind::Stroke, inheritedColor(scene));
+  if (paint.none || block.strokeWidth == 0.0)
+    return QPen(Qt::NoPen);
+  const qreal width = block.strokeWidth > 0.0 && std::isfinite(block.strokeWidth) ? block.strokeWidth : 1.0;
   QPen pen(paint.color, width);
   pen.setJoinStyle(Qt::MiterJoin);
   pen.setCapStyle(Qt::FlatCap);
@@ -104,24 +104,21 @@ QPen strokePen(const PacketScene& scene, const PacketBlockGeometry& block) {
 }
 
 QBrush fillBrush(const PacketScene& scene, const PacketBlockGeometry& block) {
-  const color::SvgPaint paint = color::resolveSvgPaint(
-      block.fill, color::SvgPaintKind::Fill, inheritedColor(scene));
+  const color::SvgPaint paint = color::resolveSvgPaint(block.fill, color::SvgPaintKind::Fill, inheritedColor(scene));
   return paint.none ? QBrush(Qt::NoBrush) : QBrush(paint.color);
 }
 
-}  // namespace
+} // namespace
 
-void paintPacketScene(const PacketScene& scene, QPainter& painter,
-                      const MermaidPaintOptions&) {
+void paintPacketScene(const PacketScene& scene, QPainter& painter, const MermaidPaintOptions&) {
   painter.save();
   // Mermaid's packet SVG has overflow:hidden. The fixed viewBox deliberately
   // clips long labels/title rather than expanding to their text bbox.
   painter.setClipRect(scene.bounds, Qt::IntersectClip);
   for (const PacketWordGeometry& word : scene.words) {
     for (const PacketBlockGeometry& block : word.blocks) {
-      if (std::isfinite(block.rect.x()) && std::isfinite(block.rect.y()) &&
-          std::isfinite(block.rect.width()) && std::isfinite(block.rect.height()) &&
-          block.rect.width() > 0.0 && block.rect.height() > 0.0) {
+      if (std::isfinite(block.rect.x()) && std::isfinite(block.rect.y()) && std::isfinite(block.rect.width()) &&
+          std::isfinite(block.rect.height()) && block.rect.width() > 0.0 && block.rect.height() > 0.0) {
         painter.setPen(strokePen(scene, block));
         painter.setBrush(fillBrush(scene, block));
         painter.drawRect(block.rect);
@@ -135,4 +132,4 @@ void paintPacketScene(const PacketScene& scene, QPainter& painter,
   painter.restore();
 }
 
-}  // namespace muffin::mermaid::packet
+} // namespace muffin::mermaid::packet

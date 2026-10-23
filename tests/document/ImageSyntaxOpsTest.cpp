@@ -74,12 +74,10 @@ void testZoomPercent() {
           QStringLiteral("zoom: 50% (spaced, no semicolon) -> 50"));
   require(image_syntax::zoomPercent(QStringLiteral("<img src=\"x\" style=\"color:red; zoom:150%;\">")) == 150,
           QStringLiteral("zoom among other declarations -> 150"));
-  require(image_syntax::zoomPercent(QStringLiteral("<img src=\"x\">")) == 100,
-          QStringLiteral("no style -> 100"));
+  require(image_syntax::zoomPercent(QStringLiteral("<img src=\"x\">")) == 100, QStringLiteral("no style -> 100"));
   require(image_syntax::zoomPercent(QStringLiteral("<img src=\"x\" style=\"color:red;\">")) == 100,
           QStringLiteral("style without zoom -> 100"));
-  require(image_syntax::zoomPercent(QStringLiteral("![alt](x)")) == 100,
-          QStringLiteral("markdown image -> 100"));
+  require(image_syntax::zoomPercent(QStringLiteral("![alt](x)")) == 100, QStringLiteral("markdown image -> 100"));
   require(image_syntax::zoomPercent(QStringLiteral("<img src=\"x\" style=\"zoom:33%;\">")) == 33,
           QStringLiteral("zoom:33% -> 33"));
   require(image_syntax::zoomPercent(QStringLiteral("<img src=\"x\" style=\"zoom:0%;\">")) == 100,
@@ -91,8 +89,7 @@ void testZoomPercent() {
 // ---- setZoom() --------------------------------------------------------------
 
 void requireEq(const QString& actual, const QString& expected, const QString& message) {
-  require(actual == expected,
-          QStringLiteral("%1\n   expected: %2\n   actual:   %3").arg(message, expected, actual));
+  require(actual == expected, QStringLiteral("%1\n   expected: %2\n   actual:   %3").arg(message, expected, actual));
 }
 
 void testSetZoomMarkdownPromotesToImg() {
@@ -104,8 +101,7 @@ void testSetZoomMarkdownPromotesToImg() {
 
 void testSetZoomReplacesExistingZoom() {
   requireEq(image_syntax::setZoom(QStringLiteral("<img src=\"x\" alt=\"a\" style=\"zoom: 25%;\">"), 50),
-            QStringLiteral("<img src=\"x\" alt=\"a\" style=\"zoom: 50%;\">"),
-            QStringLiteral("img zoom 25 -> 50"));
+            QStringLiteral("<img src=\"x\" alt=\"a\" style=\"zoom: 50%;\">"), QStringLiteral("img zoom 25 -> 50"));
 }
 
 void testSetZoomHundredRemovesZoom() {
@@ -114,23 +110,19 @@ void testSetZoomHundredRemovesZoom() {
             QStringLiteral("img zoom 25 -> 100 removes the style attribute entirely"));
   // No-op when there is no zoom to remove.
   requireEq(image_syntax::setZoom(QStringLiteral("<img src=\"x\" alt=\"a\">"), 100),
-            QStringLiteral("<img src=\"x\" alt=\"a\">"),
-            QStringLiteral("img without zoom @ 100 is unchanged"));
+            QStringLiteral("<img src=\"x\" alt=\"a\">"), QStringLiteral("img without zoom @ 100 is unchanged"));
   // Markdown @ 100 is unchanged.
-  requireEq(image_syntax::setZoom(QStringLiteral("![a](x)"), 100),
-            QStringLiteral("![a](x)"),
+  requireEq(image_syntax::setZoom(QStringLiteral("![a](x)"), 100), QStringLiteral("![a](x)"),
             QStringLiteral("markdown @ 100 is unchanged"));
 }
 
 void testSetZoomPreservesOtherDeclarations() {
-  requireEq(
-      image_syntax::setZoom(QStringLiteral("<img src=\"x\" alt=\"a\" style=\"color: red; zoom: 25%;\">"), 100),
-      QStringLiteral("<img src=\"x\" alt=\"a\" style=\"color: red;\">"),
-      QStringLiteral("removing zoom keeps other declarations"));
-  requireEq(
-      image_syntax::setZoom(QStringLiteral("<img src=\"x\" alt=\"a\" style=\"color: red; zoom: 25%;\">"), 50),
-      QStringLiteral("<img src=\"x\" alt=\"a\" style=\"color: red; zoom: 50%;\">"),
-      QStringLiteral("replacing zoom keeps other declarations"));
+  requireEq(image_syntax::setZoom(QStringLiteral("<img src=\"x\" alt=\"a\" style=\"color: red; zoom: 25%;\">"), 100),
+            QStringLiteral("<img src=\"x\" alt=\"a\" style=\"color: red;\">"),
+            QStringLiteral("removing zoom keeps other declarations"));
+  requireEq(image_syntax::setZoom(QStringLiteral("<img src=\"x\" alt=\"a\" style=\"color: red; zoom: 25%;\">"), 50),
+            QStringLiteral("<img src=\"x\" alt=\"a\" style=\"color: red; zoom: 50%;\">"),
+            QStringLiteral("replacing zoom keeps other declarations"));
 }
 
 void testSetZoomPreservesOtherAttributes() {
@@ -141,8 +133,7 @@ void testSetZoomPreservesOtherAttributes() {
 
 void testSetZoomCustomAndClamp() {
   requireEq(image_syntax::setZoom(QStringLiteral("<img src=\"x\" alt=\"a\">"), 200),
-            QStringLiteral("<img src=\"x\" alt=\"a\" style=\"zoom: 200%;\">"),
-            QStringLiteral("custom 200% adds zoom"));
+            QStringLiteral("<img src=\"x\" alt=\"a\" style=\"zoom: 200%;\">"), QStringLiteral("custom 200% adds zoom"));
   requireEq(image_syntax::setZoom(QStringLiteral("![a](x)"), 0),
             QStringLiteral("<img src=\"x\" alt=\"a\" style=\"zoom: 1%;\">"),
             QStringLiteral("percent clamped to minimum 1"));
@@ -166,28 +157,23 @@ void testSetZoomIgnoresNonImage() {
 
 void testToMarkdown() {
   requireEq(image_syntax::toMarkdown(QStringLiteral("<img src=\"x.png\" alt=\"alt\">")),
-            QStringLiteral("![alt](x.png)"),
-            QStringLiteral("<img> -> markdown"));
+            QStringLiteral("![alt](x.png)"), QStringLiteral("<img> -> markdown"));
   requireEq(image_syntax::toMarkdown(QStringLiteral("<img src=\"x.png\" alt=\"alt\" style=\"zoom: 25%;\">")),
-            QStringLiteral("![alt](x.png)"),
-            QStringLiteral("<img> with style -> markdown drops style"));
-  requireEq(image_syntax::toMarkdown(QStringLiteral("![alt](x.png)")),
-            QStringLiteral("![alt](x.png)"),
+            QStringLiteral("![alt](x.png)"), QStringLiteral("<img> with style -> markdown drops style"));
+  requireEq(image_syntax::toMarkdown(QStringLiteral("![alt](x.png)")), QStringLiteral("![alt](x.png)"),
             QStringLiteral("markdown input unchanged by toMarkdown"));
   requireEq(image_syntax::toMarkdown(QStringLiteral("hello")), QStringLiteral("hello"),
             QStringLiteral("non-image unchanged by toMarkdown"));
 }
 
 void testToHtml() {
-  requireEq(image_syntax::toHtml(QStringLiteral("![alt](x.png)")),
-            QStringLiteral("<img src=\"x.png\" alt=\"alt\">"),
+  requireEq(image_syntax::toHtml(QStringLiteral("![alt](x.png)")), QStringLiteral("<img src=\"x.png\" alt=\"alt\">"),
             QStringLiteral("markdown -> <img>"));
   requireEq(image_syntax::toHtml(QStringLiteral("![alt](x.png \"title\")")),
             QStringLiteral("<img src=\"x.png\" alt=\"alt\">"),
             QStringLiteral("markdown title is not carried into <img>"));
   requireEq(image_syntax::toHtml(QStringLiteral("<img src=\"x.png\" alt=\"alt\">")),
-            QStringLiteral("<img src=\"x.png\" alt=\"alt\">"),
-            QStringLiteral("html input unchanged by toHtml"));
+            QStringLiteral("<img src=\"x.png\" alt=\"alt\">"), QStringLiteral("html input unchanged by toHtml"));
 }
 
 // ---- round-trip behavior the menu relies on ---------------------------------
@@ -228,21 +214,26 @@ void testMenuRoundTrips() {
 }
 
 const InlineNode* findImage(const MarkdownNode& node) {
-  for (const auto& in : node.inlines()) if (in.type() == InlineType::Image) return &in;
-  for (const auto& child : node.children()) if (const InlineNode* image = findImage(*child)) return image;
+  for (const auto& in : node.inlines())
+    if (in.type() == InlineType::Image)
+      return &in;
+  for (const auto& child : node.children())
+    if (const InlineNode* image = findImage(*child))
+      return image;
   return nullptr;
 }
 
 void testDestinationRewriteParses() {
   const QString target = QStringLiteral("https://cdn.example/my image(2).png?q=1&x=2");
-  for (const QString& source : {QStringLiteral("![alt](<old image.png> \"title\")"),
-                               QStringLiteral("![alt](old(1).png 'title')"),
-                               QStringLiteral("![alt\\]\\(x](old\\(1\\).png)")}) {
+  for (const QString& source :
+       {QStringLiteral("![alt](<old image.png> \"title\")"), QStringLiteral("![alt](old(1).png 'title')"),
+        QStringLiteral("![alt\\]\\(x](old\\(1\\).png)")}) {
     const QString changed = image_syntax::replaceSource(source, target);
     DocumentSession session;
     session.setMarkdownText(changed, false);
     const InlineNode* image = findImage(session.document().root());
-    require(image && image->href() == target, QStringLiteral("Destination rewrite must preserve a real image: %1").arg(changed));
+    require(image && image->href() == target,
+            QStringLiteral("Destination rewrite must preserve a real image: %1").arg(changed));
     if (source.contains(QStringLiteral("title"))) {
       require(image->title() == QStringLiteral("title"), QStringLiteral("Image title must survive URL replacement"));
     }

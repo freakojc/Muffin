@@ -35,21 +35,18 @@ QSet<QString> uniqueIds(const QJsonArray& cases, const QString& fixture) {
   QSet<QString> ids;
   for (const QJsonValue& value : cases) {
     const QString id = value.toObject().value(QStringLiteral("id")).toString();
-    require(!id.isEmpty() && !ids.contains(id),
-            QStringLiteral("%1 duplicate/empty case id: %2").arg(fixture, id));
+    require(!id.isEmpty() && !ids.contains(id), QStringLiteral("%1 duplicate/empty case id: %2").arg(fixture, id));
     ids.insert(id);
   }
   return ids;
 }
 
 void requireVersion(const QJsonObject& fixture, const QString& name) {
-  const QString upstreamVersion = fixture.value(QStringLiteral("upstream")).toObject()
-                                      .value(QStringLiteral("version")).toString();
-  const QString version = upstreamVersion.isEmpty()
-                              ? fixture.value(QStringLiteral("mermaidVersion")).toString()
-                              : upstreamVersion;
-  require(version == QLatin1String("11.16.0"),
-          QStringLiteral("%1 Mermaid version drifted from 11.16.0").arg(name));
+  const QString upstreamVersion =
+      fixture.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString();
+  const QString version =
+      upstreamVersion.isEmpty() ? fixture.value(QStringLiteral("mermaidVersion")).toString() : upstreamVersion;
+  require(version == QLatin1String("11.16.0"), QStringLiteral("%1 Mermaid version drifted from 11.16.0").arg(name));
 }
 
 QSet<int> integerSet(const QJsonArray& values) {
@@ -82,12 +79,11 @@ QByteArray combinedFileDigest(const QString& directory, const QSet<QString>& fil
   return hash.result().toHex();
 }
 
-void requireCaseIds(const QSet<QString>& ids, const QStringList& required,
-                    const QString& axis) {
+void requireCaseIds(const QSet<QString>& ids, const QStringList& required, const QString& axis) {
   for (const QString& id : required)
     require(ids.contains(id), QStringLiteral("Flowchart %1 axis missing: %2").arg(axis, id));
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   require(argc == 2, QStringLiteral("Expected flowchart DB fixture path"));
@@ -102,15 +98,14 @@ int main(int argc, char** argv) {
   const QString pixelDir = dir + QStringLiteral("/golden-pixel");
   const QJsonObject pixels = load(pixelDir + QStringLiteral("/manifest.json"));
 
-  for (const auto& fixture : {qMakePair(&db, QStringLiteral("flowchart-db")),
-                              qMakePair(&fuzz, QStringLiteral("flowchart-differential-fuzz")),
-                              qMakePair(&errors, QStringLiteral("flowchart-errors")),
-                              qMakePair(&geometry, QStringLiteral("flowchart-geometry")),
-                              qMakePair(&labels, QStringLiteral("flowchart-label")),
-                              qMakePair(&pixels, QStringLiteral("golden-pixel"))})
+  for (const auto& fixture :
+       {qMakePair(&db, QStringLiteral("flowchart-db")), qMakePair(&fuzz, QStringLiteral("flowchart-differential-fuzz")),
+        qMakePair(&errors, QStringLiteral("flowchart-errors")),
+        qMakePair(&geometry, QStringLiteral("flowchart-geometry")),
+        qMakePair(&labels, QStringLiteral("flowchart-label")), qMakePair(&pixels, QStringLiteral("golden-pixel"))})
     requireVersion(*fixture.first, fixture.second);
-  require(rough.value(QStringLiteral("upstream")).toObject()
-                  .value(QStringLiteral("version")).toString() == QLatin1String("4.6.6"),
+  require(rough.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
+              QLatin1String("4.6.6"),
           QStringLiteral("RoughJS fixture version drifted from 4.6.6"));
 
   const QJsonArray dbCases = db.value(QStringLiteral("cases")).toArray();
@@ -147,14 +142,12 @@ int main(int argc, char** argv) {
     const QString status = production.value(QStringLiteral("status")).toString();
     if (status == QLatin1String("covered")) {
       ++covered;
-      require(coveredProductions.contains(id),
-              QStringLiteral("Covered production %1 has no DB case").arg(id));
+      require(coveredProductions.contains(id), QStringLiteral("Covered production %1 has no DB case").arg(id));
       require(!production.value(QStringLiteral("native")).toString().isEmpty(),
               QStringLiteral("Covered production %1 has no native parser mapping").arg(id));
       for (const QJsonValue& fixture : production.value(QStringLiteral("fixtures")).toArray())
         require(dbIds.contains(fixture.toString()),
-                QStringLiteral("Production %1 references unknown fixture %2")
-                    .arg(id).arg(fixture.toString()));
+                QStringLiteral("Production %1 references unknown fixture %2").arg(id).arg(fixture.toString()));
     } else {
       require(!production.value(QStringLiteral("reason")).toString().isEmpty(),
               QStringLiteral("Non-covered production %1 lacks a reason").arg(id));
@@ -164,8 +157,8 @@ int main(int argc, char** argv) {
               QStringLiteral("Unknown production status for %1: %2").arg(id).arg(status));
     }
   }
-  require(productions.size() == 189 && declaredProductions.size() == 189 && covered == 161 &&
-              unreachable == 27 && upstreamError == 1 && coveredProductions.size() == 161,
+  require(productions.size() == 189 && declaredProductions.size() == 189 && covered == 161 && unreachable == 27 &&
+              upstreamError == 1 && coveredProductions.size() == 161,
           QStringLiteral("Flowchart 189-production coverage matrix regressed"));
 
   QSet<int> fuzzProductions;
@@ -187,13 +180,13 @@ int main(int argc, char** argv) {
     comparableLines += error.value(QStringLiteral("compareLine")).toBool();
     comparableColumns += error.value(QStringLiteral("compareColumn")).toBool();
   }
-  require(positiveCases.size() >= 256 && negativeCases.size() >= 192 &&
-              fuzzProductions == coveredProductions && negativeOrigins == coveredProductions &&
-              mutationOperators.size() >= 10 && comparableLines >= 189 && comparableColumns >= 150 &&
+  require(positiveCases.size() >= 256 && negativeCases.size() >= 192 && fuzzProductions == coveredProductions &&
+              negativeOrigins == coveredProductions && mutationOperators.size() >= 10 && comparableLines >= 189 &&
+              comparableColumns >= 150 &&
               upstreamStages == QSet<QString>{QStringLiteral("detector"), QStringLiteral("lexer"),
                                               QStringLiteral("parser"), QStringLiteral("semantic")} &&
-              upstreamClasses == QSet<QString>{QStringLiteral("detection"),
-                                               QStringLiteral("semantic"), QStringLiteral("syntax")},
+              upstreamClasses ==
+                  QSet<QString>{QStringLiteral("detection"), QStringLiteral("semantic"), QStringLiteral("syntax")},
           QStringLiteral("Flowchart production-aware diagnostic fuzz coverage regressed"));
 
   QSet<QString> diagnosticCodes;
@@ -204,42 +197,33 @@ int main(int argc, char** argv) {
     const QString stage = item.value(QStringLiteral("expectedStage")).toString();
     diagnosticStages.insert(stage);
     if (stage != QLatin1String("resource"))
-      require(item.value(QStringLiteral("expectedLine")).toInt() >= 1 &&
-                  item.value(QStringLiteral("expectedColumn")).toInt() >= 1,
-              QStringLiteral("Diagnostic %1 lacks a stable native span")
-                  .arg(item.value(QStringLiteral("id")).toString()));
+      require(
+          item.value(QStringLiteral("expectedLine")).toInt() >= 1 &&
+              item.value(QStringLiteral("expectedColumn")).toInt() >= 1,
+          QStringLiteral("Diagnostic %1 lacks a stable native span").arg(item.value(QStringLiteral("id")).toString()));
   }
-  require(diagnosticCodes == QSet<QString>{QStringLiteral("limit-exceeded"),
-                                           QStringLiteral("link-style-bounds"),
-                                           QStringLiteral("missing-header"),
-                                           QStringLiteral("missing-token"),
-                                           QStringLiteral("unclosed-subgraph"),
-                                           QStringLiteral("unexpected-end")} &&
-              diagnosticStages == QSet<QString>{QStringLiteral("detector"),
-                                                QStringLiteral("parser"),
-                                                QStringLiteral("resource"),
-                                                QStringLiteral("semantic")},
+  require(diagnosticCodes == QSet<QString>{QStringLiteral("limit-exceeded"), QStringLiteral("link-style-bounds"),
+                                           QStringLiteral("missing-header"), QStringLiteral("missing-token"),
+                                           QStringLiteral("unclosed-subgraph"), QStringLiteral("unexpected-end")} &&
+              diagnosticStages == QSet<QString>{QStringLiteral("detector"), QStringLiteral("parser"),
+                                                QStringLiteral("resource"), QStringLiteral("semantic")},
           QStringLiteral("Flowchart structured diagnostic coverage regressed"));
 
   requireCaseIds(geometryIds,
-                 {QStringLiteral("curve-linear"), QStringLiteral("curve-step"),
-                  QStringLiteral("curve-cardinal"), QStringLiteral("curve-stepBefore"),
-                  QStringLiteral("curve-stepAfter"), QStringLiteral("curve-monotoneX"),
-                  QStringLiteral("curve-monotoneY"), QStringLiteral("curve-bumpX"),
-                  QStringLiteral("curve-bumpY"), QStringLiteral("curve-catmullRom"),
-                  QStringLiteral("curve-natural"), QStringLiteral("compound-self-parallel"),
-                  QStringLiteral("recursive-cluster-three-level"),
+                 {QStringLiteral("curve-linear"), QStringLiteral("curve-step"), QStringLiteral("curve-cardinal"),
+                  QStringLiteral("curve-stepBefore"), QStringLiteral("curve-stepAfter"),
+                  QStringLiteral("curve-monotoneX"), QStringLiteral("curve-monotoneY"), QStringLiteral("curve-bumpX"),
+                  QStringLiteral("curve-bumpY"), QStringLiteral("curve-catmullRom"), QStringLiteral("curve-natural"),
+                  QStringLiteral("compound-self-parallel"), QStringLiteral("recursive-cluster-three-level"),
                   QStringLiteral("cluster-cross-layer-explicit-direction")},
                  QStringLiteral("edge/cluster geometry"));
   require(geometryCases.size() >= 68, QStringLiteral("Flowchart geometry case coverage regressed"));
 
   requireCaseIds(labelIds,
-                 {QStringLiteral("fraction"), QStringLiteral("radical"),
-                  QStringLiteral("root-index"), QStringLiteral("supsub"),
-                  QStringLiteral("array"), QStringLiteral("html-math"),
-                  QStringLiteral("markdown-html-math"), QStringLiteral("cjk-no-space"),
-                  QStringLiteral("arabic-only"), QStringLiteral("hebrew-only"),
-                  QStringLiteral("bidi-numeric"), QStringLiteral("mixed-format-math")},
+                 {QStringLiteral("fraction"), QStringLiteral("radical"), QStringLiteral("root-index"),
+                  QStringLiteral("supsub"), QStringLiteral("array"), QStringLiteral("html-math"),
+                  QStringLiteral("markdown-html-math"), QStringLiteral("cjk-no-space"), QStringLiteral("arabic-only"),
+                  QStringLiteral("hebrew-only"), QStringLiteral("bidi-numeric"), QStringLiteral("mixed-format-math")},
                  QStringLiteral("label layout"));
   require(labelCases.size() >= 21, QStringLiteral("Flowchart label oracle coverage regressed"));
 
@@ -262,10 +246,9 @@ int main(int argc, char** argv) {
     if (!structural.isEmpty()) {
       structuralKinds.insert(structural);
       ++structuralCases;
-      require(!item.value(QStringLiteral("content")).toObject()
-                   .value(QStringLiteral("svgStructure")).toObject().isEmpty(),
-              QStringLiteral("Structural case %1 has no SVG oracle")
-                  .arg(item.value(QStringLiteral("id")).toString()));
+      require(
+          !item.value(QStringLiteral("content")).toObject().value(QStringLiteral("svgStructure")).toObject().isEmpty(),
+          QStringLiteral("Structural case %1 has no SVG oracle").arg(item.value(QStringLiteral("id")).toString()));
     }
     const QString fileName = item.value(QStringLiteral("file")).toString();
     require(!fileName.isEmpty() && !files.contains(fileName),
@@ -273,20 +256,16 @@ int main(int argc, char** argv) {
     files.insert(fileName);
     require(QFileInfo::exists(pixelDir + QLatin1Char('/') + fileName),
             QStringLiteral("Golden pixel file is missing: %1").arg(fileName));
-    for (const auto& crop : {qMakePair(QStringLiteral("mathCropFile"),
-                                       QStringLiteral("mathCropSha256")),
-                             qMakePair(QStringLiteral("labelCropFile"),
-                                       QStringLiteral("labelCropSha256"))}) {
+    for (const auto& crop : {qMakePair(QStringLiteral("mathCropFile"), QStringLiteral("mathCropSha256")),
+                             qMakePair(QStringLiteral("labelCropFile"), QStringLiteral("labelCropSha256"))}) {
       const QString cropFile = item.value(crop.first).toString();
       if (cropFile.isEmpty())
         continue;
       ++cropCases;
-      const QString kindKey = crop.first.startsWith(QLatin1String("math"))
-                                  ? QStringLiteral("mathCropKind")
-                                  : QStringLiteral("labelCropKind");
+      const QString kindKey = crop.first.startsWith(QLatin1String("math")) ? QStringLiteral("mathCropKind")
+                                                                           : QStringLiteral("labelCropKind");
       cropKinds.insert(item.value(kindKey).toString());
-      require(!files.contains(cropFile),
-              QStringLiteral("Golden crop file is duplicated: %1").arg(cropFile));
+      require(!files.contains(cropFile), QStringLiteral("Golden crop file is duplicated: %1").arg(cropFile));
       files.insert(cropFile);
       const QString path = pixelDir + QLatin1Char('/') + cropFile;
       require(QFileInfo::exists(path), QStringLiteral("Golden crop file is missing: %1").arg(cropFile));
@@ -294,24 +273,21 @@ int main(int argc, char** argv) {
               QStringLiteral("Golden crop hash drifted: %1").arg(cropFile));
     }
   }
-  require(themes == QSet<QString>{QStringLiteral("base"), QStringLiteral("dark"),
-                                  QStringLiteral("default"), QStringLiteral("forest"),
-                                  QStringLiteral("neutral"), QStringLiteral("neo"),
-                                  QStringLiteral("neo-dark"), QStringLiteral("redux"),
-                                  QStringLiteral("redux-color"), QStringLiteral("redux-dark"),
-                                  QStringLiteral("redux-dark-color")} &&
-              looks == QSet<QString>{QStringLiteral("classic"), QStringLiteral("handDrawn"),
-                                     QStringLiteral("neo")} &&
-              dprs == QSet<QString>{QStringLiteral("1"), QStringLiteral("1.25"),
-                                    QStringLiteral("1.5"), QStringLiteral("2")} &&
+  require(themes == QSet<QString>{QStringLiteral("base"), QStringLiteral("dark"), QStringLiteral("default"),
+                                  QStringLiteral("forest"), QStringLiteral("neutral"), QStringLiteral("neo"),
+                                  QStringLiteral("neo-dark"), QStringLiteral("redux"), QStringLiteral("redux-color"),
+                                  QStringLiteral("redux-dark"), QStringLiteral("redux-dark-color")} &&
+              looks == QSet<QString>{QStringLiteral("classic"), QStringLiteral("handDrawn"), QStringLiteral("neo")} &&
+              dprs == QSet<QString>{QStringLiteral("1"), QStringLiteral("1.25"), QStringLiteral("1.5"),
+                                    QStringLiteral("2")} &&
               structuralKinds == QSet<QString>{QStringLiteral("animated"), QStringLiteral("aria"),
-                  QStringLiteral("cluster"), QStringLiteral("cluster-direction"),
-                  QStringLiteral("combined"), QStringLiteral("compound-self-parallel"),
-                  QStringLiteral("edge"), QStringLiteral("hand-drawn"),
-                  QStringLiteral("markers"), QStringLiteral("neo-markers"),
-                  QStringLiteral("redux")} &&
-              pixelCases.size() >= 102 && notoCases >= 58 && structuralCases >= 17 &&
-              cropCases >= 21 && cropKinds.size() >= 20,
+                                               QStringLiteral("cluster"), QStringLiteral("cluster-direction"),
+                                               QStringLiteral("combined"), QStringLiteral("compound-self-parallel"),
+                                               QStringLiteral("edge"), QStringLiteral("hand-drawn"),
+                                               QStringLiteral("markers"), QStringLiteral("neo-markers"),
+                                               QStringLiteral("redux")} &&
+              pixelCases.size() >= 102 && notoCases >= 58 && structuralCases >= 17 && cropCases >= 21 &&
+              cropKinds.size() >= 20,
           QStringLiteral("Flowchart theme/look/DPR/SVG/crop coverage regressed"));
 
   requireCaseIds(pixelIds,
@@ -342,35 +318,33 @@ int main(int argc, char** argv) {
                   QStringLiteral("flow-cluster-label-crop-markdown-neo-dark-2x"),
                   QStringLiteral("compound-self-parallel"),
                   QStringLiteral("cluster-cross-layer-explicit-direction"),
-                 QStringLiteral("animated-edge-static-initial")},
+                  QStringLiteral("animated-edge-static-initial")},
                  QStringLiteral("shape/render integration"));
 
   const QByteArray pixelDigest = combinedFileDigest(pixelDir, files);
   require(pixelDigest == QByteArrayLiteral("76077b6272d43504760cfe35ca009888fcc15368275ddfcbb9870a11fe672ca8"),
-          QStringLiteral("Flowchart pixel fixture digest drifted: %1")
-              .arg(QString::fromLatin1(pixelDigest)));
+          QStringLiteral("Flowchart pixel fixture digest drifted: %1").arg(QString::fromLatin1(pixelDigest)));
 
   QSet<QString> roughKinds;
   QSet<QString> roughOperations;
   for (const QJsonValue& value : roughCases) {
     const QJsonObject item = value.toObject();
     roughKinds.insert(item.value(QStringLiteral("kind")).toString());
-    for (const QJsonValue& set : item.value(QStringLiteral("drawable")).toObject()
-                                     .value(QStringLiteral("sets")).toArray())
+    for (const QJsonValue& set :
+         item.value(QStringLiteral("drawable")).toObject().value(QStringLiteral("sets")).toArray())
       for (const QJsonValue& operation : set.toObject().value(QStringLiteral("ops")).toArray())
         roughOperations.insert(operation.toObject().value(QStringLiteral("op")).toString());
   }
-  require(roughCases.size() >= 17 && roughKinds.size() >= 6 &&
-              roughOperations.contains(QStringLiteral("move")) &&
+  require(roughCases.size() >= 17 && roughKinds.size() >= 6 && roughOperations.contains(QStringLiteral("move")) &&
               roughOperations.contains(QStringLiteral("lineTo")) &&
               roughOperations.contains(QStringLiteral("bcurveTo")) &&
               rough.value(QStringLiteral("operationDigest")).toString() ==
                   QLatin1String("4294b10c52075e40c3119a384c3455514b6360f14823adc989f67c41a9f3eec5"),
           QStringLiteral("Flowchart RoughJS operation coverage/digest regressed"));
 
-  qDebug() << "MermaidFlowchartCoverageMatrixTest:" << productions.size() << "productions,"
-           << mutationOperators.size() << "mutation operators," << diagnosticCodes.size()
-           << "diagnostics," << geometryCases.size() << "geometry cases," << pixelCases.size()
-           << "pixel cases and" << structuralKinds.size() << "SVG structural kinds passed";
+  qDebug() << "MermaidFlowchartCoverageMatrixTest:" << productions.size() << "productions," << mutationOperators.size()
+           << "mutation operators," << diagnosticCodes.size() << "diagnostics," << geometryCases.size()
+           << "geometry cases," << pixelCases.size() << "pixel cases and" << structuralKinds.size()
+           << "SVG structural kinds passed";
   return 0;
 }

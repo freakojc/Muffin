@@ -68,7 +68,7 @@ QString elidedPath(const QString& path) {
   return QStringLiteral("...") + nativePath.right(maxLength - 3);
 }
 
-}  // namespace
+} // namespace
 
 void muffin::MainWindow::rebuildRecentFilesMenu() {
   if (!recentFilesMenu_) {
@@ -87,9 +87,7 @@ void muffin::MainWindow::rebuildRecentFilesMenu() {
   for (const QString& path : files) {
     QAction* action = recentFilesMenu_->addAction(elidedPath(path));
     action->setToolTip(QDir::toNativeSeparators(path));
-    connect(action, &QAction::triggered, this, [this, path] {
-      openFile(path);
-    });
+    connect(action, &QAction::triggered, this, [this, path] { openFile(path); });
     addedAny = true;
   }
   if (!files.isEmpty()) {
@@ -174,13 +172,13 @@ void muffin::MainWindow::updateThemeChecks() {
 void muffin::MainWindow::setThemeByName(const QString& name) {
   if (themeManager_.setTheme(name)) {
     saveAppearanceTheme(themeManager_.currentThemeName());
-    rebuildThemesMenu();  // refresh the radio-style checks
+    rebuildThemesMenu(); // refresh the radio-style checks
   }
 }
 
 void muffin::MainWindow::importTheme() {
-  const QString src = QFileDialog::getOpenFileName(
-      this, tr("Import Theme"), QString(), tr("Theme Files (*.css *.json)"));
+  const QString src =
+      QFileDialog::getOpenFileName(this, tr("Import Theme"), QString(), tr("Theme Files (*.css *.json)"));
   if (src.isEmpty()) {
     return;
   }
@@ -189,7 +187,7 @@ void muffin::MainWindow::importTheme() {
   // loader (built-ins stay canonical), so refuse it up front with a clear reason.
   if (ThemeDefinition::builtIn(id).has_value()) {
     QMessageBox::information(this, tr("Import Theme"),
-        tr("A built-in theme named \"%1\" already exists; choose a different file name.").arg(id));
+                             tr("A built-in theme named \"%1\" already exists; choose a different file name.").arg(id));
     return;
   }
   // Validate before copying so a malformed file never lands in the themes dir.
@@ -214,7 +212,7 @@ void muffin::MainWindow::importTheme() {
   }
   if (!probe.valid()) {
     QMessageBox::warning(this, tr("Import Theme"),
-        tr("The theme file is missing required colours (background and text)."));
+                         tr("The theme file is missing required colours (background and text)."));
     return;
   }
 
@@ -234,7 +232,9 @@ void muffin::MainWindow::importTheme() {
     }
   } else {
     const QString dest = dir + QDir::separator() + QFileInfo(src).fileName().toLower();
-    if (QFileInfo::exists(dest)) { QFile::remove(dest); }
+    if (QFileInfo::exists(dest)) {
+      QFile::remove(dest);
+    }
     if (!QFile::copy(src, dest)) {
       QMessageBox::warning(this, tr("Import Theme"), tr("Could not copy the theme into the themes folder."));
       return;
@@ -243,7 +243,7 @@ void muffin::MainWindow::importTheme() {
 
   themeManager_.reloadCustomThemes();
   rebuildThemesMenu();
-  setThemeByName(id);  // apply immediately so the user sees the imported theme
+  setThemeByName(id); // apply immediately so the user sees the imported theme
 }
 
 void muffin::MainWindow::openThemesFolder() {
@@ -323,16 +323,19 @@ QString muffin::MainWindow::defaultSaveDirectory() const {
 void muffin::MainWindow::restoreStartupFile() {
   // 0 = always start fresh, 1 = restore the actual previous session (default).
   QSettings settings;
-  if (settings.value(QStringLiteral("files/startupBehavior"), 1).toInt() != 1) return;
+  if (settings.value(QStringLiteral("files/startupBehavior"), 1).toInt() != 1)
+    return;
   const auto snapshot = settings.value(QStringLiteral("session/window")).toMap();
-  if (snapshot.value(QStringLiteral("version")).toInt() != 1) return;
+  if (snapshot.value(QStringLiteral("version")).toInt() != 1)
+    return;
   {
     const QScopedValueRollback<bool> guard(sessionUpdatesPaused_, true);
     // Explicitly suppress the automatic parent-folder fallback: an empty saved
     // workspace means the user closed it, even if some files remain open.
     sidebar_->setFolderRoot({});
     const QString folder = snapshot.value(QStringLiteral("folder")).toString();
-    if (QFileInfo(folder).isDir()) openFolderAtPath(folder);
+    if (QFileInfo(folder).isDir())
+      openFolderAtPath(folder);
     const QStringList files = snapshot.value(QStringLiteral("files")).toStringList();
     const QVariantList views = snapshot.value(QStringLiteral("views")).toList();
     const int active = snapshot.value(QStringLiteral("active"), -1).toInt();
@@ -341,12 +344,16 @@ void muffin::MainWindow::restoreStartupFile() {
     for (int i = 0; i < files.size(); ++i) {
       const QString& path = files[i];
       if (path.isEmpty()) {
-        if (restoredAny) startNewDocument();
+        if (restoredAny)
+          startNewDocument();
       } else {
         const QFileInfo info(path);
-        if (!info.isFile() || !info.isReadable()) continue;
-        if (restoredAny && tab_->session.filePath().isEmpty() && tab_->pendingOpenPath.isEmpty()) startNewDocument();
-        if (!openFile(path)) continue;
+        if (!info.isFile() || !info.isReadable())
+          continue;
+        if (restoredAny && tab_->session.filePath().isEmpty() && tab_->pendingOpenPath.isEmpty())
+          startNewDocument();
+        if (!openFile(path))
+          continue;
       }
       restoredAny = true;
       if (i < views.size()) {
@@ -356,15 +363,21 @@ void muffin::MainWindow::restoreStartupFile() {
           setupTabButton(tab_);
           tab_->pendingViewState = view;
           const bool source = view.value(QStringLiteral("sourceMode")).toBool();
-          if (source) tab_->backend = std::make_unique<SourceEditorBackend>(tab_->editor);
-          else tab_->backend = std::make_unique<RenderEditorBackend>(tab_->editorController, tab_->session, tab_->renderView);
-          tab_->viewStack->setCurrentWidget(source ? static_cast<QWidget*>(tab_->editor) : static_cast<QWidget*>(tab_->renderView));
+          if (source)
+            tab_->backend = std::make_unique<SourceEditorBackend>(tab_->editor);
+          else
+            tab_->backend =
+                std::make_unique<RenderEditorBackend>(tab_->editorController, tab_->session, tab_->renderView);
+          tab_->viewStack->setCurrentWidget(source ? static_cast<QWidget*>(tab_->editor)
+                                                   : static_cast<QWidget*>(tab_->renderView));
         }
       }
-      if (i == active) selected = tab_;
+      if (i == active)
+        selected = tab_;
     }
     normalizePinnedTabs();
-    if (selected) tabs_->setCurrentWidget(selected);
+    if (selected)
+      tabs_->setCurrentWidget(selected);
     updateTabBarVisibility();
   }
   refreshSidebarDocumentInfo();
@@ -379,20 +392,17 @@ void muffin::MainWindow::showDocumentProperties() {
   }
 
   const QFileInfo info(tab_->session.filePath());
-  const QString message = tr(
-      "Name: %1\n"
-      "Location: %2\n"
-      "Size: %3 bytes\n"
-      "Modified: %4\n"
-      "Words: %5\n"
-      "Parse time: %6 ms")
-                              .arg(
-                                  info.fileName(),
-                                  QDir::toNativeSeparators(info.absolutePath()),
-                                  QString::number(info.size()),
-                                  QLocale().toString(info.lastModified(), QLocale::ShortFormat),
-                                  QString::number(text_stats::countWords(tab_->session.markdownText())),
-                                  QString::number(tab_->session.lastParseElapsedMs()));
+  const QString message =
+      tr("Name: %1\n"
+         "Location: %2\n"
+         "Size: %3 bytes\n"
+         "Modified: %4\n"
+         "Words: %5\n"
+         "Parse time: %6 ms")
+          .arg(info.fileName(), QDir::toNativeSeparators(info.absolutePath()), QString::number(info.size()),
+               QLocale().toString(info.lastModified(), QLocale::ShortFormat),
+               QString::number(text_stats::countWords(tab_->session.markdownText())),
+               QString::number(tab_->session.lastParseElapsedMs()));
   QMessageBox::information(this, tr("Properties"), message);
 }
 
@@ -456,9 +466,7 @@ void muffin::MainWindow::showPreferences() {
       sidebar_->setOutlineFoldable(foldable);
     }
   });
-  connect(&dialog, &PreferencesDialog::restoreDraftsRequested, this, [this] {
-    offerDraftRecovery();
-  });
+  connect(&dialog, &PreferencesDialog::restoreDraftsRequested, this, [this] { offerDraftRecovery(); });
   connect(&dialog, &PreferencesDialog::disableTypewriterFocusRequested, this, [this] {
     setTypewriterMode(false);
     setFocusMode(false);
@@ -468,8 +476,7 @@ void muffin::MainWindow::showPreferences() {
 
   dialog.exec();
 
-  showBlockSourceEnabled_ =
-      QSettings().value(QStringLiteral("editor/showBlockSource"), false).toBool();
+  showBlockSourceEnabled_ = QSettings().value(QStringLiteral("editor/showBlockSource"), false).toBool();
   scheduleEditorStateRefresh();
 
   // Re-apply markdown preferences now that the modal dialog has closed. Doing this AFTER exec()
@@ -518,7 +525,7 @@ void muffin::MainWindow::performAutoSave(DocumentTab* tab) {
   if (outcome == SaveOutcome::Saved) {
     clearDraftSnapshot(tab->session.filePath(), tab->draftKey);
   } else if (outcome == SaveOutcome::SkippedBusy) {
-    tab->autoSaveTimer->start();  // async parse still in flight — retry once it settles
+    tab->autoSaveTimer->start(); // async parse still in flight — retry once it settles
   }
 }
 
@@ -532,7 +539,8 @@ void muffin::MainWindow::snapshotDraft(DocumentTab* tab) {
   // Only a successful worker completion advances the acknowledged revision.
   // The writer coalesces pending revisions and captures independent buffers.
   const quint64 revision = tab->session.document().revision();
-  if (revision != tab->lastDraftSnapshotRevision) draftWriter_.request(tab->session, tab->draftKey);
+  if (revision != tab->lastDraftSnapshotRevision)
+    draftWriter_.request(tab->session, tab->draftKey);
   // Heartbeat: re-arm for as long as the document stays dirty. modifiedChanged
   // only fires on the clean↔dirty transition, so without this re-arm a single
   // snapshot would be taken seconds into an edit session and never refreshed —
@@ -571,14 +579,13 @@ bool muffin::MainWindow::offerDraftRecovery() {
   // Restore one selected draft at a time; the others remain available for later recovery.
   list->setSelectionMode(QAbstractItemView::SingleSelection);
   for (const DraftRecovery::PendingDraft& d : drafts) {
-    const QString time = QDateTime::fromMSecsSinceEpoch(d.timestamp)
-                              .toString(QLocale().dateTimeFormat(QLocale::ShortFormat));
+    const QString time =
+        QDateTime::fromMSecsSinceEpoch(d.timestamp).toString(QLocale().dateTimeFormat(QLocale::ShortFormat));
     const QString where = d.sourcePath.isEmpty() ? tr("Untitled") : QDir::toNativeSeparators(d.sourcePath);
-    auto* item = new QListWidgetItem(
-        tr("%1  —  %2  (%n char(s))", nullptr, int(d.charCount)).arg(where, time), list);
+    auto* item = new QListWidgetItem(tr("%1  —  %2  (%n char(s))", nullptr, int(d.charCount)).arg(where, time), list);
     item->setData(Qt::UserRole, QVariant::fromValue(d));
   }
-  list->setCurrentRow(0);  // pre-select the newest draft for a one-click restore
+  list->setCurrentRow(0); // pre-select the newest draft for a one-click restore
   list->setMinimumHeight(qMax(120, 28 + drafts.size() * 26));
   layout->addWidget(list);
 
@@ -602,8 +609,7 @@ bool muffin::MainWindow::offerDraftRecovery() {
   bool restoredAny = false;
   if (result == Restore) {
     if (list->currentItem() != nullptr) {
-      restoredAny = restoreDraft(
-          list->currentItem()->data(Qt::UserRole).value<DraftRecovery::PendingDraft>());
+      restoredAny = restoreDraft(list->currentItem()->data(Qt::UserRole).value<DraftRecovery::PendingDraft>());
     }
   } else if (result == Discard) {
     for (const DraftRecovery::PendingDraft& d : drafts) {
@@ -654,10 +660,12 @@ bool muffin::MainWindow::isDocumentModified() const {
 
 QStringList muffin::MainWindow::quickOpenCandidates() const {
   QStringList candidates;
-  if (!tab_->session.filePath().isEmpty()) candidates.append(tab_->session.filePath());
+  if (!tab_->session.filePath().isEmpty())
+    candidates.append(tab_->session.filePath());
   candidates.append(recentFiles());
   for (const auto* document : documentTabs()) {
-    if (!document->session.filePath().isEmpty()) candidates.append(document->session.filePath());
+    if (!document->session.filePath().isEmpty())
+      candidates.append(document->session.filePath());
   }
   return candidates;
 }
@@ -683,7 +691,8 @@ void muffin::MainWindow::quickOpen() {
 // ---- Import (Pandoc → markdown) -------------------------------------------
 
 void muffin::MainWindow::importFile() {
-  const QString dir = tab_->session.filePath().isEmpty() ? QString() : QFileInfo(tab_->session.filePath()).absolutePath();
+  const QString dir =
+      tab_->session.filePath().isEmpty() ? QString() : QFileInfo(tab_->session.filePath()).absolutePath();
   const QString sourcePath = QFileDialog::getOpenFileName(
       this, tr("Import"), dir,
       tr("Word (*.docx);;OpenDocument (*.odt);;RTF (*.rtf);;EPUB (*.epub);;HTML (*.html *.htm);;"
@@ -694,9 +703,8 @@ void muffin::MainWindow::importFile() {
   }
 
   if (!PandocRunner::isAvailable()) {
-    QMessageBox::warning(
-        this, tr("Import Failed"),
-        tr("Pandoc was not found. Install Pandoc or set its path in Preferences → Export."));
+    QMessageBox::warning(this, tr("Import Failed"),
+                         tr("Pandoc was not found. Install Pandoc or set its path in Preferences → Export."));
     return;
   }
 
@@ -721,7 +729,7 @@ void muffin::MainWindow::importFile() {
   if (!startNewDocument()) {
     return;
   }
-  tab_->session.setMarkdownText(QString::fromUtf8(result.out), true);  // imported content is unsaved
+  tab_->session.setMarkdownText(QString::fromUtf8(result.out), true); // imported content is unsaved
   statusBar()->showMessage(tr("Imported %1").arg(QFileInfo(sourcePath).fileName()), 4000);
 }
 
@@ -732,19 +740,31 @@ namespace {
 // Per-format file extension. PDF/HTML are native; the rest are Pandoc outputs.
 QString exportExtension(muffin::ExportFormat format) {
   switch (format) {
-    case muffin::ExportFormat::Pdf: return QStringLiteral(".pdf");
-    case muffin::ExportFormat::Html:
-    case muffin::ExportFormat::HtmlPlain: return QStringLiteral(".html");
-    case muffin::ExportFormat::Image: return QStringLiteral(".png");
-    case muffin::ExportFormat::Docx: return QStringLiteral(".docx");
-    case muffin::ExportFormat::Odt: return QStringLiteral(".odt");
-    case muffin::ExportFormat::Rtf: return QStringLiteral(".rtf");
-    case muffin::ExportFormat::Epub: return QStringLiteral(".epub");
-    case muffin::ExportFormat::Latex: return QStringLiteral(".tex");
-    case muffin::ExportFormat::MediaWiki: return QStringLiteral(".wiki");
-    case muffin::ExportFormat::Rst: return QStringLiteral(".rst");
-    case muffin::ExportFormat::Textile: return QStringLiteral(".textile");
-    case muffin::ExportFormat::Opml: return QStringLiteral(".opml");
+  case muffin::ExportFormat::Pdf:
+    return QStringLiteral(".pdf");
+  case muffin::ExportFormat::Html:
+  case muffin::ExportFormat::HtmlPlain:
+    return QStringLiteral(".html");
+  case muffin::ExportFormat::Image:
+    return QStringLiteral(".png");
+  case muffin::ExportFormat::Docx:
+    return QStringLiteral(".docx");
+  case muffin::ExportFormat::Odt:
+    return QStringLiteral(".odt");
+  case muffin::ExportFormat::Rtf:
+    return QStringLiteral(".rtf");
+  case muffin::ExportFormat::Epub:
+    return QStringLiteral(".epub");
+  case muffin::ExportFormat::Latex:
+    return QStringLiteral(".tex");
+  case muffin::ExportFormat::MediaWiki:
+    return QStringLiteral(".wiki");
+  case muffin::ExportFormat::Rst:
+    return QStringLiteral(".rst");
+  case muffin::ExportFormat::Textile:
+    return QStringLiteral(".textile");
+  case muffin::ExportFormat::Opml:
+    return QStringLiteral(".opml");
   }
   return QStringLiteral(".txt");
 }
@@ -758,14 +778,16 @@ QString exportSuggestedDir(const QString& sourcePath) {
   const int mode = settings.value(QStringLiteral("export/defaultFolder"), 0).toInt();
   const QString sourceDir = sourcePath.isEmpty() ? QString() : QFileInfo(sourcePath).absolutePath();
   switch (mode) {
-    case 2:
-      return settings.value(QStringLiteral("export/customFolder"),
-          settings.value(QStringLiteral("export/lastCustomFolder"), documents)).toString();
-    case 1:
-      return sourceDir.isEmpty() ? documents : sourceDir;
-    case 0:
-    default:
-      return sourceDir.isEmpty() ? documents : sourceDir;
+  case 2:
+    return settings
+        .value(QStringLiteral("export/customFolder"),
+               settings.value(QStringLiteral("export/lastCustomFolder"), documents))
+        .toString();
+  case 1:
+    return sourceDir.isEmpty() ? documents : sourceDir;
+  case 0:
+  default:
+    return sourceDir.isEmpty() ? documents : sourceDir;
   }
 }
 
@@ -788,7 +810,7 @@ bool writeExportBytes(const QString& path, const QByteArray& bytes, QString* err
   return true;
 }
 
-}  // namespace
+} // namespace
 
 void muffin::MainWindow::exportAs(ExportFormat format) {
   const QString markdown = tab_->session.markdownText().toString();
@@ -820,86 +842,94 @@ void muffin::MainWindow::exportAs(ExportFormat format) {
   const auto prefix = exportSettingsPrefix(format);
   const auto nativeTheme = [&](const QString& name, int fontSize) {
     return name == QStringLiteral("github")
-        ? RenderTheme::fromDefinition(themeManager_.definition(QStringLiteral("github")), 100, fontSize)
-        : themeManager_.currentTheme(100, fontSize);
+               ? RenderTheme::fromDefinition(themeManager_.definition(QStringLiteral("github")), 100, fontSize)
+               : themeManager_.currentTheme(100, fontSize);
   };
   auto* cache = tab_->renderView ? tab_->renderView->mermaidRenderCache() : nullptr;
 
   bool ok = false;
   QString error;
   switch (format) {
-    case ExportFormat::Pdf: {
-      const auto options = pdfExportOptions();
-      ok = exportNativePdf(stagedTarget, tab_->session.document(), nativeTheme(options.theme, options.fontSize),
+  case ExportFormat::Pdf: {
+    const auto options = pdfExportOptions();
+    ok = exportNativePdf(stagedTarget, tab_->session.document(), nativeTheme(options.theme, options.fontSize),
+                         sourcePath, options, cache);
+    if (!ok) {
+      error = tr("PDF export failed: the printer device could not be opened.");
+    }
+    break;
+  }
+  case ExportFormat::Image: {
+    const auto options = imageExportOptions();
+    ok = exportNativeImage(stagedTarget, tab_->session.document(), nativeTheme(options.theme, options.fontSize),
                            sourcePath, options, cache);
-      if (!ok) {
-        error = tr("PDF export failed: the printer device could not be opened.");
-      }
+    if (!ok)
+      error = tr(
+          "Image export failed. The image must fit within 64 million pixels and 32,767 pixels in height. Try a smaller width or scale, or export as PDF.");
+    break;
+  }
+  case ExportFormat::Html:
+  case ExportFormat::HtmlPlain: {
+    const bool styled = (format == ExportFormat::Html);
+    // Export the selected theme; the default light option must stay light
+    // even when the browser or operating system prefers dark colours.
+    const QString themeCss = !styled ? QString()
+                             : settings.value(prefix + "theme", "current").toString() == "current"
+                                 ? themeManager_.currentThemeCss()
+                                 : ThemeManager().currentThemeCss();
+    const QString html = muffin::renderDocumentHtml(markdown, baseName, styled, themeCss,
+                                                    {.outline = settings.value(prefix + "outline", false).toBool(),
+                                                     .head = settings.value(prefix + "head").toString(),
+                                                     .body = settings.value(prefix + "body").toString()});
+    ok = writeExportBytes(stagedTarget, html.toUtf8(), &error);
+    break;
+  }
+  default: {
+    if (!PandocRunner::isAvailable()) {
+      error = tr("Pandoc was not found. Install Pandoc or set its path in Preferences → Export.");
       break;
     }
-    case ExportFormat::Image: {
-      const auto options = imageExportOptions();
-      ok = exportNativeImage(stagedTarget, tab_->session.document(), nativeTheme(options.theme, options.fontSize),
-                             sourcePath, options, cache);
-      if (!ok) error = tr("Image export failed. The image must fit within 64 million pixels and 32,767 pixels in height. Try a smaller width or scale, or export as PDF.");
-      break;
-    }
-    case ExportFormat::Html:
-    case ExportFormat::HtmlPlain: {
-      const bool styled = (format == ExportFormat::Html);
-      // Export the selected theme; the default light option must stay light
-      // even when the browser or operating system prefers dark colours.
-      const QString themeCss = !styled ? QString()
-          : settings.value(prefix + "theme", "current").toString() == "current"
-              ? themeManager_.currentThemeCss() : ThemeManager().currentThemeCss();
-      const QString html = muffin::renderDocumentHtml(
-          markdown, baseName, styled, themeCss,
-          {.outline = settings.value(prefix + "outline", false).toBool(),
-           .head = settings.value(prefix + "head").toString(), .body = settings.value(prefix + "body").toString()});
-      ok = writeExportBytes(stagedTarget, html.toUtf8(), &error);
-      break;
-    }
-    default: {
-      if (!PandocRunner::isAvailable()) {
-        error = tr("Pandoc was not found. Install Pandoc or set its path in Preferences → Export.");
+    const QString exportingMsg = tr("Exporting %1…").arg(baseName + ext);
+    statusBar()->showMessage(exportingMsg, 0);
+    // markdown/breakOnSingleNewline (default on): render soft breaks as line breaks, matching the
+    // editor view. pandoc's hard_line_breaks extension does for gfm input what the view does.
+    const QString inputFormat = QSettings().value(QStringLiteral("markdown/breakOnSingleNewline"), true).toBool()
+                                    ? QStringLiteral("gfm+hard_line_breaks")
+                                    : QStringLiteral("gfm");
+    const auto options = pandocExportOptions(format);
+    for (const auto& path : {options.referenceDocument, options.css}) {
+      if (!path.isEmpty() && !QFileInfo(path).isFile()) {
+        error = tr("Export resource was not found: %1").arg(path);
         break;
       }
-      const QString exportingMsg = tr("Exporting %1…").arg(baseName + ext);
-      statusBar()->showMessage(exportingMsg, 0);
-      // markdown/breakOnSingleNewline (default on): render soft breaks as line breaks, matching the
-      // editor view. pandoc's hard_line_breaks extension does for gfm input what the view does.
-      const QString inputFormat = QSettings().value(QStringLiteral("markdown/breakOnSingleNewline"), true).toBool()
-                                      ? QStringLiteral("gfm+hard_line_breaks")
-                                      : QStringLiteral("gfm");
-      const auto options = pandocExportOptions(format);
-      for (const auto& path : {options.referenceDocument, options.css}) {
-        if (!path.isEmpty() && !QFileInfo(path).isFile()) {
-          error = tr("Export resource was not found: %1").arg(path);
-          break;
-        }
-      }
-      if (!error.isEmpty()) { statusBar()->clearMessage(); break; }
-      QStringList arguments;
-      if (!pandocExportArguments(format, inputFormat, stagedTarget, options, &arguments)) {
-        error = tr("Additional arguments cannot override the input format, output format, output path, or defaults file.");
-        statusBar()->clearMessage();
-        break;
-      }
-      const PandocResult result = PandocRunner::run(
-          this, arguments, {.stdinData = markdown.toUtf8(),
-              .workDir = sourcePath.isEmpty() ? QDir::homePath() : QFileInfo(sourcePath).absolutePath(),
-              .progressLabel = exportingMsg});
+    }
+    if (!error.isEmpty()) {
       statusBar()->clearMessage();
-      if (result.canceled) {
-        return;
-      }
-      if (result.ran && result.exitCode == 0) {
-        ok = true;
-      } else {
-        error = tr("Pandoc failed:") + QStringLiteral("\n\n") + QString::fromUtf8(result.err);
-      }
       break;
     }
+    QStringList arguments;
+    if (!pandocExportArguments(format, inputFormat, stagedTarget, options, &arguments)) {
+      error =
+          tr("Additional arguments cannot override the input format, output format, output path, or defaults file.");
+      statusBar()->clearMessage();
+      break;
+    }
+    const PandocResult result =
+        PandocRunner::run(this, arguments,
+                          {.stdinData = markdown.toUtf8(),
+                           .workDir = sourcePath.isEmpty() ? QDir::homePath() : QFileInfo(sourcePath).absolutePath(),
+                           .progressLabel = exportingMsg});
+    statusBar()->clearMessage();
+    if (result.canceled) {
+      return;
+    }
+    if (result.ran && result.exitCode == 0) {
+      ok = true;
+    } else {
+      error = tr("Pandoc failed:") + QStringLiteral("\n\n") + QString::fromUtf8(result.err);
+    }
+    break;
+  }
   }
 
   if (ok) {
@@ -911,8 +941,10 @@ void muffin::MainWindow::exportAs(ExportFormat format) {
       const auto bytes = staged.read(64 * 1024);
       ok = !bytes.isEmpty() && output.write(bytes) == bytes.size();
     }
-    if (ok) ok = output.commit();
-    if (!ok) error = output.errorString().isEmpty() ? staged.errorString() : output.errorString();
+    if (ok)
+      ok = output.commit();
+    if (!ok)
+      error = output.errorString().isEmpty() ? staged.errorString() : output.errorString();
   }
   if (!ok) {
     QMessageBox::critical(this, tr("Export Failed"), error);
@@ -920,10 +952,12 @@ void muffin::MainWindow::exportAs(ExportFormat format) {
   }
 
   statusBar()->showMessage(tr("Exported to %1").arg(QDir::toNativeSeparators(target)), 6000);
-  if (settings.value(prefix + "openDirectory", settings.value(QStringLiteral("export/openAfterExport"), false)).toBool()) {
+  if (settings.value(prefix + "openDirectory", settings.value(QStringLiteral("export/openAfterExport"), false))
+          .toBool()) {
     QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(target).absolutePath()));
   }
-  if (settings.value(prefix + "openFile", false).toBool()) QDesktopServices::openUrl(QUrl::fromLocalFile(target));
+  if (settings.value(prefix + "openFile", false).toBool())
+    QDesktopServices::openUrl(QUrl::fromLocalFile(target));
 }
 
 void muffin::MainWindow::buildReopenEncodingMenu() {
@@ -1007,9 +1041,7 @@ void muffin::MainWindow::buildReopenEncodingMenu() {
     for (const auto& entry : group.entries) {
       QAction* action = reopenEncodingMenu_->addAction(tr(entry.label));
       const QString encodingName = QString::fromLatin1(entry.name);
-      connect(action, &QAction::triggered, this, [this, encodingName] {
-        reopenWithEncoding(encodingName);
-      });
+      connect(action, &QAction::triggered, this, [this, encodingName] { reopenWithEncoding(encodingName); });
     }
     reopenEncodingMenu_->addSeparator();
   }
@@ -1031,9 +1063,10 @@ void muffin::MainWindow::moveToFile() {
   }
 
   const QString oldPath = tab_->session.filePath();
-  const QString newPath = QFileDialog::getSaveFileName(this, tr("Move To"), oldPath,
-      tr("Markdown Files (*.md *.markdown);;All Files (*)"));
-  if (newPath.isEmpty() || newPath == oldPath) return;
+  const QString newPath =
+      QFileDialog::getSaveFileName(this, tr("Move To"), oldPath, tr("Markdown Files (*.md *.markdown);;All Files (*)"));
+  if (newPath.isEmpty() || newPath == oldPath)
+    return;
   renameOrMoveWithLinks(oldPath, newPath);
 }
 
@@ -1064,9 +1097,7 @@ void muffin::MainWindow::saveAllOpenFiles() {
 
   if (failedCount > 0) {
     QMessageBox::warning(this, tr("Save All"),
-                         tr("Saved %1 file(s). %2 file(s) could not be saved.")
-                             .arg(savedCount)
-                             .arg(failedCount));
+                         tr("Saved %1 file(s). %2 file(s) could not be saved.").arg(savedCount).arg(failedCount));
   }
 }
 
@@ -1082,9 +1113,8 @@ void muffin::MainWindow::showInSidebar() {
     openFolderAtPath(QFileInfo(path).absolutePath());
   }
   setSidebarPanel(SidebarWidget::Panel::Files);
-  sidebar_->setCurrentDocument(
-      tab_->session.displayName(), tab_->session.filePath(),
-      tab_->session.document().isModified());
+  sidebar_->setCurrentDocument(tab_->session.displayName(), tab_->session.filePath(),
+                               tab_->session.document().isModified());
   sidebar_->setCurrentPath(path);
 }
 
@@ -1096,23 +1126,21 @@ void muffin::MainWindow::deleteFile() {
   const QString filePath = tab_->session.filePath();
   const QString fileName = QFileInfo(filePath).fileName();
 
-  const QMessageBox::StandardButton confirm = QMessageBox::warning(
-      this, tr("Delete File"),
-      tr("Are you sure you want to move \"%1\" to the trash?\n\n"
-         "This action cannot be undone.")
-          .arg(fileName),
-      QMessageBox::Yes | QMessageBox::No,
-      QMessageBox::No);
+  const QMessageBox::StandardButton confirm =
+      QMessageBox::warning(this, tr("Delete File"),
+                           tr("Are you sure you want to move \"%1\" to the trash?\n\n"
+                              "This action cannot be undone.")
+                               .arg(fileName),
+                           QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
   if (confirm != QMessageBox::Yes) {
     return;
   }
 
   if (tab_->session.document().isModified()) {
-    const QMessageBox::StandardButton unsaved = QMessageBox::warning(
-        this, tr("Muffin"), tr("The current document has unsaved changes."),
-        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
-        QMessageBox::Save);
+    const QMessageBox::StandardButton unsaved =
+        QMessageBox::warning(this, tr("Muffin"), tr("The current document has unsaved changes."),
+                             QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
     if (unsaved == QMessageBox::Cancel) {
       return;
     }
@@ -1124,21 +1152,19 @@ void muffin::MainWindow::deleteFile() {
   bool trashed = QFile::moveToTrash(filePath);
 
   if (!trashed) {
-    const QMessageBox::StandardButton confirm2 = QMessageBox::critical(
-        this, tr("Delete File"),
-        tr("Could not move to trash. Permanently delete \"%1\"?\n\n"
-           "This action cannot be undone.")
-            .arg(fileName),
-        QMessageBox::Yes | QMessageBox::No,
-        QMessageBox::No);
+    const QMessageBox::StandardButton confirm2 =
+        QMessageBox::critical(this, tr("Delete File"),
+                              tr("Could not move to trash. Permanently delete \"%1\"?\n\n"
+                                 "This action cannot be undone.")
+                                  .arg(fileName),
+                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
     if (confirm2 != QMessageBox::Yes) {
       return;
     }
 
     if (!QFile::remove(filePath)) {
-      QMessageBox::critical(this, tr("Delete Failed"),
-                            tr("Could not delete file:\n%1").arg(filePath));
+      QMessageBox::critical(this, tr("Delete Failed"), tr("Could not delete file:\n%1").arg(filePath));
       return;
     }
   }
@@ -1160,9 +1186,10 @@ void muffin::MainWindow::deleteFile() {
 // in FilePathOps; here we only prompt + integrate with the editor/sidebar.
 
 void muffin::MainWindow::openFolderAtPath(QString path) {
-  if (!QFileInfo(path).isDir()) return;
+  if (!QFileInfo(path).isDir())
+    return;
   path = QFileInfo(path).absoluteFilePath();
-  const QString openedPath = path;  // capture before the move, for recent-folders recording
+  const QString openedPath = path; // capture before the move, for recent-folders recording
   sidebarFolderRoot_ = std::move(path);
   if (sidebar_) {
     sidebar_->setFolderRoot(sidebarFolderRoot_);
@@ -1175,7 +1202,7 @@ void muffin::MainWindow::openFolderAtPath(QString path) {
 void muffin::MainWindow::openFileInNewWindow(QString path) {
   auto* window = new MainWindow();
   window->setAttribute(Qt::WA_DeleteOnClose);
-  window->openFile(path);  // before show() so the document parses during construction
+  window->openFile(path); // before show() so the document parses during construction
   window->show();
 }
 
@@ -1200,7 +1227,7 @@ void muffin::MainWindow::newFileInDirectory(QString dir) {
   QString error;
   if (!FilePathOps::createFile(tempPath, &error)) {
     QMessageBox::critical(this, tr("New File"),
-        tr("Could not create file:\n%1\n\n%2").arg(QDir::toNativeSeparators(tempPath), error));
+                          tr("Could not create file:\n%1\n\n%2").arg(QDir::toNativeSeparators(tempPath), error));
     return;
   }
   if (sidebar_) {
@@ -1219,7 +1246,7 @@ void muffin::MainWindow::newFolderInDirectory(QString dir) {
   QString error;
   if (!FilePathOps::createFolder(tempPath, &error)) {
     QMessageBox::critical(this, tr("New Folder"),
-        tr("Could not create folder:\n%1\n\n%2").arg(QDir::toNativeSeparators(tempPath), error));
+                          tr("Could not create folder:\n%1\n\n%2").arg(QDir::toNativeSeparators(tempPath), error));
     return;
   }
   if (sidebar_) {
@@ -1252,8 +1279,8 @@ void muffin::MainWindow::onInlineValidate(muffin::InlineEditContext ctx, const Q
   }
   // Only append ".md" for a brand-new file (matches the old New File prompt); a rename never
   // forces an extension (the user may be changing it on purpose).
-  const QString normalized = (ctx.pendingCreate && !ctx.isFolder)
-      ? FilePathOps::normalizeMarkdownFileName(trimmed) : trimmed;
+  const QString normalized =
+      (ctx.pendingCreate && !ctx.isFolder) ? FilePathOps::normalizeMarkdownFileName(trimmed) : trimmed;
   if (normalized == QFileInfo(ctx.oldPath).fileName()) {
     out->kind = muffin::InlineValidation::NoChange;
     return;
@@ -1272,8 +1299,8 @@ void muffin::MainWindow::onInlineValidate(muffin::InlineEditContext ctx, const Q
 // document). The name has already been validated.
 void muffin::MainWindow::onInlineCommit(muffin::InlineEditContext ctx, const QString& name) {
   const QString trimmed = name.trimmed();
-  const QString normalized = (ctx.pendingCreate && !ctx.isFolder)
-      ? FilePathOps::normalizeMarkdownFileName(trimmed) : trimmed;
+  const QString normalized =
+      (ctx.pendingCreate && !ctx.isFolder) ? FilePathOps::normalizeMarkdownFileName(trimmed) : trimmed;
   const QString oldName = QFileInfo(ctx.oldPath).fileName();
   const QString newPath = QDir(QFileInfo(ctx.oldPath).absolutePath()).filePath(normalized);
   if (!ctx.pendingCreate) {
@@ -1284,7 +1311,7 @@ void muffin::MainWindow::onInlineCommit(muffin::InlineEditContext ctx, const QSt
     QString error;
     if (!FilePathOps::renamePath(ctx.oldPath, newPath, &error)) {
       statusBar()->showMessage(tr("Could not rename: %1").arg(error), 5000);
-      return;  // editor already closed on commit; best-effort surface via the status bar
+      return; // editor already closed on commit; best-effort surface via the status bar
     }
   }
   if (sidebar_) {
@@ -1303,7 +1330,7 @@ void muffin::MainWindow::onInlineCancel(muffin::InlineEditContext ctx) {
   }
   QString error;
   if (!FilePathOps::moveToTrash(ctx.oldPath, &error)) {
-    FilePathOps::removePermanently(ctx.oldPath, nullptr);  // fallback so no temp is stranded
+    FilePathOps::removePermanently(ctx.oldPath, nullptr); // fallback so no temp is stranded
   }
 }
 
@@ -1315,7 +1342,7 @@ void muffin::MainWindow::duplicateFile(QString path) {
   QString error;
   if (!FilePathOps::copyFile(path, dest, &error)) {
     QMessageBox::critical(this, tr("Duplicate"),
-        tr("Could not create a copy:\n%1\n\n%2").arg(QDir::toNativeSeparators(path), error));
+                          tr("Could not create a copy:\n%1\n\n%2").arg(QDir::toNativeSeparators(path), error));
     return;
   }
   if (sidebar_) {
@@ -1329,10 +1356,14 @@ void muffin::MainWindow::deletePath(QString path) {
   }
   const QFileInfo info(path);
   const QString windowTitle = info.isDir() ? tr("Delete Folder") : tr("Delete File");
-  const QString trashPrompt = info.isDir()
-      ? tr("Are you sure you want to move \"%1\" and all its contents to the trash?\n\nThis action cannot be undone.").arg(info.fileName())
-      : tr("Are you sure you want to move \"%1\" to the trash?\n\nThis action cannot be undone.").arg(info.fileName());
-  if (QMessageBox::warning(this, windowTitle, trashPrompt, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) {
+  const QString trashPrompt =
+      info.isDir()
+          ? tr("Are you sure you want to move \"%1\" and all its contents to the trash?\n\nThis action cannot be undone.")
+                .arg(info.fileName())
+          : tr("Are you sure you want to move \"%1\" to the trash?\n\nThis action cannot be undone.")
+                .arg(info.fileName());
+  if (QMessageBox::warning(this, windowTitle, trashPrompt, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) !=
+      QMessageBox::Yes) {
     return;
   }
 
@@ -1356,15 +1387,15 @@ void muffin::MainWindow::deletePath(QString path) {
   if (!removed) {
     // Trash unavailable (e.g. some Linux backends): offer a permanent delete.
     if (QMessageBox::critical(this, windowTitle,
-            tr("Could not move to trash. Permanently delete \"%1\"?\n\nThis action cannot be undone.").arg(info.fileName()),
-            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
+                              tr("Could not move to trash. Permanently delete \"%1\"?\n\nThis action cannot be undone.")
+                                  .arg(info.fileName()),
+                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
       removed = FilePathOps::removePermanently(path, &error);
     }
   }
   if (!removed) {
     if (!error.isEmpty()) {
-      QMessageBox::critical(this, tr("Delete Failed"),
-          tr("Could not delete:\n%1").arg(QDir::toNativeSeparators(path)));
+      QMessageBox::critical(this, tr("Delete Failed"), tr("Could not delete:\n%1").arg(QDir::toNativeSeparators(path)));
     }
     return;
   }
@@ -1375,9 +1406,9 @@ void muffin::MainWindow::deletePath(QString path) {
     closeTab(tabs_->indexOf(document));
   }
   QStringList recent = recentFiles();
-  recent.erase(std::remove_if(recent.begin(), recent.end(), [&path](const QString& item) {
-    return FilePathOps::isSameOrDescendant(item, path);
-  }), recent.end());
+  recent.erase(std::remove_if(recent.begin(), recent.end(),
+                              [&path](const QString& item) { return FilePathOps::isSameOrDescendant(item, path); }),
+               recent.end());
   setRecentFiles(recent);
   rebuildRecentFilesMenu();
 }
@@ -1410,7 +1441,7 @@ void muffin::MainWindow::revealPathInManager(QString path) {
   QString error;
   if (!FilePathOps::revealPathInManager(path, &error)) {
     QMessageBox::warning(this, tr("Reveal in File Manager"),
-        tr("Could not reveal:\n%1").arg(QDir::toNativeSeparators(path)));
+                         tr("Could not reveal:\n%1").arg(QDir::toNativeSeparators(path)));
   }
 }
 
@@ -1418,12 +1449,12 @@ QString muffin::MainWindow::defaultUntitledSuggestion() const {
   // Reuse the files/defaultExtension setting so the New File prompt matches the
   // Save As untitled name (.md/.markdown/.txt).
   switch (QSettings().value(QStringLiteral("files/defaultExtension"), 0).toInt()) {
-    case 1:
-      return QStringLiteral("Untitled.markdown");
-    case 2:
-      return QStringLiteral("Untitled.txt");
-    default:
-      return QStringLiteral("Untitled.md");
+  case 1:
+    return QStringLiteral("Untitled.markdown");
+  case 2:
+    return QStringLiteral("Untitled.txt");
+  default:
+    return QStringLiteral("Untitled.md");
   }
 }
 
@@ -1432,18 +1463,15 @@ bool muffin::MainWindow::maybeSaveChanges() {
     return true;
   }
 
-  const QMessageBox::StandardButton choice = QMessageBox::warning(
-      this,
-      tr("Muffin"),
-      tr("The current document has unsaved changes."),
-      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
-      QMessageBox::Save);
+  const QMessageBox::StandardButton choice =
+      QMessageBox::warning(this, tr("Muffin"), tr("The current document has unsaved changes."),
+                           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
 
   if (choice == QMessageBox::Cancel) {
     return false;
   }
   if (choice == QMessageBox::Save) {
-    return tab_->fileController.save(tab_->session, this) == SaveOutcome::Saved;  // save() emits documentBecameClean.
+    return tab_->fileController.save(tab_->session, this) == SaveOutcome::Saved; // save() emits documentBecameClean.
   }
   // Discard: the user explicitly abandoned the unsaved work — drop its recovery
   // draft so the next launch doesn't offer to restore what was just thrown away.

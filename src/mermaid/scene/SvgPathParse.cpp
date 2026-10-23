@@ -12,16 +12,16 @@
 namespace muffin::mermaid::scene {
 namespace {
 
-void appendArc(QPainterPath& path, const QPointF& start, const QPointF& end,
-               qreal rawRx, qreal rawRy, qreal rotationDegrees,
-               bool largeArc, bool sweep) {
+void appendArc(QPainterPath& path, const QPointF& start, const QPointF& end, qreal rawRx, qreal rawRy,
+               qreal rotationDegrees, bool largeArc, bool sweep) {
   qreal rx = std::abs(rawRx);
   qreal ry = std::abs(rawRy);
   if (rx == 0.0 || ry == 0.0) {
     path.lineTo(end);
     return;
   }
-  if (start == end) return;
+  if (start == end)
+    return;
 
   const qreal phi = qDegreesToRadians(std::fmod(rotationDegrees, 360.0));
   const qreal cosPhi = std::cos(phi);
@@ -30,8 +30,7 @@ void appendArc(QPainterPath& path, const QPointF& start, const QPointF& end,
   const qreal halfDy = (start.y() - end.y()) / 2.0;
   const qreal xPrime = cosPhi * halfDx + sinPhi * halfDy;
   const qreal yPrime = -sinPhi * halfDx + cosPhi * halfDy;
-  qreal radiiScale = xPrime * xPrime / (rx * rx) +
-                     yPrime * yPrime / (ry * ry);
+  qreal radiiScale = xPrime * xPrime / (rx * rx) + yPrime * yPrime / (ry * ry);
   if (radiiScale > 1.0) {
     radiiScale = std::sqrt(radiiScale);
     rx *= radiiScale;
@@ -45,14 +44,11 @@ void appendArc(QPainterPath& path, const QPointF& start, const QPointF& end,
   const qreal denominator = rx2 * yp2 + ry2 * xp2;
   const qreal numerator = std::max(0.0, rx2 * ry2 - denominator);
   const qreal sign = largeArc == sweep ? -1.0 : 1.0;
-  const qreal coefficient = denominator == 0.0
-                                ? 0.0
-                                : sign * std::sqrt(numerator / denominator);
+  const qreal coefficient = denominator == 0.0 ? 0.0 : sign * std::sqrt(numerator / denominator);
   const qreal cxPrime = coefficient * rx * yPrime / ry;
   const qreal cyPrime = coefficient * -ry * xPrime / rx;
-  const QPointF center(
-      cosPhi * cxPrime - sinPhi * cyPrime + (start.x() + end.x()) / 2.0,
-      sinPhi * cxPrime + cosPhi * cyPrime + (start.y() + end.y()) / 2.0);
+  const QPointF center(cosPhi * cxPrime - sinPhi * cyPrime + (start.x() + end.x()) / 2.0,
+                       sinPhi * cxPrime + cosPhi * cyPrime + (start.y() + end.y()) / 2.0);
 
   const auto angle = [](qreal ux, qreal uy, qreal vx, qreal vy) {
     const qreal dot = ux * vx + uy * vy;
@@ -65,21 +61,19 @@ void appendArc(QPainterPath& path, const QPointF& start, const QPointF& end,
   const qreal vy = (-yPrime - cyPrime) / ry;
   qreal theta = angle(1.0, 0.0, ux, uy);
   qreal delta = angle(ux, uy, vx, vy);
-  if (!sweep && delta > 0.0) delta -= 2.0 * M_PI;
-  if (sweep && delta < 0.0) delta += 2.0 * M_PI;
+  if (!sweep && delta > 0.0)
+    delta -= 2.0 * M_PI;
+  if (sweep && delta < 0.0)
+    delta += 2.0 * M_PI;
   const int segments = std::max(1, int(std::ceil(std::abs(delta) / (M_PI / 2.0))));
   const qreal step = delta / qreal(segments);
   const auto pointAt = [&](qreal value) {
-    return QPointF(center.x() + cosPhi * rx * std::cos(value) -
-                       sinPhi * ry * std::sin(value),
-                   center.y() + sinPhi * rx * std::cos(value) +
-                       cosPhi * ry * std::sin(value));
+    return QPointF(center.x() + cosPhi * rx * std::cos(value) - sinPhi * ry * std::sin(value),
+                   center.y() + sinPhi * rx * std::cos(value) + cosPhi * ry * std::sin(value));
   };
   const auto derivativeAt = [&](qreal value) {
-    return QPointF(-cosPhi * rx * std::sin(value) -
-                       sinPhi * ry * std::cos(value),
-                   -sinPhi * rx * std::sin(value) +
-                       cosPhi * ry * std::cos(value));
+    return QPointF(-cosPhi * rx * std::sin(value) - sinPhi * ry * std::cos(value),
+                   -sinPhi * rx * std::sin(value) + cosPhi * ry * std::cos(value));
   };
   for (int segment = 0; segment < segments; ++segment) {
     const qreal next = theta + step;
@@ -92,37 +86,38 @@ void appendArc(QPainterPath& path, const QPointF& start, const QPointF& end,
   }
 }
 
-}  // namespace
+} // namespace
 
 // Verbatim lift of ErScenePainter's painterPath (the superset of the former
 // class/state copies). The explicit x-then-y `point` keeps number() call order
 // deterministic (the state copy relied on unspecified argument-evaluation
 // order via QPointF(number(), number())).
 QPainterPath parseSvgPath(const QString& source) {
-  static const QRegularExpression token(
-      QStringLiteral("[A-Za-z]|[-+]?(?:\\d*\\.\\d+|\\d+\\.?)(?:[eE][-+]?\\d+)?"));
+  static const QRegularExpression token(QStringLiteral("[A-Za-z]|[-+]?(?:\\d*\\.\\d+|\\d+\\.?)(?:[eE][-+]?\\d+)?"));
   QStringList tokens;
   auto matches = token.globalMatch(source);
-  while (matches.hasNext()) tokens.append(matches.next().captured());
+  while (matches.hasNext())
+    tokens.append(matches.next().captured());
   QPainterPath path;
   qsizetype i = 0;
   QChar command;
   QPointF current;
   QPointF subpathStart;
-  const auto isCommand = [](const QString& value) {
-    return value.size() == 1 && value.front().isLetter();
-  };
+  const auto isCommand = [](const QString& value) { return value.size() == 1 && value.front().isLetter(); };
   const auto number = [&]() { return tokens.value(i++).toDouble(); };
   const auto point = [&](bool relative) {
     const qreal x = number();
     const qreal y = number();
     QPointF value(x, y);
-    if (relative) value += current;
+    if (relative)
+      value += current;
     return value;
   };
   while (i < tokens.size()) {
-    if (isCommand(tokens.at(i))) command = tokens.at(i++).front();
-    if (command.isNull()) break;
+    if (isCommand(tokens.at(i)))
+      command = tokens.at(i++).front();
+    if (command.isNull())
+      break;
     const bool relative = command.isLower();
     const QChar upper = command.toUpper();
     if (upper == QLatin1Char('Z')) {
@@ -168,4 +163,4 @@ QPainterPath parseSvgPath(const QString& source) {
   return path;
 }
 
-}  // namespace muffin::mermaid::scene
+} // namespace muffin::mermaid::scene

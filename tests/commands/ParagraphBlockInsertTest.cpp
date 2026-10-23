@@ -32,11 +32,8 @@ void testInsertCodeBlock() {
 
   const EditTransaction undo = undoStack.takeUndo();
   require(undo.isTextDeltaCommand(), "code block undo should use TextDeltaCommand");
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   require(session.markdownText().toString() == QStringLiteral("Hello"), "code block undo text mismatch");
 }
 
@@ -58,11 +55,8 @@ void testInsertFormulaBlock() {
 
   const EditTransaction undo = undoStack.takeUndo();
   require(undo.isTextDeltaCommand(), "formula block undo should use TextDeltaCommand");
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   require(session.markdownText().toString() == QStringLiteral("Hello"), "formula block undo text mismatch");
 }
 
@@ -98,16 +92,10 @@ void testInsertBlocksBetweenSeparateInlineSpans() {
 
   const QString crossWrapperSelection = QStringLiteral("__first__ middle **second**");
   const qsizetype selectionStart = QStringLiteral("__fi").size();
-  const qsizetype selectionEnd =
-      crossWrapperSelection.indexOf(QStringLiteral("second")) + QStringLiteral("se").size();
+  const qsizetype selectionEnd = crossWrapperSelection.indexOf(QStringLiteral("second")) + QStringLiteral("se").size();
   session.setMarkdownText(crossWrapperSelection, false);
-  setSourceSelection(
-      selection,
-      blockAt(session, 0),
-      QStringLiteral("fi").size(),
-      selectionStart,
-      QStringLiteral("first middle se").size(),
-      selectionEnd);
+  setSourceSelection(selection, blockAt(session, 0), QStringLiteral("fi").size(), selectionStart,
+                     QStringLiteral("first middle se").size(), selectionEnd);
   require(paragraph.toggleCodeBlock(), "insert code block across different strong spans should succeed");
   markdown = session.markdownText().toString();
   require(markdown.startsWith(QStringLiteral("__fi__\n\n")),
@@ -131,7 +119,8 @@ void testInsertLinkReference() {
   const QString md = session.markdownText().toString();
   require(md.contains(QLatin1String("[]: ")), "link reference should contain empty template");
   require(md.startsWith(QLatin1String("Hello")), "link reference should preserve original text");
-  require(blockAt(session, 1)->type() == BlockType::LinkDefinition, "link reference should parse as a rendered definition block");
+  require(blockAt(session, 1)->type() == BlockType::LinkDefinition,
+          "link reference should parse as a rendered definition block");
 }
 
 void testInsertLinkReferenceIntoEmptyDocument() {
@@ -145,9 +134,11 @@ void testInsertLinkReferenceIntoEmptyDocument() {
   session.setMarkdownText(QString(), false);
   require(paragraph.insertLinkReference(), "insert link reference into empty document should succeed");
 
-  require(session.markdownText().toString() == QStringLiteral("[]: "), "empty document link reference markdown mismatch");
+  require(session.markdownText().toString() == QStringLiteral("[]: "),
+          "empty document link reference markdown mismatch");
   require(session.document().root().children().size() == 1, "empty document link reference should render as one block");
-  require(blockAt(session, 0)->type() == BlockType::LinkDefinition, "empty document link reference should parse as definition block");
+  require(blockAt(session, 0)->type() == BlockType::LinkDefinition,
+          "empty document link reference should parse as definition block");
 }
 
 void testInsertFootnoteDefinition() {
@@ -165,7 +156,8 @@ void testInsertFootnoteDefinition() {
   const QString md = session.markdownText().toString();
   require(md.contains(QLatin1String("[^]: ")), "footnote should contain empty template");
   require(md.startsWith(QLatin1String("Hello")), "footnote should preserve original text");
-  require(blockAt(session, 1)->type() == BlockType::FootnoteDefinition, "footnote should parse as a rendered definition block");
+  require(blockAt(session, 1)->type() == BlockType::FootnoteDefinition,
+          "footnote should parse as a rendered definition block");
 }
 
 void testInsertHorizontalRule() {
@@ -183,7 +175,8 @@ void testInsertHorizontalRule() {
   const QString md = session.markdownText().toString();
   require(md.contains(QLatin1String("---")), "horizontal rule should contain thematic break markdown");
   require(md.startsWith(QLatin1String("Hello")), "horizontal rule should preserve original text");
-  require(blockAt(session, 1)->type() == BlockType::ThematicBreak, "horizontal rule should parse as a thematic break block");
+  require(blockAt(session, 1)->type() == BlockType::ThematicBreak,
+          "horizontal rule should parse as a thematic break block");
 }
 
 void testInsertTableOfContents() {
@@ -205,11 +198,8 @@ void testInsertTableOfContents() {
 
   const EditTransaction undo = undoStack.takeUndo();
   require(undo.isTextDeltaCommand(), "table of contents undo should use TextDeltaCommand");
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   require(session.markdownText().toString() == QStringLiteral("Hello"), "table of contents undo text mismatch");
 }
 
@@ -253,7 +243,8 @@ void testInsertParagraphAroundCodeBlock() {
   require(blockAt(session, 0)->type() == BlockType::Paragraph, "block before code fence should be a paragraph");
   require(blockAt(session, 1)->type() == BlockType::CodeFence, "code fence should remain after insert");
   require(session.markdownText().toString().contains(QStringLiteral("code")), "code content should be preserved");
-  require(cursorBlock(session, selection) == blockAt(session, 0), "cursor should jump to the new paragraph before the fence");
+  require(cursorBlock(session, selection) == blockAt(session, 0),
+          "cursor should jump to the new paragraph before the fence");
 
   // Insert after: blank paragraph appears after the closing fence.
   session.setMarkdownText(QStringLiteral("```\ncode\n```"), false);
@@ -262,7 +253,8 @@ void testInsertParagraphAroundCodeBlock() {
   require(session.document().root().children().size() == 2, "insert after should create 2 blocks");
   require(blockAt(session, 0)->type() == BlockType::CodeFence, "code fence should remain before insert");
   require(blockAt(session, 1)->type() == BlockType::Paragraph, "block after code fence should be a paragraph");
-  require(cursorBlock(session, selection) == blockAt(session, 1), "cursor should jump to the new paragraph after the fence");
+  require(cursorBlock(session, selection) == blockAt(session, 1),
+          "cursor should jump to the new paragraph after the fence");
 }
 
 void testInsertParagraphAroundIndentedCode() {
@@ -282,8 +274,10 @@ void testInsertParagraphAroundIndentedCode() {
   require(session.document().root().children().size() == 2, "insert before should create 2 blocks");
   require(blockAt(session, 0)->type() == BlockType::Paragraph, "block before indented code should be a paragraph");
   require(blockAt(session, 1)->type() == BlockType::CodeFence, "indented code must remain a code block");
-  require(session.markdownText().toString().contains(QStringLiteral("conan install")), "code content should be preserved");
-  require(cursorBlock(session, selection) == blockAt(session, 0), "cursor should jump to the new paragraph before indented code");
+  require(session.markdownText().toString().contains(QStringLiteral("conan install")),
+          "code content should be preserved");
+  require(cursorBlock(session, selection) == blockAt(session, 0),
+          "cursor should jump to the new paragraph before indented code");
 
   // Insert after.
   session.setMarkdownText(source, false);
@@ -292,7 +286,8 @@ void testInsertParagraphAroundIndentedCode() {
   require(session.document().root().children().size() == 2, "insert after should create 2 blocks");
   require(blockAt(session, 0)->type() == BlockType::CodeFence, "indented code (after-insert) must remain a code block");
   require(blockAt(session, 1)->type() == BlockType::Paragraph, "block after indented code should be a paragraph");
-  require(cursorBlock(session, selection) == blockAt(session, 1), "cursor should jump to the new paragraph after indented code");
+  require(cursorBlock(session, selection) == blockAt(session, 1),
+          "cursor should jump to the new paragraph after indented code");
 }
 
 void testInsertParagraphAroundIndentedCodeWithPrecedingPara() {
@@ -339,7 +334,8 @@ void testInsertParagraphAroundMathBlock() {
   require(session.document().root().children().size() == 2, "insert before should create 2 blocks");
   require(blockAt(session, 0)->type() == BlockType::Paragraph, "block before math block should be a paragraph");
   require(blockAt(session, 1)->type() == BlockType::MathBlock, "math block should remain after insert");
-  require(cursorBlock(session, selection) == blockAt(session, 0), "cursor should jump to the new paragraph before the math block");
+  require(cursorBlock(session, selection) == blockAt(session, 0),
+          "cursor should jump to the new paragraph before the math block");
 
   session.setMarkdownText(QStringLiteral("$$\na+b\n$$"), false);
   setCursor(selection, blockAt(session, 0), 2);
@@ -347,7 +343,8 @@ void testInsertParagraphAroundMathBlock() {
   require(session.document().root().children().size() == 2, "insert after should create 2 blocks");
   require(blockAt(session, 0)->type() == BlockType::MathBlock, "math block should remain before insert");
   require(blockAt(session, 1)->type() == BlockType::Paragraph, "block after math block should be a paragraph");
-  require(cursorBlock(session, selection) == blockAt(session, 1), "cursor should jump to the new paragraph after the math block");
+  require(cursorBlock(session, selection) == blockAt(session, 1),
+          "cursor should jump to the new paragraph after the math block");
 }
 
 void testInsertIntoEmptyDocument() {
@@ -361,7 +358,8 @@ void testInsertIntoEmptyDocument() {
   session.setMarkdownText(QString(), false);
   setCursor(selection, blockAt(session, 0), 0);
   require(paragraph.insertCodeBlock(), "insert code block into empty doc should succeed");
-  require(session.markdownText().toString().contains(QLatin1String("```")), "empty doc code block should contain fence");
+  require(session.markdownText().toString().contains(QLatin1String("```")),
+          "empty doc code block should contain fence");
 }
 
 void testToggleQuote() {
@@ -404,11 +402,8 @@ void testConvertToUnorderedList() {
 
   const EditTransaction undo = undoStack.takeUndo();
   require(undo.isTextDeltaCommand(), "list undo should use TextDeltaCommand");
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   require(session.markdownText().toString() == QStringLiteral("Item text"), "list undo text mismatch");
 }
 
@@ -427,11 +422,8 @@ void testConvertToOrderedList() {
   require(blockAt(session, 0)->type() == BlockType::List, "should create list block");
 
   const EditTransaction undo = undoStack.takeUndo();
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   require(session.markdownText().toString() == QStringLiteral("First item"), "ordered list undo text mismatch");
 }
 
@@ -450,11 +442,8 @@ void testConvertToTaskList() {
   require(blockAt(session, 0)->type() == BlockType::List, "should create list block");
 
   const EditTransaction undo = undoStack.takeUndo();
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   require(session.markdownText().toString() == QStringLiteral("Task item"), "task list undo text mismatch");
 }
 
@@ -512,7 +501,8 @@ void testIsOnEditableBlock() {
   session.setMarkdownText(QStringLiteral("Hello"), false);
   setSelection(selection, blockAt(session, 0), 0, 3);
   require(!paragraph.isOnEditableBlock(), "selection should not be editable");
-  require(!paragraph.canInsertAdjacentParagraph(), "non-collapsed selection should not allow adjacent paragraph insert");
+  require(!paragraph.canInsertAdjacentParagraph(),
+          "non-collapsed selection should not allow adjacent paragraph insert");
 }
 
 int main(int argc, char** argv) {

@@ -16,28 +16,33 @@ bool exportNativePdf(const QString& path, const MarkdownDocument& document, Rend
   printer.setResolution(96);
   printer.setOutputFormat(QPrinter::PdfFormat);
   printer.setOutputFileName(path);
-  if (!printer.setPageLayout(options.pageLayout)) return false;
+  if (!printer.setPageLayout(options.pageLayout))
+    return false;
   const QRectF page = printer.pageRect(QPrinter::DevicePixel);
-  if (page.isEmpty()) return false;
+  if (page.isEmpty())
+    return false;
   DocumentLayout layout;
   layout.setMermaidRenderCache(cache);
   layout.setMermaidSyncMode(true);
   layout.rebuild(document, theme, page.width(), sourcePath);
   QPainter painter(&printer);
-  if (!painter.isActive()) return false;
+  if (!painter.isActive())
+    return false;
   painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
   qreal top = 0;
   bool pageHasContent = false;
   const auto nextPage = [&] {
-    if (!printer.newPage()) return false;
+    if (!printer.newPage())
+      return false;
     pageHasContent = false;
     return true;
   };
   for (const auto* block : layout.promotedBlocks()) {
     const auto rect = block->rect();
-    if ((rect.top() >= top + page.height())
-        || (options.breakOnHeading && block->headingLevel() == 1 && pageHasContent)) {
-      if (!nextPage()) return false;
+    if ((rect.top() >= top + page.height()) ||
+        (options.breakOnHeading && block->headingLevel() == 1 && pageHasContent)) {
+      if (!nextPage())
+        return false;
       top = rect.top();
     }
     for (;;) {
@@ -50,8 +55,10 @@ bool exportNativePdf(const QString& path, const MarkdownDocument& document, Rend
       block->paint(painter, theme, top);
       painter.restore();
       pageHasContent = true;
-      if (rect.bottom() <= top + page.height()) break;
-      if (!nextPage()) return false;
+      if (rect.bottom() <= top + page.height())
+        break;
+      if (!nextPage())
+        return false;
       top += page.height();
     }
   }
@@ -68,17 +75,19 @@ bool exportNativeImage(const QString& path, const MarkdownDocument& document, Re
   const qreal height = qMax(1.0, std::ceil(layout.totalHeight()));
   const qreal pixelWidth = options.width * options.scale;
   const qreal pixelHeight = height * options.scale;
-  if (!std::isfinite(pixelHeight) || pixelWidth < 1 || pixelHeight > 32767
-      || pixelWidth * pixelHeight > 64000000) return false;
+  if (!std::isfinite(pixelHeight) || pixelWidth < 1 || pixelHeight > 32767 || pixelWidth * pixelHeight > 64000000)
+    return false;
   QImage image(QSize(int(pixelWidth), int(pixelHeight)), QImage::Format_ARGB32_Premultiplied);
-  if (image.isNull()) return false;
+  if (image.isNull())
+    return false;
   image.fill(theme.backgroundColor());
   QPainter painter(&image);
   painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
   painter.scale(options.scale, options.scale);
-  for (const auto* block : layout.promotedBlocks()) block->paint(painter, theme, 0);
+  for (const auto* block : layout.promotedBlocks())
+    block->paint(painter, theme, 0);
   painter.end();
   return image.save(path, "PNG");
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -12,7 +12,7 @@ namespace muffin::mermaid::railroad {
 
 struct RailroadConfig {
   bool useMaxWidth = true;
-  bool compactMode = false;  // accepted but renderer-inert in Mermaid 11.16
+  bool compactMode = false; // accepted but renderer-inert in Mermaid 11.16
   qreal padding = 10.0;
   qreal verticalSeparation = 8.0;
   qreal horizontalSeparation = 10.0;
@@ -34,7 +34,7 @@ struct RailroadConfig {
   QString specialFill = QStringLiteral("#F0E0FF");
   QString specialStroke = QStringLiteral("#8800CC");
   QString ruleNameColor = QStringLiteral("#000066");
-  bool showMarkers = true;  // accepted but renderer-inert in Mermaid 11.16
+  bool showMarkers = true; // accepted but renderer-inert in Mermaid 11.16
   qreal markerRadius = 5.0;
 };
 
@@ -115,13 +115,11 @@ struct RailroadScene final : MermaidScene {
 
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override { return rasterBounds; }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options = {}) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options = {}) const override;
   QJsonObject toJsonObject() const override;
 };
 
-RailroadScene buildRailroadScene(const RailroadData& data,
-                                 RailroadConfig config,
+RailroadScene buildRailroadScene(const RailroadData& data, RailroadConfig config,
                                  const RailroadCssOverrides* css = nullptr);
 
-}  // namespace muffin::mermaid::railroad
+} // namespace muffin::mermaid::railroad

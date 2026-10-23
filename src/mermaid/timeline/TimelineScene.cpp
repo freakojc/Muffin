@@ -20,8 +20,7 @@
 
 namespace muffin::mermaid::timeline {
 
-void TimelineScene::paint(QPainter& painter,
-                          const MermaidPaintOptions& options) const {
+void TimelineScene::paint(QPainter& painter, const MermaidPaintOptions& options) const {
   paintTimelineScene(*this, painter, options);
 }
 
@@ -37,7 +36,8 @@ struct Extents {
   void point(qreal x, qreal y) {
     // Invalid SVG geometry attributes do not contribute to getBBox(). Keep
     // surviving text/paths finite instead of letting one NaN poison viewBox.
-    if (!std::isfinite(x) || !std::isfinite(y)) return;
+    if (!std::isfinite(x) || !std::isfinite(y))
+      return;
     if (!set) {
       left = right = x;
       top = bottom = y;
@@ -50,15 +50,12 @@ struct Extents {
     bottom = std::max(bottom, y);
   }
   void rect(const QRectF& r) {
-    if (!std::isfinite(r.left()) || !std::isfinite(r.top()) ||
-        !std::isfinite(r.right()) || !std::isfinite(r.bottom()))
+    if (!std::isfinite(r.left()) || !std::isfinite(r.top()) || !std::isfinite(r.right()) || !std::isfinite(r.bottom()))
       return;
     point(r.left(), r.top());
     point(r.right(), r.bottom());
   }
-  QRectF value() const {
-    return set ? QRectF(left, top, right - left, bottom - top) : QRectF();
-  }
+  QRectF value() const { return set ? QRectF(left, top, right - left, bottom - top) : QRectF(); }
 };
 
 struct TextLayout {
@@ -77,14 +74,14 @@ struct TextFont {
 
 TextFont styleFont(const TimelineSceneStyle& style);
 
-TextFont cssTextFont(const TimelineElementCss& css,
-                     const TimelineSceneStyle& style) {
+TextFont cssTextFont(const TimelineElementCss& css, const TimelineSceneStyle& style) {
   TextFont font = styleFont(style);
-  if (!css.fontFamily.isEmpty()) font.family = css.fontFamily;
-  if (css.fontSize >= 0.0) font.size = css.fontSize;
+  if (!css.fontFamily.isEmpty())
+    font.family = css.fontFamily;
+  if (css.fontSize >= 0.0)
+    font.size = css.fontSize;
   if (!css.fontWeight.isEmpty())
-    font.weight = editor::cssFontWeightToQt(QJsonValue(css.fontWeight),
-                                            font.weight);
+    font.weight = editor::cssFontWeightToQt(QJsonValue(css.fontWeight), font.weight);
   font.weight = editor::faceAwareMetricWeight(font.family, font.weight);
   return font;
 }
@@ -103,18 +100,15 @@ qreal jsMathMax(qreal a, qreal b) {
 }
 
 void includeLine(Extents& extents, const TimelineLineGeometry& line) {
-  extents.point(svgLineCoordinate(line.start.x()),
-                svgLineCoordinate(line.start.y()));
-  extents.point(svgLineCoordinate(line.end.x()),
-                svgLineCoordinate(line.end.y()));
+  extents.point(svgLineCoordinate(line.start.x()), svgLineCoordinate(line.start.y()));
+  extents.point(svgLineCoordinate(line.end.x()), svgLineCoordinate(line.end.y()));
 }
 
 QStringList cssFontFamilies(const QString& expression) {
   return editor::cssFamilyList(expression);
 }
 
-flowchart::FlowLabelDocument plainDocument(const QString& text,
-                                           QFont::Weight weight) {
+flowchart::FlowLabelDocument plainDocument(const QString& text, QFont::Weight weight) {
   flowchart::FlowLabelDocument document;
   document.text = text;
   document.baseWeight = weight;
@@ -124,12 +118,11 @@ flowchart::FlowLabelDocument plainDocument(const QString& text,
 QString metricFamily(const QString& family, qreal size, QFont::Weight weight);
 
 qreal svgTextAdvance(const QString& text, const TextFont& font) {
-  if (text.isEmpty()) return 0.0;
+  if (text.isEmpty())
+    return 0.0;
   const flowchart::FlowLabelDocument document = plainDocument(text, font.weight);
-  return flowchart::measureFlowTextAdvanceWidth(
-      document, 0, document.text.size(), metricFamily(font.family, font.size,
-                                                      font.weight),
-      font.size);
+  return flowchart::measureFlowTextAdvanceWidth(document, 0, document.text.size(),
+                                                metricFamily(font.family, font.size, font.weight), font.size);
 }
 
 QStringList splitWithDelimiters(const QString& text) {
@@ -148,55 +141,47 @@ QStringList splitWithDelimiters(const QString& text) {
   return result;
 }
 
-editor::CssPixelFont nodeFont(const QString& family, qreal size,
-                              QFont::Weight weight) {
+editor::CssPixelFont nodeFont(const QString& family, qreal size, QFont::Weight weight) {
   const QStringList families = cssFontFamilies(family);
-  editor::CssPixelFont result = editor::makeUnhintedCssPixelFont(
-      families.first(), size);
-  if (families.size() > 1) result.font.setFamilies(families);
-  if (families.last().compare(QLatin1String("monospace"), Qt::CaseInsensitive) == 0) result.font.setStyleHint(QFont::Monospace);
+  editor::CssPixelFont result = editor::makeUnhintedCssPixelFont(families.first(), size);
+  if (families.size() > 1)
+    result.font.setFamilies(families);
+  if (families.last().compare(QLatin1String("monospace"), Qt::CaseInsensitive) == 0)
+    result.font.setStyleHint(QFont::Monospace);
   result.font.setWeight(weight);
   return result;
 }
 
 TextFont styleFont(const TimelineSceneStyle& style) {
-  return {style.fontFamily, style.fontSize,
-          editor::faceAwareMetricWeight(style.fontFamily,
-                                        style.nodeFontWeight)};
+  return {style.fontFamily, style.fontSize, editor::faceAwareMetricWeight(style.fontFamily, style.nodeFontWeight)};
 }
 
-QRectF titleInkBounds(const editor::CssPixelFont& font, const QString& text,
-                       QPointF baseline,
-                       const flowchart::FlowLabelFontMetrics& vertical) {
+QRectF titleInkBounds(const editor::CssPixelFont& font, const QString& text, QPointF baseline,
+                      const flowchart::FlowLabelFontMetrics& vertical) {
   QRectF ink = TextFontMetrics(font.font).boundingRect(text);
-  ink = QRectF(ink.x() * font.scale, ink.y() * font.scale,
-               ink.width() * font.scale, ink.height() * font.scale);
+  ink = QRectF(ink.x() * font.scale, ink.y() * font.scale, ink.width() * font.scale, ink.height() * font.scale);
   // SVG getBBox includes negative side-bearing and right overhang, but its
   // horizontal box never starts after the text anchor or ends before the
   // advance. TextFontMetrics::boundingRect alone omits those anchor/advance
   // edges for ordinary glyphs such as the leading P in the canonical title.
   const qreal left = std::min<qreal>(0.0, ink.left());
   const qreal right = std::max(font.horizontalAdvance(text), ink.right());
-  return QRectF(baseline.x() + left, baseline.y() - vertical.ascent,
-                right - left, vertical.height());
+  return QRectF(baseline.x() + left, baseline.y() - vertical.ascent, right - left, vertical.height());
 }
 
 QString metricFamily(const QString& family, qreal size, QFont::Weight weight) {
   const editor::CssPixelFont font = nodeFont(family, size, weight);
   const QRawFont raw = QRawFont::fromFont(font.font);
-  return raw.isValid() && !raw.familyName().isEmpty() ? raw.familyName()
-                                                      : cssFontFamilies(family).first();
+  return raw.isValid() && !raw.familyName().isEmpty() ? raw.familyName() : cssFontFamilies(family).first();
 }
 
-TextLayout layoutText(const QString& text, qreal wrapWidth,
-                      const TextFont& font) {
+TextLayout layoutText(const QString& text, qreal wrapWidth, const TextFont& font) {
   TextLayout result;
-  if (!(font.size > 0.0)) return result;
+  if (!(font.size > 0.0))
+    return result;
 
-  const flowchart::FlowLabelFontMetrics vertical =
-      flowchart::flowLabelFontBoundingMetrics(
-          metricFamily(font.family, font.size, font.weight), font.size,
-          font.weight);
+  const flowchart::FlowLabelFontMetrics vertical = flowchart::flowLabelFontBoundingMetrics(
+      metricFamily(font.family, font.size, font.weight), font.size, font.weight);
   const qreal xHeight = vertical.xHeight;
 
   QStringList active;
@@ -206,12 +191,10 @@ TextLayout layoutText(const QString& text, qreal wrapWidth,
     active.append(word);
     const QString candidate = active.join(QLatin1Char(' ')).trimmed();
     tspanTexts.last() = candidate;
-    if (svgTextAdvance(text::collapsedSvgText(candidate, false), font) > wrapWidth ||
-        word == QStringLiteral("<br>")) {
+    if (svgTextAdvance(text::collapsedSvgText(candidate, false), font) > wrapWidth || word == QStringLiteral("<br>")) {
       active.removeLast();
       tspanTexts.last() = active.join(QLatin1Char(' ')).trimmed();
-      active = word == QStringLiteral("<br>") ? QStringList{QString()}
-                                                : QStringList{word};
+      active = word == QStringLiteral("<br>") ? QStringList{QString()} : QStringList{word};
       tspanTexts.append(word);
     }
   }
@@ -219,23 +202,20 @@ TextLayout layoutText(const QString& text, qreal wrapWidth,
   Extents textExtents;
   qreal y = font.size;
   for (qsizetype i = 0; i < tspanTexts.size(); ++i) {
-    if (i > 0) y += font.size * 1.1;
+    if (i > 0)
+      y += font.size * 1.1;
     TimelineTextLine line;
     line.sourceText = tspanTexts.at(i);
     line.visibleText = text::collapsedSvgText(line.sourceText, false);
     const qreal advance = svgTextAdvance(line.visibleText, font);
     line.baseline = QPointF(0.0, y + xHeight / 2.0);
     if (!line.visibleText.isEmpty()) {
-      const flowchart::FlowLabelDocument document =
-          plainDocument(line.visibleText, font.weight);
-      line.logicalBounds = flowchart::measureFlowSvgTextBounds(
-          document, metricFamily(font.family, font.size, font.weight),
-          font.size);
+      const flowchart::FlowLabelDocument document = plainDocument(line.visibleText, font.weight);
+      line.logicalBounds =
+          flowchart::measureFlowSvgTextBounds(document, metricFamily(font.family, font.size, font.weight), font.size);
       // measureFlowSvgTextBounds models createFormattedText's start anchor;
       // Timeline sets text-anchor=middle, whose anchor is the advance center.
-      line.logicalBounds.translate(-advance / 2.0,
-                                   xHeight / 2.0 +
-                                       qreal(i) * font.size * 1.1);
+      line.logicalBounds.translate(-advance / 2.0, xHeight / 2.0 + qreal(i) * font.size * 1.1);
       textExtents.rect(line.logicalBounds);
     }
     result.lines.append(line);
@@ -244,13 +224,15 @@ TextLayout layoutText(const QString& text, qreal wrapWidth,
   return result;
 }
 
-qreal virtualHeight(const QString& text, qreal width, qreal padding,
-                    const TextFont& font, const TimelineSceneStyle& style) {
+qreal virtualHeight(const QString& text, qreal width, qreal padding, const TextFont& font,
+                    const TimelineSceneStyle& style) {
   const TextLayout layout = layoutText(text, width, font);
   return layout.bounds.height() + style.layoutFontSize * 1.1 * 0.5 + padding;
 }
 
-QString n(qreal value) { return editor::jsNumberToString(value); }
+QString n(qreal value) {
+  return editor::jsNumberToString(value);
+}
 
 qreal finiteSvgNumber(double value) {
   return std::isfinite(value) ? value : 0.0;
@@ -282,9 +264,7 @@ QString jsCoordinateString(const JsCoordinate& value) {
 
 JsCoordinate jsAdd(JsCoordinate left, JsCoordinate right) {
   if (left.string || right.string)
-    return {.string = true,
-            .text = jsCoordinateString(left) + jsCoordinateString(right),
-            .number = 0.0};
+    return {.string = true, .text = jsCoordinateString(left) + jsCoordinateString(right), .number = 0.0};
   return jsCoordinate(left.number + right.number);
 }
 
@@ -297,8 +277,7 @@ JsCoordinate jsAdd(qreal left, const QJsonValue& right) {
 }
 
 qreal jsCoordinateRawNumber(const JsCoordinate& value) {
-  return value.string ? editor::jsNumberValue(QJsonValue(value.text))
-                      : value.number;
+  return value.string ? editor::jsNumberValue(QJsonValue(value.text)) : value.number;
 }
 
 qreal jsCoordinateNumber(const JsCoordinate& value) {
@@ -307,7 +286,8 @@ qreal jsCoordinateNumber(const JsCoordinate& value) {
 
 std::optional<qreal> svgCoordinate(const JsCoordinate& value) {
   const qreal number = jsCoordinateRawNumber(value);
-  if (!std::isfinite(number)) return std::nullopt;
+  if (!std::isfinite(number))
+    return std::nullopt;
   return number;
 }
 
@@ -321,7 +301,8 @@ QPointF svgTranslate(qreal x, qreal y) {
 }
 
 qreal svgAttributeNumber(const QJsonValue& value) {
-  if (value.isDouble()) return finiteSvgNumber(value.toDouble());
+  if (value.isDouble())
+    return finiteSvgNumber(value.toDouble());
   if (value.isString()) {
     bool ok = false;
     const qreal result = value.toString().toDouble(&ok);
@@ -335,24 +316,20 @@ qreal svgAttributeNumber(const QJsonValue& value) {
 
 QString nodePath(qreal width, qreal height, bool redux) {
   if (redux) {
-    return QStringLiteral("M0 %1 v%2 h%3 v%4 H0 Z")
-        .arg(n(height - 5.0), n(-height + 5.0), n(width), n(height));
+    return QStringLiteral("M0 %1 v%2 h%3 v%4 H0 Z").arg(n(height - 5.0), n(-height + 5.0), n(width), n(height));
   }
   return QStringLiteral("M0 %1 v%2 q0,-5,5,-5 h%3 q5,0,5,5 v%4 H0 Z")
-      .arg(n(height - 5.0), n(-height + 10.0), n(width - 10.0),
-           n(height - 5.0));
+      .arg(n(height - 5.0), n(-height + 10.0), n(width - 10.0), n(height - 5.0));
 }
 
 bool isRedux(const TimelineSceneStyle& style) {
   return style.themeName.contains(QStringLiteral("redux"), Qt::CaseSensitive);
 }
 bool isReduxDark(const TimelineSceneStyle& style) {
-  return isRedux(style) &&
-         style.themeName.contains(QStringLiteral("dark"), Qt::CaseSensitive);
+  return isRedux(style) && style.themeName.contains(QStringLiteral("dark"), Qt::CaseSensitive);
 }
 bool isReduxColor(const TimelineSceneStyle& style) {
-  return isRedux(style) &&
-         style.themeName.contains(QStringLiteral("color"), Qt::CaseSensitive);
+  return isRedux(style) && style.themeName.contains(QStringLiteral("color"), Qt::CaseSensitive);
 }
 bool isNeo(const TimelineSceneStyle& style) {
   return style.look == QStringLiteral("neo");
@@ -365,18 +342,13 @@ QString at(const QVector<QString>& values, int index) {
   return index >= 0 && index < values.size() ? values.at(index) : QString();
 }
 
-void resolveNodePaint(TimelineNodeGeometry& node,
-                      const TimelineSceneStyle& style) {
+void resolveNodePaint(TimelineNodeGeometry& node, const TimelineSceneStyle& style) {
   const qreal limit = style.rawThemeColorLimit;
-  node.sectionClassValue =
-      std::isfinite(limit) && limit != 0.0
-          ? std::fmod(qreal(node.fullSection), limit) - 1.0
-          : std::numeric_limits<qreal>::quiet_NaN();
-  node.sectionClass = QStringLiteral("section-") +
-                      editor::jsNumberToString(node.sectionClassValue);
+  node.sectionClassValue = std::isfinite(limit) && limit != 0.0 ? std::fmod(qreal(node.fullSection), limit) - 1.0
+                                                                : std::numeric_limits<qreal>::quiet_NaN();
+  node.sectionClass = QStringLiteral("section-") + editor::jsNumberToString(node.sectionClassValue);
   node.paletteIndex = -1;
-  if (std::isfinite(node.sectionClassValue) &&
-      std::floor(node.sectionClassValue) == node.sectionClassValue) {
+  if (std::isfinite(node.sectionClassValue) && std::floor(node.sectionClassValue) == node.sectionClassValue) {
     const int candidate = int(node.sectionClassValue) + 1;
     if (candidate >= 0 && candidate < style.themeColorRuleCount)
       node.paletteIndex = candidate;
@@ -395,8 +367,7 @@ void resolveNodePaint(TimelineNodeGeometry& node,
   if (isRedux(style)) {
     if (isReduxColor(style) && node.paletteIndex >= 0) {
       node.stroke = at(style.borderColorArray, node.paletteIndex);
-      node.fill = isReduxDark(style) ? style.mainBkg
-                                     : at(style.borderColorArray, node.paletteIndex);
+      node.fill = isReduxDark(style) ? style.mainBkg : at(style.borderColorArray, node.paletteIndex);
     } else {
       node.stroke = style.nodeBorder;
       node.fill = style.mainBkg;
@@ -420,8 +391,7 @@ void resolveNodePaint(TimelineNodeGeometry& node,
     node.dividerWidth = 3.0;
   }
 
-  node.gradientStroke = isNeo(style) && style.useGradient && !isNeutral(style) &&
-                        node.paletteIndex >= 0;
+  node.gradientStroke = isNeo(style) && style.useGradient && !isNeutral(style) && node.paletteIndex >= 0;
   if (node.gradientStroke) {
     node.fill = style.mainBkg;
     node.strokeWidth = 2.0;
@@ -431,13 +401,10 @@ void resolveNodePaint(TimelineNodeGeometry& node,
   node.dropShadow = isRedux(style);
 }
 
-TimelineNodeGeometry makeNode(TimelineNodeKind kind, const QString& text,
-                              const QString& section, int sectionNumber,
-                              qreal baseWidth, qreal padding, qreal maxHeight,
-                              QPointF position, const TimelineSceneStyle& style,
-                              const TextFont& drawnFont,
-                              const TimelineCssOverrides::Node* nodeCss,
-                              int paintOrder) {
+TimelineNodeGeometry makeNode(TimelineNodeKind kind, const QString& text, const QString& section, int sectionNumber,
+                              qreal baseWidth, qreal padding, qreal maxHeight, QPointF position,
+                              const TimelineSceneStyle& style, const TextFont& drawnFont,
+                              const TimelineCssOverrides::Node* nodeCss, int paintOrder) {
   TimelineNodeGeometry node;
   node.kind = kind;
   node.text = text;
@@ -459,14 +426,10 @@ TimelineNodeGeometry makeNode(TimelineNodeKind kind, const QString& text,
   // differ from the classless measurement probe under themeCSS.
   const TextLayout textLayout = layoutText(text, baseWidth, drawnFont);
   node.width = baseWidth + 2.0 * padding;
-  node.height = jsMathMax(textLayout.bounds.height() +
-                              style.layoutFontSize * 1.1 * 0.5 + padding,
-                          maxHeight);
+  node.height = jsMathMax(textLayout.bounds.height() + style.layoutFontSize * 1.1 * 0.5 + padding, maxHeight);
   node.pathData = nodePath(node.width, node.height, isRedux(style));
-  const qreal textY = isRedux(style)
-                          ? (kind == TimelineNodeKind::Event ? padding / 2.0 + 3.0
-                                                             : padding)
-                          : padding / 2.0;
+  const qreal textY =
+      isRedux(style) ? (kind == TimelineNodeKind::Event ? padding / 2.0 + 3.0 : padding) : padding / 2.0;
   node.textOffset = QPointF(node.width / 2.0, textY);
   node.textLines = textLayout.lines;
   node.textBounds = textLayout.bounds.translated(node.position + node.textOffset);
@@ -479,36 +442,34 @@ void includeNode(Extents& extents, const TimelineNodeGeometry& node) {
   // path never filters by display: a display:none box still contributes to
   // the pre-axis box, the viewBox and therefore every derived coordinate.
   // themeCSS display/visibility only gates painting.
-  if (std::isfinite(node.position.x()) &&
-      std::isfinite(node.position.y()) && std::isfinite(node.width) &&
+  if (std::isfinite(node.position.x()) && std::isfinite(node.position.y()) && std::isfinite(node.width) &&
       std::isfinite(node.height))
     extents.rect(QRectF(node.position, QSizeF(node.width, node.height)));
-  else if (std::isfinite(node.position.x()) &&
-           std::isfinite(node.position.y()) && std::isfinite(node.width)) {
+  else if (std::isfinite(node.position.x()) && std::isfinite(node.position.y()) && std::isfinite(node.width)) {
     // The rough path contains later finite top-edge commands even when its
     // height interpolation serializes as NaN. Chromium retains that horizontal
     // segment in the path bbox while dropping every NaN-dependent segment.
     extents.point(node.position.x(), node.position.y());
     extents.point(node.position.x() + node.width, node.position.y());
   }
-  if (!node.textBounds.isNull()) extents.rect(node.textBounds);
+  if (!node.textBounds.isNull())
+    extents.rect(node.textBounds);
 }
 
 QString lineColor(const TimelineSceneStyle& style) {
-  if (isRedux(style)) return style.nodeBorder;
+  if (isRedux(style))
+    return style.nodeBorder;
   if (style.themeColorRuleCount > 0)
     return at(style.cScaleLabel, style.themeColorRuleCount - 1);
   // No generated stylesheet rule: the SVG presentation stroke="black" wins.
   return QString();
 }
 
-std::optional<qreal> resolvedStrokeWidthCss(const QString& raw,
-                                            const CssLengthContext& context,
-                                            qreal diagonal) {
+std::optional<qreal> resolvedStrokeWidthCss(const QString& raw, const CssLengthContext& context, qreal diagonal) {
   const QString value = raw.trimmed();
   const QString lower = value.toLower();
-  if (lower == QLatin1String("inherit") || lower == QLatin1String("initial") ||
-      lower == QLatin1String("unset") || lower == QLatin1String("revert"))
+  if (lower == QLatin1String("inherit") || lower == QLatin1String("initial") || lower == QLatin1String("unset") ||
+      lower == QLatin1String("revert"))
     return 1.0;
   if (value.endsWith(QLatin1Char('%'))) {
     bool ok = false;
@@ -518,23 +479,20 @@ std::optional<qreal> resolvedStrokeWidthCss(const QString& raw,
     return std::nullopt;
   }
   const CssLengthResult result = resolveCssLengthToPx(value, context);
-  if (result.status != CssLengthStatus::Valid || !std::isfinite(result.px) ||
-      result.px < 0.0)
+  if (result.status != CssLengthStatus::Valid || !std::isfinite(result.px) || result.px < 0.0)
     return std::nullopt;
   return editor::cssStrokeWidthPx(value, context, diagonal);
 }
 
 void resolveReduxStrokeWidths(TimelineScene& scene) {
-  if (!isRedux(scene.style)) return;
+  if (!isRedux(scene.style))
+    return;
   const TextFont base = styleFont(scene.style);
-  CssLengthContext context = editor::pieCssLengthContext(
-      metricFamily(base.family, base.size, base.weight),
-      scene.style.fontSize);
+  CssLengthContext context =
+      editor::pieCssLengthContext(metricFamily(base.family, base.size, base.weight), scene.style.fontSize);
   context.viewportPx = scene.bounds.size();
-  const qreal diagonal =
-      std::hypot(scene.bounds.width(), scene.bounds.height()) / std::sqrt(2.0);
-  const std::optional<qreal> used = resolvedStrokeWidthCss(
-      scene.style.strokeWidthCss, context, diagonal);
+  const qreal diagonal = std::hypot(scene.bounds.width(), scene.bounds.height()) / std::sqrt(2.0);
+  const std::optional<qreal> used = resolvedStrokeWidthCss(scene.style.strokeWidthCss, context, diagonal);
   const bool valid = used.has_value();
   const qreal resolved = used.value_or(1.0);
   scene.style.strokeWidth = resolved;
@@ -544,15 +502,16 @@ void resolveReduxStrokeWidths(TimelineScene& scene) {
     line.strokeWidth = valid ? resolved : (line.axis ? 4.0 : 2.0);
 }
 
-QJsonArray pointJson(const QPointF& point) { return {point.x(), point.y()}; }
+QJsonArray pointJson(const QPointF& point) {
+  return {point.x(), point.y()};
+}
 QJsonArray rectJson(const QRectF& rect) {
   return {rect.x(), rect.y(), rect.width(), rect.height()};
 }
 
-}  // namespace
+} // namespace
 
-TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config,
-                                 TimelineSceneStyle style,
+TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config, TimelineSceneStyle style,
                                  const TimelineCssOverrides* css) {
   TimelineScene scene;
   scene.direction = data.direction;
@@ -561,14 +520,12 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
   scene.accDescr = data.accDescr;
   scene.config = std::move(config);
   scene.style = std::move(style);
-  scene.markerDefinitionId = data.direction == TimelineDirection::TopDown
-                                 ? QStringLiteral("undefined-arrowhead")
-                                 : QStringLiteral("arrowhead");
+  scene.markerDefinitionId = data.direction == TimelineDirection::TopDown ? QStringLiteral("undefined-arrowhead")
+                                                                          : QStringLiteral("arrowhead");
 
   // Heights come from the classless measurement probe, whose font follows the
   // root cascade (and any `text {}` rules) under themeCSS.
-  const TextFont measureFont =
-      css ? cssTextFont(css->measureText, scene.style) : styleFont(scene.style);
+  const TextFont measureFont = css ? cssTextFont(css->measureText, scene.style) : styleFont(scene.style);
   auto nodeCssAt = [&css](qsizetype index) {
     return css && index < css->nodes.size() ? &css->nodes.at(index) : nullptr;
   };
@@ -579,45 +536,27 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
   qreal maxSectionHeight = 0.0;
   qreal maxTaskHeight = 0.0;
   for (const QString& section : data.sections) {
-    const qreal baseWidth = data.direction == TimelineDirection::LeftToRight
-                                ? 150.0
-                                : 580.0;
-    const qreal padding = data.direction == TimelineDirection::LeftToRight
-                              ? 20.0
-                              : 5.0;
-    const qreal h =
-        virtualHeight(section, baseWidth, padding, measureFont, scene.style);
-    maxSectionHeight = jsMathMax(
-        maxSectionHeight,
-        h + (data.direction == TimelineDirection::LeftToRight ? 20.0 : 0.0));
+    const qreal baseWidth = data.direction == TimelineDirection::LeftToRight ? 150.0 : 580.0;
+    const qreal padding = data.direction == TimelineDirection::LeftToRight ? 20.0 : 5.0;
+    const qreal h = virtualHeight(section, baseWidth, padding, measureFont, scene.style);
+    maxSectionHeight = jsMathMax(maxSectionHeight, h + (data.direction == TimelineDirection::LeftToRight ? 20.0 : 0.0));
   }
 
   qreal maxEventStackHeight = 0.0;
   for (const TimelineTask& task : data.tasks) {
-    const qreal baseWidth = data.direction == TimelineDirection::LeftToRight
-                                ? 150.0
-                                : 200.0;
-    const qreal padding = data.direction == TimelineDirection::LeftToRight
-                              ? 20.0
-                              : 5.0;
+    const qreal baseWidth = data.direction == TimelineDirection::LeftToRight ? 150.0 : 200.0;
+    const qreal padding = data.direction == TimelineDirection::LeftToRight ? 20.0 : 5.0;
     // Upstream passes the task object to d3-selection.text() during this
     // pre-measure pass, so every task is measured as "[object Object]".
-    const qreal taskH =
-        virtualHeight(QStringLiteral("[object Object]"), baseWidth, padding,
-                      measureFont, scene.style);
-    maxTaskHeight = jsMathMax(
-        maxTaskHeight,
-        taskH + (data.direction == TimelineDirection::LeftToRight ? 20.0
-                                                                   : 0.0));
+    const qreal taskH = virtualHeight(QStringLiteral("[object Object]"), baseWidth, padding, measureFont, scene.style);
+    maxTaskHeight = jsMathMax(maxTaskHeight, taskH + (data.direction == TimelineDirection::LeftToRight ? 20.0 : 0.0));
     qreal stack = 0.0;
     for (const QString& event : task.events) {
-      stack += virtualHeight(event,
-                             data.direction == TimelineDirection::LeftToRight
-                                 ? 150.0
-                                 : 300.0,
-                             padding, measureFont, scene.style);
+      stack += virtualHeight(event, data.direction == TimelineDirection::LeftToRight ? 150.0 : 300.0, padding,
+                             measureFont, scene.style);
     }
-    if (!task.events.isEmpty()) stack += (task.events.size() - 1) * 10.0;
+    if (!task.events.isEmpty())
+      stack += (task.events.size() - 1) * 10.0;
     maxEventStackHeight = jsMathMax(maxEventStackHeight, stack);
   }
 
@@ -625,20 +564,14 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
   const QString connectorColor = lineColor(scene.style);
   qsizetype connectorIndex = 0;
   const auto connectorCssAt = [&css, &connectorIndex]() {
-    return css && connectorIndex < css->connectors.size()
-               ? css->connectors.at(connectorIndex++)
-               : TimelineElementCss{};
+    return css && connectorIndex < css->connectors.size() ? css->connectors.at(connectorIndex++) : TimelineElementCss{};
   };
-  auto appendNode = [&](TimelineNodeKind kind, const QString& text,
-                        const QString& section, int sectionNumber,
-                        qreal baseWidth, qreal padding, qreal maxHeight,
-                        QPointF position) {
+  auto appendNode = [&](TimelineNodeKind kind, const QString& text, const QString& section, int sectionNumber,
+                        qreal baseWidth, qreal padding, qreal maxHeight, QPointF position) {
     const TimelineCssOverrides::Node* nodeCss = nodeCssAt(nodeIndex);
-    const TextFont drawnFont = nodeCss ? cssTextFont(nodeCss->text, scene.style)
-                                       : styleFont(scene.style);
-    TimelineNodeGeometry node =
-        makeNode(kind, text, section, sectionNumber, baseWidth, padding,
-                 maxHeight, position, scene.style, drawnFont, nodeCss, order++);
+    const TextFont drawnFont = nodeCss ? cssTextFont(nodeCss->text, scene.style) : styleFont(scene.style);
+    TimelineNodeGeometry node = makeNode(kind, text, section, sectionNumber, baseWidth, padding, maxHeight, position,
+                                         scene.style, drawnFont, nodeCss, order++);
     scene.nodes.append(node);
     includeNode(content, node);
     ++nodeIndex;
@@ -649,23 +582,21 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
     JsCoordinate masterX = jsAdd(50.0, scene.config.leftMarginRaw);
     const qreal sectionY = 50.0;
 
-    auto drawTasks = [&](const QVector<TimelineTask>& tasks, int sectionNumber,
-                         JsCoordinate startX, bool withoutSections) {
+    auto drawTasks = [&](const QVector<TimelineTask>& tasks, int sectionNumber, JsCoordinate startX,
+                         bool withoutSections) {
       JsCoordinate x = std::move(startX);
       qreal localMaxTask = maxTaskHeight;
       const qreal taskY = hasSections ? 100.0 + maxSectionHeight : 50.0;
       for (const TimelineTask& task : tasks) {
         const QPointF nodePosition = svgTranslate(x, taskY);
-        const TimelineNodeGeometry taskNode =
-            appendNode(TimelineNodeKind::Task, task.task, task.section,
-                       sectionNumber, 150.0, 20.0, localMaxTask, nodePosition);
+        const TimelineNodeGeometry taskNode = appendNode(TimelineNodeKind::Task, task.task, task.section, sectionNumber,
+                                                         150.0, 20.0, localMaxTask, nodePosition);
         localMaxTask = jsMathMax(localMaxTask, taskNode.height);
 
         TimelineLineGeometry connector;
         const qreal connectorX = jsCoordinateNumber(jsAdd(x, 95.0));
         connector.start = QPointF(connectorX, taskY + localMaxTask);
-        connector.end = QPointF(connectorX,
-                               taskY + localMaxTask + 200.0 + maxEventStackHeight);
+        connector.end = QPointF(connectorX, taskY + localMaxTask + 200.0 + maxEventStackHeight);
         connector.stroke = connectorColor;
         connector.strokeWidth = isRedux(scene.style) ? scene.style.strokeWidth : 2.0;
         connector.dashPattern = {5.0, 5.0};
@@ -676,14 +607,13 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
 
         qreal eventY = taskY + 200.0;
         for (const QString& event : task.events) {
-          const TimelineNodeGeometry eventNode =
-              appendNode(TimelineNodeKind::Event, event, task.section,
-                         sectionNumber, 150.0, 20.0, 50.0,
-                         svgTranslate(x, eventY));
+          const TimelineNodeGeometry eventNode = appendNode(TimelineNodeKind::Event, event, task.section, sectionNumber,
+                                                            150.0, 20.0, 50.0, svgTranslate(x, eventY));
           eventY += eventNode.height + 10.0;
         }
         x = jsAdd(std::move(x), 200.0);
-        if (withoutSections && !scene.config.disableMulticolor) ++sectionNumber;
+        if (withoutSections && !scene.config.disableMulticolor)
+          ++sectionNumber;
       }
     };
 
@@ -692,14 +622,14 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
       for (const QString& section : data.sections) {
         QVector<TimelineTask> selected;
         for (const TimelineTask& task : data.tasks)
-          if (task.section == section) selected.append(task);
+          if (task.section == section)
+            selected.append(task);
         const qreal baseWidth = 200.0 * std::max<qsizetype>(selected.size(), 1) - 50.0;
-        appendNode(TimelineNodeKind::Section, section, section, sectionNumber,
-                   baseWidth, 20.0, maxSectionHeight,
+        appendNode(TimelineNodeKind::Section, section, section, sectionNumber, baseWidth, 20.0, maxSectionHeight,
                    svgTranslate(masterX, sectionY));
-        if (!selected.isEmpty()) drawTasks(selected, sectionNumber, masterX, false);
-        masterX = jsAdd(std::move(masterX),
-                        200.0 * std::max<qsizetype>(selected.size(), 1));
+        if (!selected.isEmpty())
+          drawTasks(selected, sectionNumber, masterX, false);
+        masterX = jsAdd(std::move(masterX), 200.0 * std::max<qsizetype>(selected.size(), 1));
         ++sectionNumber;
       }
     } else {
@@ -709,36 +639,21 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
     scene.preTitleBounds = content.value();
     const QRectF box = scene.preTitleBounds;
     if (!scene.title.isEmpty() && scene.style.fontSize > 0.0) {
-      const TimelineElementCss titleCss =
-          css ? css->title : TimelineElementCss{};
+      const TimelineElementCss titleCss = css ? css->title : TimelineElementCss{};
       const TextFont baseFont = styleFont(scene.style);
-      const flowchart::FlowLabelFontMetrics rootMetrics =
-          flowchart::flowLabelFontBoundingMetrics(
-              metricFamily(baseFont.family, baseFont.size, baseFont.weight),
-              baseFont.size, baseFont.weight);
-      const qreal titleSize = titleCss.fontSize >= 0.0
-                                  ? titleCss.fontSize
-                                  : std::min(rootMetrics.xHeight * 4.0, 10000.0);
-      const QString titleFamily = titleCss.fontFamily.isEmpty()
-                                      ? scene.style.fontFamily
-                                      : titleCss.fontFamily;
+      const flowchart::FlowLabelFontMetrics rootMetrics = flowchart::flowLabelFontBoundingMetrics(
+          metricFamily(baseFont.family, baseFont.size, baseFont.weight), baseFont.size, baseFont.weight);
+      const qreal titleSize =
+          titleCss.fontSize >= 0.0 ? titleCss.fontSize : std::min(rootMetrics.xHeight * 4.0, 10000.0);
+      const QString titleFamily = titleCss.fontFamily.isEmpty() ? scene.style.fontFamily : titleCss.fontFamily;
       const QFont::Weight titleWeight = editor::faceAwareMetricWeight(
-          titleCss.fontFamily.isEmpty() ? scene.style.fontFamily
-                                        : titleCss.fontFamily,
-          !titleCss.fontWeight.isEmpty()
-              ? editor::cssFontWeightToQt(QJsonValue(titleCss.fontWeight),
-                                          QFont::Bold)
-              : QFont::Bold);
-      const editor::CssPixelFont titleFont =
-          nodeFont(titleFamily, titleSize, titleWeight);
-      const flowchart::FlowLabelFontMetrics titleMetrics =
-          flowchart::flowLabelFontBoundingMetrics(
-              metricFamily(titleFamily, titleSize, titleWeight), titleSize,
-              titleWeight);
-      const qreal titleX = isNeo(scene.style)
-                               ? jsCoordinateNumber(jsAdd(
-                                     box.x() * 2.0,
-                                     scene.config.leftMarginRaw))
+          titleCss.fontFamily.isEmpty() ? scene.style.fontFamily : titleCss.fontFamily,
+          !titleCss.fontWeight.isEmpty() ? editor::cssFontWeightToQt(QJsonValue(titleCss.fontWeight), QFont::Bold)
+                                         : QFont::Bold);
+      const editor::CssPixelFont titleFont = nodeFont(titleFamily, titleSize, titleWeight);
+      const flowchart::FlowLabelFontMetrics titleMetrics = flowchart::flowLabelFontBoundingMetrics(
+          metricFamily(titleFamily, titleSize, titleWeight), titleSize, titleWeight);
+      const qreal titleX = isNeo(scene.style) ? jsCoordinateNumber(jsAdd(box.x() * 2.0, scene.config.leftMarginRaw))
                                               : box.width() / 2.0 - left;
       scene.titleGeometry.visible = true;
       scene.titleGeometry.text = text::collapsedSvgText(scene.title);
@@ -747,14 +662,12 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
       scene.titleGeometry.fill = scene.style.textColor;
       scene.titleGeometry.css = titleCss;
       scene.titleGeometry.paintOrder = order++;
-      scene.titleGeometry.logicalBounds = titleInkBounds(
-          titleFont, scene.titleGeometry.text, scene.titleGeometry.baseline,
-          titleMetrics);
+      scene.titleGeometry.logicalBounds =
+          titleInkBounds(titleFont, scene.titleGeometry.text, scene.titleGeometry.baseline, titleMetrics);
       content.rect(scene.titleGeometry.logicalBounds);
     }
 
-    const qreal depth = hasSections ? maxSectionHeight + maxTaskHeight + 150.0
-                                    : maxTaskHeight + 100.0;
+    const qreal depth = hasSections ? maxSectionHeight + maxTaskHeight + 150.0 : maxTaskHeight + 100.0;
     TimelineLineGeometry axis;
     axis.start = QPointF(svgAttributeNumber(scene.config.leftMarginRaw), depth);
     axis.end = QPointF(box.width() + 3.0 * left, depth);
@@ -777,8 +690,7 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
     const JsCoordinate masterX = jsAdd(50.0, scene.config.leftMarginRaw);
     qreal masterY = 50.0;
     const qreal contentTopY = masterY;
-    const JsCoordinate timelineX =
-        jsAdd(jsAdd(masterX, nodeTotalWidth), taskAxisGap);
+    const JsCoordinate timelineX = jsAdd(jsAdd(masterX, nodeTotalWidth), taskAxisGap);
     const qreal timelineNumber = jsCoordinateNumber(timelineX);
     const qreal sectionWidth = 580.0;
     const qreal taskSpacing = jsMathMax(maxTaskHeight, maxEventStackHeight) + 30.0;
@@ -790,38 +702,29 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
     axis.stroke = connectorColor;
     axis.strokeWidth = isRedux(scene.style) ? scene.style.strokeWidth : 4.0;
     axis.axis = true;
-    axis.markerResolved = false;  // references #arrowhead; init created #undefined-arrowhead
+    axis.markerResolved = false; // references #arrowhead; init created #undefined-arrowhead
     axis.css = css ? css->axis : TimelineElementCss{};
     axis.paintOrder = -100000;
 
-    auto drawTasks = [&](const QVector<TimelineTask>& tasks, int sectionNumber,
-                         qreal startY, bool withoutSections) {
+    auto drawTasks = [&](const QVector<TimelineTask>& tasks, int sectionNumber, qreal startY, bool withoutSections) {
       qreal y = startY;
       qreal localMaxTask = maxTaskHeight;
       for (const TimelineTask& task : tasks) {
         const TimelineNodeGeometry taskNode =
-            appendNode(TimelineNodeKind::Task, task.task, task.section,
-                       sectionNumber, nodeWidth, nodePadding, localMaxTask,
-                       svgTranslate(jsCoordinateRawNumber(timelineX) -
-                                        taskAxisGap - nodeTotalWidth,
-                                    y));
+            appendNode(TimelineNodeKind::Task, task.task, task.section, sectionNumber, nodeWidth, nodePadding,
+                       localMaxTask, svgTranslate(jsCoordinateRawNumber(timelineX) - taskAxisGap - nodeTotalWidth, y));
         localMaxTask = jsMathMax(localMaxTask, taskNode.height);
 
         qreal eventY = y;
         for (const QString& event : task.events) {
           const TimelineNodeGeometry eventNode =
-              appendNode(TimelineNodeKind::Event, event, task.section,
-                         sectionNumber, eventWidth, nodePadding, 0.0,
+              appendNode(TimelineNodeKind::Event, event, task.section, sectionNumber, eventWidth, nodePadding, 0.0,
                          svgTranslate(jsAdd(timelineX, eventAxisGap), eventY));
           TimelineLineGeometry connector;
-          connector.start = QPointF(timelineNumber,
-                                    eventY + eventNode.height / 2.0);
-          connector.end = QPointF(jsCoordinateNumber(
-                                      jsAdd(timelineX, eventAxisGap)),
-                                  eventY + eventNode.height / 2.0);
+          connector.start = QPointF(timelineNumber, eventY + eventNode.height / 2.0);
+          connector.end = QPointF(jsCoordinateNumber(jsAdd(timelineX, eventAxisGap)), eventY + eventNode.height / 2.0);
           connector.stroke = connectorColor;
-          connector.strokeWidth =
-              isRedux(scene.style) ? scene.style.strokeWidth : 2.0;
+          connector.strokeWidth = isRedux(scene.style) ? scene.style.strokeWidth : 2.0;
           connector.dashPattern = {5.0, 5.0};
           connector.markerResolved = false;
           connector.css = connectorCssAt();
@@ -831,7 +734,8 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
           eventY += eventNode.height + 10.0;
         }
         y += taskSpacing;
-        if (withoutSections && !scene.config.disableMulticolor) ++sectionNumber;
+        if (withoutSections && !scene.config.disableMulticolor)
+          ++sectionNumber;
       }
     };
 
@@ -840,19 +744,16 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
       for (const QString& section : data.sections) {
         QVector<TimelineTask> selected;
         for (const TimelineTask& task : data.tasks)
-          if (task.section == section) selected.append(task);
-        const TimelineNodeGeometry sectionNode =
-            appendNode(TimelineNodeKind::Section, section, section,
-                       sectionNumber, sectionWidth, nodePadding,
-                       maxSectionHeight,
-                       svgTranslate(jsCoordinateRawNumber(timelineX) -
-                                        nodeTotalWidth - taskAxisGap,
-                                    masterY));
+          if (task.section == section)
+            selected.append(task);
+        const TimelineNodeGeometry sectionNode = appendNode(
+            TimelineNodeKind::Section, section, section, sectionNumber, sectionWidth, nodePadding, maxSectionHeight,
+            svgTranslate(jsCoordinateRawNumber(timelineX) - nodeTotalWidth - taskAxisGap, masterY));
         const qreal taskStartY = masterY + sectionNode.height + 20.0;
-        if (!selected.isEmpty()) drawTasks(selected, sectionNumber, taskStartY, false);
+        if (!selected.isEmpty())
+          drawTasks(selected, sectionNumber, taskStartY, false);
         const qsizetype count = selected.size();
-        masterY += sectionNode.height + 20.0 +
-                   taskSpacing * std::max<qsizetype>(count, 1) -
+        masterY += sectionNode.height + 20.0 + taskSpacing * std::max<qsizetype>(count, 1) -
                    (count > 0 ? taskVerticalGap * 2.0 : 0.0);
         ++sectionNumber;
       }
@@ -863,32 +764,20 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
     scene.preTitleBounds = content.value();
     QRectF box = scene.preTitleBounds;
     if (!scene.title.isEmpty() && scene.style.fontSize > 0.0) {
-      const TimelineElementCss titleCss =
-          css ? css->title : TimelineElementCss{};
+      const TimelineElementCss titleCss = css ? css->title : TimelineElementCss{};
       const TextFont baseFont = styleFont(scene.style);
-      const flowchart::FlowLabelFontMetrics rootMetrics =
-          flowchart::flowLabelFontBoundingMetrics(
-              metricFamily(baseFont.family, baseFont.size, baseFont.weight),
-              baseFont.size, baseFont.weight);
-      const qreal titleSize = titleCss.fontSize >= 0.0
-                                  ? titleCss.fontSize
-                                  : std::min(rootMetrics.xHeight * 4.0, 10000.0);
-      const QString titleFamily = titleCss.fontFamily.isEmpty()
-                                      ? scene.style.fontFamily
-                                      : titleCss.fontFamily;
+      const flowchart::FlowLabelFontMetrics rootMetrics = flowchart::flowLabelFontBoundingMetrics(
+          metricFamily(baseFont.family, baseFont.size, baseFont.weight), baseFont.size, baseFont.weight);
+      const qreal titleSize =
+          titleCss.fontSize >= 0.0 ? titleCss.fontSize : std::min(rootMetrics.xHeight * 4.0, 10000.0);
+      const QString titleFamily = titleCss.fontFamily.isEmpty() ? scene.style.fontFamily : titleCss.fontFamily;
       const QFont::Weight titleWeight = editor::faceAwareMetricWeight(
-          titleCss.fontFamily.isEmpty() ? scene.style.fontFamily
-                                        : titleCss.fontFamily,
-          !titleCss.fontWeight.isEmpty()
-              ? editor::cssFontWeightToQt(QJsonValue(titleCss.fontWeight),
-                                          QFont::Bold)
-              : QFont::Bold);
-      const editor::CssPixelFont titleFont =
-          nodeFont(titleFamily, titleSize, titleWeight);
-      const flowchart::FlowLabelFontMetrics titleMetrics =
-          flowchart::flowLabelFontBoundingMetrics(
-              metricFamily(titleFamily, titleSize, titleWeight), titleSize,
-              titleWeight);
+          titleCss.fontFamily.isEmpty() ? scene.style.fontFamily : titleCss.fontFamily,
+          !titleCss.fontWeight.isEmpty() ? editor::cssFontWeightToQt(QJsonValue(titleCss.fontWeight), QFont::Bold)
+                                         : QFont::Bold);
+      const editor::CssPixelFont titleFont = nodeFont(titleFamily, titleSize, titleWeight);
+      const flowchart::FlowLabelFontMetrics titleMetrics = flowchart::flowLabelFontBoundingMetrics(
+          metricFamily(titleFamily, titleSize, titleWeight), titleSize, titleWeight);
       const qreal titleX = box.width() / 2.0 - left;
       scene.titleGeometry.visible = true;
       scene.titleGeometry.text = text::collapsedSvgText(scene.title);
@@ -897,18 +786,13 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
       scene.titleGeometry.fill = scene.style.textColor;
       scene.titleGeometry.css = titleCss;
       scene.titleGeometry.paintOrder = order++;
-      scene.titleGeometry.logicalBounds = titleInkBounds(
-          titleFont, scene.titleGeometry.text, scene.titleGeometry.baseline,
-          titleMetrics);
+      scene.titleGeometry.logicalBounds =
+          titleInkBounds(titleFont, scene.titleGeometry.text, scene.titleGeometry.baseline, titleMetrics);
       content.rect(scene.titleGeometry.logicalBounds);
       box = content.value();
     }
-    axis.start =
-        QPointF(timelineNumber,
-                contentTopY - scene.style.layoutFontSize * 2.0);
-    axis.end = QPointF(timelineNumber,
-                       box.y() + box.height() +
-                           scene.style.layoutFontSize * 0.5 + 20.0);
+    axis.start = QPointF(timelineNumber, contentTopY - scene.style.layoutFontSize * 2.0);
+    axis.end = QPointF(timelineNumber, box.y() + box.height() + scene.style.layoutFontSize * 0.5 + 20.0);
     scene.lines.append(axis);
     includeLine(content, axis);
   }
@@ -916,21 +800,18 @@ TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config
   scene.contentBounds = content.value();
   scene.bounds = scene.config.invalidPadding
                      ? QRectF(0.0, 0.0, 784.0, 150.0)
-                     : scene.contentBounds.adjusted(-scene.config.padding,
-                                                    -scene.config.padding,
-                                                    scene.config.padding,
+                     : scene.contentBounds.adjusted(-scene.config.padding, -scene.config.padding, scene.config.padding,
                                                     scene.config.padding);
   resolveReduxStrokeWidths(scene);
   return scene;
 }
 
 qreal timelineTitleFontSizePx(const TimelineSceneStyle& style) {
-  if (!(style.fontSize > 0.0)) return 0.0;
+  if (!(style.fontSize > 0.0))
+    return 0.0;
   const TextFont base = styleFont(style);
-  const flowchart::FlowLabelFontMetrics metrics =
-      flowchart::flowLabelFontBoundingMetrics(
-          metricFamily(base.family, base.size, base.weight), base.size,
-          base.weight);
+  const flowchart::FlowLabelFontMetrics metrics = flowchart::flowLabelFontBoundingMetrics(
+      metricFamily(base.family, base.size, base.weight), base.size, base.weight);
   return std::min(metrics.xHeight * 4.0, 10000.0);
 }
 
@@ -940,19 +821,16 @@ QJsonObject TimelineScene::toJsonObject() const {
   root[QStringLiteral("contentBounds")] = rectJson(contentBounds);
   root[QStringLiteral("preTitleBounds")] = rectJson(preTitleBounds);
   root[QStringLiteral("direction")] =
-      direction == TimelineDirection::LeftToRight ? QStringLiteral("LR")
-                                                   : QStringLiteral("TD");
+      direction == TimelineDirection::LeftToRight ? QStringLiteral("LR") : QStringLiteral("TD");
   root[QStringLiteral("title")] = title;
   root[QStringLiteral("markerDefinitionId")] = markerDefinitionId;
 
   QJsonArray nodeArray;
   for (const TimelineNodeGeometry& node : nodes) {
     QJsonObject value;
-    value[QStringLiteral("kind")] =
-        node.kind == TimelineNodeKind::Section
-            ? QStringLiteral("section")
-            : node.kind == TimelineNodeKind::Event ? QStringLiteral("event")
-                                                    : QStringLiteral("task");
+    value[QStringLiteral("kind")] = node.kind == TimelineNodeKind::Section ? QStringLiteral("section")
+                                    : node.kind == TimelineNodeKind::Event ? QStringLiteral("event")
+                                                                           : QStringLiteral("task");
     value[QStringLiteral("text")] = node.text;
     value[QStringLiteral("position")] = pointJson(node.position);
     value[QStringLiteral("size")] = QJsonArray{node.width, node.height};
@@ -993,4 +871,4 @@ QJsonObject TimelineScene::toJsonObject() const {
   return root;
 }
 
-}  // namespace muffin::mermaid::timeline
+} // namespace muffin::mermaid::timeline

@@ -152,13 +152,10 @@ struct C4Scene final : MermaidScene {
   QVector<C4Primitive> primitives;
 
   QRectF sceneBounds() const override { return bounds; }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options = {}) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options = {}) const override;
   QJsonObject toJsonObject() const override;
 };
 
-C4Scene buildC4Scene(const C4Data& data, C4Config config,
-                     C4SceneStyle style,
-                     const C4CssOverrides* css = nullptr);
+C4Scene buildC4Scene(const C4Data& data, C4Config config, C4SceneStyle style, const C4CssOverrides* css = nullptr);
 
-}  // namespace muffin::mermaid::c4
+} // namespace muffin::mermaid::c4

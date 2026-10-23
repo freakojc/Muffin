@@ -45,7 +45,7 @@ QVector<PairedChar> activePairedChars() {
   return pairs;
 }
 
-}  // namespace
+} // namespace
 
 bool InputController::tryAutoPairOrWrap(QChar ch) {
   const QVector<PairedChar> pairs = activePairedChars();
@@ -61,7 +61,7 @@ bool InputController::tryAutoPairOrWrap(QChar ch) {
     }
   }
   if (closerForOpener.isNull() && !isCloser) {
-    return false;  // not a paired character under the active preferences
+    return false; // not a paired character under the active preferences
   }
 
   const bool hasCursor = ctx_.selection && ctx_.selection->hasCursor();
@@ -91,13 +91,13 @@ bool InputController::tryAutoPairOrWrap(QChar ch) {
   }
 
   if (closerForOpener.isNull()) {
-    return false;  // a pure closer without a skip-over inserts normally
+    return false; // a pure closer without a skip-over inserts normally
   }
 
   // A single quote flanked by letters is a contraction (don't), not an opener — decline so the
   // lone quote inserts instead of a pairing that would turn "don't" into "don''t".
-  if (ch == QLatin1Char('\'') && off > 0 && off < markdown.size() &&
-      markdown.at(off - 1).isLetter() && markdown.at(off).isLetter()) {
+  if (ch == QLatin1Char('\'') && off > 0 && off < markdown.size() && markdown.at(off - 1).isLetter() &&
+      markdown.at(off).isLetter()) {
     return false;
   }
 
@@ -119,22 +119,14 @@ bool InputController::tryAutoPairOrWrap(QChar ch) {
     return false;
   }
   const qsizetype nextOffset = context.plainInlineEditable
-      ? qBound<qsizetype>(0, context.cursorTextOffset, context.contentText.size())
-      : qBound<qsizetype>(0, context.cursorSourceOffset - context.contentRange.byteStart, context.contentText.size());
+                                   ? qBound<qsizetype>(0, context.cursorTextOffset, context.contentText.size())
+                                   : qBound<qsizetype>(0, context.cursorSourceOffset - context.contentRange.byteStart,
+                                                       context.contentText.size());
   const qsizetype sourceStart = context.contentRange.byteStart + nextOffset;
   const QString pair = QString(ch) + QString(closerForOpener);
-  applyLocalEdit(
-      EditTransaction::Kind::InsertText,
-      QStringLiteral("Insert Paired Symbol"),
-      sourceStart,
-      0,
-      pair,
-      CursorPosition(),
-      sourceStart + 1,
-      {},
-      false,
-      false);
+  applyLocalEdit(EditTransaction::Kind::InsertText, QStringLiteral("Insert Paired Symbol"), sourceStart, 0, pair,
+                 CursorPosition(), sourceStart + 1, {}, false, false);
   return true;
 }
 
-}  // namespace muffin
+} // namespace muffin

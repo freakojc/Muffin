@@ -18,8 +18,7 @@ qreal linearChannel(qreal channel) {
 }
 
 qreal relativeLuminance(const QColor& color) {
-  return 0.2126 * linearChannel(color.redF()) +
-         0.7152 * linearChannel(color.greenF()) +
+  return 0.2126 * linearChannel(color.redF()) + 0.7152 * linearChannel(color.greenF()) +
          0.0722 * linearChannel(color.blueF());
 }
 
@@ -31,16 +30,14 @@ qreal contrastRatio(const QColor& a, const QColor& b) {
 
 void testBuiltInSourceGuttersStayIntegratedAndReadable() {
   for (const ThemeDefinition& definition : ThemeDefinition::builtIns()) {
-    const SourceEditorColors colors = SourceEditorColors::fromTheme(
-        RenderTheme::fromDefinition(definition));
+    const SourceEditorColors colors = SourceEditorColors::fromTheme(RenderTheme::fromDefinition(definition));
     require(contrastRatio(colors.background, colors.gutterBackground) < 1.25,
             definition.id + QStringLiteral(": source gutter should remain a subtle page tone"));
     const qreal lineNumberContrast = contrastRatio(colors.lineNumber, colors.gutterBackground);
     require(lineNumberContrast >= 3.0,
-            definition.id +
-                QStringLiteral(": source line numbers need at least 3:1 contrast (actual %1, %2 on %3)")
-                    .arg(lineNumberContrast, 0, 'f', 2)
-                    .arg(colors.lineNumber.name(), colors.gutterBackground.name()));
+            definition.id + QStringLiteral(": source line numbers need at least 3:1 contrast (actual %1, %2 on %3)")
+                                .arg(lineNumberContrast, 0, 'f', 2)
+                                .arg(colors.lineNumber.name(), colors.gutterBackground.name()));
   }
 }
 
@@ -56,8 +53,7 @@ void testNightMenusUsePrimaryChromeText() {
   require(sheet.contains(
               QStringLiteral("QMenuBar::item { padding: 4px 9px; background: transparent; color: %1;").arg(text)),
           QStringLiteral("menu-bar items should explicitly use chromeText"));
-  require(sheet.contains(
-              QStringLiteral("QMenu::item { padding: 5px 34px 5px 16px; color: %1;").arg(text)),
+  require(sheet.contains(QStringLiteral("QMenu::item { padding: 5px 34px 5px 16px; color: %1;").arg(text)),
           QStringLiteral("popup-menu items should explicitly use chromeText"));
 }
 
@@ -69,12 +65,11 @@ void testGitHubMenusUsePrimaryInk() {
           QStringLiteral("GitHub secondary controls should retain --control-text-color"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
-  runTest("testBuiltInSourceGuttersStayIntegratedAndReadable",
-          testBuiltInSourceGuttersStayIntegratedAndReadable);
+  runTest("testBuiltInSourceGuttersStayIntegratedAndReadable", testBuiltInSourceGuttersStayIntegratedAndReadable);
   runTest("testNightMenusUsePrimaryChromeText", testNightMenusUsePrimaryChromeText);
   runTest("testGitHubMenusUsePrimaryInk", testGitHubMenusUsePrimaryInk);
   return 0;

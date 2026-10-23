@@ -21,8 +21,10 @@ void messages(QtMsgType type, const QMessageLogContext& context, const QString& 
     adapterProfiles.append(QJsonDocument::fromJson(message.toUtf8()).object());
     return;
   }
-  if (type >= QtWarningMsg) std::fprintf(stderr, "%s\n", qPrintable(message));
-  if (type == QtFatalMsg) std::abort();
+  if (type >= QtWarningMsg)
+    std::fprintf(stderr, "%s\n", qPrintable(message));
+  if (type == QtFatalMsg)
+    std::abort();
 }
 void countInlines(const QVector<muffin::InlineNode>& nodes, qint64& total, qint64& shared) {
   for (const auto& node : nodes) {
@@ -34,7 +36,8 @@ void countInlines(const QVector<muffin::InlineNode>& nodes, qint64& total, qint6
 void countBlocks(const muffin::MarkdownNode& node, qint64& blocks, qint64& inlines, qint64& shared) {
   ++blocks;
   countInlines(node.inlines(), inlines, shared);
-  for (const auto& child : node.children()) countBlocks(*child, blocks, inlines, shared);
+  for (const auto& child : node.children())
+    countBlocks(*child, blocks, inlines, shared);
 }
 void fingerprintInlines(QCryptographicHash& hash, const QVector<muffin::InlineNode>& nodes) {
   QByteArray bytes;
@@ -64,25 +67,31 @@ void fingerprintBlock(QCryptographicHash& hash, const muffin::MarkdownNode& node
       << qint32(range.lineStart) << qint32(range.lineEnd) << qint64(node.children().size());
   hash.addData(bytes);
   fingerprintInlines(hash, node.inlines());
-  for (const auto& child : node.children()) fingerprintBlock(hash, *child);
+  for (const auto& child : node.children())
+    fingerprintBlock(hash, *child);
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
-  if (argc != 3) return 2;
+  if (argc != 3)
+    return 2;
   const int mib = QString::fromLocal8Bit(argv[1]).toInt();
   const QString workload = QString::fromLocal8Bit(argv[2]);
-  if (mib < 1 || mib > 100 || (workload != "ascii" && workload != "unicode" && workload != "escaped")) return 2;
+  if (mib < 1 || mib > 100 || (workload != "ascii" && workload != "unicode" && workload != "escaped"))
+    return 2;
   QLoggingCategory::setFilterRules(QStringLiteral("muffin.perf*.debug=false"));
   qInstallMessageHandler(messages);
   QString sentence =
       QStringLiteral("Plain text with **bold**, *italic*, ~~strike~~, `code`, and [Muffin](https://example.com). ");
-  if (workload == "unicode") sentence.prepend(QString::fromUtf8("中文 \xf0\x9f\x98\x80 "));
-  if (workload == "escaped") sentence += QStringLiteral("&amp; &#126; \\*literal\\* `  padded  ` <kbd>Ctrl</kbd> ");
+  if (workload == "unicode")
+    sentence.prepend(QString::fromUtf8("中文 \xf0\x9f\x98\x80 "));
+  if (workload == "escaped")
+    sentence += QStringLiteral("&amp; &#126; \\*literal\\* `  padded  ` <kbd>Ctrl</kbd> ");
   const QString paragraph = sentence.repeated(12) + "\n\n";
   QString text;
-  while (text.size() < qsizetype(mib) * 1024 * 1024) text += paragraph;
+  while (text.size() < qsizetype(mib) * 1024 * 1024)
+    text += paragraph;
   auto session = std::make_unique<muffin::DocumentSession>();
   session->setFullParsePerformanceMetricsEnabled(true);
   adapterProfiles = {};

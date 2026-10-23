@@ -26,25 +26,23 @@ constexpr qreal kGeometryTolerance = 0.02;
 }
 
 void require(bool value, const QString& message) {
-  if (!value) fail(message);
+  if (!value)
+    fail(message);
 }
 
 void near(qreal actual, qreal expected, qreal tolerance, const QString& path) {
   if (std::abs(actual - expected) > tolerance) {
-    fail(QStringLiteral("%1: %2 != %3")
-             .arg(path)
-             .arg(actual, 0, 'g', 17)
-             .arg(expected, 0, 'g', 17));
+    fail(QStringLiteral("%1: %2 != %3").arg(path).arg(actual, 0, 'g', 17).arg(expected, 0, 'g', 17));
   }
 }
 
 QVector<qreal> numbers(const QString& text) {
   QVector<qreal> result;
-  static const QRegularExpression re(
-      QStringLiteral(R"([-+]?(?:\d+(?:\.\d+)?|\.\d+)(?:e[-+]?\d+)?)"),
-      QRegularExpression::CaseInsensitiveOption);
+  static const QRegularExpression re(QStringLiteral(R"([-+]?(?:\d+(?:\.\d+)?|\.\d+)(?:e[-+]?\d+)?)"),
+                                     QRegularExpression::CaseInsensitiveOption);
   auto it = re.globalMatch(text);
-  while (it.hasNext()) result.append(it.next().captured().toDouble());
+  while (it.hasNext())
+    result.append(it.next().captured().toDouble());
   return result;
 }
 
@@ -54,22 +52,21 @@ bool samePaint(const QString& actual, const QString& expected) {
   return actual.trimmed().compare(expected.trimmed(), Qt::CaseInsensitive) == 0;
 }
 
-const flowscene::FlowSceneCluster* clusterById(
-    const flowscene::FlowScene& scene, const QString& id) {
-  const auto it = std::find_if(
-      scene.clusters.cbegin(), scene.clusters.cend(), [&](const auto& cluster) {
-        return cluster.id == id || id.endsWith(QLatin1Char('-') + cluster.id);
-      });
+const flowscene::FlowSceneCluster* clusterById(const flowscene::FlowScene& scene, const QString& id) {
+  const auto it = std::find_if(scene.clusters.cbegin(), scene.clusters.cend(), [&](const auto& cluster) {
+    return cluster.id == id || id.endsWith(QLatin1Char('-') + cluster.id);
+  });
   return it == scene.clusters.cend() ? nullptr : &*it;
 }
 
 int moveCount(const QString& path) {
   int count = 0;
   for (const QChar ch : path)
-    if (ch == QLatin1Char('M')) ++count;
+    if (ch == QLatin1Char('M'))
+      ++count;
   return count;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -96,28 +93,23 @@ int main(int argc, char** argv) {
     const QString source = fixture.value(QStringLiteral("source")).toString();
     editor::MermaidRenderCache cache;
     const auto entry = cache.getSync(cache.makeKey(source), source);
-    require(entry.status == editor::MermaidRenderStatus::Ready,
-            id + QStringLiteral("/ready: ") + entry.errorMessage);
+    require(entry.status == editor::MermaidRenderStatus::Ready, id + QStringLiteral("/ready: ") + entry.errorMessage);
     const auto* scene = dynamic_cast<const flowscene::FlowScene*>(entry.scene.get());
     require(scene, id + QStringLiteral("/scene"));
 
     const QJsonObject expected = fixture.value(QStringLiteral("expected")).toObject();
-    const QJsonObject rootAttrs = expected.value(QStringLiteral("root")).toObject()
-                                      .value(QStringLiteral("attrs")).toObject();
+    const QJsonObject rootAttrs =
+        expected.value(QStringLiteral("root")).toObject().value(QStringLiteral("attrs")).toObject();
     require(entry.metadata.svgUseMaxWidth ==
                 (rootAttrs.value(QStringLiteral("width")).toString() == QLatin1String("100%")),
             id + QStringLiteral("/useMaxWidth"));
     const QVector<qreal> viewBox = numbers(rootAttrs.value(QStringLiteral("viewBox")).toString());
     require(viewBox.size() == 4, id + QStringLiteral("/viewBox"));
     const qreal padding = entry.metadata.diagramPadding;
-    near(scene->bounds.x(), viewBox[0] + padding, kGeometryTolerance,
-         id + QStringLiteral("/bounds-x"));
-    near(scene->bounds.y(), viewBox[1] + padding, kGeometryTolerance,
-         id + QStringLiteral("/bounds-y"));
-    near(scene->bounds.width(), viewBox[2] - 2 * padding, kGeometryTolerance,
-         id + QStringLiteral("/bounds-w"));
-    near(scene->bounds.height(), viewBox[3] - 2 * padding, kGeometryTolerance,
-         id + QStringLiteral("/bounds-h"));
+    near(scene->bounds.x(), viewBox[0] + padding, kGeometryTolerance, id + QStringLiteral("/bounds-x"));
+    near(scene->bounds.y(), viewBox[1] + padding, kGeometryTolerance, id + QStringLiteral("/bounds-y"));
+    near(scene->bounds.width(), viewBox[2] - 2 * padding, kGeometryTolerance, id + QStringLiteral("/bounds-w"));
+    near(scene->bounds.height(), viewBox[3] - 2 * padding, kGeometryTolerance, id + QStringLiteral("/bounds-h"));
 
     const QJsonArray expectedNodes = expected.value(QStringLiteral("nodes")).toArray();
     require(scene->nodes.size() == expectedNodes.size(), id + QStringLiteral("/node-count"));
@@ -126,10 +118,8 @@ int main(int argc, char** argv) {
       const QJsonObject oracle = expectedNodes.at(i).toObject();
       const QVector<qreal> transform = numbers(oracle.value(QStringLiteral("transform")).toString());
       const QJsonObject box = oracle.value(QStringLiteral("bbox")).toObject();
-      near(node.cx, transform.value(0), kGeometryTolerance,
-           id + QStringLiteral("/node%1-x").arg(i));
-      near(node.cy, transform.value(1), kGeometryTolerance,
-           id + QStringLiteral("/node%1-y").arg(i));
+      near(node.cx, transform.value(0), kGeometryTolerance, id + QStringLiteral("/node%1-x").arg(i));
+      near(node.cy, transform.value(1), kGeometryTolerance, id + QStringLiteral("/node%1-y").arg(i));
       near(node.width, box.value(QStringLiteral("width")).toDouble(), kGeometryTolerance,
            id + QStringLiteral("/node%1-w").arg(i));
       near(node.height, box.value(QStringLiteral("height")).toDouble(), kGeometryTolerance,
@@ -137,30 +127,27 @@ int main(int argc, char** argv) {
     }
 
     const QJsonArray expectedClusters = expected.value(QStringLiteral("clusters")).toArray();
-    require(scene->clusters.size() == expectedClusters.size(),
-            id + QStringLiteral("/cluster-count"));
+    require(scene->clusters.size() == expectedClusters.size(), id + QStringLiteral("/cluster-count"));
     for (const QJsonValue& clusterValue : expectedClusters) {
       const QJsonObject oracle = clusterValue.toObject();
       const auto* cluster = clusterById(*scene, oracle.value(QStringLiteral("id")).toString());
       require(cluster, id + QStringLiteral("/cluster-id"));
       const QJsonObject box = oracle.value(QStringLiteral("bbox")).toObject();
       const QRectF actual = cluster->paintedBounds.isValid()
-          ? cluster->paintedBounds
-          : QRectF(cluster->cx - cluster->width / 2.0,
-                   cluster->cy - cluster->height / 2.0,
-                   cluster->width, cluster->height);
-      near(actual.x(), box.value(QStringLiteral("x")).toDouble(),
-           kGeometryTolerance, id + QStringLiteral("/cluster-x"));
-      near(actual.y(), box.value(QStringLiteral("y")).toDouble(),
-           kGeometryTolerance, id + QStringLiteral("/cluster-y"));
-      near(actual.width(), box.value(QStringLiteral("width")).toDouble(),
-           kGeometryTolerance, id + QStringLiteral("/cluster-w"));
-      near(actual.height(), box.value(QStringLiteral("height")).toDouble(),
-           kGeometryTolerance, id + QStringLiteral("/cluster-h"));
+                                ? cluster->paintedBounds
+                                : QRectF(cluster->cx - cluster->width / 2.0, cluster->cy - cluster->height / 2.0,
+                                         cluster->width, cluster->height);
+      near(actual.x(), box.value(QStringLiteral("x")).toDouble(), kGeometryTolerance,
+           id + QStringLiteral("/cluster-x"));
+      near(actual.y(), box.value(QStringLiteral("y")).toDouble(), kGeometryTolerance,
+           id + QStringLiteral("/cluster-y"));
+      near(actual.width(), box.value(QStringLiteral("width")).toDouble(), kGeometryTolerance,
+           id + QStringLiteral("/cluster-w"));
+      near(actual.height(), box.value(QStringLiteral("height")).toDouble(), kGeometryTolerance,
+           id + QStringLiteral("/cluster-h"));
       const QJsonArray rects = oracle.value(QStringLiteral("rects")).toArray();
       if (!rects.isEmpty()) {
-        const QJsonObject computed = rects.first().toObject()
-                                         .value(QStringLiteral("computed")).toObject();
+        const QJsonObject computed = rects.first().toObject().value(QStringLiteral("computed")).toObject();
         require(samePaint(cluster->fill, computed.value(QStringLiteral("fill")).toString()),
                 id + QStringLiteral("/cluster-fill"));
         require(samePaint(cluster->stroke, computed.value(QStringLiteral("stroke")).toString()),
@@ -181,40 +168,47 @@ int main(int argc, char** argv) {
       const QVector<qreal> expectedPath = numbers(attrs.value(QStringLiteral("d")).toString());
       require(actualPath.size() == expectedPath.size(),
               id + QStringLiteral("/edge%1-structure: %2 != %3\n%4\n%5")
-                       .arg(i).arg(actualPath.size()).arg(expectedPath.size())
+                       .arg(i)
+                       .arg(actualPath.size())
+                       .arg(expectedPath.size())
                        .arg(edge.path, attrs.value(QStringLiteral("d")).toString()));
       for (qsizetype j = 0; j < actualPath.size(); ++j) {
-        near(actualPath[j], expectedPath[j], 0.001,
-             id + QStringLiteral("/edge%1/%2").arg(i).arg(j));
+        near(actualPath[j], expectedPath[j], 0.001, id + QStringLiteral("/edge%1/%2").arg(i).arg(j));
       }
     }
 
     if (id == QLatin1String("line-hops-arc")) {
-      require(std::any_of(scene->edges.cbegin(), scene->edges.cend(), [](const auto& edge) {
-                return edge.path.contains(QLatin1String("A6,6"));
-              }), id + QStringLiteral("/arc"));
+      require(std::any_of(scene->edges.cbegin(), scene->edges.cend(),
+                          [](const auto& edge) { return edge.path.contains(QLatin1String("A6,6")); }),
+              id + QStringLiteral("/arc"));
     } else if (id == QLatin1String("line-hops-gap")) {
-      require(std::any_of(scene->edges.cbegin(), scene->edges.cend(), [](const auto& edge) {
-                return moveCount(edge.path) > 1 && !edge.path.contains(QLatin1String("A6,6"));
-              }), id + QStringLiteral("/gap"));
+      require(std::any_of(scene->edges.cbegin(), scene->edges.cend(),
+                          [](const auto& edge) {
+                            return moveCount(edge.path) > 1 && !edge.path.contains(QLatin1String("A6,6"));
+                          }),
+              id + QStringLiteral("/gap"));
     } else if (id == QLatin1String("line-hops-false")) {
-      require(std::none_of(scene->edges.cbegin(), scene->edges.cend(), [](const auto& edge) {
-                return moveCount(edge.path) > 1 || edge.path.contains(QLatin1String("A6,6"));
-              }), id + QStringLiteral("/disabled"));
+      require(std::none_of(scene->edges.cbegin(), scene->edges.cend(),
+                           [](const auto& edge) {
+                             return moveCount(edge.path) > 1 || edge.path.contains(QLatin1String("A6,6"));
+                           }),
+              id + QStringLiteral("/disabled"));
     } else if (id == QLatin1String("curve-linear")) {
-      require(std::none_of(scene->edges.cbegin(), scene->edges.cend(), [](const auto& edge) {
-                return edge.path.contains(QLatin1Char('Q')) || edge.path.contains(QLatin1Char('C'));
-              }), id + QStringLiteral("/linear"));
+      require(std::none_of(scene->edges.cbegin(), scene->edges.cend(),
+                           [](const auto& edge) {
+                             return edge.path.contains(QLatin1Char('Q')) || edge.path.contains(QLatin1Char('C'));
+                           }),
+              id + QStringLiteral("/linear"));
     }
 
     if (id == QLatin1String("layout-dagre")) {
-      require(std::none_of(scene->clusters.cbegin(), scene->clusters.cend(), [](const auto& cluster) {
-                return cluster.swimlane;
-              }), id + QStringLiteral("/dagre-clusters"));
+      require(std::none_of(scene->clusters.cbegin(), scene->clusters.cend(),
+                           [](const auto& cluster) { return cluster.swimlane; }),
+              id + QStringLiteral("/dagre-clusters"));
     } else if (!scene->clusters.isEmpty()) {
-      require(std::all_of(scene->clusters.cbegin(), scene->clusters.cend(), [](const auto& cluster) {
-                return cluster.swimlane;
-              }), id + QStringLiteral("/swimlane-clusters"));
+      require(std::all_of(scene->clusters.cbegin(), scene->clusters.cend(),
+                          [](const auto& cluster) { return cluster.swimlane; }),
+              id + QStringLiteral("/swimlane-clusters"));
     }
   }
 

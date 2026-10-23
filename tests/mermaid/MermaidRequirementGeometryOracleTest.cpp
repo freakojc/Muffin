@@ -54,7 +54,8 @@ constexpr qreal kReport = 0.5;
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 // Normalize a marker field: Muffin's "" and mermaid's null both mean "no marker".
@@ -74,12 +75,13 @@ QString edgeTuple(const QJsonObject& edge) {
 
 QStringList sortedTuples(const QJsonArray& edges) {
   QStringList tuples;
-  for (const QJsonValue& e : edges) tuples << edgeTuple(e.toObject());
+  for (const QJsonValue& e : edges)
+    tuples << edgeTuple(e.toObject());
   std::sort(tuples.begin(), tuples.end());
   return tuples;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -92,8 +94,7 @@ int main(int argc, char** argv) {
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
   require(root.value(QStringLiteral("mermaidVersion")).toString() == QLatin1String("11.16.0"),
           QStringLiteral("Requirement geometry: mermaidVersion drifted"));
-  require(root.value(QStringLiteral("oracle")).toString().startsWith(
-              QLatin1String("requirementDiagram.render")),
+  require(root.value(QStringLiteral("oracle")).toString().startsWith(QLatin1String("requirementDiagram.render")),
           QStringLiteral("Requirement geometry: oracle contract drifted"));
 
   editor::MermaidRenderCache cache;
@@ -103,8 +104,7 @@ int main(int argc, char** argv) {
     const QString source = fixture.value(QStringLiteral("source")).toString();
     const QJsonObject expected = fixture.value(QStringLiteral("expected")).toObject();
     const auto entry = cache.getSync(cache.makeKey(source), source);
-    const auto* reqScene =
-        dynamic_cast<const requirement::RequirementScene*>(entry.scene.get());
+    const auto* reqScene = dynamic_cast<const requirement::RequirementScene*>(entry.scene.get());
     require(entry.status == editor::MermaidRenderStatus::Ready && reqScene != nullptr,
             id + QStringLiteral(": native requirement render failed: ") + entry.errorMessage);
     const QJsonObject actual = reqScene->toJsonObject();
@@ -119,11 +119,11 @@ int main(int argc, char** argv) {
 
     // Counts (font-independent topology).
     if (actualNodes.size() != expectedNodes.size())
-      assertErrors << id + QStringLiteral(": node count %1 != mermaid %2")
-                          .arg(actualNodes.size()).arg(expectedNodes.size());
+      assertErrors
+          << id + QStringLiteral(": node count %1 != mermaid %2").arg(actualNodes.size()).arg(expectedNodes.size());
     if (actualEdges.size() != expectedEdges.size())
-      assertErrors << id + QStringLiteral(": edge count %1 != mermaid %2")
-                          .arg(actualEdges.size()).arg(expectedEdges.size());
+      assertErrors
+          << id + QStringLiteral(": edge count %1 != mermaid %2").arg(actualEdges.size()).arg(expectedEdges.size());
 
     // Edge-tuple multiset (font-independent arrow + label parity).
     const QStringList expectedTuples = sortedTuples(expectedEdges);
@@ -154,49 +154,46 @@ int main(int argc, char** argv) {
       const int actualRows = static_cast<int>(node.value(QStringLiteral("bodyRows")).toDouble());
       const int expectedRows = static_cast<int>(exp.value(QStringLiteral("bodyRows")).toDouble());
       if (actualRows != expectedRows)
-        assertErrors << prefix + QStringLiteral("/bodyRows: muffin=%1 mermaid=%2")
-                            .arg(actualRows).arg(expectedRows);
+        assertErrors << prefix + QStringLiteral("/bodyRows: muffin=%1 mermaid=%2").arg(actualRows).arg(expectedRows);
       // Divider presence (exact).
       const int actualDiv = static_cast<int>(node.value(QStringLiteral("dividers")).toDouble());
       const int expectedDiv = static_cast<int>(exp.value(QStringLiteral("dividers")).toDouble());
       if (actualDiv != expectedDiv)
-        assertErrors << prefix + QStringLiteral("/dividers: muffin=%1 mermaid=%2")
-                            .arg(actualDiv).arg(expectedDiv);
+        assertErrors << prefix + QStringLiteral("/dividers: muffin=%1 mermaid=%2").arg(actualDiv).arg(expectedDiv);
       // Node type string (exact).
       const QString actualType = node.value(QStringLiteral("type")).toString();
       const QString expectedType = exp.value(QStringLiteral("type")).toString();
       if (actualType != expectedType)
-        assertErrors << prefix + QStringLiteral("/type: muffin='%1' mermaid='%2'")
-                            .arg(actualType, expectedType);
+        assertErrors << prefix + QStringLiteral("/type: muffin='%1' mermaid='%2'").arg(actualType, expectedType);
       // Height (font-coupled — asserted within tolerance).
-      assertErrors += parity::compareNumber(node.value(QStringLiteral("height")).toDouble(),
-                                            exp.value(QStringLiteral("height")).toDouble(),
-                                            heightTier, prefix + "/height");
+      assertErrors +=
+          parity::compareNumber(node.value(QStringLiteral("height")).toDouble(),
+                                exp.value(QStringLiteral("height")).toDouble(), heightTier, prefix + "/height");
       // Divider Y (font-coupled — exact formula, asserted within tolerance) for
       // nodes that have a divider.
-      if (exp.value(QStringLiteral("dividerY")).isDouble() &&
-          node.contains(QStringLiteral("dividerY"))) {
+      if (exp.value(QStringLiteral("dividerY")).isDouble() && node.contains(QStringLiteral("dividerY"))) {
         const parity::Tier dividerTier{kDividerY};
-        assertErrors += parity::compareNumber(node.value(QStringLiteral("dividerY")).toDouble(),
-                                              exp.value(QStringLiteral("dividerY")).toDouble(),
-                                              dividerTier, prefix + "/dividerY");
+        assertErrors +=
+            parity::compareNumber(node.value(QStringLiteral("dividerY")).toDouble(),
+                                  exp.value(QStringLiteral("dividerY")).toDouble(), dividerTier, prefix + "/dividerY");
       }
       // Width is font-coupled (reported only).
-      reportNotes += parity::compareNumber(node.value(QStringLiteral("width")).toDouble(),
-                                           exp.value(QStringLiteral("width")).toDouble(),
-                                           reportTier, prefix + "/width");
+      reportNotes +=
+          parity::compareNumber(node.value(QStringLiteral("width")).toDouble(),
+                                exp.value(QStringLiteral("width")).toDouble(), reportTier, prefix + "/width");
     }
 
     if (!reportNotes.isEmpty()) {
-      std::fprintf(stderr,
-                   "[Requirement geometry] %s: %llu font-coupled delta(s) (reported, not asserted):\n",
+      std::fprintf(stderr, "[Requirement geometry] %s: %llu font-coupled delta(s) (reported, not asserted):\n",
                    qPrintable(id), static_cast<unsigned long long>(reportNotes.size()));
-      for (const QString& note : reportNotes) std::fprintf(stderr, "  %s\n", qPrintable(note));
+      for (const QString& note : reportNotes)
+        std::fprintf(stderr, "  %s\n", qPrintable(note));
     }
     if (!assertErrors.isEmpty()) {
-      for (const QString& e : assertErrors) std::fprintf(stderr, "%s\n", qPrintable(e));
+      for (const QString& e : assertErrors)
+        std::fprintf(stderr, "%s\n", qPrintable(e));
       fail(id + QStringLiteral(
-          ": requirement geometry parity regression (topology/edge tuples/body rows/dividers/type/height)"));
+                    ": requirement geometry parity regression (topology/edge tuples/body rows/dividers/type/height)"));
     }
   }
   return 0;

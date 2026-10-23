@@ -22,14 +22,20 @@ Q_LOGGING_CATEGORY(projectionPerf, "muffin.perf.detail", QtWarningMsg)
 // `capitalize` uppercases the first letter of each word and leaves the rest as-is
 // (CSS does not force the remainder to lowercase).
 QString applyTextTransform(const QString& src, TextTransform transform) {
-  if (src.isEmpty() || transform == TextTransform::None) { return src; }
+  if (src.isEmpty() || transform == TextTransform::None) {
+    return src;
+  }
   QString out;
   out.reserve(src.size());
   if (transform == TextTransform::Uppercase) {
-    for (QChar ch : src) { out.append(ch.toUpper()); }
+    for (QChar ch : src) {
+      out.append(ch.toUpper());
+    }
   } else if (transform == TextTransform::Lowercase) {
-    for (QChar ch : src) { out.append(ch.toLower()); }
-  } else {  // Capitalize
+    for (QChar ch : src) {
+      out.append(ch.toLower());
+    }
+  } else { // Capitalize
     bool wordStart = true;
     for (QChar ch : src) {
       if (ch.isLetter()) {
@@ -37,7 +43,9 @@ QString applyTextTransform(const QString& src, TextTransform transform) {
         wordStart = false;
       } else {
         out.append(ch);
-        if (ch.isSpace()) { wordStart = true; }
+        if (ch.isSpace()) {
+          wordStart = true;
+        }
       }
     }
   }
@@ -49,9 +57,9 @@ QString applyTextTransform(const QString& src, TextTransform transform) {
 // not fold. Tracking folds lets the projection emit a separate span per folded token, so the offset
 // map stays exact (no per-span linear drift) and edits can act on the whole source token.
 struct SmartPunctFold {
-  qsizetype displayStart = 0;  // offset within the converted display text
+  qsizetype displayStart = 0; // offset within the converted display text
   qsizetype displayEnd = 0;
-  qsizetype sourceLength = 0;  // source characters mapped onto [displayStart, displayEnd)
+  qsizetype sourceLength = 0; // source characters mapped onto [displayStart, displayEnd)
 };
 
 struct SmartPunctResult {
@@ -72,7 +80,7 @@ SmartPunctResult applySmartPunctForRender(const QString& text, QChar prev, const
   }
   const bool convertQuotes = opts.convertQuotes && (opts.doubleQuoteStyle == 0 || opts.singleQuoteStyle == 0);
   QChar p = prev;
-  for (qsizetype i = 0; i < text.size(); ) {
+  for (qsizetype i = 0; i < text.size();) {
     const QChar c = text.at(i);
     // Backslash escape: the following character stays literal.
     if (p == QLatin1Char('\\')) {
@@ -84,7 +92,8 @@ SmartPunctResult applySmartPunctForRender(const QString& text, QChar prev, const
     // Dash run: 3+ -> em-dash, 2 -> en-dash, lone '-' stays literal.
     if (opts.convertDashes && c == QLatin1Char('-')) {
       qsizetype run = 0;
-      while (i + run < text.size() && text.at(i + run) == QLatin1Char('-')) ++run;
+      while (i + run < text.size() && text.at(i + run) == QLatin1Char('-'))
+        ++run;
       if (run >= 3) {
         out += smartpunct::kEmDash;
         result.folds.append({out.size() - 1, out.size(), run});
@@ -99,8 +108,8 @@ SmartPunctResult applySmartPunctForRender(const QString& text, QChar prev, const
       continue;
     }
     // Ellipsis: "..." -> …
-    if (opts.convertEllipsis && c == QLatin1Char('.') && i + 3 <= text.size() &&
-        text.at(i + 1) == QLatin1Char('.') && text.at(i + 2) == QLatin1Char('.')) {
+    if (opts.convertEllipsis && c == QLatin1Char('.') && i + 3 <= text.size() && text.at(i + 1) == QLatin1Char('.') &&
+        text.at(i + 2) == QLatin1Char('.')) {
       out += smartpunct::kEllipsis;
       result.folds.append({out.size() - 1, out.size(), 3});
       i += 3;
@@ -137,8 +146,8 @@ SmartPunctResult applySmartPunctForRender(const QString& text, QChar prev, const
 // alignment check compares the RAW source slice for those — whereas escapes and
 // entities are compared against cmark's already-decoded text.
 struct DecodeSpan {
-  qsizetype sourceStart;  // offset within the local source slice
-  qsizetype sourceEnd;    // past-the-end offset
+  qsizetype sourceStart; // offset within the local source slice
+  qsizetype sourceEnd;   // past-the-end offset
   QString decodedText;
   bool isEmoji = false;
 };
@@ -150,10 +159,8 @@ QString decodeHtmlEntity(QStringView rawEntity) {
 
   const QByteArray body = rawEntity.mid(1).toUtf8();
   cmark_strbuf decoded = CMARK_BUF_INIT(cmark_get_default_mem_allocator());
-  const bufsize_t consumed = houdini_unescape_ent(
-      &decoded,
-      reinterpret_cast<const uint8_t*>(body.constData()),
-      static_cast<bufsize_t>(body.size()));
+  const bufsize_t consumed = houdini_unescape_ent(&decoded, reinterpret_cast<const uint8_t*>(body.constData()),
+                                                  static_cast<bufsize_t>(body.size()));
   QString result;
   if (consumed == body.size() && cmark_strbuf_len(&decoded) > 0) {
     result = QString::fromUtf8(cmark_strbuf_cstr(&decoded), static_cast<qsizetype>(cmark_strbuf_len(&decoded)));
@@ -167,8 +174,7 @@ QString decodeHtmlEntity(QStringView rawEntity) {
 // not change the source/visible length, so it needs no special handling here.
 bool isBackslashEscapablePunct(QChar ch) {
   const ushort c = ch.unicode();
-  return c >= 0x21 && c <= 0x7e &&
-         !((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
+  return c >= 0x21 && c <= 0x7e && !((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
 }
 
 // Source-ordered, non-overlapping escape, entity, and (when enabled) emoji
@@ -181,8 +187,7 @@ QVector<DecodeSpan> findDecodeSpans(QStringView source, bool renderEmoji) {
   QVector<DecodeSpan> spans;
   qsizetype i = 0;
   while (i < source.size()) {
-    if (source.at(i) == QLatin1Char('\\') && i + 1 < source.size() &&
-        isBackslashEscapablePunct(source.at(i + 1))) {
+    if (source.at(i) == QLatin1Char('\\') && i + 1 < source.size() && isBackslashEscapablePunct(source.at(i + 1))) {
       spans.push_back({i, i + 2, QString(source.at(i + 1)), false});
       i += 2;
       continue;
@@ -250,7 +255,7 @@ QStringView extractOpeningTagName(QStringView text) {
     return {};
   }
   if (text.size() >= 2 && text[1] == QLatin1Char('/')) {
-    return {};  // closing tag
+    return {}; // closing tag
   }
   qsizetype end = 1;
   while (end < text.size() && (text[end].isLetter() || text[end].isDigit())) {
@@ -274,15 +279,15 @@ QStringView extractClosingTagName(QStringView text) {
 // Handles src="...", src='...', alt="...", etc.
 QString extractHtmlAttr(const QString& tag, const QString& attrName) {
   const QRegularExpression re(
-      QStringLiteral("(?:^|\\s)%1\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)')")
-          .arg(QRegularExpression::escape(attrName)),
+      QStringLiteral("(?:^|\\s)%1\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)')").arg(QRegularExpression::escape(attrName)),
       QRegularExpression::CaseInsensitiveOption);
   const auto match = re.match(tag);
-  if (!match.hasMatch()) return {};
+  if (!match.hasMatch())
+    return {};
   return match.captured(1).isNull() ? match.captured(2) : match.captured(1);
 }
 
-}  // namespace
+} // namespace
 
 int brTagLengthAt(const QString& content, qsizetype offset) {
   const qsizetype size = content.size();
@@ -291,8 +296,7 @@ int brTagLengthAt(const QString& content, qsizetype offset) {
   }
   const QChar c1 = content.at(offset + 1);
   const QChar c2 = content.at(offset + 2);
-  if ((c1 != QLatin1Char('b') && c1 != QLatin1Char('B')) ||
-      (c2 != QLatin1Char('r') && c2 != QLatin1Char('R'))) {
+  if ((c1 != QLatin1Char('b') && c1 != QLatin1Char('B')) || (c2 != QLatin1Char('r') && c2 != QLatin1Char('R'))) {
     return 0;
   }
   // After "<br": HTML5 allows any whitespace and an optional self-closing slash before '>'.
@@ -314,9 +318,9 @@ int brTagLengthAt(const QString& content, qsizetype offset) {
       ++i;
       continue;
     }
-    return 0;  // an attribute name or other char — not a bare <br> tag
+    return 0; // an attribute name or other char — not a bare <br> tag
   }
-  return 0;  // no closing '>'
+  return 0; // no closing '>'
 }
 
 bool isStandaloneBrTag(const QString& text) {
@@ -338,20 +342,16 @@ bool InlineProjectionState::shouldRevealVisibleRange(qsizetype visibleStart, qsi
   return cursorVisibleOffset >= 0 && containsOffset(visibleStart, visibleEnd, cursorVisibleOffset);
 }
 
-InlineProjectionState InlineProjectionState::forCursor(
-    const CursorPosition& cursor,
-    NodeId blockId,
-    qsizetype contentSourceStart) {
+InlineProjectionState InlineProjectionState::forCursor(const CursorPosition& cursor, NodeId blockId,
+                                                       qsizetype contentSourceStart) {
   SelectionRange selection;
   selection.anchor = cursor;
   selection.focus = cursor;
   return forSelection(selection, blockId, contentSourceStart);
 }
 
-InlineProjectionState InlineProjectionState::forSelection(
-    const SelectionRange& selection,
-    NodeId blockId,
-    qsizetype contentSourceStart) {
+InlineProjectionState InlineProjectionState::forSelection(const SelectionRange& selection, NodeId blockId,
+                                                          qsizetype contentSourceStart) {
   InlineProjectionState state;
   if (selection.focus.blockId != blockId) {
     return state;
@@ -361,32 +361,35 @@ InlineProjectionState InlineProjectionState::forSelection(
   // selection's EXTENT (anchor..focus) never reveals markers — so sweeping a selection across many
   // inlines no longer fans them all open; only the one the focus currently sits in is revealed.
   state.cursorVisibleOffset = selection.focus.text.textOffset;
-  state.cursorSourceOffset =
-      selection.focus.text.sourceOffset >= 0 && contentSourceStart >= 0 ? selection.focus.text.sourceOffset - contentSourceStart : -1;
+  state.cursorSourceOffset = selection.focus.text.sourceOffset >= 0 && contentSourceStart >= 0
+                                 ? selection.focus.text.sourceOffset - contentSourceStart
+                                 : -1;
 
   return state;
 }
 
-bool InlineProjection::BuildState::shouldReveal(qsizetype sourceStart, qsizetype sourceEnd,
-                                              qsizetype visibleStart, qsizetype visibleEnd) {
+bool InlineProjection::BuildState::shouldReveal(qsizetype sourceStart, qsizetype sourceEnd, qsizetype visibleStart,
+                                                qsizetype visibleEnd) {
   const bool revealed = projectionState.shouldRevealSourceRange(sourceStart, sourceEnd) ||
                         projectionState.shouldRevealVisibleRange(visibleStart, visibleEnd);
-  if (revealChecks) revealChecks->push_back({sourceStart, sourceEnd, visibleStart, visibleEnd, revealed});
+  if (revealChecks)
+    revealChecks->push_back({sourceStart, sourceEnd, visibleStart, visibleEnd, revealed});
   return revealed;
 }
 
 bool InlineProjection::matchesState(const InlineProjectionState& state) const {
   diag::ScopedPerfProbe perf("projection.matches", projectionPerf());
   return valid_ && std::all_of(revealChecks_.cbegin(), revealChecks_.cend(), [&](const auto& check) {
-    return check.revealed == (state.shouldRevealSourceRange(check.sourceStart, check.sourceEnd) ||
-                             state.shouldRevealVisibleRange(check.visibleStart, check.visibleEnd));
-  });
+           return check.revealed == (state.shouldRevealSourceRange(check.sourceStart, check.sourceEnd) ||
+                                     state.shouldRevealVisibleRange(check.visibleStart, check.visibleEnd));
+         });
 }
 
-InlineProjection::InlineProjection(const QVector<InlineNode>& inlines, QString sourceText, InlineProjectionState projectionState,
-                                   qsizetype sourceBase, qreal baseFontSize, qsizetype pendingPrefixLength,
-                                   SmartPunctRenderOptions smartPunct, bool breakOnSingleNewline, TextTransform textTransform,
-                                   bool renderEmoji, html::HtmlColorPalette htmlPalette, QVector<InlineSourceReplacement> replacements)
+InlineProjection::InlineProjection(const QVector<InlineNode>& inlines, QString sourceText,
+                                   InlineProjectionState projectionState, qsizetype sourceBase, qreal baseFontSize,
+                                   qsizetype pendingPrefixLength, SmartPunctRenderOptions smartPunct,
+                                   bool breakOnSingleNewline, TextTransform textTransform, bool renderEmoji,
+                                   html::HtmlColorPalette htmlPalette, QVector<InlineSourceReplacement> replacements)
     : sourceText_(std::move(sourceText)), visibleText_(plainTextForInlines(inlines)) {
   diag::ScopedPerfProbe perf("projection.build", projectionPerf());
   BuildState state;
@@ -401,11 +404,13 @@ InlineProjection::InlineProjection(const QVector<InlineNode>& inlines, QString s
   state.textTransform = textTransform;
   state.renderEmoji = renderEmoji;
   for (auto& replacement : replacements) {
-    const bool revealed = replacement.revealAtCursor &&
-        state.shouldReveal(replacement.source.start, replacement.source.end, -1, -1);
-    if (!revealed) state.replacements.push_back(std::move(replacement));
+    const bool revealed =
+        replacement.revealAtCursor && state.shouldReveal(replacement.source.start, replacement.source.end, -1, -1);
+    if (!revealed)
+      state.replacements.push_back(std::move(replacement));
   }
-  std::sort(state.replacements.begin(), state.replacements.end(), [](const auto& a, const auto& b) { return a.source.start < b.source.start; });
+  std::sort(state.replacements.begin(), state.replacements.end(),
+            [](const auto& a, const auto& b) { return a.source.start < b.source.start; });
   QVector<HtmlInlineFormatData> htmlData;
   if (pendingPrefixLength > 0 && pendingPrefixLength <= sourceText_.size()) {
     // A still-uncommitted fence/math opener: show the marker in the muted "syntax" color the
@@ -455,14 +460,15 @@ const QVector<InlineProjectionSpan>& InlineProjection::spans() const {
 
 bool InlineProjection::foldedTokenForDeletion(qsizetype offset, int direction, qsizetype& start, qsizetype& end) const {
   for (const InlineProjectionSpan& span : spans_) {
-    if (!span.folded) continue;
-    if (direction < 0) {  // backspace: caret at the token's end -> remove the whole token
+    if (!span.folded)
+      continue;
+    if (direction < 0) { // backspace: caret at the token's end -> remove the whole token
       if (offset == span.sourceEnd) {
         start = span.sourceStart;
         end = span.sourceEnd;
         return true;
       }
-    } else {  // delete: caret at the token's start -> remove the whole token forward
+    } else { // delete: caret at the token's start -> remove the whole token forward
       if (offset == span.sourceStart) {
         start = span.sourceStart;
         end = span.sourceEnd;
@@ -517,16 +523,15 @@ bool InlineProjection::sourceOffsetForVisibleOffset(qsizetype visibleOffset, qsi
         sourceOffset = span.sourceEnd;
         for (const InlineProjectionSpan& following : spans_) {
           if (following.visibleStart == visibleOffset && following.visibleEnd == visibleOffset &&
-              following.kind == InlineSpanKind::CloseMarker &&
-              following.sourceStart >= sourceOffset && following.sourceEnd > following.sourceStart) {
+              following.kind == InlineSpanKind::CloseMarker && following.sourceStart >= sourceOffset &&
+              following.sourceEnd > following.sourceStart) {
             sourceOffset = following.sourceEnd;
           }
         }
       } else {
-        sourceOffset = qBound<qsizetype>(
-            span.contentSourceStart,
-            span.contentSourceStart + visibleOffset - span.visibleStart,
-            span.contentSourceEnd);
+        sourceOffset =
+            qBound<qsizetype>(span.contentSourceStart, span.contentSourceStart + visibleOffset - span.visibleStart,
+                              span.contentSourceEnd);
       }
       return true;
     }
@@ -549,10 +554,8 @@ bool InlineProjection::visibleOffsetForSourceOffset(qsizetype sourceOffset, qsiz
       } else if (sourceOffset >= span.contentSourceEnd) {
         visibleOffset = span.visibleEnd;
       } else {
-        visibleOffset = qBound<qsizetype>(
-            span.visibleStart,
-            span.visibleStart + sourceOffset - span.contentSourceStart,
-            span.visibleEnd);
+        visibleOffset = qBound<qsizetype>(span.visibleStart, span.visibleStart + sourceOffset - span.contentSourceStart,
+                                          span.visibleEnd);
       }
       return true;
     }
@@ -565,7 +568,8 @@ bool InlineProjection::sourceOffsetForDisplayOffset(qsizetype displayOffset, qsi
   return sourceOffsetForDisplayOffset(displayOffset, InlineProjectionBias::Backward, sourceOffset);
 }
 
-bool InlineProjection::sourceOffsetForDisplayOffset(qsizetype displayOffset, InlineProjectionBias bias, qsizetype& sourceOffset) const {
+bool InlineProjection::sourceOffsetForDisplayOffset(qsizetype displayOffset, InlineProjectionBias bias,
+                                                    qsizetype& sourceOffset) const {
   if (!valid_) {
     return false;
   }
@@ -583,10 +587,9 @@ bool InlineProjection::sourceOffsetForDisplayOffset(qsizetype displayOffset, Inl
       } else if (displayOffset >= span.displayEnd) {
         sourceOffset = span.sourceEnd;
       } else {
-        sourceOffset = qBound<qsizetype>(
-            span.contentSourceStart,
-            span.contentSourceStart + displayOffset - span.displayStart,
-            span.contentSourceEnd);
+        sourceOffset =
+            qBound<qsizetype>(span.contentSourceStart, span.contentSourceStart + displayOffset - span.displayStart,
+                              span.contentSourceEnd);
       }
       return true;
     }
@@ -602,10 +605,9 @@ bool InlineProjection::sourceOffsetForDisplayOffset(qsizetype displayOffset, Inl
       } else if (displayOffset >= span.displayEnd) {
         sourceOffset = span.contentSourceEnd;
       } else {
-        sourceOffset = qBound<qsizetype>(
-            span.contentSourceStart,
-            span.contentSourceStart + displayOffset - span.displayStart,
-            span.contentSourceEnd);
+        sourceOffset =
+            qBound<qsizetype>(span.contentSourceStart, span.contentSourceStart + displayOffset - span.displayStart,
+                              span.contentSourceEnd);
       }
       return true;
     }
@@ -618,7 +620,8 @@ bool InlineProjection::displayOffsetForSourceOffset(qsizetype sourceOffset, qsiz
   return displayOffsetForSourceOffset(sourceOffset, InlineProjectionBias::Backward, displayOffset);
 }
 
-bool InlineProjection::displayOffsetForSourceOffset(qsizetype sourceOffset, InlineProjectionBias bias, qsizetype& displayOffset) const {
+bool InlineProjection::displayOffsetForSourceOffset(qsizetype sourceOffset, InlineProjectionBias bias,
+                                                    qsizetype& displayOffset) const {
   if (!valid_) {
     return false;
   }
@@ -636,10 +639,8 @@ bool InlineProjection::displayOffsetForSourceOffset(qsizetype sourceOffset, Inli
       } else if (sourceOffset >= span.contentSourceEnd) {
         displayOffset = span.displayEnd;
       } else {
-        displayOffset = qBound<qsizetype>(
-            span.displayStart,
-            span.displayStart + sourceOffset - span.contentSourceStart,
-            span.displayEnd);
+        displayOffset = qBound<qsizetype>(span.displayStart, span.displayStart + sourceOffset - span.contentSourceStart,
+                                          span.displayEnd);
       }
       return true;
     }
@@ -655,10 +656,8 @@ bool InlineProjection::displayOffsetForSourceOffset(qsizetype sourceOffset, Inli
       } else if (sourceOffset >= span.contentSourceEnd) {
         displayOffset = span.displayEnd;
       } else {
-        displayOffset = qBound<qsizetype>(
-            span.displayStart,
-            span.displayStart + sourceOffset - span.contentSourceStart,
-            span.displayEnd);
+        displayOffset = qBound<qsizetype>(span.displayStart, span.displayStart + sourceOffset - span.contentSourceStart,
+                                          span.displayEnd);
       }
       return true;
     }
@@ -675,10 +674,12 @@ QString InlineProjection::plainTextForInlines(const QVector<InlineNode>& inlines
   return text;
 }
 
-bool InlineProjection::isPlainInlineSource(const QVector<InlineNode>& inlines, const QString& sourceText, qsizetype sourceBase) {
+bool InlineProjection::isPlainInlineSource(const QVector<InlineNode>& inlines, const QString& sourceText,
+                                           qsizetype sourceBase) {
   // Semantic nodes require projection mapping. Reject them before rendering a
   // second copy of every HTML fragment merely to discover that fact.
-  if (std::any_of(inlines.cbegin(), inlines.cend(), [](const auto& node) { return node.type() != InlineType::Text; })) return false;
+  if (std::any_of(inlines.cbegin(), inlines.cend(), [](const auto& node) { return node.type() != InlineType::Text; }))
+    return false;
   InlineProjection projection(inlines, sourceText, InlineProjectionState{}, sourceBase);
   if (!projection.isValid()) {
     return false;
@@ -693,71 +694,67 @@ bool InlineProjection::isPlainInlineSource(const QVector<InlineNode>& inlines, c
 
 QString InlineProjection::markerForInline(const InlineNode& node) {
   switch (node.type()) {
-    case InlineType::Code:
-      return QStringLiteral("`");
-    case InlineType::InlineMath:
-      return node.marker().isEmpty() ? QStringLiteral("$") : node.marker();
-    case InlineType::Emphasis:
-      return node.marker().isEmpty() ? QStringLiteral("*") : node.marker();
-    case InlineType::Strong:
-      return node.marker().isEmpty() ? QStringLiteral("**") : node.marker();
-    case InlineType::Strikethrough:
-      return QStringLiteral("~~");
-    case InlineType::Highlight:
-      return QStringLiteral("==");
-    case InlineType::Subscript:
-      return QStringLiteral("~");
-    case InlineType::Superscript:
-      return QStringLiteral("^");
-    default:
-      return {};
+  case InlineType::Code:
+    return QStringLiteral("`");
+  case InlineType::InlineMath:
+    return node.marker().isEmpty() ? QStringLiteral("$") : node.marker();
+  case InlineType::Emphasis:
+    return node.marker().isEmpty() ? QStringLiteral("*") : node.marker();
+  case InlineType::Strong:
+    return node.marker().isEmpty() ? QStringLiteral("**") : node.marker();
+  case InlineType::Strikethrough:
+    return QStringLiteral("~~");
+  case InlineType::Highlight:
+    return QStringLiteral("==");
+  case InlineType::Subscript:
+    return QStringLiteral("~");
+  case InlineType::Superscript:
+    return QStringLiteral("^");
+  default:
+    return {};
   }
 }
 
 QString InlineProjection::markdownForInline(const InlineNode& node) {
   switch (node.type()) {
-    case InlineType::Text:
-      return node.text();
-    case InlineType::SoftBreak:
-      return QStringLiteral("\n");
-    case InlineType::LineBreak:
-      return QStringLiteral("  \n");
-    case InlineType::Code:
-      return QStringLiteral("`%1`").arg(node.text());
-    case InlineType::InlineMath:
-      return QStringLiteral("%1%2%1").arg(markerForInline(node), node.text());
-    case InlineType::HtmlInline:
-      return node.text();
-    case InlineType::Emphasis:
-    case InlineType::Strong:
-      return QStringLiteral("%1%2%1").arg(markerForInline(node), markdownForInlines(node.children()));
-    case InlineType::Strikethrough:
-      return QStringLiteral("~~%1~~").arg(markdownForInlines(node.children()));
-    case InlineType::Highlight:
-      return QStringLiteral("==%1==").arg(markdownForInlines(node.children()));
-    case InlineType::Subscript:
-      return QStringLiteral("~%1~").arg(markdownForInlines(node.children()));
-    case InlineType::Superscript:
-      return QStringLiteral("^%1^").arg(markdownForInlines(node.children()));
-    case InlineType::Link: {
-      const QString label = markdownForInlines(node.children());
-      if (node.isAutolink()) {
-        return label;
-      }
-      return QStringLiteral("[%1](%2%3)").arg(
-          label,
-          node.href(),
-          node.title().isEmpty() ? QString() : QStringLiteral(" \"%1\"").arg(node.title()));
+  case InlineType::Text:
+    return node.text();
+  case InlineType::SoftBreak:
+    return QStringLiteral("\n");
+  case InlineType::LineBreak:
+    return QStringLiteral("  \n");
+  case InlineType::Code:
+    return QStringLiteral("`%1`").arg(node.text());
+  case InlineType::InlineMath:
+    return QStringLiteral("%1%2%1").arg(markerForInline(node), node.text());
+  case InlineType::HtmlInline:
+    return node.text();
+  case InlineType::Emphasis:
+  case InlineType::Strong:
+    return QStringLiteral("%1%2%1").arg(markerForInline(node), markdownForInlines(node.children()));
+  case InlineType::Strikethrough:
+    return QStringLiteral("~~%1~~").arg(markdownForInlines(node.children()));
+  case InlineType::Highlight:
+    return QStringLiteral("==%1==").arg(markdownForInlines(node.children()));
+  case InlineType::Subscript:
+    return QStringLiteral("~%1~").arg(markdownForInlines(node.children()));
+  case InlineType::Superscript:
+    return QStringLiteral("^%1^").arg(markdownForInlines(node.children()));
+  case InlineType::Link: {
+    const QString label = markdownForInlines(node.children());
+    if (node.isAutolink()) {
+      return label;
     }
-    case InlineType::FootnoteReference:
-      return QStringLiteral("[^%1]").arg(node.marker().isEmpty() ? node.text() : node.marker());
-    case InlineType::Image:
-      return QStringLiteral("![%1](%2%3)").arg(
-          node.alt(),
-          node.href(),
-          node.title().isEmpty() ? QString() : QStringLiteral(" \"%1\"").arg(node.title()));
-    default:
-      return node.text();
+    return QStringLiteral("[%1](%2%3)")
+        .arg(label, node.href(), node.title().isEmpty() ? QString() : QStringLiteral(" \"%1\"").arg(node.title()));
+  }
+  case InlineType::FootnoteReference:
+    return QStringLiteral("[^%1]").arg(node.marker().isEmpty() ? node.text() : node.marker());
+  case InlineType::Image:
+    return QStringLiteral("![%1](%2%3)")
+        .arg(node.alt(), node.href(), node.title().isEmpty() ? QString() : QStringLiteral(" \"%1\"").arg(node.title()));
+  default:
+    return node.text();
   }
 }
 
@@ -771,65 +768,52 @@ QString InlineProjection::markdownForInlines(const QVector<InlineNode>& inlines)
 
 QString InlineProjection::plainTextForInline(const InlineNode& node, bool breakOnSingleNewline) {
   switch (node.type()) {
-    case InlineType::Text:
-    case InlineType::Code:
-    case InlineType::InlineMath:
-      return node.text();
-    case InlineType::HtmlInline:
-      // <br> contributes a line break to plain text (column width / row height / copy);
-      // other inline HTML keeps its literal source text.
-      return isStandaloneBrTag(node.text()) ? QStringLiteral("\n") : node.text();
-    case InlineType::SoftBreak:
-      return breakOnSingleNewline ? QStringLiteral("\n") : QStringLiteral(" ");
-    case InlineType::LineBreak:
-      return QStringLiteral("\n");
-    case InlineType::Image:
-      return node.alt();
-    case InlineType::FootnoteReference:
-      return node.text();  // the resolved ordinal (e.g. "1") — what copy/column-width see
-    default:
-      return plainTextForInlines(node.children(), breakOnSingleNewline);
+  case InlineType::Text:
+  case InlineType::Code:
+  case InlineType::InlineMath:
+    return node.text();
+  case InlineType::HtmlInline:
+    // <br> contributes a line break to plain text (column width / row height / copy);
+    // other inline HTML keeps its literal source text.
+    return isStandaloneBrTag(node.text()) ? QStringLiteral("\n") : node.text();
+  case InlineType::SoftBreak:
+    return breakOnSingleNewline ? QStringLiteral("\n") : QStringLiteral(" ");
+  case InlineType::LineBreak:
+    return QStringLiteral("\n");
+  case InlineType::Image:
+    return node.alt();
+  case InlineType::FootnoteReference:
+    return node.text(); // the resolved ordinal (e.g. "1") — what copy/column-width see
+  default:
+    return plainTextForInlines(node.children(), breakOnSingleNewline);
   }
 }
 
-void InlineProjection::appendTextSpan(
-    BuildState& state,
-    InlineType type,
-    InlineSpanKind kind,
-    qsizetype sourceStart,
-    qsizetype sourceEnd,
-    QString displayText,
-    bool visible,
-    bool editable) {
+void InlineProjection::appendTextSpan(BuildState& state, InlineType type, InlineSpanKind kind, qsizetype sourceStart,
+                                      qsizetype sourceEnd, QString displayText, bool visible, bool editable) {
   if (kind == InlineSpanKind::Text && displayText.size() == sourceEnd - sourceStart) {
-    const auto found = std::lower_bound(state.replacements.cbegin(), state.replacements.cend(), sourceStart,
-        [](const auto& replacement, qsizetype offset) { return replacement.source.end <= offset; });
+    const auto found =
+        std::lower_bound(state.replacements.cbegin(), state.replacements.cend(), sourceStart,
+                         [](const auto& replacement, qsizetype offset) { return replacement.source.end <= offset; });
     if (found != state.replacements.cend() && found->source.start < sourceEnd) {
       const auto& replacement = *found;
       const auto start = qMax(sourceStart, replacement.source.start), end = qMin(sourceEnd, replacement.source.end);
       if (sourceStart < start)
         appendTextSpan(state, type, kind, sourceStart, start, displayText.left(start - sourceStart), visible, editable);
-      appendTextSpan(state, type, replacement.text.isEmpty() ? InlineSpanKind::HiddenSyntax : kind, start, end,
-                     start, end, replacement.text, !replacement.text.isEmpty() && visible, editable);
+      appendTextSpan(state, type, replacement.text.isEmpty() ? InlineSpanKind::HiddenSyntax : kind, start, end, start,
+                     end, replacement.text, !replacement.text.isEmpty() && visible, editable);
       if (end < sourceEnd)
         appendTextSpan(state, type, kind, end, sourceEnd, displayText.mid(end - sourceStart), visible, editable);
       return;
     }
   }
-  appendTextSpan(state, type, kind, sourceStart, sourceEnd, sourceStart, sourceEnd, std::move(displayText), visible, editable);
+  appendTextSpan(state, type, kind, sourceStart, sourceEnd, sourceStart, sourceEnd, std::move(displayText), visible,
+                 editable);
 }
 
-void InlineProjection::appendTextSpan(
-    BuildState& state,
-    InlineType type,
-    InlineSpanKind kind,
-    qsizetype sourceStart,
-    qsizetype sourceEnd,
-    qsizetype contentSourceStart,
-    qsizetype contentSourceEnd,
-    QString displayText,
-    bool visible,
-    bool editable) {
+void InlineProjection::appendTextSpan(BuildState& state, InlineType type, InlineSpanKind kind, qsizetype sourceStart,
+                                      qsizetype sourceEnd, qsizetype contentSourceStart, qsizetype contentSourceEnd,
+                                      QString displayText, bool visible, bool editable) {
   // CSS text-transform (uppercase/lowercase/capitalize) on visible prose only.
   // Per-code-point mapping ⇒ length-preserving, so the source↔display offsets
   // computed below stay exact. Markers/atoms (non-letter syntax/placeholders) are
@@ -866,17 +850,18 @@ void InlineProjection::appendTextSpan(
   state.spans.push_back(span);
 }
 
-void InlineProjection::appendBrLineBreak(BuildState& state, qsizetype sourceStart, qsizetype sourceEnd, const QString& tagText) {
+void InlineProjection::appendBrLineBreak(BuildState& state, qsizetype sourceStart, qsizetype sourceEnd,
+                                         const QString& tagText) {
   // Gray markup over the tag (a non-stopping marker), then a hard line break whose source
   // range is zero-width at the tag end. The break is visible (counts in plain/visible text
   // and produces a layout line) but not editable — it has no source span of its own to edit.
-  appendTextSpan(state, InlineType::HtmlInline, InlineSpanKind::OpenMarker,
-                 sourceStart, sourceEnd, tagText, false);
-  appendTextSpan(state, InlineType::HtmlInline, InlineSpanKind::Text,
-                 sourceEnd, sourceEnd, QStringLiteral("\n"), true, false);
+  appendTextSpan(state, InlineType::HtmlInline, InlineSpanKind::OpenMarker, sourceStart, sourceEnd, tagText, false);
+  appendTextSpan(state, InlineType::HtmlInline, InlineSpanKind::Text, sourceEnd, sourceEnd, QStringLiteral("\n"), true,
+                 false);
 }
 
-void InlineProjection::appendSmartPunctTextSpans(BuildState& state, qsizetype sourceStart, qsizetype sourceEnd, const QString& decoded) {
+void InlineProjection::appendSmartPunctTextSpans(BuildState& state, qsizetype sourceStart, qsizetype sourceEnd,
+                                                 const QString& decoded) {
   const QChar prev = state.displayOffset > 0 ? state.displayText.at(state.displayOffset - 1) : QChar();
   const SmartPunctResult result = applySmartPunctForRender(decoded, prev, state.smartPunct);
   const QString& text = result.text;
@@ -907,31 +892,26 @@ void InlineProjection::appendSmartPunctTextSpans(BuildState& state, qsizetype so
   }
   if (displayPos < text.size()) {
     const qsizetype len = text.size() - displayPos;
-    appendTextSpan(state, InlineType::Text, InlineSpanKind::Text, sourcePos, sourcePos + len,
-                   text.mid(displayPos, len), true);
+    appendTextSpan(state, InlineType::Text, InlineSpanKind::Text, sourcePos, sourcePos + len, text.mid(displayPos, len),
+                   true);
   }
 }
 
-bool InlineProjection::appendHtmlImageAtom(
-    BuildState& state,
-    const QString& tagText,
-    qsizetype sourceStart,
-    qsizetype sourceEnd,
-    qsizetype contentSourceStart,
-    qsizetype contentSourceEnd) {
+bool InlineProjection::appendHtmlImageAtom(BuildState& state, const QString& tagText, qsizetype sourceStart,
+                                           qsizetype sourceEnd, qsizetype contentSourceStart,
+                                           qsizetype contentSourceEnd) {
   const image_syntax::Image image = image_syntax::parse(tagText);
   if (image.src.isEmpty()) {
     return false;
   }
-  appendTextSpan(state, InlineType::Image, InlineSpanKind::Atom,
-                 sourceStart, sourceEnd, contentSourceStart, contentSourceEnd,
-                 image.alt.isEmpty() ? QString(QChar::Space) : image.alt, true);
+  appendTextSpan(state, InlineType::Image, InlineSpanKind::Atom, sourceStart, sourceEnd, contentSourceStart,
+                 contentSourceEnd, image.alt.isEmpty() ? QString(QChar::Space) : image.alt, true);
   state.spans.last().href = image.src;
   return true;
 }
 
-void InlineProjection::appendInlines(BuildState& state, const QVector<InlineNode>& inlines, qsizetype sourceStart, qsizetype sourceEnd,
-                                     QVector<HtmlInlineFormatData>& htmlFormatData) {
+void InlineProjection::appendInlines(BuildState& state, const QVector<InlineNode>& inlines, qsizetype sourceStart,
+                                     qsizetype sourceEnd, QVector<HtmlInlineFormatData>& htmlFormatData) {
   qsizetype searchFrom = sourceStart;
   for (int i = 0; i < inlines.size(); ++i) {
     const InlineNode& node = inlines[i];
@@ -958,23 +938,10 @@ void InlineProjection::appendInlines(BuildState& state, const QVector<InlineNode
       const qsizetype textPos = plainText.isEmpty() ? qsizetype(-1) : state.sourceText->indexOf(plainText, searchFrom);
       if (textPos >= 0 && textPos + plainText.size() <= sourceEnd) {
         if (textPos > searchFrom) {
-          appendTextSpan(
-              state,
-              InlineType::Text,
-              InlineSpanKind::Text,
-              searchFrom,
-              textPos,
-              state.sourceText->mid(searchFrom, textPos - searchFrom),
-              true);
+          appendTextSpan(state, InlineType::Text, InlineSpanKind::Text, searchFrom, textPos,
+                         state.sourceText->mid(searchFrom, textPos - searchFrom), true);
         }
-        appendTextSpan(
-            state,
-            node.type(),
-            InlineSpanKind::Text,
-            textPos,
-            textPos + plainText.size(),
-            plainText,
-            true);
+        appendTextSpan(state, node.type(), InlineSpanKind::Text, textPos, textPos + plainText.size(), plainText, true);
         searchFrom = textPos + plainText.size();
       }
       continue;
@@ -999,7 +966,8 @@ void InlineProjection::appendInlines(BuildState& state, const QVector<InlineNode
         continue;
       }
 
-      const int consumed = tryAppendHtmlInlineGroup(state, inlines, i, nodeStart, sourceEnd, searchFrom, htmlFormatData);
+      const int consumed =
+          tryAppendHtmlInlineGroup(state, inlines, i, nodeStart, sourceEnd, searchFrom, htmlFormatData);
       if (consumed > 0) {
         // Advance past consumed nodes. The loop's ++i handles one increment.
         // We need to update searchFrom to past the last consumed node.
@@ -1011,27 +979,15 @@ void InlineProjection::appendInlines(BuildState& state, const QVector<InlineNode
     }
 
     if (nodeStart > searchFrom) {
-      appendTextSpan(
-          state,
-          InlineType::Text,
-          InlineSpanKind::Text,
-          searchFrom,
-          nodeStart,
-          state.sourceText->mid(searchFrom, nodeStart - searchFrom),
-          true);
+      appendTextSpan(state, InlineType::Text, InlineSpanKind::Text, searchFrom, nodeStart,
+                     state.sourceText->mid(searchFrom, nodeStart - searchFrom), true);
     }
     appendInline(state, node, nodeStart, nodeEnd, htmlFormatData);
     searchFrom = nodeEnd;
   }
   if (searchFrom < sourceEnd) {
-    appendTextSpan(
-        state,
-        InlineType::Text,
-        InlineSpanKind::Text,
-        searchFrom,
-        sourceEnd,
-        state.sourceText->mid(searchFrom, sourceEnd - searchFrom),
-        true);
+    appendTextSpan(state, InlineType::Text, InlineSpanKind::Text, searchFrom, sourceEnd,
+                   state.sourceText->mid(searchFrom, sourceEnd - searchFrom), true);
   }
 }
 
@@ -1054,8 +1010,8 @@ std::optional<HtmlFormatEffect> htmlFormatEffectForTag(QStringView tagName) {
   return std::nullopt;
 }
 
-void InlineProjection::appendHtmlInlineContent(BuildState& state, const QVector<InlineNode>& inlines,
-                                               int startIndex, int endIndex, qsizetype openEnd, qsizetype closeNodeStart,
+void InlineProjection::appendHtmlInlineContent(BuildState& state, const QVector<InlineNode>& inlines, int startIndex,
+                                               int endIndex, qsizetype openEnd, qsizetype closeNodeStart,
                                                QVector<HtmlInlineFormatData>& htmlFormatData) {
   qsizetype contentSourceStart = openEnd;
   for (int j = startIndex; j < endIndex; ++j) {
@@ -1069,8 +1025,9 @@ void InlineProjection::appendHtmlInlineContent(BuildState& state, const QVector<
     if (midStart < 0) {
       midStart = state.sourceText->indexOf(midMd, contentSourceStart);
     }
-    const auto midEnd = midStart == midParserRange.start && rangeWithin(midParserRange, openEnd, closeNodeStart) ? midParserRange.end
-                                                                                                                 : midStart + midMd.size();
+    const auto midEnd = midStart == midParserRange.start && rangeWithin(midParserRange, openEnd, closeNodeStart)
+                            ? midParserRange.end
+                            : midStart + midMd.size();
     if (midStart >= 0 && midEnd <= closeNodeStart) {
       if (midStart > contentSourceStart) {
         appendTextSpan(state, InlineType::Text, InlineSpanKind::Text, contentSourceStart, midStart,
@@ -1127,7 +1084,8 @@ int InlineProjection::tryAppendHtmlInlineGroup(BuildState& state, const QVector<
   const QString closeMarkdown = markdownForInline(closeNode);
   qsizetype closeNodeStart = -1;
   const InlineRange closeParserRange = localRange(closeNode.sourceRange(), state.sourceBase);
-  if (rangeWithin(closeParserRange, sourceEnd > 0 ? qsizetype(0) : qsizetype(0), sourceEnd) && closeParserRange.start >= openEnd) {
+  if (rangeWithin(closeParserRange, sourceEnd > 0 ? qsizetype(0) : qsizetype(0), sourceEnd) &&
+      closeParserRange.start >= openEnd) {
     closeNodeStart = closeParserRange.start;
   }
   if (closeNodeStart < 0) {
@@ -1150,9 +1108,12 @@ int InlineProjection::tryAppendHtmlInlineGroup(BuildState& state, const QVector<
   html::InlineHtmlFormatResult rendered;
   if (isSimple && (state.htmlPalette.documentStyleSheet || openText.contains(QLatin1Char('=')))) {
     auto palette = state.htmlPalette;
-    if (palette.documentParentForOffset) palette.documentParent = palette.documentParentForOffset(openStart);
-    rendered = html::InlineHtmlRenderer().render(state.sourceText->mid(openStart, closeEnd - openStart), state.baseFontSize, palette);
-    if (!rendered.atomicHtml.isEmpty()) isSimple = false;
+    if (palette.documentParentForOffset)
+      palette.documentParent = palette.documentParentForOffset(openStart);
+    rendered = html::InlineHtmlRenderer().render(state.sourceText->mid(openStart, closeEnd - openStart),
+                                                 state.baseFontSize, palette);
+    if (!rendered.atomicHtml.isEmpty())
+      isSimple = false;
   }
   if (isSimple) {
     // Simple tags: visible text comes from intermediate nodes only (no HTML markers).
@@ -1164,7 +1125,8 @@ int InlineProjection::tryAppendHtmlInlineGroup(BuildState& state, const QVector<
     const QString htmlFragment = state.sourceText->mid(openStart, closeEnd - openStart);
     static const html::InlineHtmlRenderer renderer;
     auto palette = state.htmlPalette;
-    if (palette.documentParentForOffset) palette.documentParent = palette.documentParentForOffset(openStart);
+    if (palette.documentParentForOffset)
+      palette.documentParent = palette.documentParentForOffset(openStart);
     rendered = renderer.render(htmlFragment, state.baseFontSize, palette);
     visibleSize = rendered.text.size();
   }
@@ -1192,10 +1154,14 @@ int InlineProjection::tryAppendHtmlInlineGroup(BuildState& state, const QVector<
     const bool prevStrike = state.strike;
     const bool prevUnderline = state.underline;
 
-    if (formatEffect->bold)      state.bold      = true;
-    if (formatEffect->italic)    state.italic    = true;
-    if (formatEffect->strike)    state.strike    = true;
-    if (formatEffect->underline) state.underline = true;
+    if (formatEffect->bold)
+      state.bold = true;
+    if (formatEffect->italic)
+      state.italic = true;
+    if (formatEffect->strike)
+      state.strike = true;
+    if (formatEffect->underline)
+      state.underline = true;
 
     const qsizetype groupDisplayStart = state.displayOffset;
     const qsizetype groupVisibleStart = state.visibleOffset;
@@ -1234,7 +1200,8 @@ int InlineProjection::tryAppendHtmlInlineGroup(BuildState& state, const QVector<
         if (mid.type() == InlineType::HtmlInline) {
           const QStringView midTag = extractOpeningTagName(mid.textView());
           if (midTag.compare(u"img", Qt::CaseInsensitive) == 0) {
-            appendedImage = appendHtmlImageAtom(state, mid.text(), openStart, closeEnd, openEnd, closeNodeStart) || appendedImage;
+            appendedImage =
+                appendHtmlImageAtom(state, mid.text(), openStart, closeEnd, openEnd, closeNodeStart) || appendedImage;
           }
         }
       }
@@ -1246,14 +1213,16 @@ int InlineProjection::tryAppendHtmlInlineGroup(BuildState& state, const QVector<
 
     // HtmlContent span (visible rendered text)
     const qsizetype contentDisplayStart = state.displayOffset;
-    if (rendered.text.isEmpty() && !rendered.atomicHtml.isEmpty()) rendered.text = QChar(0xfffc);
-    appendTextSpan(state, InlineType::HtmlInline, InlineSpanKind::HtmlContent, openStart, closeEnd,
-                   openEnd, closeNodeStart, rendered.text, true);
+    if (rendered.text.isEmpty() && !rendered.atomicHtml.isEmpty())
+      rendered.text = QChar(0xfffc);
+    appendTextSpan(state, InlineType::HtmlInline, InlineSpanKind::HtmlContent, openStart, closeEnd, openEnd,
+                   closeNodeStart, rendered.text, true);
 
     // Record link hit ranges before moving the renderer's data into the
     // projection snapshot. A moved-from vector silently lost HTML link targets.
     for (const auto& link : rendered.links) {
-      state.linkRanges.push_back({contentDisplayStart + link.start, contentDisplayStart + link.start + link.length, link.href});
+      state.linkRanges.push_back(
+          {contentDisplayStart + link.start, contentDisplayStart + link.start + link.length, link.href});
     }
     // Register format data
     if (!rendered.formatSpans.empty() || !rendered.links.empty() || !rendered.atomicHtml.isEmpty()) {
@@ -1265,7 +1234,6 @@ int InlineProjection::tryAppendHtmlInlineGroup(BuildState& state, const QVector<
       data.palette = std::move(rendered.palette);
       htmlFormatData.push_back(std::move(data));
     }
-
   }
 
   // Advance searchFrom past the entire consumed group
@@ -1273,8 +1241,8 @@ int InlineProjection::tryAppendHtmlInlineGroup(BuildState& state, const QVector<
   return closeIndex - index + 1;
 }
 
-void InlineProjection::appendInline(BuildState& state, const InlineNode& node, qsizetype sourceStart, qsizetype sourceEnd,
-                                    QVector<HtmlInlineFormatData>& htmlFormatData) {
+void InlineProjection::appendInline(BuildState& state, const InlineNode& node, qsizetype sourceStart,
+                                    qsizetype sourceEnd, QVector<HtmlInlineFormatData>& htmlFormatData) {
   const QString marker = markerForInline(node);
   const qsizetype displayStart = state.displayOffset;
   const qsizetype visibleStart = state.visibleOffset;
@@ -1283,264 +1251,276 @@ void InlineProjection::appendInline(BuildState& state, const InlineNode& node, q
                           node.type() == InlineType::Image || node.type() == InlineType::FootnoteReference;
   const bool active = revealable && state.shouldReveal(sourceStart, sourceEnd, visibleStart, visibleEnd);
   switch (node.type()) {
-    case InlineType::Text: {
-      const QString source = state.sourceText->mid(sourceStart, sourceEnd - sourceStart);
-      const QString& decoded = node.text();
-      // Fast path: the source IS the visible text (cmark decoded nothing) AND no
-      // emoji shortcode can hide in it. The ':' guard forces a `:smile:`-only node
-      // off the fast path so findDecodeSpans runs and emits the glyph.
-      const bool mayHaveEmoji = state.renderEmoji && source.contains(QLatin1Char(':'));
-      if (source == decoded && !mayHaveEmoji) {
-        appendSmartPunctTextSpans(state, sourceStart, sourceEnd, decoded);
-        break;
-      }
-      // decoded differs from source via escapes, HTML entities, and (if enabled)
-      // emoji shortcodes — each consuming more source chars than it shows. Split
-      // around them so every plain segment keeps a 1:1 source/visible mapping.
-      const QVector<DecodeSpan> segments = findDecodeSpans(source, state.renderEmoji);
-      if (segments.isEmpty()) {
-        appendSmartPunctTextSpans(state, sourceStart, sourceEnd, decoded);
-        break;
-      }
-      // Sanity-check that the segments reconstruct decoded. For escapes/entities
-      // the decoded text must match cmark; for emoji shortcodes cmark left the
-      // literal `:name:` in decoded, so the RAW source slice must match instead.
-      // If some other cmark decoding is at play, fall back to a single span
-      // rather than emit a misaligned projection.
-      bool aligned = true;
-      qsizetype sourcePos = 0;
-      qsizetype decodedPos = 0;
-      for (const DecodeSpan& segment : segments) {
-        const QStringView plainSource = QStringView(source).mid(sourcePos, segment.sourceStart - sourcePos);
-        if (!textMatchesAt(decoded, decodedPos, plainSource)) {
-          aligned = false;
-          break;
-        }
-        decodedPos += plainSource.size();
-        const QStringView segText = segment.isEmoji
-            ? QStringView(source).mid(segment.sourceStart, segment.sourceEnd - segment.sourceStart)
-            : QStringView(segment.decodedText);
-        if (!textMatchesAt(decoded, decodedPos, segText)) {
-          aligned = false;
-          break;
-        }
-        decodedPos += segText.size();
-        sourcePos = segment.sourceEnd;
-      }
-      if (aligned && !textMatchesAt(decoded, decodedPos, QStringView(source).mid(sourcePos))) {
+  case InlineType::Text: {
+    const QString source = state.sourceText->mid(sourceStart, sourceEnd - sourceStart);
+    const QString& decoded = node.text();
+    // Fast path: the source IS the visible text (cmark decoded nothing) AND no
+    // emoji shortcode can hide in it. The ':' guard forces a `:smile:`-only node
+    // off the fast path so findDecodeSpans runs and emits the glyph.
+    const bool mayHaveEmoji = state.renderEmoji && source.contains(QLatin1Char(':'));
+    if (source == decoded && !mayHaveEmoji) {
+      appendSmartPunctTextSpans(state, sourceStart, sourceEnd, decoded);
+      break;
+    }
+    // decoded differs from source via escapes, HTML entities, and (if enabled)
+    // emoji shortcodes — each consuming more source chars than it shows. Split
+    // around them so every plain segment keeps a 1:1 source/visible mapping.
+    const QVector<DecodeSpan> segments = findDecodeSpans(source, state.renderEmoji);
+    if (segments.isEmpty()) {
+      appendSmartPunctTextSpans(state, sourceStart, sourceEnd, decoded);
+      break;
+    }
+    // Sanity-check that the segments reconstruct decoded. For escapes/entities
+    // the decoded text must match cmark; for emoji shortcodes cmark left the
+    // literal `:name:` in decoded, so the RAW source slice must match instead.
+    // If some other cmark decoding is at play, fall back to a single span
+    // rather than emit a misaligned projection.
+    bool aligned = true;
+    qsizetype sourcePos = 0;
+    qsizetype decodedPos = 0;
+    for (const DecodeSpan& segment : segments) {
+      const QStringView plainSource = QStringView(source).mid(sourcePos, segment.sourceStart - sourcePos);
+      if (!textMatchesAt(decoded, decodedPos, plainSource)) {
         aligned = false;
-      }
-      if (!aligned) {
-        appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, decoded, true);
         break;
       }
-
-      // Emit. Plain segments go through smart-punct so `--`/quotes convert even
-      // when interspersed with escapes/entities/shortcodes (this path previously
-      // skipped smart punct). Visible offsets are read from state.visibleOffset
-      // (maintained exactly by appendTextSpan) so a smart-punct fold inside a
-      // plain segment never desyncs the reveal check.
-      sourcePos = 0;
-      for (const DecodeSpan& segment : segments) {
-        if (segment.sourceStart > sourcePos) {
-          appendSmartPunctTextSpans(state, sourceStart + sourcePos, sourceStart + segment.sourceStart,
-                                    source.mid(sourcePos, segment.sourceStart - sourcePos));
-        }
-        const qsizetype segmentSourceStart = sourceStart + segment.sourceStart;
-        const qsizetype segmentSourceEnd = sourceStart + segment.sourceEnd;
-        const qsizetype segmentVisibleStart = state.visibleOffset;
-        const qsizetype segmentVisibleEnd = segmentVisibleStart + segment.decodedText.size();
-        const bool revealSyntax = state.shouldReveal(segmentSourceStart, segmentSourceEnd, segmentVisibleStart, segmentVisibleEnd);
-
-        appendTextSpan(state, node.type(), InlineSpanKind::Text,
-                        segmentSourceStart, segmentSourceEnd,
-                        segment.decodedText, true);
-        if (revealSyntax) {
-          appendTextSpan(state, node.type(), InlineSpanKind::HiddenSyntax,
-                          segmentSourceStart, segmentSourceEnd,
-                          source.mid(segment.sourceStart, segment.sourceEnd - segment.sourceStart), false);
-        }
-        sourcePos = segment.sourceEnd;
-      }
-      if (sourcePos < source.size()) {
-        appendSmartPunctTextSpans(state, sourceStart + sourcePos, sourceEnd, source.mid(sourcePos));
-      }
-      break;
-    }
-    case InlineType::SoftBreak:
-      // CommonMark joins a soft break into the paragraph as a space; breakOnSingleNewline instead
-      // forces a line break, so pasted "1\n2\n3" renders on three lines.
-      appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd,
-                     state.breakOnSingleNewline ? QStringLiteral("\n") : QStringLiteral(" "), true);
-      break;
-    case InlineType::LineBreak:
-      appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, QStringLiteral("\n"), true);
-      break;
-    case InlineType::Code:
-    case InlineType::InlineMath: {
-      InlineRange content = localRange(node.contentRange(), state.sourceBase);
-      if (!rangeWithin(content, sourceStart, sourceEnd)) {
-        content = InlineRange{qMin(sourceEnd, sourceStart + marker.size()), qMax(sourceStart, sourceEnd - marker.size())};
-      }
-      const qsizetype contentStart = content.start;
-      const qsizetype contentEnd = qMax(contentStart, content.end);
-      if (active) {
-        appendTextSpan(state, node.type(), InlineSpanKind::OpenMarker, sourceStart, contentStart, state.sourceText->mid(sourceStart, contentStart - sourceStart), false);
-      }
-      appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, contentStart, contentEnd, node.text(), true);
-      if (active) {
-        appendTextSpan(state, node.type(), InlineSpanKind::CloseMarker, contentEnd, sourceEnd, state.sourceText->mid(contentEnd, sourceEnd - contentEnd), false);
-      }
-      break;
-    }
-    case InlineType::Emphasis:
-    case InlineType::Strong:
-    case InlineType::Strikethrough:
-    case InlineType::Highlight:
-    case InlineType::Subscript:
-    case InlineType::Superscript: {
-      InlineRange content = localRange(node.contentRange(), state.sourceBase);
-      if (!rangeWithin(content, sourceStart, sourceEnd)) {
-        content = InlineRange{qMin(sourceEnd, sourceStart + marker.size()), qMax(sourceStart, sourceEnd - marker.size())};
-      }
-      const qsizetype contentStart = content.start;
-      const qsizetype contentEnd = qMax(contentStart, content.end);
-      if (active) {
-        appendTextSpan(state, node.type(), InlineSpanKind::OpenMarker, sourceStart, contentStart, state.sourceText->mid(sourceStart, contentStart - sourceStart), false);
-      }
-      const bool previousBold = state.bold;
-      const bool previousItalic = state.italic;
-      const bool previousStrike = state.strike;
-      const bool previousHighlight = state.highlight;
-      const bool previousSubscript = state.subscript;
-      const bool previousSuperscript = state.superscript;
-      if (node.type() == InlineType::Strong) {
-        state.bold = true;
-      } else if (node.type() == InlineType::Emphasis) {
-        state.italic = true;
-      } else if (node.type() == InlineType::Strikethrough) {
-        state.strike = true;
-      } else if (node.type() == InlineType::Highlight) {
-        state.highlight = true;
-      } else if (node.type() == InlineType::Subscript) {
-        state.subscript = true;
-      } else if (node.type() == InlineType::Superscript) {
-        state.superscript = true;
-      }
-      appendInlines(state, node.children(), contentStart, contentEnd, htmlFormatData);
-      state.bold = previousBold;
-      state.italic = previousItalic;
-      state.strike = previousStrike;
-      state.highlight = previousHighlight;
-      state.subscript = previousSubscript;
-      state.superscript = previousSuperscript;
-      if (contentStart == contentEnd) {
-        appendTextSpan(state, node.type(), InlineSpanKind::EmptyContentSlot, contentStart, contentEnd, QString(), false);
-      }
-      if (active) {
-        appendTextSpan(state, node.type(), InlineSpanKind::CloseMarker, contentEnd, sourceEnd, state.sourceText->mid(contentEnd, sourceEnd - contentEnd), false);
-      }
-      if (!active && state.spans.size() > 0) {
-        const qsizetype displayEnd = state.displayOffset;
-        const qsizetype visibleEnd = state.visibleOffset;
-        for (InlineProjectionSpan& span : state.spans) {
-          if (span.displayStart >= displayStart && span.displayEnd <= displayEnd && span.visibleStart >= visibleStart &&
-              span.visibleEnd <= visibleEnd) {
-            span.sourceStart = sourceStart;
-            span.sourceEnd = sourceEnd;
-          }
-        }
-      }
-      break;
-    }
-    case InlineType::HtmlInline:
-      // <br> nested inside a paired inline HTML group (<b>..<br>..</b>) reaches this case
-      // via appendHtmlInlineContent; emit it the same way as a top-level <br> so plain/
-      // visible/display text stays consistent. Other inline HTML keeps its literal text.
-      if (isStandaloneBrTag(node.text())) {
-        appendBrLineBreak(state, sourceStart, sourceEnd, node.text());
-      } else {
-        appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, node.text(), true);
-      }
-      break;
-    case InlineType::Link: {
-      const QString label = markdownForInlines(node.children());
-      if (node.isAutolink()) {
-        InlineRange content = localRange(node.contentRange(), state.sourceBase);
-        if (!rangeWithin(content, sourceStart, sourceEnd)) {
-          content = InlineRange{sourceStart, sourceEnd};
-        }
-        appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, content.start, content.end, label, true);
-        state.spans.last().link = true;  // formatting is driven by span.link, not type (see Link re-tag below)
-        state.linkRanges.push_back({displayStart, state.displayOffset, node.href()});
+      decodedPos += plainSource.size();
+      const QStringView segText =
+          segment.isEmoji ? QStringView(source).mid(segment.sourceStart, segment.sourceEnd - segment.sourceStart)
+                          : QStringView(segment.decodedText);
+      if (!textMatchesAt(decoded, decodedPos, segText)) {
+        aligned = false;
         break;
       }
-      InlineRange openMarker = localRange(node.openMarkerRange(), state.sourceBase);
-      InlineRange content = localRange(node.contentRange(), state.sourceBase);
-      const qsizetype contentStart = rangeWithin(openMarker, sourceStart, sourceEnd) ? openMarker.end : qMin(sourceEnd, sourceStart + 1);
-      const qsizetype contentEnd = rangeWithin(content, sourceStart, sourceEnd) ? content.end : contentStart;
-      if (active) {
-        appendTextSpan(state, node.type(), InlineSpanKind::OpenMarker, sourceStart, contentStart, state.sourceText->mid(sourceStart, contentStart - sourceStart), false);
+      decodedPos += segText.size();
+      sourcePos = segment.sourceEnd;
+    }
+    if (aligned && !textMatchesAt(decoded, decodedPos, QStringView(source).mid(sourcePos))) {
+      aligned = false;
+    }
+    if (!aligned) {
+      appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, decoded, true);
+      break;
+    }
+
+    // Emit. Plain segments go through smart-punct so `--`/quotes convert even
+    // when interspersed with escapes/entities/shortcodes (this path previously
+    // skipped smart punct). Visible offsets are read from state.visibleOffset
+    // (maintained exactly by appendTextSpan) so a smart-punct fold inside a
+    // plain segment never desyncs the reveal check.
+    sourcePos = 0;
+    for (const DecodeSpan& segment : segments) {
+      if (segment.sourceStart > sourcePos) {
+        appendSmartPunctTextSpans(state, sourceStart + sourcePos, sourceStart + segment.sourceStart,
+                                  source.mid(sourcePos, segment.sourceStart - sourcePos));
       }
-      appendInlines(state, node.children(), contentStart, contentEnd, htmlFormatData);
-      // Mark the link's child spans as part of a link WITHOUT overwriting their type. Each span keeps
-      // its real type (Image/Code/Emphasis/…) so the inner content renders correctly — images load via
-      // buildImageAtoms, code keeps its background — while link color/underline is applied orthogonally
-      // via span.link (InlineLayout). This is what makes an image-link [![alt](img)](url) render as a
-      // clickable image instead of collapsing to alt-text-as-link.
+      const qsizetype segmentSourceStart = sourceStart + segment.sourceStart;
+      const qsizetype segmentSourceEnd = sourceStart + segment.sourceEnd;
+      const qsizetype segmentVisibleStart = state.visibleOffset;
+      const qsizetype segmentVisibleEnd = segmentVisibleStart + segment.decodedText.size();
+      const bool revealSyntax =
+          state.shouldReveal(segmentSourceStart, segmentSourceEnd, segmentVisibleStart, segmentVisibleEnd);
+
+      appendTextSpan(state, node.type(), InlineSpanKind::Text, segmentSourceStart, segmentSourceEnd,
+                     segment.decodedText, true);
+      if (revealSyntax) {
+        appendTextSpan(state, node.type(), InlineSpanKind::HiddenSyntax, segmentSourceStart, segmentSourceEnd,
+                       source.mid(segment.sourceStart, segment.sourceEnd - segment.sourceStart), false);
+      }
+      sourcePos = segment.sourceEnd;
+    }
+    if (sourcePos < source.size()) {
+      appendSmartPunctTextSpans(state, sourceStart + sourcePos, sourceEnd, source.mid(sourcePos));
+    }
+    break;
+  }
+  case InlineType::SoftBreak:
+    // CommonMark joins a soft break into the paragraph as a space; breakOnSingleNewline instead
+    // forces a line break, so pasted "1\n2\n3" renders on three lines.
+    appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd,
+                   state.breakOnSingleNewline ? QStringLiteral("\n") : QStringLiteral(" "), true);
+    break;
+  case InlineType::LineBreak:
+    appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, QStringLiteral("\n"), true);
+    break;
+  case InlineType::Code:
+  case InlineType::InlineMath: {
+    InlineRange content = localRange(node.contentRange(), state.sourceBase);
+    if (!rangeWithin(content, sourceStart, sourceEnd)) {
+      content = InlineRange{qMin(sourceEnd, sourceStart + marker.size()), qMax(sourceStart, sourceEnd - marker.size())};
+    }
+    const qsizetype contentStart = content.start;
+    const qsizetype contentEnd = qMax(contentStart, content.end);
+    if (active) {
+      appendTextSpan(state, node.type(), InlineSpanKind::OpenMarker, sourceStart, contentStart,
+                     state.sourceText->mid(sourceStart, contentStart - sourceStart), false);
+    }
+    appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, contentStart, contentEnd,
+                   node.text(), true);
+    if (active) {
+      appendTextSpan(state, node.type(), InlineSpanKind::CloseMarker, contentEnd, sourceEnd,
+                     state.sourceText->mid(contentEnd, sourceEnd - contentEnd), false);
+    }
+    break;
+  }
+  case InlineType::Emphasis:
+  case InlineType::Strong:
+  case InlineType::Strikethrough:
+  case InlineType::Highlight:
+  case InlineType::Subscript:
+  case InlineType::Superscript: {
+    InlineRange content = localRange(node.contentRange(), state.sourceBase);
+    if (!rangeWithin(content, sourceStart, sourceEnd)) {
+      content = InlineRange{qMin(sourceEnd, sourceStart + marker.size()), qMax(sourceStart, sourceEnd - marker.size())};
+    }
+    const qsizetype contentStart = content.start;
+    const qsizetype contentEnd = qMax(contentStart, content.end);
+    if (active) {
+      appendTextSpan(state, node.type(), InlineSpanKind::OpenMarker, sourceStart, contentStart,
+                     state.sourceText->mid(sourceStart, contentStart - sourceStart), false);
+    }
+    const bool previousBold = state.bold;
+    const bool previousItalic = state.italic;
+    const bool previousStrike = state.strike;
+    const bool previousHighlight = state.highlight;
+    const bool previousSubscript = state.subscript;
+    const bool previousSuperscript = state.superscript;
+    if (node.type() == InlineType::Strong) {
+      state.bold = true;
+    } else if (node.type() == InlineType::Emphasis) {
+      state.italic = true;
+    } else if (node.type() == InlineType::Strikethrough) {
+      state.strike = true;
+    } else if (node.type() == InlineType::Highlight) {
+      state.highlight = true;
+    } else if (node.type() == InlineType::Subscript) {
+      state.subscript = true;
+    } else if (node.type() == InlineType::Superscript) {
+      state.superscript = true;
+    }
+    appendInlines(state, node.children(), contentStart, contentEnd, htmlFormatData);
+    state.bold = previousBold;
+    state.italic = previousItalic;
+    state.strike = previousStrike;
+    state.highlight = previousHighlight;
+    state.subscript = previousSubscript;
+    state.superscript = previousSuperscript;
+    if (contentStart == contentEnd) {
+      appendTextSpan(state, node.type(), InlineSpanKind::EmptyContentSlot, contentStart, contentEnd, QString(), false);
+    }
+    if (active) {
+      appendTextSpan(state, node.type(), InlineSpanKind::CloseMarker, contentEnd, sourceEnd,
+                     state.sourceText->mid(contentEnd, sourceEnd - contentEnd), false);
+    }
+    if (!active && state.spans.size() > 0) {
+      const qsizetype displayEnd = state.displayOffset;
+      const qsizetype visibleEnd = state.visibleOffset;
       for (InlineProjectionSpan& span : state.spans) {
-        if (span.displayStart >= displayStart && span.displayEnd <= state.displayOffset) {
-          span.link = true;
+        if (span.displayStart >= displayStart && span.displayEnd <= displayEnd && span.visibleStart >= visibleStart &&
+            span.visibleEnd <= visibleEnd) {
+          span.sourceStart = sourceStart;
+          span.sourceEnd = sourceEnd;
         }
       }
-      state.linkRanges.push_back({displayStart, state.displayOffset, node.href()});
-      if (active) {
-        appendTextSpan(state, node.type(), InlineSpanKind::HiddenSyntax, contentEnd, sourceEnd, state.sourceText->mid(contentEnd, sourceEnd - contentEnd), false);
-      }
-      break;
     }
-    case InlineType::Image: {
-      if (!active) {
-        appendTextSpan(state, node.type(), InlineSpanKind::Atom, sourceStart, sourceEnd, node.alt(), true);
-        state.spans.last().href = node.href();
-        break;
-      }
-      InlineRange openMarker = localRange(node.openMarkerRange(), state.sourceBase);
-      InlineRange content = localRange(node.contentRange(), state.sourceBase);
-      const qsizetype labelStart = rangeWithin(openMarker, sourceStart, sourceEnd) ? openMarker.end : sourceStart;
-      const qsizetype labelEnd = rangeWithin(content, sourceStart, sourceEnd) ? content.end : labelStart;
-      if (labelStart > sourceStart) {
-        appendTextSpan(state, node.type(), InlineSpanKind::OpenMarker, sourceStart, labelStart, state.sourceText->mid(sourceStart, labelStart - sourceStart), false);
-      }
-      appendTextSpan(state, node.type(), InlineSpanKind::Atom, sourceStart, sourceEnd, labelStart, labelEnd, node.alt(), true);
-      state.spans.last().href = node.href();
-      if (labelEnd < sourceEnd) {
-        appendTextSpan(state, node.type(), InlineSpanKind::HiddenSyntax, labelEnd, sourceEnd, state.sourceText->mid(labelEnd, sourceEnd - labelEnd), false);
-      }
-      break;
-    }
-    case InlineType::FootnoteReference: {
-      // Source `[^label]` renders as the resolved ordinal (e.g. "1") — a superscript
-      // link atom (N:1 source→display, like an image). When the caret is inside, the
-      // raw `[^label]` source is revealed for editing (plain, no superscript/link).
-      if (active) {
-        appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd,
-                       state.sourceText->mid(sourceStart, sourceEnd - sourceStart), true);
-        break;
-      }
+    break;
+  }
+  case InlineType::HtmlInline:
+    // <br> nested inside a paired inline HTML group (<b>..<br>..</b>) reaches this case
+    // via appendHtmlInlineContent; emit it the same way as a top-level <br> so plain/
+    // visible/display text stays consistent. Other inline HTML keeps its literal text.
+    if (isStandaloneBrTag(node.text())) {
+      appendBrLineBreak(state, sourceStart, sourceEnd, node.text());
+    } else {
       appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, node.text(), true);
-      state.spans.last().superscript = true;
-      state.spans.last().link = true;
+    }
+    break;
+  case InlineType::Link: {
+    const QString label = markdownForInlines(node.children());
+    if (node.isAutolink()) {
+      InlineRange content = localRange(node.contentRange(), state.sourceBase);
+      if (!rangeWithin(content, sourceStart, sourceEnd)) {
+        content = InlineRange{sourceStart, sourceEnd};
+      }
+      appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, content.start, content.end,
+                     label, true);
+      state.spans.last().link = true; // formatting is driven by span.link, not type (see Link re-tag below)
       state.linkRanges.push_back({displayStart, state.displayOffset, node.href()});
       break;
     }
-    default:
-      appendInlines(state, node.children(), sourceStart, sourceEnd, htmlFormatData);
+    InlineRange openMarker = localRange(node.openMarkerRange(), state.sourceBase);
+    InlineRange content = localRange(node.contentRange(), state.sourceBase);
+    const qsizetype contentStart =
+        rangeWithin(openMarker, sourceStart, sourceEnd) ? openMarker.end : qMin(sourceEnd, sourceStart + 1);
+    const qsizetype contentEnd = rangeWithin(content, sourceStart, sourceEnd) ? content.end : contentStart;
+    if (active) {
+      appendTextSpan(state, node.type(), InlineSpanKind::OpenMarker, sourceStart, contentStart,
+                     state.sourceText->mid(sourceStart, contentStart - sourceStart), false);
+    }
+    appendInlines(state, node.children(), contentStart, contentEnd, htmlFormatData);
+    // Mark the link's child spans as part of a link WITHOUT overwriting their type. Each span keeps
+    // its real type (Image/Code/Emphasis/…) so the inner content renders correctly — images load via
+    // buildImageAtoms, code keeps its background — while link color/underline is applied orthogonally
+    // via span.link (InlineLayout). This is what makes an image-link [![alt](img)](url) render as a
+    // clickable image instead of collapsing to alt-text-as-link.
+    for (InlineProjectionSpan& span : state.spans) {
+      if (span.displayStart >= displayStart && span.displayEnd <= state.displayOffset) {
+        span.link = true;
+      }
+    }
+    state.linkRanges.push_back({displayStart, state.displayOffset, node.href()});
+    if (active) {
+      appendTextSpan(state, node.type(), InlineSpanKind::HiddenSyntax, contentEnd, sourceEnd,
+                     state.sourceText->mid(contentEnd, sourceEnd - contentEnd), false);
+    }
+    break;
+  }
+  case InlineType::Image: {
+    if (!active) {
+      appendTextSpan(state, node.type(), InlineSpanKind::Atom, sourceStart, sourceEnd, node.alt(), true);
+      state.spans.last().href = node.href();
       break;
+    }
+    InlineRange openMarker = localRange(node.openMarkerRange(), state.sourceBase);
+    InlineRange content = localRange(node.contentRange(), state.sourceBase);
+    const qsizetype labelStart = rangeWithin(openMarker, sourceStart, sourceEnd) ? openMarker.end : sourceStart;
+    const qsizetype labelEnd = rangeWithin(content, sourceStart, sourceEnd) ? content.end : labelStart;
+    if (labelStart > sourceStart) {
+      appendTextSpan(state, node.type(), InlineSpanKind::OpenMarker, sourceStart, labelStart,
+                     state.sourceText->mid(sourceStart, labelStart - sourceStart), false);
+    }
+    appendTextSpan(state, node.type(), InlineSpanKind::Atom, sourceStart, sourceEnd, labelStart, labelEnd, node.alt(),
+                   true);
+    state.spans.last().href = node.href();
+    if (labelEnd < sourceEnd) {
+      appendTextSpan(state, node.type(), InlineSpanKind::HiddenSyntax, labelEnd, sourceEnd,
+                     state.sourceText->mid(labelEnd, sourceEnd - labelEnd), false);
+    }
+    break;
+  }
+  case InlineType::FootnoteReference: {
+    // Source `[^label]` renders as the resolved ordinal (e.g. "1") — a superscript
+    // link atom (N:1 source→display, like an image). When the caret is inside, the
+    // raw `[^label]` source is revealed for editing (plain, no superscript/link).
+    if (active) {
+      appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd,
+                     state.sourceText->mid(sourceStart, sourceEnd - sourceStart), true);
+      break;
+    }
+    appendTextSpan(state, node.type(), InlineSpanKind::Text, sourceStart, sourceEnd, node.text(), true);
+    state.spans.last().superscript = true;
+    state.spans.last().link = true;
+    state.linkRanges.push_back({displayStart, state.displayOffset, node.href()});
+    break;
+  }
+  default:
+    appendInlines(state, node.children(), sourceStart, sourceEnd, htmlFormatData);
+    break;
   }
 }
 
-qsizetype InlineProjection::findMarkdown(const QString& sourceText, const QString& markdown, qsizetype searchFrom, qsizetype searchEnd) {
+qsizetype InlineProjection::findMarkdown(const QString& sourceText, const QString& markdown, qsizetype searchFrom,
+                                         qsizetype searchEnd) {
   if (markdown.isEmpty()) {
     return qBound<qsizetype>(0, searchFrom, sourceText.size());
   }
@@ -1554,4 +1534,4 @@ bool InlineProjection::offsetInSource(qsizetype sourceOffset) const {
   return sourceOffset >= 0 && sourceOffset <= sourceText_.size();
 }
 
-}  // namespace muffin
+} // namespace muffin

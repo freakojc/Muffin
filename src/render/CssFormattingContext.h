@@ -34,7 +34,7 @@ enum class CssLayoutPhase { Intrinsic, InlineAllocation, BlockAllocation, Depend
 struct CssMeasureRequest {
   qreal width = -1;
   qreal containingWidth = -1;
-  qreal containingHeight = -1;  // Negative means indefinite, never a frozen cyclic size.
+  qreal containingHeight = -1; // Negative means indefinite, never a frozen cyclic size.
   qreal allocatedHeight = -1;
   CssGridInheritance inherited;
   CssLayoutPhase phase = CssLayoutPhase::BlockAllocation;
@@ -60,7 +60,7 @@ struct CssFormattingItem {
   // Present for a grid whose adapter exposes its formatting children. A leaf
   // still uses measure(), even when its CSS display happens to be grid.
   std::optional<std::vector<CssFormattingItem>> children;
-  std::optional<QSizeF> naturalSize;  // replaced content, in layout pixels
+  std::optional<QSizeF> naturalSize; // replaced content, in layout pixels
 };
 struct CssMeasurementObservation {
   QString identity;
@@ -68,7 +68,7 @@ struct CssMeasurementObservation {
   CssMeasuredContent value;
 };
 class CssMeasurementTrace {
- public:
+public:
   CssMeasurementTrace();
   ~CssMeasurementTrace();
   std::vector<CssMeasurementObservation> observations;
@@ -82,8 +82,8 @@ struct CssGridContribution {
 struct CssFormattingResult {
   QSizeF size;
   qreal firstBaseline = -1, lastBaseline = -1;
-  std::vector<QRectF> items;            // source order, regardless of visual order
-  std::vector<qreal> containingWidths;  // Flex content width or Grid area width
+  std::vector<QRectF> items;           // source order, regardless of visual order
+  std::vector<qreal> containingWidths; // Flex content width or Grid area width
   std::vector<CssGridInheritance> inheritedGrids;
   // Intrinsic contributions remain track-relative so a parent can size shared
   // tracks from subgrid descendants, including descendants spanning tracks.
@@ -95,14 +95,16 @@ struct CssFormattingResult {
 YGNode* createCssLayoutNode();
 CssIntrinsicMetrics intrinsicTextWidths(const TextLayout& text, bool noWrap = false, bool anywhereMinimum = false);
 void applyCssFormattingStyle(YGNode* node, const CssLayoutStyle& style, qreal scale = 1);
-CssFormattingResult layoutFlexItems(const ThemeElementStyle& container, const std::vector<CssFormattingItem>& items, qreal contentWidth,
-                                    qreal contentHeight = -1, qreal scale = 1);
-CssFormattingResult layoutGridItems(const ThemeElementStyle& container, const std::vector<CssFormattingItem>& items, qreal contentWidth,
-                                    qreal contentHeight = -1, qreal scale = 1, const CssGridInheritance& inherited = {});
-CssFormattingResult layoutFormattingItems(const ThemeElementStyle& container, const std::vector<CssFormattingItem>& items,
-                                          qreal contentWidth, qreal contentHeight = -1, qreal scale = 1,
+CssFormattingResult layoutFlexItems(const ThemeElementStyle& container, const std::vector<CssFormattingItem>& items,
+                                    qreal contentWidth, qreal contentHeight = -1, qreal scale = 1);
+CssFormattingResult layoutGridItems(const ThemeElementStyle& container, const std::vector<CssFormattingItem>& items,
+                                    qreal contentWidth, qreal contentHeight = -1, qreal scale = 1,
+                                    const CssGridInheritance& inherited = {});
+CssFormattingResult layoutFormattingItems(const ThemeElementStyle& container,
+                                          const std::vector<CssFormattingItem>& items, qreal contentWidth,
+                                          qreal contentHeight = -1, qreal scale = 1,
                                           const CssGridInheritance& inherited = {});
 CssGridInheritance contentGridInheritance(CssGridInheritance inherited, QMarginsF insets);
 CssIntrinsicMetrics intrinsicGridWidths(const ThemeElementStyle& style, const std::vector<CssFormattingItem>& items);
 CssIntrinsicMetrics intrinsicFlexWidths(const ThemeElementStyle& style, const std::vector<CssFormattingItem>& items);
-}  // namespace muffin
+} // namespace muffin

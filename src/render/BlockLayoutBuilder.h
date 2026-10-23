@@ -23,7 +23,9 @@
 namespace muffin {
 
 class CodeFenceScrollController;
-namespace mermaid::editor { class MermaidRenderCache; }
+namespace mermaid::editor {
+class MermaidRenderCache;
+}
 
 class BlockLayoutBuilder {
 public:
@@ -80,11 +82,14 @@ public:
   using EstimateResult = BlockHeightEstimate;
   EstimateResult estimateHeight(const MarkdownNode& node, const RenderTheme& theme, qreal width, int depth = 0) const;
 
-  std::unique_ptr<BlockLayout> build(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width, int depth = 0);
-  std::unique_ptr<BlockLayout> buildAllocated(const MarkdownNode& node, const RenderTheme& theme, QRectF allocation, qreal containingWidth,
-                                              int depth = 0, const CssGridInheritance& inherited = {});
+  std::unique_ptr<BlockLayout> build(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width,
+                                     int depth = 0);
+  std::unique_ptr<BlockLayout> buildAllocated(const MarkdownNode& node, const RenderTheme& theme, QRectF allocation,
+                                              qreal containingWidth, int depth = 0,
+                                              const CssGridInheritance& inherited = {});
   CssIntrinsicMetrics intrinsicMetrics(const MarkdownNode& node, const RenderTheme& theme, qreal containingWidth);
-  CssFormattingItem formattingItem(const MarkdownNode& node, const RenderTheme& theme, qreal containingWidth, int depth = 0);
+  CssFormattingItem formattingItem(const MarkdownNode& node, const RenderTheme& theme, qreal containingWidth,
+                                   int depth = 0);
   void beginFormattingPass(bool incremental, QSet<NodeId> dirty);
   QPair<quint64, quint64> finishFormattingPass();
   QByteArray formattingSignature(const MarkdownNode& node, const RenderTheme& theme);
@@ -92,43 +97,49 @@ public:
   void clearRetainedLayouts() { retainedLayouts_.clear(); }
   void invalidateRenderState() { ++renderStateGeneration_; }
   qsizetype reusedLayouts = 0, builtLayouts = 0, reusedContexts = 0, solvedContexts = 0;
-  CssFormattingResult solveFormatting(NodeId id, const ThemeElementStyle& style, const std::vector<CssFormattingItem>& items, qreal width,
-                                      qreal height, const CssGridInheritance& inherited = {});
+  CssFormattingResult solveFormatting(NodeId id, const ThemeElementStyle& style,
+                                      const std::vector<CssFormattingItem>& items, qreal width, qreal height,
+                                      const CssGridInheritance& inherited = {});
 
- private:
+private:
   BlockFormattingCache formattingCache_;
   QHash<NodeId, std::unique_ptr<BlockLayout>*> retainedLayouts_;
   bool materializing_ = true;
-  std::unique_ptr<BlockLayout> buildFresh(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width, int depth);
+  std::unique_ptr<BlockLayout> buildFresh(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
+                                          qreal width, int depth);
   QByteArray renderSettingsSignature_;
   quint64 fontGeneration_ = 0;
   quint64 renderStateGeneration_ = 0;
   QHash<const MarkdownNode*, QPair<QSizeF, qreal>> allocations_;
   QHash<const MarkdownNode*, CssGridInheritance> gridInheritance_;
-  ThemeElementBoxStyle boxFor(const MarkdownNode& node, const RenderTheme& theme, const QString& key, qreal containingWidth) const;
-  std::unique_ptr<BlockLayout> buildFormattingContainer(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width,
-                                                  int depth);
+  ThemeElementBoxStyle boxFor(const MarkdownNode& node, const RenderTheme& theme, const QString& key,
+                              qreal containingWidth) const;
+  std::unique_ptr<BlockLayout> buildFormattingContainer(const MarkdownNode& node, const RenderTheme& theme, qreal x,
+                                                        qreal y, qreal width, int depth);
   mutable LayoutStyleCache inlineStyleCache_;
   // Copy the active preedit (if any) onto `options` when `options.projectionState` marks this block
   // as the caret block. Called at every inline-build site (paragraph / list item / table cell).
   void applyPreedit(InlineLayout::BuildOptions& options) const;
-  std::unique_ptr<BlockLayout> buildParagraphLike(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width,
-                                                  int depth);
+  std::unique_ptr<BlockLayout> buildParagraphLike(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
+                                                  qreal width, int depth);
   // A `[TOC]` paragraph rendered as a generated indented link list of the cached
   // document headings. Used only while the caret is outside the block; when the
   // caret is inside, buildParagraphLike falls through to a normal paragraph build
   // (showing the literal "[TOC]") so the marker stays editable.
-  std::unique_ptr<BlockLayout> buildTocPreview(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width,
-                                               int depth);
-  std::unique_ptr<BlockLayout> buildContainer(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width, int depth);
-  std::unique_ptr<BlockLayout> buildListItem(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width, int depth);
-  std::unique_ptr<BlockLayout> buildLiteralBlock(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width,
-                                                 int depth);
-  std::unique_ptr<BlockLayout> buildTable(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width, int depth);
-  std::unique_ptr<BlockLayout> buildThematicBreak(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width,
-                                                  int depth);
-  std::unique_ptr<BlockLayout> buildDefinition(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y, qreal width,
-                                               int depth);
+  std::unique_ptr<BlockLayout> buildTocPreview(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
+                                               qreal width, int depth);
+  std::unique_ptr<BlockLayout> buildContainer(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
+                                              qreal width, int depth);
+  std::unique_ptr<BlockLayout> buildListItem(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
+                                             qreal width, int depth);
+  std::unique_ptr<BlockLayout> buildLiteralBlock(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
+                                                 qreal width, int depth);
+  std::unique_ptr<BlockLayout> buildTable(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
+                                          qreal width, int depth);
+  std::unique_ptr<BlockLayout> buildThematicBreak(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
+                                                  qreal width, int depth);
+  std::unique_ptr<BlockLayout> buildDefinition(const MarkdownNode& node, const RenderTheme& theme, qreal x, qreal y,
+                                               qreal width, int depth);
 
   QString textForListMarker(const MarkdownNode& itemNode, const MarkdownNode& listNode, qsizetype index) const;
   BlockLayout::ListMarkerKind markerKindForListItem(const MarkdownNode& itemNode) const;
@@ -200,7 +211,7 @@ public:
   // sibling marker cannot leave retained list items with a stale indent.
   QHash<NodeId, ListMarkerLayout> listMarkerLayouts_;
 
-  const PieceTable* markdownText_ = &emptyText_;  // non-owning; refreshed by configureBuilder before each build
+  const PieceTable* markdownText_ = &emptyText_; // non-owning; refreshed by configureBuilder before each build
 };
 
-}  // namespace muffin
+} // namespace muffin

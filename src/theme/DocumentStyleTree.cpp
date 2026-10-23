@@ -8,4 +8,4 @@ CssThemeSheet documentStyleSheet(const CssThemeSheet& author) {
   sheet.mergeIn(author);
   return sheet;
 }
-}  // namespace muffin
+} // namespace muffin

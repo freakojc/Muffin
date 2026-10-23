@@ -78,7 +78,7 @@ std::vector<MathVListEntry> entriesFromIndividualShift(std::vector<MathVListChil
   return entries;
 }
 
-}  // namespace
+} // namespace
 
 std::unique_ptr<MathLayoutNode> layoutFromRenderNode(std::unique_ptr<MathRenderNode> node) {
   if (!node) {
@@ -289,4 +289,4 @@ MathVListEntry makeLayoutVListKern(qreal size) {
   return entry;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

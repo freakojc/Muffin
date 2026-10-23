@@ -10,4 +10,4 @@ MathRenderPlaceholder MathRenderer::renderBlockPlaceholder(const QString& tex, c
   return placeholder;
 }
 
-}  // namespace muffin
+} // namespace muffin

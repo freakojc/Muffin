@@ -20,7 +20,7 @@ void registerController(EditorView* view, EditorController* controller);
 void unregisterController(EditorView* view);
 EditorController* controllerFor(const EditorView* view);
 
-}  // namespace a11y
+} // namespace a11y
 
 // Install the QAccessible factory for the two editor canvases (rendered EditorView with its
 // EditorController mapping, and the source-mode VirtualSourceEdit). Call once before any
@@ -28,4 +28,4 @@ EditorController* controllerFor(const EditorView* view);
 // factory only produces interfaces when something queries them.
 void installEditorAccessibility();
 
-}  // namespace muffin
+} // namespace muffin

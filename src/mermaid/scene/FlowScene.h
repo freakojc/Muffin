@@ -31,18 +31,18 @@ namespace muffin::mermaid::flowscene {
 struct FlowSceneLabel {
   QString text;
   QString labelType = QStringLiteral("text");
-  qreal x = 0.0;          // center, scene coords (relative to diagram origin)
+  qreal x = 0.0; // center, scene coords (relative to diagram origin)
   qreal y = 0.0;
-  QString color;          // resolved text colour
+  QString color; // resolved text colour
   QString fontFamily;
   QString fontSize;
   QString fontWeight;
-  QString background;     // edge-label bg (edgeLabelBackground); empty for nodes
-  bool mathEnabled = false;  // Mermaid enables MathML only for node labels.
+  QString background;       // edge-label bg (edgeLabelBackground); empty for nodes
+  bool mathEnabled = false; // Mermaid enables MathML only for node labels.
   bool htmlLabels = true;
   qreal maximumLineWidth = 200.0;
   bool visible = true;
-  flowchart::FlowLabelDocument richText;  // parsed and Math-prepared scene data
+  flowchart::FlowLabelDocument richText; // parsed and Math-prepared scene data
 };
 
 struct FlowSceneTextOptions {
@@ -53,7 +53,7 @@ struct FlowSceneTextOptions {
 };
 
 struct FlowSceneShapePath {
-  QPainterPath path;      // node-local coordinates, centred at (0, 0)
+  QPainterPath path; // node-local coordinates, centred at (0, 0)
   bool fill = true;
   bool stroke = true;
   QString fillOverride;
@@ -62,24 +62,24 @@ struct FlowSceneShapePath {
 
 struct FlowSceneNode {
   QString id;
-  QString shapeType;      // canonical Mermaid shape id (painter-only)
-  QString shapeKind;      // flowShapeGeometry.kind (rect/roundedRect/ellipse/polygon/...)
-  qreal cx = 0.0, cy = 0.0;  // center, scene coords
+  QString shapeType;        // canonical Mermaid shape id (painter-only)
+  QString shapeKind;        // flowShapeGeometry.kind (rect/roundedRect/ellipse/polygon/...)
+  qreal cx = 0.0, cy = 0.0; // center, scene coords
   qreal width = 0.0, height = 0.0;
   QString fill;
   QString stroke;
   QString strokeWidth;
   FlowSceneLabel label;
-  QString link;           // hit region (vertex.link)
+  QString link; // hit region (vertex.link)
   QString tooltip;
-  bool boundsVisible = true;  // display:none drops the box; visibility keeps it
+  bool boundsVisible = true; // display:none drops the box; visibility keeps it
   bool visible = true;
   // Painter-only shape geometry (from flowShapeGeometry; NOT serialized by
   // toJson — the painter consumes them, the JSON golden verifies shapeKind).
   qreal cornerRadius = 0.0;
   qreal radiusX = 0.0, radiusY = 0.0;
-  QVector<QPointF> points;  // polygon outline (centred at origin)
-  QVector<FlowSceneShapePath> shapePaths;  // ordered like upstream SVG children
+  QVector<QPointF> points;                // polygon outline (centred at origin)
+  QVector<FlowSceneShapePath> shapePaths; // ordered like upstream SVG children
   QVector<rough::Drawable> roughDrawables;
   QRectF paintedBounds;
   // Edge endpoints + tangents for marker orientation (painter-only).
@@ -87,13 +87,13 @@ struct FlowSceneNode {
 
 struct FlowSceneEdge {
   QString id;
-  QString path;           // SVG path `d` (relative coords, from FlowLayoutEdge.path)
+  QString path; // SVG path `d` (relative coords, from FlowLayoutEdge.path)
   QString stroke;
   QString strokeWidth;
   QString strokeDasharray;
-  QString markerEnd;      // marker type ("pointEnd"/...) or empty
+  QString markerEnd; // marker type ("pointEnd"/...) or empty
   QString markerStart;
-  FlowSceneLabel label;   // text empty if the edge has no label
+  FlowSceneLabel label; // text empty if the edge has no label
   QSizeF labelSize;
   rough::Drawable roughDrawable;
   QString renderedPath;
@@ -117,7 +117,7 @@ struct FlowSceneEdge {
 
 struct FlowSceneCluster {
   QString id;
-  qreal cx = 0.0, cy = 0.0;  // center
+  qreal cx = 0.0, cy = 0.0; // center
   qreal width = 0.0, height = 0.0;
   bool swimlane = false;
   bool titleOnLeft = false;
@@ -157,20 +157,20 @@ struct FlowScene : MermaidScene {
   // the browser oracle (`0 0 426.75 70`). The flowchart default padding is
   // 8; adapters overwrite it when the config requests another value.
   QRectF svgClientViewBox() const override {
-    return bounds.adjusted(-clientPadding, -clientPadding,
-                           clientPadding, clientPadding);
+    return bounds.adjusted(-clientPadding, -clientPadding, clientPadding, clientPadding);
   }
   bool hasAnimation() const override {
     for (const auto& edge : edges)
-      if (edge.animated) return true;
+      if (edge.animated)
+        return true;
     return false;
   }
   const QVector<InteractionRegion>& interactionRegions() const override { return interactionRegions_; }
 
-  QRectF bounds;          // diagram bounds (scene coords)
+  QRectF bounds; // diagram bounds (scene coords)
   // flowchart.diagramPadding (viewBox padding, upstream default 8).
   qreal clientPadding = 8.0;
-  QString background;     // theme.background
+  QString background; // theme.background
   QString markerDiagramType = QStringLiteral("flowchart-v2");
   flowchart::FlowLook look = flowchart::FlowLook::Classic;
   quint32 handDrawnSeed = 0;
@@ -186,7 +186,7 @@ struct FlowScene : MermaidScene {
   QVector<FlowSceneCluster> clusters;
   QVector<FlowSceneEdge> edges;
   QVector<FlowSceneNode> nodes;
-  QVector<InteractionRegion> interactionRegions_;  // precomputed at build
+  QVector<InteractionRegion> interactionRegions_; // precomputed at build
 
   QJsonObject toJsonObject() const override;
   // Compact-string wrapper retained for callers that want the serialized form
@@ -198,12 +198,9 @@ struct FlowScene : MermaidScene {
 // Build the scene from data + layout + theme. Reads ONLY these inputs (no
 // FlowDB re-read, no layout). `options.curve` is already baked into the edge
 // paths in `layout`; the scene does not recompute curves.
-FlowScene buildFlowScene(const flowchart::FlowchartData& data,
-                         const flowchart::FlowLayoutResult& layout,
+FlowScene buildFlowScene(const flowchart::FlowchartData& data, const flowchart::FlowLayoutResult& layout,
                          const flowtheme::FlowThemeVariables& theme,
-                         flowchart::FlowLook look = flowchart::FlowLook::Classic,
-                         quint32 handDrawnSeed = 0,
-                         const FlowSceneTextOptions& textOptions = {},
-                         qreal shapeRadius = 5.0);
+                         flowchart::FlowLook look = flowchart::FlowLook::Classic, quint32 handDrawnSeed = 0,
+                         const FlowSceneTextOptions& textOptions = {}, qreal shapeRadius = 5.0);
 
-}  // namespace muffin::mermaid::flowscene
+} // namespace muffin::mermaid::flowscene

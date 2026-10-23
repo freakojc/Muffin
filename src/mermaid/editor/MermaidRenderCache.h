@@ -38,8 +38,8 @@
 namespace muffin::mermaid::editor {
 
 struct MermaidRenderKey {
-  QByteArray sourceHash;  // sha256 of the (preprocessed) mermaid source
-  QString theme;          // resolved mermaid theme name ("default", "dark", …)
+  QByteArray sourceHash; // sha256 of the (preprocessed) mermaid source
+  QString theme;         // resolved mermaid theme name ("default", "dark", …)
   quint64 fontGeneration = 0;
   bool operator==(const MermaidRenderKey&) const = default;
 };
@@ -55,12 +55,12 @@ struct MermaidRenderEntry {
   // it through the MermaidScene virtuals (paint/sceneBounds/toJsonObject);
   // callers needing a typed view (e.g. tests inspecting family geometry)
   // dynamic_cast from this pointer.
-  std::shared_ptr<const MermaidScene> scene;  // set when Ready
+  std::shared_ptr<const MermaidScene> scene; // set when Ready
   MermaidRenderMetadata metadata;
-  QSize naturalSize;                                   // scene.bounds size (logical px)
-  QString errorMessage;                                // set for Error/Unsupported
-  MermaidDiagnostic diagnostic;                        // family-neutral source diagnostic
-  QJsonObject errorDiagnostic;                         // structured Error details when available
+  QSize naturalSize;            // scene.bounds size (logical px)
+  QString errorMessage;         // set for Error/Unsupported
+  MermaidDiagnostic diagnostic; // family-neutral source diagnostic
+  QJsonObject errorDiagnostic;  // structured Error details when available
 };
 
 struct MermaidPngRenderResult {
@@ -101,8 +101,7 @@ public:
   // Async validation while the caret is inside a Mermaid fence. Only the latest
   // source submitted during the debounce window is launched, preventing a full
   // parse/layout task for every keystroke.
-  MermaidRenderEntry requestDebounced(
-      const MermaidRenderKey& key, const QString& source, int delayMs = 250);
+  MermaidRenderEntry requestDebounced(const MermaidRenderKey& key, const QString& source, int delayMs = 250);
 
   // Sync (export/print): render-or-fetch NOW (blocks the calling thread). Used by
   // one-shot export where blocking is acceptable and there is no event loop to
@@ -115,20 +114,16 @@ public:
   // One-shot render of a mermaid source to a `data:image/png;base64,…` URL (or
   // empty on Error/Unsupported/Loading). Used by HTML export (milestone I-5): the
   // serializer embeds the PNG inline. Renders at `dpr` for crispness; synchronous.
-  static MermaidPngRenderResult renderMermaidSourceToPng(
-      const QString& source, qreal dpr = 2.0);
+  static MermaidPngRenderResult renderMermaidSourceToPng(const QString& source, qreal dpr = 2.0);
   static QString renderMermaidSourceToPngDataUrl(const QString& source, qreal dpr = 2.0);
 
   // Deterministic, vector-native SVG export. `instanceIndex` disambiguates
   // repeated equal diagrams embedded in one HTML document without changing
   // standalone output (the default index is zero).
-  static MermaidSvgRenderResult renderMermaidSourceToSvg(
-      const QString& source, qsizetype instanceIndex = 0);
-  static MermaidSvgRenderResult renderMermaidSourceToSvg(
-      const QString& source, qsizetype instanceIndex,
-      const QUrl& documentUrl, const QString& diagramId = {});
-  static QString renderMermaidSourceToSvgDataUrl(
-      const QString& source, qsizetype instanceIndex = 0);
+  static MermaidSvgRenderResult renderMermaidSourceToSvg(const QString& source, qsizetype instanceIndex = 0);
+  static MermaidSvgRenderResult renderMermaidSourceToSvg(const QString& source, qsizetype instanceIndex,
+                                                         const QUrl& documentUrl, const QString& diagramId = {});
+  static QString renderMermaidSourceToSvgDataUrl(const QString& source, qsizetype instanceIndex = 0);
 
 signals:
   void renderReady(MermaidRenderKey key);
@@ -139,12 +134,11 @@ private:
   // supported family. Unknown families become Unsupported; parser/layout
   // exceptions become Error.
   static MermaidRenderEntry renderSource(const QString& source, const QString& theme);
-  static MermaidRenderEntry renderSourceDispatch(
-      const QString& source, const QString& theme);
+  static MermaidRenderEntry renderSourceDispatch(const QString& source, const QString& theme);
 
   void launchWorker(const MermaidRenderKey& key, const QString& source);
   void cancelDebouncedRequest(bool removeLoadingEntry);
-  void touch(const MermaidRenderKey& key);  // LRU: mark key most-recent
+  void touch(const MermaidRenderKey& key); // LRU: mark key most-recent
   void evict();
   bool commit(const MermaidRenderKey& key, const MermaidRenderEntry& entry);
 
@@ -152,7 +146,7 @@ private:
   QString resourceIdentity_;
   quint64 epoch_ = 0;
   QHash<MermaidRenderKey, MermaidRenderEntry> entries_;
-  QList<MermaidRenderKey> lru_;  // front = least-recently-used
+  QList<MermaidRenderKey> lru_; // front = least-recently-used
   QHash<QFutureWatcher<MermaidRenderEntry>*, MermaidRenderKey> watchers_;
   QTimer debounceTimer_;
   bool debouncePending_ = false;
@@ -160,4 +154,4 @@ private:
   QString debouncedSource_;
 };
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

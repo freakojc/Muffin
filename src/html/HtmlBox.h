@@ -148,7 +148,7 @@ struct HtmlComputedStyle {
   QColor color;
   QColor backgroundColor;
   QFont font;
-  qreal fontSize = 0;  // 0 = inherit
+  qreal fontSize = 0; // 0 = inherit
   int fontWeight = QFont::Normal;
   QFont::Style fontStyle = QFont::StyleNormal;
   Qt::Alignment textAlign = Qt::AlignLeft;
@@ -159,9 +159,9 @@ struct HtmlComputedStyle {
   QColor borderColor;
   HtmlBorderStyle borderStyle = HtmlBorderStyle::Solid;
   qreal borderRadius = 0;
-  qreal width = -1;   // -1 = auto
-  qreal height = -1;  // -1 = auto
-  qreal zoom = 1.0;   // scale factor from style="zoom:N%"; 1.0 = natural size
+  qreal width = -1;  // -1 = auto
+  qreal height = -1; // -1 = auto
+  qreal zoom = 1.0;  // scale factor from style="zoom:N%"; 1.0 = natural size
   qreal cssScale = 1.0;
   qreal lineHeight = -1;
   qreal letterSpacing = 0;
@@ -169,7 +169,7 @@ struct HtmlComputedStyle {
   HtmlWhiteSpace whiteSpace = HtmlWhiteSpace::Normal;
   bool fontSizeExplicit = false;
   bool whiteSpaceExplicit = false;
-  QString fontFamily;  // empty = inherit
+  QString fontFamily; // empty = inherit
 
   // Percentage values for properties that resolve against container width at layout time.
   // Negative = not a percentage (use the pixel value above).
@@ -205,16 +205,16 @@ struct HtmlColorPalette {
   qreal parentFontPx = 0.0;
   const CssElement* documentParent = nullptr;
   std::function<const CssElement*(qsizetype)> documentParentForOffset;
-  QColor text;                   // default body text + <kbd>
-  QColor background;             // <body> canvas
-  QColor muted;                  // secondary text / soft borders (<button> border, placeholder alt)
-  QColor link;                   // <a>
-  QColor codeBackground;         // <pre>, <th>/<button> surface, <kbd> fill, image-placeholder fill
-  QColor codeBorder;             // <pre>/<kbd> border, image-placeholder border
-  QColor quoteBorder;            // <blockquote>
-  QColor tableBorder;            // table cells / <input> / generic border / <hr>
-  QColor tableHeaderBackground;  // <th>
-  QColor highlight;              // <mark>
+  QColor text;                  // default body text + <kbd>
+  QColor background;            // <body> canvas
+  QColor muted;                 // secondary text / soft borders (<button> border, placeholder alt)
+  QColor link;                  // <a>
+  QColor codeBackground;        // <pre>, <th>/<button> surface, <kbd> fill, image-placeholder fill
+  QColor codeBorder;            // <pre>/<kbd> border, image-placeholder border
+  QColor quoteBorder;           // <blockquote>
+  QColor tableBorder;           // table cells / <input> / generic border / <hr>
+  QColor tableHeaderBackground; // <th>
+  QColor highlight;             // <mark>
 
   static HtmlColorPalette defaultLight() {
     HtmlColorPalette p;
@@ -234,85 +234,85 @@ struct HtmlColorPalette {
 
 class HtmlBox {
 public:
- int plainTextStart = 0;
- qreal firstBaseline = -1, lastBaseline = -1;
- LayoutBox layoutBox;
- std::vector<size_t> formattingPaintOrder;
- QString cssTag;
- QString cssId;
- QStringList cssClasses;
- QHash<QString, QString> cssAttributes;
- QString cssInlineStyle;
- explicit HtmlBox(HtmlTag tag);
- ~HtmlBox();
+  int plainTextStart = 0;
+  qreal firstBaseline = -1, lastBaseline = -1;
+  LayoutBox layoutBox;
+  std::vector<size_t> formattingPaintOrder;
+  QString cssTag;
+  QString cssId;
+  QStringList cssClasses;
+  QHash<QString, QString> cssAttributes;
+  QString cssInlineStyle;
+  explicit HtmlBox(HtmlTag tag);
+  ~HtmlBox();
 
- HtmlTag tag() const;
- void setTag(HtmlTag tag);
+  HtmlTag tag() const;
+  void setTag(HtmlTag tag);
 
- // Text content (TextRun only)
- QString text() const;
- void setText(QString text);
+  // Text content (TextRun only)
+  QString text() const;
+  void setText(QString text);
 
- // Image attributes
- QString src() const;
- void setSrc(QString src);
- QString alt() const;
- void setAlt(QString alt);
+  // Image attributes
+  QString src() const;
+  void setSrc(QString src);
+  QString alt() const;
+  void setAlt(QString alt);
 
- // Anchor attributes
- QString href() const;
- void setHref(QString href);
+  // Anchor attributes
+  QString href() const;
+  void setHref(QString href);
 
- // List marker text (for <li>)
- QString listMarker() const;
- void setListMarker(QString marker);
+  // List marker text (for <li>)
+  QString listMarker() const;
+  void setListMarker(QString marker);
 
- // Ordered list attributes (for <ol>)
- int listStart() const;
- void setListStart(int start);
- HtmlListMarkerType listMarkerType() const;
- void setListMarkerType(HtmlListMarkerType type);
- bool listReversed() const;
- void setListReversed(bool reversed);
+  // Ordered list attributes (for <ol>)
+  int listStart() const;
+  void setListStart(int start);
+  HtmlListMarkerType listMarkerType() const;
+  void setListMarkerType(HtmlListMarkerType type);
+  bool listReversed() const;
+  void setListReversed(bool reversed);
 
- // Details open state (for <details>)
- bool detailsOpen() const;
- void setDetailsOpen(bool open);
+  // Details open state (for <details>)
+  bool detailsOpen() const;
+  void setDetailsOpen(bool open);
 
- // Table cell span attributes (for <td>/<th>)
- int colSpan() const;
- void setColSpan(int span);
- int rowSpan() const;
- void setRowSpan(int span);
+  // Table cell span attributes (for <td>/<th>)
+  int colSpan() const;
+  void setColSpan(int span);
+  int rowSpan() const;
+  void setRowSpan(int span);
 
- // Computed style
- HtmlComputedStyle& style();
- const HtmlComputedStyle& style() const;
- void setStyle(HtmlComputedStyle style);
+  // Computed style
+  HtmlComputedStyle& style();
+  const HtmlComputedStyle& style() const;
+  void setStyle(HtmlComputedStyle style);
 
- // Layout result
- HtmlLayoutGeometry& geometry();
- const HtmlLayoutGeometry& geometry() const;
- void setGeometry(HtmlLayoutGeometry geo);
- int textLayoutIndex() const;
- void setTextLayoutIndex(int index);
- bool ownsTextLayout() const;
+  // Layout result
+  HtmlLayoutGeometry& geometry();
+  const HtmlLayoutGeometry& geometry() const;
+  void setGeometry(HtmlLayoutGeometry geo);
+  int textLayoutIndex() const;
+  void setTextLayoutIndex(int index);
+  bool ownsTextLayout() const;
 
- // Children
- std::vector<std::unique_ptr<HtmlBox>>& children();
- const std::vector<std::unique_ptr<HtmlBox>>& children() const;
- void addChild(std::unique_ptr<HtmlBox> child);
- HtmlBox* parent();
- const HtmlBox* parent() const;
+  // Children
+  std::vector<std::unique_ptr<HtmlBox>>& children();
+  const std::vector<std::unique_ptr<HtmlBox>>& children() const;
+  void addChild(std::unique_ptr<HtmlBox> child);
+  HtmlBox* parent();
+  const HtmlBox* parent() const;
 
- // Convenience queries
- bool isTextRun() const;
- bool isBlockLevel() const;
- bool isInlineLevel() const;
- bool hasTextContent() const;
+  // Convenience queries
+  bool isTextRun() const;
+  bool isBlockLevel() const;
+  bool isInlineLevel() const;
+  bool hasTextContent() const;
 
- // Collect all text recursively (for inline formatting context)
- QString collectedText() const;
+  // Collect all text recursively (for inline formatting context)
+  QString collectedText() const;
 
 private:
   HtmlTag tag_;
@@ -337,6 +337,6 @@ private:
 // Tag classification helpers
 bool isBlockTag(HtmlTag tag);
 bool isInlineTag(HtmlTag tag);
-bool isVoidTag(HtmlTag tag);  // self-closing elements like <br>, <hr>, <img>
+bool isVoidTag(HtmlTag tag); // self-closing elements like <br>, <hr>, <img>
 
-}  // namespace muffin::html
+} // namespace muffin::html

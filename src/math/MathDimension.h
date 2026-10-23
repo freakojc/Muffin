@@ -33,6 +33,7 @@ qreal sizeTextToEm(const QString& sizeText);
  *
  * Returns 0.0 for unparseable strings and unknown units.
  */
-qreal dimensionToPoints(const QString& sizeText, qreal fontPointSize, qreal absoluteReferencePointSize = -1.0, qreal textFontPointSize = -1.0);
+qreal dimensionToPoints(const QString& sizeText, qreal fontPointSize, qreal absoluteReferencePointSize = -1.0,
+                        qreal textFontPointSize = -1.0);
 
-}  // namespace muffin::math
+} // namespace muffin::math

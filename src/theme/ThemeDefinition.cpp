@@ -36,18 +36,34 @@ QColor parseColor(const QJsonObject& colors, const char* key) {
 
 Qt::Alignment alignmentFromString(const QString& value) {
   const QString v = value.trimmed().toLower();
-  if (v == QStringLiteral("left")) { return Qt::AlignLeft; }
-  if (v == QStringLiteral("right")) { return Qt::AlignRight; }
-  if (v == QStringLiteral("center")) { return Qt::AlignHCenter; }
-  if (v == QStringLiteral("justify")) { return Qt::AlignJustify; }
+  if (v == QStringLiteral("left")) {
+    return Qt::AlignLeft;
+  }
+  if (v == QStringLiteral("right")) {
+    return Qt::AlignRight;
+  }
+  if (v == QStringLiteral("center")) {
+    return Qt::AlignHCenter;
+  }
+  if (v == QStringLiteral("justify")) {
+    return Qt::AlignJustify;
+  }
   return Qt::Alignment();
 }
 
 QString alignmentToString(Qt::Alignment alignment) {
-  if (alignment & Qt::AlignJustify) { return QStringLiteral("justify"); }
-  if (alignment & Qt::AlignHCenter) { return QStringLiteral("center"); }
-  if (alignment & Qt::AlignRight) { return QStringLiteral("right"); }
-  if (alignment & Qt::AlignLeft) { return QStringLiteral("left"); }
+  if (alignment & Qt::AlignJustify) {
+    return QStringLiteral("justify");
+  }
+  if (alignment & Qt::AlignHCenter) {
+    return QStringLiteral("center");
+  }
+  if (alignment & Qt::AlignRight) {
+    return QStringLiteral("right");
+  }
+  if (alignment & Qt::AlignLeft) {
+    return QStringLiteral("left");
+  }
   return QString();
 }
 
@@ -66,8 +82,9 @@ QHash<QString, QString>& fontFaceAliases() {
 QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
   diag::ScopedPerfProbe perf("theme.registerFonts", themeLoadPerf());
   QHash<QString, QString> aliases;
-  if (!qobject_cast<QGuiApplication*>(QCoreApplication::instance())) return aliases;
-  LayoutResources::instance();  // Observe font database changes before registering a face.
+  if (!qobject_cast<QGuiApplication*>(QCoreApplication::instance()))
+    return aliases;
+  LayoutResources::instance(); // Observe font database changes before registering a face.
   struct Face {
     QString family;
     PreparedThemeFont source;
@@ -80,9 +97,11 @@ QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
     bool valid = false;
     const auto weightText = ff.weight.trimmed().toLower();
     const int weight = weightText == "normal" ? 400 : weightText == "bold" ? 700 : weightText.toInt(&valid);
-    if (weight < 1 || weight > 1000 || (!valid && weightText != "normal" && weightText != "bold")) continue;
+    if (weight < 1 || weight > 1000 || (!valid && weightText != "normal" && weightText != "bold"))
+      continue;
     const auto style = ff.style.trimmed().toLower();
-    if (style != "normal" && style != "italic" && style != "oblique") continue;
+    if (style != "normal" && style != "italic" && style != "oblique")
+      continue;
     const auto family = ff.family.toLower(), faceKey = QString::number(weight) + '/' + (style != "normal" ? '1' : '0');
     const auto sources = ff.sources.isEmpty() ? QStringList{ff.srcPath} : ff.sources;
     for (const auto& target : sources) {
@@ -102,19 +121,22 @@ QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
       QByteArray source;
       if (target.startsWith("data:", Qt::CaseInsensitive)) {
         const auto comma = target.indexOf(',');
-        if (comma < 0 || target.size() - comma > 64 * 1024 * 1024 * 4 / 3) continue;
+        if (comma < 0 || target.size() - comma > 64 * 1024 * 1024 * 4 / 3)
+          continue;
         const auto data = target.mid(comma + 1).toUtf8();
         source = target.left(comma).contains(";base64", Qt::CaseInsensitive)
                      ? QByteArray::fromBase64(data, QByteArray::AbortOnBase64DecodingErrors)
                      : QByteArray::fromPercentEncoding(data);
       } else {
         QFile file(target);
-        if (!file.open(QIODevice::ReadOnly) || file.size() > 64 * 1024 * 1024) continue;
+        if (!file.open(QIODevice::ReadOnly) || file.size() > 64 * 1024 * 1024)
+          continue;
         source = file.readAll();
       }
       auto prepared = prepareThemeFont(source, weight, style != "normal");
       // Corrupt candidates must not suppress later usable src fallbacks.
-      if (prepared.native.isEmpty()) continue;
+      if (prepared.native.isEmpty())
+        continue;
       families[family].insert(faceKey, {ff.family, std::move(prepared), weight, style != "normal", {}});
       break;
     }
@@ -133,21 +155,24 @@ QHash<QString, QString> registerThemeFonts(const CssThemeSheet& sheet) {
     const auto privateFamily = "MuffinTheme-" + QString::fromLatin1(digest.result().toHex().left(24));
     for (const auto& key : keys) {
       const auto& face = it->value(key);
-      const auto registered = face.localFamily.isEmpty()
-                                  ? registerPrivateFont(face.source, privateFamily + '-' + QString(key).replace('/', '-'),
-                                                        face.weight, face.italic)
-                                  : face.localFamily;
+      const auto registered =
+          face.localFamily.isEmpty()
+              ? registerPrivateFont(face.source, privateFamily + '-' + QString(key).replace('/', '-'), face.weight,
+                                    face.italic)
+              : face.localFamily;
       if (!registered.isEmpty()) {
         aliases.insert(font_rendering::fontFaceAliasKey(it.key(), face.weight, face.italic), registered);
-        if (!aliases.contains(it.key()) || (face.weight == 400 && !face.italic)) aliases.insert(it.key(), registered);
+        if (!aliases.contains(it.key()) || (face.weight == 400 && !face.italic))
+          aliases.insert(it.key(), registered);
       }
     }
   }
-  for (auto it = aliases.cbegin(); it != aliases.cend(); ++it) fontFaceAliases().insert(it.key(), it.value());
+  for (auto it = aliases.cbegin(); it != aliases.cend(); ++it)
+    fontFaceAliases().insert(it.key(), it.value());
   return aliases;
 }
 
-}  // namespace
+} // namespace
 
 bool ThemeDefinition::valid() const {
   // Text is the one essential token: a theme with no readable text colour is
@@ -212,7 +237,9 @@ ThemeDefinition ThemeDefinition::fromJson(const QJsonObject& json, const QString
     const QJsonArray hcols = t.value(QStringLiteral("headingColor")).toArray();
     for (int i = 0; i < 6 && i < hcols.size(); ++i) {
       QColor hc(hcols.at(i).toString());
-      if (hc.isValid()) { ty.headingColor[i] = hc; }
+      if (hc.isValid()) {
+        ty.headingColor[i] = hc;
+      }
     }
     ty.bodyAlignment = alignmentFromString(t.value(QStringLiteral("bodyAlignment")).toString());
     const QJsonArray aligns = t.value(QStringLiteral("headingAlignment")).toArray();
@@ -292,26 +319,34 @@ QJsonObject ThemeDefinition::toJson() const {
     anyHeadingTypography = anyHeadingTypography || ty.headingAlignment[i] != Qt::Alignment() ||
                            ty.headingFontWeightSet[i] || ty.headingItalicSet[i];
   }
-  const bool hasTypo = !(ty.bodyFont.isEmpty() && ty.headingFont.isEmpty() &&
-                         ty.codeFont.isEmpty() && ty.mathFont.isEmpty() &&
-                         ty.bodySizePt == 0.0 && ty.mathSizePt == 0.0 && ty.lineHeight == 0.0 &&
-                         ty.bodyAlignment == Qt::Alignment() && !anyHeadingTypography);
+  const bool hasTypo = !(ty.bodyFont.isEmpty() && ty.headingFont.isEmpty() && ty.codeFont.isEmpty() &&
+                         ty.mathFont.isEmpty() && ty.bodySizePt == 0.0 && ty.mathSizePt == 0.0 &&
+                         ty.lineHeight == 0.0 && ty.bodyAlignment == Qt::Alignment() && !anyHeadingTypography);
   if (hasTypo) {
     QJsonObject t;
-    if (!ty.bodyFont.isEmpty()) t.insert(QStringLiteral("bodyFont"), ty.bodyFont);
-    if (!ty.headingFont.isEmpty()) t.insert(QStringLiteral("headingFont"), ty.headingFont);
-    if (!ty.codeFont.isEmpty()) t.insert(QStringLiteral("codeFont"), ty.codeFont);
-    if (!ty.mathFont.isEmpty()) t.insert(QStringLiteral("mathFont"), ty.mathFont);
-    if (ty.bodySizePt != 0.0) t.insert(QStringLiteral("bodySizePt"), ty.bodySizePt);
-    if (ty.mathSizePt != 0.0) t.insert(QStringLiteral("mathSizePt"), ty.mathSizePt);
-    if (ty.lineHeight != 0.0) t.insert(QStringLiteral("lineHeight"), ty.lineHeight);
+    if (!ty.bodyFont.isEmpty())
+      t.insert(QStringLiteral("bodyFont"), ty.bodyFont);
+    if (!ty.headingFont.isEmpty())
+      t.insert(QStringLiteral("headingFont"), ty.headingFont);
+    if (!ty.codeFont.isEmpty())
+      t.insert(QStringLiteral("codeFont"), ty.codeFont);
+    if (!ty.mathFont.isEmpty())
+      t.insert(QStringLiteral("mathFont"), ty.mathFont);
+    if (ty.bodySizePt != 0.0)
+      t.insert(QStringLiteral("bodySizePt"), ty.bodySizePt);
+    if (ty.mathSizePt != 0.0)
+      t.insert(QStringLiteral("mathSizePt"), ty.mathSizePt);
+    if (ty.lineHeight != 0.0)
+      t.insert(QStringLiteral("lineHeight"), ty.lineHeight);
     QJsonArray sizes;
     bool anySize = false;
     for (int i = 0; i < 6; ++i) {
       sizes.append(ty.headingSizePt[i]);
-      if (ty.headingSizePt[i] != 0.0) anySize = true;
+      if (ty.headingSizePt[i] != 0.0)
+        anySize = true;
     }
-    if (anySize) t.insert(QStringLiteral("headingSizePt"), sizes);
+    if (anySize)
+      t.insert(QStringLiteral("headingSizePt"), sizes);
     QJsonArray hcols;
     bool anyHcol = false;
     for (int i = 0; i < 6; ++i) {
@@ -322,9 +357,12 @@ QJsonObject ThemeDefinition::toJson() const {
         hcols.append(QJsonValue::Null);
       }
     }
-    if (anyHcol) t.insert(QStringLiteral("headingColor"), hcols);
+    if (anyHcol)
+      t.insert(QStringLiteral("headingColor"), hcols);
     const QString bodyAlignment = alignmentToString(ty.bodyAlignment);
-    if (!bodyAlignment.isEmpty()) { t.insert(QStringLiteral("bodyAlignment"), bodyAlignment); }
+    if (!bodyAlignment.isEmpty()) {
+      t.insert(QStringLiteral("bodyAlignment"), bodyAlignment);
+    }
     QJsonArray aligns;
     bool anyAlign = false;
     for (int i = 0; i < 6; ++i) {
@@ -336,7 +374,9 @@ QJsonObject ThemeDefinition::toJson() const {
         aligns.append(QJsonValue::Null);
       }
     }
-    if (anyAlign) { t.insert(QStringLiteral("headingAlignment"), aligns); }
+    if (anyAlign) {
+      t.insert(QStringLiteral("headingAlignment"), aligns);
+    }
     QJsonArray weights;
     bool anyWeight = false;
     for (int i = 0; i < 6; ++i) {
@@ -347,7 +387,9 @@ QJsonObject ThemeDefinition::toJson() const {
         weights.append(QJsonValue::Null);
       }
     }
-    if (anyWeight) { t.insert(QStringLiteral("headingFontWeight"), weights); }
+    if (anyWeight) {
+      t.insert(QStringLiteral("headingFontWeight"), weights);
+    }
     QJsonArray italics;
     bool anyItalic = false;
     for (int i = 0; i < 6; ++i) {
@@ -358,7 +400,9 @@ QJsonObject ThemeDefinition::toJson() const {
         italics.append(QJsonValue::Null);
       }
     }
-    if (anyItalic) { t.insert(QStringLiteral("headingItalic"), italics); }
+    if (anyItalic) {
+      t.insert(QStringLiteral("headingItalic"), italics);
+    }
     root.insert(QStringLiteral("typography"), t);
   }
   return root;
@@ -368,9 +412,12 @@ void ThemeDefinition::deriveChromeDefaults(ThemeColors& k) {
   // Derive chrome defaults from the document palette when a theme omits them, so
   // a minimal (document-colours-only) theme still renders sane chrome. Shared by
   // fromJson and the CSS mapper. isDark is intentionally NOT set here.
-  if (!k.chromeBackground.isValid()) k.chromeBackground = k.background;
-  if (!k.chromeText.isValid()) k.chromeText = k.text;
-  if (!k.chromeMuted.isValid()) k.chromeMuted = k.muted;
+  if (!k.chromeBackground.isValid())
+    k.chromeBackground = k.background;
+  if (!k.chromeText.isValid())
+    k.chromeText = k.text;
+  if (!k.chromeMuted.isValid())
+    k.chromeMuted = k.muted;
   // Disabled/ghosted text + controls (menu items, dialog buttons/inputs/…).
   // Distinct from chromeMuted, which is ACTIVE secondary text (toolbar/sidebar/
   // scrollbar): muted needs only a gentle de-emphasis, disabled must read as
@@ -383,11 +430,12 @@ void ThemeDefinition::deriveChromeDefaults(ThemeColors& k) {
   if (!k.chromeDisabled.isValid()) {
     const QColor ink = k.text.isValid() ? k.text : QColor(0x33, 0x33, 0x33);
     const QColor bg = k.background.isValid() ? k.background : QColor(0xff, 0xff, 0xff);
-    k.chromeDisabled = QColor(int(ink.red() + (bg.red() - ink.red()) * 0.5),
-                              int(ink.green() + (bg.green() - ink.green()) * 0.5),
-                              int(ink.blue() + (bg.blue() - ink.blue()) * 0.5));
+    k.chromeDisabled =
+        QColor(int(ink.red() + (bg.red() - ink.red()) * 0.5), int(ink.green() + (bg.green() - ink.green()) * 0.5),
+               int(ink.blue() + (bg.blue() - ink.blue()) * 0.5));
   }
-  if (!k.surface.isValid()) k.surface = k.background;
+  if (!k.surface.isValid())
+    k.surface = k.background;
   // canvas = the tone behind cards. A minimal theme usually omits it, so derive
   // a subtle step off the base tones for depth (lighter themes get a faint gray
   // canvas; darker themes get a marginally darker one) rather than going flat.
@@ -424,7 +472,9 @@ void ThemeDefinition::deriveChromeDefaults(ThemeColors& k) {
   }
   // Code-block background follows the inline code background (the RenderTheme
   // getter already falls back this way; centralize it so ThemeDefinition is sane).
-  if (!k.codeBlockBackground.isValid()) { k.codeBlockBackground = k.codeBackground; }
+  if (!k.codeBlockBackground.isValid()) {
+    k.codeBlockBackground = k.codeBackground;
+  }
   // Code border — inline code spans, code fences, math/HTML block outlines, plus
   // the soft UI lines that borrow it (thematic-break rule, code-fence scrollbar
   // track, heading badge). A theme that declares no `border` on `code` /
@@ -441,14 +491,18 @@ void ThemeDefinition::deriveChromeDefaults(ThemeColors& k) {
     if (base.alpha() < 255) {
       const QColor canvas = k.background.isValid() ? k.background : QColor(Qt::white);
       const qreal alpha = base.alphaF();
-      base = QColor(qRound(base.red() * alpha + canvas.red() * (1 - alpha)), qRound(base.green() * alpha + canvas.green() * (1 - alpha)),
+      base = QColor(qRound(base.red() * alpha + canvas.red() * (1 - alpha)),
+                    qRound(base.green() * alpha + canvas.green() * (1 - alpha)),
                     qRound(base.blue() * alpha + canvas.blue() * (1 - alpha)));
     }
     k.codeBorder = base.lightness() < 128 ? base.lighter(140) : base.darker(112);
   }
-  if (!k.hover.isValid()) k.hover = k.codeBackground;
-  if (!k.selected.isValid()) k.selected = k.codeBackground;
-  if (!k.accent.isValid()) k.accent = k.link;
+  if (!k.hover.isValid())
+    k.hover = k.codeBackground;
+  if (!k.selected.isValid())
+    k.selected = k.codeBackground;
+  if (!k.accent.isValid())
+    k.accent = k.link;
   // Chrome selection pair. `selected` is authored for the editor's text selection
   // and may carry alpha (newsprint: rgba(32,43,51,.63) over cream). As a chrome fill
   // that alpha composites against whatever is underneath — inside the Win11 combo
@@ -472,13 +526,13 @@ void ThemeDefinition::deriveChromeDefaults(ThemeColors& k) {
     // whose chromeText is itself LIGHT — a light selected fill there needs dark ink.
     const qreal fillL = flattened.lightnessF();
     const QColor ink = k.chromeText.isValid() ? k.chromeText : QColor(0x1a, 0x1a, 0x1a);
-    const qreal inkDistance = qAbs(ink.lightnessF() - fillL) * 1.05;  // prefer theme ink on ties
+    const qreal inkDistance = qAbs(ink.lightnessF() - fillL) * 1.05; // prefer theme ink on ties
     const qreal whiteDistance = qAbs(1.0 - fillL);
     const qreal blackDistance = fillL;
-    k.chromeSelectionText = inkDistance >= whiteDistance && inkDistance >= blackDistance
-                                ? ink
-                                : (whiteDistance >= blackDistance ? QColor(0xff, 0xff, 0xff)
-                                                                  : QColor(0x1a, 0x1a, 0x1a));
+    k.chromeSelectionText =
+        inkDistance >= whiteDistance && inkDistance >= blackDistance
+            ? ink
+            : (whiteDistance >= blackDistance ? QColor(0xff, 0xff, 0xff) : QColor(0x1a, 0x1a, 0x1a));
   }
   // Highlight (==mark==) background — most themes declare no `mark`, leaving it
   // invalid (the `==text==` fill, and BlockLayoutBuilder's HTML palette, both
@@ -498,7 +552,7 @@ void ThemeDefinition::deriveChromeDefaults(ThemeColors& k) {
 ThemeDefinition ThemeDefinition::fromCss(const QString& cssPath, const QString& id) {
   QFile f(cssPath);
   if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    return ThemeDefinition{};  // default-constructed → invalid (no background/text)
+    return ThemeDefinition{}; // default-constructed → invalid (no background/text)
   }
   const QString text = [&] {
     diag::ScopedPerfProbe perf("theme.readCss", themeLoadPerf());
@@ -521,7 +575,7 @@ ThemeDefinition ThemeDefinition::fromCss(const QString& cssPath, const QString& 
   return definition;
 }
 
-QHash<QString,QString> ThemeDefinition::registerFonts(const CssThemeSheet& sheet) {
+QHash<QString, QString> ThemeDefinition::registerFonts(const CssThemeSheet& sheet) {
   return registerThemeFonts(sheet);
 }
 
@@ -529,7 +583,9 @@ QString ThemeDefinition::fontFamilyAlias(const QString& declaredName) {
   // Resolve a CSS @font-face declared family name to the family name QFontDatabase
   // registered (the font file's internal name), or empty if it isn't an @font-face
   // alias. See fontFaceAliases() for why this mapping is necessary.
-  if (declaredName.isEmpty()) { return {}; }
+  if (declaredName.isEmpty()) {
+    return {};
+  }
   const auto& map = fontFaceAliases();
   const auto it = map.constFind(declaredName.toLower());
   return it != map.constEnd() ? it.value() : QString();
@@ -544,7 +600,8 @@ const std::vector<ThemeDefinition>& ThemeDefinition::builtIns() {
   static const std::vector<ThemeDefinition> kBuiltIns = [] {
     std::vector<ThemeDefinition> out;
     for (const auto& descriptor : builtInDescriptors())
-      if (auto d = builtIn(descriptor.id)) out.push_back(std::move(*d));
+      if (auto d = builtIn(descriptor.id))
+        out.push_back(std::move(*d));
     return out;
   }();
   return kBuiltIns;
@@ -562,13 +619,15 @@ const std::vector<ThemeDescriptor>& ThemeDefinition::builtInDescriptors() {
 
 std::optional<ThemeDefinition> ThemeDefinition::builtIn(const QString& id) {
   static QHash<QString, ThemeDefinition> loaded;
-  if (const auto found = loaded.constFind(id); found != loaded.cend()) return *found;
+  if (const auto found = loaded.constFind(id); found != loaded.cend())
+    return *found;
   for (const auto& descriptor : builtInDescriptors()) {
     if (descriptor.id == id) {
       auto d = fromCss(QStringLiteral(":/themes/%1.css").arg(id), id);
       d.label = descriptor.label;
       d.isBuiltIn = true;
-      if (!d.valid()) return std::nullopt;
+      if (!d.valid())
+        return std::nullopt;
       loaded.insert(id, d);
       return d;
     }
@@ -576,4 +635,4 @@ std::optional<ThemeDefinition> ThemeDefinition::builtIn(const QString& id) {
   return std::nullopt;
 }
 
-}  // namespace muffin
+} // namespace muffin

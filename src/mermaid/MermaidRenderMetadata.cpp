@@ -27,34 +27,33 @@ QFont titleFont(const MermaidRenderMetadata& metadata) {
   return font;
 }
 
-}  // namespace
+} // namespace
 
 QString MermaidRenderMetadata::accessibleName() const {
   const QString explicitName = accessibleTitle.trimmed();
-  if (!explicitName.isEmpty()) return explicitName;
+  if (!explicitName.isEmpty())
+    return explicitName;
   const QString visibleName = singleLineTitle(title);
   return visibleName.isEmpty() ? QStringLiteral("Mermaid diagram") : visibleName;
 }
 
 qreal measureMermaidTitleWidth(const MermaidRenderMetadata& metadata) {
-  if (!metadata.hasVisibleTitle()) return 0.0;
+  if (!metadata.hasVisibleTitle())
+    return 0.0;
   const QString text = singleLineTitle(metadata.title);
   // getComputedTextLength parity: the browser's title bbox width is the
   // LayoutUnit-quantized design advance (ceil to 1/64), not TextFontMetrics's
   // hinted advance (which drifts ~1.6px for an 18px title).
   flowchart::FlowLabelDocument document;
   document.text = text;
-  const qreal advance = flowchart::measureOpenTypeDesignAdvance(
-                            document, metadata.fontFamily,
-                            metadata.titleFontSize)
-                            .value_or(TextFontMetrics(titleFont(metadata))
-                                          .horizontalAdvance(text));
+  const qreal advance = flowchart::measureOpenTypeDesignAdvance(document, metadata.fontFamily, metadata.titleFontSize)
+                            .value_or(TextFontMetrics(titleFont(metadata)).horizontalAdvance(text));
   return std::ceil(advance * 64.0 - 1e-9) / 64.0;
 }
 
-void paintMermaidTitle(const MermaidRenderMetadata& metadata,
-                       QPainter& painter, const QRectF& titleRect) {
-  if (!metadata.hasVisibleTitle() || titleRect.isEmpty()) return;
+void paintMermaidTitle(const MermaidRenderMetadata& metadata, QPainter& painter, const QRectF& titleRect) {
+  if (!metadata.hasVisibleTitle() || titleRect.isEmpty())
+    return;
   painter.save();
   const QFont font = titleFont(metadata);
   painter.setFont(font);
@@ -65,9 +64,8 @@ void paintMermaidTitle(const MermaidRenderMetadata& metadata,
   const QString text = singleLineTitle(metadata.title);
   const qreal baseline = titleRect.bottom() - metadata.titleTopMargin;
   const qreal advance = measureMermaidTitleWidth(metadata);
-  drawDocumentText(painter, QPointF(titleRect.center().x() - advance / 2.0, baseline),
-                   text);
+  drawDocumentText(painter, QPointF(titleRect.center().x() - advance / 2.0, baseline), text);
   painter.restore();
 }
 
-}  // namespace muffin::mermaid
+} // namespace muffin::mermaid

@@ -18,14 +18,19 @@ namespace {
   qCritical().noquote() << message;
   std::exit(1);
 }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 
 QString errorClass(SequenceErrorStage stage) {
-  if (stage == SequenceErrorStage::Detector) return QStringLiteral("detection");
-  if (stage == SequenceErrorStage::Semantic) return QStringLiteral("semantic");
+  if (stage == SequenceErrorStage::Detector)
+    return QStringLiteral("detection");
+  if (stage == SequenceErrorStage::Semantic)
+    return QStringLiteral("semantic");
   return QStringLiteral("syntax");
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -58,8 +63,7 @@ int main(int argc, char** argv) {
     const QJsonObject expectedPosition = upstream.value(QStringLiteral("normalized")).toObject();
     const QString positionRule = upstream.value(QStringLiteral("positionRule")).toString();
     require(!positionRule.isEmpty(), QStringLiteral("%1 has no upstream position normalization rule").arg(id));
-    require(upstream.value(QStringLiteral("raw")).isObject(),
-            QStringLiteral("%1 lost its raw Jison location").arg(id));
+    require(upstream.value(QStringLiteral("raw")).isObject(), QStringLiteral("%1 lost its raw Jison location").arg(id));
     bool rejected = false;
     try {
       SequenceDiagram::parse(source);
@@ -79,20 +83,22 @@ int main(int argc, char** argv) {
       ++comparedLines;
       require(diagnostic.span.line == expectedPosition.value(QStringLiteral("line")).toInt(),
               QStringLiteral("%1 line mismatch: native=%2 expected=%3")
-                  .arg(id).arg(diagnostic.span.line)
+                  .arg(id)
+                  .arg(diagnostic.span.line)
                   .arg(expectedPosition.value(QStringLiteral("line")).toInt()));
       ++comparedColumns;
       require(diagnostic.span.column == expectedPosition.value(QStringLiteral("column")).toInt(),
               QStringLiteral("%1 column mismatch: native=%2 expected=%3")
-                  .arg(id).arg(diagnostic.span.column)
+                  .arg(id)
+                  .arg(diagnostic.span.column)
                   .arg(expectedPosition.value(QStringLiteral("column")).toInt()));
       codes.insert(nativeCode);
       ++stageCounts[nativeStage];
       const QString matrix = QStringLiteral("%1|%2|%3|%4")
-          .arg(QStringLiteral("%1:%2")
-                   .arg(fixture.value(QStringLiteral("targetProduction")).toInt())
-                   .arg(fixture.value(QStringLiteral("targetRhsLength")).toInt()))
-          .arg(operation, nativeStage, nativeCode);
+                                 .arg(QStringLiteral("%1:%2")
+                                          .arg(fixture.value(QStringLiteral("targetProduction")).toInt())
+                                          .arg(fixture.value(QStringLiteral("targetRhsLength")).toInt()))
+                                 .arg(operation, nativeStage, nativeCode);
       ++matrixCounts[matrix];
       ++positionRuleCounts[positionRule];
     }
@@ -102,7 +108,8 @@ int main(int argc, char** argv) {
 
   auto asJson = [](const QMap<QString, int>& values) {
     QJsonObject result;
-    for (auto it = values.cbegin(); it != values.cend(); ++it) result.insert(it.key(), it.value());
+    for (auto it = values.cbegin(); it != values.cend(); ++it)
+      result.insert(it.key(), it.value());
     return result;
   };
   require(asJson(operatorCounts) == generator.value(QStringLiteral("operatorCounts")).toObject(),
@@ -117,21 +124,21 @@ int main(int argc, char** argv) {
   require(rawLocationCounts.value(QStringLiteral("lines")).toInt() >= 11 &&
               rawLocationCounts.value(QStringLiteral("columns")).toInt() >= 9,
           QStringLiteral("Sequence raw Jison line/column coverage regressed"));
-  require(generator.value(QStringLiteral("unreachableStages")).toObject()
-                  .value(QStringLiteral("lexer")).toString().contains(QLatin1String("INVALID")),
+  require(generator.value(QStringLiteral("unreachableStages"))
+              .toObject()
+              .value(QStringLiteral("lexer"))
+              .toString()
+              .contains(QLatin1String("INVALID")),
           QStringLiteral("Sequence lexer-stage unreachability is no longer classified"));
   for (const QJsonValue& code : generator.value(QStringLiteral("requiredNativeCodes")).toArray())
     require(codes.contains(code.toString()),
             QStringLiteral("Required sequence diagnostic is uncovered: %1").arg(code.toString()));
   require(comparedLines == cases.size() && comparedColumns == cases.size(),
           QStringLiteral("Sequence stable line/column coverage regressed"));
-  for (const QString& operation : {
-           QStringLiteral("delete-required-terminal"),
-           QStringLiteral("replace-terminal-class"),
-           QStringLiteral("duplicate-separator"),
-           QStringLiteral("truncate-recursive-production"),
-           QStringLiteral("break-paired-delimiter"),
-           QStringLiteral("insert-nullable-boundary-token")})
+  for (const QString& operation :
+       {QStringLiteral("delete-required-terminal"), QStringLiteral("replace-terminal-class"),
+        QStringLiteral("duplicate-separator"), QStringLiteral("truncate-recursive-production"),
+        QStringLiteral("break-paired-delimiter"), QStringLiteral("insert-nullable-boundary-token")})
     require(operatorCounts.contains(operation),
             QStringLiteral("Sequence mutation operator is uncovered: %1").arg(operation));
 

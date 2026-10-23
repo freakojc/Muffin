@@ -37,7 +37,7 @@ QImage renderSvg(const QString& resourcePath, QSizeF logicalSize) {
   return image;
 }
 
-}  // namespace
+} // namespace
 
 QImage loading(QSizeF logicalSize) {
   return renderSvg(QStringLiteral(":/icons/image/image-placeholder.svg"), logicalSize);
@@ -47,4 +47,4 @@ QImage broken(QSizeF logicalSize) {
   return renderSvg(QStringLiteral(":/icons/image/image-broken.svg"), logicalSize);
 }
 
-}  // namespace muffin::image_placeholder
+} // namespace muffin::image_placeholder

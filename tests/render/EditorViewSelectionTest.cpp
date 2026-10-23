@@ -38,7 +38,8 @@ void testEditorViewHitTestActivatesInlineSourceEditing() {
   controller.activateHit(hit);
   require(controller.selection().cursorPosition().text.sourceOffset == 11, "view hit should resolve source offset");
   require(controller.inputController().insertText(QStringLiteral("X")), "typing after view hit should edit inline");
-  require(session.markdownText().toString() == QStringLiteral("before **boXld** after"), "view hit inline insert mismatch");
+  require(session.markdownText().toString() == QStringLiteral("before **boXld** after"),
+          "view hit inline insert mismatch");
 }
 
 void testEditorViewInlineProjectionStateChanges() {
@@ -68,7 +69,8 @@ void testEditorViewInlineProjectionStateChanges() {
 
   const QPointF expandedDocumentPos = expandedRect.topLeft() + expandedCursor.center();
   const HitTestResult expandedHit = view.hitTest(expandedDocumentPos);
-  require(expandedHit.isValid() && expandedHit.sourceOffset == 9, "expanded inline hit-test should round-trip source offset");
+  require(expandedHit.isValid() && expandedHit.sourceOffset == 9,
+          "expanded inline hit-test should round-trip source offset");
 
   CursorPosition outside;
   outside.blockId = block->id();
@@ -79,7 +81,8 @@ void testEditorViewInlineProjectionStateChanges() {
   const QRectF recollapsedRect = view.nodeRect(block->id());
   const InlineLayout* recollapsedLayout = view.blockAtViewportPos(recollapsedRect.center())->inlineLayout();
   require(recollapsedLayout != nullptr, "recollapsed inline layout should exist");
-  require(recollapsedLayout->cursorRectForSourceOffset(9).left() == collapsedCursor.left(), "cursor leaving inline should collapse marker layout");
+  require(recollapsedLayout->cursorRectForSourceOffset(9).left() == collapsedCursor.left(),
+          "cursor leaving inline should collapse marker layout");
 
   SelectionRange selection;
   selection.anchor = inside;
@@ -117,7 +120,8 @@ void testEditorViewInlineMarkerSourceSelection() {
   require(!betweenStarsCursor.isEmpty(), "cursor between strong opener stars should exist");
   const HitTestResult betweenStarsHit = view.hitTest(expandedBlockRect.topLeft() + betweenStarsCursor.center());
   require(betweenStarsHit.isValid(), "hit between strong opener stars should be valid");
-  require(betweenStarsHit.sourceOffset == QStringLiteral("before *").size(), "hit between strong opener stars should keep source offset");
+  require(betweenStarsHit.sourceOffset == QStringLiteral("before *").size(),
+          "hit between strong opener stars should keep source offset");
 
   SelectionRange markerSelection;
   markerSelection.anchor = inlineCursor(blockId, QStringLiteral("before ").size(), QStringLiteral("before ").size());
@@ -134,28 +138,20 @@ void testEditorViewInlineMarkerSourceSelection() {
 
   const QRectF currentBlockRect = view.nodeRect(blockId);
   const InlineLayout* currentLayout = requireViewInlineLayout(view, blockId, QStringLiteral("marker drag start"));
-  const QPointF dragStart = currentBlockRect.topLeft() + currentLayout->cursorRectForSourceOffset(QStringLiteral("before ").size()).center();
-  QMouseEvent press(
-      QEvent::MouseButtonPress,
-      dragStart,
-      QPointF(dragStart),
-      Qt::LeftButton,
-      Qt::LeftButton,
-      Qt::NoModifier);
+  const QPointF dragStart =
+      currentBlockRect.topLeft() + currentLayout->cursorRectForSourceOffset(QStringLiteral("before ").size()).center();
+  QMouseEvent press(QEvent::MouseButtonPress, dragStart, QPointF(dragStart), Qt::LeftButton, Qt::LeftButton,
+                    Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &press);
 
   const QRectF dragBlockRect = view.nodeRect(blockId);
   const InlineLayout* dragLayout = requireViewInlineLayout(view, blockId, QStringLiteral("marker drag"));
-  const QPointF dragEnd = dragBlockRect.topLeft() + dragLayout->cursorRectForSourceOffset(QStringLiteral("before **bold").size()).center();
-  QMouseEvent move(
-      QEvent::MouseMove,
-      dragEnd,
-      QPointF(dragEnd),
-      Qt::NoButton,
-      Qt::LeftButton,
-      Qt::NoModifier);
+  const QPointF dragEnd =
+      dragBlockRect.topLeft() + dragLayout->cursorRectForSourceOffset(QStringLiteral("before **bold").size()).center();
+  QMouseEvent move(QEvent::MouseMove, dragEnd, QPointF(dragEnd), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &move);
-  require(!controller.selection().selection().isCollapsed(), "dragging from marker into content should create source selection");
+  require(!controller.selection().selection().isCollapsed(),
+          "dragging from marker into content should create source selection");
   const qsizetype expectedAnchorSource = QStringLiteral("before ").size();
   const qsizetype expectedFocusSource = QStringLiteral("before **bold").size();
   require(controller.selection().selection().anchor.text.sourceOffset == expectedAnchorSource,
@@ -179,27 +175,19 @@ void testEditorViewInlineClickDoesNotSelectAfterMarkerExpansion() {
   require(collapsedLayout != nullptr, "inline click test collapsed layout should exist");
 
   const QPointF clickPos = blockRect.topLeft() + collapsedLayout->cursorRectForSourceOffset(11).center();
-  QMouseEvent press(
-      QEvent::MouseButtonPress,
-      clickPos,
-      QPointF(clickPos),
-      Qt::LeftButton,
-      Qt::LeftButton,
-      Qt::NoModifier);
+  QMouseEvent press(QEvent::MouseButtonPress, clickPos, QPointF(clickPos), Qt::LeftButton, Qt::LeftButton,
+                    Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &press);
   require(controller.selection().hasCursor(), "inline click press should activate cursor");
   require(controller.selection().selection().isCollapsed(), "inline click press should keep collapsed selection");
 
-  QMouseEvent release(
-      QEvent::MouseButtonRelease,
-      clickPos,
-      QPointF(clickPos),
-      Qt::LeftButton,
-      Qt::NoButton,
-      Qt::NoModifier);
+  QMouseEvent release(QEvent::MouseButtonRelease, clickPos, QPointF(clickPos), Qt::LeftButton, Qt::NoButton,
+                      Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &release);
-  require(controller.selection().selection().isCollapsed(), "inline click release should not create selection after marker expansion");
-  require(controller.selection().cursorPosition().text.sourceOffset == 11, "inline click release should keep original source cursor");
+  require(controller.selection().selection().isCollapsed(),
+          "inline click release should not create selection after marker expansion");
+  require(controller.selection().cursorPosition().text.sourceOffset == 11,
+          "inline click release should keep original source cursor");
 }
 
 void testEditorViewDragSelectionContinuesAcrossMoves() {
@@ -220,53 +208,29 @@ void testEditorViewDragSelectionContinuesAcrossMoves() {
   const QPointF firstMovePos = blockRect.topLeft() + layout->cursorRectForSourceOffset(10).center();
   const QPointF secondMovePos = blockRect.topLeft() + layout->cursorRectForSourceOffset(20).center();
 
-  QMouseEvent press(
-      QEvent::MouseButtonPress,
-      startPos,
-      QPointF(startPos),
-      Qt::LeftButton,
-      Qt::LeftButton,
-      Qt::NoModifier);
+  QMouseEvent press(QEvent::MouseButtonPress, startPos, QPointF(startPos), Qt::LeftButton, Qt::LeftButton,
+                    Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &press);
 
-  QMouseEvent stationaryMove(
-      QEvent::MouseMove,
-      startPos,
-      QPointF(startPos),
-      Qt::NoButton,
-      Qt::LeftButton,
-      Qt::NoModifier);
+  QMouseEvent stationaryMove(QEvent::MouseMove, startPos, QPointF(startPos), Qt::NoButton, Qt::LeftButton,
+                             Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &stationaryMove);
   require(controller.selection().selection().isCollapsed(), "stationary first drag move should keep collapsed cursor");
 
-  QMouseEvent firstMove(
-      QEvent::MouseMove,
-      firstMovePos,
-      QPointF(firstMovePos),
-      Qt::NoButton,
-      Qt::LeftButton,
-      Qt::NoModifier);
+  QMouseEvent firstMove(QEvent::MouseMove, firstMovePos, QPointF(firstMovePos), Qt::NoButton, Qt::LeftButton,
+                        Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &firstMove);
   require(!controller.selection().selection().isCollapsed(), "first drag move should create a selection");
   require(controller.selection().selection().focus.text.sourceOffset == 10, "first drag move focus offset mismatch");
 
-  QMouseEvent secondMove(
-      QEvent::MouseMove,
-      secondMovePos,
-      QPointF(secondMovePos),
-      Qt::NoButton,
-      Qt::LeftButton,
-      Qt::NoModifier);
+  QMouseEvent secondMove(QEvent::MouseMove, secondMovePos, QPointF(secondMovePos), Qt::NoButton, Qt::LeftButton,
+                         Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &secondMove);
-  require(controller.selection().selection().focus.text.sourceOffset == 20, "second drag move should keep extending selection");
+  require(controller.selection().selection().focus.text.sourceOffset == 20,
+          "second drag move should keep extending selection");
 
-  QMouseEvent release(
-      QEvent::MouseButtonRelease,
-      secondMovePos,
-      QPointF(secondMovePos),
-      Qt::LeftButton,
-      Qt::NoButton,
-      Qt::NoModifier);
+  QMouseEvent release(QEvent::MouseButtonRelease, secondMovePos, QPointF(secondMovePos), Qt::LeftButton, Qt::NoButton,
+                      Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &release);
   require(controller.selection().selection().focus.text.sourceOffset == 20, "drag release focus offset mismatch");
 }
@@ -337,22 +301,12 @@ void testEditorViewVerticalDragSelectionHitsWrappedLine() {
   const QPointF startPos(blockRect.left() + dragX, blockRect.top() + lineStartCursors.at(0).center().y());
   const QPointF secondLineSameX(blockRect.left() + dragX, blockRect.top() + lineStartCursors.at(1).center().y());
 
-  QMouseEvent press(
-      QEvent::MouseButtonPress,
-      startPos,
-      QPointF(startPos),
-      Qt::LeftButton,
-      Qt::LeftButton,
-      Qt::NoModifier);
+  QMouseEvent press(QEvent::MouseButtonPress, startPos, QPointF(startPos), Qt::LeftButton, Qt::LeftButton,
+                    Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &press);
 
-  QMouseEvent move(
-      QEvent::MouseMove,
-      secondLineSameX,
-      QPointF(secondLineSameX),
-      Qt::NoButton,
-      Qt::LeftButton,
-      Qt::NoModifier);
+  QMouseEvent move(QEvent::MouseMove, secondLineSameX, QPointF(secondLineSameX), Qt::NoButton, Qt::LeftButton,
+                   Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &move);
 
   const QRectF focusCursor = view.hitTest(secondLineSameX).cursorRect;
@@ -363,8 +317,10 @@ void testEditorViewVerticalDragSelectionHitsWrappedLine() {
           QStringLiteral("vertical drag focus should follow the second visual line hit"));
   const BlockLayout* selectedBlock = view.blockAtViewportPos(blockRect.center());
   require(selectedBlock != nullptr, "vertical drag wrapped paragraph block should stay visible");
-  const QVector<QRectF> selectionRects = selectedBlock->selectionRects(controller.selection().selection(), RenderTheme::defaultTheme());
-  require(!selectionRects.isEmpty(), "vertical drag should produce visible selection rects without horizontal pre-drag");
+  const QVector<QRectF> selectionRects =
+      selectedBlock->selectionRects(controller.selection().selection(), RenderTheme::defaultTheme());
+  require(!selectionRects.isEmpty(),
+          "vertical drag should produce visible selection rects without horizontal pre-drag");
   bool hasSecondLineRect = false;
   for (const QRectF& rect : selectionRects) {
     if (qAbs(rect.center().y() - (blockRect.top() + lineStartCursors.at(1).center().y())) < 1.0) {
@@ -404,14 +360,17 @@ void testKeyboardDownMovesWithinWrappedParagraphLine() {
   setSourceCursor(controller.selection(), block, startSource, startSource);
   // setSourceCursor mutates the selection, which can rebuild this block — the `layout` pointer
   // captured above may dangle afterwards. Re-fetch before reading the caret rect.
-  const InlineLayout* layoutAtCaret = requireViewInlineLayout(view, block->id(), QStringLiteral("wrapped keyboard down caret"));
+  const InlineLayout* layoutAtCaret =
+      requireViewInlineLayout(view, block->id(), QStringLiteral("wrapped keyboard down caret"));
   const qreal goalLocalX = layoutAtCaret->cursorRectForSourceOffset(startSource).left();
 
   require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down should be handled in wrapped paragraph");
   const CursorPosition cursor = controller.selection().cursorPosition();
   require(cursor.blockId == block->id(), "Down inside wrapped paragraph should stay in the same block");
-  const InlineLayout* layoutAfter = requireViewInlineLayout(view, block->id(), QStringLiteral("wrapped keyboard down after"));
-  require(layoutAfter->visualLineIndexForSourceOffset(cursor.text.sourceOffset) == 1, "Down should land on visual line 1");
+  const InlineLayout* layoutAfter =
+      requireViewInlineLayout(view, block->id(), QStringLiteral("wrapped keyboard down after"));
+  require(layoutAfter->visualLineIndexForSourceOffset(cursor.text.sourceOffset) == 1,
+          "Down should land on visual line 1");
   const qsizetype expectedSource = layoutAfter->sourceOffsetAtVisualLineX(1, goalLocalX);
   require(cursor.text.sourceOffset == expectedSource, "Down should preserve the caret x on the next visual line");
 }
@@ -430,14 +389,14 @@ void testKeyboardVerticalCrossesParagraphsByVisualEdges() {
 
   MarkdownNode* firstBlock = blockAt(session, 0);
   MarkdownNode* secondBlock = blockAt(session, 1);
-  const InlineLayout* firstLayout = requireViewInlineLayout(view, firstBlock->id(), QStringLiteral("wrapped cross first"));
+  const InlineLayout* firstLayout =
+      requireViewInlineLayout(view, firstBlock->id(), QStringLiteral("wrapped cross first"));
   requireViewInlineLayout(view, secondBlock->id(), QStringLiteral("wrapped cross second"));
   require(firstLayout->visualLineCount() >= 2, "cross-paragraph fixture should wrap first paragraph");
 
   const int lastLine = firstLayout->visualLineCount() - 1;
   const qreal localX = firstLayout->visualLineRect(lastLine).left() + 30.0;
-  setSourceCursor(controller.selection(), firstBlock,
-                  firstLayout->sourceOffsetAtVisualLineX(lastLine, localX),
+  setSourceCursor(controller.selection(), firstBlock, firstLayout->sourceOffsetAtVisualLineX(lastLine, localX),
                   firstLayout->sourceOffsetAtVisualLineX(lastLine, localX));
   // A probe snaps to a glyph boundary. Navigation preserves the actual caret
   // x, and changing selection can rebuild the source layout.
@@ -446,19 +405,23 @@ void testKeyboardVerticalCrossesParagraphsByVisualEdges() {
   require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down from last visual line should be handled");
   CursorPosition cursor = controller.selection().cursorPosition();
   require(cursor.blockId == secondBlock->id(), "Down from last visual line should enter next paragraph");
-  const InlineLayout* secondLayoutDown = requireViewInlineLayout(view, secondBlock->id(), QStringLiteral("wrapped cross second after down"));
-  const qsizetype expectedSecondSource =
-      secondLayoutDown->sourceOffsetAtVisualLineX(0, documentX - view.blockLayoutForNode(secondBlock->id())->inlineTextOrigin().x());
+  const InlineLayout* secondLayoutDown =
+      requireViewInlineLayout(view, secondBlock->id(), QStringLiteral("wrapped cross second after down"));
+  const qsizetype expectedSecondSource = secondLayoutDown->sourceOffsetAtVisualLineX(
+      0, documentX - view.blockLayoutForNode(secondBlock->id())->inlineTextOrigin().x());
   require(cursor.text.sourceOffset == secondBlock->sourceRange().byteStart + expectedSecondSource,
           "Down into next paragraph should preserve document x on first visual line");
-  require(secondLayoutDown->visualLineIndexForSourceOffset(cursor.text.sourceOffset - secondBlock->sourceRange().byteStart) == 0,
+  require(secondLayoutDown->visualLineIndexForSourceOffset(cursor.text.sourceOffset -
+                                                           secondBlock->sourceRange().byteStart) == 0,
           "Down into next paragraph should land on its first visual line");
 
   require(pressKey(controller.inputController(), &view, Qt::Key_Up), "Up should return to previous paragraph");
   cursor = controller.selection().cursorPosition();
   require(cursor.blockId == firstBlock->id(), "Up from first visual line should return to previous paragraph");
-  const InlineLayout* firstLayoutUp = requireViewInlineLayout(view, firstBlock->id(), QStringLiteral("wrapped cross first after up"));
-  require(firstLayoutUp->visualLineIndexForSourceOffset(cursor.text.sourceOffset - firstBlock->sourceRange().byteStart) == lastLine,
+  const InlineLayout* firstLayoutUp =
+      requireViewInlineLayout(view, firstBlock->id(), QStringLiteral("wrapped cross first after up"));
+  require(firstLayoutUp->visualLineIndexForSourceOffset(cursor.text.sourceOffset -
+                                                        firstBlock->sourceRange().byteStart) == lastLine,
           "Up should land on the previous paragraph's last visual line");
 }
 
@@ -488,14 +451,14 @@ void testKeyboardTableArrowsMoveByCellGrid() {
   EditorController controller;
   controller.attach(&session, &view);
   view.resize(900, 500);
-  session.setMarkdownText(QStringLiteral(
-      "before\n\n"
-      "| A | B |\n"
-      "|---|---|\n"
-      "| c1 | d1 |\n"
-      "| c2 | d2 |\n"
-      "\n"
-      "after"), false);
+  session.setMarkdownText(QStringLiteral("before\n\n"
+                                         "| A | B |\n"
+                                         "|---|---|\n"
+                                         "| c1 | d1 |\n"
+                                         "| c2 | d2 |\n"
+                                         "\n"
+                                         "after"),
+                          false);
   view.setDocument(session.document());
 
   MarkdownNode* tableNode = blockAt(session, 1);
@@ -533,7 +496,7 @@ void testKeyboardUpDownMovesBetweenListItems() {
   EditorView view;
   EditorController controller;
   controller.attach(&session, &view);
-  view.resize(800, 500);  // wide enough that each short item is a single visual line
+  view.resize(800, 500); // wide enough that each short item is a single visual line
 
   session.setMarkdownText(QStringLiteral("- alpha\n- bravo\n- charlie"), false);
   view.setDocument(session.document());
@@ -542,7 +505,7 @@ void testKeyboardUpDownMovesBetweenListItems() {
   MarkdownNode* item2 = listItemAt(session, 0, 2);
   require(item0 != nullptr && item1 != nullptr && item2 != nullptr, "fixture should build three list items");
 
-  setCursor(controller.selection(), item0, 2);  // "al|pha"
+  setCursor(controller.selection(), item0, 2); // "al|pha"
   require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down inside a list should be handled");
   CursorPosition cursor = controller.selection().cursorPosition();
   require(cursor.blockId == item1->id(), "Down should move to the next list item");
@@ -696,8 +659,7 @@ void testInputMethodPreeditPaintsAtCaret() {
   // Threshold sits well above the caret-blink footprint (~40 px, if the blink toggled between
   // captures) and well below the preedit footprint (glyphs + underline), so a pass requires the
   // composition to have actually rendered — not just the caret flickering.
-  require(differingPixels > 100,
-          "a preedit composition should paint visible pixels at the caret (underline + glyphs)");
+  require(differingPixels > 100, "a preedit composition should paint visible pixels at the caret (underline + glyphs)");
 }
 
 // A mid-sentence preedit is spliced INTO the laid-out text, so it pushes following text right
@@ -720,7 +682,7 @@ void testInlinePreeditShiftsFollowingText() {
   hit.zone = HitTestResult::Zone::Text;
   hit.blockId = block->id();
   hit.textNodeId = block->id();
-  hit.textOffset = 2;  // between 火 and 雷 (activateHit fills sourceOffset from textOffset)
+  hit.textOffset = 2; // between 火 and 雷 (activateHit fills sourceOffset from textOffset)
   controller.activateHit(hit);
   QApplication::processEvents();
 
@@ -748,7 +710,7 @@ void testInlinePreeditAtRightEdgeWraps() {
   controller.attach(&session, &view);
   view.resize(150, 300);
   view.show();
-  session.setMarkdownText(QStringLiteral("abc"), false);  // fits one line at this width
+  session.setMarkdownText(QStringLiteral("abc"), false); // fits one line at this width
   view.setDocument(session.document());
   QApplication::processEvents();
   MarkdownNode* block = blockAt(session, 0);
@@ -757,7 +719,7 @@ void testInlinePreeditAtRightEdgeWraps() {
   hit.zone = HitTestResult::Zone::Text;
   hit.blockId = block->id();
   hit.textNodeId = block->id();
-  hit.textOffset = 3;  // end of "abc"
+  hit.textOffset = 3; // end of "abc"
   controller.activateHit(hit);
   QApplication::processEvents();
 
@@ -781,8 +743,7 @@ void testInlinePreeditAtRightEdgeWraps() {
 
   const InlineLayout* layoutAfter = requireViewInlineLayout(view, block->id(), QStringLiteral("preedit wrap after"));
   require(layoutAfter->hasPreedit(), "the caret block's inline layout should have the preedit spliced in");
-  require(layoutAfter->visualLineCount() >= 2,
-          "a preedit at the right edge should wrap to a new line, not be clipped");
+  require(layoutAfter->visualLineCount() >= 2, "a preedit at the right edge should wrap to a new line, not be clipped");
 }
 
 // A caret inside a link's revealed URL (`[Muffin](htt|s://…)`) has a granular SOURCE offset but a
@@ -819,7 +780,7 @@ void testInlinePreeditSplicesInsideRevealedLinkUrl() {
   const BlockLayout* blk = requireViewBlock(view, block->id(), QStringLiteral("preedit url"));
   const InlineLayout* layout = blk->inlineLayout();
   require(layout != nullptr && layout->hasPreedit(), "the link block should have the preedit spliced in");
-  const QRectF compCaret = layout->preeditCursorRect(blk->inlineTextOrigin());  // document space
+  const QRectF compCaret = layout->preeditCursorRect(blk->inlineTextOrigin()); // document space
   require(!compCaret.isEmpty(), "the composition caret rect should be resolved");
   // The composition caret (= splice point) must sit at the caret's URL position, not at the end of
   // "Muffin" where a visible-offset anchor would wrongly place it (well to the left of the caret).
@@ -833,7 +794,7 @@ void testInlinePreeditSplicesInsideRevealedLinkUrl() {
 // cursorToX, which addresses preeditSpliceLength_ chars too early in the spliced layoutText_ — so
 // they must go through toLayoutOffset, exactly like the decoration painters.
 void testInlinePreeditShiftsMathAtom() {
-  const QString md = QStringLiteral("a $x$ b");  // inline math sits after "a"
+  const QString md = QStringLiteral("a $x$ b"); // inline math sits after "a"
   DocumentSession session;
   EditorView view;
   EditorController controller;
@@ -845,7 +806,7 @@ void testInlinePreeditShiftsMathAtom() {
   QApplication::processEvents();
   MarkdownNode* block = blockAt(session, 0);
 
-  setSourceCursor(controller.selection(), block, 1, 1);  // caret right after "a", before " $x$ b"
+  setSourceCursor(controller.selection(), block, 1, 1); // caret right after "a", before " $x$ b"
   QApplication::processEvents();
 
   const BlockLayout* blk = requireViewBlock(view, block->id(), QStringLiteral("preedit math before"));
@@ -869,7 +830,7 @@ void testInlinePreeditShiftsMathAtom() {
 // not overlapping it), and a right-aligned column STAYS right-aligned: tableCellTextOrigin keys off
 // cell.text.size().width() (which now includes the splice), so the origin tracks the wider text.
 void testInlinePreeditSplicesInTableCellAndKeepsAlignment() {
-  const QString md = QStringLiteral("| left | right |\n|---|---:|\n| abc | defg |");  // col 1 right-aligned
+  const QString md = QStringLiteral("| left | right |\n|---|---:|\n| abc | defg |"); // col 1 right-aligned
   DocumentSession session;
   EditorView view;
   EditorController controller;
@@ -884,7 +845,7 @@ void testInlinePreeditSplicesInTableCellAndKeepsAlignment() {
   const NodeId tableId = table->id();
   const auto& rows0 = requireViewBlock(view, tableId, QStringLiteral("cell rows setup"))->tableRows();
   require(rows0.size() >= 2, "table fixture should expose header + body row");
-  const auto& cellSetup = rows0.at(1).cells.at(1);  // "defg", right-aligned column
+  const auto& cellSetup = rows0.at(1).cells.at(1); // "defg", right-aligned column
 
   // Caret between 'd' and 'e' of "defg".
   HitTestResult hit;
@@ -901,7 +862,8 @@ void testInlinePreeditSplicesInTableCellAndKeepsAlignment() {
   // activateHit rebuilds the table block (entering the cell's edit layout), so the references captured
   // above dangle — reading them below would hit freed memory that, on ARM, is already reused (the
   // alignment field read as garbage). Re-fetch the cell before measuring it.
-  const auto& cell0 = requireViewBlock(view, tableId, QStringLiteral("cell rows after activate"))->tableRows().at(1).cells.at(1);
+  const auto& cell0 =
+      requireViewBlock(view, tableId, QStringLiteral("cell rows after activate"))->tableRows().at(1).cells.at(1);
   const qreal widthBefore = cell0.text.size().width();
   require(cell0.alignment == TableAlignment::Right,
           QStringLiteral("fixture: column 1 should be right-aligned (got %1)").arg(static_cast<int>(cell0.alignment)));
@@ -948,11 +910,13 @@ void testEditorViewDragFromTrailingParagraphSelectsBack() {
   const QPointF trailingPos(betaRect.left(), betaRect.bottom() + theme.blockSpacing() + 5.0);
   const HitTestResult trailingHit = view.hitTest(trailingPos);
   require(trailingHit.zone == HitTestResult::Zone::BlockAfter, "press point below last block should be BlockAfter");
-  require(trailingHit.textOffset == 4, "BlockAfter hit should resolve to the last block's selectable length (4 for \"beta\")");
+  require(trailingHit.textOffset == 4,
+          "BlockAfter hit should resolve to the last block's selectable length (4 for \"beta\")");
 
   const QPointF alphaPos = alphaRect.topLeft() + alphaInline->cursorRect(2).center();
 
-  QMouseEvent press(QEvent::MouseButtonPress, trailingPos, QPointF(trailingPos), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent press(QEvent::MouseButtonPress, trailingPos, QPointF(trailingPos), Qt::LeftButton, Qt::LeftButton,
+                    Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &press);
   QMouseEvent move(QEvent::MouseMove, alphaPos, QPointF(alphaPos), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &move);
@@ -1014,12 +978,16 @@ void testEditorViewBackwardNestedSelectionCoversBothBlocks() {
   bool forwardHasThird = false, forwardHasNested = false;
   bool backwardHasThird = false, backwardHasNested = false;
   for (const BlockLayout* block : forward) {
-    if (block->nodeId() == thirdId) forwardHasThird = true;
-    if (block->nodeId() == nestedId) forwardHasNested = true;
+    if (block->nodeId() == thirdId)
+      forwardHasThird = true;
+    if (block->nodeId() == nestedId)
+      forwardHasNested = true;
   }
   for (const BlockLayout* block : backward) {
-    if (block->nodeId() == thirdId) backwardHasThird = true;
-    if (block->nodeId() == nestedId) backwardHasNested = true;
+    if (block->nodeId() == thirdId)
+      backwardHasThird = true;
+    if (block->nodeId() == nestedId)
+      backwardHasNested = true;
   }
   require(forwardHasThird && forwardHasNested, "forward selection must span both endpoints");
   require(backwardHasThird && backwardHasNested, "backward selection must span both endpoints");
@@ -1067,7 +1035,8 @@ void testListItemOwnSelectionRectsDoNotLeakToNested() {
   const BlockLayout* thirdBlock = layout.block(thirdId);
   const BlockLayout* nestedBlock = layout.block(nestedId);
   require(thirdBlock != nullptr && nestedBlock != nullptr, "both list items should be laid out");
-  require(thirdBlock->inlineLayout() != nullptr && nestedBlock->inlineLayout() != nullptr, "both items should have inline layouts");
+  require(thirdBlock->inlineLayout() != nullptr && nestedBlock->inlineLayout() != nullptr,
+          "both items should have inline layouts");
 
   const qreal thirdTop = thirdBlock->rect().top();
   const qreal thirdTextBottom = thirdTop + thirdBlock->inlineLayout()->height();
@@ -1093,7 +1062,8 @@ void testListItemOwnSelectionRectsDoNotLeakToNested() {
       break;
     }
   }
-  require(reachedNestedRow, "recursive selection must reach the nested item's row (the leak the self-only fix removes)");
+  require(reachedNestedRow,
+          "recursive selection must reach the nested item's row (the leak the self-only fix removes)");
 }
 
 // Cross-cell table selections: two cells share the table's blockId but hold different text
@@ -1111,7 +1081,7 @@ void testCrossCellSelectionIsNotCollapsed() {
   view.setDocument(session.document());
 
   MarkdownNode* table = blockAt(session, 0);
-  std::vector<MarkdownNode*> cells;  // row-major: [alpha, beta, gamma, delta]
+  std::vector<MarkdownNode*> cells; // row-major: [alpha, beta, gamma, delta]
   for (const auto& row : table->children()) {
     if (row->type() == BlockType::TableRow) {
       for (const auto& cell : row->children()) {
@@ -1127,7 +1097,7 @@ void testCrossCellSelectionIsNotCollapsed() {
   range.anchor.text.textOffset = 0;
   range.focus.blockId = table->id();
   range.focus.text.nodeId = cells.at(3)->id();
-  range.focus.text.textOffset = 5;  // end of "delta"
+  range.focus.text.textOffset = 5; // end of "delta"
   controller.selection().setSelection(range);
   require(!controller.selection().selection().isCollapsed(),
           "cross-cell selection with different offsets must not be collapsed");
@@ -1145,13 +1115,12 @@ void testCrossCellSelectionIsNotCollapsed() {
   require(controller.clipboardController().copy(), "cross-cell copy should succeed");
   const QString copied = QApplication::clipboard()->text();
   require(copied.contains(QStringLiteral("alpha")) || copied.contains(QStringLiteral("delta")) ||
-          copied.contains(QLatin1Char('|')),
+              copied.contains(QLatin1Char('|')),
           "cross-cell copy should produce table text");
 
   // Inline formatting over a cross-cell selection must be a safe no-op (no corruption of either
   // cell through mixed-cell offsets).
-  require(!controller.stylizeController().toggleBold(),
-          "bold over a cross-cell selection should not apply");
+  require(!controller.stylizeController().toggleBold(), "bold over a cross-cell selection should not apply");
   require(session.markdownText().toString() == source, "cross-cell bold must not corrupt the table");
 }
 
@@ -1168,7 +1137,7 @@ void testCrossCellSelectionCoversBothCells() {
   view.setDocument(session.document());
 
   MarkdownNode* table = blockAt(session, 0);
-  std::vector<MarkdownNode*> cells;  // row-major: [alpha, beta, gamma, delta]
+  std::vector<MarkdownNode*> cells; // row-major: [alpha, beta, gamma, delta]
   for (const auto& row : table->children()) {
     if (row->type() == BlockType::TableRow) {
       for (const auto& cell : row->children()) {
@@ -1199,9 +1168,8 @@ void testCrossCellSelectionCoversBothCells() {
     const QVector<QRectF> rects = layoutFor()->selectionRects(controller.selection().selection(), theme);
     require(!rects.isEmpty(), "cross-cell selection should produce rects");
     const auto covered = [&](const QRectF& cell) {
-      return std::any_of(rects.cbegin(), rects.cend(), [&cell](const QRectF& r) {
-        return r.intersects(cell.adjusted(1.0, 1.0, -1.0, -1.0));
-      });
+      return std::any_of(rects.cbegin(), rects.cend(),
+                         [&cell](const QRectF& r) { return r.intersects(cell.adjusted(1.0, 1.0, -1.0, -1.0)); });
     };
     require(covered(cellRect(1, 0)), "anchor cell (gamma) must be highlighted");
     require(covered(cellRect(1, 1)), "focus cell (delta) must be highlighted");
@@ -1234,10 +1202,10 @@ void testCrossCellSelectionCoversBothCells() {
     SelectionRange range;
     range.anchor.blockId = table->id();
     range.anchor.text.nodeId = cells.at(2)->id();
-    range.anchor.text.textOffset = 3;  // inside "gamma"
+    range.anchor.text.textOffset = 3; // inside "gamma"
     range.focus.blockId = table->id();
     range.focus.text.nodeId = cells.at(3)->id();
-    range.focus.text.textOffset = 2;   // inside "delta"
+    range.focus.text.textOffset = 2; // inside "delta"
     controller.selection().setSelection(range);
 
     const QVector<QRectF> rects = layoutFor()->selectionRects(controller.selection().selection(), theme);
@@ -1245,8 +1213,10 @@ void testCrossCellSelectionCoversBothCells() {
     qreal anchorWidth = 0.0;
     qreal focusWidth = 0.0;
     for (const QRectF& r : rects) {
-      if (r.intersects(cellRect(1, 0).adjusted(1.0, 1.0, -1.0, -1.0))) anchorWidth += r.width();
-      if (r.intersects(cellRect(1, 1).adjusted(1.0, 1.0, -1.0, -1.0))) focusWidth += r.width();
+      if (r.intersects(cellRect(1, 0).adjusted(1.0, 1.0, -1.0, -1.0)))
+        anchorWidth += r.width();
+      if (r.intersects(cellRect(1, 1).adjusted(1.0, 1.0, -1.0, -1.0)))
+        focusWidth += r.width();
     }
     require(anchorWidth > 2.0, "anchor cell should show a partial highlight (tail of 'gamma')");
     require(focusWidth > 2.0, "focus cell should show a partial highlight (head of 'delta')");
@@ -1300,24 +1270,22 @@ void testSelectionColorIsThemed() {
   const QRectF firstRect = layout->selectionRects(6, 11).value(0);
   require(!firstRect.isEmpty(), "selection should produce a rect");
   const QPointF sampleDoc = firstRect.center() + view.blockAtViewportPos(selRect.center())->inlineTextOrigin();
-  const QPoint sample(static_cast<int>(sampleDoc.x()), static_cast<int>(sampleDoc.y() - view.verticalScrollBar()->value()));
+  const QPoint sample(static_cast<int>(sampleDoc.x()),
+                      static_cast<int>(sampleDoc.y() - view.verticalScrollBar()->value()));
   require(image.rect().contains(sample), "sample point should be inside the capture");
   const QColor pixel = image.pixelColor(sample);
 
   // Expected blend: theme selection color (default #d7e8ff) at the 0.5 alpha cap over the page
   // background. The old hardcoded color (79,143,247, a=72) blends much bluer — reject it.
   const QColor themed = view.theme().selectionColor();
-  const QColor expected(
-      qRound(0.5 * themed.red() + 0.5 * 255),
-      qRound(0.5 * themed.green() + 0.5 * 255),
-      qRound(0.5 * themed.blue() + 0.5 * 255));
+  const QColor expected(qRound(0.5 * themed.red() + 0.5 * 255), qRound(0.5 * themed.green() + 0.5 * 255),
+                        qRound(0.5 * themed.blue() + 0.5 * 255));
   const int distThemed = qAbs(pixel.red() - expected.red()) + qAbs(pixel.green() - expected.green()) +
                          qAbs(pixel.blue() - expected.blue());
-  const QColor oldBlue(qRound((79 * 72 + 255 * (255 - 72)) / 255.0),
-                       qRound((143 * 72 + 255 * (255 - 72)) / 255.0),
+  const QColor oldBlue(qRound((79 * 72 + 255 * (255 - 72)) / 255.0), qRound((143 * 72 + 255 * (255 - 72)) / 255.0),
                        qRound((247 * 72 + 255 * (255 - 72)) / 255.0));
-  const int distOld = qAbs(pixel.red() - oldBlue.red()) + qAbs(pixel.green() - oldBlue.green()) +
-                      qAbs(pixel.blue() - oldBlue.blue());
+  const int distOld =
+      qAbs(pixel.red() - oldBlue.red()) + qAbs(pixel.green() - oldBlue.green()) + qAbs(pixel.blue() - oldBlue.blue());
   require(distThemed < distOld, "selection overlay must derive from the theme, not the old hardcoded blue");
 }
 
@@ -1336,7 +1304,7 @@ void testInputMethodQueryAnswersImeContext() {
 
   // Caret inside the bold inline: surrounding reports the visible projection ("bold", not
   // "**bold**"), and the cursor offset is in that same visible space.
-  CursorPosition inside = inlineCursor(block->id(), 9, 13);  // inside "bold" (visible off 9)
+  CursorPosition inside = inlineCursor(block->id(), 9, 13); // inside "bold" (visible off 9)
   view.setCursorPosition(inside);
   const QString surrounding = view.inputMethodQuery(Qt::ImSurroundingText).toString();
   require(surrounding == QStringLiteral("before bold after"),
@@ -1452,30 +1420,30 @@ void testDragThresholdAndWordDragExtend() {
     const QPointF realMove = cursorRectFor(13);
     QMouseEvent move2(QEvent::MouseMove, realMove, realMove, Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &move2);
-    require(!controller.selection().selection().isCollapsed(),
-            "a real drag must still extend the selection");
+    require(!controller.selection().selection().isCollapsed(), "a real drag must still extend the selection");
     QMouseEvent release(QEvent::MouseButtonRelease, realMove, realMove, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &release);
   }
 
   // --- Word drag-extend: double-click "beta", drag right of the word → word start .. drag point.
   {
-    const QPointF wordPoint = cursorRectFor(8);  // middle of "beta"
+    const QPointF wordPoint = cursorRectFor(8); // middle of "beta"
     QMouseEvent press(QEvent::MouseButtonPress, wordPoint, wordPoint, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &press);
-    QMouseEvent dblClick(QEvent::MouseButtonDblClick, wordPoint, wordPoint, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    QMouseEvent dblClick(QEvent::MouseButtonDblClick, wordPoint, wordPoint, Qt::LeftButton, Qt::LeftButton,
+                         Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &dblClick);
     const SelectionRange word = controller.selection().selection();
-    require(word.startOffset() == 6 && word.endOffset() == 10,
-            "double-click should select the word 'beta'");
+    require(word.startOffset() == 6 && word.endOffset() == 10, "double-click should select the word 'beta'");
 
-    const QPointF rightPoint = cursorRectFor(14);  // inside "gamma"
+    const QPointF rightPoint = cursorRectFor(14); // inside "gamma"
     QMouseEvent dragRight(QEvent::MouseMove, rightPoint, rightPoint, Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &dragRight);
     const SelectionRange extended = controller.selection().selection();
     require(extended.startOffset() == 6, "dragging right must keep the word start anchored");
     require(extended.endOffset() >= 12, "dragging right must extend into 'gamma'");
-    QMouseEvent release(QEvent::MouseButtonRelease, rightPoint, rightPoint, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    QMouseEvent release(QEvent::MouseButtonRelease, rightPoint, rightPoint, Qt::LeftButton, Qt::NoButton,
+                        Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &release);
   }
 
@@ -1484,10 +1452,11 @@ void testDragThresholdAndWordDragExtend() {
     const QPointF wordPoint = cursorRectFor(8);
     QMouseEvent press(QEvent::MouseButtonPress, wordPoint, wordPoint, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &press);
-    QMouseEvent dblClick(QEvent::MouseButtonDblClick, wordPoint, wordPoint, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    QMouseEvent dblClick(QEvent::MouseButtonDblClick, wordPoint, wordPoint, Qt::LeftButton, Qt::LeftButton,
+                         Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &dblClick);
 
-    const QPointF leftPoint = cursorRectFor(2);  // inside "alpha"
+    const QPointF leftPoint = cursorRectFor(2); // inside "alpha"
     QMouseEvent dragLeft(QEvent::MouseMove, leftPoint, leftPoint, Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &dragLeft);
     const SelectionRange mirrored = controller.selection().selection();
@@ -1532,8 +1501,7 @@ void testTripleClickSelectsBlock() {
 
   const SelectionRange selection = controller.selection().selection();
   require(!selection.isCollapsed(), "triple click should select the block's text");
-  require(selection.startOffset() == 0,
-          "block selection must start at offset 0");
+  require(selection.startOffset() == 0, "block selection must start at offset 0");
   require(selection.endOffset() == QStringLiteral("first words here").size(),
           "block selection must span the whole block text");
 
@@ -1589,8 +1557,7 @@ void testDragAutoScrollsPastViewportEdge() {
   const SelectionRange selection = controller.selection().selection();
   require(!selection.anchor.blockId.isValid() || !selection.isCollapsed(),
           "the selection should have extended during auto-scroll");
-  require(selection.focus.blockId != first->id(),
-          "the selection focus must have moved beyond the first block");
+  require(selection.focus.blockId != first->id(), "the selection focus must have moved beyond the first block");
   Q_UNUSED(blocksBefore);
 
   QMouseEvent release(QEvent::MouseButtonRelease, below, below, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
@@ -1623,7 +1590,8 @@ void testRightClickInsideSelectionKeepsSelection() {
     const QPointF releasePoint = pointFor(16);
     QMouseEvent move(QEvent::MouseMove, releasePoint, releasePoint, Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &move);
-    QMouseEvent release(QEvent::MouseButtonRelease, releasePoint, releasePoint, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    QMouseEvent release(QEvent::MouseButtonRelease, releasePoint, releasePoint, Qt::LeftButton, Qt::NoButton,
+                        Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &release);
   }
   const SelectionRange dragged = controller.selection().selection();
@@ -1641,7 +1609,8 @@ void testRightClickInsideSelectionKeepsSelection() {
     const QPointF documentPos(clickViewport.x(), clickViewport.y());
     bool contains = false;
     for (const QRectF& r : rects) {
-      if (r.contains(documentPos)) contains = true;
+      if (r.contains(documentPos))
+        contains = true;
     }
   }
   QApplication::sendEvent(view.viewport(), &menu);
@@ -1682,7 +1651,8 @@ void testRightClickInsideSelectionKeepsSelectionNestedAndMultiBlock() {
     const QPointF releasePoint = pointFor(12);
     QMouseEvent move(QEvent::MouseMove, releasePoint, releasePoint, Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &move);
-    QMouseEvent release(QEvent::MouseButtonRelease, releasePoint, releasePoint, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    QMouseEvent release(QEvent::MouseButtonRelease, releasePoint, releasePoint, Qt::LeftButton, Qt::NoButton,
+                        Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &release);
     require(!controller.selection().selection().isCollapsed(), "drag inside a list item should select");
 
@@ -1720,7 +1690,8 @@ void testRightClickInsideSelectionKeepsSelectionNestedAndMultiBlock() {
     const QPointF releasePoint = pointIn(last, 4);
     QMouseEvent move(QEvent::MouseMove, releasePoint, releasePoint, Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &move);
-    QMouseEvent release(QEvent::MouseButtonRelease, releasePoint, releasePoint, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    QMouseEvent release(QEvent::MouseButtonRelease, releasePoint, releasePoint, Qt::LeftButton, Qt::NoButton,
+                        Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &release);
     require(controller.selection().selection().anchor.blockId != controller.selection().selection().focus.blockId,
             "the drag should span blocks");

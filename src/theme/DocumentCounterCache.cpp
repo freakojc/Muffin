@@ -11,13 +11,15 @@ void DocumentCounterCache::reuseSemanticPool(const DocumentCounterCache& seed) {
 }
 QByteArray DocumentCounterCache::retainSemantic(QByteArray value) {
   auto found = semanticReferences_.find(value);
-  if (found == semanticReferences_.end()) found = semanticReferences_.insert(value, 0);
+  if (found == semanticReferences_.end())
+    found = semanticReferences_.insert(value, 0);
   ++found.value();
   return found.key();
 }
 void DocumentCounterCache::releaseSemantic(const QByteArray& value) {
   const auto found = semanticReferences_.find(value);
-  if (found != semanticReferences_.end() && --found.value() == 0) semanticReferences_.erase(found);
+  if (found != semanticReferences_.end() && --found.value() == 0)
+    semanticReferences_.erase(found);
 }
 DocumentCounterStats DocumentCounterCache::stats() const {
   DocumentCounterStats result;
@@ -32,7 +34,8 @@ DocumentCounterStats DocumentCounterCache::stats() const {
   result.memoizedBlocks = memo_.size();
   for (const auto& bucket : statePool_)
     for (const auto& state : bucket)
-      if (!state.expired()) ++result.sharedStates;
+      if (!state.expired())
+        ++result.sharedStates;
   return result;
 }
 void DocumentCounterCache::evaluate() {
@@ -60,7 +63,8 @@ void DocumentCounterCache::evaluate() {
     }
     auto& bucket = statePool_[hash];
     for (const auto& weak : bucket)
-      if (const auto value = weak.lock(); value && *value == result) return value;
+      if (const auto value = weak.lock(); value && *value == result)
+        return value;
     auto value = std::make_shared<const Snapshot>(std::move(result));
     bucket.push_back(value);
     return value;
@@ -86,10 +90,12 @@ void DocumentCounterCache::evaluate() {
       for (const auto& [name, value] : program.operations[op]) {
         auto& chain = state[name];
         if (op == 0) {
-          while (!chain.isEmpty() && chain.back()->depth >= depth) chain.pop_back();
+          while (!chain.isEmpty() && chain.back()->depth >= depth)
+            chain.pop_back();
           chain.append(std::make_shared<Instance>(Instance{depth, value}));
         } else {
-          if (chain.isEmpty()) chain.append(std::make_shared<Instance>(Instance{depth, 0}));
+          if (chain.isEmpty())
+            chain.append(std::make_shared<Instance>(Instance{depth, 0}));
           chain.back()->value =
               op == 2 ? value
                       : int(std::clamp<qint64>(qint64(chain.back()->value) + value, std::numeric_limits<int>::min(),
@@ -108,7 +114,8 @@ void DocumentCounterCache::evaluate() {
       return;
     QHash<QString, QVector<int>> values;
     for (auto it = state.cbegin(); it != state.cend(); ++it)
-      for (const auto& instance : it.value()) values[it.key()].append(instance->value);
+      for (const auto& instance : it.value())
+        values[it.key()].append(instance->value);
     const auto content = resolveContentTokens(
         program.content, [&](const auto& name) { return values.value(name, {0}).back(); },
         [&](const auto& name) { return values.value(name, {0}); });
@@ -123,14 +130,17 @@ void DocumentCounterCache::evaluate() {
     }
     if (current) {
       current->chains.insert(program.key, values);
-      if (program.owner.isValid()) current->fingerprints.insert(program.owner, fingerprints.value(program.owner));
-      if (text.contains(program.owner)) current->text.insert(program.owner, text.value(program.owner));
+      if (program.owner.isValid())
+        current->fingerprints.insert(program.owner, fingerprints.value(program.owner));
+      if (text.contains(program.owner))
+        current->text.insert(program.owner, text.value(program.owner));
     }
   };
   QHash<NodeId, Memo> next;
   std::function<void(const CounterProgram&, State&, int)> visit;
   const auto block = [&](const Block& entry, State& state, int depth) {
-    if (!entry.program) return;
+    if (!entry.program)
+      return;
     const auto input = snapshot(state);
     const auto old = memo_.constFind(entry.id);
     if (old != memo_.cend() && old->program == entry.program && old->input == input) {
@@ -157,9 +167,11 @@ void DocumentCounterCache::evaluate() {
     record(program, state);
     State children = state;
     const auto inherit = [&] {
-      for (auto it = state.cbegin(); it != state.cend(); ++it) children[it.key()] = it.value();
+      for (auto it = state.cbegin(); it != state.cend(); ++it)
+        children[it.key()] = it.value();
     };
-    if (program.before) visit(*program.before, children, depth + 1);
+    if (program.before)
+      visit(*program.before, children, depth + 1);
     if (program.documentRoot) {
       for (const auto& entry : blocks) {
         inherit();
@@ -172,10 +184,12 @@ void DocumentCounterCache::evaluate() {
       }
     }
     inherit();
-    if (program.after) visit(*program.after, children, depth + 1);
+    if (program.after)
+      visit(*program.after, children, depth + 1);
   };
   State state;
-  if (host) visit(*host, state, 0);
+  if (host)
+    visit(*host, state, 0);
   memo_ = std::move(next);
 }
-}  // namespace muffin
+} // namespace muffin

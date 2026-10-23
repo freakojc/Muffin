@@ -24,20 +24,27 @@
 namespace {
 int failures = 0;
 void check(bool ok, const QString& context) {
-  if (!ok) { ++failures; std::fprintf(stderr, "FAIL: %s\n", qPrintable(context)); }
+  if (!ok) {
+    ++failures;
+    std::fprintf(stderr, "FAIL: %s\n", qPrintable(context));
+  }
 }
 void near(qreal actual, qreal expected, qreal tolerance, const QString& context) {
   check(qAbs(actual - expected) <= tolerance, context + QString(" actual=%1 expected=%2").arg(actual).arg(expected));
 }
 const muffin::html::HtmlBox* paragraph(const muffin::html::HtmlBox& box) {
-  if (box.tag() == muffin::html::HtmlTag::Paragraph) return &box;
-  for (const auto& child : box.children()) if (const auto* found = paragraph(*child)) return found;
+  if (box.tag() == muffin::html::HtmlTag::Paragraph)
+    return &box;
+  for (const auto& child : box.children())
+    if (const auto* found = paragraph(*child))
+      return found;
   return nullptr;
 }
-void saveLayout(const muffin::DocumentSession& document, const muffin::RenderTheme& theme, const muffin::DocumentLayout& layout,
-                  qreal width, const QString& id) {
+void saveLayout(const muffin::DocumentSession& document, const muffin::RenderTheme& theme,
+                const muffin::DocumentLayout& layout, qreal width, const QString& id) {
   const auto directory = qEnvironmentVariable("MUFFIN_THEME_AUDIT_DIR");
-  if (directory.isEmpty()) return;
+  if (directory.isEmpty())
+    return;
   QDir().mkpath(directory);
   QImage image(qCeil(width), qCeil(layout.totalHeight() + 40), QImage::Format_ARGB32_Premultiplied);
   const auto background = theme.viewportBackgroundColor();
@@ -45,12 +52,13 @@ void saveLayout(const muffin::DocumentSession& document, const muffin::RenderThe
   QPainter painter(&image);
   painter.setRenderHint(QPainter::Antialiasing);
   painter.setRenderHint(QPainter::TextAntialiasing);
-  for (const auto& node : document.document().root().children()) layout.block(node->id())->paint(painter, theme, 0, nullptr);
+  for (const auto& node : document.document().root().children())
+    layout.block(node->id())->paint(painter, theme, 0, nullptr);
   painter.end();
   check(image.save(directory + '/' + id + "-native.png"), id + " audit raster");
 }
-void compareLazy(const muffin::DocumentSession& document, const muffin::RenderTheme& theme, const muffin::DocumentLayout& eager,
-                   qreal width, const QString& id) {
+void compareLazy(const muffin::DocumentSession& document, const muffin::RenderTheme& theme,
+                 const muffin::DocumentLayout& eager, qreal width, const QString& id) {
   muffin::DocumentLayout lazy;
   lazy.rebuild(document.document(), theme, width, {}, {}, muffin::DocumentLayout::BuildPolicy::Lazy);
   lazy.buildAll(theme);
@@ -63,13 +71,15 @@ void headingFixtures(const QJsonObject& reference, const QString& family) {
   for (const auto& value : reference["headings"].toArray()) {
     const auto entry = value.toObject();
     const auto id = entry["id"].toString();
-    auto css = entry["css"].toString(); css.replace("MuffinFixtureSans", family);
+    auto css = entry["css"].toString();
+    css.replace("MuffinFixtureSans", family);
     auto theme = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(css, id, {}));
     theme.updateForViewport(width, 1600);
     QString markdown;
     for (const auto& node : entry["nodes"].toArray()) {
       const auto tag = node.toObject()["tag"].toString();
-      markdown += (tag.startsWith('h') ? QString(tag.mid(1).toInt(), '#') + ' ' : QString()) + node.toObject()["text"].toString() + "\n\n";
+      markdown += (tag.startsWith('h') ? QString(tag.mid(1).toInt(), '#') + ' ' : QString()) +
+                  node.toObject()["text"].toString() + "\n\n";
     }
     muffin::DocumentSession document;
     document.setMarkdownText(markdown.trimmed(), false);
@@ -78,7 +88,8 @@ void headingFixtures(const QJsonObject& reference, const QString& family) {
     const auto& nodes = document.document().root().children();
     const auto expected = entry["expected"].toArray();
     check(nodes.size() == size_t(expected.size()), id + " block count");
-    if (nodes.size() != size_t(expected.size())) continue;
+    if (nodes.size() != size_t(expected.size()))
+      continue;
     const qreal origin = layout.block(nodes[0]->id())->cssBoxGeometry().borderBox.top();
     for (size_t i = 0; i < nodes.size(); ++i) {
       const auto e = expected[int(i)].toObject();
@@ -99,7 +110,8 @@ void inlineFixtures(const QJsonObject& reference, const QString& family) {
   for (const auto& value : reference["inlines"].toArray()) {
     const auto entry = value.toObject(), expected = entry["expected"].toObject();
     const auto id = entry["id"].toString();
-    auto css = entry["css"].toString(); css.replace("MuffinFixtureSans", family);
+    auto css = entry["css"].toString();
+    css.replace("MuffinFixtureSans", family);
     const auto theme = muffin::RenderTheme::fromDefinition(muffin::CssThemeMapper::fromCss(css, id, {}));
     muffin::DocumentSession document;
     document.setMarkdownText(entry["markdown"].toString(), false);
@@ -109,7 +121,8 @@ void inlineFixtures(const QJsonObject& reference, const QString& family) {
     const auto* block = layout.block(document.document().root().children()[0]->id());
     const auto* text = block->inlineLayout();
     check(text != nullptr, id + " native text");
-    if (!text) continue;
+    if (!text)
+      continue;
     near(text->height(), expected["height"].toDouble(), .25, id + " browser line height");
     const auto boxes = expected["boxes"].toArray();
     check(text->inlineBoxes().size() == boxes.size(), id + " keyboard fragments");
@@ -118,23 +131,28 @@ void inlineFixtures(const QJsonObject& reference, const QString& family) {
       const auto expectedBox = boxes[i].toObject();
       near(box.borderBox.left(), expectedBox["left"].toDouble(), .8, id + " keyboard left");
       near(box.borderBox.width(), expectedBox["width"].toDouble(), .8, id + " keyboard width");
-      check(box.borderBox.left() >= -.01 && box.borderBox.right() <= width + .01, id + " keyboard inside wrapping width");
+      check(box.borderBox.left() >= -.01 && box.borderBox.right() <= width + .01,
+            id + " keyboard inside wrapping width");
     }
     if (id.startsWith("keyboard-wrap")) {
       check(text->visibleText() == "abcdefgh S, next.", id + " generated edges do not enter copied text");
       for (qsizetype i = 0; i < text->visibleText().size(); ++i) {
-        if (!text->visibleText()[i].isLetter()) continue;
+        if (!text->visibleText()[i].isLetter())
+          continue;
         const auto cursor = text->cursorRect(i);
-        check(text->hitTestTextOffset(QPointF(cursor.left(), cursor.center().y())) == i, id + " wrapped cursor/click roundtrip");
+        check(text->hitTestTextOffset(QPointF(cursor.left(), cursor.center().y())) == i,
+              id + " wrapped cursor/click roundtrip");
       }
       check(!text->selectionRects(0, text->visibleText().size()).isEmpty(), id + " wrapped selection");
     }
     if (id == "negative-leading") {
-      check(block->visualOverflowRect().contains(text->visualTextBounds().translated(block->cssBoxGeometry().inlineTextOrigin)),
+      check(block->visualOverflowRect().contains(
+                text->visualTextBounds().translated(block->cssBoxGeometry().inlineTextOrigin)),
             id + " repaint covers glyphs beyond the CSS line box");
       for (const int offset : {2, 8}) {
         const auto cursor = text->cursorRect(offset);
-        check(text->hitTestTextOffset(QPointF(cursor.left(), cursor.center().y())) == offset, id + " cursor/click roundtrip");
+        check(text->hitTestTextOffset(QPointF(cursor.left(), cursor.center().y())) == offset,
+              id + " cursor/click roundtrip");
       }
       check(text->selectionRects(0, text->visibleText().size()).size() == 2, id + " selection covers two lines");
     }
@@ -147,7 +165,8 @@ void inlineFixtures(const QJsonObject& reference, const QString& family) {
     if (html.root()) {
       const auto* p = paragraph(*html.root());
       check(p != nullptr, id + " HTML paragraph");
-      if (p) near(p->geometry().height, expected["height"].toDouble(), .25, id + " shared HTML line height");
+      if (p)
+        near(p->geometry().height, expected["height"].toDouble(), .25, id + " shared HTML line height");
     }
     compareLazy(document, theme, layout, width, id);
     saveLayout(document, theme, layout, width, id);
@@ -155,9 +174,11 @@ void inlineFixtures(const QJsonObject& reference, const QString& family) {
 }
 void gradientFixtures(const QJsonObject& reference) {
   for (const auto& value : reference["gradients"].toArray()) {
-    const auto entry = value.toObject(); const auto id = entry["id"].toString();
+    const auto entry = value.toObject();
+    const auto id = entry["id"].toString();
     muffin::CssLengthContext context;
-    if (entry.contains("fontSize")) context.emPx = entry["fontSize"].toDouble();
+    if (entry.contains("fontSize"))
+      context.emPx = entry["fontSize"].toDouble();
     const auto spec = muffin::parseGradientSpec(entry["css"].toString(), {}, context);
     check(muffin::GradientPainter::isGradient(spec), id + " parsed gradient");
     const QImage expected = QImage::fromData(QByteArray::fromBase64(entry["png"].toString().toLatin1()));
@@ -168,14 +189,22 @@ void gradientFixtures(const QJsonObject& reference) {
     painter.end();
     check(!expected.isNull() && expected.size() == actual.size(), id + " browser raster");
     for (const auto& sample : entry["samples"].toArray()) {
-      const auto point = sample.toArray(); const int x = point[0].toInt(), y = point[1].toInt();
+      const auto point = sample.toArray();
+      const int x = point[0].toInt(), y = point[1].toInt();
       const auto a = actual.pixelColor(x, y), e = expected.pixelColor(x, y);
-      check(qAbs(a.red()-e.red()) <= 5 && qAbs(a.green()-e.green()) <= 5 && qAbs(a.blue()-e.blue()) <= 5 && qAbs(a.alpha()-e.alpha()) <= 5,
-            id + QString(" pixel %1,%2 actual=%3 expected=%4").arg(x).arg(y).arg(a.name(QColor::HexArgb),e.name(QColor::HexArgb)));
+      check(qAbs(a.red() - e.red()) <= 5 && qAbs(a.green() - e.green()) <= 5 && qAbs(a.blue() - e.blue()) <= 5 &&
+                qAbs(a.alpha() - e.alpha()) <= 5,
+            id + QString(" pixel %1,%2 actual=%3 expected=%4")
+                     .arg(x)
+                     .arg(y)
+                     .arg(a.name(QColor::HexArgb), e.name(QColor::HexArgb)));
     }
     if (id == "abyss-dot") {
       int visible = 0;
-      for (int y=0; y<actual.height(); ++y) for (int x=0; x<actual.width(); ++x) if (actual.pixelColor(x,y).alpha() > 127) ++visible;
+      for (int y = 0; y < actual.height(); ++y)
+        for (int x = 0; x < actual.width(); ++x)
+          if (actual.pixelColor(x, y).alpha() > 127)
+            ++visible;
       check(visible == 4, "Abyss texture contains a 1px-radius dot, without a diffuse halo");
     }
   }
@@ -193,17 +222,19 @@ void wrappedMathBelongsToItsLine() {
     check(rects.size() == 1, "one wrapped formula");
     if (!rects.isEmpty()) {
       check(rects[0].left() >= -.01 && rects[0].right() <= width + .01, "wrapped formula belongs to the next line");
-      check(rects[0].top() >= -.01 && rects[0].bottom() <= text->height() + .01, "formula uses allocated baseline extents");
+      check(rects[0].top() >= -.01 && rects[0].bottom() <= text->height() + .01,
+            "formula uses allocated baseline extents");
     }
     compareLazy(document, theme, layout, width, "wrapped-math");
   }
 }
-}  // namespace
+} // namespace
 int main(int argc, char** argv) {
   qputenv("QT_FONT_DPI", "96");
   QApplication app(argc, argv);
   QFile file(QStringLiteral(MUFFIN_SOURCE_DIR "/tests/fixtures/theme/typography-browser.json"));
-  if (!file.open(QIODevice::ReadOnly)) qFatal("Cannot open typography browser reference");
+  if (!file.open(QIODevice::ReadOnly))
+    qFatal("Cannot open typography browser reference");
   const auto reference = QJsonDocument::fromJson(file.readAll()).object();
   const auto aliases = browserLayoutFont(reference);
   const auto family = aliases.value(reference["font"].toObject()["family"].toString().toLower());

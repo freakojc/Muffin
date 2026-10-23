@@ -27,13 +27,13 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 QByteArray fileSha(const QString& path) {
   QFile file(path);
-  return file.open(QIODevice::ReadOnly)
-             ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
-             : QByteArray();
+  return file.open(QIODevice::ReadOnly) ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
+                                        : QByteArray();
 }
 QImage decode(const QString& url) {
   QImage image;
@@ -61,17 +61,16 @@ qreal rgbaSimilarity(const QImage& a, const QImage& b) {
     for (int x = 0; x < b.width(); ++x) {
       const QColor actual = a.pixelColor(x, y);
       const QColor expected = b.pixelColor(x, y);
-      if (actual.alpha() < 32 && expected.alpha() < 32) continue;
+      if (actual.alpha() < 32 && expected.alpha() < 32)
+        continue;
       ++count;
-      const auto premultiplied = [](int channel, int alpha) {
-        return channel * alpha / 255;
-      };
-      difference += std::abs(premultiplied(actual.red(), actual.alpha()) -
-                             premultiplied(expected.red(), expected.alpha()));
-      difference += std::abs(premultiplied(actual.green(), actual.alpha()) -
-                             premultiplied(expected.green(), expected.alpha()));
-      difference += std::abs(premultiplied(actual.blue(), actual.alpha()) -
-                             premultiplied(expected.blue(), expected.alpha()));
+      const auto premultiplied = [](int channel, int alpha) { return channel * alpha / 255; };
+      difference +=
+          std::abs(premultiplied(actual.red(), actual.alpha()) - premultiplied(expected.red(), expected.alpha()));
+      difference +=
+          std::abs(premultiplied(actual.green(), actual.alpha()) - premultiplied(expected.green(), expected.alpha()));
+      difference +=
+          std::abs(premultiplied(actual.blue(), actual.alpha()) - premultiplied(expected.blue(), expected.alpha()));
       difference += std::abs(actual.alpha() - expected.alpha());
     }
   return count ? 1.0 - difference / (count * 4.0 * 255.0) : 1.0;
@@ -87,8 +86,7 @@ QImage isolatedLabelImage(treeview::TreeViewScene scene) {
     node.label.opacity = 1.0;
   }
   const QRectF bounds = scene.renderBounds();
-  QImage image(qRound(bounds.width()), qRound(bounds.height()),
-               QImage::Format_ARGB32_Premultiplied);
+  QImage image(qRound(bounds.width()), qRound(bounds.height()), QImage::Format_ARGB32_Premultiplied);
   image.fill(Qt::transparent);
   QPainter painter(&image);
   painter.translate(-bounds.left(), -bounds.top());
@@ -96,7 +94,7 @@ QImage isolatedLabelImage(treeview::TreeViewScene scene) {
   painter.end();
   return image;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
 #if defined(Q_OS_MACOS)
@@ -131,16 +129,18 @@ int main(int argc, char** argv) {
     require(fileSha(referencePath) == fixture.value(QStringLiteral("sha256")).toString().toLatin1(),
             id + QStringLiteral("/browser PNG hash"));
     const QImage reference(referencePath);
-    const QImage native = decode(editor::MermaidRenderCache::renderMermaidSourceToPng(
-                                     fixture.value(QStringLiteral("source")).toString(), 1.0)
-                                     .dataUrl);
+    const QImage native = decode(
+        editor::MermaidRenderCache::renderMermaidSourceToPng(fixture.value(QStringLiteral("source")).toString(), 1.0)
+            .dataUrl);
     require(!reference.isNull() && !native.isNull(), id + QStringLiteral("/decode"));
     if (qEnvironmentVariableIsSet("MUFFIN_SAVE_NATIVE"))
       native.save(QStringLiteral("native-treeview-%1.png").arg(id));
-    require(native.size() == reference.size(),
-            QStringLiteral("%1: native %2x%3 != browser %4x%5")
-                .arg(id).arg(native.width()).arg(native.height())
-                .arg(reference.width()).arg(reference.height()));
+    require(native.size() == reference.size(), QStringLiteral("%1: native %2x%3 != browser %4x%5")
+                                                   .arg(id)
+                                                   .arg(native.width())
+                                                   .arg(native.height())
+                                                   .arg(reference.width())
+                                                   .arg(reference.height()));
     const qreal iou = alphaIou(native, reference);
     const qreal rgba = rgbaSimilarity(native, reference);
     std::fprintf(stderr, "%s alphaIoU=%.6f rgba=%.6f\n", qPrintable(id), iou, rgba);
@@ -149,23 +149,20 @@ int main(int argc, char** argv) {
     require(iou >= minimumIou, id + QStringLiteral("/alpha IoU"));
     require(rgba >= 0.96, id + QStringLiteral("/foreground RGBA"));
     if (iconCase) {
-      const QJsonObject contract =
-          fixture.value(QStringLiteral("iconContract")).toObject();
+      const QJsonObject contract = fixture.value(QStringLiteral("iconContract")).toObject();
       require(contract.value(QStringLiteral("uses")).toArray().isEmpty(),
               id + QStringLiteral("/strict output must strip icon uses"));
       const QJsonArray labels = contract.value(QStringLiteral("labels")).toArray();
-      const QStringList expectedLabels = {QStringLiteral("/"),
-          QStringLiteral("root"), QStringLiteral("file.txt"),
-          QStringLiteral("hidden"), QStringLiteral("explicit")};
-      const QStringList expectedXs = {QStringLiteral("23"), QStringLiteral("38"),
-          QStringLiteral("53"), QStringLiteral("35"), QStringLiteral("53")};
+      const QStringList expectedLabels = {QStringLiteral("/"), QStringLiteral("root"), QStringLiteral("file.txt"),
+                                          QStringLiteral("hidden"), QStringLiteral("explicit")};
+      const QStringList expectedXs = {QStringLiteral("23"), QStringLiteral("38"), QStringLiteral("53"),
+                                      QStringLiteral("35"), QStringLiteral("53")};
       require(labels.size() == expectedLabels.size(), id + QStringLiteral("/labels"));
       for (qsizetype i = 0; i < labels.size(); ++i) {
         const QJsonObject label = labels.at(i).toObject();
         require(label.value(QStringLiteral("value")).toString() == expectedLabels.at(i) &&
                     label.value(QStringLiteral("x")).toString() == expectedXs.at(i) &&
-                    label.value(QStringLiteral("y")).toString() ==
-                        QString::number(16 + 32 * i) &&
+                    label.value(QStringLiteral("y")).toString() == QString::number(16 + 32 * i) &&
                     !label.value(QStringLiteral("hasIconUse")).toBool(),
                 id + QStringLiteral("/label icon reservation drifted"));
       }
@@ -173,20 +170,21 @@ int main(int argc, char** argv) {
       require(defs.size() == 2, id + QStringLiteral("/two built-in defs"));
       const QStringList iconNames = {QStringLiteral("folder"), QStringLiteral("file")};
       const QStringList paths = {
-          QStringLiteral("M10.59 4.59A2 2 0 0 0 9.17 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.17z"),
-          QStringLiteral("M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.83a2 2 0 0 0-.59-1.42l-4.82-4.82A2 2 0 0 0 13.17 2H6Zm7.5 1.9l4.6 4.6h-3.6a1 1 0 0 1-1-1V3.9Z")};
+          QStringLiteral(
+              "M10.59 4.59A2 2 0 0 0 9.17 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.17z"),
+          QStringLiteral(
+              "M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.83a2 2 0 0 0-.59-1.42l-4.82-4.82A2 2 0 0 0 13.17 2H6Zm7.5 1.9l4.6 4.6h-3.6a1 1 0 0 1-1-1V3.9Z")};
       for (qsizetype i = 0; i < defs.size(); ++i) {
         const QJsonObject definition = defs.at(i).toObject();
         const QJsonObject svg = definition.value(QStringLiteral("svg")).toObject();
         const QJsonObject path = definition.value(QStringLiteral("path")).toObject();
-        require(definition.value(QStringLiteral("id")).toString().endsWith(
-                    QStringLiteral("mermaid-treeview-") + iconNames.at(i)) &&
+        require(definition.value(QStringLiteral("id"))
+                        .toString()
+                        .endsWith(QStringLiteral("mermaid-treeview-") + iconNames.at(i)) &&
                     svg.value(QStringLiteral("width")).toString() == QLatin1String("14") &&
                     svg.value(QStringLiteral("height")).toString() == QLatin1String("14") &&
-                    svg.value(QStringLiteral("viewBox")).toString() ==
-                        QLatin1String("0 0 24 24") &&
-                    path.value(QStringLiteral("fill")).toString() ==
-                        QLatin1String("currentColor") &&
+                    svg.value(QStringLiteral("viewBox")).toString() == QLatin1String("0 0 24 24") &&
+                    path.value(QStringLiteral("fill")).toString() == QLatin1String("currentColor") &&
                     path.value(QStringLiteral("d")).toString() == paths.at(i) &&
                     path.value(QStringLiteral("fill-rule")).toString() ==
                         (i == 1 ? QLatin1String("evenodd") : QLatin1String("")) &&
@@ -198,30 +196,23 @@ int main(int argc, char** argv) {
       editor::MermaidRenderCache cache;
       const QString source = fixture.value(QStringLiteral("source")).toString();
       const auto entry = cache.getSync(editor::MermaidRenderCache::makeKey(source), source);
-      const auto scene =
-          std::dynamic_pointer_cast<const treeview::TreeViewScene>(entry.scene);
+      const auto scene = std::dynamic_pointer_cast<const treeview::TreeViewScene>(entry.scene);
       require(bool(scene), id + QStringLiteral("/native scene"));
       require(scene->iconDefs ==
-                  QStringList{QStringLiteral("mermaid-treeview:folder"),
-                              QStringLiteral("mermaid-treeview:file")},
+                  QStringList{QStringLiteral("mermaid-treeview:folder"), QStringLiteral("mermaid-treeview:file")},
               id + QStringLiteral("/native defs"));
       const QVector<bool> expectedReserved = {true, true, true, false, true};
       const QStringList expectedNodeIcons = {
-          QStringLiteral("mermaid-treeview:folder"),
-          QStringLiteral("mermaid-treeview:folder"),
-          QStringLiteral("mermaid-treeview:file"), QString(),
-          QStringLiteral("mermaid-treeview:folder")};
-      require(scene->nodes.size() == expectedReserved.size(),
-              id + QStringLiteral("/native nodes"));
+          QStringLiteral("mermaid-treeview:folder"), QStringLiteral("mermaid-treeview:folder"),
+          QStringLiteral("mermaid-treeview:file"), QString(), QStringLiteral("mermaid-treeview:folder")};
+      require(scene->nodes.size() == expectedReserved.size(), id + QStringLiteral("/native nodes"));
       for (qsizetype i = 0; i < scene->nodes.size(); ++i)
         require(scene->nodes.at(i).iconReserved == expectedReserved.at(i) &&
                     scene->nodes.at(i).iconName == expectedNodeIcons.at(i),
                 id + QStringLiteral("/native icon reservation"));
 
-      const QString labelMaskPath = dir.filePath(
-          fixture.value(QStringLiteral("labelMaskFile")).toString());
-      require(fileSha(labelMaskPath) ==
-                  fixture.value(QStringLiteral("labelMaskSha256")).toString().toLatin1(),
+      const QString labelMaskPath = dir.filePath(fixture.value(QStringLiteral("labelMaskFile")).toString());
+      require(fileSha(labelMaskPath) == fixture.value(QStringLiteral("labelMaskSha256")).toString().toLatin1(),
               id + QStringLiteral("/browser label mask hash"));
       const QImage browserLabels(labelMaskPath);
       const QImage nativeLabels = isolatedLabelImage(*scene);

@@ -12,8 +12,8 @@ namespace muffin {
 struct CustomCommandResult {
   bool ran = false;
   bool canceled = false;
-  QStringList urls;  // parsed from stdout, one non-blank line per returned URL, in order.
-  QString error;     // capture of stderr / launch failure, for the caller to surface.
+  QStringList urls; // parsed from stdout, one non-blank line per returned URL, in order.
+  QString error;    // capture of stderr / launch failure, for the caller to surface.
 };
 
 // Drives a user-configured external image uploader (PicGo, PicList, uPic, a shell
@@ -44,4 +44,4 @@ public:
   static CustomCommandResult upload(QWidget* parent, const QStringList& paths, const QString& commandOverride = {});
 };
 
-}  // namespace muffin
+} // namespace muffin

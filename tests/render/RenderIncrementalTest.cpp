@@ -22,9 +22,11 @@ using namespace muffin;
 
 namespace {
 
-void requireSameTopLevelLayout(const DocumentLayout& incremental, const DocumentLayout& full, const MarkdownDocument& document, const QString& label) {
+void requireSameTopLevelLayout(const DocumentLayout& incremental, const DocumentLayout& full,
+                               const MarkdownDocument& document, const QString& label) {
   require(incremental.slotCount() == full.slotCount(), label + QStringLiteral(" block count mismatch"));
-  require(qAbs(incremental.totalHeight() - full.totalHeight()) < 0.01, label + QStringLiteral(" total height mismatch"));
+  require(qAbs(incremental.totalHeight() - full.totalHeight()) < 0.01,
+          label + QStringLiteral(" total height mismatch"));
   for (const auto& child : document.root().children()) {
     const BlockLayout* incrementalBlock = incremental.block(child->id());
     const BlockLayout* fullBlock = full.block(child->id());
@@ -35,7 +37,8 @@ void requireSameTopLevelLayout(const DocumentLayout& incremental, const Document
     require(qAbs(incrementalRect.left() - fullRect.left()) < 0.01, label + QStringLiteral(" block left mismatch"));
     require(qAbs(incrementalRect.top() - fullRect.top()) < 0.01, label + QStringLiteral(" block top mismatch"));
     require(qAbs(incrementalRect.width() - fullRect.width()) < 0.01, label + QStringLiteral(" block width mismatch"));
-    require(qAbs(incrementalRect.height() - fullRect.height()) < 0.01, label + QStringLiteral(" block height mismatch"));
+    require(qAbs(incrementalRect.height() - fullRect.height()) < 0.01,
+            label + QStringLiteral(" block height mismatch"));
   }
 }
 
@@ -58,29 +61,30 @@ void testIncrementalBlockRebuildContract() {
   require(unchangedResult.rebuilt, QStringLiteral("unchanged paragraph rebuild should succeed"));
   require(qFuzzyIsNull(unchangedResult.heightDelta),
           QStringLiteral("unchanged paragraph rebuild should have zero height delta"));
-  require(unchangedResult.shiftedRect.isEmpty(),
-          QStringLiteral("zero-height-delta rebuild must not dirty the suffix"));
+  require(unchangedResult.shiftedRect.isEmpty(), QStringLiteral("zero-height-delta rebuild must not dirty the suffix"));
   require(layout.block(secondParagraphId)->rect().top() == secondBefore.top(),
           QStringLiteral("zero-height-delta rebuild must not move following blocks"));
   require(layout.totalHeight() == totalBefore,
           QStringLiteral("zero-height-delta rebuild must not change total height"));
 
-  require(session.applyTextDelta(
-              5,
-              0,
-              QStringLiteral(" alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha"
-                             " alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha"),
-              true,
-              {LocalEditNodeHint{firstParagraphId, 0, BlockType::Paragraph}}),
-          QStringLiteral("paragraph local delta should apply"));
-  const DocumentLayout::BlockRebuildResult paragraphResult = layout.rebuildBlock(firstParagraphId, session.document(), theme, {});
+  require(
+      session.applyTextDelta(
+          5, 0,
+          QStringLiteral(" alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha"
+                         " alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha"),
+          true, {LocalEditNodeHint{firstParagraphId, 0, BlockType::Paragraph}}),
+      QStringLiteral("paragraph local delta should apply"));
+  const DocumentLayout::BlockRebuildResult paragraphResult =
+      layout.rebuildBlock(firstParagraphId, session.document(), theme, {});
   require(paragraphResult.rebuilt, QStringLiteral("paragraph block rebuild should succeed"));
   require(paragraphResult.blockId == firstParagraphId, QStringLiteral("paragraph rebuild result id mismatch"));
   require(paragraphResult.oldRect == firstBefore, QStringLiteral("paragraph rebuild old rect mismatch"));
-  require(paragraphResult.newRect == layout.block(firstParagraphId)->rect(), QStringLiteral("paragraph rebuild new rect mismatch"));
+  require(paragraphResult.newRect == layout.block(firstParagraphId)->rect(),
+          QStringLiteral("paragraph rebuild new rect mismatch"));
   require(paragraphResult.heightDelta != 0, QStringLiteral("paragraph rebuild should report height delta"));
   require(!paragraphResult.shiftedRect.isEmpty(), QStringLiteral("paragraph rebuild should report shifted rect"));
-  require(layout.block(secondParagraphId)->rect().top() != secondBefore.top(), QStringLiteral("paragraph rebuild should shift following block"));
+  require(layout.block(secondParagraphId)->rect().top() != secondBefore.top(),
+          QStringLiteral("paragraph rebuild should shift following block"));
   require(layout.totalHeight() != totalBefore, QStringLiteral("paragraph rebuild should update total height"));
 
   const MarkdownNode* tableCell = findFirstTableCell(session.document().root());
@@ -88,25 +92,30 @@ void testIncrementalBlockRebuildContract() {
   MarkdownNode* table = mutableBlockAt(session.document(), 2);
   require(layout.block(tableCell->id()) != nullptr, QStringLiteral("layout index should include table cell"));
   const QRectF tableBefore = layout.block(table->id())->rect();
-  const DocumentLayout::BlockRebuildResult tableResult = layout.rebuildBlock(tableCell->id(), session.document(), theme, {});
+  const DocumentLayout::BlockRebuildResult tableResult =
+      layout.rebuildBlock(tableCell->id(), session.document(), theme, {});
   require(tableResult.rebuilt, QStringLiteral("table cell rebuild should map to top-level table"));
   require(tableResult.blockId == table->id(), QStringLiteral("table cell rebuild should report table block id"));
   require(tableResult.oldRect == tableBefore, QStringLiteral("table cell rebuild old rect mismatch"));
-  require(tableResult.newRect == layout.block(table->id())->rect(), QStringLiteral("table cell rebuild new rect mismatch"));
+  require(tableResult.newRect == layout.block(table->id())->rect(),
+          QStringLiteral("table cell rebuild new rect mismatch"));
 }
 
 void testIncrementalTopLevelRangeRebuildContract() {
   RenderTheme theme = RenderTheme::github();
-  auto verifyRangeEdit = [&](const QString& initial, qsizetype sourceStart, qsizetype removedLength, const QString& insertedText, const QString& label) {
+  auto verifyRangeEdit = [&](const QString& initial, qsizetype sourceStart, qsizetype removedLength,
+                             const QString& insertedText, const QString& label) {
     DocumentSession session;
     session.setMarkdownText(initial, false);
     DocumentLayout incremental;
     incremental.rebuild(session.document(), theme, 800.0);
 
-    require(session.applyTextDelta(sourceStart, removedLength, insertedText, true), label + QStringLiteral(" local edit should apply"));
+    require(session.applyTextDelta(sourceStart, removedLength, insertedText, true),
+            label + QStringLiteral(" local edit should apply"));
     const TopLevelRangeChange range = session.lastLocalTopLevelRangeChange();
     require(range.isValid(), label + QStringLiteral(" range should be valid"));
-    const DocumentLayout::RangeRebuildResult result = incremental.rebuildTopLevelRange(range, session.document(), theme, {});
+    const DocumentLayout::RangeRebuildResult result =
+        incremental.rebuildTopLevelRange(range, session.document(), theme, {});
     require(result.rebuilt, label + QStringLiteral(" range rebuild should succeed"));
 
     DocumentLayout full;
@@ -114,10 +123,14 @@ void testIncrementalTopLevelRangeRebuildContract() {
     requireSameTopLevelLayout(incremental, full, session.document(), label);
   };
 
-  verifyRangeEdit(QStringLiteral("alpha beta\n\ngamma"), 5, 0, QStringLiteral("\n\n"), QStringLiteral("paragraph split"));
-  verifyRangeEdit(QStringLiteral("alpha\n\nbeta\n\ngamma"), 5, 2, QStringLiteral(" "), QStringLiteral("paragraph merge"));
-  verifyRangeEdit(QStringLiteral("# Heading\n\nalpha\n\nbeta"), 9, 0, QStringLiteral("\n\n"), QStringLiteral("heading boundary insert"));
-  verifyRangeEdit(QStringLiteral("alpha\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n\nomega"), 5, 0, QStringLiteral("\n\ninserted"), QStringLiteral("table suffix shift"));
+  verifyRangeEdit(QStringLiteral("alpha beta\n\ngamma"), 5, 0, QStringLiteral("\n\n"),
+                  QStringLiteral("paragraph split"));
+  verifyRangeEdit(QStringLiteral("alpha\n\nbeta\n\ngamma"), 5, 2, QStringLiteral(" "),
+                  QStringLiteral("paragraph merge"));
+  verifyRangeEdit(QStringLiteral("# Heading\n\nalpha\n\nbeta"), 9, 0, QStringLiteral("\n\n"),
+                  QStringLiteral("heading boundary insert"));
+  verifyRangeEdit(QStringLiteral("alpha\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n\nomega"), 5, 0,
+                  QStringLiteral("\n\ninserted"), QStringLiteral("table suffix shift"));
 }
 
 void testLayoutPositionIndexPreservesLazySuffixAcrossSplice() {
@@ -132,11 +145,10 @@ void testLayoutPositionIndexPreservesLazySuffixAcrossSplice() {
   auto replacements = LayoutPositionIndex::merge(std::move(firstReplacement), std::move(secondReplacement));
   index.replace(1, 2, std::move(replacements));
 
-  const QVector<LayoutPositionToken*> expectedOrder{
-      original.at(0), firstReplacementPtr, secondReplacementPtr, original.at(3), original.at(4)};
+  const QVector<LayoutPositionToken*> expectedOrder{original.at(0), firstReplacementPtr, secondReplacementPtr,
+                                                    original.at(3), original.at(4)};
   for (qsizetype i = 0; i < expectedOrder.size(); ++i) {
-    require(index.rank(expectedOrder.at(i)) == i,
-            QStringLiteral("layout position rank mismatch at %1").arg(i));
+    require(index.rank(expectedOrder.at(i)) == i, QStringLiteral("layout position rank mismatch at %1").arg(i));
   }
   require(qFuzzyIsNull(index.adjustmentFor(firstReplacementPtr)),
           QStringLiteral("fresh layout token must start without an inherited shift"));
@@ -212,7 +224,7 @@ void testThemeRebuildReusesNavigationWithoutStaleGeometry() {
   DocumentLayout layout;
   auto theme = RenderTheme::fromDefinition(definitions[0]);
   layout.rebuild(session.document(), theme, 440, {}, {}, DocumentLayout::BuildPolicy::Lazy);
-  layout.visibleBlocks({0, 0, 440, 250}, theme);  // creates lazy suffix adjustments
+  layout.visibleBlocks({0, 0, 440, 250}, theme); // creates lazy suffix adjustments
   int definitionIndex = 0;
   const auto compare = [&] {
     auto fullTheme = RenderTheme::fromDefinition(definitions[definitionIndex]);
@@ -296,12 +308,11 @@ void testRangeRebuildAfterLazySuffixShiftMatchesFullLayout() {
 
   DocumentLayout full;
   full.rebuild(session.document(), theme, 360.0);
-  requireSameTopLevelLayout(
-      incremental, full, session.document(),
-      QStringLiteral("range rebuild after accumulated lazy suffix shift"));
+  requireSameTopLevelLayout(incremental, full, session.document(),
+                            QStringLiteral("range rebuild after accumulated lazy suffix shift"));
 }
 
-}  // namespace
+} // namespace
 
 // A structural (adjacent-sibling) spacing rule is honored by the structural cascade
 // (fast=false) but not the prototype estimate (fast=true). Before the fix, promoteSlot
@@ -311,10 +322,10 @@ void testRangeRebuildAfterLazySuffixShiftMatchesFullLayout() {
 // promotion snaps to the structural gap via the shared nextTopAfterBuild formula, so
 // Lazy+promote matches Eager block-for-block.
 void testLazyPromoteMatchesEagerGap() {
-  const QString css = QStringLiteral(
-      "#write { color:#000000; }"
-      "p { margin-bottom: 10px; }"
-      "p + ul { margin-top: 80px; }");  // exaggerated: prototype sees ul margin-top 0, structural sees 80
+  const QString css =
+      QStringLiteral("#write { color:#000000; }"
+                     "p { margin-bottom: 10px; }"
+                     "p + ul { margin-top: 80px; }"); // exaggerated: prototype sees ul margin-top 0, structural sees 80
   const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("gap"), QString()));
 
   DocumentSession session;
@@ -323,14 +334,14 @@ void testLazyPromoteMatchesEagerGap() {
   const NodeId ulId = mutableBlockAt(session.document(), 1)->id();
 
   DocumentLayout eager;
-  eager.rebuild(session.document(), theme, 800.0);  // Eager default → structural spacing throughout
+  eager.rebuild(session.document(), theme, 800.0); // Eager default → structural spacing throughout
   const qreal eagerGap = eager.block(ulId)->rect().top() - eager.block(paraId)->rect().bottom();
   require(qAbs(eagerGap - 80.0) < 1.0,
           QStringLiteral("Eager (structural) must honor p+ul margin-top:80px (gap=%1)").arg(eagerGap));
 
   DocumentLayout lazy;
   lazy.rebuild(session.document(), theme, 800.0, SelectionRange{}, QString{}, DocumentLayout::BuildPolicy::Lazy);
-  lazy.ensureBuilt(0, lazy.slotCount() - 1, theme);  // promote every slot → snap gaps to structural
+  lazy.ensureBuilt(0, lazy.slotCount() - 1, theme); // promote every slot → snap gaps to structural
 
   requireSameTopLevelLayout(lazy, eager, session.document(),
                             QStringLiteral("Lazy+promote must match Eager (structural spacing, no gap jump)"));
@@ -352,12 +363,19 @@ void testTrailingEmptyNestedBlockquoteLineRenders() {
   const MarkdownNode* bq = findFirstBlock(session.document().root(), BlockType::BlockQuote);
   require(bq != nullptr, QStringLiteral("fixture should parse a blockquote"));
   // The trailing `> > ` line is a zero-width paragraph (VEP) inside the quote.
-  const std::function<const MarkdownNode*(const MarkdownNode&)> findVep = [&](const MarkdownNode& n) -> const MarkdownNode* {
+  const std::function<const MarkdownNode*(const MarkdownNode&)> findVep =
+      [&](const MarkdownNode& n) -> const MarkdownNode* {
     if (n.type() == BlockType::Paragraph) {
       const SourceRange r = n.sourceRange();
-      if (r.byteStart >= 0 && r.byteEnd == r.byteStart) { return &n; }
+      if (r.byteStart >= 0 && r.byteEnd == r.byteStart) {
+        return &n;
+      }
     }
-    for (const auto& c : n.children()) { if (const MarkdownNode* f = findVep(*c)) { return f; } }
+    for (const auto& c : n.children()) {
+      if (const MarkdownNode* f = findVep(*c)) {
+        return f;
+      }
+    }
     return nullptr;
   };
   const MarkdownNode* vep = findVep(*bq);
@@ -394,11 +412,17 @@ void testCaretOnMidBlockquoteVepRenders() {
       const SourceRange r = n.sourceRange();
       if (r.byteStart >= 0 && r.byteEnd == r.byteStart) {
         const auto& sibs = bq->children();
-        if (sibs.empty() || sibs.back().get() != &n) { return &n; }  // non-trailing
+        if (sibs.empty() || sibs.back().get() != &n) {
+          return &n;
+        } // non-trailing
       }
     }
     const MarkdownNode* childBq = (n.type() == BlockType::BlockQuote) ? &n : bq;
-    for (const auto& c : n.children()) { if (const MarkdownNode* f = findMidVep(*c, childBq)) { return f; } }
+    for (const auto& c : n.children()) {
+      if (const MarkdownNode* f = findMidVep(*c, childBq)) {
+        return f;
+      }
+    }
     return nullptr;
   };
   const MarkdownNode* vep = findMidVep(*outerBq, outerBq);
@@ -431,10 +455,9 @@ void testCaretOnMidBlockquoteVepRenders() {
 // Before the fix lengthToPx fell back to emPx (= bodyPx) for rem, inflating every rem
 // size 1.5× in pixyll (and any theme with a large body font) — the "tall headings" bug.
 void testRemResolvesAgainstRootNotBodyEm() {
-  const QString css = QStringLiteral(
-      "#write { color:#000000; }"
-      "body { font-size: 1.5rem; }"      // bodyPx = 24
-      "h2 { font-size: 1.5rem; }");      // h2 font must be 24 (root), not 36 (body)
+  const QString css = QStringLiteral("#write { color:#000000; }"
+                                     "body { font-size: 1.5rem; }" // bodyPx = 24
+                                     "h2 { font-size: 1.5rem; }"); // h2 font must be 24 (root), not 36 (body)
   const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("rem"), QString()));
   // Assert on the RESOLVED FONT SIZE, not the rendered block height. font-size is pure
   // CSS-unit arithmetic (1.5×16 = 24 vs the bug's 1.5×24 = 36), so it is identical on
@@ -442,12 +465,13 @@ void testRemResolvesAgainstRootNotBodyEm() {
   // metrics (a 24px font renders ~28px tall on Windows but ~36px on macOS), which made
   // a height threshold flake cross-platform. See offscreen-test-harness-broken-font-metrics.
   const ThemeElementStyle* h2 = theme.elementStyle(QStringLiteral("h2"));
-  require(h2 != nullptr && h2->text.fontSizePx > 0.0,
-          QStringLiteral("h2 should resolve an element style (fontSizePx=%1)")
-              .arg(h2 ? h2->text.fontSizePx : qreal(-1)));
-  require(qAbs(h2->text.fontSizePx - 24.0) < 1.0,
-          QStringLiteral("h2 1.5rem must resolve root-relative (font-size=%1px, expected 24; the body-em bug gave 36px)")
-              .arg(h2->text.fontSizePx));
+  require(
+      h2 != nullptr && h2->text.fontSizePx > 0.0,
+      QStringLiteral("h2 should resolve an element style (fontSizePx=%1)").arg(h2 ? h2->text.fontSizePx : qreal(-1)));
+  require(
+      qAbs(h2->text.fontSizePx - 24.0) < 1.0,
+      QStringLiteral("h2 1.5rem must resolve root-relative (font-size=%1px, expected 24; the body-em bug gave 36px)")
+          .arg(h2->text.fontSizePx));
 }
 
 // `#write pre.md-meta-block` is Typora's FRONT-MATTER block. Community themes stuff
@@ -457,11 +481,12 @@ void testRemResolvesAgainstRootNotBodyEm() {
 // -2010px margin) was applied to every code fence (a one-line fence rendered 2036px
 // tall, code pinned to the bottom). isCodeBlock now excludes .md-meta-block.
 void testCodeFenceIgnoresMdMetaBlockHack() {
-  const QString css = QStringLiteral(
-      "#write { color:#000000; }"
-      ".md-fences { padding: 8px; }"
-      "pre.md-meta-block { padding-top: 2000px; padding-bottom: 10px; margin-top: -2010px; }");
-  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("meta"), QString()));
+  const QString css =
+      QStringLiteral("#write { color:#000000; }"
+                     ".md-fences { padding: 8px; }"
+                     "pre.md-meta-block { padding-top: 2000px; padding-bottom: 10px; margin-top: -2010px; }");
+  const RenderTheme theme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("meta"), QString()));
   require(theme.elementBoxStyle(QStringLiteral("pre")).padding.top() < 50.0,
           QStringLiteral("code-fence padding must ignore pre.md-meta-block hack (top=%1, should be ~8 not 2000)")
               .arg(theme.elementBoxStyle(QStringLiteral("pre")).padding.top()));

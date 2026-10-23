@@ -19,7 +19,8 @@ inline QString escapedLabel(const QString& label) {
   escaped.reserve(label.size());
   const QString punctuation = QStringLiteral("\\`*_{}[]<>()!#&~");
   for (QChar c : label) {
-    if (punctuation.contains(c)) escaped += QLatin1Char('\\');
+    if (punctuation.contains(c))
+      escaped += QLatin1Char('\\');
     escaped += c;
   }
   return escaped;
@@ -42,4 +43,4 @@ inline QString destination(QString href, bool bracketed = false) {
   return bracketed ? QLatin1Char('<') + href + QLatin1Char('>') : href;
 }
 
-}  // namespace muffin::link_syntax
+} // namespace muffin::link_syntax

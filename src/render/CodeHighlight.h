@@ -29,4 +29,4 @@ struct CodeHighlightSpan {
   CodeHighlightRole role = CodeHighlightRole::Plain;
 };
 
-}  // namespace muffin
+} // namespace muffin

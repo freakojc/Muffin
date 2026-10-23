@@ -18,7 +18,7 @@ using LayoutResourceDependencies = QHash<QString, LayoutResourceVersion>;
 // on the calling thread, including dependencies consumed from a cached child.
 class MUFFIN_CORE_EXPORT LayoutResources : public QObject {
   Q_OBJECT
- public:
+public:
   static LayoutResources& instance();
   static QString fontKey() { return QStringLiteral("fonts"); }
   static QString imageKey(const QString& url) { return QStringLiteral("image:") + url; }
@@ -26,10 +26,10 @@ class MUFFIN_CORE_EXPORT LayoutResources : public QObject {
   void record(const LayoutResourceDependencies& dependencies) const;
   bool matches(const LayoutResourceDependencies& dependencies, bool includePaint = true) const;
   void publish(const QString& key, const QByteArray& metrics);
- signals:
+signals:
   void resourceChanged(QString key);
 
- private:
+private:
   LayoutResources();
   struct Entry {
     LayoutResourceVersion version;
@@ -40,11 +40,11 @@ class MUFFIN_CORE_EXPORT LayoutResources : public QObject {
 };
 
 class MUFFIN_CORE_EXPORT LayoutResourceScope {
- public:
+public:
   LayoutResourceScope();
   ~LayoutResourceScope();
   LayoutResourceScope(const LayoutResourceScope&) = delete;
   LayoutResourceScope& operator=(const LayoutResourceScope&) = delete;
   LayoutResourceDependencies dependencies;
 };
-}  // namespace muffin
+} // namespace muffin

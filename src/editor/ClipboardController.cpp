@@ -14,15 +14,15 @@
 
 namespace muffin {
 
-ClipboardController::ClipboardController(QObject* parent) : QObject(parent) {}
+ClipboardController::ClipboardController(QObject* parent) : QObject(parent) {
+}
 
 void ClipboardController::setInputController(InputController* inputController) {
   inputController_ = inputController;
 }
 
 bool ClipboardController::copy() {
-  if (!ctx_.hasSession() || !ctx_.hasCursor() ||
-      ctx_.selection->selection().isCollapsed()) {
+  if (!ctx_.hasSession() || !ctx_.hasCursor() || ctx_.selection->selection().isCollapsed()) {
     return false;
   }
 
@@ -93,8 +93,7 @@ bool ClipboardController::paste() {
 }
 
 bool ClipboardController::copyAsPlainText() {
-  if (!ctx_.hasSession() || !ctx_.hasCursor() ||
-      ctx_.selection->selection().isCollapsed()) {
+  if (!ctx_.hasSession() || !ctx_.hasCursor() || ctx_.selection->selection().isCollapsed()) {
     return false;
   }
 
@@ -111,8 +110,7 @@ bool ClipboardController::copyAsPlainText() {
 }
 
 bool ClipboardController::copyAsMarkdown() {
-  if (!ctx_.hasSession() || !ctx_.hasCursor() ||
-      ctx_.selection->selection().isCollapsed()) {
+  if (!ctx_.hasSession() || !ctx_.hasCursor() || ctx_.selection->selection().isCollapsed()) {
     return false;
   }
 
@@ -130,8 +128,7 @@ bool ClipboardController::copyAsMarkdown() {
 }
 
 bool ClipboardController::copyAsHtml() {
-  if (!ctx_.hasSession() || !ctx_.hasCursor() ||
-      ctx_.selection->selection().isCollapsed()) {
+  if (!ctx_.hasSession() || !ctx_.hasCursor() || ctx_.selection->selection().isCollapsed()) {
     return false;
   }
 
@@ -157,4 +154,4 @@ bool ClipboardController::pasteAsPlainText() {
   return text.isEmpty() ? false : inputController_->insertText(text);
 }
 
-}  // namespace muffin
+} // namespace muffin

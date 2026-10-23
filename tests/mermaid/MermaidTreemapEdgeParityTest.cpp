@@ -6,7 +6,7 @@
 #include <QJsonDocument>
 #include <cstdio>
 using namespace treemap_test;
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 #if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
   // The fixture goldens embed the Windows golden host's font stack; Linux
   // (Liberation fallbacks) and macOS (SF/Helvetica) resolve different faces
@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
           QStringLiteral("Treemap config provenance changed"));
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
   require(cases.size() == 36, QStringLiteral("Expected 36 config cases"));
-  for (const QJsonValue &value : cases) compareCase(value.toObject());
+  for (const QJsonValue& value : cases)
+    compareCase(value.toObject());
   std::puts("MermaidTreemapEdgeParityTest: 36/36 passed");
 }

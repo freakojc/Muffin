@@ -25,12 +25,8 @@ void NodeIndex::removeSubtree(MarkdownNode& node) {
     nodes_.remove(it.key());
   }
   blocksInDocumentOrder_.erase(
-      std::remove_if(
-          blocksInDocumentOrder_.begin(),
-          blocksInDocumentOrder_.end(),
-          [&removedIds](const MarkdownNode* block) {
-            return block && removedIds.contains(block->id());
-          }),
+      std::remove_if(blocksInDocumentOrder_.begin(), blocksInDocumentOrder_.end(),
+                     [&removedIds](const MarkdownNode* block) { return block && removedIds.contains(block->id()); }),
       blocksInDocumentOrder_.end());
 }
 
@@ -112,4 +108,4 @@ void NodeIndex::ensureFreshOrder() {
   }
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -35,7 +35,7 @@ enum class RequirementTextTransform { None, UpperCase, LowerCase, Capitalize };
 struct RequirementTextStyle {
   QString fontFamily;
   qreal fontSizePx = -1.0;
-  QFont::Weight fontWeight = QFont::Normal;  // resolved (bolder/lighter compounded)
+  QFont::Weight fontWeight = QFont::Normal; // resolved (bolder/lighter compounded)
   // True iff a VALID font-weight was declared: normal/bold/bolder/lighter, a
   // 1..1000 numeric, or a CSS-wide keyword (inherit/initial/unset/revert/
   // revert-layer — probe: all five resolve to 400 and suppress the default bold).
@@ -61,10 +61,9 @@ struct RequirementTextStyle {
 // wins) over the theme base. Pure: identical inputs yield identical output, so it
 // is called from BOTH RequirementLayout measure and RequirementScene build without
 // divergence. themeLineHeightPx is the theme default (= themeFontSize * 1.5).
-RequirementTextStyle resolveRequirementTextStyle(
-    const QStringList& cssStyles,
-    const QString& themeFontFamily, qreal themeFontSize,
-    QFont::Weight themeFontWeight, qreal themeLineHeightPx);
+RequirementTextStyle resolveRequirementTextStyle(const QStringList& cssStyles, const QString& themeFontFamily,
+                                                 qreal themeFontSize, QFont::Weight themeFontWeight,
+                                                 qreal themeLineHeightPx);
 
 // Apply text-transform to a full label-row source string BEFORE parseFlowLabel.
 // upper/lower case the non-`$$...$$` segments (Unicode default case mapping,
@@ -73,4 +72,4 @@ RequirementTextStyle resolveRequirementTextStyle(
 // treated as a word boundary; only the first cased char of each word is titled.
 QString applyRequirementTextTransform(QString source, RequirementTextTransform tf);
 
-}  // namespace muffin::mermaid::requirement
+} // namespace muffin::mermaid::requirement

@@ -23,13 +23,13 @@ QString markerStartType(const QString& edgeType);
 // path `d` (or circle attrs) + viewBox + refX/refY + markerWidth/Height for the
 // given type. Empty path = unknown type.
 struct MarkerGeometry {
-  QString viewBox;     // "0 0 W H"
+  QString viewBox; // "0 0 W H"
   qreal refX = 0, refY = 0;
   qreal markerWidth = 0, markerHeight = 0;
-  QString tag;         // "path" or "circle"
-  QString pathData;    // for "path"
-  qreal cx = 0, cy = 0, r = 0;  // for "circle"
+  QString tag;                 // "path" or "circle"
+  QString pathData;            // for "path"
+  qreal cx = 0, cy = 0, r = 0; // for "circle"
 };
 MarkerGeometry markerGeometry(const QString& type);
 
-}  // namespace muffin::mermaid::flowscene
+} // namespace muffin::mermaid::flowscene

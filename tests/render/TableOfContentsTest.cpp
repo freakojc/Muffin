@@ -74,8 +74,7 @@ void testTocRevealsLiteralWhenCaretInside() {
   layout.rebuild(session.document(), theme, 800.0, sel);
   const BlockLayout* blk = layout.block(tocId);
   require(blk != nullptr, QStringLiteral("TOC block should be built"));
-  require(!blk->isToc(),
-          QStringLiteral("with the caret in the block, [TOC] reveals the literal marker for editing"));
+  require(!blk->isToc(), QStringLiteral("with the caret in the block, [TOC] reveals the literal marker for editing"));
 }
 
 // Indentation follows the heading level, so a level-4 heading sits deeper than a level-1.
@@ -118,7 +117,7 @@ void testTocEntryHitTestEmitsFragmentHref() {
           QStringLiteral("a TOC block is non-editable: a click selects the block, never places a caret"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

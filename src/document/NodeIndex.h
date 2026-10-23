@@ -43,4 +43,4 @@ private:
   bool orderDirty_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -45,55 +45,36 @@ struct TopLevelSlice {
   qsizetype count = 0;
   qsizetype sourceStart = -1;
   qsizetype sourceEnd = -1;
-  qsizetype parseEnd = -1;  // optional unmodified right context, excluded from the splice
-  bool startsAtEditStart = false;  // the preceding block(s) were skipped (trailing-newline touch);
+  qsizetype parseEnd = -1;        // optional unmodified right context, excluded from the splice
+  bool startsAtEditStart = false; // the preceding block(s) were skipped (trailing-newline touch);
                                   // a leading VEP in the replacements is a separator artifact
 };
 
-void warnLocalEditRejected(
-    const char* reason,
-    qsizetype sourceStart,
-    qsizetype sourceEnd,
-    qsizetype replacementLength,
-    qsizetype documentSize) {
-  qCWarning(sessionLog).nospace()
-      << "Rejected local document edit: " << reason
-      << " sourceStart=" << sourceStart
-      << " sourceEnd=" << sourceEnd
-      << " replacementLength=" << replacementLength
-      << " documentSize=" << documentSize;
+void warnLocalEditRejected(const char* reason, qsizetype sourceStart, qsizetype sourceEnd, qsizetype replacementLength,
+                           qsizetype documentSize) {
+  qCWarning(sessionLog).nospace() << "Rejected local document edit: " << reason << " sourceStart=" << sourceStart
+                                  << " sourceEnd=" << sourceEnd << " replacementLength=" << replacementLength
+                                  << " documentSize=" << documentSize;
   // Mirror to the perf category (captured by MUFFIN_PERF_LOG) so a localized-edit rejection —
   // the trigger for the catastrophic full-reparse fallback on huge docs (Ctrl+Z ~20s) — is visible
   // in the perf trace, not just the (uncaptured) session log.
-  qCDebug(sessionPerf).nospace()
-      << "localEdit.rejected reason=" << reason
-      << " start=" << sourceStart << " end=" << sourceEnd
-      << " replLen=" << replacementLength << " docSize=" << documentSize;
+  qCDebug(sessionPerf).nospace() << "localEdit.rejected reason=" << reason << " start=" << sourceStart
+                                 << " end=" << sourceEnd << " replLen=" << replacementLength
+                                 << " docSize=" << documentSize;
 }
 
-void warnLocalEditSliceRejected(
-    const char* reason,
-    qsizetype sourceStart,
-    qsizetype sourceEnd,
-    qsizetype replacementLength,
-    qsizetype documentSize,
-    const TopLevelSlice& slice) {
-  qCWarning(sessionLog).nospace()
-      << "Rejected local document edit: " << reason
-      << " sourceStart=" << sourceStart
-      << " sourceEnd=" << sourceEnd
-      << " replacementLength=" << replacementLength
-      << " documentSize=" << documentSize
-      << " sliceFirst=" << slice.first
-      << " sliceCount=" << slice.count
-      << " sliceSourceStart=" << slice.sourceStart
-      << " sliceSourceEnd=" << slice.sourceEnd;
-  qCDebug(sessionPerf).nospace()
-      << "localEdit.rejected reason=" << reason
-      << " start=" << sourceStart << " end=" << sourceEnd
-      << " replLen=" << replacementLength << " docSize=" << documentSize
-      << " sliceFirst=" << slice.first << " sliceCount=" << slice.count
-      << " sliceSrc=[" << slice.sourceStart << "," << slice.sourceEnd << "]";
+void warnLocalEditSliceRejected(const char* reason, qsizetype sourceStart, qsizetype sourceEnd,
+                                qsizetype replacementLength, qsizetype documentSize, const TopLevelSlice& slice) {
+  qCWarning(sessionLog).nospace() << "Rejected local document edit: " << reason << " sourceStart=" << sourceStart
+                                  << " sourceEnd=" << sourceEnd << " replacementLength=" << replacementLength
+                                  << " documentSize=" << documentSize << " sliceFirst=" << slice.first
+                                  << " sliceCount=" << slice.count << " sliceSourceStart=" << slice.sourceStart
+                                  << " sliceSourceEnd=" << slice.sourceEnd;
+  qCDebug(sessionPerf).nospace() << "localEdit.rejected reason=" << reason << " start=" << sourceStart
+                                 << " end=" << sourceEnd << " replLen=" << replacementLength
+                                 << " docSize=" << documentSize << " sliceFirst=" << slice.first
+                                 << " sliceCount=" << slice.count << " sliceSrc=[" << slice.sourceStart << ","
+                                 << slice.sourceEnd << "]";
 }
 
 muffin::SourceRange usableRange(const muffin::MarkdownNode& node) {
@@ -104,7 +85,8 @@ muffin::SourceRange usableRange(const muffin::MarkdownNode& node) {
 // to the block's byteEnd is a line terminator. Such a block's CONTENT is entirely before editStart,
 // so a deletion beginning there leaves the block unchanged (cmark re-assigns the trailing newline
 // from the new following context) — chooseTopLevelSlice skips it to keep its original node/range.
-bool editStartInTrailingNewlines(const muffin::PieceTable& text, const muffin::MarkdownNode& block, qsizetype editStart) {
+bool editStartInTrailingNewlines(const muffin::PieceTable& text, const muffin::MarkdownNode& block,
+                                 qsizetype editStart) {
   const muffin::SourceRange r = block.sourceRange();
   if (r.byteStart < 0 || editStart < r.byteStart || editStart >= r.byteEnd) {
     return false;
@@ -197,7 +179,8 @@ bool demotePendingMarkerAtOffset(const QString& markdown, muffin::MarkdownNode& 
 // ``` ``` ```, `$$`/`\[`) as paragraphs even when the local-edit path was rejected. The search is
 // recursive so pending markers behave the same inside block quotes and list items as they do at
 // document root.
-void demotePendingMarkersAtOffsets(const QString& markdown, muffin::MarkdownNode& root, const QVector<qsizetype>& offsets) {
+void demotePendingMarkersAtOffsets(const QString& markdown, muffin::MarkdownNode& root,
+                                   const QVector<qsizetype>& offsets) {
   for (const qsizetype offset : offsets) {
     if (offset < 0) {
       continue;
@@ -206,7 +189,8 @@ void demotePendingMarkersAtOffsets(const QString& markdown, muffin::MarkdownNode
   }
 }
 
-TopLevelSlice chooseTopLevelSlice(const muffin::MarkdownDocument& document, qsizetype editStart, qsizetype editEnd, bool blankLineStructuralEdit, bool isPureDeletion) {
+TopLevelSlice chooseTopLevelSlice(const muffin::MarkdownDocument& document, qsizetype editStart, qsizetype editEnd,
+                                  bool blankLineStructuralEdit, bool isPureDeletion) {
   TopLevelSlice slice;
   const auto& blocks = document.root().children();
   if (blocks.empty()) {
@@ -260,13 +244,15 @@ TopLevelSlice chooseTopLevelSlice(const muffin::MarkdownDocument& document, qsiz
     qsizetype first = lo;
     while (first > 0) {
       --first;
-      if (!isVirtualEmptyParagraph(*blocks.at(static_cast<size_t>(first)))) break;
+      if (!isVirtualEmptyParagraph(*blocks.at(static_cast<size_t>(first))))
+        break;
     }
     qsizetype end = hiExcl;
     while (end < static_cast<qsizetype>(blocks.size())) {
       const bool empty = isVirtualEmptyParagraph(*blocks.at(static_cast<size_t>(end)));
       ++end;
-      if (!empty) break;
+      if (!empty)
+        break;
     }
     // Include the trailing gap, then parse one unchanged block as lookahead.
     // cmark's ranges and empty-paragraph synthesis depend on that right context;
@@ -277,8 +263,10 @@ TopLevelSlice chooseTopLevelSlice(const muffin::MarkdownDocument& document, qsiz
     }
     slice.first = first;
     slice.count = end - first;
-    slice.sourceStart = first == 0 ? 0 : muffin::lineStartOffset(
-        document.pieceText(), blocks.at(static_cast<size_t>(first))->sourceRange().byteStart);
+    slice.sourceStart = first == 0
+                            ? 0
+                            : muffin::lineStartOffset(document.pieceText(),
+                                                      blocks.at(static_cast<size_t>(first))->sourceRange().byteStart);
     if (end == static_cast<qsizetype>(blocks.size())) {
       slice.sourceEnd = slice.parseEnd = document.pieceText().size();
     } else {
@@ -328,7 +316,7 @@ TopLevelSlice chooseTopLevelSlice(const muffin::MarkdownDocument& document, qsiz
     const muffin::MarkdownNode& block = *blocks.at(static_cast<size_t>(i));
     const muffin::SourceRange range = usableRange(block);
     if (range.byteStart < 0 || range.byteEnd < range.byteStart) {
-      continue;  // skip only invalid ranges — NOT non-editable blocks (see comment above)
+      continue; // skip only invalid ranges — NOT non-editable blocks (see comment above)
     }
     if (slice.first < 0) {
       slice.first = i;
@@ -405,7 +393,8 @@ void inheritIdsByStructure(const muffin::MarkdownNode& oldNode, muffin::Markdown
   newNode.setId(oldNode.id());
   const qsizetype childCount = qMin<qsizetype>(oldNode.children().size(), newNode.children().size());
   for (qsizetype i = 0; i < childCount; ++i) {
-    inheritIdsByStructure(*oldNode.children().at(static_cast<size_t>(i)), *newNode.children().at(static_cast<size_t>(i)));
+    inheritIdsByStructure(*oldNode.children().at(static_cast<size_t>(i)),
+                          *newNode.children().at(static_cast<size_t>(i)));
   }
 }
 
@@ -426,7 +415,8 @@ muffin::MarkdownNode* nodeAtSourceOffset(muffin::MarkdownNode& node, const muffi
   return nullptr;
 }
 
-muffin::SourceRange stableRangeAfterEdit(muffin::SourceRange range, qsizetype editStart, qsizetype editEnd, qsizetype editDelta) {
+muffin::SourceRange stableRangeAfterEdit(muffin::SourceRange range, qsizetype editStart, qsizetype editEnd,
+                                         qsizetype editDelta) {
   if (range.byteEnd <= editStart) {
     return range;
   }
@@ -441,21 +431,19 @@ muffin::SourceRange stableRangeAfterEdit(muffin::SourceRange range, qsizetype ed
 }
 
 bool sameStableRange(const muffin::SourceRange& oldRange, const muffin::SourceRange& newRange) {
-  return oldRange.byteStart >= 0 && oldRange.byteEnd >= oldRange.byteStart && oldRange.byteStart == newRange.byteStart &&
-         oldRange.byteEnd == newRange.byteEnd;
+  return oldRange.byteStart >= 0 && oldRange.byteEnd >= oldRange.byteStart &&
+         oldRange.byteStart == newRange.byteStart && oldRange.byteEnd == newRange.byteEnd;
 }
 
-void inheritIdsForUnchangedTopLevelBlocks(
-    const muffin::MarkdownDocument& document,
-    const TopLevelSlice& slice,
-    const std::vector<std::unique_ptr<muffin::MarkdownNode>>& replacements,
-    qsizetype editStart,
-    qsizetype editEnd,
-    qsizetype editDelta) {
+void inheritIdsForUnchangedTopLevelBlocks(const muffin::MarkdownDocument& document, const TopLevelSlice& slice,
+                                          const std::vector<std::unique_ptr<muffin::MarkdownNode>>& replacements,
+                                          qsizetype editStart, qsizetype editEnd, qsizetype editDelta) {
   const auto& oldBlocks = document.root().children();
-  for (qsizetype oldIndex = slice.first; oldIndex < slice.first + slice.count && oldIndex < static_cast<qsizetype>(oldBlocks.size()); ++oldIndex) {
+  for (qsizetype oldIndex = slice.first;
+       oldIndex < slice.first + slice.count && oldIndex < static_cast<qsizetype>(oldBlocks.size()); ++oldIndex) {
     const muffin::MarkdownNode& oldNode = *oldBlocks.at(static_cast<size_t>(oldIndex));
-    const muffin::SourceRange expectedRange = stableRangeAfterEdit(oldNode.sourceRange(), editStart, editEnd, editDelta);
+    const muffin::SourceRange expectedRange =
+        stableRangeAfterEdit(oldNode.sourceRange(), editStart, editEnd, editDelta);
     for (const auto& replacement : replacements) {
       if (replacement->type() == oldNode.type() && sameStableRange(expectedRange, replacement->sourceRange())) {
         inheritIdsByStructure(oldNode, *replacement);
@@ -465,10 +453,9 @@ void inheritIdsForUnchangedTopLevelBlocks(
   }
 }
 
-void applyNodeHints(
-    const muffin::MarkdownDocument& document,
-    std::vector<std::unique_ptr<muffin::MarkdownNode>>& replacements,
-    const QVector<muffin::LocalEditNodeHint>& nodeHints) {
+void applyNodeHints(const muffin::MarkdownDocument& document,
+                    std::vector<std::unique_ptr<muffin::MarkdownNode>>& replacements,
+                    const QVector<muffin::LocalEditNodeHint>& nodeHints) {
   for (const muffin::LocalEditNodeHint& hint : nodeHints) {
     if (!hint.nodeId.isValid()) {
       continue;
@@ -518,11 +505,8 @@ muffin::MarkdownNode* tableByIdOrIndex(muffin::MarkdownDocument& document, muffi
   return visit(visit, document.root());
 }
 
-bool topLevelStructureChanged(
-    const std::vector<std::unique_ptr<muffin::MarkdownNode>>& oldBlocks,
-    qsizetype first,
-    qsizetype count,
-    const std::vector<std::unique_ptr<muffin::MarkdownNode>>& replacements) {
+bool topLevelStructureChanged(const std::vector<std::unique_ptr<muffin::MarkdownNode>>& oldBlocks, qsizetype first,
+                              qsizetype count, const std::vector<std::unique_ptr<muffin::MarkdownNode>>& replacements) {
   if (count != static_cast<qsizetype>(replacements.size())) {
     return true;
   }
@@ -559,7 +543,8 @@ muffin::MarkdownNode* nodeByTypeIndex(muffin::MarkdownDocument& document, muffin
   return visit(visit, document.root());
 }
 
-muffin::MarkdownNode* nodeByIdOrTypeIndex(muffin::MarkdownDocument& document, muffin::NodeId nodeId, muffin::BlockType type, int nodeIndex) {
+muffin::MarkdownNode* nodeByIdOrTypeIndex(muffin::MarkdownDocument& document, muffin::NodeId nodeId,
+                                          muffin::BlockType type, int nodeIndex) {
   if (nodeId.isValid()) {
     if (muffin::MarkdownNode* node = document.node(nodeId)) {
       if (node->type() == type) {
@@ -570,7 +555,7 @@ muffin::MarkdownNode* nodeByIdOrTypeIndex(muffin::MarkdownDocument& document, mu
   return nodeByTypeIndex(document, type, nodeIndex);
 }
 
-}  // namespace
+} // namespace
 
 struct muffin::DocumentSession::AsyncParseResult {
   ParseResult parsed;
@@ -589,7 +574,9 @@ muffin::DocumentSession::DocumentSession(QObject* parent) : QObject(parent) {
   connect(fileWatcher_, &QFileSystemWatcher::directoryChanged, this, &DocumentSession::onFileChanged);
 }
 
-muffin::MarkdownDocument& muffin::DocumentSession::document() { return document_; }
+muffin::MarkdownDocument& muffin::DocumentSession::document() {
+  return document_;
+}
 
 const muffin::MarkdownDocument& muffin::DocumentSession::document() const {
   return document_;
@@ -617,8 +604,7 @@ void muffin::DocumentSession::setFullParsePerformanceMetricsEnabled(bool enabled
   }
 }
 
-const muffin::ParsePerformanceMetrics&
-muffin::DocumentSession::lastFullParsePerformanceMetrics() const {
+const muffin::ParsePerformanceMetrics& muffin::DocumentSession::lastFullParsePerformanceMetrics() const {
   return lastFullParsePerformanceMetrics_;
 }
 
@@ -657,12 +643,12 @@ void muffin::DocumentSession::setFilePath(QString path) {
     return;
   }
   if (fileWatcher_ && !filePath_.isEmpty()) {
-    fileWatcher_->removePath(filePath_);  // stop watching the old path
+    fileWatcher_->removePath(filePath_); // stop watching the old path
     fileWatcher_->removePath(QFileInfo(filePath_).absolutePath());
   }
   filePath_ = std::move(path);
   baselineMtime_ = QDateTime();
-  baselineSize_ = -1;  // new path: no baseline until FileController records one after open/write
+  baselineSize_ = -1; // new path: no baseline until FileController records one after open/write
   suppressExternalChange_ = false;
   lastNotifiedMtime_ = QDateTime();
   lastNotifiedSize_ = -2;
@@ -778,17 +764,14 @@ bool muffin::DocumentSession::isOpenInProgress() const {
 }
 
 void muffin::DocumentSession::setOpenConfirmationPending(bool pending) {
-  if (openConfirmationPending_ == pending) return;
+  if (openConfirmationPending_ == pending)
+    return;
   openConfirmationPending_ = pending;
   emit parseBusy(isOpenInProgress());
 }
 
-bool muffin::DocumentSession::applyTextDelta(
-    qsizetype sourceStart,
-    qsizetype removedLength,
-    QString insertedText,
-    bool modified,
-    QVector<LocalEditNodeHint> nodeHints) {
+bool muffin::DocumentSession::applyTextDelta(qsizetype sourceStart, qsizetype removedLength, QString insertedText,
+                                             bool modified, QVector<LocalEditNodeHint> nodeHints) {
   // While an async open parse is in flight, document_ still holds the STALE pre-open text. A local
   // edit now would land on the wrong content, and bumping parseGeneration_ to "win" would discard
   // the worker's result for the file the user actually opened — silent data loss. Reject the edit
@@ -796,40 +779,35 @@ bool muffin::DocumentSession::applyTextDelta(
   // is normally unreachable; it guards undo / table-snapshot / render-facade paths that bypass it.
   // Do NOT bump parseGeneration_ here — that self-supersede is exactly what loses the open.
   if (isOpenInProgress()) {
-    warnLocalEditRejected(
-        "async open parse in flight",
-        sourceStart,
-        sourceStart >= 0 && removedLength >= 0 ? sourceStart + removedLength : qsizetype(-1),
-        insertedText.size(),
-        document_.pieceText().size());
+    warnLocalEditRejected("async open parse in flight", sourceStart,
+                          sourceStart >= 0 && removedLength >= 0 ? sourceStart + removedLength : qsizetype(-1),
+                          insertedText.size(), document_.pieceText().size());
     return false;
   }
-  ++parseGeneration_;  // record this edit as a state change (no in-flight worker remains to supersede)
+  ++parseGeneration_; // record this edit as a state change (no in-flight worker remains to supersede)
   lastLocalEditChangedTopLevelStructure_ = false;
   lastLocalTopLevelRangeChange_ = {};
   if (sourceStart < 0 || removedLength < 0 || sourceStart + removedLength > document_.pieceText().size()) {
-    warnLocalEditRejected(
-        "invalid text delta range",
-        sourceStart,
-        sourceStart >= 0 && removedLength >= 0 ? sourceStart + removedLength : qsizetype(-1),
-        insertedText.size(),
-        document_.pieceText().size());
+    warnLocalEditRejected("invalid text delta range", sourceStart,
+                          sourceStart >= 0 && removedLength >= 0 ? sourceStart + removedLength : qsizetype(-1),
+                          insertedText.size(), document_.pieceText().size());
     return false;
   }
   if (!tryApplyTopLevelLocalEdit(sourceStart, sourceStart + removedLength, insertedText, modified, nodeHints)) {
     qCDebug(sessionPerf).nospace() << "localEdit.rejected start=" << sourceStart << " removedLen=" << removedLength
-        << " insertedLen=" << insertedText.size() << " -> caller full-reparses";
+                                   << " insertedLen=" << insertedText.size() << " -> caller full-reparses";
     lastLocalEditChangedTopLevelStructure_ = false;
     lastLocalTopLevelRangeChange_ = {};
     return false;
   }
   emit documentLocallyEdited(sourceStart, removedLength, insertedText);
-  qCDebug(sessionPerf).nospace() << "localEdit.applied start=" << sourceStart
-      << " removedLen=" << removedLength << " insertedLen=" << insertedText.size();
+  qCDebug(sessionPerf).nospace() << "localEdit.applied start=" << sourceStart << " removedLen=" << removedLength
+                                 << " insertedLen=" << insertedText.size();
   return true;
 }
 
-bool muffin::DocumentSession::applyTableSnapshot(NodeId tableId, int tableIndex, const MarkdownNode& tableSnapshot, bool modified) {
+bool muffin::DocumentSession::applyTableSnapshot(NodeId tableId, int tableIndex, const MarkdownNode& tableSnapshot,
+                                                 bool modified) {
   if (tableSnapshot.type() != BlockType::Table) {
     return false;
   }
@@ -846,11 +824,14 @@ bool muffin::DocumentSession::applyTableSnapshot(NodeId tableId, int tableIndex,
 
   MarkdownSerializer serializer;
   const QString replacementText = serializer.serializeBlock(tableSnapshot);
-  QVector<LocalEditNodeHint> nodeHints{LocalEditNodeHint{tableId.isValid() ? tableId : currentTable->id(), range.byteStart, BlockType::Table}};
-  return applyTextDelta(range.byteStart, range.byteEnd - range.byteStart, replacementText, modified, std::move(nodeHints));
+  QVector<LocalEditNodeHint> nodeHints{
+      LocalEditNodeHint{tableId.isValid() ? tableId : currentTable->id(), range.byteStart, BlockType::Table}};
+  return applyTextDelta(range.byteStart, range.byteEnd - range.byteStart, replacementText, modified,
+                        std::move(nodeHints));
 }
 
-bool muffin::DocumentSession::applyNodeSnapshot(NodeId nodeId, BlockType nodeType, int nodeIndex, const MarkdownNode& nodeSnapshot, bool modified) {
+bool muffin::DocumentSession::applyNodeSnapshot(NodeId nodeId, BlockType nodeType, int nodeIndex,
+                                                const MarkdownNode& nodeSnapshot, bool modified) {
   if (nodeType == BlockType::Unknown || nodeSnapshot.type() != nodeType) {
     return false;
   }
@@ -867,18 +848,15 @@ bool muffin::DocumentSession::applyNodeSnapshot(NodeId nodeId, BlockType nodeTyp
 
   MarkdownSerializer serializer;
   const QString replacementText = serializer.serializeBlock(nodeSnapshot);
-  QVector<LocalEditNodeHint> nodeHints{LocalEditNodeHint{nodeId.isValid() ? nodeId : currentNode->id(), range.byteStart, nodeType}};
-  return applyTextDelta(range.byteStart, range.byteEnd - range.byteStart, replacementText, modified, std::move(nodeHints));
+  QVector<LocalEditNodeHint> nodeHints{
+      LocalEditNodeHint{nodeId.isValid() ? nodeId : currentNode->id(), range.byteStart, nodeType}};
+  return applyTextDelta(range.byteStart, range.byteEnd - range.byteStart, replacementText, modified,
+                        std::move(nodeHints));
 }
 
-bool muffin::DocumentSession::applyInsertedNode(
-    NodeId nodeId,
-    BlockType nodeType,
-    qsizetype sourceStart,
-    qsizetype targetSourceOffset,
-    qsizetype removedLength,
-    QString insertedText,
-    bool modified) {
+bool muffin::DocumentSession::applyInsertedNode(NodeId nodeId, BlockType nodeType, qsizetype sourceStart,
+                                                qsizetype targetSourceOffset, qsizetype removedLength,
+                                                QString insertedText, bool modified) {
   if (!nodeId.isValid() || nodeType == BlockType::Unknown) {
     return false;
   }
@@ -892,7 +870,7 @@ bool muffin::DocumentSession::applyInsertedNode(
 
 void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector<qsizetype> demoteAtOffsets,
                                             bool async) {
-  ++parseGeneration_;  // any new parse supersedes an in-flight async worker
+  ++parseGeneration_; // any new parse supersedes an in-flight async worker
   if (async) {
     // The unpublished AST, text index and shared source slices have no QObject
     // affinity. Prepare them on the existing worker; only installation and
@@ -913,12 +891,15 @@ void muffin::DocumentSession::parseAndStore(QString text, bool modified, QVector
       auto result = std::make_shared<AsyncParseResult>();
       const auto sharedText = std::make_shared<const QString>(text);
       result->parsed = parser.parseDocumentShared(sharedText, options, collectPerformanceMetrics);
-      if (!result->parsed.root) result->parsed.root = std::make_unique<MarkdownNode>(BlockType::Document);
-      if (!demoteOffsets.isEmpty()) demotePendingMarkersAtOffsets(text, *result->parsed.root, demoteOffsets);
+      if (!result->parsed.root)
+        result->parsed.root = std::make_unique<MarkdownNode>(BlockType::Document);
+      if (!demoteOffsets.isEmpty())
+        demotePendingMarkersAtOffsets(text, *result->parsed.root, demoteOffsets);
       {
         muffin::diag::OpenPerfAccumulator bind("open.bind_shared_text"), relative("open.relative_coordinates");
         for (const auto& child : result->parsed.root->children()) {
-          if (!child) continue;
+          if (!child)
+            continue;
           bind.measure([&] { child->bindSharedInlineText(sharedText); });
           relative.measure([&] { child->relativizeDescendants(); });
         }
@@ -1015,7 +996,8 @@ void muffin::DocumentSession::setParseOptions(ParseOptions options) {
     return;
   }
   parseOptions_ = options;
-  if (openConfirmationPending_) return;
+  if (openConfirmationPending_)
+    return;
   if (isAsyncParseInProgress()) {
     // Preferences can change while a background tab is opening. Reparse its pending file,
     // rather than superseding that open with the previous (possibly empty) document buffer.
@@ -1027,27 +1009,21 @@ void muffin::DocumentSession::setParseOptions(ParseOptions options) {
   parseAndStore(document_.markdownText().toString(), document_.isModified());
 }
 
-bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(
-    qsizetype sourceStart,
-    qsizetype sourceEnd,
-    const QString& replacementText,
-    bool modified,
-    const QVector<LocalEditNodeHint>& nodeHints) {
+bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(qsizetype sourceStart, qsizetype sourceEnd,
+                                                        const QString& replacementText, bool modified,
+                                                        const QVector<LocalEditNodeHint>& nodeHints) {
   PerfTimer perf("session.localParse");
-  const PieceTable& oldText = document_.pieceText();  // Phase 2a: read the piece-table, not the QString cache
+  const PieceTable& oldText = document_.pieceText(); // Phase 2a: read the piece-table, not the QString cache
   const QString removedText = oldText.mid(sourceStart, sourceEnd - sourceStart);
-  TopLevelSlice slice = chooseTopLevelSlice(document_, sourceStart, sourceEnd, isBlankLineStructuralEdit(removedText, replacementText), replacementText.isEmpty());
-  qCDebug(sessionPerf).nospace() << "slice.chosen first=" << slice.first << " count=" << slice.count
-      << " src=[" << slice.sourceStart << "," << slice.sourceEnd << "]";
-  if (slice.first < 0 || slice.sourceStart < 0 || slice.sourceStart > sourceStart ||
-      slice.sourceEnd < sourceEnd || slice.sourceEnd > oldText.size()) {
-    warnLocalEditSliceRejected(
-        "could not choose a valid top-level slice",
-        sourceStart,
-        sourceEnd,
-        replacementText.size(),
-        oldText.size(),
-        slice);
+  TopLevelSlice slice =
+      chooseTopLevelSlice(document_, sourceStart, sourceEnd, isBlankLineStructuralEdit(removedText, replacementText),
+                          replacementText.isEmpty());
+  qCDebug(sessionPerf).nospace() << "slice.chosen first=" << slice.first << " count=" << slice.count << " src=["
+                                 << slice.sourceStart << "," << slice.sourceEnd << "]";
+  if (slice.first < 0 || slice.sourceStart < 0 || slice.sourceStart > sourceStart || slice.sourceEnd < sourceEnd ||
+      slice.sourceEnd > oldText.size()) {
+    warnLocalEditSliceRejected("could not choose a valid top-level slice", sourceStart, sourceEnd,
+                               replacementText.size(), oldText.size(), slice);
     return false;
   }
 
@@ -1055,13 +1031,8 @@ bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(
   const qsizetype nextSliceEnd = slice.sourceEnd + editDelta;
   const qsizetype nextTextSize = oldText.size() + editDelta;
   if (nextSliceEnd < slice.sourceStart || nextSliceEnd > nextTextSize) {
-    warnLocalEditSliceRejected(
-        "edited slice would exceed updated document bounds",
-        sourceStart,
-        sourceEnd,
-        replacementText.size(),
-        oldText.size(),
-        slice);
+    warnLocalEditSliceRejected("edited slice would exceed updated document bounds", sourceStart, sourceEnd,
+                               replacementText.size(), oldText.size(), slice);
     return false;
   }
 
@@ -1080,13 +1051,8 @@ bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(
     parsedSlice = parser_.parseDocument(QStringView(sliceMarkdown), sliceOptions);
   }
   if (!parsedSlice.root) {
-    warnLocalEditSliceRejected(
-        "local slice parse produced no root node",
-        sourceStart,
-        sourceEnd,
-        replacementText.size(),
-        oldText.size(),
-        slice);
+    warnLocalEditSliceRejected("local slice parse produced no root node", sourceStart, sourceEnd,
+                               replacementText.size(), oldText.size(), slice);
     return false;
   }
 
@@ -1143,7 +1109,7 @@ bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(
     // absolute via the block's now-absolute byteStart.
     child->bindSharedInlineText(sharedSliceText);
     child->relativizeDescendants();
-    SourceRange own = child->sourceRange();  // detached top-level block: stored, slice-relative
+    SourceRange own = child->sourceRange(); // detached top-level block: stored, slice-relative
     if (own.byteStart >= 0 && own.byteEnd >= own.byteStart) {
       own.byteStart += slice.sourceStart;
       own.byteEnd += slice.sourceStart;
@@ -1177,23 +1143,24 @@ bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(
   inheritIdsForUnchangedTopLevelBlocks(document_, slice, replacements, sourceStart, sourceEnd, editDelta);
   applyNodeHints(document_, replacements, nodeHints);
   const qsizetype replacementCount = static_cast<qsizetype>(replacements.size());
-  lastLocalEditChangedTopLevelStructure_ = topLevelStructureChanged(document_.root().children(), slice.first, slice.count, replacements);
+  lastLocalEditChangedTopLevelStructure_ =
+      topLevelStructureChanged(document_.root().children(), slice.first, slice.count, replacements);
 
   {
     PerfTimer shiftSuffixPerf("session.local.shiftSuffix");
-    const int editLineDelta = countNewlines(QStringView(replacementText)) - countNewlines(oldText.mid(sourceStart, sourceEnd - sourceStart));
+    const int editLineDelta =
+        countNewlines(QStringView(replacementText)) - countNewlines(oldText.mid(sourceStart, sourceEnd - sourceStart));
     const qsizetype firstFollowing = slice.first + slice.count;
     const auto& existingBlocks = document_.root().children();
     // Descendants are block-relative and invariant. The implicit position tree applies this
     // suffix delta lazily in O(log n), including across later top-level insert/remove splices.
     document_.shiftTopLevelSuffix(firstFollowing, editDelta, editLineDelta);
     qCDebug(sessionPerf).nospace() << "session.local.shiftSuffixCount n="
-        << (static_cast<qsizetype>(existingBlocks.size()) - firstFollowing);
+                                   << (static_cast<qsizetype>(existingBlocks.size()) - firstFollowing);
   }
 
   QVector<qsizetype> nextPendingMarkerOffsets;
-  nextPendingMarkerOffsets.reserve(
-      pendingMarkerOffsets_.size() + slicePendingMarkerOffsets.size());
+  nextPendingMarkerOffsets.reserve(pendingMarkerOffsets_.size() + slicePendingMarkerOffsets.size());
   for (const qsizetype offset : pendingMarkerOffsets_) {
     if (offset < slice.sourceStart) {
       nextPendingMarkerOffsets.push_back(offset);
@@ -1205,12 +1172,12 @@ bool muffin::DocumentSession::tryApplyTopLevelLocalEdit(
     nextPendingMarkerOffsets.push_back(slice.sourceStart + offset);
   }
   std::sort(nextPendingMarkerOffsets.begin(), nextPendingMarkerOffsets.end());
-  nextPendingMarkerOffsets.erase(
-      std::unique(nextPendingMarkerOffsets.begin(), nextPendingMarkerOffsets.end()),
-      nextPendingMarkerOffsets.end());
+  nextPendingMarkerOffsets.erase(std::unique(nextPendingMarkerOffsets.begin(), nextPendingMarkerOffsets.end()),
+                                 nextPendingMarkerOffsets.end());
   pendingMarkerOffsets_ = std::move(nextPendingMarkerOffsets);
 
-  document_.replaceTopLevelRange(slice.first, slice.count, std::move(replacements), sourceStart, sourceEnd, replacementText);
+  document_.replaceTopLevelRange(slice.first, slice.count, std::move(replacements), sourceStart, sourceEnd,
+                                 replacementText);
   lastLocalTopLevelRangeChange_ = {slice.first, slice.count, replacementCount, document_.revision()};
   document_.setModified(modified);
   lastParseElapsedMs_ = parsedSlice.elapsedMs;

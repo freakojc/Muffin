@@ -32,9 +32,7 @@ struct ImageHarness {
 
   MarkdownNode* firstParagraph() { return blockAt(session, 0); }
 
-  void cursorOn(MarkdownNode* block, qsizetype offset) {
-    setCursor(controller.selection(), block, offset);
-  }
+  void cursorOn(MarkdownNode* block, qsizetype offset) { setCursor(controller.selection(), block, offset); }
 
   // Apply a transform to the image under the cursor the way RenderCommandFacade does: resolve the
   // source range, transform via image_syntax, apply as a text delta.
@@ -57,8 +55,7 @@ void testMarkdownImageDetected() {
   h.cursorOn(para, 0);
 
   require(h.controller.isOnImage(), QStringLiteral("cursor detects the markdown image"));
-  require(h.controller.imageSrcAtCursor() == QStringLiteral("x.png"),
-          QStringLiteral("markdown image src resolved"));
+  require(h.controller.imageSrcAtCursor() == QStringLiteral("x.png"), QStringLiteral("markdown image src resolved"));
   qsizetype start = 0, end = 0;
   require(h.controller.imageSourceRangeAtCursor(start, end), QStringLiteral("markdown image range resolved"));
   require(h.session.markdownText().toString().mid(start, end - start) == QStringLiteral("![a](x.png)"),
@@ -72,7 +69,7 @@ void testCursorInUrlStillDetected() {
   ImageHarness h(QStringLiteral("![a](x.png)\n"));
   MarkdownNode* para = h.firstParagraph();
   require(para != nullptr && para->type() == BlockType::Paragraph, QStringLiteral("image lives in a paragraph"));
-  setSourceCursor(h.controller.selection(), para, 7, 7);  // block-local offset 7 lands in "x.png"
+  setSourceCursor(h.controller.selection(), para, 7, 7); // block-local offset 7 lands in "x.png"
 
   require(h.controller.isOnImage(), QStringLiteral("cursor inside the URL still detects the image"));
   require(h.controller.imageSrcAtCursor() == QStringLiteral("x.png"),
@@ -109,11 +106,10 @@ void testNonFirstBlockImageDetectedAndResizable() {
           QStringLiteral("on-atom: range spans the image"));
 
   // Cursor in the URL part (source path) with an absolute offset inside the image.
-  setSourceCursor(h.controller.selection(), para, 0, img + 7);  // absolute offset inside "x.png"
+  setSourceCursor(h.controller.selection(), para, 0, img + 7); // absolute offset inside "x.png"
   require(h.controller.isOnImage(), QStringLiteral("in-url: image detected"));
   require(h.controller.imageSourceRangeAtCursor(start, end), QStringLiteral("in-url: range resolves"));
-  require(md.mid(start, end - start) == QStringLiteral("![a](x.png)"),
-          QStringLiteral("in-url: range spans the image"));
+  require(md.mid(start, end - start) == QStringLiteral("![a](x.png)"), QStringLiteral("in-url: range spans the image"));
 }
 
 void testInlineHtmlImageDetected() {
@@ -121,8 +117,7 @@ void testInlineHtmlImageDetected() {
   // would become an HTML block). The cursor sits on the image atom (offset 2 = after "a ").
   ImageHarness h(QStringLiteral("a <img src=\"x.png\" alt=\"a\" style=\"zoom: 50%;\">\n"));
   MarkdownNode* para = h.firstParagraph();
-  require(para != nullptr && para->type() == BlockType::Paragraph,
-          QStringLiteral("inline <img> lives in a paragraph"));
+  require(para != nullptr && para->type() == BlockType::Paragraph, QStringLiteral("inline <img> lives in a paragraph"));
   h.cursorOn(para, 2);
 
   require(h.controller.isOnImage(), QStringLiteral("cursor detects the inline <img> image"));
@@ -143,8 +138,7 @@ void testResizeMarkdownImageWritesZoomStyle() {
   const QString md = h.session.markdownText().toString();
   require(md.contains(QStringLiteral("<img src=\"x.png\" alt=\"a\"")),
           QStringLiteral("markdown image promoted to <img> in the document"));
-  require(md.contains(QStringLiteral("style=\"zoom: 25%;\"")),
-          QStringLiteral("zoom style written into the document"));
+  require(md.contains(QStringLiteral("style=\"zoom: 25%;\"")), QStringLiteral("zoom style written into the document"));
 }
 
 void testResizeHtmlImageUpdatesZoom() {
@@ -186,8 +180,7 @@ void testStandaloneHtmlBlockImageDetected() {
   h.cursorOn(htmlBlock, 0);
 
   require(h.controller.isOnImage(), QStringLiteral("standalone <img> block detected as an image"));
-  require(h.controller.imageSrcAtCursor() == QStringLiteral("x.png"),
-          QStringLiteral("block image src resolved"));
+  require(h.controller.imageSrcAtCursor() == QStringLiteral("x.png"), QStringLiteral("block image src resolved"));
   qsizetype start = 0, end = 0;
   require(h.controller.imageSourceRangeAtCursor(start, end), QStringLiteral("block image range resolved"));
   require(h.session.markdownText().toString().mid(start, end - start).startsWith(QStringLiteral("<img")),

@@ -24,13 +24,12 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
-void near(qreal actual, qreal expected, const QString& path,
-          qreal tolerance = 1.25) {
+void near(qreal actual, qreal expected, const QString& path, qreal tolerance = 1.25) {
   require(std::isfinite(actual) && std::fabs(actual - expected) <= tolerance,
-          QStringLiteral("%1: %2 != %3").arg(path).arg(actual, 0, 'g', 17)
-              .arg(expected, 0, 'g', 17));
+          QStringLiteral("%1: %2 != %3").arg(path).arg(actual, 0, 'g', 17).arg(expected, 0, 'g', 17));
 }
 QVector<qreal> numbers(const QString& text) {
   QVector<qreal> result;
@@ -39,25 +38,23 @@ QVector<qreal> numbers(const QString& text) {
   return result;
 }
 QColor computedColor(const QString& value) {
-  static const QRegularExpression rgb(
-      QStringLiteral(R"(^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?)"));
+  static const QRegularExpression rgb(QStringLiteral(R"(^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?)"));
   const auto match = rgb.match(value);
   if (match.hasMatch()) {
-    QColor result(match.captured(1).toInt(), match.captured(2).toInt(),
-                  match.captured(3).toInt());
-    if (!match.captured(4).isEmpty()) result.setAlphaF(match.captured(4).toDouble());
+    QColor result(match.captured(1).toInt(), match.captured(2).toInt(), match.captured(3).toInt());
+    if (!match.captured(4).isEmpty())
+      result.setAlphaF(match.captured(4).toDouble());
     return result;
   }
   return color::toQColor(value);
 }
-void sameColor(const QString& native, const QString& browser,
-               const QString& path) {
+void sameColor(const QString& native, const QString& browser, const QString& path) {
   const QColor a = computedColor(native);
   const QColor b = computedColor(browser);
   require(a.isValid() && b.isValid() && a.rgba() == b.rgba(),
           path + QStringLiteral(": ") + native + QStringLiteral(" != ") + browser);
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -83,68 +80,58 @@ int main(int argc, char** argv) {
     const QString id = fixture.value(QStringLiteral("id")).toString();
     const QString source = fixture.value(QStringLiteral("source")).toString();
     const auto entry = cache.getSync(editor::MermaidRenderCache::makeKey(source), source);
-    require(entry.status == editor::MermaidRenderStatus::Ready,
-            id + QStringLiteral(": ") + entry.errorMessage);
+    require(entry.status == editor::MermaidRenderStatus::Ready, id + QStringLiteral(": ") + entry.errorMessage);
     auto scene = std::dynamic_pointer_cast<const treeview::TreeViewScene>(entry.scene);
     require(bool(scene), id + QStringLiteral(": expected TreeViewScene"));
     const QJsonObject expected = fixture.value(QStringLiteral("expected")).toObject();
-    const QJsonObject rootAttrs = expected.value(QStringLiteral("root")).toObject()
-                                      .value(QStringLiteral("attrs")).toObject();
+    const QJsonObject rootAttrs =
+        expected.value(QStringLiteral("root")).toObject().value(QStringLiteral("attrs")).toObject();
     const QVector<qreal> viewBox = numbers(rootAttrs.value(QStringLiteral("viewBox")).toString());
     require(viewBox.size() == 4, id + QStringLiteral("/viewBox"));
     near(scene->bounds.x(), viewBox[0], id + QStringLiteral("/x"), 0.001);
     near(scene->bounds.width(), viewBox[2], id + QStringLiteral("/width"));
     near(scene->bounds.height(), viewBox[3], id + QStringLiteral("/height"), 0.001);
-    const bool expectedMaxWidth = rootAttrs.value(QStringLiteral("width")).toString() ==
-                                  QLatin1String("100%");
-    require(scene->useMaxWidth == expectedMaxWidth,
-            id + QStringLiteral("/useMaxWidth"));
+    const bool expectedMaxWidth = rootAttrs.value(QStringLiteral("width")).toString() == QLatin1String("100%");
+    require(scene->useMaxWidth == expectedMaxWidth, id + QStringLiteral("/useMaxWidth"));
 
     const QJsonArray labels = expected.value(QStringLiteral("labels")).toArray();
     require(scene->nodes.size() == labels.size(), id + QStringLiteral("/labels"));
     for (qsizetype i = 0; i < labels.size(); ++i) {
-      const QJsonObject expectedLabel = labels.at(i).toObject()
-                                            .value(QStringLiteral("label")).toObject();
+      const QJsonObject expectedLabel = labels.at(i).toObject().value(QStringLiteral("label")).toObject();
       const QJsonObject computed = expectedLabel.value(QStringLiteral("computed")).toObject();
       const auto& actual = scene->nodes.at(i).label;
       sameColor(actual.fill, computed.value(QStringLiteral("fill")).toString(),
                 QStringLiteral("%1/label/%2/fill").arg(id).arg(i));
-      near(actual.fontSize,
-           computed.value(QStringLiteral("fontSize")).toString().chopped(2).toDouble(),
+      near(actual.fontSize, computed.value(QStringLiteral("fontSize")).toString().chopped(2).toDouble(),
            QStringLiteral("%1/label/%2/fontSize").arg(id).arg(i), 0.001);
       near(actual.position.x(),
-           expectedLabel.value(QStringLiteral("attrs")).toObject()
-               .value(QStringLiteral("x")).toString().toDouble(),
+           expectedLabel.value(QStringLiteral("attrs")).toObject().value(QStringLiteral("x")).toString().toDouble(),
            QStringLiteral("%1/label/%2/x").arg(id).arg(i), 0.001);
 
-      const QJsonValue descriptionValue = labels.at(i).toObject()
-                                               .value(QStringLiteral("description"));
+      const QJsonValue descriptionValue = labels.at(i).toObject().value(QStringLiteral("description"));
       if (descriptionValue.isObject()) {
         sameColor(scene->nodes.at(i).description.fill,
-                  descriptionValue.toObject().value(QStringLiteral("computed")).toObject()
-                      .value(QStringLiteral("fill")).toString(),
+                  descriptionValue.toObject()
+                      .value(QStringLiteral("computed"))
+                      .toObject()
+                      .value(QStringLiteral("fill"))
+                      .toString(),
                   QStringLiteral("%1/description/%2/fill").arg(id).arg(i));
       }
-      const QJsonValue highlightValue = labels.at(i).toObject()
-                                             .value(QStringLiteral("highlight"));
+      const QJsonValue highlightValue = labels.at(i).toObject().value(QStringLiteral("highlight"));
       if (highlightValue.isObject()) {
-        const QJsonObject highlightComputed = highlightValue.toObject()
-                                                  .value(QStringLiteral("computed")).toObject();
-        sameColor(scene->style.highlightBg,
-                  highlightComputed.value(QStringLiteral("fill")).toString(),
+        const QJsonObject highlightComputed = highlightValue.toObject().value(QStringLiteral("computed")).toObject();
+        sameColor(scene->style.highlightBg, highlightComputed.value(QStringLiteral("fill")).toString(),
                   id + QStringLiteral("/highlight fill"));
-        sameColor(scene->style.highlightStroke,
-                  highlightComputed.value(QStringLiteral("stroke")).toString(),
+        sameColor(scene->style.highlightStroke, highlightComputed.value(QStringLiteral("stroke")).toString(),
                   id + QStringLiteral("/highlight stroke"));
       }
     }
     const QJsonArray lines = expected.value(QStringLiteral("lines")).toArray();
     require(scene->lines.size() == lines.size(), id + QStringLiteral("/lines"));
     if (!lines.isEmpty()) {
-      const QJsonObject lineComputed = lines.at(0).toObject()
-                                           .value(QStringLiteral("computed")).toObject();
-      sameColor(scene->style.lineColor,
-                lineComputed.value(QStringLiteral("stroke")).toString(),
+      const QJsonObject lineComputed = lines.at(0).toObject().value(QStringLiteral("computed")).toObject();
+      sameColor(scene->style.lineColor, lineComputed.value(QStringLiteral("stroke")).toString(),
                 id + QStringLiteral("/line color"));
     }
     require(scene->iconDefs.size() == expected.value(QStringLiteral("defs")).toArray().size(),

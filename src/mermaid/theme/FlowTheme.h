@@ -26,8 +26,17 @@
 namespace muffin::mermaid::flowtheme {
 
 enum class FlowThemeId {
-  Base, Dark, Default, Forest, Neutral, Neo, NeoDark,
-  Redux, ReduxDark, ReduxColor, ReduxDarkColor
+  Base,
+  Dark,
+  Default,
+  Forest,
+  Neutral,
+  Neo,
+  NeoDark,
+  Redux,
+  ReduxDark,
+  ReduxColor,
+  ReduxDarkColor
 };
 
 // Mermaid stores XYChart colors in the nested themeVariables.xyChart object,
@@ -319,9 +328,9 @@ struct FlowThemeVariables {
   QString tagLabelBackground;
   QString tagLabelBorder;
   QString tagLabelFontSize;
-  QString mainContrastColor;  // dark + dark-variant FamilyA themes
-  QString contrast;           // neutral theme only
-  QString text;               // neutral theme only
+  QString mainContrastColor; // dark + dark-variant FamilyA themes
+  QString contrast;          // neutral theme only
+  QString text;              // neutral theme only
   // taskTextDarkColor: pie title/legend text source for every theme but the
   // standalone dark (which uses mainContrastColor). Derived per-theme in
   // updateColors (base/FamilyA = textColor; default/forest = "black"; neutral =
@@ -403,7 +412,7 @@ struct FlowThemeVariables {
 
   // Pie family themeVariables (pieDiagram). Derived per-theme in updateColors
   // via MermaidColor::adjust from primaryColor/secondaryColor/tertiaryColor.
-  QString pie[12];  // pie1..pie12 section fills (scaleOrdinal range)
+  QString pie[12]; // pie1..pie12 section fills (scaleOrdinal range)
   // Upstream themeVariable keys are *TextColor (NOT *TextFill); the repo
   // whitelist (MermaidConfigKeys.inc) and the golden confirm this.
   QString pieTitleTextColor;
@@ -427,8 +436,8 @@ struct FlowThemeVariables {
 
   // Quadrant family themeVariables (quadrantChart). Derived per-theme in
   // updateColors via MermaidColor::adjust from primaryColor (RGB steps).
-  QString quadrant[4];  // quadrant1..4Fill
-  QString quadrantText[4];  // quadrant1..4TextFill
+  QString quadrant[4];     // quadrant1..4Fill
+  QString quadrantText[4]; // quadrant1..4TextFill
   QString quadrantPointFill;
   QString quadrantPointTextFill;
   QString quadrantXAxisTextFill;
@@ -474,4 +483,4 @@ struct FlowThemeVariables {
 FlowThemeVariables resolveFlowTheme(FlowThemeId id);
 FlowThemeVariables resolveFlowTheme(FlowThemeId id, const QHash<QString, QString>& overrides);
 
-}  // namespace muffin::mermaid::flowtheme
+} // namespace muffin::mermaid::flowtheme

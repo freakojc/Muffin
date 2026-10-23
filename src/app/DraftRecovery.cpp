@@ -39,7 +39,7 @@ bool isDraftKey(const QString& stem) {
   return true;
 }
 
-}  // namespace
+} // namespace
 
 namespace muffin {
 
@@ -53,8 +53,8 @@ DraftRecovery::DraftRecovery(QString directory) : directory_(std::move(directory
 }
 
 QString DraftRecovery::createDraftKey() {
-  const QByteArray hash = QCryptographicHash::hash(
-      QUuid::createUuid().toByteArray(QUuid::WithoutBraces), QCryptographicHash::Sha256);
+  const QByteArray hash =
+      QCryptographicHash::hash(QUuid::createUuid().toByteArray(QUuid::WithoutBraces), QCryptographicHash::Sha256);
   return QString::fromLatin1(hash.toHex().left(16));
 }
 
@@ -65,8 +65,8 @@ QString DraftRecovery::keyFor(const QString& sourceFilePath, const QString& draf
   if (sourceFilePath.isEmpty()) {
     return QStringLiteral("untitled");
   }
-  const QByteArray hash = QCryptographicHash::hash(
-      QFileInfo(sourceFilePath).absoluteFilePath().toUtf8(), QCryptographicHash::Sha256);
+  const QByteArray hash =
+      QCryptographicHash::hash(QFileInfo(sourceFilePath).absoluteFilePath().toUtf8(), QCryptographicHash::Sha256);
   return QString::fromLatin1(hash.toHex().left(16));
 }
 
@@ -78,8 +78,7 @@ QString DraftRecovery::metaPath(const QString& key) const {
   return directory_ + QLatin1Char('/') + key + QStringLiteral(".meta");
 }
 
-bool DraftRecovery::snapshot(const QString& markdownText, const QString& sourceFilePath,
-                             const QString& draftKey) {
+bool DraftRecovery::snapshot(const QString& markdownText, const QString& sourceFilePath, const QString& draftKey) {
   muffin::diag::ScopedPerfProbe perf("draft.writeSnapshot", draftPerf());
   if (directory_.isEmpty() || !QDir().mkpath(directory_)) {
     return false;
@@ -89,7 +88,9 @@ bool DraftRecovery::snapshot(const QString& markdownText, const QString& sourceF
   // Content + sidecar meta are written independently (each via QSaveFile, which is
   // atomic on its own). pendingDrafts() only lists a draft when its .md survives.
   QSaveFile content(draftPath(key));
-  if (!content.open(QIODevice::WriteOnly)) { return false; }
+  if (!content.open(QIODevice::WriteOnly)) {
+    return false;
+  }
   const QByteArray bytes = [&] {
     muffin::diag::ScopedPerfProbe perf("draft.encodeUtf8", draftPerf());
     return markdownText.toUtf8();
@@ -98,7 +99,9 @@ bool DraftRecovery::snapshot(const QString& markdownText, const QString& sourceF
     muffin::diag::ScopedPerfProbe perf("draft.commitContent", draftPerf());
     return content.write(bytes) == bytes.size() && content.commit();
   }();
-  if (!contentSaved) { return false; }
+  if (!contentSaved) {
+    return false;
+  }
 
   muffin::diag::ScopedPerfProbe metadataPerf("draft.commitMetadata", draftPerf());
   QJsonObject meta;
@@ -106,7 +109,9 @@ bool DraftRecovery::snapshot(const QString& markdownText, const QString& sourceF
   meta[QStringLiteral("timestamp")] = QDateTime::currentMSecsSinceEpoch();
   meta[QStringLiteral("charCount")] = qint64(markdownText.size());
   QSaveFile metaFile(metaPath(key));
-  if (!metaFile.open(QIODevice::WriteOnly)) { return false; }
+  if (!metaFile.open(QIODevice::WriteOnly)) {
+    return false;
+  }
   const QByteArray metadata = QJsonDocument(meta).toJson(QJsonDocument::Compact);
   return metaFile.write(metadata) == metadata.size() && metaFile.commit();
 }
@@ -131,7 +136,7 @@ QVector<DraftRecovery::PendingDraft> DraftRecovery::pendingDrafts() const {
     }
     const QJsonObject meta = QJsonDocument::fromJson(f.readAll()).object();
     PendingDraft d;
-    d.key = metaFile.left(metaFile.size() - 5);  // strip ".meta"
+    d.key = metaFile.left(metaFile.size() - 5); // strip ".meta"
     d.sourcePath = meta.value(QStringLiteral("sourcePath")).toString();
     d.timestamp = qint64(meta.value(QStringLiteral("timestamp")).toDouble());
     d.charCount = qsizetype(meta.value(QStringLiteral("charCount")).toDouble());
@@ -146,14 +151,20 @@ QVector<DraftRecovery::PendingDraft> DraftRecovery::pendingDrafts() const {
 }
 
 QString DraftRecovery::loadDraft(const PendingDraft& draft, bool* ok) const {
-  if (ok) { *ok = false; }
+  if (ok) {
+    *ok = false;
+  }
   QFile f(draftPath(draft.key));
   if (!f.open(QIODevice::ReadOnly)) {
     return QString();
   }
   const QByteArray bytes = f.readAll();
-  if (f.error() != QFileDevice::NoError) { return {}; }
-  if (ok) { *ok = true; }
+  if (f.error() != QFileDevice::NoError) {
+    return {};
+  }
+  if (ok) {
+    *ok = true;
+  }
   return QString::fromUtf8(bytes);
 }
 
@@ -189,7 +200,7 @@ void DraftRecovery::pruneOrphaned() {
   }
 }
 
-}  // namespace muffin
+} // namespace muffin
 
 bool muffin::DraftRecovery::snapshotSession(const DocumentSession& session, const QString& draftKey) {
   muffin::diag::ScopedPerfProbe perf("draft.snapshotSession", draftPerf());

@@ -13,8 +13,7 @@ enum class ArchitectureErrorKind { Lexer, Parser, Runtime };
 
 class ArchitectureParseError final : public std::runtime_error {
 public:
-  ArchitectureParseError(ArchitectureErrorKind kind, int line, int column,
-                         QString token, const QString& message);
+  ArchitectureParseError(ArchitectureErrorKind kind, int line, int column, QString token, const QString& message);
 
   ArchitectureErrorKind kind;
   int line;
@@ -86,4 +85,4 @@ public:
   static ArchitectureData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::architecture
+} // namespace muffin::mermaid::architecture

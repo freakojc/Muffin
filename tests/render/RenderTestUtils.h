@@ -54,21 +54,26 @@ inline QMap<QString, QJsonObject> readObjectArrayById(const QString& path) {
   return byId;
 }
 
-inline QString katexGoldenPathForFixture(const QString& fixturePath, const QString& goldenName, const QString& fileName) {
+inline QString katexGoldenPathForFixture(const QString& fixturePath, const QString& goldenName,
+                                         const QString& fileName) {
   QDir testsDir(QFileInfo(fixturePath).absoluteDir());
-  require(testsDir.cdUp() && testsDir.cdUp(), QStringLiteral("Could not resolve tests directory from %1").arg(fixturePath));
+  require(testsDir.cdUp() && testsDir.cdUp(),
+          QStringLiteral("Could not resolve tests directory from %1").arg(fixturePath));
   return testsDir.filePath(QStringLiteral("golden/%1/%2").arg(goldenName, fileName));
 }
 
-inline QString katexMetricsPathForFixture(const QString& fixturePath, const QString& goldenName = QStringLiteral("katex")) {
+inline QString katexMetricsPathForFixture(const QString& fixturePath,
+                                          const QString& goldenName = QStringLiteral("katex")) {
   return katexGoldenPathForFixture(fixturePath, goldenName, QStringLiteral("metrics.json"));
 }
 
-inline QString katexBBoxPathForFixture(const QString& fixturePath, const QString& goldenName = QStringLiteral("katex")) {
+inline QString katexBBoxPathForFixture(const QString& fixturePath,
+                                       const QString& goldenName = QStringLiteral("katex")) {
   return katexGoldenPathForFixture(fixturePath, goldenName, QStringLiteral("bbox.json"));
 }
 
-inline QString katexGlyphsPathForFixture(const QString& fixturePath, const QString& goldenName = QStringLiteral("katex")) {
+inline QString katexGlyphsPathForFixture(const QString& fixturePath,
+                                         const QString& goldenName = QStringLiteral("katex")) {
   return katexGoldenPathForFixture(fixturePath, goldenName, QStringLiteral("glyphs.json"));
 }
 
@@ -86,7 +91,8 @@ inline const muffin::MarkdownNode* findFirstBlock(const muffin::MarkdownNode& no
   return nullptr;
 }
 
-inline const muffin::MarkdownNode* findBlockWithLiteral(const muffin::MarkdownNode& node, muffin::BlockType type, const QString& literalPart) {
+inline const muffin::MarkdownNode* findBlockWithLiteral(const muffin::MarkdownNode& node, muffin::BlockType type,
+                                                        const QString& literalPart) {
   if (node.type() == type && node.literal().contains(literalPart)) {
     return &node;
   }
@@ -152,19 +158,16 @@ inline qreal jsonNumber(const QJsonObject& object, const QString& key) {
 inline QRectF jsonRect(const QJsonObject& object, const QString& key) {
   const QJsonObject rect = object.value(key).toObject();
   require(!rect.isEmpty(), QStringLiteral("Expected JSON rect: %1").arg(key));
-  return QRectF(jsonNumber(rect, QStringLiteral("x")),
-                jsonNumber(rect, QStringLiteral("y")),
-                jsonNumber(rect, QStringLiteral("width")),
-                jsonNumber(rect, QStringLiteral("height")));
+  return QRectF(jsonNumber(rect, QStringLiteral("x")), jsonNumber(rect, QStringLiteral("y")),
+                jsonNumber(rect, QStringLiteral("width")), jsonNumber(rect, QStringLiteral("height")));
 }
 
 inline void requireCloseMetric(qreal actual, qreal expected, qreal tolerance, const QString& label) {
-  require(qAbs(actual - expected) <= tolerance,
-          QStringLiteral("%1 mismatch: actual=%2 expected=%3 tolerance=%4")
-              .arg(label)
-              .arg(actual, 0, 'f', 6)
-              .arg(expected, 0, 'f', 6)
-              .arg(tolerance, 0, 'f', 6));
+  require(qAbs(actual - expected) <= tolerance, QStringLiteral("%1 mismatch: actual=%2 expected=%3 tolerance=%4")
+                                                    .arg(label)
+                                                    .arg(actual, 0, 'f', 6)
+                                                    .arg(expected, 0, 'f', 6)
+                                                    .arg(tolerance, 0, 'f', 6));
 }
 
 inline bool renderTreeContainsValue(const QJsonObject& node, const QString& value) {
@@ -239,7 +242,8 @@ inline bool findRenderTreeClass(const QJsonObject& node, const QString& classNam
 
 inline muffin::MarkdownNode* mutableBlockAt(muffin::MarkdownDocument& document, qsizetype index) {
   auto& children = document.root().children();
-  require(index >= 0 && index < static_cast<qsizetype>(children.size()), QStringLiteral("mutable block index out of range"));
+  require(index >= 0 && index < static_cast<qsizetype>(children.size()),
+          QStringLiteral("mutable block index out of range"));
   return children.at(static_cast<size_t>(index)).get();
 }
 
@@ -251,7 +255,8 @@ inline void requireUsableRect(const QRectF& rect, const QString& label) {
 
 // ---- text layout helpers ----
 
-inline void requireTextLayoutCursorRoundTrip(const muffin::InlineLayout& layout, qsizetype offset, const QString& label) {
+inline void requireTextLayoutCursorRoundTrip(const muffin::InlineLayout& layout, qsizetype offset,
+                                             const QString& label) {
   const QRectF cursor = layout.cursorRect(offset);
   require(!cursor.isEmpty(), label + QStringLiteral(" cursor rect should exist"));
   require(layout.hitTestTextOffset(QPointF(cursor.left(), cursor.center().y())) == offset,
@@ -270,8 +275,10 @@ inline void requireTextLayoutCharacterBias(const muffin::InlineLayout& layout, q
   const qreal quarter = left + (right - left) * 0.25;
   const qreal threeQuarter = left + (right - left) * 0.75;
   const qreal y = leftCursor.center().y();
-  require(layout.hitTestTextOffset(QPointF(quarter, y)) == offset, label + QStringLiteral(" left half hit-test mismatch"));
-  require(layout.hitTestTextOffset(QPointF(threeQuarter, y)) == offset + 1, label + QStringLiteral(" right half hit-test mismatch"));
+  require(layout.hitTestTextOffset(QPointF(quarter, y)) == offset,
+          label + QStringLiteral(" left half hit-test mismatch"));
+  require(layout.hitTestTextOffset(QPointF(threeQuarter, y)) == offset + 1,
+          label + QStringLiteral(" right half hit-test mismatch"));
 }
 
 // ---- selection rect validation ----
@@ -295,7 +302,8 @@ inline bool hasRole(const QVector<muffin::CodeHighlightSpan>& spans, muffin::Cod
   return false;
 }
 
-inline const muffin::BlockLayout::TableCellLayout* findTableCellLayout(const muffin::BlockLayout& tableLayout, muffin::NodeId cellId) {
+inline const muffin::BlockLayout::TableCellLayout* findTableCellLayout(const muffin::BlockLayout& tableLayout,
+                                                                       muffin::NodeId cellId) {
   for (const muffin::BlockLayout::TableRowLayout& row : tableLayout.tableRows()) {
     for (const muffin::BlockLayout::TableCellLayout& cell : row.cells) {
       if (cell.nodeId == cellId) {

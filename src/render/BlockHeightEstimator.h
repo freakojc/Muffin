@@ -20,6 +20,7 @@ public:
   void beginPass(quint64 fontGeneration, bool codeBlockWrap, bool showLineNumbers);
   void setSelection(SelectionRange selection) { selection_ = std::move(selection); }
   EstimateResult estimateHeight(const MarkdownNode& node, const RenderTheme& theme, qreal width, int depth = 0) const;
+
 private:
   SelectionRange selection_;
   bool codeBlockWrap_ = true;
@@ -45,10 +46,11 @@ private:
   // every block (~14µs/block otherwise, dominating the estimate loop on 250k-block docs).
   qreal cachedEstimateLineHeight(const RenderTheme& theme, const QString& elementKey, int headingLevel) const;
   // Cached avgCharWidthForFont per element key — avoids creating QFont + TextFontMetrics per block.
-  qreal cachedAvgCharWidthForElement(const RenderTheme& theme, const QString& elementKey, bool isHeading, int headingLevel) const;
-  mutable QHash<QString, QPair<qreal, qreal>> fontMetricsCache_;  // QFont::key() -> {wideAdvance, narrowAdvance}
-  mutable QHash<QString, qreal> lineHeightCache_;  // "elementKey|headingLevel" -> estimated line height
-  mutable QHash<QString, qreal> avgCharWidthCache_;  // "elementKey|headingLevel" -> cached narrow advance
+  qreal cachedAvgCharWidthForElement(const RenderTheme& theme, const QString& elementKey, bool isHeading,
+                                     int headingLevel) const;
+  mutable QHash<QString, QPair<qreal, qreal>> fontMetricsCache_; // QFont::key() -> {wideAdvance, narrowAdvance}
+  mutable QHash<QString, qreal> lineHeightCache_;                // "elementKey|headingLevel" -> estimated line height
+  mutable QHash<QString, qreal> avgCharWidthCache_;              // "elementKey|headingLevel" -> cached narrow advance
   struct ParagraphEstimate {
     qreal charsPerLine = 1;
     qreal lineHeight = 0;
@@ -58,4 +60,4 @@ private:
   mutable QHash<QString, QHash<qreal, ParagraphEstimate>> paragraphEstimateCache_;
 };
 
-}  // namespace muffin
+} // namespace muffin

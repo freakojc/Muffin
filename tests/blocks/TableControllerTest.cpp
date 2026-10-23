@@ -44,13 +44,8 @@ QString serialize(const MarkdownDocument& document) {
   return serializer.serializeDocument(document);
 }
 
-MarkdownNode* setTableCellCursor(
-    DocumentSession& session,
-    SelectionController& selection,
-    int row,
-    int column,
-    qsizetype localSourceOffset,
-    qsizetype textOffset = 0) {
+MarkdownNode* setTableCellCursor(DocumentSession& session, SelectionController& selection, int row, int column,
+                                 qsizetype localSourceOffset, qsizetype textOffset = 0) {
   MarkdownNode& table = *session.document().root().children().front();
   MarkdownNode* cell = TableModelOps::cellAt(table, row, column);
   require(cell != nullptr, "table cell cursor target missing");
@@ -67,7 +62,7 @@ MarkdownNode* setTableCellCursor(
   return cell;
 }
 
-}  // namespace
+} // namespace
 
 void testTableControllerCommands() {
   DocumentSession session;
@@ -96,14 +91,17 @@ void testTableControllerCommands() {
 
   require(controller.insertColumnAfter(), "controller should insert column after");
   require(session.lastParseWasLocalEdit(), "controller insert column should use local table apply");
-  require(session.markdownText().toString().contains(QStringLiteral("| A | B |  |")), "controller insert column mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("| A | B |  |")),
+          "controller insert column mismatch");
   require(undoStack.canUndo(), "table command should push undo");
   EditTransaction insertColumnUndo = undoStack.takeUndo();
   require(insertColumnUndo.isTableCommand(), "table structure command should use TableCommand undo");
   require(insertColumnUndo.tableCommand().beforeTable != nullptr, "table command before snapshot missing");
   require(insertColumnUndo.tableCommand().afterTable != nullptr, "table command after snapshot missing");
-  require(TableModelOps::columnCount(*insertColumnUndo.tableCommand().beforeTable) == 2, "table command before column count mismatch");
-  require(TableModelOps::columnCount(*insertColumnUndo.tableCommand().afterTable) == 3, "table command after column count mismatch");
+  require(TableModelOps::columnCount(*insertColumnUndo.tableCommand().beforeTable) == 2,
+          "table command before column count mismatch");
+  require(TableModelOps::columnCount(*insertColumnUndo.tableCommand().afterTable) == 3,
+          "table command after column count mismatch");
 
   session.setMarkdownText(QStringLiteral("| A | B |\n| --- | --- |\n| 1 | 2 |"), false);
   cell = TableModelOps::cellAt(*session.document().root().children().front(), 1, 0);
@@ -113,13 +111,17 @@ void testTableControllerCommands() {
   hit.tableColumn = 0;
   selection.setHitResult(hit);
   require(controller.setCurrentColumnAlignment(TableAlignment::Right), "controller should set alignment");
-  require(session.markdownText().toString().contains(QStringLiteral("| ---: | --- |")), "controller alignment mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("| ---: | --- |")),
+          "controller alignment mismatch");
   EditTransaction alignmentUndo = undoStack.takeUndo();
   require(alignmentUndo.isSetNodeAttrCommand(), "table alignment should use SetNodeAttrCommand undo");
-  require(alignmentUndo.setNodeAttrCommand().attribute == NodeAttribute::TableAlignments, "table alignment attribute mismatch");
-  require(std::get<QVector<TableAlignment>>(alignmentUndo.setNodeAttrCommand().beforeValue).at(0) == TableAlignment::None,
+  require(alignmentUndo.setNodeAttrCommand().attribute == NodeAttribute::TableAlignments,
+          "table alignment attribute mismatch");
+  require(std::get<QVector<TableAlignment>>(alignmentUndo.setNodeAttrCommand().beforeValue).at(0) ==
+              TableAlignment::None,
           "table alignment before value mismatch");
-  require(std::get<QVector<TableAlignment>>(alignmentUndo.setNodeAttrCommand().afterValue).at(0) == TableAlignment::Right,
+  require(std::get<QVector<TableAlignment>>(alignmentUndo.setNodeAttrCommand().afterValue).at(0) ==
+              TableAlignment::Right,
           "table alignment after value mismatch");
 
   session.setMarkdownText(QStringLiteral("| A | B |\n| --- | --- |\n| 1 | 2 |\n| 3 | 4 |"), false);
@@ -131,7 +133,8 @@ void testTableControllerCommands() {
   hit.tableColumn = 1;
   selection.setHitResult(hit);
   require(controller.moveCurrentRowUp(), "controller should move row up");
-  require(session.markdownText().toString().contains(QStringLiteral("| 3 | 4 |\n| 1 | 2 |")), "controller move row mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("| 3 | 4 |\n| 1 | 2 |")),
+          "controller move row mismatch");
   EditTransaction moveRowUndo = undoStack.takeUndo();
   require(moveRowUndo.isTableCommand(), "table row move should use TableCommand undo");
 
@@ -186,8 +189,10 @@ void testTableControllerResize() {
   require(undoStack.canUndo(), "controller resize should push undo");
   EditTransaction resizeUndo = undoStack.takeUndo();
   require(resizeUndo.isTableCommand(), "controller resize should use TableCommand undo");
-  require(TableModelOps::columnCount(*resizeUndo.tableCommand().afterTable) == 2, "controller resize after column count mismatch");
-  require(TableModelOps::rowCount(*resizeUndo.tableCommand().afterTable) == 2, "controller resize after row count mismatch");
+  require(TableModelOps::columnCount(*resizeUndo.tableCommand().afterTable) == 2,
+          "controller resize after column count mismatch");
+  require(TableModelOps::rowCount(*resizeUndo.tableCommand().afterTable) == 2,
+          "controller resize after row count mismatch");
 }
 
 void testTableControllerDeleteTable() {
@@ -210,9 +215,11 @@ void testTableControllerDeleteTable() {
   selection.setHitResult(hit);
 
   require(controller.deleteCurrentTable(), "controller delete table should work");
-  require(session.markdownText().toString().contains(QStringLiteral("before")), "delete table should keep previous text");
+  require(session.markdownText().toString().contains(QStringLiteral("before")),
+          "delete table should keep previous text");
   require(session.markdownText().toString().contains(QStringLiteral("after")), "delete table should keep next text");
-  require(!session.markdownText().toString().contains(QStringLiteral("| A | B |")), "delete table should remove table markdown");
+  require(!session.markdownText().toString().contains(QStringLiteral("| A | B |")),
+          "delete table should remove table markdown");
   require(undoStack.canUndo(), "delete table should push undo");
   EditTransaction deleteUndo = undoStack.takeUndo();
   require(deleteUndo.isRemoveNodeCommand(), "delete table should use RemoveNodeCommand");
@@ -243,19 +250,23 @@ void testTableControllerCellTextEditing() {
   selection.setHitResult(hit);
 
   require(tableController.insertText(QStringLiteral("X")), "table cell insert should work");
-  require(session.markdownText().toString().contains(QStringLiteral("| 1 | 2X |")), "table cell insert markdown mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("| 1 | 2X |")),
+          "table cell insert markdown mismatch");
   require(selection.cursorPosition().text.textOffset == 2, "table cell insert cursor mismatch");
   require(undoStack.canUndo(), "table cell insert should push undo");
   EditTransaction cellEditUndo = undoStack.takeUndo();
   require(cellEditUndo.isTextDeltaCommand(), "table cell edit should use TextDeltaCommand");
   require(cellEditUndo.textDeltaCommand().delta.removedText.isEmpty(), "table cell removed text mismatch");
-  require(cellEditUndo.textDeltaCommand().delta.insertedText == QStringLiteral("X"), "table cell inserted text mismatch");
+  require(cellEditUndo.textDeltaCommand().delta.insertedText == QStringLiteral("X"),
+          "table cell inserted text mismatch");
 
   require(tableController.deleteBackward(), "table cell backspace should work");
-  require(session.markdownText().toString().contains(QStringLiteral("| 1 | 2 |")), "table cell backspace markdown mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("| 1 | 2 |")),
+          "table cell backspace markdown mismatch");
 
   require(tableController.deleteBackward(), "table cell second backspace should work");
-  require(session.markdownText().toString().contains(QStringLiteral("| 1 |  |")), "table cell delete to empty mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("| 1 |  |")),
+          "table cell delete to empty mismatch");
 }
 
 void testTableControllerPreservesInlineCodeOnCellEdit() {
@@ -282,13 +293,16 @@ void testTableControllerPreservesInlineCodeOnCellEdit() {
   selection.setHitResult(hit);
 
   require(tableController.insertText(QStringLiteral("1")), "table cell rich inline insert should work");
-  require(session.markdownText().toString().contains(QStringLiteral("vendored1 `cmark-gfm`")), "table cell inline code should be preserved after insert");
-  require(selection.cursorPosition().text.sourceOffset == hit.sourceOffset + 1, "table cell rich inline source cursor mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("vendored1 `cmark-gfm`")),
+          "table cell inline code should be preserved after insert");
+  require(selection.cursorPosition().text.sourceOffset == hit.sourceOffset + 1,
+          "table cell rich inline source cursor mismatch");
   require(undoStack.canUndo(), "table cell rich inline insert should push undo");
   EditTransaction cellEditUndo = undoStack.takeUndo();
   require(cellEditUndo.isTextDeltaCommand(), "table cell rich inline edit should use TextDeltaCommand");
   require(cellEditUndo.textDeltaCommand().delta.removedText.isEmpty(), "table cell rich inline removed text mismatch");
-  require(cellEditUndo.textDeltaCommand().delta.insertedText == QStringLiteral("1"), "table cell rich inline inserted text mismatch");
+  require(cellEditUndo.textDeltaCommand().delta.insertedText == QStringLiteral("1"),
+          "table cell rich inline inserted text mismatch");
 }
 
 void testTableControllerDeletesOnlyEditableInlineContent() {
@@ -302,22 +316,26 @@ void testTableControllerDeletesOnlyEditableInlineContent() {
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| `code` |"), false);
   setTableCellCursor(session, selection, 1, 0, 2, 1);
   require(tableController.deleteBackward(), "inline code backspace inside content should work");
-  require(session.markdownText().toString().contains(QStringLiteral("| `ode` |")), "inline code backspace should preserve markers");
+  require(session.markdownText().toString().contains(QStringLiteral("| `ode` |")),
+          "inline code backspace should preserve markers");
 
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| `code` |"), false);
   setTableCellCursor(session, selection, 1, 0, 1, 0);
   require(tableController.deleteBackward(), "inline code start backspace should be handled");
-  require(session.markdownText().toString().contains(QStringLiteral("| code` |")), "inline code start backspace removes opening marker");
+  require(session.markdownText().toString().contains(QStringLiteral("| code` |")),
+          "inline code start backspace removes opening marker");
 
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| `code` |"), false);
   setTableCellCursor(session, selection, 1, 0, 5, 4);
   require(tableController.deleteForward(), "inline code end delete should be handled");
-  require(session.markdownText().toString().contains(QStringLiteral("| `code |")), "inline code end delete removes closing marker");
+  require(session.markdownText().toString().contains(QStringLiteral("| `code |")),
+          "inline code end delete removes closing marker");
 
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| `code` |"), false);
   setTableCellCursor(session, selection, 1, 0, 3, 2);
   require(tableController.deleteForward(), "inline code delete inside content should work");
-  require(session.markdownText().toString().contains(QStringLiteral("| `coe` |")), "inline code delete should preserve markers");
+  require(session.markdownText().toString().contains(QStringLiteral("| `coe` |")),
+          "inline code delete should preserve markers");
 }
 
 void testTableControllerPreservesTableEscapesOnCellDelete() {
@@ -331,14 +349,18 @@ void testTableControllerPreservesTableEscapesOnCellDelete() {
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| a \\| b |"), false);
   setTableCellCursor(session, selection, 1, 0, QStringLiteral("a \\|").size(), 3);
   require(tableController.deleteBackward(), "escaped pipe backspace should work");
-  require(session.markdownText().toString().contains(QStringLiteral("| a  b |")), "escaped pipe backspace should delete the whole escape");
-  require(TableModelOps::columnCount(*session.document().root().children().front()) == 1, "escaped pipe delete should not split table");
+  require(session.markdownText().toString().contains(QStringLiteral("| a  b |")),
+          "escaped pipe backspace should delete the whole escape");
+  require(TableModelOps::columnCount(*session.document().root().children().front()) == 1,
+          "escaped pipe delete should not split table");
 
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| a \\| b |"), false);
   setTableCellCursor(session, selection, 1, 0, QStringLiteral("a ").size(), 2);
   require(tableController.deleteForward(), "escaped pipe delete should work");
-  require(session.markdownText().toString().contains(QStringLiteral("| a  b |")), "escaped pipe delete should delete the whole escape");
-  require(TableModelOps::columnCount(*session.document().root().children().front()) == 1, "escaped pipe forward delete should not split table");
+  require(session.markdownText().toString().contains(QStringLiteral("| a  b |")),
+          "escaped pipe delete should delete the whole escape");
+  require(TableModelOps::columnCount(*session.document().root().children().front()) == 1,
+          "escaped pipe forward delete should not split table");
 }
 
 void testTableControllerPreservesInlineContainersOnCellEdit() {
@@ -352,17 +374,20 @@ void testTableControllerPreservesInlineContainersOnCellEdit() {
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| **bold** |"), false);
   setTableCellCursor(session, selection, 1, 0, QStringLiteral("**bo").size(), 2);
   require(tableController.insertText(QStringLiteral("X")), "bold insert should work");
-  require(session.markdownText().toString().contains(QStringLiteral("| **boXld** |")), "bold insert should preserve markers");
+  require(session.markdownText().toString().contains(QStringLiteral("| **boXld** |")),
+          "bold insert should preserve markers");
 
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| [label](url) |"), false);
   setTableCellCursor(session, selection, 1, 0, QStringLiteral("[la").size(), 2);
   require(tableController.deleteForward(), "link label delete should work");
-  require(session.markdownText().toString().contains(QStringLiteral("| [lael](url) |")), "link label delete should preserve destination");
+  require(session.markdownText().toString().contains(QStringLiteral("| [lael](url) |")),
+          "link label delete should preserve destination");
 
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| [label](url) |"), false);
   setTableCellCursor(session, selection, 1, 0, QStringLiteral("[label]").size(), 5);
   require(tableController.deleteForward(), "link label end delete should be handled");
-  require(session.markdownText().toString().contains(QStringLiteral("| [label]url) |")), "link label end delete removes destination syntax");
+  require(session.markdownText().toString().contains(QStringLiteral("| [label]url) |")),
+          "link label end delete removes destination syntax");
 }
 
 void testTableControllerBrDeletesPerChar() {
@@ -416,17 +441,24 @@ void testEscapedPipeSurvivesStructuralEdits() {
     int row;
     int column;
     int expectedColumns;
-    QString expectedCellSlice;  // the escaped-pipe cell content after the edit
+    QString expectedCellSlice; // the escaped-pipe cell content after the edit
     bool (TableController::*op)();
   };
   const Case cases[] = {
-      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 0, 3, QStringLiteral("1 \\| 2"), &TableController::insertColumnBefore},
-      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 0, 3, QStringLiteral("1 \\| 2"), &TableController::insertColumnAfter},
-      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 0, 2, QStringLiteral("1 \\| 2"), &TableController::insertRowBefore},
-      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 0, 2, QStringLiteral("1 \\| 2"), &TableController::insertRowAfter},
-      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 \\| 3 | 4 |"), 1, 0, 3, QStringLiteral("1 \\| 2 \\| 3"), &TableController::insertColumnAfter},
-      {QStringLiteral("| A | B | C |\n| --- | --- | --- |\n| 1 | 2 | 3 \\| 4 |"), 1, 2, 4, QStringLiteral("3 \\| 4"), &TableController::insertColumnAfter},
-      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 1, 2, QStringLiteral("1 \\| 2"), &TableController::insertRowAfter},
+      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 0, 3, QStringLiteral("1 \\| 2"),
+       &TableController::insertColumnBefore},
+      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 0, 3, QStringLiteral("1 \\| 2"),
+       &TableController::insertColumnAfter},
+      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 0, 2, QStringLiteral("1 \\| 2"),
+       &TableController::insertRowBefore},
+      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 0, 2, QStringLiteral("1 \\| 2"),
+       &TableController::insertRowAfter},
+      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 \\| 3 | 4 |"), 1, 0, 3, QStringLiteral("1 \\| 2 \\| 3"),
+       &TableController::insertColumnAfter},
+      {QStringLiteral("| A | B | C |\n| --- | --- | --- |\n| 1 | 2 | 3 \\| 4 |"), 1, 2, 4, QStringLiteral("3 \\| 4"),
+       &TableController::insertColumnAfter},
+      {QStringLiteral("| A | B |\n| --- | --- |\n| 1 \\| 2 | 3 |"), 1, 1, 2, QStringLiteral("1 \\| 2"),
+       &TableController::insertRowAfter},
   };
 
   for (const Case& c : cases) {
@@ -438,12 +470,14 @@ void testEscapedPipeSurvivesStructuralEdits() {
     const MarkdownNode& table = *session.document().root().children().front();
     const int columns = TableModelOps::columnCount(table);
     if (columns != c.expectedColumns) {
-      std::cerr << "escaped pipe added a column: want " << c.expectedColumns << " got " << columns << "\n" << md.toUtf8().data() << "\n";
+      std::cerr << "escaped pipe added a column: want " << c.expectedColumns << " got " << columns << "\n"
+                << md.toUtf8().data() << "\n";
     }
     require(columns == c.expectedColumns, "escaped pipe should not add a column");
     const QString expectedCell = QStringLiteral("| %1 |").arg(c.expectedCellSlice);
     if (!md.contains(expectedCell)) {
-      std::cerr << "escaped pipe cell content lost. expected [" << expectedCell.toUtf8().data() << "] in:\n" << md.toUtf8().data() << "\n";
+      std::cerr << "escaped pipe cell content lost. expected [" << expectedCell.toUtf8().data() << "] in:\n"
+                << md.toUtf8().data() << "\n";
     }
     require(md.contains(expectedCell), "escaped pipe cell content should survive structural edit");
   }
@@ -482,7 +516,8 @@ void testEscapedPipeCellProjection() {
       std::cerr << "escaped pipe display mismatch: want [" << c.expectedDisplay.toUtf8().data() << "] got ["
                 << projection.displayText().toUtf8().data() << "] source [" << sourceSlice.toUtf8().data() << "]\n";
     }
-    require(projection.displayText() == c.expectedDisplay, "escaped pipe cell should render decoded pipe without duplicating content");
+    require(projection.displayText() == c.expectedDisplay,
+            "escaped pipe cell should render decoded pipe without duplicating content");
     require(projection.visibleText() == c.expectedDisplay, "escaped pipe cell visible text should match display text");
   }
 }

@@ -57,8 +57,9 @@ public:
   QRectF cursorRectForTextOffset(int offset) const;
   QVector<QRectF> selectionRects(int start, int end) const;
 
- private:
-  void visitTextLayouts(const HtmlBox& box, QPointF parent, const std::function<void(const HtmlTextLayout&, QPointF)>& visitor) const;
+private:
+  void visitTextLayouts(const HtmlBox& box, QPointF parent,
+                        const std::function<void(const HtmlTextLayout&, QPointF)>& visitor) const;
   HitResult hitTestBox(const HtmlBox& box, QPointF localPos, QPointF origin) const;
   bool boxHasVisibleContent(const HtmlBox& box) const;
   QString linkHrefAtTextLayout(const HtmlBox& box, QPointF localPos) const;
@@ -79,4 +80,4 @@ public:
   mutable QHash<QString, QImage> imageCache_;
 };
 
-}  // namespace muffin::html
+} // namespace muffin::html

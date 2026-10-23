@@ -49,4 +49,4 @@ public:
   static RadarData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::radar
+} // namespace muffin::mermaid::radar

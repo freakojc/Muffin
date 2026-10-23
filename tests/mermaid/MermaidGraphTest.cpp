@@ -53,22 +53,25 @@ using CG = muffin::mermaid::graphlib::Graph<NodeLabel, EdgeLabel, GraphLabel>;
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
-template <typename A, typename E>
-void requireEq(const A& actual, const E& expected, const QString& message) {
+template <typename A, typename E> void requireEq(const A& actual, const E& expected, const QString& message) {
   if (!(actual == expected)) {
     qCritical().noquote() << message << "\n  actual:  " << actual << "\n  expected:" << expected;
     std::exit(1);
   }
 }
-QString join(const QList<QString>& xs) { return xs.join(QStringLiteral(", ")); }
+QString join(const QList<QString>& xs) {
+  return xs.join(QStringLiteral(", "));
+}
 
 QString edgeIds(const G& g) {
   QStringList parts;
   for (const Edge& e : g.edges()) {
     QString id = e.v + QStringLiteral("-") + e.w;
-    if (e.hasName) id += QStringLiteral("(") + e.name + QStringLiteral(")");
+    if (e.hasName)
+      id += QStringLiteral("(") + e.name + QStringLiteral(")");
     parts.append(id);
   }
   return parts.join(QStringLiteral(", "));
@@ -162,8 +165,7 @@ void testCompound() {
   g.setParent("c", "b");
   requireEq(g.parentOf("a"), QString("root"), QStringLiteral("parent"));
   require(g.parentOf("root").isNull(), QStringLiteral("root has no parent"));
-  require(g.children("root")->contains("a") && g.children("root")->contains("b"),
-          QStringLiteral("children of root"));
+  require(g.children("root")->contains("a") && g.children("root")->contains("b"), QStringLiteral("children of root"));
   // children() with no arg returns top-level nodes (the graph-root children).
   QList<QString> top = g.children().value_or(QList<QString>{});
   require(top.contains("root") && !top.contains("a"), QStringLiteral("top-level children"));
@@ -181,12 +183,12 @@ void testSetParentCycleDetection() {
   g.setParent("b", "c");
   bool direct = false, transitive = false;
   try {
-    g.setParent("b", "a");  // direct cycle b->a->b
+    g.setParent("b", "a"); // direct cycle b->a->b
   } catch (const std::runtime_error&) {
     direct = true;
   }
   try {
-    g.setParent("c", "a");  // transitive cycle c->a->b->c
+    g.setParent("c", "a"); // transitive cycle c->a->b->c
   } catch (const std::runtime_error&) {
     transitive = true;
   }
@@ -203,8 +205,7 @@ void testRemoveNodeReparents() {
   g.removeNode("cluster");
   // Children of the removed cluster are re-parented to the graph root.
   require(g.hasNode("a") && g.hasNode("b"), QStringLiteral("children survive parent removal"));
-  require(g.parentOf("a").isNull() && g.parentOf("b").isNull(),
-          QStringLiteral("children reparented to root"));
+  require(g.parentOf("a").isNull() && g.parentOf("b").isNull(), QStringLiteral("children reparented to root"));
   QList<QString> top = g.children().value_or(QList<QString>{});
   require(top.contains("a") && top.contains("b"), QStringLiteral("orphaned children become top-level"));
 }
@@ -216,7 +217,8 @@ void testAncestorsAndLca() {
   //          left      right
   //          /  \        \
   //        a     b        c
-  for (const QString& n : {"root", "left", "right", "a", "b", "c"}) g.setNode(n);
+  for (const QString& n : {"root", "left", "right", "a", "b", "c"})
+    g.setNode(n);
   g.setParent("left", "root");
   g.setParent("right", "root");
   g.setParent("a", "left");
@@ -232,8 +234,10 @@ void testDeepParentChainNoOverflow() {
   // A chain deep enough that a recursive parent walk would blow the C++ stack.
   const int depth = 50000;
   CG g({.compound = true});
-  for (int i = 0; i < depth; ++i) g.setNode(QStringLiteral("n%1").arg(i));
-  for (int i = 0; i + 1 < depth; ++i) g.setParent(QStringLiteral("n%1").arg(i), QStringLiteral("n%1").arg(i + 1));
+  for (int i = 0; i < depth; ++i)
+    g.setNode(QStringLiteral("n%1").arg(i));
+  for (int i = 0; i + 1 < depth; ++i)
+    g.setParent(QStringLiteral("n%1").arg(i), QStringLiteral("n%1").arg(i + 1));
   requireEq(g.parentOf(QStringLiteral("n0")), QString("n1"), QStringLiteral("deep parent link"));
   require(ancestorsOf(g, QStringLiteral("n0")).size() == depth - 1,
           QStringLiteral("deep ancestor walk is iterative and complete"));
@@ -242,12 +246,10 @@ void testDeepParentChainNoOverflow() {
 void testSpecialIdsDoNotPollute() {
   // In JS these would shadow Object.prototype; in C++ they are ordinary keys.
   G g;
-  for (const QString& id : {QStringLiteral("__proto__"), QStringLiteral("constructor"),
-                            QStringLiteral("toString"), QStringLiteral("hasOwnProperty"),
-                            QStringLiteral("prototype")}) {
+  for (const QString& id : {QStringLiteral("__proto__"), QStringLiteral("constructor"), QStringLiteral("toString"),
+                            QStringLiteral("hasOwnProperty"), QStringLiteral("prototype")}) {
     g.setNode(id, NodeLabel{.text = id.toUpper()});
-    require(g.hasNode(id) && g.node(id)->text == id.toUpper(),
-            QStringLiteral("special id roundtrip: ") + id);
+    require(g.hasNode(id) && g.node(id)->text == id.toUpper(), QStringLiteral("special id roundtrip: ") + id);
   }
   requireEq(g.nodeCount(), 5, QStringLiteral("all special ids coexist"));
   // The reserved graph-root and edge-delim chars must roundtrip too.
@@ -258,7 +260,8 @@ void testSpecialIdsDoNotPollute() {
 
 void testIterationOrderStability() {
   G g;
-  for (const QString& id : {"z", "a", "m", "b", "q"}) g.setNode(id);
+  for (const QString& id : {"z", "a", "m", "b", "q"})
+    g.setNode(id);
   requireEq(join(g.nodes()), QString("z, a, m, b, q"), QStringLiteral("nodes follow insertion order"));
   // Remove a middle node, then re-add it: it lands at the end (JS semantics).
   g.removeNode("m");
@@ -285,9 +288,8 @@ void testDeterminismAcrossRuns() {
     g.setParent("a", "c");
     g.setParent("b", "c");
     g.removeEdge("a", "b", "e1");
-    g.setEdge("a", "b", EdgeLabel{.weight = 9}, "e1");  // re-add -> end
-    return QStringList{join(g.nodes()), edgeIds(g),
-                       join(g.children("c").value_or(QList<QString>{}))};
+    g.setEdge("a", "b", EdgeLabel{.weight = 9}, "e1"); // re-add -> end
+    return QStringList{join(g.nodes()), edgeIds(g), join(g.children("c").value_or(QList<QString>{}))};
   };
   const QStringList first = build();
   const QStringList second = build();
@@ -302,8 +304,9 @@ void testBuildLayoutGraphFieldFidelity() {
   g.setNode("a", NodeLabel{.width = 30.0, .height = 12.0});
   g.setNode("cluster", NodeLabel{.borderTop = "bt", .borderBottom = "bb"});
   g.setParent("a", "cluster");
-  g.setEdge("a", "cluster", EdgeLabel{.minlen = 2, .weight = 3, .width = 9.0, .height = 11.0,
-                                      .labeloffset = 12, .labelpos = "l"}, "edge1");
+  g.setEdge("a", "cluster",
+            EdgeLabel{.minlen = 2, .weight = 3, .width = 9.0, .height = 11.0, .labeloffset = 12, .labelpos = "l"},
+            "edge1");
   require(g.graph()->rankdir == "LR" && g.graph()->ranksep == 60.0, QStringLiteral("graph label"));
   require(g.node("a")->width == 30.0 && g.node("a")->height == 12.0, QStringLiteral("node attrs"));
   require(g.node("cluster")->borderTop == "bt", QStringLiteral("node border attrs"));
@@ -324,9 +327,7 @@ void testSetPath() {
 void testDefaultLabels() {
   G g;
   g.setDefaultNodeLabel(NodeLabel{.text = "DEFAULT", .width = 99.0});
-  g.setDefaultEdgeLabel([](const QString&, const QString&, const QString&) {
-    return EdgeLabel{.weight = 42};
-  });
+  g.setDefaultEdgeLabel([](const QString&, const QString&, const QString&) { return EdgeLabel{.weight = 42}; });
   g.setNode("auto");
   require(g.node("auto")->text == "DEFAULT" && g.node("auto")->width == 99.0,
           QStringLiteral("constant default node label"));
@@ -336,7 +337,7 @@ void testDefaultLabels() {
   requireEq(g.edge("a", "b")->weight, 42, QStringLiteral("function default edge label"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

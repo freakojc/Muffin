@@ -36,12 +36,10 @@ using namespace muffin::mermaid;
 
 namespace {
 
-qreal chromiumAdvance(const QString& text, const QString& family,
-                      qreal pixelSize) {
+qreal chromiumAdvance(const QString& text, const QString& family, qreal pixelSize) {
   flowchart::FlowLabelDocument document;
   document.text = text;
-  return flowchart::measureChromiumInlineLayoutWidth(
-      document, family, pixelSize);
+  return flowchart::measureChromiumInlineLayoutWidth(document, family, pixelSize);
 }
 [[noreturn]] void fail(const QString& message) {
   std::fprintf(stderr, "FAIL: %s\n", qPrintable(message));
@@ -49,9 +47,12 @@ qreal chromiumAdvance(const QString& text, const QString& family,
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
-bool approx(qreal a, qreal b) { return std::abs(a - b) < 1e-9; }
+bool approx(qreal a, qreal b) {
+  return std::abs(a - b) < 1e-9;
+}
 
 QImage decodePng(const QString& dataUrl) {
   const qsizetype comma = dataUrl.indexOf(QLatin1Char(','));
@@ -74,14 +75,15 @@ int countColor(const QImage& img, const QColor& target, int tol) {
   for (int y = 0; y < img.height(); ++y)
     for (int x = 0; x < img.width(); ++x) {
       const QColor c = img.pixelColor(x, y);
-      if (c.alpha() < 128) continue;
+      if (c.alpha() < 128)
+        continue;
       if (std::abs(c.red() - target.red()) <= tol && std::abs(c.green() - target.green()) <= tol &&
           std::abs(c.blue() - target.blue()) <= tol)
         ++count;
     }
   return count;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -93,7 +95,7 @@ int main(int argc, char** argv) {
   // (scripts/probe_mermaid_pie_scalars.mjs + probe_mermaid_css_units.mjs). A REAL
   // CssLengthContext (800x600 viewport + pie-font ex/ch), not the placeholder.
   const muffin::CssLengthContext ctx = editor::pieCssLengthContext(QStringLiteral("Noto Sans"), 16.0);
-  const qreal diag = 500.0;  // test SVG diagonal for stroke-width %
+  const qreal diag = 500.0; // test SVG diagonal for stroke-width %
   // Shared Noto Sans @16 metrics for independently re-deriving ex/ch expectations
   // (sub-px root, capped root). Hoisted so the per-section blocks don't shadow it.
   QFont refFont(MermaidFontRegistry::bundledFamily(QStringLiteral("Noto Sans")));
@@ -113,8 +115,10 @@ int main(int argc, char** argv) {
   require(approx(editor::cssStrokeWidthPx(QStringLiteral("10vh"), ctx, diag), 60.0), "sw 10vh -> 60 (600 viewport)");
   require(approx(editor::cssStrokeWidthPx(QStringLiteral("10vmin"), ctx, diag), 60.0), "sw 10vmin -> 60");
   require(approx(editor::cssStrokeWidthPx(QStringLiteral("10vmax"), ctx, diag), 80.0), "sw 10vmax -> 80");
-  require(approx(editor::cssStrokeWidthPx(QStringLiteral("10ex"), ctx, diag), 10.0 * ctx.exPx), "sw 10ex -> 10*xHeight");
-  require(approx(editor::cssStrokeWidthPx(QStringLiteral("10ch"), ctx, diag), 10.0 * ctx.chPx), "sw 10ch -> 10*advance('0')");
+  require(approx(editor::cssStrokeWidthPx(QStringLiteral("10ex"), ctx, diag), 10.0 * ctx.exPx),
+          "sw 10ex -> 10*xHeight");
+  require(approx(editor::cssStrokeWidthPx(QStringLiteral("10ch"), ctx, diag), 10.0 * ctx.chPx),
+          "sw 10ch -> 10*advance('0')");
   require(approx(editor::cssStrokeWidthPx(QStringLiteral("50%"), ctx, diag), 250.0), "sw 50% -> 250 (x diagonal)");
   require(approx(editor::cssStrokeWidthPx(QStringLiteral("abc"), ctx, diag), 1.0), "sw invalid -> 1");
   require(approx(editor::cssStrokeWidthPx(QStringLiteral(""), ctx, diag), 1.0), "sw empty -> 1");
@@ -147,8 +151,7 @@ int main(int argc, char** argv) {
   // ctx.emPx cascade (P1 #2): with a neo-like 14px context the invalid/bare/
   // negative/empty fallback is ctx.emPx (14), and %/em are relative to 14 -- NOT
   // a hardcoded 16. Probed vs 11.16.0 (scripts/probe_mermaid_pie_fontsize_cascade.mjs).
-  const muffin::CssLengthContext ctx14 =
-      editor::pieCssLengthContext(QStringLiteral("Noto Sans"), 14.0);
+  const muffin::CssLengthContext ctx14 = editor::pieCssLengthContext(QStringLiteral("Noto Sans"), 14.0);
   require(approx(editor::cssFontSizePx(QStringLiteral("abc"), ctx14), 14.0), "fs14 invalid -> ctx.emPx 14");
   require(approx(editor::cssFontSizePx(QStringLiteral("25"), ctx14), 14.0), "fs14 bare -> ctx.emPx 14");
   require(approx(editor::cssFontSizePx(QStringLiteral("-2px"), ctx14), 14.0), "fs14 negative -> ctx.emPx 14");
@@ -158,8 +161,7 @@ int main(int argc, char** argv) {
   require(approx(editor::cssFontSizePx(QStringLiteral("25px"), ctx14), 25.0), "fs14 valid 25px -> 25");
   // ctx.emPx == 0 is a VALID zero (root fontSize "0px"), NOT coerced to 16: em/%
   // collapse to 0 and ex/ch are 0 (no 0px QFont built). Probed vs 11.16.0.
-  const muffin::CssLengthContext ctx0 =
-      editor::pieCssLengthContext(QStringLiteral("Noto Sans"), 0.0);
+  const muffin::CssLengthContext ctx0 = editor::pieCssLengthContext(QStringLiteral("Noto Sans"), 0.0);
   require(approx(ctx0.emPx, 0.0) && approx(ctx0.exPx, 0.0) && approx(ctx0.chPx, 0.0),
           "ctx0 preserves zero em/ex/ch (no 16 coercion, no 0px QFont)");
   require(approx(editor::cssFontSizePx(QStringLiteral("200%"), ctx0), 0.0), "fs0 200% -> 0");
@@ -173,12 +175,10 @@ int main(int argc, char** argv) {
   // at the ACTUAL 0.4px size -- font metrics scale linearly, so exPx =
   // xHeight(16)*0.4/16 (independently re-derived here from a fresh 16px QFont).
   // Probed vs 11.16.0: root 0.4px + pieStrokeWidth 10ex -> 2.0918px = 10 * exPx.
-  const muffin::CssLengthContext ctx04 =
-      editor::pieCssLengthContext(QStringLiteral("Noto Sans"), 0.4);
+  const muffin::CssLengthContext ctx04 = editor::pieCssLengthContext(QStringLiteral("Noto Sans"), 0.4);
   const qreal scale04 = 0.4 / 16.0;
   require(approx(ctx04.emPx, 0.4), "ctx04 preserves sub-px emPx 0.4");
-  require(approx(ctx04.exPx, refM.xHeight() * scale04),
-          "ctx04 exPx = xHeight(16)*0.4/16 (linear, not zeroed)");
+  require(approx(ctx04.exPx, refM.xHeight() * scale04), "ctx04 exPx = xHeight(16)*0.4/16 (linear, not zeroed)");
   require(approx(ctx04.chPx, refM.horizontalAdvance(QChar('0')) * scale04),
           "ctx04 chPx = advance('0')(16)*0.4/16 (linear, not zeroed)");
   require(ctx04.exPx > 0.0 && ctx04.chPx > 0.0, "ctx04 ex/ch non-zero at sub-px root");
@@ -198,9 +198,12 @@ int main(int argc, char** argv) {
   require(approx(editor::cssFontSizePx(QStringLiteral("10001px"), ctx), 10000.0), "fs 10001px -> cap 10000");
   require(approx(editor::cssFontSizePx(QStringLiteral("1e9px"), ctx), 10000.0), "fs 1e9px -> cap 10000");
   require(approx(editor::cssFontSizePx(QStringLiteral("2000vw"), ctx), 10000.0), "fs 2000vw (16000) -> cap 10000");
-  require(approx(editor::cssStrokeWidthPx(QStringLiteral("33554426px"), ctx, diag), 33554426.0), "sw below cap preserved");
-  require(approx(editor::cssStrokeWidthPx(QStringLiteral("33554428px"), ctx, diag), 33554428.0), "sw at Typed OM cap preserved");
-  require(approx(editor::cssStrokeWidthPx(QStringLiteral("33554429px"), ctx, diag), 33554428.0), "sw above cap saturated");
+  require(approx(editor::cssStrokeWidthPx(QStringLiteral("33554426px"), ctx, diag), 33554426.0),
+          "sw below cap preserved");
+  require(approx(editor::cssStrokeWidthPx(QStringLiteral("33554428px"), ctx, diag), 33554428.0),
+          "sw at Typed OM cap preserved");
+  require(approx(editor::cssStrokeWidthPx(QStringLiteral("33554429px"), ctx, diag), 33554428.0),
+          "sw above cap saturated");
   require(approx(editor::cssStrokeWidthPx(QStringLiteral("1e9px"), ctx, diag), 33554428.0), "sw 1e9px -> Chromium cap");
   // parseFontSizeNumber: upstream parseInt (leading int, truncates decimals,
   //   ignores unit); no leading int -> default 2. Parsed as a JS Number (double,
@@ -230,15 +233,13 @@ int main(int argc, char** argv) {
 
   // --- 1. default theme: scene.style == resolved model, all fields wired ---
   {
-    const flowtheme::FlowThemeVariables model =
-        flowtheme::resolveFlowTheme(flowtheme::FlowThemeId::Default);
+    const flowtheme::FlowThemeVariables model = flowtheme::resolveFlowTheme(flowtheme::FlowThemeId::Default);
     const QString src = QStringLiteral("pie title T\n\"A\" : 50\n\"B\" : 50");
     const pie::PieScene* s = renderPie(cache, src);
     const pie::PieSceneStyle& st = s->style;
     require(st.palette.size() == 12, "default palette size 12");
     for (int i = 0; i < 12; ++i)
-      require(st.palette.at(i) == model.pie[i],
-              QStringLiteral("default palette%1 = themeVars.pie%1").arg(i));
+      require(st.palette.at(i) == model.pie[i], QStringLiteral("default palette%1 = themeVars.pie%1").arg(i));
     require(st.outerStrokeColor == model.pieOuterStrokeColor, "default outerStrokeColor wired");
     require(st.sliceStrokeColor == model.pieStrokeColor, "default sliceStrokeColor wired");
     require(st.titleColor == model.pieTitleTextColor, "default titleColor = pieTitleTextColor");
@@ -255,23 +256,20 @@ int main(int argc, char** argv) {
 
   // --- 2. dark theme (self-declaring): palette[11] EMPTY (upstream contract) ---
   {
-    const QString src = QStringLiteral(
-        "%%{init: {\"theme\":\"dark\"}}%%\npie title T\n\"A\" : 50\n\"B\" : 50");
+    const QString src = QStringLiteral("%%{init: {\"theme\":\"dark\"}}%%\npie title T\n\"A\" : 50\n\"B\" : 50");
     const pie::PieScene* s = renderPie(cache, src);
     require(s->style.palette.at(0) == QLatin1String("#0b0000"), "dark palette1");
-    require(s->style.palette.at(11).isEmpty(),
-            "dark palette12 EMPTY at TCL=12 (upstream dark only emits pie1..pie11)");
+    require(s->style.palette.at(11).isEmpty(), "dark palette12 EMPTY at TCL=12 (upstream dark only emits pie1..pie11)");
   }
 
   // --- 3. source-entry overrides reach scene.style ---
   {
-    const QString src = QStringLiteral(
-        "%%{init: {\"themeVariables\": {"
-        "\"pie1\": \"#abcdef\", \"pieStrokeWidth\": \"5px\", "
-        "\"pieOuterStrokeWidth\": \"7px\", \"pieOpacity\": \"0.4\", "
-        "\"pieTitleTextSize\": \"30px\", \"pieSectionTextColor\": \"#123456\", "
-        "\"pieStrokeColor\": \"#ff0000\"}}}%%\n"
-        "pie title T\n\"A\" : 50\n\"B\" : 50");
+    const QString src = QStringLiteral("%%{init: {\"themeVariables\": {"
+                                       "\"pie1\": \"#abcdef\", \"pieStrokeWidth\": \"5px\", "
+                                       "\"pieOuterStrokeWidth\": \"7px\", \"pieOpacity\": \"0.4\", "
+                                       "\"pieTitleTextSize\": \"30px\", \"pieSectionTextColor\": \"#123456\", "
+                                       "\"pieStrokeColor\": \"#ff0000\"}}}%%\n"
+                                       "pie title T\n\"A\" : 50\n\"B\" : 50");
     const pie::PieScene* s = renderPie(cache, src);
     const pie::PieSceneStyle& st = s->style;
     require(st.palette.at(0) == QLatin1String("#abcdef"), "override pie1 reached palette");
@@ -287,33 +285,31 @@ int main(int argc, char** argv) {
   // --- 4. THEME_COLOR_LIMIT flows through to the palette in production ---
   // dark TCL=13 -> pie12 = cScale12 (#010029); TCL=12 (default) -> pie12 empty.
   {
-    const QString src13 = QStringLiteral(
-        "%%{init: {\"theme\":\"dark\",\"themeVariables\": {\"THEME_COLOR_LIMIT\": 13}}}%%\n"
-        "pie title T\n\"A\" : 50\n\"B\" : 50");
+    const QString src13 =
+        QStringLiteral("%%{init: {\"theme\":\"dark\",\"themeVariables\": {\"THEME_COLOR_LIMIT\": 13}}}%%\n"
+                       "pie title T\n\"A\" : 50\n\"B\" : 50");
     const pie::PieScene* s13 = renderPie(cache, src13);
-    require(s13->style.palette.at(11) == QLatin1String("#010029"),
-            "dark TCL=13 palette12 = cScale12 #010029");
+    require(s13->style.palette.at(11) == QLatin1String("#010029"), "dark TCL=13 palette12 = cScale12 #010029");
   }
 
   // --- 5. an override reaches the ACTUAL painted RGBA (pie1 red, fully opaque) ---
   {
-    const QString src = QStringLiteral(
-        "%%{init: {\"themeVariables\": {\"pie1\": \"#ff0000\", \"pieOpacity\": \"1.0\"}}}%%\n"
-        "pie title T\n\"A\" : 50\n\"B\" : 50");
-    const editor::MermaidPngRenderResult result =
-        editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0);
+    const QString src =
+        QStringLiteral("%%{init: {\"themeVariables\": {\"pie1\": \"#ff0000\", \"pieOpacity\": \"1.0\"}}}%%\n"
+                       "pie title T\n\"A\" : 50\n\"B\" : 50");
+    const editor::MermaidPngRenderResult result = editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0);
     const QImage img = decodePng(result.dataUrl);
     require(!img.isNull(), "override RGBA case must render a PNG");
     int redPixels = 0;
     for (int y = 0; y < img.height(); ++y)
       for (int x = 0; x < img.width(); ++x) {
         const QColor c = img.pixelColor(x, y);
-        if (c.red() > 200 && c.green() < 50 && c.blue() < 50) ++redPixels;
+        if (c.red() > 200 && c.green() < 50 && c.blue() < 50)
+          ++redPixels;
       }
     // Slice A is ~half the pie (radius 185 -> ~50k px); 5000 is a safe floor that
     // proves the pie1 fill actually painted, not just reached the scene struct.
-    require(redPixels > 5000,
-            QStringLiteral("pie1=#ff0000 must paint red pixels (got %1)").arg(redPixels));
+    require(redPixels > 5000, QStringLiteral("pie1=#ff0000 must paint red pixels (got %1)").arg(redPixels));
   }
 
   // --- 6. outer-circle radius geometry: JSON NUMBER vs STRING ---
@@ -335,9 +331,11 @@ int main(int argc, char** argv) {
   {
     const QColor red(255, 0, 0);
     const auto redRingPx = [&](const QString& width) {
-      const QString src = QStringLiteral(
-          "%%{init: {\"themeVariables\": {\"pieOuterStrokeColor\": \"red\", \"pieOuterStrokeWidth\": %1}}}%%\n"
-          " pie title T\n\"A\" : 50\n\"B\" : 50").arg(width);
+      const QString src =
+          QStringLiteral(
+              "%%{init: {\"themeVariables\": {\"pieOuterStrokeColor\": \"red\", \"pieOuterStrokeWidth\": %1}}}%%\n"
+              " pie title T\n\"A\" : 50\n\"B\" : 50")
+              .arg(width);
       return countColor(decodePng(editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0).dataUrl), red, 40);
     };
     require(redRingPx(QStringLiteral("\"0\"")) < 50, "pieOuterStrokeWidth 0 -> no ring ink");
@@ -348,8 +346,8 @@ int main(int argc, char** argv) {
   {
     const QColor red(255, 0, 0);
     const auto redTextPx = [&](const QString& tvJson) {
-      const QString src = QStringLiteral(
-          "%%{init: {\"themeVariables\": %1}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50").arg(tvJson);
+      const QString src =
+          QStringLiteral("%%{init: {\"themeVariables\": %1}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50").arg(tvJson);
       return countColor(decodePng(editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0).dataUrl), red, 40);
     };
     require(redTextPx(QStringLiteral("{\"pieTitleTextColor\":\"red\",\"pieTitleTextSize\":\"0px\"}")) < 10,
@@ -369,9 +367,9 @@ int main(int argc, char** argv) {
     captured.clear();
     const auto handler = [](QtMsgType, const QMessageLogContext&, const QString& msg) { captured << msg; };
     const auto oldHandler = qInstallMessageHandler(handler);
-    const QString allZero = QStringLiteral(
-        "%%{init: {\"themeVariables\": {\"pieTitleTextSize\": \"0px\", \"pieSectionTextSize\": \"0px\", "
-        "\"pieLegendTextSize\": \"0px\"}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50");
+    const QString allZero =
+        QStringLiteral("%%{init: {\"themeVariables\": {\"pieTitleTextSize\": \"0px\", \"pieSectionTextSize\": \"0px\", "
+                       "\"pieLegendTextSize\": \"0px\"}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50");
     decodePng(editor::MermaidRenderCache::renderMermaidSourceToPng(allZero, 1.0).dataUrl);
     qInstallMessageHandler(oldHandler);
     for (const QString& w : captured)
@@ -385,8 +383,8 @@ int main(int argc, char** argv) {
   {
     const QColor red(255, 0, 0), black(0, 0, 0);
     const auto pngPx = [&](const QString& tvJson, const QColor& target, int tol) {
-      const QString src = QStringLiteral(
-          "%%{init: {\"themeVariables\": %1}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50").arg(tvJson);
+      const QString src =
+          QStringLiteral("%%{init: {\"themeVariables\": %1}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50").arg(tvJson);
       return countColor(decodePng(editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0).dataUrl), target, tol);
     };
     // fill: none -> NoBrush (no slice fill); currentColor -> black slice fill.
@@ -398,9 +396,11 @@ int main(int argc, char** argv) {
     require(blackCurrent > blackNone + 5000, "pie1=currentColor -> black slice fill (currentColor=black)");
     // stroke (outer ring): none / invalid -> no stroke; a real color draws it.
     const auto ringPx = [&](const QString& color) {
-      const QString src = QStringLiteral(
-          "%%{init: {\"themeVariables\": {\"pieOuterStrokeColor\": %1, \"pieOuterStrokeWidth\": \"2px\"}}}%%\n"
-          " pie title T\n\"A\" : 50\n\"B\" : 50").arg(color);
+      const QString src =
+          QStringLiteral(
+              "%%{init: {\"themeVariables\": {\"pieOuterStrokeColor\": %1, \"pieOuterStrokeWidth\": \"2px\"}}}%%\n"
+              " pie title T\n\"A\" : 50\n\"B\" : 50")
+              .arg(color);
       return countColor(decodePng(editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0).dataUrl), red, 40);
     };
     require(ringPx(QStringLiteral("\"red\"")) > 500, "outer stroke red present");
@@ -412,8 +412,10 @@ int main(int argc, char** argv) {
   // ex/ch/vw/vh/% and the bare-exponent font-size, through MermaidRenderCache.
   {
     const auto titleFs = [&](const QString& jsonSize) {
-      const QString src = QStringLiteral(
-          "%%{init: {\"themeVariables\": {\"pieTitleTextSize\": %1}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50").arg(jsonSize);
+      const QString src =
+          QStringLiteral(
+              "%%{init: {\"themeVariables\": {\"pieTitleTextSize\": %1}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50")
+              .arg(jsonSize);
       return renderPie(cache, src)->style.titleFontSize;
     };
     require(approx(titleFs(QStringLiteral("\"10vw\"")), 80.0), "prod pieTitleTextSize 10vw -> 80");
@@ -432,15 +434,12 @@ int main(int argc, char** argv) {
     const QString swShort = QStringLiteral(
         "%%{init: {\"themeVariables\": {\"pieStrokeWidth\": \"10%\"}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50");
     const pie::PieScene* sShort = renderPie(cache, swShort);
-    const qreal longestLegend = std::max(
-        chromiumAdvance(QStringLiteral("A"), sShort->style.legendFontFamily,
-                        sShort->style.legendFontSize),
-        chromiumAdvance(QStringLiteral("B"), sShort->style.legendFontFamily,
-                        sShort->style.legendFontSize));
-    const qreal chartW = sShort->pieWidth + sShort->margin + sShort->legendRectSize +
-                         sShort->legendSpacing + longestLegend;
-    const qreal expDiagShort =
-        std::sqrt(chartW * chartW + sShort->totalHeight * sShort->totalHeight) / std::sqrt(2.0);
+    const qreal longestLegend =
+        std::max(chromiumAdvance(QStringLiteral("A"), sShort->style.legendFontFamily, sShort->style.legendFontSize),
+                 chromiumAdvance(QStringLiteral("B"), sShort->style.legendFontFamily, sShort->style.legendFontSize));
+    const qreal chartW =
+        sShort->pieWidth + sShort->margin + sShort->legendRectSize + sShort->legendSpacing + longestLegend;
+    const qreal expDiagShort = std::sqrt(chartW * chartW + sShort->totalHeight * sShort->totalHeight) / std::sqrt(2.0);
     require(approx(sShort->bounds.x(), 0.0) && approx(sShort->bounds.width(), chartW),
             "short title 'T' -> no expansion, bounds = chart+legend width");
     require(approx(sShort->style.sliceStrokeWidth, 0.10 * expDiagShort),
@@ -457,9 +456,7 @@ int main(int argc, char** argv) {
     const QString longSrc = QStringLiteral(
         "pie title An Extremely Long Pie Chart Title That Exceeds The Chart Width\n\"A\" : 50\n\"B\" : 50");
     const pie::PieScene* sLong = renderPie(cache, longSrc);
-    const qreal titleW = chromiumAdvance(
-        sLong->title, sLong->style.titleFontFamily,
-        sLong->style.titleFontSize);
+    const qreal titleW = chromiumAdvance(sLong->title, sLong->style.titleFontFamily, sLong->style.titleFontSize);
     const qreal titleLeft = sLong->pieWidth / 2.0 - titleW / 2.0;
     const qreal titleRight = sLong->pieWidth / 2.0 + titleW / 2.0;
     const qreal expX = std::min(0.0, titleLeft);
@@ -487,19 +484,24 @@ int main(int argc, char** argv) {
     require(approx(titleFsBlock(QStringLiteral("%%{init: {\"theme\":\"neo\"}}%%")), 25.0),
             "neo default pieTitleTextSize 25px (pie default, independent of root)");
     require(approx(titleFsBlock(QStringLiteral(
-                       "%%{init: {\"theme\":\"neo\",\"themeVariables\": {\"pieTitleTextSize\": \"abc\"}}}%%")), 14.0),
+                       "%%{init: {\"theme\":\"neo\",\"themeVariables\": {\"pieTitleTextSize\": \"abc\"}}}%%")),
+                   14.0),
             "neo invalid title size -> inherits root 14");
     require(approx(titleFsBlock(QStringLiteral(
-                       "%%{init: {\"theme\":\"neo\",\"themeVariables\": {\"pieTitleTextSize\": \"25\"}}}%%")), 14.0),
+                       "%%{init: {\"theme\":\"neo\",\"themeVariables\": {\"pieTitleTextSize\": \"25\"}}}%%")),
+                   14.0),
             "neo bare title size -> inherits root 14");
     require(approx(titleFsBlock(QStringLiteral(
-                       "%%{init: {\"theme\":\"neo\",\"themeVariables\": {\"pieTitleTextSize\": \"-2px\"}}}%%")), 14.0),
+                       "%%{init: {\"theme\":\"neo\",\"themeVariables\": {\"pieTitleTextSize\": \"-2px\"}}}%%")),
+                   14.0),
             "neo negative title size -> inherits root 14");
     require(approx(titleFsBlock(QStringLiteral(
-                       "%%{init: {\"theme\":\"neo\",\"themeVariables\": {\"pieTitleTextSize\": \"200%\"}}}%%")), 28.0),
+                       "%%{init: {\"theme\":\"neo\",\"themeVariables\": {\"pieTitleTextSize\": \"200%\"}}}%%")),
+                   28.0),
             "neo 200% title -> 200% of root 14 = 28");
     require(approx(titleFsBlock(QStringLiteral(
-                       "%%{init: {\"themeVariables\": {\"fontSize\": \"2em\", \"pieTitleTextSize\": \"200%\"}}}%%")), 64.0),
+                       "%%{init: {\"themeVariables\": {\"fontSize\": \"2em\", \"pieTitleTextSize\": \"200%\"}}}%%")),
+                   64.0),
             "2em root + 200% title -> 200% of 32 = 64");
   }
 
@@ -508,8 +510,10 @@ int main(int argc, char** argv) {
   // stays itself. Probed vs 11.16.0 (scripts/probe_mermaid_pie_fontsize_cascade.mjs).
   {
     const auto root0TitleFs = [&](const QString& titleTv) {
-      const QString src = QStringLiteral(
-          "%%{init: {\"themeVariables\": {\"fontSize\": \"0px\", %1}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50").arg(titleTv);
+      const QString src =
+          QStringLiteral(
+              "%%{init: {\"themeVariables\": {\"fontSize\": \"0px\", %1}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50")
+              .arg(titleTv);
       return renderPie(cache, src)->style.titleFontSize;
     };
     require(approx(root0TitleFs(QStringLiteral("\"pieTitleTextSize\": \"200%\"")), 0.0),
@@ -525,16 +529,19 @@ int main(int argc, char** argv) {
     // pieStrokeWidth 3em of root 0 -> 0 (NoPen).
     const QString sw0 = QStringLiteral(
         "%%{init: {\"themeVariables\": {\"fontSize\": \"0px\", \"pieStrokeWidth\": \"3em\"}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50");
-    require(approx(renderPie(cache, sw0)->style.sliceStrokeWidth, 0.0),
-            "root 0 + pieStrokeWidth 3em -> 0");
+    require(approx(renderPie(cache, sw0)->style.sliceStrokeWidth, 0.0), "root 0 + pieStrokeWidth 3em -> 0");
     // A 0 root must not emit a setPixelSize(0) warning (pieCssLengthContext skips
     // the QFont; the painter skips a 0 title/section/legend font).
     static QStringList zeroRootCaptured;
     zeroRootCaptured.clear();
     const auto zeroHandler = [](QtMsgType, const QMessageLogContext&, const QString& msg) { zeroRootCaptured << msg; };
     const auto oldZeroHandler = qInstallMessageHandler(zeroHandler);
-    decodePng(editor::MermaidRenderCache::renderMermaidSourceToPng(
-        QStringLiteral("%%{init: {\"themeVariables\": {\"fontSize\": \"0px\"}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50"), 1.0).dataUrl);
+    decodePng(
+        editor::MermaidRenderCache::renderMermaidSourceToPng(
+            QStringLiteral(
+                "%%{init: {\"themeVariables\": {\"fontSize\": \"0px\"}}}%%\n pie title T\n\"A\" : 50\n\"B\" : 50"),
+            1.0)
+            .dataUrl);
     qInstallMessageHandler(oldZeroHandler);
     for (const QString& w : zeroRootCaptured)
       require(!w.contains(QStringLiteral("pixel size"), Qt::CaseInsensitive),
@@ -546,16 +553,17 @@ int main(int argc, char** argv) {
   // title whose natural advance > 800px renders in full (SVG <text> is never
   // clipped). Scan the painted red title ink span and assert it exceeds 800px.
   {
-    const QString longTitle = QStringLiteral("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW");  // 80 W's
-    const QString src = QStringLiteral(
-        "%%{init: {\"themeVariables\": {\"pieTitleTextColor\": \"red\"}}}%%\n pie title %1\n\"A\" : 50\n\"B\" : 50").arg(longTitle);
+    const QString longTitle =
+        QStringLiteral("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"); // 80 W's
+    const QString src =
+        QStringLiteral(
+            "%%{init: {\"themeVariables\": {\"pieTitleTextColor\": \"red\"}}}%%\n pie title %1\n\"A\" : 50\n\"B\" : 50")
+            .arg(longTitle);
     const pie::PieScene* s = renderPie(cache, src);
     // Independently confirm the title's natural advance > 800px (else the test
     // would be meaningless -- a <=800px title is never clipped by the old rect).
-    const qreal advance = chromiumAdvance(
-        longTitle, s->style.titleFontFamily, s->style.titleFontSize);
-    require(advance > 800.0,
-            QStringLiteral("test title advance %1 must exceed 800").arg(advance));
+    const qreal advance = chromiumAdvance(longTitle, s->style.titleFontFamily, s->style.titleFontSize);
+    require(advance > 800.0, QStringLiteral("test title advance %1 must exceed 800").arg(advance));
     require(s->titleWidth > 800.0, "scene.titleWidth = measured advance (>800)");
     const QImage img = decodePng(editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0).dataUrl);
     int minX = img.width(), maxX = -1, minY = img.height(), maxY = -1;
@@ -577,9 +585,7 @@ int main(int argc, char** argv) {
     // QRectF+AlignCenter painter path put this same ink at y=17..34 instead of
     // the browser's y=7..24 while still passing the aggregate pixel IoU.
     require(minY < 12 && maxY <= 25,
-            QStringLiteral("title baseline drifted: ink y=%1..%2, expected above SVG y=25")
-                .arg(minY)
-                .arg(maxY));
+            QStringLiteral("title baseline drifted: ink y=%1..%2, expected above SVG y=25").arg(minY).arg(maxY));
   }
 
   // --- 13. sub-pixel root (0.4px): ex/ch measured at the ACTUAL size, not zeroed ---
@@ -590,9 +596,10 @@ int main(int argc, char** argv) {
   // native uses Noto Sans so the exact px differs, but the LINEAR FORMULA holds).
   {
     const auto subpxStroke = [&](const QString& sw) {
-      const QString src = QStringLiteral(
-          "%%{init: {\"themeVariables\": {\"fontSize\": \"0.4px\", \"pieStrokeWidth\": \"%1\"}}}%%\n"
-          " pie title T\n\"A\" : 50\n\"B\" : 50").arg(sw);
+      const QString src =
+          QStringLiteral("%%{init: {\"themeVariables\": {\"fontSize\": \"0.4px\", \"pieStrokeWidth\": \"%1\"}}}%%\n"
+                         " pie title T\n\"A\" : 50\n\"B\" : 50")
+              .arg(sw);
       return renderPie(cache, src)->style.sliceStrokeWidth;
     };
     const qreal scale = 0.4 / 16.0;
@@ -619,25 +626,35 @@ int main(int argc, char** argv) {
       return renderPie(cache, src)->style.sliceStrokeWidth;
     };
     // Direct font-size saturation.
-    require(approx(titleFsBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"pieTitleTextSize\": \"10000px\"}}}%%")), 10000.0),
-            "title 10000px -> 10000 (at cap)");
-    require(approx(titleFsBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"pieTitleTextSize\": \"1e9px\"}}}%%")), 10000.0),
+    require(
+        approx(titleFsBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"pieTitleTextSize\": \"10000px\"}}}%%")),
+               10000.0),
+        "title 10000px -> 10000 (at cap)");
+    require(approx(titleFsBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"pieTitleTextSize\": \"1e9px\"}}}%%")),
+                   10000.0),
             "title 1e9px -> 10000 (capped, no setPixelSize overflow)");
     // Capped root (1e9px -> 10000) feeding em/%: child re-capped to 10000.
-    require(approx(titleFsBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"fontSize\": \"1e9px\", \"pieTitleTextSize\": \"3em\"}}}%%")), 10000.0),
+    require(approx(titleFsBlock(QStringLiteral(
+                       "%%{init: {\"themeVariables\": {\"fontSize\": \"1e9px\", \"pieTitleTextSize\": \"3em\"}}}%%")),
+                   10000.0),
             "root 1e9px + title 3em -> 10000 (3*10000 re-capped)");
-    require(approx(titleFsBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"fontSize\": \"1e9px\", \"pieTitleTextSize\": \"200%\"}}}%%")), 10000.0),
+    require(approx(titleFsBlock(QStringLiteral(
+                       "%%{init: {\"themeVariables\": {\"fontSize\": \"1e9px\", \"pieTitleTextSize\": \"200%\"}}}%%")),
+                   10000.0),
             "root 1e9px + title 200% -> 10000 (200% of 10000 re-capped)");
     // Direct stroke-width saturation.
-    require(approx(swBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"pieStrokeWidth\": \"1e9px\"}}}%%")), 33554428.0),
+    require(approx(swBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"pieStrokeWidth\": \"1e9px\"}}}%%")),
+                   33554428.0),
             "pieStrokeWidth 1e9px -> Chromium Typed OM cap");
     // Capped root feeding ex/ch: linearly scaled at the 10000 root, under the stroke cap.
     const qreal scale10k = 10000.0 / 16.0;
-    require(approx(swBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"fontSize\": \"1e9px\", \"pieStrokeWidth\": \"10ex\"}}}%%")),
-                    10.0 * refM.xHeight() * scale10k),
+    require(approx(swBlock(QStringLiteral(
+                       "%%{init: {\"themeVariables\": {\"fontSize\": \"1e9px\", \"pieStrokeWidth\": \"10ex\"}}}%%")),
+                   10.0 * refM.xHeight() * scale10k),
             "root 1e9px + pieStrokeWidth 10ex -> 10*xHeight(16)*10000/16 (linear at capped root)");
-    require(approx(swBlock(QStringLiteral("%%{init: {\"themeVariables\": {\"fontSize\": \"1e9px\", \"pieStrokeWidth\": \"10ch\"}}}%%")),
-                    10.0 * refM.horizontalAdvance(QChar('0')) * scale10k),
+    require(approx(swBlock(QStringLiteral(
+                       "%%{init: {\"themeVariables\": {\"fontSize\": \"1e9px\", \"pieStrokeWidth\": \"10ch\"}}}%%")),
+                   10.0 * refM.horizontalAdvance(QChar('0')) * scale10k),
             "root 1e9px + pieStrokeWidth 10ch -> 10*advance('0')(16)*10000/16 (linear at capped root)");
   }
 
@@ -645,8 +662,7 @@ int main(int argc, char** argv) {
   // Mermaid consumes these values as JavaScript, not as typed Qt config.
   {
     const auto configured = [&](const QString& json) {
-      return renderPie(cache, QStringLiteral("%%{init: {\"pie\": %1}}%%\npie\n\"A\" : 1")
-                                  .arg(json));
+      return renderPie(cache, QStringLiteral("%%{init: {\"pie\": %1}}%%\npie\n\"A\" : 1").arg(json));
     };
     require(approx(configured(QStringLiteral("{\"textPosition\":-0.5}"))->textPosition, -0.5),
             "negative textPosition is live");
@@ -658,8 +674,7 @@ int main(int argc, char** argv) {
             "boolean true donutHole -> 1 -> outside accepted range -> solid");
 
     const auto maxWidth = [&](const QString& value) {
-      const QString src = QStringLiteral(
-          "%%{init: {\"pie\": {\"useMaxWidth\":%1}}}%%\npie\n\"A\" : 1").arg(value);
+      const QString src = QStringLiteral("%%{init: {\"pie\": {\"useMaxWidth\":%1}}}%%\npie\n\"A\" : 1").arg(value);
       return cache.getSync(cache.makeKey(src), src).metadata.svgUseMaxWidth;
     };
     require(!maxWidth(QStringLiteral("0")), "useMaxWidth numeric 0 is falsy");
@@ -668,9 +683,7 @@ int main(int argc, char** argv) {
     require(maxWidth(QStringLiteral("null")), "useMaxWidth null is sanitized to default true");
 
     const auto highlightClass = [&](const QString& value) {
-      const QString src = QStringLiteral(
-          "%%{init: {\"pie\": {\"highlightSlice\":%1}}}%%\npie\n\"\" : 1")
-                              .arg(value);
+      const QString src = QStringLiteral("%%{init: {\"pie\": {\"highlightSlice\":%1}}}%%\npie\n\"\" : 1").arg(value);
       const pie::PieScene* s = renderPie(cache, src);
       return s->slices.first().className;
     };
@@ -684,9 +697,9 @@ int main(int argc, char** argv) {
 
   // --- 16. center/empty canvas formulas reproduce pieRenderer's Math.max ---
   {
-    const pie::PieScene* centered = renderPie(
-        cache, QStringLiteral("%%{init: {\"pie\": {\"legendPosition\":\"center\"}}}%%\n"
-                              "pie title T\n\"A\" : 1\n\"B\" : 1"));
+    const pie::PieScene* centered =
+        renderPie(cache, QStringLiteral("%%{init: {\"pie\": {\"legendPosition\":\"center\"}}}%%\n"
+                                        "pie title T\n\"A\" : 1\n\"B\" : 1"));
     require(approx(centered->totalWidth, 490.0) && approx(centered->bounds.width(), 490.0),
             "legendPosition center does not add the side legend width");
     const pie::PieScene* empty = renderPie(cache, QStringLiteral("pie"));
@@ -699,8 +712,7 @@ int main(int argc, char** argv) {
   // --- 17. dark palette's absent pie12 inherits SVG-root fill (#ccc) ---
   {
     const auto darkSlices = [&](int count) {
-      QString src = QStringLiteral(
-          "%%{init: {\"theme\":\"dark\",\"themeVariables\":{\"pieOpacity\":\"1\"}}}%%\npie");
+      QString src = QStringLiteral("%%{init: {\"theme\":\"dark\",\"themeVariables\":{\"pieOpacity\":\"1\"}}}%%\npie");
       for (int i = 0; i < count; ++i)
         src += QStringLiteral("\n\"S%1\" : 1").arg(i + 1);
       return decodePng(editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0).dataUrl);
@@ -708,20 +720,18 @@ int main(int argc, char** argv) {
     const int c11 = countColor(darkSlices(11), QColor(QStringLiteral("#cccccc")), 5);
     const int c12 = countColor(darkSlices(12), QColor(QStringLiteral("#cccccc")), 5);
     require(c12 > c11 + 3000,
-            QStringLiteral("absent dark pie12 fill inherits #ccc (%1 vs %2 pixels)")
-                .arg(c12).arg(c11));
+            QStringLiteral("absent dark pie12 fill inherits #ccc (%1 vs %2 pixels)").arg(c12).arg(c11));
   }
 
   // --- 18. long legend text is baseline-drawn and never clipped at 1000px ---
   {
     const QString label(110, QLatin1Char('W'));
-    const QString src = QStringLiteral(
-        "%%{init: {\"themeVariables\":{\"pieLegendTextColor\":\"red\"}}}%%\n"
-        "pie\n\"%1\" : 1").arg(label);
+    const QString src = QStringLiteral("%%{init: {\"themeVariables\":{\"pieLegendTextColor\":\"red\"}}}%%\n"
+                                       "pie\n\"%1\" : 1")
+                            .arg(label);
     const pie::PieScene* s = renderPie(cache, src);
     require(s->longestLegendWidth > 1000.0, "test legend advance exceeds old 1000px rect");
-    const QImage img = decodePng(
-        editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0).dataUrl);
+    const QImage img = decodePng(editor::MermaidRenderCache::renderMermaidSourceToPng(src, 1.0).dataUrl);
     int minX = img.width(), maxX = -1;
     for (int y = 0; y < img.height(); ++y)
       for (int x = 0; x < img.width(); ++x) {
@@ -731,8 +741,7 @@ int main(int argc, char** argv) {
           maxX = std::max(maxX, x);
         }
       }
-    require(maxX - minX > 1000,
-            QStringLiteral("legend ink span %1 exceeds old clipping rect").arg(maxX - minX));
+    require(maxX - minX > 1000, QStringLiteral("legend ink span %1 exceeds old clipping rect").arg(maxX - minX));
   }
 
   // --- 19. fractional fonts remain fractional in measurement and painting ---
@@ -741,12 +750,12 @@ int main(int argc, char** argv) {
     const editor::CssPixelFont f04 = editor::makeCssPixelFont(QStringLiteral("Noto Sans"), 0.4);
     require(f04.scale > 0.0 && f04.horizontalAdvance(QStringLiteral("MMMM")) > 0.0,
             "0.4px font has non-zero scaled metrics");
-    require(std::abs(f04.horizontalAdvance(QStringLiteral("MMMM")) /
-                         f16.horizontalAdvance(QStringLiteral("MMMM")) - 0.025) < 1e-9,
+    require(std::abs(f04.horizontalAdvance(QStringLiteral("MMMM")) / f16.horizontalAdvance(QStringLiteral("MMMM")) -
+                     0.025) < 1e-9,
             "0.4px font advance scales linearly from 16px");
-    const pie::PieScene* sub = renderPie(cache, QStringLiteral(
-        "%%{init: {\"themeVariables\":{\"pieTitleTextSize\":\"0.4px\"}}}%%\n"
-        "pie title MMMM\n\"A\" : 1"));
+    const pie::PieScene* sub =
+        renderPie(cache, QStringLiteral("%%{init: {\"themeVariables\":{\"pieTitleTextSize\":\"0.4px\"}}}%%\n"
+                                        "pie title MMMM\n\"A\" : 1"));
     require(approx(sub->style.titleFontSize, 0.4) && sub->titleWidth > 0.0,
             "production 0.4px title is measured, not rounded to zero");
   }
@@ -754,27 +763,18 @@ int main(int argc, char** argv) {
   // --- 20. JS Number stringification and CSS font-size keywords ---
   {
     require(editor::jsNumberToString(-0.0) == QStringLiteral("0"), "JS -0 stringifies as 0");
-    require(editor::jsNumberToString(1.23456789) == QStringLiteral("1.23456789"),
-            "JS shortest finite decimal");
+    require(editor::jsNumberToString(1.23456789) == QStringLiteral("1.23456789"), "JS shortest finite decimal");
     require(editor::jsNumberToString(1e20) == QStringLiteral("100000000000000000000"),
             "JS uses fixed notation below 1e21");
-    require(editor::jsNumberToString(1e21) == QStringLiteral("1e+21"),
-            "JS uses scientific notation at 1e21");
-    require(editor::jsNumberToString(1e-6) == QStringLiteral("0.000001"),
-            "JS uses fixed notation at 1e-6");
-    require(editor::jsNumberToString(1e-7) == QStringLiteral("1e-7"),
-            "JS uses scientific notation below 1e-6");
-    require(approx(editor::cssFontSizePx(QStringLiteral("0"), ctx), 0.0),
-            "unitless zero font-size is valid");
-    require(approx(editor::cssFontSizePx(QStringLiteral("medium"), ctx14), 16.0),
-            "medium keyword is absolute 16px");
-    require(approx(editor::cssFontSizePx(QStringLiteral("larger"), ctx), 19.2),
-            "larger keyword scales parent");
-    require(approx(editor::cssFontSizePx(QStringLiteral("smaller"), ctx), 16.0 / 1.2),
-            "smaller keyword scales parent");
+    require(editor::jsNumberToString(1e21) == QStringLiteral("1e+21"), "JS uses scientific notation at 1e21");
+    require(editor::jsNumberToString(1e-6) == QStringLiteral("0.000001"), "JS uses fixed notation at 1e-6");
+    require(editor::jsNumberToString(1e-7) == QStringLiteral("1e-7"), "JS uses scientific notation below 1e-6");
+    require(approx(editor::cssFontSizePx(QStringLiteral("0"), ctx), 0.0), "unitless zero font-size is valid");
+    require(approx(editor::cssFontSizePx(QStringLiteral("medium"), ctx14), 16.0), "medium keyword is absolute 16px");
+    require(approx(editor::cssFontSizePx(QStringLiteral("larger"), ctx), 19.2), "larger keyword scales parent");
+    require(approx(editor::cssFontSizePx(QStringLiteral("smaller"), ctx), 16.0 / 1.2), "smaller keyword scales parent");
 
-    const pie::PieScene* shown = renderPie(
-        cache, QStringLiteral("pie showData\n\"A\" : 1.23456789"));
+    const pie::PieScene* shown = renderPie(cache, QStringLiteral("pie showData\n\"A\" : 1.23456789"));
     require(shown->legends.first().text == QStringLiteral("A [1.23456789]"),
             "showData uses JS Number shortest representation");
   }

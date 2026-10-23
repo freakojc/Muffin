@@ -27,4 +27,4 @@ private:
   QCheckBox* autoUpdateCheck_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

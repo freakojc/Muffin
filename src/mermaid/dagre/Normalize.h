@@ -12,4 +12,4 @@ namespace muffin::mermaid::dagre {
 void runNormalize(DagreGraph& g);
 void undoNormalize(DagreGraph& g);
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

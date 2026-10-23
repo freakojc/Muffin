@@ -12,11 +12,18 @@
 
 using namespace muffin::mermaid::state;
 namespace {
-[[noreturn]] void fail(const QString& message) { qCritical().noquote() << message; std::exit(1); }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+[[noreturn]] void fail(const QString& message) {
+  qCritical().noquote() << message;
+  std::exit(1);
+}
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 QJsonObject counts(const QMap<QString, int>& values) {
   QJsonObject result;
-  for (auto it = values.cbegin(); it != values.cend(); ++it) result.insert(it.key(), it.value());
+  for (auto it = values.cbegin(); it != values.cend(); ++it)
+    result.insert(it.key(), it.value());
   return result;
 }
 }
@@ -51,17 +58,18 @@ int main(int argc, char** argv) {
                   diagnostic.span.column == expected.value(QStringLiteral("column")).toInt(),
               QStringLiteral("%1 diagnostic position differs: %2:%3 vs %4:%5")
                   .arg(fixture.value(QStringLiteral("id")).toString())
-                  .arg(diagnostic.span.line).arg(diagnostic.span.column)
+                  .arg(diagnostic.span.line)
+                  .arg(diagnostic.span.column)
                   .arg(expected.value(QStringLiteral("line")).toInt())
                   .arg(expected.value(QStringLiteral("column")).toInt()));
       codes.insert(stateErrorCodeName(diagnostic.code));
       ++stages[stateErrorStageName(diagnostic.stage)];
     }
-    require(rejected, QStringLiteral("Native accepted state mutation %1")
-                          .arg(fixture.value(QStringLiteral("id")).toString()));
+    require(rejected,
+            QStringLiteral("Native accepted state mutation %1").arg(fixture.value(QStringLiteral("id")).toString()));
     ++operators[fixture.value(QStringLiteral("operator")).toString()];
-    ++positionRules[fixture.value(QStringLiteral("upstreamError")).toObject()
-                        .value(QStringLiteral("positionRule")).toString()];
+    ++positionRules
+        [fixture.value(QStringLiteral("upstreamError")).toObject().value(QStringLiteral("positionRule")).toString()];
     require(fixture.value(QStringLiteral("targetProduction")).toInt() > 0,
             QStringLiteral("State mutation lacks target production"));
   }
@@ -73,7 +81,6 @@ int main(int argc, char** argv) {
   for (const QJsonValue& code : generator.value(QStringLiteral("requiredNativeCodes")).toArray())
     require(codes.contains(code.toString()),
             QStringLiteral("State diagnostic code is uncovered: %1").arg(code.toString()));
-  qDebug() << "MermaidStateDifferentialFuzzTest:" << cases.size()
-           << "production-aware mutations passed";
+  qDebug() << "MermaidStateDifferentialFuzzTest:" << cases.size() << "production-aware mutations passed";
   return 0;
 }

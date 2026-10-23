@@ -48,7 +48,8 @@ struct DraftSnapshotWriter::State {
       entry.queued = true;
       ready.push_back(key);
     }
-    if (!worker.joinable()) worker = std::thread([this] { run(); });
+    if (!worker.joinable())
+      worker = std::thread([this] { run(); });
     changed.notify_all();
   }
 
@@ -56,7 +57,8 @@ struct DraftSnapshotWriter::State {
     for (;;) {
       std::unique_lock lock(mutex);
       changed.wait(lock, [this] { return stopping || !ready.empty(); });
-      if (ready.empty()) return;
+      if (ready.empty())
+        return;
       const QString key = std::move(ready.front());
       ready.pop_front();
       auto& entry = entries[key];
@@ -65,7 +67,8 @@ struct DraftSnapshotWriter::State {
       const bool clean = std::exchange(entry.clean, false);
       const QString path = entry.path;
       std::optional<Request> request;
-      if (!clean) request = std::exchange(entry.pending, std::nullopt);
+      if (!clean)
+        request = std::exchange(entry.pending, std::nullopt);
       entry.runningRevision = request ? request->revision : 0;
       entry.runningCodeUnits = request ? request->text.size() : 0;
       const auto generation = entry.generation;
@@ -93,7 +96,8 @@ struct DraftSnapshotWriter::State {
               // A save/close can invalidate the completion after it was posted.
               std::unique_lock completionLock(mutex);
               const auto it = entries.constFind(key);
-              if (it == entries.cend() || it->generation != generation || it->clean) return;
+              if (it == entries.cend() || it->generation != generation || it->clean)
+                return;
               completionLock.unlock();
               emit owner->snapshotFinished(key, revision, saved);
             },
@@ -110,7 +114,8 @@ struct DraftSnapshotWriter::State {
 };
 
 DraftSnapshotWriter::DraftSnapshotWriter(QString directory, Write write, QObject* parent)
-    : QObject(parent), state_(std::make_unique<State>(this, std::move(directory), std::move(write))) {}
+    : QObject(parent), state_(std::make_unique<State>(this, std::move(directory), std::move(write))) {
+}
 
 DraftSnapshotWriter::~DraftSnapshotWriter() {
   {
@@ -118,19 +123,22 @@ DraftSnapshotWriter::~DraftSnapshotWriter() {
     state_->stopping = true;
     state_->changed.notify_all();
   }
-  if (state_->worker.joinable()) state_->worker.join();
+  if (state_->worker.joinable())
+    state_->worker.join();
 }
 
 bool DraftSnapshotWriter::request(const DocumentSession& session, const QString& key) {
   diag::ScopedPerfProbe perf("draft.enqueueSnapshot", draftQueuePerf());
-  if (key.isEmpty() || session.isOpenInProgress() || !session.document().isModified()) return false;
+  if (key.isEmpty() || session.isOpenInProgress() || !session.document().isModified())
+    return false;
   const auto revision = session.document().revision();
   std::lock_guard lock(state_->mutex);
   auto& entry = state_->entries[key];
   if (!entry.clean &&
       ((entry.pending && entry.pending->revision == revision) || (entry.running && entry.runningRevision == revision)))
     return false;
-  if (!entry.generation) entry.generation = ++state_->nextGeneration;
+  if (!entry.generation)
+    entry.generation = ++state_->nextGeneration;
   entry.path = session.filePath();
   // QString/QVector storage is implicitly shared; piece and prefix vectors are
   // copied. No full-document materialization or newline/word-index scan here.
@@ -140,7 +148,8 @@ bool DraftSnapshotWriter::request(const DocumentSession& session, const QString&
 }
 
 void DraftSnapshotWriter::markClean(const QString& sourcePath, const QString& key) {
-  if (key.isEmpty()) return;
+  if (key.isEmpty())
+    return;
   std::lock_guard lock(state_->mutex);
   auto& entry = state_->entries[key];
   entry.generation = ++state_->nextGeneration;
@@ -153,9 +162,11 @@ void DraftSnapshotWriter::markClean(const QString& sourcePath, const QString& ke
 void DraftSnapshotWriter::waitForDone() {
   std::unique_lock lock(state_->mutex);
   state_->changed.wait(lock, [this] {
-    if (!state_->ready.empty()) return false;
+    if (!state_->ready.empty())
+      return false;
     for (const auto& entry : state_->entries)
-      if (entry.running) return false;
+      if (entry.running)
+        return false;
     return true;
   });
 }
@@ -175,4 +186,4 @@ DraftSnapshotWriter::QueueStats DraftSnapshotWriter::queueStats() const {
   }
   return stats;
 }
-}  // namespace muffin
+} // namespace muffin

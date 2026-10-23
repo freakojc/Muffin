@@ -4,20 +4,20 @@
 // memory footprint alongside timing. No allocation; safe to call from perf destructors.
 // Returns bytes, or 0 if unavailable on the platform.
 
-#include <QtGlobal>  // Q_OS_WIN, qint64
+#include <QtGlobal> // Q_OS_WIN, qint64
 
 #if defined(Q_OS_WIN)
-#  ifndef WIN32_LEAN_AND_MEAN
-#    define WIN32_LEAN_AND_MEAN
-#  endif
-#  ifndef NOMINMAX
-#    define NOMINMAX
-#  endif
-#  include <windows.h>
-#  include <psapi.h>
-#  pragma comment(lib, "psapi.lib")
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <psapi.h>
+#pragma comment(lib, "psapi.lib")
 #else
-#  include <sys/resource.h>
+#include <sys/resource.h>
 #endif
 
 namespace muffin::diag {
@@ -38,14 +38,14 @@ inline qint64 workingSetBytes() {
   // cross-platform numbers aren't misread.
   rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0) {
-#  if defined(Q_OS_DARWIN)
-    return static_cast<qint64>(ru.ru_maxrss);        // bytes on macOS
-#  else
+#if defined(Q_OS_DARWIN)
+    return static_cast<qint64>(ru.ru_maxrss); // bytes on macOS
+#else
     return static_cast<qint64>(ru.ru_maxrss) * 1024; // KB -> bytes on Linux
-#  endif
+#endif
   }
   return 0;
 #endif
 }
 
-}  // namespace muffin::diag
+} // namespace muffin::diag

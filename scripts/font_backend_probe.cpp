@@ -17,7 +17,8 @@
 #include "render/TextLayout.h"
 
 int main(int argc, char** argv) {
-  if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) qputenv("QT_QPA_PLATFORM", "offscreen");
+  if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM"))
+    qputenv("QT_QPA_PLATFORM", "offscreen");
   qputenv("QT_FONT_DPI", "96");
   QApplication app(argc, argv);
   if (argc != 3) {
@@ -25,10 +26,12 @@ int main(int argc, char** argv) {
     return 1;
   }
   const auto output = QDir(QString::fromLocal8Bit(argv[2]));
-  if (!QDir().mkpath(output.absolutePath())) return 3;
+  if (!QDir().mkpath(output.absolutePath()))
+    return 3;
   const int id = QFontDatabase::addApplicationFont(QString::fromLocal8Bit(argv[1]));
   const auto family = QFontDatabase::applicationFontFamilies(id).value(0);
-  if (family.isEmpty()) return 2;
+  if (family.isEmpty())
+    return 2;
   const QString text = QStringLiteral("Muffin Markdown Example 中文混排 office fi");
   QJsonArray result;
   for (qreal size : {16., 18.4, 28.8, 29., 32.4})
@@ -43,8 +46,8 @@ int main(int argc, char** argv) {
             font.setPointSizeF(size * .75);
             font.setWeight(bold ? QFont::Bold : QFont::Normal);
             font.setItalic(italic);
-            muffin::font_rendering::configureCssFont(font, .7, .3,
-                precision == 1 ? muffin::TextBackend::Native : muffin::TextBackend::Fractional);
+            muffin::font_rendering::configureCssFont(
+                font, .7, .3, precision == 1 ? muffin::TextBackend::Native : muffin::TextBackend::Fractional);
             // This diagnostic deliberately constructs Qt's device directly.
             // Match the shared backend's conversion (Qt scales letters, not words).
             font.setWordSpacing(font.wordSpacing() * precision);
@@ -58,7 +61,8 @@ int main(int argc, char** argv) {
             layout.beginLayout();
             for (;;) {
               auto line = layout.createLine();
-              if (!line.isValid()) break;
+              if (!line.isValid())
+                break;
               line.setLineWidth(240 * precision);
             }
             layout.endLayout();
@@ -86,17 +90,24 @@ int main(int argc, char** argv) {
               p.scale(1. / precision, 1. / precision);
               layout.draw(&p, {});
             }
-            image.save(
-                output.filePath(QString("probe-%1-%2-%3-%4-%5.png").arg(size).arg(precision).arg(bold).arg(italic).arg(optionalLigatures)));
+            image.save(output.filePath(QString("probe-%1-%2-%3-%4-%5.png")
+                                           .arg(size)
+                                           .arg(precision)
+                                           .arg(bold)
+                                           .arg(italic)
+                                           .arg(optionalLigatures)));
             QJsonArray runs;
             for (const auto& run : layout.glyphRuns())
-              runs.append(QJsonObject{{"family", run.rawFont().familyName()},
-                                      {"styleName", run.rawFont().styleName()},
-                                      {"weight", run.rawFont().weight()},
-                                      {"style", int(run.rawFont().style())},
-                                      {"headSha256", QString::fromLatin1(QCryptographicHash::hash(run.rawFont().fontTable("head"), QCryptographicHash::Sha256).toHex())},
-                                      {"size", run.rawFont().pixelSize() / precision},
-                                      {"glyphs", run.glyphIndexes().size()}});
+              runs.append(QJsonObject{
+                  {"family", run.rawFont().familyName()},
+                  {"styleName", run.rawFont().styleName()},
+                  {"weight", run.rawFont().weight()},
+                  {"style", int(run.rawFont().style())},
+                  {"headSha256",
+                   QString::fromLatin1(
+                       QCryptographicHash::hash(run.rawFont().fontTable("head"), QCryptographicHash::Sha256).toHex())},
+                  {"size", run.rawFont().pixelSize() / precision},
+                  {"glyphs", run.glyphIndexes().size()}});
             result.append(QJsonObject{{"optionalLigatures", optionalLigatures},
                                       {"qt", QT_VERSION_STR},
                                       {"size", size},
@@ -110,8 +121,10 @@ int main(int argc, char** argv) {
                                       {"runs", runs}});
           }
   QFile fontFile(QString::fromLocal8Bit(argv[1]));
-  if (!fontFile.open(QIODevice::ReadOnly)) return 4;
-  const auto sha = QString::fromLatin1(QCryptographicHash::hash(fontFile.readAll(), QCryptographicHash::Sha256).toHex());
+  if (!fontFile.open(QIODevice::ReadOnly))
+    return 4;
+  const auto sha =
+      QString::fromLatin1(QCryptographicHash::hash(fontFile.readAll(), QCryptographicHash::Sha256).toHex());
   const auto json = QJsonDocument(QJsonObject{{"fontSha256", sha},
                                               {"family", family},
                                               {"qt", QT_VERSION_STR},
@@ -123,5 +136,6 @@ int main(int argc, char** argv) {
                                               {"results", result}})
                         .toJson();
   QFile file(output.filePath("native.json"));
-  if (!file.open(QIODevice::WriteOnly) || file.write(json) != json.size()) return 5;
+  if (!file.open(QIODevice::WriteOnly) || file.write(json) != json.size())
+    return 5;
 }

@@ -162,15 +162,10 @@ bool truthyConfigValue(const QJsonValue& value);
 // differs from JavaScript truthiness and is used by htmlLabels.
 bool evaluateConfigValue(const QJsonValue& value);
 
-MermaidRenderMetadata renderMetadata(const MermaidPreprocessResult& pre,
-                                     const QString& diagramType,
-                                     const QString& diagramTitle,
-                                     const QString& accessibleTitle,
-                                     const QString& accessibleDescription,
-                                     const QString& titleColor,
-                                     const QString& fontFamily,
-                                     qreal titleFontSize,
-                                     qreal titleTopMargin = 25.0,
+MermaidRenderMetadata renderMetadata(const MermaidPreprocessResult& pre, const QString& diagramType,
+                                     const QString& diagramTitle, const QString& accessibleTitle,
+                                     const QString& accessibleDescription, const QString& titleColor,
+                                     const QString& fontFamily, qreal titleFontSize, qreal titleTopMargin = 25.0,
                                      qreal diagramPadding = 0.0,
                                      // Families whose viewbox padding is
                                      // already folded into their scene
@@ -182,8 +177,7 @@ void finalizeReadyEntry(MermaidRenderEntry& entry, MermaidRenderMetadata metadat
 // Fractional client box (scene-absolute, title union) for scenes with a
 // client-box contract; invalid otherwise. The (scene, metadata) core serves
 // consumers that hold the parts rather than an entry.
-QRectF mermaidClientBox(const std::shared_ptr<const MermaidScene>& scene,
-                        const MermaidRenderMetadata& metadata);
+QRectF mermaidClientBox(const std::shared_ptr<const MermaidScene>& scene, const MermaidRenderMetadata& metadata);
 
 // The exact browser client box for entries whose scene exposes
 // svgClientViewBox() (state, error, architecture): upstream unions the
@@ -194,4 +188,4 @@ QRectF mermaidClientBox(const std::shared_ptr<const MermaidScene>& scene,
 // integer raster canvas / centered extent).
 QRectF mermaidClientBox(const MermaidRenderEntry& entry);
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

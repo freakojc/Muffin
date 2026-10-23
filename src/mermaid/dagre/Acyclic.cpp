@@ -14,20 +14,24 @@ QList<graphlib::Edge> dfsFas(const DagreGraph& g) {
   QSet<QString> stack;
   QSet<QString> visited;
   std::function<void(const QString&)> dfs = [&](const QString& v) {
-    if (visited.contains(v)) return;
+    if (visited.contains(v))
+      return;
     visited.insert(v);
     stack.insert(v);
     for (const graphlib::Edge& e : g.outEdges(v)) {
-      if (stack.contains(e.w)) fas.append(e);
-      else dfs(e.w);
+      if (stack.contains(e.w))
+        fas.append(e);
+      else
+        dfs(e.w);
     }
     stack.remove(v);
   };
-  for (const QString& v : g.nodes()) dfs(v);
+  for (const QString& v : g.nodes())
+    dfs(v);
   return fas;
 }
 
-}  // namespace
+} // namespace
 
 void runAcyclic(DagreGraph& g) {
   const QList<graphlib::Edge> fas = dfsFas(g);
@@ -47,7 +51,8 @@ void undoAcyclic(DagreGraph& g) {
   const QList<graphlib::Edge> all = g.edges();
   for (const graphlib::Edge& e : all) {
     DagreEdgeLabel* label = g.edge(e);
-    if (!label || !label->reversed) continue;
+    if (!label || !label->reversed)
+      continue;
     DagreEdgeLabel copy = *label;
     g.removeEdge(e);
     copy.reversed = false;
@@ -60,4 +65,4 @@ void undoAcyclic(DagreGraph& g) {
   }
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

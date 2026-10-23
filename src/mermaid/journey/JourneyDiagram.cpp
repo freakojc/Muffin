@@ -10,7 +10,8 @@
 namespace muffin::mermaid::journey {
 
 JourneyParseError::JourneyParseError(const QString& message, int line)
-    : std::runtime_error(message.toUtf8().constData()), line(line) {}
+    : std::runtime_error(message.toUtf8().constData()), line(line) {
+}
 
 namespace {
 
@@ -25,7 +26,8 @@ QStringList splitLines(const QString& source) {
     } else if (c == QLatin1Char('\r')) {
       lines.append(current);
       current.clear();
-      if (i + 1 < source.size() && source.at(i + 1) == QLatin1Char('\n')) ++i;
+      if (i + 1 < source.size() && source.at(i + 1) == QLatin1Char('\n'))
+        ++i;
     } else {
       current.append(c);
     }
@@ -35,10 +37,10 @@ QStringList splitLines(const QString& source) {
 }
 
 bool startsWithKeyword(const QString& text, QLatin1String keyword) {
-  if (!text.startsWith(keyword, Qt::CaseInsensitive)) return false;
+  if (!text.startsWith(keyword, Qt::CaseInsensitive))
+    return false;
   return text.size() == keyword.size() || text.at(keyword.size()).isSpace() ||
-         text.at(keyword.size()) == QLatin1Char(':') ||
-         text.at(keyword.size()) == QLatin1Char('{');
+         text.at(keyword.size()) == QLatin1Char(':') || text.at(keyword.size()) == QLatin1Char('{');
 }
 
 bool isWholeLineComment(const QString& raw) {
@@ -48,14 +50,12 @@ bool isWholeLineComment(const QString& raw) {
   const QString left = raw.trimmed();
   if (left.startsWith(QLatin1Char('%')) || left.startsWith(QLatin1Char('#')))
     return true;
-  return left.size() >= 3 && left.at(0) != QLatin1Char('}') &&
-         left.mid(1, 2) == QStringLiteral("%%");
+  return left.size() >= 3 && left.at(0) != QLatin1Char('}') && left.mid(1, 2) == QStringLiteral("%%");
 }
 
 QString trimInitialWhitespace(const QString& raw) {
   qsizetype start = 0;
-  while (start < raw.size() &&
-         (raw.at(start).isSpace() || raw.at(start) == QChar(0xfeff)))
+  while (start < raw.size() && (raw.at(start).isSpace() || raw.at(start) == QChar(0xfeff)))
     ++start;
   return raw.mid(start);
 }
@@ -69,8 +69,7 @@ double jsNumber(const QString& value) {
   return editor::jsNumberValue(QJsonValue(value));
 }
 
-void addTask(JourneyData& data, const QString& currentSection,
-             const QString& description, const QString& taskData) {
+void addTask(JourneyData& data, const QString& currentSection, const QString& description, const QString& taskData) {
   const QStringList pieces = taskData.mid(1).split(QLatin1Char(':'), Qt::KeepEmptyParts);
   JourneyTask task;
   task.section = currentSection;
@@ -79,12 +78,13 @@ void addTask(JourneyData& data, const QString& currentSection,
   task.score = jsNumber(pieces.value(0));
   if (pieces.size() > 1) {
     const QStringList actors = pieces.at(1).split(QLatin1Char(','), Qt::KeepEmptyParts);
-    for (const QString& actor : actors) task.people.append(actor.trimmed());
+    for (const QString& actor : actors)
+      task.people.append(actor.trimmed());
   }
   data.tasks.append(std::move(task));
 }
 
-}  // namespace
+} // namespace
 
 JourneyData JourneyDiagram::parse(const QString& source) {
   JourneyData data;
@@ -96,7 +96,8 @@ JourneyData JourneyDiagram::parse(const QString& source) {
     const QString raw = lines.at(index);
     const int lineNo = index + 1;
     const QString trimmed = raw.trimmed();
-    if (trimmed.isEmpty() || isWholeLineComment(raw)) continue;
+    if (trimmed.isEmpty() || isWholeLineComment(raw))
+      continue;
 
     if (!headerSeen) {
       const QString header = trimInitialWhitespace(raw).trimmed();
@@ -140,28 +141,24 @@ JourneyData JourneyDiagram::parse(const QString& source) {
       if (close < 0)
         throw JourneyParseError(QStringLiteral("unterminated accDescr body"), lineNo);
       const QString trailing = body.mid(close + 1).trimmed();
-      if (!trailing.isEmpty() && !trailing.startsWith(QLatin1Char('#')) &&
-          !trailing.startsWith(QLatin1Char('%')))
+      if (!trailing.isEmpty() && !trailing.startsWith(QLatin1Char('#')) && !trailing.startsWith(QLatin1Char('%')))
         throw JourneyParseError(QStringLiteral("unexpected text after accDescr body"), lineNo);
       data.accDescr = body.left(close).trimmed();
-      data.accDescr.replace(QRegularExpression(QStringLiteral(R"(\n\s+)")),
-                            QStringLiteral("\n"));
+      data.accDescr.replace(QRegularExpression(QStringLiteral(R"(\n\s+)")), QStringLiteral("\n"));
       continue;
     }
 
     const QString statement = withoutHashComment(left);
-    if (statement.trimmed().isEmpty()) continue;
+    if (statement.trimmed().isEmpty())
+      continue;
     // The hash-comment token consumes the rest of the line before the lexer
     // can see a semicolon. Semicolons in the remaining INITIAL-state input are
     // lexical errors; accessibility states use separate text rules above.
     if (statement.contains(QLatin1Char(';')))
-      throw JourneyParseError(
-          QStringLiteral("Lexical error: semicolons are not valid in journey diagrams"),
-          lineNo);
+      throw JourneyParseError(QStringLiteral("Lexical error: semicolons are not valid in journey diagrams"), lineNo);
     if (startsWithKeyword(statement, QLatin1String("title"))) {
-      static const QRegularExpression titleRe(
-          QStringLiteral(R"(^title\s([^#;\r\n]+)$)"),
-          QRegularExpression::CaseInsensitiveOption);
+      static const QRegularExpression titleRe(QStringLiteral(R"(^title\s([^#;\r\n]+)$)"),
+                                              QRegularExpression::CaseInsensitiveOption);
       const auto match = titleRe.match(statement);
       if (!match.hasMatch())
         throw JourneyParseError(QStringLiteral("invalid journey title"), lineNo);
@@ -170,9 +167,8 @@ JourneyData JourneyDiagram::parse(const QString& source) {
       continue;
     }
     if (startsWithKeyword(statement, QLatin1String("section"))) {
-      static const QRegularExpression sectionRe(
-          QStringLiteral(R"(^section\s[^#:;\r\n]+$)"),
-          QRegularExpression::CaseInsensitiveOption);
+      static const QRegularExpression sectionRe(QStringLiteral(R"(^section\s[^#:;\r\n]+$)"),
+                                                QRegularExpression::CaseInsensitiveOption);
       if (!sectionRe.match(statement).hasMatch())
         throw JourneyParseError(QStringLiteral("invalid journey section"), lineNo);
       currentSection = statement.mid(8);
@@ -191,8 +187,9 @@ JourneyData JourneyDiagram::parse(const QString& source) {
     addTask(data, currentSection, taskName, taskData);
   }
 
-  if (!headerSeen) throw JourneyParseError(QStringLiteral("missing journey header"));
+  if (!headerSeen)
+    throw JourneyParseError(QStringLiteral("missing journey header"));
   return data;
 }
 
-}  // namespace muffin::mermaid::journey
+} // namespace muffin::mermaid::journey

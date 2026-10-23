@@ -25,4 +25,4 @@ struct CssStyleDebugWinner {
 QString formatCssStyleWinner(const CssStyleDebugWinner& winner);
 QString formatThemeDefinitionSummary(const ThemeDefinition& definition);
 
-}  // namespace muffin
+} // namespace muffin

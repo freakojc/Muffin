@@ -13,8 +13,7 @@
 
 namespace muffin::mermaid::packet {
 
-void PacketScene::paint(QPainter& painter,
-                        const MermaidPaintOptions& options) const {
+void PacketScene::paint(QPainter& painter, const MermaidPaintOptions& options) const {
   paintPacketScene(*this, painter, options);
 }
 
@@ -35,7 +34,8 @@ QJsonValue mergedScalar(const QJsonValue& value, const QJsonValue& fallback) {
 }
 
 JsScalar jsScalar(const QJsonValue& value) {
-  if (value.isString()) return {true, value.toString(), 0.0};
+  if (value.isString())
+    return {true, value.toString(), 0.0};
   return {false, {}, editor::jsNumberValue(value)};
 }
 
@@ -54,22 +54,28 @@ JsScalar jsAdd(JsScalar left, qreal right) {
 }
 
 qreal jsNumber(const JsScalar& value) {
-  return value.string ? editor::jsNumberValue(QJsonValue(value.text))
-                      : value.number;
+  return value.string ? editor::jsNumberValue(QJsonValue(value.text)) : value.number;
 }
 
 bool jsTruthy(const QJsonValue& value) {
-  if (value.isUndefined() || value.isNull()) return false;
-  if (value.isBool()) return value.toBool();
-  if (value.isDouble()) return value.toDouble() != 0.0 && !std::isnan(value.toDouble());
-  if (value.isString()) return !value.toString().isEmpty();
+  if (value.isUndefined() || value.isNull())
+    return false;
+  if (value.isBool())
+    return value.toBool();
+  if (value.isDouble())
+    return value.toDouble() != 0.0 && !std::isnan(value.toDouble());
+  if (value.isString())
+    return !value.toString().isEmpty();
   return true;
 }
 
-QString attr(qreal value) { return editor::jsNumberToString(value); }
+QString attr(qreal value) {
+  return editor::jsNumberToString(value);
+}
 
 QString scalarAttribute(const QJsonValue& value) {
-  if (value.isString()) return value.toString();
+  if (value.isString())
+    return value.toString();
   if (value.isBool())
     return value.toBool() ? QStringLiteral("true") : QStringLiteral("false");
   return editor::jsNumberToString(editor::jsNumberValue(value));
@@ -92,14 +98,11 @@ QJsonObject textJson(const PacketTextGeometry& text) {
   result[QStringLiteral("yAttr")] = text.yAttribute;
   result[QStringLiteral("fontSize")] = text.fontSize;
   result[QStringLiteral("fill")] = text.fill;
-  result[QStringLiteral("anchor")] =
-      text.anchor == PacketTextAnchor::Middle
-          ? QStringLiteral("middle")
-          : text.anchor == PacketTextAnchor::End ? QStringLiteral("end")
-                                                  : QStringLiteral("start");
+  result[QStringLiteral("anchor")] = text.anchor == PacketTextAnchor::Middle ? QStringLiteral("middle")
+                                     : text.anchor == PacketTextAnchor::End  ? QStringLiteral("end")
+                                                                             : QStringLiteral("start");
   result[QStringLiteral("baseline")] =
-      text.baseline == PacketTextBaseline::Middle ? QStringLiteral("middle")
-                                                   : QStringLiteral("auto");
+      text.baseline == PacketTextBaseline::Middle ? QStringLiteral("middle") : QStringLiteral("auto");
   result[QStringLiteral("paintOrder")] = text.paintOrder;
   return result;
 }
@@ -108,27 +111,24 @@ QStringList cssFontFamilies(const QString& expression) {
   return editor::cssFamilyList(expression);
 }
 
-}  // namespace
+} // namespace
 
-CssLengthContext packetCssLengthContext(const QString& cssFamilies,
-                                        qreal emPx) {
+CssLengthContext packetCssLengthContext(const QString& cssFamilies, qreal emPx) {
   if (emPx <= 0.0)
     return {emPx, 16.0, 0.0, 0.0, QSizeF(800.0, 600.0)};
   constexpr qreal referencePx = 16.0;
   const QStringList families = cssFontFamilies(cssFamilies);
   QFont font(families.first());
-  if (families.size() > 1) font.setFamilies(families);
+  if (families.size() > 1)
+    font.setFamilies(families);
   font.setPixelSize(int(referencePx));
   font.setHintingPreference(QFont::PreferNoHinting);
   const TextFontMetrics metrics(font);
   const qreal scale = emPx / referencePx;
-  return {emPx, 16.0, metrics.xHeight() * scale,
-          metrics.horizontalAdvance(QChar('0')) * scale,
-          QSizeF(800.0, 600.0)};
+  return {emPx, 16.0, metrics.xHeight() * scale, metrics.horizontalAdvance(QChar('0')) * scale, QSizeF(800.0, 600.0)};
 }
 
-PacketScene buildPacketScene(const PacketData& data, PacketConfig config,
-                             PacketSceneStyle style) {
+PacketScene buildPacketScene(const PacketData& data, PacketConfig config, PacketSceneStyle style) {
   PacketScene scene;
   scene.config = config;
   scene.style = std::move(style);
@@ -153,18 +153,17 @@ PacketScene buildPacketScene(const PacketData& data, PacketConfig config,
   const qreal bitsPerRow = editor::jsNumberValue(rawBitsPerRow);
   const qreal paddingX = editor::jsNumberValue(rawPaddingX);
   JsScalar paddingY = jsScalar(rawPaddingY);
-  if (scene.showBits) paddingY = jsAdd(std::move(paddingY), 10.0);
+  if (scene.showBits)
+    paddingY = jsAdd(std::move(paddingY), 10.0);
   const JsScalar totalRowHeight = jsAdd(rowHeight, paddingY);
   const qreal totalRowHeightNumber = jsNumber(totalRowHeight);
 
   scene.svgWidth = bitWidth * bitsPerRow + 2.0;
-  scene.svgHeight = totalRowHeightNumber * qreal(data.words.size() + 1) -
-                    (data.title.isEmpty() ? rowHeightNumber : 0.0);
-  scene.viewBoxAttribute = QStringLiteral("0 0 %1 %2")
-                               .arg(attr(scene.svgWidth), attr(scene.svgHeight));
-  scene.viewBoxBounds =
-      QRectF(0.0, 0.0, std::isfinite(scene.svgWidth) ? scene.svgWidth : 0.0,
-             std::isfinite(scene.svgHeight) ? scene.svgHeight : 0.0);
+  scene.svgHeight =
+      totalRowHeightNumber * qreal(data.words.size() + 1) - (data.title.isEmpty() ? rowHeightNumber : 0.0);
+  scene.viewBoxAttribute = QStringLiteral("0 0 %1 %2").arg(attr(scene.svgWidth), attr(scene.svgHeight));
+  scene.viewBoxBounds = QRectF(0.0, 0.0, std::isfinite(scene.svgWidth) ? scene.svgWidth : 0.0,
+                               std::isfinite(scene.svgHeight) ? scene.svgHeight : 0.0);
   constexpr qreal intrinsicSvgHeight = 150.0;
   qreal rasterWidth = 0.0;
   qreal rasterHeight = 0.0;
@@ -172,33 +171,23 @@ PacketScene buildPacketScene(const PacketData& data, PacketConfig config,
     rasterWidth = std::isfinite(scene.svgWidth) && scene.svgWidth >= 0.0
                       ? std::min(scene.svgWidth, scene.rasterViewport.width())
                       : scene.rasterViewport.width();
-    const bool validViewBox = scene.svgWidth > 0.0 && scene.svgHeight > 0.0 &&
-                              std::isfinite(scene.svgWidth) &&
+    const bool validViewBox = scene.svgWidth > 0.0 && scene.svgHeight > 0.0 && std::isfinite(scene.svgWidth) &&
                               std::isfinite(scene.svgHeight);
-    rasterHeight = validViewBox
-                       ? scene.svgHeight * rasterWidth / scene.svgWidth
-                       : intrinsicSvgHeight;
+    rasterHeight = validViewBox ? scene.svgHeight * rasterWidth / scene.svgWidth : intrinsicSvgHeight;
   } else {
     // Fixed negative SVG dimensions have zero used size in Chromium. NaN is
     // an invalid declaration and falls back to the replaced-element viewport.
-    rasterWidth = std::isfinite(scene.svgWidth)
-                      ? qMax<qreal>(0.0, scene.svgWidth)
-                      : scene.rasterViewport.width();
-    rasterHeight = std::isfinite(scene.svgHeight)
-                       ? qMax<qreal>(0.0, scene.svgHeight)
-                       : intrinsicSvgHeight;
+    rasterWidth = std::isfinite(scene.svgWidth) ? qMax<qreal>(0.0, scene.svgWidth) : scene.rasterViewport.width();
+    rasterHeight = std::isfinite(scene.svgHeight) ? qMax<qreal>(0.0, scene.svgHeight) : intrinsicSvgHeight;
   }
   scene.bounds = QRectF(0.0, 0.0, rasterWidth, rasterHeight);
 
-  const CssLengthContext rootCtx = packetCssLengthContext(
-      scene.style.fontFamily, scene.style.rootFontSize);
+  const CssLengthContext rootCtx = packetCssLengthContext(scene.style.fontFamily, scene.style.rootFontSize);
   const qreal byteFontSize = editor::cssFontSizePx(scene.style.byteFontSize, rootCtx);
   const qreal labelFontSize = editor::cssFontSizePx(scene.style.labelFontSize, rootCtx);
   const qreal titleFontSize = editor::cssFontSizePx(scene.style.titleFontSize, rootCtx);
-  const qreal diagonal = std::hypot(scene.svgWidth, scene.svgHeight) /
-                         std::sqrt(2.0);
-  const qreal strokeWidth = editor::cssStrokeWidthPx(
-      scene.style.blockStrokeWidth, rootCtx, diagonal);
+  const qreal diagonal = std::hypot(scene.svgWidth, scene.svgHeight) / std::sqrt(2.0);
+  const qreal strokeWidth = editor::cssStrokeWidthPx(scene.style.blockStrokeWidth, rootCtx, diagonal);
 
   for (qsizetype row = 0; row < data.words.size(); ++row) {
     PacketWordGeometry word;
@@ -217,8 +206,7 @@ PacketScene buildPacketScene(const PacketData& data, PacketConfig config,
       const qreal width = (source.end - source.start + 1.0) * bitWidth - paddingX;
       const JsScalar labelY = jsAdd(wordY, rowHeightNumber / 2.0);
       const qreal labelYNumber = jsNumber(labelY);
-      block.rect = QRectF(svgUsedNumber(blockX), svgUsedNumber(wordYNumber),
-                          width, rowHeightNumber);
+      block.rect = QRectF(svgUsedNumber(blockX), svgUsedNumber(wordYNumber), width, rowHeightNumber);
       block.xAttribute = attr(blockX);
       block.yAttribute = word.yAttribute;
       block.widthAttribute = attr(width);
@@ -230,8 +218,7 @@ PacketScene buildPacketScene(const PacketData& data, PacketConfig config,
 
       block.labelText.cssClass = QStringLiteral("packetLabel");
       block.labelText.text = source.label;
-      block.labelText.position =
-          QPointF(svgUsedNumber(blockX + width / 2.0), svgUsedNumber(labelYNumber));
+      block.labelText.position = QPointF(svgUsedNumber(blockX + width / 2.0), svgUsedNumber(labelYNumber));
       block.labelText.xAttribute = attr(blockX + width / 2.0);
       block.labelText.yAttribute = jsString(labelY);
       block.labelText.fill = scene.style.labelColor;
@@ -246,9 +233,7 @@ PacketScene buildPacketScene(const PacketData& data, PacketConfig config,
         PacketTextGeometry start;
         start.cssClass = QStringLiteral("packetByte start");
         start.text = editor::jsNumberToString(source.start);
-        start.position = QPointF(
-            svgUsedNumber(blockX + (single ? width / 2.0 : 0.0)),
-            svgUsedNumber(bitY));
+        start.position = QPointF(svgUsedNumber(blockX + (single ? width / 2.0 : 0.0)), svgUsedNumber(bitY));
         start.xAttribute = attr(blockX + (single ? width / 2.0 : 0.0));
         start.yAttribute = attr(bitY);
         start.fill = scene.style.startByteColor;
@@ -279,12 +264,10 @@ PacketScene buildPacketScene(const PacketData& data, PacketConfig config,
 
   scene.titleText.cssClass = QStringLiteral("packetTitle");
   scene.titleText.text = data.title;
-  scene.titleText.position = QPointF(
-      svgUsedNumber(scene.svgWidth / 2.0),
-      svgUsedNumber(scene.svgHeight - totalRowHeightNumber / 2.0));
+  scene.titleText.position =
+      QPointF(svgUsedNumber(scene.svgWidth / 2.0), svgUsedNumber(scene.svgHeight - totalRowHeightNumber / 2.0));
   scene.titleText.xAttribute = attr(scene.svgWidth / 2.0);
-  scene.titleText.yAttribute =
-      attr(scene.svgHeight - totalRowHeightNumber / 2.0);
+  scene.titleText.yAttribute = attr(scene.svgHeight - totalRowHeightNumber / 2.0);
   scene.titleText.fill = scene.style.titleColor;
   scene.titleText.fontSize = titleFontSize;
   scene.titleText.anchor = PacketTextAnchor::Middle;
@@ -324,7 +307,8 @@ QJsonObject PacketScene::toJsonObject() const {
       object[QStringLiteral("strokeWidth")] = block.strokeWidth;
       object[QStringLiteral("labelText")] = textJson(block.labelText);
       QJsonArray bits;
-      for (const PacketTextGeometry& bit : block.bitTexts) bits.append(textJson(bit));
+      for (const PacketTextGeometry& bit : block.bitTexts)
+        bits.append(textJson(bit));
       object[QStringLiteral("bitTexts")] = bits;
       object[QStringLiteral("paintOrder")] = block.paintOrder;
       blockArray.append(object);
@@ -337,4 +321,4 @@ QJsonObject PacketScene::toJsonObject() const {
   return root;
 }
 
-}  // namespace muffin::mermaid::packet
+} // namespace muffin::mermaid::packet

@@ -82,7 +82,8 @@ void writeBlock(QDataStream& out, const MarkdownNode& node) {
       << qint32(range.lineStart) << qint32(range.lineEnd);
   writeInlines(out, node.inlines());
   out << qint32(node.children().size());
-  for (const auto& child : node.children()) writeBlock(out, *child);
+  for (const auto& child : node.children())
+    writeBlock(out, *child);
 }
 
 // Fixed-seed corpus fingerprint, audited for retained $/$$ metadata and exact
@@ -92,7 +93,8 @@ QString delimiterCorpusFingerprint() {
   // Optional binary audit for reviewing intentional parser changes against an
   // older MuffinCore, without replacing the fixed corpus with self-comparison.
   QFile dump(qEnvironmentVariable("MUFFIN_DELIMITER_CORPUS_DUMP"));
-  if (!dump.fileName().isEmpty()) require(dump.open(QIODevice::WriteOnly), "cannot open delimiter corpus audit");
+  if (!dump.fileName().isEmpty())
+    require(dump.open(QIODevice::WriteOnly), "cannot open delimiter corpus audit");
   QDataStream dumpStream(&dump);
   dumpStream.setVersion(QDataStream::Qt_6_0);
   QStringList corpus{QStringLiteral("~~outer ~~inner~~ tail~~"),
@@ -150,10 +152,14 @@ QString delimiterCorpusFingerprint() {
   for (int sample = 0; sample < 256; ++sample) {
     QString text;
     const int length = 8 + int(next() % 48);
-    for (int i = 0; i < length; ++i) text += atoms.at(next() % atoms.size());
-    if (sample % 4 == 0) text.prepend("# ");
-    if (sample % 4 == 1) text.prepend("> ");
-    if (sample % 4 == 2) text.prepend("- ");
+    for (int i = 0; i < length; ++i)
+      text += atoms.at(next() % atoms.size());
+    if (sample % 4 == 0)
+      text.prepend("# ");
+    if (sample % 4 == 1)
+      text.prepend("> ");
+    if (sample % 4 == 2)
+      text.prepend("- ");
     corpus.append(std::move(text));
   }
   QCryptographicHash hash(QCryptographicHash::Sha256);
@@ -172,7 +178,8 @@ QString delimiterCorpusFingerprint() {
       out.setVersion(QDataStream::Qt_6_0);
       out << text << qint32(mask);
       writeBlock(out, *parsed.root);
-      for (const auto& block : parsed.root->children()) out << MarkdownSerializer().serializeBlock(*block);
+      for (const auto& block : parsed.root->children())
+        out << MarkdownSerializer().serializeBlock(*block);
       auto sharedSource = std::make_shared<const QString>(text);
       auto sharedParsed = parser.parseDocumentShared(sharedSource, options);
       require(sharedParsed.root != nullptr, "source-sharing parse must produce a root");
@@ -181,15 +188,18 @@ QString delimiterCorpusFingerprint() {
       sharedOut.setVersion(QDataStream::Qt_6_0);
       sharedOut << text << qint32(mask);
       writeBlock(sharedOut, *sharedParsed.root);
-      for (const auto& block : sharedParsed.root->children()) sharedOut << MarkdownSerializer().serializeBlock(*block);
-      require(sharedBytes == bytes, "direct source slices must preserve the entire delimiter corpus AST and coordinates");
-      if (dump.isOpen()) dumpStream << bytes;
+      for (const auto& block : sharedParsed.root->children())
+        sharedOut << MarkdownSerializer().serializeBlock(*block);
+      require(sharedBytes == bytes,
+              "direct source slices must preserve the entire delimiter corpus AST and coordinates");
+      if (dump.isOpen())
+        dumpStream << bytes;
       hash.addData(bytes);
     }
   }
   return QString::fromLatin1(hash.result().toHex());
 }
-}  // namespace
+} // namespace
 
 void testSubscriptParses() {
   CmarkGfmParser parser;
@@ -234,7 +244,7 @@ void testSubscriptNestedFormatting() {
 void testStrikethroughNotConsumedAsSubscript() {
   CmarkGfmParser parser;
   ParseOptions options;
-  options.enableSubscript = true;  // enableStrikethrough defaults true
+  options.enableSubscript = true; // enableStrikethrough defaults true
   ParseResult result = parser.parseDocument(QStringLiteral("~~struck~~"), options);
   require(countInline(*result.root, InlineType::Strikethrough) == 1, "~~x~~ should still be strikethrough");
   require(countInline(*result.root, InlineType::Subscript) == 0, "strikethrough must not become subscript");
@@ -242,7 +252,7 @@ void testStrikethroughNotConsumedAsSubscript() {
 
 void testSubscriptDisabledStaysLiteral() {
   CmarkGfmParser parser;
-  ParseOptions options;  // enableSubscript defaults false, enableStrikethrough defaults true
+  ParseOptions options; // enableSubscript defaults false, enableStrikethrough defaults true
   ParseResult result = parser.parseDocument(QStringLiteral("H~2~O"), options);
   require(countInline(*result.root, InlineType::Subscript) == 0,
           "with enableSubscript=false the markers must stay literal");
@@ -257,7 +267,7 @@ void testSubscriptDisabledStaysLiteral() {
 // This holds regardless of the subscript toggle: `~~x~~` is always strikethrough, `~x~` never is.
 void testStrikethroughUsesDoubleTildeOnly() {
   CmarkGfmParser parser;
-  ParseOptions options;  // subscript off, strikethrough on (defaults)
+  ParseOptions options; // subscript off, strikethrough on (defaults)
   ParseResult doubleTilde = parser.parseDocument(QStringLiteral("~~struck~~"), options);
   require(countInline(*doubleTilde.root, InlineType::Strikethrough) == 1,
           "~~x~~ should still parse as strikethrough with subscript off");
@@ -273,8 +283,7 @@ void testSpacedTildeStaysLiteral() {
   ParseOptions options;
   options.enableSubscript = true;
   ParseResult result = parser.parseDocument(QStringLiteral("a ~ b ~ c"), options);
-  require(countInline(*result.root, InlineType::Subscript) == 0,
-          "a space-flanked ~ must not open a subscript");
+  require(countInline(*result.root, InlineType::Subscript) == 0, "a space-flanked ~ must not open a subscript");
 }
 
 void testSubscriptSerializesRoundTrip() {
@@ -289,17 +298,18 @@ void testSubscriptSerializesRoundTrip() {
 }
 
 void testDelimiterCandidatesStayLocalAndOpaqueContentStaysLiteral() {
-  const QString text = QStringLiteral(
-      "~~*struck*~~ H~2~O X^2^ ==mark==\n\n"
-      "Ordinary **bold** and [label](https://example.com/~user), `~~code~~`.\n\n"
-      "Entities &#126;&#126;opaque&#126;&#126; and \\~escaped\\~.\n\n"
-      "| A | B |\n| --- | --- |\n| ~~cell~~ | plain **cell** |\n");
+  const QString text = QStringLiteral("~~*struck*~~ H~2~O X^2^ ==mark==\n\n"
+                                      "Ordinary **bold** and [label](https://example.com/~user), `~~code~~`.\n\n"
+                                      "Entities &#126;&#126;opaque&#126;&#126; and \\~escaped\\~.\n\n"
+                                      "| A | B |\n| --- | --- |\n| ~~cell~~ | plain **cell** |\n");
   ParseOptions options;
   options.enableHighlight = options.enableSubscript = options.enableSuperscript = true;
   CmarkGfmParser parser;
   auto result = parser.parseDocument(text, options);
-  require(countInline(*result.root, InlineType::Strikethrough) == 2, "strike candidates must work across formatting and in tables");
-  require(countInline(*result.root, InlineType::Subscript) == 1, "opaque code, URL and entity markers must not become subscript");
+  require(countInline(*result.root, InlineType::Strikethrough) == 2,
+          "strike candidates must work across formatting and in tables");
+  require(countInline(*result.root, InlineType::Subscript) == 1,
+          "opaque code, URL and entity markers must not become subscript");
   require(countInline(*result.root, InlineType::Superscript) == 1, "superscript candidate must remain local");
   require(countInline(*result.root, InlineType::Highlight) == 1, "highlight candidate must remain local");
   const auto& ordinary = *result.root->children().at(1);
@@ -312,7 +322,8 @@ void testDelimiterCandidatesStayLocalAndOpaqueContentStaysLiteral() {
 }
 
 void testDelimiterCorpusSyntaxAndCoordinates() {
-  require(delimiterCorpusFingerprint() == QStringLiteral("f4dab0234037d3db8f23ca5651a1e605daf84476b69db2ced27454bae43bee8b"),
+  require(delimiterCorpusFingerprint() ==
+              QStringLiteral("f4dab0234037d3db8f23ca5651a1e605daf84476b69db2ced27454bae43bee8b"),
           "delimiter syntax, source coordinates and serialization must match the audited corpus");
 }
 

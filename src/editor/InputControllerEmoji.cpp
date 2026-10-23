@@ -28,9 +28,7 @@ EmojiCompleter* InputController::ensureEmojiCompleter() {
     return emojiCompleter_;
   }
   emojiCompleter_ = new EmojiCompleter(ctx_.view->viewport(), emojiProvider_, this);
-  connect(emojiCompleter_, &EmojiCompleter::accepted, this, [this](const QString& glyph) {
-    insertEmoji(glyph);
-  });
+  connect(emojiCompleter_, &EmojiCompleter::accepted, this, [this](const QString& glyph) { insertEmoji(glyph); });
   return emojiCompleter_;
 }
 
@@ -47,8 +45,8 @@ void InputController::maybeUpdateEmojiPopup() {
   if (!emojiProvider_ || !ctx_.hasSession() || !ctx_.selection) {
     return;
   }
-  if (!QSettings().value(QStringLiteral("editor/emojiAutocomplete"), true).toBool() ||
-      hasActiveLiteralEditor() || (tableController_ && tableController_->currentCell().isValid())) {
+  if (!QSettings().value(QStringLiteral("editor/emojiAutocomplete"), true).toBool() || hasActiveLiteralEditor() ||
+      (tableController_ && tableController_->currentCell().isValid())) {
     hideEmojiPopup();
     return;
   }
@@ -83,8 +81,8 @@ void InputController::maybeUpdateEmojiPopup() {
   }
   for (const QChar c : code) {
     const ushort u = c.unicode();
-    const bool ok = (u >= 'a' && u <= 'z') || (u >= 'A' && u <= 'Z') || (u >= '0' && u <= '9') ||
-                    u == '_' || u == '+' || u == '-';
+    const bool ok =
+        (u >= 'a' && u <= 'z') || (u >= 'A' && u <= 'Z') || (u >= '0' && u <= '9') || u == '_' || u == '+' || u == '-';
     if (!ok) {
       hideEmojiPopup();
       return;
@@ -122,26 +120,17 @@ void InputController::insertEmoji(const QString& glyph) {
   }
   for (qsizetype i = emojiColonStart_ + 1; i < caret; ++i) {
     const ushort u = markdown.at(i).unicode();
-    const bool ok = (u >= 'a' && u <= 'z') || (u >= 'A' && u <= 'Z') || (u >= '0' && u <= '9') ||
-                    u == '_' || u == '+' || u == '-';
+    const bool ok =
+        (u >= 'a' && u <= 'z') || (u >= 'A' && u <= 'Z') || (u >= '0' && u <= '9') || u == '_' || u == '+' || u == '-';
     if (!ok) {
       hideEmojiPopup();
       return;
     }
   }
   const qsizetype removedLength = caret - emojiColonStart_;
-  applyLocalEdit(
-      EditTransaction::Kind::InsertText,
-      QStringLiteral("Insert Emoji"),
-      emojiColonStart_,
-      removedLength,
-      glyph,
-      CursorPosition(),
-      emojiColonStart_ + glyph.size(),
-      {},
-      false,
-      false);
+  applyLocalEdit(EditTransaction::Kind::InsertText, QStringLiteral("Insert Emoji"), emojiColonStart_, removedLength,
+                 glyph, CursorPosition(), emojiColonStart_ + glyph.size(), {}, false, false);
   emojiColonStart_ = -1;
 }
 
-}  // namespace muffin
+} // namespace muffin

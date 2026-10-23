@@ -23,14 +23,14 @@ namespace {
 // golden only.
 QString erCardinalityName(muffin::mermaid::er::ErCardinality card) {
   switch (card) {
-    case muffin::mermaid::er::ErCardinality::ExactlyOne:
-      return QStringLiteral("ExactlyOne");
-    case muffin::mermaid::er::ErCardinality::ZeroOrOne:
-      return QStringLiteral("ZeroOrOne");
-    case muffin::mermaid::er::ErCardinality::OneOrMore:
-      return QStringLiteral("OneOrMore");
-    case muffin::mermaid::er::ErCardinality::ZeroOrMore:
-      return QStringLiteral("ZeroOrMore");
+  case muffin::mermaid::er::ErCardinality::ExactlyOne:
+    return QStringLiteral("ExactlyOne");
+  case muffin::mermaid::er::ErCardinality::ZeroOrOne:
+    return QStringLiteral("ZeroOrOne");
+  case muffin::mermaid::er::ErCardinality::OneOrMore:
+    return QStringLiteral("OneOrMore");
+  case muffin::mermaid::er::ErCardinality::ZeroOrMore:
+    return QStringLiteral("ZeroOrMore");
   }
   return QString{};
 }
@@ -40,14 +40,14 @@ QString erCardinalityName(muffin::mermaid::er::ErCardinality card) {
 // into ErSceneAttribute.keyType (which is "" / "PK" / "FK" / "UK").
 QString erAttributeKeyShortName(muffin::mermaid::er::ErAttributeKeyType key) {
   switch (key) {
-    case muffin::mermaid::er::ErAttributeKeyType::PrimaryKey:
-      return QStringLiteral("PK");
-    case muffin::mermaid::er::ErAttributeKeyType::ForeignKey:
-      return QStringLiteral("FK");
-    case muffin::mermaid::er::ErAttributeKeyType::UniqueKey:
-      return QStringLiteral("UK");
-    case muffin::mermaid::er::ErAttributeKeyType::None:
-      break;
+  case muffin::mermaid::er::ErAttributeKeyType::PrimaryKey:
+    return QStringLiteral("PK");
+  case muffin::mermaid::er::ErAttributeKeyType::ForeignKey:
+    return QStringLiteral("FK");
+  case muffin::mermaid::er::ErAttributeKeyType::UniqueKey:
+    return QStringLiteral("UK");
+  case muffin::mermaid::er::ErAttributeKeyType::None:
+    break;
   }
   return QString{};
 }
@@ -60,7 +60,8 @@ QString erAttributeKeyShortName(muffin::mermaid::er::ErAttributeKeyType key) {
 QString formatErAttributeLine(const muffin::mermaid::er::ErAttribute& attr) {
   QString line = attr.attributeType + QLatin1Char(' ') + attr.attributeName;
   const QString key = erAttributeKeyShortName(attr.keyType);
-  if (!key.isEmpty()) line += QLatin1String(" (") + key + QLatin1Char(')');
+  if (!key.isEmpty())
+    line += QLatin1String(" (") + key + QLatin1Char(')');
   if (!attr.comment.isEmpty())
     line += QLatin1String(" (\"") + attr.comment + QLatin1String("\")");
   return line;
@@ -68,13 +69,13 @@ QString formatErAttributeLine(const muffin::mermaid::er::ErAttribute& attr) {
 
 QJsonArray strings(const QStringList& values) {
   QJsonArray result;
-  for (const QString& value : values) result.append(value);
+  for (const QString& value : values)
+    result.append(value);
   return result;
 }
-}  // namespace
+} // namespace
 
-muffin::mermaid::er::ErLayoutInput
-muffin::mermaid::er::buildErLayoutInput(const ErDiagramData& data) {
+muffin::mermaid::er::ErLayoutInput muffin::mermaid::er::buildErLayoutInput(const ErDiagramData& data) {
   ErLayoutInput input;
   // erDb defaults direction to "TB"; the erDiagram grammar exposes no keyword
   // to change it, so this is the only value ever emitted.
@@ -113,10 +114,8 @@ muffin::mermaid::er::buildErLayoutInput(const ErDiagramData& data) {
 }
 
 muffin::mermaid::er::ErLayoutMeasurements
-muffin::mermaid::er::measureErLayoutInput(const ErLayoutInput& input,
-                                          QString fontFamily, qreal fontSize,
-                                          qreal minEntityWidth, qreal diagramPadding,
-                                          qreal entityPadding,
+muffin::mermaid::er::measureErLayoutInput(const ErLayoutInput& input, QString fontFamily, qreal fontSize,
+                                          qreal minEntityWidth, qreal diagramPadding, qreal entityPadding,
                                           qreal relationshipFontSize) {
   ErLayoutMeasurements result;
   flowchart::FlowTextOptions options;
@@ -134,16 +133,16 @@ muffin::mermaid::er::measureErLayoutInput(const ErLayoutInput& input,
     if (entity.attributes.isEmpty()) {
       // Empty-entity fast path (mermaid erBox drawRect branch). PADDING is NOT
       // scaled by 1.25 on this path - the scaling block is unreachable here.
-      const qreal pad = diagramPadding;              // 20
-      const qreal labelPadY = pad * 1.5;             // 30
+      const qreal pad = diagramPadding;  // 20
+      const qreal labelPadY = pad * 1.5; // 30
       const qreal width = std::max(textW(entity.name) + 2.0 * pad, minEntityWidth);
-      const qreal height = textH(entity.name) + 2.0 * labelPadY;  // = textH + 3*pad
+      const qreal height = textH(entity.name) + 2.0 * labelPadY; // = textH + 3*pad
       size = QSizeF(width, height);
     } else {
       // Attribute-bearing entity (mermaid erBox main path). PADDING/TEXT_PADDING
       // are scaled by 1.25 (htmlLabels is falsy by default for ER).
-      const qreal pad = diagramPadding * 1.25;       // 25
-      const qreal textPad = entityPadding * 1.25;    // 18.75
+      const qreal pad = diagramPadding * 1.25;    // 25
+      const qreal textPad = entityPadding * 1.25; // 18.75
       qreal colType = 0, colName = 0, colKeys = 0, colComment = 0;
       qreal totalRowHeight = 0;
       for (const ErAttribute& attr : entity.attributes) {
@@ -152,15 +151,21 @@ muffin::mermaid::er::measureErLayoutInput(const ErLayoutInput& input,
         colName = std::max(colName, textW(attr.attributeName) + pad);
         colKeys = std::max(colKeys, textW(keys) + pad);
         colComment = std::max(colComment, textW(attr.comment) + pad);
-        totalRowHeight += std::max({textH(attr.attributeType), textH(attr.attributeName),
-                                    textH(keys), textH(attr.comment)}) +
-                          textPad;
+        totalRowHeight +=
+            std::max({textH(attr.attributeType), textH(attr.attributeName), textH(keys), textH(attr.comment)}) +
+            textPad;
       }
       // Empty-column suppression: a column whose max width never exceeds the
       // per-column PADDING (no text) is dropped.
       int sections = 4;
-      if (colKeys <= pad) { colKeys = 0; --sections; }
-      if (colComment <= pad) { colComment = 0; --sections; }
+      if (colKeys <= pad) {
+        colKeys = 0;
+        --sections;
+      }
+      if (colComment <= pad) {
+        colComment = 0;
+        --sections;
+      }
       qreal colSum = colType + colName + colKeys + colComment;
       const qreal headerWidth = textW(entity.name);
       // Header-wider-than-columns redistribution.
@@ -168,8 +173,10 @@ muffin::mermaid::er::measureErLayoutInput(const ErLayoutInput& input,
         const qreal diff = headerWidth + 2.0 * pad - colSum;
         colType += diff / sections;
         colName += diff / sections;
-        if (colKeys > 0) colKeys += diff / sections;
-        if (colComment > 0) colComment += diff / sections;
+        if (colKeys > 0)
+          colKeys += diff / sections;
+        if (colComment > 0)
+          colComment += diff / sections;
         colSum = colType + colName + colKeys + colComment;
       }
       const qreal headerHeight = textH(entity.name) + textPad;
@@ -181,19 +188,20 @@ muffin::mermaid::er::measureErLayoutInput(const ErLayoutInput& input,
   relationshipOptions.fontPixelSize = relationshipFontSize;
   relationshipOptions.lineHeight = relationshipFontSize * 1.5;
   for (const ErLayoutRelationshipInput& rel : input.relationships) {
-    if (rel.label.isEmpty()) continue;
-    result.relationships.insert(rel.id, flowchart::measureLabel(
-        rel.label, QStringLiteral("markdown"), relationshipOptions));
+    if (rel.label.isEmpty())
+      continue;
+    result.relationships.insert(rel.id,
+                                flowchart::measureLabel(rel.label, QStringLiteral("markdown"), relationshipOptions));
   }
   return result;
 }
 
 muffin::mermaid::er::ErPlacementResult
-muffin::mermaid::er::layoutErDiagramDagre(const ErLayoutInput& input,
-                                          const ErLayoutMeasurements& measurements,
+muffin::mermaid::er::layoutErDiagramDagre(const ErLayoutInput& input, const ErLayoutMeasurements& measurements,
                                           qreal entitySpacing, qreal rankSpacing) {
   ErPlacementResult result;
-  if (input.entities.isEmpty()) return result;
+  if (input.entities.isEmpty())
+    return result;
   flowchart::FlowchartData projected;
   projected.direction = input.direction;
   for (const ErLayoutEntityInput& entity : input.entities) {
@@ -243,28 +251,25 @@ muffin::mermaid::er::layoutErDiagramDagre(const ErLayoutInput& input,
   return result;
 }
 
-QJsonObject
-muffin::mermaid::er::erLayoutInputToJson(const ErLayoutInput& input) {
+QJsonObject muffin::mermaid::er::erLayoutInputToJson(const ErLayoutInput& input) {
   QJsonArray entities;
   for (const ErLayoutEntityInput& entity : input.entities) {
-    entities.append(QJsonObject{
-        {QStringLiteral("id"), entity.id},
-        {QStringLiteral("name"), entity.name},
-        {QStringLiteral("attributeLines"), strings(entity.attributeLines)},
-        {QStringLiteral("attributeStyles"), strings(entity.attributeStyles)}});
+    entities.append(QJsonObject{{QStringLiteral("id"), entity.id},
+                                {QStringLiteral("name"), entity.name},
+                                {QStringLiteral("attributeLines"), strings(entity.attributeLines)},
+                                {QStringLiteral("attributeStyles"), strings(entity.attributeStyles)}});
   }
   QJsonArray relationships;
   for (const ErLayoutRelationshipInput& rel : input.relationships) {
-    relationships.append(QJsonObject{
-        {QStringLiteral("id"), rel.id},
-        {QStringLiteral("entityA"), rel.entityA},
-        {QStringLiteral("entityB"), rel.entityB},
-        {QStringLiteral("cardA"), erCardinalityName(rel.cardA)},
-        {QStringLiteral("cardB"), erCardinalityName(rel.cardB)},
-        {QStringLiteral("identifying"), rel.identifying},
-        {QStringLiteral("label"), rel.label},
-        {QStringLiteral("roleA"), rel.roleA},
-        {QStringLiteral("roleB"), rel.roleB}});
+    relationships.append(QJsonObject{{QStringLiteral("id"), rel.id},
+                                     {QStringLiteral("entityA"), rel.entityA},
+                                     {QStringLiteral("entityB"), rel.entityB},
+                                     {QStringLiteral("cardA"), erCardinalityName(rel.cardA)},
+                                     {QStringLiteral("cardB"), erCardinalityName(rel.cardB)},
+                                     {QStringLiteral("identifying"), rel.identifying},
+                                     {QStringLiteral("label"), rel.label},
+                                     {QStringLiteral("roleA"), rel.roleA},
+                                     {QStringLiteral("roleB"), rel.roleB}});
   }
   return {{QStringLiteral("direction"), input.direction},
           {QStringLiteral("entities"), entities},

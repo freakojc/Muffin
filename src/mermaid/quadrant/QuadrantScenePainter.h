@@ -17,7 +17,6 @@ namespace muffin::mermaid::quadrant {
 
 struct QuadrantScene;
 
-void paintQuadrantScene(const QuadrantScene& scene, QPainter& painter,
-                        const MermaidPaintOptions& options);
+void paintQuadrantScene(const QuadrantScene& scene, QPainter& painter, const MermaidPaintOptions& options);
 
-}  // namespace muffin::mermaid::quadrant
+} // namespace muffin::mermaid::quadrant

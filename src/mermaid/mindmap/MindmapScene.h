@@ -118,14 +118,11 @@ struct MindmapEdgeGeometry {
 struct MindmapScene : MermaidScene {
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override {
-    return QRectF(bounds.topLeft(), QSizeF(qRound(bounds.width()),
-                                           qRound(bounds.height())));
+    return QRectF(bounds.topLeft(), QSizeF(qRound(bounds.width()), qRound(bounds.height())));
   }
   void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
-  const QVector<InteractionRegion>& interactionRegions() const override {
-    return interactions;
-  }
+  const QVector<InteractionRegion>& interactionRegions() const override { return interactions; }
 
   QRectF bounds;
   QRectF contentBounds;
@@ -138,7 +135,6 @@ struct MindmapScene : MermaidScene {
   QVector<InteractionRegion> interactions;
 };
 
-MindmapScene buildMindmapScene(const MindmapData& data, MindmapConfig config,
-                               MindmapSceneStyle style);
+MindmapScene buildMindmapScene(const MindmapData& data, MindmapConfig config, MindmapSceneStyle style);
 
-}  // namespace muffin::mermaid::mindmap
+} // namespace muffin::mermaid::mindmap

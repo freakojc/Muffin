@@ -16,13 +16,14 @@ namespace {
 // Stop values are pre-resolved at map time, so no var table is needed here.
 const QHash<QString, QString> kNoVars;
 
-qreal lerp(qreal a, qreal b, qreal t) { return a + (b - a) * t; }
+qreal lerp(qreal a, qreal b, qreal t) {
+  return a + (b - a) * t;
+}
 
 QColor lerpColor(const QColor& a, const QColor& b, qreal t) {
-  return QColor(qBound(0, qRound(lerp(a.red(), b.red(), t)), 255),
-                qBound(0, qRound(lerp(a.green(), b.green(), t)), 255),
-                qBound(0, qRound(lerp(a.blue(), b.blue(), t)), 255),
-                qBound(0, qRound(lerp(a.alpha(), b.alpha(), t)), 255));
+  return QColor(
+      qBound(0, qRound(lerp(a.red(), b.red(), t)), 255), qBound(0, qRound(lerp(a.green(), b.green(), t)), 255),
+      qBound(0, qRound(lerp(a.blue(), b.blue(), t)), 255), qBound(0, qRound(lerp(a.alpha(), b.alpha(), t)), 255));
 }
 
 qreal opacityOf(const QString& raw) {
@@ -33,9 +34,12 @@ qreal opacityOf(const QString& raw) {
 
 // Parse the scale factor out of `transform: scale(N)` / `scale(Nx, Ny)`.
 qreal scaleOf(const QString& raw) {
-  static const QRegularExpression re(QStringLiteral("scale\\(\\s*([0-9.]+)"), QRegularExpression::CaseInsensitiveOption);
+  static const QRegularExpression re(QStringLiteral("scale\\(\\s*([0-9.]+)"),
+                                     QRegularExpression::CaseInsensitiveOption);
   const QRegularExpressionMatch m = re.match(raw.trimmed());
-  if (!m.hasMatch()) { return 1.0; }
+  if (!m.hasMatch()) {
+    return 1.0;
+  }
   bool ok = false;
   const qreal v = m.captured(1).toDouble(&ok);
   return ok ? v : 1.0;
@@ -47,31 +51,45 @@ qreal shadowBlurOf(const QString& raw) {
   QVector<qreal> nums;
   for (const QString& p : parts) {
     const QString t = p.trimmed();
-    if (t.isEmpty()) { continue; }
-    if (!(t.at(0).isDigit() || t.at(0) == QLatin1Char('+') || t.at(0) == QLatin1Char('-') || t.at(0) == QLatin1Char('.'))) {
+    if (t.isEmpty()) {
+      continue;
+    }
+    if (!(t.at(0).isDigit() || t.at(0) == QLatin1Char('+') || t.at(0) == QLatin1Char('-') ||
+          t.at(0) == QLatin1Char('.'))) {
       continue;
     }
     nums.append(CssThemeMapper::resolveLengthPx(t, kNoVars));
   }
-  if (nums.size() >= 3) { return nums.at(2); }
-  if (nums.size() >= 2) { return 8.0; }
+  if (nums.size() >= 3) {
+    return nums.at(2);
+  }
+  if (nums.size() >= 2) {
+    return 8.0;
+  }
   return 0.0;
 }
 
-}  // namespace
+} // namespace
 
 AnimatedSample sampleAtPhase(const KeyframesDef& kf, qreal phase) {
   AnimatedSample s;
-  if (kf.stops.empty()) { return s; }
+  if (kf.stops.empty()) {
+    return s;
+  }
   phase = qBound(qreal(0.0), phase, qreal(1.0));
   // Surrounding stops: lo = last stop at/before phase, hi = first stop at/after.
   const KeyframeStop* lo = &kf.stops.front();
   const KeyframeStop* hi = &kf.stops.back();
   for (const auto& stop : kf.stops) {
-    if (stop.position <= phase) { lo = &stop; }
+    if (stop.position <= phase) {
+      lo = &stop;
+    }
   }
   for (const auto& stop : kf.stops) {
-    if (stop.position >= phase) { hi = &stop; break; }
+    if (stop.position >= phase) {
+      hi = &stop;
+      break;
+    }
   }
   const qreal span = hi->position - lo->position;
   const qreal t = span > 0.0 ? (phase - lo->position) / span : 0.0;
@@ -91,8 +109,12 @@ AnimatedSample sampleAtPhase(const KeyframesDef& kf, qreal phase) {
   if (loShadow || hiShadow) {
     QColor ca = loShadow ? CssThemeMapper::resolveColor(lo->declarations.value(kShadow), kNoVars) : QColor();
     QColor cb = hiShadow ? CssThemeMapper::resolveColor(hi->declarations.value(kShadow), kNoVars) : QColor();
-    if (!ca.isValid()) { ca = cb; }
-    if (!cb.isValid()) { cb = ca; }
+    if (!ca.isValid()) {
+      ca = cb;
+    }
+    if (!cb.isValid()) {
+      cb = ca;
+    }
     if (ca.isValid()) {
       const qreal ba = loShadow ? shadowBlurOf(lo->declarations.value(kShadow)) : 0.0;
       const qreal bb = hiShadow ? shadowBlurOf(hi->declarations.value(kShadow)) : 0.0;
@@ -117,5 +139,5 @@ AnimatedSample sampleAtPhase(const KeyframesDef& kf, qreal phase) {
   return s;
 }
 
-}  // namespace KeyframeSampler
-}  // namespace muffin
+} // namespace KeyframeSampler
+} // namespace muffin

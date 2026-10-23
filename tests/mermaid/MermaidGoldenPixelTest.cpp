@@ -35,8 +35,14 @@
 using namespace muffin::mermaid;
 
 namespace {
-[[noreturn]] void fail(const QString& message) { qCritical().noquote() << message; std::exit(1); }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+[[noreturn]] void fail(const QString& message) {
+  qCritical().noquote() << message;
+  std::exit(1);
+}
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 
 flowtheme::FlowThemeId themeId(const QString& name) {
   static const QHash<QString, flowtheme::FlowThemeId> map = {
@@ -62,36 +68,35 @@ qreal fontPixelSize(const QString& value) {
   return match.hasMatch() ? match.captured(1).toDouble() : 16.0;
 }
 QColor cssRgb(const QString& value) {
-  static const QRegularExpression rgb(
-      QStringLiteral(R"(^rgb\((\d+),\s*(\d+),\s*(\d+)\)$)"));
+  static const QRegularExpression rgb(QStringLiteral(R"(^rgb\((\d+),\s*(\d+),\s*(\d+)\)$)"));
   const auto match = rgb.match(value);
   require(match.hasMatch(), QStringLiteral("Invalid computed CSS color: %1").arg(value));
-  return QColor(match.captured(1).toInt(), match.captured(2).toInt(),
-                match.captured(3).toInt());
+  return QColor(match.captured(1).toInt(), match.captured(2).toInt(), match.captured(3).toInt());
 }
 
 QByteArray fileSha256(const QString& path) {
   QFile file(path);
-  if (!file.open(QIODevice::ReadOnly)) return {};
-  return QCryptographicHash::hash(file.readAll(),
-                                  QCryptographicHash::Sha256).toHex();
+  if (!file.open(QIODevice::ReadOnly))
+    return {};
+  return QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex();
 }
 
 QRect alphaBounds(const QImage& image, int threshold = 32) {
   int left = image.width(), top = image.height(), right = -1, bottom = -1;
   for (int y = 0; y < image.height(); ++y) {
     for (int x = 0; x < image.width(); ++x) {
-      if (qAlpha(image.pixel(x, y)) < threshold) continue;
-      left = std::min(left, x); top = std::min(top, y);
-      right = std::max(right, x); bottom = std::max(bottom, y);
+      if (qAlpha(image.pixel(x, y)) < threshold)
+        continue;
+      left = std::min(left, x);
+      top = std::min(top, y);
+      right = std::max(right, x);
+      bottom = std::max(bottom, y);
     }
   }
-  return right < left ? QRect() : QRect(left, top, right - left + 1,
-                                        bottom - top + 1);
+  return right < left ? QRect() : QRect(left, top, right - left + 1, bottom - top + 1);
 }
 
-qreal alignedAlphaCoverage(const QImage& native, const QImage& browser,
-                           qreal dpr) {
+qreal alignedAlphaCoverage(const QImage& native, const QImage& browser, qreal dpr) {
   constexpr int inkAlpha = 64;
   const int radius = static_cast<int>(std::ceil(4.0 * dpr));
   const int tolerance = std::max(1, static_cast<int>(std::ceil(dpr)));
@@ -99,8 +104,7 @@ qreal alignedAlphaCoverage(const QImage& native, const QImage& browser,
     for (int oy = -tolerance; oy <= tolerance; ++oy)
       for (int ox = -tolerance; ox <= tolerance; ++ox) {
         const int sx = x + ox, sy = y + oy;
-        if (sx >= 0 && sx < image.width() && sy >= 0 && sy < image.height() &&
-            qAlpha(image.pixel(sx, sy)) >= inkAlpha)
+        if (sx >= 0 && sx < image.width() && sy >= 0 && sy < image.height() && qAlpha(image.pixel(sx, sy)) >= inkAlpha)
           return true;
       }
     return false;
@@ -115,7 +119,8 @@ qreal alignedAlphaCoverage(const QImage& native, const QImage& browser,
           const bool a = qAlpha(native.pixel(x, y)) >= inkAlpha;
           if (a) {
             ++nativeInk;
-            if (inkNear(browser, x + dx, y + dy)) ++nativeMatched;
+            if (inkNear(browser, x + dx, y + dy))
+              ++nativeMatched;
           }
         }
       }
@@ -124,25 +129,23 @@ qreal alignedAlphaCoverage(const QImage& native, const QImage& browser,
           const bool b = qAlpha(browser.pixel(x, y)) >= inkAlpha;
           if (b) {
             ++browserInk;
-            if (inkNear(native, x - dx, y - dy)) ++browserMatched;
+            if (inkNear(native, x - dx, y - dy))
+              ++browserMatched;
           }
         }
       }
       if (nativeInk > 0 && browserInk > 0)
-        best = std::max(best, std::min(qreal(nativeMatched) / nativeInk,
-                                      qreal(browserMatched) / browserInk));
+        best = std::max(best, std::min(qreal(nativeMatched) / nativeInk, qreal(browserMatched) / browserInk));
     }
   }
   return best;
 }
 
-QImage renderFlowMathLabelCrop(const flowscene::FlowSceneLabel& label,
-                               const QSize& physicalSize,
+QImage renderFlowMathLabelCrop(const flowscene::FlowSceneLabel& label, const QSize& physicalSize,
                                const QString& fallbackFamily, qreal dpr) {
   QImage image(physicalSize, QImage::Format_ARGB32_Premultiplied);
   image.fill(Qt::transparent);
-  const QString family = label.fontFamily.isEmpty() ? fallbackFamily
-                                                     : label.fontFamily;
+  const QString family = label.fontFamily.isEmpty() ? fallbackFamily : label.fontFamily;
   QFont font(family);
   MermaidFontRegistry::configureFont(font, family);
   font.setPixelSize(static_cast<int>(std::round(fontPixelSize(label.fontSize))));
@@ -150,21 +153,19 @@ QImage renderFlowMathLabelCrop(const flowscene::FlowSceneLabel& label,
   painter.setRenderHint(QPainter::Antialiasing);
   painter.setRenderHint(QPainter::TextAntialiasing);
   painter.scale(dpr, dpr);
-  flowchart::paintFlowLabel(
-      painter, label.richText,
-      QRectF(0.0, 0.0, physicalSize.width() / dpr,
-             physicalSize.height() / dpr),
-      font.family(), font.pixelSize(), font.pixelSize() * 1.5,
-      Qt::white, true);
+  flowchart::paintFlowLabel(painter, label.richText,
+                            QRectF(0.0, 0.0, physicalSize.width() / dpr, physicalSize.height() / dpr), font.family(),
+                            font.pixelSize(), font.pixelSize() * 1.5, Qt::white, true);
   painter.end();
   return image;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QGuiApplication app(argc, argv);
 #if defined(Q_OS_LINUX)
-  qWarning("skipped on Linux: raster goldens were captured against Windows-Chrome PNGs; the bundled Noto faces ARE registered cross-platform via the Qt resource, and geometry uses OpenType design metrics, but FreeType antialiasing/hinting still produces different edge pixels than the committed DirectWrite-rasterized references. Closure requires regenerating (or dual-sourcing) the browser goldens on Linux - a platform-infrastructure task, not a code change.");
+  qWarning(
+      "skipped on Linux: raster goldens were captured against Windows-Chrome PNGs; the bundled Noto faces ARE registered cross-platform via the Qt resource, and geometry uses OpenType design metrics, but FreeType antialiasing/hinting still produces different edge pixels than the committed DirectWrite-rasterized references. Closure requires regenerating (or dual-sourcing) the browser goldens on Linux - a platform-infrastructure task, not a code change.");
   return 0;
 #endif
 #if defined(Q_OS_WINDOWS)
@@ -186,10 +187,8 @@ int main(int argc, char** argv) {
   require(file.open(QIODevice::ReadOnly), QStringLiteral("Could not open golden-pixel manifest"));
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
   const QJsonObject fontContract = root.value(QStringLiteral("font")).toObject();
-  require(fontContract.value(QStringLiteral("mathFamily")).toString() ==
-                  QLatin1String("STIX Two Math") &&
-              fontContract.value(QStringLiteral("mathSource")).toString() ==
-                  QLatin1String("third_party/stix"),
+  require(fontContract.value(QStringLiteral("mathFamily")).toString() == QLatin1String("STIX Two Math") &&
+              fontContract.value(QStringLiteral("mathSource")).toString() == QLatin1String("third_party/stix"),
           QStringLiteral("Golden-pixel Math font contract drifted"));
   require(root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
               QLatin1String("11.16.0"),
@@ -233,28 +232,25 @@ int main(int argc, char** argv) {
     if (id.startsWith(QStringLiteral("theme-")))
       coveredThemes.insert(fixture.value(QStringLiteral("theme")).toString());
     const qreal dpr = fixture.value(QStringLiteral("dpr")).toDouble(1.0);
-    if (dpr > 1.0) ++highDpiCases;
+    if (dpr > 1.0)
+      ++highDpiCases;
     sawCjk = sawCjk || id.contains(QStringLiteral("cjk"));
     sawBidi = sawBidi || id.contains(QStringLiteral("bidi"));
     if (id.contains(QStringLiteral("animated"))) {
-      require(fixture.value(QStringLiteral("animationState")).toString() ==
-                  QLatin1String("initial"),
+      require(fixture.value(QStringLiteral("animationState")).toString() == QLatin1String("initial"),
               QStringLiteral("Case %1: animated golden must declare a deterministic state").arg(id));
       sawDeterministicAnimation = true;
     }
     const QString source = fixture.value(QStringLiteral("source")).toString();
-    const bool fixedNoto = fixture.value(QStringLiteral("fontMode")).toString() ==
-                           QLatin1String("noto");
-    const QString renderFamily = fixedNoto ? MermaidFontRegistry::primaryFamily()
-                                            : QStringLiteral("Arial");
+    const bool fixedNoto = fixture.value(QStringLiteral("fontMode")).toString() == QLatin1String("noto");
+    const QString renderFamily = fixedNoto ? MermaidFontRegistry::primaryFamily() : QStringLiteral("Arial");
     if (fixedNoto) {
       ++fixedNotoCases;
       if (fixture.value(QStringLiteral("look")).toString() != QLatin1String("handDrawn"))
         require(fixture.value(QStringLiteral("enforceInterior")).toBool(true) &&
                     !fixture.contains(QStringLiteral("textGlyphIou")) &&
                     !fixture.contains(QStringLiteral("emptyMaxMismatchRatio")),
-                QStringLiteral("Case %1: bundled Noto oracle must use uniform strict thresholds")
-                    .arg(id));
+                QStringLiteral("Case %1: bundled Noto oracle must use uniform strict thresholds").arg(id));
     }
     if (id == QLatin1String("font-system-fallback-mixed")) {
       ++systemFallbackCases;
@@ -264,46 +260,48 @@ int main(int argc, char** argv) {
     if (id.startsWith(QStringLiteral("look-neo-shapes-"))) {
       static const QRegularExpression shapePattern(QStringLiteral(R"(shape:\s*([\w-]+))"));
       auto matches = shapePattern.globalMatch(source);
-      while (matches.hasNext()) neoShapes.insert(matches.next().captured(1));
+      while (matches.hasNext())
+        neoShapes.insert(matches.next().captured(1));
     }
     if (id.startsWith(QStringLiteral("look-neo-dark-shapes-"))) {
       static const QRegularExpression shapePattern(QStringLiteral(R"(shape:\s*([\w-]+))"));
       auto matches = shapePattern.globalMatch(source);
-      while (matches.hasNext()) neoDarkShapes.insert(matches.next().captured(1));
+      while (matches.hasNext())
+        neoDarkShapes.insert(matches.next().captured(1));
       neoDarkShapeDprs.insert(dpr);
     }
-    if (id.startsWith(QStringLiteral("look-neo-dark-cluster-"))) ++neoDarkClusterCases;
+    if (id.startsWith(QStringLiteral("look-neo-dark-cluster-")))
+      ++neoDarkClusterCases;
     if (id.startsWith(QStringLiteral("look-redux")))
       reduxStructureThemes.insert(fixture.value(QStringLiteral("theme")).toString());
-    const flowchart::FlowLook look = flowchart::parseFlowLook(
-        fixture.value(QStringLiteral("look")).toString(QStringLiteral("classic")));
-    if (look == flowchart::FlowLook::Neo) ++neoLookCases;
+    const flowchart::FlowLook look =
+        flowchart::parseFlowLook(fixture.value(QStringLiteral("look")).toString(QStringLiteral("classic")));
+    if (look == flowchart::FlowLook::Neo)
+      ++neoLookCases;
     if (id.startsWith(QStringLiteral("look-hand-drawn-"))) {
       ++handDrawnCases;
       handDrawnSeeds.insert(fixture.value(QStringLiteral("handDrawnSeed")).toInt());
       handDrawnDprs.insert(dpr);
-      static const QRegularExpression directionPattern(
-          QStringLiteral(R"(^flowchart\s+(TB|BT|LR|RL))"));
+      static const QRegularExpression directionPattern(QStringLiteral(R"(^flowchart\s+(TB|BT|LR|RL))"));
       const auto directionMatch = directionPattern.match(source);
-      if (directionMatch.hasMatch()) handDrawnDirections.insert(directionMatch.captured(1));
+      if (directionMatch.hasMatch())
+        handDrawnDirections.insert(directionMatch.captured(1));
       if (id.startsWith(QStringLiteral("look-hand-drawn-shapes-"))) {
         static const QRegularExpression shapePattern(QStringLiteral(R"(shape:\s*([\w-]+))"));
         auto matches = shapePattern.globalMatch(source);
-        while (matches.hasNext()) handDrawnShapes.insert(matches.next().captured(1));
+        while (matches.hasNext())
+          handDrawnShapes.insert(matches.next().captured(1));
       }
       if (id == QLatin1String("look-hand-drawn-cluster-self-marker-cjk-bidi-2x"))
         sawHandDrawnComposite = source.contains(QStringLiteral("subgraph")) &&
-                                 source.contains(QStringLiteral("--> A")) &&
-                                 source.contains(QStringLiteral("o--o"));
-      require(look == flowchart::FlowLook::HandDrawn &&
-                  fixture.value(QStringLiteral("handDrawnSeed")).toInt() > 0,
+                                source.contains(QStringLiteral("--> A")) && source.contains(QStringLiteral("o--o"));
+      require(look == flowchart::FlowLook::HandDrawn && fixture.value(QStringLiteral("handDrawnSeed")).toInt() > 0,
               QStringLiteral("Case %1: handDrawn look/seed metadata drifted").arg(id));
     }
     const flowchart::Flowchart chart = flowchart::Flowchart::parse(source);
     const flowtheme::FlowThemeVariables theme = flowtheme::resolveFlowTheme(
         themeId(fixture.value(QStringLiteral("theme")).toString()),
-        {{QStringLiteral("fontFamily"), fixedNoto ? MermaidFontRegistry::cssFamilyStack()
-                                                   : QStringLiteral("Arial")}});
+        {{QStringLiteral("fontFamily"), fixedNoto ? MermaidFontRegistry::cssFamilyStack() : QStringLiteral("Arial")}});
     flowchart::FlowTextOptions textOptions;
     textOptions.fontFamily = renderFamily;
     textOptions.fontPixelSize = fontPixelSize(theme.fontSize);
@@ -315,66 +313,45 @@ int main(int argc, char** argv) {
     options.look = look;
     for (const flowchart::FlowEdge& e : chart.data().edges) {
       if (!e.text.isEmpty()) {
-        const flowchart::FlowEdgeLabelLayout prepared =
-            flowchart::layoutFlowchartEdgeLabel(e, textOptions);
+        const flowchart::FlowEdgeLabelLayout prepared = flowchart::layoutFlowchartEdgeLabel(e, textOptions);
         options.measuredEdgeLabels.insert(e.id, prepared.size);
         options.preparedEdgeLabels.insert(e.id, prepared);
       }
     }
     for (const flowchart::FlowSubgraph& subgraph : chart.data().subgraphs)
       if (!subgraph.title.isEmpty())
-        options.measuredClusterLabels.insert(
-            subgraph.id,
-            flowchart::measureFlowchartClusterLabel(subgraph, textOptions));
+        options.measuredClusterLabels.insert(subgraph.id,
+                                             flowchart::measureFlowchartClusterLabel(subgraph, textOptions));
     const flowchart::FlowLayoutResult layout = flowchart::layoutFlowchartNodes(chart.data(), sizes, options);
-    const flowscene::FlowScene scene = flowscene::buildFlowScene(
-        chart.data(), layout, theme, look,
-        static_cast<quint32>(fixture.value(QStringLiteral("handDrawnSeed")).toInt()));
+    const flowscene::FlowScene scene =
+        flowscene::buildFlowScene(chart.data(), layout, theme, look,
+                                  static_cast<quint32>(fixture.value(QStringLiteral("handDrawnSeed")).toInt()));
     if (fixture.contains(QStringLiteral("mathCropFile"))) {
-      const auto node = std::find_if(
-          scene.nodes.cbegin(), scene.nodes.cend(), [](const auto& candidate) {
-            return !candidate.label.richText.formats.isEmpty() ||
-                   !candidate.label.richText.math.isEmpty();
-          });
-      require(node != scene.nodes.cend(),
-              QStringLiteral("Case %1: native Math label is missing").arg(id));
-      require(std::all_of(
-                  node->label.richText.math.cbegin(),
-                  node->label.richText.math.cend(), [](const auto& span) {
-                    return static_cast<bool>(span.prepared);
-                  }),
-              QStringLiteral("Case %1: flowchart Math was not prepared in the scene")
-                  .arg(id));
-      const QString cropPath = dir.filePath(
-          fixture.value(QStringLiteral("mathCropFile")).toString());
-      require(fileSha256(cropPath) ==
-                  fixture.value(QStringLiteral("mathCropSha256"))
-                      .toString().toLatin1(),
+      const auto node = std::find_if(scene.nodes.cbegin(), scene.nodes.cend(), [](const auto& candidate) {
+        return !candidate.label.richText.formats.isEmpty() || !candidate.label.richText.math.isEmpty();
+      });
+      require(node != scene.nodes.cend(), QStringLiteral("Case %1: native Math label is missing").arg(id));
+      require(std::all_of(node->label.richText.math.cbegin(), node->label.richText.math.cend(),
+                          [](const auto& span) { return static_cast<bool>(span.prepared); }),
+              QStringLiteral("Case %1: flowchart Math was not prepared in the scene").arg(id));
+      const QString cropPath = dir.filePath(fixture.value(QStringLiteral("mathCropFile")).toString());
+      require(fileSha256(cropPath) == fixture.value(QStringLiteral("mathCropSha256")).toString().toLatin1(),
               QStringLiteral("Case %1: Math crop hash drifted").arg(id));
       const QImage browserCrop(cropPath);
-      require(!browserCrop.isNull(),
-              QStringLiteral("Case %1: Math crop is missing").arg(id));
-      const QImage nativeCrop = renderFlowMathLabelCrop(
-          node->label, browserCrop.size(), renderFamily, dpr);
-      const auto nativeLabelLayout = flowchart::layoutFlowLabel(
-          node->label.richText, renderFamily, textOptions.fontPixelSize,
-          textOptions.lineHeight);
+      require(!browserCrop.isNull(), QStringLiteral("Case %1: Math crop is missing").arg(id));
+      const QImage nativeCrop = renderFlowMathLabelCrop(node->label, browserCrop.size(), renderFamily, dpr);
+      const auto nativeLabelLayout = flowchart::layoutFlowLabel(node->label.richText, renderFamily,
+                                                                textOptions.fontPixelSize, textOptions.lineHeight);
       const QJsonObject browserMathBox =
-          fixture.value(QStringLiteral("content")).toObject()
-              .value(QStringLiteral("mathBox")).toObject();
-      require(!browserMathBox.isEmpty(),
-              QStringLiteral("Case %1: browser Math box is missing").arg(id));
-      const qreal browserMathWidth =
-          browserMathBox.value(QStringLiteral("width")).toDouble();
-      const qreal browserLineHeight = std::max(
-          textOptions.lineHeight,
-          browserMathBox.value(QStringLiteral("height")).toDouble());
+          fixture.value(QStringLiteral("content")).toObject().value(QStringLiteral("mathBox")).toObject();
+      require(!browserMathBox.isEmpty(), QStringLiteral("Case %1: browser Math box is missing").arg(id));
+      const qreal browserMathWidth = browserMathBox.value(QStringLiteral("width")).toDouble();
+      const qreal browserLineHeight =
+          std::max(textOptions.lineHeight, browserMathBox.value(QStringLiteral("height")).toDouble());
       require(browserMathWidth > 0.0 && browserLineHeight > 0.0,
               QStringLiteral("Case %1: browser Math box is empty").arg(id));
-      if (fixture.value(QStringLiteral("mathCropKind")).toString() ==
-          QLatin1String("array")) {
-        const qreal browserArrayHeight =
-            browserMathBox.value(QStringLiteral("height")).toDouble();
+      if (fixture.value(QStringLiteral("mathCropKind")).toString() == QLatin1String("array")) {
+        const qreal browserArrayHeight = browserMathBox.value(QStringLiteral("height")).toDouble();
         require(std::abs(nativeLabelLayout.size.width() - browserMathWidth) <= 0.25 &&
                     std::abs(nativeLabelLayout.size.height() - browserArrayHeight) <= 0.25,
                 QStringLiteral("Case %1: Array DOM box drifted: %2x%3 vs %4x%5")
@@ -388,82 +365,62 @@ int main(int argc, char** argv) {
       const QRect browserInk = alphaBounds(browserCrop);
       require(!nativeInk.isEmpty() && !browserInk.isEmpty(),
               QStringLiteral("Case %1: Math crop rendered blank").arg(id));
-      const qreal widthDrift = qreal(std::abs(nativeInk.width() - browserInk.width())) /
-                               browserInk.width();
+      const qreal widthDrift = qreal(std::abs(nativeInk.width() - browserInk.width())) / browserInk.width();
       const qreal coverage = alignedAlphaCoverage(nativeCrop, browserCrop, dpr);
-      qDebug().noquote() << id << "flow-math-crop" << nativeCrop.size()
-                         << nativeInk << browserInk << "coverage" << coverage;
-      require(widthDrift <= 0.15 &&
-                  std::abs(nativeInk.height() - browserInk.height()) <=
-                      std::ceil(4.0 * dpr),
+      qDebug().noquote() << id << "flow-math-crop" << nativeCrop.size() << nativeInk << browserInk << "coverage"
+                         << coverage;
+      require(widthDrift <= 0.15 && std::abs(nativeInk.height() - browserInk.height()) <= std::ceil(4.0 * dpr),
               QStringLiteral("Case %1: Math crop ink bounds drifted: %2x%3 vs %4x%5")
-                  .arg(id).arg(nativeInk.width()).arg(nativeInk.height())
-                  .arg(browserInk.width()).arg(browserInk.height()));
-      require(coverage >= 0.78,
-              QStringLiteral("Case %1: Math crop coverage too low: %2")
-                  .arg(id).arg(coverage));
-      mathCropKinds.insert(
-          fixture.value(QStringLiteral("mathCropKind")).toString());
+                  .arg(id)
+                  .arg(nativeInk.width())
+                  .arg(nativeInk.height())
+                  .arg(browserInk.width())
+                  .arg(browserInk.height()));
+      require(coverage >= 0.78, QStringLiteral("Case %1: Math crop coverage too low: %2").arg(id).arg(coverage));
+      mathCropKinds.insert(fixture.value(QStringLiteral("mathCropKind")).toString());
     }
     if (fixture.contains(QStringLiteral("labelCropFile"))) {
-      const QString cropTarget =
-          fixture.value(QStringLiteral("labelCropTarget")).toString(
-              QStringLiteral("node"));
+      const QString cropTarget = fixture.value(QStringLiteral("labelCropTarget")).toString(QStringLiteral("node"));
       const flowscene::FlowSceneLabel* cropLabel = nullptr;
       if (cropTarget == QLatin1String("edge")) {
-        const auto edge = std::find_if(
-            scene.edges.cbegin(), scene.edges.cend(), [](const auto& candidate) {
-              return !candidate.label.text.isEmpty();
-            });
-        if (edge != scene.edges.cend()) cropLabel = &edge->label;
+        const auto edge = std::find_if(scene.edges.cbegin(), scene.edges.cend(),
+                                       [](const auto& candidate) { return !candidate.label.text.isEmpty(); });
+        if (edge != scene.edges.cend())
+          cropLabel = &edge->label;
       } else if (cropTarget == QLatin1String("cluster")) {
-        const auto cluster = std::find_if(
-            scene.clusters.cbegin(), scene.clusters.cend(), [](const auto& candidate) {
-              return !candidate.label.text.isEmpty();
-            });
-        if (cluster != scene.clusters.cend()) cropLabel = &cluster->label;
+        const auto cluster = std::find_if(scene.clusters.cbegin(), scene.clusters.cend(),
+                                          [](const auto& candidate) { return !candidate.label.text.isEmpty(); });
+        if (cluster != scene.clusters.cend())
+          cropLabel = &cluster->label;
       } else {
         require(cropTarget == QLatin1String("node"),
-                QStringLiteral("Case %1: unknown label crop target %2")
-                    .arg(id, cropTarget));
-        if (!scene.nodes.isEmpty()) cropLabel = &scene.nodes.first().label;
+                QStringLiteral("Case %1: unknown label crop target %2").arg(id, cropTarget));
+        if (!scene.nodes.isEmpty())
+          cropLabel = &scene.nodes.first().label;
       }
-      require(cropLabel != nullptr,
-              QStringLiteral("Case %1: native label crop target is missing").arg(id));
-      const QString cropPath = dir.filePath(
-          fixture.value(QStringLiteral("labelCropFile")).toString());
-      require(fileSha256(cropPath) ==
-                  fixture.value(QStringLiteral("labelCropSha256"))
-                      .toString().toLatin1(),
+      require(cropLabel != nullptr, QStringLiteral("Case %1: native label crop target is missing").arg(id));
+      const QString cropPath = dir.filePath(fixture.value(QStringLiteral("labelCropFile")).toString());
+      require(fileSha256(cropPath) == fixture.value(QStringLiteral("labelCropSha256")).toString().toLatin1(),
               QStringLiteral("Case %1: label crop hash drifted").arg(id));
       const QImage browserCrop(cropPath);
-      require(!browserCrop.isNull(),
-              QStringLiteral("Case %1: label crop is missing").arg(id));
-      const QImage nativeCrop = renderFlowMathLabelCrop(
-          *cropLabel, browserCrop.size(), renderFamily, dpr);
-      const auto nativeLabelLayout = flowchart::layoutFlowLabel(
-          cropLabel->richText, renderFamily, textOptions.fontPixelSize,
-          textOptions.lineHeight);
+      require(!browserCrop.isNull(), QStringLiteral("Case %1: label crop is missing").arg(id));
+      const QImage nativeCrop = renderFlowMathLabelCrop(*cropLabel, browserCrop.size(), renderFamily, dpr);
+      const auto nativeLabelLayout = flowchart::layoutFlowLabel(cropLabel->richText, renderFamily,
+                                                                textOptions.fontPixelSize, textOptions.lineHeight);
       const QJsonObject browserLabelBox =
-          fixture.value(QStringLiteral("content")).toObject()
-              .value(QStringLiteral("labelBox")).toObject();
+          fixture.value(QStringLiteral("content")).toObject().value(QStringLiteral("labelBox")).toObject();
       const QRect nativeInk = alphaBounds(nativeCrop);
       const QRect browserInk = alphaBounds(browserCrop);
       require(!nativeInk.isEmpty() && !browserInk.isEmpty(),
               QStringLiteral("Case %1: label crop rendered blank").arg(id));
-      const qreal widthDrift = qreal(std::abs(nativeInk.width() - browserInk.width())) /
-                               browserInk.width();
+      const qreal widthDrift = qreal(std::abs(nativeInk.width() - browserInk.width())) / browserInk.width();
       const qreal coverage = alignedAlphaCoverage(nativeCrop, browserCrop, dpr);
-      qDebug().noquote() << id << "flow-label-crop" << nativeCrop.size()
-                         << nativeInk << browserInk << "coverage" << coverage
-                         << "layout" << nativeLabelLayout.size
-                         << "font" << textOptions.fontPixelSize
-                         << cropLabel->fontSize
-                         << "browser-box"
+      qDebug().noquote() << id << "flow-label-crop" << nativeCrop.size() << nativeInk << browserInk << "coverage"
+                         << coverage << "layout" << nativeLabelLayout.size << "font" << textOptions.fontPixelSize
+                         << cropLabel->fontSize << "browser-box"
                          << browserLabelBox.value(QStringLiteral("width")).toDouble()
                          << browserLabelBox.value(QStringLiteral("height")).toDouble();
-      const QString cropKind =
-          fixture.value(QStringLiteral("labelCropKind")).toString();
+      const QString cropKind = fixture.value(QStringLiteral("labelCropKind")).toString();
       static const QHash<QString, qreal> minimumCoverage = {
           {QStringLiteral("html-math"), 0.94},
           {QStringLiteral("markdown-math"), 0.97},
@@ -482,47 +439,46 @@ int main(int argc, char** argv) {
           {QStringLiteral("cluster-markdown-bidi"), 0.78},
       };
       require(minimumCoverage.contains(cropKind),
-              QStringLiteral("Case %1: unknown label crop kind %2")
-                  .arg(id, cropKind));
+              QStringLiteral("Case %1: unknown label crop kind %2").arg(id, cropKind));
       const bool rtlCrop = cropKind.startsWith(QLatin1String("rtl-"));
       if (coverage < minimumCoverage.value(cropKind)) {
         QDir().mkpath(failDir);
-        nativeCrop.save(failDir + QLatin1Char('/') + id +
-                        QStringLiteral("-label-native.png"));
-        browserCrop.save(failDir + QLatin1Char('/') + id +
-                         QStringLiteral("-label-browser.png"));
+        nativeCrop.save(failDir + QLatin1Char('/') + id + QStringLiteral("-label-native.png"));
+        browserCrop.save(failDir + QLatin1Char('/') + id + QStringLiteral("-label-browser.png"));
       }
       require(widthDrift <= 0.04 &&
-                  std::abs(nativeInk.height() - browserInk.height()) <=
-                      std::ceil((rtlCrop ? 4.0 : 3.0) * dpr),
+                  std::abs(nativeInk.height() - browserInk.height()) <= std::ceil((rtlCrop ? 4.0 : 3.0) * dpr),
               QStringLiteral("Case %1: label crop ink bounds drifted: %2x%3 vs %4x%5")
-                  .arg(id).arg(nativeInk.width()).arg(nativeInk.height())
-                  .arg(browserInk.width()).arg(browserInk.height()));
+                  .arg(id)
+                  .arg(nativeInk.width())
+                  .arg(nativeInk.height())
+                  .arg(browserInk.width())
+                  .arg(browserInk.height()));
       require(coverage >= minimumCoverage.value(cropKind),
               QStringLiteral("Case %1: label crop coverage too low: %2 < %3")
-                  .arg(id).arg(coverage).arg(minimumCoverage.value(cropKind)));
-      const QJsonArray browserLines = browserLabelBox
-          .value(QStringLiteral("lines")).toArray();
+                  .arg(id)
+                  .arg(coverage)
+                  .arg(minimumCoverage.value(cropKind)));
+      const QJsonArray browserLines = browserLabelBox.value(QStringLiteral("lines")).toArray();
       if (cropTarget != QLatin1String("node")) {
-        const int expectedLineCount =
-            fixture.value(QStringLiteral("expectedLineCount")).toInt();
-        require(expectedLineCount > 0 &&
-                    browserLines.size() == expectedLineCount &&
+        const int expectedLineCount = fixture.value(QStringLiteral("expectedLineCount")).toInt();
+        require(expectedLineCount > 0 && browserLines.size() == expectedLineCount &&
                     nativeLabelLayout.lines.size() == expectedLineCount,
                 QStringLiteral("Case %1: label line count drifted: native=%2 browser=%3 expected=%4")
-                    .arg(id).arg(nativeLabelLayout.lines.size())
-                    .arg(browserLines.size()).arg(expectedLineCount));
-        for (qsizetype lineIndex = 0;
-             lineIndex < nativeLabelLayout.lines.size(); ++lineIndex) {
+                    .arg(id)
+                    .arg(nativeLabelLayout.lines.size())
+                    .arg(browserLines.size())
+                    .arg(expectedLineCount));
+        for (qsizetype lineIndex = 0; lineIndex < nativeLabelLayout.lines.size(); ++lineIndex) {
           const auto& nativeLine = nativeLabelLayout.lines.at(lineIndex);
           const QJsonObject browserLine = browserLines.at(lineIndex).toObject();
-          require(std::abs(nativeLine.width -
-                           browserLine.value(QStringLiteral("width")).toDouble()) <= 0.35,
+          require(std::abs(nativeLine.width - browserLine.value(QStringLiteral("width")).toDouble()) <= 0.35,
                   QStringLiteral("Case %1: line %2 width drifted: native=%3 browser=%4")
-                      .arg(id).arg(lineIndex).arg(nativeLine.width)
+                      .arg(id)
+                      .arg(lineIndex)
+                      .arg(nativeLine.width)
                       .arg(browserLine.value(QStringLiteral("width")).toDouble()));
-          const QJsonArray browserRuns =
-              browserLine.value(QStringLiteral("runs")).toArray();
+          const QJsonArray browserRuns = browserLine.value(QStringLiteral("runs")).toArray();
           struct DirectionalRun {
             qreal x = 0.0;
             qreal width = 0.0;
@@ -531,43 +487,36 @@ int main(int argc, char** argv) {
           QVector<const flowchart::FlowLabelVisualRun*> sortedNativeRuns;
           sortedNativeRuns.reserve(nativeLine.runs.size());
           for (const auto& run : nativeLine.runs)
-            if (!run.math) sortedNativeRuns.push_back(&run);
+            if (!run.math)
+              sortedNativeRuns.push_back(&run);
           std::sort(sortedNativeRuns.begin(), sortedNativeRuns.end(),
-                    [](const auto* left, const auto* right) {
-                      return left->x < right->x;
-                    });
+                    [](const auto* left, const auto* right) { return left->x < right->x; });
           QVector<DirectionalRun> nativeBidiRuns;
           for (const auto* run : sortedNativeRuns) {
-            if (!nativeBidiRuns.isEmpty() &&
-                nativeBidiRuns.last().rightToLeft == run->rightToLeft &&
-                run->x <= nativeBidiRuns.last().x +
-                              nativeBidiRuns.last().width + 0.35) {
-              const qreal right = std::max(
-                  nativeBidiRuns.last().x + nativeBidiRuns.last().width,
-                  run->x + run->width);
-              nativeBidiRuns.last().width =
-                  right - nativeBidiRuns.last().x;
+            if (!nativeBidiRuns.isEmpty() && nativeBidiRuns.last().rightToLeft == run->rightToLeft &&
+                run->x <= nativeBidiRuns.last().x + nativeBidiRuns.last().width + 0.35) {
+              const qreal right = std::max(nativeBidiRuns.last().x + nativeBidiRuns.last().width, run->x + run->width);
+              nativeBidiRuns.last().width = right - nativeBidiRuns.last().x;
             } else {
-              nativeBidiRuns.push_back(
-                  {run->x, run->width, run->rightToLeft});
+              nativeBidiRuns.push_back({run->x, run->width, run->rightToLeft});
             }
           }
           require(nativeBidiRuns.size() == browserRuns.size(),
                   QStringLiteral("Case %1: line %2 visual run count drifted: native=%3 browser=%4")
-                      .arg(id).arg(lineIndex).arg(nativeBidiRuns.size())
+                      .arg(id)
+                      .arg(lineIndex)
+                      .arg(nativeBidiRuns.size())
                       .arg(browserRuns.size()));
-          for (qsizetype runIndex = 0;
-               runIndex < nativeBidiRuns.size(); ++runIndex) {
+          for (qsizetype runIndex = 0; runIndex < nativeBidiRuns.size(); ++runIndex) {
             const auto& nativeRun = nativeBidiRuns.at(runIndex);
             const QJsonObject browserRun = browserRuns.at(runIndex).toObject();
-            require(nativeRun.rightToLeft ==
-                        browserRun.value(QStringLiteral("rtl")).toBool() &&
-                        std::abs(nativeRun.x -
-                                 browserRun.value(QStringLiteral("x")).toDouble()) <= 0.35 &&
-                        std::abs(nativeRun.width -
-                                 browserRun.value(QStringLiteral("width")).toDouble()) <= 0.35,
+            require(nativeRun.rightToLeft == browserRun.value(QStringLiteral("rtl")).toBool() &&
+                        std::abs(nativeRun.x - browserRun.value(QStringLiteral("x")).toDouble()) <= 0.35 &&
+                        std::abs(nativeRun.width - browserRun.value(QStringLiteral("width")).toDouble()) <= 0.35,
                     QStringLiteral("Case %1: line %2 run %3 geometry/direction drifted")
-                        .arg(id).arg(lineIndex).arg(runIndex));
+                        .arg(id)
+                        .arg(lineIndex)
+                        .arg(runIndex));
           }
         }
       }
@@ -576,8 +525,7 @@ int main(int argc, char** argv) {
     if (look == flowchart::FlowLook::HandDrawn) {
       const QImage first = flowscene::renderFlowSceneToImage(scene, dpr, 8.0, renderFamily);
       const QImage repeat = flowscene::renderFlowSceneToImage(scene, dpr, 8.0, renderFamily);
-      require(first == repeat,
-              QStringLiteral("Case %1: handDrawn rendering is not deterministic").arg(id));
+      require(first == repeat, QStringLiteral("Case %1: handDrawn rendering is not deterministic").arg(id));
       flowscene::FlowScene alternate = scene;
       ++alternate.handDrawnSeed;
       require(first != flowscene::renderFlowSceneToImage(alternate, dpr, 8.0, renderFamily),
@@ -592,14 +540,17 @@ int main(int argc, char** argv) {
       const QJsonObject styles = content.value(QStringLiteral("computedStyles")).toObject();
       require(!scene.nodes.isEmpty() && !scene.clusters.isEmpty(),
               QStringLiteral("Case %1: Redux structure scene is incomplete").arg(id));
-      require(QColor(scene.nodes.first().fill).rgb() == cssRgb(styles.value(QStringLiteral("nodeFill")).toString()).rgb() &&
-                  QColor(scene.nodes.first().stroke).rgb() == cssRgb(styles.value(QStringLiteral("nodeStroke")).toString()).rgb() &&
-                  QColor(scene.clusters.first().fill).rgb() == cssRgb(styles.value(QStringLiteral("clusterFill")).toString()).rgb() &&
-                  QColor(scene.clusters.first().stroke).rgb() == cssRgb(styles.value(QStringLiteral("clusterStroke")).toString()).rgb(),
+      require(QColor(scene.nodes.first().fill).rgb() ==
+                      cssRgb(styles.value(QStringLiteral("nodeFill")).toString()).rgb() &&
+                  QColor(scene.nodes.first().stroke).rgb() ==
+                      cssRgb(styles.value(QStringLiteral("nodeStroke")).toString()).rgb() &&
+                  QColor(scene.clusters.first().fill).rgb() ==
+                      cssRgb(styles.value(QStringLiteral("clusterFill")).toString()).rgb() &&
+                  QColor(scene.clusters.first().stroke).rgb() ==
+                      cssRgb(styles.value(QStringLiteral("clusterStroke")).toString()).rgb(),
               QStringLiteral("Case %1: Redux computed node/cluster style drifted").arg(id));
     }
-    if (id.startsWith(QStringLiteral("look-neo-shapes-")) ||
-        id.startsWith(QStringLiteral("look-neo-dark-shapes-"))) {
+    if (id.startsWith(QStringLiteral("look-neo-shapes-")) || id.startsWith(QStringLiteral("look-neo-dark-shapes-"))) {
       const QJsonArray boxes = content.value(QStringLiteral("nodeBoxes")).toArray();
       require(boxes.size() == scene.nodes.size(),
               QStringLiteral("Case %1: upstream/native node count differs").arg(id));
@@ -607,10 +558,8 @@ int main(int argc, char** argv) {
         const QJsonObject expected = boxes.at(i).toObject();
         const auto& actual = scene.nodes.at(i);
         constexpr qreal kGeometryTolerance = 0.2;
-        require(std::abs(actual.width - expected.value(QStringLiteral("width")).toDouble()) <=
-                        kGeometryTolerance &&
-                    std::abs(actual.height - expected.value(QStringLiteral("height")).toDouble()) <=
-                        kGeometryTolerance,
+        require(std::abs(actual.width - expected.value(QStringLiteral("width")).toDouble()) <= kGeometryTolerance &&
+                    std::abs(actual.height - expected.value(QStringLiteral("height")).toDouble()) <= kGeometryTolerance,
                 QStringLiteral("Case %1 shape %2: bbox %3x%4, upstream %5x%6")
                     .arg(id, actual.id)
                     .arg(actual.width, 0, 'f', 3)
@@ -627,13 +576,10 @@ int main(int argc, char** argv) {
     if (fixture.contains(QStringLiteral("textGlyphIou")))
       thresholds.textGlyphIou = fixture.value(QStringLiteral("textGlyphIou")).toDouble();
     if (fixture.contains(QStringLiteral("emptyMaxMismatchRatio")))
-      thresholds.emptyMaxMismatchRatio =
-          fixture.value(QStringLiteral("emptyMaxMismatchRatio")).toDouble();
-    const flowscene::CompareReport report = flowscene::compareLevel3(
-        scene, golden, renderFamily, thresholds,
-        failDir + QStringLiteral("/") + id,
-        fixture.value(QStringLiteral("enforceInterior")).toBool(true),
-        dpr);
+      thresholds.emptyMaxMismatchRatio = fixture.value(QStringLiteral("emptyMaxMismatchRatio")).toDouble();
+    const flowscene::CompareReport report =
+        flowscene::compareLevel3(scene, golden, renderFamily, thresholds, failDir + QStringLiteral("/") + id,
+                                 fixture.value(QStringLiteral("enforceInterior")).toBool(true), dpr);
     if (!report.passed) {
       ++failures;
       qCritical().noquote() << QStringLiteral("FAIL %1: %2").arg(id, report.summary);
@@ -644,23 +590,22 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (failures > 0) fail(QStringLiteral("%1 of %2 golden-pixel cases FAILED (diagnostics in %3)").arg(failures).arg(cases.size()).arg(failDir));
+  if (failures > 0)
+    fail(QStringLiteral("%1 of %2 golden-pixel cases FAILED (diagnostics in %3)")
+             .arg(failures)
+             .arg(cases.size())
+             .arg(failDir));
   require(highDpiCases >= 4 && sawCjk && sawBidi && sawDeterministicAnimation,
           QStringLiteral("Golden-pixel CJK/bidi/high-DPI coverage matrix regressed"));
   require(coveredThemes.size() == 11,
           QStringLiteral("Golden-pixel theme coverage regressed: %1/11").arg(coveredThemes.size()));
-  require(neoLookCases >= 2,
-          QStringLiteral("Golden-pixel neo look coverage regressed: %1/2").arg(neoLookCases));
-  require(fixedNotoCases >= 5,
-          QStringLiteral("Golden-pixel fixed Noto coverage regressed: %1/5").arg(fixedNotoCases));
+  require(neoLookCases >= 2, QStringLiteral("Golden-pixel neo look coverage regressed: %1/2").arg(neoLookCases));
+  require(fixedNotoCases >= 5, QStringLiteral("Golden-pixel fixed Noto coverage regressed: %1/5").arg(fixedNotoCases));
   require(systemFallbackCases == 1,
-          QStringLiteral("Golden-pixel system fallback coverage regressed: %1/1")
-              .arg(systemFallbackCases));
+          QStringLiteral("Golden-pixel system fallback coverage regressed: %1/1").arg(systemFallbackCases));
   const QStringList bundledFamilies = MermaidFontRegistry::familyStack();
-  for (const QString& family : {QStringLiteral("Noto Sans"),
-                                QStringLiteral("Noto Sans CJK SC"),
-                                QStringLiteral("Noto Sans Arabic"),
-                                QStringLiteral("Noto Sans Hebrew")})
+  for (const QString& family : {QStringLiteral("Noto Sans"), QStringLiteral("Noto Sans CJK SC"),
+                                QStringLiteral("Noto Sans Arabic"), QStringLiteral("Noto Sans Hebrew")})
     require(!MermaidFontRegistry::bundledFamily(family).isEmpty() &&
                 bundledFamilies.contains(MermaidFontRegistry::bundledFamily(family)),
             QStringLiteral("Bundled Mermaid font family is unavailable: %1").arg(family));
@@ -668,26 +613,25 @@ int main(int argc, char** argv) {
           QStringLiteral("Golden-pixel neo shape coverage regressed: %1/48").arg(neoShapes.size()));
   require(neoDarkShapes.size() == 48 && neoDarkShapeDprs.size() == 4,
           QStringLiteral("Golden-pixel neo-dark shape/DPR coverage regressed: %1/48 shapes, %2/4 DPRs")
-              .arg(neoDarkShapes.size()).arg(neoDarkShapeDprs.size()));
+              .arg(neoDarkShapes.size())
+              .arg(neoDarkShapeDprs.size()));
   require(neoDarkClusterCases == 4,
-          QStringLiteral("Golden-pixel neo-dark cluster/DPR coverage regressed: %1/4")
-              .arg(neoDarkClusterCases));
+          QStringLiteral("Golden-pixel neo-dark cluster/DPR coverage regressed: %1/4").arg(neoDarkClusterCases));
   require(reduxStructureThemes.size() == 4,
-          QStringLiteral("Golden-pixel Redux structure coverage regressed: %1/4")
-              .arg(reduxStructureThemes.size()));
-  require(handDrawnCases >= 10 && handDrawnSeeds.size() >= 9 &&
-              handDrawnShapes.size() == 48 && handDrawnDirections.size() == 4 &&
-              handDrawnDprs.size() == 3 && sawHandDrawnComposite,
+          QStringLiteral("Golden-pixel Redux structure coverage regressed: %1/4").arg(reduxStructureThemes.size()));
+  require(handDrawnCases >= 10 && handDrawnSeeds.size() >= 9 && handDrawnShapes.size() == 48 &&
+              handDrawnDirections.size() == 4 && handDrawnDprs.size() == 3 && sawHandDrawnComposite,
           QStringLiteral("Golden-pixel handDrawn matrix regressed: %1 cases, %2/48 shapes, "
                          "%3/4 directions, %4/3 DPRs")
-              .arg(handDrawnCases).arg(handDrawnShapes.size())
-              .arg(handDrawnDirections.size()).arg(handDrawnDprs.size()));
+              .arg(handDrawnCases)
+              .arg(handDrawnShapes.size())
+              .arg(handDrawnDirections.size())
+              .arg(handDrawnDprs.size()));
   require(mathCropKinds.size() == 6,
-          QStringLiteral("Flowchart Math crop coverage regressed: %1/6")
-              .arg(mathCropKinds.size()));
+          QStringLiteral("Flowchart Math crop coverage regressed: %1/6").arg(mathCropKinds.size()));
   require(labelCropKinds.size() == 15,
-          QStringLiteral("Flowchart label crop coverage regressed: %1/15")
-              .arg(labelCropKinds.size()));
-  qDebug().noquote() << "MermaidGoldenPixelTest:" << cases.size() << "cases pass Level-3 (interior exact + boundary RGBA + text IoU + empty)";
+          QStringLiteral("Flowchart label crop coverage regressed: %1/15").arg(labelCropKinds.size()));
+  qDebug().noquote() << "MermaidGoldenPixelTest:" << cases.size()
+                     << "cases pass Level-3 (interior exact + boundary RGBA + text IoU + empty)";
   return 0;
 }

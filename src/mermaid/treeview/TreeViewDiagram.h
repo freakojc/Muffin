@@ -11,8 +11,7 @@ enum class TreeViewErrorKind { Lexer, Parser, Preprocess };
 
 class TreeViewParseError : public std::runtime_error {
 public:
-  TreeViewParseError(const QString& message, int line, int column,
-                     TreeViewErrorKind kind);
+  TreeViewParseError(const QString& message, int line, int column, TreeViewErrorKind kind);
 
   int line = 0;
   int column = 0;
@@ -44,4 +43,4 @@ public:
   static TreeViewData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::treeview
+} // namespace muffin::mermaid::treeview

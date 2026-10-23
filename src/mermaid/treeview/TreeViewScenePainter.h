@@ -10,7 +10,6 @@ namespace muffin::mermaid::treeview {
 
 struct TreeViewScene;
 
-void paintTreeViewScene(QPainter& painter, const TreeViewScene& scene,
-                        const MermaidPaintOptions& options);
+void paintTreeViewScene(QPainter& painter, const TreeViewScene& scene, const MermaidPaintOptions& options);
 
-}  // namespace muffin::mermaid::treeview
+} // namespace muffin::mermaid::treeview

@@ -25,4 +25,4 @@ struct WordSegment {
 // library build that keeps the ICU archives out of every consumer.
 WordSegment findWordSegment(const QString& text, qsizetype offset);
 
-}  // namespace muffin
+} // namespace muffin

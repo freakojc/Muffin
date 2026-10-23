@@ -26,16 +26,11 @@ namespace {
 // of always landing on General. The translated labels can't be used as keys — they change with the
 // UI language.
 const QStringList kCategoryKeys = {
-    QStringLiteral("general"),
-    QStringLiteral("appearance"),
-    QStringLiteral("editor"),
-    QStringLiteral("markdown"),
-    QStringLiteral("image"),
-    QStringLiteral("files"),
-    QStringLiteral("export"),
+    QStringLiteral("general"), QStringLiteral("appearance"), QStringLiteral("editor"), QStringLiteral("markdown"),
+    QStringLiteral("image"),   QStringLiteral("files"),      QStringLiteral("export"),
 };
 const QString kLastCategorySetting = QStringLiteral("preferences/lastCategory");
-}  // namespace
+} // namespace
 
 muffin::PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent) {
   setModal(true);
@@ -138,26 +133,19 @@ muffin::PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent) 
   });
 
   // Forward page signals
-  connect(filesPage_, &PrefsFilesPage::clearRecentFilesRequested,
-          this, &PreferencesDialog::clearRecentFilesRequested);
-  connect(filesPage_, &PrefsFilesPage::outlineFoldableChanged,
-          this, &PreferencesDialog::outlineFoldableChanged);
-  connect(filesPage_, &PrefsFilesPage::restoreDraftsRequested,
-          this, &PreferencesDialog::restoreDraftsRequested);
-  connect(editorPage_, &PrefsEditorPage::disableTypewriterFocusRequested,
-          this, &PreferencesDialog::disableTypewriterFocusRequested);
-  connect(appearancePage_, &PrefsAppearancePage::themeRequested,
-          this, &PreferencesDialog::themeRequested);
-  connect(appearancePage_, &PrefsAppearancePage::importThemeRequested,
-          this, &PreferencesDialog::importThemeRequested);
-  connect(appearancePage_, &PrefsAppearancePage::statusBarVisibleRequested,
-          this, &PreferencesDialog::statusBarVisibleRequested);
-  connect(appearancePage_, &PrefsAppearancePage::zoomPercentRequested,
-          this, &PreferencesDialog::zoomPercentRequested);
-  connect(appearancePage_, &PrefsAppearancePage::fontSizePxRequested,
-          this, &PreferencesDialog::fontSizePxRequested);
-  connect(appearancePage_, &PrefsAppearancePage::contentWidthPxRequested,
-          this, &PreferencesDialog::contentWidthPxRequested);
+  connect(filesPage_, &PrefsFilesPage::clearRecentFilesRequested, this, &PreferencesDialog::clearRecentFilesRequested);
+  connect(filesPage_, &PrefsFilesPage::outlineFoldableChanged, this, &PreferencesDialog::outlineFoldableChanged);
+  connect(filesPage_, &PrefsFilesPage::restoreDraftsRequested, this, &PreferencesDialog::restoreDraftsRequested);
+  connect(editorPage_, &PrefsEditorPage::disableTypewriterFocusRequested, this,
+          &PreferencesDialog::disableTypewriterFocusRequested);
+  connect(appearancePage_, &PrefsAppearancePage::themeRequested, this, &PreferencesDialog::themeRequested);
+  connect(appearancePage_, &PrefsAppearancePage::importThemeRequested, this, &PreferencesDialog::importThemeRequested);
+  connect(appearancePage_, &PrefsAppearancePage::statusBarVisibleRequested, this,
+          &PreferencesDialog::statusBarVisibleRequested);
+  connect(appearancePage_, &PrefsAppearancePage::zoomPercentRequested, this, &PreferencesDialog::zoomPercentRequested);
+  connect(appearancePage_, &PrefsAppearancePage::fontSizePxRequested, this, &PreferencesDialog::fontSizePxRequested);
+  connect(appearancePage_, &PrefsAppearancePage::contentWidthPxRequested, this,
+          &PreferencesDialog::contentWidthPxRequested);
 
   retranslateUi();
 }
@@ -217,13 +205,7 @@ void muffin::PreferencesDialog::retranslateUi() {
   }
 
   const QStringList categories = {
-      tr("General"),
-      tr("Appearance"),
-      tr("Editor"),
-      QStringLiteral("Markdown"),
-      tr("Image"),
-      tr("Files"),
-      tr("Export"),
+      tr("General"), tr("Appearance"), tr("Editor"), QStringLiteral("Markdown"), tr("Image"), tr("Files"), tr("Export"),
   };
 
   int currentRow = categoryList_->currentRow();

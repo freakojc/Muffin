@@ -28,18 +28,41 @@ inline bool selectorRequiresExportContext(const QString& selector) {
   for (int i = 0; i < selector.size(); ++i) {
     const QChar c = selector.at(i);
     if (inString) {
-      if (c == quote) { inString = false; }
-      else if (c == QLatin1Char('\\') && i + 1 < selector.size()) { ++i; }
+      if (c == quote) {
+        inString = false;
+      } else if (c == QLatin1Char('\\') && i + 1 < selector.size()) {
+        ++i;
+      }
       continue;
     }
-    if (c == QLatin1Char('"') || c == QLatin1Char('\'')) { inString = true; quote = c; continue; }
-    if (c == QLatin1Char('(')) { ++paren; continue; }
-    if (c == QLatin1Char(')')) { paren = qMax(0, paren - 1); continue; }
-    if (c == QLatin1Char('[')) { ++brk; continue; }
-    if (c == QLatin1Char(']')) { brk = qMax(0, brk - 1); continue; }
-    if (paren != 0 || brk != 0 || c != QLatin1Char('.')) { continue; }
+    if (c == QLatin1Char('"') || c == QLatin1Char('\'')) {
+      inString = true;
+      quote = c;
+      continue;
+    }
+    if (c == QLatin1Char('(')) {
+      ++paren;
+      continue;
+    }
+    if (c == QLatin1Char(')')) {
+      paren = qMax(0, paren - 1);
+      continue;
+    }
+    if (c == QLatin1Char('[')) {
+      ++brk;
+      continue;
+    }
+    if (c == QLatin1Char(']')) {
+      brk = qMax(0, brk - 1);
+      continue;
+    }
+    if (paren != 0 || brk != 0 || c != QLatin1Char('.')) {
+      continue;
+    }
     int j = i + 1;
-    while (j < selector.size() && isIdentChar(selector.at(j))) { ++j; }
+    while (j < selector.size() && isIdentChar(selector.at(j))) {
+      ++j;
+    }
     const QString cls = selector.mid(i + 1, j - i - 1).toLower();
     if (cls == QStringLiteral("typora-export") || cls == QStringLiteral("typora-export-sidebar") ||
         cls == QStringLiteral("typora-export-content")) {
@@ -89,9 +112,11 @@ inline int specificityOf(const QString& selector) {
       const bool element = i + 1 < selector.size() && selector[i + 1] == ':';
       i += element ? 2 : 1;
       const int start = i;
-      while (i < selector.size() && isIdentChar(selector[i])) ++i;
+      while (i < selector.size() && isIdentChar(selector[i]))
+        ++i;
       const auto name = selector.mid(start, i - start).toLower();
-      const bool functional = name == QLatin1String("is") || name == QLatin1String("not") || name == QLatin1String("has");
+      const bool functional =
+          name == QLatin1String("is") || name == QLatin1String("not") || name == QLatin1String("has");
       if (name != QLatin1String("where") && !functional)
         result += element || name == QLatin1String("before") || name == QLatin1String("after") ? 1 : 100;
       if (i < selector.size() && selector[i] == '(') {
@@ -111,19 +136,25 @@ inline int specificityOf(const QString& selector) {
             quote = v;
             continue;
           }
-          if (v == '(') ++depth;
-          if (v == ')') --depth;
+          if (v == '(')
+            ++depth;
+          if (v == ')')
+            --depth;
           if ((v == ',' && depth == 1) || depth == 0) {
-            if (functional) best = qMax(best, specificityOf(selector.mid(argument, i - argument)));
+            if (functional)
+              best = qMax(best, specificityOf(selector.mid(argument, i - argument)));
             argument = i + 1;
           }
         }
-        if (functional) result += best;
+        if (functional)
+          result += best;
       }
     } else {
-      if (typePosition && c.isLetter()) ++result;
+      if (typePosition && c.isLetter())
+        ++result;
       if (isIdentChar(c))
-        while (i < selector.size() && isIdentChar(selector[i])) ++i;
+        while (i < selector.size() && isIdentChar(selector[i]))
+          ++i;
       else
         ++i;
     }
@@ -137,11 +168,14 @@ inline int specificityOf(const QString& selector) {
 // extractor — previously two structurally identical `beats()` copies that could drift apart
 // (e.g. a future origin/layer rule added to one and not the other). Candidate types need
 // `.important`, `.specificity` and `.order` members.
-template <typename Candidate>
-bool cascadeBeats(const Candidate& a, const Candidate& b) {
-  if (a.important != b.important) { return a.important; }
-  if (a.specificity != b.specificity) { return a.specificity > b.specificity; }
+template <typename Candidate> bool cascadeBeats(const Candidate& a, const Candidate& b) {
+  if (a.important != b.important) {
+    return a.important;
+  }
+  if (a.specificity != b.specificity) {
+    return a.specificity > b.specificity;
+  }
   return a.order > b.order;
 }
 
-}  // namespace muffin
+} // namespace muffin

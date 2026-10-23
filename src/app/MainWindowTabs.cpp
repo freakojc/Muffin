@@ -54,7 +54,8 @@ qsizetype sourceOffset(muffin::DocumentTab* document, const muffin::CursorPositi
   // offset is authoritative; never persist it as a document-wide position.
   if (node && muffin::isLiteralBlockType(node->type()) && !cursor.afterBlock && !cursor.text.inMeta)
     return resolver.literalContentStartOffset(*node) + cursor.text.textOffset;
-  if (cursor.text.sourceOffset >= 0) return cursor.text.sourceOffset;
+  if (cursor.text.sourceOffset >= 0)
+    return cursor.text.sourceOffset;
   muffin::BlockEditContext context;
   const auto id = cursor.text.nodeId.isValid() ? cursor.text.nodeId : cursor.blockId;
   if (resolver.forBlock(id, context)) {
@@ -69,15 +70,18 @@ qsizetype sourceOffset(muffin::DocumentTab* document, const muffin::CursorPositi
 
 QVariantMap literalPosition(muffin::DocumentTab* document, const muffin::CursorPosition& cursor) {
   const auto* node = document->session.document().node(cursor.blockId);
-  if (!node || !muffin::isLiteralBlockType(node->type()) || cursor.afterBlock || cursor.text.inMeta) return {};
+  if (!node || !muffin::isLiteralBlockType(node->type()) || cursor.afterBlock || cursor.text.inMeta)
+    return {};
   return {{QStringLiteral("block"), qlonglong(node->sourceRange().byteStart)},
           {QStringLiteral("offset"), qlonglong(cursor.text.textOffset)}};
 }
 
 QVariantMap viewportState(const muffin::ViewportPosition& position) {
   return {{QStringLiteral("source"), qlonglong(position.sourceOffset)},
-          {QStringLiteral("screenY"), position.screenOffset}, {QStringLiteral("horizontal"), position.horizontal},
-          {QStringLiteral("text"), position.textAnchor}, {QStringLiteral("start"), position.atStart}};
+          {QStringLiteral("screenY"), position.screenOffset},
+          {QStringLiteral("horizontal"), position.horizontal},
+          {QStringLiteral("text"), position.textAnchor},
+          {QStringLiteral("start"), position.atStart}};
 }
 
 muffin::ViewportPosition viewportPosition(const QVariantMap& state) {
@@ -91,7 +95,7 @@ muffin::ViewportPosition viewportPosition(const QVariantMap& state) {
   return position;
 }
 
-}  // namespace
+} // namespace
 
 QList<muffin::DocumentTab*> muffin::MainWindow::documentTabs() const {
   QList<DocumentTab*> documents;
@@ -104,8 +108,8 @@ QList<muffin::DocumentTab*> muffin::MainWindow::documentTabs() const {
 bool muffin::MainWindow::isPathOpen(const QString& path, const DocumentSession* except) const {
   const QString key = pathKey(path);
   for (DocumentTab* document : documentTabs()) {
-    if (&document->session != except && !key.isEmpty()
-        && (pathKey(document->session.filePath()) == key || pathKey(document->pendingOpenPath) == key)) {
+    if (&document->session != except && !key.isEmpty() &&
+        (pathKey(document->session.filePath()) == key || pathKey(document->pendingOpenPath) == key)) {
       return true;
     }
   }
@@ -158,16 +162,18 @@ bool muffin::MainWindow::eventFilter(QObject* watched, QEvent* event) {
   if (watched == tabs_->tabBar() && event->type() == QEvent::ContextMenu) {
     auto* context = static_cast<QContextMenuEvent*>(event);
     auto* bar = tabs_->tabBar();
-    const int index = context->reason() == QContextMenuEvent::Keyboard
-        ? tabs_->currentIndex() : bar->tabAt(context->pos());
-    if (index >= 0) buildTabContextMenu(index, context->globalPos());
+    const int index =
+        context->reason() == QContextMenuEvent::Keyboard ? tabs_->currentIndex() : bar->tabAt(context->pos());
+    if (index >= 0)
+      buildTabContextMenu(index, context->globalPos());
     return true;
   }
   if (watched == tabs_->tabBar() && event->type() == QEvent::MouseButtonRelease) {
     auto* mouse = static_cast<QMouseEvent*>(event);
     if (mouse->button() == Qt::MiddleButton) {
       const int index = tabs_->tabBar()->tabAt(mouse->position().toPoint());
-      if (index >= 0 && !static_cast<DocumentTab*>(tabs_->widget(index))->pinned) closeTab(index);
+      if (index >= 0 && !static_cast<DocumentTab*>(tabs_->widget(index))->pinned)
+        closeTab(index);
       return true;
     }
   }
@@ -193,8 +199,10 @@ void muffin::MainWindow::setupTabButton(DocumentTab* document) {
   button->setAccessibleName(button->toolTip());
   tabs_->tabBar()->setTabButton(index, QTabBar::RightSide, button);
   connect(button, &QToolButton::clicked, document->windowConnections, [this, document] {
-    if (document->pinned) setTabPinned(document, false);
-    else closeTab(tabs_->indexOf(document));
+    if (document->pinned)
+      setTabPinned(document, false);
+    else
+      closeTab(tabs_->indexOf(document));
   });
 }
 
@@ -211,8 +219,8 @@ void muffin::MainWindow::retranslateTabs() {
   tabs_->tabBar()->setAccessibleName(tr("Open Documents"));
   auto* button = static_cast<QToolButton*>(tabs_->cornerWidget());
   if (button) {
-    button->setToolTip(tr("New Tab") + QStringLiteral(" (%1)")
-        .arg(QKeySequence(QKeySequence::New).toString(QKeySequence::NativeText)));
+    button->setToolTip(tr("New Tab") +
+                       QStringLiteral(" (%1)").arg(QKeySequence(QKeySequence::New).toString(QKeySequence::NativeText)));
     button->setAccessibleName(tr("New Tab"));
   }
   for (DocumentTab* document : documentTabs()) {
@@ -226,7 +234,8 @@ void muffin::MainWindow::retranslateTabs() {
 }
 
 bool muffin::MainWindow::openFile(QString path) {
-  if (workspaceWriteInProgress_) return false;
+  if (workspaceWriteInProgress_)
+    return false;
   if (path.isEmpty()) {
     path = tab_->fileController.chooseOpenPath(this);
     if (path.isEmpty()) {
@@ -237,18 +246,20 @@ bool muffin::MainWindow::openFile(QString path) {
   for (DocumentTab* document : documentTabs()) {
     if (pathKey(document->session.filePath()) == key || pathKey(document->pendingOpenPath) == key) {
       tabs_->setCurrentWidget(document);
-      if (document->pendingOpenPath.isEmpty()) document->viewStack->currentWidget()->setFocus();
-      else document->openConfirmation->setFocus();
-      if (document->pendingOpenPath.isEmpty()) addRecentFile(document->session.filePath());
+      if (document->pendingOpenPath.isEmpty())
+        document->viewStack->currentWidget()->setFocus();
+      else
+        document->openConfirmation->setFocus();
+      if (document->pendingOpenPath.isEmpty())
+        addRecentFile(document->session.filePath());
       return true;
     }
   }
   // Reuse the pristine startup page; an edited untitled document is always retained.
-  const bool reuse = !tab_->pinned && tab_->pendingOpenPath.isEmpty()
-      && tab_->session.filePath().isEmpty() && !tab_->session.document().isModified()
-      && tab_->session.markdownText().isEmpty() && !tab_->session.isOpenInProgress()
-      && !tab_->editorController.canUndo() && !tab_->editorController.canRedo()
-      && !tab_->editor->canUndo() && !tab_->editor->canRedo();
+  const bool reuse = !tab_->pinned && tab_->pendingOpenPath.isEmpty() && tab_->session.filePath().isEmpty() &&
+                     !tab_->session.document().isModified() && tab_->session.markdownText().isEmpty() &&
+                     !tab_->session.isOpenInProgress() && !tab_->editorController.canUndo() &&
+                     !tab_->editorController.canRedo() && !tab_->editor->canUndo() && !tab_->editor->canRedo();
   DocumentTab* document = reuse ? tab_ : createDocumentTab();
   const QString absolutePath = QFileInfo(path).absoluteFilePath();
   const auto warnings = file_open_protection::warningsForFile(absolutePath);
@@ -276,7 +287,8 @@ bool muffin::MainWindow::openFile(QString path) {
 }
 
 bool muffin::MainWindow::loadFileIntoTab(DocumentTab* document, const QString& path) {
-  if (!document->fileController.open(document->session, this, path)) return false;
+  if (!document->fileController.open(document->session, this, path))
+    return false;
   document->editorController.clearHistoryAndSelection();
   tabs_->setCurrentWidget(document);
   updateTabLabel(document);
@@ -286,7 +298,8 @@ bool muffin::MainWindow::loadFileIntoTab(DocumentTab* document, const QString& p
 }
 
 void muffin::MainWindow::confirmPendingFileOpen(DocumentTab* document) {
-  if (document->pendingOpenPath.isEmpty()) return;
+  if (document->pendingOpenPath.isEmpty())
+    return;
   // Keep the guard up and the model read-only through the synchronous read/decode step.
   document->openConfirmation->setEnabled(false);
   if (!loadFileIntoTab(document, document->pendingOpenPath)) {
@@ -309,8 +322,10 @@ void muffin::MainWindow::confirmPendingFileOpen(DocumentTab* document) {
 }
 
 void muffin::MainWindow::cancelPendingFileOpen(DocumentTab* document) {
-  if (document->pendingOpenPath.isEmpty()) return;
-  if (pendingNavigation_ && pendingNavigation_->destination == document) pendingNavigation_.reset();
+  if (document->pendingOpenPath.isEmpty())
+    return;
+  if (pendingNavigation_ && pendingNavigation_->destination == document)
+    pendingNavigation_.reset();
   const auto previous = document->openReturnTab;
   document->pendingOpenPath.clear();
   document->openReturnTab.clear();
@@ -329,7 +344,8 @@ void muffin::MainWindow::cancelPendingFileOpen(DocumentTab* document) {
     // Defer destruction until the clicked signal has unwound.
     QTimer::singleShot(0, document->windowConnections, [this, document, previous] {
       closeTab(tabs_->indexOf(document));
-      if (previous && tabs_->indexOf(previous) >= 0) tabs_->setCurrentWidget(previous);
+      if (previous && tabs_->indexOf(previous) >= 0)
+        tabs_->setCurrentWidget(previous);
     });
   }
 }
@@ -345,13 +361,14 @@ void muffin::MainWindow::activateTab(int index) {
     return;
   }
   auto* next = static_cast<DocumentTab*>(tabs_->widget(index));
-  if (tab_ != next && !suppressSaveOnTabSwitch_ && !tab_->session.filePath().isEmpty()
-      && tab_->session.document().isModified()
-      && QSettings().value(QStringLiteral("files/autoSaveOnSwitch"), false).toBool()) {
+  if (tab_ != next && !suppressSaveOnTabSwitch_ && !tab_->session.filePath().isEmpty() &&
+      tab_->session.document().isModified() &&
+      QSettings().value(QStringLiteral("files/autoSaveOnSwitch"), false).toBool()) {
     tab_->fileController.save(tab_->session, this);
   }
   tab_ = next;
-  if (pendingNavigation_ && pendingNavigation_->destination != next) pendingNavigation_.reset();
+  if (pendingNavigation_ && pendingNavigation_->destination != next)
+    pendingNavigation_.reset();
   QTimer::singleShot(0, next->windowConnections, [this, next] { applySearchNavigation(next); });
   if (tab_->pendingTheme) {
     auto theme = std::move(*tab_->pendingTheme);
@@ -362,7 +379,7 @@ void muffin::MainWindow::activateTab(int index) {
   }
   wordCountTimer_->stop();
   outlineTimer_->stop();
-  tab_->outlineDirty = true;  // the shared sidebar last displayed another tab
+  tab_->outlineDirty = true; // the shared sidebar last displayed another tab
   tab_->wordCountDirty = true;
   if (QAction* action = commands_.action(QStringLiteral("view.source_mode"))) {
     const QSignalBlocker blocker(action);
@@ -382,8 +399,10 @@ void muffin::MainWindow::activateTab(int index) {
   updateWordCountNow();
   updateRenderCursorStatus(tab_->editorController.selection().currentHit());
   updateBlockSourceLabel(tab_->editorController.selection().currentHit());
-  if (!tab_->pendingOpenPath.isEmpty()) tab_->openConfirmation->setFocus(Qt::OtherFocusReason);
-  else tab_->viewStack->currentWidget()->setFocus(Qt::OtherFocusReason);
+  if (!tab_->pendingOpenPath.isEmpty())
+    tab_->openConfirmation->setFocus(Qt::OtherFocusReason);
+  else
+    tab_->viewStack->currentWidget()->setFocus(Qt::OtherFocusReason);
   scheduleSessionSave();
   QTimer::singleShot(0, next->windowConnections, [this, next] { restoreTabViewState(next); });
   QTimer::singleShot(0, next->windowConnections, [this, next] { applyLinkNavigation(next); });
@@ -423,13 +442,15 @@ bool muffin::MainWindow::closeTab(int index) {
 
 void muffin::MainWindow::buildTabContextMenu(int index, QPoint globalPos) {
   QPointer<DocumentTab> document = static_cast<DocumentTab*>(tabs_->widget(index));
-  if (!document) return;
+  if (!document)
+    return;
   QMenu menu(this);
   menu.setObjectName(QStringLiteral("TabContextMenu"));
   const auto add = [&](const QString& label, std::function<void()> handler) {
     auto* action = menu.addAction(label);
     connect(action, &QAction::triggered, &menu, [document, handler = std::move(handler)] {
-      if (document) handler();
+      if (document)
+        handler();
     });
     return action;
   };
@@ -439,21 +460,25 @@ void muffin::MainWindow::buildTabContextMenu(int index, QPoint globalPos) {
   enum class Scope { Others, Right, Saved, All };
   const auto candidates = [this, document](Scope scope) {
     QList<DocumentTab*> result;
-    if (!document) return result;
+    if (!document)
+      return result;
     const int clicked = tabs_->indexOf(document);
     for (auto* tab : documentTabs()) {
-      if (tab->pinned) continue;
-      if (scope == Scope::Others && tab == document) continue;
-      if (scope == Scope::Right && tabs_->indexOf(tab) <= clicked) continue;
-      if (scope == Scope::Saved && (tab->session.filePath().isEmpty() || tab->session.isOpenInProgress()
-                                  || tab->session.document().isModified())) continue;
+      if (tab->pinned)
+        continue;
+      if (scope == Scope::Others && tab == document)
+        continue;
+      if (scope == Scope::Right && tabs_->indexOf(tab) <= clicked)
+        continue;
+      if (scope == Scope::Saved && (tab->session.filePath().isEmpty() || tab->session.isOpenInProgress() ||
+                                    tab->session.document().isModified()))
+        continue;
       result.append(tab);
     }
     return result;
   };
   const auto addClose = [&](const QString& label, Scope scope) {
-    add(label, [this, candidates, scope] { closeTabs(candidates(scope)); })
-        ->setEnabled(!candidates(scope).isEmpty());
+    add(label, [this, candidates, scope] { closeTabs(candidates(scope)); })->setEnabled(!candidates(scope).isEmpty());
   };
   addClose(tr("Close Others"), Scope::Others);
   addClose(tr("Close Tabs to the Right"), Scope::Right);
@@ -474,26 +499,32 @@ void muffin::MainWindow::buildTabContextMenu(int index, QPoint globalPos) {
 #endif
   add(reveal, [this, path] { revealPathInManager(path); })->setEnabled(!path.isEmpty() && QFileInfo::exists(path));
   menu.addSeparator();
-  add(tr("Move Tab to New Window"), [this, document] { moveTabToNewWindow(document); })
-      ->setEnabled(!document->session.isOpenInProgress());
-  add(tr("Copy Tab to New Window"), [this, document] { copyTabToNewWindow(document); })
-      ->setEnabled(!document->session.isOpenInProgress());
+  add(tr("Move Tab to New Window"), [this, document] {
+    moveTabToNewWindow(document);
+  })->setEnabled(!document->session.isOpenInProgress());
+  add(tr("Copy Tab to New Window"), [this, document] {
+    copyTabToNewWindow(document);
+  })->setEnabled(!document->session.isOpenInProgress());
   menu.exec(globalPos);
 }
 
 void muffin::MainWindow::closeTabs(const QList<DocumentTab*>& documents) {
   QList<QPointer<DocumentTab>> pending;
-  for (auto* document : documents) pending.append(document);
+  for (auto* document : documents)
+    pending.append(document);
   for (const auto& document : pending) {
-    if (!document || document->pinned) continue;
+    if (!document || document->pinned)
+      continue;
     const int index = tabs_->indexOf(document);
     // Stop immediately on Cancel (or a failed save), keeping all later tabs.
-    if (index >= 0 && !closeTab(index)) break;
+    if (index >= 0 && !closeTab(index))
+      break;
   }
 }
 
 void muffin::MainWindow::setTabPinned(DocumentTab* document, bool pinned) {
-  if (tabs_->indexOf(document) < 0 || document->pinned == pinned) return;
+  if (tabs_->indexOf(document) < 0 || document->pinned == pinned)
+    return;
   document->pinned = pinned;
   normalizePinnedTabs();
   setupTabButton(document);
@@ -502,20 +533,27 @@ void muffin::MainWindow::setTabPinned(DocumentTab* document, bool pinned) {
 }
 
 void muffin::MainWindow::normalizePinnedTabs() {
-  if (normalizingPinnedTabs_) return;
+  if (normalizingPinnedTabs_)
+    return;
   const QScopedValueRollback<bool> guard(normalizingPinnedTabs_, true);
   QList<DocumentTab*> ordered;
   const auto documents = documentTabs();
-  for (auto* document : documents) if (document->pinned) ordered.append(document);
-  for (auto* document : documents) if (!document->pinned) ordered.append(document);
+  for (auto* document : documents)
+    if (document->pinned)
+      ordered.append(document);
+  for (auto* document : documents)
+    if (!document->pinned)
+      ordered.append(document);
   for (int index = 0; index < ordered.size(); ++index) {
     const int from = tabs_->indexOf(ordered[index]);
-    if (from != index) tabs_->tabBar()->moveTab(from, index);
+    if (from != index)
+      tabs_->tabBar()->moveTab(from, index);
   }
 }
 
 void muffin::MainWindow::moveTabToNewWindow(DocumentTab* document) {
-  if (tabs_->indexOf(document) < 0 || document->session.isOpenInProgress()) return;
+  if (tabs_->indexOf(document) < 0 || document->session.isOpenInProgress())
+    return;
   sessionSaveTimer_->stop();
   const QScopedValueRollback<bool> switchGuard(suppressSaveOnTabSwitch_, true);
   const QScopedValueRollback<bool> sessionGuard(sessionUpdatesPaused_, true);
@@ -530,7 +568,8 @@ void muffin::MainWindow::moveTabToNewWindow(DocumentTab* document) {
     // window are retired; the document/session/view connections stay intact.
     delete document->windowConnections;
     document->windowConnections = new QObject(document);
-    if (tabs_->count() == 1) createDocumentTab();
+    if (tabs_->count() == 1)
+      createDocumentTab();
     tabs_->removeTab(tabs_->indexOf(document));
     updateTabBarVisibility();
     document->setParent(window->tabs_);
@@ -560,7 +599,8 @@ void muffin::MainWindow::moveTabToNewWindow(DocumentTab* document) {
 }
 
 void muffin::MainWindow::copyTabToNewWindow(DocumentTab* document) {
-  if (tabs_->indexOf(document) < 0 || document->session.isOpenInProgress()) return;
+  if (tabs_->indexOf(document) < 0 || document->session.isOpenInProgress())
+    return;
   sessionSaveTimer_->stop();
   const auto view = tabViewState(document);
   auto* window = new MainWindow();
@@ -569,13 +609,16 @@ void muffin::MainWindow::copyTabToNewWindow(DocumentTab* document) {
     const QScopedValueRollback<bool> sessionGuard(window->sessionUpdatesPaused_, true);
     auto* copy = window->tab_;
     copy->session.copyFileStateFrom(document->session);
-    copy->session.setMarkdownText(document->session.markdownText().toString(), document->session.document().isModified());
+    copy->session.setMarkdownText(document->session.markdownText().toString(),
+                                  document->session.document().isModified());
     copy->pinned = document->pinned;
     copy->pendingViewState = view;
-    if (document->backend->isSourceMode()) copy->backend = std::make_unique<SourceEditorBackend>(copy->editor);
-    else copy->backend = std::make_unique<RenderEditorBackend>(copy->editorController, copy->session, copy->renderView);
-    copy->viewStack->setCurrentWidget(copy->backend->isSourceMode()
-        ? static_cast<QWidget*>(copy->editor) : static_cast<QWidget*>(copy->renderView));
+    if (document->backend->isSourceMode())
+      copy->backend = std::make_unique<SourceEditorBackend>(copy->editor);
+    else
+      copy->backend = std::make_unique<RenderEditorBackend>(copy->editorController, copy->session, copy->renderView);
+    copy->viewStack->setCurrentWidget(copy->backend->isSourceMode() ? static_cast<QWidget*>(copy->editor)
+                                                                    : static_cast<QWidget*>(copy->renderView));
     window->setupTabButton(copy);
     window->updateTabLabel(copy);
     window->updateTabBarVisibility();
@@ -588,30 +631,37 @@ void muffin::MainWindow::copyTabToNewWindow(DocumentTab* document) {
 }
 
 void muffin::MainWindow::scheduleSessionSave() {
-  if (!sessionUpdatesPaused_ && sessionSaveTimer_) sessionSaveTimer_->start();
+  if (!sessionUpdatesPaused_ && sessionSaveTimer_)
+    sessionSaveTimer_->start();
 }
 
 void muffin::MainWindow::saveSessionState() {
-  if (sessionUpdatesPaused_ || !tabs_ || !sidebar_) return;
-  if (sessionSaveTimer_) sessionSaveTimer_->stop();
+  if (sessionUpdatesPaused_ || !tabs_ || !sidebar_)
+    return;
+  if (sessionSaveTimer_)
+    sessionSaveTimer_->stop();
   QStringList files;
   QVariantList views;
   int active = -1;
   for (auto* document : documentTabs()) {
-    if (!document->pendingOpenPath.isEmpty()) continue;
+    if (!document->pendingOpenPath.isEmpty())
+      continue;
     const QString path = document->session.filePath();
     // Unsaved contents belong to draft recovery, never to settings. Keep empty
     // tab placeholders only when they are part of a multi-document session.
-    if (path.isEmpty() && (document->session.document().isModified() || (tabs_->count() == 1 && !document->pinned))) continue;
-    if (document == tab_) active = files.size();
+    if (path.isEmpty() && (document->session.document().isModified() || (tabs_->count() == 1 && !document->pinned)))
+      continue;
+    if (document == tab_)
+      active = files.size();
     files.append(path);
     views.append(tabViewState(document));
   }
   const QVariantMap snapshot{{QStringLiteral("version"), 1},
-      {QStringLiteral("files"), files}, {QStringLiteral("active"), active},
-      {QStringLiteral("views"), views},
-      {QStringLiteral("folder"), sidebar_->folderRoot()},
-      {QStringLiteral("expanded"), sidebar_->expandedFolders()}};
+                             {QStringLiteral("files"), files},
+                             {QStringLiteral("active"), active},
+                             {QStringLiteral("views"), views},
+                             {QStringLiteral("folder"), sidebar_->folderRoot()},
+                             {QStringLiteral("expanded"), sidebar_->expandedFolders()}};
   QSettings settings;
   settings.setValue(QStringLiteral("session/window"), snapshot);
   settings.sync();
@@ -626,12 +676,16 @@ QVariantMap muffin::MainWindow::tabViewState(DocumentTab* document) const {
   const bool source = document->backend->isSourceMode();
   if (source && document->searchSourceFallback) {
     const auto offset = qMax<qsizetype>(0, document->editor->cursorPosition());
-    return {{QStringLiteral("version"), 1}, {QStringLiteral("sourceMode"), false},
-            {QStringLiteral("pinned"), document->pinned}, {QStringLiteral("hasCursor"), true},
-            {QStringLiteral("anchor"), qlonglong(offset)}, {QStringLiteral("focus"), qlonglong(offset)},
+    return {{QStringLiteral("version"), 1},
+            {QStringLiteral("sourceMode"), false},
+            {QStringLiteral("pinned"), document->pinned},
+            {QStringLiteral("hasCursor"), true},
+            {QStringLiteral("anchor"), qlonglong(offset)},
+            {QStringLiteral("focus"), qlonglong(offset)},
             {QStringLiteral("viewport"), viewportState({offset, 0, 0, true, false})}};
   }
-  QVariantMap state{{QStringLiteral("version"), 1}, {QStringLiteral("sourceMode"), source},
+  QVariantMap state{{QStringLiteral("version"), 1},
+                    {QStringLiteral("sourceMode"), source},
                     {QStringLiteral("pinned"), document->pinned}};
   if (source) {
     state.insert(QStringLiteral("anchor"), qlonglong(document->editor->anchorPosition()));
@@ -660,19 +714,22 @@ QVariantMap muffin::MainWindow::tabViewState(DocumentTab* document) const {
 
 void muffin::MainWindow::restoreTabViewState(DocumentTab* document) {
   if (!document->pendingViewState || document != tab_ || sessionUpdatesPaused_ ||
-      document->session.isOpenInProgress() || !document->isVisible()) return;
+      document->session.isOpenInProgress() || !document->isVisible())
+    return;
   const QScopedValueRollback<bool> guard(restoringViewState_, true);
   const auto state = *document->pendingViewState;
   const auto& text = document->session.markdownText();
   const auto bounded = [&](qlonglong offset) {
     auto result = qBound<qsizetype>(0, offset, text.size());
-    if (result > 0 && result < text.size() && text.at(result).isLowSurrogate() && text.at(result - 1).isHighSurrogate()) --result;
+    if (result > 0 && result < text.size() && text.at(result).isLowSurrogate() && text.at(result - 1).isHighSurrogate())
+      --result;
     return result;
   };
   const auto anchor = bounded(state.value(QStringLiteral("anchor")).toLongLong());
   const auto focus = bounded(state.value(QStringLiteral("focus")).toLongLong());
   auto viewport = viewportPosition(state.value(QStringLiteral("viewport")).toMap());
-  if (viewport.sourceOffset >= 0) viewport.sourceOffset = bounded(viewport.sourceOffset);
+  if (viewport.sourceOffset >= 0)
+    viewport.sourceOffset = bounded(viewport.sourceOffset);
   if (document->backend->isSourceMode()) {
     document->editor->setSelection(anchor, focus);
     document->editor->restoreViewportPosition(viewport);
@@ -685,14 +742,19 @@ void muffin::MainWindow::restoreTabViewState(DocumentTab* document) {
       SelectionRange range{document->editorController.cursorForSourceOffset(anchor),
                            document->editorController.cursorForSourceOffset(focus)};
       const auto restoreLiteral = [&](CursorPosition& cursor, const QVariantMap& saved) {
-        if (saved.isEmpty()) return;
-        auto target = document->editorController.cursorForSourceOffset(bounded(saved.value(QStringLiteral("block")).toLongLong()));
+        if (saved.isEmpty())
+          return;
+        auto target = document->editorController.cursorForSourceOffset(
+            bounded(saved.value(QStringLiteral("block")).toLongLong()));
         const auto* node = document->session.document().node(target.blockId);
-        if (!node || !isLiteralBlockType(node->type())) return;
+        if (!node || !isLiteralBlockType(node->type()))
+          return;
         const auto literal = node->literal();
-        target.text.textOffset = qBound<qsizetype>(0, saved.value(QStringLiteral("offset")).toLongLong(), literal.size());
+        target.text.textOffset =
+            qBound<qsizetype>(0, saved.value(QStringLiteral("offset")).toLongLong(), literal.size());
         if (target.text.textOffset > 0 && target.text.textOffset < literal.size() &&
-            literal.at(target.text.textOffset).isLowSurrogate() && literal.at(target.text.textOffset - 1).isHighSurrogate())
+            literal.at(target.text.textOffset).isLowSurrogate() &&
+            literal.at(target.text.textOffset - 1).isHighSurrogate())
           --target.text.textOffset;
         cursor = target;
         cursor.text.sourceOffset = sourceOffset(document, cursor);
@@ -708,13 +770,15 @@ void muffin::MainWindow::restoreTabViewState(DocumentTab* document) {
           hit.zone == HitTestResult::Zone::FrontMatter ||
           (hit.zone == HitTestResult::Zone::Html && state.value(QStringLiteral("htmlEditing")).toBool())) {
         document->editorController.activateHit(hit);
-        if (hit.zone == HitTestResult::Zone::Html) document->editorController.enterHtmlEditMode();
+        if (hit.zone == HitTestResult::Zone::Html)
+          document->editorController.enterHtmlEditMode();
       }
       document->editorController.selection().setSelection(range);
     } else {
       document->editorController.selection().clear();
     }
-    document->renderView->restoreViewportPosition(viewport, document->editorController.cursorForSourceOffset(viewport.sourceOffset));
+    document->renderView->restoreViewportPosition(
+        viewport, document->editorController.cursorForSourceOffset(viewport.sourceOffset));
   }
   document->pendingViewState.reset();
 }

@@ -30,16 +30,15 @@ MarkdownNode* firstMathBlock(DocumentSession& session) {
 }
 
 LiteralBlockSpec mathSpec() {
-  return LiteralBlockSpec{
-      BlockType::MathBlock,
-      HitTestResult::Zone::Math,
-      QStringLiteral("No math block is active."),
-      QStringLiteral("Edit Math Block"),
-      QStringLiteral("Backspace Math Block"),
-      QStringLiteral("Delete Math Block Text"),
-      QStringLiteral("Delete Math Block Selection"),
-      QStringLiteral("Set Math Block TeX"),
-      QStringLiteral("  ")};
+  return LiteralBlockSpec{BlockType::MathBlock,
+                          HitTestResult::Zone::Math,
+                          QStringLiteral("No math block is active."),
+                          QStringLiteral("Edit Math Block"),
+                          QStringLiteral("Backspace Math Block"),
+                          QStringLiteral("Delete Math Block Text"),
+                          QStringLiteral("Delete Math Block Selection"),
+                          QStringLiteral("Set Math Block TeX"),
+                          QStringLiteral("  ")};
 }
 
 void setMathHit(SelectionController& selection, MarkdownNode* math, qsizetype offset = 0) {
@@ -94,7 +93,8 @@ void testSetTexAndRoundtripFence() {
 
   require(controller.enterEditMode(), "enter math edit should work for set tex test");
   require(controller.setContent(QStringLiteral("E = mc^2\n\\\\int_0^1 x dx")), "set tex should work");
-  require(session.markdownText().toString().contains(QStringLiteral("$$\nE = mc^2\n\\\\int_0^1 x dx\n$$")), "math fence roundtrip mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("$$\nE = mc^2\n\\\\int_0^1 x dx\n$$")),
+          "math fence roundtrip mismatch");
   require(undoStack.canUndo(), "set tex should push undo");
   EditTransaction setTexUndo = undoStack.takeUndo();
   require(setTexUndo.isReplaceNodeCommand(), "set tex should use ReplaceNodeCommand");
@@ -133,7 +133,7 @@ void testBracketMathLiteralEditingPreservesBracketDelimiters() {
           "bracket math insert should keep closing bracket delimiter outside literal");
 }
 
-}  // namespace
+} // namespace
 
 int main() {
   testEnterEditAndTextEditing();

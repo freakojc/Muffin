@@ -28,7 +28,8 @@ muffin::PrefsGeneralPage::PrefsGeneralPage(QWidget* parent) : PreferencesPage(pa
   auto* languageCard = new QWidget(this);
   languageCard->setObjectName(QStringLiteral("settingsCard"));
   auto* languageLayout = new QHBoxLayout(languageCard);
-  languageLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin, kRowVerticalMargin);
+  languageLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin,
+                                     kRowVerticalMargin);
   languageLayout->setSpacing(18);
   languageLabel_ = makeSectionLabel(languageCard);
   languageCombo_ = new QComboBox(languageCard);
@@ -76,29 +77,31 @@ muffin::PrefsGeneralPage::PrefsGeneralPage(QWidget* parent) : PreferencesPage(pa
   // behind and can produce duplicate dialogs on a later check.
   auto& checker = muffin::UpdateChecker::instance();
   connect(&checker, &muffin::UpdateChecker::updateAvailable, this,
-      [this](const QString& version, const QString&, QObject* requester) {
-        if (requester != this) { return; }
-        checkUpdateButton_->setEnabled(true);
-        retranslateUi();
-        QMessageBox::information(window(), tr("Update Available"),
-            tr("A new version of Muffin (%1) is available.").arg(version));
-      });
-  connect(&checker, &muffin::UpdateChecker::upToDate, this,
-      [this](QObject* requester) {
-        if (requester != this) { return; }
-        checkUpdateButton_->setEnabled(true);
-        retranslateUi();
-        QMessageBox::information(window(), tr("Up to Date"),
-            tr("You are running the latest version of Muffin."));
-      });
-  connect(&checker, &muffin::UpdateChecker::checkFailed, this,
-      [this](const QString& errorMessage, QObject* requester) {
-        if (requester != this) { return; }
-        checkUpdateButton_->setEnabled(true);
-        retranslateUi();
-        QMessageBox::warning(window(), tr("Update Check Failed"),
-            tr("Could not check for updates:\n%1").arg(errorMessage));
-      });
+          [this](const QString& version, const QString&, QObject* requester) {
+            if (requester != this) {
+              return;
+            }
+            checkUpdateButton_->setEnabled(true);
+            retranslateUi();
+            QMessageBox::information(window(), tr("Update Available"),
+                                     tr("A new version of Muffin (%1) is available.").arg(version));
+          });
+  connect(&checker, &muffin::UpdateChecker::upToDate, this, [this](QObject* requester) {
+    if (requester != this) {
+      return;
+    }
+    checkUpdateButton_->setEnabled(true);
+    retranslateUi();
+    QMessageBox::information(window(), tr("Up to Date"), tr("You are running the latest version of Muffin."));
+  });
+  connect(&checker, &muffin::UpdateChecker::checkFailed, this, [this](const QString& errorMessage, QObject* requester) {
+    if (requester != this) {
+      return;
+    }
+    checkUpdateButton_->setEnabled(true);
+    retranslateUi();
+    QMessageBox::warning(window(), tr("Update Check Failed"), tr("Could not check for updates:\n%1").arg(errorMessage));
+  });
 
   // --- Update check button ---
   connect(checkUpdateButton_, &QPushButton::clicked, this, [this] {
@@ -134,8 +137,8 @@ void muffin::PrefsGeneralPage::populateLanguages() {
   const QVector<LanguageInfo> languages = LanguageManager::instance().availableLanguages();
   for (const LanguageInfo& language : languages) {
     const QString label = language.englishName == language.nativeName
-        ? language.nativeName
-        : QStringLiteral("%1 - %2").arg(language.nativeName, language.englishName);
+                              ? language.nativeName
+                              : QStringLiteral("%1 - %2").arg(language.nativeName, language.englishName);
     languageCombo_->addItem(label, language.code);
     if (language.code == currentCode) {
       currentIndex = languageCombo_->count() - 1;

@@ -82,7 +82,7 @@ void testEmptyReplacementDeletesSelection() {
     edit.redo();
     require(edit.text() == QStringLiteral("ac"), "empty replacement must be redoable");
     edit.selectAll();
-    edit.insertText(QString());  // Replace All uses this path when its result is empty.
+    edit.insertText(QString()); // Replace All uses this path when its result is empty.
     require(edit.text().isEmpty(), "Replace All must be able to empty the entire document");
     edit.undo();
     require(edit.text() == QStringLiteral("ac"), "empty-document replacement must undo");
@@ -123,7 +123,8 @@ void testWrappedSourceEditingPreservesViewport() {
     require(qAbs(edit.verticalScrollBar()->value() - before) < 50,
             "source editing should preserve the viewport inside a wrapped paragraph");
     const QRect caret = edit.inputMethodQuery(Qt::ImCursorRectangle).toRect();
-    require(caret.top() >= 0 && caret.bottom() <= edit.viewport()->height(), "source caret should remain visible after editing");
+    require(caret.top() >= 0 && caret.bottom() <= edit.viewport()->height(),
+            "source caret should remain visible after editing");
   };
   edit.insertText(QStringLiteral("x"));
   requireStable();
@@ -158,7 +159,9 @@ void testHeightResizePreservesReadingPosition() {
   }
 }
 
-QImage captureEdit(VirtualSourceEdit& edit) { return edit.grab().toImage(); }
+QImage captureEdit(VirtualSourceEdit& edit) {
+  return edit.grab().toImage();
+}
 
 // The composition must render with an underline, NOT overlap the following text, and NOT be
 // blink-gated (the old code drew the preedit only while the caret blink was "on").
@@ -171,7 +174,7 @@ void testSourcePreeditRendersWithoutOverlap() {
   edit.setStandaloneText(QStringLiteral("alpha beta gamma"));
   edit.resize(600, 300);
   edit.show();
-  edit.setCursorPosition(6);  // between "alpha" and "beta"
+  edit.setCursorPosition(6); // between "alpha" and "beta"
   QApplication::processEvents();
   edit.setFocus();
   QApplication::processEvents();
@@ -296,7 +299,8 @@ void testPersistentReadingAnchorSurvivesRewrap() {
   require(document.left(actual.sourceOffset).count('\n') == document.left(position.sourceOffset).count('\n'),
           "a new width restores the same logical source line");
   require(qAbs(actual.sourceOffset - position.sourceOffset) < 100, "rewrapped viewport retains the same nearby text");
-  require(restored.anchorPosition() == 12 && restored.cursorPosition() == 2, "reading restoration leaves the independent reverse selection intact");
+  require(restored.anchorPosition() == 12 && restored.cursorPosition() == 2,
+          "reading restoration leaves the independent reverse selection intact");
   restored.verticalScrollBar()->setValue(0);
   const auto top = restored.viewportPosition();
   restored.verticalScrollBar()->setValue(100);
@@ -304,7 +308,7 @@ void testPersistentReadingAnchorSurvivesRewrap() {
   require(restored.verticalScrollBar()->value() == 0, "document-start viewport retains its top padding");
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
@@ -313,7 +317,8 @@ int main(int argc, char** argv) {
   QApplication app(argc, argv);
   QFile reference(QStringLiteral(MUFFIN_SOURCE_DIR "/tests/fixtures/theme/real-theme-browser.json"));
   require(reference.open(QIODevice::ReadOnly), "source editor font reference");
-  const auto latin = browserLayoutFont(QJsonDocument::fromJson(reference.readAll()).object()).value("muffinfixturesans");
+  const auto latin =
+      browserLayoutFont(QJsonDocument::fromJson(reference.readAll()).object()).value("muffinfixturesans");
   const int id = QFontDatabase::addApplicationFont(QStringLiteral(MUFFIN_BINARY_DIR "/text-fixture-fonts/han.ttf"));
   require(id >= 0, "source editor CJK fixture font");
   fixtureSourceFont.setFamilies({latin, QFontDatabase::applicationFontFamilies(id).value(0)});

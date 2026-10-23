@@ -132,4 +132,4 @@ struct MathParseNode {
   QString error;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

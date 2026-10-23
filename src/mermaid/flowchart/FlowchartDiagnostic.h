@@ -63,4 +63,4 @@ QString flowchartErrorStageName(FlowchartErrorStage stage);
 QString flowchartErrorCodeName(FlowchartErrorCode code);
 QString formatFlowchartDiagnostic(const FlowchartDiagnostic& diagnostic);
 
-}  // namespace muffin::mermaid::flowchart
+} // namespace muffin::mermaid::flowchart

@@ -26,16 +26,16 @@ namespace muffin::diag {
 class ScopedPerfProbe {
 public:
   ScopedPerfProbe(const char* label, const QLoggingCategory& category)
-      : label_(label),
-        categoryName_(category.categoryName()),
-        enabled_(category.isDebugEnabled()) {
-    if (enabled_) { timer_.start(); }
+      : label_(label), categoryName_(category.categoryName()), enabled_(category.isDebugEnabled()) {
+    if (enabled_) {
+      timer_.start();
+    }
   }
 
   ~ScopedPerfProbe() {
     if (enabled_) {
-      QMessageLogger(QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC, categoryName_)
-          .debug().nospace() << label_ << ' ' << timer_.nsecsElapsed() / 1000000.0 << " ms";
+      QMessageLogger(QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC, categoryName_).debug().nospace()
+          << label_ << ' ' << timer_.nsecsElapsed() / 1000000.0 << " ms";
     }
   }
 
@@ -46,4 +46,4 @@ private:
   QElapsedTimer timer_;
 };
 
-}  // namespace muffin::diag
+} // namespace muffin::diag

@@ -10,14 +10,7 @@ namespace muffin {
 
 class MarkdownNode;
 
-enum class PendingBlockMarkerKind {
-  None,
-  Heading,
-  List,
-  CodeFence,
-  MathDollar,
-  MathBracket
-};
+enum class PendingBlockMarkerKind { None, Heading, List, CodeFence, MathDollar, MathBracket };
 
 struct PendingBlockMarker {
   PendingBlockMarkerKind kind = PendingBlockMarkerKind::None;
@@ -71,10 +64,7 @@ qsizetype pendingBlockMarkerOffset(QStringView markdown, qsizetype offset);
 // - Offsets in [sourceStart, sourceStart + removedLength): discarded
 //   (the edited line's new offset, if any, comes from pendingMarkerOffsetForSingleLineEdit).
 // - Offsets >= sourceStart + removedLength: shifted by (insertedLength - removedLength).
-QVector<qsizetype> shiftPendingMarkerOffsets(
-    const QVector<qsizetype>& preEditOffsets,
-    qsizetype sourceStart,
-    qsizetype removedLength,
-    qsizetype insertedLength);
+QVector<qsizetype> shiftPendingMarkerOffsets(const QVector<qsizetype>& preEditOffsets, qsizetype sourceStart,
+                                             qsizetype removedLength, qsizetype insertedLength);
 
-}  // namespace muffin
+} // namespace muffin

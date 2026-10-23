@@ -10,8 +10,7 @@
 
 namespace muffin::mermaid::radar {
 
-void RadarScene::paint(QPainter& painter,
-                       const MermaidPaintOptions& paintOptions) const {
+void RadarScene::paint(QPainter& painter, const MermaidPaintOptions& paintOptions) const {
   paintRadarScene(*this, painter, paintOptions);
 }
 
@@ -24,15 +23,16 @@ QPointF polar(qreal radius, int index, int count) {
   return QPointF(radius * std::cos(angle), radius * std::sin(angle));
 }
 
-double relativeRadius(double value, double minValue, double maxValue,
-                      double radius) {
+double relativeRadius(double value, double minValue, double maxValue, double radius) {
   const double clipped = std::min(std::max(value, minValue), maxValue);
   return radius * (clipped - minValue) / (maxValue - minValue);
 }
 
 QJsonValue numberJson(double value) {
-  if (std::isfinite(value)) return value;
-  if (std::isnan(value)) return QStringLiteral("NaN");
+  if (std::isfinite(value))
+    return value;
+  if (std::isnan(value))
+    return QStringLiteral("NaN");
   return value > 0 ? QStringLiteral("Infinity") : QStringLiteral("-Infinity");
 }
 
@@ -41,21 +41,24 @@ QJsonArray pointJson(const QPointF& point) {
 }
 
 QString anchorName(RadarTextAnchor anchor) {
-  if (anchor == RadarTextAnchor::Start) return QStringLiteral("start");
-  if (anchor == RadarTextAnchor::End) return QStringLiteral("end");
+  if (anchor == RadarTextAnchor::Start)
+    return QStringLiteral("start");
+  if (anchor == RadarTextAnchor::End)
+    return QStringLiteral("end");
   return QStringLiteral("middle");
 }
 
 QString baselineName(RadarBaseline baseline) {
-  if (baseline == RadarBaseline::Auto) return QStringLiteral("auto");
-  if (baseline == RadarBaseline::Hanging) return QStringLiteral("hanging");
+  if (baseline == RadarBaseline::Auto)
+    return QStringLiteral("auto");
+  if (baseline == RadarBaseline::Hanging)
+    return QStringLiteral("hanging");
   return QStringLiteral("central");
 }
 
-}  // namespace
+} // namespace
 
-RadarScene buildRadarScene(const RadarData& data, RadarConfig config,
-                           RadarSceneStyle style) {
+RadarScene buildRadarScene(const RadarData& data, RadarConfig config, RadarSceneStyle style) {
   RadarScene scene;
   scene.config = config;
   scene.style = std::move(style);
@@ -63,22 +66,19 @@ RadarScene buildRadarScene(const RadarData& data, RadarConfig config,
   scene.title = data.title;
   scene.accTitle = data.accTitle;
   scene.accDescr = data.accDescr;
-  const qreal totalWidth = config.totalWidth.value_or(
-      config.width + config.marginLeft + config.marginRight);
-  const qreal totalHeight = config.totalHeight.value_or(
-      config.height + config.marginTop + config.marginBottom);
+  const qreal totalWidth = config.totalWidth.value_or(config.width + config.marginLeft + config.marginRight);
+  const qreal totalHeight = config.totalHeight.value_or(config.height + config.marginTop + config.marginBottom);
   scene.bounds = QRectF(0.0, 0.0, totalWidth, totalHeight);
-  scene.center = QPointF(
-      config.centerX.value_or(config.marginLeft + config.width / 2.0),
-      config.centerY.value_or(config.marginTop + config.height / 2.0));
+  scene.center = QPointF(config.centerX.value_or(config.marginLeft + config.width / 2.0),
+                         config.centerY.value_or(config.marginTop + config.height / 2.0));
   scene.radius = std::min(config.width, config.height) / 2.0;
 
   const int axisCount = data.axes.size();
   const double ringCountValue = std::ceil(data.options.ticks);
-  const int ringCount = std::isfinite(ringCountValue) && ringCountValue > 0.0 &&
-                                ringCountValue <= std::numeric_limits<int>::max()
-                            ? static_cast<int>(ringCountValue)
-                            : 0;
+  const int ringCount =
+      std::isfinite(ringCountValue) && ringCountValue > 0.0 && ringCountValue <= std::numeric_limits<int>::max()
+          ? static_cast<int>(ringCountValue)
+          : 0;
   for (int i = 0; i < ringCount; ++i) {
     RadarGraticuleGeometry ring;
     ring.circle = data.options.graticule == QLatin1String("circle");
@@ -101,17 +101,13 @@ RadarScene buildRadarScene(const RadarData& data, RadarConfig config,
     RadarAxisGeometry axis;
     axis.name = data.axes.at(i).name;
     axis.label = data.axes.at(i).label;
-    axis.end = QPointF(scene.radius * config.axisScaleFactor * cosA,
-                       scene.radius * config.axisScaleFactor * sinA);
-    axis.labelPosition = QPointF(
-        scene.radius * config.axisLabelFactor * cosA + 4.0 * cosA,
-        scene.radius * config.axisLabelFactor * sinA + 4.0 * sinA);
-    axis.textAnchor = cosA > 0.01 ? RadarTextAnchor::Start
+    axis.end = QPointF(scene.radius * config.axisScaleFactor * cosA, scene.radius * config.axisScaleFactor * sinA);
+    axis.labelPosition = QPointF(scene.radius * config.axisLabelFactor * cosA + 4.0 * cosA,
+                                 scene.radius * config.axisLabelFactor * sinA + 4.0 * sinA);
+    axis.textAnchor = cosA > 0.01    ? RadarTextAnchor::Start
                       : cosA < -0.01 ? RadarTextAnchor::End
                                      : RadarTextAnchor::Middle;
-    axis.baseline = sinA > 0.01 ? RadarBaseline::Hanging
-                    : sinA < -0.01 ? RadarBaseline::Auto
-                                   : RadarBaseline::Central;
+    axis.baseline = sinA > 0.01 ? RadarBaseline::Hanging : sinA < -0.01 ? RadarBaseline::Auto : RadarBaseline::Central;
     axis.lineStroke = scene.style.axisColor;
     axis.lineColor = QStringLiteral("black");
     axis.lineStrokeWidth = scene.style.axisStrokeWidth;
@@ -126,11 +122,13 @@ RadarScene buildRadarScene(const RadarData& data, RadarConfig config,
   if (!data.options.hasMax) {
     maxValue = -std::numeric_limits<double>::infinity();
     for (const RadarCurve& curve : data.curves)
-      for (double entry : curve.entries) maxValue = std::max(maxValue, entry);
+      for (double entry : curve.entries)
+        maxValue = std::max(maxValue, entry);
   }
   for (int index = 0; index < data.curves.size(); ++index) {
     const RadarCurve& source = data.curves.at(index);
-    if (source.entries.size() != axisCount) continue;
+    if (source.entries.size() != axisCount)
+      continue;
     RadarCurveGeometry curve;
     curve.name = source.name;
     curve.label = source.label;
@@ -138,37 +136,30 @@ RadarScene buildRadarScene(const RadarData& data, RadarConfig config,
     curve.classGenerated = index >= 0 && index < scene.style.themeColorLimit;
     curve.color = scene.style.palette.value(index);
     curve.polygon = data.options.graticule == QLatin1String("polygon");
-    curve.fill = curve.classGenerated && !curve.color.trimmed().isEmpty()
-                     ? curve.color : scene.style.textColor;
-    curve.stroke = curve.classGenerated && !curve.color.trimmed().isEmpty()
-                       ? curve.color : QStringLiteral("none");
+    curve.fill = curve.classGenerated && !curve.color.trimmed().isEmpty() ? curve.color : scene.style.textColor;
+    curve.stroke = curve.classGenerated && !curve.color.trimmed().isEmpty() ? curve.color : QStringLiteral("none");
     curve.strokeWidth = curve.classGenerated ? scene.style.curveStrokeWidth : 1.0;
     curve.fillOpacity = curve.classGenerated ? scene.style.curveOpacity : 1.0;
-    curve.elementColor = curve.classGenerated && !curve.color.trimmed().isEmpty()
-                             ? curve.color : QStringLiteral("black");
+    curve.elementColor =
+        curve.classGenerated && !curve.color.trimmed().isEmpty() ? curve.color : QStringLiteral("black");
     for (int i = 0; i < axisCount; ++i)
-      curve.points.append(polar(relativeRadius(source.entries.at(i), data.options.min,
-                                               maxValue, scene.radius),
-                                i, axisCount));
+      curve.points.append(
+          polar(relativeRadius(source.entries.at(i), data.options.min, maxValue, scene.radius), i, axisCount));
     if (!curve.polygon && !curve.points.isEmpty()) {
       for (int i = 0; i < curve.points.size(); ++i) {
         const QPointF& p0 = curve.points.at((i - 1 + curve.points.size()) % curve.points.size());
         const QPointF& p1 = curve.points.at(i);
         const QPointF& p2 = curve.points.at((i + 1) % curve.points.size());
         const QPointF& p3 = curve.points.at((i + 2) % curve.points.size());
-        curve.cubics.append({p1 + (p2 - p0) * config.curveTension,
-                             p2 - (p3 - p1) * config.curveTension, p2});
+        curve.cubics.append({p1 + (p2 - p0) * config.curveTension, p2 - (p3 - p1) * config.curveTension, p2});
       }
     }
     scene.curves.append(std::move(curve));
   }
 
   if (data.options.showLegend) {
-    const QPointF first(
-        config.legendX.value_or(
-            (config.width / 2.0 + config.marginRight) * 3.0 / 4.0),
-        config.legendY.value_or(
-            -(config.height / 2.0 + config.marginTop) * 3.0 / 4.0));
+    const QPointF first(config.legendX.value_or((config.width / 2.0 + config.marginRight) * 3.0 / 4.0),
+                        config.legendY.value_or(-(config.height / 2.0 + config.marginTop) * 3.0 / 4.0));
     for (int index = 0; index < data.curves.size(); ++index) {
       RadarLegendGeometry legend;
       legend.text = data.curves.at(index).label;
@@ -176,13 +167,13 @@ RadarScene buildRadarScene(const RadarData& data, RadarConfig config,
       legend.classGenerated = index >= 0 && index < scene.style.themeColorLimit;
       legend.color = scene.style.palette.value(index);
       legend.position = first + QPointF(0.0, index * 20.0);
-      legend.boxFill = legend.classGenerated && !legend.color.trimmed().isEmpty()
-                           ? legend.color : scene.style.textColor;
-      legend.boxStroke = legend.classGenerated && !legend.color.trimmed().isEmpty()
-                             ? legend.color : QStringLiteral("none");
+      legend.boxFill =
+          legend.classGenerated && !legend.color.trimmed().isEmpty() ? legend.color : scene.style.textColor;
+      legend.boxStroke =
+          legend.classGenerated && !legend.color.trimmed().isEmpty() ? legend.color : QStringLiteral("none");
       legend.boxFillOpacity = legend.classGenerated ? scene.style.curveOpacity : 1.0;
-      legend.boxColor = legend.classGenerated && !legend.color.trimmed().isEmpty()
-                            ? legend.color : QStringLiteral("black");
+      legend.boxColor =
+          legend.classGenerated && !legend.color.trimmed().isEmpty() ? legend.color : QStringLiteral("black");
       legend.textFill = scene.style.textColor;
       legend.textColor = QStringLiteral("black");
       legend.textFontFamily = scene.style.fontFamily;
@@ -214,7 +205,8 @@ QJsonObject RadarScene::toJsonObject() const {
     value[QStringLiteral("shape")] = ring.circle ? QStringLiteral("circle") : QStringLiteral("polygon");
     value[QStringLiteral("radius")] = numberJson(ring.radius);
     QJsonArray points;
-    for (const QPointF& point : ring.points) points.append(pointJson(point));
+    for (const QPointF& point : ring.points)
+      points.append(pointJson(point));
     value[QStringLiteral("points")] = points;
     ringArray.append(value);
   }
@@ -243,12 +235,12 @@ QJsonObject RadarScene::toJsonObject() const {
     value[QStringLiteral("color")] = curve.color;
     value[QStringLiteral("shape")] = curve.polygon ? QStringLiteral("polygon") : QStringLiteral("curve");
     QJsonArray points;
-    for (const QPointF& point : curve.points) points.append(pointJson(point));
+    for (const QPointF& point : curve.points)
+      points.append(pointJson(point));
     value[QStringLiteral("points")] = points;
     QJsonArray cubics;
     for (const RadarCubicSegment& segment : curve.cubics)
-      cubics.append(QJsonArray{pointJson(segment.control1), pointJson(segment.control2),
-                               pointJson(segment.end)});
+      cubics.append(QJsonArray{pointJson(segment.control1), pointJson(segment.control2), pointJson(segment.end)});
     value[QStringLiteral("cubics")] = cubics;
     curveArray.append(value);
   }
@@ -268,4 +260,4 @@ QJsonObject RadarScene::toJsonObject() const {
   return root;
 }
 
-}  // namespace muffin::mermaid::radar
+} // namespace muffin::mermaid::radar

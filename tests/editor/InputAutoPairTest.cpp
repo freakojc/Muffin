@@ -61,9 +61,10 @@ void testMarkdownAutoPairAndWrap() {
 
   // Wrapping a selection types the opener around the selected text.
   session.setMarkdownText(QStringLiteral("alpha"), false);
-  setSelection(selection, blockAt(session, 0), 1, 3);  // "lp"
+  setSelection(selection, blockAt(session, 0), 1, 3); // "lp"
   require(input.insertText(QStringLiteral("*")), "wrap should consume the selection");
-  require(session.markdownText().toString() == QStringLiteral("a*lp*ha"), "wrap should surround the selection with the pair");
+  require(session.markdownText().toString() == QStringLiteral("a*lp*ha"),
+          "wrap should surround the selection with the pair");
 }
 
 // #21 pinning guard: wrapping an INTERIOR selection inside inline markers must preserve the
@@ -81,7 +82,7 @@ void testWrapInsideInlineMarkersPreservesThem() {
   wireInput(input, session, selection, undoStack, brushQueue);
 
   session.setMarkdownText(QStringLiteral("**bold**"), false);
-  setSelection(selection, blockAt(session, 0), 1, 3);  // visible "ol", interior to the bold span
+  setSelection(selection, blockAt(session, 0), 1, 3); // visible "ol", interior to the bold span
   require(input.insertText(QStringLiteral("(")), "wrap should consume the interior selection");
   require(session.markdownText().toString() == QStringLiteral("**b(ol)d**"),
           "wrapping an interior selection must preserve the surrounding ** markers");
@@ -100,7 +101,8 @@ void testMarkdownPairingOffInsertsLone() {
   session.setMarkdownText(QStringLiteral("alpha"), false);
   setCursor(selection, blockAt(session, 0), 0);
   require(input.insertText(QStringLiteral("*")), "lone '*' should insert when markdown pairing is off");
-  require(session.markdownText().toString() == QStringLiteral("*alpha"), "no markdown pair should be inserted when the setting is off");
+  require(session.markdownText().toString() == QStringLiteral("*alpha"),
+          "no markdown pair should be inserted when the setting is off");
 }
 
 void testApostropheContractionGuard() {
@@ -115,7 +117,7 @@ void testApostropheContractionGuard() {
 
   // A single quote between two letters is a contraction, not an opener.
   session.setMarkdownText(QStringLiteral("dont"), false);
-  setCursor(selection, blockAt(session, 0), 3);  // between "don" and "t"
+  setCursor(selection, blockAt(session, 0), 3); // between "don" and "t"
   require(input.insertText(QStringLiteral("'")), "apostrophe between letters should insert normally");
   require(session.markdownText().toString() == QStringLiteral("don't"), "contraction should not become a paired quote");
 
@@ -139,7 +141,8 @@ void testBracketPairingDisabled() {
   session.setMarkdownText(QStringLiteral("alpha"), false);
   setCursor(selection, blockAt(session, 0), 0);
   require(input.insertText(QStringLiteral("(")), "bracket should insert normally when pairing disabled");
-  require(session.markdownText().toString() == QStringLiteral("(alpha"), "no pair should be inserted when both settings are off");
+  require(session.markdownText().toString() == QStringLiteral("(alpha"),
+          "no pair should be inserted when both settings are off");
 }
 
 int main(int argc, char** argv) {

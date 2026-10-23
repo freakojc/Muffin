@@ -11,12 +11,7 @@ namespace muffin {
 
 class TextBlockCommandBuilder {
 public:
-  enum class Operation {
-    InsertText,
-    Backspace,
-    Delete,
-    Enter
-  };
+  enum class Operation { InsertText, Backspace, Delete, Enter };
 
   struct Command {
     bool valid = false;
@@ -68,4 +63,4 @@ private:
   const BlockEditContextResolver* resolver_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

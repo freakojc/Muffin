@@ -52,8 +52,7 @@ QPainterPath flowShapeHorizontalCylinderPath(const QRectF& bounds, qreal radiusX
 // `shapeRadius` is the RAW config.themeVariables.radius (shapes/roundedRect
 // reads `themeVariables?.radius ?? 5` — the per-theme radius literals never
 // reach this consumer; only a user override does).
-FlowShapeGeometry flowShapeGeometry(const FlowVertex& vertex, const QSizeF& size,
-                                    FlowLook look = FlowLook::Classic,
+FlowShapeGeometry flowShapeGeometry(const FlowVertex& vertex, const QSizeF& size, FlowLook look = FlowLook::Classic,
                                     qreal shapeRadius = 5.0);
 
-}  // namespace muffin::mermaid::flowchart
+} // namespace muffin::mermaid::flowchart

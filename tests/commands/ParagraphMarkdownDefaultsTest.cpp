@@ -14,7 +14,7 @@ using namespace muffin;
 // value (mirroring editor/indentSize).
 
 void testHeadingSetext() {
-  SettingsOverride style("markdown/headingStyle", 1);  // 1 = setext (===/---)
+  SettingsOverride style("markdown/headingStyle", 1); // 1 = setext (===/---)
   DocumentSession session;
   SelectionController selection;
   UndoStack undoStack;
@@ -25,13 +25,14 @@ void testHeadingSetext() {
   session.setMarkdownText(QStringLiteral("Title"), false);
   setCursor(selection, blockAt(session, 0), 2);
   require(paragraph.setHeadingLevel(1), "setext H1 should succeed");
-  require(session.markdownText().toString() == QStringLiteral("Title\n====="), "setext H1 should be content + === underline");
+  require(session.markdownText().toString() == QStringLiteral("Title\n====="),
+          "setext H1 should be content + === underline");
   require(blockAt(session, 0)->type() == BlockType::Heading, "setext should still parse as a heading");
   require(blockAt(session, 0)->headingLevel() == 1, "setext H1 level mismatch");
 }
 
 void testUnorderedListMarker() {
-  SettingsOverride marker("markdown/unorderedList", 1);  // 1 = '*'
+  SettingsOverride marker("markdown/unorderedList", 1); // 1 = '*'
   DocumentSession session;
   SelectionController selection;
   UndoStack undoStack;
@@ -46,7 +47,7 @@ void testUnorderedListMarker() {
 }
 
 void testDefaultCodeLang() {
-  SettingsOverride lang("markdown/defaultCodeLang", 1);  // 1 = cpp
+  SettingsOverride lang("markdown/defaultCodeLang", 1); // 1 = cpp
   // markdown/autoCodeLang defaults to 0 (emit when inserting via markdown) -> fence carries the lang.
   DocumentSession session;
   SelectionController selection;
@@ -57,7 +58,8 @@ void testDefaultCodeLang() {
 
   session.setMarkdownText(QString(), false);
   require(paragraph.insertCodeBlock(), "insert code block should succeed");
-  require(session.markdownText().toString() == QStringLiteral("```cpp\n\n```"), "code fence should carry the default language");
+  require(session.markdownText().toString() == QStringLiteral("```cpp\n\n```"),
+          "code fence should carry the default language");
 }
 
 int main(int argc, char** argv) {

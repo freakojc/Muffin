@@ -61,10 +61,29 @@ See [CLAUDE.md](CLAUDE.md) for additional build details and common pitfalls.
 
 ## Code Style
 
-- Follow the existing code style in the repository
+- Use the repository's `.clang-format` rules for C/C++ (2 spaces, 120 columns)
 - Use `camelCase` for variables and functions, `PascalCase` for classes
 - Add comments for non-obvious logic
 - Keep functions focused and concise
+
+### C/C++ Formatting
+
+Install the pinned formatter, then format before committing:
+
+```powershell
+python -m pip install -r requirements-format.txt
+python scripts/format_cpp.py
+
+# Check without changing files (also run by CI)
+python scripts/format_cpp.py --check
+```
+
+The script works on Windows, macOS, and Linux and formats Git-tracked C/C++ files
+in `src/`, `tests/`, and `scripts/`. Add new files with `git add` before running it.
+Third-party sources, test fixtures, generated files, and local build/scratch trees
+are excluded. Include order, comment text, and string contents are preserved.
+Configure your editor's clang-format integration to use the version pinned in
+`requirements-format.txt` and the root `.clang-format` file.
 
 ### Naming Conventions
 

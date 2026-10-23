@@ -29,7 +29,7 @@ struct CssLayoutStyle {
   QString justifySelf = QStringLiteral("auto");
   CssGridTrackList gridColumns, gridRows, gridAutoColumns, gridAutoRows;
   CssGridAreas gridAreas;
-  std::array<CssGridLine, 4> gridLines{};  // column start/end, row start/end
+  std::array<CssGridLine, 4> gridLines{}; // column start/end, row start/end
   bool gridFlowColumn = false;
   bool gridDense = false;
   QString overflowX = QStringLiteral("visible");
@@ -42,8 +42,8 @@ struct CssLayoutStyle {
   int order = 0;
   CssLengthPercentage basis, rowGap, columnGap;
   QString basisKeyword = QStringLiteral("auto");
-  std::array<CssIntrinsicSize, 6> sizes{};  // width, height, min-width, max-width, min-height, max-height
-  std::array<bool, 4> autoMargins{};        // top, right, bottom, left
+  std::array<CssIntrinsicSize, 6> sizes{}; // width, height, min-width, max-width, min-height, max-height
+  std::array<bool, 4> autoMargins{};       // top, right, bottom, left
 
   bool isFlex() const { return display == QLatin1String("flex") || display == QLatin1String("inline-flex"); }
   bool isGrid() const { return display == QLatin1String("grid") || display == QLatin1String("inline-grid"); }
@@ -53,4 +53,4 @@ struct CssLayoutStyle {
   bool clipsY() const { return overflowY != QLatin1String("visible"); }
   static CssLayoutStyle fromComputed(const CssComputedStyle& style);
 };
-}  // namespace muffin
+} // namespace muffin

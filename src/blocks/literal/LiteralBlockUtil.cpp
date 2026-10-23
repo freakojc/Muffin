@@ -15,19 +15,19 @@ namespace {
 
 QString defaultLiteralFor(FrontMatterFormat format) {
   switch (format) {
-    case FrontMatterFormat::Yaml:
-      return QStringLiteral("title: ");
-    case FrontMatterFormat::Toml:
-      return QStringLiteral("title = \"\"");
-    case FrontMatterFormat::Json:
-      return QStringLiteral("{\n  \"title\": \"\"\n}");
-    case FrontMatterFormat::None:
-    default:
-      return {};
+  case FrontMatterFormat::Yaml:
+    return QStringLiteral("title: ");
+  case FrontMatterFormat::Toml:
+    return QStringLiteral("title = \"\"");
+  case FrontMatterFormat::Json:
+    return QStringLiteral("{\n  \"title\": \"\"\n}");
+  case FrontMatterFormat::None:
+  default:
+    return {};
   }
 }
 
-}  // namespace
+} // namespace
 
 QString sanitizedHtmlPreview(const LiteralBlockController& ctrl) {
   const MarkdownNode* html = ctrl.currentBlock();
@@ -76,18 +76,9 @@ bool insertFrontMatter(const EditorContext& ctx, LiteralBlockController& ctrl, F
   }
   if (ctx.undoStack) {
     ctx.undoStack->push(EditTransaction(
-        EditTransaction::Kind::InsertText,
-        QStringLiteral("Insert Front Matter"),
-        InsertNodeCommand{
-            insertedId,
-            BlockType::FrontMatter,
-            0,
-            TextDelta{0, QString(), insertedText},
-            0,
-            std::move(commandNode),
-            beforeCursor,
-            nextCursor,
-            QVector<NodeId>{insertedId}}));
+        EditTransaction::Kind::InsertText, QStringLiteral("Insert Front Matter"),
+        InsertNodeCommand{insertedId, BlockType::FrontMatter, 0, TextDelta{0, QString(), insertedText}, 0,
+                          std::move(commandNode), beforeCursor, nextCursor, QVector<NodeId>{insertedId}}));
   }
   if (ctx.brushQueue) {
     ctx.brushQueue->requestBlockRefresh(insertedId);
@@ -95,4 +86,4 @@ bool insertFrontMatter(const EditorContext& ctx, LiteralBlockController& ctrl, F
   return true;
 }
 
-}  // namespace muffin
+} // namespace muffin

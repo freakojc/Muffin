@@ -33,13 +33,8 @@ public:
   void setMarkdownText(QString text, std::unique_ptr<MarkdownNode> root);
   // Install a worker-prepared text index without scanning the original text again.
   void setPreparedMarkdownText(PieceTable text, std::unique_ptr<MarkdownNode> root);
-  void replaceTopLevelRange(
-      qsizetype first,
-      qsizetype count,
-      std::vector<std::unique_ptr<MarkdownNode>> replacements,
-      qsizetype sourceStart,
-      qsizetype sourceEnd,
-      const QString& replacementText);
+  void replaceTopLevelRange(qsizetype first, qsizetype count, std::vector<std::unique_ptr<MarkdownNode>> replacements,
+                            qsizetype sourceStart, qsizetype sourceEnd, const QString& replacementText);
   void shiftTopLevelSuffix(qsizetype first, qsizetype byteDelta, int lineDelta);
   QVector<OutlineEntry> outline() const;
   quint64 outlineRevision() const { return outlineRevision_; }
@@ -60,12 +55,10 @@ private:
   void bindSourcePositionSlots();
   void refreshRootSourceRange();
   void rebuildOutlineIndex();
-  void replaceOutlineRange(
-      qsizetype first,
-      qsizetype count,
-      const std::vector<std::unique_ptr<MarkdownNode>>& replacements);
+  void replaceOutlineRange(qsizetype first, qsizetype count,
+                           const std::vector<std::unique_ptr<MarkdownNode>>& replacements);
 
-  PieceTable text_;  // the edit master: replaceTopLevelRange edits this (O(pieces)); sole source of truth
+  PieceTable text_; // the edit master: replaceTopLevelRange edits this (O(pieces)); sole source of truth
   LineStartOffsetCache lineOffsets_;
   std::unique_ptr<MarkdownNode> root_;
   NodeIndex index_;
@@ -76,4 +69,4 @@ private:
   bool modified_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

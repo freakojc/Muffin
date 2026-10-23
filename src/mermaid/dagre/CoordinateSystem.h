@@ -11,4 +11,4 @@ namespace muffin::mermaid::dagre {
 void adjustCoordinateSystem(DagreGraph& g);
 void undoCoordinateSystem(DagreGraph& g);
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

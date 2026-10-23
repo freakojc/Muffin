@@ -13,14 +13,13 @@ inline const QLoggingCategory& openPerformanceCategory() {
 // Independent of the per-inline parser diagnostics: only a few coarse scopes
 // are sampled per open. Disabled scopes neither read the clock nor query memory.
 class OpenPerfAccumulator {
- public:
+public:
   explicit OpenPerfAccumulator(const char* name) : name_(name), enabled_(openPerformanceCategory().isDebugEnabled()) {}
   ~OpenPerfAccumulator() {
     if (enabled_)
       qCDebug(openPerformanceCategory).nospace() << name_ << " " << elapsedNs_ / 1e6 << " ms " << workingSetBytes();
   }
-  template <typename F>
-  void measure(F&& operation) {
+  template <typename F> void measure(F&& operation) {
     if (!enabled_) {
       operation();
       return;
@@ -31,15 +30,16 @@ class OpenPerfAccumulator {
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count();
   }
 
- private:
+private:
   const char* name_;
   bool enabled_;
   qint64 elapsedNs_ = 0;
 };
 class OpenPerfScope {
- public:
+public:
   explicit OpenPerfScope(const char* name) : name_(name), enabled_(openPerformanceCategory().isDebugEnabled()) {
-    if (enabled_) start_ = std::chrono::steady_clock::now();
+    if (enabled_)
+      start_ = std::chrono::steady_clock::now();
   }
   ~OpenPerfScope() {
     if (enabled_) {
@@ -49,9 +49,9 @@ class OpenPerfScope {
     }
   }
 
- private:
+private:
   const char* name_;
   bool enabled_;
   std::chrono::steady_clock::time_point start_;
 };
-}  // namespace muffin::diag
+} // namespace muffin::diag

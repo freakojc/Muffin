@@ -10,7 +10,8 @@
 
 namespace muffin {
 
-LiteralBlockController::LiteralBlockController(LiteralBlockSpec spec) : spec_(std::move(spec)) {}
+LiteralBlockController::LiteralBlockController(LiteralBlockSpec spec) : spec_(std::move(spec)) {
+}
 
 void LiteralBlockController::setContext(const EditorContext& ctx) {
   ctx_ = ctx;
@@ -127,49 +128,47 @@ bool LiteralBlockController::deleteBackward() {
   if (ctx_.selection && ctx_.selection->hasCursor() && !ctx_.selection->selection().isCollapsed()) {
     return deleteSelection();
   }
-  return mutateCurrentBlock(spec_.backspaceLabel, EditTransaction::Kind::DeleteText,
-                            [](MarkdownNode& node, qsizetype& offset) {
-                              QString value = node.literal();
-                              offset = qBound<qsizetype>(0, offset, value.size());
-                              if (offset <= 0) {
-                                return true;
-                              }
-                              // Delete a full code point, not one UTF-16 unit — removing
-                              // only the low surrogate of an emoji left an unpaired high
-                              // surrogate behind (invalid text on save).
-                              qsizetype count = 1;
-                              if (value.at(offset - 1).isLowSurrogate() && offset - 1 > 0 &&
-                                  value.at(offset - 2).isHighSurrogate()) {
-                                count = 2;
-                              }
-                              value.remove(offset - count, count);
-                              offset -= count;
-                              node.setLiteral(value);
-                              return true;
-                            });
+  return mutateCurrentBlock(
+      spec_.backspaceLabel, EditTransaction::Kind::DeleteText, [](MarkdownNode& node, qsizetype& offset) {
+        QString value = node.literal();
+        offset = qBound<qsizetype>(0, offset, value.size());
+        if (offset <= 0) {
+          return true;
+        }
+        // Delete a full code point, not one UTF-16 unit — removing
+        // only the low surrogate of an emoji left an unpaired high
+        // surrogate behind (invalid text on save).
+        qsizetype count = 1;
+        if (value.at(offset - 1).isLowSurrogate() && offset - 1 > 0 && value.at(offset - 2).isHighSurrogate()) {
+          count = 2;
+        }
+        value.remove(offset - count, count);
+        offset -= count;
+        node.setLiteral(value);
+        return true;
+      });
 }
 
 bool LiteralBlockController::deleteForward() {
   if (ctx_.selection && ctx_.selection->hasCursor() && !ctx_.selection->selection().isCollapsed()) {
     return deleteSelection();
   }
-  return mutateCurrentBlock(spec_.deleteLabel, EditTransaction::Kind::DeleteText,
-                            [](MarkdownNode& node, qsizetype& offset) {
-                              QString value = node.literal();
-                              offset = qBound<qsizetype>(0, offset, value.size());
-                              if (offset >= value.size()) {
-                                return true;
-                              }
-                              // Delete a full code point (see deleteBackward).
-                              qsizetype count = 1;
-                              if (value.at(offset).isHighSurrogate() && offset + 1 < value.size() &&
-                                  value.at(offset + 1).isLowSurrogate()) {
-                                count = 2;
-                              }
-                              value.remove(offset, count);
-                              node.setLiteral(value);
-                              return true;
-                            });
+  return mutateCurrentBlock(
+      spec_.deleteLabel, EditTransaction::Kind::DeleteText, [](MarkdownNode& node, qsizetype& offset) {
+        QString value = node.literal();
+        offset = qBound<qsizetype>(0, offset, value.size());
+        if (offset >= value.size()) {
+          return true;
+        }
+        // Delete a full code point (see deleteBackward).
+        qsizetype count = 1;
+        if (value.at(offset).isHighSurrogate() && offset + 1 < value.size() && value.at(offset + 1).isLowSurrogate()) {
+          count = 2;
+        }
+        value.remove(offset, count);
+        node.setLiteral(value);
+        return true;
+      });
 }
 
 bool LiteralBlockController::deleteSelection() {
@@ -204,7 +203,8 @@ bool LiteralBlockController::mutateCurrentBlock(QString label, EditTransaction::
   return active ? mutateBlock(active->id(), std::move(label), kind, mutate) : false;
 }
 
-bool LiteralBlockController::mutateBlock(NodeId requestedId, QString label, EditTransaction::Kind kind, const MutateFn& mutate) {
+bool LiteralBlockController::mutateBlock(NodeId requestedId, QString label, EditTransaction::Kind kind,
+                                         const MutateFn& mutate) {
   if (!ctx_.hasSession() || !ctx_.hasSelection()) {
     return false;
   }
@@ -217,7 +217,8 @@ bool LiteralBlockController::mutateBlock(NodeId requestedId, QString label, Edit
   NodeId nodeId = active->id();
   const NodeId originalId = nodeId;
   const int nodeIndex = blockIndexFor(nodeId);
-  const CursorPosition beforeCursor = ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : cursorFor(nodeId, 0);
+  const CursorPosition beforeCursor =
+      ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : cursorFor(nodeId, 0);
   const int beforeCursorIndex = blockIndexFor(beforeCursor.blockId);
   const bool cursorWasInTarget = beforeCursor.blockId == nodeId || (wasEditing && beforeCursor.blockId == editingId_);
   std::unique_ptr<MarkdownNode> beforeNode = active->clone(CloneMode::PreserveIds);
@@ -255,18 +256,10 @@ bool LiteralBlockController::mutateBlock(NodeId requestedId, QString label, Edit
     ctx_.selection->setCursorPosition(nextCursor);
   }
   if (ctx_.undoStack) {
-    ctx_.undoStack->push(EditTransaction(
-        kind,
-        std::move(label),
-        ReplaceNodeCommand{
-            originalId,
-            spec_.blockType,
-            nodeIndex,
-            std::move(beforeNode),
-            std::move(afterNode),
-            beforeCursor,
-            nextCursor,
-            QVector<NodeId>{originalId}}));
+    ctx_.undoStack->push(EditTransaction(kind, std::move(label),
+                                         ReplaceNodeCommand{originalId, spec_.blockType, nodeIndex,
+                                                            std::move(beforeNode), std::move(afterNode), beforeCursor,
+                                                            nextCursor, QVector<NodeId>{originalId}}));
   }
   if (ctx_.brushQueue) {
     ctx_.brushQueue->requestBlockRefresh(nodeId);
@@ -425,8 +418,7 @@ void LiteralBlockController::clearPendingTrailingNewline() {
   // Re-anchor the caret only if it is still on this block. A command that moved the caret
   // elsewhere (e.g. insert-paragraph-before, which leaves the code block) owns the new position
   // and must not be dragged back here.
-  if (ctx_.selection && ctx_.selection->hasCursor() &&
-      ctx_.selection->cursorPosition().blockId == active->id()) {
+  if (ctx_.selection && ctx_.selection->hasCursor() && ctx_.selection->cursorPosition().blockId == active->id()) {
     ctx_.selection->setCursorPosition(cursorFor(active->id(), literal.size()));
   }
   if (ctx_.brushQueue) {
@@ -434,4 +426,4 @@ void LiteralBlockController::clearPendingTrailingNewline() {
   }
 }
 
-}  // namespace muffin
+} // namespace muffin

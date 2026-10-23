@@ -68,21 +68,18 @@ qsizetype commonSuffixLength(const QString& a, const QString& b, qsizetype prefi
 }
 
 void warnUndoApplyFailed(bool undo, const char* command, const char* reason) {
-  qCWarning(undoLog).nospace()
-      << "Cannot apply " << undoDirection(undo) << " " << command << ": " << reason;
+  qCWarning(undoLog).nospace() << "Cannot apply " << undoDirection(undo) << " " << command << ": " << reason;
 }
 
-void warnUndoApplyFailed(bool undo, const char* command, const char* reason, qsizetype start, qsizetype length, qsizetype documentSize) {
-  qCWarning(undoLog).nospace()
-      << "Cannot apply " << undoDirection(undo) << " " << command << ": " << reason
-      << " start=" << start
-      << " length=" << length
-      << " documentSize=" << documentSize;
+void warnUndoApplyFailed(bool undo, const char* command, const char* reason, qsizetype start, qsizetype length,
+                         qsizetype documentSize) {
+  qCWarning(undoLog).nospace() << "Cannot apply " << undoDirection(undo) << " " << command << ": " << reason
+                               << " start=" << start << " length=" << length << " documentSize=" << documentSize;
 }
 
 void warnUndoApplyFallback(bool undo, const char* command, const char* reason) {
-  qCWarning(undoLog).nospace()
-      << "Falling back while applying " << undoDirection(undo) << " " << command << ": " << reason;
+  qCWarning(undoLog).nospace() << "Falling back while applying " << undoDirection(undo) << " " << command << ": "
+                               << reason;
 }
 
 MarkdownNode* tableByIdOrIndex(DocumentSession& session, NodeId tableId, int tableIndex) {
@@ -115,7 +112,8 @@ MarkdownNode* tableByIdOrIndex(DocumentSession& session, NodeId tableId, int tab
   return visit(visit, session.document().root());
 }
 
-CursorPosition tableCursorForLocation(DocumentSession& session, const TableCommand& command, int row, int column, const CursorPosition& fallback) {
+CursorPosition tableCursorForLocation(DocumentSession& session, const TableCommand& command, int row, int column,
+                                      const CursorPosition& fallback) {
   CursorPosition cursor;
   MarkdownNode* table = tableByIdOrIndex(session, command.tableId, command.tableIndex);
   if (!table) {
@@ -186,7 +184,8 @@ MarkdownNode* nodeBySourceOffset(MarkdownNode& node, BlockType nodeType, qsizety
   return node.findDescendant(matches);
 }
 
-CursorPosition insertedNodeCursor(DocumentSession& session, const InsertNodeCommand& command, const CursorPosition& storedCursor) {
+CursorPosition insertedNodeCursor(DocumentSession& session, const InsertNodeCommand& command,
+                                  const CursorPosition& storedCursor) {
   CursorPosition cursor;
   if (command.nodeType == BlockType::FrontMatter) {
     MarkdownNode* node = session.document().node(command.nodeId);
@@ -235,7 +234,8 @@ CursorPosition insertedNodeCursor(DocumentSession& session, const InsertNodeComm
   return cursor;
 }
 
-CursorPosition replacedNodeCursor(DocumentSession& session, const ReplaceNodeCommand& command, const CursorPosition& storedCursor) {
+CursorPosition replacedNodeCursor(DocumentSession& session, const ReplaceNodeCommand& command,
+                                  const CursorPosition& storedCursor) {
   CursorPosition cursor;
   if (!storedCursor.isValid()) {
     return cursor;
@@ -263,12 +263,12 @@ MarkdownNode* nodeByIdOrIndex(DocumentSession& session, NodeId nodeId, BlockType
   return node;
 }
 
-template <typename T>
-std::optional<T> attributeValue(NodeAttribute attribute, const NodeAttributeValue& value) {
+template <typename T> std::optional<T> attributeValue(NodeAttribute attribute, const NodeAttributeValue& value) {
   if (const T* typed = std::get_if<T>(&value)) {
     return *typed;
   }
-  qWarning() << "Cannot apply node attribute because value type does not match attribute" << static_cast<int>(attribute);
+  qWarning() << "Cannot apply node attribute because value type does not match attribute"
+             << static_cast<int>(attribute);
   return std::nullopt;
 }
 
@@ -279,61 +279,70 @@ bool applyNodeAttribute(MarkdownNode& node, NodeAttribute attribute, const NodeA
   }
 
   switch (attribute) {
-    case NodeAttribute::HeadingLevel: {
-      const std::optional<int> typed = attributeValue<int>(attribute, value);
-      if (!typed) return false;
-      node.setHeadingLevel(*typed);
-      return true;
-    }
-    case NodeAttribute::ListKind: {
-      const std::optional<ListKind> typed = attributeValue<ListKind>(attribute, value);
-      if (!typed) return false;
-      node.setListKind(*typed);
-      return true;
-    }
-    case NodeAttribute::ListStart: {
-      const std::optional<int> typed = attributeValue<int>(attribute, value);
-      if (!typed) return false;
-      node.setListStart(*typed);
-      return true;
-    }
-    case NodeAttribute::ListTight: {
-      const std::optional<bool> typed = attributeValue<bool>(attribute, value);
-      if (!typed) return false;
-      node.setListTight(*typed);
-      return true;
-    }
-    case NodeAttribute::TaskChecked: {
-      const std::optional<bool> typed = attributeValue<bool>(attribute, value);
-      if (!typed) return false;
-      node.setTaskChecked(*typed);
-      return true;
-    }
-    case NodeAttribute::CodeLanguage: {
-      const std::optional<QString> typed = attributeValue<QString>(attribute, value);
-      if (!typed) return false;
-      node.setCodeLanguage(*typed);
-      return true;
-    }
-    case NodeAttribute::TableAlignments: {
-      const std::optional<QVector<TableAlignment>> typed = attributeValue<QVector<TableAlignment>>(attribute, value);
-      if (!typed) return false;
-      node.setTableAlignments(*typed);
-      return true;
-    }
-    case NodeAttribute::TableRowIsHeader: {
-      const std::optional<bool> typed = attributeValue<bool>(attribute, value);
-      if (!typed) return false;
-      node.setTableRowIsHeader(*typed);
-      return true;
-    }
-    case NodeAttribute::Unknown:
+  case NodeAttribute::HeadingLevel: {
+    const std::optional<int> typed = attributeValue<int>(attribute, value);
+    if (!typed)
       return false;
+    node.setHeadingLevel(*typed);
+    return true;
+  }
+  case NodeAttribute::ListKind: {
+    const std::optional<ListKind> typed = attributeValue<ListKind>(attribute, value);
+    if (!typed)
+      return false;
+    node.setListKind(*typed);
+    return true;
+  }
+  case NodeAttribute::ListStart: {
+    const std::optional<int> typed = attributeValue<int>(attribute, value);
+    if (!typed)
+      return false;
+    node.setListStart(*typed);
+    return true;
+  }
+  case NodeAttribute::ListTight: {
+    const std::optional<bool> typed = attributeValue<bool>(attribute, value);
+    if (!typed)
+      return false;
+    node.setListTight(*typed);
+    return true;
+  }
+  case NodeAttribute::TaskChecked: {
+    const std::optional<bool> typed = attributeValue<bool>(attribute, value);
+    if (!typed)
+      return false;
+    node.setTaskChecked(*typed);
+    return true;
+  }
+  case NodeAttribute::CodeLanguage: {
+    const std::optional<QString> typed = attributeValue<QString>(attribute, value);
+    if (!typed)
+      return false;
+    node.setCodeLanguage(*typed);
+    return true;
+  }
+  case NodeAttribute::TableAlignments: {
+    const std::optional<QVector<TableAlignment>> typed = attributeValue<QVector<TableAlignment>>(attribute, value);
+    if (!typed)
+      return false;
+    node.setTableAlignments(*typed);
+    return true;
+  }
+  case NodeAttribute::TableRowIsHeader: {
+    const std::optional<bool> typed = attributeValue<bool>(attribute, value);
+    if (!typed)
+      return false;
+    node.setTableRowIsHeader(*typed);
+    return true;
+  }
+  case NodeAttribute::Unknown:
+    return false;
   }
   return false;
 }
 
-bool applyTextReplacement(DocumentSession& session, qsizetype replaceStart, qsizetype replaceLength, const QString& replacement, const QVector<NodeId>& affectedNodes) {
+bool applyTextReplacement(DocumentSession& session, qsizetype replaceStart, qsizetype replaceLength,
+                          const QString& replacement, const QVector<NodeId>& affectedNodes) {
   QVector<LocalEditNodeHint> nodeHints;
   for (NodeId nodeId : affectedNodes) {
     nodeHints.push_back(LocalEditNodeHint{nodeId, replaceStart, BlockType::Unknown});
@@ -375,7 +384,8 @@ void addRefreshNode(DocumentSession& session, QVector<NodeId>& refreshNodes, Nod
   }
 }
 
-QVector<NodeId> refreshNodesFor(DocumentSession& session, const QVector<NodeId>& affectedNodes, CursorPosition cursor = {}) {
+QVector<NodeId> refreshNodesFor(DocumentSession& session, const QVector<NodeId>& affectedNodes,
+                                CursorPosition cursor = {}) {
   QVector<NodeId> refreshNodes;
   for (NodeId nodeId : affectedNodes) {
     addRefreshNode(session, refreshNodes, nodeId);
@@ -387,7 +397,8 @@ QVector<NodeId> refreshNodesFor(DocumentSession& session, const QVector<NodeId>&
   return refreshNodes;
 }
 
-void requestRefreshForNodes(BrushQueue& brushQueue, DocumentSession& session, const QVector<NodeId>& affectedNodes, CursorPosition cursor = {}) {
+void requestRefreshForNodes(BrushQueue& brushQueue, DocumentSession& session, const QVector<NodeId>& affectedNodes,
+                            CursorPosition cursor = {}) {
   // If the just-applied local edit changed top-level block structure (a split/merge/insert/remove
   // altered the block count), a localized block refresh can't represent the new structure —
   // refreshBlock fails to find the reshuffled/removed slot and the brush-queue consumer falls back
@@ -398,7 +409,7 @@ void requestRefreshForNodes(BrushQueue& brushQueue, DocumentSession& session, co
     const TopLevelRangeChange range = session.lastLocalTopLevelRangeChange();
     if (range.isValid()) {
       qCDebug(undoPerf).nospace() << "undo.refresh.structural → requestTopLevelRangeRefresh"
-          << " first=" << range.first << " old=" << range.oldCount << " new=" << range.newCount;
+                                  << " first=" << range.first << " old=" << range.oldCount << " new=" << range.newCount;
       brushQueue.requestTopLevelRangeRefresh(range);
       return;
     }
@@ -414,19 +425,19 @@ void requestRefreshForNodes(BrushQueue& brushQueue, DocumentSession& session, co
     const TopLevelRangeChange range = session.lastLocalTopLevelRangeChange();
     if (range.isValid()) {
       qCDebug(undoPerf).nospace() << "undo.refresh.emptyRefreshNodes → requestTopLevelRangeRefresh"
-          << " first=" << range.first << " old=" << range.oldCount << " new=" << range.newCount;
+                                  << " first=" << range.first << " old=" << range.oldCount << " new=" << range.newCount;
       brushQueue.requestTopLevelRangeRefresh(range);
       return;
     }
     qCDebug(undoPerf).nospace() << "undo.refresh.emptyRefreshNodes → requestFullRefresh (no range)"
-        << " affectedNodes=" << affectedNodes.size() << " cursorValid=" << cursor.isValid();
+                                << " affectedNodes=" << affectedNodes.size() << " cursorValid=" << cursor.isValid();
     brushQueue.requestFullRefresh();
     return;
   }
   brushQueue.requestBlocksRefresh(std::move(refreshNodes));
 }
 
-}  // namespace
+} // namespace
 
 void EditorController::applySnapshot(const DocumentSnapshot& snapshot) {
   if (!session_) {
@@ -452,10 +463,10 @@ void EditorController::applySnapshot(const DocumentSnapshot& snapshot) {
   // Record the diff region + outcome so the perf trace shows exactly why a snapshot undo either
   // localized (fast) or fell back to a full reparse (the ~20s regression). curSize/tgtSize make a
   // pathological "whole document changed" diff obvious at a glance.
-  qCDebug(undoPerf).nospace() << "undo.snapshot diff curSize=" << current.size()
-      << " tgtSize=" << target.size() << " prefix=" << prefix << " suffix=" << commonSuffix
-      << " curReplaceLen=" << (curSuffix - prefix) << " insertedLen=" << inserted.size()
-      << " appliedLocally=" << appliedLocally;
+  qCDebug(undoPerf).nospace() << "undo.snapshot diff curSize=" << current.size() << " tgtSize=" << target.size()
+                              << " prefix=" << prefix << " suffix=" << commonSuffix
+                              << " curReplaceLen=" << (curSuffix - prefix) << " insertedLen=" << inserted.size()
+                              << " appliedLocally=" << appliedLocally;
   if (!appliedLocally) {
     UndoPerfTimer fullParsePerf("undo.snapshot.fullParseFallback");
     session_->applyMarkdownText(target, true, snapshot.demoteAtOffsets);
@@ -485,7 +496,8 @@ bool EditorController::applyTransaction(const EditTransaction& transaction, bool
 
   UndoPerfTimer perf(undo ? "undo.applyTransaction" : "redo.applyTransaction");
   qCDebug(undoPerf).nospace() << (undo ? "undo" : "redo") << ".begin label=\"" << transaction.label()
-      << "\" snapshot=" << transaction.isSnapshot() << " textDelta=" << transaction.isTextDeltaCommand();
+                              << "\" snapshot=" << transaction.isSnapshot()
+                              << " textDelta=" << transaction.isTextDeltaCommand();
 
   if (transaction.isSnapshot()) {
     applySnapshot(undo ? transaction.before() : transaction.after());
@@ -505,8 +517,8 @@ bool EditorController::applyTransaction(const EditTransaction& transaction, bool
       return false;
     }
     const CursorPosition storedCursor = undo ? command.beforeCursor : command.afterCursor;
-    CursorPosition cursor = tableCursorForLocation(
-        *session_, command, undo ? command.beforeRow : command.afterRow, undo ? command.beforeColumn : command.afterColumn, storedCursor);
+    CursorPosition cursor = tableCursorForLocation(*session_, command, undo ? command.beforeRow : command.afterRow,
+                                                   undo ? command.beforeColumn : command.afterColumn, storedCursor);
     if (!cursor.isValid()) {
       cursor = remapSnapshotCursor(storedCursor);
     }
@@ -523,9 +535,11 @@ bool EditorController::applyTransaction(const EditTransaction& transaction, bool
     const InsertNodeCommand& command = transaction.insertNodeCommand();
     const QString replacement = undo ? command.delta.removedText : command.delta.insertedText;
     const qsizetype replaceStart = command.delta.start;
-    const qsizetype replaceEnd = command.delta.start + (undo ? command.delta.insertedText.size() : command.delta.removedText.size());
+    const qsizetype replaceEnd =
+        command.delta.start + (undo ? command.delta.insertedText.size() : command.delta.removedText.size());
     const bool appliedLocally =
-        session_->applyInsertedNode(command.nodeId, command.nodeType, replaceStart, command.nodeSourceStart, replaceEnd - replaceStart, replacement, true);
+        session_->applyInsertedNode(command.nodeId, command.nodeType, replaceStart, command.nodeSourceStart,
+                                    replaceEnd - replaceStart, replacement, true);
     if (!appliedLocally) {
       warnUndoApplyFallback(undo, "insert node command", "inserted node delta could not be applied locally");
       return false;
@@ -558,7 +572,8 @@ bool EditorController::applyTransaction(const EditTransaction& transaction, bool
       warnUndoApplyFailed(undo, "replace node command", "missing stored node snapshot");
       return false;
     }
-    const bool appliedLocally = session_->applyNodeSnapshot(command.nodeId, command.nodeType, command.nodeIndex, *node, true);
+    const bool appliedLocally =
+        session_->applyNodeSnapshot(command.nodeId, command.nodeType, command.nodeIndex, *node, true);
     if (!appliedLocally) {
       warnUndoApplyFallback(undo, "replace node command", "node snapshot could not be applied locally");
       return false;
@@ -581,15 +596,11 @@ bool EditorController::applyTransaction(const EditTransaction& transaction, bool
     const RemoveNodeCommand& command = transaction.removeNodeCommand();
     const QString replacement = undo ? command.delta.removedText : QString();
     const qsizetype replaceLength = undo ? 0 : command.delta.removedText.size();
-    const bool applied = applyTextReplacement(*session_, command.delta.start, replaceLength, replacement, command.affectedNodes);
+    const bool applied =
+        applyTextReplacement(*session_, command.delta.start, replaceLength, replacement, command.affectedNodes);
     if (!applied) {
-      warnUndoApplyFailed(
-          undo,
-          "remove node command",
-          "text replacement range is invalid",
-          command.delta.start,
-          replaceLength,
-          session_->markdownText().size());
+      warnUndoApplyFailed(undo, "remove node command", "text replacement range is invalid", command.delta.start,
+                          replaceLength, session_->markdownText().size());
       return false;
     }
     const CursorPosition storedCursor = undo ? command.beforeCursor : command.afterCursor;
@@ -615,7 +626,8 @@ bool EditorController::applyTransaction(const EditTransaction& transaction, bool
       warnUndoApplyFailed(undo, "set node attribute command", "attribute value could not be applied");
       return false;
     }
-    const bool appliedLocally = session_->applyNodeSnapshot(command.nodeId, command.nodeType, command.nodeIndex, *nextNode, true);
+    const bool appliedLocally =
+        session_->applyNodeSnapshot(command.nodeId, command.nodeType, command.nodeIndex, *nextNode, true);
     if (!appliedLocally) {
       warnUndoApplyFallback(undo, "set node attribute command", "node snapshot could not be applied locally");
       return false;
@@ -645,10 +657,13 @@ bool EditorController::applyTransaction(const EditTransaction& transaction, bool
   for (NodeId nodeId : command.affectedNodes) {
     nodeHints.push_back(LocalEditNodeHint{nodeId, replaceStart, BlockType::Unknown});
   }
-  const bool appliedLocally = session_->applyTextDelta(replaceStart, replaceEnd - replaceStart, replacement, true, std::move(nodeHints));
+  const bool appliedLocally =
+      session_->applyTextDelta(replaceStart, replaceEnd - replaceStart, replacement, true, std::move(nodeHints));
   qCDebug(undoPerf).nospace() << "undo.textDelta replaceStart=" << replaceStart
-      << " replaceLen=" << (replaceEnd - replaceStart) << " replacementLen=" << replacement.size()
-      << " affectedNodes=" << command.affectedNodes.size() << " appliedLocally=" << appliedLocally;
+                              << " replaceLen=" << (replaceEnd - replaceStart)
+                              << " replacementLen=" << replacement.size()
+                              << " affectedNodes=" << command.affectedNodes.size()
+                              << " appliedLocally=" << appliedLocally;
   const CursorPosition storedCursor = undo ? command.beforeCursor : command.afterCursor;
   CursorPosition cursor = tableCellTextCursor(*session_, storedCursor);
   if (!cursor.isValid()) {
@@ -664,13 +679,8 @@ bool EditorController::applyTransaction(const EditTransaction& transaction, bool
     warnUndoApplyFallback(undo, "text delta command", "text delta could not be applied locally");
     QString text = session_->markdownText().toString();
     if (replaceStart < 0 || replaceEnd < replaceStart || replaceEnd > text.size()) {
-      warnUndoApplyFailed(
-          undo,
-          "text delta command",
-          "fallback text replacement range is invalid",
-          replaceStart,
-          replaceEnd >= replaceStart ? replaceEnd - replaceStart : qsizetype(-1),
-          text.size());
+      warnUndoApplyFailed(undo, "text delta command", "fallback text replacement range is invalid", replaceStart,
+                          replaceEnd >= replaceStart ? replaceEnd - replaceStart : qsizetype(-1), text.size());
       return false;
     }
     text.replace(replaceStart, replaceEnd - replaceStart, replacement);
@@ -691,7 +701,8 @@ CursorPosition EditorController::remapSnapshotCursor(const CursorPosition& snaps
     return cursor;
   }
 
-  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_), const_cast<SelectionController*>(&selection_));
+  BlockEditContextResolver resolver(const_cast<DocumentSession*>(session_),
+                                    const_cast<SelectionController*>(&selection_));
   // The virtual trailing-paragraph caret is positional (no source offset); keep
   // it on the trailing line as long as its block still exists after the undo/redo.
   if (snapshotCursor.afterBlock) {
@@ -713,11 +724,12 @@ CursorPosition EditorController::remapSnapshotCursor(const CursorPosition& snaps
     return cursor;
   }
   if (snapshotCursor.text.sourceOffset >= 0) {
-    if (MarkdownNode* node = resolver.nodeAtContentSourceOffset(session_->document().root(), snapshotCursor.text.sourceOffset)) {
+    if (MarkdownNode* node =
+            resolver.nodeAtContentSourceOffset(session_->document().root(), snapshotCursor.text.sourceOffset)) {
       BlockEditContext context;
       if (resolver.fill(*node, context)) {
-        const qsizetype localSourceOffset =
-            qBound<qsizetype>(0, snapshotCursor.text.sourceOffset - context.contentRange.byteStart, context.contentText.size());
+        const qsizetype localSourceOffset = qBound<qsizetype>(
+            0, snapshotCursor.text.sourceOffset - context.contentRange.byteStart, context.contentText.size());
         qsizetype visibleOffset = -1;
         if (!context.inlineProjection.visibleOffsetForSourceOffset(localSourceOffset, visibleOffset)) {
           visibleOffset = qBound<qsizetype>(0, localSourceOffset, context.visibleText.size());
@@ -741,7 +753,8 @@ CursorPosition EditorController::remapSnapshotCursor(const CursorPosition& snaps
       cursor.blockId = node->id();
       cursor.text.nodeId = context.editableNode ? context.editableNode->id() : node->id();
       cursor.text.textOffset = visibleOffset;
-      cursor.text.sourceOffset = localSourceOffset >= 0 ? context.contentRange.byteStart + localSourceOffset : snapshotCursor.text.sourceOffset;
+      cursor.text.sourceOffset = localSourceOffset >= 0 ? context.contentRange.byteStart + localSourceOffset
+                                                        : snapshotCursor.text.sourceOffset;
       cursor.text.inMeta = snapshotCursor.text.inMeta;
       return cursor;
     }
@@ -754,11 +767,13 @@ CursorPosition EditorController::remapSnapshotCursor(const CursorPosition& snaps
   }
 
   const PieceTable& markdown = session_->markdownText();
-  const qsizetype sourceOffset = qBound<qsizetype>(0, snapshotCursor.text.sourceOffset >= 0 ? snapshotCursor.text.sourceOffset : markdown.size(), markdown.size());
+  const qsizetype sourceOffset = qBound<qsizetype>(
+      0, snapshotCursor.text.sourceOffset >= 0 ? snapshotCursor.text.sourceOffset : markdown.size(), markdown.size());
   if (MarkdownNode* node = resolver.nodeAtContentSourceOffset(session_->document().root(), sourceOffset)) {
     BlockEditContext context;
     if (resolver.fill(*node, context)) {
-      const qsizetype localSourceOffset = qBound<qsizetype>(0, sourceOffset - context.contentRange.byteStart, context.contentText.size());
+      const qsizetype localSourceOffset =
+          qBound<qsizetype>(0, sourceOffset - context.contentRange.byteStart, context.contentText.size());
       qsizetype visibleOffset = -1;
       context.inlineProjection.visibleOffsetForSourceOffset(localSourceOffset, visibleOffset);
       cursor.blockId = node->id();
@@ -772,4 +787,4 @@ CursorPosition EditorController::remapSnapshotCursor(const CursorPosition& snaps
   return cursor;
 }
 
-}  // namespace muffin
+} // namespace muffin

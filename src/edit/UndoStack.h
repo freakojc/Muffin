@@ -47,4 +47,4 @@ private:
   QElapsedTimer lastPushTime_;
 };
 
-}  // namespace muffin
+} // namespace muffin

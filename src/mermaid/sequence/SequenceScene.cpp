@@ -9,10 +9,8 @@
 
 namespace muffin::mermaid::sequence {
 
-SequenceScene buildSequenceScene(const SequenceLayoutResult& layout,
-                                 SequenceSceneStyle style,
-                                 const SequencePreparedLabels& prepared,
-                                 bool requirePrepared) {
+SequenceScene buildSequenceScene(const SequenceLayoutResult& layout, SequenceSceneStyle style,
+                                 const SequencePreparedLabels& prepared, bool requirePrepared) {
   SequenceScene scene;
   scene.bounds = layout.bounds;
   scene.logicalBounds = layout.logicalBounds;
@@ -25,43 +23,32 @@ SequenceScene buildSequenceScene(const SequenceLayoutResult& layout,
   scene.sequenceNumbers = layout.sequenceNumbers;
   scene.forceMenus = layout.forceMenus;
   scene.style = std::move(style);
-  const auto fallbackLabel = [&](const QString& text,
-                                 SequenceLabelKind kind) {
-    return prepareSequenceLabel(
-        parseSequenceLabel(text, kind), scene.style.fontSize);
+  const auto fallbackLabel = [&](const QString& text, SequenceLabelKind kind) {
+    return prepareSequenceLabel(parseSequenceLabel(text, kind), scene.style.fontSize);
   };
-  const auto labelFor = [&](const auto& labels, const auto& key,
-                            const QString& text, SequenceLabelKind kind) {
+  const auto labelFor = [&](const auto& labels, const auto& key, const QString& text, SequenceLabelKind kind) {
     const auto found = labels.constFind(key);
-    if (found != labels.cend()) return found.value();
+    if (found != labels.cend())
+      return found.value();
     if (requirePrepared)
-      throw std::logic_error(
-          QStringLiteral("Missing prepared sequence label for key '%1'")
-              .arg(key).toStdString());
+      throw std::logic_error(QStringLiteral("Missing prepared sequence label for key '%1'").arg(key).toStdString());
     return fallbackLabel(text, kind);
   };
   for (const auto& box : scene.boxes)
-    scene.boxLabels.append(labelFor(prepared.boxesByIndex, box.boxIndex,
-                                    box.label, SequenceLabelKind::Box));
+    scene.boxLabels.append(labelFor(prepared.boxesByIndex, box.boxIndex, box.label, SequenceLabelKind::Box));
   for (const auto& actor : scene.participants)
-    scene.participantLabels.append(labelFor(
-        prepared.participantsById, actor.id, actor.label,
-        SequenceLabelKind::Participant));
+    scene.participantLabels.append(
+        labelFor(prepared.participantsById, actor.id, actor.label, SequenceLabelKind::Participant));
   for (const auto& message : scene.messages)
-    scene.messageLabels.append(labelFor(
-        prepared.messagesByIndex, message.messageIndex, message.label,
-        SequenceLabelKind::Message));
+    scene.messageLabels.append(
+        labelFor(prepared.messagesByIndex, message.messageIndex, message.label, SequenceLabelKind::Message));
   for (const auto& note : scene.notes)
-    scene.noteLabels.append(labelFor(
-        prepared.notesByIndex, note.messageIndex, note.label,
-        SequenceLabelKind::Note));
+    scene.noteLabels.append(labelFor(prepared.notesByIndex, note.messageIndex, note.label, SequenceLabelKind::Note));
   for (const auto& fragment : scene.fragments) {
-    scene.fragmentKindLabels.append(labelFor(
-        prepared.fragmentKindsByIndex, fragment.messageIndex, fragment.kind,
-        SequenceLabelKind::Box));
-    scene.fragmentLabels.append(labelFor(
-        prepared.fragmentsByIndex, fragment.messageIndex, fragment.label,
-        SequenceLabelKind::Fragment));
+    scene.fragmentKindLabels.append(
+        labelFor(prepared.fragmentKindsByIndex, fragment.messageIndex, fragment.kind, SequenceLabelKind::Box));
+    scene.fragmentLabels.append(
+        labelFor(prepared.fragmentsByIndex, fragment.messageIndex, fragment.label, SequenceLabelKind::Fragment));
   }
   for (const auto& sourceMenu : layout.menus) {
     SequenceSceneMenu menu;
@@ -73,10 +60,8 @@ SequenceScene buildSequenceScene(const SequenceLayoutResult& layout,
       item.link = sourceItem.link;
       item.hitRect = sourceItem.hitRect;
       item.labelRect = sourceItem.labelRect;
-      item.labelDocument = labelFor(
-          prepared.menuItemsByKey,
-          sequenceMenuLabelKey(sourceMenu.actorId, sourceItem.label),
-          sourceItem.label, SequenceLabelKind::Participant);
+      item.labelDocument = labelFor(prepared.menuItemsByKey, sequenceMenuLabelKey(sourceMenu.actorId, sourceItem.label),
+                                    sourceItem.label, SequenceLabelKind::Participant);
       menu.items.append(std::move(item));
     }
     scene.menus.append(std::move(menu));
@@ -85,12 +70,11 @@ SequenceScene buildSequenceScene(const SequenceLayoutResult& layout,
   // editor gives items priority). Precomputed once at build, returned by ref.
   for (const SequenceSceneMenu& menu : scene.menus) {
     for (const SequenceLayoutParticipant& p : scene.participants) {
-      if (p.id != menu.actorId) continue;
+      if (p.id != menu.actorId)
+        continue;
       InteractionRegion actor;
-      actor.bounds = p.topPaintedBounds
-          .united(p.topLabelRect)
-          .united(QRectF(p.logicalRect.x(), p.topY,
-                         p.logicalRect.width(), p.logicalRect.height()));
+      actor.bounds = p.topPaintedBounds.united(p.topLabelRect)
+                         .united(QRectF(p.logicalRect.x(), p.topY, p.logicalRect.width(), p.logicalRect.height()));
       actor.togglesMenu = menu.actorId;
       scene.interactionRegions_.append(actor);
       break;
@@ -111,7 +95,9 @@ SequenceScene buildSequenceScene(const SequenceLayoutResult& layout,
 
 namespace {
 
-qreal r3(qreal v) { return std::round(v * 1000.0) / 1000.0; }
+qreal r3(qreal v) {
+  return std::round(v * 1000.0) / 1000.0;
+}
 
 QJsonObject rectJson(const QRectF& r) {
   return {{QStringLiteral("x"), r3(r.x())},
@@ -120,7 +106,7 @@ QJsonObject rectJson(const QRectF& r) {
           {QStringLiteral("height"), r3(r.height())}};
 }
 
-}  // namespace
+} // namespace
 
 QJsonObject SequenceScene::toJsonObject() const {
   QJsonObject o;
@@ -242,71 +228,68 @@ QJsonObject SequenceScene::toJsonObject() const {
 
 SvgMarkerProjection SequenceScene::svgMarkerProjection() const {
   SvgMarkerProjection projection;
-  const auto addPath = [&](QString key, qreal refX, qreal refY,
-                           qreal width, qreal height, QString path,
-                           QString units = {},
-                           QString orient = QStringLiteral("auto-start-reverse"),
+  const auto addPath = [&](QString key, qreal refX, qreal refY, qreal width, qreal height, QString path,
+                           QString units = {}, QString orient = QStringLiteral("auto-start-reverse"),
                            QString stroke = {}, QString fill = {}) {
     SvgMarkerDefinition definition;
     definition.key = key;
     definition.idSuffix = QStringLiteral("-") + key;
-    definition.refX = refX; definition.refY = refY;
-    definition.markerWidth = width; definition.markerHeight = height;
+    definition.refX = refX;
+    definition.refY = refY;
+    definition.markerWidth = width;
+    definition.markerHeight = height;
     definition.markerUnits = std::move(units);
     definition.orient = std::move(orient);
     SvgMarkerChild child;
-    child.tag = QStringLiteral("path"); child.path = std::move(path);
+    child.tag = QStringLiteral("path");
+    child.path = std::move(path);
     child.stroke = stroke.isEmpty() ? style.signalColor : std::move(stroke);
     child.fill = fill.isEmpty() ? style.signalColor : std::move(fill);
     definition.children.append(child);
     projection.definitions.append(definition);
   };
-  addPath(QStringLiteral("arrowhead"), 7.9, 5, 12, 12,
-          QStringLiteral("M -1 0 L 10 5 L 0 10 z"),
+  addPath(QStringLiteral("arrowhead"), 7.9, 5, 12, 12, QStringLiteral("M -1 0 L 10 5 L 0 10 z"),
           QStringLiteral("userSpaceOnUse"));
-  addPath(QStringLiteral("crosshead"), 4, 4.5, 15, 8,
-          QStringLiteral("M 1,2 L 6,7 M 6,2 L 1,7"), {},
-          QStringLiteral("auto"), QStringLiteral("#000000"),
-          QStringLiteral("none"));
+  addPath(QStringLiteral("crosshead"), 4, 4.5, 15, 8, QStringLiteral("M 1,2 L 6,7 M 6,2 L 1,7"), {},
+          QStringLiteral("auto"), QStringLiteral("#000000"), QStringLiteral("none"));
   projection.definitions.last().children.last().strokeWidth = QStringLiteral("1pt");
   projection.definitions.last().children.last().style = QStringLiteral("stroke-dasharray: 0, 0;");
-  addPath(QStringLiteral("filled-head"), 15.5, 7, 20, 28,
-          QStringLiteral("M 18,7 L9,13 L14,7 L9,1 Z"), {},
+  addPath(QStringLiteral("filled-head"), 15.5, 7, 20, 28, QStringLiteral("M 18,7 L9,13 L14,7 L9,1 Z"), {},
           QStringLiteral("auto"));
-  addPath(QStringLiteral("solidTopArrowHead"), 7.9, 7.25, 12, 12,
-          QStringLiteral("M 0 0 L 10 8 L 0 8 z"),
+  addPath(QStringLiteral("solidTopArrowHead"), 7.9, 7.25, 12, 12, QStringLiteral("M 0 0 L 10 8 L 0 8 z"),
           QStringLiteral("userSpaceOnUse"));
-  addPath(QStringLiteral("solidBottomArrowHead"), 7.9, 0.75, 12, 12,
-          QStringLiteral("M 0 0 L 10 0 L 0 8 z"),
+  addPath(QStringLiteral("solidBottomArrowHead"), 7.9, 0.75, 12, 12, QStringLiteral("M 0 0 L 10 0 L 0 8 z"),
           QStringLiteral("userSpaceOnUse"));
-  addPath(QStringLiteral("stickTopArrowHead"), 7.5, 7, 12, 12,
-          QStringLiteral("M 0 0 L 7 7"), QStringLiteral("userSpaceOnUse"),
-          QStringLiteral("auto-start-reverse"), QStringLiteral("black"),
+  addPath(QStringLiteral("stickTopArrowHead"), 7.5, 7, 12, 12, QStringLiteral("M 0 0 L 7 7"),
+          QStringLiteral("userSpaceOnUse"), QStringLiteral("auto-start-reverse"), QStringLiteral("black"),
           QStringLiteral("none"));
   projection.definitions.last().children.last().strokeWidth = QStringLiteral("1.5");
-  addPath(QStringLiteral("stickBottomArrowHead"), 7.5, 0, 12, 12,
-          QStringLiteral("M 0 7 L 7 0"), QStringLiteral("userSpaceOnUse"),
-          QStringLiteral("auto-start-reverse"), QStringLiteral("black"),
+  addPath(QStringLiteral("stickBottomArrowHead"), 7.5, 0, 12, 12, QStringLiteral("M 0 7 L 7 0"),
+          QStringLiteral("userSpaceOnUse"), QStringLiteral("auto-start-reverse"), QStringLiteral("black"),
           QStringLiteral("none"));
   projection.definitions.last().children.last().strokeWidth = QStringLiteral("1.5");
   SvgMarkerDefinition number;
   number.key = QStringLiteral("sequencenumber");
   number.idSuffix = QStringLiteral("-sequencenumber");
-  number.refX = 15; number.refY = 15;
-  number.markerWidth = 60; number.markerHeight = 40;
+  number.refX = 15;
+  number.refY = 15;
+  number.markerWidth = 60;
+  number.markerHeight = 40;
   SvgMarkerChild circle;
-  circle.tag = QStringLiteral("circle"); circle.cx = 15; circle.cy = 15;
-  circle.radius = 6; circle.fill = style.actorFill;
+  circle.tag = QStringLiteral("circle");
+  circle.cx = 15;
+  circle.cy = 15;
+  circle.radius = 6;
+  circle.fill = style.actorFill;
   number.children.append(circle);
   projection.definitions.append(number);
 
   for (const SequenceLayoutMessage& message : messages) {
-    if (message.markerStart.isEmpty() && message.markerEnd.isEmpty()) continue;
+    if (message.markerStart.isEmpty() && message.markerEnd.isEmpty())
+      continue;
     SvgMarkerEdge edge;
-    edge.tag = message.painterPath.isEmpty() ? QStringLiteral("line")
-                                             : QStringLiteral("path");
-    edge.cssClass = message.dashed ? QStringLiteral("messageLine1")
-                                   : QStringLiteral("messageLine0");
+    edge.tag = message.painterPath.isEmpty() ? QStringLiteral("line") : QStringLiteral("path");
+    edge.cssClass = message.dashed ? QStringLiteral("messageLine1") : QStringLiteral("messageLine0");
     edge.start = QPointF(message.startX, message.lineY);
     edge.end = QPointF(message.stopX, message.lineY);
     edge.path = message.path;
@@ -314,10 +297,11 @@ SvgMarkerProjection SequenceScene::svgMarkerProjection() const {
     edge.markerEnd = message.markerEnd;
     edge.stroke = style.signalColor;
     edge.strokeWidth = QStringLiteral("2");
-    if (message.dashed) edge.strokeDasharray = QStringLiteral("3,3");
+    if (message.dashed)
+      edge.strokeDasharray = QStringLiteral("3,3");
     projection.edges.append(edge);
   }
   return projection;
 }
 
-}  // namespace muffin::mermaid::sequence
+} // namespace muffin::mermaid::sequence

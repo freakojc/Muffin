@@ -21,87 +21,65 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString localDate(const QDateTime& value) {
   // Compare the UTC instant: the golden fixture serializes UTC, so the check
   // holds on runners in any timezone (local-time rendering embedded the
   // fixture host's UTC+8 and failed everywhere else).
-  return value.isValid()
-             ? value.toUTC().toString(QStringLiteral("yyyy-MM-dd'T'HH:mm:ss.zzz"))
-             : QString();
+  return value.isValid() ? value.toUTC().toString(QStringLiteral("yyyy-MM-dd'T'HH:mm:ss.zzz")) : QString();
 }
 
-void compareStringList(const QStringList& actual, const QJsonArray& expected,
-                       const QString& path) {
+void compareStringList(const QStringList& actual, const QJsonArray& expected, const QString& path) {
   require(actual.size() == expected.size(), path + QStringLiteral("/size"));
   for (qsizetype i = 0; i < actual.size(); ++i)
-    require(actual.at(i) == expected.at(i).toString(),
-            path + QStringLiteral("/%1").arg(i));
+    require(actual.at(i) == expected.at(i).toString(), path + QStringLiteral("/%1").arg(i));
 }
 
-void compareTask(const gantt::GanttTask& actual, const QJsonObject& expected,
-                 const QString& path) {
-  require(actual.section == expected.value(QStringLiteral("section")).toString(),
-          path + QStringLiteral("/section"));
-  require(actual.type == expected.value(QStringLiteral("type")).toString(),
-          path + QStringLiteral("/type"));
+void compareTask(const gantt::GanttTask& actual, const QJsonObject& expected, const QString& path) {
+  require(actual.section == expected.value(QStringLiteral("section")).toString(), path + QStringLiteral("/section"));
+  require(actual.type == expected.value(QStringLiteral("type")).toString(), path + QStringLiteral("/type"));
   require(actual.processed == expected.value(QStringLiteral("processed")).toBool(),
           path + QStringLiteral("/processed"));
   require(actual.manualEndTime == expected.value(QStringLiteral("manualEndTime")).toBool(),
           path + QStringLiteral("/manualEndTime"));
   const QJsonValue renderEnd = expected.value(QStringLiteral("renderEndTime"));
-  require(localDate(actual.renderEndTime) ==
-              (renderEnd.isNull() ? QString() : renderEnd.toString()),
+  require(localDate(actual.renderEndTime) == (renderEnd.isNull() ? QString() : renderEnd.toString()),
           path + QStringLiteral("/renderEndTime"));
   const QJsonObject raw = expected.value(QStringLiteral("raw")).toObject();
-  require(actual.rawData == raw.value(QStringLiteral("data")).toString(),
-          path + QStringLiteral("/raw/data"));
+  require(actual.rawData == raw.value(QStringLiteral("data")).toString(), path + QStringLiteral("/raw/data"));
   const QJsonObject rawStart = raw.value(QStringLiteral("startTime")).toObject();
   require(actual.rawStartType == rawStart.value(QStringLiteral("type")).toString(),
           path + QStringLiteral("/raw/start/type"));
   require(actual.rawStartData == rawStart.value(QStringLiteral("startData")).toString(),
           path + QStringLiteral("/raw/start/data"));
-  require(actual.rawEndData == raw.value(QStringLiteral("endTime"))
-                                   .toObject()
-                                   .value(QStringLiteral("data"))
-                                   .toString(),
+  require(actual.rawEndData == raw.value(QStringLiteral("endTime")).toObject().value(QStringLiteral("data")).toString(),
           path + QStringLiteral("/raw/end/data"));
-  require(actual.task == expected.value(QStringLiteral("task")).toString(),
-          path + QStringLiteral("/task"));
+  require(actual.task == expected.value(QStringLiteral("task")).toString(), path + QStringLiteral("/task"));
   compareStringList(actual.classes, expected.value(QStringLiteral("classes")).toArray(),
                     path + QStringLiteral("/classes"));
-  require(actual.id == expected.value(QStringLiteral("id")).toString(),
-          path + QStringLiteral("/id"));
+  require(actual.id == expected.value(QStringLiteral("id")).toString(), path + QStringLiteral("/id"));
   const QJsonValue previous = expected.value(QStringLiteral("prevTaskId"));
   require(actual.prevTaskId == (previous.isNull() ? QString() : previous.toString()),
           path + QStringLiteral("/prevTaskId"));
-  require(actual.active == expected.value(QStringLiteral("active")).toBool(),
-          path + QStringLiteral("/active"));
-  require(actual.done == expected.value(QStringLiteral("done")).toBool(),
-          path + QStringLiteral("/done"));
-  require(actual.crit == expected.value(QStringLiteral("crit")).toBool(),
-          path + QStringLiteral("/crit"));
+  require(actual.active == expected.value(QStringLiteral("active")).toBool(), path + QStringLiteral("/active"));
+  require(actual.done == expected.value(QStringLiteral("done")).toBool(), path + QStringLiteral("/done"));
+  require(actual.crit == expected.value(QStringLiteral("crit")).toBool(), path + QStringLiteral("/crit"));
   require(actual.milestone == expected.value(QStringLiteral("milestone")).toBool(),
           path + QStringLiteral("/milestone"));
-  require(actual.vert == expected.value(QStringLiteral("vert")).toBool(),
-          path + QStringLiteral("/vert"));
-  require(actual.order == expected.value(QStringLiteral("order")).toInt(),
-          path + QStringLiteral("/order"));
+  require(actual.vert == expected.value(QStringLiteral("vert")).toBool(), path + QStringLiteral("/vert"));
+  require(actual.order == expected.value(QStringLiteral("order")).toInt(), path + QStringLiteral("/order"));
   const QJsonValue start = expected.value(QStringLiteral("startTime"));
   const QJsonValue end = expected.value(QStringLiteral("endTime"));
   require(localDate(actual.startTime) == (start.isNull() ? QString() : start.toString()),
           path + QStringLiteral("/startTime"));
-  require(localDate(actual.endTime) == (end.isNull() ? QString() : end.toString()),
-          path + QStringLiteral("/endTime"));
+  require(localDate(actual.endTime) == (end.isNull() ? QString() : end.toString()), path + QStringLiteral("/endTime"));
 }
 
-void compareData(const gantt::GanttData& actual, const QJsonObject& expected,
-                 const QString& id) {
-  const auto string = [&](const char* key) {
-    return expected.value(QLatin1String(key)).toString();
-  };
+void compareData(const gantt::GanttData& actual, const QJsonObject& expected, const QString& id) {
+  const auto string = [&](const char* key) { return expected.value(QLatin1String(key)).toString(); };
   require(actual.title == string("title"), id + QStringLiteral("/title"));
   require(actual.accTitle == string("accTitle"), id + QStringLiteral("/accTitle"));
   require(actual.accDescr == string("accDescr"), id + QStringLiteral("/accDescr"));
@@ -115,11 +93,9 @@ void compareData(const gantt::GanttData& actual, const QJsonObject& expected,
                     id + QStringLiteral("/excludes"));
   compareStringList(actual.sections, expected.value(QStringLiteral("sections")).toArray(),
                     id + QStringLiteral("/sections"));
-  require(actual.inclusiveEndDates ==
-              expected.value(QStringLiteral("inclusiveEndDates")).toBool(),
+  require(actual.inclusiveEndDates == expected.value(QStringLiteral("inclusiveEndDates")).toBool(),
           id + QStringLiteral("/inclusiveEndDates"));
-  require(actual.topAxis == expected.value(QStringLiteral("topAxis")).toBool(),
-          id + QStringLiteral("/topAxis"));
+  require(actual.topAxis == expected.value(QStringLiteral("topAxis")).toBool(), id + QStringLiteral("/topAxis"));
   require(actual.weekday == string("weekday"), id + QStringLiteral("/weekday"));
   require(actual.displayMode == string("displayMode"), id + QStringLiteral("/displayMode"));
   const QJsonArray links = expected.value(QStringLiteral("links")).toArray();
@@ -132,11 +108,10 @@ void compareData(const gantt::GanttData& actual, const QJsonObject& expected,
   const QJsonArray tasks = expected.value(QStringLiteral("tasks")).toArray();
   require(actual.tasks.size() == tasks.size(), id + QStringLiteral("/tasks/size"));
   for (qsizetype i = 0; i < actual.tasks.size(); ++i)
-    compareTask(actual.tasks.at(i), tasks.at(i).toObject(),
-                id + QStringLiteral("/task%1").arg(i));
+    compareTask(actual.tasks.at(i), tasks.at(i).toObject(), id + QStringLiteral("/task%1").arg(i));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -154,8 +129,8 @@ int main(int argc, char** argv) {
   const QJsonObject root = QJsonDocument::fromJson(bytes, &jsonError).object();
   require(jsonError.error == QJsonParseError::NoError,
           QStringLiteral("Gantt fixture JSON: ") + jsonError.errorString());
-  require(root.value(QStringLiteral("upstream")).toObject()
-                  .value(QStringLiteral("version")).toString() == QLatin1String("11.16.0"),
+  require(root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
+              QLatin1String("11.16.0"),
           QStringLiteral("Gantt Mermaid version drifted"));
   require(root.value(QStringLiteral("fixtureSha256")).toString() ==
               QLatin1String("496d7c9c140c6c507b338dac628454efd838588f95f296593f5f2890e6ca0dce"),
@@ -176,9 +151,9 @@ int main(int argc, char** argv) {
     } catch (const UnknownDiagramError&) {
       detected = false;
     }
-    require(detected == (rejectClass != QLatin1String("no-diagram")),
-            id + QStringLiteral("/detector"));
-    if (!detected) continue;
+    require(detected == (rejectClass != QLatin1String("no-diagram")), id + QStringLiteral("/detector"));
+    if (!detected)
+      continue;
 
     try {
       const gantt::GanttData data = gantt::GanttDiagram::parse(pre.code);
@@ -186,18 +161,17 @@ int main(int argc, char** argv) {
               id + QStringLiteral(": native accepted upstream reject"));
       compareData(data, fixture.value(QStringLiteral("expectedDb")).toObject(), id);
     } catch (const gantt::GanttParseError& error) {
-      require(!fixture.value(QStringLiteral("accept")).toBool(),
-              id + QStringLiteral(": native reject %1:%2 %3")
-                       .arg(error.line).arg(error.column)
-                       .arg(QString::fromUtf8(error.what())));
-      const gantt::GanttErrorKind expectedKind =
-          rejectClass == QLatin1String("lexer") ? gantt::GanttErrorKind::Lexer
-          : rejectClass == QLatin1String("runtime") ? gantt::GanttErrorKind::Runtime
+      require(!fixture.value(QStringLiteral("accept")).toBool(), id + QStringLiteral(": native reject %1:%2 %3")
+                                                                          .arg(error.line)
+                                                                          .arg(error.column)
+                                                                          .arg(QString::fromUtf8(error.what())));
+      const gantt::GanttErrorKind expectedKind = rejectClass == QLatin1String("lexer") ? gantt::GanttErrorKind::Lexer
+                                                 : rejectClass == QLatin1String("runtime")
+                                                     ? gantt::GanttErrorKind::Runtime
                                                      : gantt::GanttErrorKind::Parser;
       require(error.kind == expectedKind, id + QStringLiteral("/error-kind"));
       if (reject.contains(QStringLiteral("line")))
-        require(error.line == reject.value(QStringLiteral("line")).toInt(),
-                id + QStringLiteral("/error-line"));
+        require(error.line == reject.value(QStringLiteral("line")).toInt(), id + QStringLiteral("/error-line"));
     }
   }
   std::puts("MermaidGanttParserTest passed");

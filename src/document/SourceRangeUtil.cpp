@@ -67,8 +67,9 @@ ListLineInfo listLineInfoFor(const QString& line) {
     info.markerEnd = index + 1;
     info.contentStart = info.markerEnd;
     info.marker = line.mid(info.markerStart, info.markerEnd - info.markerStart);
-  } else if (index + 2 <= line.size() && (line.at(index) == QLatin1Char('-') || line.at(index) == QLatin1Char('*') ||
-                                          line.at(index) == QLatin1Char('+')) &&
+  } else if (index + 2 <= line.size() &&
+             (line.at(index) == QLatin1Char('-') || line.at(index) == QLatin1Char('*') ||
+              line.at(index) == QLatin1Char('+')) &&
              line.at(index + 1).isSpace()) {
     info.valid = true;
     info.ordered = false;
@@ -114,12 +115,10 @@ ListLineInfo listLineInfoFor(const QString& line) {
   while (taskIndex < line.size() && line.at(taskIndex).isSpace()) {
     ++taskIndex;
   }
-  if (taskIndex + 3 < line.size() &&
-      line.at(taskIndex) == QLatin1Char('[') &&
+  if (taskIndex + 3 < line.size() && line.at(taskIndex) == QLatin1Char('[') &&
       (line.at(taskIndex + 1) == QLatin1Char(' ') || line.at(taskIndex + 1) == QLatin1Char('x') ||
        line.at(taskIndex + 1) == QLatin1Char('X')) &&
-      line.at(taskIndex + 2) == QLatin1Char(']') &&
-      line.at(taskIndex + 3).isSpace()) {
+      line.at(taskIndex + 2) == QLatin1Char(']') && line.at(taskIndex + 3).isSpace()) {
     info.task = true;
     info.taskChecked = line.at(taskIndex + 1).toLower() == QLatin1Char('x');
     info.taskMarkerStart = taskIndex;
@@ -129,4 +128,4 @@ ListLineInfo listLineInfoFor(const QString& line) {
   return info;
 }
 
-}  // namespace muffin
+} // namespace muffin

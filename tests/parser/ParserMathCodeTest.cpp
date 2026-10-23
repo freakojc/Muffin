@@ -51,16 +51,15 @@ void testMathSupport() {
 void testMathInHeadingsAndTables() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "# H1 $a_1$\n"
-      "## H2 $$a_2$$\n"
-      "### H3 $a_3$\n"
-      "#### H4 $a_4$\n"
-      "##### H5 $a_5$\n"
-      "###### H6 $a_6$\n\n"
-      "| Formula | Value |\n"
-      "| --- | ---: |\n"
-      "| $$x+y$$ | $42$ |\n");
+  const QString markdown = QStringLiteral("# H1 $a_1$\n"
+                                          "## H2 $$a_2$$\n"
+                                          "### H3 $a_3$\n"
+                                          "#### H4 $a_4$\n"
+                                          "##### H5 $a_5$\n"
+                                          "###### H6 $a_6$\n\n"
+                                          "| Formula | Value |\n"
+                                          "| --- | ---: |\n"
+                                          "| $$x+y$$ | $42$ |\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for heading/table math sample"));
@@ -70,8 +69,7 @@ void testMathInHeadingsAndTables() {
     const MarkdownNode& heading = childAt(*parsed.root, i);
     require(heading.type() == BlockType::Heading, QStringLiteral("Expected heading block"));
     require(heading.headingLevel() == i + 1, QStringLiteral("Heading level mismatch"));
-    require(countInlineMath(heading) == 1,
-            QStringLiteral("Heading level %1 math was not parsed").arg(i + 1));
+    require(countInlineMath(heading) == 1, QStringLiteral("Heading level %1 math was not parsed").arg(i + 1));
     require(containsInlineMathText(heading, QStringLiteral("a_%1").arg(i + 1)),
             QStringLiteral("Heading level %1 math text mismatch").arg(i + 1));
   }
@@ -88,9 +86,9 @@ void testMathInHeadingsAndTables() {
   const QString serialized = serializer.serializeDocument(doc);
   require(serialized.contains(QStringLiteral("# H1 $a_1$")), QStringLiteral("Serialized H1 math missing"));
   require(serialized.contains(QStringLiteral("###### H6 $a_6$")), QStringLiteral("Serialized H6 math missing"));
-  require(serialized.contains(QStringLiteral("## H2 $$a_2$$")), QStringLiteral("Serialized double-dollar heading math missing"));
-  require(serialized.contains(QStringLiteral("| $$x+y$$ | $42$ |")),
-          QStringLiteral("Serialized table math missing"));
+  require(serialized.contains(QStringLiteral("## H2 $$a_2$$")),
+          QStringLiteral("Serialized double-dollar heading math missing"));
+  require(serialized.contains(QStringLiteral("| $$x+y$$ | $42$ |")), QStringLiteral("Serialized table math missing"));
 }
 
 void testDoubleDollarInlineMath() {
@@ -121,7 +119,8 @@ void testDoubleDollarInlineMath() {
             QStringLiteral("A neighboring single-dollar formula must retain its own delimiter"));
   }
   const QString serialized = serializeMarkdown(markdown);
-  require(serialized == markdown.trimmed(), QStringLiteral("Serialization should preserve both formula delimiters and padding"));
+  require(serialized == markdown.trimmed(),
+          QStringLiteral("Serialization should preserve both formula delimiters and padding"));
   require(serializeMarkdown(serialized) == serialized,
           QStringLiteral("Double-dollar serialization should remain stable after reparsing"));
 }
@@ -129,11 +128,10 @@ void testDoubleDollarInlineMath() {
 void testRelaxedInlineMathWhitespace() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "Symmetric $ E = mc^2 $ spacing.\n\n"
-      "Opening only $ x$ spacing.\n\n"
-      "Closing only $y $ spacing.\n\n"
-      "Tabs $\tz + 1\t$ spacing.\n");
+  const QString markdown = QStringLiteral("Symmetric $ E = mc^2 $ spacing.\n\n"
+                                          "Opening only $ x$ spacing.\n\n"
+                                          "Closing only $y $ spacing.\n\n"
+                                          "Tabs $\tz + 1\t$ spacing.\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for relaxed inline math"));
@@ -161,12 +159,11 @@ void testStrictInlineMathDelimiters() {
   CmarkGfmParser parser;
   ParseOptions options;
   options.relaxedInlineMath = false;
-  const QString markdown = QStringLiteral(
-      "Valid $x$ formula.\n\n"
-      "Spaced opening $ x$ stays literal.\n\n"
-      "Spaced closing $x $ stays literal.\n\n"
-      "Currency between $5 and $10 stays literal.\n\n"
-      "Closing delimiter before a digit $y$2 stays literal.\n");
+  const QString markdown = QStringLiteral("Valid $x$ formula.\n\n"
+                                          "Spaced opening $ x$ stays literal.\n\n"
+                                          "Spaced closing $x $ stays literal.\n\n"
+                                          "Currency between $5 and $10 stays literal.\n\n"
+                                          "Closing delimiter before a digit $y$2 stays literal.\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for strict inline math"));
@@ -179,15 +176,14 @@ void testStrictInlineMathDelimiters() {
 void testMathEdgeCases() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "Escaped \\$x$ stays literal.\n\n"
-      "Whitespace-only $ \t $ stays literal.\n\n"
-      "Unclosed $x stays literal.\n\n"
-      "Mismatched $$x$ stays literal inline.\n\n"
-      "$$\n"
-      "a &= b + c\n"
-      "d &= e\n"
-      "$$\n");
+  const QString markdown = QStringLiteral("Escaped \\$x$ stays literal.\n\n"
+                                          "Whitespace-only $ \t $ stays literal.\n\n"
+                                          "Unclosed $x stays literal.\n\n"
+                                          "Mismatched $$x$ stays literal inline.\n\n"
+                                          "$$\n"
+                                          "a &= b + c\n"
+                                          "d &= e\n"
+                                          "$$\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for math edge cases"));
@@ -196,10 +192,8 @@ void testMathEdgeCases() {
 
   const MarkdownNode& mathBlock = childAt(*parsed.root, 4);
   require(mathBlock.type() == BlockType::MathBlock, QStringLiteral("Expected final math block"));
-  require(mathBlock.literal().contains(QStringLiteral("a &= b + c")),
-          QStringLiteral("Math block first line missing"));
-  require(mathBlock.literal().contains(QStringLiteral("d &= e")),
-          QStringLiteral("Math block second line missing"));
+  require(mathBlock.literal().contains(QStringLiteral("a &= b + c")), QStringLiteral("Math block first line missing"));
+  require(mathBlock.literal().contains(QStringLiteral("d &= e")), QStringLiteral("Math block second line missing"));
 
   MarkdownDocument doc;
   doc.setMarkdownText(markdown, std::move(parsed.root));
@@ -211,19 +205,13 @@ void testMathEdgeCases() {
 
 void testDoubleDollarMathEdgeCases() {
   CmarkGfmParser parser;
-  for (const QString& markdown : {
-           QStringLiteral("Escaped \\$$x$$ stays literal."),
-           QStringLiteral("Whitespace $$ \t $$ stays literal."),
-           QStringLiteral("Empty $$$$ stays literal."),
-           QStringLiteral("Unclosed $$x stays literal."),
-           QStringLiteral("Long $$$x$$$ stays literal."),
-           QStringLiteral("Mismatched $$x$ stays literal."),
-           QStringLiteral("Mismatched $x$$ stays literal."),
-           QStringLiteral("Mismatched $$x$$$ stays literal."),
-           QStringLiteral("Mismatched $x$$$ stays literal."),
-           QStringLiteral("Cross-line $$x\ny$$ stays literal."),
-           QStringLiteral("Code `$$x$$` stays code."),
-           QStringLiteral("```\n$$x$$\n```\n")}) {
+  for (const QString& markdown :
+       {QStringLiteral("Escaped \\$$x$$ stays literal."), QStringLiteral("Whitespace $$ \t $$ stays literal."),
+        QStringLiteral("Empty $$$$ stays literal."), QStringLiteral("Unclosed $$x stays literal."),
+        QStringLiteral("Long $$$x$$$ stays literal."), QStringLiteral("Mismatched $$x$ stays literal."),
+        QStringLiteral("Mismatched $x$$ stays literal."), QStringLiteral("Mismatched $$x$$$ stays literal."),
+        QStringLiteral("Mismatched $x$$$ stays literal."), QStringLiteral("Cross-line $$x\ny$$ stays literal."),
+        QStringLiteral("Code `$$x$$` stays code."), QStringLiteral("```\n$$x$$\n```\n")}) {
     ParseResult parsed = parser.parseDocument(markdown, {});
     require(parsed.root && countInlineMath(*parsed.root) == 0,
             QStringLiteral("Invalid/code double dollars should stay literal: %1").arg(markdown));
@@ -238,10 +226,9 @@ void testLegacyBracketMathBlock() {
   CmarkGfmParser parser;
   ParseOptions options;
 
-  const QString markdown = QStringLiteral(
-      "\\[\n"
-      "y = x\n"
-      "\\]\n");
+  const QString markdown = QStringLiteral("\\[\n"
+                                          "y = x\n"
+                                          "\\]\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for bracket math sample"));
@@ -255,7 +242,8 @@ void testLegacyBracketMathBlock() {
   doc.setMarkdownText(markdown, std::move(parsed.root));
   MarkdownSerializer serializer;
   const QString serialized = serializer.serializeDocument(doc);
-  require(serialized.contains(QStringLiteral("\\[\ny = x\n\\]")), QStringLiteral("Serialized bracket math block missing"));
+  require(serialized.contains(QStringLiteral("\\[\ny = x\n\\]")),
+          QStringLiteral("Serialized bracket math block missing"));
 
   const QString twice = serializeMarkdown(serialized);
   require(twice == serialized, QStringLiteral("Bracket math serialization is not stable"));
@@ -270,30 +258,30 @@ void testLegacyBracketMathBlock() {
 void testLegacyBracketMathInsideCodeFenceUntouched() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "```\n"
-      "\\[\n"
-      "not math\n"
-      "\\]\n"
-      "```\n");
+  const QString markdown = QStringLiteral("```\n"
+                                          "\\[\n"
+                                          "not math\n"
+                                          "\\]\n"
+                                          "```\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for fenced code bracket sample"));
-  require(countMathBlocks(*parsed.root) == 0, QStringLiteral("Bracket lines inside a fenced code block must not become math"));
+  require(countMathBlocks(*parsed.root) == 0,
+          QStringLiteral("Bracket lines inside a fenced code block must not become math"));
   const MarkdownNode& code = childAt(*parsed.root, 0);
   require(code.type() == BlockType::CodeFence, QStringLiteral("Expected fenced code block"));
-  require(code.literal().contains(QStringLiteral("\\[")), QStringLiteral("Bracket opener inside code fence should be preserved verbatim"));
+  require(code.literal().contains(QStringLiteral("\\[")),
+          QStringLiteral("Bracket opener inside code fence should be preserved verbatim"));
 }
 
 void testLegacyBracketMathInsideDollarMathUntouched() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "$$\n"
-      "\\[\n"
-      "not text\n"
-      "\\]\n"
-      "$$\n");
+  const QString markdown = QStringLiteral("$$\n"
+                                          "\\[\n"
+                                          "not text\n"
+                                          "\\]\n"
+                                          "$$\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for $$ math bracket sample"));
@@ -310,54 +298,57 @@ void testLegacyBracketMathStateMachineEdges() {
   CmarkGfmParser parser;
   ParseOptions options;
 
-  const QString unmatchedClose = QStringLiteral(
-      "\\]\n"
-      "not math\n");
+  const QString unmatchedClose = QStringLiteral("\\]\n"
+                                                "not math\n");
   ParseResult unmatchedParsed = parser.parseDocument(unmatchedClose, options);
   require(unmatchedParsed.root != nullptr, QStringLiteral("Parser returned null root for unmatched bracket close"));
   require(countMathBlocks(*unmatchedParsed.root) == 0, QStringLiteral("Unmatched \\] must not open a math block"));
 
-  const QString dollarInsideBracket = QStringLiteral(
-      "\\[\n"
-      "$$\n"
-      "still math\n"
-      "\\]\n");
+  const QString dollarInsideBracket = QStringLiteral("\\[\n"
+                                                     "$$\n"
+                                                     "still math\n"
+                                                     "\\]\n");
   ParseResult dollarParsed = parser.parseDocument(dollarInsideBracket, options);
   require(dollarParsed.root != nullptr, QStringLiteral("Parser returned null root for dollar-inside-bracket math"));
-  require(countMathBlocks(*dollarParsed.root) == 1, QStringLiteral("Dollar line inside bracket math must not split the block"));
+  require(countMathBlocks(*dollarParsed.root) == 1,
+          QStringLiteral("Dollar line inside bracket math must not split the block"));
   const MarkdownNode& dollarMath = childAt(*dollarParsed.root, 0);
   require(dollarMath.type() == BlockType::MathBlock, QStringLiteral("Expected bracket math block"));
   require(dollarMath.mathDelimiter() == MathDelimiter::Bracket, QStringLiteral("Bracket delimiter flag missing"));
-  require(dollarMath.literal().contains(QStringLiteral("$$")), QStringLiteral("Dollar line should remain math literal"));
-  require(dollarMath.literal().contains(QStringLiteral("still math")), QStringLiteral("Bracket math body was truncated"));
+  require(dollarMath.literal().contains(QStringLiteral("$$")),
+          QStringLiteral("Dollar line should remain math literal"));
+  require(dollarMath.literal().contains(QStringLiteral("still math")),
+          QStringLiteral("Bracket math body was truncated"));
 
-  const QString bracketInsideBracket = QStringLiteral(
-      "\\[\n"
-      "\\[\n"
-      "inner text\n"
-      "\\]\n");
+  const QString bracketInsideBracket = QStringLiteral("\\[\n"
+                                                      "\\[\n"
+                                                      "inner text\n"
+                                                      "\\]\n");
   ParseResult bracketParsed = parser.parseDocument(bracketInsideBracket, options);
   require(bracketParsed.root != nullptr, QStringLiteral("Parser returned null root for bracket-inside-bracket math"));
-  require(countMathBlocks(*bracketParsed.root) == 1, QStringLiteral("Nested-looking \\[ line must stay inside bracket math body"));
+  require(countMathBlocks(*bracketParsed.root) == 1,
+          QStringLiteral("Nested-looking \\[ line must stay inside bracket math body"));
   const MarkdownNode& bracketMath = childAt(*bracketParsed.root, 0);
-  require(bracketMath.literal().contains(QStringLiteral("\\[")), QStringLiteral("Inner \\[ should remain literal text"));
-  require(bracketMath.literal().contains(QStringLiteral("inner text")), QStringLiteral("Bracket math body missing inner text"));
+  require(bracketMath.literal().contains(QStringLiteral("\\[")),
+          QStringLiteral("Inner \\[ should remain literal text"));
+  require(bracketMath.literal().contains(QStringLiteral("inner text")),
+          QStringLiteral("Bracket math body missing inner text"));
 }
 
 void testLegacyBracketMathWithLeadingSpaces() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "   \\[\n"
-      "y = x\n"
-      "   \\]\n");
+  const QString markdown = QStringLiteral("   \\[\n"
+                                          "y = x\n"
+                                          "   \\]\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for indented bracket math sample"));
   require(countMathBlocks(*parsed.root) == 1, QStringLiteral("Indented bracket math block was not parsed"));
   const MarkdownNode& mathBlock = childAt(*parsed.root, 0);
   require(mathBlock.type() == BlockType::MathBlock, QStringLiteral("Expected indented bracket math block"));
-  require(mathBlock.mathDelimiter() == MathDelimiter::Bracket, QStringLiteral("Indented bracket math delimiter flag missing"));
+  require(mathBlock.mathDelimiter() == MathDelimiter::Bracket,
+          QStringLiteral("Indented bracket math delimiter flag missing"));
   require(mathBlock.literal() == QStringLiteral("y = x"), QStringLiteral("Indented bracket math literal mismatch"));
 }
 
@@ -365,10 +356,9 @@ void testLegacyBracketMathInBlockQuoteAndList() {
   CmarkGfmParser parser;
   ParseOptions options;
 
-  const QString quoteMarkdown = QStringLiteral(
-      "> \\[\n"
-      "> y = x\n"
-      "> \\]\n");
+  const QString quoteMarkdown = QStringLiteral("> \\[\n"
+                                               "> y = x\n"
+                                               "> \\]\n");
   ParseResult quoteParsed = parser.parseDocument(quoteMarkdown, options);
   require(quoteParsed.root != nullptr, QStringLiteral("Parser returned null root for quote bracket math sample"));
   require(countMathBlocks(*quoteParsed.root) == 1, QStringLiteral("Block quote bracket math block was not parsed"));
@@ -376,14 +366,14 @@ void testLegacyBracketMathInBlockQuoteAndList() {
   require(quote.type() == BlockType::BlockQuote, QStringLiteral("Expected block quote wrapper"));
   const MarkdownNode& quoteMath = childAt(quote, 0);
   require(quoteMath.type() == BlockType::MathBlock, QStringLiteral("Expected bracket math inside block quote"));
-  require(quoteMath.mathDelimiter() == MathDelimiter::Bracket, QStringLiteral("Quote bracket math delimiter flag missing"));
+  require(quoteMath.mathDelimiter() == MathDelimiter::Bracket,
+          QStringLiteral("Quote bracket math delimiter flag missing"));
   require(quoteMath.literal() == QStringLiteral("y = x"),
           QStringLiteral("Quote bracket math literal mismatch: '%1'").arg(quoteMath.literal()));
 
-  const QString listMarkdown = QStringLiteral(
-      "- \\[\n"
-      "  y = x\n"
-      "  \\]\n");
+  const QString listMarkdown = QStringLiteral("- \\[\n"
+                                              "  y = x\n"
+                                              "  \\]\n");
   ParseResult listParsed = parser.parseDocument(listMarkdown, options);
   require(listParsed.root != nullptr, QStringLiteral("Parser returned null root for list bracket math sample"));
   require(countMathBlocks(*listParsed.root) == 1, QStringLiteral("List bracket math block was not parsed"));
@@ -400,11 +390,10 @@ void testLegacyBracketMathInBlockQuoteAndList() {
 void testFencedCodeBlock() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "```powershell\n"
-      "conan install . -s build_type=Release\n"
-      "cmake --build --preset conan-release\n"
-      "```\n");
+  const QString markdown = QStringLiteral("```powershell\n"
+                                          "conan install . -s build_type=Release\n"
+                                          "cmake --build --preset conan-release\n"
+                                          "```\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for code fence sample"));
@@ -444,13 +433,12 @@ void testCodeFenceSerializationDoesNotGrowTrailingBlankLines() {
 void testYamlFrontMatter() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "---\n"
-      "title: Muffin\n"
-      "tags:\n"
-      "  - markdown\n"
-      "---\n"
-      "# Heading\n");
+  const QString markdown = QStringLiteral("---\n"
+                                          "title: Muffin\n"
+                                          "tags:\n"
+                                          "  - markdown\n"
+                                          "---\n"
+                                          "# Heading\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for YAML front matter"));
@@ -458,22 +446,25 @@ void testYamlFrontMatter() {
 
   const MarkdownNode& frontMatter = childAt(*parsed.root, 0);
   require(frontMatter.type() == BlockType::FrontMatter, QStringLiteral("Expected YAML front matter block"));
-  require(frontMatter.frontMatterFormat() == FrontMatterFormat::Yaml, QStringLiteral("YAML front matter format mismatch"));
-  require(frontMatter.literal().contains(QStringLiteral("title: Muffin")), QStringLiteral("YAML front matter literal missing title"));
+  require(frontMatter.frontMatterFormat() == FrontMatterFormat::Yaml,
+          QStringLiteral("YAML front matter format mismatch"));
+  require(frontMatter.literal().contains(QStringLiteral("title: Muffin")),
+          QStringLiteral("YAML front matter literal missing title"));
   require(frontMatter.sourceRange().byteStart == 0, QStringLiteral("YAML front matter source should start at zero"));
-  require(sourceTextForNode(markdown, frontMatter).startsWith(QStringLiteral("---\n")), QStringLiteral("YAML front matter source missing opening fence"));
-  require(childAt(*parsed.root, 1).type() == BlockType::Heading, QStringLiteral("YAML front matter should preserve following heading"));
+  require(sourceTextForNode(markdown, frontMatter).startsWith(QStringLiteral("---\n")),
+          QStringLiteral("YAML front matter source missing opening fence"));
+  require(childAt(*parsed.root, 1).type() == BlockType::Heading,
+          QStringLiteral("YAML front matter should preserve following heading"));
 }
 
 void testTomlFrontMatter() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "+++\n"
-      "title = \"Muffin\"\n"
-      "draft = false\n"
-      "+++\n"
-      "Body\n");
+  const QString markdown = QStringLiteral("+++\n"
+                                          "title = \"Muffin\"\n"
+                                          "draft = false\n"
+                                          "+++\n"
+                                          "Body\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for TOML front matter"));
@@ -481,21 +472,23 @@ void testTomlFrontMatter() {
 
   const MarkdownNode& frontMatter = childAt(*parsed.root, 0);
   require(frontMatter.type() == BlockType::FrontMatter, QStringLiteral("Expected TOML front matter block"));
-  require(frontMatter.frontMatterFormat() == FrontMatterFormat::Toml, QStringLiteral("TOML front matter format mismatch"));
-  require(frontMatter.literal().contains(QStringLiteral("draft = false")), QStringLiteral("TOML front matter literal missing draft"));
-  require(childAt(*parsed.root, 1).type() == BlockType::Paragraph, QStringLiteral("TOML front matter should preserve following paragraph"));
+  require(frontMatter.frontMatterFormat() == FrontMatterFormat::Toml,
+          QStringLiteral("TOML front matter format mismatch"));
+  require(frontMatter.literal().contains(QStringLiteral("draft = false")),
+          QStringLiteral("TOML front matter literal missing draft"));
+  require(childAt(*parsed.root, 1).type() == BlockType::Paragraph,
+          QStringLiteral("TOML front matter should preserve following paragraph"));
 }
 
 void testJsonFrontMatter() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "{\n"
-      "  \"title\": \"Muffin\",\n"
-      "  \"nested\": { \"ok\": true },\n"
-      "  \"text\": \"brace } in string\"\n"
-      "}\n"
-      "# Heading\n");
+  const QString markdown = QStringLiteral("{\n"
+                                          "  \"title\": \"Muffin\",\n"
+                                          "  \"nested\": { \"ok\": true },\n"
+                                          "  \"text\": \"brace } in string\"\n"
+                                          "}\n"
+                                          "# Heading\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for JSON front matter"));
@@ -503,9 +496,12 @@ void testJsonFrontMatter() {
 
   const MarkdownNode& frontMatter = childAt(*parsed.root, 0);
   require(frontMatter.type() == BlockType::FrontMatter, QStringLiteral("Expected JSON front matter block"));
-  require(frontMatter.frontMatterFormat() == FrontMatterFormat::Json, QStringLiteral("JSON front matter format mismatch"));
-  require(frontMatter.literal().contains(QStringLiteral("brace } in string")), QStringLiteral("JSON front matter string scanning failed"));
-  require(childAt(*parsed.root, 1).type() == BlockType::Heading, QStringLiteral("JSON front matter should preserve following heading"));
+  require(frontMatter.frontMatterFormat() == FrontMatterFormat::Json,
+          QStringLiteral("JSON front matter format mismatch"));
+  require(frontMatter.literal().contains(QStringLiteral("brace } in string")),
+          QStringLiteral("JSON front matter string scanning failed"));
+  require(childAt(*parsed.root, 1).type() == BlockType::Heading,
+          QStringLiteral("JSON front matter should preserve following heading"));
 }
 
 void testFrontMatterFalsePositives() {
@@ -513,22 +509,27 @@ void testFrontMatterFalsePositives() {
   ParseOptions options;
 
   ParseResult leadingBlank = parser.parseDocument(QStringLiteral("\n---\ntitle: x\n---\n"), options);
-  require(leadingBlank.root != nullptr, QStringLiteral("Parser returned null root for leading blank front matter false positive"));
-  require(childAt(*leadingBlank.root, 0).type() != BlockType::FrontMatter, QStringLiteral("Front matter should require absolute document start"));
+  require(leadingBlank.root != nullptr,
+          QStringLiteral("Parser returned null root for leading blank front matter false positive"));
+  require(childAt(*leadingBlank.root, 0).type() != BlockType::FrontMatter,
+          QStringLiteral("Front matter should require absolute document start"));
 
   ParseResult unclosedYaml = parser.parseDocument(QStringLiteral("---\ntitle: x\n"), options);
   require(unclosedYaml.root != nullptr, QStringLiteral("Parser returned null root for unclosed YAML front matter"));
-  require(childAt(*unclosedYaml.root, 0).type() != BlockType::FrontMatter, QStringLiteral("Unclosed YAML fence should not be front matter"));
+  require(childAt(*unclosedYaml.root, 0).type() != BlockType::FrontMatter,
+          QStringLiteral("Unclosed YAML fence should not be front matter"));
 
   ParseResult invalidJson = parser.parseDocument(QStringLiteral("{not json}\nBody"), options);
   require(invalidJson.root != nullptr, QStringLiteral("Parser returned null root for invalid JSON front matter"));
-  require(childAt(*invalidJson.root, 0).type() != BlockType::FrontMatter, QStringLiteral("Invalid JSON should not be front matter"));
+  require(childAt(*invalidJson.root, 0).type() != BlockType::FrontMatter,
+          QStringLiteral("Invalid JSON should not be front matter"));
 
   ParseOptions disabledOptions;
   disabledOptions.enableFrontMatter = false;
   ParseResult disabled = parser.parseDocument(QStringLiteral("---\ntitle: x\n---\n"), disabledOptions);
   require(disabled.root != nullptr, QStringLiteral("Parser returned null root for disabled front matter"));
-  require(childAt(*disabled.root, 0).type() != BlockType::FrontMatter, QStringLiteral("Disabled front matter option should leave cmark output"));
+  require(childAt(*disabled.root, 0).type() != BlockType::FrontMatter,
+          QStringLiteral("Disabled front matter option should leave cmark output"));
 }
 
 void testCodeFenceEmptySerializationIsIdempotent() {
@@ -552,18 +553,18 @@ void testCodeFenceEmptySerializationIsIdempotent() {
   for (const QString& sample : samples) {
     const QString first = serializeMarkdown(sample);
     const QString second = serializeMarkdown(first);
-    require(first == sample, QStringLiteral("Code fence first serialization changed source: '%1' -> '%2'").arg(sample, first));
-    require(second == first, QStringLiteral("Code fence repeated serialization is not stable: '%1' -> '%2'").arg(first, second));
+    require(first == sample,
+            QStringLiteral("Code fence first serialization changed source: '%1' -> '%2'").arg(sample, first));
+    require(second == first,
+            QStringLiteral("Code fence repeated serialization is not stable: '%1' -> '%2'").arg(first, second));
   }
 }
 
 void testFrontMatterSerializationDoesNotGrowTrailingBlankLines() {
-  const QVector<QString> samples{
-      QStringLiteral("---\ntitle: Muffin\n---"),
-      QStringLiteral("---\ntitle: Muffin\n\n---"),
-      QStringLiteral("+++\ntitle = \"Muffin\"\n+++"),
-      QStringLiteral("+++\ntitle = \"Muffin\"\n\n+++"),
-      QStringLiteral("{\n  \"title\": \"Muffin\"\n}")};
+  const QVector<QString> samples{QStringLiteral("---\ntitle: Muffin\n---"), QStringLiteral("---\ntitle: Muffin\n\n---"),
+                                 QStringLiteral("+++\ntitle = \"Muffin\"\n+++"),
+                                 QStringLiteral("+++\ntitle = \"Muffin\"\n\n+++"),
+                                 QStringLiteral("{\n  \"title\": \"Muffin\"\n}")};
   for (const QString& sample : samples) {
     const QString once = serializeMarkdown(sample);
     const QString twice = serializeMarkdown(once);
@@ -575,9 +576,8 @@ void testFrontMatterSerializationDoesNotGrowTrailingBlankLines() {
 void testTaskListMetadata() {
   CmarkGfmParser parser;
   ParseOptions options;
-  const QString markdown = QStringLiteral(
-      "- [x] done\n"
-      "- [ ] pending\n");
+  const QString markdown = QStringLiteral("- [x] done\n"
+                                          "- [ ] pending\n");
 
   ParseResult parsed = parser.parseDocument(markdown, options);
   require(parsed.root != nullptr, QStringLiteral("Parser returned null root for task list sample"));
@@ -592,22 +592,30 @@ void testTaskListMetadata() {
 
 void testNodeIndexPreservesDocumentOrder() {
   auto root = std::make_unique<MarkdownNode>(BlockType::Document);
-  MarkdownNode& heading = root->appendChild(std::make_unique<MarkdownNode>(BlockType::Heading, NodeId::fromString(QStringLiteral("heading"))));
-  MarkdownNode& list = root->appendChild(std::make_unique<MarkdownNode>(BlockType::List, NodeId::fromString(QStringLiteral("list"))));
-  MarkdownNode& item = list.appendChild(std::make_unique<MarkdownNode>(BlockType::ListItem, NodeId::fromString(QStringLiteral("item"))));
-  MarkdownNode& paragraph = root->appendChild(std::make_unique<MarkdownNode>(BlockType::Paragraph, NodeId::fromString(QStringLiteral("paragraph"))));
+  MarkdownNode& heading = root->appendChild(
+      std::make_unique<MarkdownNode>(BlockType::Heading, NodeId::fromString(QStringLiteral("heading"))));
+  MarkdownNode& list =
+      root->appendChild(std::make_unique<MarkdownNode>(BlockType::List, NodeId::fromString(QStringLiteral("list"))));
+  MarkdownNode& item =
+      list.appendChild(std::make_unique<MarkdownNode>(BlockType::ListItem, NodeId::fromString(QStringLiteral("item"))));
+  MarkdownNode& paragraph = root->appendChild(
+      std::make_unique<MarkdownNode>(BlockType::Paragraph, NodeId::fromString(QStringLiteral("paragraph"))));
 
   MarkdownDocument document;
   document.setMarkdownText(QStringLiteral("# Heading\n\n- Item\n\nParagraph"), std::move(root));
 
-  require(document.index().firstBlock() == &heading, QStringLiteral("NodeIndex firstBlock should return first document-order block"));
-  require(document.index().lastBlock() == &paragraph, QStringLiteral("NodeIndex lastBlock should return last document-order block"));
+  require(document.index().firstBlock() == &heading,
+          QStringLiteral("NodeIndex firstBlock should return first document-order block"));
+  require(document.index().lastBlock() == &paragraph,
+          QStringLiteral("NodeIndex lastBlock should return last document-order block"));
   require(document.index().find(list.id()) == &list, QStringLiteral("NodeIndex should still find intermediate blocks"));
   require(document.index().find(item.id()) == &item, QStringLiteral("NodeIndex should still find nested blocks"));
 
   document.index().removeSubtree(paragraph);
-  require(document.index().lastBlock() == &item, QStringLiteral("NodeIndex removeSubtree should update ordered blocks"));
-  require(!document.index().contains(paragraph.id()), QStringLiteral("NodeIndex removeSubtree should remove lookup entry"));
+  require(document.index().lastBlock() == &item,
+          QStringLiteral("NodeIndex removeSubtree should update ordered blocks"));
+  require(!document.index().contains(paragraph.id()),
+          QStringLiteral("NodeIndex removeSubtree should remove lookup entry"));
 }
 
 // Walks a subtree looking for the first CodeFence node.
@@ -664,8 +672,7 @@ void testIndentedVsFencedCodeDetection() {
   require(quoteParsed.root != nullptr, QStringLiteral("null root for quote+code sample"));
   const MarkdownNode* quoteCode = firstCodeFenceIn(*quoteParsed.root);
   require(quoteCode != nullptr, QStringLiteral("fenced code inside block quote not parsed"));
-  require(!quoteCode->isIndentedCode(),
-          QStringLiteral("fenced code inside a block quote must stay fenced"));
+  require(!quoteCode->isIndentedCode(), QStringLiteral("fenced code inside a block quote must stay fenced"));
 
   // Round-trip stability: a list-with-fenced-code must serialize back to a fence (not 4-space
   // indented text), otherwise the list structure collapses.
@@ -692,12 +699,15 @@ void testIndentedCodeCannotHoldTrailingEmptyLine() {
 
   require(literalOf(QStringLiteral("    code")) == QStringLiteral("code"), "indented baseline literal");
   require(literalOf(QStringLiteral("    code\n")) == QStringLiteral("code"), "trailing newline must be stripped");
-  require(literalOf(QStringLiteral("    code\n    ")) == QStringLiteral("code"), "trailing 4-space line must be stripped");
-  require(literalOf(QStringLiteral("    code\n    \n")) == QStringLiteral("code"), "trailing blank+indent must be stripped");
+  require(literalOf(QStringLiteral("    code\n    ")) == QStringLiteral("code"),
+          "trailing 4-space line must be stripped");
+  require(literalOf(QStringLiteral("    code\n    \n")) == QStringLiteral("code"),
+          "trailing blank+indent must be stripped");
 
   // Fenced code keeps a trailing blank line because the closing fence is a sentinel.
   require(literalOf(QStringLiteral("```\ncode\n```")) == QStringLiteral("code"), "fenced baseline literal");
-  require(literalOf(QStringLiteral("```\ncode\n\n```")) == QStringLiteral("code\n"), "fenced trailing blank must be preserved");
+  require(literalOf(QStringLiteral("```\ncode\n\n```")) == QStringLiteral("code\n"),
+          "fenced trailing blank must be preserved");
 }
 
 // B1 regression: a phantom trailing newline held in an indented-code node's literal (after Enter
@@ -719,15 +729,13 @@ void testIndentedCodeSerializationDropsPhantomTrailingNewline() {
   // Multiple trailing newlines are all dropped (cmark strips every trailing blank line).
   node.setLiteral(QStringLiteral("line1\n\n"));
   require(serializer.serializeBlock(node) == QStringLiteral("    line1"),
-          QStringLiteral("all trailing newlines must be stripped: '%1'")
-              .arg(serializer.serializeBlock(node)));
+          QStringLiteral("all trailing newlines must be stripped: '%1'").arg(serializer.serializeBlock(node)));
 
   // B2: an empty (or newline-only) indented-code literal collapses to nothing — a whitespace-only
   // line is just a blank line in CommonMark, so no dead "    " is emitted.
   node.setLiteral(QString());
   require(serializer.serializeBlock(node) == QString(),
-          QStringLiteral("empty indented code must serialize to nothing: '%1'")
-              .arg(serializer.serializeBlock(node)));
+          QStringLiteral("empty indented code must serialize to nothing: '%1'").arg(serializer.serializeBlock(node)));
   node.setLiteral(QStringLiteral("\n"));
   require(serializer.serializeBlock(node) == QString(),
           QStringLiteral("newline-only indented code must serialize to nothing: '%1'")
@@ -736,9 +744,9 @@ void testIndentedCodeSerializationDropsPhantomTrailingNewline() {
   // Sanity: a fenced block keeps a real trailing blank line (no phantom concept there).
   MarkdownNode fenced(BlockType::CodeFence);
   fenced.setLiteral(QStringLiteral("code\n"));
-  require(serializer.serializeBlock(fenced) == QStringLiteral("```\ncode\n\n```"),
-          QStringLiteral("fenced trailing blank line should be preserved: '%1'")
-              .arg(serializer.serializeBlock(fenced)));
+  require(
+      serializer.serializeBlock(fenced) == QStringLiteral("```\ncode\n\n```"),
+      QStringLiteral("fenced trailing blank line should be preserved: '%1'").arg(serializer.serializeBlock(fenced)));
 }
 
 int main(int argc, char** argv) {

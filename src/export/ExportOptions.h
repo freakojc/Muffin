@@ -40,8 +40,7 @@ ImageExportOptions imageExportOptions();
 PandocExportOptions pandocExportOptions(ExportFormat format);
 // The caller owns input/output format and output path. Extra arguments cannot
 // redirect them, so staging and cancellation never touch an existing output.
-bool pandocExportArguments(ExportFormat format, const QString& inputFormat,
-                           const QString& target, const PandocExportOptions& options,
-                           QStringList* arguments);
+bool pandocExportArguments(ExportFormat format, const QString& inputFormat, const QString& target,
+                           const PandocExportOptions& options, QStringList* arguments);
 
-}  // namespace muffin
+} // namespace muffin

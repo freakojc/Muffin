@@ -10,13 +10,7 @@
 
 namespace muffin::math {
 
-enum class MathLayoutKind {
-  Span,
-  Symbol,
-  Rule,
-  Strut,
-  VList
-};
+enum class MathLayoutKind { Span, Symbol, Rule, Strut, VList };
 
 struct MathLayoutNode {
   MathLayoutKind kind = MathLayoutKind::Span;
@@ -100,4 +94,4 @@ std::unique_ptr<MathLayoutNode> makeLayoutVListPositioned(std::vector<MathVListC
 MathVListEntry makeLayoutVListElem(MathVListChild child);
 MathVListEntry makeLayoutVListKern(qreal size);
 
-}  // namespace muffin::math
+} // namespace muffin::math

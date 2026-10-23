@@ -12,20 +12,9 @@
 
 namespace muffin {
 
-enum class InlineProjectionBias {
-  Backward,
-  Forward
-};
+enum class InlineProjectionBias { Backward, Forward };
 
-enum class InlineSpanKind {
-  Text,
-  OpenMarker,
-  CloseMarker,
-  EmptyContentSlot,
-  HiddenSyntax,
-  Atom,
-  HtmlContent
-};
+enum class InlineSpanKind { Text, OpenMarker, CloseMarker, EmptyContentSlot, HiddenSyntax, Atom, HtmlContent };
 
 // Length (in QChars) of a complete <br>/<br/>/<br /> tag starting at content[offset]
 // (case-insensitive), or 0 if no tag starts there. A complete tag requires its
@@ -66,17 +55,17 @@ struct InlineProjectionSpan {
   bool italic = false;
   bool strike = false;
   bool underline = false;
-  bool link = false;          // Wrapping attribute ORTHOGONAL to `type`: this span is part of a link →
-                              // link color/underline applied in InlineLayout. Decoupled from `type` so a
-                              // link composes with any inner node (image/code/math/emphasis…) instead of
-                              // overwriting it — this is what makes an image-link [![alt](img)](url) render
-                              // as a clickable image, and keeps `[`code`](url)` rendered as code.
-  bool highlight = false;     // ==text==: yellow wash propagated onto content spans
-  bool subscript = false;     // ~text~: lowered baseline propagated onto content spans
-  bool superscript = false;   // ^text^: raised baseline propagated onto content spans
-  bool folded = false;        // Render-level smart-punct token (e.g. "--"->en-dash): source range is
-                              // wider than the single display glyph, so edits/delete act on the whole token.
-  QString href;  // Non-empty for Image and Link Atom spans
+  bool link = false;        // Wrapping attribute ORTHOGONAL to `type`: this span is part of a link →
+                            // link color/underline applied in InlineLayout. Decoupled from `type` so a
+                            // link composes with any inner node (image/code/math/emphasis…) instead of
+                            // overwriting it — this is what makes an image-link [![alt](img)](url) render
+                            // as a clickable image, and keeps `[`code`](url)` rendered as code.
+  bool highlight = false;   // ==text==: yellow wash propagated onto content spans
+  bool subscript = false;   // ~text~: lowered baseline propagated onto content spans
+  bool superscript = false; // ^text^: raised baseline propagated onto content spans
+  bool folded = false;      // Render-level smart-punct token (e.g. "--"->en-dash): source range is
+                            // wider than the single display glyph, so edits/delete act on the whole token.
+  QString href;             // Non-empty for Image and Link Atom spans
 };
 
 // What makes an inline's markdown markers (e.g. `**`, `$`, `~~`) appear in the projection.
@@ -92,14 +81,9 @@ struct InlineProjectionState {
   bool shouldRevealSourceRange(qsizetype sourceStart, qsizetype sourceEnd) const;
   bool shouldRevealVisibleRange(qsizetype visibleStart, qsizetype visibleEnd) const;
 
-  static InlineProjectionState forCursor(
-      const CursorPosition& cursor,
-      NodeId blockId,
-      qsizetype contentSourceStart);
-  static InlineProjectionState forSelection(
-      const SelectionRange& selection,
-      NodeId blockId,
-      qsizetype contentSourceStart);
+  static InlineProjectionState forCursor(const CursorPosition& cursor, NodeId blockId, qsizetype contentSourceStart);
+  static InlineProjectionState forSelection(const SelectionRange& selection, NodeId blockId,
+                                            qsizetype contentSourceStart);
 };
 
 // Display-only smart punctuation (SmartyPants) for the render path: ASCII quotes/dashes/ellipsis
@@ -109,8 +93,8 @@ struct SmartPunctRenderOptions {
   bool convertQuotes = false;
   bool convertDashes = false;
   bool convertEllipsis = false;
-  int doubleQuoteStyle = 0;  // 0 = curly, 1 = straight (mirrors markdown/doubleQuoteStyle)
-  int singleQuoteStyle = 0;  // 0 = curly, 1 = straight
+  int doubleQuoteStyle = 0; // 0 = curly, 1 = straight (mirrors markdown/doubleQuoteStyle)
+  int singleQuoteStyle = 0; // 0 = curly, 1 = straight
 };
 
 // CSS `text-transform`. Applied to projected display text only (length-preserving
@@ -136,9 +120,10 @@ struct InlineSourceReplacement {
 class InlineProjection {
 public:
   InlineProjection() = default;
-  InlineProjection(const QVector<InlineNode>& inlines, QString sourceText, InlineProjectionState state = {}, qsizetype sourceBase = -1,
-                   qreal baseFontSize = 16.0, qsizetype pendingPrefixLength = 0, SmartPunctRenderOptions smartPunct = {},
-                   bool breakOnSingleNewline = false, TextTransform textTransform = TextTransform::None, bool renderEmoji = true,
+  InlineProjection(const QVector<InlineNode>& inlines, QString sourceText, InlineProjectionState state = {},
+                   qsizetype sourceBase = -1, qreal baseFontSize = 16.0, qsizetype pendingPrefixLength = 0,
+                   SmartPunctRenderOptions smartPunct = {}, bool breakOnSingleNewline = false,
+                   TextTransform textTransform = TextTransform::None, bool renderEmoji = true,
                    html::HtmlColorPalette htmlPalette = html::HtmlColorPalette::defaultLight(),
                    QVector<InlineSourceReplacement> replacements = {});
 
@@ -169,7 +154,8 @@ public:
 
   static QString plainTextForInlines(const QVector<InlineNode>& inlines, bool breakOnSingleNewline = false);
   static QString markdownForInlines(const QVector<InlineNode>& inlines);
-  static bool isPlainInlineSource(const QVector<InlineNode>& inlines, const QString& sourceText, qsizetype sourceBase = -1);
+  static bool isPlainInlineSource(const QVector<InlineNode>& inlines, const QString& sourceText,
+                                  qsizetype sourceBase = -1);
 
 private:
   struct RevealCheck {
@@ -212,11 +198,11 @@ private:
   static QString markerForInline(const InlineNode& node);
   static QString markdownForInline(const InlineNode& node);
   static QString plainTextForInline(const InlineNode& node, bool breakOnSingleNewline = false);
-  static void appendTextSpan(BuildState& state, InlineType type, InlineSpanKind kind, qsizetype sourceStart, qsizetype sourceEnd,
+  static void appendTextSpan(BuildState& state, InlineType type, InlineSpanKind kind, qsizetype sourceStart,
+                             qsizetype sourceEnd, QString displayText, bool visible, bool editable = true);
+  static void appendTextSpan(BuildState& state, InlineType type, InlineSpanKind kind, qsizetype sourceStart,
+                             qsizetype sourceEnd, qsizetype contentSourceStart, qsizetype contentSourceEnd,
                              QString displayText, bool visible, bool editable = true);
-  static void appendTextSpan(BuildState& state, InlineType type, InlineSpanKind kind, qsizetype sourceStart, qsizetype sourceEnd,
-                             qsizetype contentSourceStart, qsizetype contentSourceEnd, QString displayText, bool visible,
-                             bool editable = true);
   // Emits a <br> tag as a gray OpenMarker (the markup) + a zero-width-source line break.
   // Centralized so every HtmlInline render path — top-level appendInlines and appendInline
   // (for <br> nested inside paired inline HTML like <b>..<br>..</b>) — agrees with
@@ -225,20 +211,22 @@ private:
   // Emits one or more Text spans for a decoded run, applying render-level smart punctuation
   // (Convert on Rendering). Folded tokens (--/---/...) become their own span with folded=true so
   // the N:1 source/display mapping stays exact (no per-span linear drift); quotes are 1:1.
-  static void appendSmartPunctTextSpans(BuildState& state, qsizetype sourceStart, qsizetype sourceEnd, const QString& decoded);
+  static void appendSmartPunctTextSpans(BuildState& state, qsizetype sourceStart, qsizetype sourceEnd,
+                                        const QString& decoded);
   static bool appendHtmlImageAtom(BuildState& state, const QString& tagText, qsizetype sourceStart, qsizetype sourceEnd,
                                   qsizetype contentSourceStart, qsizetype contentSourceEnd);
-  static void appendInlines(BuildState& state, const QVector<InlineNode>& inlines, qsizetype sourceStart, qsizetype sourceEnd,
-                            QVector<HtmlInlineFormatData>& htmlFormatData);
+  static void appendInlines(BuildState& state, const QVector<InlineNode>& inlines, qsizetype sourceStart,
+                            qsizetype sourceEnd, QVector<HtmlInlineFormatData>& htmlFormatData);
   static void appendInline(BuildState& state, const InlineNode& node, qsizetype sourceStart, qsizetype sourceEnd,
                            QVector<HtmlInlineFormatData>& htmlFormatData);
   static int tryAppendHtmlInlineGroup(BuildState& state, const QVector<InlineNode>& inlines, int index,
                                       qsizetype sourceStart, qsizetype sourceEnd, qsizetype& searchFrom,
                                       QVector<HtmlInlineFormatData>& htmlFormatData);
-  static void appendHtmlInlineContent(BuildState& state, const QVector<InlineNode>& inlines,
-                                      int startIndex, int endIndex, qsizetype openEnd, qsizetype closeNodeStart,
+  static void appendHtmlInlineContent(BuildState& state, const QVector<InlineNode>& inlines, int startIndex,
+                                      int endIndex, qsizetype openEnd, qsizetype closeNodeStart,
                                       QVector<HtmlInlineFormatData>& htmlFormatData);
-  static qsizetype findMarkdown(const QString& sourceText, const QString& markdown, qsizetype searchFrom, qsizetype searchEnd);
+  static qsizetype findMarkdown(const QString& sourceText, const QString& markdown, qsizetype searchFrom,
+                                qsizetype searchEnd);
   bool offsetInSource(qsizetype sourceOffset) const;
 
   QString sourceText_;
@@ -251,4 +239,4 @@ private:
   bool valid_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

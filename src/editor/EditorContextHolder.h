@@ -15,4 +15,4 @@ protected:
   EditorContext ctx_;
 };
 
-}  // namespace muffin
+} // namespace muffin

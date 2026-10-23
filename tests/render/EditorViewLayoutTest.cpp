@@ -22,7 +22,8 @@ void testEditorViewPlainInlineLayout() {
   }
 
   const SelectionRange selection = inlineSelection(blockId, 1, inlineLayout->plainText().size() - 1);
-  const QVector<QRectF> rects = requireViewBlock(view, blockId, QStringLiteral("plain inline"))->selectionRects(selection, RenderTheme::defaultTheme());
+  const QVector<QRectF> rects = requireViewBlock(view, blockId, QStringLiteral("plain inline"))
+                                    ->selectionRects(selection, RenderTheme::defaultTheme());
   require(!rects.isEmpty(), QStringLiteral("plain inline selection rects should exist"));
 }
 
@@ -48,7 +49,8 @@ void testEditorViewStyledInlineLayout() {
   selection.anchor = inlineCursor(blockId, 7, 9);
   selection.focus = inlineCursor(blockId, 11, 13);
   view.setSelectionRange(selection);
-  const QVector<QRectF> rects = requireViewBlock(view, blockId, QStringLiteral("styled inline"))->selectionRects(selection, RenderTheme::defaultTheme());
+  const QVector<QRectF> rects = requireViewBlock(view, blockId, QStringLiteral("styled inline"))
+                                    ->selectionRects(selection, RenderTheme::defaultTheme());
   require(!rects.isEmpty(), QStringLiteral("styled inline selection rects should exist"));
 }
 
@@ -65,7 +67,8 @@ void testEditorViewListInlineMathHitEditing() {
   const NodeId blockId = item->id();
   const qsizetype contentSourceStart = QStringLiteral("- ").size();
   const qsizetype localMathSourceOffset = QStringLiteral("before $x").size();
-  CursorPosition activeCursor = inlineCursor(blockId, QStringLiteral("before x").size(), contentSourceStart + localMathSourceOffset);
+  CursorPosition activeCursor =
+      inlineCursor(blockId, QStringLiteral("before x").size(), contentSourceStart + localMathSourceOffset);
   view.setCursorPosition(activeCursor);
 
   MarkdownNode* paragraph = childAt(item, 0);
@@ -75,16 +78,13 @@ void testEditorViewListInlineMathHitEditing() {
   options.projectionState.cursorSourceOffset = localMathSourceOffset;
   options.sourceBase = contentSourceStart;
   const RenderTheme theme = RenderTheme::defaultTheme();
-  inlineLayout.build(
-      paragraph->inlines(),
-      QStringLiteral("before $x+y$ after"),
-      theme,
-      qMax<qreal>(1.0, view.nodeRect(blockId).width() - theme.listIndent()),
-      theme.paragraphFont(),
-      options);
+  inlineLayout.build(paragraph->inlines(), QStringLiteral("before $x+y$ after"), theme,
+                     qMax<qreal>(1.0, view.nodeRect(blockId).width() - theme.listIndent()), theme.paragraphFont(),
+                     options);
   const QRectF cursor = inlineLayout.cursorRectForSourceOffset(localMathSourceOffset);
   require(!cursor.isEmpty(), "list inline math source cursor rect should exist");
-  const QPointF hitPoint = view.nodeRect(blockId).topLeft() + QPointF(theme.listIndent() + cursor.left(), cursor.center().y());
+  const QPointF hitPoint =
+      view.nodeRect(blockId).topLeft() + QPointF(theme.listIndent() + cursor.left(), cursor.center().y());
   const HitTestResult hit = view.hitTest(hitPoint);
   require(hit.isValid() && hit.sourceOffset == contentSourceStart + localMathSourceOffset,
           QStringLiteral("list inline math hit should keep source offset: actual=%1 expected=%2 textOffset=%3")
@@ -92,19 +92,24 @@ void testEditorViewListInlineMathHitEditing() {
               .arg(contentSourceStart + localMathSourceOffset)
               .arg(hit.textOffset));
   controller.activateHit(hit);
-  require(controller.inputController().insertText(QStringLiteral("0")), "typing after list inline math hit should edit source");
-  require(session.markdownText().toString() == QStringLiteral("- before $x0+y$ after"), "list inline math hit insert should not drift");
+  require(controller.inputController().insertText(QStringLiteral("0")),
+          "typing after list inline math hit should edit source");
+  require(session.markdownText().toString() == QStringLiteral("- before $x0+y$ after"),
+          "list inline math hit insert should not drift");
   require(controller.selection().cursorPosition().text.sourceOffset == QStringLiteral("- before $x0").size(),
           "list inline math cursor source should stay after inserted text");
-  require(controller.inputController().insertText(QStringLiteral("1")), "consecutive typing after list inline math hit should edit source");
-  require(session.markdownText().toString() == QStringLiteral("- before $x01+y$ after"), "consecutive list inline math insert should not drift");
+  require(controller.inputController().insertText(QStringLiteral("1")),
+          "consecutive typing after list inline math hit should edit source");
+  require(session.markdownText().toString() == QStringLiteral("- before $x01+y$ after"),
+          "consecutive list inline math insert should not drift");
 }
 
 void testEditorViewWrappedInlineLayout() {
   DocumentSession session;
   EditorView view;
   session.setMarkdownText(
-      QStringLiteral("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau"),
+      QStringLiteral(
+          "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau"),
       false);
   view.resize(360, 500);
   view.setDocument(session.document());
@@ -126,11 +131,13 @@ void testEditorViewWrappedInlineLayout() {
     require(lines.at(i).y > lines.at(i - 1).y, QStringLiteral("wrapped inline cursor y should increase by line"));
     const QRectF previousEnd = inlineLayout->cursorRect(lines.at(i - 1).end);
     const QRectF nextStart = inlineLayout->cursorRect(lines.at(i).start);
-    require(nextStart.left() <= previousEnd.left(), QStringLiteral("wrapped inline line start should return toward x origin"));
+    require(nextStart.left() <= previousEnd.left(),
+            QStringLiteral("wrapped inline line start should return toward x origin"));
   }
 
   const SelectionRange selection = inlineSelection(blockId, 0, inlineLayout->plainText().size());
-  const QVector<QRectF> rects = requireViewBlock(view, blockId, QStringLiteral("wrapped inline"))->selectionRects(selection, RenderTheme::defaultTheme());
+  const QVector<QRectF> rects = requireViewBlock(view, blockId, QStringLiteral("wrapped inline"))
+                                    ->selectionRects(selection, RenderTheme::defaultTheme());
   require(rects.size() == lines.size(), QStringLiteral("wrapped inline selection rect count should match line count"));
 }
 
@@ -138,19 +145,20 @@ void testEditorViewFontSizeChangeReflowsWrappedText() {
   DocumentSession session;
   EditorView view;
   session.setMarkdownText(
-      QStringLiteral("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau"),
+      QStringLiteral(
+          "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau"),
       false);
   view.resize(420, 500);
   view.setFontSizePx(24);
   view.setDocument(session.document());
   const NodeId blockId = blockAt(session, 0)->id();
 
-  const int largeLineCount = cursorLineRanges(
-      *requireViewInlineLayout(view, blockId, QStringLiteral("24px wrapped inline"))).size();
+  const int largeLineCount =
+      cursorLineRanges(*requireViewInlineLayout(view, blockId, QStringLiteral("24px wrapped inline"))).size();
 
   view.setFontSizePx(12);
-  const int smallLineCount = cursorLineRanges(
-      *requireViewInlineLayout(view, blockId, QStringLiteral("12px wrapped inline"))).size();
+  const int smallLineCount =
+      cursorLineRanges(*requireViewInlineLayout(view, blockId, QStringLiteral("12px wrapped inline"))).size();
 
   require(smallLineCount < largeLineCount,
           QStringLiteral("changing text size must reflow wrapping (24px=%1 lines, 12px=%2 lines)")
@@ -173,13 +181,13 @@ void testEditorViewContentWidthChangeReflowsWrappedText() {
   const NodeId blockId = blockAt(session, 0)->id();
 
   const qreal themeWidth = view.nodeRect(blockId).width();
-  const int themeLines = cursorLineRanges(
-      *requireViewInlineLayout(view, blockId, QStringLiteral("theme-width inline"))).size();
+  const int themeLines =
+      cursorLineRanges(*requireViewInlineLayout(view, blockId, QStringLiteral("theme-width inline"))).size();
 
   view.setContentWidthPx(-1);
   const qreal fullWidth = view.nodeRect(blockId).width();
-  const int fullLines = cursorLineRanges(
-      *requireViewInlineLayout(view, blockId, QStringLiteral("full-width inline"))).size();
+  const int fullLines =
+      cursorLineRanges(*requireViewInlineLayout(view, blockId, QStringLiteral("full-width inline"))).size();
 
   require(fullWidth > themeWidth + 250.0,
           QStringLiteral("full-width setting must widen the document column (theme=%1 full=%2)")
@@ -214,7 +222,8 @@ void testEditorViewTableCellInlineLayout() {
   require(!cell.text.selectionRects(0, 3).isEmpty(), QStringLiteral("table cell selection rects should exist"));
 
   const QMarginsF padding = RenderTheme::defaultTheme().elementBoxStyle(QStringLiteral("td")).padding;
-  const QPointF point = cell.rect.marginsRemoved(padding).topLeft() + QPointF(cell.text.cursorRect(1).left(), cell.text.cursorRect(1).center().y());
+  const QPointF point = cell.rect.marginsRemoved(padding).topLeft() +
+                        QPointF(cell.text.cursorRect(1).left(), cell.text.cursorRect(1).center().y());
   const HitTestResult hit = view.hitTest(point);
   require(hit.zone == HitTestResult::Zone::TableCell, QStringLiteral("table cell hit should use table cell zone"));
   require(hit.textNodeId == firstBodyCell->id(), QStringLiteral("table cell hit should return cell node id"));
@@ -241,7 +250,8 @@ void testEditorViewTableCellInlineCodeEndHit() {
   const QPointF point = textOrigin + QPointF(endCursor.left() + 2.0, endCursor.center().y());
 
   const HitTestResult hit = view.hitTest(point);
-  require(hit.zone == HitTestResult::Zone::TableCell, QStringLiteral("inline code table end hit should use table cell zone"));
+  require(hit.zone == HitTestResult::Zone::TableCell,
+          QStringLiteral("inline code table end hit should use table cell zone"));
   require(hit.textNodeId == cellNode->id(), QStringLiteral("inline code table end hit should return cell node id"));
   require(hit.sourceOffset == cellNode->sourceRange().byteStart + cellContent.size(),
           QStringLiteral("inline code table end hit should map after closing marker"));
@@ -251,8 +261,7 @@ void testEditorViewTableCellInlineCodeEndHit() {
   require(controller.inputController().insertText(QStringLiteral("!")), "table inline code end insert should work");
   require(session.markdownText().toString().contains(QStringLiteral("| vendored `cmark-gfm`! |")),
           "table inline code end insert should append after inline code");
-  require(controller.selection().cursorPosition().text.sourceOffset ==
-              cellSourceStart + cellContent.size() + 1,
+  require(controller.selection().cursorPosition().text.sourceOffset == cellSourceStart + cellContent.size() + 1,
           "table inline code end insert source cursor mismatch");
   require(controller.selection().cursorPosition().text.textOffset == QStringLiteral("vendored cmark-gfm!").size(),
           "table inline code end insert text cursor mismatch");
@@ -274,14 +283,8 @@ void testTableCellRichInlineSelectionDeleteAndCopyUseSourceOffsets() {
   const qsizetype cellStart = cell->sourceRange().byteStart;
   const qsizetype codeStart = cellContent.indexOf(QStringLiteral("cmark"));
   const qsizetype codeEnd = codeStart + QStringLiteral("cmark-gfm").size();
-  setSourceSelection(
-      controller.selection(),
-      table,
-      cell,
-      QStringLiteral("vendored ").size(),
-      cellStart + codeStart,
-      QStringLiteral("vendored cmark-gfm").size(),
-      cellStart + codeEnd);
+  setSourceSelection(controller.selection(), table, cell, QStringLiteral("vendored ").size(), cellStart + codeStart,
+                     QStringLiteral("vendored cmark-gfm").size(), cellStart + codeEnd);
 
   const QString selectedTablePlain = selectedPlainText(session, controller.selection());
   const QString selectedTableMarkdown = selectedMarkdown(session, controller.selection());
@@ -290,9 +293,11 @@ void testTableCellRichInlineSelectionDeleteAndCopyUseSourceOffsets() {
   require(selectedTableMarkdown == QStringLiteral("cmark-gfm"),
           QStringLiteral("table rich inline selected markdown mismatch: %1").arg(selectedTableMarkdown));
   require(controller.clipboardController().copy(), "table rich inline copy should work");
-  require(QApplication::clipboard()->text() == QStringLiteral("cmark-gfm"), "table rich inline clipboard text mismatch");
+  require(QApplication::clipboard()->text() == QStringLiteral("cmark-gfm"),
+          "table rich inline clipboard text mismatch");
 
-  require(controller.inputController().deleteBackward(), "table rich inline selection backspace should delete selection");
+  require(controller.inputController().deleteBackward(),
+          "table rich inline selection backspace should delete selection");
   require(session.markdownText().toString().contains(QStringLiteral("| vendored `` tail |")),
           "table rich inline selection delete should preserve code markers");
   require(controller.selection().cursorPosition().text.sourceOffset == cellStart + codeStart,
@@ -301,14 +306,9 @@ void testTableCellRichInlineSelectionDeleteAndCopyUseSourceOffsets() {
   session.setMarkdownText(QStringLiteral("| A |\n| --- |\n| %1 |").arg(cellContent), false);
   table = blockAt(session, 0);
   cell = childAt(childAt(table, 1), 0);
-  setSourceSelection(
-      controller.selection(),
-      table,
-      cell,
-      QStringLiteral("vendored ").size(),
-      cell->sourceRange().byteStart + codeStart,
-      QStringLiteral("vendored cmark-gfm").size(),
-      cell->sourceRange().byteStart + codeEnd);
+  setSourceSelection(controller.selection(), table, cell, QStringLiteral("vendored ").size(),
+                     cell->sourceRange().byteStart + codeStart, QStringLiteral("vendored cmark-gfm").size(),
+                     cell->sourceRange().byteStart + codeEnd);
   require(controller.inputController().deleteForward(), "table rich inline selection delete should delete selection");
   require(session.markdownText().toString().contains(QStringLiteral("| vendored `` tail |")),
           "table rich inline delete key should preserve code markers");
@@ -331,7 +331,8 @@ void testMixedInlineParagraphHitEditingBeforeAutolink() {
   boldHit.textOffset = QStringLiteral("Plain text can mix bo").size();
   controller.activateHit(boldHit);
   require(controller.inputController().insertText(QStringLiteral("X")), "typing in mixed paragraph bold should work");
-  require(session.markdownText().toString().contains(QStringLiteral("**boXld**")), "mixed paragraph bold insert mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("**boXld**")),
+          "mixed paragraph bold insert mismatch");
 
   session.setMarkdownText(markdown, false);
   HitTestResult italicHit;
@@ -341,7 +342,8 @@ void testMixedInlineParagraphHitEditingBeforeAutolink() {
   italicHit.textOffset = QStringLiteral("Plain text can mix bold, ita").size();
   controller.activateHit(italicHit);
   require(controller.inputController().insertText(QStringLiteral("Y")), "typing in mixed paragraph italic should work");
-  require(session.markdownText().toString().contains(QStringLiteral("*itaYlic*")), "mixed paragraph italic insert mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("*itaYlic*")),
+          "mixed paragraph italic insert mismatch");
 
   session.setMarkdownText(markdown, false);
   HitTestResult strikeHit;
@@ -351,7 +353,8 @@ void testMixedInlineParagraphHitEditingBeforeAutolink() {
   strikeHit.textOffset = QStringLiteral("Plain text can mix bold, italic, strike").size();
   controller.activateHit(strikeHit);
   require(controller.inputController().insertText(QStringLiteral("Z")), "typing in mixed paragraph strike should work");
-  require(session.markdownText().toString().contains(QStringLiteral("~~strikeZthrough~~")), "mixed paragraph strike insert mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("~~strikeZthrough~~")),
+          "mixed paragraph strike insert mismatch");
 }
 
 void testInlineSelectionRects() {
@@ -390,9 +393,11 @@ void testEditorViewActiveHeadingHitContentOffsetStable() {
   view.setCursorPosition(inlineCursor(blockId, 0, contentStart));
 
   for (qsizetype visible = 0; visible <= 5; ++visible) {
-    const HitTestResult hit = hitAtTextOffset(view, blockId, visible, QStringLiteral("active heading @%1").arg(visible));
+    const HitTestResult hit =
+        hitAtTextOffset(view, blockId, visible, QStringLiteral("active heading @%1").arg(visible));
     require(hit.textOffset == visible, QStringLiteral("active heading visible offset drift @%1").arg(visible));
-    require(hit.sourceOffset == contentStart + visible, QStringLiteral("active heading source offset drift @%1").arg(visible));
+    require(hit.sourceOffset == contentStart + visible,
+            QStringLiteral("active heading source offset drift @%1").arg(visible));
   }
 }
 
@@ -433,10 +438,12 @@ void testEditorViewActiveSetextHeadingRendersContentWithoutPrefix() {
   view.setCursorPosition(inlineCursor(blockId, 0, 0));
 
   const InlineLayout* layout = requireViewInlineLayout(view, blockId, QStringLiteral("active setext heading"));
-  require(layout->displayText() == QStringLiteral("hello"),
-          QStringLiteral("active setext heading display text should be content only, got: %1").arg(layout->displayText()));
-  require(layout->visibleText() == QStringLiteral("hello"),
-          QStringLiteral("active setext heading visible text should be content only, got: %1").arg(layout->visibleText()));
+  require(
+      layout->displayText() == QStringLiteral("hello"),
+      QStringLiteral("active setext heading display text should be content only, got: %1").arg(layout->displayText()));
+  require(
+      layout->visibleText() == QStringLiteral("hello"),
+      QStringLiteral("active setext heading visible text should be content only, got: %1").arg(layout->visibleText()));
 }
 
 void testEditorViewRevealKeepsFocusBlockAnchored() {
@@ -460,13 +467,14 @@ void testEditorViewRevealKeepsFocusBlockAnchored() {
   // is the focus target.
   const QString url = QStringLiteral("https://") + QString(200, QLatin1Char('x'));
   const QString paragraph = QStringLiteral("go [here](") + url + QStringLiteral(") now");
-  session.setMarkdownText(filler + paragraph + QStringLiteral("\n\ntarget line") + QStringLiteral("\n\n") + filler, false);
+  session.setMarkdownText(filler + paragraph + QStringLiteral("\n\ntarget line") + QStringLiteral("\n\n") + filler,
+                          false);
 
   view.resize(420, 480);
   view.setDocument(session.document());
 
-  const NodeId block0 = blockAt(session, 40)->id();  // the revealing paragraph
-  const NodeId block1 = blockAt(session, 41)->id();  // the focus target below it
+  const NodeId block0 = blockAt(session, 40)->id(); // the revealing paragraph
+  const NodeId block1 = blockAt(session, 41)->id(); // the focus target below it
 
   // Caret inside the link text "here" (source offset 5 / visible offset 4 within the block): the
   // hidden destination URL is revealed, reflowing the paragraph across many lines.

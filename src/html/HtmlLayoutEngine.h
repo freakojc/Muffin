@@ -26,31 +26,31 @@ public:
   // Run Yoga layout on the box tree.
   // After this call, each HtmlBox has its geometry field populated.
   // textLayouts is filled with pre-built text layouts for painting.
-  void layout(
-      HtmlBox& root,
-      qreal availableWidth,
-      qreal baseFontSize,
-      std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts,
-      const HtmlColorPalette& palette = HtmlColorPalette::defaultLight());
+  void layout(HtmlBox& root, qreal availableWidth, qreal baseFontSize,
+              std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts,
+              const HtmlColorPalette& palette = HtmlColorPalette::defaultLight());
 
 private:
- std::vector<std::unique_ptr<HtmlTextLayout>>* activeTextLayouts_ = nullptr;
- HtmlTextLayout::AtomicInline layoutAtomicInline(HtmlBox& box, qreal width);
- void layoutFormattingBox(HtmlBox& box, qreal availableWidth, std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts);
- qreal layoutAllocatedBox(HtmlBox& box, QSizeF size, std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts, const CssGridInheritance& inherited = {});
- CssIntrinsicMetrics intrinsicMetrics(HtmlBox& box);
- CssFormattingItem formattingItem(HtmlBox& box, qreal containingWidth);
- QHash<HtmlBox*, CssGridInheritance> gridInheritance_;
- YGNode* createYogaNode(HtmlBox& box, qreal fontSize, qreal availableWidth, std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts);
+  std::vector<std::unique_ptr<HtmlTextLayout>>* activeTextLayouts_ = nullptr;
+  HtmlTextLayout::AtomicInline layoutAtomicInline(HtmlBox& box, qreal width);
+  void layoutFormattingBox(HtmlBox& box, qreal availableWidth,
+                           std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts);
+  qreal layoutAllocatedBox(HtmlBox& box, QSizeF size, std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts,
+                           const CssGridInheritance& inherited = {});
+  CssIntrinsicMetrics intrinsicMetrics(HtmlBox& box);
+  CssFormattingItem formattingItem(HtmlBox& box, qreal containingWidth);
+  QHash<HtmlBox*, CssGridInheritance> gridInheritance_;
+  YGNode* createYogaNode(HtmlBox& box, qreal fontSize, qreal availableWidth,
+                         std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts);
 
- void layoutTableBox(HtmlBox& box, qreal availableWidth, std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts);
- qreal layoutFixedWidthBox(HtmlBox& box, qreal width, std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts);
- qreal intrinsicOuterWidth(const HtmlBox& box, qreal availableWidth) const;
+  void layoutTableBox(HtmlBox& box, qreal availableWidth, std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts);
+  qreal layoutFixedWidthBox(HtmlBox& box, qreal width, std::vector<std::unique_ptr<HtmlTextLayout>>& textLayouts);
+  qreal intrinsicOuterWidth(const HtmlBox& box, qreal availableWidth) const;
 
- void applyBoxStyle(YGNode* node, const HtmlComputedStyle& style);
- void readLayoutBack(HtmlBox& box, YGNode* node);
+  void applyBoxStyle(YGNode* node, const HtmlComputedStyle& style);
+  void readLayoutBack(HtmlBox& box, YGNode* node);
 
- HtmlTextMeasurer measurer_;
+  HtmlTextMeasurer measurer_;
 };
 
-}  // namespace muffin::html
+} // namespace muffin::html

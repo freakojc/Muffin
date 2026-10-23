@@ -10,33 +10,17 @@ struct DefinitionFieldRange {
   qsizetype start = -1;
   qsizetype end = -1;
 
-  bool isValid() const {
-    return start >= 0 && end >= start;
-  }
+  bool isValid() const { return start >= 0 && end >= start; }
 
-  qsizetype length() const {
-    return isValid() ? end - start : 0;
-  }
+  qsizetype length() const { return isValid() ? end - start : 0; }
 };
 
 struct DefinitionBlock {
-  enum class Kind {
-    None,
-    Link,
-    Footnote
-  };
+  enum class Kind { None, Link, Footnote };
 
-  enum class DestinationDelimiter {
-    Bare,
-    Angle
-  };
+  enum class DestinationDelimiter { Bare, Angle };
 
-  enum class TitleDelimiter {
-    None,
-    DoubleQuote,
-    SingleQuote,
-    Parentheses
-  };
+  enum class TitleDelimiter { None, DoubleQuote, SingleQuote, Parentheses };
 
   Kind kind = Kind::None;
   QString label;
@@ -55,27 +39,19 @@ struct DefinitionBlock {
   bool titleQuoted = false;
   bool virtualTemplate = false;
 
-  bool isValid() const {
-    return kind != Kind::None && markerRange.isValid();
-  }
+  bool isValid() const { return kind != Kind::None && markerRange.isValid(); }
 };
 
-enum class DefinitionParseClassification {
-  Invalid,
-  ValidMarkdownDefinition,
-  VirtualTemplate
-};
+enum class DefinitionParseClassification { Invalid, ValidMarkdownDefinition, VirtualTemplate };
 
 struct DefinitionParseResult {
   DefinitionParseClassification classification = DefinitionParseClassification::Invalid;
   DefinitionBlock definition;
 
-  bool isRecognized() const {
-    return classification != DefinitionParseClassification::Invalid && definition.isValid();
-  }
+  bool isRecognized() const { return classification != DefinitionParseClassification::Invalid && definition.isValid(); }
 };
 
 QVector<DefinitionParseResult> scanDefinitionBlocks(QStringView markdown);
 DefinitionParseResult parseDefinitionBlockLine(QStringView line, qsizetype sourceStart);
 
-}  // namespace muffin
+} // namespace muffin

@@ -31,13 +31,13 @@ int main(int argc, char** argv) {
   const QJsonObject root = QJsonDocument::fromJson(bytes).object();
   require(root.value(QStringLiteral("fixtureSha256")).toString() ==
                   QLatin1String("5387acc0af6177983478a4e4d6de571305cb9b55a94e6a33672ba7d0fa2053bf") &&
-              root.value(QStringLiteral("upstream")).toObject()
-                      .value(QStringLiteral("version")).toString() ==
+              root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
                   QLatin1String("11.16.0"),
           QStringLiteral("Wardley geometry provenance changed"));
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
   require(cases.size() == 16, QStringLiteral("Wardley geometry case count"));
-  for (const QJsonValue& value : cases) compareCase(value.toObject());
+  for (const QJsonValue& value : cases)
+    compareCase(value.toObject());
   std::puts("MermaidWardleyGeometryOracleTest: 16/16 passed");
   return 0;
 }

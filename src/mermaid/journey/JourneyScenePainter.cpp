@@ -25,8 +25,7 @@ PaintState rootSvgFill(const QString& value) {
   return journeyRootSvgFill(value);
 }
 
-PaintState elementSvgFill(const QString& value, const PaintState& root,
-                          const PaintState& presentation) {
+PaintState elementSvgFill(const QString& value, const PaintState& root, const PaintState& presentation) {
   return journeyElementSvgFill(value, root, presentation);
 }
 
@@ -64,7 +63,8 @@ qreal effectiveOpacity(const JourneyElementCss& css) {
 }
 
 bool effectiveBold(const JourneyElementCss& css, bool base) {
-  if (css.fontWeight.isEmpty()) return base;
+  if (css.fontWeight.isEmpty())
+    return base;
   const QString weight = css.fontWeight.trimmed().toLower();
   if (weight == QLatin1String("bold") || weight == QLatin1String("bolder"))
     return true;
@@ -78,21 +78,21 @@ bool effectiveBold(const JourneyElementCss& css, bool base) {
 // stroke-width resolves like every other paint value: the base string when
 // themeCSS has no opinion, the cascade outcome otherwise. % is relative to
 // the SVG viewport's normalized diagonal.
-qreal strokeWidthFor(const QString& value, const QString& base,
-                     const CssLengthContext& ctx, qreal diagonal) {
+qreal strokeWidthFor(const QString& value, const QString& base, const CssLengthContext& ctx, qreal diagonal) {
   return editor::cssStrokeWidthPx(effectiveCss(value, base), ctx, diagonal);
 }
 
-void drawBaseline(QPainter& painter, const editor::CssPixelFont& font,
-                  const QPointF& anchor, const QString& text,
-                  const QColor& color, bool bold = false,
-                  bool centered = false) {
-  if (!(font.scale > 0.0) || text.isEmpty()) return;
+void drawBaseline(QPainter& painter, const editor::CssPixelFont& font, const QPointF& anchor, const QString& text,
+                  const QColor& color, bool bold = false, bool centered = false) {
+  if (!(font.scale > 0.0) || text.isEmpty())
+    return;
   QFont qfont = font.font;
-  if (bold) qfont.setWeight(QFont::Bold);
+  if (bold)
+    qfont.setWeight(QFont::Bold);
   const TextFontMetrics metrics(qfont);
   qreal x = 0.0;
-  if (centered) x = -metrics.horizontalAdvance(text) / 2.0;
+  if (centered)
+    x = -metrics.horizontalAdvance(text) / 2.0;
   painter.save();
   painter.translate(anchor);
   painter.scale(font.scale, font.scale);
@@ -102,14 +102,13 @@ void drawBaseline(QPainter& painter, const editor::CssPixelFont& font,
   painter.restore();
 }
 
-void drawCenteredFo(QPainter& painter, const editor::CssPixelFont& font,
-                    const QRectF& rect, const QString& raw,
+void drawCenteredFo(QPainter& painter, const editor::CssPixelFont& font, const QRectF& rect, const QString& raw,
                     const QColor& color) {
-  if (raw.isEmpty() || !(font.scale > 0.0)) return;
+  if (raw.isEmpty() || !(font.scale > 0.0))
+    return;
   const QString text = collapsedSvgText(raw);
   const qreal scale = font.scale;
-  const QRectF logicalRect(rect.x() / scale, rect.y() / scale,
-                           rect.width() / scale, rect.height() / scale);
+  const QRectF logicalRect(rect.x() / scale, rect.y() / scale, rect.width() / scale, rect.height() / scale);
   TextLayout layout(text, font.font);
   QTextOption option;
   option.setAlignment(Qt::AlignHCenter);
@@ -120,7 +119,8 @@ void drawCenteredFo(QPainter& painter, const editor::CssPixelFont& font,
   qreal totalHeight = 0.0;
   while (true) {
     TextLine line = layout.createLine();
-    if (!line.isValid()) break;
+    if (!line.isValid())
+      break;
     line.setLineWidth(logicalRect.width());
     lines.append(line);
     totalHeight += line.height();
@@ -128,8 +128,7 @@ void drawCenteredFo(QPainter& painter, const editor::CssPixelFont& font,
   layout.endLayout();
   // CSS table-cell centering only offsets content that fits. Overflow starts
   // at the foreignObject's top edge and is clipped there.
-  qreal y = logicalRect.y() +
-            std::max<qreal>(0.0, (logicalRect.height() - totalHeight) / 2.0);
+  qreal y = logicalRect.y() + std::max<qreal>(0.0, (logicalRect.height() - totalHeight) / 2.0);
   for (TextLine& line : lines) {
     line.setPosition(QPointF(logicalRect.x(), y));
     y += line.height();
@@ -142,72 +141,62 @@ void drawCenteredFo(QPainter& painter, const editor::CssPixelFont& font,
   painter.restore();
 }
 
-void drawJourneyLabel(QPainter& painter, const JourneyScene& scene,
-                      const QRectF& rect, const QString& text,
-                      const QPointF& oldTextAnchor,
-                      const QPointF& tspanTextAnchor,
-                      bool sectionLabel, const QString& sectionFill,
-                      bool cssFillActive, const JourneyElementCss& label,
+void drawJourneyLabel(QPainter& painter, const JourneyScene& scene, const QRectF& rect, const QString& text,
+                      const QPointF& oldTextAnchor, const QPointF& tspanTextAnchor, bool sectionLabel,
+                      const QString& sectionFill, bool cssFillActive, const JourneyElementCss& label,
                       const JourneyElementCss& svgText) {
-  const PaintState root = rootSvgFill(effectiveCss(
-      scene.rootCss.fill, scene.style.textColor));
+  const PaintState root = rootSvgFill(effectiveCss(scene.rootCss.fill, scene.style.textColor));
   const QString placement = scene.config.textPlacement;
   if (placement == QStringLiteral("fo")) {
-    if (!label.visible) return;
+    if (!label.visible)
+      return;
     const editor::CssPixelFont font = editor::makeUnhintedCssPixelFont(
-        effectiveCss(label.fontFamily, scene.style.fontFamily),
-        effectiveFontSize(label, scene.style.fontSize));
+        effectiveCss(label.fontFamily, scene.style.fontFamily), effectiveFontSize(label, scene.style.fontSize));
     painter.save();
     painter.setOpacity(effectiveOpacity(label));
-    drawCenteredFo(painter, font, rect, text,
-                   htmlColor(effectiveCss(label.color, scene.style.textColor)));
+    drawCenteredFo(painter, font, rect, text, htmlColor(effectiveCss(label.color, scene.style.textColor)));
     painter.restore();
     return;
   }
 
   if (placement == QStringLiteral("old")) {
-    if (!svgText.visible) return;
-    const PaintState paint = elementSvgFill(
-        effectiveCss(svgText.fill, scene.style.textColor), root, root);
-    if (paint.none) return;
+    if (!svgText.visible)
+      return;
+    const PaintState paint = elementSvgFill(effectiveCss(svgText.fill, scene.style.textColor), root, root);
+    if (paint.none)
+      return;
     painter.save();
     painter.setOpacity(effectiveOpacity(svgText));
-    drawBaseline(painter,
-                 editor::makeUnhintedCssPixelFont(scene.style.fontFamily,
-                                                  scene.style.fontSize),
-                 oldTextAnchor,
+    drawBaseline(painter, editor::makeUnhintedCssPixelFont(scene.style.fontFamily, scene.style.fontSize), oldTextAnchor,
                  collapsedSvgText(text), paint.color, false, true);
     painter.restore();
     return;
   }
 
-  if (!svgText.visible) return;
-  const QStringList lines = text.split(
-      QRegularExpression(QStringLiteral(R"(<br\s*/?>)"),
-                         QRegularExpression::CaseInsensitiveOption),
-      Qt::KeepEmptyParts);
-  const editor::CssPixelFont font = editor::makeUnhintedCssPixelFont(
-      scene.config.taskFontFamily, scene.config.taskFontSize);
+  if (!svgText.visible)
+    return;
+  const QStringList lines =
+      text.split(QRegularExpression(QStringLiteral(R"(<br\s*/?>)"), QRegularExpression::CaseInsensitiveOption),
+                 Qt::KeepEmptyParts);
+  const editor::CssPixelFont font =
+      editor::makeUnhintedCssPixelFont(scene.config.taskFontFamily, scene.config.taskFontSize);
   const TextFontMetrics metrics(font.font);
   const PaintState white{false, Qt::white};
-  const PaintState paint = elementSvgFill(
-      effectiveCss(svgText.fill,
-                   sectionLabel && cssFillActive ? sectionFill : QString()),
-      root, sectionLabel && cssFillActive ? elementSvgFill(sectionFill, root, white) : white);
-  if (paint.none) return;
+  const PaintState paint =
+      elementSvgFill(effectiveCss(svgText.fill, sectionLabel && cssFillActive ? sectionFill : QString()), root,
+                     sectionLabel && cssFillActive ? elementSvgFill(sectionFill, root, white) : white);
+  if (paint.none)
+    return;
   painter.save();
   painter.setOpacity(effectiveOpacity(svgText));
   for (qsizetype i = 0; i < lines.size(); ++i) {
     const qreal dy = std::isfinite(scene.config.taskFontLineStep)
-                         ? i * scene.config.taskFontLineStep -
-                               scene.config.taskFontLineStep *
-                                   (lines.size() - 1) / 2.0
+                         ? i * scene.config.taskFontLineStep - scene.config.taskFontLineStep * (lines.size() - 1) / 2.0
                          : 0.0;
     const qreal centralY = tspanTextAnchor.y() + dy;
-    const qreal baseline = centralY +
-                           (metrics.ascent() - metrics.descent()) * font.scale / 2.0;
-    drawBaseline(painter, font, QPointF(tspanTextAnchor.x(), baseline),
-                 collapsedSvgText(lines.at(i)), paint.color, false, true);
+    const qreal baseline = centralY + (metrics.ascent() - metrics.descent()) * font.scale / 2.0;
+    drawBaseline(painter, font, QPointF(tspanTextAnchor.x(), baseline), collapsedSvgText(lines.at(i)), paint.color,
+                 false, true);
   }
   painter.restore();
 }
@@ -237,58 +226,56 @@ const JourneyActor* actorByName(const JourneyScene& scene, const QString& name) 
   if (name == QStringLiteral("__proto__") && scene.hasPrototypeActor)
     return &scene.prototypeActor;
   for (const JourneyActor& actor : scene.actors)
-    if (actor.name == name) return &actor;
+    if (actor.name == name)
+      return &actor;
   return nullptr;
 }
 
-}  // namespace
+} // namespace
 
 JourneyPaintState journeyRootSvgFill(const QString& value) {
   const QString text = value.trimmed();
   const QString keyword = text.toLower();
-  if (keyword == QLatin1String("none")) return {true, {}};
-  if (color::isParsableColor(text)) return {false, color::toQColor(text)};
+  if (keyword == QLatin1String("none"))
+    return {true, {}};
+  if (color::isParsableColor(text))
+    return {false, color::toQColor(text)};
   // The SVG root inherits the CSS initial color/fill from its host. All CSS
   // globals, an empty declaration, and garbage therefore resolve to black.
   return {false, Qt::black};
 }
 
-JourneyPaintState journeyElementSvgFill(
-    const QString& value, const JourneyPaintState& root,
-    const JourneyPaintState& presentation) {
+JourneyPaintState journeyElementSvgFill(const QString& value, const JourneyPaintState& root,
+                                        const JourneyPaintState& presentation) {
   const QString text = value.trimmed();
   const QString keyword = text.toLower();
-  if (keyword == QLatin1String("none")) return {true, {}};
-  if (keyword == QLatin1String("currentcolor") ||
-      keyword == QLatin1String("initial"))
+  if (keyword == QLatin1String("none"))
+    return {true, {}};
+  if (keyword == QLatin1String("currentcolor") || keyword == QLatin1String("initial"))
     return {false, Qt::black};
-  if (keyword == QLatin1String("inherit") ||
-      keyword == QLatin1String("unset") ||
-      keyword == QLatin1String("revert"))
+  if (keyword == QLatin1String("inherit") || keyword == QLatin1String("unset") || keyword == QLatin1String("revert"))
     return root;
   if (keyword == QLatin1String("revert-layer") || text.isEmpty())
     return presentation;
-  if (color::isParsableColor(text)) return {false, color::toQColor(text)};
+  if (color::isParsableColor(text))
+    return {false, color::toQColor(text)};
   return presentation;
 }
 
-JourneyPaintState journeyLineStroke(const QString& value,
-                                    const QColor& presentation) {
+JourneyPaintState journeyLineStroke(const QString& value, const QColor& presentation) {
   const QString text = value.trimmed();
   const QString keyword = text.toLower();
-  if (keyword == QLatin1String("none") ||
-      keyword == QLatin1String("initial") ||
-      keyword == QLatin1String("inherit") ||
-      keyword == QLatin1String("unset") ||
-      keyword == QLatin1String("revert"))
+  if (keyword == QLatin1String("none") || keyword == QLatin1String("initial") || keyword == QLatin1String("inherit") ||
+      keyword == QLatin1String("unset") || keyword == QLatin1String("revert"))
     return {true, {}};
-  if (keyword == QLatin1String("currentcolor")) return {false, Qt::black};
-  if (color::isParsableColor(text)) return {false, color::toQColor(text)};
+  if (keyword == QLatin1String("currentcolor"))
+    return {false, Qt::black};
+  if (color::isParsableColor(text))
+    return {false, color::toQColor(text)};
   return {false, presentation};
 }
 
-void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
-                       const MermaidPaintOptions& options) {
+void paintJourneyScene(const JourneyScene& scene, QPainter& painter, const MermaidPaintOptions& options) {
   Q_UNUSED(options);
   painter.save();
   painter.setRenderHint(QPainter::Antialiasing, true);
@@ -301,20 +288,13 @@ void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
   // The #id root rule paints the svg element itself: fill becomes the
   // inherited fill for mouth/arrowhead/un-attributed text, font-size drives
   // every text that does not declare its own.
-  const PaintState rootFill = rootSvgFill(effectiveCss(
-      scene.rootCss.fill, scene.style.textColor));
-  const QString rootFamily = effectiveCss(scene.rootCss.fontFamily,
-                                          scene.style.fontFamily);
-  const qreal rootSize = scene.rootCss.fontSize >= 0.0
-                             ? scene.rootCss.fontSize
-                             : scene.style.fontSize;
-  const editor::CssPixelFont rootFont =
-      editor::makeUnhintedCssPixelFont(rootFamily, rootSize);
-  const CssLengthContext lengthCtx =
-      editor::pieCssLengthContext(rootFamily, rootSize);
+  const PaintState rootFill = rootSvgFill(effectiveCss(scene.rootCss.fill, scene.style.textColor));
+  const QString rootFamily = effectiveCss(scene.rootCss.fontFamily, scene.style.fontFamily);
+  const qreal rootSize = scene.rootCss.fontSize >= 0.0 ? scene.rootCss.fontSize : scene.style.fontSize;
+  const editor::CssPixelFont rootFont = editor::makeUnhintedCssPixelFont(rootFamily, rootSize);
+  const CssLengthContext lengthCtx = editor::pieCssLengthContext(rootFamily, rootSize);
   const qreal diagonal =
-      std::sqrt(scene.bounds.width() * scene.bounds.width() +
-                scene.bounds.height() * scene.bounds.height()) /
+      std::sqrt(scene.bounds.width() * scene.bounds.width() + scene.bounds.height() * scene.bounds.height()) /
       std::sqrt(2.0);
 
   // Actor legend is rendered before the chart groups.
@@ -323,70 +303,54 @@ void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
       painter.save();
       painter.setOpacity(effectiveOpacity(actor.circle));
       const PaintState presentation{false, color::cssColor(actor.color)};
-      setBrush(painter, elementSvgFill(
-                            effectiveCss(actor.circle.fill, actor.color),
-                            rootFill, presentation));
-      const PaintState stroke = lineStroke(
-          effectiveCss(actor.circle.stroke, QStringLiteral("#000000")),
-          Qt::black);
+      setBrush(painter, elementSvgFill(effectiveCss(actor.circle.fill, actor.color), rootFill, presentation));
+      const PaintState stroke = lineStroke(effectiveCss(actor.circle.stroke, QStringLiteral("#000000")), Qt::black);
       if (!stroke.none) {
-        painter.setPen(QPen(stroke.color, strokeWidthFor(
-            actor.circle.strokeWidth, QStringLiteral("1px"), lengthCtx,
-            diagonal)));
+        painter.setPen(
+            QPen(stroke.color, strokeWidthFor(actor.circle.strokeWidth, QStringLiteral("1px"), lengthCtx, diagonal)));
       } else {
         painter.setPen(Qt::NoPen);
       }
       painter.drawEllipse(QPointF(20.0, actor.y), 7.0, 7.0);
       painter.restore();
     }
-    if (!actor.text.visible || rootFill.none) continue;
+    if (!actor.text.visible || rootFill.none)
+      continue;
     painter.save();
     painter.setOpacity(effectiveOpacity(actor.text));
     const editor::CssPixelFont legendFont = editor::makeUnhintedCssPixelFont(
-        effectiveCss(actor.text.fontFamily, rootFamily),
-        actor.text.fontSize >= 0.0 ? actor.text.fontSize : rootSize);
-    const PaintState textPaint = elementSvgFill(
-        effectiveCss(actor.text.fill, scene.style.textColor), rootFill,
-        rootFill);
+        effectiveCss(actor.text.fontFamily, rootFamily), actor.text.fontSize >= 0.0 ? actor.text.fontSize : rootSize);
+    const PaintState textPaint =
+        elementSvgFill(effectiveCss(actor.text.fill, scene.style.textColor), rootFill, rootFill);
     if (textPaint.none) {
       painter.restore();
       continue;
     }
     for (qsizetype i = 0; i < actor.lines.size(); ++i)
-      drawBaseline(painter, legendFont,
-                   QPointF(40.0 + 2.0 * scene.config.boxTextMargin,
-                           actor.y + 7.0 + i * 20.0),
-                   collapsedSvgText(actor.lines.at(i)), textPaint.color,
-                   effectiveBold(actor.text, false));
+      drawBaseline(painter, legendFont, QPointF(40.0 + 2.0 * scene.config.boxTextMargin, actor.y + 7.0 + i * 20.0),
+                   collapsedSvgText(actor.lines.at(i)), textPaint.color, effectiveBold(actor.text, false));
     painter.restore();
   }
 
   for (const JourneySectionGeometry& section : scene.sections) {
-    if (!section.box.visible) continue;
+    if (!section.box.visible)
+      continue;
     painter.save();
     painter.setOpacity(effectiveOpacity(section.box));
-    const PaintState presentation{
-        false, color::cssColor(section.presentationFill,
-                        QColor(QStringLiteral("#cccccc")))};
-    const PaintState stroke = lineStroke(
-        effectiveCss(section.box.stroke, QStringLiteral("#666666")),
-        QColor(QStringLiteral("#666666")));
+    const PaintState presentation{false, color::cssColor(section.presentationFill, QColor(QStringLiteral("#cccccc")))};
+    const PaintState stroke =
+        lineStroke(effectiveCss(section.box.stroke, QStringLiteral("#666666")), QColor(QStringLiteral("#666666")));
     if (!stroke.none) {
-      painter.setPen(QPen(stroke.color, strokeWidthFor(
-          section.box.strokeWidth, QStringLiteral("1px"), lengthCtx,
-          diagonal)));
+      painter.setPen(
+          QPen(stroke.color, strokeWidthFor(section.box.strokeWidth, QStringLiteral("1px"), lengthCtx, diagonal)));
     } else {
       painter.setPen(Qt::NoPen);
     }
-    setBrush(painter, section.cssFillActive
-                          ? elementSvgFill(section.fill, rootFill, presentation)
-                          : presentation);
+    setBrush(painter, section.cssFillActive ? elementSvgFill(section.fill, rootFill, presentation) : presentation);
     painter.drawRoundedRect(section.rect, 3.0, 3.0);
     painter.restore();
-    drawJourneyLabel(painter, scene, section.rect, section.text,
-                     section.oldTextAnchor, section.tspanTextAnchor, true,
-                     section.fill, section.cssFillActive, section.label,
-                     section.svgText);
+    drawJourneyLabel(painter, scene, section.rect, section.text, section.oldTextAnchor, section.tspanTextAnchor, true,
+                     section.fill, section.cssFillActive, section.label, section.svgText);
   }
 
   for (const JourneyTaskGeometry& task : scene.tasks) {
@@ -394,18 +358,14 @@ void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
     if (task.line.visible) {
       painter.save();
       painter.setOpacity(effectiveOpacity(task.line));
-      const PaintState taskStroke = lineStroke(
-          effectiveCss(task.line.stroke, scene.style.textColor),
-          QColor(QStringLiteral("#666666")));
+      const PaintState taskStroke =
+          lineStroke(effectiveCss(task.line.stroke, scene.style.textColor), QColor(QStringLiteral("#666666")));
       if (!taskStroke.none) {
-        const qreal lineWidth = strokeWidthFor(
-            task.line.strokeWidth, QStringLiteral("1px"), lengthCtx,
-            diagonal);
+        const qreal lineWidth = strokeWidthFor(task.line.strokeWidth, QStringLiteral("1px"), lengthCtx, diagonal);
         QPen linePen(taskStroke.color, lineWidth);
         linePen.setCapStyle(Qt::FlatCap);
         linePen.setJoinStyle(Qt::MiterJoin);
-        linePen.setDashPattern(scene::normalizedSvgDashPattern(
-            {4.0, 2.0}, lineWidth));
+        linePen.setDashPattern(scene::normalizedSvgDashPattern({4.0, 2.0}, lineWidth));
         painter.setPen(linePen);
       } else {
         painter.setPen(Qt::NoPen);
@@ -418,19 +378,15 @@ void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
     if (std::isfinite(task.faceCenter.y()) && task.face.visible) {
       painter.save();
       painter.setOpacity(effectiveOpacity(task.face));
-      const PaintState facePresentation{
-          false, color::cssColor(scene.style.faceColor,
-                          QColor(QStringLiteral("#FFF8DC")))};
-      setBrush(painter, elementSvgFill(
-                            effectiveCss(task.face.fill, scene.style.faceColor),
-                            rootFill, facePresentation));
-      const PaintState faceStroke = lineStroke(
-          effectiveCss(task.face.stroke, QStringLiteral("#999999")),
-          QColor(QStringLiteral("#999999")));
+      const PaintState facePresentation{false,
+                                        color::cssColor(scene.style.faceColor, QColor(QStringLiteral("#FFF8DC")))};
+      setBrush(painter,
+               elementSvgFill(effectiveCss(task.face.fill, scene.style.faceColor), rootFill, facePresentation));
+      const PaintState faceStroke =
+          lineStroke(effectiveCss(task.face.stroke, QStringLiteral("#999999")), QColor(QStringLiteral("#999999")));
       if (!faceStroke.none) {
-        painter.setPen(QPen(faceStroke.color, strokeWidthFor(
-            task.face.strokeWidth, QStringLiteral("2px"), lengthCtx,
-            diagonal)));
+        painter.setPen(
+            QPen(faceStroke.color, strokeWidthFor(task.face.strokeWidth, QStringLiteral("2px"), lengthCtx, diagonal)));
       } else {
         painter.setPen(Qt::NoPen);
       }
@@ -448,32 +404,24 @@ void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
         painter.save();
         painter.setOpacity(effectiveOpacity(task.mouth));
         if (task.score > 3.0 || task.score < 3.0) {
-          painter.translate(task.faceCenter +
-                            QPointF(0.0, task.score > 3.0 ? 2.0 : 7.0));
-          const PaintState mouthStroke = lineStroke(
-              effectiveCss(task.mouth.stroke, QStringLiteral("#666666")),
-              QColor(QStringLiteral("#666666")));
+          painter.translate(task.faceCenter + QPointF(0.0, task.score > 3.0 ? 2.0 : 7.0));
+          const PaintState mouthStroke =
+              lineStroke(effectiveCss(task.mouth.stroke, QStringLiteral("#666666")), QColor(QStringLiteral("#666666")));
           if (!mouthStroke.none) {
-            painter.setPen(QPen(mouthStroke.color, strokeWidthFor(
-                task.mouth.strokeWidth, QStringLiteral("1px"), lengthCtx,
-                diagonal)));
+            painter.setPen(QPen(mouthStroke.color,
+                                strokeWidthFor(task.mouth.strokeWidth, QStringLiteral("1px"), lengthCtx, diagonal)));
           } else {
             painter.setPen(Qt::NoPen);
           }
           setBrush(painter, rootFill);
           painter.drawPath(mouthPath(task.score > 3.0));
         } else {
-          QPen mouthPen(color::cssColor(
-                            effectiveCss(task.mouth.stroke,
-                                         QStringLiteral("#666666")),
-                            QColor(QStringLiteral("#666666"))),
-                        strokeWidthFor(task.mouth.strokeWidth,
-                                       QStringLiteral("1px"), lengthCtx,
-                                       diagonal));
+          QPen mouthPen(color::cssColor(effectiveCss(task.mouth.stroke, QStringLiteral("#666666")),
+                                        QColor(QStringLiteral("#666666"))),
+                        strokeWidthFor(task.mouth.strokeWidth, QStringLiteral("1px"), lengthCtx, diagonal));
           mouthPen.setCapStyle(Qt::FlatCap);
           painter.setPen(mouthPen);
-          painter.drawLine(task.faceCenter + QPointF(-5.0, 7.0),
-                           task.faceCenter + QPointF(5.0, 7.0));
+          painter.drawLine(task.faceCenter + QPointF(-5.0, 7.0), task.faceCenter + QPointF(5.0, 7.0));
         }
         painter.restore();
       }
@@ -482,22 +430,16 @@ void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
     if (task.box.visible) {
       painter.save();
       painter.setOpacity(effectiveOpacity(task.box));
-      const PaintState stroke = lineStroke(
-          effectiveCss(task.box.stroke, QStringLiteral("#666666")),
-          QColor(QStringLiteral("#666666")));
+      const PaintState stroke =
+          lineStroke(effectiveCss(task.box.stroke, QStringLiteral("#666666")), QColor(QStringLiteral("#666666")));
       if (!stroke.none) {
-        painter.setPen(QPen(stroke.color, strokeWidthFor(
-            task.box.strokeWidth, QStringLiteral("1px"), lengthCtx,
-            diagonal)));
+        painter.setPen(
+            QPen(stroke.color, strokeWidthFor(task.box.strokeWidth, QStringLiteral("1px"), lengthCtx, diagonal)));
       } else {
         painter.setPen(Qt::NoPen);
       }
-      const PaintState presentation{
-          false, color::cssColor(task.presentationFill,
-                          QColor(QStringLiteral("#cccccc")))};
-      setBrush(painter, task.cssFillActive
-                            ? elementSvgFill(task.fill, rootFill, presentation)
-                            : presentation);
+      const PaintState presentation{false, color::cssColor(task.presentationFill, QColor(QStringLiteral("#cccccc")))};
+      setBrush(painter, task.cssFillActive ? elementSvgFill(task.fill, rootFill, presentation) : presentation);
       painter.drawRoundedRect(task.rect, 3.0, 3.0);
       painter.restore();
     }
@@ -505,56 +447,40 @@ void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
     for (qsizetype i = 0; i < task.people.size(); ++i) {
       const QString& person = task.people.at(i);
       const JourneyActor* actor = actorByName(scene, person);
-      if (!actor) continue;
-      const JourneyElementCss& circleCss =
-          task.peopleCircles.value(i, JourneyElementCss{});
-      if (!circleCss.visible) continue;
+      if (!actor)
+        continue;
+      const JourneyElementCss& circleCss = task.peopleCircles.value(i, JourneyElementCss{});
+      if (!circleCss.visible)
+        continue;
       painter.save();
       painter.setOpacity(effectiveOpacity(circleCss));
       const qreal actorX = task.actorCenters.value(i, task.rect.x() + 14.0);
       const PaintState presentation{false, color::cssColor(actor->color)};
-      setBrush(painter, elementSvgFill(
-                            effectiveCss(circleCss.fill, actor->color),
-                            rootFill, presentation));
-      const PaintState stroke = lineStroke(
-          effectiveCss(circleCss.stroke, QStringLiteral("#000000")),
-          Qt::black);
+      setBrush(painter, elementSvgFill(effectiveCss(circleCss.fill, actor->color), rootFill, presentation));
+      const PaintState stroke = lineStroke(effectiveCss(circleCss.stroke, QStringLiteral("#000000")), Qt::black);
       if (!stroke.none) {
-        painter.setPen(QPen(stroke.color, strokeWidthFor(
-            circleCss.strokeWidth, QStringLiteral("1px"), lengthCtx,
-            diagonal)));
+        painter.setPen(
+            QPen(stroke.color, strokeWidthFor(circleCss.strokeWidth, QStringLiteral("1px"), lengthCtx, diagonal)));
       } else {
         painter.setPen(Qt::NoPen);
       }
       painter.drawEllipse(QPointF(actorX, task.rect.y()), 7.0, 7.0);
       painter.restore();
     }
-    drawJourneyLabel(painter, scene, task.rect, task.text,
-                     task.oldTextAnchor, task.tspanTextAnchor, false, task.fill,
+    drawJourneyLabel(painter, scene, task.rect, task.text, task.oldTextAnchor, task.tspanTextAnchor, false, task.fill,
                      task.cssFillActive, task.label, task.svgText);
   }
 
-  if (!scene.title.isEmpty() && scene.config.titleFontSize > 0.0 &&
-      scene.titleCss.visible) {
-    const QString base = scene.config.titleColor.isEmpty()
-                             ? scene.style.textColor
-                             : scene.config.titleColor;
-    const PaintState titlePaint = elementSvgFill(
-        effectiveCss(scene.titleCss.fill, base), rootFill, rootFill);
+  if (!scene.title.isEmpty() && scene.config.titleFontSize > 0.0 && scene.titleCss.visible) {
+    const QString base = scene.config.titleColor.isEmpty() ? scene.style.textColor : scene.config.titleColor;
+    const PaintState titlePaint = elementSvgFill(effectiveCss(scene.titleCss.fill, base), rootFill, rootFill);
     if (!titlePaint.none) {
       painter.save();
       painter.setOpacity(effectiveOpacity(scene.titleCss));
-      const QString family = effectiveCss(scene.titleCss.fontFamily,
-                                          scene.config.titleFontFamily);
-      const qreal size = scene.titleCss.fontSize >= 0.0
-                             ? scene.titleCss.fontSize
-                             : scene.config.titleFontSize;
-      drawBaseline(painter,
-                   editor::makeUnhintedCssPixelFont(family, size),
-                   QPointF(scene.leftMarginResolved, 25.0),
-                   collapsedSvgText(scene.title),
-                   titlePaint.color,
-                   effectiveBold(scene.titleCss, true));
+      const QString family = effectiveCss(scene.titleCss.fontFamily, scene.config.titleFontFamily);
+      const qreal size = scene.titleCss.fontSize >= 0.0 ? scene.titleCss.fontSize : scene.config.titleFontSize;
+      drawBaseline(painter, editor::makeUnhintedCssPixelFont(family, size), QPointF(scene.leftMarginResolved, 25.0),
+                   collapsedSvgText(scene.title), titlePaint.color, effectiveBold(scene.titleCss, true));
       painter.restore();
     }
   }
@@ -566,20 +492,17 @@ void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
   if (scene.axisCss.visible) {
     painter.save();
     painter.setOpacity(effectiveOpacity(scene.axisCss));
-    const PaintState axisStroke = lineStroke(
-        effectiveCss(scene.axisCss.stroke, scene.style.textColor), Qt::black);
+    const PaintState axisStroke = lineStroke(effectiveCss(scene.axisCss.stroke, scene.style.textColor), Qt::black);
     if (!axisStroke.none) {
-      QPen axisPen(axisStroke.color, strokeWidthFor(
-          scene.axisCss.strokeWidth, QStringLiteral("4px"), lengthCtx,
-          diagonal));
+      QPen axisPen(axisStroke.color,
+                   strokeWidthFor(scene.axisCss.strokeWidth, QStringLiteral("4px"), lengthCtx, diagonal));
       axisPen.setCapStyle(Qt::FlatCap);
       painter.setPen(axisPen);
     } else {
       painter.setPen(Qt::NoPen);
     }
     painter.setBrush(Qt::NoBrush);
-    painter.drawLine(QPointF(scene.leftMarginResolved, axisY),
-                     QPointF(axisX2, axisY));
+    painter.drawLine(QPointF(scene.leftMarginResolved, axisY), QPointF(axisX2, axisY));
     painter.restore();
   }
   QPainterPath arrow;
@@ -594,4 +517,4 @@ void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
   painter.restore();
 }
 
-}  // namespace muffin::mermaid::journey
+} // namespace muffin::mermaid::journey

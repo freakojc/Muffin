@@ -30,37 +30,13 @@ enum class MathRenderKind {
   Error
 };
 
-enum class MathSemanticKind {
-  None,
-  Fraction,
-  Radical,
-  SupSub,
-  Array
-};
+enum class MathSemanticKind { None, Fraction, Radical, SupSub, Array };
 
-enum class MathScriptKind {
-  None,
-  Superscript,
-  Subscript,
-  SubSup
-};
+enum class MathScriptKind { None, Superscript, Subscript, SubSup };
 
-enum class MathOperatorKind {
-  None,
-  Named,
-  Symbol,
-  Limits
-};
+enum class MathOperatorKind { None, Named, Symbol, Limits };
 
-enum class MathAccentKind {
-  None,
-  Over,
-  Under,
-  Overline,
-  Underline,
-  OverBrace,
-  UnderBrace
-};
+enum class MathAccentKind { None, Over, Under, Overline, Underline, OverBrace, UnderBrace };
 
 struct MathRenderNode {
   MathRenderKind kind = MathRenderKind::Span;
@@ -141,4 +117,4 @@ struct MathLayoutResult {
 
 std::unique_ptr<MathRenderNode> cloneNode(const MathRenderNode& node);
 
-}  // namespace muffin::math
+} // namespace muffin::math

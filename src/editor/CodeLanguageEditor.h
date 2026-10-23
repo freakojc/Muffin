@@ -25,9 +25,8 @@ public:
   explicit CodeLanguageEditor(QWidget* viewport, QObject* parent = nullptr);
 
   void setSuggestions(QStringList languages);
-  void update(const CursorPosition& cursor, const HitTestResult& hit,
-              const DocumentLayout* layout, const MarkdownDocument* doc,
-              qreal scrollY, int viewportHeight);
+  void update(const CursorPosition& cursor, const HitTestResult& hit, const DocumentLayout* layout,
+              const MarkdownDocument* doc, qreal scrollY, int viewportHeight);
   void forceHide();
 
 signals:
@@ -35,8 +34,7 @@ signals:
 
 private:
   void ensureEditor();
-  void show(const BlockLayout& block, const MarkdownDocument& doc,
-            qreal scrollY, int viewportHeight);
+  void show(const BlockLayout& block, const MarkdownDocument& doc, qreal scrollY, int viewportHeight);
 
   QWidget* viewport_;
   QLineEdit* editor_ = nullptr;
@@ -46,4 +44,4 @@ private:
   bool updating_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

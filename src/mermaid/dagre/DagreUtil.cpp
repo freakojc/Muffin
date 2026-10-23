@@ -14,14 +14,14 @@ namespace {
 QVector<QString> rankedNodes(const DagreGraph& g) {
   QVector<QString> result;
   for (const QString& v : g.nodes())
-    if (g.node(v)->rank.has_value()) result.append(v);
+    if (g.node(v)->rank.has_value())
+      result.append(v);
   return result;
 }
 
-}  // namespace
+} // namespace
 
-QString addDummyNode(DagreGraph& g, const QString& type, DagreNodeLabel attrs,
-                     const QString& name) {
+QString addDummyNode(DagreGraph& g, const QString& type, DagreNodeLabel attrs, const QString& name) {
   DagreGraphLabel* label = g.graph();
   QString v;
   do {
@@ -53,7 +53,8 @@ std::optional<int> maxRank(const DagreGraph& g) {
   for (const QString& v : g.nodes()) {
     const std::optional<int> rank = g.node(v)->rank;
     if (rank.has_value()) {
-      if (!result.has_value() || *rank > *result) result = rank;
+      if (!result.has_value() || *rank > *result)
+        result = rank;
     }
   }
   return result;
@@ -61,15 +62,18 @@ std::optional<int> maxRank(const DagreGraph& g) {
 
 QVector<QVector<QString>> buildLayerMatrix(const DagreGraph& g) {
   const std::optional<int> top = maxRank(g);
-  if (!top.has_value()) return {};
+  if (!top.has_value())
+    return {};
   QVector<QVector<QString>> layering(*top + 1);
   for (const QString& v : g.nodes()) {
     const DagreNodeLabel* node = g.node(v);
-    if (!node->rank.has_value() || !node->order.has_value()) continue;
+    if (!node->rank.has_value() || !node->order.has_value())
+      continue;
     const int rank = *node->rank;
     const int order = *node->order;
     auto& row = layering[rank];
-    if (row.size() <= order) row.resize(order + 1);
+    if (row.size() <= order)
+      row.resize(order + 1);
     row[order] = v;
   }
   return layering;
@@ -87,11 +91,13 @@ QPointF intersectRect(const DagreNodeLabel& rect, const QPointF& point) {
   qreal sx;
   qreal sy;
   if (std::abs(dy) * w > std::abs(dx) * h) {
-    if (dy < 0.0) h = -h;
+    if (dy < 0.0)
+      h = -h;
     sx = qFuzzyIsNull(dy) ? 0.0 : (h * dx) / dy;
     sy = h;
   } else {
-    if (dx < 0.0) w = -w;
+    if (dx < 0.0)
+      w = -w;
     sx = w;
     sy = qFuzzyIsNull(dx) ? 0.0 : (w * dy) / dx;
   }
@@ -100,14 +106,17 @@ QPointF intersectRect(const DagreNodeLabel& rect, const QPointF& point) {
 
 DagreGraph asNonCompoundGraph(const DagreGraph& g) {
   DagreGraph simplified(/*opts*/ {.directed = true, .multigraph = g.isMultigraph(), .compound = false});
-  if (const DagreGraphLabel* gl = g.graph()) simplified.setGraph(*gl);
+  if (const DagreGraphLabel* gl = g.graph())
+    simplified.setGraph(*gl);
   for (const QString& v : g.nodes()) {
     if (g.children(v).value_or(QList<QString>{}).isEmpty()) {
-      if (const DagreNodeLabel* node = g.node(v)) simplified.setNode(v, *node);
+      if (const DagreNodeLabel* node = g.node(v))
+        simplified.setNode(v, *node);
     }
   }
   for (const graphlib::Edge& e : g.edges()) {
-    if (const DagreEdgeLabel* label = g.edge(e)) simplified.setEdge(e, *label);
+    if (const DagreEdgeLabel* label = g.edge(e))
+      simplified.setEdge(e, *label);
   }
   return simplified;
 }
@@ -117,21 +126,26 @@ void normalizeRanks(DagreGraph& g) {
   for (const QString& v : g.nodes()) {
     const std::optional<int> rank = g.node(v)->rank;
     if (rank.has_value()) {
-      if (!min.has_value() || *rank < *min) min = rank;
+      if (!min.has_value() || *rank < *min)
+        min = rank;
     }
   }
-  if (!min.has_value()) return;
+  if (!min.has_value())
+    return;
   for (const QString& v : g.nodes()) {
     DagreNodeLabel* node = g.node(v);
-    if (node->rank.has_value()) node->rank = *node->rank - *min;
+    if (node->rank.has_value())
+      node->rank = *node->rank - *min;
   }
 }
 
 void removeEmptyRanks(DagreGraph& g) {
   const QVector<QString> ranked = rankedNodes(g);
-  if (ranked.isEmpty()) return;
+  if (ranked.isEmpty())
+    return;
   int offset = std::numeric_limits<int>::max();
-  for (const QString& v : ranked) offset = std::min(offset, *g.node(v)->rank);
+  for (const QString& v : ranked)
+    offset = std::min(offset, *g.node(v)->rank);
   // Build layers (sparse), mirroring the JS array-with-holes behaviour.
   QHash<int, QVector<QString>> layersByOffset;
   int maxOffset = 0;
@@ -149,11 +163,13 @@ void removeEmptyRanks(DagreGraph& g) {
     // The else covers (empty && i%==0) too, where vs is undefined and forEach is a
     // no-op — so we must NOT touch the cend iterator there.
     if (empty) {
-      if (i % nodeRankFactor != 0) --delta;
+      if (i % nodeRankFactor != 0)
+        --delta;
     } else if (delta != 0) {
-      for (const QString& v : it.value()) g.node(v)->rank = *g.node(v)->rank + delta;
+      for (const QString& v : it.value())
+        g.node(v)->rank = *g.node(v)->rank + delta;
     }
   }
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

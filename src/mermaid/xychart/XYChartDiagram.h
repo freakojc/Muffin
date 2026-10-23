@@ -60,4 +60,4 @@ public:
   static XYChartData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::xychart
+} // namespace muffin::mermaid::xychart

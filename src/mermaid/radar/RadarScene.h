@@ -166,7 +166,6 @@ struct RadarScene : MermaidScene {
   bool titleVisible = true;
 };
 
-RadarScene buildRadarScene(const RadarData& data, RadarConfig config,
-                           RadarSceneStyle style);
+RadarScene buildRadarScene(const RadarData& data, RadarConfig config, RadarSceneStyle style);
 
-}  // namespace muffin::mermaid::radar
+} // namespace muffin::mermaid::radar

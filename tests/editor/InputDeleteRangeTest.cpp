@@ -32,9 +32,7 @@ struct Harness {
   }
   // Place the caret at `offset` inside the block that resolves to `block`
   // (e.g. a heading, paragraph, or list-item content node).
-  void placeIn(MarkdownNode* block, qsizetype offset) {
-    setCursor(controller.selection(), block, offset);
-  }
+  void placeIn(MarkdownNode* block, qsizetype offset) { setCursor(controller.selection(), block, offset); }
   void placeInTrailing() {
     HitTestResult hit;
     hit.zone = HitTestResult::Zone::BlockAfter;
@@ -44,14 +42,14 @@ struct Harness {
   }
 };
 
-}  // namespace
+} // namespace
 
 // deleteRange(Word) removes the word at the caret, leaving surrounding text.
 void testDeleteWordInParagraph() {
   Harness h;
   h.load(QStringLiteral("hello world"));
   MarkdownNode* para = blockAt(h.session, 0);
-  h.placeIn(para, 6);  // caret at start of "world"
+  h.placeIn(para, 6); // caret at start of "world"
   h.backend.deleteRange(DeleteTarget::Word);
   require(h.session.markdownText().toString() == QStringLiteral("hello "), "delete word should remove \"world\"");
 }
@@ -61,9 +59,10 @@ void testDeleteWordMidWord() {
   Harness h;
   h.load(QStringLiteral("hello world"));
   MarkdownNode* para = blockAt(h.session, 0);
-  h.placeIn(para, 8);  // caret inside "world"
+  h.placeIn(para, 8); // caret inside "world"
   h.backend.deleteRange(DeleteTarget::Word);
-  require(h.session.markdownText().toString() == QStringLiteral("hello "), "delete word from mid-word should remove the whole word");
+  require(h.session.markdownText().toString() == QStringLiteral("hello "),
+          "delete word from mid-word should remove the whole word");
 }
 
 // deleteRange(Word) on a bare caret between words is a safe no-op.
@@ -71,9 +70,10 @@ void testDeleteWordNoWordAtCursor() {
   Harness h;
   h.load(QStringLiteral("hello   world"));
   MarkdownNode* para = blockAt(h.session, 0);
-  h.placeIn(para, 6);  // caret in the run of spaces
+  h.placeIn(para, 6); // caret in the run of spaces
   h.backend.deleteRange(DeleteTarget::Word);
-  require(h.session.markdownText().toString() == QStringLiteral("hello   world"), "delete word on whitespace should be a no-op");
+  require(h.session.markdownText().toString() == QStringLiteral("hello   world"),
+          "delete word on whitespace should be a no-op");
 }
 
 // deleteRange(FormatSpan) removes the inline-format span's visible text.
@@ -81,9 +81,10 @@ void testDeleteFormatSpanBold() {
   Harness h;
   h.load(QStringLiteral("a **bold** b"));
   MarkdownNode* para = blockAt(h.session, 0);
-  h.placeIn(para, 5);  // caret inside "bold"
+  h.placeIn(para, 5); // caret inside "bold"
   h.backend.deleteRange(DeleteTarget::FormatSpan);
-  require(!h.session.markdownText().toString().contains(QStringLiteral("bold")), "delete format span should remove the bold text");
+  require(!h.session.markdownText().toString().contains(QStringLiteral("bold")),
+          "delete format span should remove the bold text");
 }
 
 // deleteRange(Line) clears a heading's content but keeps the marker ("## ").
@@ -91,9 +92,10 @@ void testDeleteLineHeadingKeepsMarker() {
   Harness h;
   h.load(QStringLiteral("## Title"));
   MarkdownNode* heading = blockAt(h.session, 0);
-  h.placeIn(heading, 2);  // caret inside the title text
+  h.placeIn(heading, 2); // caret inside the title text
   h.backend.deleteRange(DeleteTarget::Line);
-  require(h.session.markdownText().toString() == QStringLiteral("## "), "delete line on a heading should keep the \"## \" marker");
+  require(h.session.markdownText().toString() == QStringLiteral("## "),
+          "delete line on a heading should keep the \"## \" marker");
   require(h.session.document().root().children().size() == 1, "heading block should still exist");
 }
 
@@ -105,7 +107,8 @@ void testDeleteLineParagraphRemovesBlock() {
   MarkdownNode* para = blockAt(h.session, 0);
   h.placeIn(para, 1);
   h.backend.deleteRange(DeleteTarget::Line);
-  require(h.session.markdownText().toString() == QStringLiteral("beta"), "delete line on a paragraph should remove the block");
+  require(h.session.markdownText().toString() == QStringLiteral("beta"),
+          "delete line on a paragraph should remove the block");
 }
 
 // deleteRange(Block) removes a whole heading block and joins neighbours.
@@ -115,7 +118,8 @@ void testDeleteBlockHeading() {
   MarkdownNode* heading = blockAt(h.session, 0);
   h.placeIn(heading, 2);
   h.backend.deleteRange(DeleteTarget::Block);
-  require(h.session.markdownText().toString() == QStringLiteral("body"), "delete block should remove the heading and its separators");
+  require(h.session.markdownText().toString() == QStringLiteral("body"),
+          "delete block should remove the heading and its separators");
   require(h.session.document().root().children().size() == 1, "one block should remain");
 }
 
@@ -163,7 +167,8 @@ void testDeleteBlockTrailingCaretIsNoOp() {
   h.placeInTrailing();
   require(h.controller.selection().cursorPosition().afterBlock, "caret should be on the trailing paragraph");
   h.backend.deleteRange(DeleteTarget::Block);
-  require(h.session.markdownText().toString() == QStringLiteral("alpha"), "delete block from trailing caret must not change the document");
+  require(h.session.markdownText().toString() == QStringLiteral("alpha"),
+          "delete block from trailing caret must not change the document");
 }
 
 // deleteRange(Block) produces a single undoable RemoveNodeCommand; redo re-applies.
@@ -197,17 +202,15 @@ void testDeleteRangeForwardCollapsesSelection() {
 }
 
 void testRenderedDeletionUsesWholeGraphemes() {
-  const QStringList clusters{QStringLiteral("\U0001F600"), QStringLiteral("\U00020000"),
-                             QStringLiteral("e\u0301"), QStringLiteral("\U0001F469\u200D\U0001F4BB"),
-                             QStringLiteral("\U0001F1E8\U0001F1F3")};
+  const QStringList clusters{QStringLiteral("\U0001F600"), QStringLiteral("\U00020000"), QStringLiteral("e\u0301"),
+                             QStringLiteral("\U0001F469\u200D\U0001F4BB"), QStringLiteral("\U0001F1E8\U0001F1F3")};
   for (const QString& prefix : {QString(), QStringLiteral("# "), QStringLiteral("- ")}) {
     for (const QString& cluster : clusters) {
       for (const bool backward : {false, true}) {
         Harness h;
         const QString before = prefix + QStringLiteral("a") + cluster + QStringLiteral("b");
         h.load(before);
-        MarkdownNode* block = prefix == QStringLiteral("- ")
-            ? listItemAt(h.session, 0, 0) : blockAt(h.session, 0);
+        MarkdownNode* block = prefix == QStringLiteral("- ") ? listItemAt(h.session, 0, 0) : blockAt(h.session, 0);
         h.placeIn(block, backward ? 1 + cluster.size() : 1);
         h.backend.deleteRange(backward ? DeleteTarget::Backward : DeleteTarget::Forward);
         require(h.session.markdownText().toString() == prefix + QStringLiteral("ab"),
@@ -223,45 +226,50 @@ void testRenderedDeletionUsesWholeGraphemes() {
 }
 
 void testSelectAllDeletesMixedDocument() {
-  const QString before = QString::fromUtf8(
-      "* 123\n* 123\n* 123\n\n123\n\n123\n\n123\n\n"
-      "- 123 **13\n- 123-123\n- 321\n\n[123]()\n\n213哇哦\n\n我有时候感觉我\n\n\n");
+  const QString before =
+      QString::fromUtf8("* 123\n* 123\n* 123\n\n123\n\n123\n\n123\n\n"
+                        "- 123 **13\n- 123-123\n- 321\n\n[123]()\n\n213哇哦\n\n我有时候感觉我\n\n\n");
   Harness h;
   h.load(before);
   h.controller.setCursorForSourceOffset(before.indexOf(QString::fromUtf8("我有时候")) + 2);
-  require(pressKey(h.controller.inputController(), &h.view, Qt::Key_A, Qt::ControlModifier), "Ctrl+A selects the mixed document");
-  require(selectedMarkdown(h.session, h.controller.selection()) == before, "whole document copy includes Markdown markers and blank lines");
-  require(pressKey(h.controller.inputController(), &h.view, Qt::Key_Backspace), "Backspace handles the whole document selection");
-  require(h.session.markdownText().isEmpty(), "Ctrl+A then Backspace clears list markers, links, text and trailing blank lines");
+  require(pressKey(h.controller.inputController(), &h.view, Qt::Key_A, Qt::ControlModifier),
+          "Ctrl+A selects the mixed document");
+  require(selectedMarkdown(h.session, h.controller.selection()) == before,
+          "whole document copy includes Markdown markers and blank lines");
+  require(pressKey(h.controller.inputController(), &h.view, Qt::Key_Backspace),
+          "Backspace handles the whole document selection");
+  require(h.session.markdownText().isEmpty(),
+          "Ctrl+A then Backspace clears list markers, links, text and trailing blank lines");
   require(h.controller.canUndo(), "clearing the document is undoable");
   h.controller.undo();
   require(h.session.markdownText().toString() == before, "undo restores the complete original Markdown");
   h.controller.redo();
   require(h.session.markdownText().isEmpty(), "redo clears the complete document again");
-  require(h.controller.inputController().insertText(QString::fromUtf8("重新输入")), "typing works after clearing the document");
+  require(h.controller.inputController().insertText(QString::fromUtf8("重新输入")),
+          "typing works after clearing the document");
   require(h.session.markdownText().toString() == QString::fromUtf8("重新输入"), "new text starts in an empty document");
 }
 
 void testSelectAllCoversStructuredDocumentEdges() {
-  const QStringList documents{
-      "- first\n- second\n",
-      "- outer\n  - nested\n",
-      "> first\n>\n> second\n",
-      "\n\n## **Title**\n\n[link]()\n\n\n",
-      "---\n\nbody\n\n---\n",
-      "```cpp\ncode\n```\n\nbody\n\n$$\nx+y\n$$\n",
-      "| A | B |\n| --- | --- |\n| one | two |\n\nbody\n",
-      "body\n\n| A | B |\n| --- | --- |\n| one | two |\n",
-      "![image](missing.png)\n",
-      "# heading\n",
-      "paragraph\n\n\n"};
+  const QStringList documents{"- first\n- second\n",
+                              "- outer\n  - nested\n",
+                              "> first\n>\n> second\n",
+                              "\n\n## **Title**\n\n[link]()\n\n\n",
+                              "---\n\nbody\n\n---\n",
+                              "```cpp\ncode\n```\n\nbody\n\n$$\nx+y\n$$\n",
+                              "| A | B |\n| --- | --- |\n| one | two |\n\nbody\n",
+                              "body\n\n| A | B |\n| --- | --- |\n| one | two |\n",
+                              "![image](missing.png)\n",
+                              "# heading\n",
+                              "paragraph\n\n\n"};
   for (const auto& before : documents) {
     for (int operation = 0; operation < 3; ++operation) {
       Harness h;
       h.load(before);
       auto* initial = blockAt(h.session, 0);
       for (const auto& block : h.session.document().root().children()) {
-        if (block->type() == BlockType::Paragraph) initial = block.get();
+        if (block->type() == BlockType::Paragraph)
+          initial = block.get();
       }
       // Establish a document caret, outside literal/cell editing contexts.
       CursorPosition cursor;
@@ -274,13 +282,18 @@ void testSelectAllCoversStructuredDocumentEdges() {
       qsizetype start = -1, end = -1;
       require(h.controller.selectionSourceRange(start, end) && start == 0 && end == before.size(),
               "whole document edit range includes markers, fences and blank lines");
-      if (operation == 0) h.backend.deleteRange(DeleteTarget::Backward);
-      else if (operation == 1) h.backend.deleteRange(DeleteTarget::Forward);
-      else require(h.controller.inputController().insertText("replacement"), "typing replaces the whole document selection");
+      if (operation == 0)
+        h.backend.deleteRange(DeleteTarget::Backward);
+      else if (operation == 1)
+        h.backend.deleteRange(DeleteTarget::Forward);
+      else
+        require(h.controller.inputController().insertText("replacement"),
+                "typing replaces the whole document selection");
       const QString after = operation == 2 ? QStringLiteral("replacement") : QString();
       require(h.session.markdownText().toString() == after,
               QStringLiteral("whole selection edit leaves no source fragments (operation %1): %2")
-                  .arg(operation).arg(h.session.markdownText().toString()));
+                  .arg(operation)
+                  .arg(h.session.markdownText().toString()));
       h.controller.undo();
       require(h.session.markdownText().toString() == before, "one undo restores exact structured source");
       h.controller.redo();

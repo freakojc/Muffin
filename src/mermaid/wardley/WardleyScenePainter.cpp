@@ -15,14 +15,14 @@
 namespace muffin::mermaid::wardley {
 namespace {
 
-color::SvgPaint fillPaint(const QString &value) {
+color::SvgPaint fillPaint(const QString& value) {
   return color::resolveSvgPaint(value, color::SvgPaintKind::Fill, Qt::black);
 }
 
-QPen pen(const WardleyPrimitive &primitive) {
-  const auto stroke = color::resolveSvgPaint(
-      primitive.stroke, color::SvgPaintKind::Stroke, Qt::black);
-  if (stroke.none || !(primitive.strokeWidth > 0.0)) return Qt::NoPen;
+QPen pen(const WardleyPrimitive& primitive) {
+  const auto stroke = color::resolveSvgPaint(primitive.stroke, color::SvgPaintKind::Stroke, Qt::black);
+  if (stroke.none || !(primitive.strokeWidth > 0.0))
+    return Qt::NoPen;
   QColor c = stroke.color;
   c.setAlphaF(c.alphaF() * qBound(0.0, primitive.opacity, 1.0));
   QPen result(c, primitive.strokeWidth);
@@ -37,14 +37,13 @@ QPen pen(const WardleyPrimitive &primitive) {
   return result;
 }
 
-void arrowHead(QPainter &painter, const QPointF &at, const QPointF &direction,
-               const QString &colorValue, qreal size) {
+void arrowHead(QPainter& painter, const QPointF& at, const QPointF& direction, const QString& colorValue, qreal size) {
   const auto paint = fillPaint(colorValue);
-  if (paint.none) return;
+  if (paint.none)
+    return;
   const qreal angle = std::atan2(direction.y(), direction.x());
   QPolygonF triangle;
-  triangle << QPointF(0.5, 0.0) << QPointF(-4.5, -2.5)
-           << QPointF(-4.5, 2.5);
+  triangle << QPointF(0.5, 0.0) << QPointF(-4.5, -2.5) << QPointF(-4.5, 2.5);
   QTransform transform;
   transform.translate(at.x(), at.y());
   transform.rotateRadians(angle);
@@ -54,28 +53,30 @@ void arrowHead(QPainter &painter, const QPointF &at, const QPointF &direction,
   painter.drawPolygon(transform.map(triangle));
 }
 
-void paintText(QPainter &painter, const WardleyScene &scene,
-               const WardleyPrimitive &primitive) {
-  if (primitive.text.isEmpty() || !(primitive.fontSize > 0.0)) return;
-  const auto fill = color::resolveSvgPaint(
-      primitive.fill, color::SvgPaintKind::Text, Qt::black);
-  if (fill.none) return;
+void paintText(QPainter& painter, const WardleyScene& scene, const WardleyPrimitive& primitive) {
+  if (primitive.text.isEmpty() || !(primitive.fontSize > 0.0))
+    return;
+  const auto fill = color::resolveSvgPaint(primitive.fill, color::SvgPaintKind::Text, Qt::black);
+  if (fill.none)
+    return;
   QStringList stack = text::cssFontFamilies(scene.style.fontFamily);
-  if (stack.isEmpty()) stack.append(QStringLiteral("Noto Sans"));
+  if (stack.isEmpty())
+    stack.append(QStringLiteral("Noto Sans"));
   auto font = editor::makeUnhintedCssPixelFont(stack.first(), primitive.fontSize);
-  if (stack.size() > 1) font.font.setFamilies(stack);
+  if (stack.size() > 1)
+    font.font.setFamilies(stack);
   font.font.setWeight(primitive.bold ? QFont::Bold : QFont::Normal);
   const QString text = text::collapsedSvgText(primitive.text);
   const qreal advance = TextFontMetrics(font.font).horizontalAdvance(text) * font.scale;
   qreal x = 0.0;
-  if (primitive.anchor == QLatin1String("middle")) x -= advance / 2.0;
-  else if (primitive.anchor == QLatin1String("end")) x -= advance;
+  if (primitive.anchor == QLatin1String("middle"))
+    x -= advance / 2.0;
+  else if (primitive.anchor == QLatin1String("end"))
+    x -= advance;
   const auto metrics = flowchart::flowLabelFontBoundingMetrics(
-      scene.style.fontFamily, primitive.fontSize,
-      primitive.bold ? QFont::Bold : QFont::Normal, QFont::StyleNormal);
+      scene.style.fontFamily, primitive.fontSize, primitive.bold ? QFont::Bold : QFont::Normal, QFont::StyleNormal);
   qreal baseline = 0.0;
-  if (primitive.baseline == WardleyTextBaseline::Middle ||
-      primitive.baseline == WardleyTextBaseline::Central)
+  if (primitive.baseline == WardleyTextBaseline::Middle || primitive.baseline == WardleyTextBaseline::Central)
     baseline += metrics.xHeight / 2.0;
   painter.save();
   painter.translate(primitive.position);
@@ -89,12 +90,11 @@ void paintText(QPainter &painter, const WardleyScene &scene,
 
 } // namespace
 
-void paintWardleyScene(const WardleyScene &scene, QPainter &painter,
-                       const MermaidPaintOptions &) {
+void paintWardleyScene(const WardleyScene& scene, QPainter& painter, const MermaidPaintOptions&) {
   painter.save();
   painter.setRenderHint(QPainter::Antialiasing, true);
   painter.setRenderHint(QPainter::TextAntialiasing, true);
-  for (const WardleyPrimitive &primitive : scene.primitives) {
+  for (const WardleyPrimitive& primitive : scene.primitives) {
     if (primitive.type == WardleyPrimitiveType::Text) {
       paintText(painter, scene, primitive);
       continue;
@@ -105,20 +105,18 @@ void paintWardleyScene(const WardleyScene &scene, QPainter &painter,
     switch (primitive.type) {
     case WardleyPrimitiveType::Rect:
       if (primitive.rx > 0.0)
-        painter.drawRoundedRect(primitive.rect, primitive.rx, primitive.rx,
-                                Qt::AbsoluteSize);
-      else painter.drawRect(primitive.rect);
+        painter.drawRoundedRect(primitive.rect, primitive.rx, primitive.rx, Qt::AbsoluteSize);
+      else
+        painter.drawRect(primitive.rect);
       break;
     case WardleyPrimitiveType::Line:
       painter.drawLine(primitive.line);
       if (primitive.markerEnd)
-        arrowHead(painter, primitive.line.p2(),
-                  primitive.line.p2() - primitive.line.p1(),
-                  primitive.markerColor, primitive.markerSize);
+        arrowHead(painter, primitive.line.p2(), primitive.line.p2() - primitive.line.p1(), primitive.markerColor,
+                  primitive.markerSize);
       if (primitive.markerStart)
-        arrowHead(painter, primitive.line.p1(),
-                  primitive.line.p1() - primitive.line.p2(),
-                  primitive.markerColor, primitive.markerSize);
+        arrowHead(painter, primitive.line.p1(), primitive.line.p1() - primitive.line.p2(), primitive.markerColor,
+                  primitive.markerSize);
       break;
     case WardleyPrimitiveType::Circle:
       painter.drawEllipse(primitive.center, primitive.radius, primitive.radius);
@@ -126,7 +124,8 @@ void paintWardleyScene(const WardleyScene &scene, QPainter &painter,
     case WardleyPrimitiveType::Path:
       painter.drawPath(primitive.path);
       break;
-    case WardleyPrimitiveType::Text: break;
+    case WardleyPrimitiveType::Text:
+      break;
     }
   }
   painter.restore();

@@ -24,13 +24,15 @@ namespace {
 
 double cfgD(const QJsonObject& o, const QString& k, double dflt) {
   const QJsonValue v = o.value(k);
-  if (v.isUndefined() || v.isNull()) return dflt;
+  if (v.isUndefined() || v.isNull())
+    return dflt;
   return editor::jsNumberValue(v);
 }
 
 QString cfgString(const QJsonObject& o, const QString& key, const QString& fallback) {
   const QJsonValue v = o.value(key);
-  if (v.isUndefined() || v.isNull()) return fallback;
+  if (v.isUndefined() || v.isNull())
+    return fallback;
   return v.isString() ? v.toString() : QStringLiteral("__non_string__");
 }
 
@@ -40,14 +42,14 @@ bool cfgTruthy(const QJsonObject& o, const QString& key, bool fallback) {
 }
 
 qreal usedSvgNonNegativeLength(qreal value, qreal invalidFallback) {
-  if (!std::isfinite(value) || value < 0.0) return invalidFallback;
+  if (!std::isfinite(value) || value < 0.0)
+    return invalidFallback;
   return std::min<qreal>(value, 33554428.0);
 }
 
-}  // namespace
+} // namespace
 
-QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& cfg,
-                                 QuadrantSceneStyle style) {
+QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& cfg, QuadrantSceneStyle style) {
   QuadrantScene s;
   // Copy (not move): Qt's move-assignment swaps, which would leave `style`
   // holding s.style's prior (default) values and corrupt the reads below.
@@ -86,9 +88,9 @@ QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& cf
   // A chart WITH points forces the x-axis to the bottom.
   const QString xAxisPosition = data.points.size() > 0 ? QStringLiteral("bottom") : xAxisPositionCfg;
 
-  const double xAxisSpaceCalc = xAxisLabelPadding * 2.0 + xAxisLabelFontSize;       // 26
-  const double yAxisSpaceCalc = yAxisLabelPadding * 2.0 + yAxisLabelFontSize;       // 26
-  const double titleSpaceCalc = titleFontSize + titlePadding * 2.0;                 // 40
+  const double xAxisSpaceCalc = xAxisLabelPadding * 2.0 + xAxisLabelFontSize; // 26
+  const double yAxisSpaceCalc = yAxisLabelPadding * 2.0 + yAxisLabelFontSize; // 26
+  const double titleSpaceCalc = titleFontSize + titlePadding * 2.0;           // 40
   const double xAxisSpaceTop = (xAxisPosition == QStringLiteral("top") && showX) ? xAxisSpaceCalc : 0.0;
   const double xAxisSpaceBottom = (xAxisPosition == QStringLiteral("bottom") && showX) ? xAxisSpaceCalc : 0.0;
   const double yAxisSpaceLeft = (yAxisPosition == QStringLiteral("left") && showY) ? yAxisSpaceCalc : 0.0;
@@ -103,14 +105,20 @@ QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& cf
   const double halfH = quadrantHeight / 2.0;
   // Quadrants (Q1 top-right, Q2 top-left, Q3 bottom-left, Q4 bottom-right).
   const QString qFills[4] = {style.quadrant1Fill, style.quadrant2Fill, style.quadrant3Fill, style.quadrant4Fill};
-  const QString qTextFills[4] = {style.quadrant1TextFill, style.quadrant2TextFill, style.quadrant3TextFill, style.quadrant4TextFill};
+  const QString qTextFills[4] = {style.quadrant1TextFill, style.quadrant2TextFill, style.quadrant3TextFill,
+                                 style.quadrant4TextFill};
   const QString qTexts[4] = {data.quadrant1Text, data.quadrant2Text, data.quadrant3Text, data.quadrant4Text};
   const double qx[4] = {quadrantLeft + halfW, quadrantLeft, quadrantLeft, quadrantLeft + halfW};
   const double qy[4] = {quadrantTop, quadrantTop, quadrantTop + halfH, quadrantTop + halfH};
   for (int i = 0; i < 4; ++i) {
     QuadrantRect r;
-    r.x = qx[i]; r.y = qy[i]; r.width = halfW; r.height = halfH;
-    r.fill = qFills[i]; r.text = qTexts[i]; r.textFill = qTextFills[i];
+    r.x = qx[i];
+    r.y = qy[i];
+    r.width = halfW;
+    r.height = halfH;
+    r.fill = qFills[i];
+    r.text = qTexts[i];
+    r.textFill = qTextFills[i];
     r.textFontFamily = style.fontFamily;
     r.textFontSize = quadrantLabelFontSize;
     s.quadrants.append(r);
@@ -126,26 +134,31 @@ QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& cf
     const QuadrantClassDef* cdef = nullptr;
     if (!pp.className.isEmpty())
       for (int ci = data.classDefs.size() - 1; ci >= 0; --ci)
-        if (data.classDefs.at(ci).name == pp.className) { cdef = &data.classDefs.at(ci); break; }
+        if (data.classDefs.at(ci).name == pp.className) {
+          cdef = &data.classDefs.at(ci);
+          break;
+        }
     QuadrantStyles eff = cdef ? cdef->styles : QuadrantStyles{};
-    if (pp.inlineStyles.radius >= 0) eff.radius = pp.inlineStyles.radius;
-    if (!pp.inlineStyles.color.isEmpty()) eff.color = pp.inlineStyles.color;
-    if (!pp.inlineStyles.strokeColor.isEmpty()) eff.strokeColor = pp.inlineStyles.strokeColor;
-    if (!pp.inlineStyles.strokeWidth.isEmpty()) eff.strokeWidth = pp.inlineStyles.strokeWidth;
+    if (pp.inlineStyles.radius >= 0)
+      eff.radius = pp.inlineStyles.radius;
+    if (!pp.inlineStyles.color.isEmpty())
+      eff.color = pp.inlineStyles.color;
+    if (!pp.inlineStyles.strokeColor.isEmpty())
+      eff.strokeColor = pp.inlineStyles.strokeColor;
+    if (!pp.inlineStyles.strokeWidth.isEmpty())
+      eff.strokeWidth = pp.inlineStyles.strokeWidth;
     QuadrantPointG g;
     g.x = px;
     g.y = py;
     // SVG circle radius and stroke-width are saturated by Chromium's used-value
     // conversion. Style grammar accepts only non-negative integer radius / Npx.
-    g.radius = usedSvgNonNegativeLength(eff.radius >= 0 ? eff.radius : pointRadius,
-                                        0.0);
+    g.radius = usedSvgNonNegativeLength(eff.radius >= 0 ? eff.radius : pointRadius, 0.0);
     g.fill = !eff.color.isEmpty() ? eff.color : style.quadrantPointFill;
     g.stroke = !eff.strokeColor.isEmpty() ? eff.strokeColor : style.quadrantPointFill;
-    const QString strokeWidth = !eff.strokeWidth.isEmpty() ? eff.strokeWidth
-                                                            : QStringLiteral("0px");
-    g.strokeWidth = editor::cssStrokeWidthPx(
-        strokeWidth, editor::pieCssLengthContext(style.fontFamily, 16.0),
-        std::sqrt(chartWidth * chartWidth + chartHeight * chartHeight) / std::sqrt(2.0));
+    const QString strokeWidth = !eff.strokeWidth.isEmpty() ? eff.strokeWidth : QStringLiteral("0px");
+    g.strokeWidth =
+        editor::cssStrokeWidthPx(strokeWidth, editor::pieCssLengthContext(style.fontFamily, 16.0),
+                                 std::sqrt(chartWidth * chartWidth + chartHeight * chartHeight) / std::sqrt(2.0));
     g.text = pp.label;
     g.textFill = style.quadrantPointTextFill;
     g.textFontFamily = style.fontFamily;
@@ -156,16 +169,16 @@ QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& cf
   // Borders (4 external + 2 internal).
   const double he = externalSW / 2.0;
   const auto ext = [&](double x1, double y1, double x2, double y2) {
-    s.borders.append({x1, y1, x2, y2, style.quadrantExternalBorderStrokeFill,
-                      usedSvgNonNegativeLength(externalSW, 1.0)});
+    s.borders.append(
+        {x1, y1, x2, y2, style.quadrantExternalBorderStrokeFill, usedSvgNonNegativeLength(externalSW, 1.0)});
   };
   const auto intr = [&](double x1, double y1, double x2, double y2) {
-    s.borders.append({x1, y1, x2, y2, style.quadrantInternalBorderStrokeFill,
-                      usedSvgNonNegativeLength(internalSW, 1.0)});
+    s.borders.append(
+        {x1, y1, x2, y2, style.quadrantInternalBorderStrokeFill, usedSvgNonNegativeLength(internalSW, 1.0)});
   };
-  ext(quadrantLeft - he, quadrantTop, quadrantLeft + quadrantWidth + he, quadrantTop);                  // top
+  ext(quadrantLeft - he, quadrantTop, quadrantLeft + quadrantWidth + he, quadrantTop); // top
   ext(quadrantLeft + quadrantWidth, quadrantTop + he, quadrantLeft + quadrantWidth,
-      quadrantTop + quadrantHeight - he);                                                                // right
+      quadrantTop + quadrantHeight - he); // right
   ext(quadrantLeft - he, quadrantTop + quadrantHeight, quadrantLeft + quadrantWidth + he,
       quadrantTop + quadrantHeight);                                                                     // bottom
   ext(quadrantLeft, quadrantTop + he, quadrantLeft, quadrantTop + quadrantHeight - he);                  // left
@@ -173,15 +186,16 @@ QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& cf
   intr(quadrantLeft + he, quadrantTop + halfH, quadrantLeft + quadrantWidth - he, quadrantTop + halfH);  // horizontal
 
   // Axis labels.
-  const bool drawXMid = !data.xAxisRightText.isEmpty();   // Boolean(xAxisRightText)
-  const bool drawYMid = !data.yAxisTopText.isEmpty();     // Boolean(yAxisTopText)
+  const bool drawXMid = !data.xAxisRightText.isEmpty(); // Boolean(xAxisRightText)
+  const bool drawYMid = !data.yAxisTopText.isEmpty();   // Boolean(yAxisTopText)
   const double xAxisY = xAxisPosition == QStringLiteral("top")
                             ? xAxisLabelPadding + titleSpaceTop
                             : xAxisLabelPadding + quadrantTop + quadrantHeight + quadrantPadding;
   const auto xLabel = [&](const QString& text, double x) {
-    if (text.isEmpty() || !showX) return;
-    s.axisLabels.append({text, style.quadrantXAxisTextFill, x, xAxisY,
-                         xAxisLabelFontSize, 0, drawXMid, style.fontFamily});
+    if (text.isEmpty() || !showX)
+      return;
+    s.axisLabels.append(
+        {text, style.quadrantXAxisTextFill, x, xAxisY, xAxisLabelFontSize, 0, drawXMid, style.fontFamily});
   };
   xLabel(data.xAxisLeftText, quadrantLeft + (drawXMid ? halfW / 2.0 : 0.0));
   xLabel(data.xAxisRightText, quadrantLeft + halfW + (drawXMid ? halfW / 2.0 : 0.0));
@@ -189,9 +203,10 @@ QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& cf
                             ? yAxisLabelPadding
                             : yAxisLabelPadding + quadrantLeft + quadrantWidth + quadrantPadding;
   const auto yLabel = [&](const QString& text, double y) {
-    if (text.isEmpty() || !showY) return;
-    s.axisLabels.append({text, style.quadrantYAxisTextFill, yAxisX, y,
-                         yAxisLabelFontSize, -90, drawYMid, style.fontFamily});
+    if (text.isEmpty() || !showY)
+      return;
+    s.axisLabels.append(
+        {text, style.quadrantYAxisTextFill, yAxisX, y, yAxisLabelFontSize, -90, drawYMid, style.fontFamily});
   };
   yLabel(data.yAxisBottomText, quadrantTop + quadrantHeight - (drawYMid ? halfH / 2.0 : 0.0));
   yLabel(data.yAxisTopText, quadrantTop + halfH - (drawYMid ? halfH / 2.0 : 0.0));
@@ -221,14 +236,19 @@ QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& cf
 }
 
 namespace {
-double r3(double v) { return std::round(v * 1000.0) / 1000.0; }
-}  // namespace
+double r3(double v) {
+  return std::round(v * 1000.0) / 1000.0;
+}
+} // namespace
 
 QJsonObject QuadrantScene::toJsonObject() const {
   QJsonArray qTexts, pTexts, aTexts;
-  for (const auto& q : quadrants) qTexts.append(q.text);
-  for (const auto& p : points) pTexts.append(p.text);
-  for (const auto& a : axisLabels) aTexts.append(a.text);
+  for (const auto& q : quadrants)
+    qTexts.append(q.text);
+  for (const auto& p : points)
+    pTexts.append(p.text);
+  for (const auto& a : axisLabels)
+    aTexts.append(a.text);
 
   QJsonArray qArr;
   const bool pointsEmpty = points.isEmpty();
@@ -295,4 +315,4 @@ QJsonObject QuadrantScene::toJsonObject() const {
   return root;
 }
 
-}  // namespace muffin::mermaid::quadrant
+} // namespace muffin::mermaid::quadrant

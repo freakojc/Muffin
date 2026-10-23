@@ -23,13 +23,13 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 QByteArray fileSha(const QString& path) {
   QFile file(path);
-  return file.open(QIODevice::ReadOnly)
-             ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
-             : QByteArray();
+  return file.open(QIODevice::ReadOnly) ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
+                                        : QByteArray();
 }
 QImage decode(const QString& url) {
   QImage image;
@@ -57,22 +57,21 @@ qreal rgbaSimilarity(const QImage& a, const QImage& b) {
     for (int x = 0; x < b.width(); ++x) {
       const QColor actual = a.pixelColor(x, y);
       const QColor expected = b.pixelColor(x, y);
-      if (actual.alpha() < 32 && expected.alpha() < 32) continue;
+      if (actual.alpha() < 32 && expected.alpha() < 32)
+        continue;
       ++count;
-      const auto premultiplied = [](int channel, int alpha) {
-        return channel * alpha / 255;
-      };
-      difference += std::abs(premultiplied(actual.red(), actual.alpha()) -
-                             premultiplied(expected.red(), expected.alpha()));
-      difference += std::abs(premultiplied(actual.green(), actual.alpha()) -
-                             premultiplied(expected.green(), expected.alpha()));
-      difference += std::abs(premultiplied(actual.blue(), actual.alpha()) -
-                             premultiplied(expected.blue(), expected.alpha()));
+      const auto premultiplied = [](int channel, int alpha) { return channel * alpha / 255; };
+      difference +=
+          std::abs(premultiplied(actual.red(), actual.alpha()) - premultiplied(expected.red(), expected.alpha()));
+      difference +=
+          std::abs(premultiplied(actual.green(), actual.alpha()) - premultiplied(expected.green(), expected.alpha()));
+      difference +=
+          std::abs(premultiplied(actual.blue(), actual.alpha()) - premultiplied(expected.blue(), expected.alpha()));
       difference += std::abs(actual.alpha() - expected.alpha());
     }
   return count ? 1.0 - difference / (count * 4.0 * 255.0) : 1.0;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
 #if defined(Q_OS_LINUX)
@@ -107,14 +106,16 @@ int main(int argc, char** argv) {
     require(fileSha(referencePath) == fixture.value(QStringLiteral("sha256")).toString().toLatin1(),
             id + QStringLiteral("/browser PNG hash"));
     const QImage reference(referencePath);
-    const QImage native = decode(editor::MermaidRenderCache::renderMermaidSourceToPng(
-                                     fixture.value(QStringLiteral("source")).toString(), 1.0)
-                                     .dataUrl);
+    const QImage native = decode(
+        editor::MermaidRenderCache::renderMermaidSourceToPng(fixture.value(QStringLiteral("source")).toString(), 1.0)
+            .dataUrl);
     require(!reference.isNull() && !native.isNull(), id + QStringLiteral("/decode"));
-    require(native.size() == reference.size(),
-            QStringLiteral("%1: native %2x%3 != browser %4x%5")
-                .arg(id).arg(native.width()).arg(native.height())
-                .arg(reference.width()).arg(reference.height()));
+    require(native.size() == reference.size(), QStringLiteral("%1: native %2x%3 != browser %4x%5")
+                                                   .arg(id)
+                                                   .arg(native.width())
+                                                   .arg(native.height())
+                                                   .arg(reference.width())
+                                                   .arg(reference.height()));
     const qreal iou = alphaIou(native, reference);
     const qreal rgba = rgbaSimilarity(native, reference);
     std::fprintf(stderr, "%s alphaIoU=%.6f rgba=%.6f\n", qPrintable(id), iou, rgba);

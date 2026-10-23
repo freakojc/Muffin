@@ -106,7 +106,8 @@ bool UndoStack::tryMergeWithLast(EditTransaction& next) {
   }
   // Replacing a selection is one explicit operation, never a continuation of
   // neighbouring typing/backspaces, even within the normal merge interval.
-  if (prev.beforeSelection().anchor.isValid() || next.beforeSelection().anchor.isValid()) return false;
+  if (prev.beforeSelection().anchor.isValid() || next.beforeSelection().anchor.isValid())
+    return false;
 
   const TextDelta& prevDelta = prev.textDeltaCommand().delta;
   const TextDelta& nextDelta = next.textDeltaCommand().delta;
@@ -135,4 +136,4 @@ bool UndoStack::tryMergeWithLast(EditTransaction& next) {
   return true;
 }
 
-}  // namespace muffin
+} // namespace muffin

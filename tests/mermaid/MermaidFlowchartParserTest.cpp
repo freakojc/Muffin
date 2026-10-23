@@ -23,14 +23,15 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString json(const QJsonObject& value) {
   return QString::fromUtf8(QJsonDocument(value).toJson(QJsonDocument::Indented));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -86,7 +87,10 @@ int main(int argc, char** argv) {
     for (const auto& token : tokens) {
       require(token.kind != muffin::mermaid::flowchart::FlowTokenKind::Unknown,
               QStringLiteral("Unknown token in %1 at %2:%3: '%4'")
-                  .arg(id).arg(token.line).arg(token.column).arg(token.text));
+                  .arg(id)
+                  .arg(token.line)
+                  .arg(token.column)
+                  .arg(token.text));
     }
     QJsonObject actual;
     try {
@@ -94,9 +98,8 @@ int main(int argc, char** argv) {
     } catch (const std::exception& error) {
       fail(QStringLiteral("Parser failed for %1: %2").arg(id, QString::fromUtf8(error.what())));
     }
-    require(actual == expected,
-            QStringLiteral("Flowchart DB mismatch for %1\nNative:\n%2\nUpstream:\n%3")
-                .arg(id, json(actual), json(expected)));
+    require(actual == expected, QStringLiteral("Flowchart DB mismatch for %1\nNative:\n%2\nUpstream:\n%3")
+                                    .arg(id, json(actual), json(expected)));
   }
 
   for (const QJsonValue& value : root.value(QStringLiteral("invalidCases")).toArray()) {
@@ -114,12 +117,11 @@ int main(int argc, char** argv) {
                        .arg(item.value(QStringLiteral("id")).toString()));
   }
 
-  for (const QString& invalid : {QStringLiteral("not a flowchart"),
-                                 QStringLiteral("flowchart SIDEWAYS\nA --> B"),
-                                 QStringLiteral("graph; A --> B"),
-                                 QStringLiteral("flowchart TB\nsubgraph\nA --> B\nend"),
-                                 QStringLiteral("flowchart LR\nsubgraph open\nA --> B"),
-                                 QStringLiteral("flowchart LR\nA --> B\nlinkStyle 3 stroke:red")}) {
+  for (const QString& invalid :
+       {QStringLiteral("not a flowchart"), QStringLiteral("flowchart SIDEWAYS\nA --> B"),
+        QStringLiteral("graph; A --> B"), QStringLiteral("flowchart TB\nsubgraph\nA --> B\nend"),
+        QStringLiteral("flowchart LR\nsubgraph open\nA --> B"),
+        QStringLiteral("flowchart LR\nA --> B\nlinkStyle 3 stroke:red")}) {
     bool threw = false;
     try {
       Flowchart::parse(invalid);

@@ -36,7 +36,7 @@ QString serialize(const MarkdownDocument& document) {
   return serializer.serializeDocument(document);
 }
 
-}  // namespace
+} // namespace
 
 void testNormalizeAndCellAccess() {
   MarkdownDocument document;
@@ -81,7 +81,8 @@ void testInsertDeleteColumnsAndAlignment() {
 
 void testMoveRowsAndColumns() {
   MarkdownDocument document;
-  MarkdownNode& table = parseTable(QStringLiteral("| A | B | C |\n| --- | :---: | ---: |\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |"), document);
+  MarkdownNode& table =
+      parseTable(QStringLiteral("| A | B | C |\n| --- | :---: | ---: |\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |"), document);
 
   TableModelOps::moveRow(table, 2, 1);
   QString markdown = serialize(document);
@@ -95,7 +96,8 @@ void testMoveRowsAndColumns() {
 
 void testResizeCropAndPad() {
   MarkdownDocument document;
-  MarkdownNode& table = parseTable(QStringLiteral("| A | B | C |\n| :--- | :---: | ---: |\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |"), document);
+  MarkdownNode& table =
+      parseTable(QStringLiteral("| A | B | C |\n| :--- | :---: | ---: |\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |"), document);
 
   TableModelOps::resize(table, 2, 2);
   require(TableModelOps::rowCount(table) == 2, "resize crop row count mismatch");

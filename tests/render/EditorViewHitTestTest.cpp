@@ -9,7 +9,8 @@ using namespace muffin;
 
 void testClickAfterTextStopsBeforeLineBreak() {
   SettingsOverride singleNewline("markdown/breakOnSingleNewline", true);
-  const QString first = QStringLiteral("Markdown paragraphs are separated by blank lines. Soft line breaks normally stay inside the same paragraph.");
+  const QString first = QStringLiteral(
+      "Markdown paragraphs are separated by blank lines. Soft line breaks normally stay inside the same paragraph.");
   const QString second = QStringLiteral("This line follows a soft break.");
   for (const QString& separator : {QStringLiteral("\n"), QStringLiteral("  \n"), QStringLiteral("\\\n")}) {
     DocumentSession session;
@@ -40,17 +41,23 @@ void testClickAfterTextStopsBeforeLineBreak() {
     const auto hit = view.hitTest(point);
     require(hit.sourceOffset == first.size(),
             QStringLiteral("line-end click before break %1: source=%2 expected=%3 caretY=%4 expectedY=%5")
-                .arg(separator.toHtmlEscaped()).arg(hit.sourceOffset).arg(first.size()).arg(hit.cursorRect.top()).arg(lineEnd.top()));
+                .arg(separator.toHtmlEscaped())
+                .arg(hit.sourceOffset)
+                .arg(first.size())
+                .arg(hit.cursorRect.top())
+                .arg(lineEnd.top()));
     require(qAbs(hit.cursorRect.top() - lineEnd.top()) < 0.01, "hit caret stays on the clicked row");
     const auto restored = view.hitForCursorPosition(hit.cursorPosition());
-    require(qAbs(restored.cursorRect.top() - lineEnd.top()) < 0.01, "restoring the clicked caret must not jump to the next row");
+    require(qAbs(restored.cursorRect.top() - lineEnd.top()) < 0.01,
+            "restoring the clicked caret must not jump to the next row");
     QMouseEvent press(QEvent::MouseButtonPress, point, point, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &press);
     QMouseEvent release(QEvent::MouseButtonRelease, point, point, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &release);
     require(controller.selection().selection().isCollapsed(), "line-end click clears the old selection");
     require(controller.inputController().insertText(QStringLiteral("!")), "typing at clicked line end succeeds");
-    require(session.markdownText().toString() == first + QStringLiteral("!") + separator + second + QStringLiteral("\n\nNext paragraph."),
+    require(session.markdownText().toString() ==
+                first + QStringLiteral("!") + separator + second + QStringLiteral("\n\nNext paragraph."),
             "typing after line-end click appends to the clicked line and preserves its break");
   }
 }
@@ -63,15 +70,17 @@ void testCrossBlockClickPreservesScreenPosition() {
   view.resize(700, 400);
   view.show();
   session.setMarkdownText(QStringLiteral("before **").append(QStringLiteral("wide ").repeated(25)) +
-                          QStringLiteral("** after\n\n") + QStringLiteral("target ").repeated(40) +
-                          QStringLiteral("\n\n") + QStringLiteral("tail\n\n").repeated(30), false);
+                              QStringLiteral("** after\n\n") + QStringLiteral("target ").repeated(40) +
+                              QStringLiteral("\n\n") + QStringLiteral("tail\n\n").repeated(30),
+                          false);
   view.setDocument(session.document());
   QApplication::processEvents();
   MarkdownNode* a = blockAt(session, 0);
   MarkdownNode* b = blockAt(session, 1);
   setCursor(controller.selection(), a, 15);
   const BlockLayout* block = view.blockLayoutForNode(b->id());
-  const QPointF click = view.mapDocumentToViewport(block->rect().topLeft() + block->inlineLayout()->cursorRect(25).center());
+  const QPointF click =
+      view.mapDocumentToViewport(block->rect().topLeft() + block->inlineLayout()->cursorRect(25).center());
   const auto before = view.hitTest(click);
   QMouseEvent press(QEvent::MouseButtonPress, click, click, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &press);
@@ -133,16 +142,22 @@ void testDefinitionPlaceholderHitKeepsCursorInSlot() {
   const QPointF clickPoint(destination->rect.right() - 2.0, destination->rect.center().y());
   HitTestResult hit = view.hitTest(clickPoint);
   require(hit.blockId == link->id(), "definition placeholder hit block mismatch");
-  require(hit.sourceOffset == definition.destinationRange.start, "definition placeholder hit should target destination slot");
-  require(hit.definitionField == HitTestResult::DefinitionField::Destination, "definition placeholder hit should target destination field");
-  require(hit.cursorRect.left() >= destination->rect.left(), "definition placeholder hit cursor should stay in destination slot");
-  require(hit.cursorRect.left() < destination->rect.right(), "definition placeholder hit cursor should not jump to optional title end");
+  require(hit.sourceOffset == definition.destinationRange.start,
+          "definition placeholder hit should target destination slot");
+  require(hit.definitionField == HitTestResult::DefinitionField::Destination,
+          "definition placeholder hit should target destination field");
+  require(hit.cursorRect.left() >= destination->rect.left(),
+          "definition placeholder hit cursor should stay in destination slot");
+  require(hit.cursorRect.left() < destination->rect.right(),
+          "definition placeholder hit cursor should not jump to optional title end");
   require(!block->definitionCursorRectForSourceOffset(hit.sourceOffset, RenderTheme::defaultTheme()).isEmpty(),
           "definition source cursor rect should rebuild from source offset");
 
   controller.activateHit(hit);
-  require(controller.inputController().insertText(QStringLiteral("123")), "typing after definition placeholder hit should insert destination");
-  require(session.markdownText().toString() == QStringLiteral("[]: 123"), "definition placeholder input markdown mismatch");
+  require(controller.inputController().insertText(QStringLiteral("123")),
+          "typing after definition placeholder hit should insert destination");
+  require(session.markdownText().toString() == QStringLiteral("[]: 123"),
+          "definition placeholder input markdown mismatch");
 }
 
 void testEmptyLinkDefinitionTitlePlaceholderOnlyWhenFocused() {
@@ -203,8 +218,10 @@ void testEmptyLinkDefinitionTitlePlaceholderOnlyWhenFocused() {
   require(titleToken->rect.width() <= 1.1, "explicit empty title should be a caret-width slot between quotes");
   const HitTestResult titleHit = view.hitTest(emptyTitle->rect.center());
   require(titleHit.blockId == link->id(), "empty-title hit block mismatch");
-  require(titleHit.definitionField == HitTestResult::DefinitionField::Title, "empty-title hit should target title field");
-  require(titleHit.sourceOffset == link->definition().titleRange.start, "empty-title hit should place cursor in title range");
+  require(titleHit.definitionField == HitTestResult::DefinitionField::Title,
+          "empty-title hit should target title field");
+  require(titleHit.sourceOffset == link->definition().titleRange.start,
+          "empty-title hit should place cursor in title range");
   require(std::abs(titleHit.cursorRect.left() - titleToken->rect.left()) < 0.01,
           "empty-title hit cursor should render inside the quotes");
   controller.activateHit(titleHit);
@@ -218,8 +235,8 @@ void testEmptyLinkDefinitionTitlePlaceholderOnlyWhenFocused() {
     }
   }
   require(titleToken != nullptr, "empty-title cursor restore should keep editable title token");
-  const QRectF restoredCursor = block->definitionCursorRectForSourceOffset(controller.selection().cursorPosition().text.sourceOffset,
-                                                                          RenderTheme::defaultTheme());
+  const QRectF restoredCursor = block->definitionCursorRectForSourceOffset(
+      controller.selection().cursorPosition().text.sourceOffset, RenderTheme::defaultTheme());
   require(restoredCursor.left() >= titleToken->rect.left() - 0.01 &&
               restoredCursor.left() <= titleToken->rect.right() + 0.01,
           "empty-title cursor restored from source offset should stay inside the quotes");
@@ -259,8 +276,10 @@ void testDefinitionBoundaryHitPlacesCursorAtSourceEdges() {
   MarkdownNode* link = blockAt(session, 0);
   const DefinitionBlock definition = link->definition();
   const BlockLayout* block = requireViewBlock(view, link->id(), QStringLiteral("definition edge"));
-  const QRectF startCursor = block->definitionCursorRectForSourceOffset(definition.sourceRange.start, RenderTheme::defaultTheme());
-  const QRectF endCursor = block->definitionCursorRectForSourceOffset(definition.sourceRange.end, RenderTheme::defaultTheme());
+  const QRectF startCursor =
+      block->definitionCursorRectForSourceOffset(definition.sourceRange.start, RenderTheme::defaultTheme());
+  const QRectF endCursor =
+      block->definitionCursorRectForSourceOffset(definition.sourceRange.end, RenderTheme::defaultTheme());
   require(!startCursor.isEmpty(), "definition start cursor rect should exist");
   require(!endCursor.isEmpty(), "definition end cursor rect should exist");
 
@@ -294,7 +313,8 @@ void testNoTitleDefinitionRightEdgeHasNoInvisibleQuote() {
   }
   require(destination != nullptr, "definition destination slot should exist");
 
-  const QRectF endCursor = block->definitionCursorRectForSourceOffset(definition.sourceRange.end, RenderTheme::defaultTheme());
+  const QRectF endCursor =
+      block->definitionCursorRectForSourceOffset(definition.sourceRange.end, RenderTheme::defaultTheme());
   require(!endCursor.isEmpty(), "definition end cursor rect should exist");
   require(std::abs(endCursor.left() - destination->rect.right()) < 0.01,
           "no-title definition end cursor should not include invisible quote width");
@@ -312,9 +332,11 @@ void testDefinitionTokenModelDrivesSyntaxAndSlots() {
   const BlockLayout* block = requireViewBlock(view, link->id(), QStringLiteral("tokenized link definition"));
   const auto& tokens = block->definitionTokens();
   require(!tokens.isEmpty(), "definition tokens should exist");
-  require(tokens.first().kind == BlockLayout::DefinitionTokenLayout::Kind::Syntax, "first definition token should be syntax");
+  require(tokens.first().kind == BlockLayout::DefinitionTokenLayout::Kind::Syntax,
+          "first definition token should be syntax");
   require(tokens.first().text == QStringLiteral("["), "first syntax token should be opening bracket");
-  require(tokens.last().kind == BlockLayout::DefinitionTokenLayout::Kind::Syntax, "last titled link token should be syntax");
+  require(tokens.last().kind == BlockLayout::DefinitionTokenLayout::Kind::Syntax,
+          "last titled link token should be syntax");
   require(tokens.last().text == QStringLiteral("\""), "last titled link syntax token should be quote");
 
   int editableCount = 0;
@@ -323,7 +345,8 @@ void testDefinitionTokenModelDrivesSyntaxAndSlots() {
     editableCount += token.editable ? 1 : 0;
     syntaxCount += token.kind == BlockLayout::DefinitionTokenLayout::Kind::Syntax ? 1 : 0;
     if (token.editable) {
-      require(token.kind == BlockLayout::DefinitionTokenLayout::Kind::Slot, "editable definition token should be a slot");
+      require(token.kind == BlockLayout::DefinitionTokenLayout::Kind::Slot,
+              "editable definition token should be a slot");
     }
   }
   require(editableCount == block->definitionSlots().size(), "definition editable tokens should mirror slot count");
@@ -381,7 +404,8 @@ void testFootnoteDefinitionUsesTokenPath() {
   require(sawNote, "footnote definition should include editable note token");
 
   const DefinitionBlock definition = footnote->definition();
-  const QRectF noteCursor = block->definitionCursorRectForSourceOffset(definition.noteRange.start, RenderTheme::defaultTheme());
+  const QRectF noteCursor =
+      block->definitionCursorRectForSourceOffset(definition.noteRange.start, RenderTheme::defaultTheme());
   require(!noteCursor.isEmpty(), "footnote note cursor should come from token path");
   const HitTestResult hit = view.hitTest(noteCursor.center());
   require(hit.definitionField == HitTestResult::DefinitionField::Note, "footnote token hit should target note field");
@@ -473,7 +497,8 @@ void testClickBelowLastBlockHitsBlockAfterWithDistinctCursorRect() {
   // The virtual trailing line should always be reachable: total height must
   // reserve room for it plus a click margin below the last block.
   const qreal expectedFloor = blockRect.bottom() + theme.bottomMargin() + theme.blockSpacing() + expectedLineHeight;
-  require(view.layoutTotalHeight() >= expectedFloor - 0.5, "layout height should reserve trailing virtual-paragraph space");
+  require(view.layoutTotalHeight() >= expectedFloor - 0.5,
+          "layout height should reserve trailing virtual-paragraph space");
 }
 
 // testBlockAfterCursorSurvivesRebuild
@@ -499,7 +524,8 @@ void testBlockAfterCursorSurvivesRebuild() {
   require(hit.zone == HitTestResult::Zone::BlockAfter, "click below last block should hit BlockAfter zone");
 
   view.setCursorHit(hit);
-  require(view.cursorHit().zone == HitTestResult::Zone::BlockAfter, "caret should be on the trailing paragraph after click");
+  require(view.cursorHit().zone == HitTestResult::Zone::BlockAfter,
+          "caret should be on the trailing paragraph after click");
   require(view.cursorPosition().afterBlock, "stored cursor position should carry afterBlock");
 
   // Trigger a full layout rebuild (page width changes → rebuildLayout path,
@@ -558,7 +584,8 @@ void testNoVirtualTrailingParagraphBelowEmptyLastParagraph() {
     const RenderTheme theme = view.theme();
     const QPointF belowEmpty(emptyRect.left(), emptyRect.bottom() + theme.blockSpacing() + 5.0);
     const HitTestResult hit = view.hitTest(belowEmpty);
-    require(hit.zone != HitTestResult::Zone::BlockAfter, "no virtual trailing paragraph below empty document's paragraph");
+    require(hit.zone != HitTestResult::Zone::BlockAfter,
+            "no virtual trailing paragraph below empty document's paragraph");
     require(hit.blockId == emptyParagraph->id(), "click below empty document paragraph should land in that paragraph");
   }
 }
@@ -648,7 +675,8 @@ void testScrollableCodeFenceHitRespectsHorizontalOffset() {
   const HitTestResult hit = view.hitTest(clickAtEnd);
   require(hit.blockId == code->id(), "click should hit the code fence");
   require(hit.textOffset > longLine.size() - 12,
-          QStringLiteral("right-edge click in the scrolled-to-end window should map near the line end, got %1").arg(hit.textOffset));
+          QStringLiteral("right-edge click in the scrolled-to-end window should map near the line end, got %1")
+              .arg(hit.textOffset));
 
   const QPointF clickAtStart(content.left() + 6.0, content.top() + theme.codeLineHeight() * 0.5);
   const HitTestResult hitStart = view.hitTest(clickAtStart);
@@ -698,10 +726,12 @@ void testScrollableCodeFenceDragAnchorStaysUnderPress() {
   QApplication::sendEvent(view.viewport(), &move);
 
   require(captured.anchor.text.nodeId.isValid(), "drag should have produced a selection");
-  require(captured.anchor.text.textOffset > longLine.size() / 2,
-          QStringLiteral("drag anchor should stay in the pressed (right) region, not jump to the line start; got anchor=%1 focus=%2")
-              .arg(captured.anchor.text.textOffset)
-              .arg(captured.focus.text.textOffset));
+  require(
+      captured.anchor.text.textOffset > longLine.size() / 2,
+      QStringLiteral(
+          "drag anchor should stay in the pressed (right) region, not jump to the line start; got anchor=%1 focus=%2")
+          .arg(captured.anchor.text.textOffset)
+          .arg(captured.focus.text.textOffset));
 }
 
 // testCodeFenceClickDoesNotScrollAwayFromPress
@@ -752,7 +782,8 @@ void testCodeFenceClickDoesNotScrollAwayFromPress() {
 
   // The caret was placed at a visible spot, so the offset must be untouched — this is the fix.
   require(qAbs(controller.codeFenceScroll().offsetFor(code->id()) - parkedOffset) < 0.5,
-          QStringLiteral("clicking a visible code-fence position must not scroll the content away from the click; offset=%1")
+          QStringLiteral(
+              "clicking a visible code-fence position must not scroll the content away from the click; offset=%1")
               .arg(controller.codeFenceScroll().offsetFor(code->id())));
 
   // Drag a little further right; the anchor must stay under the press, not jump sideways.
@@ -764,10 +795,12 @@ void testCodeFenceClickDoesNotScrollAwayFromPress() {
   const qreal anchorAdvance = metrics.horizontalAdvance(longLine.left(captured.anchor.text.textOffset));
   const qreal anchorViewportX = anchorAdvance - controller.codeFenceScroll().offsetFor(code->id());
   const qreal pressViewportX = pressPos.x() - content.left();
-  require(qAbs(anchorViewportX - pressViewportX) < charWidth * 1.5,
-          QStringLiteral("drag anchor should stay under the press position (no sideways jump); anchorViewportX=%1 pressViewportX=%2")
-              .arg(anchorViewportX)
-              .arg(pressViewportX));
+  require(
+      qAbs(anchorViewportX - pressViewportX) < charWidth * 1.5,
+      QStringLiteral(
+          "drag anchor should stay under the press position (no sideways jump); anchorViewportX=%1 pressViewportX=%2")
+          .arg(anchorViewportX)
+          .arg(pressViewportX));
 }
 
 // testCodeFenceCaretRectFollowsHorizontalScroll
@@ -793,7 +826,7 @@ void testCodeFenceCaretRectFollowsHorizontalScroll() {
   const QRectF content = block->literalContentRect(theme);
   const qreal maxOffset = block->codeMaxLineWidth() - content.width();
   require(maxOffset > 1.0, "line should overflow enough to scroll");
-  controller.codeFenceScroll().setOffset(code->id(), maxOffset);  // scrolled to the far-right end
+  controller.codeFenceScroll().setOffset(code->id(), maxOffset); // scrolled to the far-right end
 
   const TextFontMetrics metrics(theme.codeFont());
   const qreal charWidth = metrics.horizontalAdvance(QLatin1Char('a'));
@@ -808,7 +841,8 @@ void testCodeFenceCaretRectFollowsHorizontalScroll() {
   // The caret must land INSIDE the content's visible span (offset-adjusted). Before the fix it sat at
   // x≈natural advance (~line width), well past the right edge and off-screen.
   require(caret.left() >= content.left() - 1.0 && caret.left() <= content.right() + 1.0,
-          QStringLiteral("scrolled code-fence caret should be inside the viewport (offset-adjusted), got x=%1").arg(caret.left()));
+          QStringLiteral("scrolled code-fence caret should be inside the viewport (offset-adjusted), got x=%1")
+              .arg(caret.left()));
   // And specifically at the pressed character, not at the natural advance.
   require(qAbs(caret.left() - pressPos.x()) < charWidth * 2.0,
           QStringLiteral("caret should follow the horizontal scroll to the pressed character; caretX=%1 pressX=%2")
@@ -845,7 +879,8 @@ void testCodeFenceScrollableSelectionRectAlignsWithDrag() {
   controller.codeFenceScroll().setOffset(code->id(), maxOffset);
 
   SelectionRange captured;
-  QObject::connect(&view, &EditorView::selectionChanged, &view, [&captured](SelectionRange s, HitTestResult) { captured = s; });
+  QObject::connect(&view, &EditorView::selectionChanged, &view,
+                   [&captured](SelectionRange s, HitTestResult) { captured = s; });
   const qreal y = content.top() + theme.codeLineHeight() * 0.5;
   const QPointF pressPos(content.left() + 120.0, y);
   const QPointF dragPos(content.left() + 420.0, y);
@@ -866,10 +901,12 @@ void testCodeFenceScrollableSelectionRectAlignsWithDrag() {
   const qreal dragVx = dragPos.x() - content.left();
   require(qAbs(spanLeft - qMin(pressVx, dragVx)) < charWidth * 1.5,
           QStringLiteral("selection span left should sit under the drag start; spanLeft=%1 expected=%2")
-              .arg(spanLeft).arg(qMin(pressVx, dragVx)));
+              .arg(spanLeft)
+              .arg(qMin(pressVx, dragVx)));
   require(qAbs(spanRight - qMax(pressVx, dragVx)) < charWidth * 1.5,
           QStringLiteral("selection span right should sit under the drag end; spanRight=%1 expected=%2")
-              .arg(spanRight).arg(qMax(pressVx, dragVx)));
+              .arg(spanRight)
+              .arg(qMax(pressVx, dragVx)));
 }
 
 // testCodeFenceHitKeepsScrollControllerAcrossLayoutReset
@@ -904,16 +941,17 @@ void testCodeFenceHitKeepsScrollControllerAcrossLayoutReset() {
   const QRectF content = block->literalContentRect(theme);
   const qreal maxOffset = block->codeMaxLineWidth() - content.width();
   require(maxOffset > 1.0, "line should overflow enough to scroll");
-  controller.codeFenceScroll().setOffset(code->id(), maxOffset);  // scrolled to the far-right end
+  controller.codeFenceScroll().setOffset(code->id(), maxOffset); // scrolled to the far-right end
 
   // A click at the right edge of the visible window must map near the line END. Under the bug the
   // hit saw a null controller (offset 0), so a right-edge click resolved to offset ~0 (the start).
   const QPointF clickAtEnd(content.right() - 6.0, content.top() + theme.codeLineHeight() * 0.5);
   const HitTestResult hit = view.hitTest(clickAtEnd);
   require(hit.blockId == code->id(), "click should hit the code fence");
-  require(hit.textOffset > longLine.size() - 12,
-          QStringLiteral("scrolled-to-end right-edge click should map near the line end (hit must see the offset); got %1")
-              .arg(hit.textOffset));
+  require(
+      hit.textOffset > longLine.size() - 12,
+      QStringLiteral("scrolled-to-end right-edge click should map near the line end (hit must see the offset); got %1")
+          .arg(hit.textOffset));
 }
 
 // A click in the gap below a NON-last block must NOT resolve to the trailing BlockAfter zone.
@@ -970,9 +1008,9 @@ void testCssContentOriginSharedByHitCursorAndSelection() {
   DocumentSession session;
   EditorView view;
   view.resize(800, 600);
-  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
-      QStringLiteral("p, h1, li { padding: 17px 23px; border: 3px solid black; }"),
-      QStringLiteral("geometry-origin"), QString()));
+  const RenderTheme theme = RenderTheme::fromDefinition(
+      CssThemeMapper::fromCss(QStringLiteral("p, h1, li { padding: 17px 23px; border: 3px solid black; }"),
+                              QStringLiteral("geometry-origin"), QString()));
   view.setTheme(theme);
   session.setMarkdownText(QStringLiteral("Paragraph text\n\n# Heading text\n\n- List item text\n"), false);
   view.setDocument(session.document());
@@ -991,7 +1029,8 @@ void testCssContentOriginSharedByHitCursorAndSelection() {
             "restoring a CSS content caret must use the same origin as hit testing");
     const auto localRects = block->inlineLayout()->selectionRects(0, 3);
     const auto documentRects = block->selectionRectsSelfForOffsets(0, 3, theme);
-    require(!localRects.isEmpty() && localRects.size() == documentRects.size(), "CSS content should expose selection geometry");
+    require(!localRects.isEmpty() && localRects.size() == documentRects.size(),
+            "CSS content should expose selection geometry");
     require(qAbs(documentRects.front().top() - localRects.front().translated(block->inlineTextOrigin()).top()) < 0.01,
             "selection must use the same CSS content origin as the caret");
   }

@@ -18,7 +18,10 @@ namespace {
   std::fprintf(stderr, "FAIL: %s\n", qPrintable(message));
   std::exit(1);
 }
-void require(bool value, const QString& message) { if (!value) fail(message); }
+void require(bool value, const QString& message) {
+  if (!value)
+    fail(message);
+}
 }
 
 int main(int argc, char** argv) {
@@ -42,17 +45,17 @@ int main(int argc, char** argv) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
     const QString source = fixture.value(QStringLiteral("source")).toString();
-    const bool accepted = fixture.value(QStringLiteral("expected")).toObject()
-                              .value(QStringLiteral("accepted")).toBool();
+    const bool accepted =
+        fixture.value(QStringLiteral("expected")).toObject().value(QStringLiteral("accepted")).toBool();
     editor::MermaidRenderCache cache;
     const editor::MermaidRenderEntry entry = cache.getSync(cache.makeKey(source), source);
     require((entry.status == editor::MermaidRenderStatus::Ready) == accepted,
             id + QStringLiteral("/source-entry status=%1 expected=%2 error=%3")
-                     .arg(static_cast<int>(entry.status)).arg(accepted)
+                     .arg(static_cast<int>(entry.status))
+                     .arg(accepted)
                      .arg(entry.errorMessage));
     if (accepted)
-      require(detectDiagramType(source) == QLatin1String("swimlane"),
-              id + QStringLiteral("/detector"));
+      require(detectDiagramType(source) == QLatin1String("swimlane"), id + QStringLiteral("/detector"));
   }
   std::puts("MermaidSwimlaneParserTest: 17/17 passed");
   return 0;

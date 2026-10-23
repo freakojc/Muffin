@@ -39,12 +39,14 @@ void paintWriteTexture(QPainter& painter, const RenderTheme& theme, const QRectF
 // When `recolour` is true the SVG is treated as an alpha mask and filled with
 // `tint` (a `mask:`-based icon such as phycat's link ::before, whose SVG carries
 // no fill of its own); otherwise the SVG renders with its embedded fill.
-void paintIcon(QPainter& painter, const QByteArray& svgData, const QRectF& target, const QColor& tint = QColor(), bool recolour = false);
+void paintIcon(QPainter& painter, const QByteArray& svgData, const QRectF& target, const QColor& tint = QColor(),
+               bool recolour = false);
 
 // `:hover` box-shadow glow around a block, scaled by `phase` (0..1, from the
 // HoverAnimator). No-op when the host declares no hover glow. Drawn BEFORE the
 // block so its content sits on top. Reuses the concentric-shell blur approach.
-void paintBlockHoverGlow(QPainter& painter, const RenderTheme& theme, const QString& host, const QRectF& rect, qreal phase);
+void paintBlockHoverGlow(QPainter& painter, const RenderTheme& theme, const QString& host, const QRectF& rect,
+                         qreal phase);
 
 // Low-level concentric-shell glow: `alpha` (0..1) scales the whole glow. Shared
 // by the hover glow (alpha = phase) and the @keyframes glow (alpha = 1, the
@@ -54,9 +56,9 @@ void paintGlow(QPainter& painter, const QRectF& rect, const QColor& color, qreal
 // Paint the first CSS outset box-shadow with its complete geometry. Unlike the
 // deliberately subdued interactive glow above, this preserves the CSS alpha and
 // spread because it is part of the theme's static box appearance.
-void paintBoxShadow(QPainter& painter, const QRectF& rect, qreal borderRadius, const QColor& color, qreal offsetX, qreal offsetY,
-                    qreal blur, qreal spread);
+void paintBoxShadow(QPainter& painter, const QRectF& rect, qreal borderRadius, const QColor& color, qreal offsetX,
+                    qreal offsetY, qreal blur, qreal spread);
 
-}  // namespace DecorationPainter
+} // namespace DecorationPainter
 
-}  // namespace muffin
+} // namespace muffin

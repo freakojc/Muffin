@@ -29,6 +29,6 @@ namespace KeyframeSampler {
 // driver's job); this just interpolates.
 AnimatedSample sampleAtPhase(const KeyframesDef& kf, qreal phase);
 
-}  // namespace KeyframeSampler
+} // namespace KeyframeSampler
 
-}  // namespace muffin
+} // namespace muffin

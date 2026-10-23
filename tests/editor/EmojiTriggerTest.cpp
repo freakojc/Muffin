@@ -73,7 +73,7 @@ void testEmojiPopupOpensAndAccepts() {
   typeShortcode(h, QStringLiteral("Hello"));
   require(h.input.emojiCompleter() != nullptr, "emoji completer should be created after typing a trigger");
   require(h.input.emojiCompleter()->isVisible(), "popup should be visible after typing ':smi'");
-  pressKey(h.input, &h.view, Qt::Key_Tab);  // accept the (single) candidate
+  pressKey(h.input, &h.view, Qt::Key_Tab); // accept the (single) candidate
   require(h.session.markdownText().toString() == QStringLiteral("Hello😄"), "Tab should replace ':smi' with the emoji");
 }
 
@@ -93,7 +93,8 @@ void testEmojiEscapeCancels() {
   require(h.input.emojiCompleter()->isVisible(), "popup should be visible");
   pressKey(h.input, &h.view, Qt::Key_Escape);
   require(!h.input.emojiCompleter()->isVisible(), "Escape should hide the popup");
-  require(h.session.markdownText().toString() == QStringLiteral("x:smi"), "Escape should leave the shortcode text intact");
+  require(h.session.markdownText().toString() == QStringLiteral("x:smi"),
+          "Escape should leave the shortcode text intact");
 }
 
 void testEmojiHidesOnNonShortcodeChar() {
@@ -101,7 +102,7 @@ void testEmojiHidesOnNonShortcodeChar() {
   Harness h;
   typeShortcode(h, QStringLiteral("x"));
   require(h.input.emojiCompleter()->isVisible(), "popup should be visible");
-  h.input.insertText(QStringLiteral(" "));  // a space breaks the shortcode
+  h.input.insertText(QStringLiteral(" ")); // a space breaks the shortcode
   require(!h.input.emojiCompleter()->isVisible(), "a non-shortcode character should hide the popup");
 }
 
@@ -113,7 +114,7 @@ void testEmojiSettingDisabled() {
           "popup must not open when the emojiAutocomplete preference is off");
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

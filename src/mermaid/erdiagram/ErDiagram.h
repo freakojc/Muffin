@@ -76,8 +76,8 @@ struct ErEntity {
   QString linkTarget;
   QString tooltip;
   bool haveCallback = false;
-  QString cssClasses;     // space-joined classDef names applied via class/cssClass
-  QStringList styles;     // inline `style` declarations (key:value)
+  QString cssClasses; // space-joined classDef names applied via class/cssClass
+  QStringList styles; // inline `style` declarations (key:value)
 };
 
 // Crow's-foot cardinality. ExactlyOne => "||" (two ticks), ZeroOrOne => "|o"/"o|"
@@ -137,4 +137,4 @@ QString erErrorStageName(ErErrorStage stage);
 QString erErrorCodeName(ErErrorCode code);
 QString formatErDiagnostic(const ErDiagnostic& diagnostic);
 
-}  // namespace muffin::mermaid::er
+} // namespace muffin::mermaid::er

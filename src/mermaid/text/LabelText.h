@@ -15,4 +15,4 @@ QString collapsedSvgText(QString value, bool trimEdges = true);
 // quotes stripped, empties dropped.
 QStringList cssFontFamilies(const QString& expression);
 
-}  // namespace muffin::mermaid::text
+} // namespace muffin::mermaid::text

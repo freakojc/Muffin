@@ -34,8 +34,8 @@ namespace muffin::mermaid {
 struct InteractionRegion {
   QRectF bounds;
   QString href;
-  QString toolTip;          // editor hover tooltip (flow node tooltip; empty for sequence items)
-  QString accessibleLabel;  // SVG <title>/aria-label (flow node tooltip; sequence item label)
+  QString toolTip;         // editor hover tooltip (flow node tooltip; empty for sequence items)
+  QString accessibleLabel; // SVG <title>/aria-label (flow node tooltip; sequence item label)
   QString requiresOpenMenu;
   QString togglesMenu;
 };
@@ -45,7 +45,7 @@ struct InteractionRegion {
 // immutable scene for this representation and writes real marker references.
 // Geometry is already final scene geometry; no parser/layout work is repeated.
 struct SvgMarkerChild {
-  QString tag;       // path / polygon / circle / line
+  QString tag; // path / polygon / circle / line
   QString cssClass;
   QString path;
   QString points;
@@ -59,8 +59,8 @@ struct SvgMarkerChild {
 };
 
 struct SvgMarkerDefinition {
-  QString key;       // scene-local stable key referenced by SvgMarkerEdge
-  QString idSuffix;  // appended to the exported Mermaid root id
+  QString key;      // scene-local stable key referenced by SvgMarkerEdge
+  QString idSuffix; // appended to the exported Mermaid root id
   QString viewBox;
   qreal refX = 0.0, refY = 0.0;
   qreal markerWidth = 0.0, markerHeight = 0.0;
@@ -148,4 +148,4 @@ struct MermaidScene {
   virtual bool menusAlwaysOpen() const { return false; }
 };
 
-}  // namespace muffin::mermaid
+} // namespace muffin::mermaid

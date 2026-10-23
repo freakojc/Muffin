@@ -37,7 +37,8 @@ void testStyledWrapsBodyAndEmbedsCss() {
 void testPlainOmitsStylesheet() {
   const QString html = muffin::renderDocumentHtml(QStringLiteral("**bold**"), QStringLiteral("Doc"), false);
   require(!html.contains(QStringLiteral("<style>")), QStringLiteral("Plain export must not embed <style>"));
-  require(html.contains(QStringLiteral("<strong>bold</strong>")), QStringLiteral("Body must contain rendered <strong>"));
+  require(html.contains(QStringLiteral("<strong>bold</strong>")),
+          QStringLiteral("Body must contain rendered <strong>"));
 }
 
 void testTitleIsHtmlEscaped() {
@@ -56,13 +57,11 @@ void testEmptyMarkdownStillWraps() {
 // GitHub stylesheet) and the body is wrapped in <div id="write">, which Typora
 // themes rely on for layout. themeCss is ignored for the plain (unstyled) export.
 void testThemeCssEmbeddedAndWriteWrapped() {
-  const QString themeCss =
-      QStringLiteral("#write { max-width: 700px; margin: 0 auto; }\nbody { color: #123456; }");
+  const QString themeCss = QStringLiteral("#write { max-width: 700px; margin: 0 auto; }\nbody { color: #123456; }");
   const QString html = muffin::renderDocumentHtml(QStringLiteral("# Hi"), QStringLiteral("T"), true, themeCss);
   require(html.contains(QStringLiteral("<style>")), QStringLiteral("Theme export must embed <style>"));
   require(html.contains(QStringLiteral("#123456")), QStringLiteral("Theme CSS must be embedded verbatim"));
-  require(html.contains(QStringLiteral("<div id=\"write\">")),
-          QStringLiteral("Theme export must wrap body in #write"));
+  require(html.contains(QStringLiteral("<div id=\"write\">")), QStringLiteral("Theme export must wrap body in #write"));
   require(!html.contains(QStringLiteral("980px")),
           QStringLiteral("Theme export must not include the fallback GitHub stylesheet"));
 
@@ -74,16 +73,18 @@ void testThemeCssEmbeddedAndWriteWrapped() {
 }
 
 void testOutlineAndAdditionalContent() {
-  const auto html = muffin::renderDocumentHtml("# Same **title**\n\n## Same title\n\nText", "Doc", false, {},
+  const auto html = muffin::renderDocumentHtml(
+      "# Same **title**\n\n## Same title\n\nText", "Doc", false, {},
       {.outline = true, .head = "<meta name=\"author\" content=\"Writer\">", .body = "<aside>Introduction</aside>"});
-  require(html.contains("href=\"#muffin-heading-1\"") && html.contains("id=\"muffin-heading-1\"")
-      && html.contains("id=\"muffin-heading-2\""), "TOC targets real unique heading anchors");
-  require(html.indexOf("name=\"author\"") < html.indexOf("</head>")
-      && html.indexOf("<aside>") > html.indexOf("<body>"), "head and body additions go into their intended locations");
+  require(html.contains("href=\"#muffin-heading-1\"") && html.contains("id=\"muffin-heading-1\"") &&
+              html.contains("id=\"muffin-heading-2\""),
+          "TOC targets real unique heading anchors");
+  require(html.indexOf("name=\"author\"") < html.indexOf("</head>") && html.indexOf("<aside>") > html.indexOf("<body>"),
+          "head and body additions go into their intended locations");
   require(!html.contains("<style>"), "plain export keeps theme CSS out when extra content is present");
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

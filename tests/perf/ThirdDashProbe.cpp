@@ -71,11 +71,11 @@ QString makeBigDoc(qsizetype targetBytes) {
   QString doc;
   doc.reserve(targetBytes + 256);
   doc += QStringLiteral("Start paragraph one with some words here.\n\n\n");
-  static const QString unit = QStringLiteral(
-      "Filler paragraph with **bold** and _em_ and `code` and [link](http://example.com/x) text.\n\n");
-  static const QString nested = QStringLiteral(
-      "> Blockquote line one with **bold** and `code` inline.\n>\n> - nested list item alpha\n"
-      "> - nested list item beta with [link](http://example.com/y)\n>\n> more quote text here.\n\n");
+  static const QString unit =
+      QStringLiteral("Filler paragraph with **bold** and _em_ and `code` and [link](http://example.com/x) text.\n\n");
+  static const QString nested =
+      QStringLiteral("> Blockquote line one with **bold** and `code` inline.\n>\n> - nested list item alpha\n"
+                     "> - nested list item beta with [link](http://example.com/y)\n>\n> more quote text here.\n\n");
   int i = 0;
   while (doc.size() < targetBytes) {
     doc += (i++ % 5 == 0) ? nested : unit;
@@ -86,7 +86,7 @@ QString makeBigDoc(qsizetype targetBytes) {
 struct KeystrokeResult {
   double syncMs = 0.0;
   bool firedCollectPendingMarkerOffsets = false;
-  double cursorAfterEditMs = 0.0;  // the O(total-nodes) tree-walk signal
+  double cursorAfterEditMs = 0.0; // the O(total-nodes) tree-walk signal
 };
 
 // Extract the millisecond value from a captured probe line "<label> <ms> ms", or -1 if absent.
@@ -139,7 +139,7 @@ KeystrokeResult typeAndCapture(QObject* target, QChar ch) {
   return pressAndCapture(target, static_cast<int>(ch.unicode()), QString(ch));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
@@ -170,8 +170,7 @@ int main(int argc, char** argv) {
   const qsizetype topLevel = session.document().root().children().size();
   muffin::MarkdownNode* empty = findEmptyParagraph(&session.document().root());
   std::fprintf(stdout, "doc: %lld bytes, %lld top-level blocks; empty-paragraph VEP %s\n",
-               static_cast<long long>(doc.size()), static_cast<long long>(topLevel),
-               empty ? "found" : "NOT FOUND");
+               static_cast<long long>(doc.size()), static_cast<long long>(topLevel), empty ? "found" : "NOT FOUND");
   if (!empty) {
     std::fprintf(stdout, "FAIL: no empty paragraph to type into — adjust makeBigDoc.\n");
     return 1;
@@ -208,10 +207,9 @@ int main(int argc, char** argv) {
     const char* zone = hit.zone == muffin::HitTestResult::Zone::BlockAfter ? "BlockAfter" : "other";
     const int afterBlock = c.afterBlock ? 1 : 0;
     const long long off = static_cast<long long>(c.text.sourceOffset);
-    std::fprintf(stdout,
-        "enter+%d: sync=%7.2f cursorAE=%7.2f markers=%s | afterBlock=%d blockId=%s off=%lld zone=%s\n",
-        idx, r.syncMs, r.cursorAfterEditMs, markers, afterBlock,
-        c.blockId.toString().toUtf8().constData(), off, zone);
+    std::fprintf(stdout, "enter+%d: sync=%7.2f cursorAE=%7.2f markers=%s | afterBlock=%d blockId=%s off=%lld zone=%s\n",
+                 idx, r.syncMs, r.cursorAfterEditMs, markers, afterBlock, c.blockId.toString().toUtf8().constData(),
+                 off, zone);
     std::fprintf(stdout, "         src@rule: [%s]\n", snippet.toUtf8().constData());
   };
   if (diagnostic) {
@@ -252,17 +250,15 @@ int main(int argc, char** argv) {
     ok = false;
   }
   if (dashes[2].firedCollectPendingMarkerOffsets) {
-    std::fprintf(stdout,
-                 "FAIL: 3rd dash took the snapshot-undo path (caret was unresolvable). "
-                 "Expected the block-after caret to keep it on the TextDeltaCommand path.\n");
+    std::fprintf(stdout, "FAIL: 3rd dash took the snapshot-undo path (caret was unresolvable). "
+                         "Expected the block-after caret to keep it on the TextDeltaCommand path.\n");
     ok = false;
   }
   // The tree-walk signal: resolving an offset on the thematic break must NOT recurse the whole
   // document. Pre-fix cursorForSourceOffset walked every node when the offset matched no text block
   // — ~250ms here at 2MB, ~24s on a 112k-block doc (3 calls/keystroke = the 47s freeze).
   constexpr double kMaxCursorAfterEdit = 100.0;
-  if (dashes[2].cursorAfterEditMs > kMaxCursorAfterEdit ||
-      dashes[2].cursorAfterEditMs > 10.0 * walkBaseline) {
+  if (dashes[2].cursorAfterEditMs > kMaxCursorAfterEdit || dashes[2].cursorAfterEditMs > 10.0 * walkBaseline) {
     std::fprintf(stdout,
                  "FAIL: 3rd dash cursorAfterEdit=%.2f ms — cursorForSourceOffset is still walking the "
                  "whole tree to resolve an offset on the thematic break.\n",
@@ -271,16 +267,13 @@ int main(int argc, char** argv) {
   }
   constexpr double kMaxRatio = 20.0;
   if (baseline > 0.0 && ratio > kMaxRatio) {
-    std::fprintf(stdout,
-                 "FAIL: 3rd dash is %.1fx normal typing (cap %.0fx) — still pathological.\n",
-                 ratio, kMaxRatio);
+    std::fprintf(stdout, "FAIL: 3rd dash is %.1fx normal typing (cap %.0fx) — still pathological.\n", ratio, kMaxRatio);
     ok = false;
   }
   // The insertBlockAfterCurrentBlock path (Enter after the rule): preferLaterEmptyAtOffset=true used
   // to make nodeAtContentSourceOffset walk the whole tree without early-return (~50s freeze). The
   // source-range prune must keep this on the normal-typing path too.
-  if (enterAfterRule.cursorAfterEditMs > kMaxCursorAfterEdit ||
-      enterAfterRule.syncMs > kMaxRatio * baseline) {
+  if (enterAfterRule.cursorAfterEditMs > kMaxCursorAfterEdit || enterAfterRule.syncMs > kMaxRatio * baseline) {
     std::fprintf(stdout,
                  "FAIL: enter-after-rule cursorAfterEdit=%.2f ms sync=%.2f ms — the "
                  "preferLaterEmptyAtOffset walk is still O(document).\n",
@@ -291,9 +284,8 @@ int main(int argc, char** argv) {
   // undo (full-doc toString ×3 + collectPendingMarkerOffsets ×2). It now uses the cheap
   // TextDeltaCommand path, so the marker scan must not fire.
   if (enterAfterRule.firedCollectPendingMarkerOffsets) {
-    std::fprintf(stdout,
-                 "FAIL: enter-after-rule fired collectPendingMarkerOffsets — still on the "
-                 "snapshot-undo path (structureEdit should be false for a plain text insert).\n");
+    std::fprintf(stdout, "FAIL: enter-after-rule fired collectPendingMarkerOffsets — still on the "
+                         "snapshot-undo path (structureEdit should be false for a plain text insert).\n");
     ok = false;
   }
 

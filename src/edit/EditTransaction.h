@@ -68,17 +68,9 @@ struct TableCommand {
   CursorPosition afterCursor;
 
   TableCommand() = default;
-  TableCommand(
-      NodeId tableId,
-      int tableIndex,
-      int beforeRow,
-      int beforeColumn,
-      int afterRow,
-      int afterColumn,
-      std::unique_ptr<MarkdownNode> beforeTable,
-      std::unique_ptr<MarkdownNode> afterTable,
-      CursorPosition beforeCursor,
-      CursorPosition afterCursor);
+  TableCommand(NodeId tableId, int tableIndex, int beforeRow, int beforeColumn, int afterRow, int afterColumn,
+               std::unique_ptr<MarkdownNode> beforeTable, std::unique_ptr<MarkdownNode> afterTable,
+               CursorPosition beforeCursor, CursorPosition afterCursor);
   TableCommand(const TableCommand& other);
   TableCommand& operator=(const TableCommand& other);
   TableCommand(TableCommand&&) noexcept = default;
@@ -99,16 +91,9 @@ struct InsertNodeCommand {
   QVector<NodeId> affectedNodes;
 
   InsertNodeCommand() = default;
-  InsertNodeCommand(
-      NodeId nodeId,
-      BlockType nodeType,
-      int nodeIndex,
-      TextDelta delta,
-      qsizetype nodeSourceStart,
-      std::unique_ptr<MarkdownNode> insertedNode,
-      CursorPosition beforeCursor,
-      CursorPosition afterCursor,
-      QVector<NodeId> affectedNodes);
+  InsertNodeCommand(NodeId nodeId, BlockType nodeType, int nodeIndex, TextDelta delta, qsizetype nodeSourceStart,
+                    std::unique_ptr<MarkdownNode> insertedNode, CursorPosition beforeCursor, CursorPosition afterCursor,
+                    QVector<NodeId> affectedNodes);
   InsertNodeCommand(const InsertNodeCommand& other);
   InsertNodeCommand& operator=(const InsertNodeCommand& other);
   InsertNodeCommand(InsertNodeCommand&&) noexcept = default;
@@ -128,15 +113,9 @@ struct ReplaceNodeCommand {
   QVector<NodeId> affectedNodes;
 
   ReplaceNodeCommand() = default;
-  ReplaceNodeCommand(
-      NodeId nodeId,
-      BlockType nodeType,
-      int nodeIndex,
-      std::unique_ptr<MarkdownNode> beforeNode,
-      std::unique_ptr<MarkdownNode> afterNode,
-      CursorPosition beforeCursor,
-      CursorPosition afterCursor,
-      QVector<NodeId> affectedNodes);
+  ReplaceNodeCommand(NodeId nodeId, BlockType nodeType, int nodeIndex, std::unique_ptr<MarkdownNode> beforeNode,
+                     std::unique_ptr<MarkdownNode> afterNode, CursorPosition beforeCursor, CursorPosition afterCursor,
+                     QVector<NodeId> affectedNodes);
   ReplaceNodeCommand(const ReplaceNodeCommand& other);
   ReplaceNodeCommand& operator=(const ReplaceNodeCommand& other);
   ReplaceNodeCommand(ReplaceNodeCommand&&) noexcept = default;
@@ -157,16 +136,9 @@ struct RemoveNodeCommand {
   QVector<NodeId> affectedNodes;
 
   RemoveNodeCommand() = default;
-  RemoveNodeCommand(
-      NodeId nodeId,
-      BlockType nodeType,
-      int nodeIndex,
-      TextDelta delta,
-      qsizetype nodeSourceStart,
-      std::unique_ptr<MarkdownNode> removedNode,
-      CursorPosition beforeCursor,
-      CursorPosition afterCursor,
-      QVector<NodeId> affectedNodes);
+  RemoveNodeCommand(NodeId nodeId, BlockType nodeType, int nodeIndex, TextDelta delta, qsizetype nodeSourceStart,
+                    std::unique_ptr<MarkdownNode> removedNode, CursorPosition beforeCursor, CursorPosition afterCursor,
+                    QVector<NodeId> affectedNodes);
   RemoveNodeCommand(const RemoveNodeCommand& other);
   RemoveNodeCommand& operator=(const RemoveNodeCommand& other);
   RemoveNodeCommand(RemoveNodeCommand&&) noexcept = default;
@@ -187,28 +159,16 @@ struct SetNodeAttrCommand {
   QVector<NodeId> affectedNodes;
 
   SetNodeAttrCommand() = default;
-  SetNodeAttrCommand(
-      NodeId nodeId,
-      BlockType nodeType,
-      int nodeIndex,
-      NodeAttribute attribute,
-      NodeAttributeValue beforeValue,
-      NodeAttributeValue afterValue,
-      CursorPosition beforeCursor,
-      CursorPosition afterCursor,
-      QVector<NodeId> affectedNodes);
+  SetNodeAttrCommand(NodeId nodeId, BlockType nodeType, int nodeIndex, NodeAttribute attribute,
+                     NodeAttributeValue beforeValue, NodeAttributeValue afterValue, CursorPosition beforeCursor,
+                     CursorPosition afterCursor, QVector<NodeId> affectedNodes);
 
   bool isValid() const;
 };
 
 class EditTransaction {
 public:
-  enum class Kind {
-    ReplaceDocumentText,
-    InsertText,
-    DeleteText,
-    SplitParagraph
-  };
+  enum class Kind { ReplaceDocumentText, InsertText, DeleteText, SplitParagraph };
 
   enum class Storage {
     Invalid,
@@ -227,30 +187,12 @@ public:
   EditTransaction(EditTransaction&&) noexcept = default;
   EditTransaction& operator=(EditTransaction&&) noexcept = default;
   EditTransaction(Kind kind, QString label, DocumentSnapshot before, DocumentSnapshot after);
-  EditTransaction(
-      Kind kind,
-      QString label,
-      TextDeltaCommand command);
-  EditTransaction(
-      Kind kind,
-      QString label,
-      TableCommand command);
-  EditTransaction(
-      Kind kind,
-      QString label,
-      InsertNodeCommand command);
-  EditTransaction(
-      Kind kind,
-      QString label,
-      ReplaceNodeCommand command);
-  EditTransaction(
-      Kind kind,
-      QString label,
-      RemoveNodeCommand command);
-  EditTransaction(
-      Kind kind,
-      QString label,
-      SetNodeAttrCommand command);
+  EditTransaction(Kind kind, QString label, TextDeltaCommand command);
+  EditTransaction(Kind kind, QString label, TableCommand command);
+  EditTransaction(Kind kind, QString label, InsertNodeCommand command);
+  EditTransaction(Kind kind, QString label, ReplaceNodeCommand command);
+  EditTransaction(Kind kind, QString label, RemoveNodeCommand command);
+  EditTransaction(Kind kind, QString label, SetNodeAttrCommand command);
 
   Kind kind() const;
   QString label() const;
@@ -278,7 +220,8 @@ public:
   // Selection replacement must undo to the original range, including its
   // direction. Empty metadata leaves existing caret-only commands unchanged.
   void setBeforeSelection(const SelectionRange& range) {
-    if (range.anchor.isValid() && range.focus.isValid() && !range.isCollapsed()) beforeSelection_ = range;
+    if (range.anchor.isValid() && range.focus.isValid() && !range.isCollapsed())
+      beforeSelection_ = range;
   }
   const SelectionRange& beforeSelection() const { return beforeSelection_; }
 
@@ -298,9 +241,9 @@ private:
   // always-present members: copy/assign are now trivially correct (the variant copies the
   // active payload itself), so the "forgot to copy a field" drift the old hand-written copy
   // constructor invited is structurally impossible.
-  std::variant<std::monostate, SnapshotCommand, TextDeltaCommand, TableCommand, InsertNodeCommand,
-               ReplaceNodeCommand, RemoveNodeCommand, SetNodeAttrCommand>
+  std::variant<std::monostate, SnapshotCommand, TextDeltaCommand, TableCommand, InsertNodeCommand, ReplaceNodeCommand,
+               RemoveNodeCommand, SetNodeAttrCommand>
       storage_;
 };
 
-}  // namespace muffin
+} // namespace muffin

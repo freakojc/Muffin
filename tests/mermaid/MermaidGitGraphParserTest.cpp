@@ -22,115 +22,89 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString direction(gitgraph::Direction value) {
-  if (value == gitgraph::Direction::TopToBottom) return QStringLiteral("TB");
-  if (value == gitgraph::Direction::BottomToTop) return QStringLiteral("BT");
+  if (value == gitgraph::Direction::TopToBottom)
+    return QStringLiteral("TB");
+  if (value == gitgraph::Direction::BottomToTop)
+    return QStringLiteral("BT");
   return QStringLiteral("LR");
 }
 
-void compareStrings(const QVector<QString>& actual, const QJsonArray& expected,
-                    const QString& path) {
+void compareStrings(const QVector<QString>& actual, const QJsonArray& expected, const QString& path) {
   require(actual.size() == expected.size(), path + QStringLiteral(" count"));
   for (qsizetype i = 0; i < actual.size(); ++i)
-    require(actual.at(i) == expected.at(i).toString(),
-            path + QStringLiteral("/%1 mismatch").arg(i));
+    require(actual.at(i) == expected.at(i).toString(), path + QStringLiteral("/%1 mismatch").arg(i));
 }
 
-void compareDb(const gitgraph::GitGraphData& actual,
-               const QJsonObject& expected, const QString& id) {
-  require(direction(actual.direction) ==
-              expected.value(QStringLiteral("direction")).toString(),
+void compareDb(const gitgraph::GitGraphData& actual, const QJsonObject& expected, const QString& id) {
+  require(direction(actual.direction) == expected.value(QStringLiteral("direction")).toString(),
           id + QStringLiteral("/direction"));
-  require(actual.currentBranch ==
-              expected.value(QStringLiteral("currentBranch")).toString(),
+  require(actual.currentBranch == expected.value(QStringLiteral("currentBranch")).toString(),
           id + QStringLiteral("/currentBranch"));
-  require(actual.title == expected.value(QStringLiteral("title")).toString(),
-          id + QStringLiteral("/title"));
-  require(actual.accTitle ==
-              expected.value(QStringLiteral("accTitle")).toString(),
-          id + QStringLiteral("/accTitle"));
-  require(actual.accDescr ==
-              expected.value(QStringLiteral("accDescr")).toString(),
-          id + QStringLiteral("/accDescr"));
+  require(actual.title == expected.value(QStringLiteral("title")).toString(), id + QStringLiteral("/title"));
+  require(actual.accTitle == expected.value(QStringLiteral("accTitle")).toString(), id + QStringLiteral("/accTitle"));
+  require(actual.accDescr == expected.value(QStringLiteral("accDescr")).toString(), id + QStringLiteral("/accDescr"));
 
   const QJsonArray commits = expected.value(QStringLiteral("commits")).toArray();
-  require(actual.commits.size() == commits.size(),
-          id + QStringLiteral("/commit count"));
+  require(actual.commits.size() == commits.size(), id + QStringLiteral("/commit count"));
   for (qsizetype i = 0; i < actual.commits.size(); ++i) {
     const auto& value = actual.commits.at(i);
     const QJsonObject oracle = commits.at(i).toObject();
     const QString path = id + QStringLiteral("/commits/%1").arg(i);
-    require(value.id == oracle.value(QStringLiteral("id")).toString(),
-            path + QStringLiteral("/id"));
-    require(value.message == oracle.value(QStringLiteral("message")).toString(),
-            path + QStringLiteral("/message"));
-    require(value.seq == oracle.value(QStringLiteral("seq")).toInt(),
-            path + QStringLiteral("/seq"));
-    require(int(value.type) == oracle.value(QStringLiteral("type")).toInt(),
-            path + QStringLiteral("/type"));
-    require(value.branch == oracle.value(QStringLiteral("branch")).toString(),
-            path + QStringLiteral("/branch"));
-    compareStrings(value.tags, oracle.value(QStringLiteral("tags")).toArray(),
-                   path + QStringLiteral("/tags"));
-    compareStrings(value.parents,
-                   oracle.value(QStringLiteral("parents")).toArray(),
-                   path + QStringLiteral("/parents"));
+    require(value.id == oracle.value(QStringLiteral("id")).toString(), path + QStringLiteral("/id"));
+    require(value.message == oracle.value(QStringLiteral("message")).toString(), path + QStringLiteral("/message"));
+    require(value.seq == oracle.value(QStringLiteral("seq")).toInt(), path + QStringLiteral("/seq"));
+    require(int(value.type) == oracle.value(QStringLiteral("type")).toInt(), path + QStringLiteral("/type"));
+    require(value.branch == oracle.value(QStringLiteral("branch")).toString(), path + QStringLiteral("/branch"));
+    compareStrings(value.tags, oracle.value(QStringLiteral("tags")).toArray(), path + QStringLiteral("/tags"));
+    compareStrings(value.parents, oracle.value(QStringLiteral("parents")).toArray(), path + QStringLiteral("/parents"));
     const bool hasCustomType = oracle.contains(QStringLiteral("customType"));
-    require(value.customType.has_value() == hasCustomType,
-            path + QStringLiteral("/customType presence"));
+    require(value.customType.has_value() == hasCustomType, path + QStringLiteral("/customType presence"));
     if (hasCustomType)
-      require(int(*value.customType) ==
-                  oracle.value(QStringLiteral("customType")).toInt(),
+      require(int(*value.customType) == oracle.value(QStringLiteral("customType")).toInt(),
               path + QStringLiteral("/customType"));
-    require(value.customId ==
-                oracle.value(QStringLiteral("customId")).toBool(false),
+    require(value.customId == oracle.value(QStringLiteral("customId")).toBool(false),
             path + QStringLiteral("/customId"));
   }
 
   const QJsonArray branches = expected.value(QStringLiteral("branches")).toArray();
-  require(actual.branches.size() == branches.size(),
-          id + QStringLiteral("/branch count"));
+  require(actual.branches.size() == branches.size(), id + QStringLiteral("/branch count"));
   for (qsizetype i = 0; i < actual.branches.size(); ++i) {
     const auto& value = actual.branches.at(i);
     const QJsonObject oracle = branches.at(i).toObject();
     const QString path = id + QStringLiteral("/branches/%1").arg(i);
-    require(value.name == oracle.value(QStringLiteral("name")).toString(),
-            path + QStringLiteral("/name"));
+    require(value.name == oracle.value(QStringLiteral("name")).toString(), path + QStringLiteral("/name"));
     const bool oracleHasHead =
-        !oracle.value(QStringLiteral("head")).isNull() &&
-        !oracle.value(QStringLiteral("head")).isUndefined();
-    require(value.hasHead == oracleHasHead,
-            path + QStringLiteral("/head presence"));
+        !oracle.value(QStringLiteral("head")).isNull() && !oracle.value(QStringLiteral("head")).isUndefined();
+    require(value.hasHead == oracleHasHead, path + QStringLiteral("/head presence"));
     if (value.hasHead)
-      require(value.head == oracle.value(QStringLiteral("head")).toString(),
-              path + QStringLiteral("/head"));
+      require(value.head == oracle.value(QStringLiteral("head")).toString(), path + QStringLiteral("/head"));
     require(value.order.has_value() == oracle.contains(QStringLiteral("order")),
             path + QStringLiteral("/order presence"));
     if (value.order)
-      require(*value.order == oracle.value(QStringLiteral("order")).toDouble(),
-              path + QStringLiteral("/order"));
+      require(*value.order == oracle.value(QStringLiteral("order")).toDouble(), path + QStringLiteral("/order"));
   }
 
-  const QJsonArray ordered =
-      expected.value(QStringLiteral("orderedBranches")).toArray();
-  require(actual.orderedBranches.size() == ordered.size(),
-          id + QStringLiteral("/orderedBranches count"));
+  const QJsonArray ordered = expected.value(QStringLiteral("orderedBranches")).toArray();
+  require(actual.orderedBranches.size() == ordered.size(), id + QStringLiteral("/orderedBranches count"));
   for (qsizetype i = 0; i < actual.orderedBranches.size(); ++i)
-    require(actual.orderedBranches.at(i) ==
-                ordered.at(i).toObject().value(QStringLiteral("name")).toString(),
+    require(actual.orderedBranches.at(i) == ordered.at(i).toObject().value(QStringLiteral("name")).toString(),
             id + QStringLiteral("/orderedBranches/%1").arg(i));
 }
 
 gitgraph::GitGraphErrorKind errorKind(const QString& value) {
-  if (value == QLatin1String("Lexer")) return gitgraph::GitGraphErrorKind::Lexer;
-  if (value == QLatin1String("Runtime")) return gitgraph::GitGraphErrorKind::Runtime;
+  if (value == QLatin1String("Lexer"))
+    return gitgraph::GitGraphErrorKind::Lexer;
+  if (value == QLatin1String("Runtime"))
+    return gitgraph::GitGraphErrorKind::Runtime;
   return gitgraph::GitGraphErrorKind::Parser;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -145,8 +119,7 @@ int main(int argc, char** argv) {
   require(root.value(QStringLiteral("fixtureSha256")).toString() ==
               QLatin1String("72fd6b2be6d989aa9bf906e368c357bfa47871e783308f2c1011c816c12b3676"),
           QStringLiteral("GitGraph grammar semantic fixture drifted"));
-  require(root.value(QStringLiteral("upstream")).toObject()
-                  .value(QStringLiteral("version")).toString() ==
+  require(root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
               QLatin1String("11.16.0"),
           QStringLiteral("GitGraph Mermaid version drifted"));
 
@@ -161,13 +134,13 @@ int main(int argc, char** argv) {
     const MermaidPreprocessResult pre = preprocessDiagram(source);
     bool detected = false;
     try {
-      detected = detectDiagramType(pre.code, pre.config) ==
-                 QLatin1String("gitGraph");
+      detected = detectDiagramType(pre.code, pre.config) == QLatin1String("gitGraph");
     } catch (const UnknownDiagramError&) {
     }
     if (!expected.value(QStringLiteral("parse")).toBool()) {
       ++rejected;
-      if (!detected) continue;
+      if (!detected)
+        continue;
       bool threw = false;
       try {
         (void)gitgraph::GitGraphDiagram::parse(pre.code);
@@ -179,7 +152,8 @@ int main(int argc, char** argv) {
         require(error.line == oracle.value(QStringLiteral("line")).toInt() &&
                     error.column == oracle.value(QStringLiteral("column")).toInt(),
                 id + QStringLiteral("/error location %1:%2 != %3:%4")
-                         .arg(error.line).arg(error.column)
+                         .arg(error.line)
+                         .arg(error.column)
                          .arg(oracle.value(QStringLiteral("line")).toInt())
                          .arg(oracle.value(QStringLiteral("column")).toInt()));
       }
@@ -188,8 +162,7 @@ int main(int argc, char** argv) {
     }
     ++accepted;
     require(detected, id + QStringLiteral(": detector rejected accepted input"));
-    compareDb(gitgraph::GitGraphDiagram::parse(pre.code),
-              expected.value(QStringLiteral("db")).toObject(), id);
+    compareDb(gitgraph::GitGraphDiagram::parse(pre.code), expected.value(QStringLiteral("db")).toObject(), id);
   }
   require(cases.size() == 32 && accepted == 18 && rejected == 14,
           QStringLiteral("GitGraph grammar table coverage drifted"));

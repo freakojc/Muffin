@@ -7,22 +7,27 @@
 
 namespace {
 
-QPair<qsizetype, qsizetype> renderSelectionSourceRange(
-    const muffin::EditorController& controller) {
-  if (!controller.selection().hasCursor()) { return {-1, -1}; }
+QPair<qsizetype, qsizetype> renderSelectionSourceRange(const muffin::EditorController& controller) {
+  if (!controller.selection().hasCursor()) {
+    return {-1, -1};
+  }
   const muffin::SelectionRange range = controller.selection().selection();
   return {qMin(range.anchor.text.sourceOffset, range.focus.text.sourceOffset),
           qMax(range.anchor.text.sourceOffset, range.focus.text.sourceOffset)};
 }
 
-}  // namespace
+} // namespace
 
 void muffin::MainWindow::showFindBar() {
-  if (!tab_->findBar) { return; }
+  if (!tab_->findBar) {
+    return;
+  }
   tab_->findBar->setReplaceVisible(false);
   if (tab_->backend->isSourceMode()) {
     const QString selected = tab_->backend->selectedText();
-    if (!selected.isEmpty()) { tab_->findBar->setSearchText(selected); }
+    if (!selected.isEmpty()) {
+      tab_->findBar->setSearchText(selected);
+    }
   }
   tab_->lastFindOffset = -1;
   tab_->lastFindText.clear();
@@ -31,11 +36,15 @@ void muffin::MainWindow::showFindBar() {
 }
 
 void muffin::MainWindow::showReplaceBar() {
-  if (!tab_->findBar) { return; }
+  if (!tab_->findBar) {
+    return;
+  }
   tab_->findBar->setReplaceVisible(true);
   if (tab_->backend->isSourceMode()) {
     const QString selected = tab_->backend->selectedText();
-    if (!selected.isEmpty()) { tab_->findBar->setSearchText(selected); }
+    if (!selected.isEmpty()) {
+      tab_->findBar->setSearchText(selected);
+    }
   }
   tab_->lastFindOffset = -1;
   tab_->lastFindText.clear();
@@ -44,12 +53,15 @@ void muffin::MainWindow::showReplaceBar() {
 }
 
 void muffin::MainWindow::hideFindBar() {
-  if (tab_->findBar) { tab_->findBar->setVisible(false); }
+  if (tab_->findBar) {
+    tab_->findBar->setVisible(false);
+  }
 }
 
-void muffin::MainWindow::performFind(const QString& text, bool forward,
-                                     bool regularExpression, bool caseSensitive) {
-  if (text.isEmpty()) { return; }
+void muffin::MainWindow::performFind(const QString& text, bool forward, bool regularExpression, bool caseSensitive) {
+  if (text.isEmpty()) {
+    return;
+  }
   const SearchOptions options{regularExpression, caseSensitive};
   const SearchResults results = DocumentSearch::findAll(tab_->session.markdownText(), text, options);
   if (!results.valid) {
@@ -61,9 +73,8 @@ void muffin::MainWindow::performFind(const QString& text, bool forward,
     return;
   }
 
-  const bool queryChanged = text != tab_->lastFindText
-      || regularExpression != tab_->lastFindRegularExpression
-      || caseSensitive != tab_->lastFindCaseSensitive;
+  const bool queryChanged = text != tab_->lastFindText || regularExpression != tab_->lastFindRegularExpression ||
+                            caseSensitive != tab_->lastFindCaseSensitive;
   if (queryChanged) {
     tab_->lastFindText = text;
     tab_->lastFindRegularExpression = regularExpression;
@@ -75,8 +86,8 @@ void muffin::MainWindow::performFind(const QString& text, bool forward,
   if (tab_->lastFindOffset >= 0) {
     for (int i = 0; i < results.matches.size(); ++i) {
       if (results.matches.at(i).start == tab_->lastFindOffset) {
-        selectedIndex = forward ? (i + 1) % results.matches.size()
-                                : (i - 1 + results.matches.size()) % results.matches.size();
+        selectedIndex =
+            forward ? (i + 1) % results.matches.size() : (i - 1 + results.matches.size()) % results.matches.size();
         break;
       }
     }
@@ -92,7 +103,10 @@ void muffin::MainWindow::performFind(const QString& text, bool forward,
     if (forward) {
       selectedIndex = 0;
       for (int i = 0; i < results.matches.size(); ++i) {
-        if (results.matches.at(i).start >= cursorOffset) { selectedIndex = i; break; }
+        if (results.matches.at(i).start >= cursorOffset) {
+          selectedIndex = i;
+          break;
+        }
       }
     } else {
       selectedIndex = results.matches.size() - 1;
@@ -120,20 +134,26 @@ void muffin::MainWindow::performFind(const QString& text, bool forward,
 }
 
 void muffin::MainWindow::performFindNext() {
-  if (!tab_->findBar) { return; }
+  if (!tab_->findBar) {
+    return;
+  }
   performFind(tab_->findBar->searchText(), true, tab_->findBar->regularExpressionEnabled(),
               tab_->findBar->caseSensitiveEnabled());
 }
 
 void muffin::MainWindow::performFindPrevious() {
-  if (!tab_->findBar) { return; }
+  if (!tab_->findBar) {
+    return;
+  }
   performFind(tab_->findBar->searchText(), false, tab_->findBar->regularExpressionEnabled(),
               tab_->findBar->caseSensitiveEnabled());
 }
 
-void muffin::MainWindow::performReplace(const QString& findText, const QString& replaceText,
-                                        bool regularExpression, bool caseSensitive) {
-  if (findText.isEmpty()) { return; }
+void muffin::MainWindow::performReplace(const QString& findText, const QString& replaceText, bool regularExpression,
+                                        bool caseSensitive) {
+  if (findText.isEmpty()) {
+    return;
+  }
   const SearchOptions options{regularExpression, caseSensitive};
   const SearchResults results = DocumentSearch::findAll(tab_->session.markdownText(), findText, options);
   if (!results.valid) {
@@ -160,8 +180,7 @@ void muffin::MainWindow::performReplace(const QString& findText, const QString& 
     return;
   }
 
-  const QString replacement = DocumentSearch::expandReplacement(
-      replaceText, *current, regularExpression);
+  const QString replacement = DocumentSearch::expandReplacement(replaceText, *current, regularExpression);
   if (tab_->backend->isSourceMode()) {
     tab_->editor->replaceSelection(replacement);
   } else {
@@ -173,13 +192,15 @@ void muffin::MainWindow::performReplace(const QString& findText, const QString& 
   performFind(findText, true, regularExpression, caseSensitive);
 }
 
-void muffin::MainWindow::performReplaceAll(const QString& findText, const QString& replaceText,
-                                           bool regularExpression, bool caseSensitive) {
-  if (findText.isEmpty()) { return; }
+void muffin::MainWindow::performReplaceAll(const QString& findText, const QString& replaceText, bool regularExpression,
+                                           bool caseSensitive) {
+  if (findText.isEmpty()) {
+    return;
+  }
   QString changed;
   const SearchOptions options{regularExpression, caseSensitive};
-  const SearchResults results = DocumentSearch::replaceAll(
-      tab_->backend->fullText(), findText, replaceText, options, &changed);
+  const SearchResults results =
+      DocumentSearch::replaceAll(tab_->backend->fullText(), findText, replaceText, options, &changed);
   if (!results.valid) {
     tab_->findBar->setErrorText(tr("Invalid regular expression: %1").arg(results.error));
     return;

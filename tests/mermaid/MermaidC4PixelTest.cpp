@@ -29,27 +29,22 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QByteArray sha256(const QString& path) {
   QFile file(path);
-  return file.open(QIODevice::ReadOnly)
-             ? QCryptographicHash::hash(file.readAll(),
-                                        QCryptographicHash::Sha256)
-                   .toHex()
-             : QByteArray();
+  return file.open(QIODevice::ReadOnly) ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
+                                        : QByteArray();
 }
 
 QImage renderNative(const QString& source) {
-  const QString dataUrl =
-      editor::MermaidRenderCache::renderMermaidSourceToPng(source, 1.0)
-          .dataUrl;
+  const QString dataUrl = editor::MermaidRenderCache::renderMermaidSourceToPng(source, 1.0).dataUrl;
   const qsizetype comma = dataUrl.indexOf(QLatin1Char(','));
   QImage image;
   if (comma >= 0)
-    image.loadFromData(
-        QByteArray::fromBase64(dataUrl.mid(comma + 1).toLatin1()), "PNG");
+    image.loadFromData(QByteArray::fromBase64(dataUrl.mid(comma + 1).toLatin1()), "PNG");
   return image.convertToFormat(QImage::Format_RGBA8888);
 }
 
@@ -74,36 +69,33 @@ qreal foregroundRgba(const QImage& native, const QImage& reference) {
     for (int x = 0; x < reference.width(); ++x) {
       const QColor actual = native.pixelColor(x, y);
       const QColor expected = reference.pixelColor(x, y);
-      if (actual.alpha() < 16 && expected.alpha() < 16) continue;
-      const auto premultiplied = [](int channel, int alpha) {
-        return channel * alpha / 255;
-      };
-      difference += std::abs(premultiplied(actual.red(), actual.alpha()) -
-                             premultiplied(expected.red(), expected.alpha()));
-      difference += std::abs(premultiplied(actual.green(), actual.alpha()) -
-                             premultiplied(expected.green(), expected.alpha()));
-      difference += std::abs(premultiplied(actual.blue(), actual.alpha()) -
-                             premultiplied(expected.blue(), expected.alpha()));
+      if (actual.alpha() < 16 && expected.alpha() < 16)
+        continue;
+      const auto premultiplied = [](int channel, int alpha) { return channel * alpha / 255; };
+      difference +=
+          std::abs(premultiplied(actual.red(), actual.alpha()) - premultiplied(expected.red(), expected.alpha()));
+      difference +=
+          std::abs(premultiplied(actual.green(), actual.alpha()) - premultiplied(expected.green(), expected.alpha()));
+      difference +=
+          std::abs(premultiplied(actual.blue(), actual.alpha()) - premultiplied(expected.blue(), expected.alpha()));
       difference += std::abs(actual.alpha() - expected.alpha());
       ++samples;
     }
   }
-  return samples
-             ? 1.0 - difference / (qreal(samples) * 4.0 * 255.0)
-             : 1.0;
+  return samples ? 1.0 - difference / (qreal(samples) * 4.0 * 255.0) : 1.0;
 }
 
 QImage isolatedDashImage(c4::C4Scene scene) {
   QVector<c4::C4Primitive> dashed;
   for (c4::C4Primitive primitive : scene.primitives) {
-    if (primitive.dash.isEmpty()) continue;
+    if (primitive.dash.isEmpty())
+      continue;
     primitive.css.stroke = QStringLiteral("#00ff00");
     dashed.append(std::move(primitive));
   }
   scene.primitives = std::move(dashed);
   const QRectF bounds = scene.sceneBounds();
-  QImage image(qCeil(bounds.width()), qCeil(bounds.height()),
-               QImage::Format_ARGB32_Premultiplied);
+  QImage image(qCeil(bounds.width()), qCeil(bounds.height()), QImage::Format_ARGB32_Premultiplied);
   image.fill(Qt::transparent);
   QPainter painter(&image);
   painter.translate(-bounds.left(), -bounds.top());
@@ -112,7 +104,7 @@ QImage isolatedDashImage(c4::C4Scene scene) {
   return image;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -124,18 +116,14 @@ int main(int argc, char** argv) {
   QFile manifestFile(manifestInfo.absoluteFilePath());
   require(manifestFile.open(QIODevice::ReadOnly), manifestFile.errorString());
   const QByteArray manifestBytes = manifestFile.readAll();
-  require(QCryptographicHash::hash(manifestBytes, QCryptographicHash::Sha256)
-                  .toHex() ==
-              QByteArrayLiteral(
-                  "3cf003544858e4753adc724408e26b757795dd5290e5a6bff94574c79d8926f4"),
+  require(QCryptographicHash::hash(manifestBytes, QCryptographicHash::Sha256).toHex() ==
+              QByteArrayLiteral("3cf003544858e4753adc724408e26b757795dd5290e5a6bff94574c79d8926f4"),
           QStringLiteral("C4 pixel manifest bytes drifted"));
   const QJsonObject manifest = QJsonDocument::fromJson(manifestBytes).object();
   require(manifest.value(QStringLiteral("fixtureSha256")).toString() ==
-              QLatin1String(
-                  "dd16b4f9861e31546a97dea10fa089034cb36f0137d9f6c67fc32b0e526cd536"),
+              QLatin1String("dd16b4f9861e31546a97dea10fa089034cb36f0137d9f6c67fc32b0e526cd536"),
           QStringLiteral("C4 pixel fixture provenance drifted"));
-  require(manifest.value(QStringLiteral("provenance")).toObject()
-                  .value(QStringLiteral("version")).toString() ==
+  require(manifest.value(QStringLiteral("provenance")).toObject().value(QStringLiteral("version")).toString() ==
               QLatin1String("11.16.0"),
           QStringLiteral("C4 pixel Mermaid version drifted"));
 
@@ -145,50 +133,37 @@ int main(int argc, char** argv) {
   for (const QJsonValue& value : cases) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
-    const QString pngPath =
-        directory + QLatin1Char('/') +
-        fixture.value(QStringLiteral("file")).toString();
-    require(sha256(pngPath) ==
-                fixture.value(QStringLiteral("sha256")).toString().toLatin1(),
+    const QString pngPath = directory + QLatin1Char('/') + fixture.value(QStringLiteral("file")).toString();
+    require(sha256(pngPath) == fixture.value(QStringLiteral("sha256")).toString().toLatin1(),
             id + QStringLiteral(": browser PNG drifted"));
     const QImage browser(pngPath);
     require(!browser.isNull(), id + QStringLiteral(": browser PNG decode"));
     require(browser.size() ==
-                QSize(fixture.value(QStringLiteral("width")).toInt(),
-                      fixture.value(QStringLiteral("height")).toInt()),
+                QSize(fixture.value(QStringLiteral("width")).toInt(), fixture.value(QStringLiteral("height")).toInt()),
             id + QStringLiteral(": manifest dimensions"));
 
-    const QImage native =
-        renderNative(fixture.value(QStringLiteral("source")).toString());
+    const QImage native = renderNative(fixture.value(QStringLiteral("source")).toString());
     require(!native.isNull(), id + QStringLiteral(": production PNG decode"));
-    require(native.size() == browser.size(),
-            QStringLiteral("%1: canvas %2x%3 != %4x%5")
-                .arg(id)
-                .arg(native.width())
-                .arg(native.height())
-                .arg(browser.width())
-                .arg(browser.height()));
+    require(native.size() == browser.size(), QStringLiteral("%1: canvas %2x%3 != %4x%5")
+                                                 .arg(id)
+                                                 .arg(native.width())
+                                                 .arg(native.height())
+                                                 .arg(browser.width())
+                                                 .arg(browser.height()));
     const qreal iou = alphaIou(native, browser);
     const qreal rgba = foregroundRgba(native, browser);
-    std::fprintf(stderr, "%s IoU %.6f RGBA %.6f\n", qPrintable(id), iou,
-                 rgba);
+    std::fprintf(stderr, "%s IoU %.6f RGBA %.6f\n", qPrintable(id), iou, rgba);
     require(iou >= 0.80, id + QStringLiteral(": alpha IoU regressed"));
-    require(rgba >= 0.80,
-            id + QStringLiteral(": foreground RGBA regressed"));
+    require(rgba >= 0.80, id + QStringLiteral(": foreground RGBA regressed"));
     if (id == QLatin1String("dash-width-4")) {
       const QJsonArray styles = fixture.value(QStringLiteral("dashStyles")).toArray();
       require(styles.size() == 1, id + QStringLiteral(": one dashed boundary expected"));
       const QJsonObject style = styles.first().toObject();
-      require(style.value(QStringLiteral("stroke")).toString() ==
-                  QLatin1String("rgb(0, 255, 0)") &&
-                  style.value(QStringLiteral("strokeWidth")).toString() ==
-                  QLatin1String("4px") &&
-                  style.value(QStringLiteral("strokeDasharray")).toString() ==
-                  QLatin1String("7px, 7px") &&
-                  style.value(QStringLiteral("strokeLinecap")).toString() ==
-                  QLatin1String("butt") &&
-                  style.value(QStringLiteral("strokeLinejoin")).toString() ==
-                  QLatin1String("miter"),
+      require(style.value(QStringLiteral("stroke")).toString() == QLatin1String("rgb(0, 255, 0)") &&
+                  style.value(QStringLiteral("strokeWidth")).toString() == QLatin1String("4px") &&
+                  style.value(QStringLiteral("strokeDasharray")).toString() == QLatin1String("7px, 7px") &&
+                  style.value(QStringLiteral("strokeLinecap")).toString() == QLatin1String("butt") &&
+                  style.value(QStringLiteral("strokeLinejoin")).toString() == QLatin1String("miter"),
               id + QStringLiteral(": browser computed dash contract drifted"));
       editor::MermaidRenderCache cache;
       const QString source = fixture.value(QStringLiteral("source")).toString();
@@ -197,18 +172,15 @@ int main(int argc, char** argv) {
       require(bool(scene), id + QStringLiteral(": native C4 scene missing"));
       int dashedCount = 0;
       for (const c4::C4Primitive& primitive : scene->primitives) {
-        if (primitive.dash.isEmpty()) continue;
+        if (primitive.dash.isEmpty())
+          continue;
         ++dashedCount;
-        require(primitive.dash == QVector<qreal>{7.0, 7.0} &&
-                    primitive.css.strokeWidth == QLatin1String("4px"),
+        require(primitive.dash == QVector<qreal>{7.0, 7.0} && primitive.css.strokeWidth == QLatin1String("4px"),
                 id + QStringLiteral(": native boundary dash model drifted"));
       }
-      require(dashedCount == 1,
-              id + QStringLiteral(": native dashed boundary count drifted"));
-      const QString maskPath = directory + QLatin1Char('/') +
-          fixture.value(QStringLiteral("dashMaskFile")).toString();
-      require(sha256(maskPath) ==
-                  fixture.value(QStringLiteral("dashMaskSha256")).toString().toLatin1(),
+      require(dashedCount == 1, id + QStringLiteral(": native dashed boundary count drifted"));
+      const QString maskPath = directory + QLatin1Char('/') + fixture.value(QStringLiteral("dashMaskFile")).toString();
+      require(sha256(maskPath) == fixture.value(QStringLiteral("dashMaskSha256")).toString().toLatin1(),
               id + QStringLiteral(": browser dash mask hash drifted"));
       const QImage browserMask(maskPath);
       const QImage nativeMask = isolatedDashImage(*scene);
@@ -216,9 +188,7 @@ int main(int argc, char** argv) {
         nativeMask.save(QStringLiteral("build/native-c4-dash-width-4-mask.png"));
       const qreal dashIou = alphaIou(nativeMask, browserMask);
       std::fprintf(stderr, "%s isolated dash IoU %.6f\n", qPrintable(id), dashIou);
-      require(dashIou >= 0.95,
-              QStringLiteral("%1: isolated boundary dash drifted: %2")
-                  .arg(id).arg(dashIou));
+      require(dashIou >= 0.95, QStringLiteral("%1: isolated boundary dash drifted: %2").arg(id).arg(dashIou));
     }
   }
 

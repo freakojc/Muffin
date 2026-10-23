@@ -68,7 +68,8 @@ void testRenderedAdapterBasics() {
   require(iface->state().editable, "state should be editable");
   require(iface->state().multiLine, "state should be multiline");
 
-  QAccessibleTextInterface* text = static_cast<QAccessibleTextInterface*>(iface->interface_cast(QAccessible::TextInterface));
+  QAccessibleTextInterface* text =
+      static_cast<QAccessibleTextInterface*>(iface->interface_cast(QAccessible::TextInterface));
   require(text != nullptr, "text interface should be exposed");
 
   // Boundary queries: line and word.
@@ -78,7 +79,8 @@ void testRenderedAdapterBasics() {
   require(line == QStringLiteral("# Title") && start == 0 && end == 7,
           "line boundary should resolve the containing line");
   // Offset 8 is the empty separator line — an empty piece, which is a valid line.
-  const QString emptyLine = text->textAtOffset(QStringLiteral("# Title\n").size(), QAccessible::LineBoundary, &start, &end);
+  const QString emptyLine =
+      text->textAtOffset(QStringLiteral("# Title\n").size(), QAccessible::LineBoundary, &start, &end);
   require(emptyLine.isEmpty() && start == 8 && end == 8, "empty separator line should resolve empty");
 
   // Word boundary inside "alpha beta gamma": the source starts after "# Title\n\n" (9 units).
@@ -117,7 +119,8 @@ void testSourceModeAdapter() {
   require(iface != nullptr, "source editor should have an accessible interface");
   require(iface->role() == QAccessible::EditableText, "source role should be editable text");
 
-  QAccessibleTextInterface* text = static_cast<QAccessibleTextInterface*>(iface->interface_cast(QAccessible::TextInterface));
+  QAccessibleTextInterface* text =
+      static_cast<QAccessibleTextInterface*>(iface->interface_cast(QAccessible::TextInterface));
   require(text != nullptr, "source text interface should be exposed");
   require(text->characterCount() == QStringLiteral("alpha beta\ngamma").size(),
           "source character count must match the text");
@@ -206,7 +209,7 @@ void testAccessibleEvents() {
   QAccessible::installUpdateHandler(previous);
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {

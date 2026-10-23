@@ -16,6 +16,8 @@ inline void updateViewport(QWidget* viewport, const QRect& rect) {
   viewport->update(rect);
 }
 
-inline void updateViewport(QWidget* viewport) { updateViewport(viewport, viewport->rect()); }
+inline void updateViewport(QWidget* viewport) {
+  updateViewport(viewport, viewport->rect());
+}
 
-}  // namespace muffin::diag
+} // namespace muffin::diag

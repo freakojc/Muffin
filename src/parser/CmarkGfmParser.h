@@ -17,21 +17,22 @@ public:
   ParseResult parseDocument(QStringView markdown, const ParseOptions& options) override;
   ParseResult parseDocumentProfiled(QStringView markdown, const ParseOptions& options);
   ParseResult parseDocumentShared(const std::shared_ptr<const QString>& markdown, const ParseOptions& options,
-                                   bool collectPerformanceMetrics = false);
+                                  bool collectPerformanceMetrics = false);
   ParseResult parseBlock(QStringView markdown, BlockType context, const ParseOptions& options) override;
 
 private:
-  ParseResult parseDocumentImpl(
-      QStringView markdown,
-      const ParseOptions& options,
-      bool collectPerformanceMetrics, std::shared_ptr<const QString> sharedSource = {});
+  ParseResult parseDocumentImpl(QStringView markdown, const ParseOptions& options, bool collectPerformanceMetrics,
+                                std::shared_ptr<const QString> sharedSource = {});
   void ensureExtensionsRegistered();
   void attachExtensions(cmark_parser* parser, const ParseOptions& options);
-  void insertVirtualEmptyParagraphs(QStringView markdown, MarkdownNode& root, const LineStartOffsetCache& lineOffsets) const;
-  void insertVirtualEmptyParagraphsInBlockQuotes(QStringView markdown, MarkdownNode& root, const LineStartOffsetCache& lineOffsets) const;
-  void insertVirtualEmptyParagraphsInLists(QStringView markdown, MarkdownNode& root, const LineStartOffsetCache& lineOffsets) const;
+  void insertVirtualEmptyParagraphs(QStringView markdown, MarkdownNode& root,
+                                    const LineStartOffsetCache& lineOffsets) const;
+  void insertVirtualEmptyParagraphsInBlockQuotes(QStringView markdown, MarkdownNode& root,
+                                                 const LineStartOffsetCache& lineOffsets) const;
+  void insertVirtualEmptyParagraphsInLists(QStringView markdown, MarkdownNode& root,
+                                           const LineStartOffsetCache& lineOffsets) const;
   std::unique_ptr<MarkdownNode> createVirtualEmptyParagraph(int line) const;
   std::unique_ptr<MarkdownNode> createVirtualEmptyParagraph(int line, int column, qsizetype sourceOffset) const;
 };
 
-}  // namespace muffin
+} // namespace muffin

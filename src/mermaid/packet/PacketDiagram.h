@@ -43,9 +43,7 @@ public:
   // parser-side row splitter and in JavaScript arithmetic; strings and booleans
   // therefore have observable behavior that an eager toInt() would erase.
   // Undefined/null/array/object match lodash merge over the numeric default 32.
-  static PacketData parse(
-      const QString& source,
-      const QJsonValue& bitsPerRow = QJsonValue(32.0));
+  static PacketData parse(const QString& source, const QJsonValue& bitsPerRow = QJsonValue(32.0));
 };
 
-}  // namespace muffin::mermaid::packet
+} // namespace muffin::mermaid::packet

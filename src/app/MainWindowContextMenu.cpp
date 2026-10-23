@@ -72,7 +72,8 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
       if (!word.isEmpty() && !checker.isCorrect(word)) {
         const QStringList suggestions = checker.suggestions(word);
         if (suggestions.isEmpty()) {
-          QAction* none = menu.addAction(QCoreApplication::translate("muffin::EditorView", "(no spelling suggestions)"));
+          QAction* none =
+              menu.addAction(QCoreApplication::translate("muffin::EditorView", "(no spelling suggestions)"));
           none->setEnabled(false);
         } else {
           const qsizetype start = seg.start;
@@ -89,7 +90,7 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
         QAction* ignore = menu.addAction(QCoreApplication::translate("muffin::EditorView", "Ignore \"%1\"").arg(word));
         connect(ignore, &QAction::triggered, this, [this, word]() {
           SpellChecker::instance().ignoreWord(word);
-          tab_->renderView->refreshVisibleBlocks(tab_->session.document());  // clear the squiggle on screen
+          tab_->renderView->refreshVisibleBlocks(tab_->session.document()); // clear the squiggle on screen
         });
         menu.addSeparator();
       }
@@ -99,11 +100,9 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
   // ---- [B] Zone-specific head (link / image / table) -------------------------
   if (hit.mermaidRendered) {
     QAction* exportSvg = menu.addAction(tr("Export Mermaid as SVG..."));
-    connect(exportSvg, &QAction::triggered, this,
-            [this, blockId = hit.blockId] { exportMermaidDiagram(blockId); });
+    connect(exportSvg, &QAction::triggered, this, [this, blockId = hit.blockId] { exportMermaidDiagram(blockId); });
     QAction* exportPng = menu.addAction(tr("Export Mermaid as PNG..."));
-    connect(exportPng, &QAction::triggered, this,
-            [this, blockId = hit.blockId] { exportMermaidDiagramPng(blockId); });
+    connect(exportPng, &QAction::triggered, this, [this, blockId = hit.blockId] { exportMermaidDiagramPng(blockId); });
     menu.addSeparator();
   }
   if (!hit.linkHref.isEmpty()) {
@@ -113,18 +112,17 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
     menu.addSeparator();
   } else if (!hit.imageSrc.isEmpty()) {
     QMenu* imageMenu = menu.addMenu(tr("Image"));
-    fill(imageMenu,
-        {QStringLiteral("image.open_location"), QStringLiteral("image.copy_image")});
+    fill(imageMenu, {QStringLiteral("image.open_location"), QStringLiteral("image.copy_image")});
     imageMenu->addSeparator();
     QMenu* resizeMenu = imageMenu->addMenu(tr("Resize"));
-    fill(resizeMenu,
-        {QStringLiteral("image.resize_25"), QStringLiteral("image.resize_50"), QStringLiteral("image.resize_75"),
-         QStringLiteral("image.resize_100"), QStringLiteral("image.resize_150"), QStringLiteral("image.resize_custom")});
+    fill(resizeMenu, {QStringLiteral("image.resize_25"), QStringLiteral("image.resize_50"),
+                      QStringLiteral("image.resize_75"), QStringLiteral("image.resize_100"),
+                      QStringLiteral("image.resize_150"), QStringLiteral("image.resize_custom")});
     QMenu* convertMenu = imageMenu->addMenu(tr("Convert"));
     fill(convertMenu, {QStringLiteral("image.to_standard"), QStringLiteral("image.to_html")});
     imageMenu->addSeparator();
     fill(imageMenu,
-        {QStringLiteral("image.upload"), QStringLiteral("image.move_to"), QStringLiteral("image.delete_image")});
+         {QStringLiteral("image.upload"), QStringLiteral("image.move_to"), QStringLiteral("image.delete_image")});
     menu.addSeparator();
   } else if (hit.zone == HitTestResult::Zone::TableCell) {
     // Same id set + separator grouping as the table toolbar's "more" menu
@@ -136,9 +134,8 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
     tableMenu->addSeparator();
     fill(tableMenu, {QStringLiteral("table.insert_column_before"), QStringLiteral("table.insert_column_after")});
     tableMenu->addSeparator();
-    fill(tableMenu,
-        {QStringLiteral("table.move_row_up"), QStringLiteral("table.move_row_down"),
-         QStringLiteral("table.move_column_left"), QStringLiteral("table.move_column_right")});
+    fill(tableMenu, {QStringLiteral("table.move_row_up"), QStringLiteral("table.move_row_down"),
+                     QStringLiteral("table.move_column_left"), QStringLiteral("table.move_column_right")});
     tableMenu->addSeparator();
     fill(tableMenu, {QStringLiteral("table.delete_row"), QStringLiteral("table.delete_column")});
     tableMenu->addSeparator();
@@ -157,7 +154,7 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
   {
     QMenu* copyAs = menu.addMenu(tr("Copy as"));
     fill(copyAs,
-        {QStringLiteral("edit.copy_markdown"), QStringLiteral("edit.copy_html"), QStringLiteral("edit.copy_plain")});
+         {QStringLiteral("edit.copy_markdown"), QStringLiteral("edit.copy_html"), QStringLiteral("edit.copy_plain")});
   }
   menu.addSeparator();
 
@@ -174,19 +171,17 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
 
   {
     QMenu* paragraph = menu.addMenu(tr("Paragraph"));
-    fill(paragraph,
-        {QStringLiteral("paragraph.heading_1"), QStringLiteral("paragraph.heading_2"), QStringLiteral("paragraph.heading_3"),
-         QStringLiteral("paragraph.heading_4"), QStringLiteral("paragraph.heading_5"), QStringLiteral("paragraph.heading_6")});
+    fill(paragraph, {QStringLiteral("paragraph.heading_1"), QStringLiteral("paragraph.heading_2"),
+                     QStringLiteral("paragraph.heading_3"), QStringLiteral("paragraph.heading_4"),
+                     QStringLiteral("paragraph.heading_5"), QStringLiteral("paragraph.heading_6")});
     paragraph->addSeparator();
     fill(paragraph, {QStringLiteral("paragraph.paragraph"), QStringLiteral("paragraph.quote")});
     paragraph->addSeparator();
-    fill(paragraph,
-        {QStringLiteral("paragraph.ordered_list"), QStringLiteral("paragraph.unordered_list"),
-         QStringLiteral("paragraph.task_list")});
+    fill(paragraph, {QStringLiteral("paragraph.ordered_list"), QStringLiteral("paragraph.unordered_list"),
+                     QStringLiteral("paragraph.task_list")});
     paragraph->addSeparator();
-    fill(paragraph,
-        {QStringLiteral("paragraph.hr"), QStringLiteral("paragraph.code_block"), QStringLiteral("paragraph.math_block"),
-         QStringLiteral("table.insert_table")});
+    fill(paragraph, {QStringLiteral("paragraph.hr"), QStringLiteral("paragraph.code_block"),
+                     QStringLiteral("paragraph.math_block"), QStringLiteral("table.insert_table")});
     paragraph->addSeparator();
     fill(paragraph, {QStringLiteral("paragraph.footnote"), QStringLiteral("paragraph.toc")});
   }
@@ -194,9 +189,8 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
 
   {
     QMenu* select = menu.addMenu(tr("Select"));
-    fill(select,
-        {QStringLiteral("edit.select_word"), QStringLiteral("edit.select_line"), QStringLiteral("edit.select_block"),
-         QStringLiteral("edit.select_format")});
+    fill(select, {QStringLiteral("edit.select_word"), QStringLiteral("edit.select_line"),
+                  QStringLiteral("edit.select_block"), QStringLiteral("edit.select_format")});
   }
   addCommand(QStringLiteral("edit.move_line_up"));
   addCommand(QStringLiteral("edit.move_line_down"));
@@ -210,30 +204,27 @@ void muffin::MainWindow::buildEditorContextMenu(const HitTestResult& hit, QPoint
 
 void muffin::MainWindow::exportMermaidDiagram(NodeId blockId) {
   const MarkdownNode* node = tab_->session.document().node(blockId);
-  if (!node || node->type() != BlockType::CodeFence ||
-      node->codeLanguage() != QLatin1String("mermaid")) {
+  if (!node || node->type() != BlockType::CodeFence || node->codeLanguage() != QLatin1String("mermaid")) {
     return;
   }
 
   const QFileInfo documentInfo(tab_->session.filePath());
   const QString baseName = documentInfo.completeBaseName().isEmpty()
-      ? QStringLiteral("diagram")
-      : documentInfo.completeBaseName() + QStringLiteral("-diagram");
-  const QString directory = tab_->session.filePath().isEmpty()
-      ? defaultSaveDirectory()
-      : documentInfo.absolutePath();
-  const QString initialPath = directory.isEmpty()
-      ? baseName + QStringLiteral(".svg")
-      : QDir(directory).filePath(baseName + QStringLiteral(".svg"));
-  QString path = QFileDialog::getSaveFileName(
-      this, tr("Export As"), initialPath, QStringLiteral("SVG (*.svg)"));
-  if (path.isEmpty()) return;
-  if (QFileInfo(path).suffix().isEmpty()) path += QStringLiteral(".svg");
+                               ? QStringLiteral("diagram")
+                               : documentInfo.completeBaseName() + QStringLiteral("-diagram");
+  const QString directory = tab_->session.filePath().isEmpty() ? defaultSaveDirectory() : documentInfo.absolutePath();
+  const QString initialPath = directory.isEmpty() ? baseName + QStringLiteral(".svg")
+                                                  : QDir(directory).filePath(baseName + QStringLiteral(".svg"));
+  QString path = QFileDialog::getSaveFileName(this, tr("Export As"), initialPath, QStringLiteral("SVG (*.svg)"));
+  if (path.isEmpty())
+    return;
+  if (QFileInfo(path).suffix().isEmpty())
+    path += QStringLiteral(".svg");
 
-  const auto rendered =
-      mermaid::editor::MermaidRenderCache::renderMermaidSourceToSvg(
-          node->literal(), 0, QUrl::fromLocalFile(QFileInfo(path).absoluteFilePath()));
-  if (rendered.svg.isEmpty()) return;
+  const auto rendered = mermaid::editor::MermaidRenderCache::renderMermaidSourceToSvg(
+      node->literal(), 0, QUrl::fromLocalFile(QFileInfo(path).absoluteFilePath()));
+  if (rendered.svg.isEmpty())
+    return;
 
   QSaveFile file(path);
   const bool opened = file.open(QIODevice::WriteOnly);
@@ -243,41 +234,35 @@ void muffin::MainWindow::exportMermaidDiagram(NodeId blockId) {
     QMessageBox::warning(this, tr("Export Failed"), file.errorString());
     return;
   }
-  statusBar()->showMessage(
-      tr("Exported to %1").arg(QDir::toNativeSeparators(path)),
-      5000);
+  statusBar()->showMessage(tr("Exported to %1").arg(QDir::toNativeSeparators(path)), 5000);
 }
 
 void muffin::MainWindow::exportMermaidDiagramPng(NodeId blockId) {
   const MarkdownNode* node = tab_->session.document().node(blockId);
-  if (!node || node->type() != BlockType::CodeFence ||
-      node->codeLanguage() != QLatin1String("mermaid")) {
+  if (!node || node->type() != BlockType::CodeFence || node->codeLanguage() != QLatin1String("mermaid")) {
     return;
   }
 
   const QFileInfo documentInfo(tab_->session.filePath());
   const QString baseName = documentInfo.completeBaseName().isEmpty()
-      ? QStringLiteral("diagram")
-      : documentInfo.completeBaseName() + QStringLiteral("-diagram");
-  const QString directory = tab_->session.filePath().isEmpty()
-      ? defaultSaveDirectory()
-      : documentInfo.absolutePath();
-  const QString initialPath = directory.isEmpty()
-      ? baseName + QStringLiteral(".png")
-      : QDir(directory).filePath(baseName + QStringLiteral(".png"));
-  QString path = QFileDialog::getSaveFileName(
-      this, tr("Export As"), initialPath, QStringLiteral("PNG (*.png)"));
-  if (path.isEmpty()) return;
-  if (QFileInfo(path).suffix().isEmpty()) path += QStringLiteral(".png");
+                               ? QStringLiteral("diagram")
+                               : documentInfo.completeBaseName() + QStringLiteral("-diagram");
+  const QString directory = tab_->session.filePath().isEmpty() ? defaultSaveDirectory() : documentInfo.absolutePath();
+  const QString initialPath = directory.isEmpty() ? baseName + QStringLiteral(".png")
+                                                  : QDir(directory).filePath(baseName + QStringLiteral(".png"));
+  QString path = QFileDialog::getSaveFileName(this, tr("Export As"), initialPath, QStringLiteral("PNG (*.png)"));
+  if (path.isEmpty())
+    return;
+  if (QFileInfo(path).suffix().isEmpty())
+    path += QStringLiteral(".png");
 
   // 2x rasterization matches the HTML export's embedded images; invalid
   // sources export the lightbulb error diagram, exactly like the SVG path.
-  const auto rendered =
-      mermaid::editor::MermaidRenderCache::renderMermaidSourceToPng(node->literal(), 2.0);
+  const auto rendered = mermaid::editor::MermaidRenderCache::renderMermaidSourceToPng(node->literal(), 2.0);
   static const QLatin1String kPngDataUrlPrefix("data:image/png;base64,");
-  if (!rendered.dataUrl.startsWith(kPngDataUrlPrefix)) return;
-  const QByteArray png = QByteArray::fromBase64(
-      rendered.dataUrl.mid(kPngDataUrlPrefix.size()).toLatin1());
+  if (!rendered.dataUrl.startsWith(kPngDataUrlPrefix))
+    return;
+  const QByteArray png = QByteArray::fromBase64(rendered.dataUrl.mid(kPngDataUrlPrefix.size()).toLatin1());
 
   QSaveFile file(path);
   const bool opened = file.open(QIODevice::WriteOnly);
@@ -287,9 +272,7 @@ void muffin::MainWindow::exportMermaidDiagramPng(NodeId blockId) {
     QMessageBox::warning(this, tr("Export Failed"), file.errorString());
     return;
   }
-  statusBar()->showMessage(
-      tr("Exported to %1").arg(QDir::toNativeSeparators(path)),
-      5000);
+  statusBar()->showMessage(tr("Exported to %1").arg(QDir::toNativeSeparators(path)), 5000);
 }
 
 // Sidebar file-tree right-click menu. Built from ad-hoc actions (no command

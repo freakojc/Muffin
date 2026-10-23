@@ -6,4 +6,4 @@ namespace muffin::font_rendering {
 // static regular face. CSS emboldening preserves advances. Return only a
 // verified simulation delta; real bold and variable faces keep their metrics.
 qreal syntheticBoldAdvanceCorrection(const QFont& font);
-}  // namespace muffin::font_rendering
+} // namespace muffin::font_rendering

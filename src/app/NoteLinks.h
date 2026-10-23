@@ -18,9 +18,9 @@ public:
   static bool isMarkdownPath(const QString& path);
   static NodeId headingTarget(const QVector<OutlineEntry>& outline, const QString& fragment);
   // Only AST-confirmed Markdown destinations are edited; code and plain text stay literal.
-  static QString rewrite(const QString& text, const QString& sourcePath,
-                         const QString& oldPath, const QString& newPath, int* count = nullptr);
+  static QString rewrite(const QString& text, const QString& sourcePath, const QString& oldPath, const QString& newPath,
+                         int* count = nullptr);
   static NoteLinkPlan prepare(const QString& root, const QString& oldPath, const QString& newPath,
-                             const OpenSearchBuffers& buffers, const SearchCancellation& cancel);
+                              const OpenSearchBuffers& buffers, const SearchCancellation& cancel);
 };
 }

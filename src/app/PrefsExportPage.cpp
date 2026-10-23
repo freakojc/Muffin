@@ -24,10 +24,10 @@
 
 namespace {
 const QVector<muffin::ExportFormat> formats{
-    muffin::ExportFormat::Pdf, muffin::ExportFormat::Html, muffin::ExportFormat::HtmlPlain,
-    muffin::ExportFormat::Image, muffin::ExportFormat::Docx, muffin::ExportFormat::Odt,
-    muffin::ExportFormat::Rtf, muffin::ExportFormat::Epub, muffin::ExportFormat::Latex,
-    muffin::ExportFormat::MediaWiki, muffin::ExportFormat::Rst, muffin::ExportFormat::Textile,
+    muffin::ExportFormat::Pdf,       muffin::ExportFormat::Html, muffin::ExportFormat::HtmlPlain,
+    muffin::ExportFormat::Image,     muffin::ExportFormat::Docx, muffin::ExportFormat::Odt,
+    muffin::ExportFormat::Rtf,       muffin::ExportFormat::Epub, muffin::ExportFormat::Latex,
+    muffin::ExportFormat::MediaWiki, muffin::ExportFormat::Rst,  muffin::ExportFormat::Textile,
     muffin::ExportFormat::Opml};
 }
 
@@ -63,12 +63,13 @@ muffin::PrefsExportPage::PrefsExportPage(QWidget* parent) : PreferencesPage(pare
 
 void muffin::PrefsExportPage::retranslateUi() {
   const QSignalBlocker blocked(formatList_);
-  const int row = formatList_->currentRow() < 0 ? QSettings().value("export/lastPage", 0).toInt() : formatList_->currentRow();
+  const int row =
+      formatList_->currentRow() < 0 ? QSettings().value("export/lastPage", 0).toInt() : formatList_->currentRow();
   sectionLabel_->setText(tr("Formats"));
   formatList_->setAccessibleName(tr("Formats"));
   formatList_->clear();
-  formatList_->addItems({tr("General"), "PDF", "HTML", tr("HTML (without Styles)"), tr("Image"),
-      "Word (.docx)", "OpenOffice", "RTF", "Epub", "LaTeX", "Media Wiki", "reStructuredText", "Textile", "OPML"});
+  formatList_->addItems({tr("General"), "PDF", "HTML", tr("HTML (without Styles)"), tr("Image"), "Word (.docx)",
+                         "OpenOffice", "RTF", "Epub", "LaTeX", "Media Wiki", "reStructuredText", "Textile", "OPML"});
   for (int i = 0; i < formatList_->count(); ++i)
     formatList_->item(i)->setToolTip(formatList_->item(i)->text());
   formatList_->setCurrentRow(qBound(0, row, formatList_->count() - 1));
@@ -120,7 +121,8 @@ void muffin::PrefsExportPage::rebuildPage() {
     form->addRow(label, field);
     return field;
   };
-  const auto file = [&](const QString& label, const QString& key, const QString& filter, bool directory, const QString& name) {
+  const auto file = [&](const QString& label, const QString& key, const QString& filter, bool directory,
+                        const QString& name) {
     auto* row = new QWidget(card);
     auto* layout = new QHBoxLayout(row);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -133,43 +135,48 @@ void muffin::PrefsExportPage::rebuildPage() {
     layout->addWidget(browse);
     connect(browse, &QPushButton::clicked, this, [this, field, filter, directory, label] {
       const auto path = directory ? QFileDialog::getExistingDirectory(this, label, field->text())
-                                 : QFileDialog::getOpenFileName(this, label, field->text(), filter);
-      if (!path.isEmpty()) field->setText(QDir::toNativeSeparators(path));
+                                  : QFileDialog::getOpenFileName(this, label, field->text(), filter);
+      if (!path.isEmpty())
+        field->setText(QDir::toNativeSeparators(path));
     });
     form->addRow(label, row);
     return row;
   };
-  const auto combo = [&](const QString& label, const QString& key, const QStringList& labels,
-                         const QStringList& values, const QString& fallback, const QString& name = {}) {
+  const auto combo = [&](const QString& label, const QString& key, const QStringList& labels, const QStringList& values,
+                         const QString& fallback, const QString& name = {}) {
     auto* field = new QComboBox(card);
     field->setObjectName(name);
-    for (int i = 0; i < labels.size(); ++i) field->addItem(labels[i], values[i]);
+    for (int i = 0; i < labels.size(); ++i)
+      field->addItem(labels[i], values[i]);
     const int index = field->findData(QSettings().value(key, fallback).toString());
     field->setCurrentIndex(qMax(0, index));
     polishComboBox(field);
-    connect(field, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [field, key] {
-      QSettings().setValue(key, field->currentData());
-    });
+    connect(field, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [field, key] { QSettings().setValue(key, field->currentData()); });
     form->addRow(label, field);
     return field;
   };
-  const auto number = [&](const QString& label, const QString& key, int fallback, int minimum, int maximum, const QString& name = {}) {
+  const auto number = [&](const QString& label, const QString& key, int fallback, int minimum, int maximum,
+                          const QString& name = {}) {
     auto* field = new QSpinBox(card);
     field->setObjectName(name);
     field->setRange(minimum, maximum);
     field->setValue(QSettings().value(key, fallback).toInt());
-    connect(field, QOverload<int>::of(&QSpinBox::valueChanged), this, [key](int value) { QSettings().setValue(key, value); });
+    connect(field, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            [key](int value) { QSettings().setValue(key, value); });
     form->addRow(label, field);
     return field;
   };
-  const auto decimal = [&](const QString& label, const QString& key, double fallback, double minimum, double maximum, const QString& name) {
+  const auto decimal = [&](const QString& label, const QString& key, double fallback, double minimum, double maximum,
+                           const QString& name) {
     auto* field = new QDoubleSpinBox(card);
     field->setObjectName(name);
     field->setDecimals(1);
     field->setRange(minimum, maximum);
     field->setValue(QSettings().value(key, fallback).toDouble());
     field->setSuffix(" mm");
-    connect(field, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [key](double value) { QSettings().setValue(key, value); });
+    connect(field, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+            [key](double value) { QSettings().setValue(key, value); });
     form->addRow(label, field);
     return field;
   };
@@ -179,7 +186,8 @@ void muffin::PrefsExportPage::rebuildPage() {
     field->setMinimumHeight(70);
     field->setMaximumHeight(100);
     field->setPlainText(QSettings().value(key).toString());
-    connect(field, &QPlainTextEdit::textChanged, this, [field, key] { QSettings().setValue(key, field->toPlainText()); });
+    connect(field, &QPlainTextEdit::textChanged, this,
+            [field, key] { QSettings().setValue(key, field->toPlainText()); });
     form->addRow(label, field);
   };
   const int selected = formatList_->currentRow();
@@ -193,7 +201,8 @@ void muffin::PrefsExportPage::rebuildPage() {
     polishComboBox(folder);
     form->addRow(tr("Default Export Folder"), folder);
     const QString documents = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    const auto custom = QSettings().value("export/customFolder", QSettings().value("export/lastCustomFolder", documents)).toString();
+    const auto custom =
+        QSettings().value("export/customFolder", QSettings().value("export/lastCustomFolder", documents)).toString();
     auto* customRow = file(tr("Custom Folder"), "export/customFolder", {}, true, "ExportCustomFolder");
     customRow->findChild<QLineEdit*>()->setText(custom);
     customRow->setEnabled(folder->currentData().toInt() == 2);
@@ -207,7 +216,10 @@ void muffin::PrefsExportPage::rebuildPage() {
     pandocPathEdit_->setPlaceholderText(tr("(Auto-detect)"));
     auto* detect = new QPushButton(tr("Auto-detect"), card);
     form->addRow(QString(), detect);
-    connect(detect, &QPushButton::clicked, this, [this] { pandocPathEdit_->clear(); refreshPandocStatus(); });
+    connect(detect, &QPushButton::clicked, this, [this] {
+      pandocPathEdit_->clear();
+      refreshPandocStatus();
+    });
     pandocStatus_ = makeMutedLabel(card);
     pandocStatus_->setWordWrap(true);
     form->addRow(pandocStatus_);
@@ -220,11 +232,12 @@ void muffin::PrefsExportPage::rebuildPage() {
   const auto p = exportSettingsPrefix(format);
   note(tr("Used when exporting as %1. Changes are saved immediately.").arg(formatList_->currentItem()->text()));
   const auto theme = [&] {
-    combo(tr("Theme"), p + "theme", {tr("Current theme"), tr("Default light theme")}, {"current", "github"}, "current", "ExportTheme");
+    combo(tr("Theme"), p + "theme", {tr("Current theme"), tr("Default light theme")}, {"current", "github"}, "current",
+          "ExportTheme");
   };
   if (format == ExportFormat::Pdf) {
     auto* paper = combo(tr("Page Size"), p + "paper", {"A4", "A5", "Letter", "Legal", tr("Custom...")},
-                       {"A4", "A5", "Letter", "Legal", "Custom"}, "A4", "ExportPdfPaper");
+                        {"A4", "A5", "Letter", "Legal", "Custom"}, "A4", "ExportPdfPaper");
     auto* width = decimal(tr("Width"), p + "width", 210, 50, 1000, "ExportPdfWidth");
     auto* height = decimal(tr("Height"), p + "height", 297, 50, 1000, "ExportPdfHeight");
     const auto custom = [paper, width, height, p] {
@@ -237,8 +250,11 @@ void muffin::PrefsExportPage::rebuildPage() {
         width->setValue(QSettings().value(p + "width", 210).toDouble());
         height->setValue(QSettings().value(p + "height", 297).toDouble());
       } else {
-        const auto size = QPageSize(id == "A5" ? QPageSize::A5 : id == "Letter" ? QPageSize::Letter
-            : id == "Legal" ? QPageSize::Legal : QPageSize::A4).size(QPageSize::Millimeter);
+        const auto size = QPageSize(id == "A5"       ? QPageSize::A5
+                                    : id == "Letter" ? QPageSize::Letter
+                                    : id == "Legal"  ? QPageSize::Legal
+                                                     : QPageSize::A4)
+                              .size(QPageSize::Millimeter);
         width->setValue(size.width());
         height->setValue(size.height());
       }
@@ -252,10 +268,12 @@ void muffin::PrefsExportPage::rebuildPage() {
     check(tr("Start each level-one heading on a new page"), p + "breakOnHeading", false, "ExportPdfHeadingBreak");
   } else if (format == ExportFormat::Html || format == ExportFormat::HtmlPlain) {
     check(tr("Include a table of contents"), p + "outline", false, "ExportHtmlOutline");
-    if (format == ExportFormat::Html) theme();
+    if (format == ExportFormat::Html)
+      theme();
     multiline(tr("Add to <head>"), p + "head", "ExportHtmlHead");
     multiline(tr("Add before document content"), p + "body", "ExportHtmlBody");
-    if (format == ExportFormat::HtmlPlain) note(tr("Muffin adds no theme stylesheet to this format."));
+    if (format == ExportFormat::HtmlPlain)
+      note(tr("Muffin adds no theme stylesheet to this format."));
   } else if (format == ExportFormat::Image) {
     number(tr("Width (px)"), p + "width", 960, 320, 2400, "ExportImageWidth");
     combo(tr("Output Scale"), p + "scale", {"1×", "2×", "3×"}, {"1", "2", "3"}, "1", "ExportImageScale");
@@ -265,15 +283,18 @@ void muffin::PrefsExportPage::rebuildPage() {
   } else {
     note(tr("Requires Pandoc. Configure its path under General."));
     if (format == ExportFormat::Docx || format == ExportFormat::Odt)
-      file(tr("Reference Document"), p + "referenceDocument", format == ExportFormat::Docx ? "Word (*.docx)" : "OpenDocument (*.odt)", false, "ExportReferenceDocument");
-    if (format == ExportFormat::Epub) file(tr("Custom CSS"), p + "css", "CSS (*.css)", false, "ExportEpubCss");
-    if (format == ExportFormat::Docx || format == ExportFormat::Odt || format == ExportFormat::Epub
-        || format == ExportFormat::Latex || format == ExportFormat::Rtf || format == ExportFormat::Opml) {
+      file(tr("Reference Document"), p + "referenceDocument",
+           format == ExportFormat::Docx ? "Word (*.docx)" : "OpenDocument (*.odt)", false, "ExportReferenceDocument");
+    if (format == ExportFormat::Epub)
+      file(tr("Custom CSS"), p + "css", "CSS (*.css)", false, "ExportEpubCss");
+    if (format == ExportFormat::Docx || format == ExportFormat::Odt || format == ExportFormat::Epub ||
+        format == ExportFormat::Latex || format == ExportFormat::Rtf || format == ExportFormat::Opml) {
       edit(tr("Title"), p + "title", "ExportTitle");
-      if (format != ExportFormat::Opml) edit(tr("Author"), p + "author", "ExportAuthor");
+      if (format != ExportFormat::Opml)
+        edit(tr("Author"), p + "author", "ExportAuthor");
     }
-    if (format == ExportFormat::Docx || format == ExportFormat::Odt || format == ExportFormat::Epub
-        || format == ExportFormat::Latex || format == ExportFormat::Rtf) {
+    if (format == ExportFormat::Docx || format == ExportFormat::Odt || format == ExportFormat::Epub ||
+        format == ExportFormat::Latex || format == ExportFormat::Rtf) {
       auto* toc = check(tr("Include a table of contents"), p + "toc", false, "ExportPandocToc");
       auto* depth = number(tr("TOC Depth"), p + "tocDepth", 3, 1, 6, "ExportTocDepth");
       depth->setEnabled(toc->isChecked());
@@ -281,8 +302,8 @@ void muffin::PrefsExportPage::rebuildPage() {
     }
     if (format == ExportFormat::Docx || format == ExportFormat::Odt || format == ExportFormat::Latex)
       check(tr("Number sections"), p + "numberSections", false, "ExportNumberSections");
-    if (format == ExportFormat::Latex || format == ExportFormat::MediaWiki || format == ExportFormat::Rst
-        || format == ExportFormat::Textile || format == ExportFormat::Opml)
+    if (format == ExportFormat::Latex || format == ExportFormat::MediaWiki || format == ExportFormat::Rst ||
+        format == ExportFormat::Textile || format == ExportFormat::Opml)
       combo(tr("Line Wrapping"), p + "wrap", {tr("Do not wrap"), tr("Automatic"), tr("Preserve source wrapping")},
             {"none", "auto", "preserve"}, "none", "ExportWrap");
     edit(tr("Additional Pandoc Arguments"), p + "arguments", "ExportPandocArguments");
@@ -291,20 +312,24 @@ void muffin::PrefsExportPage::rebuildPage() {
   auto* after = makeSectionLabel(card);
   after->setText(tr("After Export"));
   form->addRow(after);
-  check(tr("Open the exported file directory"), p + "openDirectory", QSettings().value("export/openAfterExport", false).toBool(), "ExportOpenDirectory");
+  check(tr("Open the exported file directory"), p + "openDirectory",
+        QSettings().value("export/openAfterExport", false).toBool(), "ExportOpenDirectory");
   check(tr("Open the exported file"), p + "openFile", false, "ExportOpenFile");
 }
 
 void muffin::PrefsExportPage::refreshPandocStatus() {
-  if (!pandocPathEdit_ || !pandocStatus_) return;
+  if (!pandocPathEdit_ || !pandocStatus_)
+    return;
   const auto configured = pandocPathEdit_->text().trimmed();
   if (!configured.isEmpty()) {
     pandocStatus_->setText(QFileInfo(configured).isFile() && QFileInfo(configured).isExecutable()
-        ? tr("Using: %1").arg(QDir::toNativeSeparators(configured)) : tr("Not a valid executable; will auto-detect."));
+                               ? tr("Using: %1").arg(QDir::toNativeSeparators(configured))
+                               : tr("Not a valid executable; will auto-detect."));
     return;
   }
   QString resolved = PandocRunner::resolvedExecutable();
-  if (resolved == "pandoc") resolved = PandocRunner::resolveOnPath();
+  if (resolved == "pandoc")
+    resolved = PandocRunner::resolveOnPath();
   pandocStatus_->setText(resolved.isEmpty() ? tr("Pandoc was not found. Install it, or click Browse to locate.")
-      : tr("Detected: %1").arg(QDir::toNativeSeparators(resolved)));
+                                            : tr("Detected: %1").arg(QDir::toNativeSeparators(resolved)));
 }

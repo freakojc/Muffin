@@ -13,21 +13,30 @@ CssThemeSheet documentStyleSheet(const CssThemeSheet& author);
 // Theme compatibility classes describe the Markdown host, rather than a
 // selector-matching exception. Prototypes and live nodes use this same contract.
 inline void addDocumentHostClasses(CssElement& element) {
-  if (element.tag.size() == 2 && element.tag[0] == QLatin1Char('h') &&
-      element.tag[1] >= QLatin1Char('1') && element.tag[1] <= QLatin1Char('6'))
+  if (element.tag.size() == 2 && element.tag[0] == QLatin1Char('h') && element.tag[1] >= QLatin1Char('1') &&
+      element.tag[1] <= QLatin1Char('6'))
     element.classes << QStringLiteral("md-heading");
-  if (element.tag == QStringLiteral("pre")) element.classes << QStringLiteral("md-fences");
+  if (element.tag == QStringLiteral("pre"))
+    element.classes << QStringLiteral("md-fences");
 }
 
 inline QString markdownInlineKind(const QString& tag) {
-  if (tag == "strong") return QStringLiteral("strong");
-  if (tag == "em") return QStringLiteral("em");
-  if (tag == "code") return QStringLiteral("code");
-  if (tag == "a") return QStringLiteral("link");
-  if (tag == "del") return QStringLiteral("strike");
-  if (tag == "mark") return QStringLiteral("highlight");
-  if (tag == "sub") return QStringLiteral("sub");
-  if (tag == "sup") return QStringLiteral("sup");
+  if (tag == "strong")
+    return QStringLiteral("strong");
+  if (tag == "em")
+    return QStringLiteral("em");
+  if (tag == "code")
+    return QStringLiteral("code");
+  if (tag == "a")
+    return QStringLiteral("link");
+  if (tag == "del")
+    return QStringLiteral("strike");
+  if (tag == "mark")
+    return QStringLiteral("highlight");
+  if (tag == "sub")
+    return QStringLiteral("sub");
+  if (tag == "sup")
+    return QStringLiteral("sup");
   return {};
 }
 
@@ -56,7 +65,7 @@ struct DocumentStyleHost {
 };
 
 class DocumentStylePrototypes {
- public:
+public:
   DocumentStyleHost host;
 
   // Immutable prototypes may cache while the mapper owns them. When borrowing
@@ -71,12 +80,17 @@ class DocumentStylePrototypes {
   }
 
   const CssElement& element(const QString& key) {
-    if (key == QStringLiteral("html")) return host.html;
-    if (key == QStringLiteral("body")) return host.body;
-    if (key == QStringLiteral("content")) return host.content;
-    if (key == QStringLiteral("#write")) return host.write;
+    if (key == QStringLiteral("html"))
+      return host.html;
+    if (key == QStringLiteral("body"))
+      return host.body;
+    if (key == QStringLiteral("content"))
+      return host.content;
+    if (key == QStringLiteral("#write"))
+      return host.write;
     const auto found = elements_.constFind(key);
-    if (found != elements_.constEnd()) return *found.value();
+    if (found != elements_.constEnd())
+      return *found.value();
     auto value = std::make_shared<CssElement>();
     elements_.insert(key, value);
     const qsizetype pseudo = key.indexOf(QStringLiteral("::"));
@@ -93,15 +107,22 @@ class DocumentStylePrototypes {
         value->tag = QStringLiteral("span");
       }
       QString parentKey = space >= 0 ? key.left(space) : QStringLiteral("#write");
-      if (key == QStringLiteral("code") || key == QStringLiteral("kbd") || key == QStringLiteral("a") || key == QStringLiteral("mark") ||
-          key == QStringLiteral("del") || key == QStringLiteral("em") || key == QStringLiteral("strong"))
+      if (key == QStringLiteral("code") || key == QStringLiteral("kbd") || key == QStringLiteral("a") ||
+          key == QStringLiteral("mark") || key == QStringLiteral("del") || key == QStringLiteral("em") ||
+          key == QStringLiteral("strong"))
         parentKey = QStringLiteral("p");
-      if (key == QStringLiteral("li")) parentKey = QStringLiteral("ul");
-      if (key == QStringLiteral("thead") || key == QStringLiteral("tbody")) parentKey = QStringLiteral("table");
-      if (key == QStringLiteral("th")) parentKey = QStringLiteral("thead tr");
-      if (key == QStringLiteral("td")) parentKey = QStringLiteral("tbody tr");
-      if (key == QStringLiteral("table")) parentKey = QStringLiteral(".table-figure");
-      if (key == QStringLiteral(".table-figure")) value->tag = QStringLiteral("figure");
+      if (key == QStringLiteral("li"))
+        parentKey = QStringLiteral("ul");
+      if (key == QStringLiteral("thead") || key == QStringLiteral("tbody"))
+        parentKey = QStringLiteral("table");
+      if (key == QStringLiteral("th"))
+        parentKey = QStringLiteral("thead tr");
+      if (key == QStringLiteral("td"))
+        parentKey = QStringLiteral("tbody tr");
+      if (key == QStringLiteral("table"))
+        parentKey = QStringLiteral(".table-figure");
+      if (key == QStringLiteral(".table-figure"))
+        value->tag = QStringLiteral("figure");
       if (key == QStringLiteral("pre") || key == QStringLiteral(".md-fences")) {
         value->tag = QStringLiteral("pre");
         value->classes.clear();
@@ -114,27 +135,32 @@ class DocumentStylePrototypes {
         wrapper->tag = QStringLiteral("span");
         wrapper->attributes.insert(QStringLiteral("md-inline"), kind);
         wrapper->parent = value->parent;
-        if (cacheable_) wrapper->cacheId = nextCssElementIdentity();
+        if (cacheable_)
+          wrapper->cacheId = nextCssElementIdentity();
         value->parent = wrapper.get();
         wrappers_.insert(key, std::move(wrapper));
       }
-      if (parentKey == "pre" && value->tag == "code") value->classes << QStringLiteral("md-fencescode");
+      if (parentKey == "pre" && value->tag == "code")
+        value->classes << QStringLiteral("md-fencescode");
     }
-    if (cacheable_) value->cacheId = nextCssElementIdentity();
+    if (cacheable_)
+      value->cacheId = nextCssElementIdentity();
     return *value;
   }
 
   QVector<quint64> cacheIdentities() const {
     QVector<quint64> ids{host.html.cacheId, host.body.cacheId, host.content.cacheId, host.write.cacheId};
-    for (const auto& element : elements_) ids.append(element->cacheId);
-    for (const auto& wrapper : wrappers_) ids.append(wrapper->cacheId);
+    for (const auto& element : elements_)
+      ids.append(element->cacheId);
+    for (const auto& wrapper : wrappers_)
+      ids.append(wrapper->cacheId);
     return ids;
   }
 
- private:
+private:
   bool cacheable_ = false;
   QHash<QString, std::shared_ptr<CssElement>> elements_;
   QHash<QString, std::shared_ptr<CssElement>> wrappers_;
 };
 
-}  // namespace muffin
+} // namespace muffin

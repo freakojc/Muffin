@@ -78,4 +78,4 @@ struct ImgTagLocation {
 };
 ImgTagLocation findImgTag(QStringView source);
 
-}  // namespace muffin::image_syntax
+} // namespace muffin::image_syntax

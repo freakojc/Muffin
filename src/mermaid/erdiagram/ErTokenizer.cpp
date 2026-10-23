@@ -39,15 +39,14 @@ bool isErIdentifierStart(QChar character) {
 }
 
 bool isErIdentifierBody(QChar character) {
-  return character.isLetterOrNumber() || character == QLatin1Char('_') ||
-         character == QLatin1Char('-') || character.category() == QChar::Mark_NonSpacing;
+  return character.isLetterOrNumber() || character == QLatin1Char('_') || character == QLatin1Char('-') ||
+         character.category() == QChar::Mark_NonSpacing;
 }
 
 // Word-boundary test for the `erDiagram` header: the keyword must not be the
 // prefix of a longer identifier (e.g. `erDiagramX` is an identifier).
 bool isErWordBoundary(QChar character) {
-  return !character.isLetterOrNumber() && character != QLatin1Char('_') &&
-         character != QLatin1Char('-');
+  return !character.isLetterOrNumber() && character != QLatin1Char('_') && character != QLatin1Char('-');
 }
 
 // The seven crow's-foot cardinality glyphs (2 chars each). ExactlyOne (`||`)
@@ -56,9 +55,8 @@ bool isErWordBoundary(QChar character) {
 // the dotted connector `..` informally — `..` is a Dot connector token here,
 // not a Cardinality, so only these seven are Cardinality.
 bool isErCardinalityGlyph(QStringView pair) {
-  return pair == QLatin1String("||") || pair == QLatin1String("|o") ||
-         pair == QLatin1String("o|") || pair == QLatin1String("}|") ||
-         pair == QLatin1String("|{") || pair == QLatin1String("}o") ||
+  return pair == QLatin1String("||") || pair == QLatin1String("|o") || pair == QLatin1String("o|") ||
+         pair == QLatin1String("}|") || pair == QLatin1String("|{") || pair == QLatin1String("}o") ||
          pair == QLatin1String("o{");
 }
 
@@ -69,12 +67,14 @@ bool isErCardinalityGlyph(QStringView pair) {
 bool atErLineStart(const QString& source, qsizetype offset) {
   for (qsizetype i = offset - 1; i >= 0; --i) {
     const QChar character = source[i];
-    if (character == QLatin1Char('\n') || character == QLatin1Char('\r')) return true;
-    if (!character.isSpace()) return false;
+    if (character == QLatin1Char('\n') || character == QLatin1Char('\r'))
+      return true;
+    if (!character.isSpace())
+      return false;
   }
   return true;
 }
-}  // namespace
+} // namespace
 
 void muffin::mermaid::er::ErTokenizer::advance(QStringView text) {
   // Line tracking that survives all three newline spellings. `\r\n` bumps the
@@ -84,7 +84,8 @@ void muffin::mermaid::er::ErTokenizer::advance(QStringView text) {
   for (qsizetype i = 0; i < text.size(); ++i) {
     const QChar character = text[i];
     if (character == QLatin1Char('\r')) {
-      if (i + 1 < text.size() && text[i + 1] == QLatin1Char('\n')) continue;  // CRLF: LF bumps below
+      if (i + 1 < text.size() && text[i + 1] == QLatin1Char('\n'))
+        continue; // CRLF: LF bumps below
       ++line_;
       column_ = 0;
       continue;
@@ -99,15 +100,16 @@ void muffin::mermaid::er::ErTokenizer::advance(QStringView text) {
   offset_ += text.size();
 }
 
-muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::make(
-    ErTokenKind kind, qsizetype length, bool stripDelimiters) {
+muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::make(ErTokenKind kind, qsizetype length,
+                                                                    bool stripDelimiters) {
   const qsizetype start = offset_;
   const int line = line_;
   const int column = column_;
   const QStringView raw = QStringView(source_).mid(start, length);
   advance(raw);
   QString text = raw.toString();
-  if (stripDelimiters && text.size() >= 2) text = text.mid(1, text.size() - 2);
+  if (stripDelimiters && text.size() >= 2)
+    text = text.mid(1, text.size() - 2);
   ErToken token;
   token.kind = kind;
   token.text = std::move(text);
@@ -124,7 +126,8 @@ muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::makeInvalid(qsize
 
 QChar muffin::mermaid::er::ErTokenizer::peek(qsizetype ahead) const {
   const qsizetype index = offset_ + ahead;
-  if (index < source_.size()) return source_[index];
+  if (index < source_.size())
+    return source_[index];
   return QChar();
 }
 
@@ -147,14 +150,15 @@ muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::next() {
       return make(ErTokenKind::Newline, 2);
     return make(ErTokenKind::Newline, 1);
   }
-  if (current == QLatin1Char('\n')) return make(ErTokenKind::Newline, 1);
+  if (current == QLatin1Char('\n'))
+    return make(ErTokenKind::Newline, 1);
 
   // 2. Space run (any non-newline whitespace). The run is preserved as the token
   //    text so ErTokenCursor::raw() can rebuild inter-token spacing verbatim.
   if (current.isSpace()) {
     qsizetype end = offset_ + 1;
-    while (end < source_.size() && source_[end].isSpace() &&
-           source_[end] != QLatin1Char('\r') && source_[end] != QLatin1Char('\n'))
+    while (end < source_.size() && source_[end].isSpace() && source_[end] != QLatin1Char('\r') &&
+           source_[end] != QLatin1Char('\n'))
       ++end;
     return make(ErTokenKind::Space, end - offset_);
   }
@@ -164,8 +168,7 @@ muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::next() {
   // 3. Line comment: %% to end of line. Text is the body after `%%`, trimmed.
   if (rest.startsWith(QLatin1String("%%"))) {
     qsizetype end = offset_ + 2;
-    while (end < source_.size() && source_[end] != QLatin1Char('\r') &&
-           source_[end] != QLatin1Char('\n'))
+    while (end < source_.size() && source_[end] != QLatin1Char('\r') && source_[end] != QLatin1Char('\n'))
       ++end;
     ErToken token = make(ErTokenKind::Comment, end - offset_);
     token.text = token.text.size() >= 2 ? token.text.mid(2).trimmed() : QString();
@@ -178,7 +181,8 @@ muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::next() {
     qsizetype end = offset_ + 1;
     while (end < source_.size() && source_[end] != QLatin1Char('"'))
       ++end;
-    if (end >= source_.size()) return makeInvalid(source_.size() - offset_);
+    if (end >= source_.size())
+      return makeInvalid(source_.size() - offset_);
     return make(ErTokenKind::QuotedText, end - offset_ + 1, /*stripDelimiters=*/true);
   }
 
@@ -192,7 +196,8 @@ muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::next() {
     qsizetype end = offset_ + 1;
     while (end < source_.size() && source_[end] != QLatin1Char('`'))
       ++end;
-    if (end >= source_.size()) return makeInvalid(source_.size() - offset_);
+    if (end >= source_.size())
+      return makeInvalid(source_.size() - offset_);
     return make(ErTokenKind::Identifier, end - offset_ + 1, /*stripDelimiters=*/true);
   }
 
@@ -215,11 +220,13 @@ muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::next() {
   //    `o` + `{`/`|`. A lone `|` (no 2-char glyph) is Invalid; a `}` not
   //    starting a glyph is CloseBrace; an `o` not starting a glyph falls
   //    through to Identifier.
-  if (current == QLatin1Char('|') || current == QLatin1Char('}') ||
-      current == QLatin1Char('o')) {
-    if (isErCardinalityGlyph(rest.left(2))) return make(ErTokenKind::Cardinality, 2);
-    if (current == QLatin1Char('|')) return makeInvalid(1);
-    if (current == QLatin1Char('}')) return make(ErTokenKind::CloseBrace, 1);
+  if (current == QLatin1Char('|') || current == QLatin1Char('}') || current == QLatin1Char('o')) {
+    if (isErCardinalityGlyph(rest.left(2)))
+      return make(ErTokenKind::Cardinality, 2);
+    if (current == QLatin1Char('|'))
+      return makeInvalid(1);
+    if (current == QLatin1Char('}'))
+      return make(ErTokenKind::CloseBrace, 1);
     // current == 'o': fall through to Identifier.
   }
 
@@ -231,7 +238,8 @@ muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::next() {
   //    follows (and `??` alone never starts an Identifier).
   if (isErIdentifierStart(current)) {
     qsizetype end = offset_ + 1;
-    while (end < source_.size() && isErIdentifierBody(source_[end])) ++end;
+    while (end < source_.size() && isErIdentifierBody(source_[end]))
+      ++end;
     if (end < source_.size() && source_[end] == QLatin1Char('?') &&
         (end + 1 >= source_.size() || !isErIdentifierBody(source_[end + 1]))) {
       ++end;
@@ -243,7 +251,8 @@ muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::next() {
   //    connector). Only reached when the dash is not internal to an Identifier.
   if (current == QLatin1Char('-')) {
     qsizetype end = offset_ + 1;
-    while (end < source_.size() && source_[end] == QLatin1Char('-')) ++end;
+    while (end < source_.size() && source_[end] == QLatin1Char('-'))
+      ++end;
     return make(ErTokenKind::Hyphen, end - offset_);
   }
 
@@ -251,20 +260,21 @@ muffin::mermaid::er::ErToken muffin::mermaid::er::ErTokenizer::next() {
   //    connector).
   if (current == QLatin1Char('.')) {
     qsizetype end = offset_ + 1;
-    while (end < source_.size() && source_[end] == QLatin1Char('.')) ++end;
+    while (end < source_.size() && source_[end] == QLatin1Char('.'))
+      ++end;
     return make(ErTokenKind::Dot, end - offset_);
   }
 
   // 10. Single-character punctuation.
   switch (current.unicode()) {
-    case '{':
-      return make(ErTokenKind::OpenBrace, 1);
-    case ':':
-      return make(ErTokenKind::Colon, 1);
-    case ',':
-      return make(ErTokenKind::Comma, 1);
-    default:
-      break;
+  case '{':
+    return make(ErTokenKind::OpenBrace, 1);
+  case ':':
+    return make(ErTokenKind::Colon, 1);
+  case ',':
+    return make(ErTokenKind::Comma, 1);
+  default:
+    break;
   }
 
   // 11. Unrecognized character — Invalid, advance one (parser raises
@@ -280,13 +290,11 @@ QVector<muffin::mermaid::er::ErToken> muffin::mermaid::er::ErTokenizer::tokenize
   return result;
 }
 
-muffin::mermaid::er::ErTokenCursor::ErTokenCursor(const QVector<ErToken>& tokens,
-                                                   qsizetype begin, qsizetype end)
-    : tokens_(&tokens), position_(begin),
-      end_(end < 0 ? tokens.size() : std::min(end, tokens.size())) {}
+muffin::mermaid::er::ErTokenCursor::ErTokenCursor(const QVector<ErToken>& tokens, qsizetype begin, qsizetype end)
+    : tokens_(&tokens), position_(begin), end_(end < 0 ? tokens.size() : std::min(end, tokens.size())) {
+}
 
-const muffin::mermaid::er::ErToken& muffin::mermaid::er::ErTokenCursor::peek(
-    qsizetype lookahead) const {
+const muffin::mermaid::er::ErToken& muffin::mermaid::er::ErTokenCursor::peek(qsizetype lookahead) const {
   const qsizetype index = position_ + lookahead;
   if (!tokens_ || index < 0 || index >= end_)
     throw std::out_of_range("er token cursor reached the end");
@@ -300,13 +308,15 @@ const muffin::mermaid::er::ErToken& muffin::mermaid::er::ErTokenCursor::consume(
 }
 
 bool muffin::mermaid::er::ErTokenCursor::match(ErTokenKind kind) {
-  if (atEnd() || peek().kind != kind) return false;
+  if (atEnd() || peek().kind != kind)
+    return false;
   consume();
   return true;
 }
 
 bool muffin::mermaid::er::ErTokenCursor::matchWord(QStringView word) {
-  if (atEnd() || peek().kind != ErTokenKind::Identifier || peek().text != word) return false;
+  if (atEnd() || peek().kind != ErTokenKind::Identifier || peek().text != word)
+    return false;
   consume();
   return true;
 }
@@ -322,7 +332,8 @@ muffin::mermaid::er::ErTokenCursor muffin::mermaid::er::ErTokenCursor::consumeLi
   while (!atEnd() && peek().kind != ErTokenKind::Newline && peek().kind != ErTokenKind::Eof)
     ++position_;
   const qsizetype end = position_;
-  if (!atEnd() && peek().kind == ErTokenKind::Newline) ++position_;
+  if (!atEnd() && peek().kind == ErTokenKind::Newline)
+    ++position_;
   return ErTokenCursor(*tokens_, begin, end);
 }
 
@@ -330,9 +341,9 @@ QString muffin::mermaid::er::ErTokenCursor::raw(const QString& source) const {
   return rawFrom(source, position_);
 }
 
-QString muffin::mermaid::er::ErTokenCursor::rawFrom(const QString& source,
-                                                    qsizetype position) const {
-  if (!tokens_ || position < 0 || position >= end_) return {};
+QString muffin::mermaid::er::ErTokenCursor::rawFrom(const QString& source, qsizetype position) const {
+  if (!tokens_ || position < 0 || position >= end_)
+    return {};
   const ErToken& first = (*tokens_)[position];
   const ErToken& last = (*tokens_)[end_ - 1];
   const qsizetype length = (last.offset + last.text.size()) - first.offset;
@@ -341,44 +352,44 @@ QString muffin::mermaid::er::ErTokenCursor::rawFrom(const QString& source,
 
 QString muffin::mermaid::er::erTokenName(ErTokenKind kind) {
   switch (kind) {
-    case ErTokenKind::Eof:
-      return QStringLiteral("EOF");
-    case ErTokenKind::Newline:
-      return QStringLiteral("NEWLINE");
-    case ErTokenKind::Space:
-      return QStringLiteral("SPACE");
-    case ErTokenKind::ErHeader:
-      return QStringLiteral("ER_DIAGRAM");
-    case ErTokenKind::Identifier:
-      return QStringLiteral("ALPHA");
-    case ErTokenKind::QuotedText:
-      return QStringLiteral("STR");
-    case ErTokenKind::Cardinality:
-      return QStringLiteral("CARDINALITY");
-    case ErTokenKind::Hyphen:
-      return QStringLiteral("HYPHEN");
-    case ErTokenKind::Dot:
-      return QStringLiteral("DOT");
-    case ErTokenKind::OpenBrace:
-      return QStringLiteral("LBRACE");
-    case ErTokenKind::CloseBrace:
-      return QStringLiteral("RBRACE");
-    case ErTokenKind::Colon:
-      return QStringLiteral("COLON");
-    case ErTokenKind::Comma:
-      return QStringLiteral("COMMA");
-    case ErTokenKind::KeyPK:
-      return QStringLiteral("PK");
-    case ErTokenKind::KeyFK:
-      return QStringLiteral("FK");
-    case ErTokenKind::KeyUK:
-      return QStringLiteral("UK");
-    case ErTokenKind::Comment:
-      return QStringLiteral("COMMENT");
-    case ErTokenKind::Invalid:
-      return QStringLiteral("INVALID");
-    case ErTokenKind::Unknown:
-      return QStringLiteral("UNKNOWN");
+  case ErTokenKind::Eof:
+    return QStringLiteral("EOF");
+  case ErTokenKind::Newline:
+    return QStringLiteral("NEWLINE");
+  case ErTokenKind::Space:
+    return QStringLiteral("SPACE");
+  case ErTokenKind::ErHeader:
+    return QStringLiteral("ER_DIAGRAM");
+  case ErTokenKind::Identifier:
+    return QStringLiteral("ALPHA");
+  case ErTokenKind::QuotedText:
+    return QStringLiteral("STR");
+  case ErTokenKind::Cardinality:
+    return QStringLiteral("CARDINALITY");
+  case ErTokenKind::Hyphen:
+    return QStringLiteral("HYPHEN");
+  case ErTokenKind::Dot:
+    return QStringLiteral("DOT");
+  case ErTokenKind::OpenBrace:
+    return QStringLiteral("LBRACE");
+  case ErTokenKind::CloseBrace:
+    return QStringLiteral("RBRACE");
+  case ErTokenKind::Colon:
+    return QStringLiteral("COLON");
+  case ErTokenKind::Comma:
+    return QStringLiteral("COMMA");
+  case ErTokenKind::KeyPK:
+    return QStringLiteral("PK");
+  case ErTokenKind::KeyFK:
+    return QStringLiteral("FK");
+  case ErTokenKind::KeyUK:
+    return QStringLiteral("UK");
+  case ErTokenKind::Comment:
+    return QStringLiteral("COMMENT");
+  case ErTokenKind::Invalid:
+    return QStringLiteral("INVALID");
+  case ErTokenKind::Unknown:
+    return QStringLiteral("UNKNOWN");
   }
   return QStringLiteral("UNKNOWN");
 }

@@ -48,7 +48,7 @@ enum class CommandCategory {
 struct CommandDeclaration {
   QString id;
   CommandCategory category = CommandCategory::Other;
-  QString text;        // label, authored as muffin::MainWindow::tr(...)
+  QString text; // label, authored as muffin::MainWindow::tr(...)
   QKeySequence shortcut;
   bool checkable = false;
   bool checkedInitial = false;
@@ -92,12 +92,12 @@ enum class DynamicMenu {
   RecentFiles,
   ReopenEncoding,
   DeleteRange,
-  Themes,  // top-level Theme menu: enumerated from ThemeManager::themes()
+  Themes, // top-level Theme menu: enumerated from ThemeManager::themes()
 };
 
 struct MenuItem {
   enum class Kind {
-    Action,             // a registered command, looked up by commandId
+    Action, // a registered command, looked up by commandId
     Separator,
     Submenu,            // nested menu with static children
     PlaceholderSubmenu, // disabled menu (future feature), title only
@@ -105,17 +105,17 @@ struct MenuItem {
   };
   Kind kind = Kind::Action;
 
-  QString commandId;               // Action
-  QString title;                   // Submenu / PlaceholderSubmenu
-  std::vector<MenuItem> children;  // Submenu
-  bool hidden = false;             // Submenu: created with menuAction() hidden
-  DynamicMenu dynamicId = DynamicMenu::None;  // DynamicSubmenu
+  QString commandId;                         // Action
+  QString title;                             // Submenu / PlaceholderSubmenu
+  std::vector<MenuItem> children;            // Submenu
+  bool hidden = false;                       // Submenu: created with menuAction() hidden
+  DynamicMenu dynamicId = DynamicMenu::None; // DynamicSubmenu
 };
 
 struct MenuSpec {
-  QString title;  // top-level menu title (tr())
+  QString title; // top-level menu title (tr())
   std::vector<MenuItem> items;
-  bool hidden = false;  // top-level menu created hidden (Table/Code/Math/Html)
+  bool hidden = false; // top-level menu created hidden (Table/Code/Math/Html)
   // When not None, buildMenus captures this top-level menu into the matching
   // MainWindow member for dynamic population (e.g. the Theme menu, which is
   // enumerated from ThemeManager::themes() at runtime rather than a fixed
@@ -127,4 +127,4 @@ struct MenuSpec {
 // items in the order they appear, with explicit separators.
 const std::vector<MenuSpec>& mainMenuSpec();
 
-}  // namespace muffin
+} // namespace muffin

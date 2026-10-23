@@ -47,10 +47,8 @@ constexpr QRgb kCatBoundary = 0xFF000107u;
 // `fontFamily` overrides the scene's per-label fontFamily (the rendered font is
 // a config concern — mermaid's config fontFamily overrides the theme's; the
 // pixel golden uses Arial).
-void paintFlowScene(const FlowScene& scene, QPainter& painter,
-                    const QString& fontFamily = QStringLiteral("Arial"),
-                    PaintMode mode = PaintMode::Color,
-                    const MermaidPaintOptions& options = {});
+void paintFlowScene(const FlowScene& scene, QPainter& painter, const QString& fontFamily = QStringLiteral("Arial"),
+                    PaintMode mode = PaintMode::Color, const MermaidPaintOptions& options = {});
 
 // Convenience: render the scene to a fresh QImage at the given DPR. The image
 // is sized to scene.bounds + padding, with scene coords translated so the
@@ -58,4 +56,4 @@ void paintFlowScene(const FlowScene& scene, QPainter& painter,
 QImage renderFlowSceneToImage(const FlowScene& scene, qreal dpr = 1.0, qreal padding = 8.0,
                               const QString& fontFamily = QStringLiteral("Arial"));
 
-}  // namespace muffin::mermaid::flowscene
+} // namespace muffin::mermaid::flowscene

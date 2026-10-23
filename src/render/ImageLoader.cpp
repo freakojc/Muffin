@@ -37,7 +37,8 @@ ImageLoader::ImageLoader(QObject* parent) : QObject(parent), network_(new QNetwo
     for (const auto& path : paths)
       if (QFileInfo(path).absolutePath() == directory) {
         const auto urls = localFiles_.value(path);
-        for (const auto& url : urls) image(url);
+        for (const auto& url : urls)
+          image(url);
       }
   });
   // QNetworkAccessManager and its pending replies must be released while a
@@ -70,11 +71,15 @@ void ImageLoader::store(const QString& url, QImage image) {
 QImage ImageLoader::image(const QString& url) {
   const QUrl resource(url);
   if (resource.scheme() == "http" || resource.scheme() == "https") {
-    if (!cache_.contains(url)) request(url);
+    if (!cache_.contains(url))
+      request(url);
   } else if (resource.scheme() == "data") {
-    if (!cache_.contains(url)) store(url, image_decoder::decodeDataUri(url));
+    if (!cache_.contains(url))
+      store(url, image_decoder::decodeDataUri(url));
   } else {
-    const auto path = resource.isLocalFile() ? resource.toLocalFile() : resource.scheme() == "qrc" ? ':' + resource.path() : url;
+    const auto path = resource.isLocalFile()       ? resource.toLocalFile()
+                      : resource.scheme() == "qrc" ? ':' + resource.path()
+                                                   : url;
     const QFileInfo info(path);
     const auto identity = QByteArray::number(info.exists()) + ':' + QByteArray::number(info.size()) + ':' +
                           QByteArray::number(info.lastModified().toMSecsSinceEpoch()) + ':' +
@@ -82,13 +87,16 @@ QImage ImageLoader::image(const QString& url) {
     if (!fileIdentities_.contains(url) || fileIdentities_.value(url) != identity) {
       fileIdentities_.insert(url, identity);
       auto decoded = image_decoder::decodeFileFallback(path);
-      if (decoded.isNull()) decoded.load(path);
+      if (decoded.isNull())
+        decoded.load(path);
       store(url, std::move(decoded));
     }
     if (!path.startsWith(":/")) {
       localFiles_[info.absoluteFilePath()].insert(url);
-      if (info.exists() && !files_.files().contains(info.absoluteFilePath())) files_.addPath(info.absoluteFilePath());
-      if (!files_.directories().contains(info.absolutePath())) files_.addPath(info.absolutePath());
+      if (info.exists() && !files_.files().contains(info.absoluteFilePath()))
+        files_.addPath(info.absoluteFilePath());
+      if (!files_.directories().contains(info.absolutePath()))
+        files_.addPath(info.absolutePath());
     }
   }
   return cached(url);
@@ -125,9 +133,9 @@ void ImageLoader::request(const QString& url) {
       store(url, {});
       return;
     }
-    QImage image = image_decoder::decodeFallback(data);  // png/jpeg/webp/avif/svg via bundled libs
+    QImage image = image_decoder::decodeFallback(data); // png/jpeg/webp/avif/svg via bundled libs
     if (image.isNull()) {
-      image.loadFromData(data);  // last resort for formats we don't ship
+      image.loadFromData(data); // last resort for formats we don't ship
       if (image.isNull()) {
         store(url, {});
         return;
@@ -137,4 +145,4 @@ void ImageLoader::request(const QString& url) {
   });
 }
 
-}  // namespace muffin
+} // namespace muffin

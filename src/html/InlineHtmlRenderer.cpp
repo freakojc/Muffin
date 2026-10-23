@@ -5,7 +5,8 @@
 
 namespace muffin::html {
 
-InlineHtmlFormatResult InlineHtmlRenderer::render(const QString& htmlFragment, qreal baseFontSize, const HtmlColorPalette& palette) const {
+InlineHtmlFormatResult InlineHtmlRenderer::render(const QString& htmlFragment, qreal baseFontSize,
+                                                  const HtmlColorPalette& palette) const {
   InlineHtmlFormatResult result;
 
   if (htmlFragment.trimmed().isEmpty()) {
@@ -56,11 +57,9 @@ InlineHtmlFormatResult InlineHtmlRenderer::render(const QString& htmlFragment, q
   int offset = 0;
   HtmlTextMeasurer measurer;
   for (const auto& child : container->children()) {
-    measurer.collectInlineTextFromRoot(
-        *child, text, spans, links, offset,
-        false, false, false, false, HtmlTextDecoration::None,
-        QColor(), QColor(), QTextCharFormat::AlignNormal,
-        QString(), baseFontSize, baseFontSize);
+    measurer.collectInlineTextFromRoot(*child, text, spans, links, offset, false, false, false, false,
+                                       HtmlTextDecoration::None, QColor(), QColor(), QTextCharFormat::AlignNormal,
+                                       QString(), baseFontSize, baseFontSize);
   }
 
   result.text = std::move(text);
@@ -72,10 +71,8 @@ InlineHtmlFormatResult InlineHtmlRenderer::render(const QString& htmlFragment, q
 bool InlineHtmlRenderer::isRenderableTag(QStringView tagName) {
   // Well-known inline HTML tags that we can render with formatting.
   static const QStringView known[] = {
-      u"b",       u"i",     u"u",       u"s",       u"code",  u"kbd",
-      u"mark",    u"sub",   u"sup",     u"a",       u"span",  u"br",
-      u"small",   u"big",   u"strong",  u"em",      u"del",   u"ins",
-      u"q",       u"abbr",  u"bold",    u"italic",  u"underline",
+      u"b",     u"i",   u"u",      u"s",  u"code", u"kbd", u"mark", u"sub",  u"sup",  u"a",      u"span",      u"br",
+      u"small", u"big", u"strong", u"em", u"del",  u"ins", u"q",    u"abbr", u"bold", u"italic", u"underline",
   };
   for (const auto& tag : known) {
     if (tagName.compare(tag, Qt::CaseInsensitive) == 0) {
@@ -85,4 +82,4 @@ bool InlineHtmlRenderer::isRenderableTag(QStringView tagName) {
   return false;
 }
 
-}  // namespace muffin::html
+} // namespace muffin::html

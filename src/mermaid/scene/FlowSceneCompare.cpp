@@ -22,14 +22,22 @@ enum class Cat { Empty, Node, Cluster, Edge, EdgeLabelBg, Text, Shadow, Boundary
 
 Cat decodeCat(QRgb px) {
   switch (px) {
-    case kCatNode: return Cat::Node;
-    case kCatCluster: return Cat::Cluster;
-    case kCatEdge: return Cat::Edge;
-    case kCatEdgeLabelBg: return Cat::EdgeLabelBg;
-    case kCatText: return Cat::Text;
-    case kCatShadow: return Cat::Shadow;
-    case kCatBoundary: return Cat::Boundary;
-    default: return Cat::Empty;  // transparent (never painted) = EMPTY
+  case kCatNode:
+    return Cat::Node;
+  case kCatCluster:
+    return Cat::Cluster;
+  case kCatEdge:
+    return Cat::Edge;
+  case kCatEdgeLabelBg:
+    return Cat::EdgeLabelBg;
+  case kCatText:
+    return Cat::Text;
+  case kCatShadow:
+    return Cat::Shadow;
+  case kCatBoundary:
+    return Cat::Boundary;
+  default:
+    return Cat::Empty; // transparent (never painted) = EMPTY
   }
 }
 
@@ -42,7 +50,8 @@ int pxSize(const QString& s) {
 QFont labelFont(const FlowSceneLabel& label, const QString& fontFamily) {
   QFont font(fontFamily);
   font.setPixelSize(pxSize(label.fontSize.isEmpty() ? QStringLiteral("16px") : label.fontSize));
-  if (label.fontWeight == QLatin1String("bold")) font.setBold(true);
+  if (label.fontWeight == QLatin1String("bold"))
+    font.setBold(true);
   return font;
 }
 
@@ -50,15 +59,14 @@ QFont labelFont(const FlowSceneLabel& label, const QString& fontFamily) {
 QVector<QRectF> collectLabelRectsScene(const FlowScene& scene, const QString& fontFamily) {
   QVector<QRectF> rects;
   auto add = [&](const FlowSceneLabel& label, const QPointF& center) {
-    if (label.text.isEmpty()) return;
+    if (label.text.isEmpty())
+      return;
     const QFont font = labelFont(label, fontFamily);
     QRectF tight;
     if (!label.richText.math.isEmpty()) {
       const qreal size = font.pixelSize() > 0 ? font.pixelSize() : 16.0;
-      const QSizeF measured = flowchart::layoutFlowLabel(
-          label.richText, font.family(), size, size * 1.5).size;
-      tight = QRectF(-measured.width() / 2.0, -measured.height() / 2.0,
-                     measured.width(), measured.height());
+      const QSizeF measured = flowchart::layoutFlowLabel(label.richText, font.family(), size, size * 1.5).size;
+      tight = QRectF(-measured.width() / 2.0, -measured.height() / 2.0, measured.width(), measured.height());
     } else {
       tight = QFontMetrics(font).tightBoundingRect(label.text);
     }
@@ -66,13 +74,15 @@ QVector<QRectF> collectLabelRectsScene(const FlowScene& scene, const QString& fo
     // beyond QFontMetrics::tightBoundingRect, and those fringe glyph pixels must
     // be excluded from the INTERIOR check (otherwise text-over-fill reads as a
     // fill-colour mismatch).
-    rects.append(QRectF(center.x() + tight.x() - 3, center.y() + tight.y() - 3,
-                        tight.width() + 6, tight.height() + 6));
+    rects.append(QRectF(center.x() + tight.x() - 3, center.y() + tight.y() - 3, tight.width() + 6, tight.height() + 6));
   };
-  for (const FlowSceneNode& n : scene.nodes) add(n.label, QPointF(n.label.x, n.label.y));
-  for (const FlowSceneEdge& e : scene.edges) add(e.label, QPointF(e.label.x, e.label.y));
+  for (const FlowSceneNode& n : scene.nodes)
+    add(n.label, QPointF(n.label.x, n.label.y));
+  for (const FlowSceneEdge& e : scene.edges)
+    add(e.label, QPointF(e.label.x, e.label.y));
   for (const FlowSceneCluster& c : scene.clusters) {
-    if (c.label.text.isEmpty()) continue;
+    if (c.label.text.isEmpty())
+      continue;
     const QRectF r(c.cx - c.width / 2.0, c.cy - c.height / 2.0, c.width, c.height);
     add(c.label, QPointF(r.left() + 4 + c.label.x, r.top() + 2 + c.label.y));
   }
@@ -85,35 +95,42 @@ QRect paintedBBox(const QImage& img, int alphaThreshold) {
   for (int y = 0; y < img.height(); ++y) {
     for (int x = 0; x < img.width(); ++x) {
       if (qAlpha(img.pixel(x, y)) > alphaThreshold) {
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
+        if (x < minX)
+          minX = x;
+        if (x > maxX)
+          maxX = x;
+        if (y < minY)
+          minY = y;
+        if (y > maxY)
+          maxY = y;
       }
     }
   }
-  if (maxX < 0) return QRect();
+  if (maxX < 0)
+    return QRect();
   return QRect(minX, minY, maxX - minX + 1, maxY - minY + 1);
 }
 
 bool rectsIntersectAny(const QRectF& r, const QVector<QRectF>& rects) {
   for (const QRectF& b : rects)
-    if (b.intersects(r)) return true;
+    if (b.intersects(r))
+      return true;
   return false;
 }
 
 // Alpha-mask IoU between native and golden ink over a label crop. The caller
 // supplies a DPR-scaled search radius because DirectWrite's Qt/Chromium
 // baselines can differ by several physical pixels for unboxed text shapes.
-qreal labelIou(const QImage& native, const QImage& golden, const QRect& crop,
-               int goldenOffX, int goldenOffY, int inkAlpha, int searchRadius) {
+qreal labelIou(const QImage& native, const QImage& golden, const QRect& crop, int goldenOffX, int goldenOffY,
+               int inkAlpha, int searchRadius) {
   const int tolerance = std::max(1, searchRadius / 5);
   auto inkNear = [&](const QImage& image, int x, int y) {
     for (int oy = -tolerance; oy <= tolerance; ++oy) {
       for (int ox = -tolerance; ox <= tolerance; ++ox) {
         const int sx = std::clamp(x + ox, 0, image.width() - 1);
         const int sy = std::clamp(y + oy, 0, image.height() - 1);
-        if (qAlpha(image.pixel(sx, sy)) >= inkAlpha) return true;
+        if (qAlpha(image.pixel(sx, sy)) >= inkAlpha)
+          return true;
       }
     }
     return false;
@@ -129,18 +146,21 @@ qreal labelIou(const QImage& native, const QImage& golden, const QRect& crop,
         const bool b = qAlpha(golden.pixel(gx, gy)) >= inkAlpha;
         if (a) {
           ++nativeInk;
-          if (inkNear(golden, gx, gy)) ++nativeMatched;
+          if (inkNear(golden, gx, gy))
+            ++nativeMatched;
         }
         if (b) {
           ++goldenInk;
-          if (inkNear(native, x, y)) ++goldenMatched;
+          if (inkNear(native, x, y))
+            ++goldenMatched;
         }
       }
     }
-    if (nativeInk == 0 && goldenInk == 0) return 1.0;
-    if (nativeInk == 0 || goldenInk == 0) return 0.0;
-    return std::min(static_cast<qreal>(nativeMatched) / nativeInk,
-                    static_cast<qreal>(goldenMatched) / goldenInk);
+    if (nativeInk == 0 && goldenInk == 0)
+      return 1.0;
+    if (nativeInk == 0 || goldenInk == 0)
+      return 0.0;
+    return std::min(static_cast<qreal>(nativeMatched) / nativeInk, static_cast<qreal>(goldenMatched) / goldenInk);
   };
   qreal best = 0.0;
   for (int dy = -searchRadius; dy <= searchRadius; ++dy)
@@ -149,11 +169,11 @@ qreal labelIou(const QImage& native, const QImage& golden, const QRect& crop,
   return best;
 }
 
-}  // namespace
+} // namespace
 
 CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, const QString& fontFamily,
-                            const CompareThresholds& thresholds, const QString& failureDir,
-                            bool enforceInterior, qreal dpr) {
+                            const CompareThresholds& thresholds, const QString& failureDir, bool enforceInterior,
+                            qreal dpr) {
   CompareReport report;
   dpr = std::max<qreal>(1.0, dpr);
   const bool debug = !qgetenv("MUFFIN_PIXEL_DEBUG").isEmpty();
@@ -195,7 +215,11 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
   const QRect goldenBB = paintedBBox(golden, thresholds.emptyMaxGoldenAlpha);
   if (nativeBB.isEmpty() || goldenBB.isEmpty()) {
     report.passed = false;
-    report.summary = QStringLiteral("empty render: native=%1x%2 golden=%3x%4").arg(cw).arg(ch).arg(golden.width()).arg(golden.height());
+    report.summary = QStringLiteral("empty render: native=%1x%2 golden=%3x%4")
+                         .arg(cw)
+                         .arg(ch)
+                         .arg(golden.width())
+                         .arg(golden.height());
     return report;
   }
   const QImage nativeCrop = color.copy(nativeBB);
@@ -219,9 +243,11 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
         qint64 overlap = 0;
         for (int y = 0; y < nh; ++y) {
           for (int x = 0; x < nw; ++x) {
-            if (qAlpha(nativeCrop.pixel(x, y)) <= 128) continue;
+            if (qAlpha(nativeCrop.pixel(x, y)) <= 128)
+              continue;
             const int gx = x + ox, gy = y + oy;
-            if (gx >= 0 && gx < gw && gy >= 0 && gy < gh && qAlpha(goldenCrop.pixel(gx, gy)) > 128) ++overlap;
+            if (gx >= 0 && gx < gw && gy >= 0 && gy < gh && qAlpha(goldenCrop.pixel(gx, gy)) > 128)
+              ++overlap;
           }
         }
         if (overlap > bestOverlap) {
@@ -237,7 +263,12 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
   if (std::abs(gw - nw) > tolW || std::abs(gh - nh) > tolH) {
     report.passed = false;
     report.summary = QStringLiteral("painted-content size drift: native=%1x%2 golden=%3x%4 (tol %5x%6)")
-                         .arg(nw).arg(nh).arg(gw).arg(gh).arg(tolW).arg(tolH);
+                         .arg(nw)
+                         .arg(nh)
+                         .arg(gw)
+                         .arg(gh)
+                         .arg(tolW)
+                         .arg(tolH);
     return report;
   }
 
@@ -248,15 +279,13 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
   labelRects.reserve(labelRectsScene.size());
   labelProtectionRects.reserve(labelRectsScene.size());
   for (const QRectF& r : labelRectsScene) {
-    QRectF s((r.x() - originX) * dpr - nativeBB.left(),
-             (r.y() - originY) * dpr - nativeBB.top(),
-             r.width() * dpr, r.height() * dpr);
+    QRectF s((r.x() - originX) * dpr - nativeBB.left(), (r.y() - originY) * dpr - nativeBB.top(), r.width() * dpr,
+             r.height() * dpr);
     labelRects.append(s);
     // The global image alignment and per-label glyph alignment are independent.
     // Keep their combined search fringe under the label metric without removing
     // empty pixels from the shape-coverage denominator.
-    labelProtectionRects.append(
-        s.adjusted(-10.0 * dpr, -10.0 * dpr, 10.0 * dpr, 10.0 * dpr));
+    labelProtectionRects.append(s.adjusted(-10.0 * dpr, -10.0 * dpr, 10.0 * dpr, 10.0 * dpr));
   }
 
   auto goldenPx = [&](int x, int y) -> QRgb {
@@ -269,14 +298,17 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
   // by the tolerant BOUNDARY rule, not the exact INTERIOR rule.
   QVector<Cat> cats(nw * nh, Cat::Empty);
   for (int y = 0; y < nh; ++y)
-    for (int x = 0; x < nw; ++x) cats[y * nw + x] = decodeCat(maskCrop.pixel(x, y));
+    for (int x = 0; x < nw; ++x)
+      cats[y * nw + x] = decodeCat(maskCrop.pixel(x, y));
   auto isFill = [&](Cat c) {
-    if (scene.look == flowchart::FlowLook::HandDrawn) return false;
+    if (scene.look == flowchart::FlowLook::HandDrawn)
+      return false;
     return c == Cat::Node || c == Cat::Cluster || c == Cat::EdgeLabelBg;
   };
   auto deepInterior = [&](int x, int y) {
     const Cat c = cats[y * nw + x];
-    if (!isFill(c)) return false;
+    if (!isFill(c))
+      return false;
     // Erode by 2px (5x5 neighbourhood uniform) so the thick-stroke band (e.g. a
     // 2px node border) and the 1px sub-pixel alignment ring fall in BOUNDARY.
     const qreal cssErosion = scene.look == flowchart::FlowLook::Neo ? 3.0 : 2.0;
@@ -284,25 +316,30 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
     for (int dy = -erosion; dy <= erosion; ++dy)
       for (int dx = -erosion; dx <= erosion; ++dx) {
         const int nx = x + dx, ny = y + dy;
-        if (nx < 0 || ny < 0 || nx >= nw || ny >= nh) return false;
-        if (cats[ny * nw + nx] != c) return false;
+        if (nx < 0 || ny < 0 || nx >= nw || ny >= nh)
+          return false;
+        if (cats[ny * nw + nx] != c)
+          return false;
       }
     return true;
   };
 
   for (int y = 0; y < nh; ++y) {
     for (int x = 0; x < nw; ++x) {
-      if (rectsIntersectAny(QRectF(x, y, 1, 1), labelRects)) continue;
+      if (rectsIntersectAny(QRectF(x, y, 1, 1), labelRects))
+        continue;
       const Cat cat = cats[y * nw + x];
       const QRgb np = nativeCrop.pixel(x, y);
       const QRgb gp = goldenPx(x, y);
       const int nAlpha = qAlpha(np);
       if (cat == Cat::Empty) {
         ++report.emptyPixels;
-        if (qAlpha(gp) > thresholds.emptyMaxGoldenAlpha) ++report.emptyMismatch;
+        if (qAlpha(gp) > thresholds.emptyMaxGoldenAlpha)
+          ++report.emptyMismatch;
         continue;
       }
-      if (cat == Cat::Text) continue;
+      if (cat == Cat::Text)
+        continue;
       if (isFill(cat) && rectsIntersectAny(QRectF(x, y, 1, 1), labelProtectionRects)) {
         ++report.boundary;
         continue;
@@ -313,8 +350,12 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
           ++report.interiorMismatch;
           if (debugHistogram) {
             const QString key = QStringLiteral("%1,%2,%3->%4,%5,%6")
-                                    .arg(qRed(gp)).arg(qGreen(gp)).arg(qBlue(gp))
-                                    .arg(qRed(np)).arg(qGreen(np)).arg(qBlue(np));
+                                    .arg(qRed(gp))
+                                    .arg(qGreen(gp))
+                                    .arg(qBlue(gp))
+                                    .arg(qRed(np))
+                                    .arg(qGreen(np))
+                                    .arg(qBlue(np));
             ++(*debugHistogram)[key];
           }
         }
@@ -325,9 +366,10 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
         // only one side has ink are expected Chrome-vs-Qt rasterization.
         ++report.boundary;
         if (nAlpha > 128 && qAlpha(gp) > 128) {
-          const int diff = std::max({std::abs(qRed(np) - qRed(gp)), std::abs(qGreen(np) - qGreen(gp)),
-                                     std::abs(qBlue(np) - qBlue(gp))});
-          if (diff > thresholds.boundaryMaxRgbaDiff) ++report.boundaryDeviant;
+          const int diff = std::max(
+              {std::abs(qRed(np) - qRed(gp)), std::abs(qGreen(np) - qGreen(gp)), std::abs(qBlue(np) - qBlue(gp))});
+          if (diff > thresholds.boundaryMaxRgbaDiff)
+            ++report.boundaryDeviant;
         }
       }
     }
@@ -335,32 +377,47 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
 
   for (const QRectF& lr : labelRects) {
     const QRect crop = lr.toRect().intersected(QRect(0, 0, nw, nh));
-    if (crop.isEmpty()) continue;
+    if (crop.isEmpty())
+      continue;
     ++report.labels;
-    const qreal iou = labelIou(nativeCrop, goldenCrop, crop, offX, offY,
-                               thresholds.textInkAlpha,
+    const qreal iou = labelIou(nativeCrop, goldenCrop, crop, offX, offY, thresholds.textInkAlpha,
                                static_cast<int>(std::ceil(5.0 * dpr)));
     if (iou < report.worstLabelIou) {
       report.worstLabelIou = iou;
-      report.worstLabel = QStringLiteral("%1,%2 %3x%4").arg(crop.x()).arg(crop.y()).arg(crop.width()).arg(crop.height());
+      report.worstLabel =
+          QStringLiteral("%1,%2 %3x%4").arg(crop.x()).arg(crop.y()).arg(crop.width()).arg(crop.height());
     }
-    if (iou < thresholds.textGlyphIou) ++report.labelFailures;
+    if (iou < thresholds.textGlyphIou)
+      ++report.labelFailures;
   }
 
-  const qreal boundaryDeviantRatio = report.boundary == 0 ? 0.0 : static_cast<qreal>(report.boundaryDeviant) / report.boundary;
-  const qreal interiorMismatchRatio = report.interior == 0 ? 0.0 : static_cast<qreal>(report.interiorMismatch) / report.interior;
-  const qreal emptyMismatchRatio = (report.interior + report.boundary) == 0 ? 0.0
-                                       : static_cast<qreal>(report.emptyMismatch) / static_cast<qreal>(report.interior + report.boundary);
+  const qreal boundaryDeviantRatio =
+      report.boundary == 0 ? 0.0 : static_cast<qreal>(report.boundaryDeviant) / report.boundary;
+  const qreal interiorMismatchRatio =
+      report.interior == 0 ? 0.0 : static_cast<qreal>(report.interiorMismatch) / report.interior;
+  const qreal emptyMismatchRatio =
+      (report.interior + report.boundary) == 0
+          ? 0.0
+          : static_cast<qreal>(report.emptyMismatch) / static_cast<qreal>(report.interior + report.boundary);
   const bool interiorOk = !enforceInterior || interiorMismatchRatio <= thresholds.interiorMaxMismatchRatio;
   report.passed = interiorOk && boundaryDeviantRatio <= thresholds.boundaryMaxDeviantRatio &&
                   emptyMismatchRatio <= thresholds.emptyMaxMismatchRatio && report.labelFailures == 0;
-  report.summary = QStringLiteral("interior %1/%2 (%3%%4), boundary deviant %5/%6 (%7%), empty mismatch %8 (%9%), labels %10/%11 bad (worst IoU %12 @ %13)")
-                       .arg(report.interiorMismatch).arg(report.interior).arg(interiorMismatchRatio * 100.0, 0, 'f', 2)
-                       .arg(enforceInterior ? QStringLiteral("") : QStringLiteral(" NOT-ENFORCED"))
-                       .arg(report.boundaryDeviant).arg(report.boundary).arg(boundaryDeviantRatio * 100.0, 0, 'f', 2)
-                       .arg(report.emptyMismatch).arg(emptyMismatchRatio * 100.0, 0, 'f', 2)
-                       .arg(report.labelFailures).arg(report.labels)
-                       .arg(report.worstLabelIou, 0, 'f', 3).arg(report.worstLabel);
+  report.summary =
+      QStringLiteral(
+          "interior %1/%2 (%3%%4), boundary deviant %5/%6 (%7%), empty mismatch %8 (%9%), labels %10/%11 bad (worst IoU %12 @ %13)")
+          .arg(report.interiorMismatch)
+          .arg(report.interior)
+          .arg(interiorMismatchRatio * 100.0, 0, 'f', 2)
+          .arg(enforceInterior ? QStringLiteral("") : QStringLiteral(" NOT-ENFORCED"))
+          .arg(report.boundaryDeviant)
+          .arg(report.boundary)
+          .arg(boundaryDeviantRatio * 100.0, 0, 'f', 2)
+          .arg(report.emptyMismatch)
+          .arg(emptyMismatchRatio * 100.0, 0, 'f', 2)
+          .arg(report.labelFailures)
+          .arg(report.labels)
+          .arg(report.worstLabelIou, 0, 'f', 3)
+          .arg(report.worstLabel);
   if (debugHistogram) {
     QVector<QPair<qint64, QString>> sorted;
     for (auto it = debugHistogram->constBegin(); it != debugHistogram->constEnd(); ++it)
@@ -381,7 +438,7 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
       for (int x = 0; x < nw; ++x) {
         const QRgb np = nativeCrop.pixel(x, y), gp = goldenPx(x, y);
         const int d = std::min(255, 8 * std::max({std::abs(qRed(np) - qRed(gp)), std::abs(qGreen(np) - qGreen(gp)),
-                                                   std::abs(qBlue(np) - qBlue(gp)), std::abs(qAlpha(np) - qAlpha(gp))}));
+                                                  std::abs(qBlue(np) - qBlue(gp)), std::abs(qAlpha(np) - qAlpha(gp))}));
         diff.setPixel(x, y, qRgba(d, d, d, 255));
       }
     report.expectedPath = failureDir + QStringLiteral("/expected.png");
@@ -396,4 +453,4 @@ CompareReport compareLevel3(const FlowScene& scene, const QImage& goldenIn, cons
   return report;
 }
 
-}  // namespace muffin::mermaid::flowscene
+} // namespace muffin::mermaid::flowscene

@@ -18,7 +18,7 @@
 // cycles have finer resolution but cannot be converted to milliseconds at a
 // fixed clock rate. Neither identifies scheduler ready time or a blocking cause.
 class GuiQueueTrace final : public QAbstractNativeEventFilter {
- public:
+public:
   GuiQueueTrace() {
 #ifdef Q_OS_WIN
     thread_ = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, FALSE, GetCurrentThreadId());
@@ -26,7 +26,8 @@ class GuiQueueTrace final : public QAbstractNativeEventFilter {
   }
   ~GuiQueueTrace() override {
 #ifdef Q_OS_WIN
-    if (thread_) CloseHandle(thread_);
+    if (thread_)
+      CloseHandle(thread_);
 #endif
   }
   QJsonObject threadSample() const {
@@ -38,7 +39,8 @@ class GuiQueueTrace final : public QAbstractNativeEventFilter {
       const auto ticks = [](FILETIME time) { return (quint64(time.dwHighDateTime) << 32) | time.dwLowDateTime; };
       result["cpu_ms"] = (ticks(kernel) + ticks(user)) / 10000.0;
     }
-    if (thread_ && QueryThreadCycleTime(thread_, &cycles)) result["cycles"] = qint64(cycles);
+    if (thread_ && QueryThreadCycleTime(thread_, &cycles))
+      result["cycles"] = qint64(cycles);
 #endif
     return result;
   }
@@ -88,7 +90,8 @@ class GuiQueueTrace final : public QAbstractNativeEventFilter {
     using Query = NTSTATUS(NTAPI*)(SYSTEM_INFORMATION_CLASS, PVOID, ULONG, PULONG);
     static const auto query =
         reinterpret_cast<Query>(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation"));
-    if (!query) return result;
+    if (!query)
+      return result;
     thread_local std::vector<unsigned char> buffer(1024 * 1024);
     ULONG needed = 0;
     auto status = query(SystemProcessInformation, buffer.data(), ULONG(buffer.size()), &needed);
@@ -96,12 +99,14 @@ class GuiQueueTrace final : public QAbstractNativeEventFilter {
       buffer.resize(needed + 65536);
       status = query(SystemProcessInformation, buffer.data(), ULONG(buffer.size()), &needed);
     }
-    if (status < 0) return result;
+    if (status < 0)
+      return result;
     for (size_t offset = 0; offset + sizeof(SYSTEM_PROCESS_INFORMATION) <= buffer.size();) {
       const auto* process = reinterpret_cast<const SYSTEM_PROCESS_INFORMATION*>(buffer.data() + offset);
       if (quintptr(process->UniqueProcessId) == GetCurrentProcessId()) {
         const auto* threads = reinterpret_cast<const SYSTEM_THREAD_INFORMATION*>(process + 1);
-        if (offset + sizeof(*process) + size_t(process->NumberOfThreads) * sizeof(*threads) > buffer.size()) break;
+        if (offset + sizeof(*process) + size_t(process->NumberOfThreads) * sizeof(*threads) > buffer.size())
+          break;
         for (ULONG i = 0; i < process->NumberOfThreads; ++i)
           if (quintptr(threads[i].ClientId.UniqueThread) == threadId_) {
             result["thread_state"] = int(threads[i].ThreadState);
@@ -111,13 +116,15 @@ class GuiQueueTrace final : public QAbstractNativeEventFilter {
           }
         break;
       }
-      if (!process->NextEntryOffset) break;
+      if (!process->NextEntryOffset)
+        break;
       offset += process->NextEntryOffset;
     }
     // Querying the system process table can itself take time. CPU/cycles are
     // read afterwards; the caller retains the whole sampling interval too.
     const auto cpu = threadSample();
-    for (auto it = cpu.begin(); it != cpu.end(); ++it) result[it.key()] = it.value();
+    for (auto it = cpu.begin(); it != cpu.end(); ++it)
+      result[it.key()] = it.value();
 #endif
     return result;
   }
@@ -134,7 +141,7 @@ class GuiQueueTrace final : public QAbstractNativeEventFilter {
     return false;
   }
 
- private:
+private:
 #ifdef Q_OS_WIN
   HANDLE thread_ = nullptr;
   DWORD threadId_ = GetCurrentThreadId();

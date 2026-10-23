@@ -18,29 +18,22 @@
 namespace muffin::mermaid::editor {
 namespace {
 
-QJsonValue scalar(const QJsonObject& object, const char* key,
-                  const QJsonValue& fallback) {
+QJsonValue scalar(const QJsonObject& object, const char* key, const QJsonValue& fallback) {
   const QJsonValue value = object.value(QLatin1String(key));
-  return value.isUndefined() || value.isNull() || value.isArray() ||
-                 value.isObject()
-             ? fallback
-             : value;
+  return value.isUndefined() || value.isNull() || value.isArray() || value.isObject() ? fallback : value;
 }
 
 struct ArchitectureDiagramImpl final : Diagram {
   QStringList ids() const override { return {QStringLiteral("architecture")}; }
   QString cssClass() const override { return QStringLiteral("architecture"); }
 
-  MermaidRenderEntry render(const MermaidPreprocessResult& pre,
-                            const QString& type,
+  MermaidRenderEntry render(const MermaidPreprocessResult& pre, const QString& type,
                             const QString& theme) const override {
     const QString configuredTheme = themeFromConfig(pre.config);
-    const QString effectiveTheme =
-        configuredTheme.isEmpty() ? theme : configuredTheme;
-    const flowtheme::FlowThemeVariables themeVars = flowtheme::resolveFlowTheme(
-        themeIdFromName(effectiveTheme), themeOverrides(pre.config));
-    const QJsonObject family =
-        pre.config.value(QStringLiteral("architecture")).toObject();
+    const QString effectiveTheme = configuredTheme.isEmpty() ? theme : configuredTheme;
+    const flowtheme::FlowThemeVariables themeVars =
+        flowtheme::resolveFlowTheme(themeIdFromName(effectiveTheme), themeOverrides(pre.config));
+    const QJsonObject family = pre.config.value(QStringLiteral("architecture")).toObject();
 
     architecture::ArchitectureConfig config;
     config.useMaxWidth = scalar(family, "useMaxWidth", QJsonValue(true));
@@ -48,12 +41,9 @@ struct ArchitectureDiagramImpl final : Diagram {
     config.iconSize = scalar(family, "iconSize", QJsonValue(80.0));
     config.fontSize = scalar(family, "fontSize", QJsonValue(16.0));
     config.randomize = scalar(family, "randomize", QJsonValue(false));
-    config.nodeSeparation =
-        scalar(family, "nodeSeparation", QJsonValue(75.0));
-    config.idealEdgeLengthMultiplier =
-        scalar(family, "idealEdgeLengthMultiplier", QJsonValue(1.5));
-    config.edgeElasticity =
-        scalar(family, "edgeElasticity", QJsonValue(0.45));
+    config.nodeSeparation = scalar(family, "nodeSeparation", QJsonValue(75.0));
+    config.idealEdgeLengthMultiplier = scalar(family, "idealEdgeLengthMultiplier", QJsonValue(1.5));
+    config.edgeElasticity = scalar(family, "edgeElasticity", QJsonValue(0.45));
     config.numIter = scalar(family, "numIter", QJsonValue(2500.0));
     config.seed = scalar(family, "seed", QJsonValue(1.0));
 
@@ -66,8 +56,7 @@ struct ArchitectureDiagramImpl final : Diagram {
     style.groupBorderColor = themeVars.archGroupBorderColor;
     style.groupBorderWidth = themeVars.archGroupBorderWidth;
 
-    architecture::ArchitectureData data =
-        architecture::ArchitectureDiagram::parse(pre.code);
+    architecture::ArchitectureData data = architecture::ArchitectureDiagram::parse(pre.code);
 
     // themeCSS: the DOM shape depends only on the parsed data (the fcose
     // layout sizes nodes from config, never the DOM), so the resolveElements
@@ -90,100 +79,154 @@ struct ArchitectureDiagramImpl final : Diagram {
         nodeIds.insert(junction.id);
       // The renderer root svg carries `#id { font-family; font-size; fill:
       // textColor }`; the bare label texts inherit everything through it.
-      const qreal rootFontSize = cssFontSizePx(
-          themeVars.fontSize,
-          pieCssLengthContext(style.fontFamily, 16.0));
+      const qreal rootFontSize = cssFontSizePx(themeVars.fontSize, pieCssLengthContext(style.fontFamily, 16.0));
       ElementStyle rootStyle;
       rootStyle.fill = style.textColor;
       rootStyle.stroke = QStringLiteral("none");
       rootStyle.strokeWidth = QStringLiteral("1px");
       rootStyle.color = QStringLiteral("black");
       rootStyle.fontFamily = style.fontFamily;
-      rootStyle.fontSize =
-          QStringLiteral("%1px").arg(QString::number(rootFontSize));
+      rootStyle.fontSize = QStringLiteral("%1px").arg(QString::number(rootFontSize));
       rootStyle.fontWeight = QStringLiteral("400");
       ElementStyle inheritAll;
 
       QVector<ElementInput> tree;
-      const auto push = [&tree](ElementInput input) {
-        tree.append(std::move(input));
-      };
-      push({QStringLiteral("svg"), {}, QStringLiteral("svg"),
-            QStringLiteral("diagram-root"), {}, {}, rootStyle, {}});
-      push({QStringLiteral("styleEl"), QStringLiteral("svg"),
-            QStringLiteral("style"), {}, {}, {}, inheritAll, {}});
-      push({QStringLiteral("edges-layer"), QStringLiteral("svg"),
-            QStringLiteral("g"), {},
-            {QStringLiteral("architecture-edges")}, {}, inheritAll, {}});
+      const auto push = [&tree](ElementInput input) { tree.append(std::move(input)); };
+      push({QStringLiteral("svg"), {}, QStringLiteral("svg"), QStringLiteral("diagram-root"), {}, {}, rootStyle, {}});
+      push({QStringLiteral("styleEl"), QStringLiteral("svg"), QStringLiteral("style"), {}, {}, {}, inheritAll, {}});
+      push({QStringLiteral("edges-layer"),
+            QStringLiteral("svg"),
+            QStringLiteral("g"),
+            {},
+            {QStringLiteral("architecture-edges")},
+            {},
+            inheritAll,
+            {}});
       for (int i = 0; i < data.edges.size(); ++i) {
         const auto& edge = data.edges.at(i);
         if (!nodeIds.contains(edge.lhsId) || !nodeIds.contains(edge.rhsId))
           continue;
         const QString key = QStringLiteral("edge-%1").arg(i);
-        push({key, QStringLiteral("edges-layer"), QStringLiteral("g"), {}, {},
-              {}, inheritAll, {}});
-        push({key + QLatin1String("-line"), key, QStringLiteral("path"), {},
-              {QStringLiteral("edge")}, {}, inheritAll, {}});
+        push({key, QStringLiteral("edges-layer"), QStringLiteral("g"), {}, {}, {}, inheritAll, {}});
+        push({key + QLatin1String("-line"),
+              key,
+              QStringLiteral("path"),
+              {},
+              {QStringLiteral("edge")},
+              {},
+              inheritAll,
+              {}});
         if (edge.lhsInto || edge.rhsInto)
-          push({key + QLatin1String("-arrow"), key, QStringLiteral("polygon"),
-                {}, {QStringLiteral("arrow")}, {}, inheritAll, {}});
+          push({key + QLatin1String("-arrow"),
+                key,
+                QStringLiteral("polygon"),
+                {},
+                {QStringLiteral("arrow")},
+                {},
+                inheritAll,
+                {}});
         if (edge.hasTitle)
-          push({key + QLatin1String("-label"), key, QStringLiteral("text"),
-                {}, {}, {}, inheritAll, {}});
+          push({key + QLatin1String("-label"), key, QStringLiteral("text"), {}, {}, {}, inheritAll, {}});
       }
-      push({QStringLiteral("services-layer"), QStringLiteral("svg"),
-            QStringLiteral("g"), {},
-            {QStringLiteral("architecture-services")}, {}, inheritAll, {}});
+      push({QStringLiteral("services-layer"),
+            QStringLiteral("svg"),
+            QStringLiteral("g"),
+            {},
+            {QStringLiteral("architecture-services")},
+            {},
+            inheritAll,
+            {}});
       for (int i = 0; i < data.services.size(); ++i) {
         const auto& service = data.services.at(i);
         const QString key = QStringLiteral("service-%1").arg(i);
-        push({key, QStringLiteral("services-layer"), QStringLiteral("g"), {},
-              {QStringLiteral("architecture-service")}, {}, inheritAll, {}});
+        push({key,
+              QStringLiteral("services-layer"),
+              QStringLiteral("g"),
+              {},
+              {QStringLiteral("architecture-service")},
+              {},
+              inheritAll,
+              {}});
         if (service.hasTitle)
-          push({key + QLatin1String("-label"), key, QStringLiteral("text"),
-                {}, {}, {}, inheritAll, {}});
+          push({key + QLatin1String("-label"), key, QStringLiteral("text"), {}, {}, {}, inheritAll, {}});
         if (service.icon.isEmpty() && service.iconText.isEmpty())
-          push({key + QLatin1String("-nodebkg"), key, QStringLiteral("path"),
-                {}, {QStringLiteral("node-bkg")}, {}, inheritAll, {}});
+          push({key + QLatin1String("-nodebkg"),
+                key,
+                QStringLiteral("path"),
+                {},
+                {QStringLiteral("node-bkg")},
+                {},
+                inheritAll,
+                {}});
       }
       for (int j = 0; j < data.junctions.size(); ++j) {
         const QString key = QStringLiteral("junction-%1").arg(j);
-        push({key, QStringLiteral("services-layer"), QStringLiteral("g"), {},
-              {QStringLiteral("architecture-junction")}, {}, inheritAll, {}});
-        push({key + QLatin1String("-rect"), key, QStringLiteral("rect"), {},
-              {}, {}, inheritAll, {},
+        push({key,
+              QStringLiteral("services-layer"),
+              QStringLiteral("g"),
+              {},
+              {QStringLiteral("architecture-junction")},
+              {},
+              inheritAll,
+              {}});
+        push({key + QLatin1String("-rect"),
+              key,
+              QStringLiteral("rect"),
+              {},
+              {},
+              {},
+              inheritAll,
+              {},
               QStringLiteral("fill-opacity:0")});
       }
-      push({QStringLiteral("groups-layer"), QStringLiteral("svg"),
-            QStringLiteral("g"), {},
-            {QStringLiteral("architecture-groups")}, {}, inheritAll, {}});
+      push({QStringLiteral("groups-layer"),
+            QStringLiteral("svg"),
+            QStringLiteral("g"),
+            {},
+            {QStringLiteral("architecture-groups")},
+            {},
+            inheritAll,
+            {}});
       for (int k = 0; k < data.groups.size(); ++k) {
         const auto& group = data.groups.at(k);
         const QString key = QStringLiteral("group-%1").arg(k);
-        push({key + QLatin1String("-rect"), QStringLiteral("groups-layer"),
-              QStringLiteral("rect"), {}, {QStringLiteral("node-bkg")}, {},
-              inheritAll, {}});
-        push({key + QLatin1String("-labelcont"), QStringLiteral("groups-layer"),
-              QStringLiteral("g"), {}, {}, {}, inheritAll, {}});
+        push({key + QLatin1String("-rect"),
+              QStringLiteral("groups-layer"),
+              QStringLiteral("rect"),
+              {},
+              {QStringLiteral("node-bkg")},
+              {},
+              inheritAll,
+              {}});
+        push({key + QLatin1String("-labelcont"),
+              QStringLiteral("groups-layer"),
+              QStringLiteral("g"),
+              {},
+              {},
+              {},
+              inheritAll,
+              {}});
         if (group.hasTitle)
           push({key + QLatin1String("-label"),
-                key + QLatin1String("-labelcont"), QStringLiteral("text"), {},
-                {}, {}, inheritAll, {}});
+                key + QLatin1String("-labelcont"),
+                QStringLiteral("text"),
+                {},
+                {},
+                {},
+                inheritAll,
+                {}});
       }
 
       // Live architecture getStyles sheet with the resolved theme values —
       // the only styling the class-only edge/arrow/node-bkg elements get.
-      const QString baseCss = QStringLiteral(
-          ".edge { stroke-width: %1; stroke: %2; fill: none; }\n"
-          ".arrow { fill: %3; }\n"
-          ".node-bkg { fill: none; stroke: %4; stroke-width: %5; "
-          "stroke-dasharray: 8; }\n")
-          .arg(style.edgeWidth, style.edgeColor, style.arrowColor,
-               style.groupBorderColor, style.groupBorderWidth);
-      const QHash<QString, ElementStyle> css = csscascade::resolveElements(
-          themeCss, tree, baseCss);
-      const CssLengthContext familyCtx =
-          pieCssLengthContext(style.fontFamily, rootFontSize);
+      const QString baseCss =
+          QStringLiteral(".edge { stroke-width: %1; stroke: %2; fill: none; }\n"
+                         ".arrow { fill: %3; }\n"
+                         ".node-bkg { fill: none; stroke: %4; stroke-width: %5; "
+                         "stroke-dasharray: 8; }\n")
+              .arg(style.edgeWidth, style.edgeColor, style.arrowColor, style.groupBorderColor, style.groupBorderWidth);
+      const QHash<QString, ElementStyle> css = csscascade::resolveElements(themeCss, tree, baseCss);
+      const CssLengthContext familyCtx = pieCssLengthContext(style.fontFamily, rootFontSize);
       const auto convert = [&](const QString& key) {
         architecture::ArchitectureElementCss out;
         const ElementStyle& resolved = css.value(key);
@@ -216,7 +259,8 @@ struct ArchitectureDiagramImpl final : Diagram {
           slot.line = convert(key + QLatin1String("-line"));
           if (edge.lhsInto || edge.rhsInto)
             slot.arrow = convert(key + QLatin1String("-arrow"));
-          if (edge.hasTitle) slot.label = convert(key + QLatin1String("-label"));
+          if (edge.hasTitle)
+            slot.label = convert(key + QLatin1String("-label"));
         }
         overrides.edges.append(std::move(slot));
       }
@@ -226,8 +270,7 @@ struct ArchitectureDiagramImpl final : Diagram {
         slot.group = convert(key);
         if (data.services.at(i).hasTitle)
           slot.label = convert(key + QLatin1String("-label"));
-        if (data.services.at(i).icon.isEmpty() &&
-            data.services.at(i).iconText.isEmpty())
+        if (data.services.at(i).icon.isEmpty() && data.services.at(i).iconText.isEmpty())
           slot.nodeBkg = convert(key + QLatin1String("-nodebkg"));
         overrides.nodes.append(std::move(slot));
       }
@@ -249,8 +292,7 @@ struct ArchitectureDiagramImpl final : Diagram {
     }
 
     architecture::ArchitectureScene scene = architecture::buildArchitectureScene(
-        data, std::move(config), std::move(style),
-        themeCssActive ? &overrides : nullptr);
+        data, std::move(config), std::move(style), themeCssActive ? &overrides : nullptr);
     // Upstream architecture stores the `title` statement in the DB but its
     // draw() NEVER calls insertTitle — the browser's Architecture Title
     // oracle (architecture-geometry.json `title` case) has no title element
@@ -259,29 +301,26 @@ struct ArchitectureDiagramImpl final : Diagram {
     // metadata.title empty (renderMetadata would otherwise pull in a
     // frontmatter title and paint a phantom shared title band that widens
     // the client box); accTitle/accDescr keep their accessibility roles.
-    MermaidRenderMetadata metadata = renderMetadata(
-        pre, type, QString(), data.accTitle, data.accDescr,
-        scene.style.textColor, scene.style.fontFamily,
-        qreal(jsNumberValue(scene.config.fontSize)));
+    MermaidRenderMetadata metadata =
+        renderMetadata(pre, type, QString(), data.accTitle, data.accDescr, scene.style.textColor,
+                       scene.style.fontFamily, qreal(jsNumberValue(scene.config.fontSize)));
     metadata.title = QString();
     metadata.svgUseMaxWidth = scene.useMaxWidth;
 
     MermaidRenderEntry entry;
     entry.status = MermaidRenderStatus::Ready;
-    entry.naturalSize = QSize(qRound(scene.bounds.width()),
-                              qRound(scene.bounds.height()));
-    entry.scene =
-        std::make_shared<const architecture::ArchitectureScene>(std::move(scene));
+    entry.naturalSize = QSize(qRound(scene.bounds.width()), qRound(scene.bounds.height()));
+    entry.scene = std::make_shared<const architecture::ArchitectureScene>(std::move(scene));
     finalizeReadyEntry(entry, std::move(metadata));
     return entry;
   }
 };
 
-}  // namespace
+} // namespace
 
 const Diagram& architectureDiagramAdapter() {
   static const ArchitectureDiagramImpl adapter;
   return adapter;
 }
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

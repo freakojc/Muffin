@@ -18,8 +18,7 @@ namespace {
 
 // generateFullSineWavePoints(x1,y1,x2,y2,amplitude,numCycles): 51 points (0..50).
 // y = midY + amplitude * sin(freq * (x - x1)). Used by every wave-edged shape.
-QVector<QPointF> sineWavePoints(qreal x1, qreal y1, qreal x2, qreal y2,
-                                qreal amplitude, qreal numCycles) {
+QVector<QPointF> sineWavePoints(qreal x1, qreal y1, qreal x2, qreal y2, qreal amplitude, qreal numCycles) {
   QVector<QPointF> pts;
   const int steps = 50;
   const qreal deltaX = x2 - x1;
@@ -39,8 +38,7 @@ QVector<QPointF> sineWavePoints(qreal x1, qreal y1, qreal x2, qreal y2,
 // generateCirclePoints[2/3/4](cx,cy,r,n,startDeg,endDeg): n points along a
 // circular arc. The upstream variants differ only in whether they negate the
 // returned (x,y) — 2/4 negate, 3 does not. `negate` selects.
-QVector<QPointF> circleArcPoints(qreal cx, qreal cy, qreal r, int n,
-                                 qreal startDeg, qreal endDeg, bool negate) {
+QVector<QPointF> circleArcPoints(qreal cx, qreal cy, qreal r, int n, qreal startDeg, qreal endDeg, bool negate) {
   QVector<QPointF> pts;
   const qreal start = startDeg * M_PI / 180.0;
   const qreal end = endDeg * M_PI / 180.0;
@@ -57,8 +55,7 @@ QVector<QPointF> circleArcPoints(qreal cx, qreal cy, qreal r, int n,
 
 // generateArcPoints(x1,y1,x2,y2,rx,ry,clockwise): a 20-point elliptical arc
 // between two points (bowTieRect's pinched sides). Ported verbatim.
-QVector<QPointF> ellipseArcPoints(qreal x1, qreal y1, qreal x2, qreal y2,
-                                  qreal rx, qreal ry, bool clockwise) {
+QVector<QPointF> ellipseArcPoints(qreal x1, qreal y1, qreal x2, qreal y2, qreal rx, qreal ry, bool clockwise) {
   const int numPoints = 20;
   const qreal midX = (x1 + x2) / 2.0;
   const qreal midY = (y1 + y2) / 2.0;
@@ -76,8 +73,10 @@ QVector<QPointF> ellipseArcPoints(qreal x1, qreal y1, qreal x2, qreal y2,
   const qreal startAngle = std::atan2((y1 - cy) / ry, (x1 - cx) / rx);
   const qreal endAngle = std::atan2((y2 - cy) / ry, (x2 - cx) / rx);
   qreal angleRange = endAngle - startAngle;
-  if (clockwise && angleRange < 0.0) angleRange += 2.0 * M_PI;
-  if (!clockwise && angleRange > 0.0) angleRange -= 2.0 * M_PI;
+  if (clockwise && angleRange < 0.0)
+    angleRange += 2.0 * M_PI;
+  if (!clockwise && angleRange > 0.0)
+    angleRange -= 2.0 * M_PI;
   QVector<QPointF> pts;
   for (int i = 0; i < numPoints; ++i) {
     const qreal t = qreal(i) / qreal(numPoints - 1);
@@ -91,15 +90,16 @@ QVector<QPointF> ellipseArcPoints(qreal x1, qreal y1, qreal x2, qreal y2,
 // bang/cloud, which is all mermaid uses). Samples n points (excluding the
 // start point, which the caller already holds as the previous arc's end).
 // Implements the SVG endpoint->center parameterisation.
-void appendEllipticalArc(QVector<QPointF>& pts, qreal x1, qreal y1, qreal x2, qreal y2,
-                         qreal rx, qreal ry, bool large, bool sweep, int n) {
+void appendEllipticalArc(QVector<QPointF>& pts, qreal x1, qreal y1, qreal x2, qreal y2, qreal rx, qreal ry, bool large,
+                         bool sweep, int n) {
   const qreal X = (x1 - x2) / 2.0;
   const qreal Y = (y1 - y2) / 2.0;
   qreal Rx = rx, Ry = ry;
   qreal lambda = (X * X) / (Rx * Rx) + (Y * Y) / (Ry * Ry);
-  if (lambda > 1.0) {  // radii too small: scale up (SVG spec). Mermaid shouldn't hit.
+  if (lambda > 1.0) { // radii too small: scale up (SVG spec). Mermaid shouldn't hit.
     const qreal s = std::sqrt(lambda);
-    Rx *= s; Ry *= s;
+    Rx *= s;
+    Ry *= s;
     lambda = 1.0;
   }
   const qreal sign = (large != sweep) ? 1.0 : -1.0;
@@ -113,11 +113,15 @@ void appendEllipticalArc(QVector<QPointF>& pts, qreal x1, qreal y1, qreal x2, qr
   qreal theta1 = std::atan2((y1 - cy) / Ry, (x1 - cx) / Rx);
   const qreal theta2 = std::atan2((y2 - cy) / Ry, (x2 - cx) / Rx);
   qreal dtheta = theta2 - theta1;
-  if (!sweep && dtheta > 0.0) dtheta -= 2.0 * M_PI;
-  if (sweep && dtheta < 0.0) dtheta += 2.0 * M_PI;
+  if (!sweep && dtheta > 0.0)
+    dtheta -= 2.0 * M_PI;
+  if (sweep && dtheta < 0.0)
+    dtheta += 2.0 * M_PI;
   if (large) {
-    if (sweep && dtheta < M_PI) dtheta += 2.0 * M_PI;
-    if (!sweep && dtheta > -M_PI) dtheta -= 2.0 * M_PI;
+    if (sweep && dtheta < M_PI)
+      dtheta += 2.0 * M_PI;
+    if (!sweep && dtheta > -M_PI)
+      dtheta -= 2.0 * M_PI;
   }
   for (int i = 1; i <= n; ++i) {
     const qreal t = qreal(i) / n;
@@ -132,23 +136,28 @@ void appendEllipticalArc(QVector<QPointF>& pts, qreal x1, qreal y1, qreal x2, qr
 // silhouette test (which draws points centred at the bounds centre) matches
 // mermaid's golden (whose viewBox compensates the handler's translate transform).
 QVector<QPointF> centreOnBbox(QVector<QPointF> pts) {
-  if (pts.isEmpty()) return pts;
+  if (pts.isEmpty())
+    return pts;
   qreal minX = std::numeric_limits<qreal>::infinity();
   qreal maxX = -std::numeric_limits<qreal>::infinity();
   qreal minY = std::numeric_limits<qreal>::infinity();
   qreal maxY = -std::numeric_limits<qreal>::infinity();
   for (const QPointF& p : pts) {
-    minX = std::min(minX, p.x()); maxX = std::max(maxX, p.x());
-    minY = std::min(minY, p.y()); maxY = std::max(maxY, p.y());
+    minX = std::min(minX, p.x());
+    maxX = std::max(maxX, p.x());
+    minY = std::min(minY, p.y());
+    maxY = std::max(maxY, p.y());
   }
   const qreal cx = (minX + maxX) / 2.0;
   const qreal cy = (minY + maxY) / 2.0;
-  for (QPointF& p : pts) { p.rx() -= cx; p.ry() -= cy; }
+  for (QPointF& p : pts) {
+    p.rx() -= cx;
+    p.ry() -= cy;
+  }
   return pts;
 }
 
-QVector<QPointF> translateFromPathOrigin(QVector<QPointF> pts,
-                                         qreal width, qreal height) {
+QVector<QPointF> translateFromPathOrigin(QVector<QPointF> pts, qreal width, qreal height) {
   for (QPointF& point : pts) {
     point.rx() -= width / 2.0;
     point.ry() -= height / 2.0;
@@ -162,8 +171,10 @@ QSizeF bboxOf(const QVector<QPointF>& pts) {
   qreal minY = std::numeric_limits<qreal>::infinity();
   qreal maxY = -std::numeric_limits<qreal>::infinity();
   for (const QPointF& p : pts) {
-    minX = std::min(minX, p.x()); maxX = std::max(maxX, p.x());
-    minY = std::min(minY, p.y()); maxY = std::max(maxY, p.y());
+    minX = std::min(minX, p.x());
+    maxX = std::max(maxX, p.x());
+    minY = std::min(minY, p.y());
+    maxY = std::max(maxY, p.y());
   }
   return QSizeF(maxX - minX, maxY - minY);
 }
@@ -180,7 +191,8 @@ QVector<QPointF> bangOutline(qreal ew, qreal eh) {
   auto step = [&](qreal dx, qreal dy, qreal rr) {
     const qreal nx = x + dx, ny = y + dy;
     appendEllipticalArc(pts, x, y, nx, ny, rr, rr, false, false, 16);
-    x = nx; y = ny;
+    x = nx;
+    y = ny;
   };
   step(0.25 * ew, -0.1 * eh, r);
   step(0.25 * ew, 0.0, r);
@@ -210,14 +222,15 @@ QVector<QPointF> cloudOutline(qreal w, qreal h) {
   auto step = [&](qreal dx, qreal dy, qreal rx, qreal ry) {
     const qreal nx = x + dx, ny = y + dy;
     appendEllipticalArc(pts, x, y, nx, ny, rx, ry, false, true, 16);
-    x = nx; y = ny;
+    x = nx;
+    y = ny;
   };
   step(0.25 * w, -0.1 * w, r1, r1);
   step(0.4 * w, -0.1 * w, r3, r3);
   step(0.35 * w, 0.2 * w, r2, r2);
   step(0.15 * w, 0.35 * h, r1, r1);
   step(-0.15 * w, 0.65 * h, r4, r4);
-  step(-0.25 * w, 0.15 * w, r2, r1);  // elliptical (rx=r2, ry=r1)
+  step(-0.25 * w, 0.15 * w, r2, r1); // elliptical (rx=r2, ry=r1)
   step(-0.5 * w, 0.0, r3, r3);
   step(-0.25 * w, -0.15 * w, r1, r1);
   step(-0.1 * w, -0.35 * h, r1, r1);
@@ -225,7 +238,7 @@ QVector<QPointF> cloudOutline(qreal w, qreal h) {
   return pts;
 }
 
-}  // namespace
+} // namespace
 
 // 1:1 port of each upstream polygon shape handler's `points` array, expressed in
 // the node's centred coordinate system (origin = node centre, bbox = node bbox).
@@ -237,40 +250,37 @@ QVector<QPointF> flowShapePolygonPoints(const QString& type, qreal w, qreal h, F
     // question.ts replaces insertPolygonShape's centred transform with
     // translate(-s/2 + 0.5, s/2). The visible diamond is therefore shifted
     // exactly half a pixel to the right of the dagre node centre.
-    return {QPointF(0.5, H / 2.0), QPointF(W / 2.0 + 0.5, 0.0),
-            QPointF(0.5, -H / 2.0), QPointF(-W / 2.0 + 0.5, 0.0)};
+    return {QPointF(0.5, H / 2.0), QPointF(W / 2.0 + 0.5, 0.0), QPointF(0.5, -H / 2.0), QPointF(-W / 2.0 + 0.5, 0.0)};
   }
   if (type == QLatin1String("odd")) {
     const qreal baseWidth = W - H / 4.0;
-    return {QPointF(-W / 2.0, -H / 2.0), QPointF(-baseWidth / 2.0 + H / 8.0, 0.0),
-            QPointF(-W / 2.0, H / 2.0), QPointF(W / 2.0, H / 2.0),
-            QPointF(W / 2.0, -H / 2.0)};
+    return {QPointF(-W / 2.0, -H / 2.0), QPointF(-baseWidth / 2.0 + H / 8.0, 0.0), QPointF(-W / 2.0, H / 2.0),
+            QPointF(W / 2.0, H / 2.0), QPointF(W / 2.0, -H / 2.0)};
   }
   if (type == QLatin1String("hexagon")) {
     const qreal inset = H / 4.0;
-    return {QPointF(-W / 2.0 + inset, -H / 2.0), QPointF(W / 2.0 - inset, -H / 2.0),
-            QPointF(W / 2.0, 0.0), QPointF(W / 2.0 - inset, H / 2.0),
-            QPointF(-W / 2.0 + inset, H / 2.0), QPointF(-W / 2.0, 0.0)};
+    return {QPointF(-W / 2.0 + inset, -H / 2.0), QPointF(W / 2.0 - inset, -H / 2.0), QPointF(W / 2.0, 0.0),
+            QPointF(W / 2.0 - inset, H / 2.0),   QPointF(-W / 2.0 + inset, H / 2.0), QPointF(-W / 2.0, 0.0)};
   }
   if (type == QLatin1String("trapezoid")) {
     const qreal baseWidth = W - H;
-    return {QPointF(-W / 2.0, H / 2.0), QPointF(W / 2.0, H / 2.0),
-            QPointF(baseWidth / 2.0, -H / 2.0), QPointF(-baseWidth / 2.0, -H / 2.0)};
+    return {QPointF(-W / 2.0, H / 2.0), QPointF(W / 2.0, H / 2.0), QPointF(baseWidth / 2.0, -H / 2.0),
+            QPointF(-baseWidth / 2.0, -H / 2.0)};
   }
   if (type == QLatin1String("inv_trapezoid")) {
     const qreal baseWidth = W - H;
-    return {QPointF(-baseWidth / 2.0, H / 2.0), QPointF(baseWidth / 2.0, H / 2.0),
-            QPointF(W / 2.0, -H / 2.0), QPointF(-W / 2.0, -H / 2.0)};
+    return {QPointF(-baseWidth / 2.0, H / 2.0), QPointF(baseWidth / 2.0, H / 2.0), QPointF(W / 2.0, -H / 2.0),
+            QPointF(-W / 2.0, -H / 2.0)};
   }
   if (type == QLatin1String("lean_right")) {
     const qreal baseWidth = W - H;
-    return {QPointF(-W / 2.0, H / 2.0), QPointF(baseWidth / 2.0, H / 2.0),
-            QPointF(W / 2.0, -H / 2.0), QPointF(-baseWidth / 2.0, -H / 2.0)};
+    return {QPointF(-W / 2.0, H / 2.0), QPointF(baseWidth / 2.0, H / 2.0), QPointF(W / 2.0, -H / 2.0),
+            QPointF(-baseWidth / 2.0, -H / 2.0)};
   }
   if (type == QLatin1String("lean_left")) {
     const qreal baseWidth = W - H;
-    return {QPointF(-baseWidth / 2.0, H / 2.0), QPointF(W / 2.0, H / 2.0),
-            QPointF(baseWidth / 2.0, -H / 2.0), QPointF(-W / 2.0, -H / 2.0)};
+    return {QPointF(-baseWidth / 2.0, H / 2.0), QPointF(W / 2.0, H / 2.0), QPointF(baseWidth / 2.0, -H / 2.0),
+            QPointF(-W / 2.0, -H / 2.0)};
   }
   // Expanded shapes (milestone E). Each branch derives from the handler's raw
   // `points` + its centring transform, simplified to the centred bbox.
@@ -281,38 +291,35 @@ QVector<QPointF> flowShapePolygonPoints(const QString& type, qreal w, qreal h, F
     return {QPointF(-W / 2.0, -H / 2.0), QPointF(W / 2.0, -H / 2.0), QPointF(0.0, H / 2.0)};
   }
   if (type == QLatin1String("hourglass")) {
-    return {QPointF(-W / 2.0, -H / 2.0), QPointF(W / 2.0, -H / 2.0),
-            QPointF(-W / 2.0, H / 2.0), QPointF(W / 2.0, H / 2.0)};
+    return {QPointF(-W / 2.0, -H / 2.0), QPointF(W / 2.0, -H / 2.0), QPointF(-W / 2.0, H / 2.0),
+            QPointF(W / 2.0, H / 2.0)};
   }
   if (type == QLatin1String("notched_pentagon")) {
-    return {QPointF(-W * 0.4, -H / 2.0), QPointF(W * 0.4, -H / 2.0),
-            QPointF(W / 2.0, -H * 0.3), QPointF(W / 2.0, H / 2.0),
-            QPointF(-W / 2.0, H / 2.0), QPointF(-W / 2.0, -H * 0.3)};
+    return {QPointF(-W * 0.4, -H / 2.0), QPointF(W * 0.4, -H / 2.0), QPointF(W / 2.0, -H * 0.3),
+            QPointF(W / 2.0, H / 2.0),   QPointF(-W / 2.0, H / 2.0), QPointF(-W / 2.0, -H * 0.3)};
   }
   if (type == QLatin1String("card")) {
     const qreal notch = 12.0;
-    return {QPointF(notch - W / 2.0, -H / 2.0), QPointF(W / 2.0, -H / 2.0),
-            QPointF(W / 2.0, H / 2.0), QPointF(-W / 2.0, H / 2.0),
-            QPointF(-W / 2.0, notch - H / 2.0), QPointF(notch - W / 2.0, -H / 2.0)};
+    return {QPointF(notch - W / 2.0, -H / 2.0), QPointF(W / 2.0, -H / 2.0),         QPointF(W / 2.0, H / 2.0),
+            QPointF(-W / 2.0, H / 2.0),         QPointF(-W / 2.0, notch - H / 2.0), QPointF(notch - W / 2.0, -H / 2.0)};
   }
   if (type == QLatin1String("sloped_rect")) {
-    return {QPointF(-W / 2.0, -H / 6.0), QPointF(-W / 2.0, H / 2.0),
-            QPointF(W / 2.0, H / 2.0), QPointF(W / 2.0, -H / 2.0)};
+    return {QPointF(-W / 2.0, -H / 6.0), QPointF(-W / 2.0, H / 2.0), QPointF(W / 2.0, H / 2.0),
+            QPointF(W / 2.0, -H / 2.0)};
   }
   if (type == QLatin1String("lightning_bolt")) {
     const qreal gap = 7.0;
-    return {QPointF(W / 2.0, -H / 2.0), QPointF(-W / 2.0, gap / 2.0),
-            QPointF(W / 2.0 - 2.0 * gap, gap / 2.0), QPointF(-W / 2.0, H / 2.0),
-            QPointF(W / 2.0, -gap / 2.0), QPointF(2.0 * gap - W / 2.0, -gap / 2.0)};
+    return {QPointF(W / 2.0, -H / 2.0), QPointF(-W / 2.0, gap / 2.0), QPointF(W / 2.0 - 2.0 * gap, gap / 2.0),
+            QPointF(-W / 2.0, H / 2.0), QPointF(W / 2.0, -gap / 2.0), QPointF(2.0 * gap - W / 2.0, -gap / 2.0)};
   }
   if (type == QLatin1String("stacked_rect")) {
     const qreal ro = look == FlowLook::Neo ? 10.0 : 5.0;
     return {QPointF(-W / 2.0, -H / 2.0 + 2.0 * ro), QPointF(-W / 2.0, H / 2.0),
-            QPointF(W / 2.0 - 2.0 * ro, H / 2.0), QPointF(W / 2.0 - 2.0 * ro, H / 2.0 - ro),
-            QPointF(W / 2.0 - ro, H / 2.0 - ro), QPointF(W / 2.0 - ro, H / 2.0 - 2.0 * ro),
-            QPointF(W / 2.0, H / 2.0 - 2.0 * ro), QPointF(W / 2.0, -H / 2.0),
+            QPointF(W / 2.0 - 2.0 * ro, H / 2.0),   QPointF(W / 2.0 - 2.0 * ro, H / 2.0 - ro),
+            QPointF(W / 2.0 - ro, H / 2.0 - ro),    QPointF(W / 2.0 - ro, H / 2.0 - 2.0 * ro),
+            QPointF(W / 2.0, H / 2.0 - 2.0 * ro),   QPointF(W / 2.0, -H / 2.0),
             QPointF(-W / 2.0 + 2.0 * ro, -H / 2.0), QPointF(-W / 2.0 + 2.0 * ro, -H / 2.0 + ro),
-            QPointF(-W / 2.0 + ro, -H / 2.0 + ro), QPointF(-W / 2.0 + ro, -H / 2.0 + 2.0 * ro)};
+            QPointF(-W / 2.0 + ro, -H / 2.0 + ro),  QPointF(-W / 2.0 + ro, -H / 2.0 + 2.0 * ro)};
   }
 
   // --- wave-edged shapes (generateFullSineWavePoints) ---
@@ -350,9 +357,8 @@ QVector<QPointF> flowShapePolygonPoints(const QString& type, qreal w, qreal h, F
     const qreal hh = (H - 2.0 * rectOffset) / 1.1875;
     const qreal waveAmp = hh / 8.0, finalH = hh + waveAmp / 2.0;
     const qreal x = -hw / 2.0, y = -finalH / 2.0;
-    QVector<QPointF> wavePts = sineWavePoints(x - rectOffset, y + finalH + rectOffset,
-                                               x + hw - rectOffset, y + finalH + rectOffset,
-                                               waveAmp, 0.8);
+    QVector<QPointF> wavePts = sineWavePoints(x - rectOffset, y + finalH + rectOffset, x + hw - rectOffset,
+                                              y + finalH + rectOffset, waveAmp, 0.8);
     const qreal lastY = wavePts.last().y();
     QVector<QPointF> pts;
     pts.append(QPointF(x - rectOffset, y + rectOffset));
@@ -451,8 +457,13 @@ QVector<QPointF> flowShapePolygonPoints(const QString& type, qreal w, qreal h, F
   // arc reaches x = -(w/2+2*radius)), node.height = h + 2*radius.
   if (type == QLatin1String("brace_left")) {
     qreal hh, radius;
-    if (H >= 60.0) { hh = H / 1.2; radius = hh / 10.0; }
-    else { radius = 5.0; hh = H - 2.0 * radius; }
+    if (H >= 60.0) {
+      hh = H / 1.2;
+      radius = hh / 10.0;
+    } else {
+      radius = 5.0;
+      hh = H - 2.0 * radius;
+    }
     const qreal hw = W - 2.0 * radius;
     QVector<QPointF> pts;
     pts.append(QPointF(hw / 2.0, -hh / 2.0 - radius));
@@ -469,8 +480,13 @@ QVector<QPointF> flowShapePolygonPoints(const QString& type, qreal w, qreal h, F
   // h + 2*radius. Uses generateCirclePoints3 (no negate).
   if (type == QLatin1String("brace_right")) {
     qreal hh, radius;
-    if (H >= 60.0) { hh = H / 1.2; radius = hh / 10.0; }
-    else { radius = 5.0; hh = H - 2.0 * radius; }
+    if (H >= 60.0) {
+      hh = H / 1.2;
+      radius = hh / 10.0;
+    } else {
+      radius = 5.0;
+      hh = H - 2.0 * radius;
+    }
     const qreal hw = W - 2.0 * radius;
     QVector<QPointF> pts;
     pts.append(QPointF(-hw / 2.0, -hh / 2.0 - radius));
@@ -488,8 +504,13 @@ QVector<QPointF> flowShapePolygonPoints(const QString& type, qreal w, qreal h, F
   // w + 2.5*radius, node.height = h + 2*radius.
   if (type == QLatin1String("braces")) {
     qreal hh, radius;
-    if (H >= 60.0) { hh = H / 1.2; radius = hh / 10.0; }
-    else { radius = 5.0; hh = H - 2.0 * radius; }
+    if (H >= 60.0) {
+      hh = H / 1.2;
+      radius = hh / 10.0;
+    } else {
+      radius = 5.0;
+      hh = H - 2.0 * radius;
+    }
     const qreal hw = W - 2.0 * radius - radius / 2.0;
     QVector<QPointF> pts;
     // left brace outline
@@ -545,9 +566,11 @@ QPainterPath flowShapeHorizontalCylinderPath(const QRectF& bounds, qreal rx, qre
   QPainterPath path;
   path.setFillRule(Qt::WindingFill);
   auto addSubpath = [&](const QVector<QPointF>& pts) {
-    if (pts.isEmpty()) return;
+    if (pts.isEmpty())
+      return;
     path.moveTo(pts.first());
-    for (int i = 1; i < pts.size(); ++i) path.lineTo(pts.at(i));
+    for (int i = 1; i < pts.size(); ++i)
+      path.lineTo(pts.at(i));
     path.closeSubpath();
   };
   QVector<QPointF> s1;
@@ -564,11 +587,9 @@ QPainterPath flowShapeHorizontalCylinderPath(const QRectF& bounds, qreal rx, qre
   return path;
 }
 
-FlowShapeGeometry flowShapeGeometry(const FlowVertex& vertex, const QSizeF& size,
-                                    FlowLook look, qreal shapeRadius) {
+FlowShapeGeometry flowShapeGeometry(const FlowVertex& vertex, const QSizeF& size, FlowLook look, qreal shapeRadius) {
   FlowShapeGeometry result;
-  result.bounds = QRectF(-size.width() / 2.0, -size.height() / 2.0,
-                        size.width(), size.height());
+  result.bounds = QRectF(-size.width() / 2.0, -size.height() / 2.0, size.width(), size.height());
   // Collapse legacy bracket names, @{ shape: shortName }, and aliases onto one
   // canonical key so each shape has a single geometry implementation.
   const QString type = canonicalShape(vertex.type);
@@ -585,30 +606,23 @@ FlowShapeGeometry flowShapeGeometry(const FlowVertex& vertex, const QSizeF& size
   // silhouette only.
   if (type == QLatin1String("bang") || type == QLatin1String("cloud")) {
     const QSizeF label = measureLabel(vertex.text, FlowTextOptions{});
-    const qreal pathWidth = label.width() +
-        (type == QLatin1String("bang") ? 75.0 : 15.0);
-    const qreal pathHeight = label.height() +
-        (type == QLatin1String("bang") ? 60.0 : 15.0);
-    QVector<QPointF> raw = type == QLatin1String("bang")
-        ? bangOutline(pathWidth, pathHeight)
-        : cloudOutline(pathWidth, pathHeight);
+    const qreal pathWidth = label.width() + (type == QLatin1String("bang") ? 75.0 : 15.0);
+    const qreal pathHeight = label.height() + (type == QLatin1String("bang") ? 60.0 : 15.0);
+    QVector<QPointF> raw =
+        type == QLatin1String("bang") ? bangOutline(pathWidth, pathHeight) : cloudOutline(pathWidth, pathHeight);
     result.kind = QStringLiteral("polygon");
     // bang.ts/cloud.ts translate the path by (-w/2,-h/2), not by its actual
     // arc bbox centre. SVG arc correction makes that distinction visible:
     // the bang silhouette in the 11.16 fixture is +2.38632965px off-centre.
-    result.points = translateFromPathOrigin(std::move(raw), pathWidth,
-                                            pathHeight);
+    result.points = translateFromPathOrigin(std::move(raw), pathWidth, pathHeight);
     return result;
   }
   if (type == QLatin1String("round")) {
     result.kind = QStringLiteral("roundedRect");
     result.cornerRadius = shapeRadius;
-  } else if (type == QLatin1String("circle") ||
-             type == QLatin1String("double_circle") ||
-             type == QLatin1String("filled_circle") ||
-             type == QLatin1String("crossed_circle") ||
-             type == QLatin1String("small_circle") ||
-             type == QLatin1String("framed_circle")) {
+  } else if (type == QLatin1String("circle") || type == QLatin1String("double_circle") ||
+             type == QLatin1String("filled_circle") || type == QLatin1String("crossed_circle") ||
+             type == QLatin1String("small_circle") || type == QLatin1String("framed_circle")) {
     // double_circle's silhouette is the outer disk (the inner circle is the same
     // fill); filled_circle/crossed_circle/small_circle/framed_circle share the
     // circle geometry. small_circle/framed_circle are fixed 14x14 stop points.
@@ -618,8 +632,7 @@ FlowShapeGeometry flowShapeGeometry(const FlowVertex& vertex, const QSizeF& size
     result.cornerRadius = size.height() / 2.0;
   } else if (type == QLatin1String("subroutine")) {
     result.kind = QStringLiteral("subroutine");
-  } else if (type == QLatin1String("cylinder") ||
-             type == QLatin1String("lined_cylinder")) {
+  } else if (type == QLatin1String("cylinder") || type == QLatin1String("lined_cylinder")) {
     // lined_cylinder adds a horizontal stroke line (zero fill area) to the
     // legacy cylinder, so the silhouette is identical.
     result.kind = QStringLiteral("cylinder");
@@ -641,4 +654,4 @@ FlowShapeGeometry flowShapeGeometry(const FlowVertex& vertex, const QSizeF& size
   return result;
 }
 
-}  // namespace muffin::mermaid::flowchart
+} // namespace muffin::mermaid::flowchart

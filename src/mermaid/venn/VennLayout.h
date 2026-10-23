@@ -43,14 +43,10 @@ struct Result {
 // Native port of @upsetjs/venn.js 2.0.0. The implementation intentionally
 // preserves its ordering, stopping thresholds, normalization, and path
 // formatting because Mermaid 11.16 exposes all four in SVG geometry.
-Result compute(const QVector<VennSubset>& data, double width, double height,
-               double padding);
-Result compute(const QVector<VennSubset>& data, double width, double height,
-               const QJsonValue& padding);
+Result compute(const QVector<VennSubset>& data, double width, double height, double padding);
+Result compute(const QVector<VennSubset>& data, double width, double height, const QJsonValue& padding);
 
-double intersectionArea(const QVector<Circle>& circles,
-                        QVector<Arc>* arcs = nullptr);
-QString intersectionPath(const QVector<Circle>& circles,
-                         int roundDigits = -1);
+double intersectionArea(const QVector<Circle>& circles, QVector<Arc>* arcs = nullptr);
+QString intersectionPath(const QVector<Circle>& circles, int roundDigits = -1);
 
-}  // namespace muffin::mermaid::venn::layout
+} // namespace muffin::mermaid::venn::layout

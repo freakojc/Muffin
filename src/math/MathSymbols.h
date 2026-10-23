@@ -21,4 +21,4 @@ struct WideCharMapping {
 MathSymbolInfo lookupSymbol(const QString& token);
 WideCharMapping wideCharacterFont(uint codePoint);
 
-}  // namespace muffin::math
+} // namespace muffin::math

@@ -57,10 +57,11 @@ int main(int argc, char** argv) {
       afterRule = true;
       continue;
     }
-    if (!afterRule) continue;
+    if (!afterRule)
+      continue;
     const muffin::SourceRange r = c->sourceRange();
     if (c->type() == muffin::BlockType::Paragraph && r.byteEnd > r.byteStart) {
-      afterBlock = c.get();  // the first real (non-empty) paragraph after the rule = "After"
+      afterBlock = c.get(); // the first real (non-empty) paragraph after the rule = "After"
       break;
     }
     if (c->type() == muffin::BlockType::Paragraph && r.byteStart == r.byteEnd) {
@@ -89,9 +90,8 @@ int main(int argc, char** argv) {
             "offset in the leading blank region must resolve to the first child, not the last block");
   }
 
-  std::fprintf(stdout,
-               "PASS: rule bytes [%lld..%lld] (clamped); %d stable VEP%s after it (blankLines/2).\n",
-               static_cast<long long>(ruleRange.byteStart), static_cast<long long>(ruleRange.byteEnd),
-               vepCount, vepCount == 1 ? "" : "s");
+  std::fprintf(stdout, "PASS: rule bytes [%lld..%lld] (clamped); %d stable VEP%s after it (blankLines/2).\n",
+               static_cast<long long>(ruleRange.byteStart), static_cast<long long>(ruleRange.byteEnd), vepCount,
+               vepCount == 1 ? "" : "s");
   return 0;
 }

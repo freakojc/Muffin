@@ -18,14 +18,14 @@ struct InlineComposition {
     return active() && displayOffset > insertAt ? displayOffset + length : displayOffset;
   }
   int toDisplayOffset(int layoutOffset) const {
-    if (!active() || layoutOffset <= insertAt) return layoutOffset;
+    if (!active() || layoutOffset <= insertAt)
+      return layoutOffset;
     return layoutOffset <= insertAt + length ? insertAt : layoutOffset - length;
   }
   int cursorOffset(int cursor) const { return insertAt + qBound(0, cursor, length); }
 };
-InlineComposition composeInlineText(QString text, QVector<QTextLayout::FormatRange> formats,
-                                    int insertAt, const QString& preeditText,
-                                    const QVector<QTextLayout::FormatRange>& preeditFormats,
+InlineComposition composeInlineText(QString text, QVector<QTextLayout::FormatRange> formats, int insertAt,
+                                    const QString& preeditText, const QVector<QTextLayout::FormatRange>& preeditFormats,
                                     QColor baseForeground);
 
-}  // namespace muffin
+} // namespace muffin

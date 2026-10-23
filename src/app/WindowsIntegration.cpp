@@ -37,16 +37,13 @@ std::wstring quotedExePath() {
 
 // Write (or overwrite) a string (REG_SZ) value. A null valueName writes the
 // key's (Default) value.
-void writeStringValue(HKEY root, const std::wstring& keyPath, const wchar_t* valueName,
-                      const std::wstring& data) {
+void writeStringValue(HKEY root, const std::wstring& keyPath, const wchar_t* valueName, const std::wstring& data) {
   HKEY key = nullptr;
-  if (RegCreateKeyExW(root, keyPath.c_str(), 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr) !=
-      ERROR_SUCCESS) {
+  if (RegCreateKeyExW(root, keyPath.c_str(), 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr) != ERROR_SUCCESS) {
     return;
   }
   const DWORD bytes = static_cast<DWORD>((data.size() + 1) * sizeof(wchar_t));
-  RegSetValueExW(key, valueName, 0, REG_SZ,
-                 reinterpret_cast<const BYTE*>(data.c_str()), bytes);
+  RegSetValueExW(key, valueName, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.c_str()), bytes);
   RegCloseKey(key);
 }
 
@@ -54,8 +51,7 @@ void writeStringValue(HKEY root, const std::wstring& keyPath, const wchar_t* val
 // value name with empty REG_NONE data so the app appears in "Open with".
 void writeNoneValue(HKEY root, const std::wstring& keyPath, const std::wstring& valueName) {
   HKEY key = nullptr;
-  if (RegCreateKeyExW(root, keyPath.c_str(), 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr) !=
-      ERROR_SUCCESS) {
+  if (RegCreateKeyExW(root, keyPath.c_str(), 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr) != ERROR_SUCCESS) {
     return;
   }
   RegSetValueExW(key, valueName.c_str(), 0, REG_NONE, nullptr, 0);
@@ -99,16 +95,15 @@ std::wstring classesKey(const std::wstring& tail) {
 void notifyShellAssocChanged() {
   SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
-#endif  // Q_OS_WIN
+#endif // Q_OS_WIN
 
-}  // namespace
+} // namespace
 
 namespace muffin {
 
 const QStringList& WindowsIntegration::markdownExtensions() {
-  static const QStringList kExtensions = {QStringLiteral(".md"), QStringLiteral(".markdown"),
-                                          QStringLiteral(".mdx"), QStringLiteral(".mkd"),
-                                          QStringLiteral(".mdown")};
+  static const QStringList kExtensions = {QStringLiteral(".md"), QStringLiteral(".markdown"), QStringLiteral(".mdx"),
+                                          QStringLiteral(".mkd"), QStringLiteral(".mdown")};
   return kExtensions;
 }
 
@@ -123,8 +118,7 @@ void WindowsIntegration::applyIntegration(bool contextMenu, bool associate) {
     if (contextMenu) {
       writeStringValue(HKEY_CURRENT_USER, verbPath, nullptr, kVerbLabel);
       writeStringValue(HKEY_CURRENT_USER, verbPath + L'\\' + kIconSubKey, nullptr, iconValue);
-      writeStringValue(HKEY_CURRENT_USER, verbPath + L'\\' + kCommandSubKey, nullptr,
-                       exe + L" \"%1\"");
+      writeStringValue(HKEY_CURRENT_USER, verbPath + L'\\' + kCommandSubKey, nullptr, exe + L" \"%1\"");
     } else {
       // Remove only Muffin's verb subtree; leave the rest of the extension's
       // shell key (other apps' verbs) and the extension key itself intact.
@@ -136,8 +130,7 @@ void WindowsIntegration::applyIntegration(bool contextMenu, bool associate) {
   if (contextMenu) {
     writeStringValue(HKEY_CURRENT_USER, dirVerb, nullptr, kVerbLabel);
     writeStringValue(HKEY_CURRENT_USER, dirVerb + L'\\' + kIconSubKey, nullptr, iconValue);
-    writeStringValue(HKEY_CURRENT_USER, dirVerb + L'\\' + kCommandSubKey, nullptr,
-                     exe + L" --folder \"%1\"");
+    writeStringValue(HKEY_CURRENT_USER, dirVerb + L'\\' + kCommandSubKey, nullptr, exe + L" --folder \"%1\"");
   } else {
     deleteKeyTree(HKEY_CURRENT_USER, dirVerb);
   }
@@ -148,8 +141,7 @@ void WindowsIntegration::applyIntegration(bool contextMenu, bool associate) {
   if (contextMenu) {
     writeStringValue(HKEY_CURRENT_USER, bgVerb, nullptr, kVerbLabel);
     writeStringValue(HKEY_CURRENT_USER, bgVerb + L'\\' + kIconSubKey, nullptr, iconValue);
-    writeStringValue(HKEY_CURRENT_USER, bgVerb + L'\\' + kCommandSubKey, nullptr,
-                     exe + L" --folder \"%V\"");
+    writeStringValue(HKEY_CURRENT_USER, bgVerb + L'\\' + kCommandSubKey, nullptr, exe + L" --folder \"%V\"");
   } else {
     deleteKeyTree(HKEY_CURRENT_USER, bgVerb);
   }
@@ -161,17 +153,14 @@ void WindowsIntegration::applyIntegration(bool contextMenu, bool associate) {
     writeStringValue(HKEY_CURRENT_USER, progIdKey, L"FriendlyAppName", kAppName);
     writeStringValue(HKEY_CURRENT_USER, progIdKey + L"\\DefaultIcon", nullptr, iconValue);
     writeStringValue(HKEY_CURRENT_USER, progIdKey + L"\\shell\\open", nullptr, L"Open");
-    writeStringValue(HKEY_CURRENT_USER, progIdKey + L"\\shell\\open\\command", nullptr,
-                     exe + L" \"%1\"");
+    writeStringValue(HKEY_CURRENT_USER, progIdKey + L"\\shell\\open\\command", nullptr, exe + L" \"%1\"");
     for (const QString& ext : markdownExtensions()) {
-      writeNoneValue(HKEY_CURRENT_USER, classesKey(ext.toStdWString() + L"\\OpenWithProgids"),
-                     kProgId);
+      writeNoneValue(HKEY_CURRENT_USER, classesKey(ext.toStdWString() + L"\\OpenWithProgids"), kProgId);
     }
   } else {
     deleteKeyTree(HKEY_CURRENT_USER, progIdKey);
     for (const QString& ext : markdownExtensions()) {
-      deleteValue(HKEY_CURRENT_USER, classesKey(ext.toStdWString() + L"\\OpenWithProgids"),
-                  kProgId);
+      deleteValue(HKEY_CURRENT_USER, classesKey(ext.toStdWString() + L"\\OpenWithProgids"), kProgId);
     }
   }
 
@@ -222,4 +211,4 @@ void WindowsIntegration::clearPromptForDefault() {
 #endif
 }
 
-}  // namespace muffin
+} // namespace muffin

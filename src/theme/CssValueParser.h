@@ -1,6 +1,6 @@
 #pragma once
 
-#include "theme/ThemeDefinition.h"  // GradientSpec / GradientStop (parseGradientSpec return)
+#include "theme/ThemeDefinition.h" // GradientSpec / GradientStop (parseGradientSpec return)
 
 #include <QChar>
 #include <QColor>
@@ -20,8 +20,12 @@ Q_DECLARE_LOGGING_CATEGORY(themeWarn)
 
 // CSS px ↔ pt conversion (96 px = 72 pt). Inline one-liners; shared by length resolution here
 // and by heading-size round-tripping (ptToPx) in CssThemeMapper.
-inline qreal pxToPt(qreal px) { return px * 72.0 / 96.0; }
-inline qreal ptToPx(qreal pt) { return pt * 96.0 / 72.0; }
+inline qreal pxToPt(qreal px) {
+  return px * 72.0 / 96.0;
+}
+inline qreal ptToPx(qreal pt) {
+  return pt * 96.0 / 72.0;
+}
 
 // The CSS root em default (browser default font-size = 16px). Used wherever a length must be
 // resolved without a configured root/body size: the rem fallback, the body-size default, and the
@@ -39,7 +43,7 @@ inline QColor cssColor(const QString& literal) {
   const QString s = literal.trimmed();
   if (s.size() == 9 && s.at(0) == QLatin1Char('#')) {
     bool ok = false;
-    const quint32 v = s.mid(1).toUInt(&ok, 16);  // toUInt validates the whole string
+    const quint32 v = s.mid(1).toUInt(&ok, 16); // toUInt validates the whole string
     if (ok) {
       return QColor((v >> 24) & 0xff, (v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff);
     }
@@ -47,7 +51,7 @@ inline QColor cssColor(const QString& literal) {
     // CSS #RGBA (alpha last) == #RRGGBBAA with each digit doubled.
     const QChar hash('#');
     const QString doubled = hash + QString(s.at(1)) + QString(s.at(1)) + QString(s.at(2)) + QString(s.at(2)) +
-        QString(s.at(3)) + QString(s.at(3)) + QString(s.at(4)) + QString(s.at(4));
+                            QString(s.at(3)) + QString(s.at(3)) + QString(s.at(4)) + QString(s.at(4));
     return cssColor(doubled);
   }
   return QColor(literal);
@@ -60,7 +64,8 @@ QStringList splitTopLevelSpaces(const QString& text);
 
 // One background/mask position layer, retaining percentages until geometry is
 // known. Supports keyword pairs and edge offsets (right 4px bottom 2px).
-QPair<CssLengthPercentage, CssLengthPercentage> parseCssPosition(const QString& value, const CssLengthContext& context = {});
+QPair<CssLengthPercentage, CssLengthPercentage> parseCssPosition(const QString& value,
+                                                                 const CssLengthContext& context = {});
 
 // Resolve a CSS colour value (var()/color-mix()/rgb()/rgba()/hsl()/hsla()/#hex/named) → QColor.
 // The full funnel every theme colour read routes through; returns invalid for unresolvable
@@ -72,8 +77,8 @@ bool isCssColorValue(const QString& value);
 // rootPx (the root html font, 16px default — NOT the local em, which is the historic
 // 1.5×-too-big bug); `%` resolves against containingPx when supplied (pseudo width/height)
 // else against emPx. Returns 0 for unset/auto/unrecognised. Defined in CssValueParser.cpp.
-qreal lengthToPx(const QString& value, const QHash<QString, QString>& vars, qreal emPx = 16.0,
-                 qreal rootPx = -1.0, qreal containingPx = -1.0);
+qreal lengthToPx(const QString& value, const QHash<QString, QString>& vars, qreal emPx = 16.0, qreal rootPx = -1.0,
+                 qreal containingPx = -1.0);
 
 // CSS length → points (font-size resolution). Same unit handling as lengthToPx but expressed
 // in points for ThemeTypography's *SizePt fields. Defined in CssValueParser.cpp.
@@ -81,8 +86,8 @@ qreal lengthToPt(const QString& value, const QHash<QString, QString>& vars, qrea
 
 // Resolve a CSS box shorthand (margin/padding, 1-4 space-separated values) to pixel margins.
 // Defined in CssValueParser.cpp.
-QMarginsF boxToMarginsPx(const QString& value, const QHash<QString, QString>& vars, qreal emPx = 16.0, qreal rootPx = -1.0,
-                         qreal containingPx = -1.0);
+QMarginsF boxToMarginsPx(const QString& value, const QHash<QString, QString>& vars, qreal emPx = 16.0,
+                         qreal rootPx = -1.0, qreal containingPx = -1.0);
 
 // Width of the first positive length in a border shorthand (e.g. `1px solid #d0d7de` → 1.0).
 // Defined in CssValueParser.cpp.
@@ -99,4 +104,4 @@ qreal shadowBlurPx(const QString& shadowRaw, const QHash<QString, QString>& vars
 GradientSpec parseGradientSpec(const QString& raw, const QHash<QString, QString>& vars,
                                const CssLengthContext& context = {});
 
-}  // namespace muffin
+} // namespace muffin

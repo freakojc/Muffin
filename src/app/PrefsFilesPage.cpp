@@ -28,14 +28,17 @@ public:
     // without rounding it to a different number of bytes.
     setDecimals(12);
   }
+
 protected:
   QString textFromValue(double value) const override {
     QString text = QDoubleSpinBox::textFromValue(value);
     const auto zero = locale().zeroDigit();
     const auto point = locale().decimalPoint();
     if (text.contains(point)) {
-      while (text.endsWith(zero)) text.chop(zero.size());
-      if (text.endsWith(point)) text.chop(point.size());
+      while (text.endsWith(zero))
+        text.chop(zero.size());
+      if (text.endsWith(point))
+        text.chop(point.size());
     }
     return text;
   }
@@ -48,7 +51,10 @@ public:
     setContentsMargins(0, 0, 0, 0);
     setSpacing(6);
   }
-  ~ExtensionFlowLayout() override { while (auto* item = takeAt(0)) delete item; }
+  ~ExtensionFlowLayout() override {
+    while (auto* item = takeAt(0))
+      delete item;
+  }
   void addItem(QLayoutItem* item) override { items_.append(item); }
   int count() const override { return items_.size(); }
   QLayoutItem* itemAt(int index) const override { return items_.value(index); }
@@ -60,7 +66,8 @@ public:
   int heightForWidth(int width) const override { return arrange(QRect(0, 0, width, 0), false); }
   QSize minimumSize() const override {
     QSize size;
-    for (auto* item : items_) size = size.expandedTo(item->minimumSize());
+    for (auto* item : items_)
+      size = size.expandedTo(item->minimumSize());
     return size;
   }
   QSize sizeHint() const override { return minimumSize(); }
@@ -79,7 +86,8 @@ private:
         y += rowHeight + spacing();
         rowHeight = 0;
       }
-      if (apply) item->setGeometry(QRect(QPoint(x, y), size));
+      if (apply)
+        item->setGeometry(QRect(QPoint(x, y), size));
       x += size.width() + spacing();
       rowHeight = qMax(rowHeight, size.height());
     }
@@ -88,7 +96,7 @@ private:
   QList<QLayoutItem*> items_;
 };
 
-}  // namespace
+} // namespace
 
 muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent) {
   auto* layout = new QVBoxLayout(this);
@@ -329,8 +337,7 @@ muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent
   auto* winCard = new QWidget(this);
   winCard->setObjectName(QStringLiteral("settingsCard"));
   auto* winLayout = new QVBoxLayout(winCard);
-  winLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin,
-                                kRowVerticalMargin);
+  winLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin, kRowVerticalMargin);
   winLayout->setSpacing(kRowSpacing);
   winIntegrationLabel_ = makeSectionLabel(winCard);
   winContextMenuCheck_ = new QCheckBox(winCard);
@@ -367,8 +374,9 @@ muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent
   });
   wireBoolSetting(sizeProtectionCheck_, QLatin1String(file_open_protection::kSizeEnabled));
   connect(sizeLimitSpin_, &QDoubleSpinBox::valueChanged, this, [this](double value) {
-    sizeLimitBytes_ = qBound(file_open_protection::kMinimumSizeLimitBytes,
-        qint64(std::llround(value * sizeLimitUnitBytes_)), file_open_protection::kMaximumSizeLimitBytes);
+    sizeLimitBytes_ =
+        qBound(file_open_protection::kMinimumSizeLimitBytes, qint64(std::llround(value * sizeLimitUnitBytes_)),
+               file_open_protection::kMaximumSizeLimitBytes);
     QSettings().setValue(QLatin1String(file_open_protection::kSizeLimitBytes), sizeLimitBytes_);
   });
   connect(sizeLimitUnit_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this] {
@@ -383,11 +391,10 @@ muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent
   connect(sizeProtectionCheck_, &QCheckBox::toggled, sizeLimitLabel_, &QWidget::setEnabled);
   connect(startupCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           [](int index) { QSettings().setValue(QStringLiteral("files/startupBehavior"), index); });
-  connect(outlineFoldableCheck_, &QCheckBox::toggled, this,
-          [this](bool checked) {
-            QSettings().setValue(QStringLiteral("files/outlineFoldable"), checked);
-            emit outlineFoldableChanged(checked);
-          });
+  connect(outlineFoldableCheck_, &QCheckBox::toggled, this, [this](bool checked) {
+    QSettings().setValue(QStringLiteral("files/outlineFoldable"), checked);
+    emit outlineFoldableChanged(checked);
+  });
   connect(defaultExtCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           [](int index) { QSettings().setValue(QStringLiteral("files/defaultExtension"), index); });
   connect(autoSaveCheck_, &QCheckBox::toggled, this,
@@ -408,15 +415,11 @@ muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent
 #ifdef Q_OS_WIN
   // The registry is the single source of truth — each toggle re-applies the
   // full desired state (on = write the Muffin keys, off = remove only them).
-  connect(winContextMenuCheck_, &QCheckBox::toggled, this, [this](bool on) {
-    WindowsIntegration::applyIntegration(on, winAssociateCheck_->isChecked());
-  });
-  connect(winAssociateCheck_, &QCheckBox::toggled, this, [this](bool on) {
-    WindowsIntegration::applyIntegration(winContextMenuCheck_->isChecked(), on);
-  });
-  connect(winSetDefaultButton_, &QPushButton::clicked, this, [] {
-    WindowsIntegration::openDefaultAppsSettings();
-  });
+  connect(winContextMenuCheck_, &QCheckBox::toggled, this,
+          [this](bool on) { WindowsIntegration::applyIntegration(on, winAssociateCheck_->isChecked()); });
+  connect(winAssociateCheck_, &QCheckBox::toggled, this,
+          [this](bool on) { WindowsIntegration::applyIntegration(winContextMenuCheck_->isChecked(), on); });
+  connect(winSetDefaultButton_, &QPushButton::clicked, this, [] { WindowsIntegration::openDefaultAppsSettings(); });
 #endif
 }
 
@@ -509,8 +512,7 @@ void muffin::PrefsFilesPage::retranslateUi() {
 
 #ifdef Q_OS_WIN
   winIntegrationLabel_->setText(tr("Windows Integration"));
-  winContextMenuCheck_->setText(
-      tr("Add \"Open with Muffin\" to File Explorer context menu for files and folders"));
+  winContextMenuCheck_->setText(tr("Add \"Open with Muffin\" to File Explorer context menu for files and folders"));
   winAssociateCheck_->setText(
       tr("Register Muffin as an editor for Markdown files (.md, .markdown, .mdx, .mkd, .mdown)"));
   winSetDefaultButton_->setText(tr("Set Muffin as Default…"));
@@ -519,16 +521,19 @@ void muffin::PrefsFilesPage::retranslateUi() {
 
 void muffin::PrefsFilesPage::addTextExtensions() {
   const auto additions = file_open_protection::normalizedTextExtensions(textExtensionsEdit_->text());
-  if (additions.isEmpty()) return;
+  if (additions.isEmpty())
+    return;
   for (const auto& extension : additions) {
-    if (!textExtensions_.contains(extension)) textExtensions_.append(extension);
+    if (!textExtensions_.contains(extension))
+      textExtensions_.append(extension);
   }
   textExtensionsEdit_->clear();
   saveTextExtensions();
 }
 
 void muffin::PrefsFilesPage::saveTextExtensions() {
-  QSettings().setValue(QLatin1String(file_open_protection::kTextExtensions), textExtensions_.join(QStringLiteral(", ")));
+  QSettings().setValue(QLatin1String(file_open_protection::kTextExtensions),
+                       textExtensions_.join(QStringLiteral(", ")));
   refreshTextExtensionChips();
 }
 
@@ -572,7 +577,7 @@ void muffin::PrefsFilesPage::updateSizeLimitControls() {
   const QSignalBlocker blocker(sizeLimitSpin_);
   sizeLimitUnitBytes_ = sizeLimitUnit_->currentData().toLongLong();
   sizeLimitSpin_->setRange(double(file_open_protection::kMinimumSizeLimitBytes) / sizeLimitUnitBytes_,
-                          double(file_open_protection::kMaximumSizeLimitBytes) / sizeLimitUnitBytes_);
+                           double(file_open_protection::kMaximumSizeLimitBytes) / sizeLimitUnitBytes_);
   sizeLimitSpin_->setSingleStep(sizeLimitUnit_->currentText() == QStringLiteral("GB") ? 0.1 : 1.0);
   sizeLimitSpin_->setValue(double(sizeLimitBytes_) / sizeLimitUnitBytes_);
 }
@@ -580,13 +585,15 @@ void muffin::PrefsFilesPage::updateSizeLimitControls() {
 void muffin::PrefsFilesPage::loadSettings() {
   QSettings settings;
   loadCheck(extensionProtectionCheck_, QLatin1String(file_open_protection::kExtensionEnabled), true);
-  textExtensions_ = file_open_protection::normalizedTextExtensions(settings.value(
-      QLatin1String(file_open_protection::kTextExtensions), file_open_protection::defaultTextExtensions()).toString());
+  textExtensions_ = file_open_protection::normalizedTextExtensions(
+      settings
+          .value(QLatin1String(file_open_protection::kTextExtensions), file_open_protection::defaultTextExtensions())
+          .toString());
   refreshTextExtensionChips();
   loadCheck(sizeProtectionCheck_, QLatin1String(file_open_protection::kSizeEnabled), true);
   sizeLimitBytes_ = file_open_protection::sizeLimitBytes();
-  const int unit = sizeLimitUnit_->findText(settings.value(
-      QLatin1String(file_open_protection::kSizeLimitUnit), QStringLiteral("MB")).toString());
+  const int unit = sizeLimitUnit_->findText(
+      settings.value(QLatin1String(file_open_protection::kSizeLimitUnit), QStringLiteral("MB")).toString());
   sizeLimitUnit_->setCurrentIndex(unit >= 0 ? unit : 1);
   updateSizeLimitControls();
   extensionOptions_->setEnabled(extensionProtectionCheck_->isChecked());

@@ -82,26 +82,37 @@ QString xArrowPathName(const QString& key) {
 }
 
 qreal xArrowMinWidthEm(const QString& key) {
-  static const QHash<QString, qreal> widths{
-      {QStringLiteral("xrightarrow"), 1.469},       {QStringLiteral("xleftarrow"), 1.469},
-      {QStringLiteral("xRightarrow"), 1.526},       {QStringLiteral("xLeftarrow"), 1.526},
-      {QStringLiteral("xleftrightarrow"), 1.75},    {QStringLiteral("xLeftrightarrow"), 1.75},
-      {QStringLiteral("xhookleftarrow"), 1.08},     {QStringLiteral("xhookrightarrow"), 1.08},
-      {QStringLiteral("xmapsto"), 1.5},             {QStringLiteral("xrightleftharpoons"), 1.75},
-      {QStringLiteral("xleftrightharpoons"), 1.75}, {QStringLiteral("xtofrom"), 1.75},
-      {QStringLiteral("xrightleftarrows"), 1.75},   {QStringLiteral("xrightequilibrium"), 1.75},
-      {QStringLiteral("xleftequilibrium"), 1.75}};
+  static const QHash<QString, qreal> widths{{QStringLiteral("xrightarrow"), 1.469},
+                                            {QStringLiteral("xleftarrow"), 1.469},
+                                            {QStringLiteral("xRightarrow"), 1.526},
+                                            {QStringLiteral("xLeftarrow"), 1.526},
+                                            {QStringLiteral("xleftrightarrow"), 1.75},
+                                            {QStringLiteral("xLeftrightarrow"), 1.75},
+                                            {QStringLiteral("xhookleftarrow"), 1.08},
+                                            {QStringLiteral("xhookrightarrow"), 1.08},
+                                            {QStringLiteral("xmapsto"), 1.5},
+                                            {QStringLiteral("xrightleftharpoons"), 1.75},
+                                            {QStringLiteral("xleftrightharpoons"), 1.75},
+                                            {QStringLiteral("xtofrom"), 1.75},
+                                            {QStringLiteral("xrightleftarrows"), 1.75},
+                                            {QStringLiteral("xrightequilibrium"), 1.75},
+                                            {QStringLiteral("xleftequilibrium"), 1.75}};
   return widths.value(key, 0.888);
 }
 
 qreal xArrowHeightEm(const QString& key) {
-  static const QHash<QString, qreal> heights{
-      {QStringLiteral("xRightarrow"), 0.560},          {QStringLiteral("xLeftarrow"), 0.560},
-      {QStringLiteral("xLeftrightarrow"), 0.560},      {QStringLiteral("xlongequal"), 0.334},
-      {QStringLiteral("xtwoheadrightarrow"), 0.334},   {QStringLiteral("xtwoheadleftarrow"), 0.334},
-      {QStringLiteral("xrightleftharpoons"), 0.716},   {QStringLiteral("xleftrightharpoons"), 0.716},
-      {QStringLiteral("xtofrom"), 0.528},              {QStringLiteral("xrightleftarrows"), 0.901},
-      {QStringLiteral("xrightequilibrium"), 0.716},    {QStringLiteral("xleftequilibrium"), 0.716}};
+  static const QHash<QString, qreal> heights{{QStringLiteral("xRightarrow"), 0.560},
+                                             {QStringLiteral("xLeftarrow"), 0.560},
+                                             {QStringLiteral("xLeftrightarrow"), 0.560},
+                                             {QStringLiteral("xlongequal"), 0.334},
+                                             {QStringLiteral("xtwoheadrightarrow"), 0.334},
+                                             {QStringLiteral("xtwoheadleftarrow"), 0.334},
+                                             {QStringLiteral("xrightleftharpoons"), 0.716},
+                                             {QStringLiteral("xleftrightharpoons"), 0.716},
+                                             {QStringLiteral("xtofrom"), 0.528},
+                                             {QStringLiteral("xrightleftarrows"), 0.901},
+                                             {QStringLiteral("xrightequilibrium"), 0.716},
+                                             {QStringLiteral("xleftequilibrium"), 0.716}};
   return heights.value(key, 0.522);
 }
 
@@ -122,7 +133,8 @@ QString stretchyAccentCharacter(const QString& label) {
       {QStringLiteral("\\overgroup"), QChar(0x23e0)},
   };
   const auto it = characters.constFind(label);
-  if (it != characters.cend()) return QString(*it);
+  if (it != characters.cend())
+    return QString(*it);
   // KaTeX 0.16.45 intentionally exposes its missing stretchyCodePoint entry
   // as literal MathML text. Preserve that observable upstream behavior.
   if (label == QStringLiteral("\\overlinesegment"))
@@ -130,95 +142,100 @@ QString stretchyAccentCharacter(const QString& label) {
   return {};
 }
 
-}  // namespace
+} // namespace
 
 std::unique_ptr<MathRenderNode> MathBuilder::buildNode(const MathParseNode& node) {
   switch (node.type) {
-    case MathNodeType::Group:
-      return buildExpression(node.body);
-    case MathNodeType::SupSub:
-      return makeSupSub(node);
-    case MathNodeType::Fraction:
-      return makeFraction(node);
-    case MathNodeType::Sqrt:
-      return makeSqrt(node);
-    case MathNodeType::Accent:
-      return makeAccent(node);
-    case MathNodeType::AccentUnder:
-      return makeAccentUnder(node);
-    case MathNodeType::HorizBrace:
-      return makeHorizBrace(node);
-    case MathNodeType::XArrow:
-      return makeXArrow(node);
-    case MathNodeType::Underline:
-      return makeUnderline(node);
-    case MathNodeType::Overline:
-      return makeOverline(node);
-    case MathNodeType::Phantom:
-      return makePhantom(node);
-    case MathNodeType::Smash:
-      return makeSmash(node);
-    case MathNodeType::Rule:
-      return makeRuleNode(node);
-    case MathNodeType::Kern:
-      return makeKern(node);
-    case MathNodeType::Lap:
-      return makeLap(node);
-    case MathNodeType::RaiseBox:
-      return makeRaiseBox(node);
-    case MathNodeType::VCenter:
-      return makeVCenter(node);
-    case MathNodeType::Enclose:
-      return makeEnclose(node);
-    case MathNodeType::IncludeGraphics:
-      return makeIncludeGraphics(node);
-    case MathNodeType::MathChoice:
-      return makeMathChoice(node);
-    case MathNodeType::Href:
-    case MathNodeType::Html:
-      return node.body.isEmpty() ? makeSymbol(node.text, MathNodeType::Text, options_) : buildExpression(node.body);
-    case MathNodeType::Tag:
-      return makeTag(node);
-    case MathNodeType::Verb:
-      return makeVerb(node);
-    case MathNodeType::DelimSizing:
-      return makeDelimSizing(node);
-    case MathNodeType::LeftRight:
-      return makeLeftRight(node);
-    case MathNodeType::Array:
-      return makeArray(node);
-    case MathNodeType::Color: return makeColor(node);
-    case MathNodeType::Styling: return makeStyling(node);
-    case MathNodeType::Sizing: return makeSizing(node);
-    case MathNodeType::Class: return makeClass(node);
-    case MathNodeType::Error:
-      return makeError(node.text, options_);
-    case MathNodeType::Text: return makeText(node);
-    case MathNodeType::Operator: return makeOperator(node);
-    case MathNodeType::Spacing:
-      return makeSpacing(node);
-    default:
-      // Empty Ord nodes (from bare ^ or _ without base) should not produce glyphs.
-      if (node.type == MathNodeType::Ord && node.text.isEmpty() && node.body.isEmpty()) {
-        return makeSpan({});
-      }
-      return makeSymbol(node.text, node.type, options_, node.fontClass);
+  case MathNodeType::Group:
+    return buildExpression(node.body);
+  case MathNodeType::SupSub:
+    return makeSupSub(node);
+  case MathNodeType::Fraction:
+    return makeFraction(node);
+  case MathNodeType::Sqrt:
+    return makeSqrt(node);
+  case MathNodeType::Accent:
+    return makeAccent(node);
+  case MathNodeType::AccentUnder:
+    return makeAccentUnder(node);
+  case MathNodeType::HorizBrace:
+    return makeHorizBrace(node);
+  case MathNodeType::XArrow:
+    return makeXArrow(node);
+  case MathNodeType::Underline:
+    return makeUnderline(node);
+  case MathNodeType::Overline:
+    return makeOverline(node);
+  case MathNodeType::Phantom:
+    return makePhantom(node);
+  case MathNodeType::Smash:
+    return makeSmash(node);
+  case MathNodeType::Rule:
+    return makeRuleNode(node);
+  case MathNodeType::Kern:
+    return makeKern(node);
+  case MathNodeType::Lap:
+    return makeLap(node);
+  case MathNodeType::RaiseBox:
+    return makeRaiseBox(node);
+  case MathNodeType::VCenter:
+    return makeVCenter(node);
+  case MathNodeType::Enclose:
+    return makeEnclose(node);
+  case MathNodeType::IncludeGraphics:
+    return makeIncludeGraphics(node);
+  case MathNodeType::MathChoice:
+    return makeMathChoice(node);
+  case MathNodeType::Href:
+  case MathNodeType::Html:
+    return node.body.isEmpty() ? makeSymbol(node.text, MathNodeType::Text, options_) : buildExpression(node.body);
+  case MathNodeType::Tag:
+    return makeTag(node);
+  case MathNodeType::Verb:
+    return makeVerb(node);
+  case MathNodeType::DelimSizing:
+    return makeDelimSizing(node);
+  case MathNodeType::LeftRight:
+    return makeLeftRight(node);
+  case MathNodeType::Array:
+    return makeArray(node);
+  case MathNodeType::Color:
+    return makeColor(node);
+  case MathNodeType::Styling:
+    return makeStyling(node);
+  case MathNodeType::Sizing:
+    return makeSizing(node);
+  case MathNodeType::Class:
+    return makeClass(node);
+  case MathNodeType::Error:
+    return makeError(node.text, options_);
+  case MathNodeType::Text:
+    return makeText(node);
+  case MathNodeType::Operator:
+    return makeOperator(node);
+  case MathNodeType::Spacing:
+    return makeSpacing(node);
+  default:
+    // Empty Ord nodes (from bare ^ or _ without base) should not produce glyphs.
+    if (node.type == MathNodeType::Ord && node.text.isEmpty() && node.body.isEmpty()) {
+      return makeSpan({});
+    }
+    return makeSymbol(node.text, node.type, options_, node.fontClass);
   }
 }
 
 std::unique_ptr<MathRenderNode> MathBuilder::makeColor(const MathParseNode& node) {
   QColor color(node.color);
   if (!color.isValid()) {
-    static const QHash<QString, QColor> namedColors{
-        {QStringLiteral("red"), QColor(QStringLiteral("#df0030"))},
-        {QStringLiteral("blue"), QColor(QStringLiteral("#0057d8"))},
-        {QStringLiteral("green"), QColor(QStringLiteral("#008000"))},
-        {QStringLiteral("black"), QColor(QStringLiteral("#000000"))},
-        {QStringLiteral("white"), QColor(QStringLiteral("#ffffff"))},
-        {QStringLiteral("gray"), QColor(QStringLiteral("#808080"))},
-        {QStringLiteral("grey"), QColor(QStringLiteral("#808080"))},
-        {QStringLiteral("purple"), QColor(QStringLiteral("#800080"))},
-        {QStringLiteral("orange"), QColor(QStringLiteral("#ff8000"))}};
+    static const QHash<QString, QColor> namedColors{{QStringLiteral("red"), QColor(QStringLiteral("#df0030"))},
+                                                    {QStringLiteral("blue"), QColor(QStringLiteral("#0057d8"))},
+                                                    {QStringLiteral("green"), QColor(QStringLiteral("#008000"))},
+                                                    {QStringLiteral("black"), QColor(QStringLiteral("#000000"))},
+                                                    {QStringLiteral("white"), QColor(QStringLiteral("#ffffff"))},
+                                                    {QStringLiteral("gray"), QColor(QStringLiteral("#808080"))},
+                                                    {QStringLiteral("grey"), QColor(QStringLiteral("#808080"))},
+                                                    {QStringLiteral("purple"), QColor(QStringLiteral("#800080"))},
+                                                    {QStringLiteral("orange"), QColor(QStringLiteral("#ff8000"))}};
     color = namedColors.value(node.color, options_.color());
   }
   return MathBuilder(options_.withColor(color)).buildExpression(node.body);
@@ -226,19 +243,25 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeColor(const MathParseNode& node
 
 std::unique_ptr<MathRenderNode> MathBuilder::makeStyling(const MathParseNode& node) {
   MathStyle style = options_.style();
-  if (node.style == QStringLiteral("\\displaystyle")) style = MathStyle::display();
-  else if (node.style == QStringLiteral("\\textstyle")) style = MathStyle::textStyle();
-  else if (node.style == QStringLiteral("\\scriptstyle")) style = MathStyle::script();
-  else if (node.style == QStringLiteral("\\scriptscriptstyle")) style = MathStyle::scriptScript();
+  if (node.style == QStringLiteral("\\displaystyle"))
+    style = MathStyle::display();
+  else if (node.style == QStringLiteral("\\textstyle"))
+    style = MathStyle::textStyle();
+  else if (node.style == QStringLiteral("\\scriptstyle"))
+    style = MathStyle::script();
+  else if (node.style == QStringLiteral("\\scriptscriptstyle"))
+    style = MathStyle::scriptScript();
   return MathBuilder(options_.havingStyle(style)).buildExpression(node.body);
 }
 
 std::unique_ptr<MathRenderNode> MathBuilder::makeSizing(const MathParseNode& node) {
   static const QHash<QString, qreal> scales{
-      {QStringLiteral("\\tiny"), 0.5},       {QStringLiteral("\\sixptsize"), 0.55}, {QStringLiteral("\\scriptsize"), 0.7},
-      {QStringLiteral("\\footnotesize"), 0.8}, {QStringLiteral("\\small"), 0.9},      {QStringLiteral("\\normalsize"), 1.0},
-      {QStringLiteral("\\large"), 1.2},      {QStringLiteral("\\Large"), 1.44},      {QStringLiteral("\\LARGE"), 1.73},
-      {QStringLiteral("\\huge"), 2.07},      {QStringLiteral("\\Huge"), 2.49}};
+      {QStringLiteral("\\tiny"), 0.5},       {QStringLiteral("\\sixptsize"), 0.55},
+      {QStringLiteral("\\scriptsize"), 0.7}, {QStringLiteral("\\footnotesize"), 0.8},
+      {QStringLiteral("\\small"), 0.9},      {QStringLiteral("\\normalsize"), 1.0},
+      {QStringLiteral("\\large"), 1.2},      {QStringLiteral("\\Large"), 1.44},
+      {QStringLiteral("\\LARGE"), 1.73},     {QStringLiteral("\\huge"), 2.07},
+      {QStringLiteral("\\Huge"), 2.49}};
   return MathBuilder(options_.havingSizeScale(scales.value(node.size, 1.0))).buildExpression(node.body);
 }
 
@@ -272,10 +295,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeText(const MathParseNode& node)
   // parsed in text mode.  Math font commands (\\mathrm, \\mathtt, etc.) have
   // math-mode content and should NOT get text ligatures.  Text-mode font
   // switches (\\it, \\tt, \\bf, etc.) inside \\text{...} DO get ligatures.
-  const bool contentIsMath = node.label.startsWith(QStringLiteral("\\math")) ||
-                             node.label == QStringLiteral("\\Bbb") ||
-                             node.label == QStringLiteral("\\frak") ||
-                             node.label == QStringLiteral("\\bold");
+  const bool contentIsMath = node.label.startsWith(QStringLiteral("\\math")) || node.label == QStringLiteral("\\Bbb") ||
+                             node.label == QStringLiteral("\\frak") || node.label == QStringLiteral("\\bold");
   if (!node.body.isEmpty()) {
     // Collect text body children.  For text-mode commands (\text, \texttt, etc.)
     // we convert math symbols to text equivalents (minus → hyphen, prime → apostrophe).
@@ -288,8 +309,10 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeText(const MathParseNode& node)
       } else if (!childNode.text.isEmpty()) {
         MathParseNode resolved = childNode;
         if (!contentIsMath) {
-          if (resolved.text == QString(QChar(0x2212))) resolved.text = QStringLiteral("-");  // − → -
-          if (resolved.text == QString(QChar(0x2032))) resolved.text = QString(QChar(0x0027));  // ′ → ‘
+          if (resolved.text == QString(QChar(0x2212)))
+            resolved.text = QStringLiteral("-"); // − → -
+          if (resolved.text == QString(QChar(0x2032)))
+            resolved.text = QString(QChar(0x0027)); // ′ → ‘
         }
         textBody.push_back(std::move(resolved));
       } else {
@@ -301,39 +324,34 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeText(const MathParseNode& node)
     // Only for text-mode commands; math font commands (\mathtt etc.) don’t form ligatures.
     if (!contentIsMath) {
       for (int i = 0; i < textBody.size(); ++i) {
-        if (i + 2 < textBody.size() &&
-            textBody[i].text == QStringLiteral("-") &&
-            textBody[i+1].text == QStringLiteral("-") &&
-            textBody[i+2].text == QStringLiteral("-")) {
-          textBody[i].text = QString(QChar(0x2014));  // em dash
-          textBody.remove(i+1, 2);
+        if (i + 2 < textBody.size() && textBody[i].text == QStringLiteral("-") &&
+            textBody[i + 1].text == QStringLiteral("-") && textBody[i + 2].text == QStringLiteral("-")) {
+          textBody[i].text = QString(QChar(0x2014)); // em dash
+          textBody.remove(i + 1, 2);
         }
       }
       for (int i = 0; i < textBody.size(); ++i) {
-        if (i + 1 < textBody.size() &&
-            textBody[i].text == QStringLiteral("-") &&
-            textBody[i+1].text == QStringLiteral("-")) {
-          textBody[i].text = QString(QChar(0x2013));  // en dash
-          textBody.remove(i+1, 1);
+        if (i + 1 < textBody.size() && textBody[i].text == QStringLiteral("-") &&
+            textBody[i + 1].text == QStringLiteral("-")) {
+          textBody[i].text = QString(QChar(0x2013)); // en dash
+          textBody.remove(i + 1, 1);
         }
       }
       // The parser converts backtick ` (U+0060) → U+2018 (left single quotation mark)
       // before we see it, so the ligature check uses U+2018.
       for (int i = 0; i < textBody.size(); ++i) {
-        if (i + 1 < textBody.size() &&
-            textBody[i].text == QString(QChar(0x2018)) &&
-            textBody[i+1].text == QString(QChar(0x2018))) {
-          textBody[i].text = QString(QChar(0x201C));  // left double quote
-          textBody.remove(i+1, 1);
+        if (i + 1 < textBody.size() && textBody[i].text == QString(QChar(0x2018)) &&
+            textBody[i + 1].text == QString(QChar(0x2018))) {
+          textBody[i].text = QString(QChar(0x201C)); // left double quote
+          textBody.remove(i + 1, 1);
         }
       }
       // The parser leaves apostrophe ‘ as U+0027; ligature checks for U+0027.
       for (int i = 0; i < textBody.size(); ++i) {
-        if (i + 1 < textBody.size() &&
-            textBody[i].text == QString(QChar(0x0027)) &&
-            textBody[i+1].text == QString(QChar(0x0027))) {
-          textBody[i].text = QString(QChar(0x201D));  // right double quote
-          textBody.remove(i+1, 1);
+        if (i + 1 < textBody.size() && textBody[i].text == QString(QChar(0x0027)) &&
+            textBody[i + 1].text == QString(QChar(0x0027))) {
+          textBody[i].text = QString(QChar(0x201D)); // right double quote
+          textBody.remove(i + 1, 1);
         }
       }
       // KaTeX’s Typewriter font deconstructs ligatures back to individual chars
@@ -349,21 +367,21 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeText(const MathParseNode& node)
               n.text = text;
               return n;
             };
-            if (ch == QChar(0x201C)) {      // " → ` `
+            if (ch == QChar(0x201C)) { // " → ` `
               textBody[i].text = QString(QChar(0x2018));
               textBody.insert(i + 1, ordNode(QString(QChar(0x2018))));
-            } else if (ch == QChar(0x201D)) {  // " → ‘ ‘
+            } else if (ch == QChar(0x201D)) { // " → ‘ ‘
               textBody[i].text = QString(QChar(0x0027));
               textBody.insert(i + 1, ordNode(QString(QChar(0x0027))));
-            } else if (ch == QChar(0x2018)) {  // ‘ → `
+            } else if (ch == QChar(0x2018)) { // ‘ → `
               // Left single quote stays as-is in typewriter (already individual)
-            } else if (ch == QChar(0x2019)) {  // ‘ → ‘
+            } else if (ch == QChar(0x2019)) { // ‘ → ‘
               // Right single quote stays as-is
-            } else if (ch == QChar(0x2014)) {  // — → - - -
+            } else if (ch == QChar(0x2014)) { // — → - - -
               textBody[i].text = QStringLiteral("-");
               textBody.insert(i + 1, ordNode(QStringLiteral("-")));
               textBody.insert(i + 2, ordNode(QStringLiteral("-")));
-            } else if (ch == QChar(0x2013)) {  // – → - -
+            } else if (ch == QChar(0x2013)) { // – → - -
               textBody[i].text = QStringLiteral("-");
               textBody.insert(i + 1, ordNode(QStringLiteral("-")));
             }
@@ -387,14 +405,10 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeText(const MathParseNode& node)
       if (childNode.text.isEmpty() && childNode.body.isEmpty()) {
         children.push_back(buildNode(childNode));
       } else if (!childNode.text.isEmpty()) {
-        auto child = makeSymbol(
-            childNode.text, fontNodeType, options_, node.fontClass);
-        const bool shapingOnly = std::all_of(
-            childNode.text.cbegin(), childNode.text.cend(),
-            [](QChar character) {
-              return character.isSpace() ||
-                     character.category() == QChar::Other_Format;
-            });
+        auto child = makeSymbol(childNode.text, fontNodeType, options_, node.fontClass);
+        const bool shapingOnly = std::all_of(childNode.text.cbegin(), childNode.text.cend(), [](QChar character) {
+          return character.isSpace() || character.category() == QChar::Other_Format;
+        });
         if (shapingOnly)
           child->kind = MathRenderKind::Span;
         children.push_back(std::move(child));
@@ -457,13 +471,12 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeOperator(const MathParseNode& n
     op->operatorText = node.text;
     return op;
   }
-  auto op = makeSymbol(node.text, node.type, options_,
-                       node.fontClass.isEmpty() ? QStringLiteral("main") : node.fontClass);
+  auto op =
+      makeSymbol(node.text, node.type, options_, node.fontClass.isEmpty() ? QStringLiteral("main") : node.fontClass);
   op->operatorKind = MathOperatorKind::Named;
   op->operatorText = node.text;
   return op;
 }
-
 
 std::unique_ptr<MathRenderNode> MathBuilder::makeUnderline(const MathParseNode& node) {
   auto body = MathBuilder(options_.cramped()).buildExpression(node.base);
@@ -612,9 +625,10 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeVCenter(const MathParseNode& no
 std::unique_ptr<MathRenderNode> MathBuilder::makeEnclose(const MathParseNode& node) {
   auto body = MathBuilder(options_).buildExpression(node.base);
   const QString label = node.label;
-  const bool isCancel = label == QStringLiteral("\\cancel") || label == QStringLiteral("\\bcancel") || label == QStringLiteral("\\xcancel");
-  const bool isBox = label == QStringLiteral("\\fbox") || label == QStringLiteral("\\boxed") || label == QStringLiteral("\\colorbox") ||
-                     label == QStringLiteral("\\fcolorbox");
+  const bool isCancel = label == QStringLiteral("\\cancel") || label == QStringLiteral("\\bcancel") ||
+                        label == QStringLiteral("\\xcancel");
+  const bool isBox = label == QStringLiteral("\\fbox") || label == QStringLiteral("\\boxed") ||
+                     label == QStringLiteral("\\colorbox") || label == QStringLiteral("\\fcolorbox");
   const bool isSingleChar = isCharacterBoxRenderNode(*body);
   const GlobalFontMetrics metrics = MathFontMetrics::globalMetrics(options_.style().size());
   const qreal em = options_.fontPointSize();
@@ -647,7 +661,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeEnclose(const MathParseNode& no
   body->xOffset = hPad;
   result->children.push_back(std::move(body));
 
-  if (label == QStringLiteral("\\fbox") || label == QStringLiteral("\\colorbox") || label == QStringLiteral("\\fcolorbox")) {
+  if (label == QStringLiteral("\\fbox") || label == QStringLiteral("\\colorbox") ||
+      label == QStringLiteral("\\fcolorbox")) {
     auto bg = std::make_unique<MathRenderNode>();
     bg->kind = MathRenderKind::Rect;
     bg->width = result->width;
@@ -698,15 +713,15 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeIncludeGraphics(const MathParse
 
 std::unique_ptr<MathRenderNode> MathBuilder::makeMathChoice(const MathParseNode& node) {
   switch (options_.style().size()) {
-    case 0:
-      return buildExpression(node.display);
-    case 2:
-      return buildExpression(node.script);
-    case 3:
-      return buildExpression(node.scriptScript);
-    case 1:
-    default:
-      return buildExpression(node.body);
+  case 0:
+    return buildExpression(node.display);
+  case 2:
+    return buildExpression(node.script);
+  case 3:
+    return buildExpression(node.scriptScript);
+  case 1:
+  default:
+    return buildExpression(node.body);
   }
 }
 
@@ -779,7 +794,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeVerb(const MathParseNode& node)
   return makeSpan(std::move(children));
 }
 
-std::unique_ptr<MathRenderNode> MathBuilder::makeSymbol(const QString& text, MathNodeType type, const MathOptions& options, const QString& forcedFontClass) {
+std::unique_ptr<MathRenderNode> MathBuilder::makeSymbol(const QString& text, MathNodeType type,
+                                                        const MathOptions& options, const QString& forcedFontClass) {
   auto node = std::make_unique<MathRenderNode>();
   node->kind = MathRenderKind::Symbol;
   node->text = text;
@@ -787,8 +803,9 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSymbol(const QString& text, Mat
   if (forcedFontClass.isEmpty() && type == MathNodeType::Ord && text.size() == 1 && text.at(0).isDigit()) {
     fontClass = QStringLiteral("main");
   }
-  if (type == MathNodeType::Operator || type == MathNodeType::Binary || type == MathNodeType::Relation || type == MathNodeType::Open ||
-      type == MathNodeType::Close || type == MathNodeType::Punct || type == MathNodeType::Inner || type == MathNodeType::Spacing) {
+  if (type == MathNodeType::Operator || type == MathNodeType::Binary || type == MathNodeType::Relation ||
+      type == MathNodeType::Open || type == MathNodeType::Close || type == MathNodeType::Punct ||
+      type == MathNodeType::Inner || type == MathNodeType::Spacing) {
     if (forcedFontClass.isEmpty()) {
       fontClass = QStringLiteral("main");
     }
@@ -808,7 +825,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSymbol(const QString& text, Mat
   node->phantom = options.phantom();
   const qreal em = options.fontPointSize();
   if (text.size() == 1) {
-    const std::optional<CharacterMetrics> metrics = MathFontMetrics::characterMetrics(fontMetricsNameForClass(fontClass), text);
+    const std::optional<CharacterMetrics> metrics =
+        MathFontMetrics::characterMetrics(fontMetricsNameForClass(fontClass), text);
     if (metrics) {
       node->width = metrics->width * em;
       node->height = metrics->height * em;
@@ -828,10 +846,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSymbol(const QString& text, Mat
   return node;
 }
 
-std::unique_ptr<MathRenderNode> MathBuilder::makeTextSpan(const QString& text,
-                                                          MathNodeType type,
-                                                          const MathOptions& options,
-                                                          const QString& forcedFontClass) {
+std::unique_ptr<MathRenderNode> MathBuilder::makeTextSpan(const QString& text, MathNodeType type,
+                                                          const MathOptions& options, const QString& forcedFontClass) {
   std::vector<std::unique_ptr<MathRenderNode>> children;
   for (const QChar& ch : text) {
     children.push_back(makeSymbol(QString(ch), type, options, forcedFontClass));
@@ -841,25 +857,24 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeTextSpan(const QString& text,
 
 std::unique_ptr<MathRenderNode> MathBuilder::makeSpacing(const MathParseNode& node) {
   const QString key = node.label.isEmpty() ? node.text : node.label;
-  static const QHash<QString, qreal> widths{
-      {QStringLiteral("\\,"), 3.0 / 18.0},
-      {QStringLiteral("\\thinspace"), 3.0 / 18.0},
-      {QStringLiteral("\\:"), 4.0 / 18.0},
-      {QStringLiteral("\\medspace"), 4.0 / 18.0},
-      {QStringLiteral("\\;"), 5.0 / 18.0},
-      {QStringLiteral("\\thickspace"), 5.0 / 18.0},
-      {QStringLiteral("\\!"), -3.0 / 18.0},
-      {QStringLiteral("\\negthinspace"), -3.0 / 18.0},
-      {QStringLiteral("\\negmedspace"), -4.0 / 18.0},
-      {QStringLiteral("\\negthickspace"), -5.0 / 18.0},
-      {QStringLiteral("\\quad"), 1.0},
-      {QStringLiteral("\\qquad"), 2.0},
-      {QStringLiteral("\\ "), 0.25},
-      {QStringLiteral("\\space"), 0.25},
-      {QStringLiteral("\\nobreakspace"), 0.25},
-      {QStringLiteral("\\allowbreak"), 0.0},
-      {QStringLiteral(" "), 0.25},
-      {QStringLiteral("~"), 0.25}};
+  static const QHash<QString, qreal> widths{{QStringLiteral("\\,"), 3.0 / 18.0},
+                                            {QStringLiteral("\\thinspace"), 3.0 / 18.0},
+                                            {QStringLiteral("\\:"), 4.0 / 18.0},
+                                            {QStringLiteral("\\medspace"), 4.0 / 18.0},
+                                            {QStringLiteral("\\;"), 5.0 / 18.0},
+                                            {QStringLiteral("\\thickspace"), 5.0 / 18.0},
+                                            {QStringLiteral("\\!"), -3.0 / 18.0},
+                                            {QStringLiteral("\\negthinspace"), -3.0 / 18.0},
+                                            {QStringLiteral("\\negmedspace"), -4.0 / 18.0},
+                                            {QStringLiteral("\\negthickspace"), -5.0 / 18.0},
+                                            {QStringLiteral("\\quad"), 1.0},
+                                            {QStringLiteral("\\qquad"), 2.0},
+                                            {QStringLiteral("\\ "), 0.25},
+                                            {QStringLiteral("\\space"), 0.25},
+                                            {QStringLiteral("\\nobreakspace"), 0.25},
+                                            {QStringLiteral("\\allowbreak"), 0.0},
+                                            {QStringLiteral(" "), 0.25},
+                                            {QStringLiteral("~"), 0.25}};
   auto space = std::make_unique<MathRenderNode>();
   space->kind = MathRenderKind::Span;
   space->text = key == QStringLiteral("\\allowbreak") ? QStringLiteral("allowbreak") : QStringLiteral("mspace");
@@ -870,7 +885,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSpacing(const MathParseNode& no
   return space;
 }
 
-std::unique_ptr<MathRenderNode> MathBuilder::makeDelimiter(const QString& delimiter, qreal targetHeight, MathNodeType type) {
+std::unique_ptr<MathRenderNode> MathBuilder::makeDelimiter(const QString& delimiter, qreal targetHeight,
+                                                           MathNodeType type) {
   return MathDelimiter::makeCustom(delimiter, targetHeight, true, type, options_);
 }
 
@@ -888,9 +904,9 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSpan(std::vector<std::unique_pt
 }
 
 std::unique_ptr<MathRenderNode> MathBuilder::makeSupSub(const MathParseNode& node) {
-  const MathScriptKind scriptKind = !node.sup.isEmpty() && !node.sub.isEmpty()
-      ? MathScriptKind::SubSup
-      : !node.sup.isEmpty() ? MathScriptKind::Superscript : MathScriptKind::Subscript;
+  const MathScriptKind scriptKind = !node.sup.isEmpty() && !node.sub.isEmpty() ? MathScriptKind::SubSup
+                                    : !node.sup.isEmpty()                      ? MathScriptKind::Superscript
+                                                                               : MathScriptKind::Subscript;
   const int mathStyleSize = options_.style().size();
   const auto markSupSub = [scriptKind, mathStyleSize](std::unique_ptr<MathRenderNode> result) {
     if (result) {
@@ -903,7 +919,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSupSub(const MathParseNode& nod
   if (node.base.size() == 1 && node.base.first().type == MathNodeType::HorizBrace) {
     return markSupSub(makeHorizBraceSupSub(node));
   }
-  auto base = node.base.isEmpty() ? makeError(QStringLiteral("?"), options_) : MathBuilder(options_).buildExpression(node.base);
+  auto base =
+      node.base.isEmpty() ? makeError(QStringLiteral("?"), options_) : MathBuilder(options_).buildExpression(node.base);
   const qreal em = options_.fontPointSize();
   const GlobalFontMetrics metrics = MathFontMetrics::globalMetrics(options_.style().size());
   const bool limitsOperator = !node.base.isEmpty() && node.base.first().type == MathNodeType::Operator &&
@@ -913,8 +930,7 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSupSub(const MathParseNode& nod
       result = markSupSub(std::move(result));
       if (result) {
         result->operatorKind = MathOperatorKind::Limits;
-        result->operatorText = node.base.first().text.isEmpty()
-            ? node.base.first().label : node.base.first().text;
+        result->operatorText = node.base.first().text.isEmpty() ? node.base.first().label : node.base.first().text;
       }
       return result;
     };
@@ -923,10 +939,11 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSupSub(const MathParseNode& nod
                                 : 0.0;
     base->yOffset = 0.0;
     qreal slant = italicCorrection(*base, options_);
-    if (qFuzzyIsNull(slant) && !node.base.isEmpty() && node.base.first().opSymbol && !node.base.first().text.isEmpty()) {
+    if (qFuzzyIsNull(slant) && !node.base.isEmpty() && node.base.first().opSymbol &&
+        !node.base.first().text.isEmpty()) {
       const bool large = operatorCanGrow(node.base.first()) && options_.style().id() == MathStyle::Display;
-      const std::optional<CharacterMetrics> opMetrics =
-          MathFontMetrics::characterMetrics(large ? QStringLiteral("Size2-Regular") : QStringLiteral("Size1-Regular"), node.base.first().text);
+      const std::optional<CharacterMetrics> opMetrics = MathFontMetrics::characterMetrics(
+          large ? QStringLiteral("Size2-Regular") : QStringLiteral("Size1-Regular"), node.base.first().text);
       if (opMetrics) {
         slant = opMetrics->italic * em;
       }
@@ -1019,9 +1036,12 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSupSub(const MathParseNode& nod
   if (!node.sup.isEmpty()) {
     const MathOptions scriptOptions = options_.sup();
     supNode = MathBuilder(scriptOptions).buildExpression(node.sup);
-    const qreal metricShift = (options_.style().id() == MathStyle::Display) ? metrics.sup1 : (options_.style().cramped() ? metrics.sup3 : metrics.sup2);
+    const qreal metricShift = (options_.style().id() == MathStyle::Display)
+                                  ? metrics.sup1
+                                  : (options_.style().cramped() ? metrics.sup3 : metrics.sup2);
     if (!isCharBox) {
-      supShift = baseHeight - MathFontMetrics::globalMetrics(scriptOptions.style().size()).supDrop * scriptOptions.fontPointSize();
+      supShift = baseHeight -
+                 MathFontMetrics::globalMetrics(scriptOptions.style().size()).supDrop * scriptOptions.fontPointSize();
     }
     supShift = qMax(supShift, metricShift * em);
     const qreal minSupBottom = 0.25 * metrics.xHeight * em;
@@ -1032,7 +1052,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSupSub(const MathParseNode& nod
     const MathOptions scriptOptions = options_.sub();
     subNode = MathBuilder(scriptOptions).buildExpression(node.sub);
     if (!isCharBox) {
-      subShift = baseDepth + MathFontMetrics::globalMetrics(scriptOptions.style().size()).subDrop * scriptOptions.fontPointSize();
+      subShift = baseDepth +
+                 MathFontMetrics::globalMetrics(scriptOptions.style().size()).subDrop * scriptOptions.fontPointSize();
     }
     if (!supNode) {
       subShift = qMax(subShift, metrics.sub1 * em);
@@ -1063,7 +1084,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSupSub(const MathParseNode& nod
   }
   if (subNode) {
     const qreal marginLeft = shiftSubByItalic ? -baseItalic : 0.0;
-    scriptChildren.insert(scriptChildren.begin(), MathVListChild{layoutFromRenderNode(std::move(subNode)), subShift, marginLeft, scriptspace});
+    scriptChildren.insert(scriptChildren.begin(),
+                          MathVListChild{layoutFromRenderNode(std::move(subNode)), subShift, marginLeft, scriptspace});
   }
 
   if (scriptChildren.empty()) {
@@ -1178,7 +1200,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeFraction(const MathParseNode& n
   return result;
 }
 
-std::unique_ptr<MathRenderNode> MathBuilder::makeGenfrac(const MathParseNode& node, std::unique_ptr<MathRenderNode> frac) {
+std::unique_ptr<MathRenderNode> MathBuilder::makeGenfrac(const MathParseNode& node,
+                                                         std::unique_ptr<MathRenderNode> frac) {
   const GlobalFontMetrics metrics = MathFontMetrics::globalMetrics(options_.style().size());
 
   // Determine the forced style for delimiter sizing, matching KaTeX genfrac.ts:132-139.
@@ -1215,7 +1238,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeGenfrac(const MathParseNode& no
     nullDelimiter->width = nullDelimiterWidth;
     children.push_back(std::move(nullDelimiter));
   } else {
-    children.push_back(MathDelimiter::makeCustom(node.leftDelim, delimiterSize, true, MathNodeType::Open, delimOptions));
+    children.push_back(
+        MathDelimiter::makeCustom(node.leftDelim, delimiterSize, true, MathNodeType::Open, delimOptions));
   }
 
   children.push_back(std::move(frac));
@@ -1232,7 +1256,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeGenfrac(const MathParseNode& no
     nullDelimiter->width = nullDelimiterWidth;
     children.push_back(std::move(nullDelimiter));
   } else {
-    children.push_back(MathDelimiter::makeCustom(node.rightDelim, delimiterSize, true, MathNodeType::Close, delimOptions));
+    children.push_back(
+        MathDelimiter::makeCustom(node.rightDelim, delimiterSize, true, MathNodeType::Close, delimOptions));
   }
 
   return makeSpan(std::move(children));
@@ -1248,7 +1273,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSqrt(const MathParseNode& node)
   const qreal theta = metrics.defaultRuleThickness * em;
   const qreal phi = options_.style().id() < MathStyle::Text ? metrics.xHeight * em : theta;
   qreal lineClearance = theta + 0.25 * phi;
-  const qreal minDelimiterHeightEm = qMax<qreal>((body->height + body->depth + lineClearance + theta) / em, metrics.xHeight);
+  const qreal minDelimiterHeightEm =
+      qMax<qreal>((body->height + body->depth + lineClearance + theta) / em, metrics.xHeight);
   const qreal extraVinculum = qMax<qreal>(0.0, options_.settings().minRuleThickness - metrics.sqrtRuleThickness);
   QString sqrtName = QStringLiteral("sqrtTall");
   qreal texHeightEm = minDelimiterHeightEm + extraVinculum;
@@ -1304,7 +1330,7 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeSqrt(const MathParseNode& node)
   radical->height = texHeightEm * em;
   radical->depth = 0.0;
   radical->ruleThickness = rule;
-  radical->yOffset = -pad;  // KaTeX span.style.height = texHeight + emPad; paint taller
+  radical->yOffset = -pad; // KaTeX span.style.height = texHeight + emPad; paint taller
   radical->color = options_.color();
 
   body->xOffset = advanceWidthEm * em;
@@ -1366,38 +1392,59 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeAccent(const MathParseNode& nod
     result->accentKind = MathAccentKind::Over;
     result->accentLabel = node.label;
     result->accentCharacter = stretchyAccentCharacter(node.label);
-    result->accentUsesNaturalWidth =
-        node.label == QStringLiteral("\\widehat") ||
-        node.label == QStringLiteral("\\widetilde") ||
-        node.label == QStringLiteral("\\widecheck");
+    result->accentUsesNaturalWidth = node.label == QStringLiteral("\\widehat") ||
+                                     node.label == QStringLiteral("\\widetilde") ||
+                                     node.label == QStringLiteral("\\widecheck");
     return result;
   } else {
     QString accentText = QStringLiteral("^");
     // Math-mode accent labels
-    if (node.label == QStringLiteral("\\tilde") || node.label == QStringLiteral("\\widetilde")) accentText = QStringLiteral("~");
-    else if (node.label == QStringLiteral("\\bar")) accentText = QStringLiteral("ˉ");
-    else if (node.label == QStringLiteral("\\dot")) accentText = QStringLiteral(".");
-    else if (node.label == QStringLiteral("\\ddot")) accentText = QStringLiteral("..");
-    else if (node.label == QStringLiteral("\\acute")) accentText = QStringLiteral("´");
-    else if (node.label == QStringLiteral("\\grave")) accentText = QStringLiteral("`");
-    else if (node.label == QStringLiteral("\\check") || node.label == QStringLiteral("\\widecheck")) accentText = QStringLiteral("ˇ");
-    else if (node.label == QStringLiteral("\\breve")) accentText = QStringLiteral("˘");
-    else if (node.label == QStringLiteral("\\mathring")) accentText = QStringLiteral("˚");
+    if (node.label == QStringLiteral("\\tilde") || node.label == QStringLiteral("\\widetilde"))
+      accentText = QStringLiteral("~");
+    else if (node.label == QStringLiteral("\\bar"))
+      accentText = QStringLiteral("ˉ");
+    else if (node.label == QStringLiteral("\\dot"))
+      accentText = QStringLiteral(".");
+    else if (node.label == QStringLiteral("\\ddot"))
+      accentText = QStringLiteral("..");
+    else if (node.label == QStringLiteral("\\acute"))
+      accentText = QStringLiteral("´");
+    else if (node.label == QStringLiteral("\\grave"))
+      accentText = QStringLiteral("`");
+    else if (node.label == QStringLiteral("\\check") || node.label == QStringLiteral("\\widecheck"))
+      accentText = QStringLiteral("ˇ");
+    else if (node.label == QStringLiteral("\\breve"))
+      accentText = QStringLiteral("˘");
+    else if (node.label == QStringLiteral("\\mathring"))
+      accentText = QStringLiteral("˚");
     // Text-mode accent labels — map to standalone modifier letter codepoints,
     // matching KaTeX's symbols.ts accent group entries.
-    else if (node.label == QStringLiteral("\\'")) accentText = QString(QChar(0x02CA));  // ˊ
-    else if (node.label == QStringLiteral("\\`")) accentText = QString(QChar(0x02CB));  // ˋ
-    else if (node.label == QStringLiteral("\\^")) accentText = QString(QChar(0x02C6));  // ˆ
-    else if (node.label == QStringLiteral("\\~")) accentText = QString(QChar(0x02DC));  // ˜
-    else if (node.label == QStringLiteral("\\=")) accentText = QString(QChar(0x02C9));  // ˉ
-    else if (node.label == QStringLiteral("\\u")) accentText = QString(QChar(0x02D8));  // ˘
-    else if (node.label == QStringLiteral("\\.")) accentText = QString(QChar(0x02D9));  // ˙
-    else if (node.label == QStringLiteral("\\\"")) accentText = QString(QChar(0x00A8)); // ¨
-    else if (node.label == QStringLiteral("\\c")) accentText = QString(QChar(0x00B8));  // ¸
-    else if (node.label == QStringLiteral("\\r")) accentText = QString(QChar(0x02DA));  // ˚
-    else if (node.label == QStringLiteral("\\H")) accentText = QString(QChar(0x02DD));  // ˝
-    else if (node.label == QStringLiteral("\\v")) accentText = QString(QChar(0x02C7));  // ˇ
-    else if (node.label == QStringLiteral("\\textcircled")) accentText = QString(QChar(0x25EF)); // ○
+    else if (node.label == QStringLiteral("\\'"))
+      accentText = QString(QChar(0x02CA)); // ˊ
+    else if (node.label == QStringLiteral("\\`"))
+      accentText = QString(QChar(0x02CB)); // ˋ
+    else if (node.label == QStringLiteral("\\^"))
+      accentText = QString(QChar(0x02C6)); // ˆ
+    else if (node.label == QStringLiteral("\\~"))
+      accentText = QString(QChar(0x02DC)); // ˜
+    else if (node.label == QStringLiteral("\\="))
+      accentText = QString(QChar(0x02C9)); // ˉ
+    else if (node.label == QStringLiteral("\\u"))
+      accentText = QString(QChar(0x02D8)); // ˘
+    else if (node.label == QStringLiteral("\\."))
+      accentText = QString(QChar(0x02D9)); // ˙
+    else if (node.label == QStringLiteral("\\\""))
+      accentText = QString(QChar(0x00A8)); // ¨
+    else if (node.label == QStringLiteral("\\c"))
+      accentText = QString(QChar(0x00B8)); // ¸
+    else if (node.label == QStringLiteral("\\r"))
+      accentText = QString(QChar(0x02DA)); // ˚
+    else if (node.label == QStringLiteral("\\H"))
+      accentText = QString(QChar(0x02DD)); // ˝
+    else if (node.label == QStringLiteral("\\v"))
+      accentText = QString(QChar(0x02C7)); // ˇ
+    else if (node.label == QStringLiteral("\\textcircled"))
+      accentText = QString(QChar(0x25EF)); // ○
     if (node.label == QStringLiteral("\\vec")) {
       accent = std::make_unique<MathRenderNode>();
       accent->kind = MathRenderKind::Stretchy;
@@ -1409,7 +1456,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeAccent(const MathParseNode& nod
       accent->depth = 0.0;
       accent->color = options_.color();
     } else {
-      accent = makeSymbol(accentText, MathNodeType::Text, options_.havingStyle(options_.style().text()), QStringLiteral("main"));
+      accent = makeSymbol(accentText, MathNodeType::Text, options_.havingStyle(options_.style().text()),
+                          QStringLiteral("main"));
       accent->italic = 0.0;
       accent->italicMarginRight = 0.0;
     }
@@ -1473,8 +1521,7 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeHorizBrace(const MathParseNode&
   const qreal gap = options_.fontPointSize() * 0.1;
   auto result = std::make_unique<MathRenderNode>();
   result->kind = MathRenderKind::Accent;
-  result->accentKind = node.isOver ? MathAccentKind::OverBrace
-                                   : MathAccentKind::UnderBrace;
+  result->accentKind = node.isOver ? MathAccentKind::OverBrace : MathAccentKind::UnderBrace;
   result->accentLabel = node.label;
   result->width = qMax(body->width, brace->width);
   body->xOffset = (result->width - body->width) / 2.0;
@@ -1504,7 +1551,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeHorizBraceSupSub(const MathPars
     return braceBase;
   }
 
-  auto annotation = MathBuilder(braceNode.isOver ? options_.sup() : options_.sub()).buildExpression(useSup ? node.sup : node.sub);
+  auto annotation =
+      MathBuilder(braceNode.isOver ? options_.sup() : options_.sub()).buildExpression(useSup ? node.sup : node.sub);
   const qreal gap = options_.fontPointSize() * 0.2;
   const qreal width = qMax(braceBase->width, annotation->width);
   braceBase->xOffset = (width - braceBase->width) / 2.0;
@@ -1543,7 +1591,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeXArrow(const MathParseNode& nod
   }
 
   const QString key = xArrowKey(node.label);
-  const qreal arrowWidth = qMax(xArrowMinWidthEm(key) * em, qMax(upperGroup->width, lowerGroup ? lowerGroup->width : 0.0));
+  const qreal arrowWidth =
+      qMax(xArrowMinWidthEm(key) * em, qMax(upperGroup->width, lowerGroup ? lowerGroup->width : 0.0));
   const qreal arrowHeight = xArrowHeightEm(key) * em;
 
   auto arrowBody = std::make_unique<MathRenderNode>();
@@ -1590,7 +1639,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeStretchyAccent(const MathParseN
       node.label == QStringLiteral("\\widetilde") || node.label == QStringLiteral("\\utilde")) {
     const int numChars = accentBaseCharacterCount(node.base);
     const bool hatLike = node.label == QStringLiteral("\\widehat") || node.label == QStringLiteral("\\widecheck");
-    const QString prefix = node.label == QStringLiteral("\\widecheck") ? QStringLiteral("widecheck") : QStringLiteral("widehat");
+    const QString prefix =
+        node.label == QStringLiteral("\\widecheck") ? QStringLiteral("widecheck") : QStringLiteral("widehat");
     if (numChars > 5) {
       accent->pathName = hatLike ? prefix + QStringLiteral("4") : QStringLiteral("tilde4");
       accent->viewBox = hatLike ? QRectF(0.0, 0.0, 2364.0, 420.0) : QRectF(0.0, 0.0, 2340.0, 312.0);
@@ -1616,23 +1666,26 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeStretchyAccent(const MathParseN
     }
     accent->width = body.width;
   } else {
-    static const QHash<QString, QString> pathNames{
-        {QStringLiteral("\\overrightarrow"), QStringLiteral("rightarrow")},
-        {QStringLiteral("\\overleftarrow"), QStringLiteral("leftarrow")},
-        {QStringLiteral("\\underleftarrow"), QStringLiteral("leftarrow")},
-        {QStringLiteral("\\underrightarrow"), QStringLiteral("rightarrow")}};
-    static const QHash<QString, qreal> minWidths{
-        {QStringLiteral("\\overbrace"), 1.6},        {QStringLiteral("\\underbrace"), 1.6},
-        {QStringLiteral("\\overbracket"), 1.6},      {QStringLiteral("\\underbracket"), 1.6},
-        {QStringLiteral("\\overparent"), 1.6},       {QStringLiteral("\\underparent"), 1.6},
-        {QStringLiteral("\\overrightarrow"), 0.888}, {QStringLiteral("\\overleftarrow"), 0.888},
-        {QStringLiteral("\\overleftrightarrow"), 0.888},
-        {QStringLiteral("\\underleftarrow"), 0.888}, {QStringLiteral("\\underrightarrow"), 0.888},
-        {QStringLiteral("\\underleftrightarrow"), 0.888},
-        {QStringLiteral("\\overlinesegment"), 0.888},
-        {QStringLiteral("\\underlinesegment"), 0.888},
-        {QStringLiteral("\\overgroup"), 0.888},
-        {QStringLiteral("\\undergroup"), 0.888}};
+    static const QHash<QString, QString> pathNames{{QStringLiteral("\\overrightarrow"), QStringLiteral("rightarrow")},
+                                                   {QStringLiteral("\\overleftarrow"), QStringLiteral("leftarrow")},
+                                                   {QStringLiteral("\\underleftarrow"), QStringLiteral("leftarrow")},
+                                                   {QStringLiteral("\\underrightarrow"), QStringLiteral("rightarrow")}};
+    static const QHash<QString, qreal> minWidths{{QStringLiteral("\\overbrace"), 1.6},
+                                                 {QStringLiteral("\\underbrace"), 1.6},
+                                                 {QStringLiteral("\\overbracket"), 1.6},
+                                                 {QStringLiteral("\\underbracket"), 1.6},
+                                                 {QStringLiteral("\\overparent"), 1.6},
+                                                 {QStringLiteral("\\underparent"), 1.6},
+                                                 {QStringLiteral("\\overrightarrow"), 0.888},
+                                                 {QStringLiteral("\\overleftarrow"), 0.888},
+                                                 {QStringLiteral("\\overleftrightarrow"), 0.888},
+                                                 {QStringLiteral("\\underleftarrow"), 0.888},
+                                                 {QStringLiteral("\\underrightarrow"), 0.888},
+                                                 {QStringLiteral("\\underleftrightarrow"), 0.888},
+                                                 {QStringLiteral("\\overlinesegment"), 0.888},
+                                                 {QStringLiteral("\\underlinesegment"), 0.888},
+                                                 {QStringLiteral("\\overgroup"), 0.888},
+                                                 {QStringLiteral("\\undergroup"), 0.888}};
     static const QHash<QString, qreal> heights{
         {QStringLiteral("\\Overrightarrow"), 0.560}, {QStringLiteral("\\xRightarrow"), 0.560},
         {QStringLiteral("\\overbracket"), 0.440},    {QStringLiteral("\\underbracket"), 0.410},
@@ -1672,12 +1725,14 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeDelimSizing(const MathParseNode
   // \middle delimiter (delimiterSize == 0): produce a placeholder node
   // that will be resized by makeLeftRight to match the \left/\right height.
   if (node.delimiterSize == 0) {
-    auto mid = MathDelimiter::makeSized(node.text, 1, node.body.isEmpty() ? MathNodeType::Ord : node.body.first().type, options_);
+    auto mid = MathDelimiter::makeSized(node.text, 1, node.body.isEmpty() ? MathNodeType::Ord : node.body.first().type,
+                                        options_);
     mid->middleDelimiter = node.text;
     mid->mathStyleSize = options_.style().size();
     return mid;
   }
-  return MathDelimiter::makeSized(node.text, qMax(1, node.delimiterSize), node.body.isEmpty() ? MathNodeType::Ord : node.body.first().type, options_);
+  return MathDelimiter::makeSized(node.text, qMax(1, node.delimiterSize),
+                                  node.body.isEmpty() ? MathNodeType::Ord : node.body.first().type, options_);
 }
 
 std::unique_ptr<MathRenderNode> MathBuilder::makeLeftRight(const MathParseNode& node) {
@@ -1698,9 +1753,7 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeLeftRight(const MathParseNode& 
           const qreal maxDist = qMax(targetHeight - axisH, targetDepth + axisH);
           const qreal extend = (5.0 / metrics.ptPerEm) * options.fontPointSize();
           const qreal totalH = qMax(maxDist / 500.0 * 901.0, 2.0 * maxDist - extend);
-          auto sized = MathDelimiter::makeCustom(
-              child->middleDelimiter, totalH, true,
-              MathNodeType::Ord, options);
+          auto sized = MathDelimiter::makeCustom(child->middleDelimiter, totalH, true, MathNodeType::Ord, options);
           sized->xOffset = child->xOffset;
           sized->yOffset = child->yOffset;
           sized->middleDelimiter = child->middleDelimiter;
@@ -1799,4 +1852,4 @@ qreal MathBuilder::dimensionToPoints(const QString& value) const {
   return math::dimensionToPoints(value, options_.fontPointSize(), options_.basePointSize(), textFontPt);
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

@@ -33,9 +33,11 @@ QString normalizePreText(QString text) {
   return text;
 }
 
-}  // namespace
+} // namespace
 
-void HtmlTextMeasurer::setDefaultTextColor(QColor color) { defaultTextColor_ = color; }
+void HtmlTextMeasurer::setDefaultTextColor(QColor color) {
+  defaultTextColor_ = color;
+}
 
 QSizeF HtmlTextMeasurer::measure(const QString& text, const QFont& font, qreal availableWidth) const {
   if (text.isEmpty()) {
@@ -48,11 +50,8 @@ QSizeF HtmlTextMeasurer::measure(const QString& text, const QFont& font, qreal a
   return QSizeF(laidOut->width, laidOut->height);
 }
 
-std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildLayout(
-    const QString& text,
-    const QFont& font,
-    qreal availableWidth,
-    Qt::Alignment alignment) const {
+std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildLayout(const QString& text, const QFont& font,
+                                                              qreal availableWidth, Qt::Alignment alignment) const {
   auto result = std::make_unique<HtmlTextLayout>();
   result->text = text;
   result->font = font;
@@ -84,28 +83,24 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildLayout(
   return result;
 }
 
-QSizeF HtmlTextMeasurer::measureInlineContext(
-    const HtmlBox& blockBox,
-    qreal fontSize,
-    qreal availableWidth) const {
+QSizeF HtmlTextMeasurer::measureInlineContext(const HtmlBox& blockBox, qreal fontSize, qreal availableWidth) const {
   // Use buildInlineLayout to account for bold, monospace, font-size changes, etc.
   auto layout = buildInlineLayout(blockBox, fontSize, availableWidth);
   return QSizeF(layout->width, layout->height);
 }
 
-std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
-    const HtmlBox& blockBox,
-    qreal fontSize,
-    qreal availableWidth,
-    Qt::Alignment alignment) const {
+std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(const HtmlBox& blockBox, qreal fontSize,
+                                                                    qreal availableWidth,
+                                                                    Qt::Alignment alignment) const {
   QString text;
   std::vector<TextFormatSpan> spans;
   std::vector<HtmlTextLayout::LinkSpan> links;
   int offset = 0;
   std::vector<HtmlTextLayout::AtomicInline> atoms;
   std::vector<HtmlTextLayout::TextSourceSpan> sources;
-  collectInlineText(blockBox, text, spans, links, offset, false, false, false, false, HtmlTextDecoration::None, defaultTextColor_, QColor(),
-                    QTextCharFormat::AlignNormal, QString(), fontSize, fontSize, &atoms, availableWidth, &blockBox, &sources);
+  collectInlineText(blockBox, text, spans, links, offset, false, false, false, false, HtmlTextDecoration::None,
+                    defaultTextColor_, QColor(), QTextCharFormat::AlignNormal, QString(), fontSize, fontSize, &atoms,
+                    availableWidth, &blockBox, &sources);
 
   QFont baseFont = blockBox.style().font;
   baseFont.setPointSizeF(fontSize);
@@ -139,7 +134,8 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
   };
   std::vector<Run> runs;
   for (const auto& span : spans) {
-    if (!span.inlineBoxId) continue;
+    if (!span.inlineBoxId)
+      continue;
     if (!runs.empty() && runs.back().id == span.inlineBoxId && runs.back().end == span.start) {
       runs.back().end = span.start + span.length;
     } else {
@@ -156,8 +152,10 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
   std::vector<Edge> edges;
   for (const auto& run : runs) {
     const auto inset = LayoutBox::insets(run.box.usedBox);
-    if (inset.left() > 0) edges.push_back({run.start, inset.left()});
-    if (inset.right() > 0) edges.push_back({run.end, inset.right()});
+    if (inset.left() > 0)
+      edges.push_back({run.start, inset.left()});
+    if (inset.right() > 0)
+      edges.push_back({run.end, inset.right()});
   }
   std::stable_sort(edges.begin(), edges.end(), [](auto a, auto b) { return a.position < b.position; });
   const auto before = [&](int position) {
@@ -176,7 +174,8 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
     span.start = after(span.start);
     span.length = end - span.start;
   }
-  for (auto& atom : result->atoms) atom.start = after(atom.start);
+  for (auto& atom : result->atoms)
+    atom.start = after(atom.start);
   for (auto& span : sources) {
     const auto end = before(span.start + span.length);
     span.start = after(span.start);
@@ -184,7 +183,8 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
   }
   result->sourceSpans = std::move(sources);
   QString layoutText = text;
-  for (auto edge = edges.rbegin(); edge != edges.rend(); ++edge) layoutText.insert(edge->position, kInlineBoxSpacer);
+  for (auto edge = edges.rbegin(); edge != edges.rend(); ++edge)
+    layoutText.insert(edge->position, kInlineBoxSpacer);
   auto layout = std::make_unique<TextLayout>(layoutText, baseFont);
 
   QTextOption option;
@@ -200,7 +200,8 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
   QVector<QTextLayout::FormatRange> formats;
   for (const auto& span : spans) {
     QTextCharFormat fmt;
-    if (span.fontSet) fmt.setFont(span.font);
+    if (span.fontSet)
+      fmt.setFont(span.font);
     if (span.color.isValid()) {
       fmt.setForeground(span.color);
     }
@@ -263,7 +264,8 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
     }
     line.setLineWidth(qMax<qreal>(1.0, availableWidth));
     InlineLineBox lineBox(baseFont, result->lineHeight);
-    while (firstSpan < spans.size() && spans[firstSpan].start + spans[firstSpan].length <= line.textStart()) ++firstSpan;
+    while (firstSpan < spans.size() && spans[firstSpan].start + spans[firstSpan].length <= line.textStart())
+      ++firstSpan;
     for (size_t i = firstSpan; i < spans.size() && spans[i].start < line.textStart() + line.textLength(); ++i) {
       const auto& span = spans[i];
       lineBox.includeText(span.fontSet ? span.font : baseFont, span.lineHeight);
@@ -279,9 +281,10 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
     result->lineBoxes.emplace_back(0, height, availableWidth, lineHeight);
     for (auto& atom : result->atoms)
       if (atom.start >= line.textStart() && atom.start < line.textStart() + line.textLength()) {
-        atom.rect = QRectF(line.cursorToX(atom.start) + atom.margin.left(), line.y() + line.ascent() - atom.baseline, atom.size.width(),
-                           atom.size.height());
-        atom.box->geometry().left = atom.rect.x() + blockBox.style().padding.left() + blockBox.style().borderWidth.left();
+        atom.rect = QRectF(line.cursorToX(atom.start) + atom.margin.left(), line.y() + line.ascent() - atom.baseline,
+                           atom.size.width(), atom.size.height());
+        atom.box->geometry().left =
+            atom.rect.x() + blockBox.style().padding.left() + blockBox.style().borderWidth.left();
         atom.box->geometry().top = atom.rect.y() + blockBox.style().padding.top() + blockBox.style().borderWidth.top();
       }
     maxWidth = qMax(maxWidth, line.naturalTextWidth());
@@ -294,10 +297,11 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
     for (int i = 0; i < layout->lineCount(); ++i) {
       const auto line = layout->lineAt(i);
       const int first = qMax(start, line.textStart()), last = qMin(end, line.textStart() + line.textLength());
-      if (first >= last) continue;
+      if (first >= last)
+        continue;
       const qreal left = line.cursorToX(first), right = line.cursorToX(last);
-      result->inlineBoxes.push_back(LayoutBox::inlineFragment(run.box, left, right, line.y() + line.ascent(),
-                                                             first == start, last == end));
+      result->inlineBoxes.push_back(
+          LayoutBox::inlineFragment(run.box, left, right, line.y() + line.ascent(), first == start, last == end));
     }
   }
   result->width = maxWidth;
@@ -306,10 +310,8 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildInlineLayout(
   return result;
 }
 
-std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildPreLayout(
-    const HtmlBox& preBox,
-    qreal fontSize,
-    qreal availableWidth) const {
+std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildPreLayout(const HtmlBox& preBox, qreal fontSize,
+                                                                 qreal availableWidth) const {
   auto result = std::make_unique<HtmlTextLayout>();
   QString text = normalizePreText(collectPlainText(preBox));
 
@@ -329,9 +331,8 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildPreLayout(
 
   auto layout = std::make_unique<TextLayout>(text, font);
   QTextOption option;
-  option.setWrapMode(preBox.style().whiteSpace == HtmlWhiteSpace::PreWrap
-                         ? QTextOption::WrapAtWordBoundaryOrAnywhere
-                         : QTextOption::NoWrap);
+  option.setWrapMode(preBox.style().whiteSpace == HtmlWhiteSpace::PreWrap ? QTextOption::WrapAtWordBoundaryOrAnywhere
+                                                                          : QTextOption::NoWrap);
   option.setAlignment(preBox.style().textAlign);
   layout->setTextOption(option);
 
@@ -343,9 +344,8 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildPreLayout(
     if (!line.isValid()) {
       break;
     }
-    const qreal lineWidth = preBox.style().whiteSpace == HtmlWhiteSpace::PreWrap
-                                ? qMax<qreal>(1.0, availableWidth)
-                                : 1000000.0;
+    const qreal lineWidth =
+        preBox.style().whiteSpace == HtmlWhiteSpace::PreWrap ? qMax<qreal>(1.0, availableWidth) : 1000000.0;
     line.setLineWidth(lineWidth);
     const qreal naturalLineHeight = line.height();
     const qreal lineHeight = result->lineHeight;
@@ -363,24 +363,30 @@ std::unique_ptr<HtmlTextLayout> HtmlTextMeasurer::buildPreLayout(
   return result;
 }
 
-void HtmlTextMeasurer::collectInlineTextFromRoot(const HtmlBox& box, QString& outText, std::vector<TextFormatSpan>& outSpans,
-                                                 std::vector<HtmlTextLayout::LinkSpan>& outLinks, int& offset, bool, bool,
-                                                 bool parentMonospace, bool parentKeyboard, HtmlTextDecoration parentDecoration,
-                                                 QColor parentColor, QColor parentBackgroundColor,
-                                                 QTextCharFormat::VerticalAlignment parentVerticalAlignment, QString parentHref,
-                                                 qreal parentFontSize, qreal baseFontSize) const {
-  collectInlineText(box, outText, outSpans, outLinks, offset, false, false, parentMonospace, parentKeyboard, parentDecoration, parentColor,
-                    parentBackgroundColor, parentVerticalAlignment, parentHref, parentFontSize, baseFontSize);
+void HtmlTextMeasurer::collectInlineTextFromRoot(const HtmlBox& box, QString& outText,
+                                                 std::vector<TextFormatSpan>& outSpans,
+                                                 std::vector<HtmlTextLayout::LinkSpan>& outLinks, int& offset, bool,
+                                                 bool, bool parentMonospace, bool parentKeyboard,
+                                                 HtmlTextDecoration parentDecoration, QColor parentColor,
+                                                 QColor parentBackgroundColor,
+                                                 QTextCharFormat::VerticalAlignment parentVerticalAlignment,
+                                                 QString parentHref, qreal parentFontSize, qreal baseFontSize) const {
+  collectInlineText(box, outText, outSpans, outLinks, offset, false, false, parentMonospace, parentKeyboard,
+                    parentDecoration, parentColor, parentBackgroundColor, parentVerticalAlignment, parentHref,
+                    parentFontSize, baseFontSize);
 }
 
 void HtmlTextMeasurer::collectInlineText(const HtmlBox& box, QString& outText, std::vector<TextFormatSpan>& outSpans,
-                                         std::vector<HtmlTextLayout::LinkSpan>& outLinks, int& offset, bool, bool, bool parentMonospace,
-                                         bool parentKeyboard, HtmlTextDecoration parentDecoration, QColor parentColor,
-                                         QColor parentBackgroundColor, QTextCharFormat::VerticalAlignment parentVerticalAlignment,
-                                         QString parentHref, qreal parentFontSize, qreal baseFontSize,
-                                         std::vector<HtmlTextLayout::AtomicInline>* atoms, qreal availableWidth, const HtmlBox* contextRoot,
+                                         std::vector<HtmlTextLayout::LinkSpan>& outLinks, int& offset, bool, bool,
+                                         bool parentMonospace, bool parentKeyboard, HtmlTextDecoration parentDecoration,
+                                         QColor parentColor, QColor parentBackgroundColor,
+                                         QTextCharFormat::VerticalAlignment parentVerticalAlignment, QString parentHref,
+                                         qreal parentFontSize, qreal baseFontSize,
+                                         std::vector<HtmlTextLayout::AtomicInline>* atoms, qreal availableWidth,
+                                         const HtmlBox* contextRoot,
                                          std::vector<HtmlTextLayout::TextSourceSpan>* sources) const {
-  if (!box.style().visible || box.style().display == HtmlDisplay::None) return;
+  if (!box.style().visible || box.style().display == HtmlDisplay::None)
+    return;
   const auto& display = box.style().computed.layout.display;
   if (&box != contextRoot && atoms && atomicLayout_ && (display == "inline-flex" || display == "inline-grid")) {
     auto atom = atomicLayout_(const_cast<HtmlBox&>(box), availableWidth);
@@ -412,20 +418,21 @@ void HtmlTextMeasurer::collectInlineText(const HtmlBox& box, QString& outText, s
     int start = offset;
     outText += box.text();
     offset += box.text().length();
-    if (sources) sources->push_back({start, int(box.text().size()), box.plainTextStart});
+    if (sources)
+      sources->push_back({start, int(box.text().size()), box.plainTextStart});
 
     {
-      outSpans.push_back(TextFormatSpan{
-          start, offset - start, bold, italic, decoration, color, backgroundColor, mono, keyboard,
-          (fontSize > 0 && !qFuzzyCompare(fontSize, baseFontSize)) ? fontSize : 0.0,
-          verticalAlignment});
+      outSpans.push_back(
+          TextFormatSpan{start, offset - start, bold, italic, decoration, color, backgroundColor, mono, keyboard,
+                         (fontSize > 0 && !qFuzzyCompare(fontSize, baseFontSize)) ? fontSize : 0.0, verticalAlignment});
       auto& span = outSpans.back();
       span.fontFamilies = box.style().font.families();
       span.font = box.style().font;
       span.fontSet = true;
       span.lineHeight = resolvedLineHeight(box.style(), span.font);
       for (const HtmlBox* ancestor = box.parent(); ancestor; ancestor = ancestor->parent()) {
-        if (ancestor->tag() != HtmlTag::Kbd && ancestor->tag() != HtmlTag::Code) continue;
+        if (ancestor->tag() != HtmlTag::Kbd && ancestor->tag() != HtmlTag::Code)
+          continue;
         span.inlineBoxStyle = ancestor->style().computed;
         auto& used = span.inlineUsedBox;
         used = span.inlineBoxStyle.box;
@@ -450,8 +457,9 @@ void HtmlTextMeasurer::collectInlineText(const HtmlBox& box, QString& outText, s
   } else {
     // Recurse into inline children
     for (const auto& child : box.children()) {
-      collectInlineText(*child, outText, outSpans, outLinks, offset, bold, italic, mono, keyboard, decoration, color, backgroundColor,
-                        verticalAlignment, href, fontSize, baseFontSize, atoms, availableWidth, contextRoot, sources);
+      collectInlineText(*child, outText, outSpans, outLinks, offset, bold, italic, mono, keyboard, decoration, color,
+                        backgroundColor, verticalAlignment, href, fontSize, baseFontSize, atoms, availableWidth,
+                        contextRoot, sources);
     }
   }
 }
@@ -471,4 +479,4 @@ QString HtmlTextMeasurer::collectPlainText(const HtmlBox& box) const {
   return result;
 }
 
-}  // namespace muffin::html
+} // namespace muffin::html

@@ -16,17 +16,17 @@ class CssImageResources;
 // CssThemeParser::resolveVars() so variable scoping (dark @media overrides) can be
 // applied at translation time.
 struct CssDeclaration {
-  QString property;  // trimmed; standard names lowercased, custom names case-sensitive
-  QString value;     // trimmed, still may contain var(...) references
+  QString property; // trimmed; standard names lowercased, custom names case-sensitive
+  QString value;    // trimmed, still may contain var(...) references
   bool important = false;
-  QString resourceBaseDir;  // owning stylesheet, retained for url() in variables
+  QString resourceBaseDir; // owning stylesheet, retained for url() in variables
 };
 
 // A location in the original file, retained across imports/nested conditions.
 struct CssSourceLocation {
   QString file;
   int line = 1;
-  int column = 1;  // UTF-16 code units; location of the start of the rule
+  int column = 1; // UTF-16 code units; location of the start of the rule
 };
 
 // Selectors are split at top-level commas; declarations retain source order.
@@ -34,8 +34,8 @@ struct CssRule {
   QStringList selectors;
   std::vector<CssDeclaration> declarations;
   bool darkScope = false;
-  QStringList mediaQueries;  // Nested media lists are AND; each list is OR.
-  QStringList supportQueries;  // Nested @supports conditions must all match.
+  QStringList mediaQueries;   // Nested media lists are AND; each list is OR.
+  QStringList supportQueries; // Nested @supports conditions must all match.
   CssSourceLocation source;
 };
 
@@ -49,7 +49,7 @@ struct CssAtRule {
   QStringList mediaQueries;
   QStringList supportQueries;
   CssSourceLocation source;
-  std::vector<CssDeclaration> descriptors;  // @font-face only
+  std::vector<CssDeclaration> descriptors; // @font-face only
 };
 
 struct CssEnvironment {
@@ -74,11 +74,11 @@ struct CssEnvironment {
 // font (QFontDatabase) so the theme's font-family stacks resolve to the bundled
 // typefaces, and to know which font files to copy on import.
 struct CssFontFace {
-  QString family;   // quotes stripped, e.g. "LXGW WenKai" or "CascadiaCode"
-  QString srcPath;  // absolute, cleaned path to the .ttf/.otf/.woff(2) on disk
+  QString family;  // quotes stripped, e.g. "LXGW WenKai" or "CascadiaCode"
+  QString srcPath; // absolute, cleaned path to the .ttf/.otf/.woff(2) on disk
   QString weight = QStringLiteral("normal");
   QString style = QStringLiteral("normal");
-  QStringList sources;  // ordered src fallbacks; local: names, paths or data URLs
+  QStringList sources; // ordered src fallbacks; local: names, paths or data URLs
   QStringList mediaQueries;
   bool active(const CssEnvironment& environment) const;
 };
@@ -112,11 +112,26 @@ public:
   const std::vector<CssAtRule>& atRules() const { return atRules_; }
   std::shared_ptr<CssImageResources> imageResources() const { return imageResources_; }
 
-  void addRule(CssRule r) { rules_.push_back(std::move(r)); touch(); }
-  void setVariable(const QString& name, const QString& value) { variables_.insert(name, value); touch(); }
-  void addFontFace(CssFontFace f) { fontFaces_.push_back(std::move(f)); touch(); }
-  void addKeyframes(CssKeyframes k) { keyframes_.push_back(std::move(k)); touch(); }
-  void addAtRule(CssAtRule r) { atRules_.push_back(std::move(r)); touch(); }
+  void addRule(CssRule r) {
+    rules_.push_back(std::move(r));
+    touch();
+  }
+  void setVariable(const QString& name, const QString& value) {
+    variables_.insert(name, value);
+    touch();
+  }
+  void addFontFace(CssFontFace f) {
+    fontFaces_.push_back(std::move(f));
+    touch();
+  }
+  void addKeyframes(CssKeyframes k) {
+    keyframes_.push_back(std::move(k));
+    touch();
+  }
+  void addAtRule(CssAtRule r) {
+    atRules_.push_back(std::move(r));
+    touch();
+  }
   CssThemeSheet evaluated(const CssEnvironment& environment) const;
   bool sameActiveRules(const CssEnvironment& before, const CssEnvironment& after) const;
   bool hasViewportUnits() const;
@@ -131,13 +146,21 @@ public:
   // resolved srcPath, so the merge just collects them.
   void mergeIn(const CssThemeSheet& other) {
     touch();
-    for (const CssRule& r : other.rules_) { rules_.push_back(r); }
+    for (const CssRule& r : other.rules_) {
+      rules_.push_back(r);
+    }
     for (auto it = other.variables_.begin(); it != other.variables_.end(); ++it) {
       variables_.insert(it.key(), it.value());
     }
-    for (const CssFontFace& f : other.fontFaces_) { fontFaces_.push_back(f); }
-    for (const CssKeyframes& k : other.keyframes_) { keyframes_.push_back(k); }
-    for (const CssAtRule& r : other.atRules_) { atRules_.push_back(r); }
+    for (const CssFontFace& f : other.fontFaces_) {
+      fontFaces_.push_back(f);
+    }
+    for (const CssKeyframes& k : other.keyframes_) {
+      keyframes_.push_back(k);
+    }
+    for (const CssAtRule& r : other.atRules_) {
+      atRules_.push_back(r);
+    }
   }
 
 private:
@@ -195,4 +218,4 @@ public:
   static QStringList localResourcePaths(const QString& text, const QString& baseDir, bool includeMissing = false);
 };
 
-}  // namespace muffin
+} // namespace muffin

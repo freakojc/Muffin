@@ -50,9 +50,9 @@ signals:
 
 private:
   enum class IndentScope {
-    Selection,        // the selected lines; requires a non-empty selection
-    SelectionOrLine,  // selected lines, or the caret's line when nothing is selected
-    WholeBlock,       // every line in the block
+    Selection,       // the selected lines; requires a non-empty selection
+    SelectionOrLine, // selected lines, or the caret's line when nothing is selected
+    WholeBlock,      // every line in the block
   };
   bool setLanguageForCodeFence(NodeId requestedCodeId, QString language);
   // Shared indent/dedent transform. indent=true inserts a unit at each in-scope line start;
@@ -64,4 +64,4 @@ private:
   EditorContext ctx_;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -20,9 +20,7 @@ struct MermaidSvgExportOptions {
 
 // Serializes an already-built immutable scene through its production painter,
 // then normalizes the SVG root and adds accessibility/link semantics.
-QByteArray renderMermaidEntryToSvg(const MermaidRenderEntry& entry,
-                                   qsizetype instanceIndex = 0);
-QByteArray renderMermaidEntryToSvg(const MermaidRenderEntry& entry,
-                                   const MermaidSvgExportOptions& options);
+QByteArray renderMermaidEntryToSvg(const MermaidRenderEntry& entry, qsizetype instanceIndex = 0);
+QByteArray renderMermaidEntryToSvg(const MermaidRenderEntry& entry, const MermaidSvgExportOptions& options);
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

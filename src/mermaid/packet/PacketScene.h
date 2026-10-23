@@ -106,12 +106,10 @@ struct PacketScene : MermaidScene {
   int nextPaintOrder = 0;
 };
 
-PacketScene buildPacketScene(const PacketData& data, PacketConfig config,
-                             PacketSceneStyle style);
+PacketScene buildPacketScene(const PacketData& data, PacketConfig config, PacketSceneStyle style);
 
 // CSS length metrics built from the same complete family fallback list used
 // by the painter. The Adapter also uses this for the inherited root font-size.
-CssLengthContext packetCssLengthContext(const QString& cssFamilies,
-                                        qreal emPx);
+CssLengthContext packetCssLengthContext(const QString& cssFamilies, qreal emPx);
 
-}  // namespace muffin::mermaid::packet
+} // namespace muffin::mermaid::packet

@@ -27,19 +27,14 @@ struct SearchResults {
 
 class DocumentSearch final {
 public:
-  static SearchResults findAll(const QString& text, const QString& pattern,
-                               SearchOptions options);
-  static SearchResults findAll(const PieceTable& text, const QString& pattern,
-                               SearchOptions options);
-  static QString expandReplacement(const QString& replacement,
-                                   const SearchMatch& match,
-                                   bool regularExpression);
-  static SearchResults replaceAll(const QString& text, const QString& pattern,
-                                  const QString& replacement, SearchOptions options,
-                                  QString* output);
+  static SearchResults findAll(const QString& text, const QString& pattern, SearchOptions options);
+  static SearchResults findAll(const PieceTable& text, const QString& pattern, SearchOptions options);
+  static QString expandReplacement(const QString& replacement, const SearchMatch& match, bool regularExpression);
+  static SearchResults replaceAll(const QString& text, const QString& pattern, const QString& replacement,
+                                  SearchOptions options, QString* output);
 
 private:
   DocumentSearch() = delete;
 };
 
-}  // namespace muffin
+} // namespace muffin

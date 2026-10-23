@@ -11,7 +11,8 @@
 namespace muffin {
 
 RenderEditorBackend::RenderEditorBackend(EditorController& controller, DocumentSession& session, EditorView* view)
-    : controller_(controller), session_(session), view_(view) {}
+    : controller_(controller), session_(session), view_(view) {
+}
 
 // editor/copyLineNoSelection (default off): with no selection, copy/cut operate on the whole
 // current block (the render-mode equivalent of a line). Returns true when it performed the line
@@ -28,11 +29,11 @@ bool RenderEditorBackend::maybeCopyWholeBlock(ClipboardController& clipboard, bo
     return false;
   }
   if (cut) {
-    clipboard.cut();  // copies the block then deletes it — the content is gone, so no restore.
+    clipboard.cut(); // copies the block then deletes it — the content is gone, so no restore.
   } else {
     const CursorPosition savedCaret = selection.cursorPosition();
     clipboard.copy();
-    selection.setCursorPosition(savedCaret);  // keep the caret collapsed (no visible selection).
+    selection.setCursorPosition(savedCaret); // keep the caret collapsed (no visible selection).
   }
   return true;
 }
@@ -58,34 +59,34 @@ void RenderEditorBackend::paste() {
 void RenderEditorBackend::deleteRange(DeleteTarget target) {
   InputController& input = controller_.inputController();
   switch (target) {
-    case DeleteTarget::Forward:
-      input.deleteForward();
-      return;
-    case DeleteTarget::Backward:
-      input.deleteBackward();
-      return;
-    case DeleteTarget::Word:
-      if (controller_.selectCurrentWord()) {
-        input.deleteSelection();
-      }
-      return;
-    case DeleteTarget::FormatSpan:
-      if (controller_.selectCurrentFormatSpan()) {
-        input.deleteSelection();
-      }
-      return;
-    case DeleteTarget::Line:
-      // Clear the current block's content; for markerless blocks (paragraphs)
-      // this matches whole-block removal since content == block range.
-      if (controller_.selectCurrentBlock()) {
-        input.deleteSelection();
-      }
-      return;
-    case DeleteTarget::Block:
-      if (controller_.selectCurrentBlockForRemoval()) {
-        input.deleteSelection();
-      }
-      return;
+  case DeleteTarget::Forward:
+    input.deleteForward();
+    return;
+  case DeleteTarget::Backward:
+    input.deleteBackward();
+    return;
+  case DeleteTarget::Word:
+    if (controller_.selectCurrentWord()) {
+      input.deleteSelection();
+    }
+    return;
+  case DeleteTarget::FormatSpan:
+    if (controller_.selectCurrentFormatSpan()) {
+      input.deleteSelection();
+    }
+    return;
+  case DeleteTarget::Line:
+    // Clear the current block's content; for markerless blocks (paragraphs)
+    // this matches whole-block removal since content == block range.
+    if (controller_.selectCurrentBlock()) {
+      input.deleteSelection();
+    }
+    return;
+  case DeleteTarget::Block:
+    if (controller_.selectCurrentBlockForRemoval()) {
+      input.deleteSelection();
+    }
+    return;
   }
 }
 
@@ -285,4 +286,4 @@ QString RenderEditorBackend::cursorStatusText() const {
   return {};
 }
 
-}  // namespace muffin
+} // namespace muffin

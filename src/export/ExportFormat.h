@@ -23,4 +23,4 @@ enum class ExportFormat {
   Opml,
 };
 
-}  // namespace muffin
+} // namespace muffin

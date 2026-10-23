@@ -40,7 +40,8 @@ public:
   bool selectionContext(BlockEditContext& context, qsizetype& start, qsizetype& end) const;
   bool selectionSourceRange(qsizetype& start, qsizetype& end) const;
   bool blockSourceRange(const MarkdownNode& node, qsizetype& start, qsizetype& end) const;
-  bool listItemLineBounds(const BlockEditContext& context, qsizetype& lineStart, qsizetype& contentStart, qsizetype& lineEnd) const;
+  bool listItemLineBounds(const BlockEditContext& context, qsizetype& lineStart, qsizetype& contentStart,
+                          qsizetype& lineEnd) const;
 
   MarkdownNode* previousEditableTextBlock(const MarkdownNode& node, BlockEditContext& context) const;
   MarkdownNode* nextEditableTextBlock(const MarkdownNode& node, BlockEditContext& context) const;
@@ -51,14 +52,16 @@ public:
   // First editable text block at or under `node` (first in document order); the head/tail pair of
   // lastEditableDescendant. Used to land a caret on the block that survives a structural removal.
   MarkdownNode* firstEditableDescendant(MarkdownNode& node) const;
-  MarkdownNode* nodeAtContentSourceOffset(MarkdownNode& node, qsizetype sourceOffset, bool preferLaterEmptyAtOffset = false) const;
+  MarkdownNode* nodeAtContentSourceOffset(MarkdownNode& node, qsizetype sourceOffset,
+                                          bool preferLaterEmptyAtOffset = false) const;
 
   // Resolves a source offset that lies inside a literal block (code fence, math, HTML, front
   // matter) — the one block class nodeAtContentSourceOffset deliberately skips, since literal
   // blocks edit through their own controllers rather than inline text. On a match, returns the
   // node and sets contentStartOut to the byte offset just past the opening fence/marker line
   // (the first character of the editable literal content). Returns null for inline-text offsets.
-  MarkdownNode* literalBlockAtSourceOffset(MarkdownNode& node, qsizetype sourceOffset, qsizetype& contentStartOut) const;
+  MarkdownNode* literalBlockAtSourceOffset(MarkdownNode& node, qsizetype sourceOffset,
+                                           qsizetype& contentStartOut) const;
   // Byte offset of the first editable literal character of `node` — just past the opening fence /
   // marker line. `node` is assumed to be a literal block (code fence / math / HTML / front matter).
   // Equivalent to the contentStartOut of literalBlockAtSourceOffset when you already hold the node,
@@ -70,4 +73,4 @@ private:
   SelectionController* selection_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -30,11 +30,8 @@ void testToggleCodeBlockUndo() {
   require(session.markdownText().toString() != original, "text should change after split");
 
   const EditTransaction undo = requireTextDeltaCommand(undoStack, "toggle code block undo should be TextDeltaCommand");
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   require(session.markdownText().toString() == original, "undo should restore original text");
 }
 
@@ -53,11 +50,8 @@ void testToggleCodeBlockUndoConvertBack() {
   require(paragraph.toggleCodeBlock(), "code -> paragraph should succeed");
 
   const EditTransaction undo = requireTextDeltaCommand(undoStack, "convert back undo should be TextDeltaCommand");
-  session.applyTextDelta(
-      undo.textDeltaCommand().delta.start,
-      undo.textDeltaCommand().delta.insertedText.size(),
-      undo.textDeltaCommand().delta.removedText,
-      true);
+  session.applyTextDelta(undo.textDeltaCommand().delta.start, undo.textDeltaCommand().delta.insertedText.size(),
+                         undo.textDeltaCommand().delta.removedText, true);
   require(session.markdownText().toString() == original, "convert back undo should restore original");
 }
 

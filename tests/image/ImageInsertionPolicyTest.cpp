@@ -67,9 +67,10 @@ void testCopyToFilenameAssets() {
   QTemporaryDir dir;
   const QDir docDir(dir.path());
   const QString img = makeImage(docDir, "shot.png");
-  const QString docPath = docDir.filePath("My Note.md");  // completeBaseName == "My Note"
+  const QString docPath = docDir.filePath("My Note.md"); // completeBaseName == "My Note"
 
-  QSettings().setValue(QStringLiteral("image/insertAction"), static_cast<int>(muffin::ImageInsertAction::CopyToFilenameAssets));
+  QSettings().setValue(QStringLiteral("image/insertAction"),
+                       static_cast<int>(muffin::ImageInsertAction::CopyToFilenameAssets));
 
   muffin::ImageInsertRequest req;
   req.sourcePath = img;
@@ -149,7 +150,8 @@ void testSpacedImageParsesWithoutEscapePreference() {
   muffin::DocumentSession session;
   session.setMarkdownText(muffin::image_syntax::markdownImage(QStringLiteral("literal ](alt)"), res.href), false);
   const auto refs = muffin::ImageFileOps::collectImageRefs(session.document());
-  require(res.ok && refs.size() == 1, QStringLiteral("Insertion must produce a real image without URL-escape preference"));
+  require(res.ok && refs.size() == 1,
+          QStringLiteral("Insertion must produce a real image without URL-escape preference"));
   require(muffin::ImageFileOps::resolveImagePath(refs.first().href, dir.path()) == img,
           QStringLiteral("Inserted image must resolve to the chosen file"));
 }
@@ -178,27 +180,31 @@ void testPastedImageIntoUntitledDocument() {
   // Regression: an untitled document (empty documentPath → no folder) used to make
   // resolveHref return ok=false, so ClipboardController::paste() silently dropped the
   // image. It must now fall back to a writable cache dir and still produce an href.
-  QSettings().setValue(QStringLiteral("image/insertAction"), static_cast<int>(muffin::ImageInsertAction::CopyToCurrentFolder));
+  QSettings().setValue(QStringLiteral("image/insertAction"),
+                       static_cast<int>(muffin::ImageInsertAction::CopyToCurrentFolder));
 
   QImage pasted(1, 1, QImage::Format_RGB32);
   pasted.fill(Qt::blue);
 
   muffin::ImageInsertRequest req;
   req.pastedImage = pasted;
-  req.documentPath = QString();  // untitled document
+  req.documentPath = QString(); // untitled document
   const auto res = resolve(req);
-  require(res.ok, QStringLiteral("pasting an image into an untitled document should succeed (error: %1)").arg(res.error));
+  require(res.ok,
+          QStringLiteral("pasting an image into an untitled document should succeed (error: %1)").arg(res.error));
   require(!res.href.isEmpty(), QStringLiteral("the pasted-image href must not be empty"));
   // Untitled → parked under the app's "muffin-user-images" folder, Typora-style name.
   require(res.href.contains(QStringLiteral("muffin-user-images")),
           QStringLiteral("untitled-doc image should live under muffin-user-images, href='%1'").arg(res.href));
   require(QFileInfo(res.href).fileName().startsWith(QStringLiteral("image-")),
-          QStringLiteral("pasted image should use the image-<timestamp> name, got '%1'").arg(QFileInfo(res.href).fileName()));
+          QStringLiteral("pasted image should use the image-<timestamp> name, got '%1'")
+              .arg(QFileInfo(res.href).fileName()));
   require(QFile::exists(res.href),
-          QStringLiteral("the pasted image should have been saved and referenced by an existing file, href='%1'").arg(res.href));
+          QStringLiteral("the pasted image should have been saved and referenced by an existing file, href='%1'")
+              .arg(res.href));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -207,28 +213,44 @@ int main(int argc, char** argv) {
 
   // Start each case from a clean image-settings baseline.
   const QStringList imageKeys = {
-      QStringLiteral("image/insertAction"),      QStringLiteral("image/customFolder"),
-      QStringLiteral("image/uploadCommand"),     QStringLiteral("image/uploadService"),
-      QStringLiteral("image/applyToLocal"),      QStringLiteral("image/applyToNetwork"),
-      QStringLiteral("image/allowYamlUpload"),   QStringLiteral("image/preferRelativePath"),
-      QStringLiteral("image/addLeadingSlash"),   QStringLiteral("image/escapeImageUrl"),
+      QStringLiteral("image/insertAction"),    QStringLiteral("image/customFolder"),
+      QStringLiteral("image/uploadCommand"),   QStringLiteral("image/uploadService"),
+      QStringLiteral("image/applyToLocal"),    QStringLiteral("image/applyToNetwork"),
+      QStringLiteral("image/allowYamlUpload"), QStringLiteral("image/preferRelativePath"),
+      QStringLiteral("image/addLeadingSlash"), QStringLiteral("image/escapeImageUrl"),
   };
 
   testCopyToAssets();
-  for (const QString& k : imageKeys) { QSettings().remove(k); }
+  for (const QString& k : imageKeys) {
+    QSettings().remove(k);
+  }
   testCopyToFilenameAssets();
-  for (const QString& k : imageKeys) { QSettings().remove(k); }
+  for (const QString& k : imageKeys) {
+    QSettings().remove(k);
+  }
   testNonePreferRelative();
-  for (const QString& k : imageKeys) { QSettings().remove(k); }
+  for (const QString& k : imageKeys) {
+    QSettings().remove(k);
+  }
   testAddLeadingSlash();
-  for (const QString& k : imageKeys) { QSettings().remove(k); }
+  for (const QString& k : imageKeys) {
+    QSettings().remove(k);
+  }
   testEscapeImageUrl();
-  for (const QString& k : imageKeys) { QSettings().remove(k); }
+  for (const QString& k : imageKeys) {
+    QSettings().remove(k);
+  }
   testSpacedImageParsesWithoutEscapePreference();
-  for (const QString& k : imageKeys) { QSettings().remove(k); }
+  for (const QString& k : imageKeys) {
+    QSettings().remove(k);
+  }
   testYamlDirectiveWithoutSettingDoesNotForceUpload();
-  for (const QString& k : imageKeys) { QSettings().remove(k); }
+  for (const QString& k : imageKeys) {
+    QSettings().remove(k);
+  }
   testPastedImageIntoUntitledDocument();
-  for (const QString& k : imageKeys) { QSettings().remove(k); }
+  for (const QString& k : imageKeys) {
+    QSettings().remove(k);
+  }
   return 0;
 }

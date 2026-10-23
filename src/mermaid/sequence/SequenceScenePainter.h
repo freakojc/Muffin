@@ -17,13 +17,9 @@ struct SequenceViewportOptions {
   bool mirrorActors = true;
 };
 
-void paintSequenceScene(const SequenceScene& scene, QPainter& painter,
-                        const MermaidPaintOptions& options = {});
-QRectF sequenceViewportRect(const SequenceScene& scene,
-                            SequenceViewportOptions options = {});
-QImage renderSequenceSceneToImage(const SequenceScene& scene, qreal dpr = 1.0,
-                                  qreal padding = 8.0);
-QImage renderSequenceSceneToImage(const SequenceScene& scene, qreal dpr,
-                                  SequenceViewportOptions options);
+void paintSequenceScene(const SequenceScene& scene, QPainter& painter, const MermaidPaintOptions& options = {});
+QRectF sequenceViewportRect(const SequenceScene& scene, SequenceViewportOptions options = {});
+QImage renderSequenceSceneToImage(const SequenceScene& scene, qreal dpr = 1.0, qreal padding = 8.0);
+QImage renderSequenceSceneToImage(const SequenceScene& scene, qreal dpr, SequenceViewportOptions options);
 
-}  // namespace muffin::mermaid::sequence
+} // namespace muffin::mermaid::sequence

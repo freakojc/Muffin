@@ -10,9 +10,8 @@ namespace muffin::mermaid::eventmodeling {
 enum class EventModelingErrorKind { Lexer, Parser };
 
 class EventModelingParseError final : public std::runtime_error {
- public:
-  EventModelingParseError(EventModelingErrorKind kind, int line, int column,
-                          const QString& message);
+public:
+  EventModelingParseError(EventModelingErrorKind kind, int line, int column, const QString& message);
 
   EventModelingErrorKind kind;
   int line = 1;
@@ -66,8 +65,8 @@ struct EventModelingData {
 };
 
 class EventModelingDiagram {
- public:
+public:
   static EventModelingData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::eventmodeling
+} // namespace muffin::mermaid::eventmodeling

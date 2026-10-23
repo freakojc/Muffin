@@ -8,9 +8,11 @@
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
-  if (argc != 2) return 2;
+  if (argc != 2)
+    return 2;
   QFile input(QString::fromLocal8Bit(argv[1]));
-  if (!input.open(QIODevice::ReadOnly)) return 3;
+  if (!input.open(QIODevice::ReadOnly))
+    return 3;
   const auto cases = QJsonDocument::fromJson(input.readAll()).array();
   QJsonArray records;
   // Reuse each parser across footnote/non-footnote documents to cover reset.

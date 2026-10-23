@@ -38,24 +38,24 @@ qsizetype emojiShortcodeLengthAt(QStringView source, qsizetype i) {
   qsizetype j = i + 1;
   for (; j < source.size(); ++j) {
     const ushort u = source.at(j).unicode();
-    const bool nameChar = (u >= 'a' && u <= 'z') || (u >= 'A' && u <= 'Z') ||
-                          (u >= '0' && u <= '9') || u == '_' || u == '+' || u == '-';
+    const bool nameChar =
+        (u >= 'a' && u <= 'z') || (u >= 'A' && u <= 'Z') || (u >= '0' && u <= '9') || u == '_' || u == '+' || u == '-';
     if (!nameChar) {
       break;
     }
   }
   if (j == i + 1) {
-    return 0;  // empty name ("::" or ":...")
+    return 0; // empty name ("::" or ":...")
   }
   if (j >= source.size() || source.at(j) != QLatin1Char(':')) {
-    return 0;  // no closing colon within the name run
+    return 0; // no closing colon within the name run
   }
-  const qsizetype total = j - i + 1;  // opening ':' + name + closing ':'
+  const qsizetype total = j - i + 1; // opening ':' + name + closing ':'
   if (total > 64) {
-    return 0;  // bounded scan guard
+    return 0; // bounded scan guard
   }
   const QStringView name = source.mid(i + 1, j - i - 1);
   return emojiShortcodeMap().contains(name.toString()) ? total : 0;
 }
 
-}  // namespace muffin
+} // namespace muffin

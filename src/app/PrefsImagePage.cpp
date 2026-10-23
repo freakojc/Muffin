@@ -35,7 +35,8 @@ muffin::PrefsImagePage::PrefsImagePage(QWidget* parent) : PreferencesPage(parent
   auto* insertCard = new QWidget(this);
   insertCard->setObjectName(QStringLiteral("settingsCard"));
   auto* insertCardLayout = new QVBoxLayout(insertCard);
-  insertCardLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin, kRowVerticalMargin);
+  insertCardLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin,
+                                       kRowVerticalMargin);
   insertCardLayout->setSpacing(kRowSpacing);
 
   insertLabel_ = makeSectionLabel(insertCard);
@@ -105,7 +106,8 @@ muffin::PrefsImagePage::PrefsImagePage(QWidget* parent) : PreferencesPage(parent
   uploadCard->setObjectName(QStringLiteral("settingsCard"));
   uploadCard->setProperty("lastSettingsRow", true);
   auto* uploadCardLayout = new QVBoxLayout(uploadCard);
-  uploadCardLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin, kRowVerticalMargin);
+  uploadCardLayout->setContentsMargins(kRowHorizontalMargin, kRowVerticalMargin, kRowHorizontalMargin,
+                                       kRowVerticalMargin);
   uploadCardLayout->setSpacing(kRowSpacing);
 
   uploadLabel_ = makeSectionLabel(uploadCard);

@@ -50,4 +50,4 @@ private:
   QPushButton* testButton_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

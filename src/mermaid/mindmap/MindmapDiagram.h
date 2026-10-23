@@ -90,14 +90,12 @@ struct MindmapParseError : std::runtime_error {
   QString token;
 
   MindmapParseError(const QString& message, int line = 0, int column = 0,
-                    MindmapErrorKind kind = MindmapErrorKind::Parser,
-                    QString token = {});
+                    MindmapErrorKind kind = MindmapErrorKind::Parser, QString token = {});
 };
 
 class MindmapDiagram {
 public:
-  static MindmapData parse(const QString& source,
-                           const MindmapParseConfig& config = {});
+  static MindmapData parse(const QString& source, const MindmapParseConfig& config = {});
 };
 
-}  // namespace muffin::mermaid::mindmap
+} // namespace muffin::mermaid::mindmap

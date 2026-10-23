@@ -10,7 +10,8 @@ namespace {
 
 QString repeated(QString value, int count) {
   QString out;
-  for (int i = 0; i < count; ++i) out += value;
+  for (int i = 0; i < count; ++i)
+    out += value;
   return out;
 }
 
@@ -23,12 +24,9 @@ bool definitionSourceTextMatchesFields(const DefinitionBlock& definition) {
     return false;
   }
   const DefinitionBlock& reparsed = parsedDefinitions.front().definition;
-  return reparsed.kind == definition.kind &&
-         reparsed.label == definition.label &&
-         reparsed.destination == definition.destination &&
-         reparsed.title == definition.title &&
-         reparsed.note == definition.note &&
-         reparsed.destinationDelimiter == definition.destinationDelimiter &&
+  return reparsed.kind == definition.kind && reparsed.label == definition.label &&
+         reparsed.destination == definition.destination && reparsed.title == definition.title &&
+         reparsed.note == definition.note && reparsed.destinationDelimiter == definition.destinationDelimiter &&
          reparsed.titleDelimiter == definition.titleDelimiter;
 }
 
@@ -43,26 +41,25 @@ DefinitionBlock::TitleDelimiter titleDelimiterForSerialization(const DefinitionB
   if (definition.titleDelimiter != DefinitionBlock::TitleDelimiter::None) {
     return definition.titleDelimiter;
   }
-  return definition.title.isEmpty()
-             ? DefinitionBlock::TitleDelimiter::None
-             : DefinitionBlock::TitleDelimiter::DoubleQuote;
+  return definition.title.isEmpty() ? DefinitionBlock::TitleDelimiter::None
+                                    : DefinitionBlock::TitleDelimiter::DoubleQuote;
 }
 
 QString serializeDefinitionTitle(const DefinitionBlock& definition) {
   switch (titleDelimiterForSerialization(definition)) {
-    case DefinitionBlock::TitleDelimiter::DoubleQuote:
-      return QStringLiteral(" \"%1\"").arg(definition.title);
-    case DefinitionBlock::TitleDelimiter::SingleQuote:
-      return QStringLiteral(" '%1'").arg(definition.title);
-    case DefinitionBlock::TitleDelimiter::Parentheses:
-      return QStringLiteral(" (%1)").arg(definition.title);
-    case DefinitionBlock::TitleDelimiter::None:
-    default:
-      return QString();
+  case DefinitionBlock::TitleDelimiter::DoubleQuote:
+    return QStringLiteral(" \"%1\"").arg(definition.title);
+  case DefinitionBlock::TitleDelimiter::SingleQuote:
+    return QStringLiteral(" '%1'").arg(definition.title);
+  case DefinitionBlock::TitleDelimiter::Parentheses:
+    return QStringLiteral(" (%1)").arg(definition.title);
+  case DefinitionBlock::TitleDelimiter::None:
+  default:
+    return QString();
   }
 }
 
-}  // namespace
+} // namespace
 
 QString MarkdownSerializer::serializeDocument(const MarkdownDocument& document) const {
   return serializeBlock(document.root());
@@ -70,55 +67,53 @@ QString MarkdownSerializer::serializeDocument(const MarkdownDocument& document) 
 
 QString MarkdownSerializer::serializeBlock(const MarkdownNode& node) const {
   switch (node.type()) {
-    case BlockType::Document:
-      return serializeChildren(node, QStringLiteral("\n\n"));
-    case BlockType::Paragraph:
-    case BlockType::TableCell:
-      return serializeInlineList(node.inlines());
-    case BlockType::Heading:
-      return serializeHeading(node);
-    case BlockType::BlockQuote: {
-      const QString body = serializeChildren(node, QStringLiteral("\n\n"));
-      QStringList lines = body.split('\n');
-      for (QString& line : lines) line.prepend(QStringLiteral("> "));
-      return lines.join('\n');
+  case BlockType::Document:
+    return serializeChildren(node, QStringLiteral("\n\n"));
+  case BlockType::Paragraph:
+  case BlockType::TableCell:
+    return serializeInlineList(node.inlines());
+  case BlockType::Heading:
+    return serializeHeading(node);
+  case BlockType::BlockQuote: {
+    const QString body = serializeChildren(node, QStringLiteral("\n\n"));
+    QStringList lines = body.split('\n');
+    for (QString& line : lines)
+      line.prepend(QStringLiteral("> "));
+    return lines.join('\n');
+  }
+  case BlockType::List:
+    return serializeList(node);
+  case BlockType::ListItem:
+    return serializeChildren(node, QStringLiteral("\n"));
+  case BlockType::ThematicBreak:
+    return QStringLiteral("---");
+  case BlockType::FrontMatter:
+    return serializeFrontMatter(node);
+  case BlockType::CodeFence:
+    return serializeCodeFence(node);
+  case BlockType::HtmlBlock:
+    return node.literal();
+  case BlockType::MathBlock:
+    return QStringLiteral("%1\n%2\n%3").arg(mathOpeningDelimiter(node), node.literal(), mathClosingDelimiter(node));
+  case BlockType::Table:
+    return serializeTable(node);
+  case BlockType::LinkDefinition: {
+    const DefinitionBlock definition = node.definition();
+    if (definitionSourceTextMatchesFields(definition)) {
+      return definition.sourceText;
     }
-    case BlockType::List:
-      return serializeList(node);
-    case BlockType::ListItem:
-      return serializeChildren(node, QStringLiteral("\n"));
-    case BlockType::ThematicBreak:
-      return QStringLiteral("---");
-    case BlockType::FrontMatter:
-      return serializeFrontMatter(node);
-    case BlockType::CodeFence:
-      return serializeCodeFence(node);
-    case BlockType::HtmlBlock:
-      return node.literal();
-    case BlockType::MathBlock:
-      return QStringLiteral("%1\n%2\n%3")
-          .arg(mathOpeningDelimiter(node), node.literal(), mathClosingDelimiter(node));
-    case BlockType::Table:
-      return serializeTable(node);
-    case BlockType::LinkDefinition: {
-      const DefinitionBlock definition = node.definition();
-      if (definitionSourceTextMatchesFields(definition)) {
-        return definition.sourceText;
-      }
-      return QStringLiteral("[%1]: %2%3").arg(
-          definition.label,
-          serializeDefinitionDestination(definition),
-          serializeDefinitionTitle(definition));
+    return QStringLiteral("[%1]: %2%3")
+        .arg(definition.label, serializeDefinitionDestination(definition), serializeDefinitionTitle(definition));
+  }
+  case BlockType::FootnoteDefinition: {
+    const DefinitionBlock definition = node.definition();
+    if (definitionSourceTextMatchesFields(definition)) {
+      return definition.sourceText;
     }
-    case BlockType::FootnoteDefinition: {
-      const DefinitionBlock definition = node.definition();
-      if (definitionSourceTextMatchesFields(definition)) {
-        return definition.sourceText;
-      }
-      return QStringLiteral("[^%1]: %2").arg(definition.label, definition.note);
-    }
-    default:
-      return serializeChildren(node, QStringLiteral("\n\n"));
+    return QStringLiteral("[^%1]: %2").arg(definition.label, definition.note);
+  }
+  default:
+    return serializeChildren(node, QStringLiteral("\n\n"));
   }
 }
 
@@ -132,46 +127,41 @@ QString MarkdownSerializer::serializeInlineList(const QVector<InlineNode>& nodes
 
 QString MarkdownSerializer::serializeInline(const InlineNode& node) const {
   switch (node.type()) {
-    case InlineType::Text:
-      return node.text();
-    case InlineType::SoftBreak:
-      return QStringLiteral("\n");
-    case InlineType::LineBreak:
-      return QStringLiteral("  \n");
-    case InlineType::Code:
-      return QStringLiteral("`%1`").arg(node.text());
-    case InlineType::HtmlInline:
-      return node.text();
-    case InlineType::Emphasis:
-      return QStringLiteral("%1%2%1").arg(
-          node.marker().isEmpty() ? QStringLiteral("*") : node.marker(),
-          serializeInlineList(node.children()));
-    case InlineType::Strong:
-      return QStringLiteral("%1%2%1").arg(
-          node.marker().isEmpty() ? QStringLiteral("**") : node.marker(),
-          serializeInlineList(node.children()));
-    case InlineType::Strikethrough:
-      return QStringLiteral("~~%1~~").arg(serializeInlineList(node.children()));
-    case InlineType::Highlight:
-      return QStringLiteral("==%1==").arg(serializeInlineList(node.children()));
-    case InlineType::Subscript:
-      return QStringLiteral("~%1~").arg(serializeInlineList(node.children()));
-    case InlineType::Superscript:
-      return QStringLiteral("^%1^").arg(serializeInlineList(node.children()));
-    case InlineType::Link:
-      return QStringLiteral("[%1](%2%3)").arg(
-          serializeInlineList(node.children()),
-          node.href(),
-          node.title().isEmpty() ? QString() : QStringLiteral(" \"%1\"").arg(node.title()));
-    case InlineType::Image:
-      return QStringLiteral("![%1](%2%3)").arg(
-          node.alt(),
-          node.href(),
-          node.title().isEmpty() ? QString() : QStringLiteral(" \"%1\"").arg(node.title()));
-    case InlineType::InlineMath:
-      return QStringLiteral("%1%2%1").arg(node.marker().isEmpty() ? QStringLiteral("$") : node.marker(), node.text());
-    default:
-      return node.text();
+  case InlineType::Text:
+    return node.text();
+  case InlineType::SoftBreak:
+    return QStringLiteral("\n");
+  case InlineType::LineBreak:
+    return QStringLiteral("  \n");
+  case InlineType::Code:
+    return QStringLiteral("`%1`").arg(node.text());
+  case InlineType::HtmlInline:
+    return node.text();
+  case InlineType::Emphasis:
+    return QStringLiteral("%1%2%1").arg(node.marker().isEmpty() ? QStringLiteral("*") : node.marker(),
+                                        serializeInlineList(node.children()));
+  case InlineType::Strong:
+    return QStringLiteral("%1%2%1").arg(node.marker().isEmpty() ? QStringLiteral("**") : node.marker(),
+                                        serializeInlineList(node.children()));
+  case InlineType::Strikethrough:
+    return QStringLiteral("~~%1~~").arg(serializeInlineList(node.children()));
+  case InlineType::Highlight:
+    return QStringLiteral("==%1==").arg(serializeInlineList(node.children()));
+  case InlineType::Subscript:
+    return QStringLiteral("~%1~").arg(serializeInlineList(node.children()));
+  case InlineType::Superscript:
+    return QStringLiteral("^%1^").arg(serializeInlineList(node.children()));
+  case InlineType::Link:
+    return QStringLiteral("[%1](%2%3)")
+        .arg(serializeInlineList(node.children()), node.href(),
+             node.title().isEmpty() ? QString() : QStringLiteral(" \"%1\"").arg(node.title()));
+  case InlineType::Image:
+    return QStringLiteral("![%1](%2%3)")
+        .arg(node.alt(), node.href(), node.title().isEmpty() ? QString() : QStringLiteral(" \"%1\"").arg(node.title()));
+  case InlineType::InlineMath:
+    return QStringLiteral("%1%2%1").arg(node.marker().isEmpty() ? QStringLiteral("$") : node.marker(), node.text());
+  default:
+    return node.text();
   }
 }
 
@@ -200,8 +190,7 @@ QString MarkdownSerializer::serializeHeading(const MarkdownNode& node) const {
     const QChar underline = node.headingLevel() == 1 ? QLatin1Char('=') : QLatin1Char('-');
     return content + QLatin1Char('\n') + QString(qMax(1, content.size()), underline);
   }
-  return QStringLiteral("%1 %2").arg(
-      repeated(QStringLiteral("#"), qMax(1, node.headingLevel())), content);
+  return QStringLiteral("%1 %2").arg(repeated(QStringLiteral("#"), qMax(1, node.headingLevel())), content);
 }
 
 QString MarkdownSerializer::serializeList(const MarkdownNode& node) const {
@@ -219,9 +208,7 @@ QString MarkdownSerializer::serializeList(const MarkdownNode& node) const {
 }
 
 QString MarkdownSerializer::serializeListItem(const MarkdownNode& node, int index, ListKind kind) const {
-  QString marker = kind == ListKind::Ordered
-                       ? QStringLiteral("%1. ").arg(index)
-                       : QStringLiteral("- ");
+  QString marker = kind == ListKind::Ordered ? QStringLiteral("%1. ").arg(index) : QStringLiteral("- ");
   if (node.isTaskItem()) {
     marker += node.taskChecked() ? QStringLiteral("[x] ") : QStringLiteral("[ ] ");
   }
@@ -300,15 +287,15 @@ QString MarkdownSerializer::serializeCodeFence(const MarkdownNode& node) const {
 QString MarkdownSerializer::serializeFrontMatter(const MarkdownNode& node) const {
   const QString literal = node.literal();
   switch (node.frontMatterFormat()) {
-    case FrontMatterFormat::Yaml:
-      return QStringLiteral("---\n%1\n---").arg(literal);
-    case FrontMatterFormat::Toml:
-      return QStringLiteral("+++\n%1\n+++").arg(literal);
-    case FrontMatterFormat::Json:
-      return literal;
-    case FrontMatterFormat::None:
-    default:
-      return literal;
+  case FrontMatterFormat::Yaml:
+    return QStringLiteral("---\n%1\n---").arg(literal);
+  case FrontMatterFormat::Toml:
+    return QStringLiteral("+++\n%1\n+++").arg(literal);
+  case FrontMatterFormat::Json:
+    return literal;
+  case FrontMatterFormat::None:
+  default:
+    return literal;
   }
 }
 
@@ -318,16 +305,16 @@ QString MarkdownSerializer::escapeTableCell(QString text) const {
 
 QString MarkdownSerializer::tableDelimiter(TableAlignment alignment) const {
   switch (alignment) {
-    case TableAlignment::Left:
-      return QStringLiteral(":---");
-    case TableAlignment::Center:
-      return QStringLiteral(":---:");
-    case TableAlignment::Right:
-      return QStringLiteral("---:");
-    case TableAlignment::None:
-    default:
-      return QStringLiteral("---");
+  case TableAlignment::Left:
+    return QStringLiteral(":---");
+  case TableAlignment::Center:
+    return QStringLiteral(":---:");
+  case TableAlignment::Right:
+    return QStringLiteral("---:");
+  case TableAlignment::None:
+  default:
+    return QStringLiteral("---");
   }
 }
 
-}  // namespace muffin
+} // namespace muffin

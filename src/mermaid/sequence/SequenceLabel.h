@@ -21,23 +21,15 @@ using SequenceLabelVisualRun = flowchart::FlowLabelVisualRun;
 using SequenceLabelLineMetrics = flowchart::FlowLabelLineMetrics;
 using SequenceLabelLayoutMetrics = flowchart::FlowLabelLayoutMetrics;
 
-SequenceLabelDocument parseSequenceLabel(const QString& source,
-                                         SequenceLabelKind kind = SequenceLabelKind::Message);
-SequenceLabelDocument wrapSequenceLabel(SequenceLabelDocument label,
-                                        const QString& fontFamily,
-                                        qreal fontPixelSize,
+SequenceLabelDocument parseSequenceLabel(const QString& source, SequenceLabelKind kind = SequenceLabelKind::Message);
+SequenceLabelDocument wrapSequenceLabel(SequenceLabelDocument label, const QString& fontFamily, qreal fontPixelSize,
                                         qreal maximumWidth);
-SequenceLabelDocument prepareSequenceLabel(SequenceLabelDocument label,
-                                           qreal fontPixelSize = 16.0);
-SequenceLabelLayoutMetrics layoutSequenceLabel(const SequenceLabelDocument& label,
-                                               const QString& fontFamily,
-                                               qreal fontPixelSize = 16.0,
-                                               qreal lineHeight = 22.0);
-void paintSequenceLabel(QPainter& painter, const SequenceLabelDocument& label,
-                        const QRectF& rect, const QString& fontFamily,
-                        qreal fontPixelSize, qreal lineHeight,
-                        const QColor& color, bool centerVertically = true,
-                        flowchart::FlowLabelAlign align = flowchart::FlowLabelAlign::Center,
-                        qreal alignMargin = 0.0);
+SequenceLabelDocument prepareSequenceLabel(SequenceLabelDocument label, qreal fontPixelSize = 16.0);
+SequenceLabelLayoutMetrics layoutSequenceLabel(const SequenceLabelDocument& label, const QString& fontFamily,
+                                               qreal fontPixelSize = 16.0, qreal lineHeight = 22.0);
+void paintSequenceLabel(QPainter& painter, const SequenceLabelDocument& label, const QRectF& rect,
+                        const QString& fontFamily, qreal fontPixelSize, qreal lineHeight, const QColor& color,
+                        bool centerVertically = true,
+                        flowchart::FlowLabelAlign align = flowchart::FlowLabelAlign::Center, qreal alignMargin = 0.0);
 
-}  // namespace muffin::mermaid::sequence
+} // namespace muffin::mermaid::sequence

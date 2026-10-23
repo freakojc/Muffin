@@ -14,4 +14,4 @@ QImage loading(QSizeF logicalSize);
 /// Render the "broken image" placeholder icon at the given logical size.
 QImage broken(QSizeF logicalSize);
 
-}  // namespace muffin::image_placeholder
+} // namespace muffin::image_placeholder

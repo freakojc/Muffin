@@ -22,9 +22,7 @@ struct TableLocation {
   int row = -1;
   int column = -1;
 
-  bool isValid() const {
-    return (tableId.isValid() || tableIndex >= 0) && row >= 0 && column >= 0;
-  }
+  bool isValid() const { return (tableId.isValid() || tableIndex >= 0) && row >= 0 && column >= 0; }
 };
 
 class MUFFIN_UI_EXPORT TableController final : public QObject {
@@ -64,11 +62,11 @@ signals:
   void tableCommandRejected(QString reason);
 
 private:
-  bool editCurrentCellSource(
-      QString label,
-      EditTransaction::Kind kind,
-      const std::function<std::optional<TableCellSourceEdit>(const MarkdownNode&, const QString&, qsizetype)>& buildEdit);
-  bool mutateCurrentTable(QString label, EditTransaction::Kind kind, const std::function<bool(MarkdownNode&, TableLocation&)>& mutate);
+  bool editCurrentCellSource(QString label, EditTransaction::Kind kind,
+                             const std::function<std::optional<TableCellSourceEdit>(const MarkdownNode&, const QString&,
+                                                                                    qsizetype)>& buildEdit);
+  bool mutateCurrentTable(QString label, EditTransaction::Kind kind,
+                          const std::function<bool(MarkdownNode&, TableLocation&)>& mutate);
   MarkdownNode* tableForLocation(TableLocation location) const;
   MarkdownNode* cellForLocation(TableLocation location) const;
   CursorPosition cursorForLocation(TableLocation location) const;
@@ -79,4 +77,4 @@ private:
   EditorContext ctx_;
 };
 
-}  // namespace muffin
+} // namespace muffin

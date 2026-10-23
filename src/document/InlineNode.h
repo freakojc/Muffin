@@ -12,7 +12,9 @@
 #include <variant>
 
 namespace muffin {
-namespace diag { struct MemoryAccounting; }
+namespace diag {
+struct MemoryAccounting;
+}
 
 struct InlineRange {
   qsizetype start = -1;
@@ -47,6 +49,7 @@ struct InlineSourceRanges {
 
 class InlineNode {
   friend struct diag::MemoryAccounting;
+
 public:
   explicit InlineNode(InlineType type = InlineType::Text);
   InlineNode(const InlineNode& other);
@@ -157,4 +160,4 @@ private:
 
 void shiftInlineSourcePositions(QVector<InlineNode>& inlines, qsizetype delta);
 
-}  // namespace muffin
+} // namespace muffin

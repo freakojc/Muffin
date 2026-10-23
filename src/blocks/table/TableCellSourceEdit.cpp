@@ -7,10 +7,7 @@
 namespace muffin {
 namespace {
 
-enum class DeleteDirection {
-  Backward,
-  Forward
-};
+enum class DeleteDirection { Backward, Forward };
 
 qsizetype visibleOffsetForTableCellSourceOffset(const QString& content, qsizetype sourceOffset) {
   sourceOffset = qBound<qsizetype>(0, sourceOffset, content.size());
@@ -70,12 +67,8 @@ qsizetype tableSpecialSourceExtraBefore(const QString& content, qsizetype source
   return extra;
 }
 
-bool tableCellSpecialUnitContaining(
-    const QString& content,
-    qsizetype sourceOffset,
-    DeleteDirection direction,
-    qsizetype& unitStart,
-    qsizetype& unitEnd) {
+bool tableCellSpecialUnitContaining(const QString& content, qsizetype sourceOffset, DeleteDirection direction,
+                                    qsizetype& unitStart, qsizetype& unitEnd) {
   for (qsizetype offset = 0; offset < content.size(); ++offset) {
     if (!tableCellSpecialUnitAt(content, offset, unitStart, unitEnd)) {
       continue;
@@ -120,69 +113,69 @@ qsizetype countHiddenMarkerChars(const QVector<InlineNode>& nodes, qsizetype sou
     }
 
     switch (node.type()) {
-      case InlineType::Strong:
-      case InlineType::Emphasis:
-      case InlineType::Strikethrough:
-      case InlineType::Highlight:
-      case InlineType::Subscript:
-      case InlineType::Superscript: {
-        InlineRange content = toLocalRange(node.contentRange(), sourceBase);
-        if (!content.isValid() || content.start < src.start || content.end > src.end) {
-          const qsizetype markerLen = qMax<qsizetype>(1, node.marker().size());
-          content = InlineRange{src.start + markerLen, src.end - markerLen};
-        }
-        // Opening marker (e.g., ** before content)
-        hidden += qMax<qsizetype>(0, qMin(content.start, sourceOffset) - src.start);
-        // Closing marker (e.g., ** after content)
-        if (src.end > content.end) {
-          hidden += qMax<qsizetype>(0, qMin(src.end, sourceOffset) - content.end);
-        }
-        // Recurse into children for nested formatting
-        hidden += countHiddenMarkerChars(node.children(), sourceBase, sourceOffset);
-        break;
+    case InlineType::Strong:
+    case InlineType::Emphasis:
+    case InlineType::Strikethrough:
+    case InlineType::Highlight:
+    case InlineType::Subscript:
+    case InlineType::Superscript: {
+      InlineRange content = toLocalRange(node.contentRange(), sourceBase);
+      if (!content.isValid() || content.start < src.start || content.end > src.end) {
+        const qsizetype markerLen = qMax<qsizetype>(1, node.marker().size());
+        content = InlineRange{src.start + markerLen, src.end - markerLen};
       }
-      case InlineType::Code:
-      case InlineType::InlineMath: {
-        InlineRange content = toLocalRange(node.contentRange(), sourceBase);
-        if (!content.isValid() || content.start < src.start || content.end > src.end) {
-          const qsizetype markerLen = qMax<qsizetype>(1, node.marker().size());
-          content = InlineRange{src.start + markerLen, src.end - markerLen};
-        }
-        hidden += qMax<qsizetype>(0, qMin(content.start, sourceOffset) - src.start);
-        if (src.end > content.end) {
-          hidden += qMax<qsizetype>(0, qMin(src.end, sourceOffset) - content.end);
-        }
-        break;
+      // Opening marker (e.g., ** before content)
+      hidden += qMax<qsizetype>(0, qMin(content.start, sourceOffset) - src.start);
+      // Closing marker (e.g., ** after content)
+      if (src.end > content.end) {
+        hidden += qMax<qsizetype>(0, qMin(src.end, sourceOffset) - content.end);
       }
-      case InlineType::Link: {
-        if (!node.isAutolink()) {
-          InlineRange content = toLocalRange(node.contentRange(), sourceBase);
-          if (content.isValid()) {
-            // Opening marker ([)
-            hidden += qMax<qsizetype>(0, qMin(content.start, sourceOffset) - src.start);
-            // Closing hidden syntax (](url))
-            if (src.end > content.end) {
-              hidden += qMax<qsizetype>(0, qMin(src.end, sourceOffset) - content.end);
-            }
-          }
-        }
-        // Recurse into children for nested formatting in label
-        hidden += countHiddenMarkerChars(node.children(), sourceBase, sourceOffset);
-        break;
+      // Recurse into children for nested formatting
+      hidden += countHiddenMarkerChars(node.children(), sourceBase, sourceOffset);
+      break;
+    }
+    case InlineType::Code:
+    case InlineType::InlineMath: {
+      InlineRange content = toLocalRange(node.contentRange(), sourceBase);
+      if (!content.isValid() || content.start < src.start || content.end > src.end) {
+        const qsizetype markerLen = qMax<qsizetype>(1, node.marker().size());
+        content = InlineRange{src.start + markerLen, src.end - markerLen};
       }
-      case InlineType::Image: {
+      hidden += qMax<qsizetype>(0, qMin(content.start, sourceOffset) - src.start);
+      if (src.end > content.end) {
+        hidden += qMax<qsizetype>(0, qMin(src.end, sourceOffset) - content.end);
+      }
+      break;
+    }
+    case InlineType::Link: {
+      if (!node.isAutolink()) {
         InlineRange content = toLocalRange(node.contentRange(), sourceBase);
         if (content.isValid()) {
+          // Opening marker ([)
           hidden += qMax<qsizetype>(0, qMin(content.start, sourceOffset) - src.start);
+          // Closing hidden syntax (](url))
           if (src.end > content.end) {
             hidden += qMax<qsizetype>(0, qMin(src.end, sourceOffset) - content.end);
           }
         }
-        break;
       }
-      default:
-        hidden += countHiddenMarkerChars(node.children(), sourceBase, sourceOffset);
-        break;
+      // Recurse into children for nested formatting in label
+      hidden += countHiddenMarkerChars(node.children(), sourceBase, sourceOffset);
+      break;
+    }
+    case InlineType::Image: {
+      InlineRange content = toLocalRange(node.contentRange(), sourceBase);
+      if (content.isValid()) {
+        hidden += qMax<qsizetype>(0, qMin(content.start, sourceOffset) - src.start);
+        if (src.end > content.end) {
+          hidden += qMax<qsizetype>(0, qMin(src.end, sourceOffset) - content.end);
+        }
+      }
+      break;
+    }
+    default:
+      hidden += countHiddenMarkerChars(node.children(), sourceBase, sourceOffset);
+      break;
     }
   }
   return hidden;
@@ -211,7 +204,7 @@ qsizetype normalizedTableCellInsertOffset(const MarkdownNode& cell, const QStrin
   // the projection base must be the content start in THAT frame — the cell's absolute byteStart
   // minus the frame delta. Passing the absolute start was correct only for a table at offset 0.
   InlineProjection projection(cell.inlines(), content, InlineProjectionState{},
-                               cell.sourceRange().byteStart - cell.inlineAbsoluteDelta());
+                              cell.sourceRange().byteStart - cell.inlineAbsoluteDelta());
   for (const InlineProjectionSpan& span : projection.spans()) {
     if (!span.editable || span.contentSourceEnd < span.contentSourceStart) {
       continue;
@@ -226,11 +219,8 @@ qsizetype normalizedTableCellInsertOffset(const MarkdownNode& cell, const QStrin
   return sourceOffset;
 }
 
-std::optional<TableCellSourceEdit> tableCellDeleteEdit(
-    const MarkdownNode& /*cell*/,
-    const QString& content,
-    qsizetype sourceOffset,
-    DeleteDirection direction) {
+std::optional<TableCellSourceEdit> tableCellDeleteEdit(const MarkdownNode& /*cell*/, const QString& content,
+                                                       qsizetype sourceOffset, DeleteDirection direction) {
   sourceOffset = qBound<qsizetype>(0, sourceOffset, content.size());
 
   qsizetype unitStart = 0;
@@ -253,7 +243,7 @@ std::optional<TableCellSourceEdit> tableCellDeleteEdit(
   return TableCellSourceEdit{removed.start, removed.length, QString(), removed.start};
 }
 
-}  // namespace
+} // namespace
 
 QString escapeTableCellInsertedText(QString text) {
   return text.replace('|', QStringLiteral("\\|")).replace('\n', QStringLiteral("<br>"));
@@ -284,35 +274,29 @@ qsizetype tableCellSourceOffsetForVisibleOffset(const QString& content, qsizetyp
   return content.size();
 }
 
-qsizetype tableCellVisibleOffsetForEditCursor(const MarkdownNode& cell, const QString& content, qsizetype sourceOffset) {
+qsizetype tableCellVisibleOffsetForEditCursor(const MarkdownNode& cell, const QString& content,
+                                              qsizetype sourceOffset) {
   const qsizetype rawVis = visibleOffsetForTableCellSourceOffset(content, sourceOffset);
-  const qsizetype hiddenChars = countHiddenMarkerChars(
-      cell.inlines(), cell.sourceRange().byteStart - cell.inlineAbsoluteDelta(), sourceOffset);
+  const qsizetype hiddenChars =
+      countHiddenMarkerChars(cell.inlines(), cell.sourceRange().byteStart - cell.inlineAbsoluteDelta(), sourceOffset);
   return rawVis - hiddenChars;
 }
 
-std::optional<TableCellSourceEdit> buildTableCellInsertEdit(
-    const MarkdownNode& cell,
-    const QString& content,
-    qsizetype sourceOffset,
-    QString text) {
+std::optional<TableCellSourceEdit> buildTableCellInsertEdit(const MarkdownNode& cell, const QString& content,
+                                                            qsizetype sourceOffset, QString text) {
   const qsizetype insertOffset = normalizedTableCellInsertOffset(cell, content, sourceOffset);
   const qsizetype insertedSize = text.size();
   return TableCellSourceEdit{insertOffset, 0, std::move(text), insertOffset + insertedSize};
 }
 
-std::optional<TableCellSourceEdit> buildTableCellDeleteBackwardEdit(
-    const MarkdownNode& cell,
-    const QString& content,
-    qsizetype sourceOffset) {
+std::optional<TableCellSourceEdit> buildTableCellDeleteBackwardEdit(const MarkdownNode& cell, const QString& content,
+                                                                    qsizetype sourceOffset) {
   return tableCellDeleteEdit(cell, content, sourceOffset, DeleteDirection::Backward);
 }
 
-std::optional<TableCellSourceEdit> buildTableCellDeleteForwardEdit(
-    const MarkdownNode& cell,
-    const QString& content,
-    qsizetype sourceOffset) {
+std::optional<TableCellSourceEdit> buildTableCellDeleteForwardEdit(const MarkdownNode& cell, const QString& content,
+                                                                   qsizetype sourceOffset) {
   return tableCellDeleteEdit(cell, content, sourceOffset, DeleteDirection::Forward);
 }
 
-}  // namespace muffin
+} // namespace muffin

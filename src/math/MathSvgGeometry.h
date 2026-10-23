@@ -12,9 +12,8 @@ public:
   static bool hasPath(const QString& name);
   static QString path(const QString& name);
   static QPainterPath painterPath(const QString& name, QRectF target);
-  static QPainterPath painterPathFromSvgPath(
-      const QString& svgPath, QRectF viewBox, QRectF target,
-      Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio);
+  static QPainterPath painterPathFromSvgPath(const QString& svgPath, QRectF viewBox, QRectF target,
+                                             Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio);
   // Identity parse of SVG path data (no viewBox/target mapping) for callers
   // that store upstream path strings verbatim, e.g. the Mermaid error
   // diagram's lightbulb icon.
@@ -28,4 +27,4 @@ private:
   static void ensureLoaded();
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

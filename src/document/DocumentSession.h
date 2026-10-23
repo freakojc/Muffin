@@ -98,22 +98,13 @@ public:
   // the `parsed` signal). No-op (no re-parse) when unchanged, so callers can invoke unconditionally.
   void setParseOptions(ParseOptions options);
   void applyMarkdownText(QString text, bool modified, QVector<qsizetype> demoteAtOffsets = {});
-  bool applyTextDelta(
-      qsizetype sourceStart,
-      qsizetype removedLength,
-      QString insertedText,
-      bool modified,
-      QVector<LocalEditNodeHint> nodeHints = {});
+  bool applyTextDelta(qsizetype sourceStart, qsizetype removedLength, QString insertedText, bool modified,
+                      QVector<LocalEditNodeHint> nodeHints = {});
   bool applyTableSnapshot(NodeId tableId, int tableIndex, const MarkdownNode& tableSnapshot, bool modified);
-  bool applyNodeSnapshot(NodeId nodeId, BlockType nodeType, int nodeIndex, const MarkdownNode& nodeSnapshot, bool modified);
-  bool applyInsertedNode(
-      NodeId nodeId,
-      BlockType nodeType,
-      qsizetype sourceStart,
-      qsizetype targetSourceOffset,
-      qsizetype removedLength,
-      QString insertedText,
-      bool modified);
+  bool applyNodeSnapshot(NodeId nodeId, BlockType nodeType, int nodeIndex, const MarkdownNode& nodeSnapshot,
+                         bool modified);
+  bool applyInsertedNode(NodeId nodeId, BlockType nodeType, qsizetype sourceStart, qsizetype targetSourceOffset,
+                         qsizetype removedLength, QString insertedText, bool modified);
 
 signals:
   void documentAboutToBeReplaced();
@@ -121,24 +112,20 @@ signals:
   void documentLocallyEdited(qsizetype start, qsizetype removedLength, QString insertedText);
   void filePathChanged(QString path);
   void parsed(qint64 elapsedMs);
-  void parseBusy(bool busy);  // true while an async open parse is in flight (view shows a loading state)
+  void parseBusy(bool busy); // true while an async open parse is in flight (view shows a loading state)
   void modifiedChanged(bool modified);
-  void externalFileChanged();  // the file changed on disk vs. our last known baseline
+  void externalFileChanged(); // the file changed on disk vs. our last known baseline
 
 private slots:
-  void onFileChanged();  // QFileSystemWatcher::fileChanged → drift check → externalFileChanged
+  void onFileChanged(); // QFileSystemWatcher::fileChanged → drift check → externalFileChanged
 
 private:
   void refreshFileWatch();
   void parseAndStore(QString text, bool modified, QVector<qsizetype> demoteAtOffsets = {}, bool async = false);
   // GUI-thread completion of an async parseAndStore (async=true). Discards the result if superseded.
   void finishAsyncParse();
-  bool tryApplyTopLevelLocalEdit(
-      qsizetype sourceStart,
-      qsizetype sourceEnd,
-      const QString& replacementText,
-      bool modified,
-      const QVector<LocalEditNodeHint>& nodeHints);
+  bool tryApplyTopLevelLocalEdit(qsizetype sourceStart, qsizetype sourceEnd, const QString& replacementText,
+                                 bool modified, const QVector<LocalEditNodeHint>& nodeHints);
 
   MarkdownDocument document_;
   CmarkGfmParser parser_;
@@ -160,9 +147,9 @@ private:
   // isRunning() does not cover that interval, so it cannot safely gate editing or saving.
   bool asyncParsePending_ = false;
   bool openConfirmationPending_ = false;
-  quint64 parseGeneration_ = 0;   // bumped on every parseAndStore + local edit; supersedes in-flight workers
-  quint64 launchGeneration_ = 0;  // generation captured when the current worker was launched
-  QString pendingText_;           // text held for the GUI-thread finish step
+  quint64 parseGeneration_ = 0;  // bumped on every parseAndStore + local edit; supersedes in-flight workers
+  quint64 launchGeneration_ = 0; // generation captured when the current worker was launched
+  QString pendingText_;          // text held for the GUI-thread finish step
   bool pendingModified_ = false;
   QVector<qsizetype> pendingDemoteAtOffsets_;
   QVector<qsizetype> pendingMarkerOffsets_;
@@ -177,4 +164,4 @@ private:
   qint64 lastNotifiedSize_ = -2;
 };
 
-}  // namespace muffin
+} // namespace muffin

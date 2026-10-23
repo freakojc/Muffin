@@ -7,7 +7,7 @@
 namespace muffin::html {
 
 class HtmlStyleResolver {
- public:
+public:
   HtmlStyleResolver();
   ~HtmlStyleResolver();
 
@@ -18,4 +18,4 @@ class HtmlStyleResolver {
   void resolve(HtmlBox& root, qreal baseFontSize, const HtmlColorPalette& palette = HtmlColorPalette::defaultLight());
 };
 
-}  // namespace muffin::html
+} // namespace muffin::html

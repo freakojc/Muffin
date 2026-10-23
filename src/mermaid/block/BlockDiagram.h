@@ -14,8 +14,7 @@ enum class BlockErrorKind { Lexer, Parser, Runtime };
 
 class BlockParseError final : public std::runtime_error {
 public:
-  BlockParseError(BlockErrorKind kind, int line, int column, QString token,
-                  const QString& message);
+  BlockParseError(BlockErrorKind kind, int line, int column, QString token, const QString& message);
 
   BlockErrorKind kind;
   int line;
@@ -70,4 +69,4 @@ public:
   static BlockData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::block
+} // namespace muffin::mermaid::block

@@ -28,19 +28,16 @@ void muffin::FindBarWidget::setupUi() {
     Q_UNUSED(text)
     setResultInfo(0, 0);
   });
-  connect(findEdit_, &QLineEdit::returnPressed, this, [this] {
-    emit findRequested(findEdit_->text(), true, regularExpressionEnabled(), caseSensitiveEnabled());
-  });
+  connect(findEdit_, &QLineEdit::returnPressed, this,
+          [this] { emit findRequested(findEdit_->text(), true, regularExpressionEnabled(), caseSensitiveEnabled()); });
 
   prevButton_ = new QPushButton(this);
-  connect(prevButton_, &QPushButton::clicked, this, [this] {
-    emit findRequested(findEdit_->text(), false, regularExpressionEnabled(), caseSensitiveEnabled());
-  });
+  connect(prevButton_, &QPushButton::clicked, this,
+          [this] { emit findRequested(findEdit_->text(), false, regularExpressionEnabled(), caseSensitiveEnabled()); });
 
   nextButton_ = new QPushButton(this);
-  connect(nextButton_, &QPushButton::clicked, this, [this] {
-    emit findRequested(findEdit_->text(), true, regularExpressionEnabled(), caseSensitiveEnabled());
-  });
+  connect(nextButton_, &QPushButton::clicked, this,
+          [this] { emit findRequested(findEdit_->text(), true, regularExpressionEnabled(), caseSensitiveEnabled()); });
 
   regexCheck_ = new QCheckBox(this);
   caseCheck_ = new QCheckBox(this);
@@ -75,14 +72,13 @@ void muffin::FindBarWidget::setupUi() {
 
   replaceButton_ = new QPushButton(replaceRow_);
   connect(replaceButton_, &QPushButton::clicked, this, [this] {
-    emit replaceRequested(findEdit_->text(), replaceEdit_->text(),
-                          regularExpressionEnabled(), caseSensitiveEnabled());
+    emit replaceRequested(findEdit_->text(), replaceEdit_->text(), regularExpressionEnabled(), caseSensitiveEnabled());
   });
 
   replaceAllButton_ = new QPushButton(replaceRow_);
   connect(replaceAllButton_, &QPushButton::clicked, this, [this] {
-    emit replaceAllRequested(findEdit_->text(), replaceEdit_->text(),
-                             regularExpressionEnabled(), caseSensitiveEnabled());
+    emit replaceAllRequested(findEdit_->text(), replaceEdit_->text(), regularExpressionEnabled(),
+                             caseSensitiveEnabled());
   });
 
   replaceLayout->addWidget(replaceEdit_);
@@ -164,8 +160,7 @@ void muffin::FindBarWidget::keyPressEvent(QKeyEvent* event) {
   }
   if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
     const bool forward = !(event->modifiers() & Qt::ShiftModifier);
-    emit findRequested(findEdit_->text(), forward,
-                       regularExpressionEnabled(), caseSensitiveEnabled());
+    emit findRequested(findEdit_->text(), forward, regularExpressionEnabled(), caseSensitiveEnabled());
     event->accept();
     return;
   }

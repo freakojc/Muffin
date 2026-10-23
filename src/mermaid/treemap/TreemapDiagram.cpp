@@ -16,12 +16,13 @@ bool isHorizontal(QChar c) {
 }
 
 bool isClassStart(QChar c) {
-  return (c >= QLatin1Char('A') && c <= QLatin1Char('Z')) ||
-         (c >= QLatin1Char('a') && c <= QLatin1Char('z')) ||
+  return (c >= QLatin1Char('A') && c <= QLatin1Char('Z')) || (c >= QLatin1Char('a') && c <= QLatin1Char('z')) ||
          c == QLatin1Char('_');
 }
 
-bool isClassPart(QChar c) { return isClassStart(c) || c.isDigit(); }
+bool isClassPart(QChar c) {
+  return isClassStart(c) || c.isDigit();
+}
 
 QString metadata(QString value) {
   return HtmlSanitizer().sanitizedMermaidText(value.trimmed());
@@ -29,12 +30,11 @@ QString metadata(QString value) {
 
 QString accDescription(QString value) {
   value = metadata(std::move(value));
-  value.replace(QRegularExpression(QStringLiteral(R"(\n\s+)")),
-                QStringLiteral("\n"));
+  value.replace(QRegularExpression(QStringLiteral(R"(\n\s+)")), QStringLiteral("\n"));
   return value;
 }
 
-QStringList compileStyles(const QString &source) {
+QStringList compileStyles(const QString& source) {
   QStringList result;
   QString item;
   int parentheses = 0;
@@ -88,16 +88,13 @@ public:
   TreemapData run() {
     skipHidden();
     const int headerStart = index_;
-    if (source_.mid(index_, 12).compare(QStringLiteral("treemap-beta"),
-                                        Qt::CaseInsensitive) == 0)
+    if (source_.mid(index_, 12).compare(QStringLiteral("treemap-beta"), Qt::CaseInsensitive) == 0)
       index_ += 12;
-    else if (source_.mid(index_, 7).compare(QStringLiteral("treemap"),
-                                            Qt::CaseInsensitive) == 0)
+    else if (source_.mid(index_, 7).compare(QStringLiteral("treemap"), Qt::CaseInsensitive) == 0)
       index_ += 7;
     else
       parser(headerStart, QStringLiteral("Expected Treemap header"));
-    if (index_ < source_.size() && !source_.at(index_).isSpace() &&
-        source_.at(index_) != QLatin1Char('"') &&
+    if (index_ < source_.size() && !source_.at(index_).isSpace() && source_.at(index_) != QLatin1Char('"') &&
         source_.at(index_) != QLatin1Char('\''))
       parser(index_, QStringLiteral("Expected end of Treemap header"));
 
@@ -113,8 +110,7 @@ public:
         parseAccDescr();
       } else if (atWord(QStringLiteral("classDef"))) {
         parseClassDef();
-      } else if (source_.at(index_) == QLatin1Char('"') ||
-                 source_.at(index_) == QLatin1Char('\'')) {
+      } else if (source_.at(index_) == QLatin1Char('"') || source_.at(index_) == QLatin1Char('\'')) {
         parseNode();
       } else {
         parser(index_, QStringLiteral("Expected quoted Treemap row"));
@@ -123,9 +119,9 @@ public:
 
     buildHierarchy();
     QHash<QString, QStringList> definitions;
-    for (const auto &definition : data_.classes)
+    for (const auto& definition : data_.classes)
       definitions.insert(definition.id, definition.styles);
-    for (auto &node : data_.nodes) {
+    for (auto& node : data_.nodes) {
       if (!node.classSelector.isEmpty())
         node.cssCompiledStyles = definitions.value(node.classSelector);
     }
@@ -133,14 +129,14 @@ public:
   }
 
 private:
-  bool atWord(const QString &word) const {
+  bool atWord(const QString& word) const {
     if (source_.mid(index_, word.size()).compare(word, Qt::CaseInsensitive) != 0)
       return false;
     const int end = index_ + word.size();
     return end >= source_.size() || !source_.at(end).isLetterOrNumber();
   }
 
-  bool consumeWord(const QString &word) {
+  bool consumeWord(const QString& word) {
     if (!atWord(word))
       return false;
     index_ += word.size();
@@ -154,8 +150,7 @@ private:
         continue;
       }
       if (source_.mid(index_, 2) == QLatin1String("%%")) {
-        while (index_ < source_.size() &&
-               source_.at(index_) != QLatin1Char('\n'))
+        while (index_ < source_.size() && source_.at(index_) != QLatin1Char('\n'))
           ++index_;
         continue;
       }
@@ -275,10 +270,8 @@ private:
     node.level = rowIndent(stringStart);
     node.name = parseString();
     skipHorizontal();
-    if (source_.mid(index_, 3) != QLatin1String(":::") &&
-        index_ < source_.size() &&
-        (source_.at(index_) == QLatin1Char(':') ||
-         source_.at(index_) == QLatin1Char(','))) {
+    if (source_.mid(index_, 3) != QLatin1String(":::") && index_ < source_.size() &&
+        (source_.at(index_) == QLatin1Char(':') || source_.at(index_) == QLatin1Char(','))) {
       node.hasValue = true;
       const int delimiter = index_;
       ++index_;
@@ -286,14 +279,12 @@ private:
       const int numberStart = index_;
       while (index_ < source_.size()) {
         const QChar c = source_.at(index_);
-        if (!(c.isDigit() || c == QLatin1Char('_') || c == QLatin1Char('.') ||
-              c == QLatin1Char(',')))
+        if (!(c.isDigit() || c == QLatin1Char('_') || c == QLatin1Char('.') || c == QLatin1Char(',')))
           break;
         ++index_;
       }
       if (index_ == numberStart) {
-        if (index_ >= source_.size() ||
-            source_.at(index_) == QLatin1Char('\n'))
+        if (index_ >= source_.size() || source_.at(index_) == QLatin1Char('\n'))
           parser(delimiter, QStringLiteral("Expected Treemap number"));
         lexer(index_, QStringLiteral("Invalid Treemap number"));
       }
@@ -332,20 +323,16 @@ private:
     return {line, column};
   }
 
-  [[noreturn]] void parser(int offset, const QString &message) const {
+  [[noreturn]] void parser(int offset, const QString& message) const {
     const auto [line, column] = location(offset);
     throw TreemapParseError(TreemapErrorKind::Parser, line, column,
-                            offset < source_.size() ? source_.mid(offset, 1)
-                                                    : QStringLiteral("EOF"),
-                            message);
+                            offset < source_.size() ? source_.mid(offset, 1) : QStringLiteral("EOF"), message);
   }
 
-  [[noreturn]] void lexer(int offset, const QString &message) const {
+  [[noreturn]] void lexer(int offset, const QString& message) const {
     const auto [line, column] = location(offset);
     throw TreemapParseError(TreemapErrorKind::Lexer, line, column,
-                            offset < source_.size() ? source_.mid(offset, 1)
-                                                    : QStringLiteral("EOF"),
-                            message);
+                            offset < source_.size() ? source_.mid(offset, 1) : QStringLiteral("EOF"), message);
   }
 
   QString source_;
@@ -355,13 +342,13 @@ private:
 
 } // namespace
 
-TreemapParseError::TreemapParseError(TreemapErrorKind errorKind, int errorLine,
-                                     int errorColumn, QString errorToken,
-                                     const QString &message)
-    : std::runtime_error(message.toStdString()), kind(errorKind),
-      line(errorLine), column(errorColumn), token(std::move(errorToken)) {}
+TreemapParseError::TreemapParseError(TreemapErrorKind errorKind, int errorLine, int errorColumn, QString errorToken,
+                                     const QString& message)
+    : std::runtime_error(message.toStdString()), kind(errorKind), line(errorLine), column(errorColumn),
+      token(std::move(errorToken)) {
+}
 
-TreemapData TreemapDiagram::parse(const QString &source) {
+TreemapData TreemapDiagram::parse(const QString& source) {
   return Parser(source).run();
 }
 

@@ -51,7 +51,7 @@ qsizetype pendingMarkerOffsetForSingleLineEdit(const QString& text, qsizetype of
   return insertedText.contains(QLatin1Char('\n')) ? -1 : pendingBlockMarkerOffset(text, offset);
 }
 
-}  // namespace
+} // namespace
 
 BlockEditContextResolver InputController::contextResolver() const {
   return BlockEditContextResolver(ctx_.session, ctx_.selection);
@@ -78,18 +78,22 @@ bool InputController::blockSelectionSourceRange(qsizetype& start, qsizetype& end
   qsizetype focusStart = -1;
   qsizetype focusEnd = -1;
   BlockEditContextResolver resolver = contextResolver();
-  if (!resolver.blockSourceRange(*anchorNode, anchorStart, anchorEnd) || !resolver.blockSourceRange(*focusNode, focusStart, focusEnd)) {
+  if (!resolver.blockSourceRange(*anchorNode, anchorStart, anchorEnd) ||
+      !resolver.blockSourceRange(*focusNode, focusStart, focusEnd)) {
     return false;
   }
 
-  if (anchorStart < focusStart || (anchorStart == focusStart && range.anchor.text.textOffset <= range.focus.text.textOffset)) {
-    start = anchorStart + (anchorNode == focusNode ? qBound<qsizetype>(0, range.anchor.text.textOffset, anchorEnd - anchorStart) : 0);
+  if (anchorStart < focusStart ||
+      (anchorStart == focusStart && range.anchor.text.textOffset <= range.focus.text.textOffset)) {
+    start = anchorStart +
+            (anchorNode == focusNode ? qBound<qsizetype>(0, range.anchor.text.textOffset, anchorEnd - anchorStart) : 0);
     end = focusEnd;
     if (anchorNode == focusNode) {
       end = anchorStart + qBound<qsizetype>(0, range.focus.text.textOffset, anchorEnd - anchorStart);
     }
   } else {
-    start = focusStart + (anchorNode == focusNode ? qBound<qsizetype>(0, range.focus.text.textOffset, focusEnd - focusStart) : 0);
+    start = focusStart +
+            (anchorNode == focusNode ? qBound<qsizetype>(0, range.focus.text.textOffset, focusEnd - focusStart) : 0);
     end = anchorEnd;
     if (anchorNode == focusNode) {
       end = focusStart + qBound<qsizetype>(0, range.anchor.text.textOffset, focusEnd - focusStart);
@@ -103,7 +107,8 @@ bool InputController::editParagraph(TextBlockCommandBuilder::Operation operation
   BlockEditContextResolver resolver = contextResolver();
   BlockEditContext context;
   if (!resolver.current(context)) {
-    emit unsupportedEditRequested(QStringLiteral("Only plain paragraph, heading, and list item text is editable in this M4 slice."));
+    emit unsupportedEditRequested(
+        QStringLiteral("Only plain paragraph, heading, and list item text is editable in this M4 slice."));
     return false;
   }
 
@@ -120,53 +125,32 @@ bool InputController::applyTextCommand(const TextBlockCommandBuilder::Command& c
   }
 
   if (command.hasLocalEdit()) {
-    applyLocalEdit(
-        command.kind,
-        command.label,
-        command.sourceStart,
-        command.removedLength,
-        command.insertedText,
-        command.preferredCursor,
-        command.fallbackSourceOffset,
-        command.nodeHints,
-        command.preferLaterEmptyAtOffset,
-        command.structureEdit);
+    applyLocalEdit(command.kind, command.label, command.sourceStart, command.removedLength, command.insertedText,
+                   command.preferredCursor, command.fallbackSourceOffset, command.nodeHints,
+                   command.preferLaterEmptyAtOffset, command.structureEdit);
   }
   return true;
 }
 
-void InputController::performLocalEdit(
-    EditTransaction::Kind kind,
-    const QString& label,
-    qsizetype sourceStart,
-    qsizetype removedLength,
-    QString insertedText,
-    CursorPosition preferredCursor,
-    qsizetype fallbackSourceOffset,
-    QVector<LocalEditNodeHint> nodeHints,
-    bool preferLaterEmptyAtOffset,
-    bool structureEdit) {
+void InputController::performLocalEdit(EditTransaction::Kind kind, const QString& label, qsizetype sourceStart,
+                                       qsizetype removedLength, QString insertedText, CursorPosition preferredCursor,
+                                       qsizetype fallbackSourceOffset, QVector<LocalEditNodeHint> nodeHints,
+                                       bool preferLaterEmptyAtOffset, bool structureEdit) {
   applyLocalEdit(kind, label, sourceStart, removedLength, std::move(insertedText), std::move(preferredCursor),
                  fallbackSourceOffset, std::move(nodeHints), preferLaterEmptyAtOffset, structureEdit);
 }
 
-void InputController::applyLocalEdit(
-    EditTransaction::Kind kind,
-    const QString& label,
-    qsizetype sourceStart,
-    qsizetype removedLength,
-    QString insertedText,
-    CursorPosition preferredCursor,
-    qsizetype fallbackSourceOffset,
-    QVector<LocalEditNodeHint> nodeHints,
-    bool preferLaterEmptyAtOffset,
-    bool structureEdit) {
+void InputController::applyLocalEdit(EditTransaction::Kind kind, const QString& label, qsizetype sourceStart,
+                                     qsizetype removedLength, QString insertedText, CursorPosition preferredCursor,
+                                     qsizetype fallbackSourceOffset, QVector<LocalEditNodeHint> nodeHints,
+                                     bool preferLaterEmptyAtOffset, bool structureEdit) {
   PerfTimer perf("input.applyLocalEdit");
   if (!ctx_.hasSession() || sourceStart < 0 || removedLength < 0) {
     return;
   }
 
-  const CursorPosition beforeCursor = ctx_.selection && ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : CursorPosition();
+  const CursorPosition beforeCursor =
+      ctx_.selection && ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : CursorPosition();
   const SelectionRange beforeSelection = ctx_.selection ? ctx_.selection->selection() : SelectionRange();
   const PieceTable& currentText = ctx_.session->markdownText();
   if (sourceStart + removedLength > currentText.size()) {
@@ -184,9 +168,8 @@ void InputController::applyLocalEdit(
   // demote — so there is at most one scan per edit, and the undo snapshot always carries the
   // pre-edit markers when its branch is taken.
   const bool needsPreEditMarkerOffsets = ctx_.undoStack && (structureEdit || snapshotUndoLikely);
-  QVector<qsizetype> beforeOffsets = needsPreEditMarkerOffsets
-      ? collectPendingMarkerOffsetsForSession(ctx_.session)
-      : QVector<qsizetype>{};
+  QVector<qsizetype> beforeOffsets =
+      needsPreEditMarkerOffsets ? collectPendingMarkerOffsetsForSession(ctx_.session) : QVector<qsizetype>{};
   // Capture beforeText up front whenever the snapshot undo path is reachable (structural edit, or
   // no valid pre-edit cursor). Reconstructing it AFTER applyTextDelta from the post-edit document
   // (the !beforeTextCaptured fallback below) is only correct for a pure text delta: a structural
@@ -212,12 +195,13 @@ void InputController::applyLocalEdit(
     if (!needsPreEditMarkerOffsets) {
       beforeOffsets = collectPendingMarkerOffsetsForSession(ctx_.session);
     }
-    QVector<qsizetype> demoteOffsets = shiftPendingMarkerOffsets(beforeOffsets, sourceStart, removedLength, insertedText.size());
+    QVector<qsizetype> demoteOffsets =
+        shiftPendingMarkerOffsets(beforeOffsets, sourceStart, removedLength, insertedText.size());
     if (editedOffset >= 0) {
       demoteOffsets.append(editedOffset);
     }
-    qCDebug(inputEditPerf).nospace() << "applyLocalEdit.fullReparseFallback label=" << label
-        << " start=" << sourceStart << " removedLen=" << removedLength << " insertedLen=" << insertedText.size();
+    qCDebug(inputEditPerf).nospace() << "applyLocalEdit.fullReparseFallback label=" << label << " start=" << sourceStart
+                                     << " removedLen=" << removedLength << " insertedLen=" << insertedText.size();
     ctx_.session->applyMarkdownText(nextText, true, std::move(demoteOffsets));
   }
 
@@ -260,18 +244,14 @@ void InputController::applyLocalEdit(
 
   if (ctx_.undoStack) {
     PerfTimer undoTimer("input.applyLocalEdit.undo");
-    const bool textDeltaUndoEligible = appliedLocally && !structureEdit && beforeCursor.isValid() && nextCursor.isValid();
+    const bool textDeltaUndoEligible =
+        appliedLocally && !structureEdit && beforeCursor.isValid() && nextCursor.isValid();
     if (textDeltaUndoEligible) {
       QVector<NodeId> affectedNodes;
       affectedNodes.push_back(refreshNodeFor(ctx_.session, nextCursor.blockId));
-      EditTransaction transaction(
-          kind,
-          label,
-          TextDeltaCommand{
-              TextDelta{sourceStart, removedText, insertedText},
-              beforeCursor,
-              nextCursor,
-              std::move(affectedNodes)});
+      EditTransaction transaction(kind, label,
+                                  TextDeltaCommand{TextDelta{sourceStart, removedText, insertedText}, beforeCursor,
+                                                   nextCursor, std::move(affectedNodes)});
       transaction.setBeforeSelection(beforeSelection);
       ctx_.undoStack->push(std::move(transaction));
     } else {
@@ -284,7 +264,8 @@ void InputController::applyLocalEdit(
         nextText = ctx_.session->markdownText().toString();
       }
       const QVector<qsizetype> afterOffsets = collectPendingMarkerOffsetsForSession(ctx_.session);
-      EditTransaction transaction(kind, label, {beforeText, beforeCursor, beforeOffsets}, {std::move(nextText), nextCursor, afterOffsets});
+      EditTransaction transaction(kind, label, {beforeText, beforeCursor, beforeOffsets},
+                                  {std::move(nextText), nextCursor, afterOffsets});
       transaction.setBeforeSelection(beforeSelection);
       ctx_.undoStack->push(std::move(transaction));
     }
@@ -308,33 +289,22 @@ void InputController::applyLocalEdit(
   }
 }
 
-void InputController::applyEdit(
-    EditTransaction::Kind kind,
-    const QString& label,
-    QString nextText,
-    qsizetype nextSourceOffset) {
+void InputController::applyEdit(EditTransaction::Kind kind, const QString& label, QString nextText,
+                                qsizetype nextSourceOffset) {
   applyEdit(kind, label, std::move(nextText), nextSourceOffset, false);
 }
 
-void InputController::applyEdit(
-    EditTransaction::Kind kind,
-    const QString& label,
-    QString nextText,
-    qsizetype nextSourceOffset,
-    bool preferLaterEmptyAtOffset) {
+void InputController::applyEdit(EditTransaction::Kind kind, const QString& label, QString nextText,
+                                qsizetype nextSourceOffset, bool preferLaterEmptyAtOffset) {
   applyEdit(kind, label, std::move(nextText), CursorPosition(), nextSourceOffset, {}, preferLaterEmptyAtOffset);
 }
 
-void InputController::applyEdit(
-    EditTransaction::Kind kind,
-    const QString& label,
-    QString nextText,
-    CursorPosition preferredCursor,
-    qsizetype fallbackSourceOffset,
-    QVector<LocalEditNodeHint> nodeHints,
-    bool preferLaterEmptyAtOffset) {
+void InputController::applyEdit(EditTransaction::Kind kind, const QString& label, QString nextText,
+                                CursorPosition preferredCursor, qsizetype fallbackSourceOffset,
+                                QVector<LocalEditNodeHint> nodeHints, bool preferLaterEmptyAtOffset) {
   PerfTimer perf("input.applyEdit.diffFallback");
-  const CursorPosition beforeCursor = ctx_.selection && ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : CursorPosition();
+  const CursorPosition beforeCursor =
+      ctx_.selection && ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : CursorPosition();
   const SelectionRange beforeSelection = ctx_.selection ? ctx_.selection->selection() : SelectionRange();
   const QString beforeText = ctx_.session->markdownText().toString();
 
@@ -345,7 +315,8 @@ void InputController::applyEdit(
   }
   qsizetype beforeSuffix = beforeText.size();
   qsizetype nextSuffix = nextText.size();
-  while (beforeSuffix > prefix && nextSuffix > prefix && beforeText.at(beforeSuffix - 1) == nextText.at(nextSuffix - 1)) {
+  while (beforeSuffix > prefix && nextSuffix > prefix &&
+         beforeText.at(beforeSuffix - 1) == nextText.at(nextSuffix - 1)) {
     --beforeSuffix;
     --nextSuffix;
   }
@@ -356,7 +327,8 @@ void InputController::applyEdit(
   const bool appliedLocally =
       ctx_.session->applyTextDelta(prefix, beforeSuffix - prefix, insertedText, true, std::move(nodeHints));
   if (!appliedLocally) {
-    QVector<qsizetype> demoteOffsets = shiftPendingMarkerOffsets(beforeOffsets, prefix, beforeSuffix - prefix, insertedText.size());
+    QVector<qsizetype> demoteOffsets =
+        shiftPendingMarkerOffsets(beforeOffsets, prefix, beforeSuffix - prefix, insertedText.size());
     if (editedOffset >= 0) {
       demoteOffsets.append(editedOffset);
     }
@@ -375,23 +347,15 @@ void InputController::applyEdit(
     if (textDeltaUndoEligible) {
       QVector<NodeId> affectedNodes;
       affectedNodes.push_back(refreshNodeFor(ctx_.session, nextCursor.blockId));
-      EditTransaction transaction(
-          kind,
-          label,
-          TextDeltaCommand{
-              TextDelta{prefix, removedText, insertedText},
-              beforeCursor,
-              nextCursor,
-              std::move(affectedNodes)});
+      EditTransaction transaction(kind, label,
+                                  TextDeltaCommand{TextDelta{prefix, removedText, insertedText}, beforeCursor,
+                                                   nextCursor, std::move(affectedNodes)});
       transaction.setBeforeSelection(beforeSelection);
       ctx_.undoStack->push(std::move(transaction));
     } else {
       const QVector<qsizetype> afterOffsets = collectPendingMarkerOffsetsForSession(ctx_.session);
-      EditTransaction transaction(
-          kind,
-          label,
-          {beforeText, beforeCursor, beforeOffsets},
-          {std::move(nextText), nextCursor, afterOffsets});
+      EditTransaction transaction(kind, label, {beforeText, beforeCursor, beforeOffsets},
+                                  {std::move(nextText), nextCursor, afterOffsets});
       transaction.setBeforeSelection(beforeSelection);
       ctx_.undoStack->push(std::move(transaction));
     }
@@ -407,4 +371,4 @@ void InputController::applyEdit(
   }
 }
 
-}  // namespace muffin
+} // namespace muffin

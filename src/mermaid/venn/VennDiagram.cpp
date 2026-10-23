@@ -13,8 +13,7 @@ namespace {
 
 bool asciiAlpha(QChar ch) {
   const ushort value = ch.unicode();
-  return (value >= 'A' && value <= 'Z') ||
-         (value >= 'a' && value <= 'z') || value == '_';
+  return (value >= 'A' && value <= 'Z') || (value >= 'a' && value <= 'z') || value == '_';
 }
 
 bool asciiDigit(QChar ch) {
@@ -22,27 +21,25 @@ bool asciiDigit(QChar ch) {
   return value >= '0' && value <= '9';
 }
 
-bool asciiWord(QChar ch) { return asciiAlpha(ch) || asciiDigit(ch); }
+bool asciiWord(QChar ch) {
+  return asciiAlpha(ch) || asciiDigit(ch);
+}
 
 QString collapseErrorWhitespace(QString value) {
   value.replace(QRegularExpression(QStringLiteral("\\s+")), QStringLiteral(" "));
   return value.trimmed();
 }
 
-QString parseMessage(int line, const QString& preview, int caret,
-                     const QString& expected, const QString& token) {
-  return collapseErrorWhitespace(
-      QStringLiteral("Parse error on line %1:\n%2\n%3^\nExpecting %4, got '%5'")
-          .arg(line)
-          .arg(preview, QString(std::max(0, caret), QLatin1Char('-')),
-               expected, token));
+QString parseMessage(int line, const QString& preview, int caret, const QString& expected, const QString& token) {
+  return collapseErrorWhitespace(QStringLiteral("Parse error on line %1:\n%2\n%3^\nExpecting %4, got '%5'")
+                                     .arg(line)
+                                     .arg(preview, QString(std::max(0, caret), QLatin1Char('-')), expected, token));
 }
 
 QString lexicalMessage(int line, const QString& preview, int caret) {
-  return collapseErrorWhitespace(
-      QStringLiteral("Lexical error on line %1. Unrecognized text.\n%2\n%3^")
-          .arg(line)
-          .arg(preview, QString(std::max(0, caret), QLatin1Char('-'))));
+  return collapseErrorWhitespace(QStringLiteral("Lexical error on line %1. Unrecognized text.\n%2\n%3^")
+                                     .arg(line)
+                                     .arg(preview, QString(std::max(0, caret), QLatin1Char('-'))));
 }
 
 QPair<QString, int> errorWindow(const QString& stream, qsizetype offset) {
@@ -55,8 +52,7 @@ QPair<QString, int> errorWindow(const QString& stream, qsizetype offset) {
 
 QString normalizeText(QString value) {
   value = value.trimmed();
-  if (value.size() >= 2 && value.front() == QLatin1Char('"') &&
-      value.back() == QLatin1Char('"'))
+  if (value.size() >= 2 && value.front() == QLatin1Char('"') && value.back() == QLatin1Char('"'))
     return value.mid(1, value.size() - 2);
   return value;
 }
@@ -67,27 +63,28 @@ QString stripComment(QString line) {
   int parenDepth = 0;
   for (qsizetype i = 0; i + 1 < line.size(); ++i) {
     const QChar ch = line.at(i);
-    if (ch == QLatin1Char('"')) quote = quote < 0 ? i : -1;
-    if (quote >= 0) continue;
-    if (ch == QLatin1Char('[')) ++squareDepth;
-    else if (ch == QLatin1Char(']')) squareDepth = std::max(0, squareDepth - 1);
-    else if (ch == QLatin1Char('(')) ++parenDepth;
-    else if (ch == QLatin1Char(')')) parenDepth = std::max(0, parenDepth - 1);
-    if (squareDepth == 0 && parenDepth == 0 && ch == QLatin1Char('%') &&
-        line.at(i + 1) == QLatin1Char('%'))
+    if (ch == QLatin1Char('"'))
+      quote = quote < 0 ? i : -1;
+    if (quote >= 0)
+      continue;
+    if (ch == QLatin1Char('['))
+      ++squareDepth;
+    else if (ch == QLatin1Char(']'))
+      squareDepth = std::max(0, squareDepth - 1);
+    else if (ch == QLatin1Char('('))
+      ++parenDepth;
+    else if (ch == QLatin1Char(')'))
+      parenDepth = std::max(0, parenDepth - 1);
+    if (squareDepth == 0 && parenDepth == 0 && ch == QLatin1Char('%') && line.at(i + 1) == QLatin1Char('%'))
       return line.left(i);
   }
   return line;
 }
 
 class StatementCursor {
- public:
-  StatementCursor(QString text, int line, QString errorStream,
-                  qsizetype streamOffset)
-      : text_(std::move(text)),
-        line_(line),
-        errorStream_(std::move(errorStream)),
-        streamOffset_(streamOffset) {}
+public:
+  StatementCursor(QString text, int line, QString errorStream, qsizetype streamOffset)
+      : text_(std::move(text)), line_(line), errorStream_(std::move(errorStream)), streamOffset_(streamOffset) {}
 
   bool atEnd() const { return pos_ >= text_.size(); }
   QChar peek(qsizetype offset = 0) const {
@@ -97,7 +94,8 @@ class StatementCursor {
   int column() const { return int(pos_ + 1); }
 
   void skipSpace() {
-    while (peek() == QLatin1Char(' ') || peek() == QLatin1Char('\t')) ++pos_;
+    while (peek() == QLatin1Char(' ') || peek() == QLatin1Char('\t'))
+      ++pos_;
   }
 
   bool keyword(QLatin1String word) const {
@@ -108,7 +106,8 @@ class StatementCursor {
   }
 
   void takeKeyword(QLatin1String word) {
-    if (!keyword(word)) parserError(QString(word));
+    if (!keyword(word))
+      parserError(QString(word));
     pos_ += word.size();
   }
 
@@ -116,14 +115,18 @@ class StatementCursor {
     skipSpace();
     if (peek() == QLatin1Char('"')) {
       const qsizetype start = pos_++;
-      while (!atEnd() && peek() != QLatin1Char('"')) ++pos_;
-      if (atEnd()) lexerError(start);
+      while (!atEnd() && peek() != QLatin1Char('"'))
+        ++pos_;
+      if (atEnd())
+        lexerError(start);
       ++pos_;
       return normalizeText(text_.mid(start, pos_ - start));
     }
-    if (!asciiAlpha(peek())) parserError(QStringLiteral("IDENTIFIER"));
+    if (!asciiAlpha(peek()))
+      parserError(QStringLiteral("IDENTIFIER"));
     const qsizetype start = pos_++;
-    while (asciiWord(peek()) || peek() == QLatin1Char('-')) ++pos_;
+    while (asciiWord(peek()) || peek() == QLatin1Char('-'))
+      ++pos_;
     return text_.mid(start, pos_ - start);
   }
 
@@ -131,7 +134,8 @@ class StatementCursor {
     QStringList result{identifier()};
     for (;;) {
       skipSpace();
-      if (peek() != QLatin1Char(',')) break;
+      if (peek() != QLatin1Char(','))
+        break;
       ++pos_;
       result.append(identifier());
     }
@@ -140,21 +144,24 @@ class StatementCursor {
 
   std::optional<QString> label() {
     skipSpace();
-    if (peek() != QLatin1Char('[')) return std::nullopt;
+    if (peek() != QLatin1Char('['))
+      return std::nullopt;
     const qsizetype start = pos_++;
     if (peek() == QLatin1Char('"')) {
       ++pos_;
-      while (!atEnd() && peek() != QLatin1Char('"')) ++pos_;
-      if (atEnd() || peek(1) != QLatin1Char(']')) lexerError(start);
+      while (!atEnd() && peek() != QLatin1Char('"'))
+        ++pos_;
+      if (atEnd() || peek(1) != QLatin1Char(']'))
+        lexerError(start);
       ++pos_;
       ++pos_;
       return normalizeText(text_.mid(start + 2, pos_ - start - 4));
     }
     const qsizetype content = pos_;
-    while (!atEnd() && peek() != QLatin1Char(']') &&
-           peek() != QLatin1Char('"'))
+    while (!atEnd() && peek() != QLatin1Char(']') && peek() != QLatin1Char('"'))
       ++pos_;
-    if (atEnd() || peek() != QLatin1Char(']')) lexerError(start);
+    if (atEnd() || peek() != QLatin1Char(']'))
+      lexerError(start);
     const QString value = text_.mid(content, pos_ - content).trimmed();
     ++pos_;
     return value;
@@ -162,25 +169,29 @@ class StatementCursor {
 
   std::optional<double> size() {
     skipSpace();
-    if (peek() != QLatin1Char(':')) return std::nullopt;
+    if (peek() != QLatin1Char(':'))
+      return std::nullopt;
     ++pos_;
     skipSpace();
     const qsizetype start = pos_;
-    if (peek() == QLatin1Char('+') || peek() == QLatin1Char('-')) ++pos_;
+    if (peek() == QLatin1Char('+') || peek() == QLatin1Char('-'))
+      ++pos_;
     bool digits = false;
     while (asciiDigit(peek())) {
       digits = true;
       ++pos_;
     }
     if (peek() == QLatin1Char('.')) {
-      if (!asciiDigit(peek(1))) lexerError(pos_);
+      if (!asciiDigit(peek(1)))
+        lexerError(pos_);
       ++pos_;
       while (asciiDigit(peek())) {
         digits = true;
         ++pos_;
       }
     }
-    if (!digits) parserError(QStringLiteral("NUMERIC"));
+    if (!digits)
+      parserError(QStringLiteral("NUMERIC"));
     return text_.mid(start, pos_ - start).toDouble();
   }
 
@@ -190,7 +201,8 @@ class StatementCursor {
       skipSpace();
       const QString key = identifier();
       skipSpace();
-      if (peek() != QLatin1Char(':')) parserError(QStringLiteral("COLON"));
+      if (peek() != QLatin1Char(':'))
+        parserError(QStringLiteral("COLON"));
       ++pos_;
       skipSpace();
       const qsizetype start = pos_;
@@ -198,38 +210,36 @@ class StatementCursor {
       int parens = 0;
       while (!atEnd()) {
         const QChar ch = peek();
-        if (ch == QLatin1Char('"')) quoted = !quoted;
-        else if (!quoted && ch == QLatin1Char('(')) ++parens;
-        else if (!quoted && ch == QLatin1Char(')')) parens = std::max(0, parens - 1);
+        if (ch == QLatin1Char('"'))
+          quoted = !quoted;
+        else if (!quoted && ch == QLatin1Char('('))
+          ++parens;
+        else if (!quoted && ch == QLatin1Char(')'))
+          parens = std::max(0, parens - 1);
         if (!quoted && parens == 0 && ch == QLatin1Char(',')) {
           qsizetype look = pos_ + 1;
-          while (look < text_.size() &&
-                 (text_.at(look) == QLatin1Char(' ') ||
-                  text_.at(look) == QLatin1Char('\t')))
+          while (look < text_.size() && (text_.at(look) == QLatin1Char(' ') || text_.at(look) == QLatin1Char('\t')))
             ++look;
           qsizetype word = look;
           if (word < text_.size() && asciiAlpha(text_.at(word))) {
             ++word;
-            while (word < text_.size() &&
-                   (asciiWord(text_.at(word)) || text_.at(word) == QLatin1Char('-')))
+            while (word < text_.size() && (asciiWord(text_.at(word)) || text_.at(word) == QLatin1Char('-')))
               ++word;
-            while (word < text_.size() &&
-                   (text_.at(word) == QLatin1Char(' ') ||
-                    text_.at(word) == QLatin1Char('\t')))
+            while (word < text_.size() && (text_.at(word) == QLatin1Char(' ') || text_.at(word) == QLatin1Char('\t')))
               ++word;
-            if (word < text_.size() && text_.at(word) == QLatin1Char(':')) break;
+            if (word < text_.size() && text_.at(word) == QLatin1Char(':'))
+              break;
           }
         }
         ++pos_;
       }
       QString value = text_.mid(start, pos_ - start).trimmed();
-      if (value.size() >= 2 && value.front() == QLatin1Char('"') &&
-          value.back() == QLatin1Char('"'))
+      if (value.size() >= 2 && value.front() == QLatin1Char('"') && value.back() == QLatin1Char('"'))
         value = value.mid(1, value.size() - 2);
-      value.replace(QRegularExpression(QStringLiteral("[ \\t]+")),
-                    QStringLiteral(" "));
+      value.replace(QRegularExpression(QStringLiteral("[ \\t]+")), QStringLiteral(" "));
       result.append({key, value});
-      if (atEnd()) break;
+      if (atEnd())
+        break;
       ++pos_;
     }
     return result;
@@ -237,18 +247,17 @@ class StatementCursor {
 
   void requireEnd() {
     skipSpace();
-    if (atEnd()) return;
-    if (peek() == QLatin1Char(';') || peek() == QLatin1Char('.') ||
-        (!asciiAlpha(peek()) && !asciiDigit(peek())))
+    if (atEnd())
+      return;
+    if (peek() == QLatin1Char(';') || peek() == QLatin1Char('.') || (!asciiAlpha(peek()) && !asciiDigit(peek())))
       lexerError(pos_);
     parserError(QStringLiteral("IDENTIFIER"));
   }
 
- private:
+private:
   [[noreturn]] void lexerError(qsizetype at) const {
     const auto window = errorWindow(errorStream_, streamOffset_ + at);
-    throw VennParseError(VennErrorKind::Lexer, line_, 0, QString(),
-                         lexicalMessage(line_, window.first, window.second));
+    throw VennParseError(VennErrorKind::Lexer, line_, 0, QString(), lexicalMessage(line_, window.first, window.second));
   }
 
   [[noreturn]] void parserError(const QString& token) const {
@@ -256,8 +265,8 @@ class StatementCursor {
     throw VennParseError(
         VennErrorKind::Parser, line_, int(pos_), token,
         parseMessage(line_, window.first, window.second,
-                      QStringLiteral("'EOF', 'NEWLINE', 'TITLE', 'SET', 'UNION', 'TEXT', 'INDENT_TEXT', 'STYLE'"),
-                      token));
+                     QStringLiteral("'EOF', 'NEWLINE', 'TITLE', 'SET', 'UNION', 'TEXT', 'INDENT_TEXT', 'STYLE'"),
+                     token));
   }
 
   QString text_;
@@ -268,16 +277,17 @@ class StatementCursor {
 };
 
 bool startsKeyword(const QString& text, QLatin1String word) {
-  if (!text.startsWith(word, Qt::CaseInsensitive)) return false;
+  if (!text.startsWith(word, Qt::CaseInsensitive))
+    return false;
   return text.size() == word.size() || !asciiWord(text.at(word.size()));
 }
 
-void appendSubset(VennData& data, QSet<QString>& knownSets,
-                  QStringList sets, std::optional<QString> label,
+void appendSubset(VennData& data, QSet<QString>& knownSets, QStringList sets, std::optional<QString> label,
                   std::optional<double> size) {
   std::sort(sets.begin(), sets.end());
   const int sourceCount = sets.size();
-  if (sourceCount == 1) knownSets.insert(sets.front());
+  if (sourceCount == 1)
+    knownSets.insert(sets.front());
   VennSubset subset;
   subset.sets = std::move(sets);
   subset.size = size.value_or(10.0 / std::pow(sourceCount, 2));
@@ -288,15 +298,12 @@ void appendSubset(VennData& data, QSet<QString>& knownSets,
   data.subsets.append(std::move(subset));
 }
 
-}  // namespace
+} // namespace
 
-VennParseError::VennParseError(VennErrorKind kind, int line, int column,
-                               QString token, const QString& message)
-    : std::runtime_error(message.toUtf8().constData()),
-      kind(kind),
-      line(line),
-      column(column),
-      token(std::move(token)) {}
+VennParseError::VennParseError(VennErrorKind kind, int line, int column, QString token, const QString& message)
+    : std::runtime_error(message.toUtf8().constData()), kind(kind), line(line), column(column),
+      token(std::move(token)) {
+}
 
 VennData VennDiagram::parse(const QString& source) {
   VennData data;
@@ -313,19 +320,16 @@ VennData VennDiagram::parse(const QString& source) {
   for (int i = 0; i < physical.size(); ++i) {
     QString line = stripComment(physical.at(i));
     qsizetype at = 0;
-    while (at < line.size() &&
-           (line.at(at) == QLatin1Char(' ') || line.at(at) == QLatin1Char('\t')))
+    while (at < line.size() && (line.at(at) == QLatin1Char(' ') || line.at(at) == QLatin1Char('\t')))
       ++at;
-    if (at >= line.size()) continue;
+    if (at >= line.size())
+      continue;
     const QString tail = line.mid(at);
     if (!startsKeyword(tail, QLatin1String("venn-beta"))) {
-      const QString preview =
-          i + 1 < physical.size() ? line + stripComment(physical.at(i + 1))
-                                  : line;
+      const QString preview = i + 1 < physical.size() ? line + stripComment(physical.at(i + 1)) : line;
       throw VennParseError(
           VennErrorKind::Parser, i + 1, int(at + 1), QStringLiteral("IDENTIFIER"),
-          parseMessage(i + 1, preview, int(at), QStringLiteral("'VENN', 'NEWLINE'"),
-                       QStringLiteral("IDENTIFIER")));
+          parseMessage(i + 1, preview, int(at), QStringLiteral("'VENN', 'NEWLINE'"), QStringLiteral("IDENTIFIER")));
     }
     headerLine = i;
     headerAt = at;
@@ -334,9 +338,7 @@ VennData VennDiagram::parse(const QString& source) {
   }
   if (headerLine < 0)
     throw VennParseError(VennErrorKind::Parser, 1, 1, QStringLiteral("EOF"),
-                         parseMessage(1, QString(), 0,
-                                      QStringLiteral("'VENN', 'NEWLINE'"),
-                                      QStringLiteral("EOF")));
+                         parseMessage(1, QString(), 0, QStringLiteral("'VENN', 'NEWLINE'"), QStringLiteral("EOF")));
 
   QString errorStream;
   QVector<qsizetype> lineOffsets(physical.size());
@@ -353,8 +355,7 @@ VennData VennDiagram::parse(const QString& source) {
   QVector<Statement> statements;
   QString suffix = stripComment(physical.at(headerLine)).mid(headerEnd);
   if (!suffix.trimmed().isEmpty())
-    statements.append(
-        {headerLine + 1, suffix, lineOffsets.at(headerLine) + headerEnd});
+    statements.append({headerLine + 1, suffix, lineOffsets.at(headerLine) + headerEnd});
   for (int i = headerLine + 1; i < physical.size(); ++i) {
     QString line = stripComment(physical.at(i));
     if (!line.trimmed().isEmpty())
@@ -366,30 +367,23 @@ VennData VennDiagram::parse(const QString& source) {
     const int lineNumber = statement.line;
     QString line = statement.text;
     qsizetype leading = 0;
-    while (leading < line.size() &&
-           (line.at(leading) == QLatin1Char(' ') ||
-            line.at(leading) == QLatin1Char('\t')))
+    while (leading < line.size() && (line.at(leading) == QLatin1Char(' ') || line.at(leading) == QLatin1Char('\t')))
       ++leading;
     line = line.mid(leading);
 
     if (startsKeyword(line, QLatin1String("title"))) {
       const qsizetype whitespace = QLatin1String("title").size();
       if (whitespace >= line.size() ||
-          (line.at(whitespace) != QLatin1Char(' ') &&
-           line.at(whitespace) != QLatin1Char('\t')))
-        throw VennParseError(VennErrorKind::Parser, lineNumber,
-                             int(leading + whitespace + 1),
-                             QStringLiteral("IDENTIFIER"),
-                             parseMessage(lineNumber, line, int(whitespace),
-                                          QStringLiteral("'TITLE'"),
-                                          QStringLiteral("IDENTIFIER")));
+          (line.at(whitespace) != QLatin1Char(' ') && line.at(whitespace) != QLatin1Char('\t')))
+        throw VennParseError(
+            VennErrorKind::Parser, lineNumber, int(leading + whitespace + 1), QStringLiteral("IDENTIFIER"),
+            parseMessage(lineNumber, line, int(whitespace), QStringLiteral("'TITLE'"), QStringLiteral("IDENTIFIER")));
       data.title = line.mid(6);
       data.hasTitleDirective = true;
       continue;
     }
 
-    StatementCursor cursor(line, lineNumber, errorStream,
-                           statement.streamOffset + leading);
+    StatementCursor cursor(line, lineNumber, errorStream, statement.streamOffset + leading);
     if (cursor.keyword(QLatin1String("set"))) {
       cursor.takeKeyword(QLatin1String("set"));
       QStringList sets{cursor.identifier()};
@@ -403,16 +397,15 @@ VennData VennDiagram::parse(const QString& source) {
       cursor.takeKeyword(QLatin1String("union"));
       QStringList sets = cursor.identifierList();
       if (sets.size() < 2)
-        throw VennParseError(VennErrorKind::Runtime, lineNumber, 1,
-                             QStringLiteral("union"),
+        throw VennParseError(VennErrorKind::Runtime, lineNumber, 1, QStringLiteral("union"),
                              QStringLiteral("union requires multiple identifiers"));
       QStringList unknown;
       for (const QString& set : sets)
-        if (!knownSets.contains(set)) unknown.append(set);
+        if (!knownSets.contains(set))
+          unknown.append(set);
       if (!unknown.isEmpty())
-        throw VennParseError(
-            VennErrorKind::Runtime, lineNumber, 1, QStringLiteral("union"),
-            QStringLiteral("unknown set identifier: ") + unknown.join(QStringLiteral(", ")));
+        throw VennParseError(VennErrorKind::Runtime, lineNumber, 1, QStringLiteral("union"),
+                             QStringLiteral("unknown set identifier: ") + unknown.join(QStringLiteral(", ")));
       const std::optional<QString> label = cursor.label();
       const std::optional<double> size = cursor.size();
       cursor.requireEnd();
@@ -448,26 +441,21 @@ VennData VennDiagram::parse(const QString& source) {
       data.styles.append(std::move(entry));
       previousColumnAfter = int(line.size() + 1);
     } else {
-      const bool lexical = !line.isEmpty() &&
-                           (line.front() == QLatin1Char(';') ||
-                            (!asciiAlpha(line.front()) &&
-                             line.front() != QLatin1Char('"')));
-      const auto window = errorWindow(errorStream,
-                                      statement.streamOffset + leading);
+      const bool lexical = !line.isEmpty() && (line.front() == QLatin1Char(';') ||
+                                               (!asciiAlpha(line.front()) && line.front() != QLatin1Char('"')));
+      const auto window = errorWindow(errorStream, statement.streamOffset + leading);
       throw VennParseError(
-          lexical ? VennErrorKind::Lexer : VennErrorKind::Parser,
-          lineNumber, lexical ? 0 : previousColumnAfter,
+          lexical ? VennErrorKind::Lexer : VennErrorKind::Parser, lineNumber, lexical ? 0 : previousColumnAfter,
           lexical ? QString() : QStringLiteral("IDENTIFIER"),
-          lexical
-              ? lexicalMessage(lineNumber, window.first, window.second)
-              : parseMessage(
-                    lineNumber, window.first, window.second,
-                    QStringLiteral("'EOF', 'NEWLINE', 'TITLE', 'SET', 'UNION', 'TEXT', 'INDENT_TEXT', 'STYLE'"),
-                    QStringLiteral("IDENTIFIER")));
+          lexical ? lexicalMessage(lineNumber, window.first, window.second)
+                  : parseMessage(
+                        lineNumber, window.first, window.second,
+                        QStringLiteral("'EOF', 'NEWLINE', 'TITLE', 'SET', 'UNION', 'TEXT', 'INDENT_TEXT', 'STYLE'"),
+                        QStringLiteral("IDENTIFIER")));
     }
   }
   Q_UNUSED(headerAt);
   return data;
 }
 
-}  // namespace muffin::mermaid::venn
+} // namespace muffin::mermaid::venn

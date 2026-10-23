@@ -29,11 +29,10 @@ struct InfoScene final : MermaidScene {
   InfoSceneStyle style;
 
   QRectF sceneBounds() const override { return bounds; }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
 };
 
 InfoScene buildInfoScene(InfoSceneStyle style);
 
-}  // namespace muffin::mermaid::info
+} // namespace muffin::mermaid::info

@@ -28,9 +28,8 @@ namespace {
   qFatal("%s", qPrintable(message));
 }
 bool finiteRect(const QRectF& rect) {
-  return std::isfinite(rect.x()) && std::isfinite(rect.y()) &&
-      std::isfinite(rect.width()) && std::isfinite(rect.height()) &&
-      rect.width() >= 0.0 && rect.height() >= 0.0;
+  return std::isfinite(rect.x()) && std::isfinite(rect.y()) && std::isfinite(rect.width()) &&
+         std::isfinite(rect.height()) && rect.width() >= 0.0 && rect.height() >= 0.0;
 }
 }
 
@@ -38,11 +37,12 @@ int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
   QGuiApplication app(argc, argv);
   muffin::mermaid::MermaidFontRegistry::ensureLoaded();
-  if (argc != 2) fail(QStringLiteral("fixture path required"));
+  if (argc != 2)
+    fail(QStringLiteral("fixture path required"));
   QFile file(QString::fromLocal8Bit(argv[1]));
-  if (!file.open(QIODevice::ReadOnly)) fail(file.errorString());
-  const QJsonArray cases = QJsonDocument::fromJson(file.readAll())
-      .object().value(QStringLiteral("cases")).toArray();
+  if (!file.open(QIODevice::ReadOnly))
+    fail(file.errorString());
+  const QJsonArray cases = QJsonDocument::fromJson(file.readAll()).object().value(QStringLiteral("cases")).toArray();
   for (const QJsonValue& value : cases) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
@@ -53,47 +53,43 @@ int main(int argc, char** argv) {
     const StateScene scene = buildStateScene(input, placement);
 
     const int semanticNodes = static_cast<int>(std::count_if(
-        input.nodes.cbegin(), input.nodes.cend(),
-        [](const StateLayoutNodeInput& node) { return !node.isGroup; }));
+        input.nodes.cbegin(), input.nodes.cend(), [](const StateLayoutNodeInput& node) { return !node.isGroup; }));
     if (scene.nodes.size() != semanticNodes)
-      fail(QStringLiteral("%1: scene node count %2 != input %3")
-          .arg(id).arg(scene.nodes.size()).arg(semanticNodes));
+      fail(QStringLiteral("%1: scene node count %2 != input %3").arg(id).arg(scene.nodes.size()).arg(semanticNodes));
     if (scene.edges.size() != input.edges.size())
       fail(QStringLiteral("%1: scene edge count mismatch").arg(id));
     QSet<QString> nodeIds;
     for (const StateSceneNode& node : scene.nodes) {
-      if (node.id.isEmpty() || nodeIds.contains(node.id) || !finiteRect(node.bounds) ||
-          node.bounds.isEmpty())
+      if (node.id.isEmpty() || nodeIds.contains(node.id) || !finiteRect(node.bounds) || node.bounds.isEmpty())
         fail(QStringLiteral("%1: invalid or duplicate node '%2'").arg(id, node.id));
       nodeIds.insert(node.id);
     }
     for (const StateSceneNode& cluster : scene.clusters) {
-      if (cluster.id.isEmpty() || nodeIds.contains(cluster.id) ||
-          !finiteRect(cluster.bounds) || cluster.bounds.isEmpty())
+      if (cluster.id.isEmpty() || nodeIds.contains(cluster.id) || !finiteRect(cluster.bounds) ||
+          cluster.bounds.isEmpty())
         fail(QStringLiteral("%1: invalid or duplicate cluster '%2'").arg(id, cluster.id));
       nodeIds.insert(cluster.id);
     }
     QSet<QString> edgeIds;
     for (const StateSceneEdge& edge : scene.edges) {
-      if (edge.id.isEmpty() || edgeIds.contains(edge.id) || edge.points.size() < 2 ||
-          !nodeIds.contains(edge.start) || !nodeIds.contains(edge.end))
+      if (edge.id.isEmpty() || edgeIds.contains(edge.id) || edge.points.size() < 2 || !nodeIds.contains(edge.start) ||
+          !nodeIds.contains(edge.end))
         fail(QStringLiteral("%1: invalid edge '%2'").arg(id, edge.id));
       edgeIds.insert(edge.id);
     }
-    if ((!scene.nodes.isEmpty() || !scene.clusters.isEmpty()) &&
-        (!finiteRect(scene.bounds) || scene.bounds.isEmpty()))
+    if ((!scene.nodes.isEmpty() || !scene.clusters.isEmpty()) && (!finiteRect(scene.bounds) || scene.bounds.isEmpty()))
       fail(QStringLiteral("%1: invalid scene bounds").arg(id));
   }
 
   // Per-node style/classDef cascade (chunk-YI7H2ERT compileStyles): `classDef`
   // and inline `style` must override the theme defaults on the resolved node.
   try {
-    const StateDiagram diagram = StateDiagram::parse(QStringLiteral(
-        "stateDiagram-v2\n"
-        "classDef hot fill:#ff0000,stroke:#00ff00,color:#0000ff\n"
-        "s1 --> s2\n"
-        "class s1 hot\n"
-        "style s2 fill:#ffff00,stroke:#ff00ff\n"));
+    const StateDiagram diagram =
+        StateDiagram::parse(QStringLiteral("stateDiagram-v2\n"
+                                           "classDef hot fill:#ff0000,stroke:#00ff00,color:#0000ff\n"
+                                           "s1 --> s2\n"
+                                           "class s1 hot\n"
+                                           "style s2 fill:#ffff00,stroke:#ff00ff\n"));
     const StateLayoutInput input = buildStateLayoutInput(diagram.data());
     const StateLayoutMeasurements measurements = measureStateLayoutInput(input);
     const StatePlacementResult placement = layoutStateDiagramDagre(input, measurements);
@@ -144,16 +140,14 @@ int main(int argc, char** argv) {
       const int alpha = image.pixelColor(30, 59).alpha();
       return alpha;
     };
-    const int themeAlpha = labelBackgroundAlpha(
-        QStringLiteral("rgba(232, 232, 232, 0.8)"));
+    const int themeAlpha = labelBackgroundAlpha(QStringLiteral("rgba(232, 232, 232, 0.8)"));
     if (std::abs(themeAlpha - 204) > 3)
       fail(QStringLiteral("default edge-label background alpha %1 != ~204 "
                           "(rgba 0.8, unmultiplied)")
                .arg(themeAlpha));
     const int opaqueAlpha = labelBackgroundAlpha(QStringLiteral("#ECECFF"));
     if (std::abs(opaqueAlpha - 255) > 3)
-      fail(QStringLiteral("opaque edge-label background alpha %1 != ~255")
-               .arg(opaqueAlpha));
+      fail(QStringLiteral("opaque edge-label background alpha %1 != ~255").arg(opaqueAlpha));
   }
 
   // FINAL pixel alpha for the CSS opacity channels — not just the model's
@@ -170,8 +164,8 @@ int main(int argc, char** argv) {
       node.id = QStringLiteral("n1");
       node.shape = QStringLiteral("rect");
       node.bounds = QRectF(20.0, 20.0, 80.0, 60.0);
-      node.fill = QStringLiteral("#ffffff");  // opaque color: alpha is
-                                              // purely the CSS factors
+      node.fill = QStringLiteral("#ffffff"); // opaque color: alpha is
+                                             // purely the CSS factors
       node.stroke = QStringLiteral("none");
       node.shapeCss.opacity = opacity;
       node.shapeCss.fillOpacity = fillOpacity;
@@ -184,12 +178,15 @@ int main(int argc, char** argv) {
       const int alpha = nodeFillAlpha(opacity, fillOpacity);
       if (std::abs(alpha - target) > 3)
         fail(QStringLiteral("fill alpha (opacity %1, fill-opacity %2) %3 != ~%4")
-                 .arg(opacity).arg(fillOpacity).arg(alpha).arg(target));
+                 .arg(opacity)
+                 .arg(fillOpacity)
+                 .arg(alpha)
+                 .arg(target));
     };
-    expectAlpha(1.0, 1.0, 255);   // opaque baseline
-    expectAlpha(0.2, 1.0, 51);    // element opacity alone: 255 × 0.2
-    expectAlpha(1.0, 0.5, 128);   // channel factor alone: 255 × 0.5
-    expectAlpha(0.2, 0.5, 26);    // both, composed once each: 255 × 0.1
+    expectAlpha(1.0, 1.0, 255); // opaque baseline
+    expectAlpha(0.2, 1.0, 51);  // element opacity alone: 255 × 0.2
+    expectAlpha(1.0, 0.5, 128); // channel factor alone: 255 × 0.5
+    expectAlpha(0.2, 0.5, 26);  // both, composed once each: 255 × 0.1
   }
 
   // handDrawn edges consume the dash pattern: the note connector's 5,5
@@ -219,18 +216,21 @@ int main(int argc, char** argv) {
     const QImage image = renderStateSceneToImage(scene);
     const auto columnInked = [&image](int x) {
       for (int y = 40; y < 80; ++y)
-        if (image.pixelColor(x, y).alpha() > 0) return true;
+        if (image.pixelColor(x, y).alpha() > 0)
+          return true;
       return false;
     };
     int inked = 0;
     const int total = 160;
     for (int x = 20; x < 20 + total; ++x)
-      if (columnInked(x)) ++inked;
+      if (columnInked(x))
+        ++inked;
     // 40,40 over 180px = ink / gap / ink / gap: at most ~90 columns ink.
     if (inked > total - 20)
       fail(QStringLiteral("handDrawn edge dash not consumed: %1 of %2 "
                           "interior columns inked (solid line)")
-               .arg(inked).arg(total));
+               .arg(inked)
+               .arg(total));
   }
 
   // Cluster elements hide PER ELEMENT: rect.outer, the cluster-label span,
@@ -248,7 +248,7 @@ int main(int argc, char** argv) {
     cluster.fill = QStringLiteral("#ff0000");
     cluster.label = QStringLiteral("Running");
     cluster.titleHeight = 16.0;
-    cluster.shapeCss.displayed = false;  // rect.outer display:none
+    cluster.shapeCss.displayed = false; // rect.outer display:none
     scene.clusters.append(cluster);
     scene.bounds = QRectF(0.0, 0.0, 140.0, 120.0);
     const QImage image = renderStateSceneToImage(scene);
@@ -262,8 +262,7 @@ int main(int argc, char** argv) {
     // x=22 which is inside bounds but left of innerBounds) stays blank.
     const QColor frameBand = image.pixelColor(22, 60);
     if (frameBand.alpha() != 0)
-      fail(QStringLiteral("display:none outer frame must not paint: pixel (%1)")
-               .arg(frameBand.name(QColor::HexArgb)));
+      fail(QStringLiteral("display:none outer frame must not paint: pixel (%1)").arg(frameBand.name(QColor::HexArgb)));
   }
 
   // rect.inner carries its OWN channels: a declared fill-opacity dims the
@@ -289,16 +288,13 @@ int main(int argc, char** argv) {
     };
     const QColor full = innerPixel(1.0, true);
     if (full.alpha() != 255)
-      fail(QStringLiteral("inner body must paint: (%1)")
-               .arg(full.name(QColor::HexArgb)));
+      fail(QStringLiteral("inner body must paint: (%1)").arg(full.name(QColor::HexArgb)));
     const QColor dimmed = innerPixel(0.5, true);
     if (std::abs(dimmed.alpha() - 128) > 3)
-      fail(QStringLiteral("inner fill-opacity must compose once: %1 != ~128")
-               .arg(dimmed.name(QColor::HexArgb)));
+      fail(QStringLiteral("inner fill-opacity must compose once: %1 != ~128").arg(dimmed.name(QColor::HexArgb)));
     const QColor hidden = innerPixel(1.0, false);
     if (hidden.alpha() != 0)
-      fail(QStringLiteral("inner display:none must blank the body: (%1)")
-               .arg(hidden.name(QColor::HexArgb)));
+      fail(QStringLiteral("inner display:none must blank the body: (%1)").arg(hidden.name(QColor::HexArgb)));
   }
 
   // A DECLARED outer stroke-width of 0 disables the frame — it must not fall
@@ -322,8 +318,7 @@ int main(int argc, char** argv) {
     const QImage image = renderStateSceneToImage(scene);
     const QColor frameBand = image.pixelColor(29, 68);
     if (frameBand.alpha() != 0)
-      fail(QStringLiteral("declared stroke-width:0 must remove the frame: (%1)")
-               .arg(frameBand.name(QColor::HexArgb)));
+      fail(QStringLiteral("declared stroke-width:0 must remove the frame: (%1)").arg(frameBand.name(QColor::HexArgb)));
   }
 
   // The edge-label <p> channel: its opacity composes onto the background
@@ -355,12 +350,10 @@ int main(int argc, char** argv) {
     };
     const QColor dimmed = labelAlpha(0.5, true);
     if (std::abs(dimmed.alpha() - 128) > 3)
-      fail(QStringLiteral("p opacity must dim the label background: %1 != ~128")
-               .arg(dimmed.name(QColor::HexArgb)));
+      fail(QStringLiteral("p opacity must dim the label background: %1 != ~128").arg(dimmed.name(QColor::HexArgb)));
     const QColor hidden = labelAlpha(1.0, false);
     if (hidden.alpha() != 0)
-      fail(QStringLiteral("p display:none must hide the whole label: (%1)")
-               .arg(hidden.name(QColor::HexArgb)));
+      fail(QStringLiteral("p display:none must hide the whole label: (%1)").arg(hidden.name(QColor::HexArgb)));
   }
 
   // The edge-label <p>'s font pair and color are the TEXT's used style: a
@@ -377,8 +370,7 @@ int main(int argc, char** argv) {
     edge.labelSize = QSizeF(40.0, 24.0);
     edge.labelBackgroundCss.fontSize = 6.0;
     edge.labelBackgroundCss.color = QStringLiteral("#ff0000");
-    edge.labelDocument = flowchart::parseFlowLabel(
-        QStringLiteral("Hi"), QStringLiteral("markdown"));
+    edge.labelDocument = flowchart::parseFlowLabel(QStringLiteral("Hi"), QStringLiteral("markdown"));
     scene.edges.append(std::move(edge));
     scene.nodes.append(StateSceneNode{});
     scene.nodes.last().id = QStringLiteral("s");
@@ -396,14 +388,17 @@ int main(int argc, char** argv) {
         if (c.alpha() > 40) {
           inkMin = std::min(inkMin, x);
           inkMax = std::max(inkMax, x);
-          if (c.red() > 150 && c.green() < 100) redInk = true;
+          if (c.red() > 150 && c.green() < 100)
+            redInk = true;
         }
       }
     if (inkMax < 0)
       fail(QStringLiteral("p font must still paint the label text"));
     if (inkMax - inkMin + 1 > 10)
       fail(QStringLiteral("6px p text ink width %1 is span-sized (%2..%3)")
-               .arg(inkMax - inkMin + 1).arg(inkMin).arg(inkMax));
+               .arg(inkMax - inkMin + 1)
+               .arg(inkMin)
+               .arg(inkMax));
     if (!redInk)
       fail(QStringLiteral("p color must restyle the label text (no red ink)"));
   }
@@ -414,12 +409,11 @@ int main(int argc, char** argv) {
   {
     StateScene scene;
     scene.style.neo = true;
-    scene.style.shadowCss =
-        QStringLiteral("drop-shadow(4px 4px 0px rgba(0,0,0,1))");
+    scene.style.shadowCss = QStringLiteral("drop-shadow(4px 4px 0px rgba(0,0,0,1))");
     StateSceneNode node;
     node.id = QStringLiteral("end1");
     node.shape = QStringLiteral("stateEnd");
-    node.bounds = QRectF(40.0, 40.0, 40.0, 40.0);  // center (60,60), ring r7
+    node.bounds = QRectF(40.0, 40.0, 40.0, 40.0); // center (60,60), ring r7
     node.fill = QStringLiteral("none");
     // stateEnd is a rough.js pair even under classic look: the ring's stroke
     // element is the stroke-path slot (shapeStrokeCss) — the lineColor
@@ -431,16 +425,14 @@ int main(int argc, char** argv) {
     const QImage image = renderStateSceneToImage(scene);
     const QColor dotShadow = image.pixelColor(72, 72);
     if (dotShadow.alpha() < 200)
-      fail(QStringLiteral("visible dot must cast its shadow: (%1)")
-               .arg(dotShadow.name(QColor::HexArgb)));
+      fail(QStringLiteral("visible dot must cast its shadow: (%1)").arg(dotShadow.name(QColor::HexArgb)));
     // The ring's top edge band (ring r7 ± its 2px stroke, image y 60-62):
     // 7px from the dot center and 11px from the dot-shadow center — only a
     // ring-collapsed shadow (or a ring stroke that ignored its none channel)
     // inks it.
     const QColor ringBand = image.pixelColor(68, 61);
     if (ringBand.alpha() != 0)
-      fail(QStringLiteral("transparent ring must not cast a ring shadow: (%1)")
-               .arg(ringBand.name(QColor::HexArgb)));
+      fail(QStringLiteral("transparent ring must not cast a ring shadow: (%1)").arg(ringBand.name(QColor::HexArgb)));
   }
   return 0;
 }

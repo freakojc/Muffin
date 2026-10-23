@@ -41,8 +41,10 @@ void testClipboardBlockSelectionFallback() {
   setCrossSelection(selection, table, 0, code, 5);
   require(input.hasEditableSelection(), "block fallback selection should be copyable");
   require(clipboard.copy(), "copy should support block fallback selection");
-  require(QApplication::clipboard()->text().contains(QStringLiteral("A")), "block fallback copy should include table text");
-  require(selectedMarkdown(session, selection).contains(QStringLiteral("```cpp")), "block fallback markdown should include code fence");
+  require(QApplication::clipboard()->text().contains(QStringLiteral("A")),
+          "block fallback copy should include table text");
+  require(selectedMarkdown(session, selection).contains(QStringLiteral("```cpp")),
+          "block fallback markdown should include code fence");
 }
 
 // testCodeFenceSelectionCopyUsesLiteralOffsets (lines 762-795)
@@ -56,13 +58,12 @@ void testCodeFenceSelectionCopyUsesLiteralOffsets() {
   wireInput(input, session, selection, undoStack, brushQueue);
   wireClipboard(clipboard, session, selection, input);
 
-  const QString code = QStringLiteral(
-      "#include <iostream>\n\n"
-      "int main() {\n"
-      "  const auto message = \"Hello from Muffin\";\n"
-      "  std::cout << message << '\\n';\n"
-      "  return 0;\n"
-      "}\n");
+  const QString code = QStringLiteral("#include <iostream>\n\n"
+                                      "int main() {\n"
+                                      "  const auto message = \"Hello from Muffin\";\n"
+                                      "  std::cout << message << '\\n';\n"
+                                      "  return 0;\n"
+                                      "}\n");
   session.setMarkdownText(QStringLiteral("```cpp\n%1```").arg(code), false);
   MarkdownNode* fence = blockAt(session, 0);
   SelectionRange range;
@@ -109,9 +110,12 @@ void testCodeFenceSelectionCutDeletesLiteralOffsets() {
   controller.selection().setSelection(range);
 
   require(controller.clipboardController().cut(), "code fence cut should delete active literal selection");
-  require(QApplication::clipboard()->text().contains(QStringLiteral("beta")), "code fence cut clipboard should contain selected literal text");
-  require(session.markdownText().toString().contains(QStringLiteral("alpha  gamma")), "code fence cut should remove selected literal text");
-  require(!session.markdownText().toString().contains(QStringLiteral("beta")), "code fence cut should not leave selected literal text behind");
+  require(QApplication::clipboard()->text().contains(QStringLiteral("beta")),
+          "code fence cut clipboard should contain selected literal text");
+  require(session.markdownText().toString().contains(QStringLiteral("alpha  gamma")),
+          "code fence cut should remove selected literal text");
+  require(!session.markdownText().toString().contains(QStringLiteral("beta")),
+          "code fence cut should not leave selected literal text behind");
 }
 
 // testKeyboardNavigationBasics (lines 829-848)
@@ -163,8 +167,10 @@ void testSelectAllContextSemantics() {
   controller.activateHit(codeHit);
   require(controller.selectAll(), "code block select all should work");
   range = controller.selection().selection();
-  require(range.anchor.blockId == code->id() && range.focus.blockId == code->id(), "code select all should stay in code block");
-  require(range.anchor.text.textOffset == 0 && range.focus.text.textOffset == code->literal().size(), "code select all should select literal");
+  require(range.anchor.blockId == code->id() && range.focus.blockId == code->id(),
+          "code select all should stay in code block");
+  require(range.anchor.text.textOffset == 0 && range.focus.text.textOffset == code->literal().size(),
+          "code select all should select literal");
 
   session.setMarkdownText(QStringLiteral("alpha\n\n$$\nx+y\n$$\n\nbeta"), false);
   view.setDocument(session.document());
@@ -177,8 +183,10 @@ void testSelectAllContextSemantics() {
   controller.activateHit(mathHit);
   require(controller.selectAll(), "math block select all should work");
   range = controller.selection().selection();
-  require(range.anchor.blockId == math->id() && range.focus.blockId == math->id(), "math select all should stay in math block");
-  require(range.anchor.text.textOffset == 0 && range.focus.text.textOffset == math->literal().size(), "math select all should select TeX literal");
+  require(range.anchor.blockId == math->id() && range.focus.blockId == math->id(),
+          "math select all should stay in math block");
+  require(range.anchor.text.textOffset == 0 && range.focus.text.textOffset == math->literal().size(),
+          "math select all should select TeX literal");
 
   session.setMarkdownText(QStringLiteral("| A | B |\n| --- | --- |\n| one | two |"), false);
   view.setDocument(session.document());
@@ -191,9 +199,12 @@ void testSelectAllContextSemantics() {
   controller.selection().setCursorPosition(cellCursor);
   require(controller.selectAll(), "table cell select all should work");
   range = controller.selection().selection();
-  require(range.anchor.blockId == table->id() && range.focus.blockId == table->id(), "table cell select all should keep table block id");
-  require(range.anchor.text.nodeId == cell->id() && range.focus.text.nodeId == cell->id(), "table cell select all should target current cell");
-  require(range.anchor.text.textOffset == 0 && range.focus.text.textOffset == 3, "table cell select all should select cell text");
+  require(range.anchor.blockId == table->id() && range.focus.blockId == table->id(),
+          "table cell select all should keep table block id");
+  require(range.anchor.text.nodeId == cell->id() && range.focus.text.nodeId == cell->id(),
+          "table cell select all should target current cell");
+  require(range.anchor.text.textOffset == 0 && range.focus.text.textOffset == 3,
+          "table cell select all should select cell text");
 
   session.setMarkdownText(QStringLiteral("alpha\n\nbeta"), false);
   view.setDocument(session.document());
@@ -227,18 +238,16 @@ void testCodeFencePartialSelectionCopyOmitsFencePrefix() {
   SelectionRange range;
   range.anchor.blockId = fence->id();
   range.anchor.text.nodeId = fence->id();
-  range.anchor.text.textOffset = 2;   // inside "alpha"
+  range.anchor.text.textOffset = 2; // inside "alpha"
   range.focus.blockId = fence->id();
   range.focus.text.nodeId = fence->id();
-  range.focus.text.textOffset = 10;   // inside "beta" region — partial, does not reach content end
+  range.focus.text.textOffset = 10; // inside "beta" region — partial, does not reach content end
   selection.setSelection(range);
 
   require(clipboard.copy(), "partial in-fence copy should work");
   const QString copied = QApplication::clipboard()->text();
-  require(!copied.contains(QStringLiteral("```cpp")),
-          "partial in-fence copy must NOT include the fence prefix");
-  require(copied == code.mid(2, 10 - 2),
-          "partial in-fence copy should be exactly the selected code text");
+  require(!copied.contains(QStringLiteral("```cpp")), "partial in-fence copy must NOT include the fence prefix");
+  require(copied == code.mid(2, 10 - 2), "partial in-fence copy should be exactly the selected code text");
 }
 
 // Home/End inside a code fence navigate the CURRENT line, not the whole block: End jumps to the
@@ -258,7 +267,7 @@ void testCodeFenceHomeEndNavigatesWithinLine() {
   const int firstNl = literal.indexOf(QLatin1Char('\n'));
   const int secondNl = literal.indexOf(QLatin1Char('\n'), firstNl + 1);
   require(firstNl > 0 && secondNl > firstNl, "code fence literal should span at least three lines");
-  const int lineMid = (firstNl + 1 + secondNl) / 2;  // middle of the second line ("line two")
+  const int lineMid = (firstNl + 1 + secondNl) / 2; // middle of the second line ("line two")
 
   setCursor(selection, fence, lineMid);
   QKeyEvent endKey(QEvent::KeyPress, Qt::Key_End, Qt::NoModifier);
@@ -286,7 +295,7 @@ void testCodeFenceUpDownMovesLineByLinePreservingColumn() {
   view.setDocument(session.document());
   MarkdownNode* fence = blockAt(session, 0);
   require(fence != nullptr && fence->type() == BlockType::CodeFence, "fixture should build a code fence");
-  const QString literal = fence->literal();  // "abcdefghij\nklmnopqrst"
+  const QString literal = fence->literal(); // "abcdefghij\nklmnopqrst"
   const int firstNl = literal.indexOf(QLatin1Char('\n'));
   require(firstNl == 10, "first literal line should be 10 chars");
 
@@ -305,7 +314,8 @@ void testCodeFenceUpDownMovesLineByLinePreservingColumn() {
   require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down inside a code fence should be handled");
   CursorPosition cursor = controller.selection().cursorPosition();
   require(cursor.blockId == fence->id(), "Down should stay inside the code fence");
-  require(view.blockLayoutForNode(fence->id())->literalVisualLineIndexForOffset(cursor.text.textOffset, view.theme()) == 1,
+  require(view.blockLayoutForNode(fence->id())->literalVisualLineIndexForOffset(cursor.text.textOffset, view.theme()) ==
+              1,
           "Down should move to the next literal visual line");
   require(cursor.text.textOffset == firstNl + 1 + 5, "Down should preserve the column on the next line");
 
@@ -313,7 +323,8 @@ void testCodeFenceUpDownMovesLineByLinePreservingColumn() {
   require(pressKey(controller.inputController(), &view, Qt::Key_Up), "Up inside a code fence should be handled");
   cursor = controller.selection().cursorPosition();
   require(cursor.blockId == fence->id(), "Up should stay inside the code fence");
-  require(view.blockLayoutForNode(fence->id())->literalVisualLineIndexForOffset(cursor.text.textOffset, view.theme()) == 0,
+  require(view.blockLayoutForNode(fence->id())->literalVisualLineIndexForOffset(cursor.text.textOffset, view.theme()) ==
+              0,
           "Up should return to the first literal visual line");
   require(cursor.text.textOffset == 5, "Up should restore the original column");
 }
@@ -333,19 +344,19 @@ void testCodeFenceUpDownLeavesBlockAtBoundaries() {
   MarkdownNode* after = blockAt(session, 2);
   require(before != nullptr && fence != nullptr && after != nullptr, "fixture should have before / fence / after");
   require(fence->type() == BlockType::CodeFence, "middle block should be the code fence");
-  const QString literal = fence->literal();  // "line one\nline two"
+  const QString literal = fence->literal(); // "line one\nline two"
 
   HitTestResult hit;
   hit.zone = HitTestResult::Zone::Code;
   hit.blockId = fence->id();
   hit.textNodeId = fence->id();
-  hit.textOffset = 0;  // start of the first literal line
+  hit.textOffset = 0; // start of the first literal line
   controller.activateHit(hit);
   require(pressKey(controller.inputController(), &view, Qt::Key_Up), "Up from the first line should be handled");
   require(controller.selection().cursorPosition().blockId == before->id(),
           "Up from the first literal line should leave the fence to the previous block");
 
-  hit.textOffset = literal.size();  // end of the last literal line
+  hit.textOffset = literal.size(); // end of the last literal line
   controller.activateHit(hit);
   require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down from the last line should be handled");
   require(controller.selection().cursorPosition().blockId == after->id(),
@@ -364,7 +375,7 @@ void testCodeFenceLeftRightWrapsAtLineBoundaries() {
   session.setMarkdownText(QStringLiteral("```\nline one\nline two\n```"), false);
   view.setDocument(session.document());
   MarkdownNode* fence = blockAt(session, 0);
-  const QString literal = fence->literal();  // "line one\nline two"
+  const QString literal = fence->literal(); // "line one\nline two"
   const int firstNl = literal.indexOf(QLatin1Char('\n'));
   require(firstNl == 8, "first literal line should be 8 chars");
 
@@ -373,13 +384,13 @@ void testCodeFenceLeftRightWrapsAtLineBoundaries() {
   hit.blockId = fence->id();
   hit.textNodeId = fence->id();
 
-  hit.textOffset = firstNl;  // end of line 0 (just before the newline)
+  hit.textOffset = firstNl; // end of line 0 (just before the newline)
   controller.activateHit(hit);
   require(pressKey(controller.inputController(), &view, Qt::Key_Right), "Right at a line end should be handled");
   require(controller.selection().cursorPosition().text.textOffset == firstNl + 1,
           "Right at a line end should land on the next line start");
 
-  hit.textOffset = firstNl + 1;  // start of line 1
+  hit.textOffset = firstNl + 1; // start of line 1
   controller.activateHit(hit);
   require(pressKey(controller.inputController(), &view, Qt::Key_Left), "Left at a line start should be handled");
   require(controller.selection().cursorPosition().text.textOffset == firstNl,
@@ -398,7 +409,7 @@ void testMathBlockUpDownMovesLineByLine() {
   view.setDocument(session.document());
   MarkdownNode* math = blockAt(session, 0);
   require(math != nullptr && math->type() == BlockType::MathBlock, "fixture should build a math block");
-  const QString literal = math->literal();  // "a = b\n\\sum x"
+  const QString literal = math->literal(); // "a = b\n\\sum x"
   const int firstNl = literal.indexOf(QLatin1Char('\n'));
   require(firstNl > 0, "math literal should span two lines");
 
@@ -406,16 +417,17 @@ void testMathBlockUpDownMovesLineByLine() {
   hit.zone = HitTestResult::Zone::Math;
   hit.blockId = math->id();
   hit.textNodeId = math->id();
-  hit.textOffset = 1;  // inside the first line
+  hit.textOffset = 1; // inside the first line
   controller.activateHit(hit);
   require(view.blockLayoutForNode(math->id()) != nullptr &&
-          view.blockLayoutForNode(math->id())->literalVisualLineCount(view.theme()) >= 2,
+              view.blockLayoutForNode(math->id())->literalVisualLineCount(view.theme()) >= 2,
           "math block should expose at least two literal visual lines");
 
   require(pressKey(controller.inputController(), &view, Qt::Key_Down), "Down inside a math block should be handled");
   const CursorPosition cursor = controller.selection().cursorPosition();
   require(cursor.blockId == math->id(), "Down should stay inside the math block");
-  require(view.blockLayoutForNode(math->id())->literalVisualLineIndexForOffset(cursor.text.textOffset, view.theme()) == 1,
+  require(view.blockLayoutForNode(math->id())->literalVisualLineIndexForOffset(cursor.text.textOffset, view.theme()) ==
+              1,
           "Down should move to the second math source line");
 }
 
@@ -427,7 +439,8 @@ void testLongCodeFenceClickRetainsLayoutAndViewport() {
   controller.attach(&session, &view);
   view.setAttribute(Qt::WA_DontShowOnScreen);
   view.resize(1000, 700);
-  session.setMarkdownText(QStringLiteral("before\n\n```cpp\n") + line.repeated(1500) + QStringLiteral("```\n\nafter"), false);
+  session.setMarkdownText(QStringLiteral("before\n\n```cpp\n") + line.repeated(1500) + QStringLiteral("```\n\nafter"),
+                          false);
   view.setDocument(session.document());
   view.show();
   QApplication::processEvents();
@@ -440,8 +453,7 @@ void testLongCodeFenceClickRetainsLayoutAndViewport() {
   require(!highlights.isEmpty(), "long fence should be syntax highlighted");
   const QString before = session.markdownText().toString();
   int selectionUpdates = 0;
-  QObject::connect(&controller.selection(), &SelectionController::selectionChanged,
-                   [&] { ++selectionUpdates; });
+  QObject::connect(&controller.selection(), &SelectionController::selectionChanged, [&] { ++selectionUpdates; });
   int column = 3;
   for (int row : {750, 751, 1100}) {
     // Separate click positions so Qt does not interpret the rapid sequence as
@@ -453,21 +465,25 @@ void testLongCodeFenceClickRetainsLayoutAndViewport() {
     QApplication::processEvents();
     const auto point = view.mapDocumentToViewport(caret.center());
     const auto expected = view.hitTest(point);
-    require(expected.blockId == id && expected.textOffset == offset, "long fence target must round-trip to its source offset");
+    require(expected.blockId == id && expected.textOffset == offset,
+            "long fence target must round-trip to its source offset");
     const int scrollBefore = view.verticalScrollBar()->value();
     selectionUpdates = 0;
-    QMouseEvent press(QEvent::MouseButtonPress, point, view.viewport()->mapToGlobal(point.toPoint()),
-                      Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    QMouseEvent press(QEvent::MouseButtonPress, point, view.viewport()->mapToGlobal(point.toPoint()), Qt::LeftButton,
+                      Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &press);
     QMouseEvent release(QEvent::MouseButtonRelease, point, view.viewport()->mapToGlobal(point.toPoint()),
                         Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
     QApplication::sendEvent(view.viewport(), &release);
     const auto* current = view.blockLayoutForNode(id);
     require(&current->literalTextLayout(view.theme()) == shaping, "caret clicks must retain the long source shaping");
-    require(current->codeHighlightSpans().constData() == highlights.constData(), "caret clicks must retain existing syntax highlights");
+    require(current->codeHighlightSpans().constData() == highlights.constData(),
+            "caret clicks must retain existing syntax highlights");
     require(selectionUpdates == 1, "one click must publish only the clicked caret, without an intermediate end caret");
-    require(controller.selection().cursorPosition().text.textOffset == offset, "click must activate the requested code offset");
-    require(view.verticalScrollBar()->value() == scrollBefore, "clicking a visible code row must keep the viewport fixed");
+    require(controller.selection().cursorPosition().text.textOffset == offset,
+            "click must activate the requested code offset");
+    require(view.verticalScrollBar()->value() == scrollBefore,
+            "clicking a visible code row must keep the viewport fixed");
   }
   require(session.markdownText().toString() == before, "caret clicks must preserve the source");
 }

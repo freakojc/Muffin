@@ -130,4 +130,4 @@ private:
   SourceModeFn sourceMode_;
 };
 
-}  // namespace muffin
+} // namespace muffin

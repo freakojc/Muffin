@@ -29,4 +29,4 @@ struct Warnings {
 // Inspect metadata only: confirmation must precede reading or decoding the file.
 Warnings warningsForFile(const QString& path);
 
-}  // namespace muffin::file_open_protection
+} // namespace muffin::file_open_protection

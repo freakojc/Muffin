@@ -87,4 +87,4 @@ HtmlBlockHoverController::Dirty HtmlBlockHoverController::clear(const Inputs& in
   return {oldRect, {}};
 }
 
-}  // namespace muffin
+} // namespace muffin

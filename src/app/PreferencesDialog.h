@@ -77,4 +77,4 @@ private:
   PrefsAppearancePage* appearancePage_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -34,14 +34,15 @@ HitTestResult typeSpaceToConvert(const QString& marker) {
   view.setCursorPosition(controller.selection().cursorPosition());
   return view.cursorHit();
 }
-}  // namespace
+} // namespace
 
 // Regression: typing the space after an ordered-list marker ("34. ") converted the line
 // into a list item, but the caret landed INSIDE the marker (between the digits and the ".")
 // because the list-item content origin was a fixed indent that multi-digit markers overflow.
 // The caret must sit to the right of the marker's full text width.
 void testCaretLandsAfterMarker() {
-  for (const QString& marker : {QStringLiteral("1."), QStringLiteral("34."), QStringLiteral("123."), QStringLiteral("1000.")}) {
+  for (const QString& marker :
+       {QStringLiteral("1."), QStringLiteral("34."), QStringLiteral("123."), QStringLiteral("1000.")}) {
     const HitTestResult hit = typeSpaceToConvert(marker);
     require(hit.cursorRect.x() > 0.0, "caret rect should be computed for an ordered list item");
 
@@ -124,7 +125,9 @@ void testTypingOnSplitBlankLineSplitsList() {
   MarkdownNode* vep = nullptr;
   for (const auto& child : list->children()) {
     const SourceRange range = child->sourceRange();
-    if (child->type() == BlockType::Paragraph && range.byteEnd == range.byteStart) { vep = child.get(); }
+    if (child->type() == BlockType::Paragraph && range.byteEnd == range.byteStart) {
+      vep = child.get();
+    }
   }
   require(vep != nullptr, "split blank line should be a VEP between the items");
 
@@ -154,9 +157,8 @@ void testEnterEnterCaretLandsOnSplitBlankLine() {
     EditorView view;
     controller.attach(&session, &view);
     view.resize(720, 460);
-    const QString head = marker == QLatin1String("1. ")
-                             ? QStringLiteral("1. First\n2. Second\n3. Third")
-                             : QStringLiteral("- First\n- Second\n- Third");
+    const QString head = marker == QLatin1String("1. ") ? QStringLiteral("1. First\n2. Second\n3. Third")
+                                                        : QStringLiteral("- First\n- Second\n- Third");
     session.setMarkdownText(head, false);
     view.setDocument(session.document());
 
@@ -169,9 +171,8 @@ void testEnterEnterCaretLandsOnSplitBlankLine() {
     view.setDocument(session.document());
 
     // The split text: two blank lines, tail renumbered for ordered.
-    const QString expected = marker == QLatin1String("1. ")
-                                 ? QStringLiteral("1. First\n2. Second\n\n\n1. Third")
-                                 : QStringLiteral("- First\n- Second\n\n\n- Third");
+    const QString expected = marker == QLatin1String("1. ") ? QStringLiteral("1. First\n2. Second\n\n\n1. Third")
+                                                            : QStringLiteral("- First\n- Second\n\n\n- Third");
     const QString actual = session.markdownText().toString();
     require(actual == expected,
             QStringLiteral("split text mismatch: expected '%1', actual '%2'").arg(expected, actual));
@@ -220,7 +221,9 @@ struct SplitHarness {
     require(list && list->type() == BlockType::List, "root should hold a list");
     for (const auto& child : list->children()) {
       const SourceRange r = child->sourceRange();
-      if (child->type() == BlockType::Paragraph && r.byteEnd == r.byteStart) { return child.get(); }
+      if (child->type() == BlockType::Paragraph && r.byteEnd == r.byteStart) {
+        return child.get();
+      }
     }
     require(false, "split VEP should exist");
     return nullptr;
@@ -243,8 +246,7 @@ void testTabOnPostSplitItemNestsUnderPreviousItem() {
   const CursorPosition caret = h.controller.selection().cursorPosition();
   require(caret.isValid(), "caret must stay valid after the indent");
   MarkdownNode* caretNode = h.session.document().node(caret.blockId);
-  require(caretNode != nullptr && caretNode->type() == BlockType::ListItem,
-          "caret should follow the indented item");
+  require(caretNode != nullptr && caretNode->type() == BlockType::ListItem, "caret should follow the indented item");
 }
 
 // Backspace on the split VEP collapses the authored split back into one list (deletes the blank

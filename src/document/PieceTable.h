@@ -11,7 +11,9 @@
 #include <vector>
 
 namespace muffin {
-namespace diag { struct MemoryAccounting; }
+namespace diag {
+struct MemoryAccounting;
+}
 
 // Piece-table text buffer: the editable backing store for a document's text. Logically a flat
 // 0..size() sequence of QChars (so the byte-offset cursor / source-range / line-offset models are
@@ -29,6 +31,7 @@ namespace diag { struct MemoryAccounting; }
 // balanced piece-tree (O(log n) edits) without touching callers.
 class PieceTable {
   friend struct diag::MemoryAccounting;
+
 public:
   PieceTable() = default;
   explicit PieceTable(QString initial);
@@ -59,8 +62,7 @@ public:
 
   // Visit each logical text run without materializing the full document. Views are valid only for
   // the duration of the callback and arrive in document order.
-  template <typename Visitor>
-  void forEachChunk(Visitor&& visitor) const {
+  template <typename Visitor> void forEachChunk(Visitor&& visitor) const {
     for (const Piece& piece : pieces_) {
       visitor(QStringView(buffer(piece.fromChanges)).mid(piece.start, piece.length));
     }
@@ -87,8 +89,8 @@ public:
 
 private:
   struct Piece {
-    bool fromChanges = false;  // false → original_, true → changes_
-    qsizetype start = 0;       // offset into the buffer
+    bool fromChanges = false; // false → original_, true → changes_
+    qsizetype start = 0;      // offset into the buffer
     qsizetype length = 0;
     qsizetype newlineCount = 0;
     qint64 wordCount = 0;
@@ -114,8 +116,8 @@ private:
   WordSummary wordSummary(bool fromChanges, qsizetype start, qsizetype length) const;
   static bool isWordChar(QChar ch);
 
-  QString original_;                  // immutable initial text
-  QString changes_;                   // append-only edit buffer
+  QString original_; // immutable initial text
+  QString changes_;  // append-only edit buffer
   std::vector<Piece> pieces_;
   // prefix_[k] = total length of pieces_[0..k); prefix_.size() == pieces_.size()+1; sorted ascending
   // so `locate` binary-searches it for O(log n) offset→piece resolution.
@@ -130,4 +132,4 @@ private:
   qint64 totalWords_ = 0;
 };
 
-}  // namespace muffin
+} // namespace muffin

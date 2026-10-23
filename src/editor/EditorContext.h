@@ -27,4 +27,4 @@ struct EditorContext {
   BlockEditContextResolver contextResolver() const;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -73,21 +73,16 @@ QVBoxLayout* muffin::PreferencesPage::makeCardLayout(QWidget* card) const {
 }
 
 void muffin::PreferencesPage::wireBoolSetting(QCheckBox* checkBox, const QString& key) const {
-  connect(checkBox, &QCheckBox::toggled, this, [key](bool checked) {
-    QSettings().setValue(key, checked);
-  });
+  connect(checkBox, &QCheckBox::toggled, this, [key](bool checked) { QSettings().setValue(key, checked); });
 }
 
 void muffin::PreferencesPage::wireComboIndexSetting(QComboBox* comboBox, const QString& key) const {
-  connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [key](int index) {
-    QSettings().setValue(key, index);
-  });
+  connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          [key](int index) { QSettings().setValue(key, index); });
 }
 
 void muffin::PreferencesPage::wireLineEditSetting(QLineEdit* lineEdit, const QString& key) const {
-  connect(lineEdit, &QLineEdit::textChanged, this, [key](const QString& text) {
-    QSettings().setValue(key, text);
-  });
+  connect(lineEdit, &QLineEdit::textChanged, this, [key](const QString& text) { QSettings().setValue(key, text); });
 }
 
 void muffin::PreferencesPage::loadCheck(QCheckBox* checkBox, const QString& key, bool defaultValue) const {

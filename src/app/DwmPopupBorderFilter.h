@@ -38,4 +38,4 @@ private:
   explicit DwmPopupBorderFilter(QObject* parent);
 };
 
-}  // namespace muffin
+} // namespace muffin

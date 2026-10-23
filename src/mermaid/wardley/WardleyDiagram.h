@@ -14,8 +14,7 @@ enum class WardleyErrorKind { Lexer, Parser, Runtime };
 
 class WardleyParseError : public std::runtime_error {
 public:
-  WardleyParseError(WardleyErrorKind kind, int line, int column,
-                    QString token, const QString &message);
+  WardleyParseError(WardleyErrorKind kind, int line, int column, QString token, const QString& message);
 
   WardleyErrorKind kind;
   int line;
@@ -99,7 +98,7 @@ struct WardleyData {
 
 class WardleyDiagram {
 public:
-  static WardleyData parse(const QString &source);
+  static WardleyData parse(const QString& source);
 };
 
 } // namespace muffin::mermaid::wardley

@@ -16,7 +16,8 @@ bool CustomCommandUploader::isAvailable() {
   return !resolvedCommand().isEmpty();
 }
 
-CustomCommandResult CustomCommandUploader::upload(QWidget* parent, const QStringList& paths, const QString& commandOverride) {
+CustomCommandResult CustomCommandUploader::upload(QWidget* parent, const QStringList& paths,
+                                                  const QString& commandOverride) {
   CustomCommandResult result;
 
   const QString command = !commandOverride.isEmpty() ? commandOverride.trimmed() : resolvedCommand();
@@ -87,7 +88,10 @@ CustomCommandResult CustomCommandUploader::upload(QWidget* parent, const QString
   result.ran = true;
   const QString stderrText = QString::fromUtf8(process.readAllStandardError()).trimmed();
   if (process.exitCode() != 0) {
-    result.error = stderrText.isEmpty() ? QCoreApplication::translate("muffin::CustomCommandUploader", "uploader exited with code %1").arg(process.exitCode()) : stderrText;
+    result.error = stderrText.isEmpty()
+                       ? QCoreApplication::translate("muffin::CustomCommandUploader", "uploader exited with code %1")
+                             .arg(process.exitCode())
+                       : stderrText;
     return result;
   }
 
@@ -101,9 +105,11 @@ CustomCommandResult CustomCommandUploader::upload(QWidget* parent, const QString
     }
   }
   if (result.urls.isEmpty()) {
-    result.error = stderrText.isEmpty() ? QCoreApplication::translate("muffin::CustomCommandUploader", "uploader produced no URLs") : stderrText;
+    result.error = stderrText.isEmpty()
+                       ? QCoreApplication::translate("muffin::CustomCommandUploader", "uploader produced no URLs")
+                       : stderrText;
   }
   return result;
 }
 
-}  // namespace muffin
+} // namespace muffin

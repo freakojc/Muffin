@@ -14,10 +14,11 @@ namespace {
 Q_LOGGING_CATEGORY(renderCommandLog, "muffin.renderCommands", QtWarningMsg)
 Q_LOGGING_CATEGORY(renderCommandDetailPerf, "muffin.perf.detail", QtWarningMsg)
 
-}  // namespace
+} // namespace
 
 RenderCommandFacade::RenderCommandFacade(EditorController& editorController, SourceModeFn sourceMode)
-    : editorController_(editorController), sourceMode_(std::move(sourceMode)) {}
+    : editorController_(editorController), sourceMode_(std::move(sourceMode)) {
+}
 
 bool RenderCommandFacade::canRun() const {
   return !sourceMode_ || !sourceMode_();
@@ -64,17 +65,16 @@ bool RenderCommandFacade::isInlineFormatEnabled() const {
   // Accept paragraphs, headings, list text and individual table cells.
   // Unlike isOnEditableParagraphBlock(), this allows non-collapsed selections.
   return !sel.focus.afterBlock && !sel.focus.text.inMeta &&
-        (node->type() == BlockType::Paragraph || node->type() == BlockType::TableCell ||
-         node->type() == BlockType::Heading ||
-         node->type() == BlockType::ListItem);
+         (node->type() == BlockType::Paragraph || node->type() == BlockType::TableCell ||
+          node->type() == BlockType::Heading || node->type() == BlockType::ListItem);
 }
 
 bool RenderCommandFacade::isSingleInlineSelection() const {
-  if (!isInlineFormatEnabled()) return false;
+  if (!isInlineFormatEnabled())
+    return false;
   const auto range = editorController_.selection().selection();
-  return range.anchor.isValid() && !range.anchor.afterBlock && !range.anchor.text.inMeta
-      && range.isSingleBlock() && range.isSingleTextNode()
-      && !range.coversDocument(editorController_.session()->markdownText().size());
+  return range.anchor.isValid() && !range.anchor.afterBlock && !range.anchor.text.inMeta && range.isSingleBlock() &&
+         range.isSingleTextNode() && !range.coversDocument(editorController_.session()->markdownText().size());
 }
 
 int RenderCommandFacade::currentHeadingLevel() const {
@@ -110,7 +110,8 @@ bool RenderCommandFacade::insertTable(int rows, int columns) {
 }
 
 bool RenderCommandFacade::resizeCurrentTable(int rows, int columns) {
-  return runCommand("resizeCurrentTable", [&] { return editorController_.tableController().resizeCurrentTable(rows, columns); });
+  return runCommand("resizeCurrentTable",
+                    [&] { return editorController_.tableController().resizeCurrentTable(rows, columns); });
 }
 
 bool RenderCommandFacade::insertRowBefore() {
@@ -146,15 +147,18 @@ bool RenderCommandFacade::deleteCurrentColumn() {
 }
 
 bool RenderCommandFacade::moveCurrentColumnLeft() {
-  return runCommand("moveCurrentColumnLeft", [&] { return editorController_.tableController().moveCurrentColumnLeft(); });
+  return runCommand("moveCurrentColumnLeft",
+                    [&] { return editorController_.tableController().moveCurrentColumnLeft(); });
 }
 
 bool RenderCommandFacade::moveCurrentColumnRight() {
-  return runCommand("moveCurrentColumnRight", [&] { return editorController_.tableController().moveCurrentColumnRight(); });
+  return runCommand("moveCurrentColumnRight",
+                    [&] { return editorController_.tableController().moveCurrentColumnRight(); });
 }
 
 bool RenderCommandFacade::setCurrentColumnAlignment(TableAlignment alignment) {
-  return runCommand("setCurrentColumnAlignment", [&] { return editorController_.tableController().setCurrentColumnAlignment(alignment); });
+  return runCommand("setCurrentColumnAlignment",
+                    [&] { return editorController_.tableController().setCurrentColumnAlignment(alignment); });
 }
 
 bool RenderCommandFacade::copyCurrentTable() {
@@ -162,7 +166,8 @@ bool RenderCommandFacade::copyCurrentTable() {
 }
 
 bool RenderCommandFacade::formatCurrentTableSource() {
-  return runCommand("formatCurrentTableSource", [&] { return editorController_.tableController().formatCurrentTableSource(); });
+  return runCommand("formatCurrentTableSource",
+                    [&] { return editorController_.tableController().formatCurrentTableSource(); });
 }
 
 bool RenderCommandFacade::deleteCurrentTable() {
@@ -194,19 +199,23 @@ bool RenderCommandFacade::toggleCodeBlock() {
 }
 
 bool RenderCommandFacade::insertParagraphBefore() {
-  return runCommand("insertParagraphBefore", [&] { return editorController_.paragraphController().insertParagraphBefore(); });
+  return runCommand("insertParagraphBefore",
+                    [&] { return editorController_.paragraphController().insertParagraphBefore(); });
 }
 
 bool RenderCommandFacade::insertParagraphAfter() {
-  return runCommand("insertParagraphAfter", [&] { return editorController_.paragraphController().insertParagraphAfter(); });
+  return runCommand("insertParagraphAfter",
+                    [&] { return editorController_.paragraphController().insertParagraphAfter(); });
 }
 
 bool RenderCommandFacade::insertLinkReference() {
-  return runCommand("insertLinkReference", [&] { return editorController_.paragraphController().insertLinkReference(); });
+  return runCommand("insertLinkReference",
+                    [&] { return editorController_.paragraphController().insertLinkReference(); });
 }
 
 bool RenderCommandFacade::insertFootnoteDefinition() {
-  return runCommand("insertFootnoteDefinition", [&] { return editorController_.paragraphController().insertFootnoteDefinition(); });
+  return runCommand("insertFootnoteDefinition",
+                    [&] { return editorController_.paragraphController().insertFootnoteDefinition(); });
 }
 
 bool RenderCommandFacade::insertAlert(AlertKind kind) {
@@ -235,11 +244,13 @@ bool RenderCommandFacade::isOnTaskItem() const {
 }
 
 bool RenderCommandFacade::insertHorizontalRule() {
-  return runCommand("insertHorizontalRule", [&] { return editorController_.paragraphController().insertHorizontalRule(); });
+  return runCommand("insertHorizontalRule",
+                    [&] { return editorController_.paragraphController().insertHorizontalRule(); });
 }
 
 bool RenderCommandFacade::insertTableOfContents() {
-  return runCommand("insertTableOfContents", [&] { return editorController_.paragraphController().insertTableOfContents(); });
+  return runCommand("insertTableOfContents",
+                    [&] { return editorController_.paragraphController().insertTableOfContents(); });
 }
 
 bool RenderCommandFacade::toggleQuote() {
@@ -247,11 +258,13 @@ bool RenderCommandFacade::toggleQuote() {
 }
 
 bool RenderCommandFacade::convertToOrderedList() {
-  return runCommand("convertToOrderedList", [&] { return editorController_.paragraphController().convertToOrderedList(); });
+  return runCommand("convertToOrderedList",
+                    [&] { return editorController_.paragraphController().convertToOrderedList(); });
 }
 
 bool RenderCommandFacade::convertToUnorderedList() {
-  return runCommand("convertToUnorderedList", [&] { return editorController_.paragraphController().convertToUnorderedList(); });
+  return runCommand("convertToUnorderedList",
+                    [&] { return editorController_.paragraphController().convertToUnorderedList(); });
 }
 
 bool RenderCommandFacade::convertToTaskList() {
@@ -267,11 +280,14 @@ bool RenderCommandFacade::exitCodeEditMode() {
 }
 
 bool RenderCommandFacade::setCodeLanguage(QString language) {
-  return runCommand("setCodeLanguage", [&] { return editorController_.codeFenceController().setLanguage(std::move(language)); });
+  return runCommand("setCodeLanguage",
+                    [&] { return editorController_.codeFenceController().setLanguage(std::move(language)); });
 }
 
 bool RenderCommandFacade::setCodeLanguageFor(NodeId codeId, QString language) {
-  return runCommand("setCodeLanguageFor", [&] { return editorController_.codeFenceController().setLanguageFor(codeId, std::move(language)); });
+  return runCommand("setCodeLanguageFor", [&] {
+    return editorController_.codeFenceController().setLanguageFor(codeId, std::move(language));
+  });
 }
 
 QString RenderCommandFacade::codeContentAtCursor() const {
@@ -364,7 +380,8 @@ int RenderCommandFacade::currentImageZoomPercent() const {
 // editor's transaction path, which these commands bypass, so a local edit would update the model
 // but never repaint. applyMarkdownText does a full re-parse, which fires `parsed` with
 // lastParseWasLocalEdit() == false and triggers setDocument on the rendered view.
-bool RenderCommandFacade::replaceImageUnderCursor(const std::function<QString(const QString&)>& transform, const char* name) {
+bool RenderCommandFacade::replaceImageUnderCursor(const std::function<QString(const QString&)>& transform,
+                                                  const char* name) {
   return runCommand(name, [&] {
     qsizetype start = 0, end = 0;
     if (!editorController_.imageSourceRangeAtCursor(start, end)) {
@@ -378,7 +395,7 @@ bool RenderCommandFacade::replaceImageUnderCursor(const std::function<QString(co
     const QString source = md.mid(start, end - start);
     const QString replacement = transform(source);
     if (replacement == source) {
-      return true;  // no change (e.g. markdown at 100%, or already in the target syntax)
+      return true; // no change (e.g. markdown at 100%, or already in the target syntax)
     }
     editorController_.applyMarkdownTextWithUndo(md.left(start) + replacement + md.mid(end), QString::fromLatin1(name));
     return true;
@@ -386,8 +403,8 @@ bool RenderCommandFacade::replaceImageUnderCursor(const std::function<QString(co
 }
 
 bool RenderCommandFacade::setImageZoomAtCursor(int percent) {
-  return replaceImageUnderCursor(
-      [percent](const QString& s) { return image_syntax::setZoom(s, percent); }, "setImageZoom");
+  return replaceImageUnderCursor([percent](const QString& s) { return image_syntax::setZoom(s, percent); },
+                                 "setImageZoom");
 }
 
 bool RenderCommandFacade::convertImageAtCursorToHtml() {
@@ -395,7 +412,8 @@ bool RenderCommandFacade::convertImageAtCursorToHtml() {
 }
 
 bool RenderCommandFacade::convertImageAtCursorToMarkdown() {
-  return replaceImageUnderCursor([](const QString& s) { return image_syntax::toMarkdown(s); }, "convertImageToMarkdown");
+  return replaceImageUnderCursor([](const QString& s) { return image_syntax::toMarkdown(s); },
+                                 "convertImageToMarkdown");
 }
 
 CursorFormatState RenderCommandFacade::currentInlineFormats() const {
@@ -411,4 +429,4 @@ CursorCommandState RenderCommandFacade::currentCursorState() const {
   return canRun() ? editorController_.queryCursorCommandState() : CursorCommandState{};
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -71,17 +71,17 @@ ErSourceSpan spanForOffset(const QString& source, qsizetype offset, qsizetype le
 
 // NOTE: ErDiagnostic field order is `..., detail, expected` (the reverse of
 // ClassDiagnostic), so the aggregate init swaps those two trailing fields.
-[[noreturn]] void raise(const QString& source, qsizetype offset, ErErrorStage stage,
-                        ErErrorCode code, QString production, QString actual,
-                        QStringList expected, QString detail = {}) {
-  throw ErParseError({stage, code, spanForOffset(source, offset), std::move(production),
-                      std::move(actual), std::move(detail), std::move(expected)});
+[[noreturn]] void raise(const QString& source, qsizetype offset, ErErrorStage stage, ErErrorCode code,
+                        QString production, QString actual, QStringList expected, QString detail = {}) {
+  throw ErParseError({stage, code, spanForOffset(source, offset), std::move(production), std::move(actual),
+                      std::move(detail), std::move(expected)});
 }
 
 // Crow's-foot glyph text -> ErCardinality. The tokenizer only ever emits the
 // eight valid CARDINALITY glyphs, so the fallback is unreachable in practice.
 ErCardinality cardinalityFromGlyph(const QString& glyph) {
-  if (glyph == QLatin1String("||")) return ErCardinality::ExactlyOne;
+  if (glyph == QLatin1String("||"))
+    return ErCardinality::ExactlyOne;
   if (glyph == QLatin1String("|o") || glyph == QLatin1String("o|"))
     return ErCardinality::ZeroOrOne;
   if (glyph == QLatin1String("}|") || glyph == QLatin1String("|{"))
@@ -92,28 +92,39 @@ ErCardinality cardinalityFromGlyph(const QString& glyph) {
 }
 
 ErAttributeKeyType keyTypeFromWord(const QString& text) {
-  if (text == QLatin1String("PK")) return ErAttributeKeyType::PrimaryKey;
-  if (text == QLatin1String("FK")) return ErAttributeKeyType::ForeignKey;
-  if (text == QLatin1String("UK")) return ErAttributeKeyType::UniqueKey;
+  if (text == QLatin1String("PK"))
+    return ErAttributeKeyType::PrimaryKey;
+  if (text == QLatin1String("FK"))
+    return ErAttributeKeyType::ForeignKey;
+  if (text == QLatin1String("UK"))
+    return ErAttributeKeyType::UniqueKey;
   return ErAttributeKeyType::None;
 }
 
 QString cardinalityName(ErCardinality card) {
   switch (card) {
-    case ErCardinality::ExactlyOne: return QStringLiteral("ExactlyOne");
-    case ErCardinality::ZeroOrOne: return QStringLiteral("ZeroOrOne");
-    case ErCardinality::OneOrMore: return QStringLiteral("OneOrMore");
-    case ErCardinality::ZeroOrMore: return QStringLiteral("ZeroOrMore");
+  case ErCardinality::ExactlyOne:
+    return QStringLiteral("ExactlyOne");
+  case ErCardinality::ZeroOrOne:
+    return QStringLiteral("ZeroOrOne");
+  case ErCardinality::OneOrMore:
+    return QStringLiteral("OneOrMore");
+  case ErCardinality::ZeroOrMore:
+    return QStringLiteral("ZeroOrMore");
   }
   return {};
 }
 
 QString attributeKeyTypeName(ErAttributeKeyType key) {
   switch (key) {
-    case ErAttributeKeyType::None: return QStringLiteral("None");
-    case ErAttributeKeyType::PrimaryKey: return QStringLiteral("PrimaryKey");
-    case ErAttributeKeyType::ForeignKey: return QStringLiteral("ForeignKey");
-    case ErAttributeKeyType::UniqueKey: return QStringLiteral("UniqueKey");
+  case ErAttributeKeyType::None:
+    return QStringLiteral("None");
+  case ErAttributeKeyType::PrimaryKey:
+    return QStringLiteral("PrimaryKey");
+  case ErAttributeKeyType::ForeignKey:
+    return QStringLiteral("ForeignKey");
+  case ErAttributeKeyType::UniqueKey:
+    return QStringLiteral("UniqueKey");
   }
   return {};
 }
@@ -128,7 +139,8 @@ public:
     cleaned.reserve(source_.size());
     qsizetype lineStart = 0;
     for (qsizetype i = 0; i <= source_.size(); ++i) {
-      if (i != source_.size() && source_[i] != QLatin1Char('\n')) continue;
+      if (i != source_.size() && source_[i] != QLatin1Char('\n'))
+        continue;
       const QString line = source_.mid(lineStart, i - lineStart);
       const QString head = line.trimmed();
       const bool isStyleLine = head.startsWith(QStringLiteral("classDef ")) ||
@@ -140,7 +152,8 @@ public:
       } else {
         cleaned += line;
       }
-      if (i != source_.size()) cleaned += QLatin1Char('\n');
+      if (i != source_.size())
+        cleaned += QLatin1Char('\n');
       lineStart = i + 1;
     }
     // ErTokenizer emits SPACE tokens so raw() can rebuild source; the parser
@@ -149,34 +162,33 @@ public:
     QVector<ErToken> raw = ErTokenizer(cleaned).tokenize();
     tokens_.reserve(raw.size());
     for (const ErToken& token : raw)
-      if (token.kind != ErTokenKind::Space) tokens_.append(token);
+      if (token.kind != ErTokenKind::Space)
+        tokens_.append(token);
   }
 
   ErDiagramData parse() {
     if (source_.size() > limits_.maxTextSize)
-      raise(source_, 0, ErErrorStage::Resource, ErErrorCode::LimitExceeded,
-            QStringLiteral("start"), QStringLiteral("text"), {},
-            QStringLiteral("Maximum er diagram text size exceeded"));
+      raise(source_, 0, ErErrorStage::Resource, ErErrorCode::LimitExceeded, QStringLiteral("start"),
+            QStringLiteral("text"), {}, QStringLiteral("Maximum er diagram text size exceeded"));
     for (const ErToken& token : tokens_)
       if (token.kind == ErTokenKind::Invalid)
-        raise(source_, token.offset, ErErrorStage::Lexer, ErErrorCode::UnexpectedToken,
-              QStringLiteral("token"), token.text, {},
-              QStringLiteral("Invalid er diagram token"));
+        raise(source_, token.offset, ErErrorStage::Lexer, ErErrorCode::UnexpectedToken, QStringLiteral("token"),
+              token.text, {}, QStringLiteral("Invalid er diagram token"));
 
     bool headerSeen = false;
     bool accDescriptionBlock = false;
     ErTokenCursor document(tokens_);
     while (!document.atEnd() && document.peek().kind != ErTokenKind::Eof) {
       ErTokenCursor line = document.consumeLine();
-      const qsizetype lineOffset =
-          line.atEnd() ? document.peek().offset : line.peek().offset;
+      const qsizetype lineOffset = line.atEnd() ? document.peek().offset : line.peek().offset;
 
       if (accDescriptionBlock) {
         if (line.match(ErTokenKind::CloseBrace) && line.atEnd()) {
           accDescriptionBlock = false;
         } else {
           const QString text = line.raw(source_);
-          if (!data_.accDescription.isEmpty()) data_.accDescription += QLatin1Char('\n');
+          if (!data_.accDescription.isEmpty())
+            data_.accDescription += QLatin1Char('\n');
           data_.accDescription += text;
         }
         continue;
@@ -187,16 +199,16 @@ public:
         line.consume();
         continue;
       }
-      if (line.atEnd()) continue;
+      if (line.atEnd())
+        continue;
 
       if (!headerSeen) {
         if (line.match(ErTokenKind::ErHeader) && line.atEnd()) {
           headerSeen = true;
           continue;
         }
-        raise(source_, lineOffset, ErErrorStage::Detector, ErErrorCode::MissingHeader,
-              QStringLiteral("erDiagram"), line.raw(source_),
-              {QStringLiteral("erDiagram")});
+        raise(source_, lineOffset, ErErrorStage::Detector, ErErrorCode::MissingHeader, QStringLiteral("erDiagram"),
+              line.raw(source_), {QStringLiteral("erDiagram")});
       }
 
       // Inside an entity block: every remaining line is an attribute or the
@@ -206,16 +218,14 @@ public:
         continue;
       }
 
-      if (line.peek().kind == ErTokenKind::Identifier &&
-          line.peek().text == QLatin1String("accTitle")) {
+      if (line.peek().kind == ErTokenKind::Identifier && line.peek().text == QLatin1String("accTitle")) {
         line.consume();
         if (!line.match(ErTokenKind::Colon))
           unexpected(line, lineOffset, QStringLiteral("acc_title"), {QStringLiteral("COLON")});
         data_.accTitle = line.raw(source_);
         continue;
       }
-      if (line.peek().kind == ErTokenKind::Identifier &&
-          line.peek().text == QLatin1String("accDescr")) {
+      if (line.peek().kind == ErTokenKind::Identifier && line.peek().text == QLatin1String("accDescr")) {
         line.consume();
         if (line.match(ErTokenKind::Colon)) {
           data_.accDescription = line.raw(source_);
@@ -228,8 +238,7 @@ public:
         }
         continue;
       }
-      if (line.peek().kind == ErTokenKind::Identifier &&
-          line.peek().text == QLatin1String("title")) {
+      if (line.peek().kind == ErTokenKind::Identifier && line.peek().text == QLatin1String("title")) {
         line.consume();
         data_.title = line.raw(source_);
         continue;
@@ -239,15 +248,14 @@ public:
     }
 
     if (!headerSeen)
-      raise(source_, 0, ErErrorStage::Detector, ErErrorCode::MissingHeader,
-            QStringLiteral("erDiagram"), QStringLiteral("EOF"),
-            {QStringLiteral("erDiagram")});
+      raise(source_, 0, ErErrorStage::Detector, ErErrorCode::MissingHeader, QStringLiteral("erDiagram"),
+            QStringLiteral("EOF"), {QStringLiteral("erDiagram")});
     if (accDescriptionBlock || !openEntityId_.isEmpty())
       raise(source_, source_.size(), ErErrorStage::Parser, ErErrorCode::MissingClosingBrace,
-            QStringLiteral("entityStatement"), QStringLiteral("EOF_IN_STRUCT"),
-            {QStringLiteral("STRUCT_STOP")});
+            QStringLiteral("entityStatement"), QStringLiteral("EOF_IN_STRUCT"), {QStringLiteral("STRUCT_STOP")});
     // Apply pre-extracted classDef/cssClass/style lines now that entities exist.
-    for (const QString& raw : styleLines_) parseRawStyleLine(raw);
+    for (const QString& raw : styleLines_)
+      parseRawStyleLine(raw);
     return data_;
   }
 
@@ -255,11 +263,11 @@ private:
   ErEntity& addEntity(const QString& id, qsizetype offset) {
     auto found = std::find_if(data_.entities.begin(), data_.entities.end(),
                               [&](const ErEntity& entity) { return entity.id == id; });
-    if (found != data_.entities.end()) return *found;
+    if (found != data_.entities.end())
+      return *found;
     if (data_.entities.size() >= limits_.maxEntities)
-      raise(source_, offset, ErErrorStage::Resource, ErErrorCode::LimitExceeded,
-            QStringLiteral("entityIdentifier"), id, {},
-            QStringLiteral("Maximum entity count exceeded"));
+      raise(source_, offset, ErErrorStage::Resource, ErErrorCode::LimitExceeded, QStringLiteral("entityIdentifier"), id,
+            {}, QStringLiteral("Maximum entity count exceeded"));
     ErEntity entity;
     entity.id = id;
     entity.name = id;
@@ -273,29 +281,29 @@ private:
     return found == data_.entities.end() ? nullptr : &*found;
   }
 
-  [[noreturn]] void unexpected(const ErTokenCursor& cursor, qsizetype fallback,
-                               QString production, QStringList expected = {}) const {
+  [[noreturn]] void unexpected(const ErTokenCursor& cursor, qsizetype fallback, QString production,
+                               QStringList expected = {}) const {
     const qsizetype offset = cursor.atEnd() ? fallback : cursor.peek().offset;
-    const QString actual = cursor.atEnd() ? QStringLiteral("NEWLINE")
-                                          : erTokenName(cursor.peek().kind);
-    raise(source_, offset, ErErrorStage::Parser, ErErrorCode::UnexpectedToken,
-          std::move(production), actual, std::move(expected));
+    const QString actual = cursor.atEnd() ? QStringLiteral("NEWLINE") : erTokenName(cursor.peek().kind);
+    raise(source_, offset, ErErrorStage::Parser, ErErrorCode::UnexpectedToken, std::move(production), actual,
+          std::move(expected));
   }
 
   bool tokenKindAt(qsizetype index, qsizetype end, ErTokenKind kind) const {
-    return index >= 0 && index < end && index < tokens_.size() &&
-           tokens_[index].kind == kind;
+    return index >= 0 && index < end && index < tokens_.size() && tokens_[index].kind == kind;
   }
 
   void parseStatement(ErTokenCursor line, qsizetype offset) {
-    if (line.atEnd()) return;
+    if (line.atEnd())
+      return;
     const ErTokenKind leadKind = line.peek().kind;
     if (leadKind != ErTokenKind::Identifier && leadKind != ErTokenKind::QuotedText)
       unexpected(line, offset, QStringLiteral("statement"),
                  {QStringLiteral("entityName"), QStringLiteral("relationship")});
 
     // Relationship probe: consumes a copy, leaves `line` untouched on failure.
-    if (parseRelationship(line, offset)) return;
+    if (parseRelationship(line, offset))
+      return;
 
     if (leadKind == ErTokenKind::Identifier) {
       parseEntityHeader(line, offset);
@@ -311,7 +319,8 @@ private:
     QStringList out;
     for (const QString& part : rest.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
       const QString trimmed = part.trimmed();
-      if (!trimmed.isEmpty()) out.append(trimmed);
+      if (!trimmed.isEmpty())
+        out.append(trimmed);
     }
     return out;
   }
@@ -321,12 +330,15 @@ private:
     const QString name = trimmed.section(QLatin1Char(' '), 1, 1);
     const QString rest = trimmed.section(QLatin1Char(' '), 2, -1);
     if (keyword == QLatin1String("classDef")) {
-      if (!name.isEmpty()) data_.classDefs.insert(name, parseDeclarations(rest));
+      if (!name.isEmpty())
+        data_.classDefs.insert(name, parseDeclarations(rest));
     } else if (keyword == QLatin1String("cssClass")) {
       const QString cls = trimmed.section(QLatin1Char(' '), 2, 2);
-      if (ErEntity* entity = findEntity(name)) entity->cssClasses += QLatin1Char(' ') + cls;
+      if (ErEntity* entity = findEntity(name))
+        entity->cssClasses += QLatin1Char(' ') + cls;
     } else if (keyword == QLatin1String("style")) {
-      if (ErEntity* entity = findEntity(name)) entity->styles += parseDeclarations(rest);
+      if (ErEntity* entity = findEntity(name))
+        entity->styles += parseDeclarations(rest);
     }
   }
 
@@ -340,18 +352,19 @@ private:
     if (!cursor.atEnd() && cursor.peek().kind == ErTokenKind::QuotedText)
       roleA = cursor.consume().text;
 
-    if (cursor.atEnd() || cursor.peek().kind != ErTokenKind::Identifier) return false;
+    if (cursor.atEnd() || cursor.peek().kind != ErTokenKind::Identifier)
+      return false;
     const ErToken entityAToken = cursor.consume();
     const QString entityAId = entityAToken.text;
 
     // roleA may trail entityA, but only when a CARDINALITY follows the quote
     // (otherwise `IDENT QUOTED_TEXT` is an entity alias, handled elsewhere).
-    if (roleA.isEmpty() && !cursor.atEnd() &&
-        cursor.peek().kind == ErTokenKind::QuotedText &&
+    if (roleA.isEmpty() && !cursor.atEnd() && cursor.peek().kind == ErTokenKind::QuotedText &&
         tokenKindAt(cursor.position() + 1, cursor.endPosition(), ErTokenKind::Cardinality))
       roleA = cursor.consume().text;
 
-    if (cursor.atEnd() || cursor.peek().kind != ErTokenKind::Cardinality) return false;
+    if (cursor.atEnd() || cursor.peek().kind != ErTokenKind::Cardinality)
+      return false;
     const ErToken leftCardToken = cursor.consume();
     const ErCardinality cardA = cardinalityFromGlyph(leftCardToken.text);
 
@@ -371,17 +384,15 @@ private:
               QStringLiteral("Relationship connector must be '..'"));
       identifying = false;
     } else {
-      raise(source_, cursor.atEnd() ? leftCardToken.offset : cursor.peek().offset,
-            ErErrorStage::Parser, ErErrorCode::MissingRelationTarget,
-            QStringLiteral("relationship"),
+      raise(source_, cursor.atEnd() ? leftCardToken.offset : cursor.peek().offset, ErErrorStage::Parser,
+            ErErrorCode::MissingRelationTarget, QStringLiteral("relationship"),
             cursor.atEnd() ? QStringLiteral("NEWLINE") : erTokenName(cursor.peek().kind),
             {QStringLiteral("--"), QStringLiteral("..")});
     }
 
     if (cursor.atEnd() || cursor.peek().kind != ErTokenKind::Cardinality)
-      raise(source_, cursor.atEnd() ? offset : cursor.peek().offset,
-            ErErrorStage::Parser, ErErrorCode::MissingRelationTarget,
-            QStringLiteral("relationship"),
+      raise(source_, cursor.atEnd() ? offset : cursor.peek().offset, ErErrorStage::Parser,
+            ErErrorCode::MissingRelationTarget, QStringLiteral("relationship"),
             cursor.atEnd() ? QStringLiteral("NEWLINE") : erTokenName(cursor.peek().kind),
             {QStringLiteral("CARDINALITY")});
     const ErToken rightCardToken = cursor.consume();
@@ -391,31 +402,27 @@ private:
     if (!cursor.atEnd() && cursor.peek().kind == ErTokenKind::QuotedText)
       roleB = cursor.consume().text;
     if (cursor.atEnd() || cursor.peek().kind != ErTokenKind::Identifier)
-      raise(source_, cursor.atEnd() ? rightCardToken.offset : cursor.peek().offset,
-            ErErrorStage::Parser, ErErrorCode::MissingRelationTarget,
-            QStringLiteral("relationship"),
+      raise(source_, cursor.atEnd() ? rightCardToken.offset : cursor.peek().offset, ErErrorStage::Parser,
+            ErErrorCode::MissingRelationTarget, QStringLiteral("relationship"),
             cursor.atEnd() ? QStringLiteral("NEWLINE") : erTokenName(cursor.peek().kind),
             {QStringLiteral("entityName")});
     const ErToken entityBToken = cursor.consume();
     const QString entityBId = entityBToken.text;
-    if (roleB.isEmpty() && !cursor.atEnd() &&
-        cursor.peek().kind == ErTokenKind::QuotedText)
+    if (roleB.isEmpty() && !cursor.atEnd() && cursor.peek().kind == ErTokenKind::QuotedText)
       roleB = cursor.consume().text;
 
     QString label;
     QString comment;
     if (!cursor.atEnd()) {
       if (!cursor.match(ErTokenKind::Colon))
-        raise(source_, cursor.peek().offset, ErErrorStage::Parser,
-              ErErrorCode::UnexpectedToken, QStringLiteral("relationship"),
-              erTokenName(cursor.peek().kind),
+        raise(source_, cursor.peek().offset, ErErrorStage::Parser, ErErrorCode::UnexpectedToken,
+              QStringLiteral("relationship"), erTokenName(cursor.peek().kind),
               {QStringLiteral("COLON"), QStringLiteral("NEWLINE")});
       // Remaining tokens are the label; a trailing QUOTED_TEXT (with at least
       // one token before it) is peeled into `comment`.
       const qsizetype start = cursor.position();
       const qsizetype end = cursor.endPosition();
-      const bool peelComment =
-          end - start >= 2 && tokens_[end - 1].kind == ErTokenKind::QuotedText;
+      const bool peelComment = end - start >= 2 && tokens_[end - 1].kind == ErTokenKind::QuotedText;
       if (peelComment) {
         comment = tokens_[end - 1].text;
         if (end - 1 > start) {
@@ -453,7 +460,7 @@ private:
   }
 
   void parseEntityHeader(ErTokenCursor line, qsizetype offset) {
-    const ErToken idToken = line.consume();  // IDENTIFIER
+    const ErToken idToken = line.consume(); // IDENTIFIER
     const QString entityId = idToken.text;
     QString alias;
     if (!line.atEnd() && line.peek().kind == ErTokenKind::QuotedText)
@@ -461,9 +468,11 @@ private:
 
     if (line.match(ErTokenKind::OpenBrace)) {
       ErEntity& entity = addEntity(entityId, idToken.offset);
-      if (!alias.isEmpty()) entity.name = alias;
+      if (!alias.isEmpty())
+        entity.name = alias;
       openEntityId_ = entityId;
-      if (!line.atEnd()) parseEntityMemberLine(line, offset);
+      if (!line.atEnd())
+        parseEntityMemberLine(line, offset);
       return;
     }
 
@@ -471,7 +480,8 @@ private:
       // Bare entity declaration (with or without display alias). Lenient, like
       // `class Foo` in the class diagram.
       ErEntity& entity = addEntity(entityId, idToken.offset);
-      if (!alias.isEmpty()) entity.name = alias;
+      if (!alias.isEmpty())
+        entity.name = alias;
       return;
     }
     unexpected(line, offset, QStringLiteral("entityStatement"),
@@ -489,8 +499,7 @@ private:
         line.consume();
         openEntityId_.clear();
         if (!line.atEnd())
-          unexpected(line, offset, QStringLiteral("entityStatement"),
-                     {QStringLiteral("NEWLINE")});
+          unexpected(line, offset, QStringLiteral("entityStatement"), {QStringLiteral("NEWLINE")});
         return;
       }
       parseAttribute(line, offset);
@@ -499,17 +508,13 @@ private:
 
   void parseAttribute(ErTokenCursor& line, qsizetype offset) {
     if (line.atEnd() || line.peek().kind != ErTokenKind::Identifier)
-      raise(source_, line.atEnd() ? offset : line.peek().offset,
-            ErErrorStage::Parser, ErErrorCode::InvalidAttribute,
-            QStringLiteral("attribute"),
-            line.atEnd() ? QStringLiteral("NEWLINE") : erTokenName(line.peek().kind),
+      raise(source_, line.atEnd() ? offset : line.peek().offset, ErErrorStage::Parser, ErErrorCode::InvalidAttribute,
+            QStringLiteral("attribute"), line.atEnd() ? QStringLiteral("NEWLINE") : erTokenName(line.peek().kind),
             {QStringLiteral("attributeType")});
     const ErToken typeToken = line.consume();
     if (line.atEnd() || line.peek().kind != ErTokenKind::Identifier)
-      raise(source_, line.atEnd() ? offset : line.peek().offset,
-            ErErrorStage::Parser, ErErrorCode::InvalidAttribute,
-            QStringLiteral("attribute"),
-            line.atEnd() ? QStringLiteral("NEWLINE") : erTokenName(line.peek().kind),
+      raise(source_, line.atEnd() ? offset : line.peek().offset, ErErrorStage::Parser, ErErrorCode::InvalidAttribute,
+            QStringLiteral("attribute"), line.atEnd() ? QStringLiteral("NEWLINE") : erTokenName(line.peek().kind),
             {QStringLiteral("attributeName")});
     const ErToken nameToken = line.consume();
 
@@ -523,9 +528,7 @@ private:
       const ErTokenKind kind = line.peek().kind;
       const QString text = line.peek().text;
       ErAttributeKeyType key = keyTypeFromWord(text);
-      const bool dedicatedKey = kind == ErTokenKind::KeyPK ||
-                                kind == ErTokenKind::KeyFK ||
-                                kind == ErTokenKind::KeyUK;
+      const bool dedicatedKey = kind == ErTokenKind::KeyPK || kind == ErTokenKind::KeyFK || kind == ErTokenKind::KeyUK;
       if (key != ErAttributeKeyType::None && (dedicatedKey || kind == ErTokenKind::Identifier)) {
         attribute.keyType = key;
         line.consume();
@@ -538,20 +541,17 @@ private:
     // A trailing CLOSEBRACE (same-line block close) is allowed; anything else
     // is an invalid attribute.
     if (!line.atEnd() && line.peek().kind != ErTokenKind::CloseBrace)
-      raise(source_, line.peek().offset, ErErrorStage::Parser,
-            ErErrorCode::InvalidAttribute, QStringLiteral("attribute"),
-            erTokenName(line.peek().kind),
+      raise(source_, line.peek().offset, ErErrorStage::Parser, ErErrorCode::InvalidAttribute,
+            QStringLiteral("attribute"), erTokenName(line.peek().kind),
             {QStringLiteral("NEWLINE"), QStringLiteral("STRUCT_STOP")});
 
     ErEntity* entity = findEntity(openEntityId_);
     if (!entity)
-      raise(source_, offset, ErErrorStage::Parser, ErErrorCode::UnexpectedToken,
-            QStringLiteral("attribute"), openEntityId_, {},
-            QStringLiteral("Attribute outside of an entity block"));
+      raise(source_, offset, ErErrorStage::Parser, ErErrorCode::UnexpectedToken, QStringLiteral("attribute"),
+            openEntityId_, {}, QStringLiteral("Attribute outside of an entity block"));
     if (entity->attributes.size() >= limits_.maxAttributesPerEntity)
-      raise(source_, offset, ErErrorStage::Resource, ErErrorCode::LimitExceeded,
-            QStringLiteral("attribute"), attribute.attributeName, {},
-            QStringLiteral("Maximum attributes per entity exceeded"));
+      raise(source_, offset, ErErrorStage::Resource, ErErrorCode::LimitExceeded, QStringLiteral("attribute"),
+            attribute.attributeName, {}, QStringLiteral("Maximum attributes per entity exceeded"));
     entity->attributes.append(std::move(attribute));
   }
 
@@ -559,22 +559,21 @@ private:
   ErLimits limits_;
   QVector<ErToken> tokens_;
   ErDiagramData data_;
-  QStringList styleLines_;  // classDef/cssClass/style lines, pre-extracted raw
-  QString openEntityId_;  // non-empty while an entity block is open (no nesting in er)
+  QStringList styleLines_; // classDef/cssClass/style lines, pre-extracted raw
+  QString openEntityId_;   // non-empty while an entity block is open (no nesting in er)
 };
 
-}  // namespace
+} // namespace
 
 muffin::mermaid::er::ErParseError::ErParseError(ErDiagnostic diagnostic)
-    : std::runtime_error(formatErDiagnostic(diagnostic).toUtf8().constData()),
-      diagnostic_(std::move(diagnostic)) {}
+    : std::runtime_error(formatErDiagnostic(diagnostic).toUtf8().constData()), diagnostic_(std::move(diagnostic)) {
+}
 
 const ErDiagnostic& muffin::mermaid::er::ErParseError::diagnostic() const noexcept {
   return diagnostic_;
 }
 
-muffin::mermaid::er::ErDiagram muffin::mermaid::er::ErDiagram::parse(const QString& source,
-                                                                     ErLimits limits) {
+muffin::mermaid::er::ErDiagram muffin::mermaid::er::ErDiagram::parse(const QString& source, ErLimits limits) {
   ErDiagram diagram;
   diagram.data_ = Parser(source, limits).parse();
   return diagram;
@@ -585,11 +584,10 @@ QJsonObject muffin::mermaid::er::ErDiagram::toJson() const {
   for (const ErEntity& entity : data_.entities) {
     QJsonArray attributes;
     for (const ErAttribute& attribute : entity.attributes) {
-      attributes.append(QJsonObject{
-          {QStringLiteral("type"), attribute.attributeType},
-          {QStringLiteral("name"), attribute.attributeName},
-          {QStringLiteral("comment"), attribute.comment},
-          {QStringLiteral("keyType"), attributeKeyTypeName(attribute.keyType)}});
+      attributes.append(QJsonObject{{QStringLiteral("type"), attribute.attributeType},
+                                    {QStringLiteral("name"), attribute.attributeName},
+                                    {QStringLiteral("comment"), attribute.comment},
+                                    {QStringLiteral("keyType"), attributeKeyTypeName(attribute.keyType)}});
     }
     entities.append(QJsonObject{{QStringLiteral("id"), entity.id},
                                 {QStringLiteral("name"), entity.name},
@@ -597,17 +595,16 @@ QJsonObject muffin::mermaid::er::ErDiagram::toJson() const {
   }
   QJsonArray relationships;
   for (const ErRelationship& relationship : data_.relationships) {
-    relationships.append(QJsonObject{
-        {QStringLiteral("id"), relationship.id},
-        {QStringLiteral("entityA"), relationship.entityA},
-        {QStringLiteral("entityB"), relationship.entityB},
-        {QStringLiteral("cardA"), cardinalityName(relationship.cardA)},
-        {QStringLiteral("cardB"), cardinalityName(relationship.cardB)},
-        {QStringLiteral("identifying"), relationship.identifying},
-        {QStringLiteral("roleA"), relationship.roleA},
-        {QStringLiteral("roleB"), relationship.roleB},
-        {QStringLiteral("label"), relationship.label},
-        {QStringLiteral("comment"), relationship.comment}});
+    relationships.append(QJsonObject{{QStringLiteral("id"), relationship.id},
+                                     {QStringLiteral("entityA"), relationship.entityA},
+                                     {QStringLiteral("entityB"), relationship.entityB},
+                                     {QStringLiteral("cardA"), cardinalityName(relationship.cardA)},
+                                     {QStringLiteral("cardB"), cardinalityName(relationship.cardB)},
+                                     {QStringLiteral("identifying"), relationship.identifying},
+                                     {QStringLiteral("roleA"), relationship.roleA},
+                                     {QStringLiteral("roleB"), relationship.roleB},
+                                     {QStringLiteral("label"), relationship.label},
+                                     {QStringLiteral("comment"), relationship.comment}});
   }
   return {{QStringLiteral("title"), data_.title},
           {QStringLiteral("accTitle"), data_.accTitle},
@@ -618,24 +615,36 @@ QJsonObject muffin::mermaid::er::ErDiagram::toJson() const {
 
 QString muffin::mermaid::er::erErrorStageName(ErErrorStage stage) {
   switch (stage) {
-    case ErErrorStage::Detector: return QStringLiteral("detector");
-    case ErErrorStage::Lexer: return QStringLiteral("lexer");
-    case ErErrorStage::Parser: return QStringLiteral("parser");
-    case ErErrorStage::Semantic: return QStringLiteral("semantic");
-    case ErErrorStage::Resource: return QStringLiteral("resource");
+  case ErErrorStage::Detector:
+    return QStringLiteral("detector");
+  case ErErrorStage::Lexer:
+    return QStringLiteral("lexer");
+  case ErErrorStage::Parser:
+    return QStringLiteral("parser");
+  case ErErrorStage::Semantic:
+    return QStringLiteral("semantic");
+  case ErErrorStage::Resource:
+    return QStringLiteral("resource");
   }
   return {};
 }
 
 QString muffin::mermaid::er::erErrorCodeName(ErErrorCode code) {
   switch (code) {
-    case ErErrorCode::MissingHeader: return QStringLiteral("missing-header");
-    case ErErrorCode::UnexpectedToken: return QStringLiteral("unexpected-token");
-    case ErErrorCode::MissingClosingBrace: return QStringLiteral("missing-closing-brace");
-    case ErErrorCode::MissingRelationTarget: return QStringLiteral("missing-relation-target");
-    case ErErrorCode::InvalidCardinality: return QStringLiteral("invalid-cardinality");
-    case ErErrorCode::InvalidAttribute: return QStringLiteral("invalid-attribute");
-    case ErErrorCode::LimitExceeded: return QStringLiteral("limit-exceeded");
+  case ErErrorCode::MissingHeader:
+    return QStringLiteral("missing-header");
+  case ErErrorCode::UnexpectedToken:
+    return QStringLiteral("unexpected-token");
+  case ErErrorCode::MissingClosingBrace:
+    return QStringLiteral("missing-closing-brace");
+  case ErErrorCode::MissingRelationTarget:
+    return QStringLiteral("missing-relation-target");
+  case ErErrorCode::InvalidCardinality:
+    return QStringLiteral("invalid-cardinality");
+  case ErErrorCode::InvalidAttribute:
+    return QStringLiteral("invalid-attribute");
+  case ErErrorCode::LimitExceeded:
+    return QStringLiteral("limit-exceeded");
   }
   return {};
 }

@@ -16,8 +16,7 @@ void testInlineProjectionEntityDisplayAfterEdit() {
           QStringLiteral("initial entity visible text mismatch: %1").arg(initialProjection.visibleText()));
 
   // Insert 'a' at the beginning (source offset 0)
-  require(session.applyTextDelta(0, 0, QStringLiteral("a"), true),
-          "entity edit should apply");
+  require(session.applyTextDelta(0, 0, QStringLiteral("a"), true), "entity edit should apply");
 
   const QString editedMarkdown = session.markdownText().toString();
   require(editedMarkdown == QStringLiteral("aEntities are decoded by renderers: &amp; &lt; &gt; &copy;."),
@@ -31,8 +30,8 @@ void testInlineProjectionEntityDisplayAfterEdit() {
   const qsizetype contentStart = sourceOffsetForLineColumn(editedMarkdown, range.lineStart, qMax(1, range.columnStart));
   const qsizetype contentEnd = sourceOffsetForLineEnd(editedMarkdown, range.lineEnd);
   const QString contentText = contentStart >= 0 && contentEnd > contentStart
-      ? editedMarkdown.mid(contentStart, contentEnd - contentStart)
-      : editedMarkdown;
+                                  ? editedMarkdown.mid(contentStart, contentEnd - contentStart)
+                                  : editedMarkdown;
 
   InlineProjection editProjection(block->inlines(), contentText, InlineProjectionState{}, contentStart);
   require(editProjection.isValid(), "post-edit entity projection should be valid");
@@ -72,19 +71,16 @@ void testInlineProjectionEntityRevealsRawSyntaxWhenActive() {
     }
     // Entity content spans: source range is shorter than display length (decoded char)
     if (span.kind == InlineSpanKind::Text && span.type == InlineType::Text) {
-      const QString display = active.displayText().mid(
-          static_cast<int>(span.displayStart),
-          static_cast<int>(span.displayEnd - span.displayStart));
+      const QString display = active.displayText().mid(static_cast<int>(span.displayStart),
+                                                       static_cast<int>(span.displayEnd - span.displayStart));
       // Entity decoded chars: source range is wider than 1 char display
       if (span.sourceEnd - span.sourceStart > 1 && display.size() == 1) {
         ++entityContentCount;
       }
     }
   }
-  require(hiddenCount == 1,
-          QStringLiteral("expected 1 hidden entity span, got %1").arg(hiddenCount));
-  require(entityContentCount == 2,
-          QStringLiteral("expected 2 entity content spans, got %1").arg(entityContentCount));
+  require(hiddenCount == 1, QStringLiteral("expected 1 hidden entity span, got %1").arg(hiddenCount));
+  require(entityContentCount == 2, QStringLiteral("expected 2 entity content spans, got %1").arg(entityContentCount));
 
   InlineProjectionState visibleActiveState;
   visibleActiveState.cursorVisibleOffset = QStringLiteral("before & ").size();
@@ -130,14 +126,14 @@ void testInlineProjectionEntityDisplayAfterEditMultiParagraph() {
   require(contentStart >= 0 && contentEnd > contentStart, "entity block content range should be valid");
   const QString contentText = markdown.mid(contentStart, contentEnd - contentStart);
 
-  InlineProjection initialProjection(block->inlines(), contentText, InlineProjectionState{}, contentStart - range.byteStart);
+  InlineProjection initialProjection(block->inlines(), contentText, InlineProjectionState{},
+                                     contentStart - range.byteStart);
   require(initialProjection.isValid(), "initial multi-paragraph entity projection should be valid");
   require(initialProjection.visibleText() == QString::fromUtf8("Entities: & < > \xC2\xA9."),
           QStringLiteral("initial visible text mismatch: %1").arg(initialProjection.visibleText()));
 
   // Edit the first paragraph to trigger local re-parse of a slice containing the second paragraph
-  require(session.applyTextDelta(0, 0, QStringLiteral("x"), true),
-          "multi-paragraph entity edit should apply");
+  require(session.applyTextDelta(0, 0, QStringLiteral("x"), true), "multi-paragraph entity edit should apply");
 
   const QString editedMarkdown = session.markdownText().toString();
   require(editedMarkdown == QStringLiteral("xFirst paragraph.\n\nEntities: &amp; &lt; &gt; &copy;."),
@@ -148,12 +144,14 @@ void testInlineProjectionEntityDisplayAfterEditMultiParagraph() {
   require(block->type() == BlockType::Paragraph, "entity block should still be paragraph");
 
   const SourceRange editedRange = block->sourceRange();
-  const qsizetype editedStart = sourceOffsetForLineColumn(editedMarkdown, editedRange.lineStart, qMax(1, editedRange.columnStart));
+  const qsizetype editedStart =
+      sourceOffsetForLineColumn(editedMarkdown, editedRange.lineStart, qMax(1, editedRange.columnStart));
   const qsizetype editedEnd = sourceOffsetForLineEnd(editedMarkdown, editedRange.lineEnd);
   require(editedStart >= 0 && editedEnd > editedStart, "post-edit content range should be valid");
   const QString editedContentText = editedMarkdown.mid(editedStart, editedEnd - editedStart);
 
-  InlineProjection editProjection(block->inlines(), editedContentText, InlineProjectionState{}, editedStart - editedRange.byteStart);
+  InlineProjection editProjection(block->inlines(), editedContentText, InlineProjectionState{},
+                                  editedStart - editedRange.byteStart);
   require(editProjection.isValid(), "post-edit multi-paragraph entity projection should be valid");
   require(editProjection.visibleText() == QString::fromUtf8("Entities: & < > \xC2\xA9."),
           QStringLiteral("post-edit visible text mismatch: %1").arg(editProjection.visibleText()));
@@ -231,8 +229,9 @@ void testDoubleDollarMathDisplayAndCoordinates() {
 
   // Programmatically created AST nodes have no parser coordinates to fall back on.
   InlineLayout synthesized;
-  synthesized.build({InlineNode::inlineMath(tex, QStringLiteral("$$"))}, QStringLiteral("$$") + tex + QStringLiteral("$$"),
-                    theme, 900.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
+  synthesized.build({InlineNode::inlineMath(tex, QStringLiteral("$$"))},
+                    QStringLiteral("$$") + tex + QStringLiteral("$$"), theme, 900.0, theme.paragraphFont(),
+                    InlineLayout::BuildOptions{});
   require(synthesized.mathAtomCount() == 1 &&
               qAbs(synthesized.mathAtomRects({}).front().height() - displayMath.size.height()) < 0.01,
           "synthesized math should retain its delimiter and display style");
@@ -251,7 +250,8 @@ void testInlineProjectionForwardBiasAtInlineEnd() {
   qsizetype displayOffset = -1;
   require(projection.displayOffsetForSourceOffset(markdown.size(), InlineProjectionBias::Forward, displayOffset),
           "projection forward display mapping should succeed at inline end");
-  require(displayOffset == projection.displayText().size(), "projection forward display offset should reach inline end");
+  require(displayOffset == projection.displayText().size(),
+          "projection forward display offset should reach inline end");
 
   qsizetype sourceOffset = -1;
   require(projection.sourceOffsetForDisplayOffset(displayOffset, InlineProjectionBias::Forward, sourceOffset),
@@ -263,28 +263,20 @@ void testInlineProjectionSpanContracts() {
   InlineProjectionState inactive;
   InlineProjectionState activeStrong;
   activeStrong.cursorSourceOffset = 2;
-  requireProjectionSpans(
-      {InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("x"))})},
-      QStringLiteral("**x**"),
-      activeStrong,
-      {
-          {InlineType::Strong, InlineSpanKind::OpenMarker, 0, 2, 0, 2, 0, 2, 0, 0},
-          {InlineType::Text, InlineSpanKind::Text, 2, 3, 2, 3, 2, 3, 0, 1},
-          {InlineType::Strong, InlineSpanKind::CloseMarker, 3, 5, 3, 5, 3, 5, 1, 1},
-      },
-      QStringLiteral("**x**"),
-      QStringLiteral("x"),
-      "active strong span contract");
-  requireProjectionSpans(
-      {InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("x"))})},
-      QStringLiteral("**x**"),
-      inactive,
-      {
-          {InlineType::Text, InlineSpanKind::Text, 0, 5, 2, 3, 0, 1, 0, 1},
-      },
-      QStringLiteral("x"),
-      QStringLiteral("x"),
-      "inactive strong span contract");
+  requireProjectionSpans({InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("x"))})},
+                         QStringLiteral("**x**"), activeStrong,
+                         {
+                             {InlineType::Strong, InlineSpanKind::OpenMarker, 0, 2, 0, 2, 0, 2, 0, 0},
+                             {InlineType::Text, InlineSpanKind::Text, 2, 3, 2, 3, 2, 3, 0, 1},
+                             {InlineType::Strong, InlineSpanKind::CloseMarker, 3, 5, 3, 5, 3, 5, 1, 1},
+                         },
+                         QStringLiteral("**x**"), QStringLiteral("x"), "active strong span contract");
+  requireProjectionSpans({InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("x"))})},
+                         QStringLiteral("**x**"), inactive,
+                         {
+                             {InlineType::Text, InlineSpanKind::Text, 0, 5, 2, 3, 0, 1, 0, 1},
+                         },
+                         QStringLiteral("x"), QStringLiteral("x"), "inactive strong span contract");
 
   // Link-ness is an orthogonal wrapping attribute (span.link), decoupled from span.type: the link's
   // own structural markers (OpenMarker/HiddenSyntax) carry the Link type, but the WRAPPED content
@@ -292,58 +284,43 @@ void testInlineProjectionSpanContracts() {
   // [![alt](img)](url) keep type=Image so it renders, instead of being clobbered to Link.
   InlineProjectionState activeLink;
   activeLink.cursorSourceOffset = 1;
-  requireProjectionSpans(
-      {InlineNode::link(QStringLiteral("u"), QString(), {InlineNode::text(QStringLiteral("x"))})},
-      QStringLiteral("[x](u)"),
-      activeLink,
-      {
-          {InlineType::Link, InlineSpanKind::OpenMarker, 0, 1, 0, 1, 0, 1, 0, 0},
-          {InlineType::Text, InlineSpanKind::Text, 1, 2, 1, 2, 1, 2, 0, 1},
-          {InlineType::Link, InlineSpanKind::HiddenSyntax, 2, 6, 2, 6, 2, 6, 1, 1},
-      },
-      QStringLiteral("[x](u)"),
-      QStringLiteral("x"),
-      "active link span contract");
-  requireProjectionSpans(
-      {InlineNode::link(QStringLiteral("u"), QString(), {InlineNode::text(QStringLiteral("x"))})},
-      QStringLiteral("[x](u)"),
-      inactive,
-      {
-          {InlineType::Text, InlineSpanKind::Text, 1, 2, 1, 2, 0, 1, 0, 1},
-      },
-      QStringLiteral("x"),
-      QStringLiteral("x"),
-      "inactive link span contract");
+  requireProjectionSpans({InlineNode::link(QStringLiteral("u"), QString(), {InlineNode::text(QStringLiteral("x"))})},
+                         QStringLiteral("[x](u)"), activeLink,
+                         {
+                             {InlineType::Link, InlineSpanKind::OpenMarker, 0, 1, 0, 1, 0, 1, 0, 0},
+                             {InlineType::Text, InlineSpanKind::Text, 1, 2, 1, 2, 1, 2, 0, 1},
+                             {InlineType::Link, InlineSpanKind::HiddenSyntax, 2, 6, 2, 6, 2, 6, 1, 1},
+                         },
+                         QStringLiteral("[x](u)"), QStringLiteral("x"), "active link span contract");
+  requireProjectionSpans({InlineNode::link(QStringLiteral("u"), QString(), {InlineNode::text(QStringLiteral("x"))})},
+                         QStringLiteral("[x](u)"), inactive,
+                         {
+                             {InlineType::Text, InlineSpanKind::Text, 1, 2, 1, 2, 0, 1, 0, 1},
+                         },
+                         QStringLiteral("x"), QStringLiteral("x"), "inactive link span contract");
 
   InlineProjectionState activeImage;
   activeImage.cursorSourceOffset = 2;
-  requireProjectionSpans(
-      {InlineNode::image(QStringLiteral("u"), QStringLiteral("x"), QString())},
-      QStringLiteral("![x](u)"),
-      activeImage,
-      {
-          {InlineType::Image, InlineSpanKind::OpenMarker, 0, 2, 0, 2, 0, 2, 0, 0},
-          {InlineType::Image, InlineSpanKind::Atom, 0, 7, 2, 3, 2, 3, 0, 1},
-          {InlineType::Image, InlineSpanKind::HiddenSyntax, 3, 7, 3, 7, 3, 7, 1, 1},
-      },
-      QStringLiteral("![x](u)"),
-      QStringLiteral("x"),
-      "active image span contract");
-  requireProjectionSpans(
-      {InlineNode::image(QStringLiteral("u"), QStringLiteral("x"), QString())},
-      QStringLiteral("![x](u)"),
-      inactive,
-      {
-          {InlineType::Image, InlineSpanKind::Atom, 0, 7, 0, 7, 0, 1, 0, 1},
-      },
-      QStringLiteral("x"),
-      QStringLiteral("x"),
-      "inactive image span contract");
+  requireProjectionSpans({InlineNode::image(QStringLiteral("u"), QStringLiteral("x"), QString())},
+                         QStringLiteral("![x](u)"), activeImage,
+                         {
+                             {InlineType::Image, InlineSpanKind::OpenMarker, 0, 2, 0, 2, 0, 2, 0, 0},
+                             {InlineType::Image, InlineSpanKind::Atom, 0, 7, 2, 3, 2, 3, 0, 1},
+                             {InlineType::Image, InlineSpanKind::HiddenSyntax, 3, 7, 3, 7, 3, 7, 1, 1},
+                         },
+                         QStringLiteral("![x](u)"), QStringLiteral("x"), "active image span contract");
+  requireProjectionSpans({InlineNode::image(QStringLiteral("u"), QStringLiteral("x"), QString())},
+                         QStringLiteral("![x](u)"), inactive,
+                         {
+                             {InlineType::Image, InlineSpanKind::Atom, 0, 7, 0, 7, 0, 1, 0, 1},
+                         },
+                         QStringLiteral("x"), QStringLiteral("x"), "inactive image span contract");
 }
 
 void testInlineHtmlImageProjectionContract() {
   DocumentSession session;
-  const QString markdown = QStringLiteral("<a href=\"LICENSE\"><img src=\"license.svg\" alt=\"License\"><img src=\"platform.svg\" alt=\"Platform\"></a>");
+  const QString markdown = QStringLiteral(
+      "<a href=\"LICENSE\"><img src=\"license.svg\" alt=\"License\"><img src=\"platform.svg\" alt=\"Platform\"></a>");
   session.setMarkdownText(markdown, false);
   MarkdownNode* block = blockAt(session, 0);
 
@@ -369,72 +346,36 @@ void testInlineHtmlImageProjectionContract() {
 }
 
 void testInlineProjectionMappingMatrix() {
-  requireProjectionRoundTrip(
-      {InlineNode::emphasis(QStringLiteral("*"), {InlineNode::text(QStringLiteral("x"))})},
-      QStringLiteral("*x*"),
-      1,
-      QStringLiteral("x"),
-      QStringLiteral("*x*"),
-      "emphasis projection should be valid");
-  requireProjectionRoundTrip(
-      {InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("x"))})},
-      QStringLiteral("**x**"),
-      2,
-      QStringLiteral("x"),
-      QStringLiteral("**x**"),
-      "strong projection should be valid");
-  requireProjectionRoundTrip(
-      {InlineNode::strikethrough(QStringLiteral("~~"), {InlineNode::text(QStringLiteral("x"))})},
-      QStringLiteral("~~x~~"),
-      2,
-      QStringLiteral("x"),
-      QStringLiteral("~~x~~"),
-      "strikethrough projection should be valid");
-  requireProjectionRoundTrip(
-      {InlineNode::code(QStringLiteral("x"))},
-      QStringLiteral("`x`"),
-      1,
-      QStringLiteral("x"),
-      QStringLiteral("`x`"),
-      "code projection should be valid");
-  requireProjectionRoundTrip(
-      {InlineNode::inlineMath(QStringLiteral("x"))},
-      QStringLiteral("$x$"),
-      1,
-      QStringLiteral("x"),
-      QStringLiteral("$x$"),
-      "inline math projection should be valid");
+  requireProjectionRoundTrip({InlineNode::emphasis(QStringLiteral("*"), {InlineNode::text(QStringLiteral("x"))})},
+                             QStringLiteral("*x*"), 1, QStringLiteral("x"), QStringLiteral("*x*"),
+                             "emphasis projection should be valid");
+  requireProjectionRoundTrip({InlineNode::strong(QStringLiteral("**"), {InlineNode::text(QStringLiteral("x"))})},
+                             QStringLiteral("**x**"), 2, QStringLiteral("x"), QStringLiteral("**x**"),
+                             "strong projection should be valid");
+  requireProjectionRoundTrip({InlineNode::strikethrough(QStringLiteral("~~"), {InlineNode::text(QStringLiteral("x"))})},
+                             QStringLiteral("~~x~~"), 2, QStringLiteral("x"), QStringLiteral("~~x~~"),
+                             "strikethrough projection should be valid");
+  requireProjectionRoundTrip({InlineNode::code(QStringLiteral("x"))}, QStringLiteral("`x`"), 1, QStringLiteral("x"),
+                             QStringLiteral("`x`"), "code projection should be valid");
+  requireProjectionRoundTrip({InlineNode::inlineMath(QStringLiteral("x"))}, QStringLiteral("$x$"), 1,
+                             QStringLiteral("x"), QStringLiteral("$x$"), "inline math projection should be valid");
   requireProjectionRoundTrip(
       {InlineNode::link(QStringLiteral("https://example.com"), QString(), {InlineNode::text(QStringLiteral("label"))})},
-      QStringLiteral("[label](https://example.com)"),
-      2,
-      QStringLiteral("label"),
-      QStringLiteral("[label](https://example.com)"),
-      "link projection should be valid");
+      QStringLiteral("[label](https://example.com)"), 2, QStringLiteral("label"),
+      QStringLiteral("[label](https://example.com)"), "link projection should be valid");
   requireProjectionRoundTrip(
       {InlineNode::image(QStringLiteral("https://example.com/image.png"), QStringLiteral("alt"), QString())},
-      QStringLiteral("![alt](https://example.com/image.png)"),
-      2,
-      QStringLiteral("alt"),
-      QStringLiteral("![alt](https://example.com/image.png)"),
-      "image projection should be valid");
+      QStringLiteral("![alt](https://example.com/image.png)"), 2, QStringLiteral("alt"),
+      QStringLiteral("![alt](https://example.com/image.png)"), "image projection should be valid");
   requireProjectionRoundTrip(
-      {InlineNode::strong(
-          QStringLiteral("**"),
-          {InlineNode::text(QStringLiteral("bold ")),
-           InlineNode::emphasis(QStringLiteral("*"), {InlineNode::text(QStringLiteral("em"))})})},
-      QStringLiteral("**bold *em***"),
-      9,
-      QStringLiteral("bold em"),
-      QStringLiteral("**bold *em***"),
+      {InlineNode::strong(QStringLiteral("**"),
+                          {InlineNode::text(QStringLiteral("bold ")),
+                           InlineNode::emphasis(QStringLiteral("*"), {InlineNode::text(QStringLiteral("em"))})})},
+      QStringLiteral("**bold *em***"), 9, QStringLiteral("bold em"), QStringLiteral("**bold *em***"),
       "nested inline projection should be valid");
-  requireProjectionRoundTrip(
-      {InlineNode::text(QStringLiteral("alpha"))},
-      QStringLiteral("  alpha"),
-      0,
-      QStringLiteral("  alpha"),
-      QStringLiteral("  alpha"),
-      "leading spaces omitted by CommonMark AST should remain editable text");
+  requireProjectionRoundTrip({InlineNode::text(QStringLiteral("alpha"))}, QStringLiteral("  alpha"), 0,
+                             QStringLiteral("  alpha"), QStringLiteral("  alpha"),
+                             "leading spaces omitted by CommonMark AST should remain editable text");
 }
 
 int main(int argc, char** argv) {

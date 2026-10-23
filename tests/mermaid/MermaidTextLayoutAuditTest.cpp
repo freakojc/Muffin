@@ -15,43 +15,40 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString readSource(const QString& path) {
   QFile file(path);
-  require(file.open(QIODevice::ReadOnly),
-          QStringLiteral("Cannot read text-layout source: %1").arg(path));
+  require(file.open(QIODevice::ReadOnly), QStringLiteral("Cannot read text-layout source: %1").arg(path));
   return QString::fromUtf8(file.readAll());
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   require(argc == 2, QStringLiteral("Expected FlowLabel.cpp path"));
   const QFileInfo flowInfo(QString::fromLocal8Bit(argv[1]));
-  const QDir sourceRoot(flowInfo.absoluteDir().absoluteFilePath(
-      QStringLiteral("../../..")));
+  const QDir sourceRoot(flowInfo.absoluteDir().absoluteFilePath(QStringLiteral("../../..")));
   const QString flow = readSource(flowInfo.absoluteFilePath());
-  const QString sequence = readSource(sourceRoot.filePath(
-      QStringLiteral("src/mermaid/sequence/SequenceLabel.cpp")));
-  const QString layout = readSource(sourceRoot.filePath(
-      QStringLiteral("src/mermaid/flowchart/FlowchartLayout.cpp")));
-  const QString painter = readSource(sourceRoot.filePath(
-      QStringLiteral("src/mermaid/scene/FlowScenePainter.cpp")));
+  const QString sequence = readSource(sourceRoot.filePath(QStringLiteral("src/mermaid/sequence/SequenceLabel.cpp")));
+  const QString layout = readSource(sourceRoot.filePath(QStringLiteral("src/mermaid/flowchart/FlowchartLayout.cpp")));
+  const QString painter = readSource(sourceRoot.filePath(QStringLiteral("src/mermaid/scene/FlowScenePainter.cpp")));
   const QString combined = flow + sequence + layout + painter;
 
   // Specialized MathML/OpenType shaping keeps its own backend. Diagram labels
   // and editor measurements must enter the shared logical-pixel facade.
-  QDirIterator sources(sourceRoot.filePath(QStringLiteral("src/mermaid")),
-                       {QStringLiteral("*.cpp")}, QDir::Files, QDirIterator::Subdirectories);
+  QDirIterator sources(sourceRoot.filePath(QStringLiteral("src/mermaid")), {QStringLiteral("*.cpp")}, QDir::Files,
+                       QDirIterator::Subdirectories);
   const QRegularExpression directLayout(QStringLiteral(R"(\bQTextLayout\s+\w+\s*\()"));
   const QRegularExpression directPaint(QStringLiteral(R"(\bpainter\.drawText\s*\()"));
   while (sources.hasNext()) {
     const QString path = QDir::fromNativeSeparators(sources.next());
-    if (path.contains(QStringLiteral("/mermaid/math/"))) continue;
+    if (path.contains(QStringLiteral("/mermaid/math/")))
+      continue;
     const QString source = readSource(path);
-    require(!source.contains(QStringLiteral("#include <QFontMetricsF>")) &&
-                !directLayout.match(source).hasMatch() && !directPaint.match(source).hasMatch(),
+    require(!source.contains(QStringLiteral("#include <QFontMetricsF>")) && !directLayout.match(source).hasMatch() &&
+                !directPaint.match(source).hasMatch(),
             QStringLiteral("Mermaid label bypassed TextLayout: %1").arg(path));
   }
 
@@ -85,18 +82,15 @@ int main(int argc, char** argv) {
   };
   for (const QString& token : forbidden)
     require(!combined.contains(token),
-            QStringLiteral("Forbidden empirical text-layout correction returned: %1")
-                .arg(token));
+            QStringLiteral("Forbidden empirical text-layout correction returned: %1").arg(token));
 
   require(sequence.contains(QStringLiteral("flowchart::layoutFlowLabel")) &&
               sequence.contains(QStringLiteral("measureFlowTextInkWidth")) &&
-              !sequence.contains(QStringLiteral("QTextLayout")) &&
-              !sequence.contains(QStringLiteral("QFontMetrics")) &&
+              !sequence.contains(QStringLiteral("QTextLayout")) && !sequence.contains(QStringLiteral("QFontMetrics")) &&
               !sequence.contains(QStringLiteral("QGlyphRun")),
           QStringLiteral("Sequence label measurement bypassed the shared shaping path"));
   require(layout.contains(QStringLiteral("layoutFlowchartEdgeLabel")) &&
-              layout.contains(QStringLiteral("wrapFlowLabel")) &&
-              !layout.contains(QStringLiteral("QTextLayout")) &&
+              layout.contains(QStringLiteral("wrapFlowLabel")) && !layout.contains(QStringLiteral("QTextLayout")) &&
               !layout.contains(QStringLiteral("AdvanceScale")),
           QStringLiteral("Flowchart edge wrapping bypassed the prepared label path"));
   require(painter.contains(QStringLiteral("e.labelSize")) &&

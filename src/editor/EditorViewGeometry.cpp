@@ -7,7 +7,8 @@ namespace editor_geometry {
 
 bool isSelectableZone(HitTestResult::Zone zone) {
   return zone == HitTestResult::Zone::Text || zone == HitTestResult::Zone::Code || zone == HitTestResult::Zone::Math ||
-         zone == HitTestResult::Zone::Html || zone == HitTestResult::Zone::FrontMatter || zone == HitTestResult::Zone::TableCell;
+         zone == HitTestResult::Zone::Html || zone == HitTestResult::Zone::FrontMatter ||
+         zone == HitTestResult::Zone::TableCell;
 }
 
 bool isDragSelectableZone(HitTestResult::Zone zone) {
@@ -22,27 +23,27 @@ qsizetype selectableLength(const BlockLayout* block) {
     return inlineLayout->plainText().size();
   }
   switch (block->type()) {
-    case BlockType::FrontMatter:
-    case BlockType::CodeFence:
-    case BlockType::MathBlock:
-    case BlockType::HtmlBlock:
-      return block->literal().size();
-    case BlockType::Table:
-      return 1;
-    case BlockType::LinkDefinition:
-    case BlockType::FootnoteDefinition: {
-      const DefinitionBlock& def = block->definition();
-      if (!def.markerRange.isValid()) {
-        return 0;
-      }
-      const qsizetype end = def.sourceRange.isValid()
-                                ? def.sourceRange.end
-                                : qMax(def.markerRange.end,
-                                       qMax(def.destinationRange.end, qMax(def.titleRange.end, def.noteRange.end)));
-      return qMax<qsizetype>(0, end - def.markerRange.start);
-    }
-    default:
+  case BlockType::FrontMatter:
+  case BlockType::CodeFence:
+  case BlockType::MathBlock:
+  case BlockType::HtmlBlock:
+    return block->literal().size();
+  case BlockType::Table:
+    return 1;
+  case BlockType::LinkDefinition:
+  case BlockType::FootnoteDefinition: {
+    const DefinitionBlock& def = block->definition();
+    if (!def.markerRange.isValid()) {
       return 0;
+    }
+    const qsizetype end =
+        def.sourceRange.isValid()
+            ? def.sourceRange.end
+            : qMax(def.markerRange.end, qMax(def.destinationRange.end, qMax(def.titleRange.end, def.noteRange.end)));
+    return qMax<qsizetype>(0, end - def.markerRange.start);
+  }
+  default:
+    return 0;
   }
 }
 
@@ -154,7 +155,7 @@ QVector<const BlockLayout*> blocksBetween(const DocumentLayout& layout, NodeId f
   qsizetype lastPos = -1;
   const auto flatten = [&](const auto& self, const BlockLayout& block) -> void {
     if (firstPos >= 0 && lastPos >= 0) {
-      return;  // both endpoints already located higher up; nothing more to record
+      return; // both endpoints already located higher up; nothing more to record
     }
     flat.push_back(&block);
     const NodeId id = block.nodeId();
@@ -182,7 +183,7 @@ QVector<const BlockLayout*> blocksBetween(const DocumentLayout& layout, NodeId f
   }
 
   if (firstPos < 0 || lastPos < 0) {
-    return result;  // an endpoint sits in an un-promoted slot; nothing visible lies between them
+    return result; // an endpoint sits in an un-promoted slot; nothing visible lies between them
   }
   const qsizetype lo = qMin(firstPos, lastPos);
   const qsizetype hi = qMax(firstPos, lastPos);
@@ -193,8 +194,7 @@ QVector<const BlockLayout*> blocksBetween(const DocumentLayout& layout, NodeId f
 }
 
 void forEachMultiBlockSelectionBlock(
-    const DocumentLayout& layout,
-    const SelectionRange& selection,
+    const DocumentLayout& layout, const SelectionRange& selection,
     const std::function<void(const BlockLayout* block, qsizetype start, qsizetype end)>& visit) {
   if (!visit || selection.isSingleBlock() || selection.isCollapsed()) {
     return;
@@ -244,5 +244,5 @@ bool blockComesBefore(const DocumentLayout& layout, NodeId first, NodeId second)
   return !range.isEmpty() && range.first()->nodeId() == first;
 }
 
-}  // namespace editor_geometry
-}  // namespace muffin
+} // namespace editor_geometry
+} // namespace muffin

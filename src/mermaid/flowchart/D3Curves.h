@@ -34,26 +34,54 @@ namespace muffin::mermaid::flowchart::d3curve {
 struct PathContext {
   QString out;
 
-  void moveTo(qreal x, qreal y) { out += QLatin1Char('M'); writeNumber(x); out += QLatin1Char(','); writeNumber(y); }
-  void lineTo(qreal x, qreal y) { out += QLatin1Char('L'); writeNumber(x); out += QLatin1Char(','); writeNumber(y); }
+  void moveTo(qreal x, qreal y) {
+    out += QLatin1Char('M');
+    writeNumber(x);
+    out += QLatin1Char(',');
+    writeNumber(y);
+  }
+  void lineTo(qreal x, qreal y) {
+    out += QLatin1Char('L');
+    writeNumber(x);
+    out += QLatin1Char(',');
+    writeNumber(y);
+  }
   void bezierCurveTo(qreal c1x, qreal c1y, qreal c2x, qreal c2y, qreal x, qreal y) {
-    out += QLatin1Char('C'); writeNumber(c1x); out += QLatin1Char(','); writeNumber(c1y);
-    out += QLatin1Char(','); writeNumber(c2x); out += QLatin1Char(','); writeNumber(c2y);
-    out += QLatin1Char(','); writeNumber(x); out += QLatin1Char(','); writeNumber(y);
+    out += QLatin1Char('C');
+    writeNumber(c1x);
+    out += QLatin1Char(',');
+    writeNumber(c1y);
+    out += QLatin1Char(',');
+    writeNumber(c2x);
+    out += QLatin1Char(',');
+    writeNumber(c2y);
+    out += QLatin1Char(',');
+    writeNumber(x);
+    out += QLatin1Char(',');
+    writeNumber(y);
   }
   void quadraticCurveTo(qreal cx, qreal cy, qreal x, qreal y) {
-    out += QLatin1Char('Q'); writeNumber(cx); out += QLatin1Char(','); writeNumber(cy);
-    out += QLatin1Char(' '); writeNumber(x); out += QLatin1Char(','); writeNumber(y);
+    out += QLatin1Char('Q');
+    writeNumber(cx);
+    out += QLatin1Char(',');
+    writeNumber(cy);
+    out += QLatin1Char(' ');
+    writeNumber(x);
+    out += QLatin1Char(',');
+    writeNumber(y);
   }
   void closePath() { out += QLatin1Char('Z'); }
 
 private:
   void writeNumber(qreal v) {
-    if (std::abs(v) < 0.0005) v = 0.0;
+    if (std::abs(v) < 0.0005)
+      v = 0.0;
     QString s = QString::number(v, 'f', 3);
     int i = s.size() - 1;
-    while (i >= 0 && s[i] == QLatin1Char('0')) --i;
-    if (i >= 0 && s[i] == QLatin1Char('.')) --i;
+    while (i >= 0 && s[i] == QLatin1Char('0'))
+      --i;
+    if (i >= 0 && s[i] == QLatin1Char('.'))
+      --i;
     out += s.mid(0, i + 1);
   }
 };
@@ -69,8 +97,12 @@ namespace detail {
 inline constexpr qreal kLineUndefined() {
   return std::numeric_limits<qreal>::quiet_NaN();
 }
-inline bool lineTruthy(qreal l) { return l != 0.0 && !std::isnan(l); }  // JS `if (this._line)`
-inline bool lineNotEq0(qreal l) { return l != 0.0; }                    // JS `this._line !== 0`
+inline bool lineTruthy(qreal l) {
+  return l != 0.0 && !std::isnan(l);
+} // JS `if (this._line)`
+inline bool lineNotEq0(qreal l) {
+  return l != 0.0;
+} // JS `this._line !== 0`
 
 // JS `h0 || (h1 < 0 && -0)`: divisor is h0 when h0 is truthy (nonzero),
 // otherwise -0 when the sibling span is negative, else +0. -0 vs +0 fixes the
@@ -87,14 +119,25 @@ struct Linear {
   explicit Linear(PathContext& ctx) : c(ctx) {}
   void lineStart() { _point = 0; }
   void lineEnd() {
-    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1)) c.closePath();
+    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1))
+      c.closePath();
     _line = 1 - _line;
   }
   void point(qreal x, qreal y) {
     switch (_point) {
-      case 0: _point = 1; if (lineTruthy(_line)) c.lineTo(x, y); else c.moveTo(x, y); break;
-      case 1: _point = 2; [[fallthrough]];
-      default: c.lineTo(x, y); break;
+    case 0:
+      _point = 1;
+      if (lineTruthy(_line))
+        c.lineTo(x, y);
+      else
+        c.moveTo(x, y);
+      break;
+    case 1:
+      _point = 2;
+      [[fallthrough]];
+    default:
+      c.lineTo(x, y);
+      break;
     }
   }
 };
@@ -108,29 +151,50 @@ struct Basis {
   qreal _line = kLineUndefined();
   explicit Basis(PathContext& ctx) : c(ctx) {}
   void bezier(qreal x, qreal y) {
-    c.bezierCurveTo(
-      (2 * _x0 + _x1) / 3, (2 * _y0 + _y1) / 3,
-      (_x0 + 2 * _x1) / 3, (_y0 + 2 * _y1) / 3,
-      (_x0 + 4 * _x1 + x) / 6, (_y0 + 4 * _y1 + y) / 6);
+    c.bezierCurveTo((2 * _x0 + _x1) / 3, (2 * _y0 + _y1) / 3, (_x0 + 2 * _x1) / 3, (_y0 + 2 * _y1) / 3,
+                    (_x0 + 4 * _x1 + x) / 6, (_y0 + 4 * _y1 + y) / 6);
   }
-  void lineStart() { _x0 = _x1 = _y0 = _y1 = kLineUndefined(); _point = 0; }
+  void lineStart() {
+    _x0 = _x1 = _y0 = _y1 = kLineUndefined();
+    _point = 0;
+  }
   void lineEnd() {
     switch (_point) {
-      case 3: bezier(_x1, _y1); [[fallthrough]];
-      case 2: c.lineTo(_x1, _y1); break;
+    case 3:
+      bezier(_x1, _y1);
+      [[fallthrough]];
+    case 2:
+      c.lineTo(_x1, _y1);
+      break;
     }
-    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1)) c.closePath();
+    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1))
+      c.closePath();
     _line = 1 - _line;
   }
   void point(qreal x, qreal y) {
     switch (_point) {
-      case 0: _point = 1; if (lineTruthy(_line)) c.lineTo(x, y); else c.moveTo(x, y); break;
-      case 1: _point = 2; break;
-      case 2: _point = 3; c.lineTo((5 * _x0 + _x1) / 6, (5 * _y0 + _y1) / 6); [[fallthrough]];
-      default: bezier(x, y); break;
+    case 0:
+      _point = 1;
+      if (lineTruthy(_line))
+        c.lineTo(x, y);
+      else
+        c.moveTo(x, y);
+      break;
+    case 1:
+      _point = 2;
+      break;
+    case 2:
+      _point = 3;
+      c.lineTo((5 * _x0 + _x1) / 6, (5 * _y0 + _y1) / 6);
+      [[fallthrough]];
+    default:
+      bezier(x, y);
+      break;
     }
-    _x0 = _x1; _x1 = x;
-    _y0 = _y1; _y1 = y;
+    _x0 = _x1;
+    _x1 = x;
+    _y0 = _y1;
+    _y1 = y;
   }
 };
 
@@ -142,29 +206,46 @@ struct Step {
   int _point = 0;
   qreal _line = kLineUndefined();
   Step(PathContext& ctx, qreal t) : c(ctx), _t(t) {}
-  void lineStart() { _x = _y = kLineUndefined(); _point = 0; }
+  void lineStart() {
+    _x = _y = kLineUndefined();
+    _point = 0;
+  }
   void lineEnd() {
-    if (_t > 0 && _t < 1 && _point == 2) c.lineTo(_x, _y);
-    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1)) c.closePath();
-    if (_line >= 0) { _t = 1 - _t; _line = 1 - _line; }
+    if (_t > 0 && _t < 1 && _point == 2)
+      c.lineTo(_x, _y);
+    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1))
+      c.closePath();
+    if (_line >= 0) {
+      _t = 1 - _t;
+      _line = 1 - _line;
+    }
   }
   void point(qreal x, qreal y) {
     switch (_point) {
-      case 0: _point = 1; if (lineTruthy(_line)) c.lineTo(x, y); else c.moveTo(x, y); break;
-      case 1: _point = 2; [[fallthrough]];
-      default: {
-        if (_t <= 0) {
-          c.lineTo(_x, y);
-          c.lineTo(x, y);
-        } else {
-          qreal x1 = _x * (1 - _t) + x * _t;
-          c.lineTo(x1, _y);
-          c.lineTo(x1, y);
-        }
-        break;
+    case 0:
+      _point = 1;
+      if (lineTruthy(_line))
+        c.lineTo(x, y);
+      else
+        c.moveTo(x, y);
+      break;
+    case 1:
+      _point = 2;
+      [[fallthrough]];
+    default: {
+      if (_t <= 0) {
+        c.lineTo(_x, y);
+        c.lineTo(x, y);
+      } else {
+        qreal x1 = _x * (1 - _t) + x * _t;
+        c.lineTo(x1, _y);
+        c.lineTo(x1, y);
       }
+      break;
     }
-    _x = x; _y = y;
+    }
+    _x = x;
+    _y = y;
   }
 };
 
@@ -178,31 +259,53 @@ struct Cardinal {
   qreal _line = kLineUndefined();
   Cardinal(PathContext& ctx, qreal tension) : c(ctx), _k((1 - tension) / 6) {}
   void bezier(qreal x, qreal y) {
-    c.bezierCurveTo(
-      _x1 + _k * (_x2 - _x0), _y1 + _k * (_y2 - _y0),
-      _x2 + _k * (_x1 - x), _y2 + _k * (_y1 - y),
-      _x2, _y2);
+    c.bezierCurveTo(_x1 + _k * (_x2 - _x0), _y1 + _k * (_y2 - _y0), _x2 + _k * (_x1 - x), _y2 + _k * (_y1 - y), _x2,
+                    _y2);
   }
   void lineStart() {
-    _x0 = _x1 = _x2 = _y0 = _y1 = _y2 = kLineUndefined(); _point = 0;
+    _x0 = _x1 = _x2 = _y0 = _y1 = _y2 = kLineUndefined();
+    _point = 0;
   }
   void lineEnd() {
     switch (_point) {
-      case 2: c.lineTo(_x2, _y2); break;
-      case 3: bezier(_x1, _y1); break;
+    case 2:
+      c.lineTo(_x2, _y2);
+      break;
+    case 3:
+      bezier(_x1, _y1);
+      break;
     }
-    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1)) c.closePath();
+    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1))
+      c.closePath();
     _line = 1 - _line;
   }
   void point(qreal x, qreal y) {
     switch (_point) {
-      case 0: _point = 1; if (lineTruthy(_line)) c.lineTo(x, y); else c.moveTo(x, y); break;
-      case 1: _point = 2; _x1 = x; _y1 = y; break;
-      case 2: _point = 3; [[fallthrough]];
-      default: bezier(x, y); break;
+    case 0:
+      _point = 1;
+      if (lineTruthy(_line))
+        c.lineTo(x, y);
+      else
+        c.moveTo(x, y);
+      break;
+    case 1:
+      _point = 2;
+      _x1 = x;
+      _y1 = y;
+      break;
+    case 2:
+      _point = 3;
+      [[fallthrough]];
+    default:
+      bezier(x, y);
+      break;
     }
-    _x0 = _x1; _x1 = _x2; _x2 = x;
-    _y0 = _y1; _y1 = _y2; _y2 = y;
+    _x0 = _x1;
+    _x1 = _x2;
+    _x2 = x;
+    _y0 = _y1;
+    _y1 = _y2;
+    _y2 = y;
   }
 };
 
@@ -211,8 +314,7 @@ struct Cardinal {
 // on the context type so monotoneY can drive it through a ReflectContext that
 // swaps x/y (d3's MonotoneY = MonotoneX with a ReflectContext, calling
 // point(y, x)).
-template <typename Ctx>
-struct MonotoneX {
+template <typename Ctx> struct MonotoneX {
   Ctx& c;
   qreal _x0 = kLineUndefined(), _x1 = kLineUndefined();
   qreal _y0 = kLineUndefined(), _y1 = kLineUndefined();
@@ -230,37 +332,63 @@ struct MonotoneX {
     qreal s1 = (y2 - _y1) / slopeDiv(h1, h0);
     qreal p = (s0 * h1 + s1 * h0) / (h0 + h1);
     qreal v = (sign(s0) + sign(s1)) * std::min(std::abs(s0), std::min(std::abs(s1), 0.5 * std::abs(p)));
-    return (v != 0.0 && !std::isnan(v)) ? v : 0.0;  // `|| 0`
+    return (v != 0.0 && !std::isnan(v)) ? v : 0.0; // `|| 0`
   }
   qreal slope2(qreal t) const {
     qreal h = _x1 - _x0;
-    return h != 0.0 ? (3 * (_y1 - _y0) / h - t) / 2 : t;  // `h ? ... : t`
+    return h != 0.0 ? (3 * (_y1 - _y0) / h - t) / 2 : t; // `h ? ... : t`
   }
   void bezier(qreal t0, qreal t1) {
     qreal x0 = _x0, y0 = _y0, x1 = _x1, y1 = _y1;
     qreal dx = (x1 - x0) / 3;
     c.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
   }
-  void lineStart() { _x0 = _x1 = _y0 = _y1 = _t0 = kLineUndefined(); _point = 0; }
+  void lineStart() {
+    _x0 = _x1 = _y0 = _y1 = _t0 = kLineUndefined();
+    _point = 0;
+  }
   void lineEnd() {
     switch (_point) {
-      case 2: c.lineTo(_x1, _y1); break;
-      case 3: bezier(_t0, slope2(_t0)); break;
+    case 2:
+      c.lineTo(_x1, _y1);
+      break;
+    case 3:
+      bezier(_t0, slope2(_t0));
+      break;
     }
-    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1)) c.closePath();
+    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1))
+      c.closePath();
     _line = 1 - _line;
   }
   void point(qreal x, qreal y) {
     qreal t1 = kLineUndefined();
-    if (x == _x1 && y == _y1) return;  // ignore coincident points
+    if (x == _x1 && y == _y1)
+      return; // ignore coincident points
     switch (_point) {
-      case 0: _point = 1; if (lineTruthy(_line)) c.lineTo(x, y); else c.moveTo(x, y); break;
-      case 1: _point = 2; break;
-      case 2: _point = 3; t1 = slope3(x, y); bezier(slope2(t1), t1); break;
-      default: t1 = slope3(x, y); bezier(_t0, t1); break;
+    case 0:
+      _point = 1;
+      if (lineTruthy(_line))
+        c.lineTo(x, y);
+      else
+        c.moveTo(x, y);
+      break;
+    case 1:
+      _point = 2;
+      break;
+    case 2:
+      _point = 3;
+      t1 = slope3(x, y);
+      bezier(slope2(t1), t1);
+      break;
+    default:
+      t1 = slope3(x, y);
+      bezier(_t0, t1);
+      break;
     }
-    _x0 = _x1; _x1 = x;
-    _y0 = _y1; _y1 = y;
+    _x0 = _x1;
+    _x1 = x;
+    _y0 = _y1;
+    _y1 = y;
     _t0 = t1;
   }
 };
@@ -283,38 +411,48 @@ struct MonotoneY {
   explicit MonotoneY(PathContext& ctx) : rc(ctx), mx(rc) {}
   void lineStart() { mx.lineStart(); }
   void lineEnd() { mx.lineEnd(); }
-  void point(qreal x, qreal y) { mx.point(y, x); }  // d3: MonotoneX.point.call(this, y, x)
+  void point(qreal x, qreal y) { mx.point(y, x); } // d3: MonotoneX.point.call(this, y, x)
 };
 
 // --- curveBumpX / curveBumpY (bump.js) ---
 struct Bump {
   PathContext& c;
-  bool _x;  // true = bumpX
+  bool _x; // true = bumpX
   qreal _x0 = kLineUndefined(), _y0 = kLineUndefined();
   int _point = 0;
   qreal _line = kLineUndefined();
   Bump(PathContext& ctx, bool x) : c(ctx), _x(x) {}
   void lineStart() { _point = 0; }
   void lineEnd() {
-    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1)) c.closePath();
+    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1))
+      c.closePath();
     _line = 1 - _line;
   }
   void point(qreal x, qreal y) {
     switch (_point) {
-      case 0: _point = 1; if (lineTruthy(_line)) c.lineTo(x, y); else c.moveTo(x, y); break;
-      case 1: _point = 2; [[fallthrough]];
-      default: {
-        if (_x) {
-          qreal mid = (_x0 + x) / 2;  // d3 assigns this._x0 mid-expression; both
-          c.bezierCurveTo(mid, _y0, mid, y, x, y);  // control x use the midpoint,
-        } else {                                    // then _x0 is overwritten below.
-          qreal mid = (_y0 + y) / 2;
-          c.bezierCurveTo(_x0, mid, x, mid, x, y);
-        }
-        break;
+    case 0:
+      _point = 1;
+      if (lineTruthy(_line))
+        c.lineTo(x, y);
+      else
+        c.moveTo(x, y);
+      break;
+    case 1:
+      _point = 2;
+      [[fallthrough]];
+    default: {
+      if (_x) {
+        qreal mid = (_x0 + x) / 2;               // d3 assigns this._x0 mid-expression; both
+        c.bezierCurveTo(mid, _y0, mid, y, x, y); // control x use the midpoint,
+      } else {                                   // then _x0 is overwritten below.
+        qreal mid = (_y0 + y) / 2;
+        c.bezierCurveTo(_x0, mid, x, mid, x, y);
       }
+      break;
     }
-    _x0 = x; _y0 = y;
+    }
+    _x0 = x;
+    _y0 = y;
   }
 };
 
@@ -327,23 +465,45 @@ struct Natural {
   explicit Natural(PathContext& ctx) : c(ctx) {}
   static void controlPoints(const QVector<qreal>& x, QVector<qreal>& a, QVector<qreal>& b) {
     int n = x.size() - 1;
-    a.resize(n); b.resize(n);
-    if (n <= 0) return;
+    a.resize(n);
+    b.resize(n);
+    if (n <= 0)
+      return;
     QVector<qreal> r(n);
-    a[0] = 0; b[0] = 2; r[0] = x[0] + 2 * x[1];
-    for (int i = 1; i < n - 1; ++i) { a[i] = 1; b[i] = 4; r[i] = 4 * x[i] + 2 * x[i + 1]; }
-    a[n - 1] = 2; b[n - 1] = 7; r[n - 1] = 8 * x[n - 1] + x[n];
-    for (int i = 1; i < n; ++i) { qreal m = a[i] / b[i - 1]; b[i] -= m; r[i] -= m * r[i - 1]; }
+    a[0] = 0;
+    b[0] = 2;
+    r[0] = x[0] + 2 * x[1];
+    for (int i = 1; i < n - 1; ++i) {
+      a[i] = 1;
+      b[i] = 4;
+      r[i] = 4 * x[i] + 2 * x[i + 1];
+    }
+    a[n - 1] = 2;
+    b[n - 1] = 7;
+    r[n - 1] = 8 * x[n - 1] + x[n];
+    for (int i = 1; i < n; ++i) {
+      qreal m = a[i] / b[i - 1];
+      b[i] -= m;
+      r[i] -= m * r[i - 1];
+    }
     a[n - 1] = r[n - 1] / b[n - 1];
-    for (int i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
+    for (int i = n - 2; i >= 0; --i)
+      a[i] = (r[i] - a[i + 1]) / b[i];
     b[n - 1] = (x[n] + a[n - 1]) / 2;
-    for (int i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1];
+    for (int i = 0; i < n - 1; ++i)
+      b[i] = 2 * x[i + 1] - a[i + 1];
   }
-  void lineStart() { _x.clear(); _y.clear(); }
+  void lineStart() {
+    _x.clear();
+    _y.clear();
+  }
   void lineEnd() {
     const int n = _x.size();
     if (n) {
-      if (lineTruthy(_line)) c.lineTo(_x[0], _y[0]); else c.moveTo(_x[0], _y[0]);
+      if (lineTruthy(_line))
+        c.lineTo(_x[0], _y[0]);
+      else
+        c.moveTo(_x[0], _y[0]);
       if (n == 2) {
         c.lineTo(_x[1], _y[1]);
       } else if (n > 2) {
@@ -355,11 +515,16 @@ struct Natural {
         }
       }
     }
-    if (lineTruthy(_line) || (lineNotEq0(_line) && n == 1)) c.closePath();
+    if (lineTruthy(_line) || (lineNotEq0(_line) && n == 1))
+      c.closePath();
     _line = 1 - _line;
-    _x.clear(); _y.clear();
+    _x.clear();
+    _y.clear();
   }
-  void point(qreal x, qreal y) { _x.push_back(x); _y.push_back(y); }
+  void point(qreal x, qreal y) {
+    _x.push_back(x);
+    _y.push_back(y);
+  }
 };
 
 // --- curveCatmullRom (catmullRom.js), default alpha 0.5 ---
@@ -394,17 +559,23 @@ struct CatmullRom {
   }
   void lineStart() {
     _x0 = _x1 = _x2 = _y0 = _y1 = _y2 = kLineUndefined();
-    _l01_a = _l12_a = _l23_a = _l01_2a = _l12_2a = _l23_2a = 0; _point = 0;
+    _l01_a = _l12_a = _l23_a = _l01_2a = _l12_2a = _l23_2a = 0;
+    _point = 0;
   }
   void lineEnd() {
     switch (_point) {
-      case 2: c.lineTo(_x2, _y2); break;
-        // d3 calls this.point(this._x2, this._y2) — the METHOD, not the helper.
-        // Re-entering point() zeroes _l23_a (x23 = _x2 - _x2 = 0) before the
-        // helper runs, so the x2/y2 control is NOT adjusted on the final segment.
-      case 3: point(_x2, _y2); break;
+    case 2:
+      c.lineTo(_x2, _y2);
+      break;
+      // d3 calls this.point(this._x2, this._y2) — the METHOD, not the helper.
+      // Re-entering point() zeroes _l23_a (x23 = _x2 - _x2 = 0) before the
+      // helper runs, so the x2/y2 control is NOT adjusted on the final segment.
+    case 3:
+      point(_x2, _y2);
+      break;
     }
-    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1)) c.closePath();
+    if (lineTruthy(_line) || (lineNotEq0(_line) && _point == 1))
+      c.closePath();
     _line = 1 - _line;
   }
   void point(qreal x, qreal y) {
@@ -413,26 +584,44 @@ struct CatmullRom {
       _l23_a = std::sqrt(_l23_2a = std::pow(x23 * x23 + y23 * y23, _alpha));
     }
     switch (_point) {
-      case 0: _point = 1; if (lineTruthy(_line)) c.lineTo(x, y); else c.moveTo(x, y); break;
-      case 1: _point = 2; break;
-      case 2: _point = 3; [[fallthrough]];
-      default: bezier(x, y); break;
+    case 0:
+      _point = 1;
+      if (lineTruthy(_line))
+        c.lineTo(x, y);
+      else
+        c.moveTo(x, y);
+      break;
+    case 1:
+      _point = 2;
+      break;
+    case 2:
+      _point = 3;
+      [[fallthrough]];
+    default:
+      bezier(x, y);
+      break;
     }
-    _l01_a = _l12_a; _l12_a = _l23_a;
-    _l01_2a = _l12_2a; _l12_2a = _l23_2a;
-    _x0 = _x1; _x1 = _x2; _x2 = x;
-    _y0 = _y1; _y1 = _y2; _y2 = y;
+    _l01_a = _l12_a;
+    _l12_a = _l23_a;
+    _l01_2a = _l12_2a;
+    _l12_2a = _l23_2a;
+    _x0 = _x1;
+    _x1 = _x2;
+    _x2 = x;
+    _y0 = _y1;
+    _y1 = _y2;
+    _y2 = y;
   }
 };
 
-}  // namespace detail
+} // namespace detail
 
 // Mermaid's generateRoundedPath is separate from d3-shape. It trims each
 // side of an interior corner by a radius-derived distance and joins the cut
 // points with a quadratic Bezier controlled by the original vertex.
-inline QString generateRoundedPath(const QVector<QPointF>& points,
-                                   qreal radius = 5.0) {
-  if (points.size() < 2) return {};
+inline QString generateRoundedPath(const QVector<QPointF>& points, qreal radius = 5.0) {
+  if (points.size() < 2)
+    return {};
 
   constexpr qreal kEpsilon = 1e-5;
   constexpr qreal kPi = 3.14159265358979323846;
@@ -459,17 +648,14 @@ inline QString generateRoundedPath(const QVector<QPointF>& points,
 
     const QPointF incomingUnit = incoming / incomingLength;
     const QPointF outgoingUnit = outgoing / outgoingLength;
-    const qreal dot = incomingUnit.x() * outgoingUnit.x() +
-                      incomingUnit.y() * outgoingUnit.y();
+    const qreal dot = incomingUnit.x() * outgoingUnit.x() + incomingUnit.y() * outgoingUnit.y();
     const qreal angle = std::acos(std::clamp(dot, qreal(-1.0), qreal(1.0)));
     if (angle < kEpsilon || std::abs(kPi - angle) < kEpsilon) {
       context.lineTo(current.x(), current.y());
       continue;
     }
 
-    const qreal cutLength =
-        std::min({radius / std::sin(angle / 2.0), incomingLength / 2.0,
-                  outgoingLength / 2.0});
+    const qreal cutLength = std::min({radius / std::sin(angle / 2.0), incomingLength / 2.0, outgoingLength / 2.0});
     const QPointF start = current - incomingUnit * cutLength;
     const QPointF end = current + outgoingUnit * cutLength;
     context.lineTo(start.x(), start.y());
@@ -479,10 +665,10 @@ inline QString generateRoundedPath(const QVector<QPointF>& points,
 }
 
 // Drive a curve the way d3.line does: lineStart, point per data point, lineEnd.
-template <typename Curve>
-inline void drive(Curve& curve, const QVector<QPointF>& points) {
+template <typename Curve> inline void drive(Curve& curve, const QVector<QPointF>& points) {
   curve.lineStart();
-  for (const QPointF& p : points) curve.point(p.x(), p.y());
+  for (const QPointF& p : points)
+    curve.point(p.x(), p.y());
   curve.lineEnd();
 }
 
@@ -490,22 +676,50 @@ inline void drive(Curve& curve, const QVector<QPointF>& points) {
 // generator. Unknown values default to basis, matching Mermaid's `default:`
 // branch.
 inline QString pathForCurve(const QVector<QPointF>& points, const QString& name) {
-  if (name == QLatin1String("rounded")) return generateRoundedPath(points);
+  if (name == QLatin1String("rounded"))
+    return generateRoundedPath(points);
   PathContext c;
-  if (name == QLatin1String("linear")) { detail::Linear cur(c); drive(cur, points); }
-  else if (name == QLatin1String("basis")) { detail::Basis cur(c); drive(cur, points); }
-  else if (name == QLatin1String("step")) { detail::Step cur(c, 0.5); drive(cur, points); }
-  else if (name == QLatin1String("stepBefore")) { detail::Step cur(c, 0.0); drive(cur, points); }
-  else if (name == QLatin1String("stepAfter")) { detail::Step cur(c, 1.0); drive(cur, points); }
-  else if (name == QLatin1String("cardinal")) { detail::Cardinal cur(c, 0.0); drive(cur, points); }
-  else if (name == QLatin1String("monotoneX")) { detail::MonotoneX<PathContext> cur(c); drive(cur, points); }
-  else if (name == QLatin1String("monotoneY")) { detail::MonotoneY cur(c); drive(cur, points); }
-  else if (name == QLatin1String("bumpX")) { detail::Bump cur(c, true); drive(cur, points); }
-  else if (name == QLatin1String("bumpY")) { detail::Bump cur(c, false); drive(cur, points); }
-  else if (name == QLatin1String("catmullRom")) { detail::CatmullRom cur(c, 0.5); drive(cur, points); }
-  else if (name == QLatin1String("natural")) { detail::Natural cur(c); drive(cur, points); }
-  else { detail::Basis cur(c); drive(cur, points); }  // default / unknown -> basis
+  if (name == QLatin1String("linear")) {
+    detail::Linear cur(c);
+    drive(cur, points);
+  } else if (name == QLatin1String("basis")) {
+    detail::Basis cur(c);
+    drive(cur, points);
+  } else if (name == QLatin1String("step")) {
+    detail::Step cur(c, 0.5);
+    drive(cur, points);
+  } else if (name == QLatin1String("stepBefore")) {
+    detail::Step cur(c, 0.0);
+    drive(cur, points);
+  } else if (name == QLatin1String("stepAfter")) {
+    detail::Step cur(c, 1.0);
+    drive(cur, points);
+  } else if (name == QLatin1String("cardinal")) {
+    detail::Cardinal cur(c, 0.0);
+    drive(cur, points);
+  } else if (name == QLatin1String("monotoneX")) {
+    detail::MonotoneX<PathContext> cur(c);
+    drive(cur, points);
+  } else if (name == QLatin1String("monotoneY")) {
+    detail::MonotoneY cur(c);
+    drive(cur, points);
+  } else if (name == QLatin1String("bumpX")) {
+    detail::Bump cur(c, true);
+    drive(cur, points);
+  } else if (name == QLatin1String("bumpY")) {
+    detail::Bump cur(c, false);
+    drive(cur, points);
+  } else if (name == QLatin1String("catmullRom")) {
+    detail::CatmullRom cur(c, 0.5);
+    drive(cur, points);
+  } else if (name == QLatin1String("natural")) {
+    detail::Natural cur(c);
+    drive(cur, points);
+  } else {
+    detail::Basis cur(c);
+    drive(cur, points);
+  } // default / unknown -> basis
   return c.out;
 }
 
-}  // namespace muffin::mermaid::flowchart::d3curve
+} // namespace muffin::mermaid::flowchart::d3curve

@@ -41,12 +41,8 @@ Q_LOGGING_CATEGORY(parsePerf, "muffin.perf", QtWarningMsg)
 // category's debug level is disabled.
 class ParsePerfTimer {
 public:
-  explicit ParsePerfTimer(
-      const char* label,
-      ParsePerformanceMetrics* metrics = nullptr)
-      : openScope_(label), label_(label),
-        metrics_(metrics),
-        logEnabled_(parsePerf().isDebugEnabled()),
+  explicit ParsePerfTimer(const char* label, ParsePerformanceMetrics* metrics = nullptr)
+      : openScope_(label), label_(label), metrics_(metrics), logEnabled_(parsePerf().isDebugEnabled()),
         enabled_(logEnabled_ || metrics_ != nullptr) {
     if (enabled_) {
       timer_.start();
@@ -57,13 +53,11 @@ public:
       const qint64 elapsedNs = timer_.nsecsElapsed();
       const qint64 workingSetBytes = muffin::diag::workingSetBytes();
       if (metrics_) {
-        metrics_->phases.append(ParsePhasePerformance{
-            QString::fromLatin1(label_), elapsedNs, workingSetBytes});
+        metrics_->phases.append(ParsePhasePerformance{QString::fromLatin1(label_), elapsedNs, workingSetBytes});
       }
       if (logEnabled_) {
-        qCDebug(parsePerf).nospace()
-            << label_ << " " << elapsedNs / 1000000.0
-            << " ms ws=" << (workingSetBytes >> 20) << "MB";
+        qCDebug(parsePerf).nospace() << label_ << " " << elapsedNs / 1000000.0 << " ms ws=" << (workingSetBytes >> 20)
+                                     << "MB";
       }
     }
   }
@@ -85,7 +79,8 @@ bool isBlankLine(QStringView line);
 // blocks), so the real content end must be recovered by scanning. Both the byte-range annotation
 // (for a thematic break) and the virtual-empty-paragraph gap math (for any block) need this —
 // single-sourced here instead of duplicated as a downward for-loop at each call site.
-int lastNonBlankLine(const LineStartOffsetCache& lineOffsets, QStringView markdown, const SourceRange& range, int totalLines) {
+int lastNonBlankLine(const LineStartOffsetCache& lineOffsets, QStringView markdown, const SourceRange& range,
+                     int totalLines) {
   if (range.lineStart <= 0 || range.lineEnd <= range.lineStart) {
     return range.lineEnd;
   }
@@ -128,8 +123,7 @@ void annotateSourceOffsets(const LineStartOffsetCache& lineOffsets, QStringView 
   // resolved, so the range is correct everywhere instead of being patched ad hoc downstream.
   if (node.type() == BlockType::MathBlock && range.byteStart >= 0 && range.byteEnd >= range.byteStart) {
     for (const QString& closer : {QStringLiteral("\n$$"), QStringLiteral("\n\\]")}) {
-      if (range.byteEnd + closer.size() <= markdown.size() &&
-          markdown.mid(range.byteEnd, closer.size()) == closer) {
+      if (range.byteEnd + closer.size() <= markdown.size() && markdown.mid(range.byteEnd, closer.size()) == closer) {
         range.byteEnd += closer.size();
         range.lineEnd = lineOffsets.lineForOffset(range.byteEnd);
         node.setSourceRange(range);
@@ -147,7 +141,8 @@ bool isListMarkerAt(const QString& line, int index, int& markerEnd) {
   if (index >= line.size()) {
     return false;
   }
-  if ((line.at(index) == QLatin1Char('-') || line.at(index) == QLatin1Char('*') || line.at(index) == QLatin1Char('+')) &&
+  if ((line.at(index) == QLatin1Char('-') || line.at(index) == QLatin1Char('*') ||
+       line.at(index) == QLatin1Char('+')) &&
       index + 1 < line.size() && line.at(index + 1).isSpace()) {
     markerEnd = index + 2;
     return true;
@@ -300,11 +295,7 @@ bool isDollarMathDelimiterLine(const QString& line, int contentStart) {
   return hasOnlyTrailingSpaces(line, contentStart + 2);
 }
 
-enum class MathScanState {
-  None,
-  Dollar,
-  Bracket
-};
+enum class MathScanState { None, Dollar, Bracket };
 
 // Display-math shorthand: a `\[` line opens and the next matching `\]` line closes a
 // LaTeX display-math block. cmark-gfm only parses `$$`, so rewrite the paired delimiters to `$$`.
@@ -381,8 +372,8 @@ QString legacyMathDelimitersToDollar(QStringView markdown) {
 // the original text (same invariant as legacyMathDelimitersToDollar). Lines inside fenced code
 // blocks are left untouched so a code literal's em-dash isn't turned into "---".
 QString remapUnicodePunctuation(QStringView markdown) {
-  static const QString kEmDash = QString::fromUtf8("\xe2\x80\x94");    // —
-  static const QString kEllipsis = QString::fromUtf8("\xe2\x80\xa6");  // …
+  static const QString kEmDash = QString::fromUtf8("\xe2\x80\x94");   // —
+  static const QString kEllipsis = QString::fromUtf8("\xe2\x80\xa6"); // …
   QStringList lines = markdown.toString().split(QLatin1Char('\n'));
   bool inFence = false;
   QChar fenceChar;
@@ -423,8 +414,8 @@ void annotateMathDelimiters(QStringView markdown, MarkdownNode& root) {
   const auto visit = [](auto&& self, QStringView md, MarkdownNode& node) -> void {
     if (node.type() == BlockType::MathBlock) {
       const SourceRange range = node.sourceRange();
-      if (range.byteStart >= 0 && range.byteStart + 1 < md.size() &&
-          md.at(range.byteStart) == QLatin1Char('\\') && md.at(range.byteStart + 1) == QLatin1Char('[')) {
+      if (range.byteStart >= 0 && range.byteStart + 1 < md.size() && md.at(range.byteStart) == QLatin1Char('\\') &&
+          md.at(range.byteStart + 1) == QLatin1Char('[')) {
         node.setMathDelimiter(MathDelimiter::Bracket);
         node.setLiteral(bodyForLegacyMathBlock(md, range));
       }
@@ -446,17 +437,17 @@ QString leadingInlineText(const QVector<InlineNode>& inlines) {
         return;
       }
       switch (node.type()) {
-        case InlineType::Text:
-        case InlineType::Code:
-        case InlineType::InlineMath:
-        case InlineType::HtmlInline:
-          text += node.text();
-          break;
-        case InlineType::SoftBreak:
-        case InlineType::LineBreak:
-          return;
-        default:
-          break;
+      case InlineType::Text:
+      case InlineType::Code:
+      case InlineType::InlineMath:
+      case InlineType::HtmlInline:
+        text += node.text();
+        break;
+      case InlineType::SoftBreak:
+      case InlineType::LineBreak:
+        return;
+      default:
+        break;
       }
       self(self, node.children());
     }
@@ -530,9 +521,15 @@ struct DelimitedInlineSpec {
   QString markerString;
 };
 
-DelimitedInlineSpec specForHighlight() { return {QLatin1Char('='), 2, InlineType::Highlight, QStringLiteral("==")}; }
-DelimitedInlineSpec specForSubscript() { return {QLatin1Char('~'), 1, InlineType::Subscript, QStringLiteral("~")}; }
-DelimitedInlineSpec specForSuperscript() { return {QLatin1Char('^'), 1, InlineType::Superscript, QStringLiteral("^")}; }
+DelimitedInlineSpec specForHighlight() {
+  return {QLatin1Char('='), 2, InlineType::Highlight, QStringLiteral("==")};
+}
+DelimitedInlineSpec specForSubscript() {
+  return {QLatin1Char('~'), 1, InlineType::Subscript, QStringLiteral("~")};
+}
+DelimitedInlineSpec specForSuperscript() {
+  return {QLatin1Char('^'), 1, InlineType::Superscript, QStringLiteral("^")};
+}
 DelimitedInlineSpec specForStrikethrough() {
   return {QLatin1Char('~'), 2, InlineType::Strikethrough, QStringLiteral("~~")};
 }
@@ -562,8 +559,7 @@ struct DelimiterProfile {
   std::array<qint64, PhaseCount> ns{};
   qint64 tokens = 0, pairs = 0, shiftedTokens = 0, segments = 0, committed = 0;
 
-  template <typename F>
-  void measure(Phase phase, F&& operation) {
+  template <typename F> void measure(Phase phase, F&& operation) {
     if (!enabled) {
       operation();
       return;
@@ -573,7 +569,8 @@ struct DelimiterProfile {
     ns[phase] += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count();
   }
   void report(const DelimitedInlineSpec& spec) const {
-    if (!enabled) return;
+    if (!enabled)
+      return;
     static const QLoggingCategory category("muffin.delimiter", QtInfoMsg);
     const QJsonObject row{{"marker", spec.markerString},
                           {"token_size_bytes", qint64(sizeof(DelimToken))},
@@ -594,75 +591,75 @@ struct DelimiterProfile {
 
 QChar firstSignificantChar(const InlineNode& node) {
   switch (node.type()) {
-    case InlineType::Text:
-    case InlineType::Code:
-    case InlineType::InlineMath:
-    case InlineType::HtmlInline:
-      return node.textView().isEmpty() ? QChar() : node.textView().front();
-    case InlineType::SoftBreak:
-    case InlineType::LineBreak:
-      return QChar::Space;
-    case InlineType::Emphasis:
-    case InlineType::Strong:
-    case InlineType::Strikethrough:
-    case InlineType::Highlight:
-    case InlineType::Subscript:
-    case InlineType::Superscript:
-    case InlineType::Link:
-      for (const InlineNode& child : node.children()) {
-        const QChar ch = firstSignificantChar(child);
-        if (!ch.isNull()) {
-          return ch;
-        }
+  case InlineType::Text:
+  case InlineType::Code:
+  case InlineType::InlineMath:
+  case InlineType::HtmlInline:
+    return node.textView().isEmpty() ? QChar() : node.textView().front();
+  case InlineType::SoftBreak:
+  case InlineType::LineBreak:
+    return QChar::Space;
+  case InlineType::Emphasis:
+  case InlineType::Strong:
+  case InlineType::Strikethrough:
+  case InlineType::Highlight:
+  case InlineType::Subscript:
+  case InlineType::Superscript:
+  case InlineType::Link:
+    for (const InlineNode& child : node.children()) {
+      const QChar ch = firstSignificantChar(child);
+      if (!ch.isNull()) {
+        return ch;
       }
-      return QChar();
-    default:  // Image, TaskMarker — treated as non-space content
-      return QLatin1Char('x');
+    }
+    return QChar();
+  default: // Image, TaskMarker — treated as non-space content
+    return QLatin1Char('x');
   }
 }
 
 QChar lastSignificantChar(const InlineNode& node) {
   switch (node.type()) {
-    case InlineType::Text:
-    case InlineType::Code:
-    case InlineType::InlineMath:
-    case InlineType::HtmlInline:
-      return node.textView().isEmpty() ? QChar() : node.textView().back();
-    case InlineType::SoftBreak:
-    case InlineType::LineBreak:
-      return QChar::Space;
-    case InlineType::Emphasis:
-    case InlineType::Strong:
-    case InlineType::Strikethrough:
-    case InlineType::Highlight:
-    case InlineType::Subscript:
-    case InlineType::Superscript:
-    case InlineType::Link: {
-      const QVector<InlineNode>& kids = node.children();
-      for (auto it = kids.rbegin(); it != kids.rend(); ++it) {
-        const QChar ch = lastSignificantChar(*it);
-        if (!ch.isNull()) {
-          return ch;
-        }
+  case InlineType::Text:
+  case InlineType::Code:
+  case InlineType::InlineMath:
+  case InlineType::HtmlInline:
+    return node.textView().isEmpty() ? QChar() : node.textView().back();
+  case InlineType::SoftBreak:
+  case InlineType::LineBreak:
+    return QChar::Space;
+  case InlineType::Emphasis:
+  case InlineType::Strong:
+  case InlineType::Strikethrough:
+  case InlineType::Highlight:
+  case InlineType::Subscript:
+  case InlineType::Superscript:
+  case InlineType::Link: {
+    const QVector<InlineNode>& kids = node.children();
+    for (auto it = kids.rbegin(); it != kids.rend(); ++it) {
+      const QChar ch = lastSignificantChar(*it);
+      if (!ch.isNull()) {
+        return ch;
       }
-      return QChar();
     }
-    default:
-      return QLatin1Char('x');
+    return QChar();
+  }
+  default:
+    return QLatin1Char('x');
   }
 }
 
 InlineNode makeDelimitedInline(const DelimitedInlineSpec& spec, QVector<InlineNode> children) {
   switch (spec.type) {
-    case InlineType::Strikethrough:
-      return InlineNode::strikethrough(spec.markerString, std::move(children));
-    case InlineType::Subscript:
-      return InlineNode::subscript(spec.markerString, std::move(children));
-    case InlineType::Superscript:
-      return InlineNode::superscript(spec.markerString, std::move(children));
-    case InlineType::Highlight:
-    default:
-      return InlineNode::highlight(spec.markerString, std::move(children));
+  case InlineType::Strikethrough:
+    return InlineNode::strikethrough(spec.markerString, std::move(children));
+  case InlineType::Subscript:
+    return InlineNode::subscript(spec.markerString, std::move(children));
+  case InlineType::Superscript:
+    return InlineNode::superscript(spec.markerString, std::move(children));
+  case InlineType::Highlight:
+  default:
+    return InlineNode::highlight(spec.markerString, std::move(children));
   }
 }
 
@@ -675,7 +672,8 @@ QVector<DelimToken> buildDelimTokens(QVector<InlineNode>& inlines, QStringView m
   tokens.reserve(inlines.size());
   const auto append = [&](DelimToken token) {
     token.previous = tokens.size() - 1;
-    if (!tokens.isEmpty()) tokens.last().next = tokens.size();
+    if (!tokens.isEmpty())
+      tokens.last().next = tokens.size();
     tokens.append(std::move(token));
   };
   for (InlineNode& node : inlines) {
@@ -689,7 +687,8 @@ QVector<DelimToken> buildDelimTokens(QVector<InlineNode>& inlines, QStringView m
       }
       if (!text.contains(spec.marker)) {
         // An empty source-aligned segment generated no token in the old path.
-        if (!text.isEmpty()) append({DelimToken::Kind::Text, &node, text, range.start, range.end});
+        if (!text.isEmpty())
+          append({DelimToken::Kind::Text, &node, text, range.start, range.end});
         continue;
       }
       qsizetype i = 0;
@@ -710,7 +709,8 @@ QVector<DelimToken> buildDelimTokens(QVector<InlineNode>& inlines, QStringView m
           while (j < text.size() && text.at(j) != spec.marker) {
             ++j;
           }
-          if (profile.enabled) ++profile.segments;
+          if (profile.enabled)
+            ++profile.segments;
           append({DelimToken::Kind::Text, &node, text.mid(i, j - i), range.start + i, range.start + j});
           i = j;
         }
@@ -738,7 +738,8 @@ InlineNode tokenToInline(DelimToken& t, const DelimitedInlineSpec& spec, QVector
 }
 
 QChar tokenSignificantChar(const DelimToken& token, const QVector<InlineNode>& builtNodes, bool first) {
-  if (token.kind == DelimToken::Kind::MarkerRun) return {};  // Literal runs are opaque to flank checks.
+  if (token.kind == DelimToken::Kind::MarkerRun)
+    return {}; // Literal runs are opaque to flank checks.
   if (token.kind == DelimToken::Kind::Text)
     return token.text.isEmpty() ? QChar() : first ? token.text.front() : token.text.back();
   const InlineNode& node = token.kind == DelimToken::Kind::Built ? builtNodes[token.builtIndex] : *token.original;
@@ -748,7 +749,7 @@ QChar tokenSignificantChar(const DelimToken& token, const QVector<InlineNode>& b
 qsizetype matchDelimTokens(QVector<DelimToken>& tokens, const DelimitedInlineSpec& spec, DelimiterProfile& profile,
                            QVector<InlineNode>& builtNodes) {
   qsizetype activeCount = tokens.size();
-  QVector<qsizetype> openers;  // Stable token indices, including across nested matches.
+  QVector<qsizetype> openers; // Stable token indices, including across nested matches.
   for (qsizetype i = 0; i >= 0; i = tokens[i].next) {
     const DelimToken& t = tokens[i];
     if (t.kind != DelimToken::Kind::MarkerRun || t.runLength != spec.runLength || t.escaped) {
@@ -760,7 +761,7 @@ qsizetype matchDelimTokens(QVector<DelimToken>& tokens, const DelimitedInlineSpe
     const bool canClose = !before.isNull() && !before.isSpace();
     if (canClose && !openers.isEmpty()) {
       const qsizetype opener = openers.last();
-      if (tokens[opener].next != i) {  // at least one active content token between them
+      if (tokens[opener].next != i) { // at least one active content token between them
         QVector<InlineNode> children;
         profile.measure(DelimiterProfile::Materialize, [&] {
           for (qsizetype k = tokens[opener].next; k != i; k = tokens[k].next) {
@@ -776,7 +777,8 @@ qsizetype matchDelimTokens(QVector<DelimToken>& tokens, const DelimitedInlineSpe
         ranges.content = InlineRange{ranges.openMarker.end, ranges.closeMarker.start};
         built.setSourceRanges(ranges);
         builtNodes.append(std::move(built));
-        if (profile.enabled) ++profile.pairs;
+        if (profile.enabled)
+          ++profile.pairs;
         profile.measure(DelimiterProfile::Compact, [&] {
           // Splice out the matched interval without shifting any suffix. Keep
           // the opener in place so subsequent flank checks see the built node.
@@ -785,10 +787,11 @@ qsizetype matchDelimTokens(QVector<DelimToken>& tokens, const DelimitedInlineSpe
           replacement.builtIndex = builtNodes.size() - 1;
           replacement.srcEnd = ranges.source.end;
           replacement.next = t.next;
-          if (t.next >= 0) tokens[t.next].previous = opener;
+          if (t.next >= 0)
+            tokens[t.next].previous = opener;
         });
         openers.removeLast();
-        i = opener;  // Continue after the built node, exactly as the compacting algorithm did.
+        i = opener; // Continue after the built node, exactly as the compacting algorithm did.
         continue;
       }
       openers.removeLast();
@@ -808,26 +811,31 @@ void splitDelimInBlock(QVector<InlineNode>& inlines, QStringView markdown, const
   bool candidate = false;
   profile.measure(DelimiterProfile::Candidates, [&] {
     candidate = std::any_of(inlines.cbegin(), inlines.cend(), [&](const InlineNode& node) {
-      if (node.type() != InlineType::Text || !node.textView().contains(spec.marker)) return false;
+      if (node.type() != InlineType::Text || !node.textView().contains(spec.marker))
+        return false;
       const auto range = node.sourceRange();
       return range.start >= 0 && range.end - range.start == node.textView().size();
     });
   });
-  if (!candidate) return;
+  if (!candidate)
+    return;
   QVector<DelimToken> tokens;
   profile.measure(DelimiterProfile::Tokenize, [&] { tokens = buildDelimTokens(inlines, markdown, spec, profile); });
-  if (profile.enabled) profile.tokens += tokens.size();
+  if (profile.enabled)
+    profile.tokens += tokens.size();
   QVector<InlineNode> builtNodes;
   qsizetype activeCount = 0;
   profile.measure(DelimiterProfile::Match, [&] { activeCount = matchDelimTokens(tokens, spec, profile, builtNodes); });
-  if (builtNodes.isEmpty()) return;  // No node has been moved: preserve the original list and ranges.
+  if (builtNodes.isEmpty())
+    return; // No node has been moved: preserve the original list and ranges.
   profile.measure(DelimiterProfile::Commit, [&] {
     QVector<InlineNode> rebuilt;
     rebuilt.reserve(activeCount);
     for (qsizetype i = 0; i >= 0; i = tokens[i].next) {
       rebuilt.append(tokenToInline(tokens[i], spec, builtNodes));
     }
-    if (profile.enabled) profile.committed += rebuilt.size();
+    if (profile.enabled)
+      profile.committed += rebuilt.size();
     inlines = std::move(rebuilt);
   });
 }
@@ -897,21 +905,17 @@ void annotateDefinitionBlocks(MarkdownNode& root, const QVector<DefinitionParseR
                   range.byteEnd >= definition.markerRange.end
             : range.byteStart == definition.markerRange.start && range.byteEnd >= definition.markerRange.end;
     const bool matchesType =
-        (definition.kind == DefinitionBlock::Kind::Footnote &&
-         node->type() == BlockType::FootnoteDefinition) ||
-        (definition.kind == DefinitionBlock::Kind::Link &&
-         node->type() == BlockType::LinkDefinition);
+        (definition.kind == DefinitionBlock::Kind::Footnote && node->type() == BlockType::FootnoteDefinition) ||
+        (definition.kind == DefinitionBlock::Kind::Link && node->type() == BlockType::LinkDefinition);
     if (!matchesRange || !matchesType) {
       continue;
     }
     DefinitionBlock annotated = definition;
     if (node->type() == BlockType::FootnoteDefinition) {
-      const qsizetype sourceStart = definition.sourceRange.isValid()
-          ? definition.sourceRange.start
-          : definition.markerRange.start;
-      const qsizetype sourceEnd = definition.sourceRange.isValid()
-          ? qMax(definition.sourceRange.end, range.byteEnd)
-          : range.byteEnd;
+      const qsizetype sourceStart =
+          definition.sourceRange.isValid() ? definition.sourceRange.start : definition.markerRange.start;
+      const qsizetype sourceEnd =
+          definition.sourceRange.isValid() ? qMax(definition.sourceRange.end, range.byteEnd) : range.byteEnd;
       annotated.sourceRange = {sourceStart, sourceEnd};
     }
     node->setDefinition(annotated);
@@ -919,17 +923,15 @@ void annotateDefinitionBlocks(MarkdownNode& root, const QVector<DefinitionParseR
       SourceRange preciseRange = node->sourceRange();
       preciseRange.byteStart = definition.sourceRange.start;
       preciseRange.byteEnd = node->type() == BlockType::FootnoteDefinition
-          ? qMax(definition.sourceRange.end, range.byteEnd)
-          : definition.sourceRange.end;
+                                 ? qMax(definition.sourceRange.end, range.byteEnd)
+                                 : definition.sourceRange.end;
       preciseRange.lineStart = lineOffsets.lineForOffset(preciseRange.byteStart);
       preciseRange.lineEnd = lineOffsets.lineForOffset(preciseRange.byteEnd);
       const qsizetype lineStart = lineOffsets.offsetForLineColumn(preciseRange.lineStart, 1);
-      const qsizetype lineEndStart =
-          lineOffsets.offsetForLineColumn(preciseRange.lineEnd, 1);
+      const qsizetype lineEndStart = lineOffsets.offsetForLineColumn(preciseRange.lineEnd, 1);
       preciseRange.columnStart = lineStart >= 0 ? static_cast<int>(preciseRange.byteStart - lineStart + 1) : 1;
-      preciseRange.columnEnd = lineEndStart >= 0
-          ? static_cast<int>(preciseRange.byteEnd - lineEndStart + 1)
-          : preciseRange.columnStart;
+      preciseRange.columnEnd =
+          lineEndStart >= 0 ? static_cast<int>(preciseRange.byteEnd - lineEndStart + 1) : preciseRange.columnStart;
       node->setSourceRange(preciseRange);
     }
   }
@@ -940,7 +942,8 @@ bool shouldInsertSyntheticDefinition(const DefinitionParseResult& parsedDefiniti
          parsedDefinition.classification == DefinitionParseClassification::VirtualTemplate;
 }
 
-std::unique_ptr<MarkdownNode> createDefinitionNode(const DefinitionBlock& definition, const LineStartOffsetCache& lineOffsets) {
+std::unique_ptr<MarkdownNode> createDefinitionNode(const DefinitionBlock& definition,
+                                                   const LineStartOffsetCache& lineOffsets) {
   const BlockType type =
       definition.kind == DefinitionBlock::Kind::Footnote ? BlockType::FootnoteDefinition : BlockType::LinkDefinition;
   auto node = std::make_unique<MarkdownNode>(type);
@@ -949,10 +952,11 @@ std::unique_ptr<MarkdownNode> createDefinitionNode(const DefinitionBlock& defini
 
   SourceRange range;
   range.byteStart = definition.sourceRange.isValid() ? definition.sourceRange.start : definition.markerRange.start;
-  range.byteEnd = definition.sourceRange.isValid()
-                      ? definition.sourceRange.end
-                      : qMax(definition.markerRange.end,
-                             qMax(definition.destinationRange.end, qMax(definition.titleRange.end, definition.noteRange.end)));
+  range.byteEnd =
+      definition.sourceRange.isValid()
+          ? definition.sourceRange.end
+          : qMax(definition.markerRange.end,
+                 qMax(definition.destinationRange.end, qMax(definition.titleRange.end, definition.noteRange.end)));
   range.lineStart = lineOffsets.lineForOffset(range.byteStart);
   range.lineEnd = lineOffsets.lineForOffset(range.byteEnd);
   const qsizetype lineStart = lineOffsets.offsetForLineColumn(range.lineStart, 1);
@@ -975,7 +979,8 @@ bool isDefinitionSourceParagraph(const MarkdownNode& node, const DefinitionBlock
   return range.byteStart == definition.sourceRange.start && range.byteEnd == definition.sourceRange.end;
 }
 
-void insertMissingDefinitions(MarkdownNode& root, const QVector<DefinitionParseResult>& definitions, const LineStartOffsetCache& lineOffsets) {
+void insertMissingDefinitions(MarkdownNode& root, const QVector<DefinitionParseResult>& definitions,
+                              const LineStartOffsetCache& lineOffsets) {
   if (root.type() != BlockType::Document || definitions.isEmpty()) {
     return;
   }
@@ -989,11 +994,9 @@ void insertMissingDefinitions(MarkdownNode& root, const QVector<DefinitionParseR
   QSet<int> existingFootnoteLines;
   for (const auto& child : root.children()) {
     const BlockType type = child->type();
-    if (type == BlockType::FootnoteDefinition &&
-        child->sourceRange().lineStart > 0) {
+    if (type == BlockType::FootnoteDefinition && child->sourceRange().lineStart > 0) {
       existingFootnoteLines.insert(child->sourceRange().lineStart);
-    } else if (type == BlockType::LinkDefinition &&
-               child->sourceRange().byteStart >= 0) {
+    } else if (type == BlockType::LinkDefinition && child->sourceRange().byteStart >= 0) {
       existingDefTypeByStart.insert(child->sourceRange().byteStart, type);
     }
   }
@@ -1009,8 +1012,7 @@ void insertMissingDefinitions(MarkdownNode& root, const QVector<DefinitionParseR
     const BlockType expectedType =
         definition.kind == DefinitionBlock::Kind::Footnote ? BlockType::FootnoteDefinition : BlockType::LinkDefinition;
     if (definition.kind == DefinitionBlock::Kind::Footnote &&
-        existingFootnoteLines.contains(
-            lineOffsets.lineForOffset(definition.markerRange.start))) {
+        existingFootnoteLines.contains(lineOffsets.lineForOffset(definition.markerRange.start))) {
       continue;
     }
     const auto existing = existingDefTypeByStart.constFind(definition.markerRange.start);
@@ -1039,8 +1041,7 @@ void insertMissingDefinitions(MarkdownNode& root, const QVector<DefinitionParseR
     if (missing != missingDefinitionByStart.constEnd()) {
       const DefinitionBlock& definition = *missing.value();
       if (isDefinitionSourceParagraph(*child, definition) ||
-          (isVirtualEmptyParagraph(*child) &&
-           sourceStart == definition.markerRange.start)) {
+          (isVirtualEmptyParagraph(*child) && sourceStart == definition.markerRange.start)) {
         continue;
       }
     }
@@ -1051,11 +1052,9 @@ void insertMissingDefinitions(MarkdownNode& root, const QVector<DefinitionParseR
   }
 }
 
-void insertTrailingEmptyParagraphAfterDefinition(
-    QStringView markdown,
-    MarkdownNode& root,
-    const QVector<DefinitionParseResult>& definitions,
-    const LineStartOffsetCache& lineOffsets) {
+void insertTrailingEmptyParagraphAfterDefinition(QStringView markdown, MarkdownNode& root,
+                                                 const QVector<DefinitionParseResult>& definitions,
+                                                 const LineStartOffsetCache& lineOffsets) {
   if (root.type() != BlockType::Document || definitions.isEmpty()) {
     return;
   }
@@ -1115,11 +1114,8 @@ void restoreTopLevelSourceOrder(MarkdownNode& root) {
     const qsizetype start = node->sourceRange().byteStart;
     return start >= 0 ? start : std::numeric_limits<qsizetype>::max();
   };
-  if (std::is_sorted(
-          root.children().cbegin(), root.children().cend(),
-          [&](const auto& left, const auto& right) {
-            return sourceStart(left) < sourceStart(right);
-          })) {
+  if (std::is_sorted(root.children().cbegin(), root.children().cend(),
+                     [&](const auto& left, const auto& right) { return sourceStart(left) < sourceStart(right); })) {
     return;
   }
 
@@ -1133,11 +1129,8 @@ void restoreTopLevelSourceOrder(MarkdownNode& root) {
     ordered.push_back(root.detachChild(root.children().size() - 1));
   }
   std::reverse(ordered.begin(), ordered.end());
-  std::stable_sort(
-      ordered.begin(), ordered.end(),
-      [&](const auto& left, const auto& right) {
-        return sourceStart(left) < sourceStart(right);
-      });
+  std::stable_sort(ordered.begin(), ordered.end(),
+                   [&](const auto& left, const auto& right) { return sourceStart(left) < sourceStart(right); });
   for (auto& node : ordered) {
     root.appendChild(std::move(node));
   }
@@ -1308,10 +1301,12 @@ FrontMatterScanResult scanJsonFrontMatter(QStringView markdown) {
 }
 
 FrontMatterScanResult scanFrontMatter(QStringView markdown) {
-  if (FrontMatterScanResult result = scanFencedFrontMatter(markdown, QStringLiteral("---"), FrontMatterFormat::Yaml); result.found) {
+  if (FrontMatterScanResult result = scanFencedFrontMatter(markdown, QStringLiteral("---"), FrontMatterFormat::Yaml);
+      result.found) {
     return result;
   }
-  if (FrontMatterScanResult result = scanFencedFrontMatter(markdown, QStringLiteral("+++"), FrontMatterFormat::Toml); result.found) {
+  if (FrontMatterScanResult result = scanFencedFrontMatter(markdown, QStringLiteral("+++"), FrontMatterFormat::Toml);
+      result.found) {
     return result;
   }
   return scanJsonFrontMatter(markdown);
@@ -1507,7 +1502,8 @@ void annotateTableCellSourceRanges(QStringView markdown, const LineStartOffsetCa
     const qsizetype rowStart = lineOffsets.offsetForLineColumn(rowRange.lineStart, 1);
     const qsizetype rowEnd = lineOffsets.lineEndOffset(rowRange.lineStart);
     if (rowStart >= 0 && rowEnd >= rowStart) {
-      const QVector<TableCellFieldRange> fields = tableRowFieldRanges(markdown.mid(rowStart, rowEnd - rowStart), rowStart);
+      const QVector<TableCellFieldRange> fields =
+          tableRowFieldRanges(markdown.mid(rowStart, rowEnd - rowStart), rowStart);
       int column = 0;
       for (const auto& child : node.children()) {
         if (child->type() == BlockType::TableCell && column < fields.size()) {
@@ -1519,10 +1515,9 @@ void annotateTableCellSourceRanges(QStringView markdown, const LineStartOffsetCa
           range.columnStart = static_cast<int>(range.byteStart - rowStart + 1);
           range.columnEnd = static_cast<int>(range.byteEnd - rowStart);
           child->setSourceRange(range);
-          annotateTableCellInlineSourceRanges(
-              child->inlines(),
-              markdown.mid(range.byteStart, range.byteEnd - range.byteStart).toString(),
-              range.byteStart);
+          annotateTableCellInlineSourceRanges(child->inlines(),
+                                              markdown.mid(range.byteStart, range.byteEnd - range.byteStart).toString(),
+                                              range.byteStart);
         }
         ++column;
       }
@@ -1534,7 +1529,7 @@ void annotateTableCellSourceRanges(QStringView markdown, const LineStartOffsetCa
   }
 }
 
-}  // namespace
+} // namespace
 
 CmarkGfmParser::CmarkGfmParser() {
   ensureExtensionsRegistered();
@@ -1544,9 +1539,7 @@ ParseResult CmarkGfmParser::parseDocument(QStringView markdown, const ParseOptio
   return parseDocumentImpl(markdown, options, false);
 }
 
-ParseResult CmarkGfmParser::parseDocumentProfiled(
-    QStringView markdown,
-    const ParseOptions& options) {
+ParseResult CmarkGfmParser::parseDocumentProfiled(QStringView markdown, const ParseOptions& options) {
   return parseDocumentImpl(markdown, options, true);
 }
 
@@ -1804,7 +1797,8 @@ void CmarkGfmParser::attachExtensions(cmark_parser* parser, const ParseOptions& 
     }
   };
 
-  if (options.enableTable) attach("table");
+  if (options.enableTable)
+    attach("table");
   // cmark-gfm's strikethrough extension matches a SINGLE `~` as well as `~~`. Attaching it would turn
   // `H~2~O` (subscript off) into a strikethrough, which is surprising and inconsistent with the
   // subscript-on case where `~` means subscript. We always own tilde runs ourselves in
@@ -1812,12 +1806,16 @@ void CmarkGfmParser::attachExtensions(cmark_parser* parser, const ParseOptions& 
   // literal text. So cmark's extension is never attached, and `~` semantics never depend on the
   // subscript toggle.
   // if (options.enableStrikethrough) attach("strikethrough");  // intentionally disabled — see above
-  if (options.enableAutolink) attach("autolink");
-  if (options.enableTaskList) attach("tasklist");
-  if (options.enableMath) attach(options.relaxedInlineMath ? "math-relaxed" : "math");
+  if (options.enableAutolink)
+    attach("autolink");
+  if (options.enableTaskList)
+    attach("tasklist");
+  if (options.enableMath)
+    attach(options.relaxedInlineMath ? "math-relaxed" : "math");
 }
 
-void CmarkGfmParser::insertVirtualEmptyParagraphs(QStringView markdown, MarkdownNode& root, const LineStartOffsetCache& lineOffsets) const {
+void CmarkGfmParser::insertVirtualEmptyParagraphs(QStringView markdown, MarkdownNode& root,
+                                                  const LineStartOffsetCache& lineOffsets) const {
   if (root.type() != BlockType::Document) {
     return;
   }
@@ -1889,7 +1887,7 @@ void CmarkGfmParser::insertVirtualEmptyParagraphs(QStringView markdown, Markdown
   int lastContentLine = 0;
   for (int i = totalLines; i >= 1; --i) {
     if (!isBlankLine(lineOffsets.lineText(markdown, i))) {
-      lastContentLine = i;  // 1-indexed
+      lastContentLine = i; // 1-indexed
       break;
     }
   }
@@ -1903,7 +1901,8 @@ void CmarkGfmParser::insertVirtualEmptyParagraphs(QStringView markdown, Markdown
   }
 }
 
-void CmarkGfmParser::insertVirtualEmptyParagraphsInBlockQuotes(QStringView markdown, MarkdownNode& root, const LineStartOffsetCache& lineOffsets) const {
+void CmarkGfmParser::insertVirtualEmptyParagraphsInBlockQuotes(QStringView markdown, MarkdownNode& root,
+                                                               const LineStartOffsetCache& lineOffsets) const {
   // Line content and start offsets come from lineOffsets (a view over markdown) instead of
   // markdown.toString() + split('\n'); the old lineStartOffset lambda was also O(line) per call,
   // now O(1) via lineStarts_.
@@ -1927,7 +1926,7 @@ void CmarkGfmParser::insertVirtualEmptyParagraphsInBlockQuotes(QStringView markd
   const auto isEmptyQuoteLine = [&](int line, int depth, int& contentColumn, qsizetype& contentOffset) {
     const QStringView sourceLine = lineOffsets.lineText(markdown, line);
     if (sourceLine.isNull()) {
-      return false;  // out of range
+      return false; // out of range
     }
     const int contentIndex = quoteContentOffset(sourceLine, depth);
     if (contentIndex < 0 || !sourceLine.mid(contentIndex).trimmed().isEmpty()) {
@@ -2006,7 +2005,8 @@ void CmarkGfmParser::insertVirtualEmptyParagraphsInBlockQuotes(QStringView markd
 // display reads as two lists) AND the caret can land on it and type: text typed at column 0
 // interrupts the list in cmark, turning the authored split into an actual two-list parse.
 // One blank line (loose list) gets no VEP, matching the top-level every-other-blank-line rule.
-void CmarkGfmParser::insertVirtualEmptyParagraphsInLists(QStringView markdown, MarkdownNode& root, const LineStartOffsetCache& lineOffsets) const {
+void CmarkGfmParser::insertVirtualEmptyParagraphsInLists(QStringView markdown, MarkdownNode& root,
+                                                         const LineStartOffsetCache& lineOffsets) const {
   const int totalLines = lineOffsets.lineCount();
   const auto visit = [&](const auto& self, MarkdownNode& node) -> void {
     for (const auto& child : node.children()) {
@@ -2058,7 +2058,8 @@ std::unique_ptr<MarkdownNode> CmarkGfmParser::createVirtualEmptyParagraph(int li
   return createVirtualEmptyParagraph(line, 1, 0);
 }
 
-std::unique_ptr<MarkdownNode> CmarkGfmParser::createVirtualEmptyParagraph(int line, int column, qsizetype sourceOffset) const {
+std::unique_ptr<MarkdownNode> CmarkGfmParser::createVirtualEmptyParagraph(int line, int column,
+                                                                          qsizetype sourceOffset) const {
   auto paragraph = std::make_unique<MarkdownNode>(BlockType::Paragraph);
   paragraph->inlines().push_back(InlineNode::text(QString()));
 
@@ -2073,4 +2074,4 @@ std::unique_ptr<MarkdownNode> CmarkGfmParser::createVirtualEmptyParagraph(int li
   return paragraph;
 }
 
-}  // namespace muffin
+} // namespace muffin

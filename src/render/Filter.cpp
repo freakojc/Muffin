@@ -34,7 +34,8 @@ std::vector<CssFilterOperation> legacyFilters(const ThemeElementPaintStyle& s, b
 }
 void gaussianBlur(QImage& image, qreal sigma) {
   diag::ScopedPerfProbe perf("paint.filterBlur", filterPerf());
-  if (sigma <= 0) return;
+  if (sigma <= 0)
+    return;
   if (sigma > 8) {
     boxBlur(image, sigma >= 256 ? 256 : qMax(1, qRound(std::sqrt(sigma * sigma + .25) - .5)));
     return;
@@ -42,8 +43,10 @@ void gaussianBlur(QImage& image, qreal sigma) {
   const int radius = qCeil(sigma * 3);
   std::vector<qreal> kernel(2 * radius + 1);
   qreal total = 0;
-  for (int i = -radius; i <= radius; ++i) total += (kernel[i + radius] = std::exp(-i * i / (2 * sigma * sigma)));
-  for (auto& v : kernel) v /= total;
+  for (int i = -radius; i <= radius; ++i)
+    total += (kernel[i + radius] = std::exp(-i * i / (2 * sigma * sigma)));
+  for (auto& v : kernel)
+    v /= total;
   QImage temporary = image.copy();
   for (int axis = 0; axis < 2; ++axis) {
     const auto source = axis ? temporary : image;
@@ -53,7 +56,8 @@ void gaussianBlur(QImage& image, qreal sigma) {
         std::array<qreal, 4> sum{};
         for (int i = -radius; i <= radius; ++i) {
           const int sx = x + (axis ? 0 : i), sy = y + (axis ? i : 0);
-          if (sx < 0 || sy < 0 || sx >= source.width() || sy >= source.height()) continue;
+          if (sx < 0 || sy < 0 || sx >= source.width() || sy >= source.height())
+            continue;
           const auto pixel = reinterpret_cast<const QRgb*>(source.constScanLine(sy))[sx];
           const qreal weight = kernel[i + radius];
           sum[0] += qRed(pixel) * weight;
@@ -95,58 +99,57 @@ void applyList(QImage& image, const std::vector<CssFilterOperation>& operations,
       auto* row = reinterpret_cast<QRgb*>(image.scanLine(y));
       for (int x = 0; x < image.width(); ++x) {
         const int alpha = qAlpha(row[x]);
-        if (!alpha) continue;
+        if (!alpha)
+          continue;
         const qreal r = qRed(row[x]) / qreal(alpha), g = qGreen(row[x]) / qreal(alpha),
                     b = qBlue(row[x]) / qreal(alpha), v = op.value;
         qreal red = r, green = g, blue = b, a = alpha;
         switch (op.kind) {
-          case K::Brightness:
-            red = r * v;
-            green = g * v;
-            blue = b * v;
-            break;
-          case K::Contrast:
-            red = (r - .5) * v + .5;
-            green = (g - .5) * v + .5;
-            blue = (b - .5) * v + .5;
-            break;
-          case K::Grayscale: {
-            const qreal l = .2126 * r + .7152 * g + .0722 * b;
-            red = r * (1 - v) + l * v;
-            green = g * (1 - v) + l * v;
-            blue = b * (1 - v) + l * v;
-            break;
-          }
-          case K::Sepia:
-            red = r * (1 - v) + (.393 * r + .769 * g + .189 * b) * v;
-            green = g * (1 - v) + (.349 * r + .686 * g + .168 * b) * v;
-            blue = b * (1 - v) + (.272 * r + .534 * g + .131 * b) * v;
-            break;
-          case K::Invert:
-            red = r * (1 - 2 * v) + v;
-            green = g * (1 - 2 * v) + v;
-            blue = b * (1 - 2 * v) + v;
-            break;
-          case K::Opacity:
-            a = alpha * v;
-            break;
-          case K::Saturate:
-            red = (.213 + .787 * v) * r + (.715 - .715 * v) * g + (.072 - .072 * v) * b;
-            green = (.213 - .213 * v) * r + (.715 + .285 * v) * g + (.072 - .072 * v) * b;
-            blue = (.213 - .213 * v) * r + (.715 - .715 * v) * g + (.072 + .928 * v) * b;
-            break;
-          case K::HueRotate: {
-            const auto c = std::cos(v * M_PI / 180), s = std::sin(v * M_PI / 180);
-            red =
-                (.213 + .787 * c - .213 * s) * r + (.715 - .715 * c - .715 * s) * g + (.072 - .072 * c + .928 * s) * b;
-            green =
-                (.213 - .213 * c + .143 * s) * r + (.715 + .285 * c + .140 * s) * g + (.072 - .072 * c - .283 * s) * b;
-            blue =
-                (.213 - .213 * c - .787 * s) * r + (.715 - .715 * c + .715 * s) * g + (.072 + .928 * c + .072 * s) * b;
-            break;
-          }
-          default:
-            break;
+        case K::Brightness:
+          red = r * v;
+          green = g * v;
+          blue = b * v;
+          break;
+        case K::Contrast:
+          red = (r - .5) * v + .5;
+          green = (g - .5) * v + .5;
+          blue = (b - .5) * v + .5;
+          break;
+        case K::Grayscale: {
+          const qreal l = .2126 * r + .7152 * g + .0722 * b;
+          red = r * (1 - v) + l * v;
+          green = g * (1 - v) + l * v;
+          blue = b * (1 - v) + l * v;
+          break;
+        }
+        case K::Sepia:
+          red = r * (1 - v) + (.393 * r + .769 * g + .189 * b) * v;
+          green = g * (1 - v) + (.349 * r + .686 * g + .168 * b) * v;
+          blue = b * (1 - v) + (.272 * r + .534 * g + .131 * b) * v;
+          break;
+        case K::Invert:
+          red = r * (1 - 2 * v) + v;
+          green = g * (1 - 2 * v) + v;
+          blue = b * (1 - 2 * v) + v;
+          break;
+        case K::Opacity:
+          a = alpha * v;
+          break;
+        case K::Saturate:
+          red = (.213 + .787 * v) * r + (.715 - .715 * v) * g + (.072 - .072 * v) * b;
+          green = (.213 - .213 * v) * r + (.715 + .285 * v) * g + (.072 - .072 * v) * b;
+          blue = (.213 - .213 * v) * r + (.715 - .715 * v) * g + (.072 + .928 * v) * b;
+          break;
+        case K::HueRotate: {
+          const auto c = std::cos(v * M_PI / 180), s = std::sin(v * M_PI / 180);
+          red = (.213 + .787 * c - .213 * s) * r + (.715 - .715 * c - .715 * s) * g + (.072 - .072 * c + .928 * s) * b;
+          green =
+              (.213 - .213 * c + .143 * s) * r + (.715 + .285 * c + .140 * s) * g + (.072 - .072 * c - .283 * s) * b;
+          blue = (.213 - .213 * c - .787 * s) * r + (.715 - .715 * c + .715 * s) * g + (.072 + .928 * c + .072 * s) * b;
+          break;
+        }
+        default:
+          break;
         }
         row[x] = qRgba(qRound(qBound<qreal>(0, red, 1) * a), qRound(qBound<qreal>(0, green, 1) * a),
                        qRound(qBound<qreal>(0, blue, 1) * a), qRound(a));
@@ -154,7 +157,7 @@ void applyList(QImage& image, const std::vector<CssFilterOperation>& operations,
     }
   }
 }
-}  // namespace
+} // namespace
 bool hasElementFilter(const ThemeElementPaintStyle& s) {
   return !s.filters.empty() || s.filterBlur != 0 || s.filterBrightness != 1 || s.filterContrast != 1 ||
          s.filterGrayscale != 0 || s.filterSepia != 0 || s.filterHueRotateDeg != 0 || s.filterOpacity != 1;
@@ -172,7 +175,8 @@ void applyElementBackdrop(QImage& image, const ThemeElementPaintStyle& style, qr
 }
 QMarginsF cssFilterOutsets(const ThemeElementPaintStyle& style, qreal scale) {
   QMarginsF result;
-  if (!hasElementFilter(style)) return result;
+  if (!hasElementFilter(style))
+    return result;
   const auto legacy = style.filters.empty() ? legacyFilters(style, false) : std::vector<CssFilterOperation>{};
   const auto& list = style.filters.empty() ? legacy : style.filters;
   for (const auto& op : list) {
@@ -225,7 +229,8 @@ QRegion expanded(const QRegion& region, int halo, QPointF offset = {}) {
 }
 void drawPatches(QPainter& painter, const Patches& patches, QPointF origin, QRectF sample) {
   for (const auto& patch : patches)
-    if (QRectF(patch.rect).intersects(sample)) painter.drawImage(QPointF(patch.rect.topLeft()) - origin, patch.image);
+    if (QRectF(patch.rect).intersects(sample))
+      painter.drawImage(QPointF(patch.rect.topLeft()) - origin, patch.image);
 }
 QImage samplePatches(const Patches& patches, QRect rect) {
   auto image = surface(rect.size());
@@ -237,24 +242,29 @@ bool hasPixels(const QImage& image) {
   for (int y = 0; y < image.height(); ++y) {
     const auto* row = reinterpret_cast<const QRgb*>(image.constScanLine(y));
     for (int x = 0; x < image.width(); ++x)
-      if (qAlpha(row[x])) return true;
+      if (qAlpha(row[x]))
+        return true;
   }
   return false;
 }
-template <class F>
-void tiles(const QRegion& region, F visit) {
+template <class F> void tiles(const QRegion& region, F visit) {
   for (const auto& rect : region)
     for (int y = rect.top(); y <= rect.bottom(); y += tileSize)
       for (int x = rect.left(); x <= rect.right(); x += tileSize)
         visit(QRect(x, y, qMin(tileSize, rect.right() - x + 1), qMin(tileSize, rect.bottom() - y + 1)));
 }
-}  // namespace
-CssFilterRasterStats cssFilterRasterStats() { return rasterStats; }
-void resetCssFilterRasterStats() { rasterStats = {}; }
+} // namespace
+CssFilterRasterStats cssFilterRasterStats() {
+  return rasterStats;
+}
+void resetCssFilterRasterStats() {
+  rasterStats = {};
+}
 QRectF cssPaintDeviceBounds(const QPainter& painter) {
   bool invertible = false;
   const auto inverse = painter.deviceTransform().inverted(&invertible);
-  if (!invertible) return {};
+  if (!invertible)
+    return {};
   const auto* device = painter.device();
   const auto units = device->devType() == QInternal::Widget ? device->devicePixelRatioF() : 1;
   return inverse.mapRect(QRectF(0, 0, device->width() * units, device->height() * units));
@@ -265,16 +275,20 @@ void paintSparseCssFilter(QPainter& painter, QRectF sourceBounds, const ThemeEle
   diag::ScopedPerfProbe perf("paint.sparseFilter", filterPerf());
   const auto device = painter.device();
   auto visible = cssPaintDeviceBounds(painter);
-  if (painter.hasClipping()) visible = visible.intersected(painter.clipBoundingRect());
-  if (visible.isEmpty()) return;
+  if (painter.hasClipping())
+    visible = visible.intersected(painter.clipBoundingRect());
+  if (visible.isEmpty())
+    return;
   const qreal dpr = device->devicePixelRatioF();
   // Anchor near the viewport, so a large document scroll doesn't consume the
   // integer region coordinate range. Raster boundaries stay device aligned.
   const QPointF anchor(std::floor(visible.left() * dpr) / dpr, std::floor(visible.top() * dpr) / dpr);
   auto operations = style.filters.empty() ? legacyFilters(style, false) : style.filters;
   for (auto& op : operations) {
-    if (op.kind == K::Blur || op.kind == K::DropShadow) op.value *= scale * dpr;
-    if (op.kind == K::DropShadow) op.offset *= scale * dpr;
+    if (op.kind == K::Blur || op.kind == K::DropShadow)
+      op.value *= scale * dpr;
+    if (op.kind == K::DropShadow)
+      op.offset *= scale * dpr;
   }
   std::vector<QRegion> demand(operations.size() + 1);
   const auto physical = [&](QRectF rect) {
@@ -285,14 +299,16 @@ void paintSparseCssFilter(QPainter& painter, QRectF sourceBounds, const ThemeEle
   for (size_t i = operations.size(); i-- > 0;) {
     const auto& op = operations[i];
     demand[i] = demand[i + 1];
-    if (op.kind == K::Blur) demand[i] = expanded(demand[i + 1], blurHalo(op.value));
+    if (op.kind == K::Blur)
+      demand[i] = expanded(demand[i + 1], blurHalo(op.value));
     if (op.kind == K::DropShadow && op.color.alpha() != 0)
       demand[i] += expanded(demand[i + 1], blurHalo(op.value) + 1, -op.offset);
   }
   Patches patches;
   tiles(demand.front().intersected(physical(sourceBounds)), [&](QRect rect) {
     const QRectF logical(anchor + QPointF(rect.topLeft()) / dpr, QSizeF(rect.size()) / dpr);
-    if (!logical.intersects(sourceBounds)) return;
+    if (!logical.intersects(sourceBounds))
+      return;
     auto image = surface(rect.size());
     image.setDevicePixelRatio(dpr);
     {
@@ -304,14 +320,17 @@ void paintSparseCssFilter(QPainter& painter, QRectF sourceBounds, const ThemeEle
       source(buffer);
     }
     image.setDevicePixelRatio(1);
-    if (hasPixels(image)) patches.push_back({rect, std::move(image)});
+    if (hasPixels(image))
+      patches.push_back({rect, std::move(image)});
   });
   for (size_t i = 0; i < operations.size() && !patches.empty(); ++i) {
     const auto& op = operations[i];
     Patches next;
     QRegion support;
-    for (const auto& patch : patches) support += patch.rect;
-    if (op.kind == K::Blur) support = expanded(support, blurHalo(op.value));
+    for (const auto& patch : patches)
+      support += patch.rect;
+    if (op.kind == K::Blur)
+      support = expanded(support, blurHalo(op.value));
     if (op.kind == K::DropShadow && op.color.alpha() != 0)
       support += expanded(support, blurHalo(op.value) + 1, op.offset);
     tiles(demand[i + 1].intersected(support), [&](QRect rect) {
@@ -342,15 +361,17 @@ void paintSparseCssFilter(QPainter& painter, QRectF sourceBounds, const ThemeEle
         image = std::move(combined);
       } else if (op.kind != K::DropShadow)
         applyList(image, {op}, 1);
-      if (hasPixels(image)) next.push_back({rect, std::move(image)});
+      if (hasPixels(image))
+        next.push_back({rect, std::move(image)});
     });
     patches = std::move(next);
   }
   for (auto& patch : patches) {
     const auto origin = anchor + QPointF(patch.rect.topLeft()) / dpr;
     patch.image.setDevicePixelRatio(dpr);
-    if (finish) finish(patch.image, origin);
+    if (finish)
+      finish(patch.image, origin);
     painter.drawImage(origin, patch.image);
   }
 }
-}  // namespace muffin
+} // namespace muffin

@@ -30,11 +30,11 @@ struct ErLayoutEntityInput {
   // per-column entity sizing (type/name/keys/comment). attributeLines is kept
   // separately because ErScene re-parses it for display.
   QVector<ErAttribute> attributes;
-  QString cssClasses;     // classDef names applied via class/cssClass
-  QStringList styles;     // inline `style` declarations (key:value)
-  QString link;           // click/href interaction directive target (spec §514 gap)
-  QString linkTarget;     // link open target (unused by current seams, kept for parity)
-  QString tooltip;        // click tooltip directive
+  QString cssClasses; // classDef names applied via class/cssClass
+  QStringList styles; // inline `style` declarations (key:value)
+  QString link;       // click/href interaction directive target (spec §514 gap)
+  QString linkTarget; // link open target (unused by current seams, kept for parity)
+  QString tooltip;    // click tooltip directive
 };
 
 struct ErLayoutRelationshipInput {
@@ -83,17 +83,12 @@ struct ErPlacementResult {
 };
 
 ErLayoutInput buildErLayoutInput(const ErDiagramData& data);
-ErLayoutMeasurements measureErLayoutInput(const ErLayoutInput& input,
-                                          QString fontFamily = QStringLiteral("Noto Sans"),
-                                           qreal fontSize = 16.0,
-                                           qreal minEntityWidth = 100.0,
-                                           qreal diagramPadding = 20.0,
-                                           qreal entityPadding = 15.0,
-                                           qreal relationshipFontSize = 14.0);
-ErPlacementResult layoutErDiagramDagre(const ErLayoutInput& input,
-                                       const ErLayoutMeasurements& measurements,
-                                       qreal entitySpacing = 60.0,
-                                       qreal rankSpacing = 80.0);
+ErLayoutMeasurements measureErLayoutInput(const ErLayoutInput& input, QString fontFamily = QStringLiteral("Noto Sans"),
+                                          qreal fontSize = 16.0, qreal minEntityWidth = 100.0,
+                                          qreal diagramPadding = 20.0, qreal entityPadding = 15.0,
+                                          qreal relationshipFontSize = 14.0);
+ErPlacementResult layoutErDiagramDagre(const ErLayoutInput& input, const ErLayoutMeasurements& measurements,
+                                       qreal entitySpacing = 60.0, qreal rankSpacing = 80.0);
 QJsonObject erLayoutInputToJson(const ErLayoutInput& input);
 
-}  // namespace muffin::mermaid::er
+} // namespace muffin::mermaid::er

@@ -238,13 +238,15 @@ void counters(const QJsonObject& root) {
       } else if (node.type() == BlockType::Paragraph ||
                  (node.type() == BlockType::BlockQuote && c["id"] == "pseudo-order"))
         targets.append(theme.cssElementForNode(node));
-      for (const auto& child : node.children()) collect(*child);
+      for (const auto& child : node.children())
+        collect(*child);
     };
     collect(session.document().root());
     const auto expected = c["before"].toArray();
     require(targets.size() == expected.size(), "counter semantic witness count " + c["id"].toString());
     for (int i = 0; i < targets.size(); ++i) {
-      if (expected[i].isNull()) continue;
+      if (expected[i].isNull())
+        continue;
       const auto rule = theme.pseudoForElement(*targets[i], "before");
       require(rule && rule->content == expected[i].toString(), "counter witness " + c["id"].toString() + " #" +
                                                                    QString::number(i) + " got " +
@@ -336,7 +338,8 @@ void whitespaceMaskAtom() {
 void fullCanvasBoxShadow(QPainter& painter, QRectF rect, qreal radius, QColor color, QPointF offset, qreal blur,
                          qreal spread) {
   auto core = rect.translated(offset).adjusted(-spread, -spread, spread, spread);
-  if (core.isEmpty()) return;
+  if (core.isEmpty())
+    return;
   radius = qMax<qreal>(0, radius + spread);
   if (blur <= 0) {
     painter.save();
@@ -352,9 +355,11 @@ void fullCanvasBoxShadow(QPainter& painter, QRectF rect, qreal radius, QColor co
   core = QRectF(QPointF(snap(core.left()), snap(core.top())), QPointF(snap(core.right()), snap(core.bottom())));
   auto bounds = core.adjusted(-halo, -halo, halo, halo)
                     .intersected(cssPaintDeviceBounds(painter).adjusted(-halo, -halo, halo, halo));
-  if (painter.hasClipping()) bounds = bounds.intersected(painter.clipBoundingRect().adjusted(-halo, -halo, halo, halo));
+  if (painter.hasClipping())
+    bounds = bounds.intersected(painter.clipBoundingRect().adjusted(-halo, -halo, halo, halo));
   const auto imageBounds = bounds.toAlignedRect();
-  if (imageBounds.isEmpty()) return;
+  if (imageBounds.isEmpty())
+    return;
   const qreal guard = radius * 2 + 4;
   const auto local =
       core.translated(-imageBounds.topLeft())
@@ -433,7 +438,8 @@ void shadowRasterReuse() {
     image.fill(Qt::transparent);
     QPainter painter(&image);
     painter.translate(offset);
-    if (!clip.isEmpty()) painter.setClipRect(clip);
+    if (!clip.isEmpty())
+      painter.setClipRect(clip);
     DecorationPainter::paintBoxShadow(painter, {70.25, 60.5, 89, 43}, radius, color, 2, 3, 11, 1);
     return image;
   };
@@ -445,28 +451,32 @@ void shadowRasterReuse() {
   const auto samples = themePerformanceSamples();
   enableThemePerformance(false);
   require(cold == warm, "cached shadow must preserve all cold raster pixels");
-  require(cold.copy(0, 0, 290, 180) == shifted.copy(7, 11, 290, 180), "integer translations preserve exact shadow coverage");
-  require(samples[size_t(ThemePerfStage::Shadow)].work == 0, "same shadow geometry must reuse its raster across integer translations");
+  require(cold.copy(0, 0, 290, 180) == shifted.copy(7, 11, 290, 180),
+          "integer translations preserve exact shadow coverage");
+  require(samples[size_t(ThemePerfStage::Shadow)].work == 0,
+          "same shadow geometry must reuse its raster across integer translations");
   require(draw({}, Qt::red, 7) != warm && draw({}, QColor("#6a317fa0"), 2) != warm,
           "color and radius changes cannot use the old shadow mask");
   const auto clipped = draw({}, QColor("#6a317fa0"), 7, {75, 55, 25, 80});
   require(clipped != warm && clipped == draw({}, QColor("#6a317fa0"), 7, {75, 55, 25, 80}),
           "clipped shadow cache preserves the visible edge rather than a different viewport");
   const auto tall = [](qreal height) {
-    QImage image(300, 200, QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent);
+    QImage image(300, 200, QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::transparent);
     QPainter painter(&image);
     DecorationPainter::paintBoxShadow(painter, {20.25, 20.5, 250, height}, 9, QColor("#59312f77"), 1, 2, 13, 1);
     return image;
   };
   const auto firstPage = tall(100000);
-  enableThemePerformance(true); resetThemePerformance();
+  enableThemePerformance(true);
+  resetThemePerformance();
   const auto largerPage = tall(200000);
   const auto tallWork = themePerformanceSamples()[size_t(ThemePerfStage::Shadow)].work;
   enableThemePerformance(false);
   require(firstPage == largerPage && tallWork == 0,
           "distant lazy page-height changes preserve the visible mask and cached raster");
 }
-}  // namespace
+} // namespace
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
   require(argc > 1, "browser effects fixture argument");

@@ -105,8 +105,7 @@ struct VennDebugCell {
 struct VennScene final : MermaidScene {
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override { return rasterBounds; }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
 
   QRectF bounds{0.0, 0.0, 800.0, 450.0};
@@ -128,7 +127,6 @@ struct VennScene final : MermaidScene {
   QVector<VennDebugCell> debugCells;
 };
 
-VennScene buildVennScene(const VennData& data, VennConfig config,
-                         VennSceneStyle style);
+VennScene buildVennScene(const VennData& data, VennConfig config, VennSceneStyle style);
 
-}  // namespace muffin::mermaid::venn
+} // namespace muffin::mermaid::venn

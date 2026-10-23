@@ -16,15 +16,15 @@ using namespace muffin::math;
 namespace {
 
 void check(bool condition, const char* message) {
-  if (!condition) throw std::runtime_error(message);
+  if (!condition)
+    throw std::runtime_error(message);
 }
 
 QString nested(const QString& prefix, const QString& suffix, int count) {
   return prefix.repeated(count) + QStringLiteral("x") + suffix.repeated(count);
 }
 
-template <typename Function>
-void expectError(Function&& function, const QString& message) {
+template <typename Function> void expectError(Function&& function, const QString& message) {
   try {
     function();
   } catch (const MathParseError& error) {
@@ -43,7 +43,8 @@ struct LiveFrame {
 MathParseTask<int> continuationChain(int remaining, bool fail, int& live) {
   LiveFrame frame(live);
   if (remaining == 0) {
-    if (fail) throw MathParseError(QStringLiteral("continuation error"));
+    if (fail)
+      throw MathParseError(QStringLiteral("continuation error"));
     co_return 0;
   }
   co_return 1 + co_await continuationChain(remaining - 1, fail, live);
@@ -53,11 +54,9 @@ void testContinuations() {
   // Both resumption and error/destructor propagation must use constant native
   // stack. A recursive task implementation overflows on this chain.
   int live = 0;
-  check(continuationChain(20000, false, live).run() == 20000,
-        "continuations must return child results");
+  check(continuationChain(20000, false, live).run() == 20000, "continuations must return child results");
   check(live == 0, "successful continuations must release every frame");
-  expectError([&] { continuationChain(20000, true, live).run(); },
-              QStringLiteral("continuation error"));
+  expectError([&] { continuationChain(20000, true, live).run(); }, QStringLiteral("continuation error"));
   check(live == 0, "failed continuations must release every frame");
 }
 
@@ -76,33 +75,31 @@ void testParserNesting() {
           "nested braces must retain their innermost atom");
   }
   const QString depthError = QStringLiteral("LaTeX input is too deeply nested");
-  expectError([&] {
-    MathParser(nested(QStringLiteral("{"), QStringLiteral("}"), 256)).parse();
-  }, depthError);
+  expectError([&] { MathParser(nested(QStringLiteral("{"), QStringLiteral("}"), 256)).parse(); }, depthError);
 
-  const QVector<QPair<QString, QString>> forms{
-      {QStringLiteral("{"), QStringLiteral("}")},
-      {QStringLiteral("\\sqrt{"), QStringLiteral("}")},
-      {QStringLiteral("\\frac{1}{"), QStringLiteral("}")},
-      {QStringLiteral("\\left("), QStringLiteral("\\right)")},
-      {QStringLiteral("\\text{"), QStringLiteral("}")},
-      {QStringLiteral("x^{"), QStringLiteral("}")},
-      {QStringLiteral("\\begin{matrix}"), QStringLiteral("\\end{matrix}")},
-      {QStringLiteral("x\\over "), QString()}};
+  const QVector<QPair<QString, QString>> forms{{QStringLiteral("{"), QStringLiteral("}")},
+                                               {QStringLiteral("\\sqrt{"), QStringLiteral("}")},
+                                               {QStringLiteral("\\frac{1}{"), QStringLiteral("}")},
+                                               {QStringLiteral("\\left("), QStringLiteral("\\right)")},
+                                               {QStringLiteral("\\text{"), QStringLiteral("}")},
+                                               {QStringLiteral("x^{"), QStringLiteral("}")},
+                                               {QStringLiteral("\\begin{matrix}"), QStringLiteral("\\end{matrix}")},
+                                               {QStringLiteral("x\\over "), QString()}};
   for (const auto& form : forms) {
     for (bool throwOnError : {false, true}) {
       MathSettings settings;
       settings.throwOnError = throwOnError;
-      expectError([&] { MathParser(nested(form.first, form.second, 2000), settings).parse(); },
-                  depthError);
+      expectError([&] { MathParser(nested(form.first, form.second, 2000), settings).parse(); }, depthError);
     }
   }
   // Raw argument extraction has its own recursive text/font/accent path.
-  expectError([&] {
-    MathParser(QStringLiteral("\\href{") +
-               nested(QStringLiteral("\\textbf{"), QStringLiteral("}"), 2000) +
-               QStringLiteral("}{x}")).parse();
-  }, depthError);
+  expectError(
+      [&] {
+        MathParser(QStringLiteral("\\href{") + nested(QStringLiteral("\\textbf{"), QStringLiteral("}"), 2000) +
+                   QStringLiteral("}{x}"))
+            .parse();
+      },
+      depthError);
 
   // An error must unwind the complete logical depth budget, including the
   // guard whose constructor rejected entry. Retrying the same parser at the
@@ -118,9 +115,8 @@ void testMacroNesting() {
         "expandafter must preserve token order");
   check(expander.expand(QStringLiteral("\\expandafter\\relax\\noexpand\\a")) == QStringLiteral("\\relax"),
         "expandafter must preserve noexpand token flags");
-  expectError([&] {
-    expander.expand(QStringLiteral("\\expandafter").repeated(500) + QStringLiteral("\\relax"));
-  }, QStringLiteral("Too many nested \\expandafter"));
+  expectError([&] { expander.expand(QStringLiteral("\\expandafter").repeated(500) + QStringLiteral("\\relax")); },
+              QStringLiteral("Too many nested \\expandafter"));
   check(expander.expand(QStringLiteral("\\expandafter\\a\\b")) == QStringLiteral("AB"),
         "macro nesting failure must allow later expansion");
 
@@ -131,13 +127,12 @@ void testMacroNesting() {
         "nested expanded definitions must retain their replacement");
   MathSettings settings;
   settings.maxExpand = 8;
-  expectError([&] {
-    MathMacroExpander(settings).expand(nested(QStringLiteral("\\edef\\a{"), QStringLiteral("}\\a"), 3000));
-  },
-              QStringLiteral("Too many expansions: infinite loop or need to increase maxExpand setting"));
+  expectError(
+      [&] { MathMacroExpander(settings).expand(nested(QStringLiteral("\\edef\\a{"), QStringLiteral("}\\a"), 3000)); },
+      QStringLiteral("Too many expansions: infinite loop or need to increase maxExpand setting"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -160,7 +155,8 @@ int main(int argc, char** argv) {
     std::terminate();
   }
   try {
-    if (failure) std::rethrow_exception(failure);
+    if (failure)
+      std::rethrow_exception(failure);
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';
     return 1;

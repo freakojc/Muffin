@@ -18,8 +18,7 @@
 namespace {
 
 void logWs(const char* label) {
-  std::fprintf(stdout, "[mem] %-30s ws=%lldMB\n", label,
-               static_cast<long long>(muffin::diag::workingSetBytes() >> 20));
+  std::fprintf(stdout, "[mem] %-30s ws=%lldMB\n", label, static_cast<long long>(muffin::diag::workingSetBytes() >> 20));
   std::fflush(stdout);
 }
 
@@ -33,7 +32,7 @@ void countTree(const muffin::MarkdownNode& node, long long& blocks, long long& i
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   // Force offscreen so the bench runs anywhere (headless CI, no display) without depending on the
@@ -61,8 +60,7 @@ int main(int argc, char** argv) {
     text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
     text.replace(QLatin1Char('\r'), QLatin1Char('\n'));
   }
-  std::fprintf(stdout, "file: %s  (%lld chars)\n", path.toUtf8().constData(),
-               static_cast<long long>(text.size()));
+  std::fprintf(stdout, "file: %s  (%lld chars)\n", path.toUtf8().constData(), static_cast<long long>(text.size()));
   logWs("start");
 
   muffin::DocumentSession session;
@@ -77,8 +75,7 @@ int main(int argc, char** argv) {
 
   muffin::RenderTheme theme = muffin::RenderTheme::github();
   muffin::DocumentLayout layout;
-  layout.rebuild(session.document(), theme, 800.0, {}, {},
-                 muffin::DocumentLayout::BuildPolicy::Lazy);
+  layout.rebuild(session.document(), theme, 800.0, {}, {}, muffin::DocumentLayout::BuildPolicy::Lazy);
   logWs("after DocumentLayout.rebuild (Lazy)");
 
   // promote the first few slots the way ensureVisibleBuilt would, to measure a visible window.

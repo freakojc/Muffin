@@ -8,7 +8,6 @@ namespace muffin::mermaid::ishikawa {
 
 struct IshikawaScene;
 
-void paintIshikawaScene(const IshikawaScene& scene, QPainter& painter,
-                        const MermaidPaintOptions& options);
+void paintIshikawaScene(const IshikawaScene& scene, QPainter& painter, const MermaidPaintOptions& options);
 
-}  // namespace muffin::mermaid::ishikawa
+} // namespace muffin::mermaid::ishikawa

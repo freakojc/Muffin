@@ -52,7 +52,7 @@ QList<Bary> barycenter(const DagreGraph& g, const QList<QString>& movable) {
     }
     Bary b;
     b.v = v;
-    b.barycenter = weight ? sum / weight : 0.0;  // mirrors JS (always set when inV non-empty)
+    b.barycenter = weight ? sum / weight : 0.0; // mirrors JS (always set when inV non-empty)
     b.weight = weight;
     result.append(b);
   }
@@ -94,7 +94,7 @@ void mergeEntries(QHash<QString, MappedEntry>& m, const QString& targetId, const
   QStringList combined = source.vs;
   combined.append(target.vs);
   target.vs = combined;
-  target.barycenter = sum / weight;  // JS: unconditional; degenerate 0/0 → NaN
+  target.barycenter = sum / weight; // JS: unconditional; degenerate 0/0 → NaN
   target.weight = weight;
   target.i = std::min(source.i, target.i);
   source.merged = true;
@@ -104,17 +104,18 @@ QList<SortEntry> doResolveConflicts(QHash<QString, MappedEntry>& mapped, QString
   QStringList ordered;
   auto handleIn = [&](const QString& vId, const QString& uId) {
     MappedEntry& u = mapped[uId];
-    if (u.merged) return;
+    if (u.merged)
+      return;
     MappedEntry& v = mapped[vId];
-    if (!u.barycenter.has_value() || !v.barycenter.has_value() ||
-        *u.barycenter >= *v.barycenter) {
+    if (!u.barycenter.has_value() || !v.barycenter.has_value() || *u.barycenter >= *v.barycenter) {
       mergeEntries(mapped, vId, uId);
     }
   };
   auto handleOut = [&](const QString& vId, const QString& wId) {
     MappedEntry& w = mapped[wId];
     w.inIds.append(vId);
-    if (--w.indegree == 0) sourceSet.append(wId);
+    if (--w.indegree == 0)
+      sourceSet.append(wId);
   };
   while (!sourceSet.isEmpty()) {
     const QString entryId = sourceSet.takeLast();
@@ -122,8 +123,10 @@ QList<SortEntry> doResolveConflicts(QHash<QString, MappedEntry>& mapped, QString
     MappedEntry& entry = mapped[entryId];
     QStringList inRev = entry.inIds;
     std::reverse(inRev.begin(), inRev.end());
-    for (const QString& u : inRev) handleIn(entryId, u);
-    for (const QString& w : entry.outIds) handleOut(entryId, w);
+    for (const QString& u : inRev)
+      handleIn(entryId, u);
+    for (const QString& w : entry.outIds)
+      handleOut(entryId, w);
   }
   QList<SortEntry> result;
   for (const QString& id : ordered)
@@ -150,11 +153,13 @@ QList<SortEntry> resolveConflicts(const QList<Bary>& entries, const DagreGraph& 
   }
   QStringList sourceSet;
   for (auto it = mapped.cbegin(); it != mapped.cend(); ++it)
-    if (it.value().indegree == 0) sourceSet.append(it.key());
+    if (it.value().indegree == 0)
+      sourceSet.append(it.key());
   // Preserve stable order: iterate mapped in insertion order for the source set.
   QStringList stableSource;
   for (const Bary& b : entries)
-    if (mapped.contains(b.v) && mapped[b.v].indegree == 0) stableSource.append(b.v);
+    if (mapped.contains(b.v) && mapped[b.v].indegree == 0)
+      stableSource.append(b.v);
   return doResolveConflicts(mapped, stableSource);
 }
 
@@ -171,12 +176,15 @@ SortEntry sortEntries(QList<SortEntry> entries, bool biasRight) {
   // partition by has barycenter
   QList<SortEntry> sortable;
   QList<SortEntry> rhs;
-  for (const SortEntry& e : entries) (e.barycenter.has_value() ? sortable : rhs).append(e);
+  for (const SortEntry& e : entries)
+    (e.barycenter.has_value() ? sortable : rhs).append(e);
   std::sort(sortable.begin(), sortable.end(), [biasRight](const SortEntry& a, const SortEntry& b) {
     const qreal ba = *a.barycenter;
     const qreal bb = *b.barycenter;
-    if (ba < bb) return true;
-    if (ba > bb) return false;
+    if (ba < bb)
+      return true;
+    if (ba > bb)
+      return false;
     return biasRight ? a.i > b.i : a.i < b.i;
   });
   std::sort(rhs.begin(), rhs.end(), [](const SortEntry& a, const SortEntry& b) { return a.i > b.i; });
@@ -213,7 +221,8 @@ SortEntry sortSubgraph(const DagreGraph& g, const QString& v, const DagreGraph& 
   if (!bl.isEmpty()) {
     QList<QString> filtered;
     for (const QString& w : movable)
-      if (w != bl && w != br) filtered.append(w);
+      if (w != bl && w != br)
+        filtered.append(w);
     movable = filtered;
   }
 
@@ -227,8 +236,7 @@ SortEntry sortSubgraph(const DagreGraph& g, const QString& v, const DagreGraph& 
       Bary& target = const_cast<Bary&>(entry);
       if (target.barycenter.has_value()) {
         if (sub.barycenter.has_value()) {
-          const qreal merged = (target.barycenter.value() * target.weight +
-                                sub.barycenter.value() * sub.weight) /
+          const qreal merged = (target.barycenter.value() * target.weight + sub.barycenter.value() * sub.weight) /
                                (target.weight + sub.weight);
           target.barycenter = merged;
           target.weight += sub.weight;
@@ -247,8 +255,10 @@ SortEntry sortSubgraph(const DagreGraph& g, const QString& v, const DagreGraph& 
     QStringList expanded;
     for (const QString& node : entry.vs) {
       auto it = subgraphs.constFind(node);
-      if (it != subgraphs.cend()) expanded.append(it.value().vs);
-      else expanded.append(node);
+      if (it != subgraphs.cend())
+        expanded.append(it.value().vs);
+      else
+        expanded.append(node);
     }
     entry.vs = expanded;
   }
@@ -270,8 +280,8 @@ SortEntry sortSubgraph(const DagreGraph& g, const QString& v, const DagreGraph& 
         result.barycenter = 0.0;
         result.weight = 0;
       }
-      const qreal bc = (result.barycenter.value() * result.weight +
-                        blPred->order.value_or(0) + (brPred ? brPred->order.value_or(0) : 0)) /
+      const qreal bc = (result.barycenter.value() * result.weight + blPred->order.value_or(0) +
+                        (brPred ? brPred->order.value_or(0) : 0)) /
                        (result.weight + 2);
       result.barycenter = bc;
       result.weight += 2;
@@ -281,11 +291,11 @@ SortEntry sortSubgraph(const DagreGraph& g, const QString& v, const DagreGraph& 
 }
 
 // ---- crossCount (accumulator tree) ----
-qint64 twoLayerCrossCount(const DagreGraph& g, const QList<QString>& northLayer,
-                          const QList<QString>& southLayer) {
+qint64 twoLayerCrossCount(const DagreGraph& g, const QList<QString>& northLayer, const QList<QString>& southLayer) {
   QHash<QString, int> southPos;
-  for (qsizetype i = 0; i < southLayer.size(); ++i) southPos.insert(southLayer[i], static_cast<int>(i));
-  QList<QPair<int, int>> southEntries;  // (pos, weight)
+  for (qsizetype i = 0; i < southLayer.size(); ++i)
+    southPos.insert(southLayer[i], static_cast<int>(i));
+  QList<QPair<int, int>> southEntries; // (pos, weight)
   for (const QString& v : northLayer) {
     QList<QPair<int, int>> entries;
     for (const graphlib::Edge& e : g.outEdges(v)) {
@@ -293,10 +303,12 @@ qint64 twoLayerCrossCount(const DagreGraph& g, const QList<QString>& northLayer,
       entries.append(qMakePair(southPos.value(e.w, 0), w));
     }
     std::sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-    for (const auto& p : entries) southEntries.append(p);
+    for (const auto& p : entries)
+      southEntries.append(p);
   }
   int firstIndex = 1;
-  while (firstIndex < southLayer.size()) firstIndex <<= 1;
+  while (firstIndex < southLayer.size())
+    firstIndex <<= 1;
   const int treeSize = 2 * firstIndex - 1;
   firstIndex -= 1;
   QVector<int> tree(treeSize, 0);
@@ -306,7 +318,8 @@ qint64 twoLayerCrossCount(const DagreGraph& g, const QList<QString>& northLayer,
     tree[index] += entry.second;
     int weightSum = 0;
     while (index > 0) {
-      if (index % 2) weightSum += tree[index + 1];
+      if (index % 2)
+        weightSum += tree[index + 1];
       index = (index - 1) >> 1;
       tree[index] += entry.second;
     }
@@ -327,24 +340,28 @@ QVector<QList<QString>> initOrder(const DagreGraph& g) {
   QSet<QString> visited;
   QList<QString> simpleNodes;
   for (const QString& v : g.nodes())
-    if (g.children(v).value_or(QList<QString>{}).isEmpty()) simpleNodes.append(v);
+    if (g.children(v).value_or(QList<QString>{}).isEmpty())
+      simpleNodes.append(v);
   int maxRank = 0;
-  for (const QString& v : simpleNodes) maxRank = std::max(maxRank, g.node(v)->rank.value_or(0));
+  for (const QString& v : simpleNodes)
+    maxRank = std::max(maxRank, g.node(v)->rank.value_or(0));
   QVector<QList<QString>> layers(maxRank + 1);
   std::function<void(const QString&)> dfs = [&](const QString& v) {
-    if (visited.contains(v)) return;
+    if (visited.contains(v))
+      return;
     visited.insert(v);
     const DagreNodeLabel* node = g.node(v);
     if (node->rank.has_value() && *node->rank >= 0 && *node->rank < layers.size())
       layers[*node->rank].append(v);
-    for (const QString& w : g.successors(v)) dfs(w);
+    for (const QString& w : g.successors(v))
+      dfs(w);
   };
   QList<QString> orderedVs = simpleNodes;
-  std::stable_sort(orderedVs.begin(), orderedVs.end(),
-                   [&](const QString& a, const QString& b) {
-                     return g.node(a)->rank.value_or(0) < g.node(b)->rank.value_or(0);
-                   });
-  for (const QString& v : orderedVs) dfs(v);
+  std::stable_sort(orderedVs.begin(), orderedVs.end(), [&](const QString& a, const QString& b) {
+    return g.node(a)->rank.value_or(0) < g.node(b)->rank.value_or(0);
+  });
+  for (const QString& v : orderedVs)
+    dfs(v);
   return layers;
 }
 
@@ -366,17 +383,17 @@ LayerGraph buildLayerGraph(DagreGraph& g, int rank, const QString& relationship)
   // Mirror dagre's setDefaultNodeLabel(() => g.node(v)): incident non-movable
   // nodes (e.g. rank-0 predecessors) created implicitly via setEdge must carry
   // their real `order` from g so barycenter() reads live positions.
-  lg.g.setDefaultNodeLabel([&g](const QString& id) -> DagreNodeLabel {
-    return g.node(id) ? *g.node(id) : DagreNodeLabel{};
-  });
+  lg.g.setDefaultNodeLabel(
+      [&g](const QString& id) -> DagreNodeLabel { return g.node(id) ? *g.node(id) : DagreNodeLabel{}; });
   lg.g.setNode(lg.root, DagreNodeLabel{});
 
   for (const QString& v : g.nodes()) {
     const DagreNodeLabel* node = g.node(v);
-    const bool inRank = (node->rank.has_value() && *node->rank == rank) ||
-                        (node->minRank.has_value() && node->maxRank.has_value() &&
-                         *node->minRank <= rank && rank <= *node->maxRank);
-    if (!inRank) continue;
+    const bool inRank =
+        (node->rank.has_value() && *node->rank == rank) ||
+        (node->minRank.has_value() && node->maxRank.has_value() && *node->minRank <= rank && rank <= *node->maxRank);
+    if (!inRank)
+      continue;
     const QString parent = g.parentOf(v);
     // setNode with a copy of g's label (default-node-label aliasing in JS)
     lg.g.setNode(v, *node);
@@ -428,11 +445,12 @@ void addSubgraphConstraints(const DagreGraph& g, DagreGraph& cg, const QStringLi
   }
 }
 
-}  // namespace
+} // namespace
 
 void order(DagreGraph& g) {
   const std::optional<int> mr = maxRank(g);
-  if (!mr.has_value()) return;
+  if (!mr.has_value())
+    return;
   const int maxRankVal = *mr;
 
   // initOrder first: dagre aliases layer-graph node labels to g.node(v), so
@@ -452,9 +470,12 @@ void order(DagreGraph& g) {
 
   auto syncOrders = [&g](LayerGraph& lg) {
     for (const QString& v : lg.g.nodes()) {
-      if (!g.hasNode(v)) continue;
-      if (g.node(v)->order.has_value()) lg.g.node(v)->order = g.node(v)->order;
-      else lg.g.node(v)->order.reset();
+      if (!g.hasNode(v))
+        continue;
+      if (g.node(v)->order.has_value())
+        lg.g.node(v)->order = g.node(v)->order;
+      else
+        lg.g.node(v)->order.reset();
     }
   };
 
@@ -468,12 +489,14 @@ void order(DagreGraph& g) {
       syncOrders(lg);
       const SortEntry sorted = sortSubgraph(lg.g, lg.root, cg, biasRight);
       for (qsizetype idx = 0; idx < sorted.vs.size(); ++idx) {
-        if (DagreNodeLabel* ln = lg.g.node(sorted.vs[idx])) ln->order = static_cast<int>(idx);
+        if (DagreNodeLabel* ln = lg.g.node(sorted.vs[idx]))
+          ln->order = static_cast<int>(idx);
       }
       addSubgraphConstraints(lg.g, cg, sorted.vs);
       // Write orders back to the real graph (value semantics: lg holds copies).
       for (const QString& v : lg.g.nodes())
-        if (g.hasNode(v) && lg.g.node(v)->order.has_value()) g.node(v)->order = lg.g.node(v)->order;
+        if (g.hasNode(v) && lg.g.node(v)->order.has_value())
+          g.node(v)->order = lg.g.node(v)->order;
     }
     layering = buildLayerMatrix(g);
     const qint64 cc = crossCount(g, layering);
@@ -486,4 +509,4 @@ void order(DagreGraph& g) {
   assignOrder(g, best);
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

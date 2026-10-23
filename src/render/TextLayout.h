@@ -21,7 +21,7 @@ qreal textFontPixelSize(const QFont& font);
 // Every coordinate exposed here is in logical document pixels. No caller may
 // observe the larger shaping device used by the experimental backend.
 class TextLine {
- public:
+public:
   TextLine() = default;
   bool isValid() const { return line_.isValid(); }
   int textStart() const { return line_.textStart(); }
@@ -39,7 +39,7 @@ class TextLine {
   // Glyph indices/string indices stay unchanged; positions, bounds and the
   // raw font's size use logical pixels, including on the fractional device.
   QList<QGlyphRun> glyphRuns(int from = -1, int length = -1,
-                            QTextLayout::GlyphRunRetrievalFlags flags = QTextLayout::RetrieveAll) const;
+                             QTextLayout::GlyphRunRetrievalFlags flags = QTextLayout::RetrieveAll) const;
   QPointF position() const { return line_.position() / scale_; }
   void setPosition(QPointF position) { line_.setPosition(position * scale_); }
   void setLineWidth(qreal width) {
@@ -48,12 +48,14 @@ class TextLine {
     constexpr qreal maximum = (std::numeric_limits<int>::max() - 64.) / 64.;
     line_.setLineWidth(std::clamp(width * scale_, qreal(0), maximum));
   }
-  qreal cursorToX(int cursor, QTextLine::Edge edge = QTextLine::Leading) const { return line_.cursorToX(cursor, edge) / scale_; }
+  qreal cursorToX(int cursor, QTextLine::Edge edge = QTextLine::Leading) const {
+    return line_.cursorToX(cursor, edge) / scale_;
+  }
   int xToCursor(qreal x, QTextLine::CursorPosition mode = QTextLine::CursorBetweenCharacters) const {
     return line_.xToCursor(x * scale_, mode);
   }
 
- private:
+private:
   friend class TextLayout;
   TextLine(QTextLine line, qreal scale) : line_(line), scale_(scale) {}
   QTextLine line_;
@@ -61,7 +63,7 @@ class TextLine {
 };
 
 class TextLayout {
- public:
+public:
   using FormatRange = QTextLayout::FormatRange;
   TextLayout(const QString& text, const QFont& font, TextBackend backend = documentTextBackend());
   ~TextLayout();
@@ -98,7 +100,7 @@ class TextLayout {
   // Diagnostics only. Positions and raw font sizes are in backend units.
   QList<QGlyphRun> backendGlyphRuns() const { return layout_->glyphRuns(); }
 
- private:
+private:
   TextBackend backend_;
   qreal scale_;
   QFont font_;
@@ -109,7 +111,7 @@ class TextLayout {
 
 // Metrics, placeholders and line boxes must use the same device as shaping.
 class TextFontMetrics {
- public:
+public:
   explicit TextFontMetrics(const QFont& font, TextBackend backend = documentTextBackend());
   qreal ascent() const { return metrics_.ascent() / scale_; }
   qreal descent() const { return metrics_.descent() / scale_; }
@@ -131,7 +133,7 @@ class TextFontMetrics {
     return metrics_.elidedText(text, mode, width * scale_);
   }
 
- private:
+private:
   qreal scale_;
   QFontMetricsF metrics_;
 };
@@ -142,4 +144,4 @@ void drawDocumentText(QPainter& painter, QPointF baseline, const QString& text);
 void drawDocumentText(QPainter& painter, QRectF rect, const QString& text, const QTextOption& option);
 void drawDocumentText(QPainter& painter, QRectF rect, int flags, const QString& text);
 
-}  // namespace muffin
+} // namespace muffin

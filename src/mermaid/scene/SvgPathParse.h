@@ -20,4 +20,4 @@ namespace muffin::mermaid::scene {
 
 QPainterPath parseSvgPath(const QString& d);
 
-}  // namespace muffin::mermaid::scene
+} // namespace muffin::mermaid::scene

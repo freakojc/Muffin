@@ -129,27 +129,19 @@ public:
   const MathFontConstants& constants() const;
   std::optional<MathGlyphMetrics> glyph(const QString& character) const;
   std::optional<MathGlyphMetrics> mathItalicGlyph(QChar character) const;
-  std::optional<MathGlyphVariant> verticalVariant(const QString& character,
-                                                  qreal minimumExtent,
+  std::optional<MathGlyphVariant> verticalVariant(const QString& character, qreal minimumExtent,
                                                   bool allowAssembly = false) const;
-  std::optional<MathGlyphVariant> verticalAssembly(const QString& character,
-                                                   qreal targetExtent) const;
-  std::optional<MathGlyphAssembly> verticalAssemblyParts(
-      const QString& character, qreal targetExtent) const;
-  std::optional<MathGlyphVariant> horizontalVariant(
-      const QString& character, qreal minimumExtent,
-      bool allowAssembly = false) const;
-  std::optional<MathGlyphAssembly> horizontalAssemblyParts(
-      const QString& character, qreal targetExtent) const;
+  std::optional<MathGlyphVariant> verticalAssembly(const QString& character, qreal targetExtent) const;
+  std::optional<MathGlyphAssembly> verticalAssemblyParts(const QString& character, qreal targetExtent) const;
+  std::optional<MathGlyphVariant> horizontalVariant(const QString& character, qreal minimumExtent,
+                                                    bool allowAssembly = false) const;
+  std::optional<MathGlyphAssembly> horizontalAssemblyParts(const QString& character, qreal targetExtent) const;
   QPainterPath glyphPath(quint32 glyphIndex) const;
   QRawFont rasterFont(qreal fontScale = 1.0) const;
-  QRectF rasterGlyphBounds(quint32 glyphIndex,
-                           qreal fontScale = 1.0) const;
-  std::optional<MathShapedTextRun> shapeMathMlText(
-      const QString& text, qreal fontScale = 1.0) const;
-  std::optional<MathShapedText> shapeMathMlTextWithFallback(
-      const QString& text, const QStringList& fallbackFamilies,
-      qreal fontScale = 1.0) const;
+  QRectF rasterGlyphBounds(quint32 glyphIndex, qreal fontScale = 1.0) const;
+  std::optional<MathShapedTextRun> shapeMathMlText(const QString& text, qreal fontScale = 1.0) const;
+  std::optional<MathShapedText> shapeMathMlTextWithFallback(const QString& text, const QStringList& fallbackFamilies,
+                                                            qreal fontScale = 1.0) const;
   qreal textAdvance(const QString& text) const;
   QRectF textInkBounds(const QString& text) const;
 
@@ -158,8 +150,7 @@ private:
 
   qreal designUnitsToPixels(qint16 value) const;
   void parseMathTable(const QByteArray& table);
-  std::optional<MathGlyphAssembly> assemblyParts(
-      const QString& character, qreal targetExtent, bool vertical) const;
+  std::optional<MathGlyphAssembly> assemblyParts(const QString& character, qreal targetExtent, bool vertical) const;
 
   QRawFont font_;
   QRawFont rasterFont_;
@@ -169,7 +160,10 @@ private:
   QHash<quint32, qint16> italicCorrections_;
   QHash<quint32, qint16> accentAttachments_;
   QHash<quint32, bool> extendedShapes_;
-  struct RawVariant { quint16 glyphIndex = 0; quint16 extent = 0; };
+  struct RawVariant {
+    quint16 glyphIndex = 0;
+    quint16 extent = 0;
+  };
   QHash<quint32, QVector<RawVariant>> verticalVariants_;
   QHash<quint32, QVector<RawVariant>> horizontalVariants_;
   struct RawAssemblyPart {
@@ -186,4 +180,4 @@ private:
   QHash<quint32, qint16> horizontalAssemblyCorrections_;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

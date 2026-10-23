@@ -58,9 +58,7 @@ public:
   void addPhase(QString name, qint64 elapsedNs) {
     const double elapsedMs = elapsedNs / 1000000.0;
     const double workingSetMiB = diag::workingSetBytes() / (1024.0 * 1024.0);
-    qInfo().noquote() << "LargeDocumentRoundTripPhase"
-                      << name
-                      << "elapsedMs=" << elapsedMs
+    qInfo().noquote() << "LargeDocumentRoundTripPhase" << name << "elapsedMs=" << elapsedMs
                       << "workingSetMiB=" << workingSetMiB;
     QJsonObject phase;
     phase.insert(QStringLiteral("name"), name);
@@ -69,24 +67,16 @@ public:
     phases_.append(phase);
   }
 
-  void setNumber(const QString& key, qint64 value) {
-    metadata_.insert(key, static_cast<double>(value));
-  }
+  void setNumber(const QString& key, qint64 value) { metadata_.insert(key, static_cast<double>(value)); }
 
-  void setString(const QString& key, const QString& value) {
-    metadata_.insert(key, value);
-  }
+  void setString(const QString& key, const QString& value) { metadata_.insert(key, value); }
 
   void addParserRun(const QString& name, const ParsePerformanceMetrics& metrics) {
     QJsonArray phases;
     for (const ParsePhasePerformance& metric : metrics.phases) {
       const double elapsedMs = metric.elapsedNs / 1000000.0;
-      const double workingSetMiB =
-          metric.workingSetBytesAfter / (1024.0 * 1024.0);
-      qInfo().noquote() << "LargeDocumentParserPhase"
-                        << name
-                        << metric.name
-                        << "elapsedMs=" << elapsedMs
+      const double workingSetMiB = metric.workingSetBytesAfter / (1024.0 * 1024.0);
+      qInfo().noquote() << "LargeDocumentParserPhase" << name << metric.name << "elapsedMs=" << elapsedMs
                         << "workingSetMiB=" << workingSetMiB;
       QJsonObject phase;
       phase.insert(QStringLiteral("name"), metric.name);
@@ -96,15 +86,9 @@ public:
     }
 
     QJsonObject run;
-    run.insert(
-        QStringLiteral("totalElapsedMs"),
-        metrics.totalElapsedNs / 1000000.0);
-    run.insert(
-        QStringLiteral("workingSetMiBBefore"),
-        metrics.workingSetBytesBefore / (1024.0 * 1024.0));
-    run.insert(
-        QStringLiteral("workingSetMiBAfter"),
-        metrics.workingSetBytesAfter / (1024.0 * 1024.0));
+    run.insert(QStringLiteral("totalElapsedMs"), metrics.totalElapsedNs / 1000000.0);
+    run.insert(QStringLiteral("workingSetMiBBefore"), metrics.workingSetBytesBefore / (1024.0 * 1024.0));
+    run.insert(QStringLiteral("workingSetMiBAfter"), metrics.workingSetBytesAfter / (1024.0 * 1024.0));
     run.insert(QStringLiteral("phases"), phases);
     parserRuns_.insert(name, run);
   }
@@ -146,9 +130,7 @@ void addDefinitionRange(QCryptographicHash& hash, DefinitionFieldRange range) {
   addInteger(hash, range.end);
 }
 
-void addDefinitionFingerprint(
-    const DefinitionBlock& definition,
-    QCryptographicHash& hash) {
+void addDefinitionFingerprint(const DefinitionBlock& definition, QCryptographicHash& hash) {
   addInteger(hash, static_cast<int>(definition.kind));
   addString(hash, definition.label);
   addString(hash, definition.destination);
@@ -167,10 +149,7 @@ void addDefinitionFingerprint(
   addInteger(hash, definition.virtualTemplate);
 }
 
-void addInlineFingerprint(
-    const InlineNode& node,
-    QCryptographicHash& hash,
-    TreeFingerprint& result) {
+void addInlineFingerprint(const InlineNode& node, QCryptographicHash& hash, TreeFingerprint& result) {
   ++result.inlineNodes;
   addInteger(hash, static_cast<int>(node.type()));
   addString(hash, node.text());
@@ -190,10 +169,7 @@ void addInlineFingerprint(
   }
 }
 
-void addBlockFingerprint(
-    const MarkdownNode& node,
-    QCryptographicHash& hash,
-    TreeFingerprint& result) {
+void addBlockFingerprint(const MarkdownNode& node, QCryptographicHash& hash, TreeFingerprint& result) {
   ++result.blockNodes;
   addInteger(hash, static_cast<int>(node.type()));
   const SourceRange range = node.sourceRange();
@@ -242,11 +218,8 @@ TreeFingerprint fingerprint(const MarkdownDocument& document) {
   return result;
 }
 
-QString describeFingerprintDifference(
-    const TreeFingerprint& actual,
-    const TreeFingerprint& expected) {
-  return QStringLiteral(
-             "top-level blocks %1/%2, block nodes %3/%4, inline nodes %5/%6, hash %7/%8")
+QString describeFingerprintDifference(const TreeFingerprint& actual, const TreeFingerprint& expected) {
+  return QStringLiteral("top-level blocks %1/%2, block nodes %3/%4, inline nodes %5/%6, hash %7/%8")
       .arg(actual.topLevelBlocks)
       .arg(expected.topLevelBlocks)
       .arg(actual.blockNodes)
@@ -277,8 +250,7 @@ qsizetype requestedSizeMb() {
   bool ok = false;
   const qint64 parsed = value.toLongLong(&ok);
   require(ok && parsed >= 1 && parsed <= kMaximumSizeMb,
-          QStringLiteral("MUFFIN_BENCH_SIZE_MB must be between 1 and %1")
-              .arg(kMaximumSizeMb));
+          QStringLiteral("MUFFIN_BENCH_SIZE_MB must be between 1 and %1").arg(kMaximumSizeMb));
   return static_cast<qsizetype>(parsed);
 }
 
@@ -287,8 +259,7 @@ qint64 parseTimeoutMs(qsizetype sizeMb) {
   if (!value.isEmpty()) {
     bool ok = false;
     const qint64 parsed = value.toLongLong(&ok);
-    require(ok && parsed >= 1000,
-            QStringLiteral("MUFFIN_BENCH_TIMEOUT_MS must be at least 1000"));
+    require(ok && parsed >= 1000, QStringLiteral("MUFFIN_BENCH_TIMEOUT_MS must be at least 1000"));
     return parsed;
   }
   return std::max<qint64>(120000, static_cast<qint64>(sizeMb) * 5000);
@@ -301,22 +272,19 @@ void waitForParse(DocumentSession& session, qint64 timeoutMs) {
     QCoreApplication::processEvents(QEventLoop::AllEvents, 25);
     QThread::msleep(2);
   }
-  require(!session.isAsyncParseInProgress(),
-          QStringLiteral("Async parse exceeded %1 ms").arg(timeoutMs));
+  require(!session.isAsyncParseInProgress(), QStringLiteral("Async parse exceeded %1 ms").arg(timeoutMs));
 }
 
 void writeBytes(const QString& path, const QByteArray& bytes) {
   QFile file(path);
   require(file.open(QIODevice::WriteOnly | QIODevice::Truncate),
           QStringLiteral("Could not create large-document fixture"));
-  require(file.write(bytes) == bytes.size(),
-          QStringLiteral("Could not write complete large-document fixture"));
+  require(file.write(bytes) == bytes.size(), QStringLiteral("Could not write complete large-document fixture"));
 }
 
 QByteArray readBytes(const QString& path) {
   QFile file(path);
-  require(file.open(QIODevice::ReadOnly),
-          QStringLiteral("Could not read saved large-document fixture"));
+  require(file.open(QIODevice::ReadOnly), QStringLiteral("Could not read saved large-document fixture"));
   return file.readAll();
 }
 
@@ -355,13 +323,11 @@ void writeReport(const QByteArray& report) {
   QFile output(outputPath);
   require(output.open(QIODevice::WriteOnly | QIODevice::Truncate),
           QStringLiteral("Could not open MUFFIN_BENCH_JSON output"));
-  require(output.write(report) == report.size(),
-          QStringLiteral("Could not write complete MUFFIN_BENCH_JSON output"));
-  require(output.write("\n") == 1,
-          QStringLiteral("Could not terminate MUFFIN_BENCH_JSON output"));
+  require(output.write(report) == report.size(), QStringLiteral("Could not write complete MUFFIN_BENCH_JSON output"));
+  require(output.write("\n") == 1, QStringLiteral("Could not terminate MUFFIN_BENCH_JSON output"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -386,8 +352,7 @@ int main(int argc, char** argv) {
   QString source = muffin::test::makeMixedMarkdown(targetBytes);
   QByteArray sourceBytes = source.toUtf8();
   report.addPhase(QStringLiteral("fixture.generate"), timer.nsecsElapsed());
-  require(sourceBytes.size() >= targetBytes,
-          QStringLiteral("Generated fixture did not reach requested UTF-8 size"));
+  require(sourceBytes.size() >= targetBytes, QStringLiteral("Generated fixture did not reach requested UTF-8 size"));
   const TextDigest originalDigest = digest(sourceBytes, source.size());
 
   QTemporaryDir directory;
@@ -410,27 +375,23 @@ int main(int argc, char** argv) {
     DocumentSession session;
     session.setFullParsePerformanceMetricsEnabled(true);
     timer.restart();
-    require(files.open(session, nullptr, path),
-            QStringLiteral("FileController could not open generated fixture"));
+    require(files.open(session, nullptr, path), QStringLiteral("FileController could not open generated fixture"));
     waitForParse(session, timeoutMs);
     report.addPhase(QStringLiteral("file.openAndParse"), timer.nsecsElapsed());
     report.setNumber(QStringLiteral("parserReportedMs"), session.lastParseElapsedMs());
     require(!session.lastFullParsePerformanceMetrics().isEmpty(),
             QStringLiteral("Initial full parse did not retain performance metrics"));
-    report.addParserRun(
-        QStringLiteral("open"), session.lastFullParsePerformanceMetrics());
+    report.addParserRun(QStringLiteral("open"), session.lastFullParsePerformanceMetrics());
     require(session.markdownText().toString() == source,
             QStringLiteral("Initial FileController open changed source text"));
-    require(session.fileFormat().encodingName.compare(
-                QStringLiteral("UTF-8"), Qt::CaseInsensitive) == 0,
+    require(session.fileFormat().encodingName.compare(QStringLiteral("UTF-8"), Qt::CaseInsensitive) == 0,
             QStringLiteral("Generated UTF-8 fixture was detected as another encoding"));
     require(session.fileFormat().lineEnding == TextLineEnding::Lf,
             QStringLiteral("Generated LF fixture was detected with another line ending"));
 
     const TreeFingerprint originalTree = fingerprint(session.document());
     QVector<MarkdownNode*> candidates = editableParagraphs(session);
-    require(candidates.size() >= kEditCount,
-            QStringLiteral("Mixed fixture did not create enough editable paragraphs"));
+    require(candidates.size() >= kEditCount, QStringLiteral("Mixed fixture did not create enough editable paragraphs"));
     source.clear();
     source.squeeze();
     sourceBytes.clear();
@@ -439,15 +400,13 @@ int main(int argc, char** argv) {
     const RenderTheme theme = RenderTheme::github();
     DocumentLayout layout;
     timer.restart();
-    layout.rebuild(session.document(), theme, 900.0, SelectionRange(), path,
-                   DocumentLayout::BuildPolicy::Lazy);
+    layout.rebuild(session.document(), theme, 900.0, SelectionRange(), path, DocumentLayout::BuildPolicy::Lazy);
     report.addPhase(QStringLiteral("layout.lazyRebuild"), timer.nsecsElapsed());
     require(layout.buildPolicy() == DocumentLayout::BuildPolicy::Lazy,
             QStringLiteral("Large-document layout did not retain lazy policy"));
     require(layout.slotCount() == originalTree.topLevelBlocks,
             QStringLiteral("Lazy layout slot count did not match top-level block count"));
-    require(layout.promotedTopLevelIds().isEmpty(),
-            QStringLiteral("Lazy rebuild eagerly promoted blocks"));
+    require(layout.promotedTopLevelIds().isEmpty(), QStringLiteral("Lazy rebuild eagerly promoted blocks"));
 
     const qsizetype visibleCount = std::min(kVisibleSlotCount, layout.slotCount());
     timer.restart();
@@ -462,31 +421,27 @@ int main(int argc, char** argv) {
 
     EditorController editor;
     editor.attach(&session, nullptr);
-    QObject::connect(
-        &editor.brushQueue(), &BrushQueue::refreshRequested, &session,
-        [&](const BrushQueue::RefreshRequest& request) {
-          if (request.fullLayoutDirty) {
-            ++fullRefreshes;
-            layout.rebuild(session.document(), theme, 900.0, editor.selection().selection(),
-                           path, DocumentLayout::BuildPolicy::Lazy);
-            return;
-          }
-          if (request.topLevelRangeDirty.isValid()) {
-            ++rangeRefreshes;
-            const DocumentLayout::RangeRebuildResult rebuilt = layout.rebuildTopLevelRange(
-                request.topLevelRangeDirty, session.document(), theme,
-                editor.selection().selection());
-            require(rebuilt.rebuilt,
-                    QStringLiteral("Localized top-level layout refresh failed"));
-          }
-          for (NodeId blockId : request.layoutDirtyBlocks) {
-            ++blockRefreshes;
-            const DocumentLayout::BlockRebuildResult rebuilt = layout.rebuildBlock(
-                blockId, session.document(), theme, editor.selection().selection());
-            require(rebuilt.rebuilt,
-                    QStringLiteral("Localized block layout refresh failed"));
-          }
-        });
+    QObject::connect(&editor.brushQueue(), &BrushQueue::refreshRequested, &session,
+                     [&](const BrushQueue::RefreshRequest& request) {
+                       if (request.fullLayoutDirty) {
+                         ++fullRefreshes;
+                         layout.rebuild(session.document(), theme, 900.0, editor.selection().selection(), path,
+                                        DocumentLayout::BuildPolicy::Lazy);
+                         return;
+                       }
+                       if (request.topLevelRangeDirty.isValid()) {
+                         ++rangeRefreshes;
+                         const DocumentLayout::RangeRebuildResult rebuilt = layout.rebuildTopLevelRange(
+                             request.topLevelRangeDirty, session.document(), theme, editor.selection().selection());
+                         require(rebuilt.rebuilt, QStringLiteral("Localized top-level layout refresh failed"));
+                       }
+                       for (NodeId blockId : request.layoutDirtyBlocks) {
+                         ++blockRefreshes;
+                         const DocumentLayout::BlockRebuildResult rebuilt =
+                             layout.rebuildBlock(blockId, session.document(), theme, editor.selection().selection());
+                         require(rebuilt.rebuilt, QStringLiteral("Localized block layout refresh failed"));
+                       }
+                     });
 
     const QString editTokens[kEditCount] = {
         QStringLiteral("TOP_EDIT"),
@@ -504,8 +459,7 @@ int main(int argc, char** argv) {
       MarkdownNode* block = candidates.at(candidateIndexes[edit]);
       setCursor(editor, *block, 10);
       const qsizetype beforeSize = session.markdownText().size();
-      const qsizetype beforeTopLevelBlocks =
-          static_cast<qsizetype>(session.document().root().children().size());
+      const qsizetype beforeTopLevelBlocks = static_cast<qsizetype>(session.document().root().children().size());
       timer.restart();
       require(editor.inputController().insertText(editTokens[edit]),
               QStringLiteral("InputController rejected large-document edit %1").arg(edit));
@@ -513,8 +467,7 @@ int main(int argc, char** argv) {
       report.addPhase(QStringLiteral("edit.%1").arg(edit), timer.nsecsElapsed());
       require(session.lastParseWasLocalEdit(),
               QStringLiteral("Large-document edit %1 fell back to a full parse").arg(edit));
-      require(static_cast<qsizetype>(session.document().root().children().size()) ==
-                  beforeTopLevelBlocks,
+      require(static_cast<qsizetype>(session.document().root().children().size()) == beforeTopLevelBlocks,
               QStringLiteral("Plain-text edit %1 changed the top-level block count").arg(edit));
       if (session.lastLocalEditChangedTopLevelStructure()) {
         require(session.lastLocalTopLevelRangeChange().isValid(),
@@ -524,8 +477,7 @@ int main(int argc, char** argv) {
               QStringLiteral("Large-document edit %1 changed an unexpected text length").arg(edit));
     }
 
-    require(fullRefreshes == 0,
-            QStringLiteral("Forward edits requested a full-document layout refresh"));
+    require(fullRefreshes == 0, QStringLiteral("Forward edits requested a full-document layout refresh"));
     editedDigest = digest(session.markdownText());
     editedTree = fingerprint(session.document());
 
@@ -534,8 +486,7 @@ int main(int argc, char** argv) {
       require(editor.canUndo(), QStringLiteral("Undo stack ended before all edits were reverted"));
       editor.undo();
       editor.brushQueue().flush();
-      require(session.lastParseWasLocalEdit(),
-              QStringLiteral("Large-document undo fell back to a full parse"));
+      require(session.lastParseWasLocalEdit(), QStringLiteral("Large-document undo fell back to a full parse"));
     }
     report.addPhase(QStringLiteral("edit.undoAll"), timer.nsecsElapsed());
     require(!editor.canUndo(), QStringLiteral("Unexpected command remained on the undo stack"));
@@ -549,8 +500,7 @@ int main(int argc, char** argv) {
       require(editor.canRedo(), QStringLiteral("Redo stack ended before all edits were restored"));
       editor.redo();
       editor.brushQueue().flush();
-      require(session.lastParseWasLocalEdit(),
-              QStringLiteral("Large-document redo fell back to a full parse"));
+      require(session.lastParseWasLocalEdit(), QStringLiteral("Large-document redo fell back to a full parse"));
     }
     report.addPhase(QStringLiteral("edit.redoAll"), timer.nsecsElapsed());
     require(!editor.canRedo(), QStringLiteral("Unexpected command remained on the redo stack"));
@@ -558,8 +508,7 @@ int main(int argc, char** argv) {
             QStringLiteral("Redo did not restore the exact edited source"));
     require(fingerprint(session.document()) == editedTree,
             QStringLiteral("Redo did not restore the edited document structure"));
-    require(fullRefreshes == 0,
-            QStringLiteral("Edit/undo/redo requested a full-document layout refresh"));
+    require(fullRefreshes == 0, QStringLiteral("Edit/undo/redo requested a full-document layout refresh"));
     require(layout.promotedTopLevelIds().size() <= visibleCount + kEditCount,
             QStringLiteral("Localized editing promoted an unbounded number of lazy layout slots"));
     require(session.markdownText().pieceCount() <= 32,
@@ -569,8 +518,7 @@ int main(int argc, char** argv) {
     require(files.save(session, nullptr) == SaveOutcome::Saved,
             QStringLiteral("FileController could not save edited large document"));
     report.addPhase(QStringLiteral("file.save"), timer.nsecsElapsed());
-    require(!session.document().isModified(),
-            QStringLiteral("Successful save left the document modified"));
+    require(!session.document().isModified(), QStringLiteral("Successful save left the document modified"));
     const QByteArray savedBytes = readBytes(path);
     require(digest(savedBytes, session.markdownText().size()) == editedDigest,
             QStringLiteral("Saved UTF-8 bytes did not match edited source"));
@@ -585,22 +533,18 @@ int main(int argc, char** argv) {
   DocumentSession reopened;
   reopened.setFullParsePerformanceMetricsEnabled(true);
   timer.restart();
-  require(files.open(reopened, nullptr, path),
-          QStringLiteral("FileController could not reopen saved large document"));
+  require(files.open(reopened, nullptr, path), QStringLiteral("FileController could not reopen saved large document"));
   waitForParse(reopened, timeoutMs);
   report.addPhase(QStringLiteral("file.reopenAndParse"), timer.nsecsElapsed());
-  report.setNumber(
-      QStringLiteral("reopenParserReportedMs"), reopened.lastParseElapsedMs());
+  report.setNumber(QStringLiteral("reopenParserReportedMs"), reopened.lastParseElapsedMs());
   require(!reopened.lastFullParsePerformanceMetrics().isEmpty(),
           QStringLiteral("Reopened full parse did not retain performance metrics"));
-  report.addParserRun(
-      QStringLiteral("reopen"), reopened.lastFullParsePerformanceMetrics());
+  report.addParserRun(QStringLiteral("reopen"), reopened.lastFullParsePerformanceMetrics());
   require(digest(reopened.markdownText()) == editedDigest,
           QStringLiteral("Reopened source did not match saved edited source"));
   const TreeFingerprint reopenedTree = fingerprint(reopened.document());
-  require(reopenedTree == editedTree,
-          QStringLiteral("Reopened document structure did not match pre-save structure: %1")
-              .arg(describeFingerprintDifference(reopenedTree, editedTree)));
+  require(reopenedTree == editedTree, QStringLiteral("Reopened document structure did not match pre-save structure: %1")
+                                          .arg(describeFingerprintDifference(reopenedTree, editedTree)));
 
   report.setNumber(QStringLiteral("sourceCharacters"), editedDigest.characters);
   report.setNumber(QStringLiteral("sourceUtf8Bytes"), editedDigest.utf8Bytes);
@@ -613,10 +557,8 @@ int main(int argc, char** argv) {
   report.setNumber(QStringLiteral("blockRefreshes"), blockRefreshes);
   report.setNumber(QStringLiteral("rangeRefreshes"), rangeRefreshes);
   report.setNumber(QStringLiteral("fullRefreshes"), fullRefreshes);
-  report.setString(QStringLiteral("sourceSha256"),
-                   QString::fromLatin1(editedDigest.sha256.toHex()));
-  report.setString(QStringLiteral("structureSha256"),
-                   QString::fromLatin1(editedTree.sha256.toHex()));
+  report.setString(QStringLiteral("sourceSha256"), QString::fromLatin1(editedDigest.sha256.toHex()));
+  report.setString(QStringLiteral("structureSha256"), QString::fromLatin1(editedTree.sha256.toHex()));
   writeReport(report.finish());
   return 0;
 }

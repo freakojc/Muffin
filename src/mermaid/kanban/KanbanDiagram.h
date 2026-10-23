@@ -61,15 +61,13 @@ struct KanbanParseError : std::runtime_error {
   KanbanErrorKind kind = KanbanErrorKind::Parser;
   QString token;
 
-  KanbanParseError(const QString& message, int line = 0, int column = 0,
-                   KanbanErrorKind kind = KanbanErrorKind::Parser,
+  KanbanParseError(const QString& message, int line = 0, int column = 0, KanbanErrorKind kind = KanbanErrorKind::Parser,
                    QString token = {});
 };
 
 class KanbanDiagram {
 public:
-  static KanbanData parse(const QString& source,
-                          const KanbanParseConfig& config = {});
+  static KanbanData parse(const QString& source, const KanbanParseConfig& config = {});
 };
 
-}  // namespace muffin::mermaid::kanban
+} // namespace muffin::mermaid::kanban

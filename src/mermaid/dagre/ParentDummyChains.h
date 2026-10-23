@@ -26,9 +26,9 @@ struct ClusterPath {
   QList<QString> path;
   QString lca;
 };
-ClusterPath findPath(const DagreGraph& g, const QHash<QString, PostorderEntry>& postorderNums,
-                     const QString& v, const QString& w);
+ClusterPath findPath(const DagreGraph& g, const QHash<QString, PostorderEntry>& postorderNums, const QString& v,
+                     const QString& w);
 
 void parentDummyChains(DagreGraph& g);
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

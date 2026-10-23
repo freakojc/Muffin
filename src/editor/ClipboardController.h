@@ -32,4 +32,4 @@ private:
   SelectionSerializer selectionSerializer_;
 };
 
-}  // namespace muffin
+} // namespace muffin

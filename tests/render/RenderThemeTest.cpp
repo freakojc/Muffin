@@ -46,7 +46,8 @@ void testThemeSignatureRetainsSnapshotAndInvalidatesMutation() {
   const char* storage = initial.constData();
   for (int i = 0; i < 8; ++i) {
     cache.beginPass(i % 2, {});
-    require(cache.themeSignature(theme).constData() == storage, "unchanged sheet must retain hash across full and incremental passes");
+    require(cache.themeSignature(theme).constData() == storage,
+            "unchanged sheet must retain hash across full and incremental passes");
   }
   const auto before = sheet->revision();
   sheet->setVariable(QStringLiteral("--tone"), QStringLiteral("blue"));
@@ -61,7 +62,8 @@ void testThemeSignatureRetainsSnapshotAndInvalidatesMutation() {
   auto copied = *sheet;
   const auto copiedRevision = copied.revision();
   copied.addFontFace({QStringLiteral("test-face"), QStringLiteral("font.ttf")});
-  require(copied.revision() != copiedRevision && sheet->revision() == copiedRevision, "copy mutation must not alter original generation");
+  require(copied.revision() != copiedRevision && sheet->revision() == copiedRevision,
+          "copy mutation must not alter original generation");
   *sheet = std::move(copied);
   cache.beginPass(true, {});
   require(cache.themeSignature(theme) != assigned, "font-face mutation invalidates signature");
@@ -151,8 +153,7 @@ void testScreenFontRenderingPolicy() {
     }
     require(changedPixels > 0,
             QStringLiteral("Natural hinting should materially change Windows small-text rasterization"));
-    require(antialiasedEdgePixels > 0,
-            QStringLiteral("Natural Windows text should retain antialiased edge coverage"));
+    require(antialiasedEdgePixels > 0, QStringLiteral("Natural Windows text should retain antialiased edge coverage"));
   }
 #endif
 }
@@ -160,8 +161,7 @@ void testScreenFontRenderingPolicy() {
 void testScreenFontRenderingReachesEveryDocumentFontPath() {
 #if defined(Q_OS_WIN)
   const RenderTheme theme = RenderTheme::github();
-  const QVector<QFont> themeFonts{
-      theme.paragraphFont(), theme.headingFont(1), theme.codeFont(), theme.mathFont()};
+  const QVector<QFont> themeFonts{theme.paragraphFont(), theme.headingFont(1), theme.codeFont(), theme.mathFont()};
   for (const QFont& font : themeFonts) {
     require(font.hintingPreference() == QFont::PreferVerticalHinting,
             QStringLiteral("all theme font paths should use the Windows screen rendering policy"));
@@ -179,7 +179,8 @@ void testThemeCodeFontFallbackOrder() {
   const QFont codeFont = theme.codeFont();
   require(!codeFont.family().isEmpty(), QStringLiteral("code font should resolve to an available family"));
   require(codeFont.styleHint() == QFont::Monospace, QStringLiteral("code font should keep monospace style hint"));
-  require(qAbs(codeFont.pointSizeF() * 96.0 / 72.0 - 14.4) < 0.01, QStringLiteral("code font should be 14.4 CSS px at 100% zoom"));
+  require(qAbs(codeFont.pointSizeF() * 96.0 / 72.0 - 14.4) < 0.01,
+          QStringLiteral("code font should be 14.4 CSS px at 100% zoom"));
   const auto* pre = theme.elementStyle(QStringLiteral("pre"));
   require(pre && qAbs(theme.codeLineHeight() - pre->text.fontSizePx * pre->text.lineHeight) < 0.01,
           QStringLiteral("code line height must come from the computed pre style"));
@@ -202,11 +203,8 @@ void testThemeCodeHighlightPalette() {
 void testThemeManagerSupportsBuiltInThemes() {
   ThemeManager manager;
   const QStringList expectedThemes{
-      QStringLiteral("github"),
-      QStringLiteral("newsprint"),
-      QStringLiteral("night"),
-      QStringLiteral("pixyll"),
-      QStringLiteral("whitey"),
+      QStringLiteral("github"), QStringLiteral("newsprint"), QStringLiteral("night"),
+      QStringLiteral("pixyll"), QStringLiteral("whitey"),
   };
 
   // Built-ins must be present and in canonical order at the front, but custom
@@ -263,14 +261,17 @@ void testLayoutForTheme(const MarkdownDocument& document, const RenderTheme& the
   const QRectF paragraphRect = layout.block(paragraph->id())->rect();
   const HitTestResult paragraphHit = layout.hitTest(paragraphRect.center(), theme);
   require(paragraphHit.isValid(), QStringLiteral("%1 paragraph hit invalid").arg(themeName));
-  require(paragraphHit.zone == HitTestResult::Zone::Text, QStringLiteral("%1 paragraph hit should be text").arg(themeName));
+  require(paragraphHit.zone == HitTestResult::Zone::Text,
+          QStringLiteral("%1 paragraph hit should be text").arg(themeName));
   require(paragraphHit.blockId == paragraph->id(), QStringLiteral("%1 paragraph hit id mismatch").arg(themeName));
 
   const QRectF tableRect = layout.block(table->id())->rect();
   const HitTestResult tableHit = layout.hitTest(tableRect.center(), theme);
   require(tableHit.isValid(), QStringLiteral("%1 table hit invalid").arg(themeName));
-  require(tableHit.zone == HitTestResult::Zone::TableCell, QStringLiteral("%1 table hit should be cell").arg(themeName));
-  require(tableHit.tableRow >= 0 && tableHit.tableColumn >= 0, QStringLiteral("%1 table hit indices missing").arg(themeName));
+  require(tableHit.zone == HitTestResult::Zone::TableCell,
+          QStringLiteral("%1 table hit should be cell").arg(themeName));
+  require(tableHit.tableRow >= 0 && tableHit.tableColumn >= 0,
+          QStringLiteral("%1 table hit indices missing").arg(themeName));
 
   const QRectF codeRect = layout.block(code->id())->rect();
   const HitTestResult codeHit = layout.hitTest(codeRect.center(), theme);
@@ -342,8 +343,7 @@ void testListMarkerGapFloor() {
   // Small indent (phycat-style 13px): 0.2*13 = 2.6 is below the 4.5 floor.
   setUlIndent(13.0);
   const RenderTheme small = RenderTheme::fromDefinition(def);
-  require(qAbs(small.listMarkerGap() - 4.5) < 0.01,
-          QStringLiteral("small-indent gap floors at 4.5px, not 2.6"));
+  require(qAbs(small.listMarkerGap() - 4.5) < 0.01, QStringLiteral("small-indent gap floors at 4.5px, not 2.6"));
   // Large indent (github-style 30px): 0.2*30 = 6px beats the floor → unchanged.
   setUlIndent(30.0);
   def.spacing.listMarkerGap = 0.0;
@@ -353,8 +353,7 @@ void testListMarkerGapFloor() {
   // Explicit override wins regardless of indent.
   def.spacing.listMarkerGap = 12.0;
   const RenderTheme over = RenderTheme::fromDefinition(def);
-  require(qAbs(over.listMarkerGap() - 12.0) < 0.01,
-          QStringLiteral("explicit listMarkerGap overrides the auto value"));
+  require(qAbs(over.listMarkerGap() - 12.0) < 0.01, QStringLiteral("explicit listMarkerGap overrides the auto value"));
 }
 
 // Two consecutive paragraphs: the inter-paragraph gap must reflect the theme's
@@ -368,7 +367,9 @@ qreal interParagraphGap(const QString& css) {
   layout.rebuild(session.document(), theme, 800.0);
   QVector<const MarkdownNode*> paras;
   for (const auto& child : session.document().root().children()) {
-    if (child->type() == BlockType::Paragraph) { paras.push_back(child.get()); }
+    if (child->type() == BlockType::Paragraph) {
+      paras.push_back(child.get());
+    }
   }
   require(paras.size() >= 2, QStringLiteral("fixture should contain two top-level paragraphs"));
   const BlockLayout* a = layout.block(paras.at(0)->id());
@@ -383,7 +384,9 @@ void testParagraphSpacingHonoursCssMargin() {
   require(tight > 0.0, QStringLiteral("baseline paragraph gap should be positive (=%1)").arg(tight));
   // CSS bottom margin 30px → the gap must grow well beyond the legacy tight floor.
   require(spaced > tight + 10.0,
-          QStringLiteral("declared p margin-bottom must drive the inter-paragraph gap (tight=%1 spaced=%2)").arg(tight).arg(spaced));
+          QStringLiteral("declared p margin-bottom must drive the inter-paragraph gap (tight=%1 spaced=%2)")
+              .arg(tight)
+              .arg(spaced));
   require(qAbs(spaced - 30.0) < 1.5,
           QStringLiteral("collapsed paragraph gap should equal the CSS bottom margin (spaced=%1)").arg(spaced));
 }
@@ -413,33 +416,32 @@ void testAdjacentCssMarginsCollapseAcrossBlockTypes() {
 // Without the node-aware margin wiring, the structural rule would silently not apply.
 void testStructuralMarginSelectorAffectsLayout() {
   const qreal base = interParagraphGap(QStringLiteral("#write { color:#000000; } #write p { margin: 10px; }"));
-  const qreal adj = interParagraphGap(QStringLiteral(
-      "#write { color:#000000; } #write p { margin: 10px; } #write p + p { margin-top: 60px; }"));
+  const qreal adj = interParagraphGap(
+      QStringLiteral("#write { color:#000000; } #write p { margin: 10px; } #write p + p { margin-top: 60px; }"));
   require(base > 0.0, QStringLiteral("base gap should be positive (=%1)").arg(base));
   require(adj > base + 30.0,
           QStringLiteral("p + p margin-top must grow the inter-paragraph gap (base=%1 adj=%2)").arg(base).arg(adj));
-  require(qAbs(adj - 60.0) < 2.0,
-          QStringLiteral("collapsed gap should equal the p+p margin-top 60 (adj=%1)").arg(adj));
+  require(qAbs(adj - 60.0) < 2.0, QStringLiteral("collapsed gap should equal the p+p margin-top 60 (adj=%1)").arg(adj));
 }
 
 void testBlockquoteCssBoxUsesPerSideBorderAndCompactNestedFlow() {
   DocumentSession session;
-  session.setMarkdownText(QStringLiteral(
-      "> A block quote can contain paragraphs.\n"
-      ">\n"
-      ">\n"
-      "> It can also contain **formatting**, `code`, and nested quotes.\n"
-      ">\n"
-      ">\n"
-      "> > Nested quote.\n"
-      "\n"
-      "After\n"), false);
-  const QString css = QStringLiteral(
-      "body { color:#333333; font-size:16px; }"
-      "#write { color:#333333; }"
-      "p, blockquote { margin: 0.8em 0; }"
-      "blockquote { border-left: 4px solid #dfe2e5; padding: 0 15px; color: #777777; }");
-  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("quote"), QString()));
+  session.setMarkdownText(QStringLiteral("> A block quote can contain paragraphs.\n"
+                                         ">\n"
+                                         ">\n"
+                                         "> It can also contain **formatting**, `code`, and nested quotes.\n"
+                                         ">\n"
+                                         ">\n"
+                                         "> > Nested quote.\n"
+                                         "\n"
+                                         "After\n"),
+                          false);
+  const QString css = QStringLiteral("body { color:#333333; font-size:16px; }"
+                                     "#write { color:#333333; }"
+                                     "p, blockquote { margin: 0.8em 0; }"
+                                     "blockquote { border-left: 4px solid #dfe2e5; padding: 0 15px; color: #777777; }");
+  const RenderTheme theme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("quote"), QString()));
   DocumentLayout layout;
   layout.rebuild(session.document(), theme, 800.0);
 
@@ -448,13 +450,21 @@ void testBlockquoteCssBoxUsesPerSideBorderAndCompactNestedFlow() {
   int quoteDepth = 0;
   std::function<void(const MarkdownNode&)> collectQuotes = [&](const MarkdownNode& node) {
     const bool isQuote = node.type() == BlockType::BlockQuote;
-    if (isQuote) { ++quoteDepth; quotes.push_back(&node); }
+    if (isQuote) {
+      ++quoteDepth;
+      quotes.push_back(&node);
+    }
     const SourceRange range = node.sourceRange();
-    if (quoteDepth > 0 && node.type() == BlockType::Paragraph && range.byteStart >= 0 && range.byteEnd == range.byteStart) {
+    if (quoteDepth > 0 && node.type() == BlockType::Paragraph && range.byteStart >= 0 &&
+        range.byteEnd == range.byteStart) {
       quoteVeps.push_back(&node);
     }
-    for (const auto& child : node.children()) { collectQuotes(*child); }
-    if (isQuote) { --quoteDepth; }
+    for (const auto& child : node.children()) {
+      collectQuotes(*child);
+    }
+    if (isQuote) {
+      --quoteDepth;
+    }
   };
   collectQuotes(session.document().root());
   require(quotes.size() == 2, QStringLiteral("fixture should contain outer and nested blockquotes"));
@@ -478,9 +488,11 @@ void testBlockquoteCssBoxUsesPerSideBorderAndCompactNestedFlow() {
   require(qAbs(outerBox.contentBox.right() - (outer->rect().right() - 15.0)) < 0.5,
           QStringLiteral("blockquote content should be inset by right padding only"));
   require(nested->rect().height() < 60.0,
-          QStringLiteral("nested blockquote should stay compact, not reserve a large empty box (height=%1)").arg(nested->rect().height()));
+          QStringLiteral("nested blockquote should stay compact, not reserve a large empty box (height=%1)")
+              .arg(nested->rect().height()));
   require(outer->rect().height() < 110.0,
-          QStringLiteral("outer blockquote should omit virtual blank paragraphs from paint flow (height=%1)").arg(outer->rect().height()));
+          QStringLiteral("outer blockquote should omit virtual blank paragraphs from paint flow (height=%1)")
+              .arg(outer->rect().height()));
 
   SelectionRange focusedVep;
   focusedVep.anchor.blockId = quotes.at(0)->id();
@@ -505,36 +517,39 @@ void testBlockquoteCssBoxUsesPerSideBorderAndCompactNestedFlow() {
   QImage img(QSize(800, qCeil(layout.totalHeight()) + 20), QImage::Format_ARGB32);
   img.fill(QColor(QStringLiteral("#ffffff")).rgba());
   QPainter painter(&img);
-  for (const BlockLayout* block : layout.promotedBlocks()) { block->paint(painter, theme, 0.0, nullptr); }
+  for (const BlockLayout* block : layout.promotedBlocks()) {
+    block->paint(painter, theme, 0.0, nullptr);
+  }
   painter.end();
   const QRectF r = outer->cssBorderBox();
   const QColor leftPixel = QColor::fromRgba(img.pixel(qRound(r.left() + 2.0), qRound(r.center().y())));
   const QColor rightPixel = QColor::fromRgba(img.pixel(qRound(r.right() - 2.0), qRound(r.center().y())));
   require(leftPixel.name(QColor::HexRgb) == QStringLiteral("#dfe2e5"),
-          QStringLiteral("left border should paint the declared blockquote border-left (got %1)").arg(leftPixel.name(QColor::HexRgb)));
+          QStringLiteral("left border should paint the declared blockquote border-left (got %1)")
+              .arg(leftPixel.name(QColor::HexRgb)));
   require(rightPixel.name(QColor::HexRgb) != QStringLiteral("#dfe2e5"),
           QStringLiteral("right edge must not paint a phantom border from border-left"));
 }
 
 void testBlockquoteListFlowStaysCompactUnderLazyPromotion() {
   DocumentSession session;
-  session.setMarkdownText(QStringLiteral(
-      "> Intro\n"
-      ">\n"
-      "> - one\n"
-      ">   - nested\n"
-      ">\n"
-      "> Outro\n"
-      "\n"
-      "After\n"), false);
-  const QString css = QStringLiteral(
-      "body { color:#333333; font-size:16px; line-height:1.6; }"
-      "#write { color:#333333; }"
-      "p, blockquote, ul, ol { margin: 0.8em 0; }"
-      "li>ol, li>ul { margin: 0 0; }"
-      "ul, ol { padding-left: 30px; }"
-      "blockquote { border-left: 4px solid #dfe2e5; padding: 0 15px; }");
-  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("quote-list"), QString()));
+  session.setMarkdownText(QStringLiteral("> Intro\n"
+                                         ">\n"
+                                         "> - one\n"
+                                         ">   - nested\n"
+                                         ">\n"
+                                         "> Outro\n"
+                                         "\n"
+                                         "After\n"),
+                          false);
+  const QString css = QStringLiteral("body { color:#333333; font-size:16px; line-height:1.6; }"
+                                     "#write { color:#333333; }"
+                                     "p, blockquote, ul, ol { margin: 0.8em 0; }"
+                                     "li>ol, li>ul { margin: 0 0; }"
+                                     "ul, ol { padding-left: 30px; }"
+                                     "blockquote { border-left: 4px solid #dfe2e5; padding: 0 15px; }");
+  const RenderTheme theme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("quote-list"), QString()));
 
   DocumentLayout eager;
   eager.rebuild(session.document(), theme, 800.0);
@@ -544,7 +559,8 @@ void testBlockquoteListFlowStaysCompactUnderLazyPromotion() {
   require(eagerQuote != nullptr, QStringLiteral("eager quote layout exists"));
   const qreal eagerQuoteHeight = eagerQuote->rect().height();
   require(eagerQuoteHeight < 150.0,
-          QStringLiteral("blockquote containing a list should stay compact, not include blank quote VEPs (height=%1)").arg(eagerQuoteHeight));
+          QStringLiteral("blockquote containing a list should stay compact, not include blank quote VEPs (height=%1)")
+              .arg(eagerQuoteHeight));
 
   QVector<const MarkdownNode*> listItems;
   collectListItems(session.document().root(), listItems);
@@ -566,7 +582,8 @@ void testBlockquoteListFlowStaysCompactUnderLazyPromotion() {
   require(promotedQuote != nullptr, QStringLiteral("lazy quote should promote"));
   require(qAbs(estimatedHeight - promotedQuote->rect().height()) < 1.5,
           QStringLiteral("lazy list/quote estimate should match promoted height (estimated=%1 promoted=%2)")
-              .arg(estimatedHeight).arg(promotedQuote->rect().height()));
+              .arg(estimatedHeight)
+              .arg(promotedQuote->rect().height()));
 }
 
 // Regression for the CSS cascade leak where `#write { padding: 30px;
@@ -581,19 +598,20 @@ void testGithubBlockquoteNotPaddedByWriteLeak() {
   const ThemeElementBoxStyle quoteBox = theme.elementBoxStyle(QStringLiteral("blockquote"));
   require(quoteBox.borderLeftWidth > 0.0, QStringLiteral("github blockquote declares border-left"));
   require(qAbs(quoteBox.padding.bottom()) < 1.0,
-          QStringLiteral("github blockquote padding-bottom must not leak #write's 100px (got %1)").arg(quoteBox.padding.bottom()));
+          QStringLiteral("github blockquote padding-bottom must not leak #write's 100px (got %1)")
+              .arg(quoteBox.padding.bottom()));
   require(qAbs(quoteBox.padding.top()) < 1.0,
           QStringLiteral("github blockquote padding-top should be 0 (got %1)").arg(quoteBox.padding.top()));
 
   DocumentSession session;
-  session.setMarkdownText(QStringLiteral(
-      "> A block quote can contain paragraphs.\n"
-      ">\n"
-      "> It can also contain formatting and nested quotes.\n"
-      ">\n"
-      "> > Nested quote.\n"
-      "\n"
-      "## Lists\n"), false);
+  session.setMarkdownText(QStringLiteral("> A block quote can contain paragraphs.\n"
+                                         ">\n"
+                                         "> It can also contain formatting and nested quotes.\n"
+                                         ">\n"
+                                         "> > Nested quote.\n"
+                                         "\n"
+                                         "## Lists\n"),
+                          false);
   DocumentLayout layout;
   layout.rebuild(session.document(), theme, 1000.0);
   const MarkdownNode* quote = findFirstBlock(session.document().root(), BlockType::BlockQuote);
@@ -604,7 +622,8 @@ void testGithubBlockquoteNotPaddedByWriteLeak() {
   // stay well under the ~355px the leak produced; compact browser/Typora rhythm
   // for this content is roughly 100–130px.
   require(outer->rect().height() < 180.0,
-          QStringLiteral("github blockquote must stay compact without the #write padding leak (height=%1)").arg(outer->rect().height()));
+          QStringLiteral("github blockquote must stay compact without the #write padding leak (height=%1)")
+              .arg(outer->rect().height()));
 }
 
 // Structural selectors resolve against the LIVE document tree, not the load-time
@@ -613,13 +632,13 @@ void testGithubBlockquoteNotPaddedByWriteLeak() {
 // the prototype, which has no siblings or descendants. The node-aware getters
 // (textColorForElement with a node) drive the real-tree cascade.
 void testStructuralSelectorsResolveAgainstLiveTree() {
-  const QString css = QStringLiteral(
-      "#write { color:#222222; }"
-      "#write p, #write li { color:#222222; }"
-      "#write li:first-child { color:#ff0000; }"   // first list item → red
-      "#write li + li { color:#0000ff; }"            // adjacent sibling li → blue
-      "#write p:has(img) { color:#00aa00; }");       // paragraph containing an image → green
-  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("struct"), QString()));
+  const QString css = QStringLiteral("#write { color:#222222; }"
+                                     "#write p, #write li { color:#222222; }"
+                                     "#write li:first-child { color:#ff0000; }" // first list item → red
+                                     "#write li + li { color:#0000ff; }"        // adjacent sibling li → blue
+                                     "#write p:has(img) { color:#00aa00; }");   // paragraph containing an image → green
+  const RenderTheme theme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("struct"), QString()));
   require(theme.hasStructuralRules(), QStringLiteral("li:first-child / li+li / p:has(img) ⇒ hasStructuralRules"));
 
   // List-item position selectors.
@@ -648,7 +667,9 @@ void testStructuralSelectorsResolveAgainstLiveTree() {
     const MarkdownNode* withImg = findFirstBlock(session.document().root(), BlockType::Paragraph);
     require(withImg != nullptr, QStringLiteral("image paragraph should exist"));
     const MarkdownNode* plain = withImg ? withImg->nextSibling() : nullptr;
-    while (plain && plain->type() != BlockType::Paragraph) { plain = plain->nextSibling(); }
+    while (plain && plain->type() != BlockType::Paragraph) {
+      plain = plain->nextSibling();
+    }
     require(plain != nullptr, QStringLiteral("plain paragraph should exist"));
     require(theme.textColorForElement(QStringLiteral("p"), withImg) == QColor(QStringLiteral("#00aa00")),
             QStringLiteral("paragraph with an image should be green via p:has(img)"));
@@ -658,28 +679,28 @@ void testStructuralSelectorsResolveAgainstLiveTree() {
 }
 
 void testCssFontStackPreservesPlatformAliasesBeforeCjkFallback() {
-  const ThemeDefinition definition = CssThemeMapper::fromCss(
-      QStringLiteral(":root { --base-latin-font:'Definitely Missing Latin', Times; "
-                     "--base-chinese-font:FangSong; } "
-                     "#write { background:#fff; color:#222; "
-                     "font-family:var(--base-latin-font),var(--base-chinese-font),serif; }"),
-      QStringLiteral("mixed-script-font-stack"), QString());
+  const ThemeDefinition definition =
+      CssThemeMapper::fromCss(QStringLiteral(":root { --base-latin-font:'Definitely Missing Latin', Times; "
+                                             "--base-chinese-font:FangSong; } "
+                                             "#write { background:#fff; color:#222; "
+                                             "font-family:var(--base-latin-font),var(--base-chinese-font),serif; }"),
+                              QStringLiteral("mixed-script-font-stack"), QString());
   const QFont font = RenderTheme::fromDefinition(definition).paragraphFont();
   const QStringList families = font.families();
   const int missing = families.indexOf(QStringLiteral("Definitely Missing Latin"));
   int times = families.indexOf(QStringLiteral("Times"));
-  if (times < 0) { times = families.indexOf(QStringLiteral("Times New Roman")); }
+  if (times < 0) {
+    times = families.indexOf(QStringLiteral("Times New Roman"));
+  }
   const int fangSong = families.indexOf(QStringLiteral("FangSong"));
-  require(missing == 0,
-          QStringLiteral("unresolved CSS family should remain first for Qt substitution"));
+  require(missing == 0, QStringLiteral("unresolved CSS family should remain first for Qt substitution"));
   require(times > missing && fangSong > times,
           QStringLiteral("Latin aliases must remain ahead of the Chinese fallback"));
 #if defined(Q_OS_WIN)
   const QStringList available = QFontDatabase::families();
   const auto availableFamily = [&available](const QString& wanted) {
-    return std::any_of(available.cbegin(), available.cend(), [&wanted](const QString& family) {
-      return family.compare(wanted, Qt::CaseInsensitive) == 0;
-    });
+    return std::any_of(available.cbegin(), available.cend(),
+                       [&wanted](const QString& family) { return family.compare(wanted, Qt::CaseInsensitive) == 0; });
   };
   // Conan's offscreen Qt platform has no font directory, so glyph shaping is
   // meaningful only when the real Windows families are visible to this process.
@@ -700,11 +721,11 @@ void testCssFontStackPreservesPlatformAliasesBeforeCjkFallback() {
 }
 
 void testThemeMathFontUsesMappedMathJaxSize() {
-  const ThemeDefinition definition = CssThemeMapper::fromCss(
-      QStringLiteral(":root { --base-font-size:9.5pt; --math-font-size:1em; } "
-                     "#write { background:white; font-size:var(--base-font-size); } "
-                     ".MathJax { font-size:var(--math-font-size); }"),
-      QStringLiteral("latex-math"), QString());
+  const ThemeDefinition definition =
+      CssThemeMapper::fromCss(QStringLiteral(":root { --base-font-size:9.5pt; --math-font-size:1em; } "
+                                             "#write { background:white; font-size:var(--base-font-size); } "
+                                             ".MathJax { font-size:var(--math-font-size); }"),
+                              QStringLiteral("latex-math"), QString());
   const RenderTheme theme = RenderTheme::fromDefinition(definition);
   require(qAbs(theme.mathFont().pointSizeF() - 9.5) < 0.01,
           QStringLiteral("render math font should consume the mapped MathJax size"));
@@ -745,16 +766,13 @@ void testStaticBoxShadowBlursSpreadEdge() {
   image.fill(Qt::transparent);
   {
     QPainter painter(&image);
-    DecorationPainter::paintBoxShadow(
-        painter, QRectF(30.0, 20.0, 60.0, 40.0), 0.0,
-        QColor(QStringLiteral("#cccccc")), 0.0, 0.0, 12.0, 6.0);
+    DecorationPainter::paintBoxShadow(painter, QRectF(30.0, 20.0, 60.0, 40.0), 0.0, QColor(QStringLiteral("#cccccc")),
+                                      0.0, 0.0, 12.0, 6.0);
   }
   const int nearAlpha = qAlpha(image.pixel(28, 40));
   const int farAlpha = qAlpha(image.pixel(8, 40));
-  require(farAlpha > 0 && nearAlpha > farAlpha,
-          QStringLiteral("blurred shadow alpha should fall off with distance"));
-  require(nearAlpha < 250,
-          QStringLiteral("blurred spread edge must not become an opaque hard band"));
+  require(farAlpha > 0 && nearAlpha > farAlpha, QStringLiteral("blurred shadow alpha should fall off with distance"));
+  require(nearAlpha < 250, QStringLiteral("blurred spread edge must not become an opaque hard band"));
 }
 
 void testStructuralAdapterStaysSparseOnFlatDocuments() {
@@ -769,8 +787,7 @@ void testStructuralAdapterStaysSparseOnFlatDocuments() {
   require(builder.materializedElementCount() == 5,
           QStringLiteral("building one flat node should materialize only html/body/content/root/target"));
 
-  const CssThemeSheet sheet = CssThemeParser::parse(
-      QStringLiteral("#write p + p { color:#123456; }"), QString());
+  const CssThemeSheet sheet = CssThemeParser::parse(QStringLiteral("#write p + p { color:#123456; }"), QString());
   const CssComputedStyle style = CssComputedStyleEngine(sheet).styleFor(*target);
   require(style.resolvedValue(QStringLiteral("color")) == QStringLiteral("#123456"),
           QStringLiteral("sparse adapter should still resolve adjacent siblings"));
@@ -779,8 +796,8 @@ void testStructuralAdapterStaysSparseOnFlatDocuments() {
 
   NodeCssElementBuilder generalSiblingBuilder(false);
   const CssElement* generalTarget = generalSiblingBuilder.build(*root.children().at(kParagraphCount / 2));
-  const CssThemeSheet generalSheet = CssThemeParser::parse(
-      QStringLiteral("#write p ~ p { color:#654321; }"), QString());
+  const CssThemeSheet generalSheet =
+      CssThemeParser::parse(QStringLiteral("#write p ~ p { color:#654321; }"), QString());
   const CssComputedStyle generalStyle = CssComputedStyleEngine(generalSheet).styleFor(*generalTarget);
   require(generalStyle.resolvedValue(QStringLiteral("color")) == QStringLiteral("#654321"),
           QStringLiteral("sparse adapter should resolve general siblings"));
@@ -789,13 +806,12 @@ void testStructuralAdapterStaysSparseOnFlatDocuments() {
 }
 
 void testTopLevelNthSelectorsUseDocumentOrderIndex() {
-  const RenderTheme theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
-      QStringLiteral(
-          "#write { color:#222222; }"
-          "#write p { color:#222222; }"
-          "#write p:nth-child(3) { color:#ff0000; }"
-          "#write p:nth-of-type(3) { color:#00aa00; }"),
-      QStringLiteral("top-level-nth"), QString()));
+  const RenderTheme theme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(QStringLiteral("#write { color:#222222; }"
+                                                                         "#write p { color:#222222; }"
+                                                                         "#write p:nth-child(3) { color:#ff0000; }"
+                                                                         "#write p:nth-of-type(3) { color:#00aa00; }"),
+                                                          QStringLiteral("top-level-nth"), QString()));
   DocumentSession session;
   session.setMarkdownText(QStringLiteral("one\n\n# heading\n\ntwo\n\nthree\n"), false);
   const auto& blocks = session.document().root().children();
@@ -813,10 +829,9 @@ void testTopLevelNthSelectorsUseDocumentOrderIndex() {
 }
 
 void testStructuralHasTraversesNestedInlines() {
-  const QString css = QStringLiteral(
-      "#write { color:#222222; } #write p:has(img) { color:#00aa00; }");
-  const RenderTheme theme = RenderTheme::fromDefinition(
-      CssThemeMapper::fromCss(css, QStringLiteral("nested-has"), QString()));
+  const QString css = QStringLiteral("#write { color:#222222; } #write p:has(img) { color:#00aa00; }");
+  const RenderTheme theme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("nested-has"), QString()));
   DocumentSession session;
   session.setMarkdownText(QStringLiteral("***![alt](x.png)***\n"), false);
   const MarkdownNode* paragraph = findFirstBlock(session.document().root(), BlockType::Paragraph);
@@ -826,10 +841,9 @@ void testStructuralHasTraversesNestedInlines() {
 }
 
 void testStructuralCacheRefreshesSameNodeIdContent() {
-  const QString css = QStringLiteral(
-      "#write { color:#222222; } #write p:has(img) { color:#00aa00; }");
-  const RenderTheme theme = RenderTheme::fromDefinition(
-      CssThemeMapper::fromCss(css, QStringLiteral("has-refresh"), QString()));
+  const QString css = QStringLiteral("#write { color:#222222; } #write p:has(img) { color:#00aa00; }");
+  const RenderTheme theme =
+      RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, QStringLiteral("has-refresh"), QString()));
   const NodeId stableId = NodeId::fromString(QStringLiteral("stable-paragraph"));
 
   MarkdownNode firstRoot(BlockType::Document);
@@ -858,10 +872,8 @@ void testFromDefinitionReproducesBuiltIns() {
     RenderTheme factory;
   };
   const Entry entries[] = {
-      {QStringLiteral("github"), RenderTheme::github()},
-      {QStringLiteral("newsprint"), RenderTheme::newsprint()},
-      {QStringLiteral("night"), RenderTheme::night()},
-      {QStringLiteral("pixyll"), RenderTheme::pixyll()},
+      {QStringLiteral("github"), RenderTheme::github()}, {QStringLiteral("newsprint"), RenderTheme::newsprint()},
+      {QStringLiteral("night"), RenderTheme::night()},   {QStringLiteral("pixyll"), RenderTheme::pixyll()},
       {QStringLiteral("whitey"), RenderTheme::whitey()},
   };
   for (const Entry& e : entries) {
@@ -913,9 +925,9 @@ void testNarrowViewportFillsForCardTheme(const MarkdownDocument& document) {
   def.colors.text = QColor(QStringLiteral("#d6deeb"));
   def.colors.background = QColor(QStringLiteral("#0f111a"));
   def.page.viewportBackground = QColor(QStringLiteral("#0f111a"));
-  def.page.pageMaxWidth = 950.0;                       // #write max-width: 950px
-  def.page.pagePadding = QMarginsF(15, 15, 15, 15);    // #write padding: 15px  → cssPageBox
-  def.page.pageMargin = QMarginsF(0, 0, 0, 0);         // margin: 0 auto → zero box
+  def.page.pageMaxWidth = 950.0;                    // #write max-width: 950px
+  def.page.pagePadding = QMarginsF(15, 15, 15, 15); // #write padding: 15px  → cssPageBox
+  def.page.pageMargin = QMarginsF(0, 0, 0, 0);      // margin: 0 auto → zero box
   def.page.pageMarginExplicit = true;
   const RenderTheme theme = RenderTheme::fromDefinition(def);
 
@@ -978,7 +990,7 @@ void testDecoratedThemePaints(const MarkdownDocument& document) {
   h2bg.gradient.kind = GradientSpec::Kind::Radial;
   h2bg.gradient.radialCenter = QPointF(0.5, 1.0);
   h2bg.gradient.stops = {{{CssLengthStatus::Valid, 0, 0, true}, QColor(QStringLiteral("#00f3ff"))},
-                        {{CssLengthStatus::Valid, 0, 1, true}, QColor(Qt::transparent)}};
+                         {{CssLengthStatus::Valid, 0, 1, true}, QColor(Qt::transparent)}};
   def.decorations.backgrounds.push_back(h2bg);
   PseudoElementRule h1after;
   h1after.host = QStringLiteral("h1");
@@ -996,7 +1008,7 @@ void testDecoratedThemePaints(const MarkdownDocument& document) {
   wbefore.maskTile = QSizeF(20.0, 20.0);
   wbefore.maskPattern.kind = GradientSpec::Kind::Radial;
   wbefore.maskPattern.stops = {{{CssLengthStatus::Valid, 0, 0, true}, QColor(QStringLiteral("#ffffff"))},
-                             {{CssLengthStatus::Valid, 0, 1, true}, QColor(Qt::transparent)}};
+                               {{CssLengthStatus::Valid, 0, 1, true}, QColor(Qt::transparent)}};
   def.decorations.pseudos.push_back(wbefore);
   const RenderTheme theme = RenderTheme::fromDefinition(def);
 
@@ -1006,7 +1018,7 @@ void testDecoratedThemePaints(const MarkdownDocument& document) {
   img.fill(QColor(QStringLiteral("#0f111a")).rgba());
   QPainter p(&img);
   DecorationPainter::paintWriteTexture(p, theme, QRectF(0, 0, 800, layout.totalHeight()),
-      layout.documentPseudo(theme, QStringLiteral("before")));
+                                       layout.documentPseudo(theme, QStringLiteral("before")));
   for (const BlockLayout* blk : layout.promotedBlocks()) {
     blk->paint(p, theme, 0.0, nullptr);
   }
@@ -1018,7 +1030,10 @@ void testDecoratedThemePaints(const MarkdownDocument& document) {
   bool drew = false;
   for (int y = 0; y < img.height() && !drew; ++y) {
     for (int x = 0; x < img.width(); ++x) {
-      if (img.pixel(x, y) != bg) { drew = true; break; }
+      if (img.pixel(x, y) != bg) {
+        drew = true;
+        break;
+      }
     }
   }
   require(drew, QStringLiteral("decorations should paint non-background pixels"));
@@ -1030,20 +1045,17 @@ void testCodeBorderNeverRendersBlack() {
   // paints an unset QPen/QBrush as solid black — a black box around every
   // inline code span. deriveChromeDefaults now derives a soft edge off the code
   // background so the colour is always valid on every theme.
-  const RenderTheme themes[] = {
-      RenderTheme::github(), RenderTheme::newsprint(), RenderTheme::night(),
-      RenderTheme::pixyll(), RenderTheme::whitey()};
+  const RenderTheme themes[] = {RenderTheme::github(), RenderTheme::newsprint(), RenderTheme::night(),
+                                RenderTheme::pixyll(), RenderTheme::whitey()};
   for (const RenderTheme& t : themes) {
     const QColor c = t.codeBorderColor();
-    require(c.isValid(),
-            QStringLiteral("codeBorderColor must be valid (an invalid colour paints as solid black)"));
+    require(c.isValid(), QStringLiteral("codeBorderColor must be valid (an invalid colour paints as solid black)"));
     const bool pureBlack = c.red() == 0 && c.green() == 0 && c.blue() == 0;
-    require(!pureBlack,
-            QStringLiteral("codeBorderColor must not be pure black (got %1)").arg(c.name()));
+    require(!pureBlack, QStringLiteral("codeBorderColor must not be pure black (got %1)").arg(c.name()));
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
@@ -1087,11 +1099,16 @@ int main(int argc, char** argv) {
   RUN_TEST(testStructuralCacheRefreshesSameNodeIdContent);
   RUN_TEST(testCodeBorderNeverRendersBlack);
   runTest("testLatexScreenPageGeometry", [&] { testLatexScreenPageGeometry(document); });
-  runTest("testLayoutForTheme/github", [&] { testLayoutForTheme(document, RenderTheme::github(), QStringLiteral("github")); });
-  runTest("testLayoutForTheme/newsprint", [&] { testLayoutForTheme(document, RenderTheme::newsprint(), QStringLiteral("newsprint")); });
-  runTest("testLayoutForTheme/night", [&] { testLayoutForTheme(document, RenderTheme::night(), QStringLiteral("night")); });
-  runTest("testLayoutForTheme/pixyll", [&] { testLayoutForTheme(document, RenderTheme::pixyll(), QStringLiteral("pixyll")); });
-  runTest("testLayoutForTheme/whitey", [&] { testLayoutForTheme(document, RenderTheme::whitey(), QStringLiteral("whitey")); });
+  runTest("testLayoutForTheme/github",
+          [&] { testLayoutForTheme(document, RenderTheme::github(), QStringLiteral("github")); });
+  runTest("testLayoutForTheme/newsprint",
+          [&] { testLayoutForTheme(document, RenderTheme::newsprint(), QStringLiteral("newsprint")); });
+  runTest("testLayoutForTheme/night",
+          [&] { testLayoutForTheme(document, RenderTheme::night(), QStringLiteral("night")); });
+  runTest("testLayoutForTheme/pixyll",
+          [&] { testLayoutForTheme(document, RenderTheme::pixyll(), QStringLiteral("pixyll")); });
+  runTest("testLayoutForTheme/whitey",
+          [&] { testLayoutForTheme(document, RenderTheme::whitey(), QStringLiteral("whitey")); });
   runTest("testNarrowViewportFillsForCardTheme", [&] { testNarrowViewportFillsForCardTheme(document); });
   runTest("testContentWidthOverrideControlsPageColumn", [&] { testContentWidthOverrideControlsPageColumn(document); });
   runTest("testDecoratedThemePaints", [&] { testDecoratedThemePaints(document); });

@@ -109,13 +109,11 @@ struct SankeyScene final : MermaidScene {
 
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override { return rasterBounds; }
-  void paint(QPainter &painter,
-             const MermaidPaintOptions &options = {}) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options = {}) const override;
   QJsonObject toJsonObject() const override;
 };
 
-SankeyScene buildSankeyScene(const SankeyData &data, SankeyConfig config,
-                             SankeySceneStyle style);
-void refreshSankeyBounds(SankeyScene &scene);
+SankeyScene buildSankeyScene(const SankeyData& data, SankeyConfig config, SankeySceneStyle style);
+void refreshSankeyBounds(SankeyScene& scene);
 
 } // namespace muffin::mermaid::sankey

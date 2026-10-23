@@ -73,7 +73,7 @@ QString blockForFont(const QString& source, qsizetype nameStart) {
   return {};
 }
 
-}  // namespace
+} // namespace
 
 void MathFontMetrics::ensureLoaded() {
   if (metricsLoaded()) {
@@ -115,8 +115,10 @@ std::optional<CharacterMetrics> MathFontMetrics::characterMetrics(const QString&
 GlobalFontMetrics MathFontMetrics::globalMetrics(int styleSize) {
   const int index = styleSize <= 1 ? 0 : (styleSize == 2 ? 1 : 2);
   const auto pick = [index](qreal text, qreal script, qreal scriptscript) {
-    if (index == 0) return text;
-    if (index == 1) return script;
+    if (index == 0)
+      return text;
+    if (index == 1)
+      return script;
     return scriptscript;
   };
 
@@ -158,4 +160,4 @@ bool MathFontMetrics::loaded() {
   return !metricMap().isEmpty();
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

@@ -19,7 +19,7 @@ struct DocumentCounterStats {
 // CSS adapter pointers. They survive a local document style invalidation.
 struct CounterProgram {
   using Operations = QVector<QPair<QString, int>>;
-  std::array<Operations, 3> operations;  // reset, increment, set
+  std::array<Operations, 3> operations; // reset, increment, set
   QString key;
   QByteArray dependencies;
   NodeId owner;
@@ -30,7 +30,7 @@ struct CounterProgram {
 };
 
 class DocumentCounterCache {
- public:
+public:
   using Program = std::shared_ptr<const CounterProgram>;
   struct Block {
     NodeId id;
@@ -53,7 +53,7 @@ class DocumentCounterCache {
   QHash<NodeId, quint64> fingerprints;
   QHash<NodeId, QPair<QString, QString>> text;
 
- private:
+private:
   struct Value {
     int depth, value;
     bool operator==(const Value&) const = default;
@@ -70,4 +70,4 @@ class DocumentCounterCache {
   QHash<QByteArray, qsizetype> semanticReferences_;
   QHash<quint64, std::vector<std::weak_ptr<const Snapshot>>> statePool_;
 };
-}  // namespace muffin
+} // namespace muffin

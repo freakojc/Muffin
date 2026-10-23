@@ -54,7 +54,7 @@ void testFoldableModel() {
   require(model.isEmpty() && model.rowCount() == 0, "clear should release all outline rows");
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

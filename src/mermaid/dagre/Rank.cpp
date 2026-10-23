@@ -29,12 +29,15 @@ QList<QString> postorder(const Tree& t, const QList<QString>& nodes) {
   QList<QString> result;
   QSet<QString> visited;
   std::function<void(const QString&)> dfs = [&](const QString& v) {
-    if (visited.contains(v)) return;
+    if (visited.contains(v))
+      return;
     visited.insert(v);
-    for (const QString& w : t.neighbors(v)) dfs(w);
+    for (const QString& w : t.neighbors(v))
+      dfs(w);
     result.append(v);
   };
-  for (const QString& v : nodes) dfs(v);
+  for (const QString& v : nodes)
+    dfs(v);
   return result;
 }
 
@@ -42,10 +45,12 @@ QList<QString> preorder(const Tree& t, const QString& root) {
   QList<QString> result;
   QSet<QString> visited;
   std::function<void(const QString&)> dfs = [&](const QString& v) {
-    if (visited.contains(v)) return;
+    if (visited.contains(v))
+      return;
     visited.insert(v);
     result.append(v);
-    for (const QString& w : t.neighbors(v)) dfs(w);
+    for (const QString& w : t.neighbors(v))
+      dfs(w);
   };
   dfs(root);
   return result;
@@ -68,7 +73,8 @@ int tightTree(Tree& t, const DagreGraph& g) {
     }
   };
   const QList<QString> snapshot = t.nodes();
-  for (const QString& v : snapshot) dfs(v);
+  for (const QString& v : snapshot)
+    dfs(v);
   return static_cast<int>(t.nodeCount());
 }
 
@@ -91,48 +97,56 @@ std::optional<graphlib::Edge> findMinSlackEdge(const Tree& t, const DagreGraph& 
 
 void shiftRanks(const Tree& t, DagreGraph& g, int delta) {
   for (const QString& v : t.nodes())
-    if (DagreNodeLabel* n = g.node(v)) n->rank = n->rank.value_or(0) + delta;
+    if (DagreNodeLabel* n = g.node(v))
+      n->rank = n->rank.value_or(0) + delta;
 }
 
 Tree feasibleTree(DagreGraph& g) {
   Tree t({.directed = false, .compound = false});
   const QList<QString> nodes = g.nodes();
-  if (nodes.isEmpty()) return t;
+  if (nodes.isEmpty())
+    return t;
   const QString start = nodes.first();
   t.setNode(start, TreeNodeLabel{});
   const qsizetype size = g.nodeCount();
   while (tightTree(t, g) < size) {
     const auto edge = findMinSlackEdge(t, g);
-    if (!edge) break;
+    if (!edge)
+      break;
     const int delta = t.hasNode(edge->v) ? slack(g, *edge) : -slack(g, *edge);
     shiftRanks(t, g, delta);
   }
   return t;
 }
 
-int dfsAssignLowLim(Tree& t, QSet<QString>& visited, int nextLim, const QString& v,
-                    const QString& parent) {
+int dfsAssignLowLim(Tree& t, QSet<QString>& visited, int nextLim, const QString& v, const QString& parent) {
   int low = nextLim;
   TreeNodeLabel* label = t.node(v);
   visited.insert(v);
   for (const QString& w : t.neighbors(v)) {
-    if (!visited.contains(w)) nextLim = dfsAssignLowLim(t, visited, nextLim, w, v);
+    if (!visited.contains(w))
+      nextLim = dfsAssignLowLim(t, visited, nextLim, w, v);
   }
   label->low = low;
   label->lim = nextLim++;
-  if (!parent.isNull()) label->parent = parent;
-  else label->parent.clear();
+  if (!parent.isNull())
+    label->parent = parent;
+  else
+    label->parent.clear();
   return nextLim;
 }
 
 void initLowLimValues(Tree& t) {
   const QList<QString> nodes = t.nodes();
-  if (nodes.isEmpty()) return;
+  if (nodes.isEmpty())
+    return;
   QSet<QString> visited;
   dfsAssignLowLim(t, visited, 1, nodes.first(), QString());
 }
 
-bool isTreeEdge(const Tree& t, const QString& u, const QString& v) { return t.hasEdge(u, v); }
+bool isTreeEdge(const Tree& t, const QString& u, const QString& v) {
+  return t.hasEdge(u, v);
+}
 
 bool isDescendant(const TreeNodeLabel& vLabel, const TreeNodeLabel& rootLabel) {
   return rootLabel.low <= vLabel.lim && vLabel.lim <= rootLabel.lim;
@@ -147,12 +161,14 @@ int calcCutValue(Tree& t, const DagreGraph& g, const QString& child) {
     childIsTail = false;
     graphEdge = g.edge(parent, child);
   }
-  if (!graphEdge) return 0;
+  if (!graphEdge)
+    return 0;
   int cutValue = graphEdge->weight;
   for (const graphlib::Edge& e : g.nodeEdges(child)) {
     const bool isOutEdge = e.v == child;
     const QString other = isOutEdge ? e.w : e.v;
-    if (other == parent) continue;
+    if (other == parent)
+      continue;
     const bool pointsToHead = isOutEdge == childIsTail;
     const int otherWeight = g.edge(e) ? g.edge(e)->weight : 0;
     cutValue += pointsToHead ? otherWeight : -otherWeight;
@@ -167,23 +183,26 @@ int calcCutValue(Tree& t, const DagreGraph& g, const QString& child) {
 void assignCutValue(Tree& t, const DagreGraph& g, const QString& child) {
   TreeNodeLabel* childLab = t.node(child);
   const QString parent = childLab->parent;
-  if (TreeEdgeLabel* te = t.edge(child, parent)) te->cutvalue = calcCutValue(t, g, child);
+  if (TreeEdgeLabel* te = t.edge(child, parent))
+    te->cutvalue = calcCutValue(t, g, child);
 }
 
 void initCutValues(Tree& t, const DagreGraph& g) {
   QList<QString> vs = postorder(t, t.nodes());
-  if (!vs.isEmpty()) vs.removeLast();
-  for (const QString& v : vs) assignCutValue(t, g, v);
+  if (!vs.isEmpty())
+    vs.removeLast();
+  for (const QString& v : vs)
+    assignCutValue(t, g, v);
 }
 
 std::optional<graphlib::Edge> leaveEdge(const Tree& t) {
   for (const graphlib::Edge& e : t.edges())
-    if (t.edge(e)->cutvalue < 0) return e;
+    if (t.edge(e)->cutvalue < 0)
+      return e;
   return std::nullopt;
 }
 
-std::optional<graphlib::Edge> enterEdge(const Tree& t, const DagreGraph& g,
-                                        const graphlib::Edge& edge) {
+std::optional<graphlib::Edge> enterEdge(const Tree& t, const DagreGraph& g, const graphlib::Edge& edge) {
   QString v = edge.v;
   QString w = edge.w;
   if (!g.hasEdge(v, w)) {
@@ -221,7 +240,8 @@ void updateRanks(const Tree& t, DagreGraph& g) {
   // `parent`, so this is always-true ⇒ the first tree node, which is the root
   // initLowLimValues started from.
   const QList<QString> tnodes = t.nodes();
-  if (tnodes.isEmpty()) return;
+  if (tnodes.isEmpty())
+    return;
   const QString root = tnodes.first();
   const QList<QString> vs = preorder(t, root);
   for (qsizetype i = 1; i < vs.size(); ++i) {
@@ -233,7 +253,8 @@ void updateRanks(const Tree& t, DagreGraph& g) {
       edge = g.edge(parent, v);
       flipped = true;
     }
-    if (edge) g.node(v)->rank = g.node(parent)->rank.value_or(0) + (flipped ? edge->minlen : -edge->minlen);
+    if (edge)
+      g.node(v)->rank = g.node(parent)->rank.value_or(0) + (flipped ? edge->minlen : -edge->minlen);
   }
 }
 
@@ -245,23 +266,26 @@ void exchangeEdges(Tree& t, DagreGraph& g, const graphlib::Edge& e, const graphl
   updateRanks(t, g);
 }
 
-}  // namespace
+} // namespace
 
 void longestPath(DagreGraph& g) {
   QSet<QString> visited;
   std::function<int(const QString&)> dfs = [&](const QString& v) -> int {
     DagreNodeLabel* label = g.node(v);
-    if (visited.contains(v)) return label->rank.value_or(0);
+    if (visited.contains(v))
+      return label->rank.value_or(0);
     visited.insert(v);
     std::optional<int> rank;
     for (const graphlib::Edge& e : g.outEdges(v)) {
       const int candidate = dfs(e.w) - g.edge(e)->minlen;
-      if (!rank.has_value() || candidate < *rank) rank = candidate;
+      if (!rank.has_value() || candidate < *rank)
+        rank = candidate;
     }
     label->rank = rank.value_or(0);
     return *label->rank;
   };
-  for (const QString& v : g.sources()) dfs(v);
+  for (const QString& v : g.sources())
+    dfs(v);
 }
 
 int slack(const DagreGraph& g, const graphlib::Edge& e) {
@@ -275,9 +299,11 @@ void networkSimplex(DagreGraph& g) {
   initCutValues(t, g);
   while (true) {
     const auto e = leaveEdge(t);
-    if (!e) break;
+    if (!e)
+      break;
     const auto f = enterEdge(t, g, *e);
-    if (!f) break;
+    if (!f)
+      break;
     exchangeEdges(t, g, *e, *f);
   }
 }
@@ -286,9 +312,11 @@ void rankGraph(DagreGraph& g) {
   // Simplified leaf-only view (non-multigraph): aggregate multi-edge weights
   // and take the max minlen, mirroring util.simplify on asNonCompoundGraph(g).
   DagreGraph s({.directed = true, .multigraph = false, .compound = false});
-  if (g.graph()) s.setGraph(*g.graph());
+  if (g.graph())
+    s.setGraph(*g.graph());
   for (const QString& v : g.nodes())
-    if (g.children(v).value_or(QList<QString>{}).isEmpty()) s.setNode(v, *g.node(v));
+    if (g.children(v).value_or(QList<QString>{}).isEmpty())
+      s.setNode(v, *g.node(v));
   for (const graphlib::Edge& e : g.edges()) {
     DagreEdgeLabel agg;
     if (const DagreEdgeLabel* ex = s.edge(e.v, e.w)) {
@@ -303,7 +331,7 @@ void rankGraph(DagreGraph& g) {
     s.setEdge(e.v, e.w, agg);
   }
 
-  const QString ranker = g.graph()->ranker;  // optional; empty → network-simplex
+  const QString ranker = g.graph()->ranker; // optional; empty → network-simplex
   if (ranker == QLatin1String("tight-tree")) {
     longestPath(s);
     // feasibleTree-only refinement (no cut-value iteration) — rarely used.
@@ -317,7 +345,8 @@ void rankGraph(DagreGraph& g) {
 
   // Write ranks back onto the compound graph's leaf nodes.
   for (const QString& v : s.nodes())
-    if (DagreNodeLabel* n = g.node(v)) n->rank = s.node(v)->rank;
+    if (DagreNodeLabel* n = g.node(v))
+      n->rank = s.node(v)->rank;
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

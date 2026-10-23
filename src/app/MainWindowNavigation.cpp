@@ -18,7 +18,8 @@ muffin::MainWindow::NavigationEntry muffin::MainWindow::navigationEntry() const 
 }
 
 void muffin::MainWindow::navigateToLink(const QString& href) {
-  if (href.isEmpty() || workspaceWriteInProgress_ || tab_->session.isOpenInProgress()) return;
+  if (href.isEmpty() || workspaceWriteInProgress_ || tab_->session.isOpenInProgress())
+    return;
   const auto url = resolvedUrlForDocumentResource(href, tab_->session.filePath());
   const bool sameFile = href.startsWith('#');
   if (!sameFile && (!url.isLocalFile() || !NoteLinks::isMarkdownPath(url.toLocalFile()))) {
@@ -32,16 +33,19 @@ void muffin::MainWindow::navigateToLink(const QString& href) {
   }
   const auto origin = navigationEntry();
   pendingNavigation_.reset();
-  if (!sameFile && !openFile(path)) return;
+  if (!sameFile && !openFile(path))
+    return;
   pendingNavigation_ = PendingNavigation{tab_, origin, url.fragment(QUrl::FullyDecoded), url.hasFragment(), {}, 0};
   updateAllActions();
   QTimer::singleShot(0, tab_->windowConnections, [this, destination = QPointer<DocumentTab>(tab_)] {
-    if (destination) applyLinkNavigation(destination);
+    if (destination)
+      applyLinkNavigation(destination);
   });
 }
 
 void muffin::MainWindow::navigateHistory(bool forward) {
-  if (pendingNavigation_ || workspaceWriteInProgress_ || tab_->session.isOpenInProgress()) return;
+  if (pendingNavigation_ || workspaceWriteInProgress_ || tab_->session.isOpenInProgress())
+    return;
   auto& history = forward ? forwardHistory_ : backHistory_;
   const auto origin = navigationEntry();
   while (!history.isEmpty()) {
@@ -57,7 +61,8 @@ void muffin::MainWindow::navigateHistory(bool forward) {
     pendingNavigation_ = PendingNavigation{tab_, origin, {}, false, target, forward ? 1 : -1};
     updateAllActions();
     QTimer::singleShot(0, tab_->windowConnections, [this, destination = QPointer<DocumentTab>(tab_)] {
-      if (destination) applyLinkNavigation(destination);
+      if (destination)
+        applyLinkNavigation(destination);
     });
     return;
   }
@@ -65,8 +70,9 @@ void muffin::MainWindow::navigateHistory(bool forward) {
 }
 
 void muffin::MainWindow::applyLinkNavigation(DocumentTab* document) {
-  if (!pendingNavigation_ || pendingNavigation_->destination != document || document != tab_
-      || document->session.isOpenInProgress() || !document->isVisible() || sessionUpdatesPaused_) return;
+  if (!pendingNavigation_ || pendingNavigation_->destination != document || document != tab_ ||
+      document->session.isOpenInProgress() || !document->isVisible() || sessionUpdatesPaused_)
+    return;
   const auto request = *pendingNavigation_;
   if (document->renderViewDirty && !document->backend->isSourceMode()) {
     document->renderView->setDocument(document->session.document(), document->session.filePath());
@@ -88,21 +94,26 @@ void muffin::MainWindow::applyLinkNavigation(DocumentTab* document) {
     const auto* node = document->session.document().node(target);
     if (node || request.fragment.isEmpty()) {
       const qsizetype offset = node && !node->inlines().isEmpty() && node->inlines().first().contentRange().isValid()
-          ? node->inlines().first().contentRange().start + node->inlineAbsoluteDelta()
-          : node ? node->sourceRange().byteStart : 0;
+                                   ? node->inlines().first().contentRange().start + node->inlineAbsoluteDelta()
+                               : node ? node->sourceRange().byteStart
+                                      : 0;
       document->pendingViewState.reset();
       if (document->backend->isSourceMode()) {
         document->editor->setCursorPosition(offset);
         document->editor->restoreViewportPosition({offset, 0, 0, true, offset == 0});
       } else {
         document->editorController.setCursorForSourceOffset(offset);
-        if (node) document->renderView->scrollToNode(target);
-        else document->renderView->restoreViewportPosition({0, 0, 0, true, true});
+        if (node)
+          document->renderView->scrollToNode(target);
+        else
+          document->renderView->restoreViewportPosition({0, 0, 0, true, true});
       }
     } else {
       statusBar()->showMessage(tr("Heading not found: %1").arg(request.fragment), 6000);
       if (request.origin.document == document) {
-        pendingNavigation_.reset(); updateAllActions(); return;
+        pendingNavigation_.reset();
+        updateAllActions();
+        return;
       }
     }
   }
@@ -112,11 +123,14 @@ void muffin::MainWindow::applyLinkNavigation(DocumentTab* document) {
   } else {
     auto& from = request.direction > 0 ? forwardHistory_ : backHistory_;
     auto& to = request.direction > 0 ? backHistory_ : forwardHistory_;
-    if (!from.isEmpty()) from.removeLast();
+    if (!from.isEmpty())
+      from.removeLast();
     to.append(request.origin);
   }
-  if (backHistory_.size() > 200) backHistory_.removeFirst();
-  if (forwardHistory_.size() > 200) forwardHistory_.removeFirst();
+  if (backHistory_.size() > 200)
+    backHistory_.removeFirst();
+  if (forwardHistory_.size() > 200)
+    forwardHistory_.removeFirst();
   pendingNavigation_.reset();
   document->viewStack->currentWidget()->setFocus(Qt::OtherFocusReason);
   updateAllActions();
@@ -127,10 +141,13 @@ void muffin::MainWindow::remapNavigationPaths(const QString& oldPath, const QStr
   const auto remap = [&](NavigationEntry& entry) {
     entry.path = FilePathOps::remapDescendant(entry.path, oldPath, newPath);
   };
-  for (auto& entry : backHistory_) remap(entry);
-  for (auto& entry : forwardHistory_) remap(entry);
+  for (auto& entry : backHistory_)
+    remap(entry);
+  for (auto& entry : forwardHistory_)
+    remap(entry);
   if (pendingNavigation_) {
     remap(pendingNavigation_->origin);
-    if (pendingNavigation_->restore) remap(*pendingNavigation_->restore);
+    if (pendingNavigation_->restore)
+      remap(*pendingNavigation_->restore);
   }
 }

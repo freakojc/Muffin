@@ -48,7 +48,8 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 // Normalize a marker field: Muffin omits markerEnd when none; mermaid emits null.
@@ -59,8 +60,8 @@ QString normMarker(const QJsonValue& v) {
 
 // Ordered message identity: from | to | dashed | markerEnd-kind.
 QString messageTuple(const QJsonObject& m) {
-  return m.value(QStringLiteral("from")).toString() + QStringLiteral(" | ") +
-         m.value(QStringLiteral("to")).toString() + QStringLiteral(" | dashed=") +
+  return m.value(QStringLiteral("from")).toString() + QStringLiteral(" | ") + m.value(QStringLiteral("to")).toString() +
+         QStringLiteral(" | dashed=") +
          (m.value(QStringLiteral("dashed")).toBool() ? QStringLiteral("Y") : QStringLiteral("N")) +
          QStringLiteral(" | ") + normMarker(m.value(QStringLiteral("markerEnd")));
 }
@@ -73,7 +74,7 @@ QStringList participantIds(const QJsonArray& participants) {
   return ids;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -86,8 +87,7 @@ int main(int argc, char** argv) {
   const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
   require(root.value(QStringLiteral("mermaidVersion")).toString() == QLatin1String("11.16.0"),
           QStringLiteral("Sequence geometry: mermaidVersion drifted"));
-  require(root.value(QStringLiteral("oracle")).toString().startsWith(
-              QLatin1String("sequenceDiagram.render")),
+  require(root.value(QStringLiteral("oracle")).toString().startsWith(QLatin1String("sequenceDiagram.render")),
           QStringLiteral("Sequence geometry: oracle contract drifted"));
 
   editor::MermaidRenderCache cache;
@@ -121,19 +121,21 @@ int main(int argc, char** argv) {
     // Message count.
     if (actualMessages.size() != expectedMessages.size())
       assertErrors << id + QStringLiteral(": message count %1 != mermaid %2")
-                          .arg(actualMessages.size()).arg(expectedMessages.size());
+                               .arg(actualMessages.size())
+                               .arg(expectedMessages.size());
 
     // Ordered message tuples (order IS the conversation).
     QStringList expectedTuples;
-    for (const QJsonValue& m : expectedMessages) expectedTuples << messageTuple(m.toObject());
+    for (const QJsonValue& m : expectedMessages)
+      expectedTuples << messageTuple(m.toObject());
     QStringList actualTuples;
-    for (const QJsonValue& m : actualMessages) actualTuples << messageTuple(m.toObject());
+    for (const QJsonValue& m : actualMessages)
+      actualTuples << messageTuple(m.toObject());
     if (actualTuples != expectedTuples) {
       assertErrors << id + QStringLiteral(": ordered message tuples diverged");
       const int n = std::max(expectedTuples.size(), actualTuples.size());
       for (int i = 0; i < n; ++i) {
-        if (i >= actualTuples.size() || i >= expectedTuples.size() ||
-            actualTuples[i] != expectedTuples[i])
+        if (i >= actualTuples.size() || i >= expectedTuples.size() || actualTuples[i] != expectedTuples[i])
           assertErrors << QStringLiteral("  #%1  mermaid[%2]  muffin[%3]")
                               .arg(i)
                               .arg(i < expectedTuples.size() ? expectedTuples[i] : QStringLiteral("<none>"))
@@ -142,7 +144,8 @@ int main(int argc, char** argv) {
     }
 
     if (!assertErrors.isEmpty()) {
-      for (const QString& e : assertErrors) std::fprintf(stderr, "%s\n", qPrintable(e));
+      for (const QString& e : assertErrors)
+        std::fprintf(stderr, "%s\n", qPrintable(e));
       fail(id + QStringLiteral(": sequence geometry parity regression (participants/message order)"));
     }
   }

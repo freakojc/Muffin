@@ -85,7 +85,7 @@ struct ClassRelation {
   QJsonValue type1 = QStringLiteral("none");
   QJsonValue type2 = QStringLiteral("none");
   int lineType = 0;
-  QStringList style;  // linkStyle declarations (key:value), applied at paint
+  QStringList style; // linkStyle declarations (key:value), applied at paint
 };
 
 struct ClassNote {
@@ -152,4 +152,4 @@ QString classErrorStageName(ClassErrorStage stage);
 QString classErrorCodeName(ClassErrorCode code);
 QString formatClassDiagnostic(const ClassDiagnostic& diagnostic);
 
-}  // namespace muffin::mermaid::classdiagram
+} // namespace muffin::mermaid::classdiagram

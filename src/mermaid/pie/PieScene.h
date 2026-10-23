@@ -36,23 +36,23 @@ struct PieSceneStyle {
   // Stroke / opacity defaults mirror mermaid 11.16.0 default-theme fallbacks
   // (chunk-WYO6CB5R.mjs): pieStrokeColor/ pieOuterStrokeColor default "black",
   // widths "2px", pieOpacity "0.7".
-  QString outerStrokeColor = QStringLiteral("black");   // pieOuterStrokeColor
-  qreal outerStrokeWidth = 2.0;                          // pieOuterStrokeWidth (paint, CSS)
+  QString outerStrokeColor = QStringLiteral("black"); // pieOuterStrokeColor
+  qreal outerStrokeWidth = 2.0;                       // pieOuterStrokeWidth (paint, CSS)
   // Upstream computes the outer-circle RADIUS from parseFontSize(pieOuterStrokeWidth)
   // (the leading-integer prefix), NOT the CSS paint width above (pieDiagram:157).
   // For "2px" both are 2, but they diverge for non-px/non-integer overrides, so the
   // geometry width is tracked separately and feeds outerRingRadius below.
-  qreal outerStrokeWidthGeom = 2.0;                      // parseFontSize(pieOuterStrokeWidth)
-  QString sliceStrokeColor = QStringLiteral("black");   // pieStrokeColor
+  qreal outerStrokeWidthGeom = 2.0;                   // parseFontSize(pieOuterStrokeWidth)
+  QString sliceStrokeColor = QStringLiteral("black"); // pieStrokeColor
   // `.pieCircle { display:none }` removes the slice paths from the raster
   // (layout/canvas geometry is unaffected — the canvas derives from the pie
   // radius and text advances, not from slice paint).
   bool sliceVisible = true;
-  qreal sliceStrokeWidth = 2.0;                          // pieStrokeWidth
-  qreal pieOpacity = 0.7;                                // pieOpacity
-  QString titleColor = QStringLiteral("#333333");        // pieTitleTextColor
-  QString sectionTextColor = QStringLiteral("#131300");   // pieSectionTextColor
-  QString legendTextColor = QStringLiteral("#131300");    // pieLegendTextColor
+  qreal sliceStrokeWidth = 2.0;                         // pieStrokeWidth
+  qreal pieOpacity = 0.7;                               // pieOpacity
+  QString titleColor = QStringLiteral("#333333");       // pieTitleTextColor
+  QString sectionTextColor = QStringLiteral("#131300"); // pieSectionTextColor
+  QString legendTextColor = QStringLiteral("#131300");  // pieLegendTextColor
   QString fontFamily = QStringLiteral("Noto Sans");
   QString titleFontFamily = QStringLiteral("Noto Sans");
   QString sectionFontFamily = QStringLiteral("Noto Sans");
@@ -79,17 +79,17 @@ struct PieSceneStyle {
 struct PieSliceGeometry {
   QString label;
   double value = 0.0;
-  int colorIndex = 0;        // global section index % palette.size()
-  QString fill;              // palette[colorIndex] (may be empty => no fill)
+  int colorIndex = 0; // global section index % palette.size()
+  QString fill;       // palette[colorIndex] (may be empty => no fill)
   QString className = QStringLiteral("pieCircle");
-  QString pathD;             // d3 arc path `d` (3-decimal serialization)
+  QString pathD; // d3 arc path `d` (3-decimal serialization)
   qreal startAngleDeg = 0.0;
   qreal endAngleDeg = 0.0;
   qreal midAngleDeg = 0.0;
   qreal outerRadius = 0.0;
-  qreal innerRadius = 0.0;   // donut inner radius (0 for solid slices)
+  qreal innerRadius = 0.0; // donut inner radius (0 for solid slices)
   qreal labelRadius = 0.0;
-  qreal centroidX = 0.0;     // label centroid, group-local (full precision)
+  qreal centroidX = 0.0; // label centroid, group-local (full precision)
   qreal centroidY = 0.0;
   QString percentage;        // "38%" — (value/origSum*100).toFixed(0) + "%"
   qreal rawPercentage = 0.0; // value/origSum*100, rounded to 3
@@ -117,16 +117,16 @@ struct PieScene : MermaidScene {
   qreal centerX = 225.0;
   qreal centerY = 225.0;
   qreal radius = 185.0;
-  qreal outerRingRadius = 186.0;   // radius + outerStrokeWidth/2
+  qreal outerRingRadius = 186.0; // radius + outerStrokeWidth/2
   qreal legendRectSize = 18.0;
   qreal legendSpacing = 4.0;
-  qreal legendHeight = 22.0;       // legendRectSize + legendSpacing
+  qreal legendHeight = 22.0; // legendRectSize + legendSpacing
   // Resolved config (4 live fields + the effective donut hole / inner radius).
   qreal textPosition = 0.75;
   qreal donutHole = 0.0;
   qreal effectiveDonutHole = 0.0;
   qreal donutInnerRadius = 0.0;
-  qreal labelRadius = 138.75;      // radius * textPosition
+  qreal labelRadius = 138.75; // radius * textPosition
   QString legendPosition = QStringLiteral("right");
   QString highlightSlice;
   bool highlightSliceIsString = true;
@@ -137,13 +137,13 @@ struct PieScene : MermaidScene {
   QString accTitle;
   QString accDescr;
   // Geometry (font-independent).
-  QVector<PieSliceGeometry> slices;   // drawn slices (>= 1%), source order
-  QVector<PieLegendEntry> legends;    // ALL sections, source order
+  QVector<PieSliceGeometry> slices; // drawn slices (>= 1%), source order
+  QVector<PieLegendEntry> legends;  // ALL sections, source order
   double originalSum = 0.0;
   double filteredSum = 0.0;
   // Computed canvas width (font-coupled — legend text width dependent).
   qreal totalWidth = 450.0;
-  qreal totalHeight = 450.0;  // grows by n*legendHeight for top/bottom legendPosition
+  qreal totalHeight = 450.0; // grows by n*legendHeight for top/bottom legendPosition
   // Longest legend text advance (font-coupled), measured by the adapter so the
   // painter can place legends identically and the bounds/canvas agree.
   qreal longestLegendWidth = 0.0;
@@ -161,4 +161,4 @@ PieScene buildPieScene(const PieData& data, const PieConfig& config, PieSceneSty
 // zeros, "-0" -> "0". Exposed for unit tests.
 QString formatPieCoord(qreal v);
 
-}  // namespace muffin::mermaid::pie
+} // namespace muffin::mermaid::pie

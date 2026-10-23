@@ -30,10 +30,10 @@ struct ResolvedNodeStyle {
   // Resolved paint for the painter (theme defaults overridden by the cascade).
   QString fill;
   QString stroke;
-  QString strokeWidth;   // e.g. "2px"
+  QString strokeWidth; // e.g. "2px"
   QString color;
   QString fontFamily;
-  QString fontSize;      // e.g. "16px"
+  QString fontSize; // e.g. "16px"
   QString fontWeight;
 };
 
@@ -41,29 +41,26 @@ struct ResolvedEdgeStyle {
   QString stroke;
   QString strokeWidth;
   QString strokeDasharray;
-  QString fill;  // always "none" for edges (auto-added)
+  QString fill; // always "none" for edges (auto-added)
 };
 
 // Resolve a node's style. `classes` is FlowchartData.classes (the classDef
 // table); vertex.classes names which apply. theme provides the defaults.
-ResolvedNodeStyle resolveNodeStyle(const flowchart::FlowVertex& vertex,
-                                   const QVector<flowchart::FlowClass>& classes,
+ResolvedNodeStyle resolveNodeStyle(const flowchart::FlowVertex& vertex, const QVector<flowchart::FlowClass>& classes,
                                    const flowtheme::FlowThemeVariables& theme);
 
 // Resolve an edge's style. edge.style holds the parsed linkStyle entries
 // (already including the auto "fill:none"). theme provides lineColor/strokeWidth.
-ResolvedEdgeStyle resolveEdgeStyle(const flowchart::FlowEdge& edge,
-                                   const flowtheme::FlowThemeVariables& theme);
+ResolvedEdgeStyle resolveEdgeStyle(const flowchart::FlowEdge& edge, const flowtheme::FlowThemeVariables& theme);
 
 // Merged classDef declarations (key:value, last-wins) for the given class names.
 // Used by edges/subgraphs, which upstream styles via `class <id> <name>`
 // (setClass) rather than inline `style`. Returns node+label bucket declarations
 // together; callers split by key (fill/stroke/color/...).
-QStringList compiledClassStyles(const QStringList& classNames,
-                                const QVector<flowchart::FlowClass>& classes);
+QStringList compiledClassStyles(const QStringList& classNames, const QVector<flowchart::FlowClass>& classes);
 
 // Whether a CSS property key is a label (text) style vs a node (box) style.
 // Mirrors khroma/mermaid's isLabelStyle predicate (chunk-BNCO5QFQ.mjs:38).
 bool isLabelStyle(const QString& key);
 
-}  // namespace muffin::mermaid::flowstyle
+} // namespace muffin::mermaid::flowstyle

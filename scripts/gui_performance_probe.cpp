@@ -53,10 +53,15 @@ using namespace muffin;
 namespace {
 using Clock = std::chrono::steady_clock;
 GuiQueueTrace* queueTrace = nullptr;
-qint64 nowNs() { return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now().time_since_epoch()).count(); }
-double ms(qint64 ns) { return ns / 1e6; }
+qint64 nowNs() {
+  return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now().time_since_epoch()).count();
+}
+double ms(qint64 ns) {
+  return ns / 1e6;
+}
 void check(bool ok, const char* message) {
-  if (!ok) qFatal("GUI probe: %s", message);
+  if (!ok)
+    qFatal("GUI probe: %s", message);
 }
 bool samePosition(const CursorPosition& a, const CursorPosition& b) {
   return a.blockId == b.blockId && a.text.nodeId == b.text.nodeId && a.text.textOffset == b.text.textOffset &&
@@ -64,19 +69,21 @@ bool samePosition(const CursorPosition& a, const CursorPosition& b) {
 }
 
 QJsonObject distribution(QVector<double> values) {
-  if (values.isEmpty()) return {{"n", 0}};
+  if (values.isEmpty())
+    return {{"n", 0}};
   std::sort(values.begin(), values.end());
   const auto percentile = [&](double p) {
     return values[qMax<qsizetype>(0, qsizetype(std::ceil(p * values.size())) - 1)];
   };
   double sum = 0;
-  for (const auto value : values) sum += value;
+  for (const auto value : values)
+    sum += value;
   return {{"n", values.size()},        {"p50_ms", percentile(.50)}, {"p95_ms", percentile(.95)},
           {"p99_ms", percentile(.99)}, {"max_ms", values.back()},   {"mean_ms", sum / values.size()}};
 }
 
 class ProbeApplication final : public QApplication {
- public:
+public:
   using QApplication::QApplication;
   QHash<QObject*, int> viewports;
   QHash<QObject*, int> editorObjects;
@@ -103,16 +110,21 @@ class ProbeApplication final : public QApplication {
     int interval = -1;
     if (trace) {
       target = QString::fromLatin1(object->metaObject()->className()) + '/' + object->objectName();
-      if (auto* timer = qobject_cast<QTimer*>(object)) interval = timer->interval();
+      if (auto* timer = qobject_cast<QTimer*>(object))
+        interval = timer->interval();
     }
     const qint64 start = paint || hidden || trace ? nowNs() : 0;
     const auto cpuBefore = trace && queueTrace ? queueTrace->threadSample() : QJsonObject{};
     const bool nativeKey = event->type() == QEvent::KeyPress && event->spontaneous() && bool(beforeNativeKey);
-    if (nativeKey) beforeNativeKey(object, static_cast<QKeyEvent*>(event));
+    if (nativeKey)
+      beforeNativeKey(object, static_cast<QKeyEvent*>(event));
     const bool result = QApplication::notify(object, event);
-    if (nativeKey && afterNativeKey) afterNativeKey();
-    if (paint && painted) painted(tab, ms(nowNs() - start), fullViewportPaint);
-    if (hidden && hiddenEvent) hiddenEvent(owner, eventType, ms(nowNs() - start));
+    if (nativeKey && afterNativeKey)
+      afterNativeKey();
+    if (paint && painted)
+      painted(tab, ms(nowNs() - start), fullViewportPaint);
+    if (hidden && hiddenEvent)
+      hiddenEvent(owner, eventType, ms(nowNs() - start));
     if (trace && eventCompleted)
       eventCompleted(target, eventType, interval, start, nowNs(), cpuBefore,
                      queueTrace ? queueTrace->threadSample() : QJsonObject{});
@@ -148,7 +160,8 @@ void configurePerformanceLogging(bool opening) {
   const auto openMode = qEnvironmentVariable("MUFFIN_GUI_OPEN_PROFILE");
   const bool coarseOpen = opening && !openMode.isEmpty() && openMode != "legacy";
   QLoggingCategory::setFilterRules(
-      QString("muffin.perf.debug=%3\nmuffin.perf.css.debug=%1\nmuffin.perf.detail.debug=%2\nmuffin.perf.queue.debug=%2\nmuffin.perf.open.debug=%4")
+      QString(
+          "muffin.perf.debug=%3\nmuffin.perf.css.debug=%1\nmuffin.perf.detail.debug=%2\nmuffin.perf.queue.debug=%2\nmuffin.perf.open.debug=%4")
           .arg(qEnvironmentVariableIsSet("MUFFIN_CSS_DEEP_PROFILE") ? "true" : "false",
                qEnvironmentVariableIsSet("MUFFIN_GUI_TRACE") ? "true" : "false",
                coarseOpen || qEnvironmentVariable("MUFFIN_GUI_PROFILE") == "off" ? "false" : "true",
@@ -160,7 +173,8 @@ int traceOperation = -1, traceDropped = 0;
 QHash<quintptr, int> traceViewports;
 QJsonArray* themeScopeIntervals = nullptr;
 void traceRow(QJsonObject row) {
-  if (!activeTrace) return;
+  if (!activeTrace)
+    return;
   if (activeTrace->size() < 65536)
     activeTrace->append(row);
   else
@@ -177,9 +191,12 @@ void messageHandler(QtMsgType type, const QMessageLogContext& context, const QSt
       const auto parts = message.split(' ', Qt::SkipEmptyParts);
       check(parts.size() == 4, "invalid open scope");
       std::lock_guard lock(openProbeMutex);
-      openProbeScopes.append(QJsonObject{{"name", parts[0]}, {"duration_ms", parts[1].toDouble()},
-                                        {"end_ms", ms(nowNs() - start)}, {"working_set_bytes", parts[3].toLongLong()},
-                                        {"gui_thread", QThread::currentThread() == QCoreApplication::instance()->thread()}});
+      openProbeScopes.append(
+          QJsonObject{{"name", parts[0]},
+                      {"duration_ms", parts[1].toDouble()},
+                      {"end_ms", ms(nowNs() - start)},
+                      {"working_set_bytes", parts[3].toLongLong()},
+                      {"gui_thread", QThread::currentThread() == QCoreApplication::instance()->thread()}});
     }
     return;
   }
@@ -206,7 +223,8 @@ void messageHandler(QtMsgType type, const QMessageLogContext& context, const QSt
     const auto parts = message.split(' ', Qt::SkipEmptyParts);
     bool ok = false;
     const auto elapsed = parts.size() > 1 ? parts[1].toDouble(&ok) : 0;
-    if (ok) (*activeProbes)[parts[0]].append(elapsed);
+    if (ok)
+      (*activeProbes)[parts[0]].append(elapsed);
     if (ok && themeScopeIntervals) {
       const auto end = ms(nowNs() - traceStart);
       themeScopeIntervals->append(QJsonObject{{"name", parts[0]},
@@ -228,7 +246,8 @@ void messageHandler(QtMsgType type, const QMessageLogContext& context, const QSt
   }
   if (type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg)
     std::fprintf(stderr, "%s\n", qPrintable(message.left(600)));
-  if (type == QtFatalMsg) std::abort();
+  if (type == QtFatalMsg)
+    std::abort();
 }
 
 QString workload(qsizetype bytes) {
@@ -245,23 +264,21 @@ QString workload(qsizetype bytes) {
           .repeated(12) +
       "\n\n";
   while (text.size() < bytes) {
-    if (text.size() % 65536 < 1200) text += "# Heading\n\n";
+    if (text.size() % 65536 < 1200)
+      text += "# Heading\n\n";
     text += paragraph;
   }
   return text;
 }
 
 class Runner final : public QObject {
- public:
+public:
   Runner(ProbeApplication& app, QString output, double mib, int tabCount, int count, QString source)
-      : app_(app),
-        output_(std::move(output)),
-        mib_(mib),
-        tabCount_(tabCount),
-        count_(count),
+      : app_(app), output_(std::move(output)), mib_(mib), tabCount_(tabCount), count_(count),
         source_(std::move(source)) {
     chainFile_ = qEnvironmentVariable("MUFFIN_GUI_CHAIN_FILE");
-    if (chainFile_.isEmpty()) return;
+    if (chainFile_.isEmpty())
+      return;
     check(themeAcceptance_, "a GUI chain requires theme acceptance mode");
     QFile plan(chainFile_);
     check(plan.open(QIODevice::ReadOnly), "cannot read GUI chain plan");
@@ -306,14 +323,18 @@ class Runner final : public QObject {
     app_.eventCompleted = {};
     app_.beforeNativeKey = {};
     app_.afterNativeKey = {};
-    if (queueTrace) queueTrace->nativeMessage = {};
+    if (queueTrace)
+      queueTrace->nativeMessage = {};
     app_.viewports.clear();
     producer_.request_stop();
     sampler_.request_stop();
-    if (producer_.joinable()) producer_.join();
-    if (sampler_.joinable()) sampler_.join();
+    if (producer_.joinable())
+      producer_.join();
+    if (sampler_.joinable())
+      sampler_.join();
 #ifdef Q_OS_WIN
-    if (predecessorHandle_) CloseHandle(predecessorHandle_);
+    if (predecessorHandle_)
+      CloseHandle(predecessorHandle_);
 #endif
     for (auto* tab : documents_) {
       tab->session.document().setModified(false);
@@ -325,7 +346,8 @@ class Runner final : public QObject {
     window_ = std::make_unique<MainWindow>();
     // Optional for an interactive desktop with other applications: keep only
     // this disposable benchmark window visible. Activation checks still apply.
-    if (qEnvironmentVariableIsSet("MUFFIN_GUI_PIN_WINDOW")) window_->setWindowFlag(Qt::WindowStaysOnTopHint);
+    if (qEnvironmentVariableIsSet("MUFFIN_GUI_PIN_WINDOW"))
+      window_->setWindowFlag(Qt::WindowStaysOnTopHint);
     tabs_ = window_->findChild<QTabWidget*>("DocumentTabs");
     check(tabs_, "document tab widget missing");
     window_->resize(1100, 820);
@@ -333,7 +355,8 @@ class Runner final : public QObject {
     window_->raise();
     window_->activateWindow();
     connect(window_->windowHandle(), &QWindow::activeChanged, this, [this] {
-      if (!recording_) return;
+      if (!recording_)
+        return;
       if (!window_->windowHandle()->isActive()) {
         lostActivation_ = true;
         observeForegroundLoss("activation_event");
@@ -350,7 +373,8 @@ class Runner final : public QObject {
         lostActivation_ |= !window_->isActiveWindow();
         lostExposure_ |= !window_->windowHandle()->isExposed();
         lostForeground_ |= !hasWindowsForeground();
-        if (!hasWindowsForeground()) observeForegroundLoss("heartbeat");
+        if (!hasWindowsForeground())
+          observeForegroundLoss("heartbeat");
         const auto delay = qMax(0.0, ms(now - lastBeat_) - 8);
         heartbeatDelays_.append(delay);
         if (activeTrace && delay >= 16)
@@ -385,7 +409,8 @@ class Runner final : public QObject {
     app_.painted = [this](int tab, double elapsed, bool full) { onPaint(tab, elapsed, full); };
     app_.activeTab = [this] { return tabs_->currentIndex(); };
     app_.hiddenEvent = [this](int tab, int type, double elapsed) {
-      if (!recording_) return;
+      if (!recording_)
+        return;
       const auto key = QString::number(tab) + '/' + QString::number(type);
       ++hiddenEvents_[key].first;
       hiddenEvents_[key].second += elapsed;
@@ -415,14 +440,16 @@ class Runner final : public QObject {
                   {"operation", traceOperation}});
     };
     app_.beforeNativeKey = [this](QObject* target, QKeyEvent* key) {
-      if (!recording_ || !nativeInput_) return;
+      if (!recording_ || !nativeInput_)
+        return;
       if (nativeObservations_.size() < 12)
         nativeObservations_.append(QJsonObject{{"target", target->metaObject()->className()},
                                                {"name", target->objectName()},
                                                {"key", key->key()},
                                                {"text", key->text()},
                                                {"expected", target == current()->renderView}});
-      if (qobject_cast<QWindow*>(target)) return;
+      if (qobject_cast<QWindow*>(target))
+        return;
       if (target != current()->renderView || key->key() != Qt::Key_X || key->text() != "x" || nativeCurrent_ >= 0) {
         nativeContaminated_ = true;
         return;
@@ -438,16 +465,18 @@ class Runner final : public QObject {
       samples_[nativeCurrent_].detail = "x/native";
     };
     app_.afterNativeKey = [this] {
-      if (nativeCurrent_ < 0) return;
+      if (nativeCurrent_ < 0)
+        return;
       endOperation(nativeCurrent_);
       nativeCurrent_ = -1;
     };
     waitForPredecessor();
   }
 
- protected:
+protected:
   bool event(QEvent* event) override {
-    if (event->type() != operationType) return QObject::event(event);
+    if (event->type() != operationType)
+      return QObject::event(event);
     auto* operation = static_cast<OperationEvent*>(event);
     if (operation->index < 0) {
       producerDone_ = true;
@@ -460,10 +489,11 @@ class Runner final : public QObject {
     return true;
   }
 
- private:
+private:
   void writeChainState(const QString& status, qint64 successor = 0, bool granted = false,
                        QJsonObject handoff = {}) const {
-    if (chainFile_.isEmpty()) return;
+    if (chainFile_.isEmpty())
+      return;
     const auto document = QJsonDocument(QJsonObject{{"status", status},
                                                     {"index", chainIndex_},
                                                     {"pid", QCoreApplication::applicationPid()},
@@ -503,7 +533,8 @@ class Runner final : public QObject {
     openNext();
   }
   void handOffChain(bool valid) {
-    if (chainFile_.isEmpty()) return;
+    if (chainFile_.isEmpty())
+      return;
     if (!valid) {
       writeChainState("failed_validation");
       return;
@@ -522,7 +553,8 @@ class Runner final : public QObject {
     environment.insert("MUFFIN_GUI_CHAIN_INDEX", QString::number(chainIndex_ + 1));
     environment.insert("MUFFIN_GUI_PREDECESSOR_PID", QString::number(QCoreApplication::applicationPid()));
     environment.insert("MUFFIN_GUI_PROFILE", next["profile"].toString());
-    if (next.contains("open_profile")) environment.insert("MUFFIN_GUI_OPEN_PROFILE", next["open_profile"].toString());
+    if (next.contains("open_profile"))
+      environment.insert("MUFFIN_GUI_OPEN_PROFILE", next["open_profile"].toString());
     successor.setProcessEnvironment(environment);
     successor.setWorkingDirectory(QDir::currentPath());
     successor.setProcessChannelMode(QProcess::MergedChannels);
@@ -535,7 +567,8 @@ class Runner final : public QObject {
 #ifdef Q_OS_WIN
     SetLastError(0);
     granted = AllowSetForegroundWindow(DWORD(pid));
-    if (!granted) grantError = int(GetLastError());
+    if (!granted)
+      grantError = int(GetLastError());
 #endif
     writeChainState("handed_off", pid, granted,
                     {{"origin", origin}, {"after_launch", foregroundIdentity(true)}, {"grant_error", grantError}});
@@ -551,7 +584,8 @@ class Runner final : public QObject {
 #endif
   }
   void observeForegroundLoss(const QString& context) {
-    if (!foregroundLoss_.isEmpty()) return;
+    if (!foregroundLoss_.isEmpty())
+      return;
     foregroundLoss_ = {{"context", context},
                        {"at_ms", ms(nowNs() - phaseStart_)},
                        {"win32", foregroundIdentity(true)},
@@ -583,7 +617,8 @@ class Runner final : public QObject {
     }
     if (diagnostic && foreground) {
       wchar_t name[4096]{};
-      if (GetClassNameW(foreground, name, 4096)) result["foreground_class"] = QString::fromWCharArray(name);
+      if (GetClassNameW(foreground, name, 4096))
+        result["foreground_class"] = QString::fromWCharArray(name);
       if (const auto handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, process)) {
         DWORD length = 4096;
         if (QueryFullProcessImageNameW(handle, 0, name, &length))
@@ -609,8 +644,10 @@ class Runner final : public QObject {
     sample.due = due;
     sample.posted = posted;
     sample.dispatch = nowNs();
-    if (themeAcceptance_) sample.stagesBefore = themePerformanceSamples();
-    if (activeTrace && queueTrace) sample.cpuBefore = queueTrace->threadSample();
+    if (themeAcceptance_)
+      sample.stagesBefore = themePerformanceSamples();
+    if (activeTrace && queueTrace)
+      sample.cpuBefore = queueTrace->threadSample();
     duringOperationPaint_.clear();
     duringOperationPaintStart_.clear();
     inOperation_ = true;
@@ -631,7 +668,8 @@ class Runner final : public QObject {
     inOperation_ = false;
     sample.tab = tabs_->currentIndex();
     sample.end = nowNs();
-    if (activeTrace && queueTrace) sample.cpuAfter = queueTrace->threadSample();
+    if (activeTrace && queueTrace)
+      sample.cpuAfter = queueTrace->threadSample();
     sample.paint = duringOperationPaint_.value(sample.tab);
     sample.paintStart = duringOperationPaintStart_.value(sample.tab);
   }
@@ -656,8 +694,10 @@ class Runner final : public QObject {
       }
       const bool ready = hasWindowsForeground() && window_->isActiveWindow() && window_->windowHandle()->isExposed() &&
                          QApplication::focusWidget() == current()->renderView;
-      if (!ready) openForegroundStableStart_ = 0;
-      if (ready && !openForegroundStableStart_) openForegroundStableStart_ = now;
+      if (!ready)
+        openForegroundStableStart_ = 0;
+      if (ready && !openForegroundStableStart_)
+        openForegroundStableStart_ = now;
       if (!ready || ms(now - openForegroundStableStart_) < 500) {
         if (ms(now - openForegroundWaitStart_) < foregroundWaitLimitMs_) {
           QTimer::singleShot(100, this, [this] { openNext(); });
@@ -696,10 +736,12 @@ class Runner final : public QObject {
     auto* tab = current();
     documents_.append(tab);
     tab->draftTimer->setObjectName(QString("benchmarkDraft/%1").arg(documents_.size() - 1));
-    if (qEnvironmentVariableIsSet("MUFFIN_GUI_SKIP_DRAFT_SNAPSHOT")) tab->draftTimer->blockSignals(true);
+    if (qEnvironmentVariableIsSet("MUFFIN_GUI_SKIP_DRAFT_SNAPSHOT"))
+      tab->draftTimer->blockSignals(true);
     app_.viewports.insert(tab->renderView->viewport(), documents_.size() - 1);
     connect(&tab->session, &DocumentSession::parseBusy, this, [this](bool busy) {
-      if (!busy && openProbeStart.load()) openInstallFinished_ = nowNs();
+      if (!busy && openProbeStart.load())
+        openInstallFinished_ = nowNs();
     });
     waitForOpen(tab, started);
   }
@@ -720,7 +762,8 @@ class Runner final : public QObject {
     const auto samples = themePerformanceSamples();
     for (size_t i = 0; i < samples.size(); ++i)
       stages[names[i]] = QJsonObject{{"exclusive_ms", samples[i].exclusiveNs / 1e6},
-                                     {"calls", qint64(samples[i].calls)}, {"work", qint64(samples[i].work)}};
+                                     {"calls", qint64(samples[i].calls)},
+                                     {"work", qint64(samples[i].work)}};
     openRows_.append(QJsonObject{{"tab", documents_.size() - 1},
                                  {"parse_and_bind_ms", ms(openInstallFinished_ - started)},
                                  {"call_return_ms", ms(openCallReturned_ - started)},
@@ -729,7 +772,8 @@ class Runner final : public QObject {
                                  {"open_profile", qEnvironmentVariable("MUFFIN_GUI_OPEN_PROFILE", "legacy")},
                                  {"sampled_max_working_set", sampledMaxMemory_.load()},
                                  {"foreground_at_first_paint", openPaintForeground_},
-                                 {"stages", stages}, {"scopes", scopes},
+                                 {"stages", stages},
+                                 {"scopes", scopes},
                                  {"working_set_bytes", diag::workingSetBytes()},
                                  {"process", diag::MemoryAccounting::process()},
                                  {"blocks", qint64(tab->session.document().root().children().size())}});
@@ -755,7 +799,8 @@ class Runner final : public QObject {
       if (!hasWindowsForeground()) {
         window_->raise();
         window_->activateWindow();
-        if (window_->windowHandle()) window_->windowHandle()->requestActivate();
+        if (window_->windowHandle())
+          window_->windowHandle()->requestActivate();
       }
     }
     // Opening several files can outlast Windows' initial activation request.
@@ -764,13 +809,15 @@ class Runner final : public QObject {
       check(activationAttempt < 10, "benchmark window must be exposed and active");
       window_->raise();
       window_->activateWindow();
-      if (window_->windowHandle()) window_->windowHandle()->requestActivate();
+      if (window_->windowHandle())
+        window_->windowHandle()->requestActivate();
       QTimer::singleShot(500, this, [this, activationAttempt] { beginMeasurements(activationAttempt + 1); });
       return;
     }
     resetCaret();
     phases_ = {{"typing", count_, 50}, {"cursor_horizontal", count_, 50}, {"cursor_vertical", count_, 50}};
-    if (nativeInput_ || qEnvironmentVariableIsSet("MUFFIN_GUI_TYPING_ONLY")) phases_ = {{"typing", count_, 50}};
+    if (nativeInput_ || qEnvironmentVariableIsSet("MUFFIN_GUI_TYPING_ONLY"))
+      phases_ = {{"typing", count_, 50}};
     // A focused queue reproduction keeps the same input prefix, without waiting
     // through unrelated scroll/theme phases on an interactive desktop.
     if (!qEnvironmentVariableIsSet("MUFFIN_GUI_INPUT_ONLY") && !qEnvironmentVariableIsSet("MUFFIN_GUI_TYPING_ONLY") &&
@@ -874,11 +921,14 @@ class Runner final : public QObject {
     std::fprintf(stderr, "GUI %.0f MiB/%d tabs: %s (%d at %d ms)\n", mib_, tabCount_, qPrintable(phase.name),
                  phase.count, phase.intervalMs);
     std::fflush(stderr);
-    if (phase.name.startsWith("typing") || phase.name.startsWith("cursor")) resetCaret();
-    if (phase.name == "scroll_cold") current()->renderView->verticalScrollBar()->setValue(0);
+    if (phase.name.startsWith("typing") || phase.name.startsWith("cursor"))
+      resetCaret();
+    if (phase.name == "scroll_cold")
+      current()->renderView->verticalScrollBar()->setValue(0);
     if (phase.name == "theme_switch") {
       tabs_->setCurrentIndex(0);
-      if (themeAcceptance_) resetCaret();
+      if (themeAcceptance_)
+        resetCaret();
       for (auto* tab : documents_) {
         hiddenSheets_.append(tab->renderView->theme().documentStyleSheet());
         hiddenHeights_.append(tab->renderView->layoutTotalHeight());
@@ -892,11 +942,14 @@ class Runner final : public QObject {
     // Wait outside the measured interval; never steal focus while posting input.
     if (qEnvironmentVariableIsSet("MUFFIN_GUI_REQUIRE_FOREGROUND")) {
       const auto now = nowNs();
-      if (!foregroundWaitStart_) foregroundWaitStart_ = now;
+      if (!foregroundWaitStart_)
+        foregroundWaitStart_ = now;
       const bool ready = hasWindowsForeground() && window_->isActiveWindow() && window_->windowHandle()->isExposed() &&
                          QApplication::focusWidget() == current()->renderView;
-      if (!ready) foregroundStableStart_ = 0;
-      if (ready && !foregroundStableStart_) foregroundStableStart_ = now;
+      if (!ready)
+        foregroundStableStart_ = 0;
+      if (ready && !foregroundStableStart_)
+        foregroundStableStart_ = now;
       if (!ready || ms(now - foregroundStableStart_) < 500) {
         if (ms(now - foregroundWaitStart_) < foregroundWaitLimitMs_) {
           if (!foregroundWaitAnnounced_) {
@@ -939,7 +992,8 @@ class Runner final : public QObject {
     for (int i = 0; i < documents_.size(); ++i) {
       auto* view = documents_[i]->renderView;
       app_.editorObjects.insert(view, i);
-      for (auto* object : view->findChildren<QObject*>()) app_.editorObjects.insert(object, i);
+      for (auto* object : view->findChildren<QObject*>())
+        app_.editorObjects.insert(object, i);
     }
     heartbeatDelays_.clear();
     trace_ = {};
@@ -1020,18 +1074,23 @@ class Runner final : public QObject {
     });
   }
   void onPaint(int tab, double elapsed, bool fullViewportPaint) {
-    if (openProbeStart.load() && openInstallFinished_ && !openFirstPaint_ && fullViewportPaint && tab == documents_.size() - 1 &&
-        !current()->session.isAsyncParseInProgress() && !current()->session.document().root().children().empty()) {
+    if (openProbeStart.load() && openInstallFinished_ && !openFirstPaint_ && fullViewportPaint &&
+        tab == documents_.size() - 1 && !current()->session.isAsyncParseInProgress() &&
+        !current()->session.document().root().children().empty()) {
       openFirstPaint_ = nowNs();
-      openPaintForeground_ = hasWindowsForeground() && window_->isActiveWindow() && window_->windowHandle()->isExposed();
+      openPaintForeground_ =
+          hasWindowsForeground() && window_->isActiveWindow() && window_->windowHandle()->isExposed();
     }
-    if (!recording_) return;
+    if (!recording_)
+      return;
     paints_.append(elapsed);
     ++paintsByTab_[tab];
-    if (tab != tabs_->currentIndex()) ++hiddenPaints_;
+    if (tab != tabs_->currentIndex())
+      ++hiddenPaints_;
     // A caret-only dirty rectangle does not establish that the new theme's
     // entire visible viewport has been rendered.
-    if (themeAcceptance_ && phases_[phase_].name == "theme_switch" && !fullViewportPaint) return;
+    if (themeAcceptance_ && phases_[phase_].name == "theme_switch" && !fullViewportPaint)
+      return;
     const auto completed = nowNs();
     const auto started = completed - qint64(elapsed * 1e6);
     if (inOperation_) {
@@ -1046,12 +1105,14 @@ class Runner final : public QObject {
       if (sample.end && !sample.paint && sample.tab == tab) {
         sample.paint = completed;
         sample.paintStart = started;
-        if (themeAcceptance_) sample.stagesPainted = themePerformanceSamples();
+        if (themeAcceptance_)
+          sample.stagesPainted = themePerformanceSamples();
         sample.fullViewportPaint = fullViewportPaint;
       }
   }
   void finishPhase() {
-    if (!producerDone_) return;
+    if (!producerDone_)
+      return;
     activeProbes = nullptr;
     activeTrace = nullptr;
     app_.traceEvents = false;
@@ -1064,7 +1125,8 @@ class Runner final : public QObject {
     int coalesced = 0;
     qint64 previousPaint = 0;
     for (const auto& sample : samples_) {
-      if (!sample.dispatch) continue;
+      if (!sample.dispatch)
+        continue;
       sync.append(ms(sample.end - sample.dispatch));
       queue.append(ms(sample.dispatch - sample.due));
       postJitter.append(ms(sample.posted - sample.due));
@@ -1081,11 +1143,14 @@ class Runner final : public QObject {
       row["posted_at_ms"] = ms(sample.posted - phaseStart_);
       row["dispatch_at_ms"] = ms(sample.dispatch - phaseStart_);
       row["end_at_ms"] = ms(sample.end - phaseStart_);
-      if (sample.paint) row["paint_at_ms"] = ms(sample.paint - phaseStart_);
-      if (sample.paintStart) row["paint_start_at_ms"] = ms(sample.paintStart - phaseStart_);
+      if (sample.paint)
+        row["paint_at_ms"] = ms(sample.paint - phaseStart_);
+      if (sample.paintStart)
+        row["paint_start_at_ms"] = ms(sample.paintStart - phaseStart_);
       int pendingAtDispatch = 0, pendingAfterHandler = 0, subsequentBeforePaint = 0;
       for (const auto& later : samples_) {
-        if (!later.dispatch || later.dispatch <= sample.dispatch) continue;
+        if (!later.dispatch || later.dispatch <= sample.dispatch)
+          continue;
         pendingAtDispatch += later.posted <= sample.dispatch;
         pendingAfterHandler += later.posted <= sample.end && later.dispatch >= sample.end;
         subsequentBeforePaint += sample.paintStart && later.dispatch < sample.paintStart;
@@ -1094,7 +1159,8 @@ class Runner final : public QObject {
       row["pending_inputs_after_handler"] = pendingAfterHandler;
       row["subsequent_inputs_before_paint"] = subsequentBeforePaint;
       row["post_to_dispatch_ms"] = ms(sample.dispatch - sample.posted);
-      if (sample.paintStart) row["handler_end_to_paint_start_ms"] = qMax(0.0, ms(sample.paintStart - sample.end));
+      if (sample.paintStart)
+        row["handler_end_to_paint_start_ms"] = qMax(0.0, ms(sample.paintStart - sample.end));
       if (qEnvironmentVariableIsSet("MUFFIN_GUI_TRACE")) {
         row["cpu_before"] = sample.cpuBefore;
         row["cpu_after"] = sample.cpuAfter;
@@ -1111,15 +1177,18 @@ class Runner final : public QObject {
         dispatchPaint.append(ms(sample.paint - sample.dispatch));
         row["scheduled_to_paint_ms"] = ms(sample.paint - sample.due);
         row["dispatch_to_paint_ms"] = ms(sample.paint - sample.dispatch);
-        if (sample.paint == previousPaint) ++coalesced;
+        if (sample.paint == previousPaint)
+          ++coalesced;
         previousPaint = sample.paint;
       } else
         row["paint_observed"] = false;
       raw.append(row);
     }
-    for (const auto count : paintsByTab_) paintsByTab.append(count);
+    for (const auto count : paintsByTab_)
+      paintsByTab.append(count);
     QJsonObject scopeRows;
-    for (auto it = probes_.cbegin(); it != probes_.cend(); ++it) scopeRows[it.key()] = distribution(it.value());
+    for (auto it = probes_.cbegin(); it != probes_.cend(); ++it)
+      scopeRows[it.key()] = distribution(it.value());
     QJsonObject stages;
     QJsonObject hiddenEvents;
     for (auto it = hiddenEvents_.cbegin(); it != hiddenEvents_.cend(); ++it)
@@ -1137,7 +1206,8 @@ class Runner final : public QObject {
       for (auto row : schedulerSamples_) {
         const auto time = row.take("at_ns").toInteger();
         const auto begin = row.take("query_begin_ns").toInteger();
-        if (time < phaseStart_) continue;
+        if (time < phaseStart_)
+          continue;
         row["at_ms"] = ms(time - phaseStart_);
         row["query_begin_at_ms"] = ms(begin - phaseStart_);
         row["query_duration_ms"] = ms(time - begin);
@@ -1184,7 +1254,9 @@ class Runner final : public QObject {
                        {"working_set_before", memoryBefore_},
                        {"working_set_after", memoryAfter},
                        {"process_after", diag::MemoryAccounting::process()},
-                       {"resource_state_after", qEnvironmentVariableIsSet("MUFFIN_GUI_MEMORY_CENSUS") ? diag::MemoryAccounting::resources(*window_,documents_) : QJsonObject{}},
+                       {"resource_state_after", qEnvironmentVariableIsSet("MUFFIN_GUI_MEMORY_CENSUS")
+                                                    ? diag::MemoryAccounting::resources(*window_, documents_)
+                                                    : QJsonObject{}},
                        {"sampled_max_working_set", sampledMaxMemory_.load()},
                        {"scope_timings", scopeRows},
                        {"gui_thread_samples", scheduler},
@@ -1199,7 +1271,8 @@ class Runner final : public QObject {
       result["timeline"] = trace_;
       result["timeline_dropped"] = traceDropped;
     }
-    if (themeAcceptance_) result["scope_intervals"] = themeScopes_;
+    if (themeAcceptance_)
+      result["scope_intervals"] = themeScopes_;
     check(hiddenPaints_ == 0, "a hidden editor painted during a measured phase");
     results_.append(result);
     std::fprintf(stderr, "%s: sync p95 %.1f ms, scheduled-paint p95 %.1f ms, memory %.1f MiB\n",
@@ -1228,9 +1301,11 @@ class Runner final : public QObject {
       QJsonArray blocks;
       for (const auto& node : current()->session.document().root().children()) {
         const auto rect = view->nodeRect(node->id());
-        if (rect.top() > view->viewport()->height()) break;
+        if (rect.top() > view->viewport()->height())
+          break;
         const auto* block = view->blockLayoutForNode(node->id());
-        if (!block) continue;
+        if (!block)
+          continue;
         QJsonArray cursors;
         if (const auto* text = block->inlineLayout()) {
           for (int offset : {0, 10, 20, 40}) {
@@ -1282,9 +1357,11 @@ class Runner final : public QObject {
     });
   }
   void finish() {
-    if (!drainStart_) drainStart_ = nowNs();
+    if (!drainStart_)
+      drainStart_ = nowNs();
     const auto sampleDrain = [this] {
-      if (!qEnvironmentVariableIsSet("MUFFIN_GUI_MEMORY_CENSUS") || visualAuditDone_) return;
+      if (!qEnvironmentVariableIsSet("MUFFIN_GUI_MEMORY_CENSUS") || visualAuditDone_)
+        return;
       draftMemorySamples_.append(QJsonObject{{"elapsed_ms", ms(nowNs() - drainStart_)},
                                              {"process", diag::MemoryAccounting::process()},
                                              {"resources", diag::MemoryAccounting::resources(*window_, documents_)}});
@@ -1295,7 +1372,8 @@ class Runner final : public QObject {
       if (tab->session.document().isModified() &&
           tab->lastDraftSnapshotRevision != tab->session.document().revision()) {
         drained = false;
-        if (!drainRequested_) QMetaObject::invokeMethod(tab->draftTimer, "timeout", Qt::DirectConnection);
+        if (!drainRequested_)
+          QMetaObject::invokeMethod(tab->draftTimer, "timeout", Qt::DirectConnection);
       }
     }
     drainRequested_ = true;
@@ -1427,7 +1505,8 @@ class Runner final : public QObject {
     std::fprintf(stderr, "GUI results: %s\n", qPrintable(output_));
     // QApplication's quit closes windows first; disposable edited buffers must
     // be clean before that close event, not only in the runner's destructor.
-    for (auto* tab : documents_) tab->session.document().setModified(false);
+    for (auto* tab : documents_)
+      tab->session.document().setModified(false);
     bool validChainRun = !foregroundWaitTimedOut_ && hasWindowsForeground() && drained && visualAuditDone_ &&
                          results_.size() == phases_.size();
     for (const auto value : results_) {
@@ -1435,7 +1514,8 @@ class Runner final : public QObject {
       validChainRun &= phase["active_throughout"].toBool() && phase["windows_foreground_throughout"].toBool() &&
                        phase["exposed_throughout"].toBool() && phase["inputs_without_paint"].toInt() == 0 &&
                        phase["hidden_tab_paints"].toInt() == 0;
-      if (phase["phase"] == "theme_switch") validChainRun &= phase["coalesced_input_count"].toInt() == 0;
+      if (phase["phase"] == "theme_switch")
+        validChainRun &= phase["coalesced_input_count"].toInt() == 0;
     }
     if (qEnvironmentVariableIsSet("MUFFIN_GUI_MEMORY_CENSUS")) {
       QJsonArray closed;
@@ -1477,9 +1557,8 @@ class Runner final : public QObject {
                           {"working_set_after_5s", diag::workingSetBytes()},
                           {"remaining_tabs", tabs_->count()},
                           {"all_original_tabs_destroyed", true},
-                          {"method",
-                           "Standard close bindings after drafts drained and untimed visual reference. No "
-                           "heap/working-set trim. One empty tab remains."}};
+                          {"method", "Standard close bindings after drafts drained and untimed visual reference. No "
+                                     "heap/working-set trim. One empty tab remains."}};
           check(file.open(QIODevice::WriteOnly | QIODevice::Truncate), "write closure checkpoint");
           file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
           file.close();
@@ -1557,7 +1636,8 @@ class Runner final : public QObject {
   QJsonArray openForegroundWaits_;
   bool foregroundWaitAnnounced_ = false, foregroundWaitTimedOut_ = false;
   const int foregroundWaitLimitMs_ = [] {
-    if (!qEnvironmentVariableIsSet("MUFFIN_GUI_FOREGROUND_WAIT_MS")) return 120000;
+    if (!qEnvironmentVariableIsSet("MUFFIN_GUI_FOREGROUND_WAIT_MS"))
+      return 120000;
     bool ok = false;
     const auto value = qEnvironmentVariableIntValue("MUFFIN_GUI_FOREGROUND_WAIT_MS", &ok);
     check(ok && value >= 1000 && value <= 3600000, "foreground wait must be 1000..3600000 ms");
@@ -1571,10 +1651,11 @@ class Runner final : public QObject {
   std::atomic<qint64> sampledMaxMemory_{0};
   std::jthread producer_, sampler_;
 };
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
-  if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) qputenv("QT_QPA_PLATFORM", "windows");
+  if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM"))
+    qputenv("QT_QPA_PLATFORM", "windows");
   ProbeApplication app(argc, argv);
   GuiQueueTrace queue;
   queueTrace = &queue;

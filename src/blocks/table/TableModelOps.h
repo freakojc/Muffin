@@ -8,10 +8,7 @@ namespace muffin {
 
 class MarkdownNode;
 
-enum class InsertPosition {
-  Before,
-  After
-};
+enum class InsertPosition { Before, After };
 
 class TableModelOps {
 public:
@@ -40,4 +37,4 @@ private:
   static std::unique_ptr<MarkdownNode> makeCell();
 };
 
-}  // namespace muffin
+} // namespace muffin

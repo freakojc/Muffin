@@ -16,4 +16,4 @@ public:
 // The detector order and renderer-selection rules match Mermaid 11.16.0.
 QString detectDiagramType(const QString& source, QJsonObject config = {});
 
-}  // namespace muffin::mermaid
+} // namespace muffin::mermaid

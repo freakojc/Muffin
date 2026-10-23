@@ -10,7 +10,6 @@ namespace muffin::mermaid::gantt {
 
 struct GanttScene;
 
-void paintGanttScene(const GanttScene& scene, QPainter& painter,
-                     const MermaidPaintOptions& options);
+void paintGanttScene(const GanttScene& scene, QPainter& painter, const MermaidPaintOptions& options);
 
-}  // namespace muffin::mermaid::gantt
+} // namespace muffin::mermaid::gantt

@@ -6,6 +6,5 @@ class QPainter;
 
 namespace muffin::mermaid::sankey {
 struct SankeyScene;
-void paintSankeyScene(const SankeyScene &scene, QPainter &painter,
-                      const MermaidPaintOptions &options = {});
+void paintSankeyScene(const SankeyScene& scene, QPainter& painter, const MermaidPaintOptions& options = {});
 } // namespace muffin::mermaid::sankey

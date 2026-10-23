@@ -34,7 +34,7 @@ private:
   QElapsedTimer timer_;
 };
 
-}  // namespace
+} // namespace
 
 namespace muffin {
 
@@ -179,10 +179,8 @@ void MarkdownDocument::bindSourcePositionSlots() {
 
 void MarkdownDocument::refreshRootSourceRange() {
   qsizetype parseStart = 0;
-  if (!root_->children().empty() &&
-      root_->children().front()->type() == BlockType::FrontMatter) {
-    parseStart = qBound<qsizetype>(
-        0, root_->children().front()->sourceRange().byteEnd, text_.size());
+  if (!root_->children().empty() && root_->children().front()->type() == BlockType::FrontMatter) {
+    parseStart = qBound<qsizetype>(0, root_->children().front()->sourceRange().byteEnd, text_.size());
     if (parseStart < text_.size() && text_.at(parseStart) == QLatin1Char('\r')) {
       ++parseStart;
     }
@@ -219,18 +217,16 @@ void MarkdownDocument::rebuildOutlineIndex() {
   ++outlineRevision_;
 }
 
-void MarkdownDocument::replaceOutlineRange(
-    qsizetype first,
-    qsizetype count,
-    const std::vector<std::unique_ptr<MarkdownNode>>& replacements) {
+void MarkdownDocument::replaceOutlineRange(qsizetype first, qsizetype count,
+                                           const std::vector<std::unique_ptr<MarkdownNode>>& replacements) {
   const auto& children = root_->children();
   first = qBound<qsizetype>(0, first, static_cast<qsizetype>(children.size()));
   count = qBound<qsizetype>(0, count, static_cast<qsizetype>(children.size()) - first);
 
   QSet<NodeId> removedTopLevelIds;
   qsizetype oldStart = first < static_cast<qsizetype>(children.size())
-      ? children.at(static_cast<size_t>(first))->sourceRange().byteStart
-      : text_.size();
+                           ? children.at(static_cast<size_t>(first))->sourceRange().byteStart
+                           : text_.size();
   qsizetype oldEnd = oldStart;
   for (qsizetype i = 0; i < count; ++i) {
     const MarkdownNode& topLevel = *children.at(static_cast<size_t>(first + i));
@@ -244,19 +240,19 @@ void MarkdownDocument::replaceOutlineRange(
     }
     return entry.sourceRange.byteStart;
   };
-  qsizetype eraseFirst = static_cast<qsizetype>(std::lower_bound(
-      outlineEntries_.cbegin(), outlineEntries_.cend(), oldStart,
-      [&entryStart](const OutlineEntry& entry, qsizetype offset) {
-        return entryStart(entry) < offset;
-      }) - outlineEntries_.cbegin());
+  qsizetype eraseFirst =
+      static_cast<qsizetype>(std::lower_bound(outlineEntries_.cbegin(), outlineEntries_.cend(), oldStart,
+                                              [&entryStart](const OutlineEntry& entry, qsizetype offset) {
+                                                return entryStart(entry) < offset;
+                                              }) -
+                             outlineEntries_.cbegin());
   while (eraseFirst < outlineEntries_.size() &&
          !removedTopLevelIds.contains(outlineEntries_.at(eraseFirst).topLevelId) &&
          entryStart(outlineEntries_.at(eraseFirst)) <= oldEnd) {
     ++eraseFirst;
   }
   qsizetype eraseEnd = eraseFirst;
-  while (eraseEnd < outlineEntries_.size() &&
-         removedTopLevelIds.contains(outlineEntries_.at(eraseEnd).topLevelId)) {
+  while (eraseEnd < outlineEntries_.size() && removedTopLevelIds.contains(outlineEntries_.at(eraseEnd).topLevelId)) {
     ++eraseEnd;
   }
 
@@ -270,8 +266,7 @@ void MarkdownDocument::replaceOutlineRange(
     for (qsizetype i = 0; i < inserted.size(); ++i) {
       const OutlineEntry& oldEntry = outlineEntries_.at(eraseFirst + i);
       const OutlineEntry& newEntry = inserted.at(i);
-      if (oldEntry.nodeId != newEntry.nodeId || oldEntry.level != newEntry.level ||
-          oldEntry.title != newEntry.title) {
+      if (oldEntry.nodeId != newEntry.nodeId || oldEntry.level != newEntry.level || oldEntry.title != newEntry.title) {
         changed = true;
         break;
       }
@@ -309,7 +304,9 @@ MarkdownNode* MarkdownDocument::node(NodeId id) const {
 
 MarkdownNode* MarkdownDocument::topLevelBlockAtOffset(qsizetype offset) const {
   const auto& children = root_->children();
-  if (children.empty()) { return nullptr; }
+  if (children.empty()) {
+    return nullptr;
+  }
   // Children are in document order with non-decreasing byteEnd. Find the first block whose
   // byteEnd >= offset — the earliest block that could contain offset (earlier blocks end
   // before it). Binary-searching on byteEnd (rather than byteStart) preserves the previous
@@ -317,10 +314,9 @@ MarkdownNode* MarkdownDocument::topLevelBlockAtOffset(qsizetype offset) const {
   // tie (A.byteEnd == B.byteStart == offset resolves to the earlier block A) and the gap
   // fallback (returns the last block when no block contains offset). O(log n) instead of
   // O(blocks) — caret resolution hits this on every edit at large sizes (~250k blocks).
-  auto it = std::lower_bound(children.begin(), children.end(), offset,
-      [](const std::unique_ptr<MarkdownNode>& child, qsizetype off) {
-        return child->sourceRange().byteEnd < off;
-      });
+  auto it = std::lower_bound(
+      children.begin(), children.end(), offset,
+      [](const std::unique_ptr<MarkdownNode>& child, qsizetype off) { return child->sourceRange().byteEnd < off; });
   if (it != children.end() && (*it)->sourceRange().byteStart <= offset) {
     return it->get();
   }
@@ -328,9 +324,8 @@ MarkdownNode* MarkdownDocument::topLevelBlockAtOffset(qsizetype offset) const {
   // zero-width (byteStart == byteEnd), so offsets between them fall through the containment
   // check — resolve to the first child instead of the historical last-block fallback, which
   // made a source caret in the leading blanks scroll/render the document END.
-  const auto firstContent = std::find_if(
-      children.begin(), children.end(),
-      [](const std::unique_ptr<MarkdownNode>& child) {
+  const auto firstContent =
+      std::find_if(children.begin(), children.end(), [](const std::unique_ptr<MarkdownNode>& child) {
         return child->sourceRange().byteEnd > child->sourceRange().byteStart;
       });
   if (firstContent != children.end() && offset < (*firstContent)->sourceRange().byteStart) {
@@ -366,4 +361,4 @@ void MarkdownDocument::replaceRoot(std::unique_ptr<MarkdownNode> root) {
   emit documentReset();
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -52,4 +52,4 @@ private:
   QPushButton* disableTypewriterFocusButton_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

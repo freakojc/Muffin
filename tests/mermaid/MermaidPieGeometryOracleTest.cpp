@@ -34,14 +34,15 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 QString accVal(const QJsonObject& o, const QString& key) {
   const QJsonValue v = o.value(key);
   return v.isNull() || v.isUndefined() ? QString() : v.toString();
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -73,20 +74,15 @@ int main(int argc, char** argv) {
     QStringList errors;
 
     // Font-independent counts + text.
-    if (actual.value(QStringLiteral("legendCount")).toInt() !=
-        expected.value(QStringLiteral("legendCount")).toInt())
+    if (actual.value(QStringLiteral("legendCount")).toInt() != expected.value(QStringLiteral("legendCount")).toInt())
       errors << id + QStringLiteral(": legendCount mismatch");
-    if (actual.value(QStringLiteral("sliceCount")).toInt() !=
-        expected.value(QStringLiteral("sliceCount")).toInt())
+    if (actual.value(QStringLiteral("sliceCount")).toInt() != expected.value(QStringLiteral("sliceCount")).toInt())
       errors << id + QStringLiteral(": sliceCount mismatch");
-    if (actual.value(QStringLiteral("title")).toString() !=
-        expected.value(QStringLiteral("title")).toString())
+    if (actual.value(QStringLiteral("title")).toString() != expected.value(QStringLiteral("title")).toString())
       errors << id + QStringLiteral(": title mismatch");
-    if (accVal(actual, QStringLiteral("accTitle")) !=
-        accVal(expected, QStringLiteral("accTitle")))
+    if (accVal(actual, QStringLiteral("accTitle")) != accVal(expected, QStringLiteral("accTitle")))
       errors << id + QStringLiteral(": accTitle mismatch");
-    if (accVal(actual, QStringLiteral("accDescr")) !=
-        accVal(expected, QStringLiteral("accDescr")))
+    if (accVal(actual, QStringLiteral("accDescr")) != accVal(expected, QStringLiteral("accDescr")))
       errors << id + QStringLiteral(": accDescr mismatch");
     if (actual.value(QStringLiteral("outerRingRadius")).toDouble() !=
         expected.value(QStringLiteral("outerRingRadius")).toDouble())
@@ -95,8 +91,8 @@ int main(int argc, char** argv) {
     // n*legendHeight) — assert it against the oracle's viewBox height. (Width is
     // font-coupled, compared only loosely elsewhere.)
     {
-      const QStringList vb = expected.value(QStringLiteral("viewBox")).toString().split(
-          QRegularExpression(QStringLiteral("\\s+")));
+      const QStringList vb =
+          expected.value(QStringLiteral("viewBox")).toString().split(QRegularExpression(QStringLiteral("\\s+")));
       const QJsonArray bnds = actual.value(QStringLiteral("bounds")).toArray();
       if (vb.size() >= 4 && bnds.size() >= 4) {
         const qreal expH = vb.at(3).toDouble();
@@ -120,49 +116,46 @@ int main(int argc, char** argv) {
     // Sums (font-independent).
     errors += parity::compareNumber(
         actual.value(QStringLiteral("sums")).toObject().value(QStringLiteral("original")).toDouble(),
-        expected.value(QStringLiteral("sums")).toObject().value(QStringLiteral("original")).toDouble(),
-        num, id + "/sums/original");
+        expected.value(QStringLiteral("sums")).toObject().value(QStringLiteral("original")).toDouble(), num,
+        id + "/sums/original");
     errors += parity::compareNumber(
         actual.value(QStringLiteral("sums")).toObject().value(QStringLiteral("filtered")).toDouble(),
-        expected.value(QStringLiteral("sums")).toObject().value(QStringLiteral("filtered")).toDouble(),
-        num, id + "/sums/filtered");
+        expected.value(QStringLiteral("sums")).toObject().value(QStringLiteral("filtered")).toDouble(), num,
+        id + "/sums/filtered");
 
     // Per-slice geometry (pathD byte-exact; angles/radii/centroid within tol).
     const QJsonArray expSlices = expected.value(QStringLiteral("slices")).toArray();
     const QJsonArray actSlices = actual.value(QStringLiteral("slices")).toArray();
     if (actSlices.size() != expSlices.size()) {
-      errors << id + QStringLiteral(": slice array length %1 != oracle %2")
-                    .arg(actSlices.size()).arg(expSlices.size());
+      errors << id + QStringLiteral(": slice array length %1 != oracle %2").arg(actSlices.size()).arg(expSlices.size());
     } else {
       for (int i = 0; i < expSlices.size(); ++i) {
         const QJsonObject es = expSlices.at(i).toObject();
         const QJsonObject as = actSlices.at(i).toObject();
         const QString pfx = id + QStringLiteral("/slice%1").arg(i);
         // pathD: BYTE-EXACT (the headline parity proof).
-        if (as.value(QStringLiteral("pathD")).toString() !=
-            es.value(QStringLiteral("pathD")).toString())
+        if (as.value(QStringLiteral("pathD")).toString() != es.value(QStringLiteral("pathD")).toString())
           errors << pfx + QStringLiteral(": pathD mismatch\n  oracle: %1\n  native: %2")
-                        .arg(es.value(QStringLiteral("pathD")).toString(),
-                             as.value(QStringLiteral("pathD")).toString());
+                              .arg(es.value(QStringLiteral("pathD")).toString(),
+                                   as.value(QStringLiteral("pathD")).toString());
         if (as.value(QStringLiteral("label")).toString() != es.value(QStringLiteral("label")).toString())
           errors << pfx + QStringLiteral("/label mismatch");
-        if (as.value(QStringLiteral("percentage")).toString() !=
-            es.value(QStringLiteral("percentage")).toString())
+        if (as.value(QStringLiteral("percentage")).toString() != es.value(QStringLiteral("percentage")).toString())
           errors << pfx + QStringLiteral("/percentage mismatch");
         if (as.value(QStringLiteral("fill")).toString() != es.value(QStringLiteral("fill")).toString())
           errors << pfx + QStringLiteral("/fill mismatch");
-        for (const QString& k : {QStringLiteral("startAngleDeg"), QStringLiteral("endAngleDeg"),
-                                  QStringLiteral("midAngleDeg"), QStringLiteral("centroidX"),
-                                  QStringLiteral("centroidY"), QStringLiteral("rawPercentage"),
-                                  QStringLiteral("outerRadius"), QStringLiteral("innerRadius"),
-                                  QStringLiteral("labelRadius")})
-          errors += parity::compareNumber(as.value(k).toDouble(), es.value(k).toDouble(), num,
-                                           pfx + QLatin1Char('/') + k);
+        for (const QString& k :
+             {QStringLiteral("startAngleDeg"), QStringLiteral("endAngleDeg"), QStringLiteral("midAngleDeg"),
+              QStringLiteral("centroidX"), QStringLiteral("centroidY"), QStringLiteral("rawPercentage"),
+              QStringLiteral("outerRadius"), QStringLiteral("innerRadius"), QStringLiteral("labelRadius")})
+          errors +=
+              parity::compareNumber(as.value(k).toDouble(), es.value(k).toDouble(), num, pfx + QLatin1Char('/') + k);
       }
     }
 
     if (!errors.isEmpty()) {
-      for (const QString& e : errors) std::fprintf(stderr, "%s\n", qPrintable(e));
+      for (const QString& e : errors)
+        std::fprintf(stderr, "%s\n", qPrintable(e));
       fail(id + QStringLiteral(": pie geometry parity regression"));
     }
   }

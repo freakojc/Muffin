@@ -28,21 +28,21 @@ RootFill rootFill(const RadarScene& scene) {
     return {.none = true};
   if (value.compare(QLatin1String("currentColor"), Qt::CaseInsensitive) == 0)
     return {.currentColor = true};
-  const color::SvgPaint paint = color::resolveSvgPaint(
-      value, color::SvgPaintKind::Fill, QColor(Qt::black));
+  const color::SvgPaint paint = color::resolveSvgPaint(value, color::SvgPaintKind::Fill, QColor(Qt::black));
   return paint.none ? RootFill{.none = true} : RootFill{.color = paint.color};
 }
 
 QColor withOpacity(QColor value, qreal opacity) {
-  if (!std::isfinite(opacity)) opacity = 1.0;
+  if (!std::isfinite(opacity))
+    opacity = 1.0;
   value.setAlphaF(std::clamp(value.alphaF() * opacity, 0.0, 1.0));
   return value;
 }
 
 QPen strokePen(const QString& value, qreal width, const QColor& inherited) {
-  const color::SvgPaint stroke =
-      color::resolveSvgPaint(value, color::SvgPaintKind::Stroke, inherited);
-  if (stroke.none || !(width > 0.0) || !std::isfinite(width)) return QPen(Qt::NoPen);
+  const color::SvgPaint stroke = color::resolveSvgPaint(value, color::SvgPaintKind::Stroke, inherited);
+  if (stroke.none || !(width > 0.0) || !std::isfinite(width))
+    return QPen(Qt::NoPen);
   QPen pen(stroke.color, width);
   // SVG line/path defaults are butt caps with miter joins. QPen defaults to a
   // square cap, which visibly extends radar spokes and curve endpoints.
@@ -52,18 +52,16 @@ QPen strokePen(const QString& value, qreal width, const QColor& inherited) {
   return pen;
 }
 
-QBrush inheritedFillBrush(const RootFill& root, const QString& elementColor,
-                          qreal opacity) {
-  if (root.none) return QBrush(Qt::NoBrush);
+QBrush inheritedFillBrush(const RootFill& root, const QString& elementColor, qreal opacity) {
+  if (root.none)
+    return QBrush(Qt::NoBrush);
   const QColor value = root.currentColor ? color::cssColor(elementColor) : root.color;
   return QBrush(withOpacity(value, opacity));
 }
 
-QBrush fillBrush(const QString& raw, qreal opacity, const RootFill& root,
-                 const QString& elementColor) {
+QBrush fillBrush(const QString& raw, qreal opacity, const RootFill& root, const QString& elementColor) {
   const QString value = raw.trimmed();
-  if (value.isEmpty() ||
-      value.compare(QLatin1String("inherit"), Qt::CaseInsensitive) == 0 ||
+  if (value.isEmpty() || value.compare(QLatin1String("inherit"), Qt::CaseInsensitive) == 0 ||
       value.compare(QLatin1String("unset"), Qt::CaseInsensitive) == 0 ||
       value.compare(QLatin1String("revert"), Qt::CaseInsensitive) == 0 ||
       value.compare(QLatin1String("revert-layer"), Qt::CaseInsensitive) == 0)
@@ -85,10 +83,10 @@ bool finitePoint(const QPointF& point) {
 
 bool finiteCurve(const RadarCurveGeometry& curve) {
   for (const QPointF& point : curve.points)
-    if (!finitePoint(point)) return false;
+    if (!finitePoint(point))
+      return false;
   for (const RadarCubicSegment& segment : curve.cubics)
-    if (!finitePoint(segment.control1) || !finitePoint(segment.control2) ||
-        !finitePoint(segment.end))
+    if (!finitePoint(segment.control1) || !finitePoint(segment.control2) || !finitePoint(segment.end))
       return false;
   return true;
 }
@@ -96,9 +94,11 @@ bool finiteCurve(const RadarCurveGeometry& curve) {
 QPainterPath polygonPath(const QVector<QPointF>& points) {
   QPainterPath path;
   path.setFillRule(Qt::WindingFill);
-  if (points.isEmpty()) return path;
+  if (points.isEmpty())
+    return path;
   path.moveTo(points.front());
-  for (qsizetype i = 1; i < points.size(); ++i) path.lineTo(points.at(i));
+  for (qsizetype i = 1; i < points.size(); ++i)
+    path.lineTo(points.at(i));
   path.closeSubpath();
   return path;
 }
@@ -106,7 +106,8 @@ QPainterPath polygonPath(const QVector<QPointF>& points) {
 QPainterPath curvePath(const RadarCurveGeometry& curve) {
   QPainterPath path;
   path.setFillRule(Qt::WindingFill);
-  if (curve.points.isEmpty()) return path;
+  if (curve.points.isEmpty())
+    return path;
   path.moveTo(curve.points.front());
   for (const RadarCubicSegment& segment : curve.cubics)
     path.cubicTo(segment.control1, segment.control2, segment.end);
@@ -114,24 +115,23 @@ QPainterPath curvePath(const RadarCurveGeometry& curve) {
   return path;
 }
 
-void drawAnchoredText(QPainter& painter, const QString& family, qreal pixelSize,
-                      const QPointF& anchor, const QString& text,
-                      RadarTextAnchor horizontal, RadarBaseline vertical,
-                      const QColor& value,
+void drawAnchoredText(QPainter& painter, const QString& family, qreal pixelSize, const QPointF& anchor,
+                      const QString& text, RadarTextAnchor horizontal, RadarBaseline vertical, const QColor& value,
                       QFont::Weight weight = QFont::Normal) {
   const QString visibleText = text::collapsedSvgText(text);
-  if (visibleText.isEmpty() || !(pixelSize > 0.0) || !std::isfinite(pixelSize) ||
-      !finitePoint(anchor))
+  if (visibleText.isEmpty() || !(pixelSize > 0.0) || !std::isfinite(pixelSize) || !finitePoint(anchor))
     return;
-  editor::CssPixelFont font =
-      editor::makeUnhintedCssPixelFont(family, pixelSize);
+  editor::CssPixelFont font = editor::makeUnhintedCssPixelFont(family, pixelSize);
   font.font.setWeight(weight);
-  if (!(font.scale > 0.0)) return;
+  if (!(font.scale > 0.0))
+    return;
   const TextFontMetrics metrics(font.font);
   const qreal advance = metrics.horizontalAdvance(visibleText);
   qreal x = anchor.x();
-  if (horizontal == RadarTextAnchor::Middle) x -= advance * font.scale / 2.0;
-  else if (horizontal == RadarTextAnchor::End) x -= advance * font.scale;
+  if (horizontal == RadarTextAnchor::Middle)
+    x -= advance * font.scale / 2.0;
+  else if (horizontal == RadarTextAnchor::End)
+    x -= advance * font.scale;
   qreal baseline = anchor.y();
   if (vertical == RadarBaseline::Central)
     baseline += (metrics.ascent() - metrics.descent()) * font.scale / 2.0;
@@ -146,11 +146,11 @@ void drawAnchoredText(QPainter& painter, const QString& family, qreal pixelSize,
   painter.restore();
 }
 
-}  // namespace
+} // namespace
 
-void paintRadarScene(const RadarScene& scene, QPainter& painter,
-                     const MermaidPaintOptions&) {
-  if (!finitePoint(scene.center)) return;
+void paintRadarScene(const RadarScene& scene, QPainter& painter, const MermaidPaintOptions&) {
+  if (!finitePoint(scene.center))
+    return;
   const RootFill root = rootFill(scene);
   const QColor inherited = root.none ? QColor(Qt::black) : root.color;
   painter.save();
@@ -158,7 +158,8 @@ void paintRadarScene(const RadarScene& scene, QPainter& painter,
 
   // Upstream DOM order is graticules, axes (line+label), curves, legend, title.
   for (const RadarGraticuleGeometry& ring : scene.graticules) {
-    if (!ring.visible || !std::isfinite(ring.radius)) continue;
+    if (!ring.visible || !std::isfinite(ring.radius))
+      continue;
     painter.setPen(strokePen(ring.stroke, ring.strokeWidth, inherited));
     painter.setBrush(fillBrush(ring.fill, ring.fillOpacity, root, ring.color));
     if (ring.circle) {
@@ -170,10 +171,8 @@ void paintRadarScene(const RadarScene& scene, QPainter& painter,
   }
 
   for (const RadarAxisGeometry& axis : scene.axes) {
-    const QPen axisPen = strokePen(axis.lineStroke,
-                                   axis.lineStrokeWidth, inherited);
-    if (axis.lineVisible && axis.lineOpacity > 0.0 &&
-        finitePoint(axis.end) && axisPen.style() != Qt::NoPen) {
+    const QPen axisPen = strokePen(axis.lineStroke, axis.lineStrokeWidth, inherited);
+    if (axis.lineVisible && axis.lineOpacity > 0.0 && finitePoint(axis.end) && axisPen.style() != Qt::NoPen) {
       painter.save();
       painter.setOpacity(painter.opacity() * axis.lineOpacity);
       painter.setPen(axisPen);
@@ -181,20 +180,18 @@ void paintRadarScene(const RadarScene& scene, QPainter& painter,
       painter.drawLine(QPointF(), axis.end);
       painter.restore();
     }
-    const QBrush axisText = fillBrush(axis.labelFill, axis.labelOpacity, root,
-                                      axis.labelColor);
+    const QBrush axisText = fillBrush(axis.labelFill, axis.labelOpacity, root, axis.labelColor);
     if (axis.labelVisible && axisText.style() != Qt::NoBrush)
-      drawAnchoredText(painter, axis.labelFontFamily,
-                       axis.labelFontSize, axis.labelPosition,
-                       axis.label, axis.textAnchor, axis.baseline,
-                       axisText.color(), axis.labelFontWeight);
+      drawAnchoredText(painter, axis.labelFontFamily, axis.labelFontSize, axis.labelPosition, axis.label,
+                       axis.textAnchor, axis.baseline, axisText.color(), axis.labelFontWeight);
   }
 
   for (const RadarCurveGeometry& curve : scene.curves) {
-    if (!finiteCurve(curve) || curve.points.isEmpty()) continue;
-    if (!curve.visible) continue;
-    painter.setBrush(fillBrush(curve.fill, curve.fillOpacity, root,
-                               curve.elementColor));
+    if (!finiteCurve(curve) || curve.points.isEmpty())
+      continue;
+    if (!curve.visible)
+      continue;
+    painter.setBrush(fillBrush(curve.fill, curve.fillOpacity, root, curve.elementColor));
     QPen curvePen = strokePen(curve.stroke, curve.strokeWidth, inherited);
     if (curvePen.style() != Qt::NoPen)
       curvePen.setColor(withOpacity(curvePen.color(), curve.strokeOpacity));
@@ -203,39 +200,32 @@ void paintRadarScene(const RadarScene& scene, QPainter& painter,
   }
 
   for (const RadarLegendGeometry& legend : scene.legends) {
-    if (!finitePoint(legend.position)) continue;
+    if (!finitePoint(legend.position))
+      continue;
     painter.save();
     painter.translate(legend.position);
-    painter.setBrush(fillBrush(legend.boxFill, legend.boxFillOpacity, root,
-                               legend.boxColor));
+    painter.setBrush(fillBrush(legend.boxFill, legend.boxFillOpacity, root, legend.boxColor));
     QPen boxPen = strokePen(legend.boxStroke, legend.boxStrokeWidth, inherited);
     if (boxPen.style() != Qt::NoPen)
       boxPen.setColor(withOpacity(boxPen.color(), legend.boxStrokeOpacity));
     painter.setPen(boxPen);
     // legendBoxSize is dead upstream; renderer hard-codes 12 and x=16.
-    if (legend.boxVisible) painter.drawRect(QRectF(0.0, 0.0, 12.0, 12.0));
+    if (legend.boxVisible)
+      painter.drawRect(QRectF(0.0, 0.0, 12.0, 12.0));
     painter.restore();
-    const QBrush legendText = fillBrush(legend.textFill, legend.textOpacity,
-                                        root, legend.textColor);
+    const QBrush legendText = fillBrush(legend.textFill, legend.textOpacity, root, legend.textColor);
     if (legend.textVisible && legendText.style() != Qt::NoBrush)
-      drawAnchoredText(painter, legend.textFontFamily,
-                       legend.textFontSize,
-                       legend.position + QPointF(16.0, 0.0), legend.text,
-                       RadarTextAnchor::Start, RadarBaseline::Hanging,
-                       legendText.color(), legend.textFontWeight);
+      drawAnchoredText(painter, legend.textFontFamily, legend.textFontSize, legend.position + QPointF(16.0, 0.0),
+                       legend.text, RadarTextAnchor::Start, RadarBaseline::Hanging, legendText.color(),
+                       legend.textFontWeight);
   }
 
-  const QBrush titleText = fillBrush(scene.titleFill, scene.titleOpacity,
-                                     root, scene.titleColor);
+  const QBrush titleText = fillBrush(scene.titleFill, scene.titleOpacity, root, scene.titleColor);
   if (scene.titleVisible && titleText.style() != Qt::NoBrush)
-    drawAnchoredText(painter, scene.titleFontFamily,
-                     scene.titleFontSize,
-                     QPointF(0.0, -scene.config.height / 2.0 -
-                                      scene.config.marginTop),
-                     scene.title, RadarTextAnchor::Middle,
-                     RadarBaseline::Hanging, titleText.color(),
-                     scene.titleFontWeight);
+    drawAnchoredText(painter, scene.titleFontFamily, scene.titleFontSize,
+                     QPointF(0.0, -scene.config.height / 2.0 - scene.config.marginTop), scene.title,
+                     RadarTextAnchor::Middle, RadarBaseline::Hanging, titleText.color(), scene.titleFontWeight);
   painter.restore();
 }
 
-}  // namespace muffin::mermaid::radar
+} // namespace muffin::mermaid::radar

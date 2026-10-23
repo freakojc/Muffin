@@ -24,13 +24,16 @@ void require(bool condition, const QString& label) {
   }
 }
 void near(qreal actual, qreal expected, const QString& label, qreal tolerance = .8) {
-  require(std::abs(actual - expected) < tolerance, label + QStringLiteral(" actual=%1 expected=%2").arg(actual).arg(expected));
+  require(std::abs(actual - expected) < tolerance,
+          label + QStringLiteral(" actual=%1 expected=%2").arg(actual).arg(expected));
 }
 void collect(const html::HtmlBox& box, QPointF parent, QHash<QString, QRectF>& rects) {
   const auto& g = box.geometry();
   const QPointF origin = parent + QPointF(g.left, g.top);
-  if (!box.cssId.isEmpty()) rects.insert(box.cssId, QRectF(origin, QSizeF(g.width, g.height)));
-  for (const auto& child : box.children()) collect(*child, origin, rects);
+  if (!box.cssId.isEmpty())
+    rects.insert(box.cssId, QRectF(origin, QSizeF(g.width, g.height)));
+  for (const auto& child : box.children())
+    collect(*child, origin, rects);
 }
 void browserFixtures() {
   QFile file(QStringLiteral(MUFFIN_SOURCE_DIR "/tests/fixtures/theme/flex-layout-browser.json"));
@@ -49,7 +52,8 @@ void browserFixtures() {
       palette.cssZoom = scale;
       const auto result = renderer.render(c["html"].toString(), 12, 800 * scale, {}, palette);
       require(result.valid(), name + " valid");
-      if (!result.root()) continue;
+      if (!result.root())
+        continue;
       QHash<QString, QRectF> rects;
       collect(*result.root(), {}, rects);
       const auto origin = rects.value("case").topLeft();
@@ -86,7 +90,8 @@ void markdownFlex() {
     const auto* a = eager.block(node->id());
     const auto* b = lazy.block(node->id());
     require(a && b, "Markdown Flex item built");
-    if (!a || !b) continue;
+    if (!a || !b)
+      continue;
     require(a->rect() == b->rect(), "eager/lazy Flex rectangles");
     near(a->rect().width(), 100, "Markdown Flex basis");
     const auto cursor = a->inlineLayout()->cursorRect(3).translated(a->inlineTextOrigin());
@@ -94,7 +99,8 @@ void markdownFlex() {
     require(hit.isValid() && hit.textNodeId == node->id() && hit.textOffset == 3, "Markdown Flex caret round trip");
     const auto selection = a->selectionRectsForOffsets(0, 3, theme);
     const auto localSelection = a->inlineLayout()->selectionRects(0, 3);
-    require(selection.size() == localSelection.size() && !selection.isEmpty(), "Flex selection retains inline selection fragments");
+    require(selection.size() == localSelection.size() && !selection.isEmpty(),
+            "Flex selection retains inline selection fragments");
     for (int i = 0; i < selection.size() && i < localSelection.size(); ++i)
       require(selection[i] == localSelection[i].translated(a->inlineTextOrigin()).adjusted(-1, 0, 1, 0),
               "Flex selection uses the allocated content origin and paint expansion");
@@ -102,7 +108,8 @@ void markdownFlex() {
   }
   require(eager.block(nodes[0]->id())->rect().left() > eager.block(nodes[2]->id())->rect().left(),
           "visual order differs from source order");
-  require(session.applyTextDelta(0, 0, "a much longer first paragraph that wraps across many lines ", true), "apply real Flex text edit");
+  require(session.applyTextDelta(0, 0, "a much longer first paragraph that wraps across many lines ", true),
+          "apply real Flex text edit");
   const auto rebuilt = eager.rebuildBlock(document.root().children()[0]->id(), document, theme, {});
   require(rebuilt.rebuilt, "Flex group rebuild after edit");
   lazy.rebuild(document, theme, 340, {}, {}, DocumentLayout::BuildPolicy::Lazy);
@@ -120,9 +127,9 @@ void computedFlex() {
   CssElement div;
   div.tag = "div";
   const auto style = engine.styleFor(div);
-  require(
-      style.resolvedValue("flex-grow") == "0" && style.resolvedValue("flex-shrink") == "0" && style.resolvedValue("flex-basis") == "auto",
-      "flex:none resets all components; invalid negative does not override");
+  require(style.resolvedValue("flex-grow") == "0" && style.resolvedValue("flex-shrink") == "0" &&
+              style.resolvedValue("flex-basis") == "auto",
+          "flex:none resets all components; invalid negative does not override");
   require(style.resolvedValue("flex-direction") == "row" && style.resolvedValue("flex-wrap") == "nowrap",
           "flex-flow resets omitted wrapping");
   require(style.resolvedValue("row-gap") == "7px" && style.resolvedValue("column-gap") == "5px",
@@ -139,10 +146,10 @@ void computedFlex() {
 void markdownContainer() {
   DocumentSession session;
   session.setMarkdownText("> alpha beta gamma\n>\n> second paragraph\n\nTail", false);
-  auto theme = RenderTheme::fromDefinition(
-      CssThemeMapper::fromCss("#write{max-width:340px;padding:0}blockquote{display:flex;gap:10px;width:240px;padding:0;border:0;margin:0}p{"
-                              "margin:0;font:16px Arial;line-height:20px}blockquote p{flex:1;min-width:0}",
-                              "flex-quote", {}));
+  auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
+      "#write{max-width:340px;padding:0}blockquote{display:flex;gap:10px;width:240px;padding:0;border:0;margin:0}p{"
+      "margin:0;font:16px Arial;line-height:20px}blockquote p{flex:1;min-width:0}",
+      "flex-quote", {}));
   DocumentLayout eager, lazy;
   eager.rebuild(session.document(), theme, 340, {}, {}, DocumentLayout::BuildPolicy::Eager);
   lazy.rebuild(session.document(), theme, 340, {}, {}, DocumentLayout::BuildPolicy::Lazy);
@@ -150,11 +157,13 @@ void markdownContainer() {
   const auto id = session.document().root().children()[0]->id();
   const auto* quote = eager.block(id);
   require(quote && quote->children().size() >= 2, "Markdown nested Flex container");
-  if (!quote || quote->children().size() < 2) return;
-  require(quote->children()[0]->rect().left() < quote->children()[1]->rect().left(), "nested paragraphs share Flex row");
+  if (!quote || quote->children().size() < 2)
+    return;
+  require(quote->children()[0]->rect().left() < quote->children()[1]->rect().left(),
+          "nested paragraphs share Flex row");
   require(quote->rect() == lazy.block(id)->rect(), "nested Flex eager/lazy convergence");
 }
-}  // namespace
+} // namespace
 int main(int argc, char** argv) {
   qputenv("QT_FONT_DPI", "96");
   QApplication app(argc, argv);

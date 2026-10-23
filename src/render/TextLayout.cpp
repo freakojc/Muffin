@@ -10,7 +10,8 @@
 namespace muffin {
 namespace {
 QPaintDevice* shapingDevice(TextBackend backend) {
-  if (backend == TextBackend::Native) return nullptr;
+  if (backend == TextBackend::Native)
+    return nullptr;
   // Shared immutable device, rather than allocating an image for every metric
   // query. It outlives all layouts and is never used as a painting destination.
   // Retained static layouts can be destroyed after function-local statics.
@@ -27,19 +28,24 @@ QFont deviceFont(QFont font, TextBackend backend) {
   // Pixel fonts ignore device DPI. Convert to points only on the fractional
   // device, preserving the old backend and the author's logical pixel size.
   if (backend == TextBackend::Fractional) {
-    if (font.pixelSize() > 0) font.setPointSizeF(font.pixelSize() * .75);
+    if (font.pixelSize() > 0)
+      font.setPointSizeF(font.pixelSize() * .75);
     // Qt scales absolute letter spacing with font DPI, but word spacing is
     // already in device units. Keep this conversion at the shaping boundary.
     font.setWordSpacing(font.wordSpacing() * textBackendScale(backend));
   }
   return font;
 }
-QList<QTextLayout::FormatRange> deviceFormats(QList<QTextLayout::FormatRange> formats, const QFont& base, TextBackend backend) {
-  if (backend == TextBackend::Native) return formats;
+QList<QTextLayout::FormatRange> deviceFormats(QList<QTextLayout::FormatRange> formats, const QFont& base,
+                                              TextBackend backend) {
+  if (backend == TextBackend::Native)
+    return formats;
   for (auto& range : formats) {
     auto& format = range.format;
     if (format.hasProperty(QTextFormat::TextOutline)) {
-      auto pen = format.textOutline(); pen.setWidthF(pen.widthF() * textBackendScale(backend)); format.setTextOutline(pen);
+      auto pen = format.textOutline();
+      pen.setWidthF(pen.widthF() * textBackendScale(backend));
+      format.setTextOutline(pen);
     }
     if (format.hasProperty(QTextFormat::FontPixelSize)) {
       format.setFontPointSize(format.doubleProperty(QTextFormat::FontPixelSize) * .75);
@@ -47,7 +53,8 @@ QList<QTextLayout::FormatRange> deviceFormats(QList<QTextLayout::FormatRange> fo
     }
     if (format.hasProperty(QTextFormat::FontWordSpacing))
       format.setFontWordSpacing(format.fontWordSpacing() * textBackendScale(backend));
-    const auto spacingType = format.hasProperty(QTextFormat::FontLetterSpacingType) ? format.fontLetterSpacingType() : base.letterSpacingType();
+    const auto spacingType = format.hasProperty(QTextFormat::FontLetterSpacingType) ? format.fontLetterSpacingType()
+                                                                                    : base.letterSpacingType();
     if (spacingType == QFont::AbsoluteSpacing && format.hasProperty(QTextFormat::FontLetterSpacing))
       format.setFontLetterSpacing(std::round(format.fontLetterSpacing() * 64) / 64);
   }
@@ -55,22 +62,20 @@ QList<QTextLayout::FormatRange> deviceFormats(QList<QTextLayout::FormatRange> fo
 }
 bool isCjkWordSpacingCharacter(QChar character) {
   switch (character.script()) {
-    case QChar::Script_Han:
-    case QChar::Script_Hiragana:
-    case QChar::Script_Katakana:
-    case QChar::Script_Bopomofo:
-      return true;
-    default:
-      return false;
+  case QChar::Script_Han:
+  case QChar::Script_Hiragana:
+  case QChar::Script_Katakana:
+  case QChar::Script_Bopomofo:
+    return true;
+  default:
+    return false;
   }
 }
-qreal formatValueAt(const QList<QTextLayout::FormatRange>& formats,
-                    int position, QTextFormat::Property property,
+qreal formatValueAt(const QList<QTextLayout::FormatRange>& formats, int position, QTextFormat::Property property,
                     qreal fallback) {
   qreal value = fallback;
   for (const auto& range : formats) {
-    if (position < range.start || position >= range.start + range.length ||
-        !range.format.hasProperty(property))
+    if (position < range.start || position >= range.start + range.length || !range.format.hasProperty(property))
       continue;
     if (property == QTextFormat::FontWordSpacing)
       value = range.format.fontWordSpacing();
@@ -79,30 +84,28 @@ qreal formatValueAt(const QList<QTextLayout::FormatRange>& formats,
   }
   return value;
 }
-QList<QTextLayout::FormatRange> cjkWordSpacingFormats(
-  const QString& text, const QFont& base,
-    const QList<QTextLayout::FormatRange>& formats) {
+QList<QTextLayout::FormatRange> cjkWordSpacingFormats(const QString& text, const QFont& base,
+                                                      const QList<QTextLayout::FormatRange>& formats) {
   QList<QTextLayout::FormatRange> result;
-  if (text.isEmpty()) return result;
+  if (text.isEmpty())
+    return result;
   for (int i = 0; i < text.size(); ++i) {
-    if (text.at(i) != QLatin1Char(' ') ||
-        (i > 0 && text.at(i - 1) == QLatin1Char(' ')))
+    if (text.at(i) != QLatin1Char(' ') || (i > 0 && text.at(i - 1) == QLatin1Char(' ')))
       continue;
     int end = i + 1;
-    while (end < text.size() && text.at(end) == QLatin1Char(' ')) ++end;
+    while (end < text.size() && text.at(end) == QLatin1Char(' '))
+      ++end;
     const int last = end - 1;
-    const bool cjkAdjacent =
-        (i > 0 && isCjkWordSpacingCharacter(text.at(i - 1))) ||
-        (end < text.size() && isCjkWordSpacingCharacter(text.at(end)));
-    if (!cjkAdjacent) continue;
-    const qreal wordSpacing =
-        formatValueAt(formats, last, QTextFormat::FontWordSpacing,
-                      base.wordSpacing());
-    if (wordSpacing == 0.0) continue;
-    if (!qFuzzyIsNull(base.letterSpacing())) continue;
-    const qreal letterSpacing =
-        formatValueAt(formats, last, QTextFormat::FontLetterSpacing,
-                      base.letterSpacing());
+    const bool cjkAdjacent = (i > 0 && isCjkWordSpacingCharacter(text.at(i - 1))) ||
+                             (end < text.size() && isCjkWordSpacingCharacter(text.at(end)));
+    if (!cjkAdjacent)
+      continue;
+    const qreal wordSpacing = formatValueAt(formats, last, QTextFormat::FontWordSpacing, base.wordSpacing());
+    if (wordSpacing == 0.0)
+      continue;
+    if (!qFuzzyIsNull(base.letterSpacing()))
+      continue;
+    const qreal letterSpacing = formatValueAt(formats, last, QTextFormat::FontLetterSpacing, base.letterSpacing());
     QTextCharFormat correction;
     // Qt classifies spaces in Han/Hiragana/Katakana/Bopomofo shaping items as
     // inter-character opportunities, so QFont::wordSpacing is silently
@@ -115,14 +118,19 @@ QList<QTextLayout::FormatRange> cjkWordSpacingFormats(
   }
   return result;
 }
-QRectF scaledRect(QRectF rect, qreal factor) { return QTransform::fromScale(factor, factor).mapRect(rect); }
-}  // namespace
+QRectF scaledRect(QRectF rect, qreal factor) {
+  return QTransform::fromScale(factor, factor).mapRect(rect);
+}
+} // namespace
 
 TextBackend documentTextBackend() {
-  static const auto backend = qgetenv("MUFFIN_TEXT_LAYOUT_BACKEND") == "fractional" ? TextBackend::Fractional : TextBackend::Native;
+  static const auto backend =
+      qgetenv("MUFFIN_TEXT_LAYOUT_BACKEND") == "fractional" ? TextBackend::Fractional : TextBackend::Native;
   return backend;
 }
-qreal textBackendScale(TextBackend backend) { return backend == TextBackend::Fractional ? 64 : 1; }
+qreal textBackendScale(TextBackend backend) {
+  return backend == TextBackend::Fractional ? 64 : 1;
+}
 void setTextPixelSize(QFont& font, qreal pixels, TextBackend backend) {
   if (backend == TextBackend::Fractional)
     font.setPointSizeF(std::max<qreal>(pixels, 1. / 64.) * .75);
@@ -132,18 +140,27 @@ void setTextPixelSize(QFont& font, qreal pixels, TextBackend backend) {
 void setTextLetterSpacing(QFont& font, qreal pixels, TextBackend backend) {
   // QFont truncates to 1/64 logical px before Qt applies DPI. Round explicitly
   // for the experimental backend; keep the native compatibility contract.
-  font.setLetterSpacing(QFont::AbsoluteSpacing, backend == TextBackend::Fractional ? std::round(pixels * 64) / 64 : pixels);
+  font.setLetterSpacing(QFont::AbsoluteSpacing,
+                        backend == TextBackend::Fractional ? std::round(pixels * 64) / 64 : pixels);
 }
-qreal textFontPixelSize(const QFont& font) { return font.pixelSize() > 0 ? font.pixelSize() : font.pointSizeF() / .75; }
-QRectF TextLine::naturalTextRect() const { return scaledRect(line_.naturalTextRect(), 1 / scale_); }
-QRectF TextLine::rect() const { return scaledRect(line_.rect(), 1 / scale_); }
+qreal textFontPixelSize(const QFont& font) {
+  return font.pixelSize() > 0 ? font.pixelSize() : font.pointSizeF() / .75;
+}
+QRectF TextLine::naturalTextRect() const {
+  return scaledRect(line_.naturalTextRect(), 1 / scale_);
+}
+QRectF TextLine::rect() const {
+  return scaledRect(line_.rect(), 1 / scale_);
+}
 QList<QGlyphRun> TextLine::glyphRuns(int from, int length, QTextLayout::GlyphRunRetrievalFlags flags) const {
   auto runs = line_.glyphRuns(from, length, flags);
-  if (scale_ == 1) return runs;
+  if (scale_ == 1)
+    return runs;
   for (auto& run : runs) {
     const QRectF bounds = scaledRect(run.boundingRect(), 1 / scale_);
     auto positions = run.positions();
-    for (auto& position : positions) position /= scale_;
+    for (auto& position : positions)
+      position /= scale_;
     auto font = run.rawFont();
     // QRawFont accepts qreal pixel sizes; unlike QFont::setPixelSize this
     // retains the fractional size when callers paint prepared glyphs/paths.
@@ -156,15 +173,14 @@ QList<QGlyphRun> TextLine::glyphRuns(int from, int length, QTextLayout::GlyphRun
 }
 
 TextLayout::TextLayout(const QString& text, const QFont& font, TextBackend backend)
-    : backend_(backend),
-      scale_(textBackendScale(backend)),
-      font_(font),
+    : backend_(backend), scale_(textBackendScale(backend)), font_(font),
       layout_(std::make_unique<QTextLayout>(text, deviceFont(font, backend), shapingDevice(backend))) {
   // Fractional layouts are retained across paints (document blocks and
   // Mermaid labels). Keep Qt's shaped glyph cache alive so a zoom or repaint
   // reuses the same glyph runs instead of reshaping at the oversized device
   // scale. Native remains on Qt's compatibility default.
-  if (backend_ == TextBackend::Fractional) layout_->setCacheEnabled(true);
+  if (backend_ == TextBackend::Fractional)
+    layout_->setCacheEnabled(true);
   // Apply the same spacing correction even when a caller has no explicit
   // character formats.  The default QTextLayout path otherwise bypasses
   // setFormats(), which is precisely where Han-script word spacing is fixed.
@@ -187,7 +203,9 @@ void TextLayout::setFormats(const QList<FormatRange>& formats) {
   }
   layout_->setFormats(device);
 }
-QRectF TextLayout::boundingRect() const { return scaledRect(layout_->boundingRect(), 1 / scale_); }
+QRectF TextLayout::boundingRect() const {
+  return scaledRect(layout_->boundingRect(), 1 / scale_);
+}
 void TextLayout::draw(QPainter* painter, QPointF origin, const QList<FormatRange>& selections, QRectF clip) const {
   ThemePerfScope performance(ThemePerfStage::Text);
   recordThemeTextPaint(lineCount(), formats_.size(), selections.size());
@@ -201,10 +219,12 @@ void TextLayout::draw(QPainter* painter, QPointF origin, const QList<FormatRange
   painter->restore();
 }
 int TextLayout::hitTest(QPointF point, QTextLine::CursorPosition mode) const {
-  if (!lineCount()) return 0;
+  if (!lineCount())
+    return 0;
   for (int i = 0; i < lineCount(); ++i) {
     const auto line = lineAt(i);
-    if (point.y() < line.y() + line.height() || i + 1 == lineCount()) return line.xToCursor(point.x(), mode);
+    if (point.y() < line.y() + line.height() || i + 1 == lineCount())
+      return line.xToCursor(point.x(), mode);
   }
   return 0;
 }
@@ -218,30 +238,39 @@ void TextLayout::drawCursor(QPainter* painter, QPointF origin, int pos, qreal wi
   painter->fillRect(rect, painter->pen().color());
 }
 QRectF TextLayout::cursorRect(int pos) const {
-  if (!lineCount()) return {};
+  if (!lineCount())
+    return {};
   pos = std::clamp(pos, 0, int(text().size()));
   for (int i = 0; i < lineCount(); ++i) {
     const auto line = lineAt(i);
-    if (pos < line.textStart() + line.textLength() || i + 1 == lineCount()) return {line.cursorToX(pos), line.y(), 1, line.height()};
+    if (pos < line.textStart() + line.textLength() || i + 1 == lineCount())
+      return {line.cursorToX(pos), line.y(), 1, line.height()};
   }
   return {};
 }
 QList<QRectF> TextLayout::selectionRects(int start, int end) const {
   QList<QRectF> result;
-  if (start > end) std::swap(start, end);
+  if (start > end)
+    std::swap(start, end);
   for (int i = 0; i < lineCount(); ++i) {
     const auto line = lineAt(i);
     const int first = std::max(start, line.textStart()), last = std::min(end, line.textStart() + line.textLength());
-    if (first >= last) continue;
+    if (first >= last)
+      continue;
     const qreal x1 = line.cursorToX(first), x2 = line.cursorToX(last);
     result.append({std::min(x1, x2), line.y(), std::abs(x2 - x1), line.height()});
   }
   return result;
 }
 TextFontMetrics::TextFontMetrics(const QFont& font, TextBackend backend)
-    : scale_(textBackendScale(backend)), metrics_(deviceFont(font, backend), shapingDevice(backend)) {}
-QRectF TextFontMetrics::boundingRect(const QString& text) const { return scaledRect(metrics_.boundingRect(text), 1 / scale_); }
-QRectF TextFontMetrics::tightBoundingRect(const QString& text) const { return scaledRect(metrics_.tightBoundingRect(text), 1 / scale_); }
+    : scale_(textBackendScale(backend)), metrics_(deviceFont(font, backend), shapingDevice(backend)) {
+}
+QRectF TextFontMetrics::boundingRect(const QString& text) const {
+  return scaledRect(metrics_.boundingRect(text), 1 / scale_);
+}
+QRectF TextFontMetrics::tightBoundingRect(const QString& text) const {
+  return scaledRect(metrics_.tightBoundingRect(text), 1 / scale_);
+}
 QRectF TextFontMetrics::boundingRect(QRectF rect, int flags, const QString& text) const {
   return scaledRect(metrics_.boundingRect(scaledRect(rect, scale_), flags, text), 1 / scale_);
 }
@@ -271,7 +300,8 @@ void drawDocumentText(QPainter& painter, QRectF rect, const QString& text, const
   qreal height = 0;
   for (;;) {
     auto line = layout.createLine();
-    if (!line.isValid()) break;
+    if (!line.isValid())
+      break;
     line.setLineWidth(std::max<qreal>(0, rect.width()));
     line.setPosition({0, height});
     height += line.height();
@@ -294,4 +324,4 @@ void drawDocumentText(QPainter& painter, QRectF rect, int flags, const QString& 
   option.setWrapMode(flags & Qt::TextWordWrap ? QTextOption::WordWrap : QTextOption::NoWrap);
   drawDocumentText(painter, rect, text, option);
 }
-}  // namespace muffin
+} // namespace muffin

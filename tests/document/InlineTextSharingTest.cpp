@@ -90,7 +90,8 @@ void compareBlockTrees(const MarkdownNode& a, const MarkdownNode& b) {
           a.sourceRange().lineStart == b.sourceRange().lineStart && a.sourceRange().lineEnd == b.sourceRange().lineEnd,
       "shared parse block coordinates differ");
   compareInlineTrees(a.inlines(), b.inlines());
-  for (size_t i = 0; i < a.children().size(); ++i) compareBlockTrees(*a.children()[i], *b.children()[i]);
+  for (size_t i = 0; i < a.children().size(); ++i)
+    compareBlockTrees(*a.children()[i], *b.children()[i]);
 }
 
 void testDirectSharingMatchesDecodedParserAndBinding() {
@@ -169,7 +170,7 @@ void testAdapterByteColumnsMatchIndependentLineScanner() {
   raw.type = CMARK_NODE_TEXT;
   unsigned char empty[] = "";
   raw.as.literal.data = empty;
-  raw.as.literal.alloc = 1;  // Already terminated: get_literal does not allocate.
+  raw.as.literal.alloc = 1; // Already terminated: get_literal does not allocate.
   std::mt19937 random(0x4b1a231);
   for (int sample = 0; sample < 3000; ++sample) {
     const int line = 1 + int(random() % offsets.lineCount());
@@ -225,11 +226,10 @@ void testLazyMetadataCopiesPreserveDomainState() {
   link.setHref(QStringLiteral("https://changed.example"));
   link.children().first().setText(QStringLiteral("changed"));
   require(copiedLink.href() == QStringLiteral("https://example.com") &&
-              copiedLink.title() == QStringLiteral("Example") &&
-              copiedLink.marker() == QStringLiteral("[]") && copiedLink.isAutolink(),
+              copiedLink.title() == QStringLiteral("Example") && copiedLink.marker() == QStringLiteral("[]") &&
+              copiedLink.isAutolink(),
           "InlineNode copy lost lazy metadata");
-  require(copiedLink.children().first().text() == QStringLiteral("label"),
-          "InlineNode copy shared mutable children");
+  require(copiedLink.children().first().text() == QStringLiteral("label"), "InlineNode copy shared mutable children");
   require(assignedLink.href() == QStringLiteral("https://example.com") &&
               assignedLink.children().first().text() == QStringLiteral("label"),
           "InlineNode assignment lost lazy metadata");
@@ -262,18 +262,15 @@ void testLazyMetadataCopiesPreserveDomainState() {
   definition.label = QStringLiteral("changed");
   block.setDefinition(definition);
 
-  require(clone->headingLevel() == 3 && clone->setext() &&
-              clone->listKind() == ListKind::Ordered && clone->listStart() == 7 &&
-              clone->listTight() && clone->taskChecked() && clone->isTaskItem(),
+  require(clone->headingLevel() == 3 && clone->setext() && clone->listKind() == ListKind::Ordered &&
+              clone->listStart() == 7 && clone->listTight() && clone->taskChecked() && clone->isTaskItem(),
           "MarkdownNode clone lost packed scalar metadata");
   require(clone->isIndentedCode() && clone->mathDelimiter() == MathDelimiter::Bracket &&
-              clone->alertKind() == AlertKind::Warning &&
-              clone->frontMatterFormat() == FrontMatterFormat::Toml &&
+              clone->alertKind() == AlertKind::Warning && clone->frontMatterFormat() == FrontMatterFormat::Toml &&
               clone->tableRowIsHeader(),
           "MarkdownNode clone lost packed flag metadata");
   require(clone->codeLanguage() == QStringLiteral("cpp") &&
-              clone->tableAlignments() ==
-                  QVector<TableAlignment>({TableAlignment::Left, TableAlignment::Right}) &&
+              clone->tableAlignments() == QVector<TableAlignment>({TableAlignment::Left, TableAlignment::Right}) &&
               clone->definition().label == QStringLiteral("ref"),
           "MarkdownNode clone lost lazy metadata");
 }
@@ -332,7 +329,7 @@ void testRangeStorageAndMarkerTransitions() {
           "range demotion must preserve markers and absent ranges");
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

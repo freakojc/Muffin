@@ -79,46 +79,38 @@ namespace muffin::mermaid::editor {
 namespace {
 
 void enforceUpstreamThemeColorLimit(const QJsonObject& config) {
-  const QJsonValue raw = config.value(QStringLiteral("themeVariables"))
-                             .toObject()
-                             .value(QStringLiteral("THEME_COLOR_LIMIT"));
-  if (raw.isUndefined() || raw.isNull()) return;
+  const QJsonValue raw =
+      config.value(QStringLiteral("themeVariables")).toObject().value(QStringLiteral("THEME_COLOR_LIMIT"));
+  if (raw.isUndefined() || raw.isNull())
+    return;
   const double limit = jsNumberValue(raw);
-  if (!(limit > 12.0)) return;
+  if (!(limit > 12.0))
+    return;
 
   const flowtheme::FlowThemeId theme = themeIdFromName(themeFromConfig(config));
   // Redux does not index the missing derived cScale channels, so finite values
   // above 12 are accepted. Infinity would make upstream's CSS-generation loop
   // non-terminating; reject it as the native resource-safe equivalent.
-  if (theme == flowtheme::FlowThemeId::Redux && std::isfinite(limit)) return;
-  if (theme == flowtheme::FlowThemeId::Dark && limit <= 13.0) return;
+  if (theme == flowtheme::FlowThemeId::Redux && std::isfinite(limit))
+    return;
+  if (theme == flowtheme::FlowThemeId::Dark && limit <= 13.0)
+    return;
 
-  const bool failsInInvert =
-      theme == flowtheme::FlowThemeId::Neutral ||
-      theme == flowtheme::FlowThemeId::ReduxColor ||
-      theme == flowtheme::FlowThemeId::ReduxDarkColor ||
-      theme == flowtheme::FlowThemeId::Dark;
-  throw std::runtime_error(
-      failsInInvert
-          ? "Cannot read properties of undefined (reading 'r')"
-          : "Cannot read properties of undefined (reading 'l')");
+  const bool failsInInvert = theme == flowtheme::FlowThemeId::Neutral || theme == flowtheme::FlowThemeId::ReduxColor ||
+                             theme == flowtheme::FlowThemeId::ReduxDarkColor || theme == flowtheme::FlowThemeId::Dark;
+  throw std::runtime_error(failsInInvert ? "Cannot read properties of undefined (reading 'r')"
+                                         : "Cannot read properties of undefined (reading 'l')");
 }
 
 // Rasterizes any family's scene to a DPR-aware QImage through the uniform
 // MermaidScene pointer — no family dispatch. The scene supplies its render
 // extent via renderBounds(); painting goes through the virtual paint().
-QImage renderMermaidSceneToImage(const std::shared_ptr<const MermaidScene>& scene,
-                                 qreal dpr, qreal padding) {
-  const QRectF extent =
-      scene->renderBounds().adjusted(-padding, -padding, padding, padding);
+QImage renderMermaidSceneToImage(const std::shared_ptr<const MermaidScene>& scene, qreal dpr, qreal padding) {
+  const QRectF extent = scene->renderBounds().adjusted(-padding, -padding, padding, padding);
   const qreal w = std::max<qreal>(1.0, extent.width());
   const qreal h = std::max<qreal>(1.0, extent.height());
-  const int pixelWidth = scene->roundRasterExtentToNearestPixel()
-                             ? qMax(1, qRound(w * dpr))
-                             : qCeil(w * dpr);
-  const int pixelHeight = scene->roundRasterExtentToNearestPixel()
-                              ? qMax(1, qRound(h * dpr))
-                              : qCeil(h * dpr);
+  const int pixelWidth = scene->roundRasterExtentToNearestPixel() ? qMax(1, qRound(w * dpr)) : qCeil(w * dpr);
+  const int pixelHeight = scene->roundRasterExtentToNearestPixel() ? qMax(1, qRound(h * dpr)) : qCeil(h * dpr);
   QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
   image.fill(Qt::transparent);
   QPainter painter(&image);
@@ -139,7 +131,8 @@ QPair<int, int> lineColumnForOffset(const QString& source, qsizetype offset) {
   for (qsizetype index = 0; index < offset; ++index) {
     const QChar ch = source.at(index);
     if (ch == QLatin1Char('\r')) {
-      if (index + 1 < offset && source.at(index + 1) == QLatin1Char('\n')) ++index;
+      if (index + 1 < offset && source.at(index + 1) == QLatin1Char('\n'))
+        ++index;
       ++line;
       column = 1;
     } else if (ch == QLatin1Char('\n')) {
@@ -153,15 +146,19 @@ QPair<int, int> lineColumnForOffset(const QString& source, qsizetype offset) {
 }
 
 qsizetype offsetForLineColumn(const QString& source, int targetLine, int targetColumn) {
-  if (targetLine < 1 || targetColumn < 1) return -1;
+  if (targetLine < 1 || targetColumn < 1)
+    return -1;
   int line = 1;
   int column = 1;
   for (qsizetype index = 0; index <= source.size(); ++index) {
-    if (line == targetLine && column == targetColumn) return index;
-    if (index == source.size()) break;
+    if (line == targetLine && column == targetColumn)
+      return index;
+    if (index == source.size())
+      break;
     const QChar ch = source.at(index);
     if (ch == QLatin1Char('\r')) {
-      if (index + 1 < source.size() && source.at(index + 1) == QLatin1Char('\n')) ++index;
+      if (index + 1 < source.size() && source.at(index + 1) == QLatin1Char('\n'))
+        ++index;
       ++line;
       column = 1;
     } else if (ch == QLatin1Char('\n')) {
@@ -174,10 +171,9 @@ qsizetype offsetForLineColumn(const QString& source, int targetLine, int targetC
   return -1;
 }
 
-qsizetype originalOffsetForCodeOffset(
-    const MermaidPreprocessResult& pre, qsizetype codeOffset,
-    qsizetype sourceSize) {
-  if (codeOffset < 0) return -1;
+qsizetype originalOffsetForCodeOffset(const MermaidPreprocessResult& pre, qsizetype codeOffset, qsizetype sourceSize) {
+  if (codeOffset < 0)
+    return -1;
   if (codeOffset < pre.codeSourceOffsets.size()) {
     return qBound<qsizetype>(0, pre.codeSourceOffsets.at(codeOffset), sourceSize);
   }
@@ -187,22 +183,19 @@ qsizetype originalOffsetForCodeOffset(
   return qBound<qsizetype>(0, codeOffset, sourceSize);
 }
 
-MermaidSourceSpan mappedSourceSpan(
-    const QString& source, const MermaidPreprocessResult& pre,
-    qsizetype codeOffset, qsizetype codeLength, int fallbackLine,
-    int fallbackColumn) {
+MermaidSourceSpan mappedSourceSpan(const QString& source, const MermaidPreprocessResult& pre, qsizetype codeOffset,
+                                   qsizetype codeLength, int fallbackLine, int fallbackColumn) {
   MermaidSourceSpan span;
   span.offset = originalOffsetForCodeOffset(pre, codeOffset, source.size());
   if (span.offset < 0 && fallbackLine > 0 && fallbackColumn > 0) {
     span.offset = offsetForLineColumn(source, fallbackLine, fallbackColumn);
   }
-  if (span.offset < 0) return span;
+  if (span.offset < 0)
+    return span;
 
   if (codeLength > 0 && codeOffset >= 0 && !pre.code.isEmpty()) {
-    const qsizetype lastCodeOffset = qBound<qsizetype>(
-        0, codeOffset + codeLength - 1, pre.code.size() - 1);
-    const qsizetype lastSourceOffset = originalOffsetForCodeOffset(
-        pre, lastCodeOffset, source.size());
+    const qsizetype lastCodeOffset = qBound<qsizetype>(0, codeOffset + codeLength - 1, pre.code.size() - 1);
+    const qsizetype lastSourceOffset = originalOffsetForCodeOffset(pre, lastCodeOffset, source.size());
     if (lastSourceOffset >= span.offset) {
       span.length = qMax<qsizetype>(1, lastSourceOffset - span.offset + 1);
     }
@@ -213,17 +206,14 @@ MermaidSourceSpan mappedSourceSpan(
   return span;
 }
 
-MermaidDiagnostic parserDiagnostic(
-    const QString& source, const MermaidPreprocessResult& pre,
-    QString diagramType, QString stage, QString code, QString message,
-    qsizetype offset, qsizetype length, int line, int column,
-    QString production, QString actual, QStringList expected) {
+MermaidDiagnostic parserDiagnostic(const QString& source, const MermaidPreprocessResult& pre, QString diagramType,
+                                   QString stage, QString code, QString message, qsizetype offset, qsizetype length,
+                                   int line, int column, QString production, QString actual, QStringList expected) {
   MermaidDiagnostic diagnostic;
   diagnostic.diagramType = std::move(diagramType);
   diagnostic.stage = std::move(stage);
   diagnostic.code = std::move(code);
-  diagnostic.span = mappedSourceSpan(
-      source, pre, offset, length, line, column);
+  diagnostic.span = mappedSourceSpan(source, pre, offset, length, line, column);
   diagnostic.message = std::move(message);
   diagnostic.production = std::move(production);
   diagnostic.actual = std::move(actual);
@@ -231,9 +221,7 @@ MermaidDiagnostic parserDiagnostic(
   return diagnostic;
 }
 
-MermaidRenderEntry errorEntry(
-    MermaidDiagnostic diagnostic,
-    MermaidRenderStatus status = MermaidRenderStatus::Error) {
+MermaidRenderEntry errorEntry(MermaidDiagnostic diagnostic, MermaidRenderStatus status = MermaidRenderStatus::Error) {
   MermaidRenderEntry entry;
   entry.status = status;
   entry.diagnostic = std::move(diagnostic);
@@ -242,15 +230,13 @@ MermaidRenderEntry errorEntry(
   return entry;
 }
 
-MermaidDiagnostic preprocessingDiagnostic(
-    const QString& source, const QString& message) {
+MermaidDiagnostic preprocessingDiagnostic(const QString& source, const QString& message) {
   MermaidDiagnostic diagnostic;
   diagnostic.stage = QStringLiteral("preprocess");
   diagnostic.code = QStringLiteral("invalid-configuration");
   diagnostic.message = message;
-  static const QRegularExpression yamlPosition(
-      QStringLiteral(R"(line\s+(\d+)\s*,\s*column\s+(\d+))"),
-      QRegularExpression::CaseInsensitiveOption);
+  static const QRegularExpression yamlPosition(QStringLiteral(R"(line\s+(\d+)\s*,\s*column\s+(\d+))"),
+                                               QRegularExpression::CaseInsensitiveOption);
   const QRegularExpressionMatch match = yamlPosition.match(message);
   if (match.hasMatch()) {
     // yaml-cpp reports a 1-based position inside the YAML body. Mermaid front
@@ -268,25 +254,22 @@ MermaidDiagnostic preprocessingDiagnostic(
   return diagnostic;
 }
 
-std::optional<MermaidRenderEntry> upstreamLayoutConfigurationError(
-    const MermaidPreprocessResult& pre, const QString& type) {
+std::optional<MermaidRenderEntry> upstreamLayoutConfigurationError(const MermaidPreprocessResult& pre,
+                                                                   const QString& type) {
   // Unified class/flow renderers call getRegisteredLayoutAlgorithm(), which
   // falls back to Dagre for an unknown name. State passes the configured name
   // directly to render(), so an unregistered top-level layout throws. Nested
   // state.defaultRenderer only selects the legacy detector and is otherwise
   // ignored by Mermaid 11.16.
-  if (type == QLatin1String("state") ||
-      type == QLatin1String("stateDiagram")) {
-    const QString requested =
-        pre.config.value(QStringLiteral("layout")).toString();
+  if (type == QLatin1String("state") || type == QLatin1String("stateDiagram")) {
+    const QString requested = pre.config.value(QStringLiteral("layout")).toString();
     if (requested.isEmpty() || requested == QLatin1String("dagre"))
       return std::nullopt;
     MermaidDiagnostic diagnostic;
     diagnostic.diagramType = type;
     diagnostic.stage = QStringLiteral("render");
     diagnostic.code = QStringLiteral("native-render-failed");
-    diagnostic.message =
-        QStringLiteral("Unknown layout algorithm: %1").arg(requested);
+    diagnostic.message = QStringLiteral("Unknown layout algorithm: %1").arg(requested);
     return errorEntry(std::move(diagnostic));
   }
 
@@ -310,19 +293,18 @@ std::optional<MermaidRenderEntry> upstreamLayoutConfigurationError(
 // YAML / directive errors) throw before mermaid's try/catch upstream and
 // produce no error svg; "unsupported" has no upstream equivalent (every
 // registered detector id has a native adapter).
-void attachErrorFallbackScene(MermaidRenderEntry& entry,
-                              const QString& source, const QString& theme) {
-  if (entry.status != MermaidRenderStatus::Error || entry.scene) return;
-  if (entry.diagnostic.stage == QLatin1String("preprocess") ||
-      entry.diagnostic.stage == QLatin1String("unsupported"))
+void attachErrorFallbackScene(MermaidRenderEntry& entry, const QString& source, const QString& theme) {
+  if (entry.status != MermaidRenderStatus::Error || entry.scene)
+    return;
+  if (entry.diagnostic.stage == QLatin1String("preprocess") || entry.diagnostic.stage == QLatin1String("unsupported"))
     return;
   try {
     MermaidPreprocessResult pre = preprocessDiagram(source);
     pre.config = mermaidRenderConfig(pre.config);
     const Diagram* errorDiagram = findMermaidDiagram(QStringLiteral("error"));
-    if (!errorDiagram) return;
-    MermaidRenderEntry fallback =
-        errorDiagram->render(pre, QStringLiteral("error"), theme);
+    if (!errorDiagram)
+      return;
+    MermaidRenderEntry fallback = errorDiagram->render(pre, QStringLiteral("error"), theme);
     if (fallback.status == MermaidRenderStatus::Ready && fallback.scene) {
       entry.scene = std::move(fallback.scene);
       entry.metadata = std::move(fallback.metadata);
@@ -334,13 +316,14 @@ void attachErrorFallbackScene(MermaidRenderEntry& entry,
   }
 }
 
-}  // namespace
+} // namespace
 
 MermaidRenderCache::MermaidRenderCache(QObject* parent, int capacity)
     : QObject(parent), capacity_(capacity), resourceIdentity_(QUuid::createUuid().toString()) {
   debounceTimer_.setSingleShot(true);
   connect(&debounceTimer_, &QTimer::timeout, this, [this]() {
-    if (!debouncePending_) return;
+    if (!debouncePending_)
+      return;
     const MermaidRenderKey key = debouncedKey_;
     const QString source = debouncedSource_;
     debouncePending_ = false;
@@ -355,8 +338,7 @@ MermaidRenderCache::MermaidRenderCache(QObject* parent, int capacity)
 MermaidRenderKey MermaidRenderCache::makeKey(const QString& source) {
   QString theme = QStringLiteral("default");
   try {
-    theme = themeFromConfig(
-        mermaidRenderConfig(preprocessDiagram(source).config));
+    theme = themeFromConfig(mermaidRenderConfig(preprocessDiagram(source).config));
   } catch (...) {
     // Preprocessing failed (e.g. malformed frontmatter) — render the raw source
     // with the default theme; the worker will report the real error.
@@ -369,8 +351,8 @@ MermaidRenderKey MermaidRenderCache::makeKey(const QString& source) {
 }
 
 QString MermaidRenderCache::resourceKey(const MermaidRenderKey& key) const {
-  return QStringLiteral("mermaid:") + resourceIdentity_ + ':' + QString::fromLatin1(key.sourceHash.toHex()) + ':' + key.theme + ':' +
-         QString::number(key.fontGeneration);
+  return QStringLiteral("mermaid:") + resourceIdentity_ + ':' + QString::fromLatin1(key.sourceHash.toHex()) + ':' +
+         key.theme + ':' + QString::number(key.fontGeneration);
 }
 
 namespace {
@@ -380,7 +362,7 @@ QByteArray resourceMetrics(const MermaidRenderEntry& entry) {
   stream << int(entry.status) << entry.naturalSize << entry.errorMessage << entry.errorDiagnostic;
   return bytes;
 }
-}  // namespace
+} // namespace
 
 void MermaidRenderCache::touch(const MermaidRenderKey& key) {
   lru_.removeAll(key);
@@ -397,16 +379,17 @@ void MermaidRenderCache::evict() {
 bool MermaidRenderCache::commit(const MermaidRenderKey& key, const MermaidRenderEntry& entry) {
   // Only commit if the key is still pending (not evicted while the worker ran).
   auto it = entries_.find(key);
-  if (it == entries_.end()) return false;
-  if (it.value().status != MermaidRenderStatus::Loading) return false;  // superseded
+  if (it == entries_.end())
+    return false;
+  if (it.value().status != MermaidRenderStatus::Loading)
+    return false; // superseded
   it.value() = entry;
   touch(key);
   LayoutResources::instance().publish(resourceKey(key), resourceMetrics(entry));
   return true;
 }
 
-void MermaidRenderCache::launchWorker(
-    const MermaidRenderKey& key, const QString& source) {
+void MermaidRenderCache::launchWorker(const MermaidRenderKey& key, const QString& source) {
   auto* watcher = new QFutureWatcher<MermaidRenderEntry>(this);
   watchers_.insert(watcher, key);
   const QString theme = key.theme;
@@ -415,19 +398,19 @@ void MermaidRenderCache::launchWorker(
     watchers_.remove(watcher);
     const MermaidRenderEntry result = watcher->result();
     watcher->deleteLater();
-    if (epoch == epoch_ && commit(key, result)) emit renderReady(key);
+    if (epoch == epoch_ && commit(key, result))
+      emit renderReady(key);
   });
-  watcher->setFuture(QtConcurrent::run(
-      [source, theme]() { return renderSource(source, theme); }));
+  watcher->setFuture(QtConcurrent::run([source, theme]() { return renderSource(source, theme); }));
 }
 
 void MermaidRenderCache::cancelDebouncedRequest(bool removeLoadingEntry) {
-  if (!debouncePending_) return;
+  if (!debouncePending_)
+    return;
   debounceTimer_.stop();
   if (removeLoadingEntry) {
     const auto it = entries_.constFind(debouncedKey_);
-    if (it != entries_.cend() &&
-        it.value().status == MermaidRenderStatus::Loading) {
+    if (it != entries_.cend() && it.value().status == MermaidRenderStatus::Loading) {
       entries_.remove(debouncedKey_);
       lru_.removeAll(debouncedKey_);
     }
@@ -436,8 +419,7 @@ void MermaidRenderCache::cancelDebouncedRequest(bool removeLoadingEntry) {
   debouncedSource_.clear();
 }
 
-MermaidRenderEntry MermaidRenderCache::request(
-    const MermaidRenderKey& key, const QString& source) {
+MermaidRenderEntry MermaidRenderCache::request(const MermaidRenderKey& key, const QString& source) {
   LayoutResources::instance().read(resourceKey(key));
   auto it = entries_.find(key);
   if (it != entries_.end()) {
@@ -458,8 +440,8 @@ MermaidRenderEntry MermaidRenderCache::request(
   return loading;
 }
 
-MermaidRenderEntry MermaidRenderCache::requestDebounced(
-    const MermaidRenderKey& key, const QString& source, int delayMs) {
+MermaidRenderEntry MermaidRenderCache::requestDebounced(const MermaidRenderKey& key, const QString& source,
+                                                        int delayMs) {
   LayoutResources::instance().read(resourceKey(key));
   auto it = entries_.find(key);
   if (it != entries_.end()) {
@@ -505,11 +487,11 @@ void MermaidRenderCache::clear() {
   const auto keys = entries_.keys();
   entries_.clear();
   lru_.clear();
-  for (const auto& key : keys) LayoutResources::instance().publish(resourceKey(key), {});
+  for (const auto& key : keys)
+    LayoutResources::instance().publish(resourceKey(key), {});
 }
 
-MermaidPngRenderResult MermaidRenderCache::renderMermaidSourceToPng(
-    const QString& source, qreal dpr) {
+MermaidPngRenderResult MermaidRenderCache::renderMermaidSourceToPng(const QString& source, qreal dpr) {
   MermaidPngRenderResult result;
   const QString theme = makeKey(source).theme;
   const MermaidRenderEntry entry = renderSource(source, theme);
@@ -532,8 +514,7 @@ MermaidPngRenderResult MermaidRenderCache::renderMermaidSourceToPng(
     // round(207.84375) × round(119.5) = 208 × 120 with the baseline exact,
     // where the piecewise composition produced 208 × 121 with the baseline
     // ~0.75px low.
-    QImage image(qMax(1, qRound(clientBox.width() * dpr)),
-                 qMax(1, qRound(clientBox.height() * dpr)),
+    QImage image(qMax(1, qRound(clientBox.width() * dpr)), qMax(1, qRound(clientBox.height() * dpr)),
                  QImage::Format_ARGB32_Premultiplied);
     image.fill(Qt::transparent);
     QPainter painter(&image);
@@ -546,70 +527,61 @@ MermaidPngRenderResult MermaidRenderCache::renderMermaidSourceToPng(
     if (entry.metadata.hasVisibleTitle()) {
       const qreal titleWidth = measureMermaidTitleWidth(entry.metadata);
       const qreal centerX = entry.scene->svgClientViewBox().center().x();
-      paintMermaidTitle(entry.metadata, painter,
-                        QRectF(centerX - titleWidth / 2.0,
-                               -entry.metadata.titleHeight,
-                               titleWidth, entry.metadata.titleHeight));
+      paintMermaidTitle(
+          entry.metadata, painter,
+          QRectF(centerX - titleWidth / 2.0, -entry.metadata.titleHeight, titleWidth, entry.metadata.titleHeight));
     }
     painter.end();
     QByteArray png;
     QBuffer buffer(&png);
-    if (!buffer.open(QIODevice::WriteOnly)) return result;
-    if (!image.save(&buffer, "PNG")) return result;
+    if (!buffer.open(QIODevice::WriteOnly))
+      return result;
+    if (!image.save(&buffer, "PNG"))
+      return result;
     buffer.close();
-    result.dataUrl = QStringLiteral("data:image/png;base64,") +
-                     QString::fromLatin1(png.toBase64());
+    result.dataUrl = QStringLiteral("data:image/png;base64,") + QString::fromLatin1(png.toBase64());
     return result;
   }
-  QImage image = renderMermaidSceneToImage(
-      entry.scene, dpr, entry.metadata.diagramPadding);
+  QImage image = renderMermaidSceneToImage(entry.scene, dpr, entry.metadata.diagramPadding);
   if (entry.metadata.hasVisibleTitle()) {
     const qreal contentWidth = image.width() / dpr;
     const qreal contentHeight = image.height() / dpr;
-    const qreal canvasWidth = qMax<qreal>(
-        contentWidth, entry.naturalSize.width());
+    const qreal canvasWidth = qMax<qreal>(contentWidth, entry.naturalSize.width());
     const qreal canvasHeight = entry.metadata.titleHeight + contentHeight;
-    QImage titled(qCeil(canvasWidth * dpr), qCeil(canvasHeight * dpr),
-                  QImage::Format_ARGB32_Premultiplied);
+    QImage titled(qCeil(canvasWidth * dpr), qCeil(canvasHeight * dpr), QImage::Format_ARGB32_Premultiplied);
     titled.fill(Qt::transparent);
     QPainter painter(&titled);
     // Piecewise families center the content under the title strip when the
     // title widened the canvas.
-    painter.drawImage(
-        QPoint(qRound((canvasWidth > contentWidth
-                           ? (canvasWidth - contentWidth) / 2.0 : 0.0) * dpr),
-               qRound(entry.metadata.titleHeight * dpr)),
-        image);
+    painter.drawImage(QPoint(qRound((canvasWidth > contentWidth ? (canvasWidth - contentWidth) / 2.0 : 0.0) * dpr),
+                             qRound(entry.metadata.titleHeight * dpr)),
+                      image);
     painter.scale(dpr, dpr);
-    paintMermaidTitle(entry.metadata, painter,
-                      QRectF(0.0, 0.0, canvasWidth,
-                             entry.metadata.titleHeight));
+    paintMermaidTitle(entry.metadata, painter, QRectF(0.0, 0.0, canvasWidth, entry.metadata.titleHeight));
     painter.end();
     image = std::move(titled);
   }
   QByteArray png;
   QBuffer buffer(&png);
-  if (!buffer.open(QIODevice::WriteOnly)) return result;
-  if (!image.save(&buffer, "PNG")) return result;
+  if (!buffer.open(QIODevice::WriteOnly))
+    return result;
+  if (!image.save(&buffer, "PNG"))
+    return result;
   buffer.close();
-  result.dataUrl = QStringLiteral("data:image/png;base64,") +
-                   QString::fromLatin1(png.toBase64());
+  result.dataUrl = QStringLiteral("data:image/png;base64,") + QString::fromLatin1(png.toBase64());
   return result;
 }
 
-QString MermaidRenderCache::renderMermaidSourceToPngDataUrl(
-    const QString& source, qreal dpr) {
+QString MermaidRenderCache::renderMermaidSourceToPngDataUrl(const QString& source, qreal dpr) {
   return renderMermaidSourceToPng(source, dpr).dataUrl;
 }
 
-MermaidSvgRenderResult MermaidRenderCache::renderMermaidSourceToSvg(
-    const QString& source, qsizetype instanceIndex) {
+MermaidSvgRenderResult MermaidRenderCache::renderMermaidSourceToSvg(const QString& source, qsizetype instanceIndex) {
   return renderMermaidSourceToSvg(source, instanceIndex, QUrl{});
 }
 
-MermaidSvgRenderResult MermaidRenderCache::renderMermaidSourceToSvg(
-    const QString& source, qsizetype instanceIndex,
-    const QUrl& documentUrl, const QString& diagramId) {
+MermaidSvgRenderResult MermaidRenderCache::renderMermaidSourceToSvg(const QString& source, qsizetype instanceIndex,
+                                                                    const QUrl& documentUrl, const QString& diagramId) {
   MermaidSvgRenderResult result;
   const MermaidRenderKey key = makeKey(source);
   const MermaidRenderEntry entry = renderSource(source, key.theme);
@@ -620,27 +592,24 @@ MermaidSvgRenderResult MermaidRenderCache::renderMermaidSourceToSvg(
   options.documentUrl = documentUrl;
   options.diagramId = diagramId;
   result.svg = renderMermaidEntryToSvg(entry, options);
-  if (result.svg.isEmpty()) return result;
+  if (result.svg.isEmpty())
+    return result;
   result.metadata = entry.metadata;
-  result.dataUrl = QStringLiteral("data:image/svg+xml;base64,") +
-                   QString::fromLatin1(result.svg.toBase64());
+  result.dataUrl = QStringLiteral("data:image/svg+xml;base64,") + QString::fromLatin1(result.svg.toBase64());
   return result;
 }
 
-QString MermaidRenderCache::renderMermaidSourceToSvgDataUrl(
-    const QString& source, qsizetype instanceIndex) {
+QString MermaidRenderCache::renderMermaidSourceToSvgDataUrl(const QString& source, qsizetype instanceIndex) {
   return renderMermaidSourceToSvg(source, instanceIndex).dataUrl;
 }
 
-MermaidRenderEntry MermaidRenderCache::renderSourceDispatch(
-    const QString& source, const QString& theme) {
+MermaidRenderEntry MermaidRenderCache::renderSourceDispatch(const QString& source, const QString& theme) {
   MermaidPreprocessResult pre;
   try {
     pre = preprocessDiagram(source);
     pre.config = mermaidRenderConfig(pre.config);
   } catch (const std::exception& error) {
-    return errorEntry(preprocessingDiagnostic(
-        source, QString::fromUtf8(error.what())));
+    return errorEntry(preprocessingDiagnostic(source, QString::fromUtf8(error.what())));
   }
 
   QString type;
@@ -654,12 +623,11 @@ MermaidRenderEntry MermaidRenderCache::renderSourceDispatch(
     // structured code/span still gives Muffin a friendlier editor diagnostic
     // without changing Mermaid's observable failure contract.
     diagnostic.message = QString::fromUtf8(error.what());
-    diagnostic.expected = {
-        QStringLiteral("flowchart"), QStringLiteral("sequenceDiagram"),
-        QStringLiteral("classDiagram"), QStringLiteral("stateDiagram-v2"),
-        QStringLiteral("erDiagram"), QStringLiteral("requirementDiagram"),
-        QStringLiteral("pie"), QStringLiteral("quadrantChart"),
-        QStringLiteral("journey"), QStringLiteral("radar-beta")};
+    diagnostic.expected = {QStringLiteral("flowchart"),    QStringLiteral("sequenceDiagram"),
+                           QStringLiteral("classDiagram"), QStringLiteral("stateDiagram-v2"),
+                           QStringLiteral("erDiagram"),    QStringLiteral("requirementDiagram"),
+                           QStringLiteral("pie"),          QStringLiteral("quadrantChart"),
+                           QStringLiteral("journey"),      QStringLiteral("radar-beta")};
     diagnostic.expected.append(QStringLiteral("xychart-beta"));
     diagnostic.expected.append(QStringLiteral("timeline"));
     diagnostic.expected.append(QStringLiteral("packet-beta"));
@@ -688,8 +656,7 @@ MermaidRenderEntry MermaidRenderCache::renderSourceDispatch(
     diagnostic.expected.append(QStringLiteral("railroad-ebnf-beta"));
     diagnostic.expected.append(QStringLiteral("railroad-abnf-beta"));
     diagnostic.expected.append(QStringLiteral("railroad-peg-beta"));
-    diagnostic.span = mappedSourceSpan(
-        source, pre, 0, pre.code.isEmpty() ? 0 : 1, 1, 1);
+    diagnostic.span = mappedSourceSpan(source, pre, 0, pre.code.isEmpty() ? 0 : 1, 1, 1);
     return errorEntry(std::move(diagnostic));
   }
   if (const auto layoutError = upstreamLayoutConfigurationError(pre, type))
@@ -700,8 +667,7 @@ MermaidRenderEntry MermaidRenderCache::renderSourceDispatch(
     diagnostic.diagramType = type;
     diagnostic.stage = QStringLiteral("unsupported");
     diagnostic.code = QStringLiteral("unsupported-diagram");
-    diagnostic.message = QStringLiteral(
-        "Diagram type '%1' is not natively supported.").arg(type);
+    diagnostic.message = QStringLiteral("Diagram type '%1' is not natively supported.").arg(type);
     return errorEntry(std::move(diagnostic), MermaidRenderStatus::Unsupported);
   }
 
@@ -725,53 +691,35 @@ MermaidRenderEntry MermaidRenderCache::renderSourceDispatch(
     diagnostic.code = QStringLiteral("sequence-label-mathml");
     diagnostic.message = QString::fromUtf8(error.what());
     MermaidRenderEntry entry = errorEntry(std::move(diagnostic));
-    entry.errorDiagnostic.insert(QStringLiteral("renderFailure"),
-                                 error.failure().toJson());
-    entry.errorDiagnostic.insert(QStringLiteral("component"),
-                                 QStringLiteral("sequence-label-mathml"));
+    entry.errorDiagnostic.insert(QStringLiteral("renderFailure"), error.failure().toJson());
+    entry.errorDiagnostic.insert(QStringLiteral("component"), QStringLiteral("sequence-label-mathml"));
     return entry;
   } catch (const flowchart::FlowchartParseError& error) {
     const flowchart::FlowchartDiagnostic& value = error.diagnostic();
-    return errorEntry(parserDiagnostic(
-        source, pre, type,
-        flowchart::flowchartErrorStageName(value.stage),
-        flowchart::flowchartErrorCodeName(value.code),
-        QString::fromUtf8(error.what()), value.span.offset,
-        value.span.length, value.span.line, value.span.column,
-        value.production, value.actual, value.expected));
+    return errorEntry(parserDiagnostic(source, pre, type, flowchart::flowchartErrorStageName(value.stage),
+                                       flowchart::flowchartErrorCodeName(value.code), QString::fromUtf8(error.what()),
+                                       value.span.offset, value.span.length, value.span.line, value.span.column,
+                                       value.production, value.actual, value.expected));
   } catch (const sequence::SequenceParseError& error) {
     const sequence::SequenceDiagnostic& value = error.diagnostic();
-    return errorEntry(parserDiagnostic(
-        source, pre, type,
-        sequence::sequenceErrorStageName(value.stage),
-        sequence::sequenceErrorCodeName(value.code), value.detail,
-        value.span.offset, value.span.length, value.span.line,
-        value.span.column + 1, value.production, value.actual,
-        value.expected));
+    return errorEntry(parserDiagnostic(source, pre, type, sequence::sequenceErrorStageName(value.stage),
+                                       sequence::sequenceErrorCodeName(value.code), value.detail, value.span.offset,
+                                       value.span.length, value.span.line, value.span.column + 1, value.production,
+                                       value.actual, value.expected));
   } catch (const classdiagram::ClassParseError& error) {
     const classdiagram::ClassDiagnostic& value = error.diagnostic();
-    const qsizetype length = value.span.length > 0
-        ? value.span.length
-        : qMax<qsizetype>(1, value.actual.size());
-    return errorEntry(parserDiagnostic(
-        source, pre, type,
-        classdiagram::classErrorStageName(value.stage),
-        classdiagram::classErrorCodeName(value.code), value.detail,
-        value.span.offset, length, value.span.line,
-        value.span.column + 1, value.production, value.actual,
-        value.expected));
+    const qsizetype length = value.span.length > 0 ? value.span.length : qMax<qsizetype>(1, value.actual.size());
+    return errorEntry(parserDiagnostic(source, pre, type, classdiagram::classErrorStageName(value.stage),
+                                       classdiagram::classErrorCodeName(value.code), value.detail, value.span.offset,
+                                       length, value.span.line, value.span.column + 1, value.production, value.actual,
+                                       value.expected));
   } catch (const state::StateParseError& error) {
     const state::StateDiagnostic& value = error.diagnostic();
-    const qsizetype length = value.span.length > 0
-        ? value.span.length
-        : qMax<qsizetype>(1, value.actual.size());
-    return errorEntry(parserDiagnostic(
-        source, pre, type,
-        state::stateErrorStageName(value.stage),
-        state::stateErrorCodeName(value.code), value.detail,
-        value.span.offset, length, value.span.line,
-        value.span.column + 1, value.production, value.actual,
-        value.expected));
+    const qsizetype length = value.span.length > 0 ? value.span.length : qMax<qsizetype>(1, value.actual.size());
+    return errorEntry(parserDiagnostic(source, pre, type, state::stateErrorStageName(value.stage),
+                                       state::stateErrorCodeName(value.code), value.detail, value.span.offset, length,
+                                       value.span.line, value.span.column + 1, value.production, value.actual,
+                                       value.expected));
   } catch (const requirement::RequirementParseError& error) {
     MermaidDiagnostic diagnostic;
     diagnostic.diagramType = type;
@@ -780,415 +728,342 @@ MermaidRenderEntry MermaidRenderCache::renderSourceDispatch(
     diagnostic.message = QString::fromUtf8(error.what());
     return errorEntry(std::move(diagnostic));
   } catch (const journey::JourneyParseError& error) {
-    const qsizetype offset = error.line > 0
-                                 ? offsetForLineColumn(pre.code, error.line, 1)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"),
-        QStringLiteral("journey-parse-error"),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.line > 0 ? 1 : 0, QString(), QString(), {}));
+    const qsizetype offset = error.line > 0 ? offsetForLineColumn(pre.code, error.line, 1) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"),
+                                       QStringLiteral("journey-parse-error"), QString::fromUtf8(error.what()), offset,
+                                       offset >= 0 ? 1 : 0, error.line, error.line > 0 ? 1 : 0, QString(), QString(),
+                                       {}));
   } catch (const radar::RadarParseError& error) {
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"),
-        QStringLiteral("radar-parse-error"),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), QString(), {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), QStringLiteral("radar-parse-error"),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), QString(), {}));
   } catch (const xychart::XYChartParseError& error) {
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"),
-        QStringLiteral("xychart-parse-error"),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), QString(), {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"),
+                                       QStringLiteral("xychart-parse-error"), QString::fromUtf8(error.what()), offset,
+                                       offset >= 0 ? 1 : 0, error.line, error.column, QString(), QString(), {}));
   } catch (const timeline::TimelineParseError& error) {
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"),
-        error.kind == timeline::TimelineErrorKind::Runtime
-            ? QStringLiteral("timeline-runtime-error")
-            : QStringLiteral("timeline-parse-error"),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), QString(), {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"),
+                                       error.kind == timeline::TimelineErrorKind::Runtime
+                                           ? QStringLiteral("timeline-runtime-error")
+                                           : QStringLiteral("timeline-parse-error"),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), QString(), {}));
   } catch (const packet::PacketParseError& error) {
     QString code;
     switch (error.kind) {
-      case packet::PacketErrorKind::Lexer:
-        code = QStringLiteral("packet-lexer-error");
-        break;
-      case packet::PacketErrorKind::Parser:
-        code = QStringLiteral("packet-parse-error");
-        break;
-      case packet::PacketErrorKind::Runtime:
-        code = QStringLiteral("packet-runtime-error");
-        break;
+    case packet::PacketErrorKind::Lexer:
+      code = QStringLiteral("packet-lexer-error");
+      break;
+    case packet::PacketErrorKind::Parser:
+      code = QStringLiteral("packet-parse-error");
+      break;
+    case packet::PacketErrorKind::Runtime:
+      code = QStringLiteral("packet-runtime-error");
+      break;
     }
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), QString(), {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), QString(), {}));
   } catch (const kanban::KanbanParseError& error) {
     QString code;
     switch (error.kind) {
-      case kanban::KanbanErrorKind::Lexer:
-        code = QStringLiteral("kanban-lexer-error");
-        break;
-      case kanban::KanbanErrorKind::Parser:
-        code = QStringLiteral("kanban-parse-error");
-        break;
-      case kanban::KanbanErrorKind::Yaml:
-        code = QStringLiteral("kanban-yaml-error");
-        break;
-      case kanban::KanbanErrorKind::Runtime:
-        code = QStringLiteral("kanban-runtime-error");
-        break;
+    case kanban::KanbanErrorKind::Lexer:
+      code = QStringLiteral("kanban-lexer-error");
+      break;
+    case kanban::KanbanErrorKind::Parser:
+      code = QStringLiteral("kanban-parse-error");
+      break;
+    case kanban::KanbanErrorKind::Yaml:
+      code = QStringLiteral("kanban-yaml-error");
+      break;
+    case kanban::KanbanErrorKind::Runtime:
+      code = QStringLiteral("kanban-runtime-error");
+      break;
     }
     // Jison's Kanban lexer reports an unrecognized token at column 0. The
     // shared diagnostic model is 1-based, so retain the known line and map it
     // to that line's first source column instead of dropping the location.
-    const int diagnosticColumn =
-        error.line > 0 ? std::max(1, error.column) : error.column;
-    const qsizetype offset = error.line > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       diagnosticColumn)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, diagnosticColumn, QString(), error.token, {}));
+    const int diagnosticColumn = error.line > 0 ? std::max(1, error.column) : error.column;
+    const qsizetype offset = error.line > 0 ? offsetForLineColumn(pre.code, error.line, diagnosticColumn) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       diagnosticColumn, QString(), error.token, {}));
   } catch (const mindmap::MindmapParseError& error) {
     QString code;
     switch (error.kind) {
-      case mindmap::MindmapErrorKind::Lexer:
-        code = QStringLiteral("mindmap-lexer-error");
-        break;
-      case mindmap::MindmapErrorKind::Parser:
-        code = QStringLiteral("mindmap-parse-error");
-        break;
-      case mindmap::MindmapErrorKind::Runtime:
-        code = QStringLiteral("mindmap-runtime-error");
-        break;
+    case mindmap::MindmapErrorKind::Lexer:
+      code = QStringLiteral("mindmap-lexer-error");
+      break;
+    case mindmap::MindmapErrorKind::Parser:
+      code = QStringLiteral("mindmap-parse-error");
+      break;
+    case mindmap::MindmapErrorKind::Runtime:
+      code = QStringLiteral("mindmap-runtime-error");
+      break;
     }
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const c4::C4ParseError& error) {
     QString code;
     switch (error.kind) {
-      case c4::C4ErrorKind::Lexer:
-        code = QStringLiteral("c4-lexer-error");
-        break;
-      case c4::C4ErrorKind::Parser:
-        code = QStringLiteral("c4-parse-error");
-        break;
-      case c4::C4ErrorKind::Runtime:
-        code = QStringLiteral("c4-runtime-error");
-        break;
+    case c4::C4ErrorKind::Lexer:
+      code = QStringLiteral("c4-lexer-error");
+      break;
+    case c4::C4ErrorKind::Parser:
+      code = QStringLiteral("c4-parse-error");
+      break;
+    case c4::C4ErrorKind::Runtime:
+      code = QStringLiteral("c4-runtime-error");
+      break;
     }
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset,
-        offset >= 0 ? qMax<qsizetype>(1, error.token.size()) : 0,
-        error.line, error.column, QString(), error.token, {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset,
+                                       offset >= 0 ? qMax<qsizetype>(1, error.token.size()) : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const block::BlockParseError& error) {
     QString code;
     switch (error.kind) {
-      case block::BlockErrorKind::Lexer:
-        code = QStringLiteral("block-lexer-error");
-        break;
-      case block::BlockErrorKind::Parser:
-        code = QStringLiteral("block-parse-error");
-        break;
-      case block::BlockErrorKind::Runtime:
-        code = QStringLiteral("block-runtime-error");
-        break;
+    case block::BlockErrorKind::Lexer:
+      code = QStringLiteral("block-lexer-error");
+      break;
+    case block::BlockErrorKind::Parser:
+      code = QStringLiteral("block-parse-error");
+      break;
+    case block::BlockErrorKind::Runtime:
+      code = QStringLiteral("block-runtime-error");
+      break;
     }
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const railroad::RailroadParseError& error) {
     QString suffix;
     switch (error.kind) {
-      case railroad::RailroadErrorKind::Lexer:
-        suffix = QStringLiteral("lexer-error");
-        break;
-      case railroad::RailroadErrorKind::Parser:
-        suffix = QStringLiteral("parse-error");
-        break;
-      case railroad::RailroadErrorKind::Runtime:
-        suffix = QStringLiteral("runtime-error");
-        break;
+    case railroad::RailroadErrorKind::Lexer:
+      suffix = QStringLiteral("lexer-error");
+      break;
+    case railroad::RailroadErrorKind::Parser:
+      suffix = QStringLiteral("parse-error");
+      break;
+    case railroad::RailroadErrorKind::Runtime:
+      suffix = QStringLiteral("runtime-error");
+      break;
     }
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"),
-        QStringLiteral("railroad-") + suffix,
-        QString::fromUtf8(error.what()), offset,
-        offset >= 0 ? qMax<qsizetype>(1, error.token.size()) : 0,
-        error.line, error.column, QString(), error.token, {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), QStringLiteral("railroad-") + suffix,
+                                       QString::fromUtf8(error.what()), offset,
+                                       offset >= 0 ? qMax<qsizetype>(1, error.token.size()) : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const gitgraph::GitGraphParseError& error) {
     QString code;
     switch (error.kind) {
-      case gitgraph::GitGraphErrorKind::Lexer:
-        code = QStringLiteral("gitgraph-lexer-error");
-        break;
-      case gitgraph::GitGraphErrorKind::Parser:
-        code = QStringLiteral("gitgraph-parse-error");
-        break;
-      case gitgraph::GitGraphErrorKind::Runtime:
-        code = QStringLiteral("gitgraph-runtime-error");
-        break;
+    case gitgraph::GitGraphErrorKind::Lexer:
+      code = QStringLiteral("gitgraph-lexer-error");
+      break;
+    case gitgraph::GitGraphErrorKind::Parser:
+      code = QStringLiteral("gitgraph-parse-error");
+      break;
+    case gitgraph::GitGraphErrorKind::Runtime:
+      code = QStringLiteral("gitgraph-runtime-error");
+      break;
     }
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const gantt::GanttParseError& error) {
     QString code;
     switch (error.kind) {
-      case gantt::GanttErrorKind::Lexer:
-        code = QStringLiteral("gantt-lexer-error");
-        break;
-      case gantt::GanttErrorKind::Parser:
-        code = QStringLiteral("gantt-parse-error");
-        break;
-      case gantt::GanttErrorKind::Runtime:
-        code = QStringLiteral("gantt-runtime-error");
-        break;
+    case gantt::GanttErrorKind::Lexer:
+      code = QStringLiteral("gantt-lexer-error");
+      break;
+    case gantt::GanttErrorKind::Parser:
+      code = QStringLiteral("gantt-parse-error");
+      break;
+    case gantt::GanttErrorKind::Runtime:
+      code = QStringLiteral("gantt-runtime-error");
+      break;
     }
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), QString(), {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), QString(), {}));
   } catch (const info::InfoParseError& error) {
-    const qsizetype offset = error.line > 0 && error.column > 0
-                                 ? offsetForLineColumn(pre.code, error.line,
-                                                       error.column)
-                                 : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"),
-        error.kind == info::InfoErrorKind::Lexer
-            ? QStringLiteral("info-lexer-error")
-            : QStringLiteral("info-parse-error"),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), QString(), {}));
+    const qsizetype offset =
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"),
+                                       error.kind == info::InfoErrorKind::Lexer ? QStringLiteral("info-lexer-error")
+                                                                                : QStringLiteral("info-parse-error"),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), QString(), {}));
   } catch (const treeview::TreeViewParseError& error) {
     QString code;
     switch (error.kind) {
-      case treeview::TreeViewErrorKind::Lexer:
-        code = QStringLiteral("treeview-lexer-error");
-        break;
-      case treeview::TreeViewErrorKind::Parser:
-        code = QStringLiteral("treeview-parse-error");
-        break;
-      case treeview::TreeViewErrorKind::Preprocess:
-        code = QStringLiteral("treeview-preprocess-error");
-        break;
+    case treeview::TreeViewErrorKind::Lexer:
+      code = QStringLiteral("treeview-lexer-error");
+      break;
+    case treeview::TreeViewErrorKind::Parser:
+      code = QStringLiteral("treeview-parse-error");
+      break;
+    case treeview::TreeViewErrorKind::Preprocess:
+      code = QStringLiteral("treeview-preprocess-error");
+      break;
     }
     const int diagnosticColumn = error.column > 0 ? error.column : 1;
-    const qsizetype offset =
-        error.line > 0
-            ? offsetForLineColumn(pre.code, error.line, diagnosticColumn)
-            : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, diagnosticColumn, QString(), QString(), {}));
+    const qsizetype offset = error.line > 0 ? offsetForLineColumn(pre.code, error.line, diagnosticColumn) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       diagnosticColumn, QString(), QString(), {}));
   } catch (const eventmodeling::EventModelingParseError& error) {
     const qsizetype offset =
-        error.line > 0 && error.column > 0
-            ? offsetForLineColumn(pre.code, error.line, error.column)
-            : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"),
-        error.kind == eventmodeling::EventModelingErrorKind::Lexer
-            ? QStringLiteral("eventmodeling-lexer-error")
-            : QStringLiteral("eventmodeling-parse-error"),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), QString(), {}));
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"),
+                                       error.kind == eventmodeling::EventModelingErrorKind::Lexer
+                                           ? QStringLiteral("eventmodeling-lexer-error")
+                                           : QStringLiteral("eventmodeling-parse-error"),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), QString(), {}));
   } catch (const ishikawa::IshikawaParseError& error) {
     qsizetype offset =
-        error.line > 0 && error.column > 0
-            ? offsetForLineColumn(pre.code, error.line, error.column)
-            : -1;
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
     // Jison's Ishikawa grammar reports its caret after the accumulated
     // SPACELINE token, which can exceed the physical token line. Preserve the
     // parser's exact line/column in IshikawaParseError while anchoring the UI
     // diagnostic to the actual offending token line in decorated source.
     if (offset < 0 && error.line > 0)
       offset = offsetForLineColumn(pre.code, error.line, 1);
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"),
-        error.kind == ishikawa::IshikawaErrorKind::Lexer
-            ? QStringLiteral("ishikawa-lexer-error")
-            : QStringLiteral("ishikawa-parse-error"),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"),
+                                       error.kind == ishikawa::IshikawaErrorKind::Lexer
+                                           ? QStringLiteral("ishikawa-lexer-error")
+                                           : QStringLiteral("ishikawa-parse-error"),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const venn::VennParseError& error) {
     QString code;
     switch (error.kind) {
-      case venn::VennErrorKind::Lexer:
-        code = QStringLiteral("venn-lexer-error");
-        break;
-      case venn::VennErrorKind::Parser:
-        code = QStringLiteral("venn-parse-error");
-        break;
-      case venn::VennErrorKind::Runtime:
-        code = QStringLiteral("venn-runtime-error");
-        break;
+    case venn::VennErrorKind::Lexer:
+      code = QStringLiteral("venn-lexer-error");
+      break;
+    case venn::VennErrorKind::Parser:
+      code = QStringLiteral("venn-parse-error");
+      break;
+    case venn::VennErrorKind::Runtime:
+      code = QStringLiteral("venn-runtime-error");
+      break;
     }
     const qsizetype offset =
-        error.line > 0 && error.column > 0
-            ? offsetForLineColumn(pre.code, error.line, error.column)
-            : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const sankey::SankeyParseError& error) {
     QString code;
     switch (error.kind) {
-      case sankey::SankeyErrorKind::Lexer:
-        code = QStringLiteral("sankey-lexer-error");
-        break;
-      case sankey::SankeyErrorKind::Parser:
-        code = QStringLiteral("sankey-parse-error");
-        break;
-      case sankey::SankeyErrorKind::Runtime:
-        code = QStringLiteral("sankey-runtime-error");
-        break;
+    case sankey::SankeyErrorKind::Lexer:
+      code = QStringLiteral("sankey-lexer-error");
+      break;
+    case sankey::SankeyErrorKind::Parser:
+      code = QStringLiteral("sankey-parse-error");
+      break;
+    case sankey::SankeyErrorKind::Runtime:
+      code = QStringLiteral("sankey-runtime-error");
+      break;
     }
     const qsizetype offset =
-        error.line > 0 && error.column > 0
-            ? offsetForLineColumn(pre.code, error.line, error.column)
-            : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const treemap::TreemapParseError& error) {
     QString code;
     switch (error.kind) {
-      case treemap::TreemapErrorKind::Lexer:
-        code = QStringLiteral("treemap-lexer-error");
-        break;
-      case treemap::TreemapErrorKind::Parser:
-        code = QStringLiteral("treemap-parse-error");
-        break;
-      case treemap::TreemapErrorKind::Runtime:
-        code = QStringLiteral("treemap-runtime-error");
-        break;
+    case treemap::TreemapErrorKind::Lexer:
+      code = QStringLiteral("treemap-lexer-error");
+      break;
+    case treemap::TreemapErrorKind::Parser:
+      code = QStringLiteral("treemap-parse-error");
+      break;
+    case treemap::TreemapErrorKind::Runtime:
+      code = QStringLiteral("treemap-runtime-error");
+      break;
     }
     const qsizetype offset =
-        error.line > 0 && error.column > 0
-            ? offsetForLineColumn(pre.code, error.line, error.column)
-            : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const cynefin::CynefinParseError& error) {
     QString code;
     switch (error.kind) {
-      case cynefin::CynefinErrorKind::Lexer:
-        code = QStringLiteral("cynefin-lexer-error");
-        break;
-      case cynefin::CynefinErrorKind::Parser:
-        code = QStringLiteral("cynefin-parse-error");
-        break;
-      case cynefin::CynefinErrorKind::Runtime:
-        code = QStringLiteral("cynefin-runtime-error");
-        break;
+    case cynefin::CynefinErrorKind::Lexer:
+      code = QStringLiteral("cynefin-lexer-error");
+      break;
+    case cynefin::CynefinErrorKind::Parser:
+      code = QStringLiteral("cynefin-parse-error");
+      break;
+    case cynefin::CynefinErrorKind::Runtime:
+      code = QStringLiteral("cynefin-runtime-error");
+      break;
     }
     const qsizetype offset =
-        error.line > 0 && error.column > 0
-            ? offsetForLineColumn(pre.code, error.line, error.column)
-            : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const wardley::WardleyParseError& error) {
     QString code;
     switch (error.kind) {
-      case wardley::WardleyErrorKind::Lexer:
-        code = QStringLiteral("wardley-lexer-error");
-        break;
-      case wardley::WardleyErrorKind::Parser:
-        code = QStringLiteral("wardley-parse-error");
-        break;
-      case wardley::WardleyErrorKind::Runtime:
-        code = QStringLiteral("wardley-runtime-error");
-        break;
+    case wardley::WardleyErrorKind::Lexer:
+      code = QStringLiteral("wardley-lexer-error");
+      break;
+    case wardley::WardleyErrorKind::Parser:
+      code = QStringLiteral("wardley-parse-error");
+      break;
+    case wardley::WardleyErrorKind::Runtime:
+      code = QStringLiteral("wardley-runtime-error");
+      break;
     }
     const qsizetype offset =
-        error.line > 0 && error.column > 0
-            ? offsetForLineColumn(pre.code, error.line, error.column)
-            : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const architecture::ArchitectureParseError& error) {
     QString code;
     switch (error.kind) {
-      case architecture::ArchitectureErrorKind::Lexer:
-        code = QStringLiteral("architecture-lexer-error");
-        break;
-      case architecture::ArchitectureErrorKind::Parser:
-        code = QStringLiteral("architecture-parse-error");
-        break;
-      case architecture::ArchitectureErrorKind::Runtime:
-        code = QStringLiteral("architecture-runtime-error");
-        break;
+    case architecture::ArchitectureErrorKind::Lexer:
+      code = QStringLiteral("architecture-lexer-error");
+      break;
+    case architecture::ArchitectureErrorKind::Parser:
+      code = QStringLiteral("architecture-parse-error");
+      break;
+    case architecture::ArchitectureErrorKind::Runtime:
+      code = QStringLiteral("architecture-runtime-error");
+      break;
     }
     const qsizetype offset =
-        error.line > 0 && error.column > 0
-            ? offsetForLineColumn(pre.code, error.line, error.column)
-            : -1;
-    return errorEntry(parserDiagnostic(
-        source, pre, type, QStringLiteral("parse"), std::move(code),
-        QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0,
-        error.line, error.column, QString(), error.token, {}));
+        error.line > 0 && error.column > 0 ? offsetForLineColumn(pre.code, error.line, error.column) : -1;
+    return errorEntry(parserDiagnostic(source, pre, type, QStringLiteral("parse"), std::move(code),
+                                       QString::fromUtf8(error.what()), offset, offset >= 0 ? 1 : 0, error.line,
+                                       error.column, QString(), error.token, {}));
   } catch (const std::exception& error) {
     MermaidDiagnostic diagnostic;
     diagnostic.diagramType = type;
@@ -1199,11 +1074,10 @@ MermaidRenderEntry MermaidRenderCache::renderSourceDispatch(
   }
 }
 
-MermaidRenderEntry MermaidRenderCache::renderSource(const QString& source,
-                                                    const QString& theme) {
+MermaidRenderEntry MermaidRenderCache::renderSource(const QString& source, const QString& theme) {
   MermaidRenderEntry entry = renderSourceDispatch(source, theme);
   attachErrorFallbackScene(entry, source, theme);
   return entry;
 }
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

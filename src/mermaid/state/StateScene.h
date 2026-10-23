@@ -19,7 +19,7 @@ namespace muffin::mermaid::state {
 struct StateElementCss {
   QString fill;
   QString stroke;
-  qreal strokeWidthPx = 0.0;   // meaningful only when strokeWidthSet
+  qreal strokeWidthPx = 0.0; // meaningful only when strokeWidthSet
   // Distinguishes "no author width" from a declared `stroke-width: 0`
   // (which must disable the pen, not fall back to the theme width).
   bool strokeWidthSet = false;
@@ -42,7 +42,7 @@ struct StateElementCss {
   // font pair drives both measurement feedback and painting.
   QString color;
   QString fontFamily;
-  qreal fontSize = 0.0;        // 0 = no author font-size
+  qreal fontSize = 0.0; // 0 = no author font-size
   // p background-color (html edge labels) — "transparent"/alpha 0 paints
   // nothing (CSS initial), any other value replaces the theme slot.
   QString backgroundColor;
@@ -96,7 +96,8 @@ struct StateSceneStyle {
 
   // themeCSS `.node rect { display:none }` legacy global fold (per-node css
   // refines it): every plain state node drops its shape box.
-  bool shapeVisible = true;};
+  bool shapeVisible = true;
+};
 
 // A click link: upstream wraps the rendered node's <g> in an <a xlink:href>
 // after layout (with a title tooltip on the anchor and the node).
@@ -124,9 +125,9 @@ struct StateSceneNode {
   // upstream titleBox: divider at titleHeight + padding/2, description block
   // at titleHeight + padding/2 + 5, label group 3px below the rect top).
   qreal titleHeight = 0.0;
-  StateElementCss shapeCss;   // shape element (rect / circle / rough fill path)
-  StateElementCss shapeStrokeCss;  // rough stroke path (note/choice/fork/end)
-  StateElementCss labelCss;   // span.nodeLabel
+  StateElementCss shapeCss;       // shape element (rect / circle / rough fill path)
+  StateElementCss shapeStrokeCss; // rough stroke path (note/choice/fork/end)
+  StateElementCss labelCss;       // span.nodeLabel
   // The label's <p> (INSIDE the span — the text wrapper): the text's used
   // font/color resolve here (it folds the span chain by inheritance), and its
   // display/visibility hide the text exactly like the fo's content.
@@ -174,13 +175,13 @@ struct StateSceneEdge {
   QString stroke;
   QString strokeWidth;
   QString strokeDasharray;
-  StateElementCss shapeCss;   // path.transition (+ .note-edge)
-  StateElementCss labelCss;   // span.edgeLabel
+  StateElementCss shapeCss; // path.transition (+ .note-edge)
+  StateElementCss labelCss; // span.edgeLabel
   // The label <p> INSIDE the span (span > p > text): the html label paints
   // its background on the p, and the p's OWN opacity/display/visibility gate
   // the whole label — the span's slots do not fold a descendant.
   StateElementCss labelBackgroundCss;
-  QString labelBackground;    // p background-color (CSS spelling)
+  QString labelBackground; // p background-color (CSS spelling)
   rough::Drawable roughDrawable;
 };
 struct StateScene : MermaidScene {
@@ -195,9 +196,7 @@ struct StateScene : MermaidScene {
   // The exported root carries the exact fractional getBBox-derived viewBox
   // (e.g. a 76.96875-tall diagram), not the raster-rounded canvas ints.
   QRectF svgClientViewBox() const override { return bounds; }
-  const QVector<InteractionRegion>& interactionRegions() const override {
-    return interactionRegions_;
-  }
+  const QVector<InteractionRegion>& interactionRegions() const override { return interactionRegions_; }
 
   QString role = QStringLiteral("graphics-document document");
   QString ariaRoleDescription = QStringLiteral("stateDiagram");
@@ -209,7 +208,7 @@ struct StateScene : MermaidScene {
   QVector<StateSceneNode> clusters;
   QVector<StateSceneEdge> edges;
   QVector<StateSceneNode> nodes;
-  QVector<InteractionRegion> interactionRegions_;  // click links (precomputed)
+  QVector<InteractionRegion> interactionRegions_; // click links (precomputed)
   // The referenced marker path (classic barbEnd / neo -margin clone): its
   // computed fill/stroke is the raster arrowhead color (theme
   // transitionColor via `defs [id$="-barbEnd"]`, refined by themeCSS).
@@ -221,13 +220,9 @@ struct StateScene : MermaidScene {
   quint32 handDrawnSeed = 0;
 };
 
-StateScene buildStateScene(const StateLayoutInput& input,
-                           const StatePlacementResult& placement,
-                           StateSceneStyle style = {},
-                           const style::ThemeDefaults& themeDefaults = {},
-                           bool handDrawn = false,
-                           quint32 handDrawnSeed = 0,
-                           const QVector<StateSceneLink>& links = {},
+StateScene buildStateScene(const StateLayoutInput& input, const StatePlacementResult& placement,
+                           StateSceneStyle style = {}, const style::ThemeDefaults& themeDefaults = {},
+                           bool handDrawn = false, quint32 handDrawnSeed = 0, const QVector<StateSceneLink>& links = {},
                            // themeCSS label-font feedback for the scene's own
                            // text metrics (titleHeight, description rows,
                            // edge-label boxes): ids of nodes AND clusters in
@@ -236,4 +231,4 @@ StateScene buildStateScene(const StateLayoutInput& input,
                            const QHash<QString, StateMeasureCss>* labelCssFonts = nullptr,
                            const QHash<QString, StateMeasureCss>* edgeLabelCssFonts = nullptr);
 
-}  // namespace muffin::mermaid::state
+} // namespace muffin::mermaid::state

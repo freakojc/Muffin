@@ -18,12 +18,15 @@ public:
   QVector<MathParseNode> parse();
 
 private:
-  class DepthGuard;  // logical nesting budget, defined in the .cpp
+  class DepthGuard; // logical nesting budget, defined in the .cpp
   MathParseTask<QVector<MathParseNode>> parseExpression(const QString& breakOn = {});
   MathParseTask<QVector<MathParseNode>> parseExpressionUntilAny(const QVector<QString>& breakTokens);
-  MathParseTask<MathParseNode> parseInfixFraction(const MathToken& token, QVector<MathParseNode> numerator, const QString& breakOn);
-  MathParseTask<MathParseNode> parseInfixFractionUntilAny(const MathToken& token, QVector<MathParseNode> numerator, const QVector<QString>& breakTokens);
-  MathParseTask<MathParseNode> makeInfixFraction(const MathToken& token, QVector<MathParseNode> numerator, QVector<MathParseNode> denominator, qreal lineThickness = -1.0);
+  MathParseTask<MathParseNode> parseInfixFraction(const MathToken& token, QVector<MathParseNode> numerator,
+                                                  const QString& breakOn);
+  MathParseTask<MathParseNode> parseInfixFractionUntilAny(const MathToken& token, QVector<MathParseNode> numerator,
+                                                          const QVector<QString>& breakTokens);
+  MathParseTask<MathParseNode> makeInfixFraction(const MathToken& token, QVector<MathParseNode> numerator,
+                                                 QVector<MathParseNode> denominator, qreal lineThickness = -1.0);
   MathParseTask<MathParseNode> parseAtom();
   MathParseTask<MathParseNode> parseFunction(const MathToken& token, const MathFunctionSpec& function);
   // LaTeX function-command handlers — one per MathFunctionHandlerKind. parseFunction is a thin
@@ -81,7 +84,8 @@ private:
   void reportFunctionPolicy(const MathToken& token, const MathFunctionSpec& function);
   void reportKernUnitPolicy(const MathToken& token, const QString& sizeText);
   bool ensureTrusted(const MathToken& token, const MathFunctionSpec& function, const MathTrustContext& context);
-  MathTrustContext trustContextForNode(const MathToken& token, const MathFunctionSpec& function, const MathParseNode& node) const;
+  MathTrustContext trustContextForNode(const MathToken& token, const MathFunctionSpec& function,
+                                       const MathParseNode& node) const;
   bool isAccentCommand(const QString& token) const;
   bool isAccentUnderCommand(const QString& token) const;
   bool isHorizBraceCommand(const QString& token) const;
@@ -119,4 +123,4 @@ private:
   int depth_ = 0;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

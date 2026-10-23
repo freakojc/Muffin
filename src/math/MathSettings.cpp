@@ -13,13 +13,14 @@ QString messageWithCode(const QString& prefix, const QString& errorCode, const Q
   return QStringLiteral("%1: %2 [%3]").arg(prefix, errorMessage, errorCode);
 }
 
-}  // namespace
+} // namespace
 
 bool MathSettings::strictEnabled() const {
   return strict != MathStrictMode::Ignore || strictHandler;
 }
 
-void MathSettings::reportNonstrict(const QString& errorCode, const QString& errorMessage, const MathToken* token) const {
+void MathSettings::reportNonstrict(const QString& errorCode, const QString& errorMessage,
+                                   const MathToken* token) const {
   MathStrictMode mode = strict;
   if (strictHandler) {
     mode = strictHandler(errorCode, errorMessage, token);
@@ -40,7 +41,8 @@ void MathSettings::reportNonstrict(const QString& errorCode, const QString& erro
   qWarning() << message;
 }
 
-bool MathSettings::shouldApplyStrictBehavior(const QString& errorCode, const QString& errorMessage, const MathToken* token) const {
+bool MathSettings::shouldApplyStrictBehavior(const QString& errorCode, const QString& errorMessage,
+                                             const MathToken* token) const {
   MathStrictMode mode = strict;
   if (strictHandler) {
     mode = strictHandler(errorCode, errorMessage, token);
@@ -60,4 +62,4 @@ bool MathSettings::isTrusted(const MathTrustContext& context) const {
   return trust;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

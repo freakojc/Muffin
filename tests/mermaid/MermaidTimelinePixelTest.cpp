@@ -24,13 +24,13 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 QByteArray sha256(const QString& path) {
   QFile file(path);
-  return file.open(QIODevice::ReadOnly)
-             ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
-             : QByteArray();
+  return file.open(QIODevice::ReadOnly) ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
+                                        : QByteArray();
 }
 QImage decode(const QString& url) {
   QImage image;
@@ -40,8 +40,7 @@ QImage decode(const QString& url) {
   return image;
 }
 qreal alphaIou(const QImage& native, const QImage& reference) {
-  const QImage scaled = native.scaled(reference.size(), Qt::IgnoreAspectRatio,
-                                      Qt::SmoothTransformation);
+  const QImage scaled = native.scaled(reference.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
   int intersection = 0;
   int united = 0;
   for (int y = 0; y < reference.height(); ++y)
@@ -54,15 +53,15 @@ qreal alphaIou(const QImage& native, const QImage& reference) {
   return united ? qreal(intersection) / united : 1.0;
 }
 qreal rgbaSimilarity(const QImage& native, const QImage& reference) {
-  const QImage scaled = native.scaled(reference.size(), Qt::IgnoreAspectRatio,
-                                      Qt::SmoothTransformation);
+  const QImage scaled = native.scaled(reference.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
   qreal difference = 0.0;
   int count = 0;
   for (int y = 0; y < reference.height(); ++y)
     for (int x = 0; x < reference.width(); ++x) {
       const QColor a = scaled.pixelColor(x, y);
       const QColor b = reference.pixelColor(x, y);
-      if (a.alpha() < 32 && b.alpha() < 32) continue;
+      if (a.alpha() < 32 && b.alpha() < 32)
+        continue;
       ++count;
       auto premul = [](int channel, int alpha) { return channel * alpha / 255; };
       difference += std::abs(premul(a.red(), a.alpha()) - premul(b.red(), b.alpha()));
@@ -72,7 +71,7 @@ qreal rgbaSimilarity(const QImage& native, const QImage& reference) {
     }
   return count ? 1.0 - difference / (count * 4.0 * 255.0) : 1.0;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -97,20 +96,21 @@ int main(int argc, char** argv) {
             id + QStringLiteral(": browser PNG drifted"));
     const QImage browser(pngPath);
     require(!browser.isNull(), id + QStringLiteral(": browser PNG failed to decode"));
-    const QImage native = decode(editor::MermaidRenderCache::renderMermaidSourceToPng(
-                                     fixture.value(QStringLiteral("source")).toString(), 1.0)
-                                     .dataUrl);
+    const QImage native = decode(
+        editor::MermaidRenderCache::renderMermaidSourceToPng(fixture.value(QStringLiteral("source")).toString(), 1.0)
+            .dataUrl);
     require(!native.isNull(), id + QStringLiteral(": native PNG failed to decode"));
-    require(std::abs(native.width() - browser.width()) <= 1 &&
-                std::abs(native.height() - browser.height()) <= 1,
+    require(std::abs(native.width() - browser.width()) <= 1 && std::abs(native.height() - browser.height()) <= 1,
             QStringLiteral("%1: canvas %2x%3 != %4x%5")
-                .arg(id).arg(native.width()).arg(native.height())
-                .arg(browser.width()).arg(browser.height()));
+                .arg(id)
+                .arg(native.width())
+                .arg(native.height())
+                .arg(browser.width())
+                .arg(browser.height()));
     const qreal iou = alphaIou(native, browser);
     const qreal rgba = rgbaSimilarity(native, browser);
-    std::fprintf(stderr, "%s native=%dx%d browser=%dx%d iou=%.6f rgba=%.6f\n",
-                 qPrintable(id), native.width(), native.height(), browser.width(),
-                 browser.height(), iou, rgba);
+    std::fprintf(stderr, "%s native=%dx%d browser=%dx%d iou=%.6f rgba=%.6f\n", qPrintable(id), native.width(),
+                 native.height(), browser.width(), browser.height(), iou, rgba);
     require(iou >= 0.86, id + QStringLiteral(": alpha IoU regressed"));
     require(rgba >= 0.82, id + QStringLiteral(": foreground RGBA regressed"));
   }

@@ -13,4 +13,4 @@ public:
   bool supportsLanguage(const QString& language) const;
 };
 
-}  // namespace muffin
+} // namespace muffin

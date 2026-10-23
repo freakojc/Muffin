@@ -233,11 +233,10 @@ struct SequenceLayoutResult {
 // Converts the parser DB into the same semantic streams consumed by Mermaid's
 // sequence renderer. Measurements are supplied by the label oracle, keeping
 // text shaping errors separate from placement errors.
-SequenceLayoutInput buildSequenceLayoutInput(
-    const SequenceData& data, const SequenceLayoutMeasurements& measurements = {});
+SequenceLayoutInput buildSequenceLayoutInput(const SequenceData& data,
+                                             const SequenceLayoutMeasurements& measurements = {});
 
-SequenceLayoutResult layoutSequence(const SequenceData& data,
-                                    const SequenceLayoutMeasurements& measurements,
+SequenceLayoutResult layoutSequence(const SequenceData& data, const SequenceLayoutMeasurements& measurements,
                                     SequenceLayoutOptions options = {});
 
-}  // namespace muffin::mermaid::sequence
+} // namespace muffin::mermaid::sequence

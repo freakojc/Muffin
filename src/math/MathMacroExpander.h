@@ -56,7 +56,7 @@ private:
   // Shared across re-entrant \edef/\xdef sub-expanders so a fresh sub-expander can't reset the
   // maxExpand budget (DoS bypass). The outermost expander owns a fresh counter (make_shared<int>(0)).
   std::shared_ptr<int> expansionCount_;
-  int expandDepth_ = 0;  // bounds logical \expandafter nesting
+  int expandDepth_ = 0; // bounds logical \expandafter nesting
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

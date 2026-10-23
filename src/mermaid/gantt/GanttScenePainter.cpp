@@ -27,26 +27,23 @@ struct GanttPaintContext {
   qreal diagonal = 1.0;
 };
 
-qreal cssStrokeWidth(const GanttElementCss& css, qreal base,
-                     const GanttPaintContext& context) {
-  if (css.strokeWidth.trimmed().isEmpty()) return base;
-  return editor::cssStrokeWidthPx(css.strokeWidth, context.lengths,
-                                  context.diagonal);
+qreal cssStrokeWidth(const GanttElementCss& css, qreal base, const GanttPaintContext& context) {
+  if (css.strokeWidth.trimmed().isEmpty())
+    return base;
+  return editor::cssStrokeWidthPx(css.strokeWidth, context.lengths, context.diagonal);
 }
 
-void drawRect(QPainter& painter, const GanttRectGeometry& rect,
-              const GanttPaintContext& context) {
-  if (!rect.css.visible) return;
+void drawRect(QPainter& painter, const GanttRectGeometry& rect, const GanttPaintContext& context) {
+  if (!rect.css.visible)
+    return;
   painter.save();
   QColor fill = paintColor(rect.css.fill.isEmpty() ? rect.fill : rect.css.fill);
   const qreal opacity = rect.css.opacity >= 0.0 ? rect.css.opacity : rect.opacity;
   fill.setAlphaF(std::clamp(fill.alphaF() * opacity, 0.0, 1.0));
   painter.setBrush(fill);
   const QString stroke = rect.css.stroke.isEmpty() ? rect.stroke : rect.css.stroke;
-  const qreal strokeWidth =
-      cssStrokeWidth(rect.css, rect.strokeWidth, context);
-  if (strokeWidth > 0.0 && !stroke.isEmpty() &&
-      stroke.compare(QStringLiteral("none"), Qt::CaseInsensitive) != 0)
+  const qreal strokeWidth = cssStrokeWidth(rect.css, rect.strokeWidth, context);
+  if (strokeWidth > 0.0 && !stroke.isEmpty() && stroke.compare(QStringLiteral("none"), Qt::CaseInsensitive) != 0)
     painter.setPen(QPen(paintColor(stroke), strokeWidth));
   else
     painter.setPen(Qt::NoPen);
@@ -63,11 +60,12 @@ void drawRect(QPainter& painter, const GanttRectGeometry& rect,
   painter.restore();
 }
 
-void drawLine(QPainter& painter, const GanttLineGeometry& line,
-              const GanttPaintContext& context) {
-  if (!line.css.visible) return;
+void drawLine(QPainter& painter, const GanttLineGeometry& line, const GanttPaintContext& context) {
+  if (!line.css.visible)
+    return;
   const qreal strokeWidth = cssStrokeWidth(line.css, line.strokeWidth, context);
-  if (strokeWidth <= 0.0) return;
+  if (strokeWidth <= 0.0)
+    return;
   QColor color = paintColor(line.css.stroke.isEmpty() ? line.stroke : line.css.stroke);
   const qreal opacity = line.css.opacity >= 0.0 ? line.css.opacity : line.opacity;
   color.setAlphaF(std::clamp(color.alphaF() * opacity, 0.0, 1.0));
@@ -78,31 +76,34 @@ void drawLine(QPainter& painter, const GanttLineGeometry& line,
 
 GanttTextAnchor cssAnchor(const QString& value, GanttTextAnchor fallback) {
   const QString anchor = value.trimmed().toLower();
-  if (anchor == QLatin1String("middle")) return GanttTextAnchor::Middle;
-  if (anchor == QLatin1String("end")) return GanttTextAnchor::End;
-  if (anchor == QLatin1String("start")) return GanttTextAnchor::Start;
+  if (anchor == QLatin1String("middle"))
+    return GanttTextAnchor::Middle;
+  if (anchor == QLatin1String("end"))
+    return GanttTextAnchor::End;
+  if (anchor == QLatin1String("start"))
+    return GanttTextAnchor::Start;
   return fallback;
 }
 
-void drawText(QPainter& painter, const GanttScene& scene,
-              const GanttTextGeometry& text) {
-  if (!text.css.visible) return;
-  if (text.text.isEmpty() && text.lines.isEmpty()) return;
-  const QString family = text.css.fontFamily.isEmpty() ? scene.style.fontFamily
-                                                       : text.css.fontFamily;
+void drawText(QPainter& painter, const GanttScene& scene, const GanttTextGeometry& text) {
+  if (!text.css.visible)
+    return;
+  if (text.text.isEmpty() && text.lines.isEmpty())
+    return;
+  const QString family = text.css.fontFamily.isEmpty() ? scene.style.fontFamily : text.css.fontFamily;
   const qreal size = text.css.fontSize >= 0.0 ? text.css.fontSize : text.fontSize;
   editor::CssPixelFont font = editor::makeUnhintedCssPixelFont(family, size);
-  if (!(font.scale > 0.0)) return;
+  if (!(font.scale > 0.0))
+    return;
   QFont qfont = font.font;
   const QString weight = text.css.fontWeight.trimmed().toLower();
-  qfont.setWeight(weight == QLatin1String("bold") || weight == QLatin1String("bolder") ||
-                          (weight.toInt() >= 700)
+  qfont.setWeight(weight == QLatin1String("bold") || weight == QLatin1String("bolder") || (weight.toInt() >= 700)
                       ? QFont::Bold
                       : QFont::Normal);
-  if (text.bold) qfont.setWeight(QFont::Bold);
+  if (text.bold)
+    qfont.setWeight(QFont::Bold);
   const QString fontStyle = text.css.fontStyle.trimmed().toLower();
-  qfont.setItalic(fontStyle.isEmpty() ? text.italic
-                                      : fontStyle == QLatin1String("italic"));
+  qfont.setItalic(fontStyle.isEmpty() ? text.italic : fontStyle == QLatin1String("italic"));
   const GanttTextAnchor anchor = cssAnchor(text.css.textAnchor, text.anchor);
   TextFontMetrics metrics(qfont);
   QColor pen = paintColor(text.css.fill.isEmpty() ? text.fill : text.css.fill);
@@ -111,8 +112,10 @@ void drawText(QPainter& painter, const GanttScene& scene,
   const auto oneLine = [&](const QString& value, const QPointF& at) {
     qreal x = at.x();
     const qreal width = metrics.horizontalAdvance(value) * font.scale;
-    if (anchor == GanttTextAnchor::Middle) x -= width / 2.0;
-    else if (anchor == GanttTextAnchor::End) x -= width;
+    if (anchor == GanttTextAnchor::Middle)
+      x -= width / 2.0;
+    else if (anchor == GanttTextAnchor::End)
+      x -= width;
     painter.save();
     painter.translate(x, at.y());
     painter.scale(font.scale, font.scale);
@@ -126,38 +129,41 @@ void drawText(QPainter& painter, const GanttScene& scene,
     return;
   }
   const qreal dy = -(text.lines.size() - 1) / 2.0 * text.lineStep;
-  const qreal centralBaseline = (metrics.ascent() - metrics.descent()) *
-                                font.scale / 2.0;
+  const qreal centralBaseline = (metrics.ascent() - metrics.descent()) * font.scale / 2.0;
   for (qsizetype i = 0; i < text.lines.size(); ++i)
-    oneLine(text.lines.at(i),
-            QPointF(text.position.x(), text.position.y() + dy +
-                    i * text.lineStep + centralBaseline));
+    oneLine(text.lines.at(i), QPointF(text.position.x(), text.position.y() + dy + i * text.lineStep + centralBaseline));
 }
 
-}  // namespace
+} // namespace
 
-void paintGanttScene(const GanttScene& scene, QPainter& painter,
-                     const MermaidPaintOptions& options) {
+void paintGanttScene(const GanttScene& scene, QPainter& painter, const MermaidPaintOptions& options) {
   Q_UNUSED(options);
   painter.save();
   painter.setRenderHint(QPainter::Antialiasing, true);
   painter.setRenderHint(QPainter::TextAntialiasing, true);
   painter.setClipRect(scene.bounds);
   GanttPaintContext context;
-  context.lengths = editor::pieCssLengthContext(
-      editor::firstFontFamily(scene.style.fontFamily), scene.style.rootFontSize);
-  context.diagonal = std::hypot(scene.bounds.width(), scene.bounds.height()) /
-                     std::sqrt(2.0);
-  for (const auto& rect : scene.excludes) drawRect(painter, rect, context);
-  for (const auto& line : scene.gridLines) drawLine(painter, line, context);
-  for (const auto& text : scene.gridLabels) drawText(painter, scene, text);
-  for (const auto& rect : scene.sections) drawRect(painter, rect, context);
-  for (const auto& rect : scene.tasks) drawRect(painter, rect, context);
-  for (const auto& text : scene.taskLabels) drawText(painter, scene, text);
-  for (const auto& text : scene.sectionLabels) drawText(painter, scene, text);
-  for (const auto& line : scene.todayLines) drawLine(painter, line, context);
+  context.lengths =
+      editor::pieCssLengthContext(editor::firstFontFamily(scene.style.fontFamily), scene.style.rootFontSize);
+  context.diagonal = std::hypot(scene.bounds.width(), scene.bounds.height()) / std::sqrt(2.0);
+  for (const auto& rect : scene.excludes)
+    drawRect(painter, rect, context);
+  for (const auto& line : scene.gridLines)
+    drawLine(painter, line, context);
+  for (const auto& text : scene.gridLabels)
+    drawText(painter, scene, text);
+  for (const auto& rect : scene.sections)
+    drawRect(painter, rect, context);
+  for (const auto& rect : scene.tasks)
+    drawRect(painter, rect, context);
+  for (const auto& text : scene.taskLabels)
+    drawText(painter, scene, text);
+  for (const auto& text : scene.sectionLabels)
+    drawText(painter, scene, text);
+  for (const auto& line : scene.todayLines)
+    drawLine(painter, line, context);
   drawText(painter, scene, scene.titleGeometry);
   painter.restore();
 }
 
-}  // namespace muffin::mermaid::gantt
+} // namespace muffin::mermaid::gantt

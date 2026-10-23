@@ -23,19 +23,29 @@ QString marginsName(const QMarginsF& margins) {
       .arg(margins.bottom());
 }
 
-}  // namespace
+} // namespace
 
 QString formatCssStyleWinner(const CssStyleDebugWinner& winner) {
   QStringList parts;
   parts << QStringLiteral("target=%1").arg(winner.target.isEmpty() ? QStringLiteral("<unknown>") : winner.target);
   parts << QStringLiteral("property=%1").arg(winner.property.isEmpty() ? QStringLiteral("<unknown>") : winner.property);
-  if (!winner.selector.isEmpty()) { parts << QStringLiteral("selector=%1").arg(winner.selector); }
-  if (!winner.rawValue.isEmpty()) { parts << QStringLiteral("raw=%1").arg(winner.rawValue); }
-  if (!winner.resolvedValue.isEmpty()) { parts << QStringLiteral("resolved=%1").arg(winner.resolvedValue); }
-  if (!winner.fallbackTier.isEmpty()) { parts << QStringLiteral("tier=%1").arg(winner.fallbackTier); }
+  if (!winner.selector.isEmpty()) {
+    parts << QStringLiteral("selector=%1").arg(winner.selector);
+  }
+  if (!winner.rawValue.isEmpty()) {
+    parts << QStringLiteral("raw=%1").arg(winner.rawValue);
+  }
+  if (!winner.resolvedValue.isEmpty()) {
+    parts << QStringLiteral("resolved=%1").arg(winner.resolvedValue);
+  }
+  if (!winner.fallbackTier.isEmpty()) {
+    parts << QStringLiteral("tier=%1").arg(winner.fallbackTier);
+  }
   parts << QStringLiteral("spec=%1").arg(winner.specificity);
   parts << QStringLiteral("order=%1").arg(winner.sourceOrder);
-  if (winner.important) { parts << QStringLiteral("important"); }
+  if (winner.important) {
+    parts << QStringLiteral("important");
+  }
   return parts.join(QStringLiteral(" "));
 }
 
@@ -55,7 +65,8 @@ QString formatThemeDefinitionSummary(const ThemeDefinition& definition) {
   parts << QStringLiteral("page=%1").arg(colorName(p.pageBackground));
   parts << QStringLiteral("pageMaxW=%1").arg(p.pageMaxWidth);
   parts << QStringLiteral("pagePadding=[%1]").arg(marginsName(p.pagePadding));
-  parts << QStringLiteral("pageMarginExplicit=%1").arg(p.pageMarginExplicit ? QStringLiteral("true") : QStringLiteral("false"));
+  parts << QStringLiteral("pageMarginExplicit=%1")
+               .arg(p.pageMarginExplicit ? QStringLiteral("true") : QStringLiteral("false"));
   parts << QStringLiteral("pageMargin=[%1]").arg(marginsName(p.pageMargin));
   parts << QStringLiteral("pseudos=%1 backgrounds=%2 hover=%3 keyframes=%4 animations=%5")
                .arg(definition.decorations.pseudos.size())
@@ -66,4 +77,4 @@ QString formatThemeDefinitionSummary(const ThemeDefinition& definition) {
   return parts.join(QStringLiteral(" "));
 }
 
-}  // namespace muffin
+} // namespace muffin

@@ -55,7 +55,8 @@ inline void setCursor(muffin::SelectionController& selection, muffin::MarkdownNo
   selection.setCursorPosition(cursor);
 }
 
-inline void setSourceCursor(muffin::SelectionController& selection, muffin::MarkdownNode* block, qsizetype visibleOffset, qsizetype sourceOffset) {
+inline void setSourceCursor(muffin::SelectionController& selection, muffin::MarkdownNode* block,
+                            qsizetype visibleOffset, qsizetype sourceOffset) {
   muffin::CursorPosition cursor;
   cursor.blockId = block->id();
   cursor.text.nodeId = block->id();
@@ -64,7 +65,8 @@ inline void setSourceCursor(muffin::SelectionController& selection, muffin::Mark
   selection.setCursorPosition(cursor);
 }
 
-inline void setSelection(muffin::SelectionController& selection, muffin::MarkdownNode* block, qsizetype anchor, qsizetype focus) {
+inline void setSelection(muffin::SelectionController& selection, muffin::MarkdownNode* block, qsizetype anchor,
+                         qsizetype focus) {
   muffin::SelectionRange range;
   range.anchor.blockId = block->id();
   range.anchor.text.nodeId = block->id();
@@ -76,8 +78,8 @@ inline void setSelection(muffin::SelectionController& selection, muffin::Markdow
 }
 
 inline void setSourceSelection(muffin::SelectionController& selection, muffin::MarkdownNode* block,
-                        qsizetype anchorText, qsizetype anchorSource,
-                        qsizetype focusText, qsizetype focusSource) {
+                               qsizetype anchorText, qsizetype anchorSource, qsizetype focusText,
+                               qsizetype focusSource) {
   muffin::SelectionRange range;
   range.anchor.blockId = block->id();
   range.anchor.text.nodeId = block->id();
@@ -90,12 +92,9 @@ inline void setSourceSelection(muffin::SelectionController& selection, muffin::M
   selection.setSelection(range);
 }
 
-inline void wireParagraph(
-    muffin::ParagraphController& paragraph,
-    muffin::DocumentSession& session,
-    muffin::SelectionController& selection,
-    muffin::UndoStack& undoStack,
-    muffin::BrushQueue& brushQueue) {
+inline void wireParagraph(muffin::ParagraphController& paragraph, muffin::DocumentSession& session,
+                          muffin::SelectionController& selection, muffin::UndoStack& undoStack,
+                          muffin::BrushQueue& brushQueue) {
   muffin::EditorContext ctx;
   ctx.session = &session;
   ctx.selection = &selection;

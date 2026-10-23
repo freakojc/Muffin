@@ -26,7 +26,7 @@ struct Harness {
   Harness() { wireInput(input, session, selection, undoStack, brushQueue); }
   void load(const QString& md) { session.setMarkdownText(md, false); }
 };
-}  // namespace
+} // namespace
 
 // Regression for the reported bug: on an empty trailing list item, backspace used to outdent
 // (delete only the "* " marker), collapsing the line to trailing whitespace that parses to no
@@ -89,7 +89,8 @@ void testBackspaceSoleEmptyItemStillOutdents() {
   setCursor(h.selection, listItemAt(h.session, 0, 0), 0);
 
   require(h.input.deleteBackward(), "backspace on sole empty item should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral(""), "sole empty item should outdent to an empty document");
+  require(h.session.markdownText().toString() == QStringLiteral(""),
+          "sole empty item should outdent to an empty document");
   require(h.selection.hasCursor(), "caret must remain valid after outdenting the sole item");
 }
 
@@ -128,11 +129,10 @@ void testMarkerOnlyLineIsAListLine() {
 void testBackspaceThroughMarkerOnlyItemDeletesList() {
   Harness h;
   h.load(QStringLiteral("3423.\n\n234.《光标在这里》"));
-  require(h.session.document().root().children().size() == 2,
-          "document should hold the list and the paragraph");
+  require(h.session.document().root().children().size() == 2, "document should hold the list and the paragraph");
   MarkdownNode* paragraph = h.session.document().root().children().at(1).get();
   require(paragraph->type() == BlockType::Paragraph, "'234.《…》' without a space is a paragraph");
-  setCursor(h.selection, paragraph, 11);  // end of "234.《光标在这里》"
+  setCursor(h.selection, paragraph, 11); // end of "234.《光标在这里》"
 
   for (int step = 0; step < 20; ++step) {
     require(h.input.deleteBackward(), "each backspace should be handled");
@@ -148,7 +148,7 @@ void testBackspaceThroughMarkerOnlyItemDeletesList() {
 void testBackspaceOnSoleMarkerOnlyItemMakesProgress() {
   Harness h;
   h.load(QStringLiteral("3423.\n\n234. 《光标在这里》"));
-  setCursor(h.selection, listItemAt(h.session, 0, 1), 7);  // end of 《光标在这里》
+  setCursor(h.selection, listItemAt(h.session, 0, 1), 7); // end of 《光标在这里》
 
   const QString before = h.session.markdownText().toString();
   for (int step = 0; step < 16; ++step) {

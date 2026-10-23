@@ -27,7 +27,7 @@ namespace muffin {
 class MUFFIN_UI_EXPORT SpellChecker : public QObject {
   Q_OBJECT
 
- public:
+public:
   static SpellChecker& instance();
 
   // Defined out-of-line (in the .cpp) so the nuspell::Dictionary held by the
@@ -60,11 +60,11 @@ class MUFFIN_UI_EXPORT SpellChecker : public QObject {
   bool isIgnored(QStringView word) const;
   void ignoreWord(QStringView word);
 
- signals:
+signals:
   void enabledChanged(bool enabled);
   void languageChanged(const QString& localeCode);
 
- private:
+private:
   SpellChecker(QObject* parent = nullptr);
   void loadDictionary(const QString& localeCode);
   // Lazily parse the selected dictionary on first use, so a disabled checker adds no
@@ -74,8 +74,8 @@ class MUFFIN_UI_EXPORT SpellChecker : public QObject {
   std::unique_ptr<nuspell::Dictionary> dictionary_;
   QString selectedLocale_;
   QString loadedLocale_;
-  QSet<QString> ignoredWords_;  // lowercased, for case-insensitive ignore
+  QSet<QString> ignoredWords_; // lowercased, for case-insensitive ignore
   bool enabled_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

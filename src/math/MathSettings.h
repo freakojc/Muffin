@@ -11,11 +11,7 @@ namespace muffin::math {
 
 struct MathToken;
 
-enum class MathStrictMode {
-  Ignore,
-  Warn,
-  Error
-};
+enum class MathStrictMode { Ignore, Warn, Error };
 
 struct MathTrustContext {
   QString command;
@@ -34,7 +30,8 @@ struct MathSettings {
   bool throwOnError = false;
   MathStrictMode strict = MathStrictMode::Ignore;
   bool trust = false;
-  std::function<MathStrictMode(const QString& errorCode, const QString& errorMessage, const MathToken* token)> strictHandler;
+  std::function<MathStrictMode(const QString& errorCode, const QString& errorMessage, const MathToken* token)>
+      strictHandler;
   std::function<bool(const MathTrustContext& context)> trustHandler;
   QColor errorColor = QColor(QStringLiteral("#cc0000"));
   qreal maxSize = 1000.0;
@@ -44,8 +41,9 @@ struct MathSettings {
 
   bool strictEnabled() const;
   void reportNonstrict(const QString& errorCode, const QString& errorMessage, const MathToken* token = nullptr) const;
-  bool shouldApplyStrictBehavior(const QString& errorCode, const QString& errorMessage, const MathToken* token = nullptr) const;
+  bool shouldApplyStrictBehavior(const QString& errorCode, const QString& errorMessage,
+                                 const MathToken* token = nullptr) const;
   bool isTrusted(const MathTrustContext& context) const;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

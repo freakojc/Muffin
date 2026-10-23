@@ -24,4 +24,4 @@ void paintErrorScene(const ErrorScene& scene, QPainter& painter);
 // capture.
 void paintErrorIcon(const ErrorScene& scene, QPainter& painter, int index);
 
-}  // namespace muffin::mermaid::error
+} // namespace muffin::mermaid::error

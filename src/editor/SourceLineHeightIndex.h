@@ -45,13 +45,11 @@ private:
   static qint64 heightOf(const std::unique_ptr<Node>& node);
   static void refresh(Node& node);
   static std::unique_ptr<Node> makeNode(qsizetype count, int height);
-  static std::pair<std::unique_ptr<Node>, std::unique_ptr<Node>> split(
-      std::unique_ptr<Node> root, qsizetype leftCount);
-  static std::unique_ptr<Node> merge(
-      std::unique_ptr<Node> left, std::unique_ptr<Node> right);
+  static std::pair<std::unique_ptr<Node>, std::unique_ptr<Node>> split(std::unique_ptr<Node> root, qsizetype leftCount);
+  static std::unique_ptr<Node> merge(std::unique_ptr<Node> left, std::unique_ptr<Node> right);
 
   std::unique_ptr<Node> root_;
   int estimatedHeight_ = 1;
 };
 
-}  // namespace muffin
+} // namespace muffin

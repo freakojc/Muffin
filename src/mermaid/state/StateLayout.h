@@ -105,22 +105,19 @@ struct StatePlacementResult {
   QVector<StatePlacementCluster> clusters;
 };
 
-StateLayoutInput buildStateLayoutInput(const StateDiagramData& data,
-                                       QString look = QStringLiteral("classic"));
+StateLayoutInput buildStateLayoutInput(const StateDiagramData& data, QString look = QStringLiteral("classic"));
 QJsonObject stateLayoutInputToJson(const StateLayoutInput& input);
-StateLayoutMeasurements measureStateLayoutInput(
-    const StateLayoutInput& input, QString fontFamily = QStringLiteral("Noto Sans"),
-    qreal fontSize = 16.0, bool handDrawn = false,
-    quint32 handDrawnSeed = 0,
-    // shapeHidden: the legacy global `.node rect { display:none }` fold —
-    // plain nodes measure as the label bbox alone (no shape padding). The
-    // per-node css hash refines it element-by-element.
-    bool shapeHidden = false,
-    const QHash<QString, StateMeasureCss>* nodeCss = nullptr,
-    const QHash<QString, StateMeasureCss>* edgeLabelCss = nullptr);
-StatePlacementResult layoutStateDiagramDagre(
-    const StateLayoutInput& input, const StateLayoutMeasurements& measurements,
-    qreal nodeSpacing = 50.0, qreal rankSpacing = 50.0,
-    bool handDrawn = false, quint32 handDrawnSeed = 0);
+StateLayoutMeasurements measureStateLayoutInput(const StateLayoutInput& input,
+                                                QString fontFamily = QStringLiteral("Noto Sans"), qreal fontSize = 16.0,
+                                                bool handDrawn = false, quint32 handDrawnSeed = 0,
+                                                // shapeHidden: the legacy global `.node rect { display:none }` fold —
+                                                // plain nodes measure as the label bbox alone (no shape padding). The
+                                                // per-node css hash refines it element-by-element.
+                                                bool shapeHidden = false,
+                                                const QHash<QString, StateMeasureCss>* nodeCss = nullptr,
+                                                const QHash<QString, StateMeasureCss>* edgeLabelCss = nullptr);
+StatePlacementResult layoutStateDiagramDagre(const StateLayoutInput& input, const StateLayoutMeasurements& measurements,
+                                             qreal nodeSpacing = 50.0, qreal rankSpacing = 50.0, bool handDrawn = false,
+                                             quint32 handDrawnSeed = 0);
 
-}  // namespace muffin::mermaid::state
+} // namespace muffin::mermaid::state

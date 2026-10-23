@@ -26,8 +26,8 @@ QHash<QString, QByteArray> sourceManifest(const QString& path) {
   if (path.endsWith(QLatin1String(".css"), Qt::CaseInsensitive)) {
     QFile file(path);
     if (file.open(QIODevice::ReadOnly))
-      for (const auto& dependency : CssThemeParser::localResourcePaths(
-               QString::fromUtf8(file.readAll()), QFileInfo(path).absolutePath(), true))
+      for (const auto& dependency :
+           CssThemeParser::localResourcePaths(QString::fromUtf8(file.readAll()), QFileInfo(path).absolutePath(), true))
         sources.insert(dependency, themeResourceDigest(dependency));
   }
   return sources;
@@ -36,7 +36,8 @@ QHash<QString, QByteArray> sourceManifest(const QString& path) {
 bool sourcesUnchanged(const QHash<QString, QByteArray>& sources) {
   diag::ScopedPerfProbe perf("theme.revalidateSources", managerLoadPerf());
   for (auto it = sources.cbegin(); it != sources.cend(); ++it)
-    if (themeResourceDigest(it.key()) != it.value()) return false;
+    if (themeResourceDigest(it.key()) != it.value())
+      return false;
   return true;
 }
 
@@ -44,8 +45,10 @@ QString themeLabel(const QString& id) {
   QString label = id;
   bool capitalize = true;
   for (auto& c : label) {
-    if (c == QLatin1Char('-') || c == QLatin1Char('_')) c = QLatin1Char(' ');
-    if (capitalize) c = c.toUpper();
+    if (c == QLatin1Char('-') || c == QLatin1Char('_'))
+      c = QLatin1Char(' ');
+    if (capitalize)
+      c = c.toUpper();
     capitalize = c.isSpace();
   }
   return label;
@@ -59,10 +62,9 @@ bool isLocalCssReference(const QString& url) {
   if (u.isEmpty()) {
     return false;
   }
-  if (u.startsWith(QStringLiteral("http://"), Qt::CaseInsensitive)
-      || u.startsWith(QStringLiteral("https://"), Qt::CaseInsensitive)
-      || u.startsWith(QStringLiteral("data:"), Qt::CaseInsensitive)
-      || u.startsWith(QStringLiteral("//"))) {
+  if (u.startsWith(QStringLiteral("http://"), Qt::CaseInsensitive) ||
+      u.startsWith(QStringLiteral("https://"), Qt::CaseInsensitive) ||
+      u.startsWith(QStringLiteral("data:"), Qt::CaseInsensitive) || u.startsWith(QStringLiteral("//"))) {
     return false;
   }
   return true;
@@ -78,8 +80,7 @@ bool isLocalCssReference(const QString& url) {
 // and fonts fall back. `visited` guards against cycles/duplicate inclusion.
 QString flattenCssImports(const QString& text, const QString& baseDir, QSet<QString>& visited) {
   static const QRegularExpression re(
-      QStringLiteral(
-          "@import\\s+(?:url\\(\\s*)?['\"]?(?<url>[^'\"\\)\\s]+)['\"]?\\s*\\)?\\s*(?<media>[^;]*);"),
+      QStringLiteral("@import\\s+(?:url\\(\\s*)?['\"]?(?<url>[^'\"\\)\\s]+)['\"]?\\s*\\)?\\s*(?<media>[^;]*);"),
       QRegularExpression::CaseInsensitiveOption);
   QString out;
   out.reserve(text.size());
@@ -92,17 +93,17 @@ QString flattenCssImports(const QString& text, const QString& baseDir, QSet<QStr
     const QString url = m.captured(QStringLiteral("url"));
     const QString media = m.captured(QStringLiteral("media")).trimmed();
     if (!isLocalCssReference(url)) {
-      out += m.captured(0);  // keep remote/data @import verbatim
+      out += m.captured(0); // keep remote/data @import verbatim
       continue;
     }
     const QString absPath = QDir::cleanPath(baseDir + QLatin1Char('/') + url);
     if (visited.contains(absPath)) {
-      continue;  // already inlined (or cycle) — drop the duplicate @import
+      continue; // already inlined (or cycle) — drop the duplicate @import
     }
     visited.insert(absPath);
     QFile sub(absPath);
     if (!sub.open(QIODevice::ReadOnly | QIODevice::Text)) {
-      continue;  // unreadable base sheet — drop the @import rather than leave a broken ref
+      continue; // unreadable base sheet — drop the @import rather than leave a broken ref
     }
     const QString subText = QString::fromUtf8(sub.readAll());
     const QString inlined = flattenCssImports(subText, QFileInfo(absPath).absolutePath(), visited);
@@ -118,7 +119,7 @@ QString flattenCssImports(const QString& text, const QString& baseDir, QSet<QStr
   return out;
 }
 
-}  // namespace
+} // namespace
 
 struct ThemeManager::DefinitionReadScope {
   explicit DefinitionReadScope(ThemeManager& manager) : owner(manager), previous(manager.readScope_) {
@@ -133,13 +134,14 @@ struct ThemeManager::DefinitionReadScope {
 };
 
 QString ThemeManager::themesDirectory() {
-  return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
-         + QStringLiteral("/themes");
+  return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/themes");
 }
 
 bool ThemeManager::installCssTheme(const QString& srcPath, const QString& destDir) {
   QFile src(srcPath);
-  if (!src.open(QIODevice::ReadOnly | QIODevice::Text)) { return false; }
+  if (!src.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    return false;
+  }
   const QString text = QString::fromUtf8(src.readAll());
   src.close();
 
@@ -150,7 +152,9 @@ bool ThemeManager::installCssTheme(const QString& srcPath, const QString& destDi
   // Copy the top file verbatim — keep its @import, do NOT inline (inlining
   // would drop the folder structure and break @font-face url() in the base).
   const QString destFile = destRoot.absoluteFilePath(QFileInfo(srcPath).fileName().toLower());
-  if (QFileInfo::exists(destFile)) { QFile::remove(destFile); }
+  if (QFileInfo::exists(destFile)) {
+    QFile::remove(destFile);
+  }
   QFile::copy(srcPath, destFile);
 
   // Mirror every local file the theme transitively references (@import'd base
@@ -161,18 +165,24 @@ bool ThemeManager::installCssTheme(const QString& srcPath, const QString& destDi
   for (const QString& absPath : resources) {
     const QString cleaned = QDir::cleanPath(absPath);
     const QString rel = QDir(rootDir).relativeFilePath(cleaned);
-    if (rel.startsWith(QStringLiteral(".."))) { continue; }  // outside the theme folder
+    if (rel.startsWith(QStringLiteral(".."))) {
+      continue;
+    } // outside the theme folder
     const QString target = destRoot.absoluteFilePath(rel);
     QDir().mkpath(QFileInfo(target).absolutePath());
-    if (QFileInfo::exists(target)) { QFile::remove(target); }
+    if (QFileInfo::exists(target)) {
+      QFile::remove(target);
+    }
     QFile::copy(cleaned, target);
   }
   return true;
 }
 
-ThemeManager::ThemeManager(QObject* parent) : ThemeManager(themesDirectory(), parent) {}
+ThemeManager::ThemeManager(QObject* parent) : ThemeManager(themesDirectory(), parent) {
+}
 
-ThemeManager::ThemeManager(const QString& themeDirectory, QObject* parent) : QObject(parent), themeDirectory_(themeDirectory) {
+ThemeManager::ThemeManager(const QString& themeDirectory, QObject* parent)
+    : QObject(parent), themeDirectory_(themeDirectory) {
   loadDefinitions();
 }
 
@@ -195,17 +205,16 @@ void ThemeManager::loadDefinitions() {
     for (const auto& d : themes_) {
       known.insert(d.id);
     }
-    const QStringList files =
-        dir.entryList({QStringLiteral("*.json"), QStringLiteral("*.css")}, QDir::Files);
+    const QStringList files = dir.entryList({QStringLiteral("*.json"), QStringLiteral("*.css")}, QDir::Files);
     for (const QString& file : files) {
       const QString id = QFileInfo(file).baseName().toLower();
       if (known.contains(id)) {
-        continue;  // don't shadow a built-in (or an already-loaded stem)
+        continue; // don't shadow a built-in (or an already-loaded stem)
       }
       const QString absPath = dir.absoluteFilePath(file);
       sourcePaths_.insert(id, absPath);
       if (file.endsWith(QStringLiteral(".css"), Qt::CaseInsensitive)) {
-        cssSourcePaths_.insert(id, absPath);  // record real path for currentThemeCss()
+        cssSourcePaths_.insert(id, absPath); // record real path for currentThemeCss()
       }
       const auto* cached = loaded_.object(id);
       themes_.push_back({id, cached ? cached->definition.label : themeLabel(id), false});
@@ -213,7 +222,8 @@ void ThemeManager::loadDefinitions() {
     }
   }
   for (const auto& id : loaded_.keys())
-    if (!sourcePaths_.contains(id) || !loaded_.object(id)->sources.contains(sourcePaths_.value(id))) loaded_.remove(id);
+    if (!sourcePaths_.contains(id) || !loaded_.object(id)->sources.contains(sourcePaths_.value(id)))
+      loaded_.remove(id);
 }
 
 QString ThemeManager::currentThemeName() const {
@@ -223,7 +233,7 @@ QString ThemeManager::currentThemeName() const {
 QString ThemeManager::currentThemeCss() const {
   auto it = cssSourcePaths_.constFind(currentThemeName_);
   if (it == cssSourcePaths_.constEnd()) {
-    return {};  // JSON-only custom theme (or unknown) — no CSS source to embed.
+    return {}; // JSON-only custom theme (or unknown) — no CSS source to embed.
   }
   QFile f(it.value());
   if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -266,22 +276,27 @@ const std::vector<ThemeDescriptor>& ThemeManager::themes() const {
 }
 
 ThemeDefinition ThemeManager::loadDefinition(const QString& id, bool revalidate, bool* changed) const {
-  if (changed) *changed = false;
+  if (changed)
+    *changed = false;
   if (readScope_) {
     const auto found = readScope_->definitions.constFind(id);
-    if (found != readScope_->definitions.cend()) return *found;
+    if (found != readScope_->definitions.cend())
+      return *found;
   }
   const auto remember = [&](ThemeDefinition definition) {
-    if (readScope_) readScope_->definitions.insert(id, definition);
+    if (readScope_)
+      readScope_->definitions.insert(id, definition);
     return definition;
   };
   const auto source = sourcePaths_.constFind(id);
-  if (source == sourcePaths_.cend()) return remember(ThemeDefinition::builtIn(id).value_or(ThemeDefinition{}));
+  if (source == sourcePaths_.cend())
+    return remember(ThemeDefinition::builtIn(id).value_or(ThemeDefinition{}));
   if (const auto* cached = loaded_.object(id); cached && (!revalidate || sourcesUnchanged(cached->sources)))
     return remember(cached->definition);
   loaded_.remove(id);
   prepared_.clear();
-  if (changed) *changed = true;
+  if (changed)
+    *changed = true;
   const auto sources = sourceManifest(*source);
   ThemeDefinition d;
   if (source->endsWith(QLatin1String(".css"), Qt::CaseInsensitive)) {
@@ -290,15 +305,19 @@ ThemeDefinition ThemeManager::loadDefinition(const QString& id, bool revalidate,
     QFile file(*source);
     if (file.open(QIODevice::ReadOnly)) {
       const auto json = QJsonDocument::fromJson(file.readAll());
-      if (json.isObject()) d = ThemeDefinition::fromJson(json.object(), id);
+      if (json.isObject())
+        d = ThemeDefinition::fromJson(json.object(), id);
     }
   }
-  if (!d.valid()) return remember(std::move(d));
+  if (!d.valid())
+    return remember(std::move(d));
   for (auto& descriptor : themes_)
-    if (descriptor.id == id) descriptor.label = d.label;
+    if (descriptor.id == id)
+      descriptor.label = d.label;
   // If an editor replaced a file during loading, don't cache a definition
   // under a manifest from a different version. The next request retries.
-  if (sourcesUnchanged(sources)) loaded_.insert(id, new CachedTheme{d, sources});
+  if (sourcesUnchanged(sources))
+    loaded_.insert(id, new CachedTheme{d, sources});
   return remember(std::move(d));
 }
 
@@ -308,7 +327,8 @@ ThemeDefinition ThemeManager::definition(const QString& name) const {
   // The scope ends before returning to the caller/event loop, so the next
   // independent read still observes same-size, same-timestamp file changes.
   auto d = loadDefinition(name.toLower(), true);
-  if (d.valid()) return d;
+  if (d.valid())
+    return d;
   // Unknown name — fall back to github rather than an empty definition.
   return ThemeDefinition::builtIn(QStringLiteral("github")).value();
 }
@@ -335,7 +355,8 @@ bool ThemeManager::selectTheme(QString name) {
     return false;
   }
   bool changed = false;
-  if (!loadDefinition(name, true, &changed).valid()) return false;
+  if (!loadDefinition(name, true, &changed).valid())
+    return false;
   if (currentThemeName_ == name && !changed) {
     return true;
   }
@@ -348,8 +369,9 @@ void ThemeManager::reloadCustomThemes() {
   DefinitionReadScope operation(*this);
   loadDefinitions();
   // If the active theme was a custom one that no longer exists, fall back.
-  if (!selectTheme(currentThemeName_)) selectTheme(QStringLiteral("github"));
+  if (!selectTheme(currentThemeName_))
+    selectTheme(QStringLiteral("github"));
   emit themesChanged();
 }
 
-}  // namespace muffin
+} // namespace muffin

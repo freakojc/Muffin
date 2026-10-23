@@ -9,7 +9,8 @@ muffin::LanguageManager& muffin::LanguageManager::instance() {
   return manager;
 }
 
-muffin::LanguageManager::LanguageManager(QObject* parent) : QObject(parent) {}
+muffin::LanguageManager::LanguageManager(QObject* parent) : QObject(parent) {
+}
 
 QVector<muffin::LanguageInfo> muffin::LanguageManager::availableLanguages() const {
   return {

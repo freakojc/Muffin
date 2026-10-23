@@ -18,10 +18,9 @@ QJsonObject rectJson(const QRectF& rect) {
           {QStringLiteral("height"), rect.height()}};
 }
 
-}  // namespace
+} // namespace
 
-void InfoScene::paint(QPainter& painter,
-                      const MermaidPaintOptions& options) const {
+void InfoScene::paint(QPainter& painter, const MermaidPaintOptions& options) const {
   paintInfoScene(painter, *this, options);
 }
 
@@ -44,8 +43,8 @@ QJsonObject InfoScene::toJsonObject() const {
 InfoScene buildInfoScene(InfoSceneStyle style) {
   InfoScene scene;
   scene.style = std::move(style);
-  editor::CssPixelFont cssFont = editor::makeUnhintedCssPixelFont(
-      editor::firstFontFamily(scene.style.fontFamily), scene.style.fontSize);
+  editor::CssPixelFont cssFont =
+      editor::makeUnhintedCssPixelFont(editor::firstFontFamily(scene.style.fontFamily), scene.style.fontSize);
   cssFont.font.setWeight(scene.style.fontWeight);
   if (!scene.style.textVisible || scene.style.fontSize <= 0.0) {
     scene.textBounds = {};
@@ -54,20 +53,17 @@ InfoScene buildInfoScene(InfoSceneStyle style) {
   flowchart::FlowLabelDocument document;
   document.text = scene.text;
   document.baseWeight = scene.style.fontWeight;
-  scene.textAdvance = flowchart::measureOpenTypeDesignAdvance(
-                          document,
-                          editor::firstFontFamily(scene.style.fontFamily),
-                          scene.style.fontSize)
+  scene.textAdvance = flowchart::measureOpenTypeDesignAdvance(document, editor::firstFontFamily(scene.style.fontFamily),
+                                                              scene.style.fontSize)
                           .value_or(cssFont.horizontalAdvance(scene.text));
-  const QRectF ink = flowchart::measureChromiumSvgTextBounds(
-      document, editor::firstFontFamily(scene.style.fontFamily),
-      scene.style.fontSize, scene.style.fontWeight);
+  const QRectF ink = flowchart::measureChromiumSvgTextBounds(document, editor::firstFontFamily(scene.style.fontFamily),
+                                                             scene.style.fontSize, scene.style.fontWeight);
   // The shared SVG helper models createFormattedText() with its first baseline
   // at 1em. Info emits a raw <text y="40">, so move that model's baseline to
   // the literal anchor while preserving text-anchor:middle's design advance.
-  scene.textBounds = ink.translated(scene.anchor.x() - scene.textAdvance / 2.0,
-                                   scene.anchor.y() - scene.style.fontSize);
+  scene.textBounds =
+      ink.translated(scene.anchor.x() - scene.textAdvance / 2.0, scene.anchor.y() - scene.style.fontSize);
   return scene;
 }
 
-}  // namespace muffin::mermaid::info
+} // namespace muffin::mermaid::info

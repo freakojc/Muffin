@@ -20,14 +20,16 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 QJsonValue nullable(const QString& value) {
   return value.isEmpty() ? QJsonValue(QJsonValue::Null) : QJsonValue(value);
 }
 QJsonArray strings(const QVector<QString>& values) {
   QJsonArray result;
-  for (const QString& value : values) result.append(value);
+  for (const QString& value : values)
+    result.append(value);
   return result;
 }
 QJsonObject ast(const eventmodeling::EventModelingData& data) {
@@ -38,8 +40,7 @@ QJsonObject ast(const eventmodeling::EventModelingData& data) {
   QJsonArray frames;
   for (const auto& frame : data.frames)
     frames.append(QJsonObject{
-        {QStringLiteral("kind"), frame.reset ? QStringLiteral("EmResetFrame")
-                                               : QStringLiteral("EmTimeFrame")},
+        {QStringLiteral("kind"), frame.reset ? QStringLiteral("EmResetFrame") : QStringLiteral("EmTimeFrame")},
         {QStringLiteral("name"), frame.name},
         {QStringLiteral("modelEntityType"), frame.modelEntityType},
         {QStringLiteral("entityIdentifier"), frame.entityIdentifier},
@@ -64,7 +65,8 @@ QJsonObject ast(const eventmodeling::EventModelingData& data) {
   for (const auto& item : data.gwt) {
     const auto names = [](const QVector<eventmodeling::EventModelingGwtStatement>& values) {
       QJsonArray result;
-      for (const auto& value : values) result.append(value.entityIdentifier);
+      for (const auto& value : values)
+        result.append(value.entityIdentifier);
       return result;
     };
     gwt.append(QJsonObject{{QStringLiteral("sourceFrame"), item.sourceFrame},
@@ -78,7 +80,7 @@ QJsonObject ast(const eventmodeling::EventModelingData& data) {
 QByteArray compact(const QJsonObject& value) {
   return QJsonDocument(value).toJson(QJsonDocument::Compact);
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -99,19 +101,16 @@ int main(int argc, char** argv) {
   for (const QJsonValue& value : cases) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
-    const MermaidPreprocessResult pre =
-        preprocessDiagram(fixture.value(QStringLiteral("source")).toString());
+    const MermaidPreprocessResult pre = preprocessDiagram(fixture.value(QStringLiteral("source")).toString());
     bool detected = false;
     try {
-      detected = detectDiagramType(pre.code, pre.config) ==
-                 QLatin1String("eventmodeling");
+      detected = detectDiagramType(pre.code, pre.config) == QLatin1String("eventmodeling");
     } catch (const UnknownDiagramError&) {
     }
     const bool accept = fixture.value(QStringLiteral("accept")).toBool();
     if (!detected) {
       require(!accept, id + QStringLiteral(": accepted source not detected"));
-      require(fixture.value(QStringLiteral("reject")).toObject()
-                      .value(QStringLiteral("kind")).toString() ==
+      require(fixture.value(QStringLiteral("reject")).toObject().value(QStringLiteral("kind")).toString() ==
                   QLatin1String("no-diagram"),
               id + QStringLiteral(": detector mismatch"));
       ++rejected;
@@ -124,14 +123,15 @@ int main(int argc, char** argv) {
         data = eventmodeling::EventModelingDiagram::parse(pre.code);
       } catch (const eventmodeling::EventModelingParseError& error) {
         fail(QStringLiteral("%1: accepted input threw %2:%3 %4")
-                 .arg(id).arg(error.line).arg(error.column)
+                 .arg(id)
+                 .arg(error.line)
+                 .arg(error.column)
                  .arg(QString::fromUtf8(error.what())));
       }
       const QByteArray actual = compact(ast(data));
       const QByteArray expected = compact(fixture.value(QStringLiteral("ast")).toObject());
       require(actual == expected,
-              id + QStringLiteral(": AST mismatch\nactual=") + actual +
-                  QStringLiteral("\nexpected=") + expected);
+              id + QStringLiteral(": AST mismatch\nactual=") + actual + QStringLiteral("\nexpected=") + expected);
       continue;
     }
     ++rejected;
@@ -141,11 +141,9 @@ int main(int argc, char** argv) {
       (void)eventmodeling::EventModelingDiagram::parse(pre.code);
     } catch (const eventmodeling::EventModelingParseError& error) {
       threw = true;
-      const QString kind = error.kind == eventmodeling::EventModelingErrorKind::Lexer
-                               ? QStringLiteral("lexer")
-                               : QStringLiteral("parser");
-      require(kind == expected.value(QStringLiteral("kind")).toString(),
-              id + QStringLiteral(": error kind"));
+      const QString kind = error.kind == eventmodeling::EventModelingErrorKind::Lexer ? QStringLiteral("lexer")
+                                                                                      : QStringLiteral("parser");
+      require(kind == expected.value(QStringLiteral("kind")).toString(), id + QStringLiteral(": error kind"));
       const int expectedLine = expected.value(QStringLiteral("line")).toInt();
       const int expectedColumn = expected.value(QStringLiteral("column")).toInt();
       if (expectedLine > 0)

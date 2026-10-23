@@ -17,64 +17,98 @@ namespace {
 
 QString renderKindName(MathRenderKind kind) {
   switch (kind) {
-    case MathRenderKind::Span: return QStringLiteral("Span");
-    case MathRenderKind::Symbol: return QStringLiteral("Symbol");
-    case MathRenderKind::Rule: return QStringLiteral("Rule");
-    case MathRenderKind::Rect: return QStringLiteral("Rect");
-    case MathRenderKind::Sqrt: return QStringLiteral("Sqrt");
-    case MathRenderKind::SupSub: return QStringLiteral("SupSub");
-    case MathRenderKind::Fraction: return QStringLiteral("Fraction");
-    case MathRenderKind::Accent: return QStringLiteral("Accent");
-    case MathRenderKind::Phantom: return QStringLiteral("Phantom");
-    case MathRenderKind::Stretchy: return QStringLiteral("Stretchy");
-    case MathRenderKind::LeftRight: return QStringLiteral("LeftRight");
-    case MathRenderKind::Array: return QStringLiteral("Array");
-    case MathRenderKind::VList: return QStringLiteral("VList");
-    case MathRenderKind::Error: return QStringLiteral("Error");
+  case MathRenderKind::Span:
+    return QStringLiteral("Span");
+  case MathRenderKind::Symbol:
+    return QStringLiteral("Symbol");
+  case MathRenderKind::Rule:
+    return QStringLiteral("Rule");
+  case MathRenderKind::Rect:
+    return QStringLiteral("Rect");
+  case MathRenderKind::Sqrt:
+    return QStringLiteral("Sqrt");
+  case MathRenderKind::SupSub:
+    return QStringLiteral("SupSub");
+  case MathRenderKind::Fraction:
+    return QStringLiteral("Fraction");
+  case MathRenderKind::Accent:
+    return QStringLiteral("Accent");
+  case MathRenderKind::Phantom:
+    return QStringLiteral("Phantom");
+  case MathRenderKind::Stretchy:
+    return QStringLiteral("Stretchy");
+  case MathRenderKind::LeftRight:
+    return QStringLiteral("LeftRight");
+  case MathRenderKind::Array:
+    return QStringLiteral("Array");
+  case MathRenderKind::VList:
+    return QStringLiteral("VList");
+  case MathRenderKind::Error:
+    return QStringLiteral("Error");
   }
   return QStringLiteral("Unknown");
 }
 
 QString semanticKindName(MathSemanticKind kind) {
   switch (kind) {
-    case MathSemanticKind::None: return {};
-    case MathSemanticKind::Fraction: return QStringLiteral("Fraction");
-    case MathSemanticKind::Radical: return QStringLiteral("Radical");
-    case MathSemanticKind::SupSub: return QStringLiteral("SupSub");
-    case MathSemanticKind::Array: return QStringLiteral("Array");
+  case MathSemanticKind::None:
+    return {};
+  case MathSemanticKind::Fraction:
+    return QStringLiteral("Fraction");
+  case MathSemanticKind::Radical:
+    return QStringLiteral("Radical");
+  case MathSemanticKind::SupSub:
+    return QStringLiteral("SupSub");
+  case MathSemanticKind::Array:
+    return QStringLiteral("Array");
   }
   return {};
 }
 
 QString scriptKindName(MathScriptKind kind) {
   switch (kind) {
-    case MathScriptKind::None: return {};
-    case MathScriptKind::Superscript: return QStringLiteral("Superscript");
-    case MathScriptKind::Subscript: return QStringLiteral("Subscript");
-    case MathScriptKind::SubSup: return QStringLiteral("SubSup");
+  case MathScriptKind::None:
+    return {};
+  case MathScriptKind::Superscript:
+    return QStringLiteral("Superscript");
+  case MathScriptKind::Subscript:
+    return QStringLiteral("Subscript");
+  case MathScriptKind::SubSup:
+    return QStringLiteral("SubSup");
   }
   return {};
 }
 
 QString operatorKindName(MathOperatorKind kind) {
   switch (kind) {
-    case MathOperatorKind::None: return {};
-    case MathOperatorKind::Named: return QStringLiteral("Named");
-    case MathOperatorKind::Symbol: return QStringLiteral("Symbol");
-    case MathOperatorKind::Limits: return QStringLiteral("Limits");
+  case MathOperatorKind::None:
+    return {};
+  case MathOperatorKind::Named:
+    return QStringLiteral("Named");
+  case MathOperatorKind::Symbol:
+    return QStringLiteral("Symbol");
+  case MathOperatorKind::Limits:
+    return QStringLiteral("Limits");
   }
   return {};
 }
 
 QString accentKindName(MathAccentKind kind) {
   switch (kind) {
-    case MathAccentKind::None: return {};
-    case MathAccentKind::Over: return QStringLiteral("Over");
-    case MathAccentKind::Under: return QStringLiteral("Under");
-    case MathAccentKind::Overline: return QStringLiteral("Overline");
-    case MathAccentKind::Underline: return QStringLiteral("Underline");
-    case MathAccentKind::OverBrace: return QStringLiteral("OverBrace");
-    case MathAccentKind::UnderBrace: return QStringLiteral("UnderBrace");
+  case MathAccentKind::None:
+    return {};
+  case MathAccentKind::Over:
+    return QStringLiteral("Over");
+  case MathAccentKind::Under:
+    return QStringLiteral("Under");
+  case MathAccentKind::Overline:
+    return QStringLiteral("Overline");
+  case MathAccentKind::Underline:
+    return QStringLiteral("Underline");
+  case MathAccentKind::OverBrace:
+    return QStringLiteral("OverBrace");
+  case MathAccentKind::UnderBrace:
+    return QStringLiteral("UnderBrace");
   }
   return {};
 }
@@ -83,7 +117,7 @@ double rounded(qreal value) {
   return std::round(value * 10000.0) / 10000.0;
 }
 
-}  // namespace
+} // namespace
 
 qreal MathRenderNode::totalHeight() const {
   return height + depth;
@@ -100,216 +134,224 @@ void MathRenderNode::paint(QPainter& painter, QPointF origin) const {
   painter.save();
   painter.setPen(color);
   switch (kind) {
-    case MathRenderKind::Symbol:
-    case MathRenderKind::Error: {
-      painter.setFont(font);
-      painter.drawText(origin, text);
-      break;
+  case MathRenderKind::Symbol:
+  case MathRenderKind::Error: {
+    painter.setFont(font);
+    painter.drawText(origin, text);
+    break;
+  }
+  case MathRenderKind::Rule: {
+    if (qFuzzyIsNull(width) && !qFuzzyIsNull(height + depth)) {
+      painter.setPen(QPen(color, qMax<qreal>(1.0, ruleThickness),
+                          text == QStringLiteral("dashed") ? Qt::DashLine : Qt::SolidLine, Qt::SquareCap,
+                          Qt::MiterJoin));
+      painter.drawLine(QPointF(origin.x(), origin.y() - height), QPointF(origin.x(), origin.y() + depth));
+    } else {
+      painter.setPen(Qt::NoPen);
+      painter.setBrush(color);
+      const qreal thickness = !qFuzzyIsNull(height) ? height : ruleThickness;
+      painter.drawRect(QRectF(origin.x(), origin.y() - thickness, width, thickness));
     }
-    case MathRenderKind::Rule: {
-      if (qFuzzyIsNull(width) && !qFuzzyIsNull(height + depth)) {
-        painter.setPen(QPen(color,
-                            qMax<qreal>(1.0, ruleThickness),
-                            text == QStringLiteral("dashed") ? Qt::DashLine : Qt::SolidLine,
-                            Qt::SquareCap,
-                            Qt::MiterJoin));
-        painter.drawLine(QPointF(origin.x(), origin.y() - height), QPointF(origin.x(), origin.y() + depth));
+    break;
+  }
+  case MathRenderKind::Rect: {
+    const QRectF rect(origin.x(), origin.y() - height, width, height + depth);
+    if (!imageSource.isEmpty()) {
+      QImageReader reader(imageSource);
+      const QImage image = reader.read();
+      if (!image.isNull()) {
+        painter.drawImage(rect, image);
       } else {
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(color);
-        const qreal thickness = !qFuzzyIsNull(height) ? height : ruleThickness;
-        painter.drawRect(QRectF(origin.x(), origin.y() - thickness, width, thickness));
+        painter.setPen(QPen(color, qMax<qreal>(1.0, ruleThickness)));
+        painter.setBrush(Qt::NoBrush);
+        painter.drawRect(rect);
+        painter.setFont(font);
+        painter.drawText(rect, Qt::AlignCenter, text);
       }
-      break;
+    } else if (qFuzzyIsNull(height) && !qFuzzyIsNull(ruleThickness)) {
+      painter.setPen(Qt::NoPen);
+      painter.setBrush(color);
+      painter.drawRect(QRectF(origin.x(), origin.y() - ruleThickness, width, ruleThickness));
+    } else {
+      painter.setPen(Qt::NoPen);
+      painter.setBrush(color);
+      painter.drawRect(rect);
     }
-    case MathRenderKind::Rect: {
-      const QRectF rect(origin.x(), origin.y() - height, width, height + depth);
-      if (!imageSource.isEmpty()) {
-        QImageReader reader(imageSource);
-        const QImage image = reader.read();
-        if (!image.isNull()) {
-          painter.drawImage(rect, image);
-        } else {
-          painter.setPen(QPen(color, qMax<qreal>(1.0, ruleThickness)));
-          painter.setBrush(Qt::NoBrush);
-          painter.drawRect(rect);
-          painter.setFont(font);
-          painter.drawText(rect, Qt::AlignCenter, text);
-        }
-      } else if (qFuzzyIsNull(height) && !qFuzzyIsNull(ruleThickness)) {
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(color);
-        painter.drawRect(QRectF(origin.x(), origin.y() - ruleThickness, width, ruleThickness));
+    break;
+  }
+  case MathRenderKind::Sqrt: {
+    painter.setPen(QPen(color, qMax<qreal>(1.0, ruleThickness)));
+    const qreal top = origin.y() - height + ruleThickness;
+    const qreal left = origin.x();
+    painter.drawLine(QPointF(left, origin.y() - depth - 1.0), QPointF(left + width * 0.24, origin.y()));
+    painter.drawLine(QPointF(left + width * 0.24, origin.y()), QPointF(left + width * 0.45, top));
+    painter.drawLine(QPointF(left + width * 0.45, top), QPointF(left + width, top));
+    break;
+  }
+  case MathRenderKind::Stretchy: {
+    const qreal renderedWidth = paintWidth > 0.0 ? paintWidth : width;
+    painter.setPen(QPen(color, qMax<qreal>(1.0, ruleThickness), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    const qreal left = origin.x();
+    const qreal right = origin.x() + renderedWidth;
+    const qreal mid = left + renderedWidth / 2.0;
+    const qreal top = origin.y() - height + ruleThickness;
+    const qreal base = origin.y() - ruleThickness;
+    if (!pathName.isEmpty() && MathSvgGeometry::hasPath(pathName)) {
+      painter.setPen(Qt::NoPen);
+      painter.setBrush(color);
+      painter.drawPath(
+          MathSvgGeometry::painterPath(pathName, QRectF(left, origin.y() - height, renderedWidth, height)));
+    } else if (!svgPath.isEmpty()) {
+      painter.setPen(Qt::NoPen);
+      painter.setBrush(color);
+      // yOffset < 0 means the SVG paint region extends above the layout height
+      // (e.g. sqrt emPad padding). KaTeX uses span.style.height = texHeight + 0.08
+      // for rendering but span.height = texHeight for layout.
+      const qreal paintPad = qMin<qreal>(0.0, yOffset);
+      const QRectF paintRect(left, origin.y() - height + paintPad, renderedWidth, height + depth - paintPad);
+      if (text == QStringLiteral("\\sqrt")) {
+        painter.save();
+        painter.setClipRect(paintRect, Qt::IntersectClip);
+        painter.drawPath(
+            MathSvgGeometry::painterPathFromSvgPath(svgPath, viewBox, paintRect, Qt::KeepAspectRatioByExpanding));
+        painter.restore();
       } else {
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(color);
+        painter.drawPath(MathSvgGeometry::painterPathFromSvgPath(svgPath, viewBox, paintRect));
+      }
+    } else if (text == QStringLiteral("\\cancel") || text == QStringLiteral("\\bcancel") ||
+               text == QStringLiteral("\\xcancel") || text == QStringLiteral("\\sout") ||
+               text == QStringLiteral("\\fbox") || text == QStringLiteral("\\colorbox") ||
+               text == QStringLiteral("\\fcolorbox") || text == QStringLiteral("\\phase") ||
+               text == QStringLiteral("\\angl")) {
+      const QRectF rect(left, origin.y() - height, width, height + depth);
+      painter.setPen(QPen(color, qMax<qreal>(1.0, ruleThickness), Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
+      if (text == QStringLiteral("\\cancel") || text == QStringLiteral("\\xcancel")) {
+        painter.drawLine(rect.bottomLeft(), rect.topRight());
+      }
+      if (text == QStringLiteral("\\bcancel") || text == QStringLiteral("\\xcancel")) {
+        painter.drawLine(rect.topLeft(), rect.bottomRight());
+      }
+      if (text == QStringLiteral("\\sout")) {
+        painter.drawLine(QPointF(rect.left(), rect.center().y()), QPointF(rect.right(), rect.center().y()));
+      }
+      if (text == QStringLiteral("\\fbox") || text == QStringLiteral("\\colorbox") ||
+          text == QStringLiteral("\\fcolorbox")) {
         painter.drawRect(rect);
       }
-      break;
-    }
-    case MathRenderKind::Sqrt: {
-      painter.setPen(QPen(color, qMax<qreal>(1.0, ruleThickness)));
-      const qreal top = origin.y() - height + ruleThickness;
-      const qreal left = origin.x();
-      painter.drawLine(QPointF(left, origin.y() - depth - 1.0), QPointF(left + width * 0.24, origin.y()));
-      painter.drawLine(QPointF(left + width * 0.24, origin.y()), QPointF(left + width * 0.45, top));
-      painter.drawLine(QPointF(left + width * 0.45, top), QPointF(left + width, top));
-      break;
-    }
-    case MathRenderKind::Stretchy: {
-      const qreal renderedWidth = paintWidth > 0.0 ? paintWidth : width;
-      painter.setPen(QPen(color, qMax<qreal>(1.0, ruleThickness), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-      const qreal left = origin.x();
-      const qreal right = origin.x() + renderedWidth;
-      const qreal mid = left + renderedWidth / 2.0;
-      const qreal top = origin.y() - height + ruleThickness;
-      const qreal base = origin.y() - ruleThickness;
-      if (!pathName.isEmpty() && MathSvgGeometry::hasPath(pathName)) {
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(color);
-        painter.drawPath(MathSvgGeometry::painterPath(pathName, QRectF(left, origin.y() - height, renderedWidth, height)));
-      } else if (!svgPath.isEmpty()) {
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(color);
-        // yOffset < 0 means the SVG paint region extends above the layout height
-        // (e.g. sqrt emPad padding). KaTeX uses span.style.height = texHeight + 0.08
-        // for rendering but span.height = texHeight for layout.
-        const qreal paintPad = qMin<qreal>(0.0, yOffset);
-        const QRectF paintRect(left, origin.y() - height + paintPad, renderedWidth,
-                               height + depth - paintPad);
-        if (text == QStringLiteral("\\sqrt")) {
-          painter.save();
-          painter.setClipRect(paintRect, Qt::IntersectClip);
-          painter.drawPath(MathSvgGeometry::painterPathFromSvgPath(
-              svgPath, viewBox, paintRect, Qt::KeepAspectRatioByExpanding));
-          painter.restore();
-        } else {
-          painter.drawPath(MathSvgGeometry::painterPathFromSvgPath(svgPath, viewBox, paintRect));
-        }
-      } else if (text == QStringLiteral("\\cancel") || text == QStringLiteral("\\bcancel") || text == QStringLiteral("\\xcancel") ||
-                 text == QStringLiteral("\\sout") || text == QStringLiteral("\\fbox") || text == QStringLiteral("\\colorbox") ||
-                 text == QStringLiteral("\\fcolorbox") || text == QStringLiteral("\\phase") || text == QStringLiteral("\\angl")) {
-        const QRectF rect(left, origin.y() - height, width, height + depth);
-        painter.setPen(QPen(color, qMax<qreal>(1.0, ruleThickness), Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
-        if (text == QStringLiteral("\\cancel") || text == QStringLiteral("\\xcancel")) {
-          painter.drawLine(rect.bottomLeft(), rect.topRight());
-        }
-        if (text == QStringLiteral("\\bcancel") || text == QStringLiteral("\\xcancel")) {
-          painter.drawLine(rect.topLeft(), rect.bottomRight());
-        }
-        if (text == QStringLiteral("\\sout")) {
-          painter.drawLine(QPointF(rect.left(), rect.center().y()), QPointF(rect.right(), rect.center().y()));
-        }
-        if (text == QStringLiteral("\\fbox") || text == QStringLiteral("\\colorbox") || text == QStringLiteral("\\fcolorbox")) {
-          painter.drawRect(rect);
-        }
-        if (text == QStringLiteral("\\phase")) {
-          painter.drawLine(rect.bottomLeft(), QPointF(rect.left() + rect.height() * 0.55, rect.top()));
-          painter.drawLine(QPointF(rect.left() + rect.height() * 0.55, rect.top()), rect.topRight());
-        }
-        if (text == QStringLiteral("\\angl")) {
-          painter.drawLine(rect.topLeft(), rect.topRight());
-          painter.drawLine(rect.topRight(), rect.bottomRight());
-        }
-      } else if (text == QStringLiteral("\\widehat") || text == QStringLiteral("\\widecheck")) {
-        const qreal peak = text == QStringLiteral("\\widecheck") ? base : top;
-        const qreal side = text == QStringLiteral("\\widecheck") ? top : base;
-        painter.drawLine(QPointF(left, side), QPointF(mid, peak));
-        painter.drawLine(QPointF(mid, peak), QPointF(right, side));
-      } else if (text == QStringLiteral("\\widetilde")) {
-        QPainterPath path;
-        path.moveTo(left, base);
-        path.cubicTo(left + width * 0.25, top, left + width * 0.25, top, mid, base);
-        path.cubicTo(left + width * 0.75, top + height * 0.45, left + width * 0.75, top + height * 0.45, right, top);
-        painter.drawPath(path);
-      } else if (text == QStringLiteral("\\overbrace") || text == QStringLiteral("\\underbrace") ||
-                 text == QStringLiteral("\\overbracket") || text == QStringLiteral("\\underbracket")) {
-        const bool over = text == QStringLiteral("\\overbrace") || text == QStringLiteral("\\overbracket");
-        const bool bracket = text == QStringLiteral("\\overbracket") || text == QStringLiteral("\\underbracket");
-        const qreal y = over ? origin.y() - height + ruleThickness : origin.y() - ruleThickness;
-        if (bracket) {
-          painter.drawLine(QPointF(left, y), QPointF(right, y));
-          const qreal tick = height * 0.65;
-          painter.drawLine(QPointF(left, y), QPointF(left, over ? y + tick : y - tick));
-          painter.drawLine(QPointF(right, y), QPointF(right, over ? y + tick : y - tick));
-        } else {
-          QPainterPath path;
-          const qreal notch = over ? y + height * 0.85 : y - height * 0.85;
-          path.moveTo(left, y);
-          path.cubicTo(left + width * 0.18, y, left + width * 0.18, notch, mid, notch);
-          path.cubicTo(left + width * 0.82, notch, left + width * 0.82, y, right, y);
-          painter.drawPath(path);
-        }
+      if (text == QStringLiteral("\\phase")) {
+        painter.drawLine(rect.bottomLeft(), QPointF(rect.left() + rect.height() * 0.55, rect.top()));
+        painter.drawLine(QPointF(rect.left() + rect.height() * 0.55, rect.top()), rect.topRight());
+      }
+      if (text == QStringLiteral("\\angl")) {
+        painter.drawLine(rect.topLeft(), rect.topRight());
+        painter.drawLine(rect.topRight(), rect.bottomRight());
+      }
+    } else if (text == QStringLiteral("\\widehat") || text == QStringLiteral("\\widecheck")) {
+      const qreal peak = text == QStringLiteral("\\widecheck") ? base : top;
+      const qreal side = text == QStringLiteral("\\widecheck") ? top : base;
+      painter.drawLine(QPointF(left, side), QPointF(mid, peak));
+      painter.drawLine(QPointF(mid, peak), QPointF(right, side));
+    } else if (text == QStringLiteral("\\widetilde")) {
+      QPainterPath path;
+      path.moveTo(left, base);
+      path.cubicTo(left + width * 0.25, top, left + width * 0.25, top, mid, base);
+      path.cubicTo(left + width * 0.75, top + height * 0.45, left + width * 0.75, top + height * 0.45, right, top);
+      painter.drawPath(path);
+    } else if (text == QStringLiteral("\\overbrace") || text == QStringLiteral("\\underbrace") ||
+               text == QStringLiteral("\\overbracket") || text == QStringLiteral("\\underbracket")) {
+      const bool over = text == QStringLiteral("\\overbrace") || text == QStringLiteral("\\overbracket");
+      const bool bracket = text == QStringLiteral("\\overbracket") || text == QStringLiteral("\\underbracket");
+      const qreal y = over ? origin.y() - height + ruleThickness : origin.y() - ruleThickness;
+      if (bracket) {
+        painter.drawLine(QPointF(left, y), QPointF(right, y));
+        const qreal tick = height * 0.65;
+        painter.drawLine(QPointF(left, y), QPointF(left, over ? y + tick : y - tick));
+        painter.drawLine(QPointF(right, y), QPointF(right, over ? y + tick : y - tick));
       } else {
-        const bool leftArrow = text == QStringLiteral("\\overleftarrow") || text == QStringLiteral("\\overleftrightarrow");
-        const bool rightArrow = text == QStringLiteral("\\overrightarrow") || text == QStringLiteral("\\overleftrightarrow") ||
-                                text == QStringLiteral("\\underrightarrow") || text == QStringLiteral("\\underleftrightarrow");
-        const bool underLeftArrow = text == QStringLiteral("\\underleftarrow") || text == QStringLiteral("\\underleftrightarrow");
-        if (leftArrow || rightArrow || underLeftArrow) {
-          const qreal y = origin.y() - height / 2.0;
-          painter.drawLine(QPointF(left, y), QPointF(right, y));
-          const qreal head = qMin<qreal>(width * 0.18, height);
-          if (rightArrow) {
-            painter.drawLine(QPointF(right, y), QPointF(right - head, y - head * 0.45));
-            painter.drawLine(QPointF(right, y), QPointF(right - head, y + head * 0.45));
-          }
-          if (leftArrow || underLeftArrow) {
-            painter.drawLine(QPointF(left, y), QPointF(left + head, y - head * 0.45));
-            painter.drawLine(QPointF(left, y), QPointF(left + head, y + head * 0.45));
-          }
-        } else if (!font.family().isEmpty() && !text.isEmpty()) {
-          // Fallback: render as text glyph (used for brace repeat segments
-          // that should be visually present but not counted as glyphs).
-          painter.setFont(font);
-          painter.setPen(color);
-          painter.drawText(origin, text);
+        QPainterPath path;
+        const qreal notch = over ? y + height * 0.85 : y - height * 0.85;
+        path.moveTo(left, y);
+        path.cubicTo(left + width * 0.18, y, left + width * 0.18, notch, mid, notch);
+        path.cubicTo(left + width * 0.82, notch, left + width * 0.82, y, right, y);
+        painter.drawPath(path);
+      }
+    } else {
+      const bool leftArrow =
+          text == QStringLiteral("\\overleftarrow") || text == QStringLiteral("\\overleftrightarrow");
+      const bool rightArrow =
+          text == QStringLiteral("\\overrightarrow") || text == QStringLiteral("\\overleftrightarrow") ||
+          text == QStringLiteral("\\underrightarrow") || text == QStringLiteral("\\underleftrightarrow");
+      const bool underLeftArrow =
+          text == QStringLiteral("\\underleftarrow") || text == QStringLiteral("\\underleftrightarrow");
+      if (leftArrow || rightArrow || underLeftArrow) {
+        const qreal y = origin.y() - height / 2.0;
+        painter.drawLine(QPointF(left, y), QPointF(right, y));
+        const qreal head = qMin<qreal>(width * 0.18, height);
+        if (rightArrow) {
+          painter.drawLine(QPointF(right, y), QPointF(right - head, y - head * 0.45));
+          painter.drawLine(QPointF(right, y), QPointF(right - head, y + head * 0.45));
         }
+        if (leftArrow || underLeftArrow) {
+          painter.drawLine(QPointF(left, y), QPointF(left + head, y - head * 0.45));
+          painter.drawLine(QPointF(left, y), QPointF(left + head, y + head * 0.45));
+        }
+      } else if (!font.family().isEmpty() && !text.isEmpty()) {
+        // Fallback: render as text glyph (used for brace repeat segments
+        // that should be visually present but not counted as glyphs).
+        painter.setFont(font);
+        painter.setPen(color);
+        painter.drawText(origin, text);
       }
-      break;
     }
-    case MathRenderKind::SupSub: {
-      if (!children.empty()) {
-        children.at(0)->paint(painter, QPointF(origin.x() + children.at(0)->xOffset, origin.y() + children.at(0)->yOffset));
-      }
-      for (size_t i = 1; i < children.size(); ++i) {
-        children.at(i)->paint(painter, QPointF(origin.x() + children.at(i)->xOffset, origin.y() + children.at(i)->yOffset + children.at(i)->shift));
-      }
-      break;
+    break;
+  }
+  case MathRenderKind::SupSub: {
+    if (!children.empty()) {
+      children.at(0)->paint(painter,
+                            QPointF(origin.x() + children.at(0)->xOffset, origin.y() + children.at(0)->yOffset));
     }
-    case MathRenderKind::Fraction: {
-      if (children.size() == 2) {
-        const auto& numerator = children.at(0);
-        const auto& denominator = children.at(1);
-        numerator->paint(painter, QPointF(origin.x() + (width - numerator->width) / 2.0, origin.y() + numerator->shift));
-        denominator->paint(painter, QPointF(origin.x() + (width - denominator->width) / 2.0, origin.y() + denominator->shift));
-      } else if (children.size() >= 3) {
-        const auto& numerator = children.at(0);
-        const auto& line = children.at(1);
-        const auto& denominator = children.at(2);
-        numerator->paint(painter, QPointF(origin.x() + (width - numerator->width) / 2.0, origin.y() + numerator->shift));
-        line->paint(painter, origin);
-        denominator->paint(painter, QPointF(origin.x() + (width - denominator->width) / 2.0, origin.y() + denominator->shift));
-      }
-      break;
+    for (size_t i = 1; i < children.size(); ++i) {
+      children.at(i)->paint(painter, QPointF(origin.x() + children.at(i)->xOffset,
+                                             origin.y() + children.at(i)->yOffset + children.at(i)->shift));
     }
-    case MathRenderKind::Accent:
-    case MathRenderKind::Phantom:
-    case MathRenderKind::LeftRight:
-    case MathRenderKind::Array:
-    case MathRenderKind::VList: {
-      for (const auto& child : children) {
-        child->paint(painter, QPointF(origin.x() + child->xOffset, origin.y() + child->yOffset + child->shift));
-      }
-      break;
+    break;
+  }
+  case MathRenderKind::Fraction: {
+    if (children.size() == 2) {
+      const auto& numerator = children.at(0);
+      const auto& denominator = children.at(1);
+      numerator->paint(painter, QPointF(origin.x() + (width - numerator->width) / 2.0, origin.y() + numerator->shift));
+      denominator->paint(painter,
+                         QPointF(origin.x() + (width - denominator->width) / 2.0, origin.y() + denominator->shift));
+    } else if (children.size() >= 3) {
+      const auto& numerator = children.at(0);
+      const auto& line = children.at(1);
+      const auto& denominator = children.at(2);
+      numerator->paint(painter, QPointF(origin.x() + (width - numerator->width) / 2.0, origin.y() + numerator->shift));
+      line->paint(painter, origin);
+      denominator->paint(painter,
+                         QPointF(origin.x() + (width - denominator->width) / 2.0, origin.y() + denominator->shift));
     }
-    case MathRenderKind::Span: {
-      qreal x = origin.x();
-      for (const auto& child : children) {
-        child->paint(painter, QPointF(x + child->xOffset, origin.y() + child->yOffset + child->shift));
-        x += child->width;
-      }
-      break;
+    break;
+  }
+  case MathRenderKind::Accent:
+  case MathRenderKind::Phantom:
+  case MathRenderKind::LeftRight:
+  case MathRenderKind::Array:
+  case MathRenderKind::VList: {
+    for (const auto& child : children) {
+      child->paint(painter, QPointF(origin.x() + child->xOffset, origin.y() + child->yOffset + child->shift));
     }
+    break;
+  }
+  case MathRenderKind::Span: {
+    qreal x = origin.x();
+    for (const auto& child : children) {
+      child->paint(painter, QPointF(x + child->xOffset, origin.y() + child->yOffset + child->shift));
+      x += child->width;
+    }
+    break;
+  }
   }
   painter.restore();
 }
@@ -325,7 +367,8 @@ QJsonObject MathRenderNode::toJson() const {
     object.insert(QStringLiteral("operatorKind"), operatorKindName(operatorKind));
   if (accentKind != MathAccentKind::None)
     object.insert(QStringLiteral("accentKind"), accentKindName(accentKind));
-  if (radicalIndex) object.insert(QStringLiteral("radicalIndex"), true);
+  if (radicalIndex)
+    object.insert(QStringLiteral("radicalIndex"), true);
   if (semanticKind == MathSemanticKind::Fraction)
     object.insert(QStringLiteral("fractionHasBarLine"), fractionHasBarLine);
   if (semanticKind == MathSemanticKind::Fraction) {
@@ -333,25 +376,37 @@ QJsonObject MathRenderNode::toJson() const {
     object.insert(QStringLiteral("fractionStyleSize"), fractionStyleSize);
     object.insert(QStringLiteral("fractionSizeMultiplier"), rounded(fractionSizeMultiplier));
   }
-  if (!text.isEmpty()) object.insert(QStringLiteral("text"), text);
-  if (!operatorText.isEmpty()) object.insert(QStringLiteral("operatorText"), operatorText);
-  if (!accentLabel.isEmpty()) object.insert(QStringLiteral("accentLabel"), accentLabel);
+  if (!text.isEmpty())
+    object.insert(QStringLiteral("text"), text);
+  if (!operatorText.isEmpty())
+    object.insert(QStringLiteral("operatorText"), operatorText);
+  if (!accentLabel.isEmpty())
+    object.insert(QStringLiteral("accentLabel"), accentLabel);
   if (accentUsesNaturalWidth)
     object.insert(QStringLiteral("accentUsesNaturalWidth"), true);
-  if (textModeRun) object.insert(QStringLiteral("textModeRun"), true);
+  if (textModeRun)
+    object.insert(QStringLiteral("textModeRun"), true);
   if (!accentCharacter.isEmpty())
     object.insert(QStringLiteral("accentCharacter"), accentCharacter);
-  if (!leftDelimiter.isEmpty()) object.insert(QStringLiteral("leftDelimiter"), leftDelimiter);
-  if (!rightDelimiter.isEmpty()) object.insert(QStringLiteral("rightDelimiter"), rightDelimiter);
-  if (!atomClass.isEmpty()) object.insert(QStringLiteral("atomClass"), atomClass);
+  if (!leftDelimiter.isEmpty())
+    object.insert(QStringLiteral("leftDelimiter"), leftDelimiter);
+  if (!rightDelimiter.isEmpty())
+    object.insert(QStringLiteral("rightDelimiter"), rightDelimiter);
+  if (!atomClass.isEmpty())
+    object.insert(QStringLiteral("atomClass"), atomClass);
   if (!middleDelimiter.isEmpty())
     object.insert(QStringLiteral("middleDelimiter"), middleDelimiter);
-  if (!fontClass.isEmpty()) object.insert(QStringLiteral("fontClass"), fontClass);
-  if (!pathName.isEmpty()) object.insert(QStringLiteral("pathName"), pathName);
-  if (!svgPath.isEmpty()) object.insert(QStringLiteral("hasSvgPath"), true);
-  if (!imageSource.isEmpty()) object.insert(QStringLiteral("imageSource"), imageSource);
+  if (!fontClass.isEmpty())
+    object.insert(QStringLiteral("fontClass"), fontClass);
+  if (!pathName.isEmpty())
+    object.insert(QStringLiteral("pathName"), pathName);
+  if (!svgPath.isEmpty())
+    object.insert(QStringLiteral("hasSvgPath"), true);
+  if (!imageSource.isEmpty())
+    object.insert(QStringLiteral("imageSource"), imageSource);
   object.insert(QStringLiteral("width"), rounded(width));
-  if (paintWidth > 0.0) object.insert(QStringLiteral("paintWidth"), rounded(paintWidth));
+  if (paintWidth > 0.0)
+    object.insert(QStringLiteral("paintWidth"), rounded(paintWidth));
   object.insert(QStringLiteral("height"), rounded(height));
   object.insert(QStringLiteral("depth"), rounded(depth));
   object.insert(QStringLiteral("shift"), rounded(shift));
@@ -360,11 +415,16 @@ QJsonObject MathRenderNode::toJson() const {
   object.insert(QStringLiteral("ruleThickness"), rounded(ruleThickness));
   object.insert(QStringLiteral("italic"), rounded(italic));
   object.insert(QStringLiteral("italicMarginRight"), rounded(italicMarginRight));
-  if (allowBreak) object.insert(QStringLiteral("allowBreak"), true);
-  if (tightSpacing) object.insert(QStringLiteral("tightSpacing"), true);
-  if (phantom) object.insert(QStringLiteral("phantom"), true);
-  if (columns > 0) object.insert(QStringLiteral("columns"), columns);
-  if (rows > 0) object.insert(QStringLiteral("rows"), rows);
+  if (allowBreak)
+    object.insert(QStringLiteral("allowBreak"), true);
+  if (tightSpacing)
+    object.insert(QStringLiteral("tightSpacing"), true);
+  if (phantom)
+    object.insert(QStringLiteral("phantom"), true);
+  if (columns > 0)
+    object.insert(QStringLiteral("columns"), columns);
+  if (rows > 0)
+    object.insert(QStringLiteral("rows"), rows);
   if (!arrayEnvironment.isEmpty())
     object.insert(QStringLiteral("arrayEnvironment"), arrayEnvironment);
   if (!arrayColumnSeparation.isEmpty())
@@ -377,22 +437,26 @@ QJsonObject MathRenderNode::toJson() const {
     object.insert(QStringLiteral("arrayStretch"), rounded(arrayStretch));
   if (!arrayColumnWidths.empty()) {
     QJsonArray values;
-    for (qreal value : arrayColumnWidths) values.append(rounded(value));
+    for (qreal value : arrayColumnWidths)
+      values.append(rounded(value));
     object.insert(QStringLiteral("arrayColumnWidths"), values);
   }
   if (!arrayRowHeights.empty()) {
     QJsonArray values;
-    for (qreal value : arrayRowHeights) values.append(rounded(value));
+    for (qreal value : arrayRowHeights)
+      values.append(rounded(value));
     object.insert(QStringLiteral("arrayRowHeights"), values);
   }
   if (!arrayRowDepths.empty()) {
     QJsonArray values;
-    for (qreal value : arrayRowDepths) values.append(rounded(value));
+    for (qreal value : arrayRowDepths)
+      values.append(rounded(value));
     object.insert(QStringLiteral("arrayRowDepths"), values);
   }
   if (!arrayRowInkDescenders.empty()) {
     QJsonArray values;
-    for (bool value : arrayRowInkDescenders) values.append(value);
+    for (bool value : arrayRowInkDescenders)
+      values.append(value);
     object.insert(QStringLiteral("arrayRowInkDescenders"), values);
   }
   if (!children.empty()) {
@@ -488,4 +552,4 @@ std::unique_ptr<MathRenderNode> cloneNode(const MathRenderNode& node) {
   return copy;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

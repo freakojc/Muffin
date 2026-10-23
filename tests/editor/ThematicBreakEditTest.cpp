@@ -14,26 +14,32 @@ using namespace muffin;
 namespace {
 
 MarkdownNode* findFirstParagraph(MarkdownNode* node) {
-  if (node && node->type() == BlockType::Paragraph) return node;
+  if (node && node->type() == BlockType::Paragraph)
+    return node;
   for (const auto& c : node->children()) {
-    if (MarkdownNode* f = findFirstParagraph(c.get())) return f;
+    if (MarkdownNode* f = findFirstParagraph(c.get()))
+      return f;
   }
   return nullptr;
 }
 
 MarkdownNode* findLastParagraph(MarkdownNode* node) {
   MarkdownNode* found = nullptr;
-  if (node && node->type() == BlockType::Paragraph) found = node;
+  if (node && node->type() == BlockType::Paragraph)
+    found = node;
   for (const auto& c : node->children()) {
-    if (MarkdownNode* f = findLastParagraph(c.get())) found = f;
+    if (MarkdownNode* f = findLastParagraph(c.get()))
+      found = f;
   }
   return found;
 }
 
 MarkdownNode* findThematicBreak(MarkdownNode* node) {
-  if (node && node->type() == BlockType::ThematicBreak) return node;
+  if (node && node->type() == BlockType::ThematicBreak)
+    return node;
   for (const auto& c : node->children()) {
-    if (MarkdownNode* f = findThematicBreak(c.get())) return f;
+    if (MarkdownNode* f = findThematicBreak(c.get()))
+      return f;
   }
   return nullptr;
 }
@@ -46,7 +52,8 @@ MarkdownNode* findThematicBreak(MarkdownNode* node) {
 bool reparsedRootHasBlockType(DocumentSession& session, BlockType type) {
   session.setMarkdownText(session.markdownText().toString(), true);
   for (const auto& c : session.document().root().children()) {
-    if (c->type() == type) return true;
+    if (c->type() == type)
+      return true;
   }
   return false;
 }
@@ -98,7 +105,8 @@ void testBackspaceAfterRuleEatsIt() {
   require(h.controller.selection().cursorPosition().afterBlock, "caret should start in the rule's afterBlock area");
 
   require(h.controller.inputController().deleteBackward(), "backspace should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\n"), "divider should collapse to 'alpha\\n\\n'");
+  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\n"),
+          "divider should collapse to 'alpha\\n\\n'");
 
   const CursorPosition c = h.controller.selection().cursorPosition();
   require(h.controller.selection().hasCursor(), "caret should remain valid");
@@ -118,7 +126,8 @@ void testBackspaceStartOfParagraphAfterRuleEatsIt() {
   setCursor(h.controller.selection(), beta, 0);
 
   require(h.controller.inputController().deleteBackward(), "backspace should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\nbeta"), "rule removed, two paragraphs remain");
+  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\nbeta"),
+          "rule removed, two paragraphs remain");
 
   const CursorPosition c = h.controller.selection().cursorPosition();
   require(h.controller.selection().hasCursor(), "caret should remain valid");
@@ -138,7 +147,8 @@ void testDeleteEndOfParagraphBeforeRuleEatsIt() {
   setCursor(h.controller.selection(), alpha, 5);
 
   require(h.controller.inputController().deleteForward(), "delete should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\nbeta"), "rule removed, paragraphs must NOT merge");
+  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\nbeta"),
+          "rule removed, paragraphs must NOT merge");
 
   const CursorPosition c = h.controller.selection().cursorPosition();
   require(h.controller.selection().hasCursor(), "caret should remain valid");
@@ -190,7 +200,8 @@ void testUndoRestoresRule() {
   setCursor(h.controller.selection(), beta, 0);
   require(h.controller.inputController().deleteBackward(), "backspace should be handled");
   h.controller.undo();
-  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\n---\n\nbeta"), "undo should restore the source");
+  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\n---\n\nbeta"),
+          "undo should restore the source");
   require(reparsedRootHasBlockType(h.session, BlockType::ThematicBreak), "undo should restore the rule");
 
   // Forward delete + undo.
@@ -199,7 +210,8 @@ void testUndoRestoresRule() {
   setCursor(h.controller.selection(), alpha, 5);
   require(h.controller.inputController().deleteForward(), "delete should be handled");
   h.controller.undo();
-  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\n---\n\nbeta"), "undo should restore the source after delete");
+  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\n---\n\nbeta"),
+          "undo should restore the source after delete");
   require(reparsedRootHasBlockType(h.session, BlockType::ThematicBreak), "undo should restore the rule after delete");
 }
 
@@ -276,7 +288,8 @@ void testTypeAfterTrailingRule() {
   require(hr != nullptr, "document should contain a thematic break");
   h.placeAfter(hr);
   require(h.controller.inputController().insertText(QStringLiteral("123")), "typing should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("---\n\n123"), "trailing rule + '123' -> '---\\n\\n123'");
+  require(h.session.markdownText().toString() == QStringLiteral("---\n\n123"),
+          "trailing rule + '123' -> '---\\n\\n123'");
 }
 
 // The caret can rest ON the thematic break itself — arrow-key navigation lands there because
@@ -413,7 +426,7 @@ void testDeleteRuleFromNestedListItemKeepsLiveTreeConsistent() {
   MarkdownNode* nestedList = childAt(outerItem, 1);
   MarkdownNode* innerItem = childAt(nestedList, 0);
   require(innerItem != nullptr && innerItem->type() == BlockType::ListItem, "found nested list item");
-  setCursor(h.controller.selection(), innerItem, 18);  // end of "inner content here"
+  setCursor(h.controller.selection(), innerItem, 18); // end of "inner content here"
 
   require(h.controller.inputController().deleteForward(), "delete should be handled");
   require(!h.session.markdownText().toString().contains(QStringLiteral("---\n\n## Heading Two")),
@@ -425,18 +438,16 @@ void testDeleteRuleFromNestedListItemKeepsLiveTreeConsistent() {
     QString out;
     for (const auto& c : s.document().root().children()) {
       const SourceRange r = c->sourceRange();
-      out += QString::number(static_cast<int>(c->type())) + QStringLiteral(":") +
-             QString::number(r.byteStart) + QStringLiteral("-") + QString::number(r.byteEnd) +
-             QStringLiteral(" ");
+      out += QString::number(static_cast<int>(c->type())) + QStringLiteral(":") + QString::number(r.byteStart) +
+             QStringLiteral("-") + QString::number(r.byteEnd) + QStringLiteral(" ");
     }
     return out.trimmed();
   };
   const QString live = signature(h.session);
-  h.session.setMarkdownText(h.session.markdownText().toString(), true);  // full re-parse = ground truth
+  h.session.setMarkdownText(h.session.markdownText().toString(), true); // full re-parse = ground truth
   const QString truth = signature(h.session);
-  require(live == truth,
-          "live tree must match a fresh re-parse (no stale/duplicate nodes); live={" + live +
-              "} truth={" + truth + "}");
+  require(live == truth, "live tree must match a fresh re-parse (no stale/duplicate nodes); live={" + live +
+                             "} truth={" + truth + "}");
 }
 
 // Undo must restore a rule removed while the caret rested on it.
@@ -447,7 +458,8 @@ void testUndoRestoresRuleRemovedFromOnIt() {
   setCursor(h.controller.selection(), hr, 0);
   require(h.controller.inputController().deleteForward(), "delete on rule should be handled");
   h.controller.undo();
-  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\n---\n\nbeta"), "undo should restore the source");
+  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\n---\n\nbeta"),
+          "undo should restore the source");
   require(reparsedRootHasBlockType(h.session, BlockType::ThematicBreak), "undo should restore the rule");
 }
 
@@ -490,7 +502,8 @@ void testSelectRuleThenEnterRemovesIt() {
   require(!h.controller.selection().selection().isCollapsed(), "rule should be selected");
 
   require(h.controller.inputController().insertParagraphBreak(), "enter should be handled");
-  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\nbeta"), "selected rule should be removed on enter");
+  require(h.session.markdownText().toString() == QStringLiteral("alpha\n\nbeta"),
+          "selected rule should be removed on enter");
   require(!reparsedRootHasBlockType(h.session, BlockType::ThematicBreak), "thematic break should be gone");
 }
 
@@ -500,14 +513,15 @@ void testSelectRuleThenEnterRemovesIt() {
 // (far-below-viewport) configurations. A sibling regression (3rd-dash → afterBlock → Enter) is
 // covered by testEnterAfterThirdDashConversionKeepsCaret.
 void testEnterOnEmptyParagraphBelowRuleKeepsCaret() {
-  struct Case { const char* name; const char* md; int prependParagraphs = 0; };
+  struct Case {
+    const char* name;
+    const char* md;
+    int prependParagraphs = 0;
+  };
   const Case cases[] = {
-    {"mid-doc 2-blank", "alpha\n\n---\n\n\n\nbeta"},
-    {"mid-doc 3-blank", "alpha\n\n---\n\n\n\n\nbeta"},
-    {"trailing 2-blank", "alpha\n\n---\n\n\n"},
-    {"trailing 3-blank", "alpha\n\n---\n\n\n\n"},
-    {"leading-rule trailing", "---\n\n\n"},
-    {"far-below-viewport (lazy)", "alpha\n\n---\n\n\n\nbeta", 120},
+      {"mid-doc 2-blank", "alpha\n\n---\n\n\n\nbeta"}, {"mid-doc 3-blank", "alpha\n\n---\n\n\n\n\nbeta"},
+      {"trailing 2-blank", "alpha\n\n---\n\n\n"},      {"trailing 3-blank", "alpha\n\n---\n\n\n\n"},
+      {"leading-rule trailing", "---\n\n\n"},          {"far-below-viewport (lazy)", "alpha\n\n---\n\n\n\nbeta", 120},
   };
   for (const Case& tc : cases) {
     Harness h;
@@ -547,8 +561,7 @@ void testEnterOnEmptyParagraphBelowRuleKeepsCaret() {
       // otherwise resolves the hit synchronously and masks the disappearance).
       QCoreApplication::processEvents(QEventLoop::AllEvents, 50);
       const CursorPosition c = h.controller.selection().cursorPosition();
-      require(c.blockId.isValid(),
-              QString::fromLatin1(tc.name) + ": caret #" + QString::number(iter) + " was cleared");
+      require(c.blockId.isValid(), QString::fromLatin1(tc.name) + ": caret #" + QString::number(iter) + " was cleared");
       require(h.view.cursorHit().isValid(),
               QString::fromLatin1(tc.name) + ": view.cursorHit #" + QString::number(iter) + " went invalid");
     }
@@ -561,21 +574,24 @@ void testEnterOnEmptyParagraphBelowRuleKeepsCaret() {
 // "\n\n", which landed in a blank gap no block covers, so the caret fell back to END-OF-DOCUMENT (the
 // end of the following paragraph) and looked like it vanished. Now it lands on the new empty paragraph.
 void testEnterAfterThirdDashConversionKeepsCaret() {
-  struct Case { const char* name; const char* md; };
+  struct Case {
+    const char* name;
+    const char* md;
+  };
   const Case cases[] = {
-    {"-- then beta", "--\n\nbeta"},
-    {"-- trailing", "--"},
-    {"-- trailing newline", "--\n"},
-    {"-- trailing blank", "--\n\n"},
-    {"-- then blank then beta", "--\n\n\nbeta"},
-    {"-- then CRLF beta", "--\r\n\r\nbeta"},
+      {"-- then beta", "--\n\nbeta"},
+      {"-- trailing", "--"},
+      {"-- trailing newline", "--\n"},
+      {"-- trailing blank", "--\n\n"},
+      {"-- then blank then beta", "--\n\n\nbeta"},
+      {"-- then CRLF beta", "--\r\n\r\nbeta"},
   };
   for (const Case& tc : cases) {
     Harness h;
     h.load(QString::fromLatin1(tc.md));
     MarkdownNode* dashPara = findFirstParagraph(&h.session.document().root());
     require(dashPara != nullptr, QString::fromLatin1(tc.name) + ": should start with a '--' paragraph");
-    setCursor(h.controller.selection(), dashPara, 2);  // caret at end of "--"
+    setCursor(h.controller.selection(), dashPara, 2); // caret at end of "--"
 
     // Type the 3rd dash: "--" + "-" -> "---" -> a thematic break; the caret lands afterBlock on the rule.
     require(h.controller.inputController().insertText(QStringLiteral("-")),
@@ -600,13 +616,13 @@ void testEnterAfterThirdDashConversionKeepsCaret() {
               QString::fromLatin1(tc.name) + ": caret should land in the gap below the rule, not at end-of-doc");
     }
     MarkdownNode* empty = h.session.document().node(afterEnter.blockId);
-    require(empty != nullptr && empty->type() == BlockType::Paragraph
-                && empty->sourceRange().byteStart == empty->sourceRange().byteEnd,
+    require(empty != nullptr && empty->type() == BlockType::Paragraph &&
+                empty->sourceRange().byteStart == empty->sourceRange().byteEnd,
             QString::fromLatin1(tc.name) + ": Enter should materialize an editable empty paragraph");
     QString typed = h.session.markdownText().toString();
     typed.insert(afterEnter.text.sourceOffset, QLatin1Char('X'));
-    require(h.controller.inputController().insertText(QStringLiteral("X"))
-                && h.session.markdownText().toString() == typed,
+    require(h.controller.inputController().insertText(QStringLiteral("X")) &&
+                h.session.markdownText().toString() == typed,
             QString::fromLatin1(tc.name) + ": typing should edit the empty paragraph below the rule");
     h.controller.undo();
     h.controller.undo();
@@ -648,8 +664,10 @@ void testUndoTypeAfterBlock() {
     MarkdownNode* hr = findThematicBreak(&h.session.document().root());
     require(hr != nullptr, "document should contain a thematic break");
     h.placeAfter(hr);
-    require(h.controller.inputController().insertText(QStringLiteral("123")), "typing after trailing rule should be handled");
-    require(h.session.markdownText().toString() == QStringLiteral("---\n\n123"), "trailing rule + '123' -> '---\\n\\n123'");
+    require(h.controller.inputController().insertText(QStringLiteral("123")),
+            "typing after trailing rule should be handled");
+    require(h.session.markdownText().toString() == QStringLiteral("---\n\n123"),
+            "trailing rule + '123' -> '---\\n\\n123'");
 
     h.controller.undo();
     require(h.session.markdownText().toString() == QStringLiteral("---"), "undo should restore the trailing rule");
@@ -657,7 +675,7 @@ void testUndoTypeAfterBlock() {
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

@@ -32,9 +32,15 @@ enum class IconKind { SidebarExpand, SidebarCollapse, SourceMode };
 QIcon makeStatusIcon(IconKind kind, const QColor& ink, const QColor& activeInk) {
   const char* path = nullptr;
   switch (kind) {
-    case IconKind::SidebarExpand: path = ":/icons/statusbar/sidebar-expand.svg"; break;
-    case IconKind::SidebarCollapse: path = ":/icons/statusbar/sidebar-collapse.svg"; break;
-    case IconKind::SourceMode: path = ":/icons/statusbar/source-code.svg"; break;
+  case IconKind::SidebarExpand:
+    path = ":/icons/statusbar/sidebar-expand.svg";
+    break;
+  case IconKind::SidebarCollapse:
+    path = ":/icons/statusbar/sidebar-collapse.svg";
+    break;
+  case IconKind::SourceMode:
+    path = ":/icons/statusbar/source-code.svg";
+    break;
   }
   QFile svgFile(QString::fromLatin1(path));
   if (!svgFile.open(QIODevice::ReadOnly)) {
@@ -75,9 +81,12 @@ QIcon makeStatusIcon(IconKind kind, const QColor& ink, const QColor& activeInk) 
 // widget tree) after TableResizePopup's pattern: QFrame + Qt::Popup + paintEvent.
 class StatsPopup final : public QFrame {
 public:
-  struct Row { QString label; QString value; };
-  StatsPopup(const QVector<Row>& rows, const QColor& bg, const QColor& text, const QColor& muted,
-             const QColor& border, QWidget* parent = nullptr)
+  struct Row {
+    QString label;
+    QString value;
+  };
+  StatsPopup(const QVector<Row>& rows, const QColor& bg, const QColor& text, const QColor& muted, const QColor& border,
+             QWidget* parent = nullptr)
       : QFrame(parent, Qt::Popup), rows_(rows), bg_(bg), text_(text), muted_(muted), border_(border) {
     setFrameShape(QFrame::NoFrame);
     QFont labelFont = font();
@@ -112,7 +121,8 @@ protected:
     const QFontMetrics fm(font());
     const int valueWidth = [this, &fm]() {
       int w = 0;
-      for (const auto& r : rows_) w = qMax(w, fm.horizontalAdvance(r.value));
+      for (const auto& r : rows_)
+        w = qMax(w, fm.horizontalAdvance(r.value));
       return w;
     }();
     int y = kPadY;
@@ -143,7 +153,7 @@ void drawChevron(QPainter& p, int cx, int cy, const QColor& color) {
   p.drawPath(pp);
 }
 
-}  // namespace
+} // namespace
 
 muffin::StatusBarWidget::StatusBarWidget(QWidget* parent) : QWidget(parent) {
   setFixedHeight(muffin::ui_metrics::kStatusBarHeight);
@@ -188,8 +198,12 @@ muffin::StatusBarWidget::StatusBarWidget(QWidget* parent) : QWidget(parent) {
   retranslateUi();
 }
 
-QToolButton* muffin::StatusBarWidget::sidebarButton() const { return sidebarButton_; }
-QToolButton* muffin::StatusBarWidget::sourceModeButton() const { return sourceModeButton_; }
+QToolButton* muffin::StatusBarWidget::sidebarButton() const {
+  return sidebarButton_;
+}
+QToolButton* muffin::StatusBarWidget::sourceModeButton() const {
+  return sourceModeButton_;
+}
 
 void muffin::StatusBarWidget::setCursorStatus(const QString& text) {
   if (cursorStatus_ != text) {
@@ -244,7 +258,8 @@ void muffin::StatusBarWidget::setSidebarChecked(bool checked) {
 }
 
 void muffin::StatusBarWidget::setSourceModeChecked(bool checked) {
-  if (sourceModeButton_) sourceModeButton_->setChecked(checked);
+  if (sourceModeButton_)
+    sourceModeButton_->setChecked(checked);
 }
 
 void muffin::StatusBarWidget::updateSidebarIcon() {
@@ -270,14 +285,13 @@ void muffin::StatusBarWidget::applyThemeColors(const QColor& bg, const QColor& t
   checked.setAlpha(12);
   QColor pressed = text;
   pressed.setAlpha(30);
-  setStyleSheet(QStringLiteral(
-      "QToolButton { background: transparent; border: 0; border-radius: 5px; padding: 0; }"
-      "QToolButton:hover { background: %1; }"
-      "QToolButton:checked { background: %2; }"
-      "QToolButton:checked:hover { background: %1; }"
-      "QToolButton:pressed, QToolButton:checked:pressed { background: %3; }"
-      "QToolButton#statusSidebarToggle { border-radius: 12px; }")
-      .arg(hover.name(QColor::HexArgb), checked.name(QColor::HexArgb), pressed.name(QColor::HexArgb)));
+  setStyleSheet(QStringLiteral("QToolButton { background: transparent; border: 0; border-radius: 5px; padding: 0; }"
+                               "QToolButton:hover { background: %1; }"
+                               "QToolButton:checked { background: %2; }"
+                               "QToolButton:checked:hover { background: %1; }"
+                               "QToolButton:pressed, QToolButton:checked:pressed { background: %3; }"
+                               "QToolButton#statusSidebarToggle { border-radius: 12px; }")
+                    .arg(hover.name(QColor::HexArgb), checked.name(QColor::HexArgb), pressed.name(QColor::HexArgb)));
 
   sourceModeButton_->setIcon(makeStatusIcon(IconKind::SourceMode, muted_, text_));
   updateSidebarIcon();
@@ -335,8 +349,8 @@ void muffin::StatusBarWidget::resizeEvent(QResizeEvent* event) {
   relayoutButtons();
 }
 
-void muffin::StatusBarWidget::drawSegmentText(QPainter& p, const QString& text, const QRect& rect,
-                                              const QColor& color, int flags) const {
+void muffin::StatusBarWidget::drawSegmentText(QPainter& p, const QString& text, const QRect& rect, const QColor& color,
+                                              int flags) const {
   p.setPen(color);
   p.drawText(rect, flags, text);
 }
@@ -360,8 +374,7 @@ bool muffin::StatusBarWidget::event(QEvent* event) {
       tip = tr("Click to view document statistics");
       area = r.stats;
     } else if (r.spell.contains(pos)) {
-      tip = spellEnabled_ ? tr("Click to change the spell-check language")
-                          : tr("Spell check is off — click to enable");
+      tip = spellEnabled_ ? tr("Click to change the spell-check language") : tr("Spell check is off — click to enable");
       area = r.spell;
     } else if (r.cursor.contains(pos)) {
       tip = tr("Cursor position (line : column)");
@@ -523,13 +536,15 @@ void muffin::StatusBarWidget::showStatsPopup(const StatusBarStats& stats) {
   int x = anchor.x();
   int y = anchor.y() - popup->height() - 6;
   if (y < 0) {
-    y = mapToGlobal(QPoint(0, r.stats.bottom())).y() + 6;  // flip below if no room above
+    y = mapToGlobal(QPoint(0, r.stats.bottom())).y() + 6; // flip below if no room above
   }
   // Keep on screen horizontally.
   if (QScreen* screen = QGuiApplication::screenAt(QCursor::pos())) {
     const QRect avail = screen->availableGeometry();
-    if (x + popup->width() > avail.right()) x = avail.right() - popup->width();
-    if (x < avail.left()) x = avail.left();
+    if (x + popup->width() > avail.right())
+      x = avail.right() - popup->width();
+    if (x < avail.left())
+      x = avail.left();
   }
   popup->move(x, y);
   popup->show();
@@ -546,7 +561,8 @@ void muffin::StatusBarWidget::retranslateUi() {
 
 void muffin::StatusBarWidget::updateButtonToolTips() {
   const QString sidebarHint = sidebarButton_->isChecked() ? tr("Hide sidebar") : tr("Show sidebar");
-  const QString sourceHint = sourceModeButton_->isChecked() ? tr("Switch to rendered mode") : tr("Switch to source mode");
+  const QString sourceHint =
+      sourceModeButton_->isChecked() ? tr("Switch to rendered mode") : tr("Switch to source mode");
   sidebarButton_->setToolTip(sidebarHint);
   sidebarButton_->setAccessibleName(sidebarHint);
   sourceModeButton_->setToolTip(sourceHint);

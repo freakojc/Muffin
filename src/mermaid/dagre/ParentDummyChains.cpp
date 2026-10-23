@@ -17,33 +17,37 @@ QList<QString> kids(const DagreGraph& g, const QString& v) {
 // JS `g.node(pathV).maxRank < node.rank` with undefined→false semantics.
 int maxRankOrInf(const DagreGraph& g, const QString& v) {
   const DagreNodeLabel* node = g.node(v);
-  if (!node || !node->maxRank.has_value()) return INT_MAX;  // undefined < x === false
+  if (!node || !node->maxRank.has_value())
+    return INT_MAX; // undefined < x === false
   return *node->maxRank;
 }
 
 int minRankOrInf(const DagreGraph& g, const QString& v) {
   const DagreNodeLabel* node = g.node(v);
-  if (!node || !node->minRank.has_value()) return INT_MAX;  // undefined <= x === false
+  if (!node || !node->minRank.has_value())
+    return INT_MAX; // undefined <= x === false
   return *node->minRank;
 }
 
-}  // namespace
+} // namespace
 
 QHash<QString, PostorderEntry> postorder(const DagreGraph& g) {
   QHash<QString, PostorderEntry> result;
   int lim = 0;
   std::function<void(const QString&)> dfs = [&](const QString& v) {
     const int low = lim;
-    for (const QString& child : kids(g, v)) dfs(child);
+    for (const QString& child : kids(g, v))
+      dfs(child);
     result[v] = PostorderEntry{low, lim};
     lim++;
   };
-  for (const QString& v : g.children().value_or(QList<QString>{})) dfs(v);
+  for (const QString& v : g.children().value_or(QList<QString>{}))
+    dfs(v);
   return result;
 }
 
-ClusterPath findPath(const DagreGraph& g, const QHash<QString, PostorderEntry>& postorderNums,
-                     const QString& v, const QString& w) {
+ClusterPath findPath(const DagreGraph& g, const QHash<QString, PostorderEntry>& postorderNums, const QString& v,
+                     const QString& w) {
   QList<QString> vPath;
   QList<QString> wPath;
   const PostorderEntry vEntry = postorderNums.value(v);
@@ -58,10 +62,12 @@ ClusterPath findPath(const DagreGraph& g, const QHash<QString, PostorderEntry>& 
   QString lca;
   forever {
     parent = g.parentOf(parent);
-    vPath.append(parent);  // push even when null, matching JS `vPath.push(parent)`
-    if (parent.isNull()) break;
+    vPath.append(parent); // push even when null, matching JS `vPath.push(parent)`
+    if (parent.isNull())
+      break;
     const PostorderEntry pe = postorderNums.value(parent);
-    if (!(pe.low > low || lim > pe.lim)) break;  // while condition false → stop
+    if (!(pe.low > low || lim > pe.lim))
+      break; // while condition false → stop
   }
   lca = parent;
 
@@ -70,7 +76,8 @@ ClusterPath findPath(const DagreGraph& g, const QHash<QString, PostorderEntry>& 
   while (true) {
     parent = g.parentOf(parent);
     if (parent != lca) {
-      if (parent.isNull()) break;  // safety: never found lca; stop at root
+      if (parent.isNull())
+        break; // safety: never found lca; stop at root
       wPath.append(parent);
     } else {
       break;
@@ -89,7 +96,8 @@ void parentDummyChains(DagreGraph& g) {
   const QVector<QString> chains = g.graph()->dummyChains;
   for (const QString& v : chains) {
     DagreNodeLabel* node = g.node(v);
-    if (!node || !node->edgeObj.has_value()) continue;
+    if (!node || !node->edgeObj.has_value())
+      continue;
     const graphlib::Edge edgeObj = *node->edgeObj;
     const ClusterPath pathData = findPath(g, postorderNums, edgeObj.v, edgeObj.w);
     const QList<QString>& path = pathData.path;
@@ -101,25 +109,30 @@ void parentDummyChains(DagreGraph& g) {
 
     while (cur != edgeObj.w) {
       node = g.node(cur);
-      if (!node) break;
+      if (!node)
+        break;
 
       if (ascending) {
         // while ((pathV = path[pathIdx]) !== lca && maxRank(pathV) < node.rank)
         while (true) {
           pathV = (pathIdx >= 0 && pathIdx < path.size()) ? path.at(pathIdx) : QString();
-          if (pathV == lca) break;  // !== lca is false
-          if (!(maxRankOrInf(g, pathV) < node->rank.value_or(INT_MAX))) break;
+          if (pathV == lca)
+            break; // !== lca is false
+          if (!(maxRankOrInf(g, pathV) < node->rank.value_or(INT_MAX)))
+            break;
           ++pathIdx;
         }
         pathV = (pathIdx >= 0 && pathIdx < path.size()) ? path.at(pathIdx) : QString();
-        if (pathV == lca) ascending = false;
+        if (pathV == lca)
+          ascending = false;
       }
 
       if (!ascending) {
         // while (pathIdx < path.length - 1 && minRank(path[pathIdx+1]) <= node.rank)
         while (pathIdx < path.size() - 1) {
           const QString next = path.at(pathIdx + 1);
-          if (!(minRankOrInf(g, next) <= node->rank.value_or(INT_MAX))) break;
+          if (!(minRankOrInf(g, next) <= node->rank.value_or(INT_MAX)))
+            break;
           ++pathIdx;
         }
         pathV = (pathIdx >= 0 && pathIdx < path.size()) ? path.at(pathIdx) : QString();
@@ -132,10 +145,11 @@ void parentDummyChains(DagreGraph& g) {
         g.setParent(cur, pathV);
 
       const QList<QString> sucs = g.successors(cur);
-      if (sucs.isEmpty()) break;  // malformed chain; avoid infinite loop
+      if (sucs.isEmpty())
+        break; // malformed chain; avoid infinite loop
       cur = sucs.first();
     }
   }
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

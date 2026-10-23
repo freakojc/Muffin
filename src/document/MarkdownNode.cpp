@@ -12,14 +12,12 @@ namespace muffin {
 // Keep their field lists in sync with MarkdownNode.h when adding domain state.
 MarkdownNode::ExtendedMetadata::ExtendedMetadata(const ExtendedMetadata& o)
     : codeLanguage(o.codeLanguage), tableAlignments(o.tableAlignments),
-      definition(o.definition ? std::make_unique<DefinitionBlock>(*o.definition) : nullptr) {}
+      definition(o.definition ? std::make_unique<DefinitionBlock>(*o.definition) : nullptr) {
+}
 
-MarkdownNode::ExtendedMetadata& MarkdownNode::ExtendedMetadata::operator=(
-    const ExtendedMetadata& o) {
+MarkdownNode::ExtendedMetadata& MarkdownNode::ExtendedMetadata::operator=(const ExtendedMetadata& o) {
   if (this != &o) {
-    auto copiedDefinition = o.definition
-        ? std::make_unique<DefinitionBlock>(*o.definition)
-        : nullptr;
+    auto copiedDefinition = o.definition ? std::make_unique<DefinitionBlock>(*o.definition) : nullptr;
     codeLanguage = o.codeLanguage;
     tableAlignments = o.tableAlignments;
     definition = std::move(copiedDefinition);
@@ -46,14 +44,13 @@ void MarkdownNode::pruneExtendedMetadata() {
 
 MarkdownNode::BlockMetadata::BlockMetadata(const BlockMetadata& o)
     : inlines(o.inlines), literal(o.literal), sourceRange(o.sourceRange),
-      extended(o.extended ? std::make_unique<ExtendedMetadata>(*o.extended) : nullptr),
-      headingLevel(o.headingLevel), listStart(o.listStart), flags(o.flags) {}
+      extended(o.extended ? std::make_unique<ExtendedMetadata>(*o.extended) : nullptr), headingLevel(o.headingLevel),
+      listStart(o.listStart), flags(o.flags) {
+}
 
 MarkdownNode::BlockMetadata& MarkdownNode::BlockMetadata::operator=(const BlockMetadata& o) {
   if (this != &o) {
-    auto extendedMetadata = o.extended
-        ? std::make_unique<ExtendedMetadata>(*o.extended)
-        : nullptr;
+    auto extendedMetadata = o.extended ? std::make_unique<ExtendedMetadata>(*o.extended) : nullptr;
     inlines = o.inlines;
     literal = o.literal;
     sourceRange = o.sourceRange;
@@ -65,8 +62,8 @@ MarkdownNode::BlockMetadata& MarkdownNode::BlockMetadata::operator=(const BlockM
   return *this;
 }
 
-MarkdownNode::MarkdownNode(BlockType type, NodeId id)
-    : id_(std::move(id)), type_(type), sourcePositionIndex_(nullptr) {}
+MarkdownNode::MarkdownNode(BlockType type, NodeId id) : id_(std::move(id)), type_(type), sourcePositionIndex_(nullptr) {
+}
 
 NodeId MarkdownNode::id() const {
   return id_;
@@ -98,18 +95,29 @@ MarkdownNode* MarkdownNode::nextSibling() const {
 
 quint8 MarkdownNode::siblingKind() const {
   switch (type_) {
-    case BlockType::Paragraph: return 1;
-    case BlockType::Heading: return static_cast<quint8>(1 + std::clamp(metadata_.headingLevel, 1, 6));
-    case BlockType::BlockQuote: return 8;
-    case BlockType::List: return listKind() == ListKind::Ordered ? 9 : 10;
-    case BlockType::ListItem: return 11;
-    case BlockType::CodeFence:
-    case BlockType::FrontMatter: return 12;
-    case BlockType::Table: return 13;
-    case BlockType::TableRow: return 14;
-    case BlockType::TableCell: return 15;
-    case BlockType::ThematicBreak: return 16;
-    default: return 0;
+  case BlockType::Paragraph:
+    return 1;
+  case BlockType::Heading:
+    return static_cast<quint8>(1 + std::clamp(metadata_.headingLevel, 1, 6));
+  case BlockType::BlockQuote:
+    return 8;
+  case BlockType::List:
+    return listKind() == ListKind::Ordered ? 9 : 10;
+  case BlockType::ListItem:
+    return 11;
+  case BlockType::CodeFence:
+  case BlockType::FrontMatter:
+    return 12;
+  case BlockType::Table:
+    return 13;
+  case BlockType::TableRow:
+    return 14;
+  case BlockType::TableCell:
+    return 15;
+  case BlockType::ThematicBreak:
+    return 16;
+  default:
+    return 0;
   }
 }
 
@@ -326,9 +334,8 @@ void MarkdownNode::setFrontMatterFormat(FrontMatterFormat format) {
 }
 
 DefinitionBlock MarkdownNode::definition() const {
-  DefinitionBlock def = metadata_.extended && metadata_.extended->definition
-      ? *metadata_.extended->definition
-      : DefinitionBlock{};
+  DefinitionBlock def =
+      metadata_.extended && metadata_.extended->definition ? *metadata_.extended->definition : DefinitionBlock{};
   if (!def.isValid()) {
     return def;
   }
@@ -357,8 +364,7 @@ DefinitionBlock MarkdownNode::definition() const {
 }
 
 void MarkdownNode::setDefinition(DefinitionBlock definition) {
-  ensureExtendedMetadata().definition =
-      std::make_unique<DefinitionBlock>(std::move(definition));
+  ensureExtendedMetadata().definition = std::make_unique<DefinitionBlock>(std::move(definition));
 }
 
 QVector<TableAlignment> MarkdownNode::tableAlignments() const {
@@ -484,7 +490,7 @@ void MarkdownNode::subtractDefinitionFields(DefinitionBlock& def, qsizetype byte
 }
 
 void MarkdownNode::relativizeNodeAndDescendants(const MarkdownNode* topLevel, qsizetype byteBase, int lineBase) {
-  topLevelCache_ = topLevel;  // seed the cache while we are already walking the subtree
+  topLevelCache_ = topLevel; // seed the cache while we are already walking the subtree
   SourceRange range = metadata_.sourceRange;
   // Shift bytes AND lines together whenever the byte range is resolved. Lines must move inside the
   // same guard as bytes (not a separate `lineStart > 0` check): a valid line can relativize to 0
@@ -515,7 +521,7 @@ void MarkdownNode::relativizeDescendants() {
   const qsizetype byteBase = metadata_.sourceRange.byteStart;
   const int lineBase = metadata_.sourceRange.lineStart;
   metadata_.flags.offsetsRelative = true;
-  topLevelCache_ = this;  // this block is its own top-level
+  topLevelCache_ = this; // this block is its own top-level
   if (metadata_.extended && metadata_.extended->definition) {
     subtractDefinitionFields(*metadata_.extended->definition, byteBase);
   }
@@ -553,8 +559,7 @@ qsizetype MarkdownNode::bindSharedInlineTextRecursive(const std::shared_ptr<cons
 }
 
 std::unique_ptr<MarkdownNode> MarkdownNode::clone(CloneMode mode) const {
-  auto copy = std::make_unique<MarkdownNode>(
-      type_, mode == CloneMode::PreserveIds ? id_ : NodeId::create());
+  auto copy = std::make_unique<MarkdownNode>(type_, mode == CloneMode::PreserveIds ? id_ : NodeId::create());
   // A single aggregate copy carries every domain field, so adding a field can no longer be
   // silently dropped here (the flat layout previously let clone() miss taskItem_).
   copy->metadata_ = metadata_;
@@ -575,4 +580,4 @@ std::unique_ptr<MarkdownNode> MarkdownNode::clone(CloneMode mode) const {
   return copy;
 }
 
-}  // namespace muffin
+} // namespace muffin

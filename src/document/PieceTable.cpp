@@ -43,9 +43,15 @@ QChar PieceTable::at(qsizetype offset) const {
 }
 
 QString PieceTable::mid(qsizetype start, qsizetype len) const {
-  if (start < 0) { start = 0; }
-  if (start >= totalLength_ || len <= 0) { return QString(); }
-  if (len > totalLength_ - start) { len = totalLength_ - start; }
+  if (start < 0) {
+    start = 0;
+  }
+  if (start >= totalLength_ || len <= 0) {
+    return QString();
+  }
+  if (len > totalLength_ - start) {
+    len = totalLength_ - start;
+  }
   QString out;
   out.reserve(len);
   auto [idx, off] = locate(start);
@@ -70,10 +76,18 @@ QByteArray PieceTable::toUtf8() const {
 }
 
 void PieceTable::replace(qsizetype start, qsizetype end, QStringView text) {
-  if (start < 0) { start = 0; }
-  if (end < start) { end = start; }
-  if (start > totalLength_) { start = static_cast<qsizetype>(totalLength_); }
-  if (end > totalLength_) { end = static_cast<qsizetype>(totalLength_); }
+  if (start < 0) {
+    start = 0;
+  }
+  if (end < start) {
+    end = start;
+  }
+  if (start > totalLength_) {
+    start = static_cast<qsizetype>(totalLength_);
+  }
+  if (end > totalLength_) {
+    end = static_cast<qsizetype>(totalLength_);
+  }
 
   // Append the new text to the append-only changes_ buffer; existing pieces that reference changes_
   // stay valid (append never moves earlier chars).
@@ -111,7 +125,9 @@ void PieceTable::replace(qsizetype start, qsizetype end, QStringView text) {
   // + [pieces after pe]. The pieces fully inside [start, end) are dropped (replaced).
   std::vector<Piece> next;
   next.reserve(pieces_.size() + 2);
-  for (qsizetype i = 0; i < ps; ++i) { next.push_back(pieces_[static_cast<size_t>(i)]); }
+  for (qsizetype i = 0; i < ps; ++i) {
+    next.push_back(pieces_[static_cast<size_t>(i)]);
+  }
   if (ps < static_cast<qsizetype>(pieces_.size()) && os > 0) {
     const Piece& p = pieces_[static_cast<size_t>(ps)];
     next.push_back(Piece{p.fromChanges, p.start, os});
@@ -156,10 +172,8 @@ void PieceTable::rebuildPrefix() {
   for (size_t i = 0; i < pieces_.size(); ++i) {
     prefix_[i] = acc;
     prefixNewlines_[i] = newlineAcc;
-    pieces_[i].newlineCount = countNewlines(
-        pieces_[i].fromChanges, pieces_[i].start, pieces_[i].length);
-    const WordSummary words = wordSummary(
-        pieces_[i].fromChanges, pieces_[i].start, pieces_[i].length);
+    pieces_[i].newlineCount = countNewlines(pieces_[i].fromChanges, pieces_[i].start, pieces_[i].length);
+    const WordSummary words = wordSummary(pieces_[i].fromChanges, pieces_[i].start, pieces_[i].length);
     pieces_[i].wordCount = words.count;
     pieces_[i].startsWithWord = words.startsWithWord;
     pieces_[i].endsWithWord = words.endsWithWord;
@@ -192,8 +206,7 @@ bool PieceTable::isWordChar(QChar ch) {
   return ch.isLetterOrNumber() || ch == QLatin1Char('_');
 }
 
-PieceTable::WordSummary PieceTable::wordSummary(
-    bool fromChanges, qsizetype start, qsizetype length) const {
+PieceTable::WordSummary PieceTable::wordSummary(bool fromChanges, qsizetype start, qsizetype length) const {
   WordSummary result;
   if (length <= 0) {
     return result;
@@ -245,8 +258,7 @@ qsizetype PieceTable::indexOf(QStringView needle, qsizetype from) const {
   qsizetype matched = 0;
   for (; pieceIndex < static_cast<qsizetype>(pieces_.size()); ++pieceIndex, inPiece = 0) {
     const Piece& piece = pieces_.at(static_cast<size_t>(pieceIndex));
-    const QStringView chunk = QStringView(buffer(piece.fromChanges)).mid(
-        piece.start + inPiece, piece.length - inPiece);
+    const QStringView chunk = QStringView(buffer(piece.fromChanges)).mid(piece.start + inPiece, piece.length - inPiece);
     for (QChar ch : chunk) {
       while (matched > 0 && ch != needle.at(matched)) {
         matched = fallback.at(matched - 1);
@@ -270,8 +282,7 @@ qsizetype PieceTable::lastIndexOf(QStringView needle, qsizetype from) const {
   if (needle.size() > size()) {
     return -1;
   }
-  const qsizetype latestStart = from < 0 ? size() - needle.size()
-                                         : qMin(from, size() - needle.size());
+  const qsizetype latestStart = from < 0 ? size() - needle.size() : qMin(from, size() - needle.size());
 
   QVector<qsizetype> fallback(needle.size(), 0);
   for (qsizetype i = 1, matched = 0; i < needle.size(); ++i) {
@@ -318,9 +329,8 @@ int PieceTable::lineForOffset(qsizetype offset) const {
   const auto [pieceIndex, inPiece] = locate(bounded);
   const Piece& piece = pieces_.at(static_cast<size_t>(pieceIndex));
   const qsizetype localNewlines = countNewlines(piece.fromChanges, piece.start, inPiece);
-  return static_cast<int>(qMin<qint64>(
-      prefixNewlines_.at(static_cast<size_t>(pieceIndex)) + localNewlines + 1,
-      std::numeric_limits<int>::max()));
+  return static_cast<int>(qMin<qint64>(prefixNewlines_.at(static_cast<size_t>(pieceIndex)) + localNewlines + 1,
+                                       std::numeric_limits<int>::max()));
 }
 
 qsizetype PieceTable::lineStartOffset(int line) const {
@@ -338,8 +348,7 @@ qsizetype PieceTable::lineStartOffset(int line) const {
   const auto first = std::lower_bound(positions.cbegin(), positions.cend(), piece.start);
   const qsizetype withinPiece = static_cast<qsizetype>(ordinal - prefixNewlines_.at(static_cast<size_t>(pieceIndex)));
   const qsizetype newline = *(first + withinPiece);
-  return static_cast<qsizetype>(prefix_.at(static_cast<size_t>(pieceIndex))) +
-      (newline - piece.start) + 1;
+  return static_cast<qsizetype>(prefix_.at(static_cast<size_t>(pieceIndex))) + (newline - piece.start) + 1;
 }
 
 qsizetype PieceTable::lineEndOffset(int line) const {
@@ -360,4 +369,4 @@ int PieceTable::wordCount() const {
   return static_cast<int>(qMin<qint64>(totalWords_, std::numeric_limits<int>::max()));
 }
 
-}  // namespace muffin
+} // namespace muffin

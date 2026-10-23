@@ -15,7 +15,7 @@ void require(bool condition, const char* message) {
     std::exit(1);
   }
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   // Use an INI-format settings store under a throwaway org/app name so the test never
@@ -39,8 +39,7 @@ int main(int argc, char** argv) {
   require(!sc.isCorrect(QStringLiteral("recieve")), "\"recieve\" should be misspelled");
 
   const QStringList sugg = sc.suggestions(QStringLiteral("spelllng"));
-  require(sugg.contains(QStringLiteral("spelling")),
-          "suggestions for \"spelllng\" should include \"spelling\"");
+  require(sugg.contains(QStringLiteral("spelling")), "suggestions for \"spelllng\" should include \"spelling\"");
 
   // Ignored words are treated as correct for the rest of the session.
   require(!sc.isCorrect(QStringLiteral("xyzqwerty")), "control word should be misspelled");

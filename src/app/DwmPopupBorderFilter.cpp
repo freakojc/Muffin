@@ -7,19 +7,19 @@
 #include <QWidget>
 
 #if defined(Q_OS_WIN)
-#  define WIN32_LEAN_AND_MEAN
-#  define NOMINMAX
-#  include <windows.h>
-#  include <dwmapi.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <dwmapi.h>
 
-#  include <QOperatingSystemVersion>
+#include <QOperatingSystemVersion>
 
-#  ifndef DWMWA_BORDER_COLOR
-#    define DWMWA_BORDER_COLOR 34
-#  endif
-#  ifndef DWMWA_COLOR_NONE
-#    define DWMWA_COLOR_NONE 0xFFFFFFFE
-#  endif
+#ifndef DWMWA_BORDER_COLOR
+#define DWMWA_BORDER_COLOR 34
+#endif
+#ifndef DWMWA_COLOR_NONE
+#define DWMWA_COLOR_NONE 0xFFFFFFFE
+#endif
 #endif
 
 namespace muffin {
@@ -36,14 +36,15 @@ void muffin::DwmPopupBorderFilter::install(QApplication& app) {
 #endif
 }
 
-muffin::DwmPopupBorderFilter::DwmPopupBorderFilter(QObject* parent) : QObject(parent) {}
+muffin::DwmPopupBorderFilter::DwmPopupBorderFilter(QObject* parent) : QObject(parent) {
+}
 
 bool muffin::DwmPopupBorderFilter::eventFilter(QObject* watched, QEvent* event) {
 #if defined(Q_OS_WIN)
   if (event->type() == QEvent::Show) {
-    if (auto* widget = qobject_cast<QWidget*>(watched);
-        widget != nullptr && widget->isWindow() && widget->windowType() == Qt::Popup &&
-        widget->testAttribute(Qt::WA_WState_Created)) {
+    if (auto* widget = qobject_cast<QWidget*>(watched); widget != nullptr && widget->isWindow() &&
+                                                        widget->windowType() == Qt::Popup &&
+                                                        widget->testAttribute(Qt::WA_WState_Created)) {
       // Combo dropdown containers (a top-level QFrame hosting a QAbstractItemView)
       // are left partly unpainted by the Windows 11 style's transparent-popup
       // handling: it clears the item view's viewport autofill and makes PE_Frame
@@ -88,4 +89,4 @@ bool muffin::DwmPopupBorderFilter::eventFilter(QObject* watched, QEvent* event) 
   return QObject::eventFilter(watched, event);
 }
 
-}  // namespace muffin
+} // namespace muffin

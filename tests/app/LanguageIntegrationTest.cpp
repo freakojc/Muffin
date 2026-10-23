@@ -60,11 +60,12 @@ void verifyStatusBarTooltips(muffin::StatusBarWidget& bar, bool localized) {
     }
   }
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
 #if !defined(Q_OS_MACOS)
-  if (qgetenv("QT_QPA_PLATFORM").isEmpty()) qputenv("QT_QPA_PLATFORM", "offscreen");
+  if (qgetenv("QT_QPA_PLATFORM").isEmpty())
+    qputenv("QT_QPA_PLATFORM", "offscreen");
 #endif
   QApplication app(argc, argv);
   QTemporaryDir settingsDir;
@@ -92,7 +93,8 @@ int main(int argc, char** argv) {
   muffin::HelpViewerDialog::open(nullptr, muffin::HelpTopic::QuickStart);
   QStringList codes;
   for (const auto& language : manager.availableLanguages()) {
-    if (language.code != QStringLiteral("system")) codes.append(language.code);
+    if (language.code != QStringLiteral("system"))
+      codes.append(language.code);
   }
   codes.append({QStringLiteral("zh-HK"), QStringLiteral("pt-BR"), QStringLiteral("system")});
   for (const QString& code : codes) {
@@ -100,9 +102,11 @@ int main(int argc, char** argv) {
     QCoreApplication::sendPostedEvents(nullptr, QEvent::LanguageChange);
     app.processEvents();
     require(manager.currentLanguageCode() == code, QStringLiteral("Settings must retain the selected language"));
-    require(manager.effectiveLanguageCode() != QStringLiteral("system"), QStringLiteral("Effective language must resolve system"));
+    require(manager.effectiveLanguageCode() != QStringLiteral("system"),
+            QStringLiteral("Effective language must resolve system"));
     if (code == QStringLiteral("zh-HK")) {
-      require(manager.effectiveLanguageCode() == QStringLiteral("zh_TW"), QStringLiteral("Hong Kong must select Traditional Chinese resources"));
+      require(manager.effectiveLanguageCode() == QStringLiteral("zh_TW"),
+              QStringLiteral("Hong Kong must select Traditional Chinese resources"));
     }
     require(rendered.accessibleName() == translated("muffin::EditorView", "Markdown editor"),
             QStringLiteral("Rendered editor accessible name must follow language changes"));
@@ -113,7 +117,8 @@ int main(int argc, char** argv) {
     require(source.accessibleDescription() == translated("muffin::VirtualSourceEdit", "Plain-text Markdown source"),
             QStringLiteral("Source editor description must follow language changes"));
     verifyStatusBarTooltips(statusBar, manager.effectiveLanguageCode() != QStringLiteral("en"));
-    for (const auto& entry : {qMakePair("RefreshFoldersButton", "Refresh Files"), qMakePair("SortFilesButton", "Sort Files")}) {
+    for (const auto& entry :
+         {qMakePair("RefreshFoldersButton", "Refresh Files"), qMakePair("SortFilesButton", "Sort Files")}) {
       auto* button = sidebar.findChild<QToolButton*>(QString::fromLatin1(entry.first));
       const auto label = translated("muffin::SidebarWidget", entry.second);
       require(button && button->toolTip() == label && button->accessibleName() == label,
@@ -123,9 +128,9 @@ int main(int argc, char** argv) {
     }
     auto* sortMenu = sidebar.findChild<QMenu*>(QStringLiteral("FileSortMenu"));
     for (const auto& entry : {qMakePair("SortByName", "File Name"), qMakePair("SortByModified", "Date Modified"),
-                             qMakePair("SortByCreated", "Date Created"), qMakePair("SortByType", "File Type"),
-                             qMakePair("SortBySize", "File Size"), qMakePair("SortAscending", "Ascending"),
-                             qMakePair("SortDescending", "Descending")}) {
+                              qMakePair("SortByCreated", "Date Created"), qMakePair("SortByType", "File Type"),
+                              qMakePair("SortBySize", "File Size"), qMakePair("SortAscending", "Ascending"),
+                              qMakePair("SortDescending", "Descending")}) {
       auto* action = sortMenu->findChild<QAction*>(QString::fromLatin1(entry.first));
       require(action && action->text() == translated("muffin::SidebarWidget", entry.second),
               QStringLiteral("Explorer sort options follow the current language"));
@@ -139,10 +144,10 @@ int main(int argc, char** argv) {
         QApplication::sendEvent(&statusBar, &help);
         shownHints.append(QToolTip::text());
       }
-      const char* spellHint = spellEnabled ? "Click to change the spell-check language"
-                                           : "Spell check is off — click to enable";
-      for (const char* hint : {"Click to view document statistics", spellHint,
-                               "Cursor position (line : column)", "File encoding · line ending"}) {
+      const char* spellHint =
+          spellEnabled ? "Click to change the spell-check language" : "Spell check is off — click to enable";
+      for (const char* hint : {"Click to view document statistics", spellHint, "Cursor position (line : column)",
+                               "File encoding · line ending"}) {
         require(shownHints.contains(translated("muffin::StatusBarWidget", hint)),
                 QStringLiteral("Painted status-bar hints must display in the current language: %1")
                     .arg(QString::fromUtf8(hint)));
@@ -152,13 +157,15 @@ int main(int argc, char** argv) {
     muffin::StatusBarWidget newStatusBar;
     require(newStatusBar.sidebarButton()->toolTip() == translated("muffin::StatusBarWidget", "Show sidebar"),
             QStringLiteral("New status bars must use the startup language"));
-    require(newStatusBar.sourceModeButton()->toolTip() == translated("muffin::StatusBarWidget", "Switch to source mode"),
+    require(newStatusBar.sourceModeButton()->toolTip() ==
+                translated("muffin::StatusBarWidget", "Switch to source mode"),
             QStringLiteral("New source-mode buttons must use the startup language"));
 
     bool found = false;
     for (QWidget* window : QApplication::topLevelWidgets()) {
       auto* help = qobject_cast<muffin::HelpViewerDialog*>(window);
-      if (!help) continue;
+      if (!help)
+        continue;
       found = true;
       QString path = QStringLiteral(":/help/quick-start.md");
       if (manager.effectiveLanguageCode() != QStringLiteral("en")) {
@@ -181,11 +188,13 @@ int main(int argc, char** argv) {
   existing.close();
   QString error;
   require(!muffin::FilePathOps::createFile(path, &error), QStringLiteral("Existing file must be rejected"));
-  require(error == translated("muffin::FilePathOps", "file already exists") && error != QStringLiteral("file already exists"),
+  require(error == translated("muffin::FilePathOps", "file already exists") &&
+              error != QStringLiteral("file already exists"),
           QStringLiteral("File operation error detail must be translated"));
   require(!muffin::FilePathOps::revealPathInManager(settingsDir.filePath(QStringLiteral("missing.md")), &error),
           QStringLiteral("A missing path must be rejected before opening the file manager"));
-  require(error == translated("muffin::FilePathOps", "path does not exist") && error != QStringLiteral("path does not exist"),
+  require(error == translated("muffin::FilePathOps", "path does not exist") &&
+              error != QStringLiteral("path does not exist"),
           QStringLiteral("Missing path error detail must be translated"));
   const auto upload = muffin::CustomCommandUploader::upload(nullptr, {});
   require(upload.error == translated("muffin::CustomCommandUploader", "no upload command configured") &&

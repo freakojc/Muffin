@@ -21,16 +21,17 @@ namespace {
   std::fprintf(stderr, "FAIL: %s\n", qPrintable(message));
   std::exit(1);
 }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 QByteArray sha256(const QString& path) {
   QFile file(path);
-  return file.open(QIODevice::ReadOnly)
-             ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
-             : QByteArray();
+  return file.open(QIODevice::ReadOnly) ? QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex()
+                                        : QByteArray();
 }
 QImage renderNative(const QString& source) {
-  const QString dataUrl =
-      editor::MermaidRenderCache::renderMermaidSourceToPng(source, 1.0).dataUrl;
+  const QString dataUrl = editor::MermaidRenderCache::renderMermaidSourceToPng(source, 1.0).dataUrl;
   const qsizetype comma = dataUrl.indexOf(QLatin1Char(','));
   QImage image;
   if (comma >= 0)
@@ -55,7 +56,8 @@ qreal foregroundRgba(const QImage& native, const QImage& reference) {
     for (int x = 0; x < reference.width(); ++x) {
       const QColor a = native.pixelColor(x, y);
       const QColor b = reference.pixelColor(x, y);
-      if (a.alpha() < 16 && b.alpha() < 16) continue;
+      if (a.alpha() < 16 && b.alpha() < 16)
+        continue;
       const auto premul = [](int c, int alpha) { return c * alpha / 255; };
       difference += std::abs(premul(a.red(), a.alpha()) - premul(b.red(), b.alpha()));
       difference += std::abs(premul(a.green(), a.alpha()) - premul(b.green(), b.alpha()));
@@ -65,7 +67,7 @@ qreal foregroundRgba(const QImage& native, const QImage& reference) {
     }
   return samples ? 1.0 - difference / (qreal(samples) * 4.0 * 255.0) : 1.0;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
 #if defined(Q_OS_MACOS)
@@ -95,18 +97,20 @@ int main(int argc, char** argv) {
   for (const QJsonValue& value : cases) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
-    const QString pngPath = manifestInfo.absolutePath() + QLatin1Char('/') +
-                            fixture.value(QStringLiteral("file")).toString();
+    const QString pngPath =
+        manifestInfo.absolutePath() + QLatin1Char('/') + fixture.value(QStringLiteral("file")).toString();
     require(sha256(pngPath) == fixture.value(QStringLiteral("sha256")).toString().toLatin1(),
             id + QStringLiteral(": browser PNG drifted"));
     const QImage browser(pngPath);
     require(!browser.isNull(), id + QStringLiteral(": browser PNG decode"));
     const QImage native = renderNative(fixture.value(QStringLiteral("source")).toString());
     require(!native.isNull(), id + QStringLiteral(": native PNG decode"));
-    require(native.size() == browser.size(),
-            QStringLiteral("%1: %2x%3 != %4x%5")
-                .arg(id).arg(native.width()).arg(native.height())
-                .arg(browser.width()).arg(browser.height()));
+    require(native.size() == browser.size(), QStringLiteral("%1: %2x%3 != %4x%5")
+                                                 .arg(id)
+                                                 .arg(native.width())
+                                                 .arg(native.height())
+                                                 .arg(browser.width())
+                                                 .arg(browser.height()));
     const qreal iou = alphaIou(native, browser);
     const qreal rgba = foregroundRgba(native, browser);
     std::fprintf(stderr, "%s IoU %.6f RGBA %.6f\n", qPrintable(id), iou, rgba);

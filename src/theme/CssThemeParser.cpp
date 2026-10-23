@@ -28,7 +28,8 @@ struct SourceMap {
   std::vector<int> starts{0};
   SourceMap(const QString& text, QString sourceFile) : file(std::move(sourceFile)) {
     for (int i = 0; i < text.size(); ++i)
-      if (text[i] == '\n') starts.push_back(i + 1);
+      if (text[i] == '\n')
+        starts.push_back(i + 1);
   }
   CssSourceLocation at(int offset) const {
     const auto line = std::upper_bound(starts.begin(), starts.end(), offset) - starts.begin();
@@ -55,23 +56,29 @@ int skipWsComments(const QString& text, int i, int n) {
 // If text[i] starts a quoted string, return its (unquoted) content and advance
 // `i` past the closing quote. Otherwise leave i unchanged and return empty.
 QString tryReadString(const QString& text, int& i, int n) {
-  if (i >= n) { return {}; }
+  if (i >= n) {
+    return {};
+  }
   const QChar quote = text.at(i);
-  if (quote != QLatin1Char('"') && quote != QLatin1Char('\'')) { return {}; }
+  if (quote != QLatin1Char('"') && quote != QLatin1Char('\'')) {
+    return {};
+  }
   QString out;
   int j = i + 1;
   while (j < n) {
     const QChar c = text.at(j);
-    if (c == QLatin1Char('\\') && j + 1 < n) {  // CSS escape — keep next char literally
+    if (c == QLatin1Char('\\') && j + 1 < n) { // CSS escape — keep next char literally
       out += text.at(j + 1);
       j += 2;
       continue;
     }
-    if (c == quote) { break; }
+    if (c == quote) {
+      break;
+    }
     out += c;
     ++j;
   }
-  i = (j < n) ? j + 1 : n;  // consume closing quote
+  i = (j < n) ? j + 1 : n; // consume closing quote
   return out;
 }
 
@@ -96,11 +103,18 @@ int findDelim(const QString& text, int from, int n, QChar delim) {
     // Check the delimiter BEFORE adjusting depth, so that when the delimiter IS
     // a bracket (e.g. finding the ')' that closes a var()) it is returned at the
     // current depth rather than swallowed by the balance tracking.
-    if (paren == 0 && brk == 0 && c == delim) { return i; }
-    if (c == QLatin1Char('(')) { ++paren; }
-    else if (c == QLatin1Char(')')) { paren = qMax(0, paren - 1); }
-    else if (c == QLatin1Char('[')) { ++brk; }
-    else if (c == QLatin1Char(']')) { brk = qMax(0, brk - 1); }
+    if (paren == 0 && brk == 0 && c == delim) {
+      return i;
+    }
+    if (c == QLatin1Char('(')) {
+      ++paren;
+    } else if (c == QLatin1Char(')')) {
+      paren = qMax(0, paren - 1);
+    } else if (c == QLatin1Char('[')) {
+      ++brk;
+    } else if (c == QLatin1Char(']')) {
+      brk = qMax(0, brk - 1);
+    }
     ++i;
   }
   return -1;
@@ -124,10 +138,13 @@ int matchingBrace(const QString& text, int openIdx, int n) {
       i = (end < 0) ? n : end + 2;
       continue;
     }
-    if (c == QLatin1Char('{')) { ++depth; }
-    else if (c == QLatin1Char('}')) {
+    if (c == QLatin1Char('{')) {
+      ++depth;
+    } else if (c == QLatin1Char('}')) {
       --depth;
-      if (depth == 0) { return i; }
+      if (depth == 0) {
+        return i;
+      }
     }
     ++i;
   }
@@ -139,7 +156,9 @@ int matchingBrace(const QString& text, int openIdx, int n) {
 // advances i past the closing ')' or quote.
 QString readUrlTarget(const QString& text, int& i, int n) {
   i = skipWsComments(text, i, n);
-  if (i >= n) { return {}; }
+  if (i >= n) {
+    return {};
+  }
   if (text.at(i) == QLatin1Char('"') || text.at(i) == QLatin1Char('\'')) {
     const int start = i;
     tryReadString(text, i, n);
@@ -148,14 +167,17 @@ QString readUrlTarget(const QString& text, int& i, int n) {
   }
   // url( ... )
   const int paren = findDelim(text, i, n, QLatin1Char('('));
-  if (paren < 0) { return {}; }
+  if (paren < 0) {
+    return {};
+  }
   int close = findDelim(text, paren + 1, n, QLatin1Char(')'));
-  if (close < 0) { close = n; }
+  if (close < 0) {
+    close = n;
+  }
   QString inner = text.mid(paren + 1, close - (paren + 1)).trimmed();
   i = close + 1;
   // strip surrounding quotes if present
-  if (inner.size() >= 2 &&
-      (inner.front() == QLatin1Char('"') || inner.front() == QLatin1Char('\'')) &&
+  if (inner.size() >= 2 && (inner.front() == QLatin1Char('"') || inner.front() == QLatin1Char('\'')) &&
       inner.front() == inner.back()) {
     const auto tokens = parseContentTokens(inner);
     return tokens.size() == 1 ? tokens.front().text : QString{};
@@ -184,7 +206,7 @@ QString stripComments(const QString& text) {
     const QChar c = text.at(i);
     if (c == QLatin1Char('"') || c == QLatin1Char('\'')) {
       const int start = i;
-      tryReadString(text, i, n);  // advances i past the closing quote
+      tryReadString(text, i, n); // advances i past the closing quote
       out += text.mid(start, i - start);
       continue;
     }
@@ -209,19 +231,27 @@ std::vector<CssDeclaration> parseDeclarationBlock(const QString& block, const QS
   int i = 0;
   while (i < n) {
     int semi = findDelim(src, i, n, QLatin1Char(';'));
-    if (semi < 0) { semi = n; }
+    if (semi < 0) {
+      semi = n;
+    }
     const QString raw = src.mid(i, semi - i).trimmed();
     i = semi + 1;
-    if (raw.isEmpty()) { continue; }
+    if (raw.isEmpty()) {
+      continue;
+    }
     const int colon = findDelim(raw, 0, raw.size(), QLatin1Char(':'));
-    if (colon <= 0) { continue; }  // need a property before the ':'
+    if (colon <= 0) {
+      continue;
+    } // need a property before the ':'
     CssDeclaration d;
     d.resourceBaseDir = baseDir;
     d.property = raw.left(colon).trimmed();
     // Normal property names are ASCII case-insensitive; custom property names
     // (`--Name`) are case-sensitive by CSS definition.
-    if (!d.property.startsWith(QLatin1String("--"))) d.property = d.property.toLower();
-    if (d.property == QLatin1String("word-wrap")) d.property = QStringLiteral("overflow-wrap");
+    if (!d.property.startsWith(QLatin1String("--")))
+      d.property = d.property.toLower();
+    if (d.property == QLatin1String("word-wrap"))
+      d.property = QStringLiteral("overflow-wrap");
     QString val = raw.mid(colon + 1).trimmed();
     // peel trailing !important (case-insensitive)
     const int bang = val.lastIndexOf(QLatin1Char('!'));
@@ -245,13 +275,19 @@ QStringList collectImports(const QString& text) {
   int i = 0;
   while (i < n) {
     i = skipWsComments(text, i, n);
-    if (i >= n) { break; }
+    if (i >= n) {
+      break;
+    }
     if (text.at(i) != QLatin1Char('@')) {
       // skip this rule block to keep scanning at top level
       int brace = findDelim(text, i, n, QLatin1Char('{'));
-      if (brace < 0) { break; }
+      if (brace < 0) {
+        break;
+      }
       i = matchingBrace(text, brace, n);
-      if (i < 0) { break; }
+      if (i < 0) {
+        break;
+      }
       ++i;
       continue;
     }
@@ -259,13 +295,19 @@ QStringList collectImports(const QString& text) {
     int j = i + 1;
     while (j < n) {
       const QChar c = text.at(j);
-      if (c.isLetterOrNumber() || c == QLatin1Char('-') || c == QLatin1Char('_')) { ++j; } else { break; }
+      if (c.isLetterOrNumber() || c == QLatin1Char('-') || c == QLatin1Char('_')) {
+        ++j;
+      } else {
+        break;
+      }
     }
     const QString keyword = text.mid(i + 1, j - i - 1).toLower();
     if (keyword == QLatin1String("import")) {
       int k = j;
       const QString target = readUrlTarget(text, k, n);
-      if (!target.isEmpty()) { imports << target; }
+      if (!target.isEmpty()) {
+        imports << target;
+      }
       int semi = findDelim(text, k, n, QLatin1Char(';'));
       i = (semi < 0) ? n : semi + 1;
     } else {
@@ -291,7 +333,7 @@ QString resolveImportPath(const QString& target, const QString& baseDir) {
     return {};
   }
   if (target.startsWith(QLatin1Char(':')) || QDir::isAbsolutePath(target)) {
-    return target;  // resource path or absolute filesystem path
+    return target; // resource path or absolute filesystem path
   }
   return QDir::cleanPath(baseDir + QLatin1Char('/') + target);
 }
@@ -315,9 +357,13 @@ QStringList extractLocalUrlTargets(const QString& text, const QString& dir, bool
   QStringList out;
   for (const auto& target : CssThemeParser::resourceUrls(text)) {
     const QString resolved = CssImageResources::localPath(target, dir);
-    if (resolved.isEmpty()) { continue; }
+    if (resolved.isEmpty()) {
+      continue;
+    }
     const QString canon = QDir::cleanPath(resolved);
-    if (includeMissing || QFileInfo(canon).isFile()) { out << canon; }
+    if (includeMissing || QFileInfo(canon).isFile()) {
+      out << canon;
+    }
   }
   return out;
 }
@@ -331,9 +377,13 @@ std::vector<CssKeyframeStop> parseKeyframesStops(const QString& blockText, const
   int i = 0;
   while (i < n) {
     i = skipWsComments(blockText, i, n);
-    if (i >= n) { break; }
+    if (i >= n) {
+      break;
+    }
     const int brace = findDelim(blockText, i, n, QLatin1Char('{'));
-    if (brace < 0) { break; }
+    if (brace < 0) {
+      break;
+    }
     const QString selText = blockText.mid(i, brace - i).trimmed();
     const int end = matchingBrace(blockText, brace, n);
     const QString declText = blockText.mid(brace + 1, (end < 0 ? n : end) - (brace + 1));
@@ -341,12 +391,16 @@ std::vector<CssKeyframeStop> parseKeyframesStops(const QString& blockText, const
     for (const QString& sel : CssThemeParser::splitTopLevelCommas(selText)) {
       const QString t = sel.trimmed().toLower();
       qreal pos = -1.0;
-      if (t == QStringLiteral("from")) { pos = 0.0; }
-      else if (t == QStringLiteral("to")) { pos = 1.0; }
-      else if (t.endsWith(QLatin1Char('%'))) {
+      if (t == QStringLiteral("from")) {
+        pos = 0.0;
+      } else if (t == QStringLiteral("to")) {
+        pos = 1.0;
+      } else if (t.endsWith(QLatin1Char('%'))) {
         bool ok = false;
         pos = t.left(t.size() - 1).toDouble(&ok) / 100.0;
-        if (!ok) { pos = -1.0; }
+        if (!ok) {
+          pos = -1.0;
+        }
       }
       if (pos >= 0.0) {
         stops.push_back({pos, decls});
@@ -364,17 +418,24 @@ std::vector<CssKeyframeStop> parseKeyframesStops(const QString& blockText, const
 // absolute font paths (a font declared in an @import'd base must resolve
 // relative to that base, not the top file).
 void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const QString& baseDir,
-               const SourceMap& source, int sourceOffset = 0, QStringList mediaQueries = {}, QStringList supportQueries = {}) {
+                const SourceMap& source, int sourceOffset = 0, QStringList mediaQueries = {},
+                QStringList supportQueries = {}) {
   const int n = text.size();
   int i = 0;
   while (i < n) {
     i = skipWsComments(text, i, n);
-    if (i >= n) { break; }
+    if (i >= n) {
+      break;
+    }
     if (text.at(i) == QLatin1Char('@')) {
       int j = i + 1;
       while (j < n) {
         const QChar c = text.at(j);
-        if (c.isLetterOrNumber() || c == QLatin1Char('-') || c == QLatin1Char('_')) { ++j; } else { break; }
+        if (c.isLetterOrNumber() || c == QLatin1Char('-') || c == QLatin1Char('_')) {
+          ++j;
+        } else {
+          break;
+        }
       }
       const QString keyword = text.mid(i + 1, j - i - 1).toLower();
       int k = skipWsComments(text, j, n);
@@ -386,7 +447,8 @@ void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const
       if (keyword == QLatin1String("import")) {
         // already merged in the first pass; skip to ';'
         int semi = findDelim(text, k, n, QLatin1Char(';'));
-        if (semi < 0) semi = n;
+        if (semi < 0)
+          semi = n;
         atRule.prelude = text.mid(k, semi - k).trimmed();
         int targetEnd = k;
         atRule.resourceTarget = readUrlTarget(text, targetEnd, semi);
@@ -411,7 +473,8 @@ void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const
       int end = matchingBrace(text, brace, n);
       const QString blockText = text.mid(brace + 1, (end < 0 ? n : end) - (brace + 1));
       atRule.prelude = text.mid(k, brace - k).trimmed();
-      if (keyword == QLatin1String("font-face")) atRule.descriptors = parseDeclarationBlock(blockText);
+      if (keyword == QLatin1String("font-face"))
+        atRule.descriptors = parseDeclarationBlock(blockText);
       sheet.addAtRule(std::move(atRule));
       if (keyword == QLatin1String("media")) {
         QStringList conditions = mediaQueries;
@@ -429,24 +492,32 @@ void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const
           if (d.property == QStringLiteral("font-family") && family.isEmpty()) {
             family = unquote(d.value.trimmed());
           }
-          if (d.property == QStringLiteral("font-weight")) weight = d.value;
-          if (d.property == QStringLiteral("font-style")) fontStyle = d.value;
+          if (d.property == QStringLiteral("font-weight"))
+            weight = d.value;
+          if (d.property == QStringLiteral("font-style"))
+            fontStyle = d.value;
           if (d.property == QStringLiteral("src")) {
             sources.clear();
             for (const auto& candidate : CssThemeParser::splitTopLevelCommas(d.value)) {
-              if(candidate.trimmed().startsWith("local(",Qt::CaseInsensitive)) {
-                int at=0;const auto name=readUrlTarget(candidate,at,candidate.size());
-                if(!name.isEmpty())sources.append("local:"+name);
-              } else for(const auto& target:CssThemeParser::resourceUrls(candidate)) {
-                const auto path=CssImageResources::localPath(target,baseDir);
-                if(!path.isEmpty())sources.append(path);
-                else if(target.startsWith("data:",Qt::CaseInsensitive))sources.append(target);
-              }
+              if (candidate.trimmed().startsWith("local(", Qt::CaseInsensitive)) {
+                int at = 0;
+                const auto name = readUrlTarget(candidate, at, candidate.size());
+                if (!name.isEmpty())
+                  sources.append("local:" + name);
+              } else
+                for (const auto& target : CssThemeParser::resourceUrls(candidate)) {
+                  const auto path = CssImageResources::localPath(target, baseDir);
+                  if (!path.isEmpty())
+                    sources.append(path);
+                  else if (target.startsWith("data:", Qt::CaseInsensitive))
+                    sources.append(target);
+                }
             }
           }
         }
         if (!family.isEmpty()) {
-          if(!sources.isEmpty())sheet.addFontFace({family,sources.front(),weight,fontStyle,sources,mediaQueries});
+          if (!sources.isEmpty())
+            sheet.addFontFace({family, sources.front(), weight, fontStyle, sources, mediaQueries});
         }
       } else if (keyword == QLatin1String("keyframes") &&
                  std::all_of(supportQueries.cbegin(), supportQueries.cend(), CssThemeSheet::supportsMatches)) {
@@ -465,14 +536,15 @@ void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const
     }
     // normal rule: selectors { declarations }
     int brace = findDelim(text, i, n, QLatin1Char('{'));
-    if (brace < 0) { break; }
+    if (brace < 0) {
+      break;
+    }
     const QString selectorText = text.mid(i, brace - i).trimmed();
     int end = matchingBrace(text, brace, n);
     const QString blockText = text.mid(brace + 1, (end < 0 ? n : end) - (brace + 1));
     if (!selectorText.isEmpty()) {
       const QStringList selectors = CssThemeParser::splitTopLevelCommas(selectorText);
-      const bool isRoot =
-          selectors.size() == 1 && selectors.first().trimmed() == QStringLiteral(":root");
+      const bool isRoot = selectors.size() == 1 && selectors.first().trimmed() == QStringLiteral(":root");
       if (isRoot) {
         std::vector<CssDeclaration> elementDecls;
         for (const CssDeclaration& d : parseDeclarationBlock(blockText, baseDir)) {
@@ -512,7 +584,7 @@ void parseRules(const QString& text, CssThemeSheet& sheet, bool darkScope, const
   }
 }
 
-}  // namespace
+} // namespace
 
 QStringList CssThemeParser::splitTopLevelCommas(const QString& text) {
   QStringList out;
@@ -545,21 +617,28 @@ QStringList CssThemeParser::splitTopLevelCommas(const QString& text) {
 
 namespace {
 
-CssThemeSheet parseSheetWithImports(const QString& text, const QString& baseDir, QSet<QString>& visited, const QString& sourceFile) {
+CssThemeSheet parseSheetWithImports(const QString& text, const QString& baseDir, QSet<QString>& visited,
+                                    const QString& sourceFile) {
   CssThemeSheet sheet;
   // Imports first: their rules/variables merge under this file's so the
   // importing file wins on ties (CSS cascade for top-of-file @import).
   for (const QString& target : collectImports(text)) {
     const QString resolved = resolveImportPath(target, baseDir);
-    if (resolved.isEmpty()) { continue; }
+    if (resolved.isEmpty()) {
+      continue;
+    }
     // Cycle guard: two themes that @import each other (directly or through a
     // chain) must not recurse forever. A repeated non-cyclic import is skipped
     // too — its rules were already merged on the first visit.
     const QString canon = QDir::cleanPath(resolved);
-    if (visited.contains(canon)) { continue; }
+    if (visited.contains(canon)) {
+      continue;
+    }
     visited.insert(canon);
     QFile f(resolved);
-    if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) { continue; }
+    if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      continue;
+    }
     const QString subText = [&] {
       diag::ScopedPerfProbe perf("theme.readImport", parserLoadPerf());
       return QString::fromUtf8(f.readAll());
@@ -572,16 +651,19 @@ CssThemeSheet parseSheetWithImports(const QString& text, const QString& baseDir,
   return sheet;
 }
 
-}  // namespace
+} // namespace
 
 CssThemeSheet CssThemeParser::parse(const QString& text, const QString& baseDir, const QString& sourceFile) {
   diag::ScopedPerfProbe perf("theme.parse", parserLoadPerf());
   QSet<QString> visited;
-  if (!sourceFile.isEmpty()) visited.insert(QDir::cleanPath(sourceFile));
+  if (!sourceFile.isEmpty())
+    visited.insert(QDir::cleanPath(sourceFile));
   return parseSheetWithImports(text, baseDir, visited, sourceFile);
 }
 
-CssThemeSheet::CssThemeSheet() : imageResources_(std::make_shared<CssImageResources>()) { touch(); }
+CssThemeSheet::CssThemeSheet() : imageResources_(std::make_shared<CssImageResources>()) {
+  touch();
+}
 
 void CssThemeSheet::touch() {
   static std::atomic<quint64> next{0};
@@ -593,35 +675,48 @@ QStringList CssThemeParser::resourceUrls(const QString& text) {
   const int n = text.size();
   for (int i = 0; i < n;) {
     i = skipWsComments(text, i, n);
-    if (i >= n) break;
-    if (text[i] == '\'' || text[i] == '"') { tryReadString(text, i, n); continue; }
+    if (i >= n)
+      break;
+    if (text[i] == '\'' || text[i] == '"') {
+      tryReadString(text, i, n);
+      continue;
+    }
     if (text[i].isLetter() || text[i] == '_' || text[i] == '-') {
       const int start = i++;
-      while (i < n && (text[i].isLetterOrNumber() || text[i] == '_' || text[i] == '-')) ++i;
+      while (i < n && (text[i].isLetterOrNumber() || text[i] == '_' || text[i] == '-'))
+        ++i;
       const int open = skipWsComments(text, i, n);
       if (text.mid(start, i - start).compare("url", Qt::CaseInsensitive) == 0 && open < n && text[open] == '(') {
         int targetEnd = start;
         const auto url = readUrlTarget(text, targetEnd, n);
-        if (!url.isEmpty()) urls << url;
+        if (!url.isEmpty())
+          urls << url;
         i = targetEnd;
       }
-    } else ++i;
+    } else
+      ++i;
   }
   return urls;
 }
 
 QString CssThemeParser::resolveResourceUrls(const QString& text, const QString& baseDir) {
-  if (baseDir.isEmpty() || !text.contains("url", Qt::CaseInsensitive)) return text;
+  if (baseDir.isEmpty() || !text.contains("url", Qt::CaseInsensitive))
+    return text;
   QString out;
   int last = 0;
   const int n = text.size();
   for (int i = 0; i < n;) {
     i = skipWsComments(text, i, n);
-    if (i >= n) break;
-    if (text[i] == '\'' || text[i] == '"') { tryReadString(text, i, n); continue; }
+    if (i >= n)
+      break;
+    if (text[i] == '\'' || text[i] == '"') {
+      tryReadString(text, i, n);
+      continue;
+    }
     if (text[i].isLetter() || text[i] == '_' || text[i] == '-') {
       const int start = i++;
-      while (i < n && (text[i].isLetterOrNumber() || text[i] == '_' || text[i] == '-')) ++i;
+      while (i < n && (text[i].isLetterOrNumber() || text[i] == '_' || text[i] == '-'))
+        ++i;
       const int open = skipWsComments(text, i, n);
       if (text.mid(start, i - start).compare("url", Qt::CaseInsensitive) == 0 && open < n && text[open] == '(') {
         int end = start;
@@ -635,13 +730,13 @@ QString CssThemeParser::resolveResourceUrls(const QString& text, const QString& 
         }
         i = end;
       }
-    } else ++i;
+    } else
+      ++i;
   }
   return out.isEmpty() ? text : out + text.mid(last);
 }
 
-std::vector<CssDeclaration> CssThemeParser::parseDeclarations(
-    const QString& text) {
+std::vector<CssDeclaration> CssThemeParser::parseDeclarations(const QString& text) {
   return parseDeclarationBlock(text);
 }
 
@@ -659,9 +754,13 @@ QStringList CssThemeParser::localResourcePaths(const QString& text, const QStrin
     pending.pop_back();
     for (const QString& target : collectImports(fileText)) {
       const QString resolved = resolveImportPath(target, fileDir);
-      if (resolved.isEmpty() || (!includeMissing && !QFileInfo(resolved).isFile())) { continue; }
+      if (resolved.isEmpty() || (!includeMissing && !QFileInfo(resolved).isFile())) {
+        continue;
+      }
       const QString canon = QDir::cleanPath(resolved);
-      if (seen.contains(canon)) { continue; }
+      if (seen.contains(canon)) {
+        continue;
+      }
       seen.insert(canon);
       out << canon;
       QFile f(canon);
@@ -672,7 +771,10 @@ QStringList CssThemeParser::localResourcePaths(const QString& text, const QStrin
       }
     }
     for (const QString& res : extractLocalUrlTargets(fileText, fileDir, includeMissing)) {
-      if (!seen.contains(res)) { seen.insert(res); out << res; }
+      if (!seen.contains(res)) {
+        seen.insert(res);
+        out << res;
+      }
     }
   }
   return out;
@@ -681,8 +783,10 @@ QStringList CssThemeParser::localResourcePaths(const QString& text, const QStrin
 namespace {
 using VariableLookup = std::function<std::optional<QString>(const QString&)>;
 std::optional<QString> substituteTokens(const QString& value, const VariableLookup& lookup, int depth = 0) {
-  if (depth > 64) return std::nullopt;
-  if (!value.contains(QLatin1String("var("), Qt::CaseInsensitive)) return value;
+  if (depth > 64)
+    return std::nullopt;
+  if (!value.contains(QLatin1String("var("), Qt::CaseInsensitive))
+    return value;
   QString out;
   out.reserve(value.size());
   for (int i = 0; i < value.size();) {
@@ -698,28 +802,36 @@ std::optional<QString> substituteTokens(const QString& value, const VariableLook
       continue;
     }
     const int close = findDelim(value, i + 4, value.size(), QLatin1Char(')'));
-    if (close < 0) return std::nullopt;
+    if (close < 0)
+      return std::nullopt;
     const QString inside = value.mid(i + 4, close - i - 4);
     const int comma = findDelim(inside, 0, inside.size(), QLatin1Char(','));
     const QString name = (comma < 0 ? inside : inside.left(comma)).trimmed();
-    if (!name.startsWith(QLatin1String("--")) || name.contains(QLatin1Char(' '))) return std::nullopt;
+    if (!name.startsWith(QLatin1String("--")) || name.contains(QLatin1Char(' ')))
+      return std::nullopt;
     auto replacement = lookup(name);
-    if (!replacement && comma >= 0) replacement = substituteTokens(inside.mid(comma + 1).trimmed(), lookup, depth + 1);
-    if (!replacement) return std::nullopt;
+    if (!replacement && comma >= 0)
+      replacement = substituteTokens(inside.mid(comma + 1).trimmed(), lookup, depth + 1);
+    if (!replacement)
+      return std::nullopt;
     // var() substitutes CSS tokens, not characters. Keep adjacent identifiers,
     // numbers and dimensions separate: var(--weight)1em is `500 1em`, never
     // `5001em`; similarly var(--number)px must not invent a dimension token.
     const auto tokenEdge = [](QChar c) {
-      return c.isLetterOrNumber() || c == '_' || c == '-' || c == '.' || c == '#' || c == '%' || c == '\\' || c == '\'' || c == '"';
+      return c.isLetterOrNumber() || c == '_' || c == '-' || c == '.' || c == '#' || c == '%' || c == '\\' ||
+             c == '\'' || c == '"';
     };
-    if (!out.isEmpty() && !replacement->isEmpty() && tokenEdge(out.back()) && tokenEdge(replacement->front())) out += ' ';
+    if (!out.isEmpty() && !replacement->isEmpty() && tokenEdge(out.back()) && tokenEdge(replacement->front()))
+      out += ' ';
     out += *replacement;
-    if (!replacement->isEmpty() && close + 1 < value.size() && tokenEdge(replacement->back()) && tokenEdge(value[close + 1])) out += ' ';
+    if (!replacement->isEmpty() && close + 1 < value.size() && tokenEdge(replacement->back()) &&
+        tokenEdge(value[close + 1]))
+      out += ' ';
     i = close + 1;
   }
   return out;
 }
-}  // namespace
+} // namespace
 
 QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QString, QString>& variables) {
   diag::ScopedPerfProbe perf("css.customProperties", parserLoadPerf());
@@ -730,11 +842,14 @@ QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QStr
   // for var(). Computed outputs are idempotent and can reuse the same storage.
   static thread_local std::vector<CachedVariables> cache;
   for (auto it = cache.rbegin(); it != cache.rend(); ++it) {
-    if (it->input == variables) return it->output;
-    if (it->output == variables) return it->output;
+    if (it->input == variables)
+      return it->output;
+    if (it->output == variables)
+      return it->output;
   }
   const auto remember = [&](QHash<QString, QString> output) {
-    if (cache.size() == 16) cache.erase(cache.begin());
+    if (cache.size() == 16)
+      cache.erase(cache.begin());
     cache.push_back({variables, output});
     return output;
   };
@@ -744,7 +859,8 @@ QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QStr
       references = true;
       break;
     }
-  if (!references) return remember(variables);
+  if (!references)
+    return remember(variables);
 
   // Find dependency cycles first, including references inside fallbacks. A
   // fallback cannot make a cyclic custom property valid.
@@ -778,21 +894,27 @@ QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QStr
   std::function<void(const QString&)> visit = [&](const QString& name) {
     const int cycleStart = stack.indexOf(name);
     if (cycleStart >= 0) {
-      for (int i = cycleStart; i < stack.size(); ++i) cyclic.insert(stack[i]);
+      for (int i = cycleStart; i < stack.size(); ++i)
+        cyclic.insert(stack[i]);
       return;
     }
-    if (visited.contains(name)) return;
+    if (visited.contains(name))
+      return;
     stack.push_back(name);
-    for (const auto& dep : dependencies.value(name)) visit(dep);
+    for (const auto& dep : dependencies.value(name))
+      visit(dep);
     stack.removeLast();
     visited.insert(name);
   };
-  for (auto it = variables.cbegin(); it != variables.cend(); ++it) visit(it.key());
+  for (auto it = variables.cbegin(); it != variables.cend(); ++it)
+    visit(it.key());
   QHash<QString, QString> computed;
   QSet<QString> invalid = cyclic;
   std::function<std::optional<QString>(const QString&)> resolve = [&](const QString& name) -> std::optional<QString> {
-    if (computed.contains(name)) return computed.value(name);
-    if (invalid.contains(name) || !variables.contains(name)) return std::nullopt;
+    if (computed.contains(name))
+      return computed.value(name);
+    if (invalid.contains(name) || !variables.contains(name))
+      return std::nullopt;
     const auto value = substituteTokens(variables.value(name), resolve);
     if (!value) {
       invalid.insert(name);
@@ -801,7 +923,8 @@ QHash<QString, QString> CssThemeParser::computeCustomProperties(const QHash<QStr
     computed.insert(name, *value);
     return value;
   };
-  for (auto it = variables.cbegin(); it != variables.cend(); ++it) resolve(it.key());
+  for (auto it = variables.cbegin(); it != variables.cend(); ++it)
+    resolve(it.key());
   return remember(std::move(computed));
 }
 
@@ -813,21 +936,26 @@ std::optional<QString> CssThemeParser::substituteVars(const QString& value, cons
 }
 
 QString CssThemeParser::resolveVars(const QString& value, const QHash<QString, QString>& variables) {
-  if (!value.contains(QStringLiteral("var("), Qt::CaseInsensitive)) return value;
+  if (!value.contains(QStringLiteral("var("), Qt::CaseInsensitive))
+    return value;
   return substituteVars(value, computeCustomProperties(variables)).value_or(QString());
 }
 
 bool CssThemeSheet::mediaMatches(const QString& raw, const CssEnvironment& env) {
   const auto actualValue = [&](const QString& name) -> qreal {
-    if (name == QLatin1String("width")) return env.viewportWidth;
-    if (name == QLatin1String("height")) return env.viewportHeight;
-    if (name == QLatin1String("resolution")) return env.resolutionDppx;
+    if (name == QLatin1String("width"))
+      return env.viewportWidth;
+    if (name == QLatin1String("height"))
+      return env.viewportHeight;
+    if (name == QLatin1String("resolution"))
+      return env.resolutionDppx;
     return -1;
   };
   const auto number = [&](QString value, const QString& name) -> std::optional<qreal> {
     static const QRegularExpression re(QStringLiteral(R"(^([0-9]*\.?[0-9]+)(px|em|rem|dppx|dpi|dpcm)?$)"));
     const auto m = re.match(value.trimmed());
-    if (!m.hasMatch()) return std::nullopt;
+    if (!m.hasMatch())
+      return std::nullopt;
     qreal result = m.captured(1).toDouble();
     const auto unit = m.captured(2);
     if (name == QLatin1String("resolution")) {
@@ -846,24 +974,31 @@ bool CssThemeSheet::mediaMatches(const QString& raw, const CssEnvironment& env) 
     return result;
   };
   const auto compare = [](qreal left, const QString& op, qreal right) {
-    if (op == QLatin1String("<")) return left < right;
-    if (op == QLatin1String("<=")) return left <= right;
-    if (op == QLatin1String(">")) return left > right;
-    if (op == QLatin1String(">=")) return left >= right;
+    if (op == QLatin1String("<"))
+      return left < right;
+    if (op == QLatin1String("<="))
+      return left <= right;
+    if (op == QLatin1String(">"))
+      return left > right;
+    if (op == QLatin1String(">="))
+      return left >= right;
     return qAbs(left - right) < 0.001;
   };
   const auto feature = [&](const QString& expression) {
     const int colon = expression.indexOf(':');
     if (colon >= 0) {
       const QString name = expression.left(colon).trimmed(), value = expression.mid(colon + 1).trimmed();
-      if (name == QLatin1String("prefers-color-scheme")) return value == (env.dark ? QLatin1String("dark") : QLatin1String("light"));
+      if (name == QLatin1String("prefers-color-scheme"))
+        return value == (env.dark ? QLatin1String("dark") : QLatin1String("light"));
       if (name == QLatin1String("prefers-reduced-motion"))
         return value == (env.reducedMotion ? QLatin1String("reduce") : QLatin1String("no-preference"));
       if (name == QLatin1String("hover") || name == QLatin1String("any-hover"))
         return value == (env.hoverAvailable ? QLatin1String("hover") : QLatin1String("none"));
-      if (name == QLatin1String("pointer") || name == QLatin1String("any-pointer")) return value == env.pointer;
+      if (name == QLatin1String("pointer") || name == QLatin1String("any-pointer"))
+        return value == env.pointer;
       if (name == QLatin1String("orientation"))
-        return value == (env.viewportWidth > env.viewportHeight ? QLatin1String("landscape") : QLatin1String("portrait"));
+        return value ==
+               (env.viewportWidth > env.viewportHeight ? QLatin1String("landscape") : QLatin1String("portrait"));
       const bool minimum = name.startsWith(QLatin1String("min-")), maximum = name.startsWith(QLatin1String("max-"));
       const QString base = minimum || maximum ? name.mid(4) : name;
       const auto wanted = number(value, base);
@@ -876,23 +1011,29 @@ bool CssThemeSheet::mediaMatches(const QString& raw, const CssEnvironment& env) 
                      *wanted);
     }
     const qreal actual = actualValue(expression);
-    if (actual >= 0) return actual > 0;
-    static const QRegularExpression range(QStringLiteral(R"(^(.+?)\s*(<=|>=|<|>|=)\s*(.+?)(?:\s*(<=|>=|<|>|=)\s*(.+))?$)"));
+    if (actual >= 0)
+      return actual > 0;
+    static const QRegularExpression range(
+        QStringLiteral(R"(^(.+?)\s*(<=|>=|<|>|=)\s*(.+?)(?:\s*(<=|>=|<|>|=)\s*(.+))?$)"));
     const auto m = range.match(expression);
-    if (!m.hasMatch()) return false;
+    if (!m.hasMatch())
+      return false;
     const QString left = m.captured(1).trimmed(), middle = m.captured(3).trimmed(), right = m.captured(5).trimmed();
     if (actualValue(left) >= 0 && right.isEmpty()) {
       const auto wanted = number(middle, left);
       return wanted && compare(actualValue(left), m.captured(2), *wanted);
     }
     const auto low = number(left, middle);
-    if (!low || actualValue(middle) < 0 || !compare(*low, m.captured(2), actualValue(middle))) return false;
-    if (right.isEmpty()) return true;
+    if (!low || actualValue(middle) < 0 || !compare(*low, m.captured(2), actualValue(middle)))
+      return false;
+    if (right.isEmpty())
+      return true;
     const auto high = number(right, middle);
     return high && compare(actualValue(middle), m.captured(4), *high);
   };
   std::function<bool(QString, int)> evaluate = [&](QString query, int depth) {
-    if (depth > 32) return false;
+    if (depth > 32)
+      return false;
     query = query.trimmed();
     // A media-query-level 'not' negates the complete type + condition list.
     if (query.startsWith(QLatin1String("not screen")) || query.startsWith(QLatin1String("not print")) ||
@@ -912,17 +1053,21 @@ bool CssThemeSheet::mediaMatches(const QString& raw, const CssEnvironment& env) 
         }
       }
     }
-    if (query.startsWith(QLatin1String("not "))) return !evaluate(query.mid(4), depth + 1);
-    if (query.startsWith(QLatin1String("only "))) return evaluate(query.mid(5), depth + 1);
+    if (query.startsWith(QLatin1String("not ")))
+      return !evaluate(query.mid(4), depth + 1);
+    if (query.startsWith(QLatin1String("only ")))
+      return evaluate(query.mid(5), depth + 1);
     if (query.startsWith('(') && query.endsWith(')')) {
       const QString inner = query.mid(1, query.size() - 2).trimmed();
-      return inner.startsWith('(') || inner.startsWith(QLatin1String("not ")) ? evaluate(inner, depth + 1) : feature(inner);
+      return inner.startsWith('(') || inner.startsWith(QLatin1String("not ")) ? evaluate(inner, depth + 1)
+                                                                              : feature(inner);
     }
     return query == QLatin1String("all") || (query == QLatin1String("screen") && !env.print) ||
            (query == QLatin1String("print") && env.print);
   };
   for (const auto& branch : CssThemeParser::splitTopLevelCommas(raw.simplified().toLower()))
-    if (evaluate(branch, 0)) return true;
+    if (evaluate(branch, 0))
+      return true;
   return false;
 }
 
@@ -936,83 +1081,108 @@ bool CssThemeSheet::supportsMatches(const QString& raw) {
 
     bool whitespace() {
       const auto start = pos;
-      while (pos < text.size() && text[pos].isSpace()) ++pos;
+      while (pos < text.size() && text[pos].isSpace())
+        ++pos;
       return pos != start;
     }
     QString word() {
       const auto start = pos;
-      while (pos < text.size() && (text[pos].isLetter() || text[pos] == '-')) ++pos;
+      while (pos < text.size() && (text[pos].isLetter() || text[pos] == '-'))
+        ++pos;
       return text.mid(start, pos - start).toLower();
     }
     std::optional<bool> atom() {
       whitespace();
-      if (pos >= text.size() || depth > 32) return std::nullopt;
+      if (pos >= text.size() || depth > 32)
+        return std::nullopt;
       const bool parenthesized = text[pos] == '(';
       if (!parenthesized) {
-        if (word().isEmpty() || pos >= text.size() || text[pos] != '(') return std::nullopt;
+        if (word().isEmpty() || pos >= text.size() || text[pos] != '(')
+          return std::nullopt;
       }
       const auto open = pos++;
       QString closers = QStringLiteral(")");
       QChar quote;
       for (; pos < text.size(); ++pos) {
         const auto c = text[pos];
-        if (c == '\\') { ++pos; continue; }
-        if (!quote.isNull()) {
-          if (c == quote) quote = {};
+        if (c == '\\') {
+          ++pos;
           continue;
         }
-        if (c == '\'' || c == '"') { quote = c; continue; }
-        if (c == '(' || c == '[' || c == '{') closers += c == '(' ? ')' : c == '[' ? ']' : '}';
+        if (!quote.isNull()) {
+          if (c == quote)
+            quote = {};
+          continue;
+        }
+        if (c == '\'' || c == '"') {
+          quote = c;
+          continue;
+        }
+        if (c == '(' || c == '[' || c == '{')
+          closers += c == '(' ? ')' : c == '[' ? ']' : '}';
         else if (c == ')' || c == ']' || c == '}') {
-          if (closers.isEmpty() || c != closers.back()) return std::nullopt;
+          if (closers.isEmpty() || c != closers.back())
+            return std::nullopt;
           closers.chop(1);
-          if (closers.isEmpty()) break;
+          if (closers.isEmpty())
+            break;
         }
       }
-      if (pos >= text.size() || !quote.isNull()) return std::nullopt;
+      if (pos >= text.size() || !quote.isNull())
+        return std::nullopt;
       const auto inner = text.mid(open + 1, pos - open - 1).trimmed();
       ++pos;
       // Unknown functional queries (selector(), font-tech(), etc.) are valid
       // future syntax, but not advertised by this backend yet.
-      if (!parenthesized) return false;
+      if (!parenthesized)
+        return false;
       const int colon = findDelim(inner, 0, inner.size(), ':');
       if (colon >= 0) {
         static const QRegularExpression propertyName(QStringLiteral("^(?:--[a-zA-Z0-9_-]+|-?[a-zA-Z][a-zA-Z0-9-]*)$"));
         const QString property = inner.left(colon).trimmed();
-        if (!propertyName.match(property).hasMatch() || findDelim(inner, 0, inner.size(), ';') >= 0) return false;
+        if (!propertyName.match(property).hasMatch() || findDelim(inner, 0, inner.size(), ';') >= 0)
+          return false;
         const auto declarations = CssThemeParser::parseDeclarations(inner);
-        return declarations.size() == 1 && CssComputedStyleEngine::supportsDeclaration(declarations[0].property, declarations[0].value);
+        return declarations.size() == 1 &&
+               CssComputedStyleEngine::supportsDeclaration(declarations[0].property, declarations[0].value);
       }
       ConditionParser nested{inner, 0, depth + 1};
       const auto value = nested.condition();
-      if (value) return value;
+      if (value)
+        return value;
       // An unknown parenthesized identifier is general-enclosed, not a malformed
       // boolean expression. Unbalanced or trailing boolean tokens are rejected.
       static const QRegularExpression future(QStringLiteral("^[a-zA-Z_-][a-zA-Z0-9_-]*$"));
-      if (future.match(inner).hasMatch()) return false;
+      if (future.match(inner).hasMatch())
+        return false;
       return std::nullopt;
     }
     std::optional<bool> condition() {
       whitespace();
       const auto saved = pos;
       if (word() == "not") {
-        if (!whitespace()) return std::nullopt;
+        if (!whitespace())
+          return std::nullopt;
         const auto value = atom();
         whitespace();
         return value && pos == text.size() ? std::optional<bool>(!*value) : std::nullopt;
       }
       pos = saved;
       auto result = atom();
-      if (!result) return std::nullopt;
+      if (!result)
+        return std::nullopt;
       QString operation;
       for (;;) {
         whitespace();
-        if (pos == text.size()) return result;
+        if (pos == text.size())
+          return result;
         const auto op = word();
-        if ((op != "and" && op != "or") || (!operation.isEmpty() && operation != op) || !whitespace()) return std::nullopt;
+        if ((op != "and" && op != "or") || (!operation.isEmpty() && operation != op) || !whitespace())
+          return std::nullopt;
         operation = op;
         const auto right = atom();
-        if (!right) return std::nullopt;
+        if (!right)
+          return std::nullopt;
         result = op == "and" ? *result && *right : *result || *right;
       }
     }
@@ -1022,57 +1192,77 @@ bool CssThemeSheet::supportsMatches(const QString& raw) {
   QChar quote;
   for (qsizetype i = 0; i < raw.size(); ++i) {
     const auto c = raw[i];
-    if (c == '\\' && i + 1 < raw.size()) { query += c; query += raw[++i]; continue; }
+    if (c == '\\' && i + 1 < raw.size()) {
+      query += c;
+      query += raw[++i];
+      continue;
+    }
     if (!quote.isNull()) {
       query += c;
-      if (c == quote) quote = {};
-    } else if (c == '\'' || c == '"') { quote = c; query += c; }
-    else if (c == '/' && i + 1 < raw.size() && raw[i + 1] == '*') {
+      if (c == quote)
+        quote = {};
+    } else if (c == '\'' || c == '"') {
+      quote = c;
+      query += c;
+    } else if (c == '/' && i + 1 < raw.size() && raw[i + 1] == '*') {
       const auto end = raw.indexOf(QStringLiteral("*/"), i + 2);
-      if (end < 0) return false;
+      if (end < 0)
+        return false;
       i = end + 1;
       query += ' ';
-    } else query += c;
+    } else
+      query += c;
   }
   ConditionParser parser{query};
   return parser.condition().value_or(false);
 }
 
 bool CssFontFace::active(const CssEnvironment& environment) const {
-  return std::all_of(mediaQueries.cbegin(),mediaQueries.cend(),[&](const auto& query){return CssThemeSheet::mediaMatches(query,environment);});
+  return std::all_of(mediaQueries.cbegin(), mediaQueries.cend(),
+                     [&](const auto& query) { return CssThemeSheet::mediaMatches(query, environment); });
 }
 
 bool CssThemeSheet::sameActiveRules(const CssEnvironment& before, const CssEnvironment& after) const {
   const auto active = [](const CssRule& rule, const CssEnvironment& env) {
-    if (rule.darkScope && !env.dark) return false;
+    if (rule.darkScope && !env.dark)
+      return false;
     for (const auto& query : rule.mediaQueries)
-      if (!mediaMatches(query, env)) return false;
+      if (!mediaMatches(query, env))
+        return false;
     for (const auto& query : rule.supportQueries)
-      if (!supportsMatches(query)) return false;
+      if (!supportsMatches(query))
+        return false;
     return true;
   };
   for (const auto& rule : rules_)
-    if (active(rule, before) != active(rule, after)) return false;
-  for(const auto& face:fontFaces_)if(face.active(before)!=face.active(after))return false;
+    if (active(rule, before) != active(rule, after))
+      return false;
+  for (const auto& face : fontFaces_)
+    if (face.active(before) != face.active(after))
+      return false;
   return true;
 }
 
 bool CssThemeParser::usesViewportUnits(const QString& value) {
   // Conservative: quoted strings and inactive declarations may also match.
-  static const QRegularExpression units(QStringLiteral("[0-9.](?:vw|vh|vmin|vmax)\\b"), QRegularExpression::CaseInsensitiveOption);
+  static const QRegularExpression units(QStringLiteral("[0-9.](?:vw|vh|vmin|vmax)\\b"),
+                                        QRegularExpression::CaseInsensitiveOption);
   return units.match(value).hasMatch();
 }
 
 bool CssThemeSheet::hasViewportUnits() const {
   for (auto it = variables_.cbegin(); it != variables_.cend(); ++it)
-    if (CssThemeParser::usesViewportUnits(it.value())) return true;
+    if (CssThemeParser::usesViewportUnits(it.value()))
+      return true;
   for (const auto& rule : rules_)
     for (const auto& declaration : rule.declarations)
-      if (CssThemeParser::usesViewportUnits(declaration.value)) return true;
+      if (CssThemeParser::usesViewportUnits(declaration.value))
+        return true;
   for (const auto& animation : keyframes_)
     for (const auto& stop : animation.stops)
       for (const auto& declaration : stop.declarations)
-        if (CssThemeParser::usesViewportUnits(declaration.value)) return true;
+        if (CssThemeParser::usesViewportUnits(declaration.value))
+          return true;
   return false;
 }
 
@@ -1080,18 +1270,23 @@ CssThemeSheet CssThemeSheet::evaluated(const CssEnvironment& env) const {
   diag::ScopedPerfProbe perf("theme.evaluateSheet", parserLoadPerf());
   CssThemeSheet result;
   result.imageResources_ = imageResources_;
-  for(const auto& face:fontFaces_)if(face.active(env))result.fontFaces_.push_back(face);
+  for (const auto& face : fontFaces_)
+    if (face.active(env))
+      result.fontFaces_.push_back(face);
   result.keyframes_ = keyframes_;
   result.variables_ = variables_;
   QHash<QString, bool> supportResults;
   for (const CssRule& rule : rules_) {
     bool active = !rule.darkScope || env.dark;
-    for (const QString& query : rule.mediaQueries) active = active && mediaMatches(query, env);
+    for (const QString& query : rule.mediaQueries)
+      active = active && mediaMatches(query, env);
     for (const QString& query : rule.supportQueries) {
-      if (!supportResults.contains(query)) supportResults.insert(query, supportsMatches(query));
+      if (!supportResults.contains(query))
+        supportResults.insert(query, supportsMatches(query));
       active = active && supportResults.value(query);
     }
-    if (!active) continue;
+    if (!active)
+      continue;
     CssRule copy = rule;
     copy.darkScope = false;
     copy.mediaQueries.clear();
@@ -1101,4 +1296,4 @@ CssThemeSheet CssThemeSheet::evaluated(const CssEnvironment& env) const {
   return result;
 }
 
-}  // namespace muffin
+} // namespace muffin

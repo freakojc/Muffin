@@ -38,4 +38,4 @@ struct RequirementPaintedBackground {
   bool displayed = true;
 };
 
-}  // namespace muffin::mermaid::requirement
+} // namespace muffin::mermaid::requirement

@@ -7,11 +7,41 @@
 namespace muffin::mermaid::state {
 
 enum class StateTokenKind {
-  Eof, Newline, Semi, Header, State, Direction, AccTitle, AccDescr,
-  HideEmpty, Scale, Width, Note, End, Left, Right, Of, As,
-  ClassDef, Class, Style, LinkStyle, Click, Href, Default, Arrow, Concurrent,
-  StyleSeparator, StartEnd, LBrace, RBrace, Colon, Comma, String,
-  Identifier, Invalid,
+  Eof,
+  Newline,
+  Semi,
+  Header,
+  State,
+  Direction,
+  AccTitle,
+  AccDescr,
+  HideEmpty,
+  Scale,
+  Width,
+  Note,
+  End,
+  Left,
+  Right,
+  Of,
+  As,
+  ClassDef,
+  Class,
+  Style,
+  LinkStyle,
+  Click,
+  Href,
+  Default,
+  Arrow,
+  Concurrent,
+  StyleSeparator,
+  StartEnd,
+  LBrace,
+  RBrace,
+  Colon,
+  Comma,
+  String,
+  Identifier,
+  Invalid,
 };
 
 struct StateToken {
@@ -46,8 +76,7 @@ private:
 
 class StateTokenCursor {
 public:
-  StateTokenCursor(const QVector<StateToken>& tokens, qsizetype begin = 0,
-                   qsizetype end = -1);
+  StateTokenCursor(const QVector<StateToken>& tokens, qsizetype begin = 0, qsizetype end = -1);
   const StateToken& peek(qsizetype lookahead = 0) const;
   const StateToken& consume();
   const StateToken& expect(StateTokenKind kind);
@@ -67,4 +96,4 @@ private:
   qsizetype end_ = 0;
 };
 
-}  // namespace muffin::mermaid::state
+} // namespace muffin::mermaid::state

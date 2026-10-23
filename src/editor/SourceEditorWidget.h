@@ -97,4 +97,4 @@ private:
   int fontSizePx_ = 16;
 };
 
-}  // namespace muffin
+} // namespace muffin

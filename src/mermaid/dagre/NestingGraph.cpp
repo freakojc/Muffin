@@ -20,7 +20,8 @@ QList<QString> kids(const DagreGraph& g, const QString& v) {
 int sumWeights(const DagreGraph& g) {
   int total = 0;
   for (const graphlib::Edge& e : g.edges())
-    if (const DagreEdgeLabel* label = g.edge(e)) total += label->weight;
+    if (const DagreEdgeLabel* label = g.edge(e))
+      total += label->weight;
   return total;
 }
 
@@ -76,21 +77,22 @@ void nestingDfs(DagreGraph& g, const QString& root, int nodeSep, int weight, int
   }
 }
 
-}  // namespace
+} // namespace
 
 QHash<QString, int> treeDepths(const DagreGraph& g) {
   QHash<QString, int> depths;
   std::function<void(const QString&, int)> dfs = [&](const QString& v, int depth) {
-    for (const QString& child : kids(g, v)) dfs(child, depth + 1);
+    for (const QString& child : kids(g, v))
+      dfs(child, depth + 1);
     depths[v] = depth;
   };
-  for (const QString& v : g.children().value_or(QList<QString>{})) dfs(v, 1);
+  for (const QString& v : g.children().value_or(QList<QString>{}))
+    dfs(v, 1);
   return depths;
 }
 
 void runNestingGraph(DagreGraph& g) {
-  const QString root = addDummyNode(g, QStringLiteral("root"), DagreNodeLabel{},
-                                    QStringLiteral("_root"));
+  const QString root = addDummyNode(g, QStringLiteral("root"), DagreNodeLabel{}, QStringLiteral("_root"));
   const QHash<QString, int> depths = treeDepths(g);
   int maxDepth = std::numeric_limits<int>::min();
   bool any = false;
@@ -106,7 +108,8 @@ void runNestingGraph(DagreGraph& g) {
 
   // Multiply minlen by nodeSep to align nodes on non-border ranks.
   for (const graphlib::Edge& e : g.edges()) {
-    if (DagreEdgeLabel* label = g.edge(e)) label->minlen *= nodeSep;
+    if (DagreEdgeLabel* label = g.edge(e))
+      label->minlen *= nodeSep;
   }
 
   const int weight = sumWeights(g) + 1;
@@ -120,13 +123,15 @@ void runNestingGraph(DagreGraph& g) {
 void cleanupNestingGraph(DagreGraph& g) {
   DagreGraphLabel* gl = g.graph();
   const QString root = gl->nestingRoot;
-  if (!root.isEmpty()) g.removeNode(root);
+  if (!root.isEmpty())
+    g.removeNode(root);
   gl->nestingRoot.clear();
   // Snapshot edges before mutating.
   const QList<graphlib::Edge> all = g.edges();
   for (const graphlib::Edge& e : all) {
-    if (const DagreEdgeLabel* label = g.edge(e); label && label->nestingEdge) g.removeEdge(e);
+    if (const DagreEdgeLabel* label = g.edge(e); label && label->nestingEdge)
+      g.removeEdge(e);
   }
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

@@ -36,7 +36,9 @@ class QVariantAnimation;
 class QPropertyAnimation;
 
 namespace muffin {
-namespace diag { struct MemoryAccounting; }
+namespace diag {
+struct MemoryAccounting;
+}
 
 class EditorView;
 class FindBarWidget;
@@ -361,17 +363,16 @@ private:
   void applySearchNavigation(DocumentTab* document);
   void previewWorkspaceReplace();
   void undoWorkspaceReplace();
-  WorkspaceReplaceReport runWorkspaceWrite(const std::function<WorkspaceReplaceReport(
-      const OpenSearchBuffers&, const SearchCancellation&)>& operation);
+  WorkspaceReplaceReport runWorkspaceWrite(
+      const std::function<WorkspaceReplaceReport(const OpenSearchBuffers&, const SearchCancellation&)>& operation);
   void showReplaceBar();
   void hideFindBar();
   void performFind(const QString& text, bool forward, bool regularExpression, bool caseSensitive);
   void performFindNext();
   void performFindPrevious();
-  void performReplace(const QString& findText, const QString& replaceText,
-                      bool regularExpression, bool caseSensitive);
-  void performReplaceAll(const QString& findText, const QString& replaceText,
-                         bool regularExpression, bool caseSensitive);
+  void performReplace(const QString& findText, const QString& replaceText, bool regularExpression, bool caseSensitive);
+  void performReplaceAll(const QString& findText, const QString& replaceText, bool regularExpression,
+                         bool caseSensitive);
   void performAutoSave(DocumentTab* tab);
   void snapshotDraft(DocumentTab* tab);
   void clearDraftSnapshot(const QString& path, const QString& key);
@@ -426,4 +427,4 @@ private:
   bool typewriterMode_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

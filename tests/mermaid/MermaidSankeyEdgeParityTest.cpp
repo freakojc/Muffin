@@ -12,7 +12,7 @@
 using namespace muffin::mermaid;
 using namespace sankey_test;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
   QGuiApplication app(argc, argv);
   MermaidFontRegistry::ensureLoaded();
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
           QStringLiteral("Sankey config provenance changed"));
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
   require(cases.size() == 38, QStringLiteral("Expected 38 config cases"));
-  for (const QJsonValue &value : cases)
+  for (const QJsonValue& value : cases)
     compareCase(value.toObject());
   std::puts("MermaidSankeyEdgeParityTest: 38/38 passed");
   return 0;

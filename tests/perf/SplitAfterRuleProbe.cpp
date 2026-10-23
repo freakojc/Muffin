@@ -29,7 +29,7 @@ muffin::MarkdownNode* firstThematicBreak(muffin::MarkdownNode& root) {
   return nullptr;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
@@ -84,4 +84,3 @@ int main(int argc, char** argv) {
   std::fprintf(stdout, "PASS: Enter afterBlock on a rule never collapses blocks.\n");
   return 0;
 }
-

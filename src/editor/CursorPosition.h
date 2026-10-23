@@ -7,13 +7,7 @@
 namespace muffin {
 
 struct HitTestResult {
-  enum class DefinitionField {
-    None,
-    Label,
-    Destination,
-    Title,
-    Note
-  };
+  enum class DefinitionField { None, Label, Destination, Title, Note };
 
   enum class Zone {
     None,
@@ -22,7 +16,7 @@ struct HitTestResult {
     Marker,
     TableCell,
     Code,
-    CodeHorizontalBar,  // the horizontal scrollbar affordance under a scrollable code fence
+    CodeHorizontalBar, // the horizontal scrollbar affordance under a scrollable code fence
     Math,
     Html,
     FrontMatter,
@@ -57,9 +51,7 @@ struct HitTestResult {
   // instead of placing the caret.
   bool taskCheckboxHit = false;
 
-  bool isValid() const {
-    return blockId.isValid();
-  }
+  bool isValid() const { return blockId.isValid(); }
 
   CursorPosition cursorPosition() const {
     CursorPosition position;
@@ -87,4 +79,4 @@ struct HitTestResult {
   }
 };
 
-}  // namespace muffin
+} // namespace muffin

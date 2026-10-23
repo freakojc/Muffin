@@ -33,8 +33,7 @@ public:
 
   // Write the latest state, including an intentionally emptied document.
   // Return true only after both content and metadata have been committed.
-  bool snapshot(const QString& markdownText, const QString& sourceFilePath,
-                const QString& draftKey = QString());
+  bool snapshot(const QString& markdownText, const QString& sourceFilePath, const QString& draftKey = QString());
 
   // Snapshot only a stable dirty document. During async open, its path and buffer
   // temporarily refer to different files; never persist that transitional state.
@@ -60,6 +59,6 @@ private:
   QString directory_;
 };
 
-}  // namespace muffin
+} // namespace muffin
 
 Q_DECLARE_METATYPE(muffin::DraftRecovery::PendingDraft)

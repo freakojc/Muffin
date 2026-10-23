@@ -15,8 +15,8 @@ struct PandocResult {
   bool ran = false;
   bool canceled = false;
   int exitCode = -1;
-  QByteArray out;  // stdout
-  QByteArray err;  // stderr
+  QByteArray out; // stdout
+  QByteArray err; // stderr
 };
 
 // Named fields keep the input payload, resource directory and UI label distinct.
@@ -76,4 +76,4 @@ public:
   static PandocResult run(QWidget* parent, const QStringList& args, const PandocRunOptions& options = {});
 };
 
-}  // namespace muffin
+} // namespace muffin

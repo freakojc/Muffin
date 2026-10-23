@@ -8,7 +8,9 @@
 #include <memory>
 
 namespace muffin {
-namespace diag { struct MemoryAccounting; }
+namespace diag {
+struct MemoryAccounting;
+}
 struct CssSvgRasterCache;
 
 // Decoded immutable source. SVG stays vector data until the painter knows the
@@ -24,6 +26,7 @@ public:
   QPointF svgAlignment{.5, .5};
   bool svgPreserveAspect = true, svgSlice = false;
   QImage raster(const QSize& pixels) const;
+
 private:
   friend class CssImageResources;
   std::shared_ptr<CssSvgRasterCache> rasters_;
@@ -35,14 +38,16 @@ private:
 // ThemeManager's content manifest is the reload/invalidation boundary.
 class CssImageResources {
   friend struct diag::MemoryAccounting;
+
 public:
   CssImageResources();
   std::shared_ptr<const CssImageResource> load(const QString& target) const;
   static bool supportsUrl(const QString& target);
   static QString localPath(const QString& target, const QString& baseDir = {});
+
 private:
   mutable QCache<QString, std::shared_ptr<const CssImageResource>> cache_{32 * 1024 * 1024};
   std::shared_ptr<CssSvgRasterCache> rasters_;
 };
 
-}  // namespace muffin
+} // namespace muffin

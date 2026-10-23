@@ -123,7 +123,6 @@ struct XYChartScene : MermaidScene {
   int nextPaintOrder = 0;
 };
 
-XYChartScene buildXYChartScene(const XYChartData& data, XYChartConfig config,
-                               XYChartSceneStyle style);
+XYChartScene buildXYChartScene(const XYChartData& data, XYChartConfig config, XYChartSceneStyle style);
 
-}  // namespace muffin::mermaid::xychart
+} // namespace muffin::mermaid::xychart

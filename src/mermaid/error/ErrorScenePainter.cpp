@@ -24,13 +24,14 @@ QStringList fontFamilies(const QString& expression) {
   QStringList result;
   for (QString item : expression.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
     item = item.trimmed();
-    if (item.size() >= 2 &&
-        ((item.front() == QLatin1Char('"') && item.back() == QLatin1Char('"')) ||
-         (item.front() == QLatin1Char('\'') && item.back() == QLatin1Char('\''))))
+    if (item.size() >= 2 && ((item.front() == QLatin1Char('"') && item.back() == QLatin1Char('"')) ||
+                             (item.front() == QLatin1Char('\'') && item.back() == QLatin1Char('\''))))
       item = item.mid(1, item.size() - 2);
-    if (!item.isEmpty()) result.append(item);
+    if (!item.isEmpty())
+      result.append(item);
   }
-  if (result.isEmpty()) result.append(QStringLiteral("serif"));
+  if (result.isEmpty())
+    result.append(QStringLiteral("serif"));
   return MermaidFontRegistry::resolveFamilies(result);
 }
 
@@ -44,7 +45,8 @@ QString canonicalFamily(const QString& family) {
   static const QHash<QString, QString> cache = [] {
     QHash<QString, QString> map;
     const QStringList families = QFontDatabase::families();
-    for (const QString& name : families) map.insert(name.toLower(), name);
+    for (const QString& name : families)
+      map.insert(name.toLower(), name);
     return map;
   }();
   return cache.value(family.toLower(), family);
@@ -56,7 +58,8 @@ QFont::Weight cssWeight(const QString& weight) {
     return QFont::Bold;
   bool ok = false;
   const int numeric = value.toInt(&ok);
-  if (ok && numeric >= 700) return QFont::Bold;
+  if (ok && numeric >= 700)
+    return QFont::Bold;
   return QFont::Normal;
 }
 
@@ -64,15 +67,14 @@ QFont::Weight cssWeight(const QString& weight) {
 // OpenType design units when the face is available (the same helper the
 // eventmodeling family uses for its literal trebuchet measurement), else
 // unhinted TextFontMetrics.
-qreal textAdvance(const QString& text, const QString& firstFamily,
-                  const QFont& font, qreal fontScale, qreal pixelSize,
+qreal textAdvance(const QString& text, const QString& firstFamily, const QFont& font, qreal fontScale, qreal pixelSize,
                   QFont::Weight weight) {
   flowchart::FlowLabelDocument document;
   document.text = text;
   document.baseWeight = weight;
-  const auto design = flowchart::measureOpenTypeDesignAdvance(
-      document, firstFamily, pixelSize);
-  if (design) return *design;
+  const auto design = flowchart::measureOpenTypeDesignAdvance(document, firstFamily, pixelSize);
+  if (design)
+    return *design;
   return TextFontMetrics(font).horizontalAdvance(text) * fontScale;
 }
 
@@ -81,42 +83,36 @@ QColor withOpacity(QColor color, qreal opacity) {
   return color;
 }
 
-}  // namespace
+} // namespace
 
 void paintErrorIcon(const ErrorScene& scene, QPainter& painter, int index) {
   // Per-path resolved CSS: the six icons are sibling DOM elements, and
   // structural selectors (:nth-of-type / adjacent sibling) can style them
   // individually — each path carries its own fill/stroke/opacity/visibility.
   const ErrorIconCss iconDefault;
-  const ErrorIconCss& css = index < scene.css.icons.size()
-                                ? scene.css.icons.at(index) : iconDefault;
-  if (!css.visible) return;
-  const auto fill = color::resolveSvgPaint(
-      css.fill.isEmpty() ? scene.style.errorBkgColor : css.fill,
-      color::SvgPaintKind::Fill, Qt::black);
-  const auto stroke = color::resolveSvgPaint(
-      css.stroke, color::SvgPaintKind::Stroke, Qt::black);
-  if (fill.none && stroke.none) return;
+  const ErrorIconCss& css = index < scene.css.icons.size() ? scene.css.icons.at(index) : iconDefault;
+  if (!css.visible)
+    return;
+  const auto fill = color::resolveSvgPaint(css.fill.isEmpty() ? scene.style.errorBkgColor : css.fill,
+                                           color::SvgPaintKind::Fill, Qt::black);
+  const auto stroke = color::resolveSvgPaint(css.stroke, color::SvgPaintKind::Stroke, Qt::black);
+  if (fill.none && stroke.none)
+    return;
   // SVG paints BOTH channels: fill plus a stroked outline (initial
   // stroke:none upstream — a themeCSS `path { stroke: … }` activates it).
   if (stroke.none || css.strokeWidthPx <= 0.0) {
     painter.setPen(Qt::NoPen);
   } else {
-    painter.setPen(QPen(withOpacity(stroke.color, css.opacity),
-                        css.strokeWidthPx));
+    painter.setPen(QPen(withOpacity(stroke.color, css.opacity), css.strokeWidthPx));
   }
-  painter.setBrush(fill.none
-                       ? Qt::NoBrush
-                       : QBrush(withOpacity(fill.color, css.opacity)));
+  painter.setBrush(fill.none ? Qt::NoBrush : QBrush(withOpacity(fill.color, css.opacity)));
   painter.drawPath(scene.iconPaths.at(index));
 }
 
 void paintErrorScene(const ErrorScene& scene, QPainter& painter) {
   painter.setRenderHint(QPainter::Antialiasing, true);
   painter.setRenderHint(QPainter::TextAntialiasing, true);
-  const qreal scale = scene.viewBoxBounds.width() > 0.0
-                          ? scene.bounds.width() / scene.viewBoxBounds.width()
-                          : 1.0;
+  const qreal scale = scene.viewBoxBounds.width() > 0.0 ? scene.bounds.width() / scene.viewBoxBounds.width() : 1.0;
   painter.save();
   painter.scale(scale, scale);
 
@@ -124,16 +120,16 @@ void paintErrorScene(const ErrorScene& scene, QPainter& painter) {
     paintErrorIcon(scene, painter, index);
   }
 
-  const auto drawText = [&](const ErrorTextGeometry& geometry,
-                            const ErrorTextCss& css) {
-    if (!css.visible) return;
-    const QString familyExpression =
-        css.fontFamily.trimmed().isEmpty() ? scene.style.fontFamily
-                                           : css.fontFamily;
+  const auto drawText = [&](const ErrorTextGeometry& geometry, const ErrorTextCss& css) {
+    if (!css.visible)
+      return;
+    const QString familyExpression = css.fontFamily.trimmed().isEmpty() ? scene.style.fontFamily : css.fontFamily;
     QStringList families = fontFamilies(familyExpression);
-    for (QString& family : families) family = canonicalFamily(family);
+    for (QString& family : families)
+      family = canonicalFamily(family);
     const qreal size = css.fontSize >= 0.0 ? css.fontSize : geometry.fontSize;
-    if (!(size > 0.0)) return;
+    if (!(size > 0.0))
+      return;
     const QFont::Weight weight = cssWeight(css.fontWeight);
     auto font = editor::makeUnhintedCssPixelFont(families.first(), size);
     // Only attach the CSS fallback list when the canonical first family did
@@ -145,16 +141,15 @@ void paintErrorScene(const ErrorScene& scene, QPainter& painter) {
     // missing glyphs without the explicit list.
     if (families.size() > 1 && !QFontInfo(font.font).exactMatch())
       font.font.setFamilies(families);
-    if (weight != QFont::Normal) font.font.setWeight(weight);
-    const auto fill = color::resolveSvgPaint(
-        css.fill.isEmpty() ? scene.style.errorTextColor : css.fill,
-        color::SvgPaintKind::Text, Qt::black);
-    const auto stroke = color::resolveSvgPaint(
-        css.stroke.isEmpty() ? scene.style.errorTextColor : css.stroke,
-        color::SvgPaintKind::Stroke, Qt::black);
-    if (fill.none && stroke.none) return;
-    const qreal advance = textAdvance(geometry.text, families.first(),
-                                      font.font, font.scale, size, weight);
+    if (weight != QFont::Normal)
+      font.font.setWeight(weight);
+    const auto fill = color::resolveSvgPaint(css.fill.isEmpty() ? scene.style.errorTextColor : css.fill,
+                                             color::SvgPaintKind::Text, Qt::black);
+    const auto stroke = color::resolveSvgPaint(css.stroke.isEmpty() ? scene.style.errorTextColor : css.stroke,
+                                               color::SvgPaintKind::Stroke, Qt::black);
+    if (fill.none && stroke.none)
+      return;
+    const qreal advance = textAdvance(geometry.text, families.first(), font.font, font.scale, size, weight);
     painter.save();
     painter.scale(font.scale, font.scale);
     painter.setFont(font.font);
@@ -163,8 +158,7 @@ void paintErrorScene(const ErrorScene& scene, QPainter& painter) {
     // SVG text paints fill AND stroke as separate channels (`.error-text`
     // declares both); draw the fill through the text engine, then stroke the
     // glyph outlines on top with the resolved stroke width (initial 1px).
-    const QPointF origin((geometry.anchor.x() - advance / 2.0) / font.scale,
-                         geometry.anchor.y() / font.scale);
+    const QPointF origin((geometry.anchor.x() - advance / 2.0) / font.scale, geometry.anchor.y() / font.scale);
     if (!fill.none) {
       painter.setPen(QPen(withOpacity(fill.color, css.opacity)));
       drawDocumentText(painter, origin, geometry.text);
@@ -174,8 +168,7 @@ void paintErrorScene(const ErrorScene& scene, QPainter& painter) {
       outlined.addText(origin, font.font, geometry.text);
       // Pen width is expressed in the font.scale-scaled local space; divide
       // it back so the rendered width is strokeWidthPx viewBox units.
-      painter.setPen(QPen(withOpacity(stroke.color, css.opacity),
-                          css.strokeWidthPx / font.scale));
+      painter.setPen(QPen(withOpacity(stroke.color, css.opacity), css.strokeWidthPx / font.scale));
       painter.setBrush(Qt::NoBrush);
       painter.drawPath(outlined);
     }
@@ -187,9 +180,8 @@ void paintErrorScene(const ErrorScene& scene, QPainter& painter) {
   painter.restore();
 }
 
-void ErrorScene::paint(QPainter& painter,
-                       const MermaidPaintOptions&) const {
+void ErrorScene::paint(QPainter& painter, const MermaidPaintOptions&) const {
   paintErrorScene(*this, painter);
 }
 
-}  // namespace muffin::mermaid::error
+} // namespace muffin::mermaid::error

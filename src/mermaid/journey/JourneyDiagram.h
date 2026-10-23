@@ -36,4 +36,4 @@ public:
   static JourneyData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::journey
+} // namespace muffin::mermaid::journey

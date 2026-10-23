@@ -6,7 +6,7 @@
 #include <QJsonDocument>
 #include <cstdio>
 using namespace treemap_test;
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 #if defined(Q_OS_MACOS)
   // The fixture goldens embed the Windows golden host's font stack; macOS
   // (SF/Helvetica) resolves different faces with different metrics.
@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
           QStringLiteral("Treemap geometry provenance changed"));
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
   require(cases.size() == 16, QStringLiteral("Expected 16 geometry cases"));
-  for (const QJsonValue &value : cases) compareCase(value.toObject());
+  for (const QJsonValue& value : cases)
+    compareCase(value.toObject());
   std::puts("MermaidTreemapGeometryOracleTest: 16/16 passed");
 }

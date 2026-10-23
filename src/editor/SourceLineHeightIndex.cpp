@@ -15,7 +15,7 @@ std::uint32_t nextPriority() {
   return state;
 }
 
-}  // namespace
+} // namespace
 
 qsizetype SourceLineHeightIndex::countOf(const std::unique_ptr<Node>& node) {
   return node ? node->subtreeCount : 0;
@@ -27,12 +27,10 @@ qint64 SourceLineHeightIndex::heightOf(const std::unique_ptr<Node>& node) {
 
 void SourceLineHeightIndex::refresh(Node& node) {
   node.subtreeCount = countOf(node.left) + node.count + countOf(node.right);
-  node.subtreeHeight = heightOf(node.left) +
-      static_cast<qint64>(node.count) * node.height + heightOf(node.right);
+  node.subtreeHeight = heightOf(node.left) + static_cast<qint64>(node.count) * node.height + heightOf(node.right);
 }
 
-std::unique_ptr<SourceLineHeightIndex::Node> SourceLineHeightIndex::makeNode(
-    qsizetype count, int height) {
+std::unique_ptr<SourceLineHeightIndex::Node> SourceLineHeightIndex::makeNode(qsizetype count, int height) {
   if (count <= 0) {
     return {};
   }
@@ -44,10 +42,12 @@ std::unique_ptr<SourceLineHeightIndex::Node> SourceLineHeightIndex::makeNode(
   return node;
 }
 
-std::unique_ptr<SourceLineHeightIndex::Node> SourceLineHeightIndex::merge(
-    std::unique_ptr<Node> left, std::unique_ptr<Node> right) {
-  if (!left) return right;
-  if (!right) return left;
+std::unique_ptr<SourceLineHeightIndex::Node> SourceLineHeightIndex::merge(std::unique_ptr<Node> left,
+                                                                          std::unique_ptr<Node> right) {
+  if (!left)
+    return right;
+  if (!right)
+    return left;
   if (left->priority < right->priority) {
     left->right = merge(std::move(left->right), std::move(right));
     refresh(*left);
@@ -58,10 +58,10 @@ std::unique_ptr<SourceLineHeightIndex::Node> SourceLineHeightIndex::merge(
   return right;
 }
 
-std::pair<std::unique_ptr<SourceLineHeightIndex::Node>,
-          std::unique_ptr<SourceLineHeightIndex::Node>>
+std::pair<std::unique_ptr<SourceLineHeightIndex::Node>, std::unique_ptr<SourceLineHeightIndex::Node>>
 SourceLineHeightIndex::split(std::unique_ptr<Node> root, qsizetype leftCount) {
-  if (!root) return {};
+  if (!root)
+    return {};
   const qsizetype before = countOf(root->left);
   if (leftCount < before) {
     auto [left, middle] = split(std::move(root->left), leftCount);
@@ -70,8 +70,7 @@ SourceLineHeightIndex::split(std::unique_ptr<Node> root, qsizetype leftCount) {
     return {std::move(left), std::move(root)};
   }
   if (leftCount > before + root->count) {
-    auto [middle, right] = split(
-        std::move(root->right), leftCount - before - root->count);
+    auto [middle, right] = split(std::move(root->right), leftCount - before - root->count);
     root->right = std::move(middle);
     refresh(*root);
     return {std::move(root), std::move(right)};
@@ -119,14 +118,16 @@ qint64 SourceLineHeightIndex::yForLine(qsizetype line) const {
     const qsizetype inRun = qMin(remaining, node->count);
     y += static_cast<qint64>(inRun) * node->height;
     remaining -= inRun;
-    if (remaining == 0) break;
+    if (remaining == 0)
+      break;
     node = node->right.get();
   }
   return y;
 }
 
 qsizetype SourceLineHeightIndex::lineAtY(qint64 y) const {
-  if (!root_ || lineCount() <= 0) return 0;
+  if (!root_ || lineCount() <= 0)
+    return 0;
   qint64 remaining = qBound<qint64>(0, y, qMax<qint64>(0, totalHeight() - 1));
   qsizetype line = 0;
   const Node* node = root_.get();
@@ -150,7 +151,8 @@ qsizetype SourceLineHeightIndex::lineAtY(qint64 y) const {
 }
 
 int SourceLineHeightIndex::heightForLine(qsizetype line) const {
-  if (!root_ || line < 0 || line >= lineCount()) return estimatedHeight_;
+  if (!root_ || line < 0 || line >= lineCount())
+    return estimatedHeight_;
   qsizetype remaining = line;
   const Node* node = root_.get();
   while (node) {
@@ -168,9 +170,11 @@ int SourceLineHeightIndex::heightForLine(qsizetype line) const {
 }
 
 void SourceLineHeightIndex::setHeight(qsizetype line, int height) {
-  if (line < 0 || line >= lineCount()) return;
+  if (line < 0 || line >= lineCount())
+    return;
   const int boundedHeight = qMax(1, height);
-  if (heightForLine(line) == boundedHeight) return;
+  if (heightForLine(line) == boundedHeight)
+    return;
   auto [left, tail] = split(std::move(root_), line);
   auto [oldLine, right] = split(std::move(tail), 1);
   Q_UNUSED(oldLine);
@@ -186,4 +190,4 @@ void SourceLineHeightIndex::replaceLines(qsizetype firstLine, qsizetype removedC
   root_ = merge(merge(std::move(left), makeNode(insertedCount, estimatedHeight_)), std::move(right));
 }
 
-}  // namespace muffin
+} // namespace muffin

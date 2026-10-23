@@ -20,7 +20,11 @@ using namespace muffin;
 namespace {
 void testAllocationContract(unsigned seed) {
   CmarkParseAllocator owner, nested;
-  struct Item { void* data = nullptr; size_t size = 0; unsigned char value = 0; };
+  struct Item {
+    void* data = nullptr;
+    size_t size = 0;
+    unsigned char value = 0;
+  };
   std::vector<Item> items(500);
   std::mt19937 random(seed);
   const size_t sizes[]{0, 1, 15, 16, 17, 31, 32, 64, 175, 176, 177, 255, 256, 1023, 4095, 4096, 4097, 65536};
@@ -61,10 +65,13 @@ void testAllocationContract(unsigned seed) {
     owner.memory()->free(fresh);
   }
   // Existing allocations do not require an active scope and recover their owner.
-  for (auto& item : items) if (item.data) nested.memory()->free(item.data);
+  for (auto& item : items)
+    if (item.data)
+      nested.memory()->free(item.data);
   require(owner.statistics().liveAllocations == 0 && nested.statistics().liveAllocations == 0,
           "cmark allocation survived final free");
-  owner.trim(); nested.trim();
+  owner.trim();
+  nested.trim();
   require(owner.statistics().reservedBytes == 0 && nested.statistics().reservedBytes == 0,
           "cmark empty pages survived trim");
 
@@ -85,15 +92,18 @@ void testEmptyPagesReclaimedBeforeParseEnd() {
   CmarkParseAllocator allocator;
   CmarkParseAllocator::Scope scope(allocator);
   std::vector<void*> nodes;
-  for (int i = 0; i < 12000; ++i) nodes.push_back(allocator.memory()->calloc(1, 176));
+  for (int i = 0; i < 12000; ++i)
+    nodes.push_back(allocator.memory()->calloc(1, 176));
   const auto peak = allocator.statistics().reservedBytes;
   std::memset(nodes.back(), 0x5a, 176);
-  for (size_t i = 0; i < nodes.size()/2; ++i) allocator.memory()->free(nodes[i]);
+  for (size_t i = 0; i < nodes.size() / 2; ++i)
+    allocator.memory()->free(nodes[i]);
   allocator.trim();
   require(allocator.statistics().reservedBytes < peak && allocator.statistics().liveAllocations == 6000,
           "Consumed cmark pages must be reclaimed while other nodes remain live");
   require(static_cast<unsigned char*>(nodes.back())[175] == 0x5a, "trim changed a live cmark allocation");
-  for (size_t i = nodes.size()/2; i < nodes.size(); ++i) allocator.memory()->free(nodes[i]);
+  for (size_t i = nodes.size() / 2; i < nodes.size(); ++i)
+    allocator.memory()->free(nodes[i]);
   allocator.trim();
   require(allocator.statistics().reservedBytes == 0, "All cmark pages must be returned after conversion");
 }
@@ -112,12 +122,13 @@ void snapshotInlines(QDataStream& out, const QVector<InlineNode>& nodes) {
 
 void snapshotBlock(QDataStream& out, const MarkdownNode& node) {
   const auto r = node.sourceRange();
-  out << qint32(node.type()) << node.literal() << node.codeLanguage() << node.headingLevel()
-      << qint32(node.listKind()) << node.listStart() << node.listTight() << node.isTaskItem() << node.taskChecked()
-      << qint64(r.byteStart) << qint64(r.byteEnd) << r.lineStart << r.lineEnd << r.columnStart << r.columnEnd;
+  out << qint32(node.type()) << node.literal() << node.codeLanguage() << node.headingLevel() << qint32(node.listKind())
+      << node.listStart() << node.listTight() << node.isTaskItem() << node.taskChecked() << qint64(r.byteStart)
+      << qint64(r.byteEnd) << r.lineStart << r.lineEnd << r.columnStart << r.columnEnd;
   snapshotInlines(out, node.inlines());
   out << qint64(node.children().size());
-  for (const auto& child : node.children()) snapshotBlock(out, *child);
+  for (const auto& child : node.children())
+    snapshotBlock(out, *child);
 }
 
 QByteArray snapshot(const MarkdownNode& root) {
@@ -128,11 +139,12 @@ QByteArray snapshot(const MarkdownNode& root) {
 }
 
 void testIndependentConcurrentParses() {
-  const QString markdown = QString::fromUtf8(
-      "# 中文 title\n\ntext $x$ and $$y^2$$ **bold** ~~strike~~ `code` &amp;.\n\n"
-      "| a | b |\n|---|---|\n| $z$ | [^a] |\n\n"
-      "- [x] task\n- item https://example.com\n\n"
-      "[^b]: Other [^a].\n\n[^a]: Note.\n\nuse [^b].\n").repeated(12);
+  const QString markdown =
+      QString::fromUtf8("# 中文 title\n\ntext $x$ and $$y^2$$ **bold** ~~strike~~ `code` &amp;.\n\n"
+                        "| a | b |\n|---|---|\n| $z$ | [^a] |\n\n"
+                        "- [x] task\n- item https://example.com\n\n"
+                        "[^b]: Other [^a].\n\n[^a]: Note.\n\nuse [^b].\n")
+          .repeated(12);
   constexpr int workers = 4;
   std::array<ParseOptions, workers> options;
   options[1].enableMath = false;
@@ -149,20 +161,24 @@ void testIndependentConcurrentParses() {
   std::barrier start(workers);
   std::atomic<bool> matches = true;
   std::vector<std::thread> threads;
-  for (int i = 0; i < workers; ++i) threads.emplace_back([&, i] {
-    CmarkGfmParser parser;
-    for (int repeat = 0; repeat < 100; ++repeat) {
-      start.arrive_and_wait();
-      const auto parsed = parser.parseDocumentShared(shared, options[i]);
-      if (!parsed.root || snapshot(*parsed.root) != expected[i]) matches = false;
-      // The plain cmark image parser shares cmark's globals with document
-      // parsers even though it attaches no extensions.
-      const auto image = image_syntax::parse(QStringLiteral("![a $x$ &amp; **bold**](image.png \"title\")"));
-      if (image.src != QStringLiteral("image.png") || image.alt != QStringLiteral("a $x$ & bold") ||
-          image.title != QStringLiteral("title")) matches = false;
-    }
-  });
-  for (auto& thread : threads) thread.join();
+  for (int i = 0; i < workers; ++i)
+    threads.emplace_back([&, i] {
+      CmarkGfmParser parser;
+      for (int repeat = 0; repeat < 100; ++repeat) {
+        start.arrive_and_wait();
+        const auto parsed = parser.parseDocumentShared(shared, options[i]);
+        if (!parsed.root || snapshot(*parsed.root) != expected[i])
+          matches = false;
+        // The plain cmark image parser shares cmark's globals with document
+        // parsers even though it attaches no extensions.
+        const auto image = image_syntax::parse(QStringLiteral("![a $x$ &amp; **bold**](image.png \"title\")"));
+        if (image.src != QStringLiteral("image.png") || image.alt != QStringLiteral("a $x$ & bold") ||
+            image.title != QStringLiteral("title"))
+          matches = false;
+      }
+    });
+  for (auto& thread : threads)
+    thread.join();
   require(matches, "Concurrent parsers changed math, extensions, text or source coordinates");
 
   // Local reparses use the same allocator lifetime as complete documents.
@@ -171,15 +187,17 @@ void testIndependentConcurrentParses() {
   require(local.root && unshared.root && snapshot(*local.root) == snapshot(*unshared.root),
           "Local and complete parses diverged after allocator integration");
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
   testEmptyPagesReclaimedBeforeParseEnd();
   testAllocationContract(1);
   std::vector<std::thread> threads;
-  for (unsigned i = 0; i < 4; ++i) threads.emplace_back([i] { testAllocationContract(100+i); });
-  for (auto& thread : threads) thread.join();
+  for (unsigned i = 0; i < 4; ++i)
+    threads.emplace_back([i] { testAllocationContract(100 + i); });
+  for (auto& thread : threads)
+    thread.join();
   testIndependentConcurrentParses();
   return 0;
 }

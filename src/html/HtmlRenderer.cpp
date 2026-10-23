@@ -48,12 +48,13 @@ void resolveResourcePaths(HtmlBox& box, const QString& baseDirectory) {
   }
 }
 
-}  // namespace
+} // namespace
 
 HtmlRenderer::HtmlRenderer() = default;
 HtmlRenderer::~HtmlRenderer() = default;
 
-HtmlLayoutResult HtmlRenderer::render(const QString& html, qreal baseFontSize, qreal availableWidth, QString baseDirectory, const HtmlColorPalette& palette) {
+HtmlLayoutResult HtmlRenderer::render(const QString& html, qreal baseFontSize, qreal availableWidth,
+                                      QString baseDirectory, const HtmlColorPalette& palette) {
   HtmlLayoutResult result;
   result.setBaseDirectory(std::move(baseDirectory));
 
@@ -84,13 +85,15 @@ HtmlLayoutResult HtmlRenderer::render(const QString& html, qreal baseFontSize, q
   int textOffset = 0;
   const auto indexText = [&](const auto& self, HtmlBox& box) -> void {
     box.plainTextStart = textOffset;
-    if (!box.style().visible || box.style().display == HtmlDisplay::None) return;
+    if (!box.style().visible || box.style().display == HtmlDisplay::None)
+      return;
     if (box.isTextRun())
       textOffset += box.text().size();
     else if (box.tag() == HtmlTag::Break)
       ++textOffset;
     else
-      for (auto& child : box.children()) self(self, *child);
+      for (auto& child : box.children())
+        self(self, *child);
   };
   indexText(indexText, *root);
 
@@ -110,4 +113,4 @@ HtmlLayoutResult HtmlRenderer::render(const QString& html, qreal baseFontSize, q
   return result;
 }
 
-}  // namespace muffin::html
+} // namespace muffin::html

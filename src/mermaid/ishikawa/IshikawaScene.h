@@ -159,11 +159,9 @@ struct IshikawaDomElement {
 struct IshikawaScene final : MermaidScene {
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override {
-    return QRectF(bounds.topLeft(), QSizeF(qRound(bounds.width()),
-                                           qRound(bounds.height())));
+    return QRectF(bounds.topLeft(), QSizeF(qRound(bounds.width()), qRound(bounds.height())));
   }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
 
   QRectF bounds;
@@ -180,8 +178,6 @@ struct IshikawaScene final : MermaidScene {
   QVector<IshikawaDomElement> domElements;
 };
 
-IshikawaScene buildIshikawaScene(const IshikawaData& data,
-                                  IshikawaConfig config,
-                                  IshikawaSceneStyle style);
+IshikawaScene buildIshikawaScene(const IshikawaData& data, IshikawaConfig config, IshikawaSceneStyle style);
 
-}  // namespace muffin::mermaid::ishikawa
+} // namespace muffin::mermaid::ishikawa

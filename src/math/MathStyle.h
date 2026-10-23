@@ -40,4 +40,4 @@ private:
   bool cramped_ = false;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

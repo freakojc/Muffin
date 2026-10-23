@@ -41,9 +41,20 @@ struct WorkspaceSearchFile {
   bool modified = false;
   bool replaceable = false;
 };
-enum class WorkspaceSkipReason { TooLarge, RegexTooLarge, Busy, Unreadable, InvalidText,
-    Changed, ResourceLimit, IgnoredDirectory };
-struct WorkspaceSkip { QString path; WorkspaceSkipReason reason; };
+enum class WorkspaceSkipReason {
+  TooLarge,
+  RegexTooLarge,
+  Busy,
+  Unreadable,
+  InvalidText,
+  Changed,
+  ResourceLimit,
+  IgnoredDirectory
+};
+struct WorkspaceSkip {
+  QString path;
+  WorkspaceSkipReason reason;
+};
 struct WorkspaceSearchResult {
   WorkspaceQuery query;
   QVector<WorkspaceSearchFile> files;
@@ -58,10 +69,10 @@ struct WorkspaceSearchResult {
 class MUFFIN_UI_EXPORT WorkspaceSearch final {
 public:
   static WorkspaceSearchResult run(const WorkspaceQuery& query, const OpenSearchBuffers& buffers,
-      const SearchCancellation& cancel,
-      const std::function<void(const WorkspaceSearchFile&)>& progress = {});
+                                   const SearchCancellation& cancel,
+                                   const std::function<void(const WorkspaceSearchFile&)>& progress = {});
   static QByteArray fingerprint(QStringView text);
   static QByteArray fingerprint(const PieceTable& text);
   static bool bufferMatches(const OpenSearchBuffer& buffer, QStringView text);
 };
-}  // namespace muffin
+} // namespace muffin

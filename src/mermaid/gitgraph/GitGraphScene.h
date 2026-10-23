@@ -83,26 +83,26 @@ struct GitGraphCssOverrides {
   // font rules move only the drawn label — the measure/draw split.
   GitGraphElementCss branchProbe;
   struct Branch {
-    GitGraphElementCss line;   // line.branch.branchN
-    GitGraphElementCss bkg;    // rect.branchLabelBkg.labelN
-    GitGraphElementCss group;  // g.label.branch-labelN
-    GitGraphElementCss text;   // the label <text>
+    GitGraphElementCss line;  // line.branch.branchN
+    GitGraphElementCss bkg;   // rect.branchLabelBkg.labelN
+    GitGraphElementCss group; // g.label.branch-labelN
+    GitGraphElementCss text;  // the label <text>
   };
   struct CommitLabel {
-    GitGraphElementCss wrapper;  // the classless label <g>
-    GitGraphElementCss bkg;      // rect.commit-label-bkg
-    GitGraphElementCss text;     // text.commit-label
+    GitGraphElementCss wrapper; // the classless label <g>
+    GitGraphElementCss bkg;     // rect.commit-label-bkg
+    GitGraphElementCss text;    // text.commit-label
   };
   struct Tag {
-    GitGraphElementCss bkg;   // polygon.tag-label-bkg
-    GitGraphElementCss hole;  // circle.tag-hole
-    GitGraphElementCss text;  // text.tag-label
+    GitGraphElementCss bkg;  // polygon.tag-label-bkg
+    GitGraphElementCss hole; // circle.tag-hole
+    GitGraphElementCss text; // text.tag-label
   };
   QVector<Branch> branches;
   QVector<GitGraphElementCss> arrows;
-  QVector<QVector<GitGraphElementCss>> bullets;  // per drawn commit, DOM order
-  QVector<CommitLabel> labels;                    // emitted labels, draw order
-  QVector<Tag> tags;                              // flat, emission order
+  QVector<QVector<GitGraphElementCss>> bullets; // per drawn commit, DOM order
+  QVector<CommitLabel> labels;                  // emitted labels, draw order
+  QVector<Tag> tags;                            // flat, emission order
   GitGraphElementCss title;
 };
 
@@ -149,14 +149,11 @@ struct GitGraphScene final : MermaidScene {
 
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override { return rasterBounds; }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options = {}) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options = {}) const override;
   QJsonObject toJsonObject() const override;
 };
 
-GitGraphScene buildGitGraphScene(const GitGraphData& data,
-                                 GitGraphConfig config,
-                                 GitGraphSceneStyle style,
+GitGraphScene buildGitGraphScene(const GitGraphData& data, GitGraphConfig config, GitGraphSceneStyle style,
                                  const GitGraphCssOverrides* css = nullptr);
 
 // The arrow path class digit depends on layout (reroute lanes and merge-parent
@@ -164,8 +161,7 @@ GitGraphScene buildGitGraphScene(const GitGraphData& data,
 // resolved digits before the scene builds. Computed with the default branch
 // label metrics — identical to the builder whenever the themeCSS leaves the
 // measurement probe alone.
-QVector<int> gitGraphArrowClassDigits(const GitGraphData& data,
-                                      const GitGraphConfig& config,
+QVector<int> gitGraphArrowClassDigits(const GitGraphData& data, const GitGraphConfig& config,
                                       const GitGraphSceneStyle& style);
 
-}  // namespace muffin::mermaid::gitgraph
+} // namespace muffin::mermaid::gitgraph

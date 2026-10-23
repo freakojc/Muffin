@@ -65,4 +65,4 @@ private:
   NodeId visibleHtmlHoverBlockId_;
 };
 
-}  // namespace muffin
+} // namespace muffin

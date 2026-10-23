@@ -18,12 +18,11 @@ void wordSegmentationHasRuntimeData() {
   const QString chinese = QStringLiteral("你好世界");
   const auto first = muffin::findWordSegment(chinese, 1);
   const auto second = muffin::findWordSegment(chinese, 3);
-  require(first.isWord && first.start == 0 && first.end == 2
-              && second.isWord && second.start == 2 && second.end == 4,
+  require(first.isWord && first.start == 0 && first.end == 2 && second.isWord && second.start == 2 && second.end == 4,
           "ICU runtime data must include Chinese dictionary segmentation");
 }
 
-}  // namespace
+} // namespace
 
 int main() {
   runTest("wordSegmentationHasRuntimeData", wordSegmentationHasRuntimeData);

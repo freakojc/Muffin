@@ -40,7 +40,7 @@ bool waitForCount(int& count, int expected) {
   return count >= expected;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

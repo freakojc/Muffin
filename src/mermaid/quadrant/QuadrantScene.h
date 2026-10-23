@@ -69,7 +69,7 @@ struct QuadrantPointG {
   qreal radius;
   QString fill;
   QString stroke;
-  qreal strokeWidth = 0.0;  // Chromium used px (theme default 0)
+  qreal strokeWidth = 0.0; // Chromium used px (theme default 0)
   QString text;
   QString textFill;
   QString textFontFamily;
@@ -93,7 +93,7 @@ struct QuadrantAxisLabel {
   qreal x, y;
   qreal fontSize;
   int rotation;
-  bool centered = false;  // SVG text-anchor: middle (false => start)
+  bool centered = false; // SVG text-anchor: middle (false => start)
   QString fontFamily;
   QFont::Weight fontWeight = QFont::Normal;
   qreal opacity = 1.0;
@@ -120,7 +120,7 @@ struct QuadrantScene : MermaidScene {
   QString title;
   QString accTitle, accDescr;
   QVector<QuadrantRect> quadrants;
-  QVector<QuadrantPointG> points;       // REVERSE source order (render order)
+  QVector<QuadrantPointG> points; // REVERSE source order (render order)
   QVector<QuadrantBorder> borders;
   QVector<QuadrantAxisLabel> axisLabels;
   // Title placement (empty when no title).
@@ -134,8 +134,6 @@ struct QuadrantScene : MermaidScene {
   QuadrantSceneStyle style;
 };
 
-QuadrantScene buildQuadrantScene(const QuadrantData& data,
-                                 const QJsonObject& quadrantConfig,
-                                 QuadrantSceneStyle style);
+QuadrantScene buildQuadrantScene(const QuadrantData& data, const QJsonObject& quadrantConfig, QuadrantSceneStyle style);
 
-}  // namespace muffin::mermaid::quadrant
+} // namespace muffin::mermaid::quadrant

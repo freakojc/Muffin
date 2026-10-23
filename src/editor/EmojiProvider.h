@@ -33,4 +33,4 @@ private:
   mutable bool loaded_ = false;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -31,9 +31,9 @@ namespace muffin::mermaid::color {
 // an RGB-parsed color computes & caches h/s/l from r/g/b). This mutation is
 // local to a parse->operate->stringify cycle.
 struct MermaidColor {
-  std::optional<double> r, g, b;   // 0-255, float
-  std::optional<double> h, s, l;   // h: degrees (signed, NOT normalized); s,l: 0-100
-  double a = 1.0;                   // 0-1
+  std::optional<double> r, g, b; // 0-255, float
+  std::optional<double> h, s, l; // h: degrees (signed, NOT normalized); s,l: 0-100
+  double a = 1.0;                // 0-1
   enum class Type { All, RGB, HSL };
   Type type = Type::All;
   QString color;
@@ -50,13 +50,40 @@ struct MermaidColor {
   double A() const { return a; }
 
   // Setters (mirror Channels setters): set type + changed + the channel.
-  void setR(double v) { type = Type::RGB; changed = true; r = v; }
-  void setG(double v) { type = Type::RGB; changed = true; g = v; }
-  void setB(double v) { type = Type::RGB; changed = true; b = v; }
-  void setH(double v) { type = Type::HSL; changed = true; h = v; }
-  void setS(double v) { type = Type::HSL; changed = true; s = v; }
-  void setL(double v) { type = Type::HSL; changed = true; l = v; }
-  void setA(double v) { changed = true; a = v; }
+  void setR(double v) {
+    type = Type::RGB;
+    changed = true;
+    r = v;
+  }
+  void setG(double v) {
+    type = Type::RGB;
+    changed = true;
+    g = v;
+  }
+  void setB(double v) {
+    type = Type::RGB;
+    changed = true;
+    b = v;
+  }
+  void setH(double v) {
+    type = Type::HSL;
+    changed = true;
+    h = v;
+  }
+  void setS(double v) {
+    type = Type::HSL;
+    changed = true;
+    s = v;
+  }
+  void setL(double v) {
+    type = Type::HSL;
+    changed = true;
+    l = v;
+  }
+  void setA(double v) {
+    changed = true;
+    a = v;
+  }
 
   void ensureHSL();
   void ensureRGB();
@@ -84,7 +111,7 @@ QString transparentize(const QString& color, double amount); // adjustChannel "a
 QString mix(const QString& color1, const QString& color2, double weight = 50.0);
 QString invert(const QString& color, double weight = 100.0);
 bool isDark(const QString& color);
-QString mkBorder(const QString& col, bool darkMode);  // darkMode always false for built-in themes
+QString mkBorder(const QString& col, bool darkMode); // darkMode always false for built-in themes
 // `channel(color, 'r'|'g'|'b'|'h'|'s'|'l')`: langRound(parse(c).<channel>()).
 double channel(const QString& color, QChar which);
 
@@ -117,7 +144,10 @@ bool isParsableColor(const QString& color);
 // The caller applies the result: Fill none->NoBrush, Stroke none->NoPen (or when
 // the width is <=0), Text none->skip the drawText.
 enum class SvgPaintKind { Fill, Stroke, Text };
-struct SvgPaint { bool none = false; QColor color; };
+struct SvgPaint {
+  bool none = false;
+  QColor color;
+};
 SvgPaint resolveSvgPaint(const QString& value, SvgPaintKind kind, const QColor& inherited);
 
 // CSS `color`-style resolution with a fallback (invalid values — including `none` — are dropped
@@ -126,4 +156,4 @@ inline QColor cssColor(const QString& value, const QColor& fallback = QColor(Qt:
   return isParsableColor(value) ? toQColor(value) : fallback;
 }
 
-}  // namespace muffin::mermaid::color
+} // namespace muffin::mermaid::color

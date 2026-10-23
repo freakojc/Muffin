@@ -46,9 +46,8 @@ void testInputEnterMovesCursorToNewParagraph() {
   UndoStack undoStack;
   BrushQueue brushQueue;
   QVector<BrushQueue::RefreshRequest> requests;
-  QObject::connect(&brushQueue, &BrushQueue::refreshRequested, [&requests](BrushQueue::RefreshRequest request) {
-    requests.push_back(std::move(request));
-  });
+  QObject::connect(&brushQueue, &BrushQueue::refreshRequested,
+                   [&requests](BrushQueue::RefreshRequest request) { requests.push_back(std::move(request)); });
   InputController input;
   wireInput(input, session, selection, undoStack, brushQueue);
 
@@ -81,7 +80,8 @@ void testInputEnterSplitsComplexInlineParagraphs() {
   session.setMarkdownText(QStringLiteral("before **bold** after"), false);
   setCursor(selection, blockAt(session, 0), 11);
   require(input.insertParagraphBreak(), "enter should split strong inline paragraph");
-  require(session.markdownText().toString() == QStringLiteral("before **bold**\n\nafter"), "strong inline split mismatch");
+  require(session.markdownText().toString() == QStringLiteral("before **bold**\n\nafter"),
+          "strong inline split mismatch");
   require(selection.cursorPosition().blockId == blockAt(session, 1)->id(), "strong inline split cursor block mismatch");
   require(selection.cursorPosition().text.textOffset == 0, "strong inline split cursor offset mismatch");
 
@@ -96,85 +96,81 @@ void testInputEnterSplitsComplexInlineParagraphs() {
   require(session.markdownText().toString() == QStringLiteral("before $x+y$\n\nafter"), "inline math split mismatch");
 
   session.setMarkdownText(QStringLiteral("Plain text can mix **bold**"), false);
-  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("Plain text can mix b").size(), QStringLiteral("Plain text can mix **b").size());
+  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("Plain text can mix b").size(),
+                  QStringLiteral("Plain text can mix **b").size());
   require(input.insertParagraphBreak(), "enter inside strong inline should split wrapper");
-  require(session.markdownText().toString() == QStringLiteral("Plain text can mix **b**\n\n**old**"), "strong inline wrapper split mismatch");
+  require(session.markdownText().toString() == QStringLiteral("Plain text can mix **b**\n\n**old**"),
+          "strong inline wrapper split mismatch");
 
   session.setMarkdownText(QStringLiteral("Plain text can mix *italic*"), false);
-  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("Plain text can mix ita").size(), QStringLiteral("Plain text can mix *ita").size());
+  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("Plain text can mix ita").size(),
+                  QStringLiteral("Plain text can mix *ita").size());
   require(input.insertParagraphBreak(), "enter inside emphasis inline should split wrapper");
-  require(session.markdownText().toString() == QStringLiteral("Plain text can mix *ita*\n\n*lic*"), "emphasis inline wrapper split mismatch");
+  require(session.markdownText().toString() == QStringLiteral("Plain text can mix *ita*\n\n*lic*"),
+          "emphasis inline wrapper split mismatch");
 
   session.setMarkdownText(QStringLiteral("Plain text can mix ~~through~~"), false);
-  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("Plain text can mix thr").size(), QStringLiteral("Plain text can mix ~~thr").size());
+  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("Plain text can mix thr").size(),
+                  QStringLiteral("Plain text can mix ~~thr").size());
   require(input.insertParagraphBreak(), "enter inside strike inline should split wrapper");
-  require(session.markdownText().toString() == QStringLiteral("Plain text can mix ~~thr~~\n\n~~ough~~"), "strike inline wrapper split mismatch");
+  require(session.markdownText().toString() == QStringLiteral("Plain text can mix ~~thr~~\n\n~~ough~~"),
+          "strike inline wrapper split mismatch");
 
   session.setMarkdownText(QStringLiteral("before `code` after"), false);
-  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("before co").size(), QStringLiteral("before `co").size());
+  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("before co").size(),
+                  QStringLiteral("before `co").size());
   require(input.insertParagraphBreak(), "enter inside code inline should split wrapper");
-  require(session.markdownText().toString() == QStringLiteral("before `co`\n\n`de` after"), "code inline wrapper split mismatch");
+  require(session.markdownText().toString() == QStringLiteral("before `co`\n\n`de` after"),
+          "code inline wrapper split mismatch");
 
   session.setMarkdownText(QStringLiteral("before $x+y$ after"), false);
-  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("before x").size(), QStringLiteral("before $x").size());
+  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("before x").size(),
+                  QStringLiteral("before $x").size());
   require(input.insertParagraphBreak(), "enter inside math inline should split wrapper");
-  require(session.markdownText().toString() == QStringLiteral("before $x$\n\n$+y$ after"), "math inline wrapper split mismatch");
+  require(session.markdownText().toString() == QStringLiteral("before $x$\n\n$+y$ after"),
+          "math inline wrapper split mismatch");
 
   const QString separatedStrong =
       QStringLiteral("Another bold phrase with **size** words plus a **scrolling** phrase.");
   session.setMarkdownText(separatedStrong, false);
   const qsizetype separatedStrongCursor = separatedStrong.indexOf(QStringLiteral(" plus"));
-  setSourceCursor(
-      selection,
-      blockAt(session, 0),
-      separatedStrongCursor - QStringLiteral("****").size(),
-      separatedStrongCursor);
+  setSourceCursor(selection, blockAt(session, 0), separatedStrongCursor - QStringLiteral("****").size(),
+                  separatedStrongCursor);
   require(input.insertParagraphBreak(), "enter between separate strong spans should split paragraph");
-  require(
-      session.markdownText().toString() ==
-          QStringLiteral("Another bold phrase with **size** words\n\nplus a **scrolling** phrase."),
-      "separate strong spans must not be paired across the cursor");
+  require(session.markdownText().toString() ==
+              QStringLiteral("Another bold phrase with **size** words\n\nplus a **scrolling** phrase."),
+          "separate strong spans must not be paired across the cursor");
 
   session.setMarkdownText(QStringLiteral("before __boldtext__ after"), false);
-  setSourceCursor(
-      selection,
-      blockAt(session, 0),
-      QStringLiteral("before bold").size(),
-      QStringLiteral("before __bold").size());
+  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("before bold").size(),
+                  QStringLiteral("before __bold").size());
   require(input.insertParagraphBreak(), "enter inside underscore strong should split wrapper");
-  require(
-      session.markdownText().toString() == QStringLiteral("before __bold__\n\n__text__ after"),
-      "underscore strong split should preserve authored markers");
+  require(session.markdownText().toString() == QStringLiteral("before __bold__\n\n__text__ after"),
+          "underscore strong split should preserve authored markers");
 
   session.setMarkdownText(QStringLiteral("before ``codeword`` after"), false);
-  setSourceCursor(
-      selection,
-      blockAt(session, 0),
-      QStringLiteral("before code").size(),
-      QStringLiteral("before ``code").size());
+  setSourceCursor(selection, blockAt(session, 0), QStringLiteral("before code").size(),
+                  QStringLiteral("before ``code").size());
   require(input.insertParagraphBreak(), "enter inside double-backtick code should split wrapper");
-  require(
-      session.markdownText().toString() == QStringLiteral("before ``code``\n\n``word`` after"),
-      "code split should preserve the exact delimiter width");
+  require(session.markdownText().toString() == QStringLiteral("before ``code``\n\n``word`` after"),
+          "code split should preserve the exact delimiter width");
 
   const QString nested = QStringLiteral("**outer *innertext* tail**");
   const qsizetype nestedCursor = nested.indexOf(QStringLiteral("inner")) + QStringLiteral("inner").size();
   session.setMarkdownText(nested, false);
   setSourceCursor(selection, blockAt(session, 0), QStringLiteral("outer inner").size(), nestedCursor);
   require(input.insertParagraphBreak(), "enter inside nested inline wrappers should split all wrappers");
-  require(
-      session.markdownText().toString() == QStringLiteral("**outer *inner***\n\n***text* tail**"),
-      "nested wrappers should close inside-out and reopen outside-in");
+  require(session.markdownText().toString() == QStringLiteral("**outer *inner***\n\n***text* tail**"),
+          "nested wrappers should close inside-out and reopen outside-in");
 
   const QString link = QStringLiteral("before [abcdef](https://example.com) after");
   const qsizetype linkCursor = link.indexOf(QStringLiteral("abcdef")) + 3;
   session.setMarkdownText(link, false);
   setSourceCursor(selection, blockAt(session, 0), QStringLiteral("before abc").size(), linkCursor);
   require(input.insertParagraphBreak(), "enter inside link label should split wrapper");
-  require(
-      session.markdownText().toString() ==
-          QStringLiteral("before [abc](https://example.com)\n\n[def](https://example.com) after"),
-      "link split should preserve its destination on both paragraphs");
+  require(session.markdownText().toString() ==
+              QStringLiteral("before [abc](https://example.com)\n\n[def](https://example.com) after"),
+          "link split should preserve its destination on both paragraphs");
 }
 
 // testInputEditsComplexInlineSourcePositions (lines 317-353)
@@ -189,31 +185,38 @@ void testInputEditsComplexInlineSourcePositions() {
   session.setMarkdownText(QStringLiteral("before **bold** after"), false);
   setSourceCursor(selection, blockAt(session, 0), 9, 11);
   require(input.insertText(QStringLiteral("X")), "typing inside strong inline should edit markdown source");
-  require(session.markdownText().toString() == QStringLiteral("before **boXld** after"), "strong inline source insert mismatch");
+  require(session.markdownText().toString() == QStringLiteral("before **boXld** after"),
+          "strong inline source insert mismatch");
   require(selection.cursorPosition().text.sourceOffset == 12, "strong inline source cursor mismatch");
 
   session.setMarkdownText(QStringLiteral("before `code` after"), false);
   setSourceCursor(selection, blockAt(session, 0), 9, 9);
   require(input.insertText(QStringLiteral("X")), "typing inside code inline should edit markdown source");
-  require(session.markdownText().toString() == QStringLiteral("before `cXode` after"), "code inline source insert mismatch");
+  require(session.markdownText().toString() == QStringLiteral("before `cXode` after"),
+          "code inline source insert mismatch");
 
   session.setMarkdownText(QStringLiteral("before $x+y$ after"), false);
   setSourceCursor(selection, blockAt(session, 0), 9, 9);
   require(input.insertText(QStringLiteral("0")), "typing inside inline math should edit markdown source");
-  require(session.markdownText().toString() == QStringLiteral("before $x0+y$ after"), "inline math source insert mismatch");
-  require(selection.cursorPosition().text.sourceOffset == QStringLiteral("before $x0").size(), "inline math source cursor should stay after inserted text");
+  require(session.markdownText().toString() == QStringLiteral("before $x0+y$ after"),
+          "inline math source insert mismatch");
+  require(selection.cursorPosition().text.sourceOffset == QStringLiteral("before $x0").size(),
+          "inline math source cursor should stay after inserted text");
   require(input.insertText(QStringLiteral("1")), "consecutive typing inside inline math should keep source cursor");
-  require(session.markdownText().toString() == QStringLiteral("before $x01+y$ after"), "consecutive inline math insert should not drift");
+  require(session.markdownText().toString() == QStringLiteral("before $x01+y$ after"),
+          "consecutive inline math insert should not drift");
 
   session.setMarkdownText(QStringLiteral("before **bold** after"), false);
   setSourceCursor(selection, blockAt(session, 0), 10, 12);
   require(input.deleteBackward(), "backspace inside strong inline should edit markdown source");
-  require(session.markdownText().toString() == QStringLiteral("before **bod** after"), "strong inline source backspace mismatch");
+  require(session.markdownText().toString() == QStringLiteral("before **bod** after"),
+          "strong inline source backspace mismatch");
 
   session.setMarkdownText(QStringLiteral("before `code` after"), false);
   setSourceCursor(selection, blockAt(session, 0), 9, 9);
   require(input.deleteForward(), "delete inside code inline should edit markdown source");
-  require(session.markdownText().toString() == QStringLiteral("before `cde` after"), "code inline source delete mismatch");
+  require(session.markdownText().toString() == QStringLiteral("before `cde` after"),
+          "code inline source delete mismatch");
 }
 
 // testSecondInlineMathHitMapsToItsSourceOffset (lines 355-376)
@@ -227,17 +230,22 @@ void testSecondInlineMathHitMapsToItsSourceOffset() {
 
   const QString source = QStringLiteral("行内公式使用单美元符号：$E = mc^2$  和 $a_1 + b_1 = c_1$。");
   InlineLayout layout;
-  layout.build(inlines, source, RenderTheme::defaultTheme(), 900.0, RenderTheme::defaultTheme().paragraphFont(), InlineLayout::BuildOptions{});
+  layout.build(inlines, source, RenderTheme::defaultTheme(), 900.0, RenderTheme::defaultTheme().paragraphFont(),
+               InlineLayout::BuildOptions{});
 
   const qsizetype secondMathSourceStart = source.indexOf(QStringLiteral("$a_1"));
   const qsizetype afterBSourceOffset = source.indexOf(QStringLiteral("b_1")) + 1;
   const QRectF secondStartCursor = layout.cursorRectForSourceOffset(secondMathSourceStart + 1);
   const QRectF secondEndCursor = layout.cursorRectForSourceOffset(source.indexOf(QStringLiteral("$。")));
-  const qreal ratio = static_cast<qreal>(afterBSourceOffset - (secondMathSourceStart + 1)) / QStringLiteral("a_1 + b_1 = c_1").size();
-  const QPointF hitPoint(secondStartCursor.left() + (secondEndCursor.left() - secondStartCursor.left()) * ratio, secondStartCursor.center().y());
+  const qreal ratio =
+      static_cast<qreal>(afterBSourceOffset - (secondMathSourceStart + 1)) / QStringLiteral("a_1 + b_1 = c_1").size();
+  const QPointF hitPoint(secondStartCursor.left() + (secondEndCursor.left() - secondStartCursor.left()) * ratio,
+                         secondStartCursor.center().y());
 
   const qsizetype hitSourceOffset = layout.hitTestSourceOffset(hitPoint);
-  require(qAbs(hitSourceOffset - afterBSourceOffset) <= 1, QStringLiteral("second inline math hit source mismatch: %1 vs %2").arg(hitSourceOffset).arg(afterBSourceOffset));
+  require(
+      qAbs(hitSourceOffset - afterBSourceOffset) <= 1,
+      QStringLiteral("second inline math hit source mismatch: %1 vs %2").arg(hitSourceOffset).arg(afterBSourceOffset));
 }
 
 // testSecondInlineMathHitInsertAfterEquals (lines 378-410)
@@ -254,7 +262,8 @@ void testSecondInlineMathHitInsertAfterEquals() {
   MarkdownNode* block = blockAt(session, 0);
 
   InlineLayout layout;
-  layout.build(block->inlines(), source, RenderTheme::defaultTheme(), 900.0, RenderTheme::defaultTheme().paragraphFont(), InlineLayout::BuildOptions{});
+  layout.build(block->inlines(), source, RenderTheme::defaultTheme(), 900.0,
+               RenderTheme::defaultTheme().paragraphFont(), InlineLayout::BuildOptions{});
   require(layout.mathAtomCount() == 2, "two inactive inline math runs should collapse");
 
   const QString secondMath = QStringLiteral("a_1 + b_1 = c_1");
@@ -264,14 +273,20 @@ void testSecondInlineMathHitInsertAfterEquals() {
   const QRectF secondStartCursor = layout.cursorRectForSourceOffset(secondMathSourceStart + 1);
   const QRectF secondEndCursor = layout.cursorRectForSourceOffset(source.indexOf(QStringLiteral("$.")));
   const qreal ratio = static_cast<qreal>(insertSourceOffset - (secondMathSourceStart + 1)) / secondMath.size();
-  const QPointF hitPoint(secondStartCursor.left() + (secondEndCursor.left() - secondStartCursor.left()) * ratio, secondStartCursor.center().y());
+  const QPointF hitPoint(secondStartCursor.left() + (secondEndCursor.left() - secondStartCursor.left()) * ratio,
+                         secondStartCursor.center().y());
   const qsizetype hitSourceOffset = layout.hitTestSourceOffset(hitPoint);
   require(qAbs(hitSourceOffset - insertSourceOffset) <= 1,
-          QStringLiteral("second inline math equals hit source mismatch: %1 vs %2").arg(hitSourceOffset).arg(insertSourceOffset));
+          QStringLiteral("second inline math equals hit source mismatch: %1 vs %2")
+              .arg(hitSourceOffset)
+              .arg(insertSourceOffset));
 
-  setSourceCursor(selection, block, QStringLiteral("Inline math uses single dollar delimiters: E = mc^2 and a_1 + b_1 =").size(), hitSourceOffset);
+  setSourceCursor(selection, block,
+                  QStringLiteral("Inline math uses single dollar delimiters: E = mc^2 and a_1 + b_1 =").size(),
+                  hitSourceOffset);
   require(input.insertText(QStringLiteral("d")), "typing after second inline math equals should edit source");
-  require(session.markdownText().toString() == QStringLiteral("Inline math uses single dollar delimiters: $E = mc^2$ and $a_1 + b_1 =d c_1$."),
+  require(session.markdownText().toString() ==
+              QStringLiteral("Inline math uses single dollar delimiters: $E = mc^2$ and $a_1 + b_1 =d c_1$."),
           "second inline math insert should stay after equals");
 }
 
@@ -289,14 +304,16 @@ void testCodeAndMathCursorAfterSourceInsert() {
   require(input.insertText(QStringLiteral("a")), "typing before first math char should work");
   require(session.markdownText().toString() == QStringLiteral("$a123$"), "math insert before first char mismatch");
   require(selection.cursorPosition().text.sourceOffset == 2, "math cursor source should stay after inserted char");
-  require(selection.cursorPosition().text.textOffset == 1, "math cursor visible offset should stay after inserted char");
+  require(selection.cursorPosition().text.textOffset == 1,
+          "math cursor visible offset should stay after inserted char");
 
   session.setMarkdownText(QStringLiteral("`123`"), false);
   setSourceCursor(selection, blockAt(session, 0), 0, 1);
   require(input.insertText(QStringLiteral("a")), "typing before first code char should work");
   require(session.markdownText().toString() == QStringLiteral("`a123`"), "code insert before first char mismatch");
   require(selection.cursorPosition().text.sourceOffset == 2, "code cursor source should stay after inserted char");
-  require(selection.cursorPosition().text.textOffset == 1, "code cursor visible offset should stay after inserted char");
+  require(selection.cursorPosition().text.textOffset == 1,
+          "code cursor visible offset should stay after inserted char");
 }
 
 void testBacktickInputIsNotDuplicated() {
@@ -314,7 +331,8 @@ void testBacktickInputIsNotDuplicated() {
   const QChar backtick(QLatin1Char('`'));
   QKeyEvent ordinaryBacktick(QEvent::KeyPress, Qt::Key_QuoteLeft, Qt::NoModifier, QString(backtick));
   QApplication::sendEvent(&view, &ordinaryBacktick);
-  require(session.markdownText().toString() == QString(backtick), "ordinary backtick keypress should insert exactly one backtick");
+  require(session.markdownText().toString() == QString(backtick),
+          "ordinary backtick keypress should insert exactly one backtick");
 
   session.setMarkdownText(QString(), false);
   view.setDocument(session.document());
@@ -325,7 +343,8 @@ void testBacktickInputIsNotDuplicated() {
   QInputMethodEvent commit;
   commit.setCommitString(QString(backtick));
   QApplication::sendEvent(&view, &commit);
-  require(session.markdownText().toString() == QString(backtick), "dead-grave commit should insert exactly one backtick");
+  require(session.markdownText().toString() == QString(backtick),
+          "dead-grave commit should insert exactly one backtick");
 }
 
 int main(int argc, char** argv) {

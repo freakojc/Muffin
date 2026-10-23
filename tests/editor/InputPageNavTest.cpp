@@ -161,7 +161,7 @@ void testCaretFollowsRepeatedEditingAndNavigation() {
   }
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

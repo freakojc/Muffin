@@ -22,13 +22,12 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
-void near(qreal actual, qreal expected, const QString& path,
-          qreal tolerance = 0.001) {
+void near(qreal actual, qreal expected, const QString& path, qreal tolerance = 0.001) {
   require(std::isfinite(actual) && std::fabs(actual - expected) <= tolerance,
-          QStringLiteral("%1: %2 != %3").arg(path).arg(actual, 0, 'g', 17)
-              .arg(expected, 0, 'g', 17));
+          QStringLiteral("%1: %2 != %3").arg(path).arg(actual, 0, 'g', 17).arg(expected, 0, 'g', 17));
 }
 QVector<qreal> numbers(const QString& text) {
   QVector<qreal> result;
@@ -39,7 +38,7 @@ QVector<qreal> numbers(const QString& text) {
 qreal attrNumber(const QJsonObject& attrs, const char* name) {
   return attrs.value(QLatin1String(name)).toString().toDouble();
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
 #if defined(Q_OS_MACOS)
@@ -63,8 +62,7 @@ int main(int argc, char** argv) {
   require(root.value(QStringLiteral("fixtureSha256")).toString() ==
               QLatin1String("ec9783ecf6be9b126d9968fea67ef849697c82347933ab331369244f5d1b497f"),
           QStringLiteral("TreeView geometry fixture provenance changed"));
-  require(root.value(QStringLiteral("upstream")).toObject()
-                  .value(QStringLiteral("version")).toString() ==
+  require(root.value(QStringLiteral("upstream")).toObject().value(QStringLiteral("version")).toString() ==
               QLatin1String("11.16.0"),
           QStringLiteral("TreeView Mermaid version drifted"));
   const QJsonArray cases = root.value(QStringLiteral("cases")).toArray();
@@ -76,13 +74,12 @@ int main(int argc, char** argv) {
     const QString id = fixture.value(QStringLiteral("id")).toString();
     const QString source = fixture.value(QStringLiteral("source")).toString();
     const auto entry = cache.getSync(editor::MermaidRenderCache::makeKey(source), source);
-    require(entry.status == editor::MermaidRenderStatus::Ready,
-            id + QStringLiteral(": ") + entry.errorMessage);
+    require(entry.status == editor::MermaidRenderStatus::Ready, id + QStringLiteral(": ") + entry.errorMessage);
     auto scene = std::dynamic_pointer_cast<const treeview::TreeViewScene>(entry.scene);
     require(bool(scene), id + QStringLiteral(": expected TreeViewScene"));
     const QJsonObject expected = fixture.value(QStringLiteral("expected")).toObject();
-    const QJsonObject rootAttrs = expected.value(QStringLiteral("root")).toObject()
-                                      .value(QStringLiteral("attrs")).toObject();
+    const QJsonObject rootAttrs =
+        expected.value(QStringLiteral("root")).toObject().value(QStringLiteral("attrs")).toObject();
     const QVector<qreal> viewBox = numbers(rootAttrs.value(QStringLiteral("viewBox")).toString());
     require(viewBox.size() == 4, id + QStringLiteral("/viewBox tokens"));
     near(scene->bounds.x(), viewBox[0], id + QStringLiteral("/viewBox/x"));
@@ -98,47 +95,37 @@ int main(int argc, char** argv) {
       const QJsonObject labelGroup = labels.at(i).toObject();
       const QJsonObject label = labelGroup.value(QStringLiteral("label")).toObject();
       const QJsonObject attrs = label.value(QStringLiteral("attrs")).toObject();
-      require(node.label.text == label.value(QStringLiteral("value")).toString(),
-              path + QStringLiteral("/text"));
-      require(node.label.cssClass == attrs.value(QStringLiteral("class")).toString(),
-              path + QStringLiteral("/class"));
+      require(node.label.text == label.value(QStringLiteral("value")).toString(), path + QStringLiteral("/text"));
+      require(node.label.cssClass == attrs.value(QStringLiteral("class")).toString(), path + QStringLiteral("/class"));
       near(node.label.position.x(), attrNumber(attrs, "x"), path + QStringLiteral("/x"));
       near(node.label.position.y(), attrNumber(attrs, "y"), path + QStringLiteral("/y"));
       near(node.label.layoutWidth,
-           label.value(QStringLiteral("bbox")).toObject()
-               .value(QStringLiteral("width")).toDouble(),
+           label.value(QStringLiteral("bbox")).toObject().value(QStringLiteral("width")).toDouble(),
            path + QStringLiteral("/layout-width"), 2.0);
 
       const QJsonValue descriptionValue = labelGroup.value(QStringLiteral("description"));
-      require(node.hasDescription == descriptionValue.isObject(),
-              path + QStringLiteral("/description presence"));
+      require(node.hasDescription == descriptionValue.isObject(), path + QStringLiteral("/description presence"));
       if (descriptionValue.isObject()) {
         const QJsonObject description = descriptionValue.toObject();
         const QJsonObject descriptionAttrs = description.value(QStringLiteral("attrs")).toObject();
         require(node.description.text == description.value(QStringLiteral("value")).toString(),
                 path + QStringLiteral("/description text"));
-        near(node.description.position.x(), attrNumber(descriptionAttrs, "x"),
-             path + QStringLiteral("/description x"), 2.0);
-        near(node.description.position.y(), attrNumber(descriptionAttrs, "y"),
-             path + QStringLiteral("/description y"));
+        near(node.description.position.x(), attrNumber(descriptionAttrs, "x"), path + QStringLiteral("/description x"),
+             2.0);
+        near(node.description.position.y(), attrNumber(descriptionAttrs, "y"), path + QStringLiteral("/description y"));
         near(node.description.layoutWidth,
-             description.value(QStringLiteral("bbox")).toObject()
-                 .value(QStringLiteral("width")).toDouble(),
+             description.value(QStringLiteral("bbox")).toObject().value(QStringLiteral("width")).toDouble(),
              path + QStringLiteral("/description width"), 2.0);
       }
 
       const QJsonValue highlightValue = labelGroup.value(QStringLiteral("highlight"));
-      require(node.highlighted == highlightValue.isObject(),
-              path + QStringLiteral("/highlight presence"));
+      require(node.highlighted == highlightValue.isObject(), path + QStringLiteral("/highlight presence"));
       if (highlightValue.isObject()) {
-        const QJsonObject highlightAttrs =
-            highlightValue.toObject().value(QStringLiteral("attrs")).toObject();
-        near(node.highlightRect.x(), attrNumber(highlightAttrs, "x"),
-             path + QStringLiteral("/highlight x"));
-        near(node.highlightRect.y(), attrNumber(highlightAttrs, "y"),
-             path + QStringLiteral("/highlight y"));
-        near(node.highlightRect.width(), attrNumber(highlightAttrs, "width"),
-             path + QStringLiteral("/highlight width"), 2.0);
+        const QJsonObject highlightAttrs = highlightValue.toObject().value(QStringLiteral("attrs")).toObject();
+        near(node.highlightRect.x(), attrNumber(highlightAttrs, "x"), path + QStringLiteral("/highlight x"));
+        near(node.highlightRect.y(), attrNumber(highlightAttrs, "y"), path + QStringLiteral("/highlight y"));
+        near(node.highlightRect.width(), attrNumber(highlightAttrs, "width"), path + QStringLiteral("/highlight width"),
+             2.0);
         near(node.highlightRect.height(), attrNumber(highlightAttrs, "height"),
              path + QStringLiteral("/highlight height"));
       }
@@ -149,31 +136,23 @@ int main(int argc, char** argv) {
     for (qsizetype i = 0; i < lines.size(); ++i) {
       const QString path = QStringLiteral("%1/line/%2").arg(id).arg(i);
       const treeview::TreeViewLineGeometry& line = scene->lines.at(i);
-      const QJsonObject attrs = lines.at(i).toObject()
-                                    .value(QStringLiteral("attrs")).toObject();
-      require(line.x1Attribute == attrs.value(QStringLiteral("x1")).toString(),
-              path + QStringLiteral("/x1 attr"));
-      require(line.y1Attribute == attrs.value(QStringLiteral("y1")).toString(),
-              path + QStringLiteral("/y1 attr"));
-      require(line.x2Attribute == attrs.value(QStringLiteral("x2")).toString(),
-              path + QStringLiteral("/x2 attr"));
-      require(line.y2Attribute == attrs.value(QStringLiteral("y2")).toString(),
-              path + QStringLiteral("/y2 attr"));
-      require(line.strokeWidthAttribute ==
-                  attrs.value(QStringLiteral("stroke-width")).toString(),
+      const QJsonObject attrs = lines.at(i).toObject().value(QStringLiteral("attrs")).toObject();
+      require(line.x1Attribute == attrs.value(QStringLiteral("x1")).toString(), path + QStringLiteral("/x1 attr"));
+      require(line.y1Attribute == attrs.value(QStringLiteral("y1")).toString(), path + QStringLiteral("/y1 attr"));
+      require(line.x2Attribute == attrs.value(QStringLiteral("x2")).toString(), path + QStringLiteral("/x2 attr"));
+      require(line.y2Attribute == attrs.value(QStringLiteral("y2")).toString(), path + QStringLiteral("/y2 attr"));
+      require(line.strokeWidthAttribute == attrs.value(QStringLiteral("stroke-width")).toString(),
               path + QStringLiteral("/stroke width attr"));
     }
 
     const QJsonArray defs = expected.value(QStringLiteral("defs")).toArray();
     require(scene->iconDefs.size() == defs.size(), id + QStringLiteral("/icon defs"));
     for (qsizetype i = 0; i < defs.size(); ++i) {
-      const QString expectedId = defs.at(i).toObject()
-                                     .value(QStringLiteral("attrs")).toObject()
-                                     .value(QStringLiteral("id")).toString();
+      const QString expectedId =
+          defs.at(i).toObject().value(QStringLiteral("attrs")).toObject().value(QStringLiteral("id")).toString();
       QString iconId = scene->iconDefs.at(i);
       iconId.replace(QLatin1Char(':'), QLatin1Char('-'));
-      require(expectedId.endsWith(iconId),
-              id + QStringLiteral("/icon def id"));
+      require(expectedId.endsWith(iconId), id + QStringLiteral("/icon def id"));
     }
 
     const QJsonObject metadata = expected.value(QStringLiteral("metadata")).toObject();
@@ -184,8 +163,11 @@ int main(int argc, char** argv) {
             id + QStringLiteral("/accessible description"));
     require(entry.naturalSize == QSize(qRound(viewBox[2]), qRound(viewBox[3])),
             QStringLiteral("%1/natural size %2x%3 (scene %6) != %4x%5")
-                .arg(id).arg(entry.naturalSize.width()).arg(entry.naturalSize.height())
-                .arg(qRound(viewBox[2])).arg(qRound(viewBox[3]))
+                .arg(id)
+                .arg(entry.naturalSize.width())
+                .arg(entry.naturalSize.height())
+                .arg(qRound(viewBox[2]))
+                .arg(qRound(viewBox[3]))
                 .arg(scene->bounds.width(), 0, 'g', 17));
   }
   std::fprintf(stderr, "TreeView geometry oracle: 10/10 passed\n");

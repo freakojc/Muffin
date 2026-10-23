@@ -28,7 +28,8 @@ namespace {
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 struct RunResult {
@@ -40,7 +41,8 @@ struct RunResult {
 RunResult run(const QStringList& arguments, const QByteArray& stdinBytes = QByteArray()) {
   QProcess process;
   process.start(QStringLiteral(MUFFIN_MMDC_PATH), arguments);
-  if (!process.waitForStarted(10000)) fail("could not start muffin-mmdc");
+  if (!process.waitForStarted(10000))
+    fail("could not start muffin-mmdc");
   if (!stdinBytes.isEmpty()) {
     process.write(stdinBytes);
     process.closeWriteChannel();
@@ -52,7 +54,7 @@ RunResult run(const QStringList& arguments, const QByteArray& stdinBytes = QByte
   return {process.exitCode(), process.readAllStandardOutput(), process.readAllStandardError()};
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -68,10 +70,9 @@ int main(int argc, char** argv) {
     file.write("flowchart LR\n  A[Christmas] -->|Get money| B(Go shopping)\n");
     file.close();
     const RunResult result = run({QStringLiteral("-i"), input});
-    require(result.exitCode == 0,
-            QStringLiteral("svg render exit=%1 stderr=%2")
-                .arg(result.exitCode)
-                .arg(QString::fromUtf8(result.stderrBytes)));
+    require(
+        result.exitCode == 0,
+        QStringLiteral("svg render exit=%1 stderr=%2").arg(result.exitCode).arg(QString::fromUtf8(result.stderrBytes)));
     QFile out(scratch.filePath(QStringLiteral("in.svg")));
     require(out.exists(), "default .svg output next to input");
     require(out.open(QIODevice::ReadOnly), "open svg");
@@ -83,14 +84,11 @@ int main(int argc, char** argv) {
   {
     const QString input = scratch.filePath(QStringLiteral("in.mmd"));
     const QString output = scratch.filePath(QStringLiteral("chart.png"));
-    const RunResult result = run({QStringLiteral("-i"), input,
-                                  QStringLiteral("-o"), output,
-                                  QStringLiteral("-s"), QStringLiteral("2"),
-                                  QStringLiteral("-b"), QStringLiteral("white")});
-    require(result.exitCode == 0,
-            QStringLiteral("png render exit=%1 stderr=%2")
-                .arg(result.exitCode)
-                .arg(QString::fromUtf8(result.stderrBytes)));
+    const RunResult result = run({QStringLiteral("-i"), input, QStringLiteral("-o"), output, QStringLiteral("-s"),
+                                  QStringLiteral("2"), QStringLiteral("-b"), QStringLiteral("white")});
+    require(
+        result.exitCode == 0,
+        QStringLiteral("png render exit=%1 stderr=%2").arg(result.exitCode).arg(QString::fromUtf8(result.stderrBytes)));
     QFile out(output);
     require(out.open(QIODevice::ReadOnly), "open png");
     const QByteArray png = out.readAll();
@@ -99,8 +97,7 @@ int main(int argc, char** argv) {
 
   // 3. stdin → stdout SVG.
   {
-    const RunResult result = run({QStringLiteral("-o"), QStringLiteral("-")},
-                                  QByteArray("flowchart TD\n  A --> B\n"));
+    const RunResult result = run({QStringLiteral("-o"), QStringLiteral("-")}, QByteArray("flowchart TD\n  A --> B\n"));
     require(result.exitCode == 0, QStringLiteral("stdin/stdout exit=%1").arg(result.exitCode));
     require(result.stdoutBytes.contains("<svg"), "stdout carries SVG");
   }
@@ -109,8 +106,7 @@ int main(int argc, char** argv) {
   {
     const QString output = scratch.filePath(QStringLiteral("dark.svg"));
     const RunResult result = run({QStringLiteral("-i"), scratch.filePath(QStringLiteral("in.mmd")),
-                                  QStringLiteral("-o"), output,
-                                  QStringLiteral("-t"), QStringLiteral("dark")});
+                                  QStringLiteral("-o"), output, QStringLiteral("-t"), QStringLiteral("dark")});
     require(result.exitCode == 0, "dark render exit");
     QFile out(output);
     require(out.open(QIODevice::ReadOnly), "open dark svg");

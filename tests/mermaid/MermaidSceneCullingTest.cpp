@@ -28,7 +28,8 @@ const QRectF kViewport(0.0, 0.0, 240.0, 320.0);
 }
 
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 
 struct PaintResult {
@@ -37,12 +38,9 @@ struct PaintResult {
   qint64 elapsedNanoseconds = 0;
 };
 
-PaintResult renderScene(
-    bool cull,
-    const std::function<void(QPainter&, const MermaidPaintOptions&)>& paint) {
+PaintResult renderScene(bool cull, const std::function<void(QPainter&, const MermaidPaintOptions&)>& paint) {
   PaintResult result;
-  result.image = QImage(kViewport.size().toSize(),
-                        QImage::Format_ARGB32_Premultiplied);
+  result.image = QImage(kViewport.size().toSize(), QImage::Format_ARGB32_Premultiplied);
   result.image.fill(Qt::transparent);
   MermaidPaintOptions options;
   options.cullToVisibleRect = cull;
@@ -60,38 +58,31 @@ PaintResult renderScene(
   return result;
 }
 
-void verifyFamily(
-    const QString& family, qsizetype expectedPrimitives,
-    const std::function<void(QPainter&, const MermaidPaintOptions&)>& paint) {
+void verifyFamily(const QString& family, qsizetype expectedPrimitives,
+                  const std::function<void(QPainter&, const MermaidPaintOptions&)>& paint) {
   const PaintResult full = renderScene(false, paint);
   const PaintResult culled = renderScene(true, paint);
 
-  require(full.stats.consideredPrimitives == expectedPrimitives &&
-              full.stats.paintedPrimitives == expectedPrimitives &&
+  require(full.stats.consideredPrimitives == expectedPrimitives && full.stats.paintedPrimitives == expectedPrimitives &&
               full.stats.culledPrimitives == 0,
-          QStringLiteral("%1: full/export paint must visit every primitive")
-              .arg(family));
-  require(culled.stats.consideredPrimitives == expectedPrimitives &&
-              culled.stats.paintedPrimitives <= 40 &&
+          QStringLiteral("%1: full/export paint must visit every primitive").arg(family));
+  require(culled.stats.consideredPrimitives == expectedPrimitives && culled.stats.paintedPrimitives <= 40 &&
               culled.stats.culledPrimitives >= expectedPrimitives - 40,
           QStringLiteral("%1: viewport paint did not bound expensive work "
                          "(painted %2/%3)")
               .arg(family)
               .arg(culled.stats.paintedPrimitives)
               .arg(expectedPrimitives));
-  require(culled.stats.consideredPrimitives ==
-              culled.stats.paintedPrimitives + culled.stats.culledPrimitives,
+  require(culled.stats.consideredPrimitives == culled.stats.paintedPrimitives + culled.stats.culledPrimitives,
           QStringLiteral("%1: culling counters are inconsistent").arg(family));
-  require(full.image == culled.image,
-          QStringLiteral("%1: culling changed visible pixels").arg(family));
+  require(full.image == culled.image, QStringLiteral("%1: culling changed visible pixels").arg(family));
 
-  qInfo().noquote()
-      << QStringLiteral("%1: full=%2 ms, culled=%3 ms, painted=%4/%5")
-             .arg(family)
-             .arg(full.elapsedNanoseconds / 1000000.0, 0, 'f', 3)
-             .arg(culled.elapsedNanoseconds / 1000000.0, 0, 'f', 3)
-             .arg(culled.stats.paintedPrimitives)
-             .arg(expectedPrimitives);
+  qInfo().noquote() << QStringLiteral("%1: full=%2 ms, culled=%3 ms, painted=%4/%5")
+                           .arg(family)
+                           .arg(full.elapsedNanoseconds / 1000000.0, 0, 'f', 3)
+                           .arg(culled.elapsedNanoseconds / 1000000.0, 0, 'f', 3)
+                           .arg(culled.stats.paintedPrimitives)
+                           .arg(expectedPrimitives);
 }
 
 flowscene::FlowScene makeFlowScene() {
@@ -190,7 +181,7 @@ state::StateScene makeStateScene() {
   return scene;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -199,29 +190,25 @@ int main(int argc, char** argv) {
   constexpr qsizetype expectedPrimitives = kItemCount * 2;
 
   const flowscene::FlowScene flow = makeFlowScene();
-  verifyFamily(QStringLiteral("flowchart"), expectedPrimitives,
-      [&](QPainter& painter, const MermaidPaintOptions& options) {
-        flowscene::paintFlowScene(flow, painter, QStringLiteral("Arial"),
-                                  flowscene::PaintMode::Color, options);
+  verifyFamily(
+      QStringLiteral("flowchart"), expectedPrimitives, [&](QPainter& painter, const MermaidPaintOptions& options) {
+        flowscene::paintFlowScene(flow, painter, QStringLiteral("Arial"), flowscene::PaintMode::Color, options);
       });
 
   const sequence::SequenceScene sequenceScene = makeSequenceScene();
   verifyFamily(QStringLiteral("sequence"), expectedPrimitives,
-      [&](QPainter& painter, const MermaidPaintOptions& options) {
-        sequence::paintSequenceScene(sequenceScene, painter, options);
-      });
+               [&](QPainter& painter, const MermaidPaintOptions& options) {
+                 sequence::paintSequenceScene(sequenceScene, painter, options);
+               });
 
   const classdiagram::ClassScene classScene = makeClassScene();
-  verifyFamily(QStringLiteral("class"), expectedPrimitives,
-      [&](QPainter& painter, const MermaidPaintOptions& options) {
-        classdiagram::paintClassScene(
-            classScene, painter, classdiagram::ClassPaintMode::Color, options);
-      });
+  verifyFamily(QStringLiteral("class"), expectedPrimitives, [&](QPainter& painter, const MermaidPaintOptions& options) {
+    classdiagram::paintClassScene(classScene, painter, classdiagram::ClassPaintMode::Color, options);
+  });
 
   const state::StateScene stateScene = makeStateScene();
-  verifyFamily(QStringLiteral("state"), expectedPrimitives,
-      [&](QPainter& painter, const MermaidPaintOptions& options) {
-        state::paintStateScene(stateScene, painter, options);
-      });
+  verifyFamily(QStringLiteral("state"), expectedPrimitives, [&](QPainter& painter, const MermaidPaintOptions& options) {
+    state::paintStateScene(stateScene, painter, options);
+  });
   return 0;
 }

@@ -27,8 +27,7 @@ struct MemoryAccounting {
       (source ? sharedSource : strings) += (text.capacity() + 1) * sizeof(QChar);
     }
   }
-  template <class T>
-  void array(const QList<T>& value) {
+  template <class T> void array(const QList<T>& value) {
     if (value.capacity() && !buffers.contains(value.constData())) {
       buffers.insert(value.constData());
       arrays += value.capacity() * sizeof(T);
@@ -58,10 +57,12 @@ struct MemoryAccounting {
       string(m.href);
       string(m.title);
       string(m.alt);
-      if (m.wideRanges) metadata += sizeof(InlineSourceRanges);
+      if (m.wideRanges)
+        metadata += sizeof(InlineSourceRanges);
     }
     array(node.children_);
-    for (const auto& child : node.children_) inlineNode(child);
+    for (const auto& child : node.children_)
+      inlineNode(child);
   }
   void block(const MarkdownNode& node) {
     ++blockCount;
@@ -74,10 +75,13 @@ struct MemoryAccounting {
       const auto& m = *node.metadata_.extended;
       string(m.codeLanguage);
       array(m.tableAlignments);
-      if (m.definition) metadata += sizeof(DefinitionBlock);
+      if (m.definition)
+        metadata += sizeof(DefinitionBlock);
     }
-    for (const auto& child : node.metadata_.inlines) inlineNode(child);
-    for (const auto& child : node.children_) block(*child);
+    for (const auto& child : node.metadata_.inlines)
+      inlineNode(child);
+    for (const auto& child : node.children_)
+      block(*child);
   }
   QJsonObject document(const MarkdownDocument& doc) {
     text(doc.pieceText());
@@ -99,7 +103,8 @@ struct MemoryAccounting {
   }
   static QJsonObject layout(const EditorView& view) {
     const auto* value = view.layout_.get();
-    if (!value) return {};
+    if (!value)
+      return {};
     return {{"slot_count", qint64(value->slots_.size())},
             {"slot_payload", qint64(value->slots_.capacity() * sizeof(DocumentLayout::BlockSlot))},
             {"position_payload", qint64(value->positionIndex_.size() * sizeof(LayoutPositionToken))},
@@ -160,4 +165,4 @@ struct MemoryAccounting {
              "Cumulative bytes submitted to native Qt font registration; OS shaping/cache residency is not exposed."}};
   }
 };
-}  // namespace muffin::diag
+} // namespace muffin::diag

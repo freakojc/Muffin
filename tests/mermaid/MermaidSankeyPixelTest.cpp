@@ -14,39 +14,36 @@
 #include <cstdlib>
 using namespace muffin::mermaid;
 namespace {
-[[noreturn]] void fail(const QString &s) {
+[[noreturn]] void fail(const QString& s) {
   std::fprintf(stderr, "FAIL: %s\n", qPrintable(s));
   std::exit(1);
 }
-void req(bool v, const QString &s) {
+void req(bool v, const QString& s) {
   if (!v)
     fail(s);
 }
-QByteArray sha(const QString &p) {
+QByteArray sha(const QString& p) {
   QFile f(p);
   if (!f.open(QIODevice::ReadOnly))
     return {};
-  return QCryptographicHash::hash(f.readAll(), QCryptographicHash::Sha256)
-      .toHex();
+  return QCryptographicHash::hash(f.readAll(), QCryptographicHash::Sha256).toHex();
 }
-QImage decode(const QString &u) {
+QImage decode(const QString& u) {
   QImage i;
-  i.loadFromData(QByteArray::fromBase64(u.mid(u.indexOf(',') + 1).toLatin1()),
-                 "PNG");
+  i.loadFromData(QByteArray::fromBase64(u.mid(u.indexOf(',') + 1).toLatin1()), "PNG");
   return i.convertToFormat(QImage::Format_RGBA8888);
 }
-double iou(const QImage &a, const QImage &b) {
+double iou(const QImage& a, const QImage& b) {
   qint64 n = 0, d = 0;
   for (int y = 0; y < b.height(); ++y)
     for (int x = 0; x < b.width(); ++x) {
-      bool p = a.pixelColor(x, y).alpha() >= 32,
-           q = b.pixelColor(x, y).alpha() >= 32;
+      bool p = a.pixelColor(x, y).alpha() >= 32, q = b.pixelColor(x, y).alpha() >= 32;
       n += p && q;
       d += p || q;
     }
   return d ? double(n) / d : 1;
 }
-double rgba(const QImage &a, const QImage &b) {
+double rgba(const QImage& a, const QImage& b) {
   double d = 0;
   qint64 n = 0;
   for (int y = 0; y < b.height(); ++y)
@@ -56,14 +53,13 @@ double rgba(const QImage &a, const QImage &b) {
         continue;
       d += std::abs(p.red() * p.alpha() / 255 - q.red() * q.alpha() / 255) +
            std::abs(p.green() * p.alpha() / 255 - q.green() * q.alpha() / 255) +
-           std::abs(p.blue() * p.alpha() / 255 - q.blue() * q.alpha() / 255) +
-           std::abs(p.alpha() - q.alpha());
+           std::abs(p.blue() * p.alpha() / 255 - q.blue() * q.alpha() / 255) + std::abs(p.alpha() - q.alpha());
       ++n;
     }
   return n ? 1 - d / (n * 1020) : 1;
 }
 } // namespace
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
   QGuiApplication app(argc, argv);
   MermaidFontRegistry::ensureLoaded();
@@ -78,15 +74,12 @@ int main(int argc, char **argv) {
       "bytes");
   auto root = QJsonDocument::fromJson(bytes).object();
   QDir dir = QFileInfo(mp).dir();
-  for (const auto &v : root.value("cases").toArray()) {
+  for (const auto& v : root.value("cases").toArray()) {
     auto c = v.toObject();
-    QString id = c.value("id").toString(),
-            p = dir.filePath(c.value("file").toString());
+    QString id = c.value("id").toString(), p = dir.filePath(c.value("file").toString());
     req(sha(p) == c.value("sha256").toString().toLatin1(), id + " sha");
     QImage ref(p),
-        nat = decode(editor::MermaidRenderCache::renderMermaidSourceToPng(
-                         c.value("source").toString(), 1)
-                         .dataUrl);
+        nat = decode(editor::MermaidRenderCache::renderMermaidSourceToPng(c.value("source").toString(), 1).dataUrl);
     req(ref.size() == nat.size(), QStringLiteral("%1 size %2x%3 != %4x%5")
                                       .arg(id)
                                       .arg(nat.width())

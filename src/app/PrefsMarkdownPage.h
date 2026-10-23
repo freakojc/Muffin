@@ -67,4 +67,4 @@ private:
   QComboBox* autoLangCombo_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

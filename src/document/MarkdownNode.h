@@ -12,7 +12,9 @@
 #include <vector>
 
 namespace muffin {
-namespace diag { struct MemoryAccounting; }
+namespace diag {
+struct MemoryAccounting;
+}
 
 class MarkdownDocument;
 class SourcePositionIndex;
@@ -20,6 +22,7 @@ struct SourcePositionToken;
 
 class MarkdownNode {
   friend struct diag::MemoryAccounting;
+
 public:
   explicit MarkdownNode(BlockType type, NodeId id = NodeId::create());
   MarkdownNode(const MarkdownNode&) = delete;
@@ -142,15 +145,13 @@ public:
 
   // Generic subtree traversal, replacing hand-written recursive walks scattered across the
   // editor/parser/render code. Depth-first preorder; visits descendants of *this (not *this).
-  template <typename F>
-  void forEachDescendant(F&& fn) {
+  template <typename F> void forEachDescendant(F&& fn) {
     for (const auto& child : children_) {
       fn(*child);
       child->forEachDescendant(fn);
     }
   }
-  template <typename F>
-  void forEachDescendant(F&& fn) const {
+  template <typename F> void forEachDescendant(F&& fn) const {
     for (const auto& child : children_) {
       fn(*child);
       child->forEachDescendant(fn);
@@ -158,32 +159,36 @@ public:
   }
 
   // First descendant (DFS preorder) for which pred(*node) is true, or nullptr.
-  template <typename F>
-  MarkdownNode* findDescendant(F&& pred) {
+  template <typename F> MarkdownNode* findDescendant(F&& pred) {
     for (const auto& child : children_) {
-      if (pred(*child)) return child.get();
-      if (MarkdownNode* found = child->findDescendant(pred)) return found;
+      if (pred(*child))
+        return child.get();
+      if (MarkdownNode* found = child->findDescendant(pred))
+        return found;
     }
     return nullptr;
   }
-  template <typename F>
-  const MarkdownNode* findDescendant(F&& pred) const {
+  template <typename F> const MarkdownNode* findDescendant(F&& pred) const {
     for (const auto& child : children_) {
-      if (pred(*child)) return child.get();
-      if (const MarkdownNode* found = child->findDescendant(pred)) return found;
+      if (pred(*child))
+        return child.get();
+      if (const MarkdownNode* found = child->findDescendant(pred))
+        return found;
     }
     return nullptr;
   }
 
   MarkdownNode* firstChildByType(BlockType type) {
     for (const auto& child : children_) {
-      if (child->type() == type) return child.get();
+      if (child->type() == type)
+        return child.get();
     }
     return nullptr;
   }
   const MarkdownNode* firstChildByType(BlockType type) const {
     for (const auto& child : children_) {
-      if (child->type() == type) return child.get();
+      if (child->type() == type)
+        return child.get();
     }
     return nullptr;
   }
@@ -289,4 +294,4 @@ private:
   quint8 siblingKind() const;
 };
 
-}  // namespace muffin
+} // namespace muffin

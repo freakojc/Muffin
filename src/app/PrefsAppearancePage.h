@@ -46,7 +46,7 @@ private:
   QLabel* themeLabel_ = nullptr;
   QComboBox* themeCombo_ = nullptr;
   QPushButton* importThemeButton_ = nullptr;
-  QVector<QPair<QString, QString>> themes_;  // (id, label) backing the dropdown
+  QVector<QPair<QString, QString>> themes_; // (id, label) backing the dropdown
   QLabel* zoomLabel_ = nullptr;
   QComboBox* zoomCombo_ = nullptr;
   QPushButton* resetZoomButton_ = nullptr;
@@ -58,4 +58,4 @@ private:
   QCheckBox* showStatusBarCheck_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

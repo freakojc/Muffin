@@ -13,7 +13,7 @@
 namespace muffin {
 
 bool InputController::computeStandardRemovalRange(qsizetype blockStart, qsizetype blockEnd, int nodeIndex,
-                                                   qsizetype& deleteStart, qsizetype& deleteEnd) const {
+                                                  qsizetype& deleteStart, qsizetype& deleteEnd) const {
   const auto& blocks = ctx_.session->document().root().children();
   deleteStart = blockStart;
   deleteEnd = blockEnd;
@@ -45,7 +45,9 @@ bool InputController::removeTopLevelBlock(MarkdownNode& node, int nodeIndex, qsi
     if (codeFenceController_ && codeFenceController_->isEditing()) {
       codeFenceController_->exitEditMode();
     } else if (LiteralBlockController* math = ctx_.literalEditors.value(static_cast<int>(BlockType::MathBlock))) {
-      if (math->isEditing()) { math->exitEditMode(); }
+      if (math->isEditing()) {
+        math->exitEditMode();
+      }
     }
   }
 
@@ -69,9 +71,8 @@ bool InputController::removeTopLevelBlock(MarkdownNode& node, int nodeIndex, qsi
     }
     ctx_.undoStack->push(EditTransaction(
         kind, label,
-        RemoveNodeCommand{removedNodeId, removedNodeType, nodeIndex,
-                          TextDelta{deleteStart, removedText, QString()}, blockStart,
-                          std::move(removedNode), beforeCursor, nextCursor, std::move(affectedNodes)}));
+        RemoveNodeCommand{removedNodeId, removedNodeType, nodeIndex, TextDelta{deleteStart, removedText, QString()},
+                          blockStart, std::move(removedNode), beforeCursor, nextCursor, std::move(affectedNodes)}));
   }
   if (ctx_.brushQueue) {
     if (nextCursor.isValid()) {
@@ -111,7 +112,8 @@ bool InputController::tryRemoveExactWholeBlockSelection(EditTransaction::Kind ki
 
   qsizetype selectionStart = -1;
   qsizetype selectionEnd = -1;
-  if (!blockSelectionSourceRange(selectionStart, selectionEnd) || selectionStart != blockStart || selectionEnd != blockEnd) {
+  if (!blockSelectionSourceRange(selectionStart, selectionEnd) || selectionStart != blockStart ||
+      selectionEnd != blockEnd) {
     return false;
   }
 
@@ -234,9 +236,8 @@ bool InputController::tryRemoveEmptyDefinitionBlock(EditTransaction::Kind kind, 
       }
     }
     deleteStart = blockStart;
-    while (deleteStart > previousEnd &&
-           (ctx_.session->markdownText().at(deleteStart - 1) == QLatin1Char('\n') ||
-            ctx_.session->markdownText().at(deleteStart - 1) == QLatin1Char('\r'))) {
+    while (deleteStart > previousEnd && (ctx_.session->markdownText().at(deleteStart - 1) == QLatin1Char('\n') ||
+                                         ctx_.session->markdownText().at(deleteStart - 1) == QLatin1Char('\r'))) {
       --deleteStart;
     }
   }
@@ -343,17 +344,10 @@ bool InputController::tryRemoveThematicBreak(bool forward) {
     }
   }
 
-  applyLocalEdit(
-      EditTransaction::Kind::DeleteText,
-      forward ? QStringLiteral("Delete Thematic Break") : QStringLiteral("Remove Thematic Break"),
-      deleteStart,
-      deleteEnd - deleteStart,
-      QString(),
-      preferred,
-      deleteStart,
-      {LocalEditNodeHint{node->id(), blockStart, BlockType::ThematicBreak}},
-      false,
-      true);
+  applyLocalEdit(EditTransaction::Kind::DeleteText,
+                 forward ? QStringLiteral("Delete Thematic Break") : QStringLiteral("Remove Thematic Break"),
+                 deleteStart, deleteEnd - deleteStart, QString(), preferred, deleteStart,
+                 {LocalEditNodeHint{node->id(), blockStart, BlockType::ThematicBreak}}, false, true);
   return true;
 }
 
@@ -378,10 +372,10 @@ bool InputController::collapseTrailingCaretToEndOfLastBlock() {
     }
   }
   if (!target.isValid()) {
-    return false;  // no editable content anywhere (e.g. a lone thematic break)
+    return false; // no editable content anywhere (e.g. a lone thematic break)
   }
   ctx_.selection->setCursorPosition(target);
   return true;
 }
 
-}  // namespace muffin
+} // namespace muffin

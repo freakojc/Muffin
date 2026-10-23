@@ -4,7 +4,8 @@
 
 namespace muffin {
 
-CommandRegistry::CommandRegistry(QObject* parent) : QObject(parent) {}
+CommandRegistry::CommandRegistry(QObject* parent) : QObject(parent) {
+}
 
 QAction* CommandRegistry::action(const QString& id) const {
   return actions_.value(id, nullptr);
@@ -57,4 +58,4 @@ void CommandRegistry::attachHandler(const QString& id, QAction* action) {
   });
 }
 
-}  // namespace muffin
+} // namespace muffin

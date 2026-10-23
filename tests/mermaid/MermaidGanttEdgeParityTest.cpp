@@ -24,7 +24,10 @@ namespace {
   std::fprintf(stderr, "FAIL: %s\n", qPrintable(message));
   std::exit(1);
 }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 void near(qreal actual, qreal expected, const QString& path, qreal tolerance = 0.01) {
   require(std::isfinite(actual) && std::fabs(actual - expected) <= tolerance,
           QStringLiteral("%1: %2 != %3").arg(path).arg(actual).arg(expected));
@@ -43,7 +46,7 @@ std::shared_ptr<const gantt::GanttScene> render(const QString& source) {
   require(bool(scene), QStringLiteral("Expected GanttScene"));
   return scene;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -72,26 +75,33 @@ int main(int argc, char** argv) {
     near(scene->config.useWidth, conf.value(QStringLiteral("useWidth")).toDouble(1200.0),
          id + QStringLiteral("/useWidth"));
     const QJsonValue expectedUseMaxWidth = conf.value(QStringLiteral("useMaxWidth"));
-    const bool expectedUseMaxWidthBool = expectedUseMaxWidth.isBool()
-                                             ? expectedUseMaxWidth.toBool()
-                                             : !expectedUseMaxWidth.isNull() &&
-                                                   !expectedUseMaxWidth.isUndefined() &&
-                                                   (!expectedUseMaxWidth.isDouble() ||
-                                                    expectedUseMaxWidth.toDouble() != 0.0) &&
-                                                   (!expectedUseMaxWidth.isString() ||
-                                                    !expectedUseMaxWidth.toString().isEmpty());
-    require(scene->config.useMaxWidth == expectedUseMaxWidthBool,
-            id + QStringLiteral("/useMaxWidth"));
-    near(scene->config.titleTopMargin, conf.value(QStringLiteral("titleTopMargin")).toDouble(), id + QStringLiteral("/titleTopMargin"));
-    near(scene->config.barHeight, conf.value(QStringLiteral("barHeight")).toVariant().toDouble(), id + QStringLiteral("/barHeight"));
-    near(scene->config.barGap, conf.value(QStringLiteral("barGap")).toVariant().toDouble(), id + QStringLiteral("/barGap"));
-    near(scene->config.topPadding, conf.value(QStringLiteral("topPadding")).toVariant().toDouble(), id + QStringLiteral("/topPadding"));
-    near(scene->config.rightPadding, conf.value(QStringLiteral("rightPadding")).toVariant().toDouble(), id + QStringLiteral("/rightPadding"));
-    near(scene->config.leftPadding, conf.value(QStringLiteral("leftPadding")).toVariant().toDouble(), id + QStringLiteral("/leftPadding"));
-    near(scene->config.gridLineStartPadding, conf.value(QStringLiteral("gridLineStartPadding")).toVariant().toDouble(), id + QStringLiteral("/gridLineStartPadding"));
-    near(scene->config.fontSize, conf.value(QStringLiteral("fontSize")).toVariant().toDouble(), id + QStringLiteral("/fontSize"));
-    near(scene->config.sectionFontSize, conf.value(QStringLiteral("sectionFontSize")).toVariant().toDouble(), id + QStringLiteral("/sectionFontSize"));
-    require(scene->config.numberSectionStyles == conf.value(QStringLiteral("numberSectionStyles")).toVariant().toInt(), id + QStringLiteral("/numberSectionStyles"));
+    const bool expectedUseMaxWidthBool =
+        expectedUseMaxWidth.isBool()
+            ? expectedUseMaxWidth.toBool()
+            : !expectedUseMaxWidth.isNull() && !expectedUseMaxWidth.isUndefined() &&
+                  (!expectedUseMaxWidth.isDouble() || expectedUseMaxWidth.toDouble() != 0.0) &&
+                  (!expectedUseMaxWidth.isString() || !expectedUseMaxWidth.toString().isEmpty());
+    require(scene->config.useMaxWidth == expectedUseMaxWidthBool, id + QStringLiteral("/useMaxWidth"));
+    near(scene->config.titleTopMargin, conf.value(QStringLiteral("titleTopMargin")).toDouble(),
+         id + QStringLiteral("/titleTopMargin"));
+    near(scene->config.barHeight, conf.value(QStringLiteral("barHeight")).toVariant().toDouble(),
+         id + QStringLiteral("/barHeight"));
+    near(scene->config.barGap, conf.value(QStringLiteral("barGap")).toVariant().toDouble(),
+         id + QStringLiteral("/barGap"));
+    near(scene->config.topPadding, conf.value(QStringLiteral("topPadding")).toVariant().toDouble(),
+         id + QStringLiteral("/topPadding"));
+    near(scene->config.rightPadding, conf.value(QStringLiteral("rightPadding")).toVariant().toDouble(),
+         id + QStringLiteral("/rightPadding"));
+    near(scene->config.leftPadding, conf.value(QStringLiteral("leftPadding")).toVariant().toDouble(),
+         id + QStringLiteral("/leftPadding"));
+    near(scene->config.gridLineStartPadding, conf.value(QStringLiteral("gridLineStartPadding")).toVariant().toDouble(),
+         id + QStringLiteral("/gridLineStartPadding"));
+    near(scene->config.fontSize, conf.value(QStringLiteral("fontSize")).toVariant().toDouble(),
+         id + QStringLiteral("/fontSize"));
+    near(scene->config.sectionFontSize, conf.value(QStringLiteral("sectionFontSize")).toVariant().toDouble(),
+         id + QStringLiteral("/sectionFontSize"));
+    require(scene->config.numberSectionStyles == conf.value(QStringLiteral("numberSectionStyles")).toVariant().toInt(),
+            id + QStringLiteral("/numberSectionStyles"));
     const QJsonObject theme = expected.value(QStringLiteral("themeVariables")).toObject();
     const auto field = [&](const QString& name, const QString& native) {
       colorEqual(native, theme.value(name).toString(), id + QLatin1Char('/') + name);
@@ -120,29 +130,22 @@ int main(int argc, char** argv) {
   // Date-only Gantt input is parsed as UTC. Local yesterday/today can already
   // be behind the current instant on runners west of UTC (especially at night).
   const QDate today = QDateTime::currentDateTimeUtc().date();
-  const QString todaySource = QStringLiteral(
-      "gantt\ndateFormat YYYY-MM-DD\ntodayMarker "
-      "stroke:#123456,stroke-width:3px,opacity:0.4\n"
-      "Before :before, %1, 1d\nAfter :after, %2, 1d")
-                                  .arg(today.addDays(-1).toString(Qt::ISODate),
-                                       today.toString(Qt::ISODate));
+  const QString todaySource = QStringLiteral("gantt\ndateFormat YYYY-MM-DD\ntodayMarker "
+                                             "stroke:#123456,stroke-width:3px,opacity:0.4\n"
+                                             "Before :before, %1, 1d\nAfter :after, %2, 1d")
+                                  .arg(today.addDays(-1).toString(Qt::ISODate), today.toString(Qt::ISODate));
   const auto todayScene = render(todaySource);
-  require(todayScene->todayLines.size() == 1,
-          QStringLiteral("Gantt current-date marker missing"));
+  require(todayScene->todayLines.size() == 1, QStringLiteral("Gantt current-date marker missing"));
   const auto& todayLine = todayScene->todayLines.first();
-  colorEqual(todayLine.stroke, QStringLiteral("#123456"),
-             QStringLiteral("today-marker/stroke"));
+  colorEqual(todayLine.stroke, QStringLiteral("#123456"), QStringLiteral("today-marker/stroke"));
   near(todayLine.strokeWidth, 3.0, QStringLiteral("today-marker/stroke-width"));
   near(todayLine.opacity, 0.4, QStringLiteral("today-marker/opacity"));
-  require(todayLine.line.x1() == todayLine.line.x2() &&
-              todayLine.line.x1() >= 0.0 &&
+  require(todayLine.line.x1() == todayLine.line.x2() && todayLine.line.x1() >= 0.0 &&
               todayLine.line.x1() <= todayScene->bounds.width(),
           QStringLiteral("Gantt current-date marker geometry drifted"));
-  const auto offScene = render(QStringLiteral(
-      "gantt\ndateFormat YYYY-MM-DD\ntodayMarker off\n"
-      "Task :task, 2024-01-01, 1d"));
-  require(offScene->todayLines.isEmpty(),
-          QStringLiteral("Gantt todayMarker off must suppress the marker"));
+  const auto offScene = render(QStringLiteral("gantt\ndateFormat YYYY-MM-DD\ntodayMarker off\n"
+                                              "Task :task, 2024-01-01, 1d"));
+  require(offScene->todayLines.isEmpty(), QStringLiteral("Gantt todayMarker off must suppress the marker"));
   std::fprintf(stderr, "Gantt config parity: 46/46 passed\n");
   return 0;
 }

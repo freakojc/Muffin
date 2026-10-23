@@ -20,19 +20,18 @@ int codeIndentUnit() {
 }
 
 LiteralBlockSpec codeSpec() {
-  return LiteralBlockSpec{
-      BlockType::CodeFence,
-      HitTestResult::Zone::Code,
-      QStringLiteral("No code fence is active."),
-      QStringLiteral("Edit Code Fence"),
-      QStringLiteral("Backspace Code Fence"),
-      QStringLiteral("Delete Code Fence Text"),
-      QStringLiteral("Delete Code Fence Selection"),
-      QStringLiteral("Set Code Fence Content"),
-      QStringLiteral("\t")};
+  return LiteralBlockSpec{BlockType::CodeFence,
+                          HitTestResult::Zone::Code,
+                          QStringLiteral("No code fence is active."),
+                          QStringLiteral("Edit Code Fence"),
+                          QStringLiteral("Backspace Code Fence"),
+                          QStringLiteral("Delete Code Fence Text"),
+                          QStringLiteral("Delete Code Fence Selection"),
+                          QStringLiteral("Set Code Fence Content"),
+                          QStringLiteral("\t")};
 }
 
-}  // namespace
+} // namespace
 
 CodeFenceController::CodeFenceController(QObject* parent) : QObject(parent), literal_(codeSpec()) {
   literal_.setRejectedHandler([this](QString reason) { emit codeCommandRejected(std::move(reason)); });
@@ -115,8 +114,8 @@ bool CodeFenceController::dedentWholeBlock() {
 
 bool CodeFenceController::adjustIndent(bool indent, IndentScope scope) {
   const QString label = indent ? QStringLiteral("Indent Code") : QStringLiteral("Dedent Code");
-  return literal_.mutateCurrentBlock(label, EditTransaction::Kind::ReplaceDocumentText,
-      [this, indent, scope](MarkdownNode& node, qsizetype& offset) {
+  return literal_.mutateCurrentBlock(
+      label, EditTransaction::Kind::ReplaceDocumentText, [this, indent, scope](MarkdownNode& node, qsizetype& offset) {
         QString value = node.literal();
         const qsizetype unit = codeIndentUnit();
         const qsizetype caret = qBound<qsizetype>(0, offset, value.size());
@@ -146,7 +145,7 @@ bool CodeFenceController::adjustIndent(bool indent, IndentScope scope) {
             while (firstStart > 0 && value.at(firstStart - 1) != QLatin1Char('\n')) {
               --firstStart;
             }
-            gatherLimit = firstStart;  // no further line can start at or below firstStart
+            gatherLimit = firstStart; // no further line can start at or below firstStart
           }
         }
 
@@ -160,7 +159,7 @@ bool CodeFenceController::adjustIndent(bool indent, IndentScope scope) {
           }
           scan = newline + 1;
           if (scan >= gatherLimit || scan >= value.size()) {
-            break;  // past the scope, or a trailing newline with no further content line
+            break; // past the scope, or a trailing newline with no further content line
           }
           lineStarts.append(scan);
         }
@@ -227,9 +226,11 @@ bool CodeFenceController::setLanguageForCodeFence(NodeId requestedCodeId, QStrin
   NodeId codeId = activeCode->id();
   const NodeId originalCodeId = codeId;
   const int codeIndex = literal_.blockIndexFor(codeId);
-  const CursorPosition beforeCursor = ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : literal_.cursorFor(codeId, 0);
+  const CursorPosition beforeCursor =
+      ctx_.selection->hasCursor() ? ctx_.selection->cursorPosition() : literal_.cursorFor(codeId, 0);
   const int beforeCursorCodeIndex = literal_.blockIndexFor(beforeCursor.blockId);
-  const bool cursorWasInTarget = beforeCursor.blockId == codeId || (wasEditing && beforeCursor.blockId == literal_.currentBlockId());
+  const bool cursorWasInTarget =
+      beforeCursor.blockId == codeId || (wasEditing && beforeCursor.blockId == literal_.currentBlockId());
   auto afterNode = activeCode->clone(CloneMode::PreserveIds);
   afterNode->setCodeLanguage(language);
 
@@ -258,18 +259,9 @@ bool CodeFenceController::setLanguageForCodeFence(NodeId requestedCodeId, QStrin
   }
   if (ctx_.undoStack && nextCursor.isValid()) {
     ctx_.undoStack->push(EditTransaction(
-        EditTransaction::Kind::ReplaceDocumentText,
-        QStringLiteral("Set Code Fence Language"),
-        SetNodeAttrCommand{
-            originalCodeId,
-            BlockType::CodeFence,
-            codeIndex,
-            NodeAttribute::CodeLanguage,
-            beforeLanguage,
-            language,
-            beforeCursor,
-            nextCursor,
-            QVector<NodeId>{originalCodeId}}));
+        EditTransaction::Kind::ReplaceDocumentText, QStringLiteral("Set Code Fence Language"),
+        SetNodeAttrCommand{originalCodeId, BlockType::CodeFence, codeIndex, NodeAttribute::CodeLanguage, beforeLanguage,
+                           language, beforeCursor, nextCursor, QVector<NodeId>{originalCodeId}}));
   }
   if (ctx_.brushQueue) {
     ctx_.brushQueue->requestBlockRefresh(codeId);
@@ -277,4 +269,4 @@ bool CodeFenceController::setLanguageForCodeFence(NodeId requestedCodeId, QStrin
   return true;
 }
 
-}  // namespace muffin
+} // namespace muffin

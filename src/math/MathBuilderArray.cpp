@@ -16,13 +16,13 @@ namespace muffin::math {
 namespace {
 
 bool hasInkDescender(const MathRenderNode* node) {
-  if (node == nullptr) return false;
+  if (node == nullptr)
+    return false;
   if (node->kind == MathRenderKind::Symbol) {
     for (QChar ch : node->text) {
       const QChar lower = ch.toLower();
-      if (lower == QLatin1Char('g') || lower == QLatin1Char('j') ||
-          lower == QLatin1Char('p') || lower == QLatin1Char('q') ||
-          lower == QLatin1Char('y'))
+      if (lower == QLatin1Char('g') || lower == QLatin1Char('j') || lower == QLatin1Char('p') ||
+          lower == QLatin1Char('q') || lower == QLatin1Char('y'))
         return true;
     }
   }
@@ -30,7 +30,7 @@ bool hasInkDescender(const MathRenderNode* node) {
                      [](const auto& child) { return hasInkDescender(child.get()); });
 }
 
-}  // namespace
+} // namespace
 
 std::unique_ptr<MathRenderNode> MathBuilder::makeArray(const MathParseNode& node) {
   const int rowCount = node.rows.size();
@@ -85,9 +85,10 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeArray(const MathParseNode& node
 
   const GlobalFontMetrics fontMetrics = MathFontMetrics::globalMetrics(options_.style().size());
   const qreal pt = fontMetrics.ptPerEm > 0.0 ? 1.0 / fontMetrics.ptPerEm : 0.1;
-  const qreal arrayColSepEm = node.colSeparationType == QStringLiteral("small")
-                                  ? 0.2778 * (options_.havingStyle(MathStyle::script()).sizeMultiplier() / options_.sizeMultiplier())
-                                  : 5.0 * pt;
+  const qreal arrayColSepEm =
+      node.colSeparationType == QStringLiteral("small")
+          ? 0.2778 * (options_.havingStyle(MathStyle::script()).sizeMultiplier() / options_.sizeMultiplier())
+          : 5.0 * pt;
   const qreal baselineSkipEm = 12.0 * pt;
   const qreal jotEm = 3.0 * pt;
   const qreal arrayskipEm = qMax<qreal>(0.0, node.arrayStretch) * baselineSkipEm;
@@ -152,11 +153,14 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeArray(const MathParseNode& node
         continue;
       }
       previousWasSeparator = false;
-      const qreal pregap = spec.pregap >= 0.0 ? spec.pregap : (sawAlign || node.hskipBeforeAndAfter ? arrayColSepEm : 0.0);
+      const qreal pregap =
+          spec.pregap >= 0.0 ? spec.pregap : (sawAlign || node.hskipBeforeAndAfter ? arrayColSepEm : 0.0);
       addGap(pregap);
       placedColumns.push_back({alignIndex, bodyWidth, colWidths[alignIndex], spec.align});
       bodyWidth += colWidths[alignIndex];
-      const qreal postgap = spec.postgap >= 0.0 ? spec.postgap : ((alignIndex + 1 < colCount || node.hskipBeforeAndAfter) ? arrayColSepEm : 0.0);
+      const qreal postgap = spec.postgap >= 0.0
+                                ? spec.postgap
+                                : ((alignIndex + 1 < colCount || node.hskipBeforeAndAfter) ? arrayColSepEm : 0.0);
       addGap(postgap);
       ++alignIndex;
       sawAlign = true;
@@ -165,7 +169,8 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeArray(const MathParseNode& node
   while (alignIndex < colCount) {
     const qreal pregap = alignIndex > 0 ? arrayColSepEm : 0.0;
     addGap(pregap);
-    const QChar align = alignIndex < node.columnAlignments.size() ? node.columnAlignments.at(alignIndex) : QLatin1Char('c');
+    const QChar align =
+        alignIndex < node.columnAlignments.size() ? node.columnAlignments.at(alignIndex) : QLatin1Char('c');
     placedColumns.push_back({alignIndex, bodyWidth, colWidths[alignIndex], align});
     bodyWidth += colWidths[alignIndex];
     if (alignIndex + 1 < colCount) {
@@ -253,8 +258,9 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeArray(const MathParseNode& node
       } else if (placed.align == QLatin1Char('c')) {
         alignedX = (colWidths[c] - cell->width) / 2.0;
       }
-      columnChildren.push_back(MathVListChild{layoutFromRenderNode(makeArrayCellWrapper(std::move(cell), rowHeights[r], rowDepths[r], alignedX)),
-                                              rowPositions[r] - baseline});
+      columnChildren.push_back(MathVListChild{
+          layoutFromRenderNode(makeArrayCellWrapper(std::move(cell), rowHeights[r], rowDepths[r], alignedX)),
+          rowPositions[r] - baseline});
     }
     auto colLayout = makeLayoutVListIndividualShift(std::move(columnChildren));
     colLayout->width = placed.width;
@@ -286,8 +292,7 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeArray(const MathParseNode& node
       line->color = options_.color();
       line->xOffset = xOffset;
       line->text = arrayLine.dashed ? QStringLiteral("dashed") : QString();
-      wrapChildren.push_back(MathVListChild{layoutFromRenderNode(std::move(line)),
-                                            hlinePositions.value(i) - baseline});
+      wrapChildren.push_back(MathVListChild{layoutFromRenderNode(std::move(line)), hlinePositions.value(i) - baseline});
     }
     auto wrapLayout = makeLayoutVListIndividualShift(std::move(wrapChildren));
     auto wrapped = renderNodeFromLayout(*wrapLayout);
@@ -322,10 +327,12 @@ std::unique_ptr<MathRenderNode> MathBuilder::makeArray(const MathParseNode& node
     array->children.push_back(std::move(right));
   }
 
-  array->width = bodyWidth + xOffset + (node.rightDelim == QStringLiteral(".") ? nullDelimiterWidth : (hasRightDelimiter ? rightDelimiterWidth : 0.0));
+  array->width =
+      bodyWidth + xOffset +
+      (node.rightDelim == QStringLiteral(".") ? nullDelimiterWidth : (hasRightDelimiter ? rightDelimiterWidth : 0.0));
   array->height = qMax(baseline, delimiterHeight);
   array->depth = qMax(totalHeight - baseline, delimiterDepth);
   return array;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

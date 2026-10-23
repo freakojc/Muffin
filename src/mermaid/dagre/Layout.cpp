@@ -44,11 +44,13 @@ void makeSpaceForEdgeLabels(DagreGraph& g) {
 void removeSelfEdges(DagreGraph& g) {
   const QList<graphlib::Edge> all = g.edges();
   for (const graphlib::Edge& e : all) {
-    if (e.v != e.w) continue;
+    if (e.v != e.w)
+      continue;
     DagreNodeLabel* node = g.node(e.v);
     DagreSelfEdge se;
     se.e = e;
-    if (const DagreEdgeLabel* l = g.edge(e)) se.label = *l;
+    if (const DagreEdgeLabel* l = g.edge(e))
+      se.label = *l;
     node->selfEdges.append(se);
     g.removeEdge(e);
   }
@@ -82,7 +84,8 @@ void positionSelfEdges(DagreGraph& g) {
   const QList<QString> nodes = g.nodes();
   for (const QString& v : nodes) {
     DagreNodeLabel* node = g.node(v);
-    if (node->dummy != QLatin1String("selfedge")) continue;
+    if (node->dummy != QLatin1String("selfedge"))
+      continue;
     if (!node->edgeObj.has_value() || !node->edgeLabel.has_value()) {
       g.removeNode(v);
       continue;
@@ -100,9 +103,8 @@ void positionSelfEdges(DagreGraph& g) {
       g.removeNode(v);
       continue;
     }
-    live->points = {QPointF(x + (2 * dx) / 3, y - dy), QPointF(x + (5 * dx) / 6, y - dy),
-                    QPointF(x + dx, y), QPointF(x + (5 * dx) / 6, y + dy),
-                    QPointF(x + (2 * dx) / 3, y + dy)};
+    live->points = {QPointF(x + (2 * dx) / 3, y - dy), QPointF(x + (5 * dx) / 6, y - dy), QPointF(x + dx, y),
+                    QPointF(x + (5 * dx) / 6, y + dy), QPointF(x + (2 * dx) / 3, y + dy)};
     live->x = node->x;
     live->y = node->y;
     g.removeNode(v);
@@ -129,7 +131,8 @@ void removeEdgeLabelProxies(DagreGraph& g) {
   for (const QString& v : nodes) {
     const DagreNodeLabel* node = g.node(v);
     if (node->dummy == QLatin1String("edge-proxy") && node->edgeObj.has_value()) {
-      if (DagreEdgeLabel* edge = g.edge(*node->edgeObj)) edge->labelRank = node->rank;
+      if (DagreEdgeLabel* edge = g.edge(*node->edgeObj))
+        edge->labelRank = node->rank;
       g.removeNode(v);
     }
   }
@@ -152,9 +155,11 @@ void removeBorderNodes(DagreGraph& g) {
   // First pass: derive cluster dimensions from border dummies.
   const QList<QString> nodes = g.nodes();
   for (const QString& v : nodes) {
-    if (g.children(v).value_or(QList<QString>{}).isEmpty()) continue;
+    if (g.children(v).value_or(QList<QString>{}).isEmpty())
+      continue;
     DagreNodeLabel* node = g.node(v);
-    if (node->borderTop.isEmpty() || node->borderBottom.isEmpty()) continue;
+    if (node->borderTop.isEmpty() || node->borderBottom.isEmpty())
+      continue;
     const DagreNodeLabel* t = g.node(node->borderTop);
     const DagreNodeLabel* b = g.node(node->borderBottom);
     const QString lId = node->borderLeft.isEmpty() ? QString() : node->borderLeft.last();
@@ -173,18 +178,22 @@ void removeBorderNodes(DagreGraph& g) {
   // Second pass: remove border dummies.
   const QList<QString> nodes2 = g.nodes();
   for (const QString& v : nodes2) {
-    if (g.node(v)->dummy == QLatin1String("border")) g.removeNode(v);
+    if (g.node(v)->dummy == QLatin1String("border"))
+      g.removeNode(v);
   }
 }
 
 void fixupEdgeLabelCoords(DagreGraph& g) {
   for (const graphlib::Edge& e : g.edges()) {
     DagreEdgeLabel* edge = g.edge(e);
-    if (!edge->x.has_value()) continue;
+    if (!edge->x.has_value())
+      continue;
     if (edge->labelpos == QLatin1String("l") || edge->labelpos == QLatin1String("r"))
       edge->width -= edge->labeloffset;
-    if (edge->labelpos == QLatin1String("l")) edge->x = *edge->x - edge->width / 2.0 - edge->labeloffset;
-    else if (edge->labelpos == QLatin1String("r")) edge->x = *edge->x + edge->width / 2.0 + edge->labeloffset;
+    if (edge->labelpos == QLatin1String("l"))
+      edge->x = *edge->x - edge->width / 2.0 - edge->labeloffset;
+    else if (edge->labelpos == QLatin1String("r"))
+      edge->x = *edge->x + edge->width / 2.0 + edge->labeloffset;
   }
 }
 
@@ -202,10 +211,12 @@ void translateGraph(DagreGraph& g) {
     maxY = std::max(maxY, y + n->height / 2.0);
   };
   for (const QString& v : g.nodes())
-    if (g.node(v)) extremes(g.node(v));
+    if (g.node(v))
+      extremes(g.node(v));
   for (const graphlib::Edge& e : g.edges()) {
     const DagreEdgeLabel* edge = g.edge(e);
-    if (!edge || !edge->x.has_value()) continue;
+    if (!edge || !edge->x.has_value())
+      continue;
     DagreNodeLabel proxy;
     proxy.x = edge->x;
     proxy.y = edge->y;
@@ -219,14 +230,21 @@ void translateGraph(DagreGraph& g) {
   minY -= marginY;
   for (const QString& v : g.nodes()) {
     DagreNodeLabel* node = g.node(v);
-    if (node->x.has_value()) node->x = *node->x - minX;
-    if (node->y.has_value()) node->y = *node->y - minY;
+    if (node->x.has_value())
+      node->x = *node->x - minX;
+    if (node->y.has_value())
+      node->y = *node->y - minY;
   }
   for (const graphlib::Edge& e : g.edges()) {
     DagreEdgeLabel* edge = g.edge(e);
-    for (QPointF& p : edge->points) { p.setX(p.x() - minX); p.setY(p.y() - minY); }
-    if (edge->x.has_value()) edge->x = *edge->x - minX;
-    if (edge->y.has_value()) edge->y = *edge->y - minY;
+    for (QPointF& p : edge->points) {
+      p.setX(p.x() - minX);
+      p.setY(p.y() - minY);
+    }
+    if (edge->x.has_value())
+      edge->x = *edge->x - minX;
+    if (edge->y.has_value())
+      edge->y = *edge->y - minY;
   }
   g.graph()->width = maxX - minX + marginX;
   g.graph()->height = maxY - minY + marginY;
@@ -256,7 +274,8 @@ void assignNodeIntersects(DagreGraph& g) {
 void reversePointsForReversedEdges(DagreGraph& g) {
   for (const graphlib::Edge& e : g.edges()) {
     DagreEdgeLabel* edge = g.edge(e);
-    if (edge->reversed) std::reverse(edge->points.begin(), edge->points.end());
+    if (edge->reversed)
+      std::reverse(edge->points.begin(), edge->points.end());
   }
 }
 
@@ -266,8 +285,10 @@ void positionY(DagreGraph& g) {
   qreal prevY = 0.0;
   for (const QList<QString>& layer : layering) {
     qreal maxHeight = 0.0;
-    for (const QString& v : layer) maxHeight = std::max(maxHeight, g.node(v)->height);
-    for (const QString& v : layer) g.node(v)->y = prevY + maxHeight / 2.0;
+    for (const QString& v : layer)
+      maxHeight = std::max(maxHeight, g.node(v)->height);
+    for (const QString& v : layer)
+      g.node(v)->y = prevY + maxHeight / 2.0;
     prevY += maxHeight + rankSep;
   }
 }
@@ -276,7 +297,8 @@ void position(DagreGraph& g) {
   positionY(g);
   const QHash<QString, qreal> xs = positionX(g);
   for (auto it = xs.cbegin(); it != xs.cend(); ++it)
-    if (DagreNodeLabel* node = g.node(it.key())) node->x = it.value();
+    if (DagreNodeLabel* node = g.node(it.key()))
+      node->x = it.value();
 }
 
 // Snapshot serializer for the G2 intermediate-state golden. Emits an
@@ -290,7 +312,8 @@ QJsonObject serializeGraph(const DagreGraph& g) {
   QHash<QString, int> dummyCounts;
   for (const QString& v : g.nodes()) {
     const DagreNodeLabel* n = g.node(v);
-    if (!n) continue;
+    if (!n)
+      continue;
     if (n->dummy.isEmpty())
       realIds.append(v);
     else
@@ -319,12 +342,14 @@ QJsonObject serializeGraph(const DagreGraph& g) {
   QJsonObject dummyJson;
   QStringList dummyTypes = dummyCounts.keys();
   dummyTypes.sort();
-  for (const QString& type : dummyTypes) dummyJson.insert(type, dummyCounts.value(type));
+  for (const QString& type : dummyTypes)
+    dummyJson.insert(type, dummyCounts.value(type));
 
   // Endpoint label: real id verbatim, dummy → "dummy:<type>".
   auto endpoint = [&g](const QString& v) -> QString {
     const DagreNodeLabel* n = g.node(v);
-    if (n && !n->dummy.isEmpty()) return QStringLiteral("dummy:") + n->dummy;
+    if (n && !n->dummy.isEmpty())
+      return QStringLiteral("dummy:") + n->dummy;
     return v;
   };
 
@@ -344,7 +369,8 @@ QJsonObject serializeGraph(const DagreGraph& g) {
     return va == vb ? wa < wb : va < vb;
   });
   QJsonArray edgesJson;
-  for (const QJsonObject& o : edgeObjs) edgesJson.append(o);
+  for (const QJsonObject& o : edgeObjs)
+    edgesJson.append(o);
 
   QJsonObject state;
   state.insert(QStringLiteral("realNodes"), realNodes);
@@ -370,9 +396,7 @@ QJsonObject serializeInputGraph(const DagreGraph& g) {
     value.insert(QStringLiteral("width"), node ? node->width : 0.0);
     value.insert(QStringLiteral("height"), node ? node->height : 0.0);
     const QString parent = g.parentOf(id);
-    value.insert(QStringLiteral("parent"), parent.isEmpty()
-                                               ? QJsonValue(QJsonValue::Null)
-                                               : QJsonValue(parent));
+    value.insert(QStringLiteral("parent"), parent.isEmpty() ? QJsonValue(QJsonValue::Null) : QJsonValue(parent));
     nodes.append(value);
   }
   QJsonArray edges;
@@ -397,16 +421,18 @@ QJsonObject serializeInputGraph(const DagreGraph& g) {
   return state;
 }
 
-}  // namespace
+} // namespace
 
 void runDagreLayout(DagreGraph& g, std::vector<DagreSnapshot>* snapshots) {
-  if (snapshots) snapshots->push_back({QStringLiteral("input"), serializeInputGraph(g)});
+  if (snapshots)
+    snapshots->push_back({QStringLiteral("input"), serializeInputGraph(g)});
   makeSpaceForEdgeLabels(g);
   removeSelfEdges(g);
   runAcyclic(g);
   runNestingGraph(g);
   rankGraph(g);
-  if (snapshots) snapshots->push_back({QStringLiteral("rank"), serializeGraph(g)});
+  if (snapshots)
+    snapshots->push_back({QStringLiteral("rank"), serializeGraph(g)});
   injectEdgeLabelProxies(g);
   removeEmptyRanks(g);
   cleanupNestingGraph(g);
@@ -415,11 +441,14 @@ void runDagreLayout(DagreGraph& g, std::vector<DagreSnapshot>* snapshots) {
   removeEdgeLabelProxies(g);
   runNormalize(g);
   parentDummyChains(g);
-  if (snapshots) snapshots->push_back({QStringLiteral("parentDummyChains"), serializeGraph(g)});
+  if (snapshots)
+    snapshots->push_back({QStringLiteral("parentDummyChains"), serializeGraph(g)});
   addBorderSegments(g);
-  if (snapshots) snapshots->push_back({QStringLiteral("addBorderSegments"), serializeGraph(g)});
+  if (snapshots)
+    snapshots->push_back({QStringLiteral("addBorderSegments"), serializeGraph(g)});
   order(g);
-  if (snapshots) snapshots->push_back({QStringLiteral("order"), serializeGraph(g)});
+  if (snapshots)
+    snapshots->push_back({QStringLiteral("order"), serializeGraph(g)});
   insertSelfEdges(g);
   adjustCoordinateSystem(g);
   position(g);
@@ -434,4 +463,4 @@ void runDagreLayout(DagreGraph& g, std::vector<DagreSnapshot>* snapshots) {
   undoAcyclic(g);
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

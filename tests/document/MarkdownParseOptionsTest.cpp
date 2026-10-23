@@ -54,7 +54,7 @@ ParseOptions strictOptions() {
   options.enableTaskList = false;
   return options;
 }
-}  // namespace
+} // namespace
 
 void testParseOptionsEquality() {
   ParseOptions a;
@@ -75,7 +75,7 @@ void testParseOptionsEquality() {
 
 void testEnableMathGatesMathBlockParsing() {
   CmarkGfmParser parser;
-  ParseOptions withMath;  // enableMath defaults to true
+  ParseOptions withMath; // enableMath defaults to true
   ParseOptions noMath;
   noMath.enableMath = false;
   const QString markdown = "$$\ny = x\n$$\n";
@@ -115,26 +115,22 @@ void testSetParseOptionsReparsesOnlyOnChange() {
 // Inline Formula still gets rendered math even with Strict Mode on.
 void testStrictOptionsDisableExtensions() {
   CmarkGfmParser parser;
-  const QString markdown = QStringLiteral(
-      "$$\ny = x\n$$\n\n"
-      "| a | b |\n| --- | --- |\n| 1 | 2 |\n\n"
-      "~~struck~~\n\n"
-      "- [ ] task\n");
+  const QString markdown = QStringLiteral("$$\ny = x\n$$\n\n"
+                                          "| a | b |\n| --- | --- |\n| 1 | 2 |\n\n"
+                                          "~~struck~~\n\n"
+                                          "- [ ] task\n");
 
   ParseResult gfm = parser.parseDocument(markdown, ParseOptions{});
   require(gfm.root != nullptr, "default parse should produce a root");
   require(countMathBlocks(*gfm.root) >= 1, "math block should parse with extensions on");
   require(countBlocks(*gfm.root, BlockType::Table) >= 1, "table should parse with extensions on");
-  require(countInlineType(*gfm.root, InlineType::Strikethrough) >= 1,
-          "strikethrough should parse with extensions on");
+  require(countInlineType(*gfm.root, InlineType::Strikethrough) >= 1, "strikethrough should parse with extensions on");
 
   ParseResult strict = parser.parseDocument(markdown, strictOptions());
   require(strict.root != nullptr, "strict parse should produce a root");
-  require(countMathBlocks(*strict.root) >= 1,
-          "strict mode must NOT disable math — it follows its own switch");
+  require(countMathBlocks(*strict.root) >= 1, "strict mode must NOT disable math — it follows its own switch");
   require(countBlocks(*strict.root, BlockType::Table) == 0, "strict mode should disable tables");
-  require(countInlineType(*strict.root, InlineType::Strikethrough) == 0,
-          "strict mode should disable strikethrough");
+  require(countInlineType(*strict.root, InlineType::Strikethrough) == 0, "strict mode should disable strikethrough");
 }
 
 // The real markdownParseOptions() funnel (reads QSettings). With strictMode=true AND inlineMath
@@ -167,7 +163,7 @@ void testMarkdownParseOptionsStrictModeDoesNotOverrideSwitches() {
   require(!off.enableMath, "inlineMath=false should disable math when strict mode is off");
   require(off.enableTable, "tables should be on when strict mode is off");
 
-  QSettings().remove(QStringLiteral("markdown"));  // clean up isolated test settings
+  QSettings().remove(QStringLiteral("markdown")); // clean up isolated test settings
 }
 
 // enableUnicodeRemap: Smart Dashes turns a typed `---` horizontal rule into a single em-dash char,
@@ -175,7 +171,7 @@ void testMarkdownParseOptionsStrictModeDoesNotOverrideSwitches() {
 // `---` for the parser only; source ranges still map onto the original em-dash text.
 void testEnableUnicodeRemapParsesEmDashAsThematicBreak() {
   CmarkGfmParser parser;
-  const QString markdown = QString::fromUtf8("\xe2\x80\x94\n");  // em-dash (smart-dash output for `---`)
+  const QString markdown = QString::fromUtf8("\xe2\x80\x94\n"); // em-dash (smart-dash output for `---`)
 
   ParseOptions noRemap;
   ParseOptions withRemap;

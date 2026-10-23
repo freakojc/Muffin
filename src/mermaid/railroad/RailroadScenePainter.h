@@ -8,7 +8,6 @@ namespace muffin::mermaid::railroad {
 
 struct RailroadScene;
 
-void paintRailroadScene(const RailroadScene& scene, QPainter& painter,
-                        const MermaidPaintOptions& options = {});
+void paintRailroadScene(const RailroadScene& scene, QPainter& painter, const MermaidPaintOptions& options = {});
 
-}  // namespace muffin::mermaid::railroad
+} // namespace muffin::mermaid::railroad

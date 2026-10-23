@@ -6,11 +6,11 @@
 
 namespace muffin {
 
-OutlineModel::OutlineModel(QObject* parent) : QAbstractItemModel(parent) {}
+OutlineModel::OutlineModel(QObject* parent) : QAbstractItemModel(parent) {
+}
 
 QModelIndex OutlineModel::index(int row, int column, const QModelIndex& parentIndex) const {
-  if (column != 0 || row < 0 ||
-      (parentIndex.isValid() && (parentIndex.model() != this || parentIndex.column() != 0))) {
+  if (column != 0 || row < 0 || (parentIndex.isValid() && (parentIndex.model() != this || parentIndex.column() != 0))) {
     return {};
   }
   const int parentEntry = foldable_ && parentIndex.isValid() ? entryIndex(parentIndex) : -1;
@@ -57,9 +57,8 @@ QVariant OutlineModel::data(const QModelIndex& modelIndex, int role) const {
     return {};
   }
   if (role == Qt::DisplayRole) {
-    return foldable_
-        ? outlineEntry->title
-        : QString(qMax(0, outlineEntry->level - 1) * 2, QChar(0x2002)) + outlineEntry->title;
+    return foldable_ ? outlineEntry->title
+                     : QString(qMax(0, outlineEntry->level - 1) * 2, QChar(0x2002)) + outlineEntry->title;
   }
   if (role == Qt::TextAlignmentRole) {
     return int(Qt::AlignVCenter | Qt::AlignLeft);
@@ -167,4 +166,4 @@ void OutlineModel::rebuildLinks() {
   }
 }
 
-}  // namespace muffin
+} // namespace muffin

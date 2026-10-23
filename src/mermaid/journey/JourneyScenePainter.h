@@ -26,16 +26,13 @@ JourneyPaintState journeyRootSvgFill(const QString& value);
 // An element's `fill`: keywords participate (inherit/unset/revert take the
 // root, revert-layer/empty take the presentation attribute), currentColor
 // resolves against the journey root's black color.
-JourneyPaintState journeyElementSvgFill(
-    const QString& value, const JourneyPaintState& root,
-    const JourneyPaintState& presentation);
+JourneyPaintState journeyElementSvgFill(const QString& value, const JourneyPaintState& root,
+                                        const JourneyPaintState& presentation);
 
 // `stroke`: SVG's initial value is none, so the keyword family suppresses
 // painting instead of inheriting.
-JourneyPaintState journeyLineStroke(const QString& value,
-                                    const QColor& presentation);
+JourneyPaintState journeyLineStroke(const QString& value, const QColor& presentation);
 
-void paintJourneyScene(const JourneyScene& scene, QPainter& painter,
-                       const MermaidPaintOptions& options);
+void paintJourneyScene(const JourneyScene& scene, QPainter& painter, const MermaidPaintOptions& options);
 
-}  // namespace muffin::mermaid::journey
+} // namespace muffin::mermaid::journey

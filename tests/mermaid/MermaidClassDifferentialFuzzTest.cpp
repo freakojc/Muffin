@@ -14,17 +14,24 @@
 using namespace muffin::mermaid::classdiagram;
 
 namespace {
-[[noreturn]] void fail(const QString& message) { qCritical().noquote() << message; std::exit(1); }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+[[noreturn]] void fail(const QString& message) {
+  qCritical().noquote() << message;
+  std::exit(1);
+}
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 QString errorClass(ClassErrorStage stage) {
   return stage == ClassErrorStage::Detector ? QStringLiteral("detection") : QStringLiteral("syntax");
 }
 QJsonObject countsJson(const QMap<QString, int>& values) {
   QJsonObject result;
-  for (auto it = values.cbegin(); it != values.cend(); ++it) result.insert(it.key(), it.value());
+  for (auto it = values.cbegin(); it != values.cend(); ++it)
+    result.insert(it.key(), it.value());
   return result;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -73,16 +80,18 @@ int main(int argc, char** argv) {
       require(diagnostic.span.line == position.value(QStringLiteral("line")).toInt() &&
                   diagnostic.span.column == position.value(QStringLiteral("column")).toInt(),
               QStringLiteral("%1 position mismatch: native=%2:%3 expected=%4:%5")
-                  .arg(id).arg(diagnostic.span.line).arg(diagnostic.span.column)
+                  .arg(id)
+                  .arg(diagnostic.span.line)
+                  .arg(diagnostic.span.column)
                   .arg(position.value(QStringLiteral("line")).toInt())
                   .arg(position.value(QStringLiteral("column")).toInt()));
       codes.insert(code);
       ++stageCounts[stage];
       ++positionRuleCounts[upstream.value(QStringLiteral("positionRule")).toString()];
       const QString matrix = QStringLiteral("%1:%2|%3|%4|%5")
-          .arg(fixture.value(QStringLiteral("targetProduction")).toInt())
-          .arg(fixture.value(QStringLiteral("targetRhsLength")).toInt())
-          .arg(operation, stage, code);
+                                 .arg(fixture.value(QStringLiteral("targetProduction")).toInt())
+                                 .arg(fixture.value(QStringLiteral("targetRhsLength")).toInt())
+                                 .arg(operation, stage, code);
       ++matrixCounts[matrix];
     }
     require(rejected, QStringLiteral("Native accepted class mutation: %1\n%2").arg(id, source));
@@ -98,16 +107,15 @@ int main(int argc, char** argv) {
   require(countsJson(positionRuleCounts) == generator.value(QStringLiteral("positionRuleCounts")).toObject(),
           QStringLiteral("Class position-rule coverage drifted"));
   const QJsonObject raw = generator.value(QStringLiteral("rawLocationCounts")).toObject();
-  require(raw.value(QStringLiteral("lines")).toInt() >= 7 &&
-              raw.value(QStringLiteral("columns")).toInt() >= 4,
+  require(raw.value(QStringLiteral("lines")).toInt() >= 7 && raw.value(QStringLiteral("columns")).toInt() >= 4,
           QStringLiteral("Class raw Jison location coverage regressed"));
   for (const QJsonValue& code : generator.value(QStringLiteral("requiredNativeCodes")).toArray())
     require(codes.contains(code.toString()),
             QStringLiteral("Required class diagnostic is uncovered: %1").arg(code.toString()));
-  for (const QString& operation : {
-           QStringLiteral("delete-required-terminal"), QStringLiteral("replace-terminal-class"),
-           QStringLiteral("duplicate-separator"), QStringLiteral("truncate-recursive-production"),
-           QStringLiteral("break-paired-delimiter"), QStringLiteral("insert-nullable-boundary-token")})
+  for (const QString& operation :
+       {QStringLiteral("delete-required-terminal"), QStringLiteral("replace-terminal-class"),
+        QStringLiteral("duplicate-separator"), QStringLiteral("truncate-recursive-production"),
+        QStringLiteral("break-paired-delimiter"), QStringLiteral("insert-nullable-boundary-token")})
     require(operatorCounts.contains(operation),
             QStringLiteral("Class mutation operator is uncovered: %1").arg(operation));
 

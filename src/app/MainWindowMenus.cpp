@@ -50,38 +50,38 @@ void muffin::MainWindow::buildMenuItems(QMenu* parent, const std::vector<MenuIte
   parent->setToolTipsVisible(true);
   for (const MenuItem& item : items) {
     switch (item.kind) {
-      case MenuItem::Kind::Action:
-        registerAction(parent, item.commandId);
-        break;
-      case MenuItem::Kind::Separator:
-        parent->addSeparator();
-        break;
-      case MenuItem::Kind::Submenu: {
-        QMenu* sub = parent->addMenu(item.title);
-        if (item.hidden) {
-          sub->menuAction()->setVisible(false);
-        }
-        buildMenuItems(sub, item.children);
-        break;
+    case MenuItem::Kind::Action:
+      registerAction(parent, item.commandId);
+      break;
+    case MenuItem::Kind::Separator:
+      parent->addSeparator();
+      break;
+    case MenuItem::Kind::Submenu: {
+      QMenu* sub = parent->addMenu(item.title);
+      if (item.hidden) {
+        sub->menuAction()->setVisible(false);
       }
-      case MenuItem::Kind::PlaceholderSubmenu: {
-        // Future-feature menu: present but disabled, title only.
-        QMenu* sub = parent->addMenu(item.title);
+      buildMenuItems(sub, item.children);
+      break;
+    }
+    case MenuItem::Kind::PlaceholderSubmenu: {
+      // Future-feature menu: present but disabled, title only.
+      QMenu* sub = parent->addMenu(item.title);
+      sub->setEnabled(false);
+      break;
+    }
+    case MenuItem::Kind::DynamicSubmenu: {
+      // Submenu populated elsewhere (recent files, encodings); capture the
+      // pointer so MainWindowFileOps can clear/fill it.
+      QMenu* sub = parent->addMenu(item.title);
+      if (item.dynamicId == DynamicMenu::RecentFiles) {
+        recentFilesMenu_ = sub;
+      } else if (item.dynamicId == DynamicMenu::ReopenEncoding) {
+        reopenEncodingMenu_ = sub;
         sub->setEnabled(false);
-        break;
       }
-      case MenuItem::Kind::DynamicSubmenu: {
-        // Submenu populated elsewhere (recent files, encodings); capture the
-        // pointer so MainWindowFileOps can clear/fill it.
-        QMenu* sub = parent->addMenu(item.title);
-        if (item.dynamicId == DynamicMenu::RecentFiles) {
-          recentFilesMenu_ = sub;
-        } else if (item.dynamicId == DynamicMenu::ReopenEncoding) {
-          reopenEncodingMenu_ = sub;
-          sub->setEnabled(false);
-        }
-        break;
-      }
+      break;
+    }
     }
   }
 }
@@ -117,23 +117,23 @@ void retranslateMenuItemTitles(QMenu* menu, const std::vector<muffin::MenuItem>&
     const muffin::MenuItem& item = items[static_cast<size_t>(i)];
     QAction* action = actions[i];
     switch (item.kind) {
-      case muffin::MenuItem::Kind::Submenu:
-        action->setText(item.title);
-        if (QMenu* sub = action->menu()) {
-          retranslateMenuItemTitles(sub, item.children);
-        }
-        break;
-      case muffin::MenuItem::Kind::PlaceholderSubmenu:
-      case muffin::MenuItem::Kind::DynamicSubmenu:
-        action->setText(item.title);
-        break;
-      case muffin::MenuItem::Kind::Action:
-      case muffin::MenuItem::Kind::Separator:
-        break;  // command action labels are updated via the registry; separators have no text
+    case muffin::MenuItem::Kind::Submenu:
+      action->setText(item.title);
+      if (QMenu* sub = action->menu()) {
+        retranslateMenuItemTitles(sub, item.children);
+      }
+      break;
+    case muffin::MenuItem::Kind::PlaceholderSubmenu:
+    case muffin::MenuItem::Kind::DynamicSubmenu:
+      action->setText(item.title);
+      break;
+    case muffin::MenuItem::Kind::Action:
+    case muffin::MenuItem::Kind::Separator:
+      break; // command action labels are updated via the registry; separators have no text
     }
   }
 }
-}  // namespace
+} // namespace
 
 void muffin::MainWindow::retranslateMenuTexts() {
   // Rebuild the declaration table so its tr() labels reflect the new locale, then
@@ -161,16 +161,16 @@ void muffin::MainWindow::retranslateUi() {
   retranslateTabs();
   const bool sidebarChecked =
       commands_.action(QStringLiteral("view.sidebar")) && commands_.action(QStringLiteral("view.sidebar"))->isChecked();
-  const bool sourceChecked =
-      commands_.action(QStringLiteral("view.source_mode")) && commands_.action(QStringLiteral("view.source_mode"))->isChecked();
-  const bool wordWrapChecked =
-      !commands_.action(QStringLiteral("view.word_wrap")) || commands_.action(QStringLiteral("view.word_wrap"))->isChecked();
-  const bool statusBarChecked =
-      !commands_.action(QStringLiteral("view.status_bar")) || commands_.action(QStringLiteral("view.status_bar"))->isChecked();
+  const bool sourceChecked = commands_.action(QStringLiteral("view.source_mode")) &&
+                             commands_.action(QStringLiteral("view.source_mode"))->isChecked();
+  const bool wordWrapChecked = !commands_.action(QStringLiteral("view.word_wrap")) ||
+                               commands_.action(QStringLiteral("view.word_wrap"))->isChecked();
+  const bool statusBarChecked = !commands_.action(QStringLiteral("view.status_bar")) ||
+                                commands_.action(QStringLiteral("view.status_bar"))->isChecked();
   const bool focusChecked =
       commands_.action(QStringLiteral("view.focus")) && commands_.action(QStringLiteral("view.focus"))->isChecked();
-  const bool typewriterChecked =
-      commands_.action(QStringLiteral("view.typewriter")) && commands_.action(QStringLiteral("view.typewriter"))->isChecked();
+  const bool typewriterChecked = commands_.action(QStringLiteral("view.typewriter")) &&
+                                 commands_.action(QStringLiteral("view.typewriter"))->isChecked();
 
   // Update menu labels/titles in place for the new locale. Do NOT call
   // setupMenuBar() (clear+rebuild) here: deleting and recreating menu actions

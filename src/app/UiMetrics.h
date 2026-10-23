@@ -10,4 +10,4 @@ constexpr int kStatusIconSize = 16;
 constexpr int kStatusGap = 18;
 constexpr int kStatusPadX = 6;
 
-}  // namespace muffin::ui_metrics
+} // namespace muffin::ui_metrics

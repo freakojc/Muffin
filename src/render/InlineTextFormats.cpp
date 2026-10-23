@@ -28,7 +28,8 @@ public:
   }
 
   QVector<QTextLayout::FormatRange> build() {
-    if (input_.displayMap.text().isEmpty()) return {};
+    if (input_.displayMap.text().isEmpty())
+      return {};
     formats_.push_back({0, static_cast<int>(input_.displayMap.text().size()), baseFormat_});
     appendProjection();
     appendTabs();
@@ -78,18 +79,18 @@ private:
       format.setVerticalAlignment(QTextCharFormat::AlignSuperScript);
     }
     switch (span.type) {
-      case InlineType::Code:
-        format.setFont(input_.codeStyle.font);
-        applyLetterSpacing(format, input_.codeStyle.font);
-        if (input_.codeStyle.style.paint.color.isValid()) {
-          format.setForeground(input_.codeStyle.style.paint.color);
-        }
-        break;
-      case InlineType::InlineMath:
-        format.setFont(input_.theme.mathFont());
-        break;
-      default:
-        break;
+    case InlineType::Code:
+      format.setFont(input_.codeStyle.font);
+      applyLetterSpacing(format, input_.codeStyle.font);
+      if (input_.codeStyle.style.paint.color.isValid()) {
+        format.setForeground(input_.codeStyle.style.paint.color);
+      }
+      break;
+    case InlineType::InlineMath:
+      format.setFont(input_.theme.mathFont());
+      break;
+    default:
+      break;
     }
     // Link formatting is an orthogonal wrapping attribute (span.link), decoupled from span.type, so a
     // link composes with any inner node: an image-link renders as a clickable image, `[`code`](url)`
@@ -108,24 +109,31 @@ private:
           format.setUnderlineColor(uc);
         }
       }
-      if (input_.theme.linkOverline()) { format.setFontOverline(true); }
+      if (input_.theme.linkOverline()) {
+        format.setFontOverline(true);
+      }
     }
     const auto computedRun = input_.spanStyles.constFind(span.displayStart);
-    if (computedRun != input_.spanStyles.cend() && span.kind == InlineSpanKind::Text && span.type != InlineType::InlineMath) {
+    if (computedRun != input_.spanStyles.cend() && span.kind == InlineSpanKind::Text &&
+        span.type != InlineType::InlineMath) {
       const auto& run = *computedRun.value();
-      if (span.highlight) format.clearBackground();  // painted by the semantic mark box
+      if (span.highlight)
+        format.clearBackground(); // painted by the semantic mark box
       format.setFont(run.font);
       applyLetterSpacing(format, run.font);
       const auto& textStyle = run.style.text;
-      if (textStyle.strokeWidth > 0) format.setTextOutline(QPen(textStyle.strokeColor, textStyle.strokeWidth * input_.theme.zoomPercent() / 100.));
+      if (textStyle.strokeWidth > 0)
+        format.setTextOutline(QPen(textStyle.strokeColor, textStyle.strokeWidth * input_.theme.zoomPercent() / 100.));
       format.setFontUnderline(textStyle.decorationLines & 1);
       format.setFontOverline(textStyle.decorationLines & 2);
       format.setFontStrikeOut(textStyle.decorationLines & 4);
       if (textStyle.decorationLines & 1) {
         format.setUnderlineStyle(static_cast<QTextCharFormat::UnderlineStyle>(textStyle.underlineStyle));
-        if (textStyle.decorationColor.isValid()) format.setUnderlineColor(textStyle.decorationColor);
+        if (textStyle.decorationColor.isValid())
+          format.setUnderlineColor(textStyle.decorationColor);
       }
-      if (run.style.paint.color.isValid()) format.setForeground(run.style.paint.color);
+      if (run.style.paint.color.isValid())
+        format.setForeground(run.style.paint.color);
     }
     return format;
   }
@@ -136,7 +144,8 @@ private:
         continue;
       }
       const auto format = projectionFormat(span);
-      const DisplayOffsetRange layoutRange = input_.displayMap.layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
+      const DisplayOffsetRange layoutRange =
+          input_.displayMap.layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
       if (!layoutRange.valid || layoutRange.end > input_.displayMap.text().size()) {
         continue;
       }
@@ -146,26 +155,28 @@ private:
       // generated counters).  A computed inline style still forces a range so
       // an explicit normal value can reset inherited Markdown emphasis.
       const auto computedStyleIt = input_.spanStyles.constFind(span.displayStart);
-      const bool hasComputedInlineStyle = computedStyleIt != input_.spanStyles.cend() &&
-                                           span.kind == InlineSpanKind::Text && span.type != InlineType::InlineMath &&
-                                           (computedStyleIt.value()->style.text.fontSizeSet ||
-                                            computedStyleIt.value()->style.text.fontWeightSet ||
-                                            computedStyleIt.value()->style.text.italicSet ||
-                                            computedStyleIt.value()->style.text.decorationLines != 0 ||
-                                            computedStyleIt.value()->style.text.letterSpacing != 0 ||
-                                            computedStyleIt.value()->style.text.wordSpacing != 0 ||
-                                            computedStyleIt.value()->style.text.textTransform != 0);
-      const bool authoredInlineElement = hasComputedInlineStyle && computedStyleIt.value()->style.key != QStringLiteral("p") &&
+      const bool hasComputedInlineStyle =
+          computedStyleIt != input_.spanStyles.cend() && span.kind == InlineSpanKind::Text &&
+          span.type != InlineType::InlineMath &&
+          (computedStyleIt.value()->style.text.fontSizeSet || computedStyleIt.value()->style.text.fontWeightSet ||
+           computedStyleIt.value()->style.text.italicSet || computedStyleIt.value()->style.text.decorationLines != 0 ||
+           computedStyleIt.value()->style.text.letterSpacing != 0 ||
+           computedStyleIt.value()->style.text.wordSpacing != 0 ||
+           computedStyleIt.value()->style.text.textTransform != 0);
+      const bool authoredInlineElement = hasComputedInlineStyle &&
+                                         computedStyleIt.value()->style.key != QStringLiteral("p") &&
                                          !computedStyleIt.value()->style.key.startsWith(QStringLiteral("h"));
-      const bool hasSpanOverride = hasComputedInlineStyle || span.bold || span.italic || span.strike || span.underline ||
-                                   span.highlight || span.subscript || span.superscript || span.link ||
-                                   span.kind != InlineSpanKind::Text || span.type != InlineType::Text;
-      if (!hasSpanOverride) continue;
+      const bool hasSpanOverride = hasComputedInlineStyle || span.bold || span.italic || span.strike ||
+                                   span.underline || span.highlight || span.subscript || span.superscript ||
+                                   span.link || span.kind != InlineSpanKind::Text || span.type != InlineType::Text;
+      if (!hasSpanOverride)
+        continue;
       QTextLayout::FormatRange range;
       range.start = static_cast<int>(layoutRange.start);
       range.length = static_cast<int>(layoutRange.end - layoutRange.start);
       range.format = format;
-      if (!authoredInlineElement && span.kind == InlineSpanKind::Text && span.type == InlineType::Text && format.font() == baseFormat_.font() &&
+      if (!authoredInlineElement && span.kind == InlineSpanKind::Text && span.type == InlineType::Text &&
+          format.font() == baseFormat_.font() &&
           (!format.hasProperty(QTextFormat::ForegroundBrush) || format.foreground() == baseFormat_.foreground()) &&
           (!format.hasProperty(QTextFormat::BackgroundBrush) || format.background() == baseFormat_.background()) &&
           !format.fontUnderline() && !format.fontOverline() && !format.fontStrikeOut() &&
@@ -173,13 +184,13 @@ private:
         continue;
       formats_.push_back(range);
     }
-
   }
 
   void appendTabs() {
     const TextFontMetrics tabMetrics(input_.font);
     const qreal tabIndentTargetWidth = qMax<qreal>(1.0, tabMetrics.horizontalAdvance(QStringLiteral("汉汉")));
-    const qreal tabIndentPlaceholderWidth = qMax<qreal>(0.0, tabMetrics.horizontalAdvance(QString(kTabIndentLayoutChar)));
+    const qreal tabIndentPlaceholderWidth =
+        qMax<qreal>(0.0, tabMetrics.horizontalAdvance(QString(kTabIndentLayoutChar)));
     for (qsizetype i = 0; i < input_.displayMap.text().size(); ++i) {
       if (input_.displayMap.text().at(i) != kTabIndentSourceChar || input_.shapingText.at(i) != kTabIndentLayoutChar) {
         continue;
@@ -195,7 +206,6 @@ private:
       range.format = format;
       formats_.push_back(range);
     }
-
   }
 
   void appendHtml() {
@@ -205,7 +215,8 @@ private:
         continue;
       }
       QTextCharFormat format = baseFormat_;
-      if (hs.fontSet) format.setFont(hs.font);
+      if (hs.fontSet)
+        format.setFont(hs.font);
       if (hs.color.isValid()) {
         format.setForeground(hs.color);
       }
@@ -235,7 +246,9 @@ private:
             format.setUnderlineColor(uc);
           }
         }
-        if (input_.theme.linkOverline()) { format.setFontOverline(true); }
+        if (input_.theme.linkOverline()) {
+          format.setFontOverline(true);
+        }
       }
       QTextLayout::FormatRange range;
       range.start = hs.layoutStart;
@@ -243,7 +256,6 @@ private:
       range.format = format;
       formats_.push_back(range);
     }
-
   }
 
   void appendSpelling() {
@@ -260,7 +272,8 @@ private:
         if (span.kind != InlineSpanKind::Text || span.type == InlineType::Code || span.type == InlineType::InlineMath) {
           continue;
         }
-        const DisplayOffsetRange spanRange = input_.displayMap.layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
+        const DisplayOffsetRange spanRange =
+            input_.displayMap.layoutDisplayRangeForProjectionRange(span.displayStart, span.displayEnd);
         if (!spanRange.valid || spanRange.end > input_.displayMap.text().size()) {
           continue;
         }
@@ -288,14 +301,14 @@ private:
         }
       }
     }
-
   }
 
   void appendSpacers() {
     for (const InlineSpacer& spacer : input_.spacers) {
       QFont font = input_.font;
       font.setLetterSpacing(QFont::AbsoluteSpacing, 0);
-      font.setLetterSpacing(QFont::AbsoluteSpacing, spacer.width - TextFontMetrics(font).horizontalAdvance(kInlineBoxSpacer));
+      font.setLetterSpacing(QFont::AbsoluteSpacing,
+                            spacer.width - TextFontMetrics(font).horizontalAdvance(kInlineBoxSpacer));
       QTextCharFormat format;
       format.setFont(font);
       format.setForeground(Qt::transparent);
@@ -315,7 +328,8 @@ private:
       const bool sameFont = generatedFont == baseFormat_.font();
       const bool hasForeground = generated.format.hasProperty(QTextFormat::ForegroundBrush);
       const bool hasBackground = generated.format.hasProperty(QTextFormat::BackgroundBrush);
-      if (sameFont && !hasForeground && !hasBackground) continue;
+      if (sameFont && !hasForeground && !hasBackground)
+        continue;
       formats_.push_back(generated);
     }
   }
@@ -323,7 +337,8 @@ private:
   void appendObjects() {
     for (const auto& object : input_.objects) {
       QFont font = input_.font;
-      if (object.resetLetterSpacing) font.setLetterSpacing(QFont::AbsoluteSpacing, 0);
+      if (object.resetLetterSpacing)
+        font.setLetterSpacing(QFont::AbsoluteSpacing, 0);
       const qreal advance = TextFontMetrics(font).horizontalAdvance(object.placeholder);
       font.setLetterSpacing(QFont::AbsoluteSpacing, object.width - advance);
       QTextCharFormat format = object.inheritBaseFormat ? baseFormat_ : QTextCharFormat{};
@@ -334,10 +349,10 @@ private:
   }
 };
 
-}  // namespace
+} // namespace
 
 QVector<QTextLayout::FormatRange> buildInlineTextFormats(const InlineFormatInput& input) {
   return InlineFormatBuilder(input).build();
 }
 
-}  // namespace muffin
+} // namespace muffin

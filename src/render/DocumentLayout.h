@@ -18,14 +18,19 @@
 #include <vector>
 
 namespace muffin {
-namespace diag { struct MemoryAccounting; }
+namespace diag {
+struct MemoryAccounting;
+}
 
 class CodeFenceScrollController;
-namespace mermaid::editor { class MermaidRenderCache; }
+namespace mermaid::editor {
+class MermaidRenderCache;
+}
 
 class DocumentLayout {
   friend struct diag::MemoryAccounting;
- public:
+
+public:
   // Eager (default) builds every block's full detail up front — today's behavior, used by
   // tests and print. Lazy builds only cheap estimated heights up front and promotes blocks to
   // full detail on demand (ensureBuilt) as they scroll into view.
@@ -87,9 +92,12 @@ class DocumentLayout {
   ResourceRefreshResult refreshResources(const RenderTheme& theme, SelectionRange selection = {});
   void invalidateRenderState() { builder_.invalidateRenderState(); }
 
-  void rebuild(const MarkdownDocument& document, const RenderTheme& theme, qreal viewportWidth, QString documentPath = {});
-  void rebuild(const MarkdownDocument& document, const RenderTheme& theme, qreal viewportWidth, SelectionRange selection, QString documentPath = {});
-  void rebuild(const MarkdownDocument& document, const RenderTheme& theme, qreal viewportWidth, SelectionRange selection, QString documentPath, BuildPolicy policy);
+  void rebuild(const MarkdownDocument& document, const RenderTheme& theme, qreal viewportWidth,
+               QString documentPath = {});
+  void rebuild(const MarkdownDocument& document, const RenderTheme& theme, qreal viewportWidth,
+               SelectionRange selection, QString documentPath = {});
+  void rebuild(const MarkdownDocument& document, const RenderTheme& theme, qreal viewportWidth,
+               SelectionRange selection, QString documentPath, BuildPolicy policy);
   void setEditingHtmlBlock(NodeId id);
   // Per-code-fence horizontal scroll state; forwarded to the builder (writes longest-line width)
   // and to BlockLayout hit-test (reads the offset). Owned by EditorController.
@@ -106,12 +114,13 @@ class DocumentLayout {
   // Visible blocks are measured immediately by ensureBuilt; indices stay intact.
   bool hasPendingViewportEstimates() const;
   void refreshViewportEstimates(const RenderTheme& theme, int maxBlocks = 256, int budgetMs = 4);
-  BlockRebuildResult rebuildBlock(NodeId blockId, const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection,
-                                  BlockUpdateReason reason = BlockUpdateReason::Content);
-  RangeRebuildResult rebuildTopLevelRange(TopLevelRangeChange range, const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection);
+  BlockRebuildResult rebuildBlock(NodeId blockId, const MarkdownDocument& document, const RenderTheme& theme,
+                                  SelectionRange selection, BlockUpdateReason reason = BlockUpdateReason::Content);
+  RangeRebuildResult rebuildTopLevelRange(TopLevelRangeChange range, const MarkdownDocument& document,
+                                          const RenderTheme& theme, SelectionRange selection);
 
-  qreal pageLeft() const;   // content left
-  qreal pageWidth() const;  // content width
+  qreal pageLeft() const;  // content left
+  qreal pageWidth() const; // content width
   qreal pageOuterLeft() const;
   qreal pageOuterWidth() const;
   QRectF pageRect(const RenderTheme& theme, qreal viewportHeight = 0) const;
@@ -123,7 +132,7 @@ class DocumentLayout {
   qreal slotTop(qsizetype index) const;
   qreal slotHeight(qsizetype index) const;
   NodeId slotNodeId(qsizetype index) const;
-  qsizetype topLevelIndexFor(NodeId id) const;  // slot index of the top-level block owning id, or -1
+  qsizetype topLevelIndexFor(NodeId id) const; // slot index of the top-level block owning id, or -1
   // NodeId of the footnote-definition block whose label matches, or invalid. Footnote
   // references encode their target as a `#fn:<label>` href; this resolves the label
   // back to a scrollable block (footnote defs are few, so a document-tree scan is fine).
@@ -131,15 +140,16 @@ class DocumentLayout {
   // Inclusive [first,last] slot range whose vertical extent overlaps [yTop,yBottom]; returns
   // {-1,-1} when nothing overlaps (e.g. empty document).
   QPair<qsizetype, qsizetype> slotRangeOverlappingY(qreal yTop, qreal yBottom) const;
-  void ensureBuilt(qsizetype first, qsizetype last, const RenderTheme& theme);  // promote null-detail slots in [first,last]
+  void ensureBuilt(qsizetype first, qsizetype last,
+                   const RenderTheme& theme); // promote null-detail slots in [first,last]
   // Idle-only prefetch. Atomic blocks may exceed the time budget; never starts
   // more than maxBlocks promotions. Returns true when this range is complete.
   bool prefetch(qsizetype first, qsizetype last, const RenderTheme& theme, int maxBlocks = 2, int budgetMs = 4);
   qsizetype trimDetails(qsizetype first, qsizetype last, const RenderTheme& theme,
-                       const QVector<NodeId>& protectedIds = {}, qsizetype maxBlocks = 64);
+                        const QVector<NodeId>& protectedIds = {}, qsizetype maxBlocks = 64);
   qsizetype residentDetailCount() const;
-  void buildAll(const RenderTheme& theme);  // promote every slot (print)
-  QVector<NodeId> promotedTopLevelIds() const;  // slots currently holding full detail (spell-overlay refresh)
+  void buildAll(const RenderTheme& theme);     // promote every slot (print)
+  QVector<NodeId> promotedTopLevelIds() const; // slots currently holding full detail (spell-overlay refresh)
 
   // Geometry for the always-present virtual trailing empty paragraph below the
   // last block. The caret on this line is the click target for "append a new
@@ -148,16 +158,16 @@ class DocumentLayout {
   static QRectF trailingParagraphCursorRect(const BlockLayout& lastBlock, const RenderTheme& theme, qreal pageLeft);
   static qreal trailingSpaceForVirtualParagraph(const RenderTheme& theme);
 
-  QVector<const BlockLayout*> promotedBlocks() const;  // promoted slot details, in order
+  QVector<const BlockLayout*> promotedBlocks() const; // promoted slot details, in order
   QVector<const BlockLayout*> visibleBlocks(QRectF documentViewport, const RenderTheme& theme);
-  const BlockLayout* block(NodeId id, const RenderTheme& theme);  // promotes on demand
-  const BlockLayout* block(NodeId id) const;                      // convenience: already-built block, no promotion (tests / read-only UI)
-  const BlockLayout* blockIfPromoted(NodeId id) const;            // no promotion; may be null
+  const BlockLayout* block(NodeId id, const RenderTheme& theme); // promotes on demand
+  const BlockLayout* block(NodeId id) const; // convenience: already-built block, no promotion (tests / read-only UI)
+  const BlockLayout* blockIfPromoted(NodeId id) const; // no promotion; may be null
   NodeId topLevelBlockIdFor(NodeId id) const;
   const BlockLayout* blockAt(QPointF documentPos, const RenderTheme& theme);
   HitTestResult hitTest(QPointF documentPos, const RenderTheme& theme);
 
- private:
+private:
   QRectF refreshDependentStyles(const MarkdownDocument& document, const RenderTheme& theme, SelectionRange selection);
   bool refreshingStyles_ = false;
   bool resourceOnlyUpdate_ = false;
@@ -182,10 +192,10 @@ class DocumentLayout {
   void ensureSlotDetailPosition(qsizetype index) const;
 
   void configureBuilder(SelectionRange selection, bool reuseFormatting = false);
-  qreal promoteSlot(qsizetype index, const RenderTheme& theme);  // returns height delta
+  qreal promoteSlot(qsizetype index, const RenderTheme& theme); // returns height delta
   void shiftSuffixFrom(qsizetype index, qreal delta);
   void recomputeTotalHeight(const RenderTheme& theme);
-  qsizetype slotIndexAtY(qreal y) const;  // first slot whose top+height > y
+  qsizetype slotIndexAtY(qreal y) const; // first slot whose top+height > y
 
   const MarkdownDocument* document_ = nullptr;
   QString documentPath_;
@@ -207,15 +217,15 @@ class DocumentLayout {
   std::vector<BlockSlot> slots_;
   quint64 indexDocumentRevision_ = 0;
   NodeId indexDocumentRoot_;
-  LayoutPositionIndex positionIndex_;               // stable slot order + lazy vertical suffix shifts
-  QHash<NodeId, LayoutPositionToken*> topLevelIndex_;  // top-level node id -> stable position token
-  QHash<NodeId, NodeId> nestedToTopLevel_;          // any node id -> top-level node id
-  QHash<NodeId, QVector<NodeId>> nestedIdsByTopLevel_;  // exact removal set for a structural splice
-  QHash<NodeId, QPair<QString, QString>> headingCounterText_;  // resolved before/after content in document order
-  QVector<OutlineEntry> tocEntries_;                // document headings for `[TOC]` block rendering
+  LayoutPositionIndex positionIndex_;                         // stable slot order + lazy vertical suffix shifts
+  QHash<NodeId, LayoutPositionToken*> topLevelIndex_;         // top-level node id -> stable position token
+  QHash<NodeId, NodeId> nestedToTopLevel_;                    // any node id -> top-level node id
+  QHash<NodeId, QVector<NodeId>> nestedIdsByTopLevel_;        // exact removal set for a structural splice
+  QHash<NodeId, QPair<QString, QString>> headingCounterText_; // resolved before/after content in document order
+  QVector<OutlineEntry> tocEntries_;                          // document headings for `[TOC]` block rendering
   quint64 tocOutlineRevision_ = 0;
   NodeId tocDocumentRoot_;
-  QHash<NodeId, const BlockLayout*> layoutIndex_;   // node id -> built BlockLayout* (lazy-populated)
+  QHash<NodeId, const BlockLayout*> layoutIndex_; // node id -> built BlockLayout* (lazy-populated)
 
   qreal pageLeft_ = 0;       // content left
   qreal pageWidth_ = 0;      // content width
@@ -225,4 +235,4 @@ class DocumentLayout {
   BlockLayoutBuilder builder_;
 };
 
-}  // namespace muffin
+} // namespace muffin

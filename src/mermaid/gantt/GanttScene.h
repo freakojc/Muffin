@@ -165,8 +165,7 @@ struct GanttPreparedLayout {
   QVector<QDateTime> ticks;
 };
 
-GanttPreparedLayout ganttPrepareLayout(const GanttData& data,
-                                       const GanttConfig& config);
+GanttPreparedLayout ganttPrepareLayout(const GanttData& data, const GanttConfig& config);
 
 // The task-label placement upstream decides inside the d3 attr callbacks: a
 // getBBox() on the still-classless <text> yields the width, the class (and
@@ -179,26 +178,21 @@ struct GanttTaskTextPlacement {
   bool outsideLeft = false;
 };
 
-GanttTaskTextPlacement ganttTaskTextPlacement(const GanttTask& task,
-                                              const GanttPreparedLayout& layout,
-                                              const GanttConfig& config,
-                                              const QString& measureFamily,
+GanttTaskTextPlacement ganttTaskTextPlacement(const GanttTask& task, const GanttPreparedLayout& layout,
+                                              const GanttConfig& config, const QString& measureFamily,
                                               qreal measureSize);
 
 // Upstream class attribute strings (byte-for-byte after DOMPurify's
 // leading/trailing whitespace trim), shared with the themeCSS DOM model.
 QString ganttTaskRectClass(const GanttTask& task, int secNum);
-QString ganttTaskTextClass(const GanttTask& task, int secNum, qreal textWidth,
-                           bool outside, bool outsideLeft);
+QString ganttTaskTextClass(const GanttTask& task, int secNum, qreal textWidth, bool outside, bool outsideLeft);
 
 struct GanttScene : MermaidScene {
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override { return bounds; }
   void paint(QPainter& painter, const MermaidPaintOptions& options) const override;
   QJsonObject toJsonObject() const override;
-  const QVector<InteractionRegion>& interactionRegions() const override {
-    return interactions;
-  }
+  const QVector<InteractionRegion>& interactionRegions() const override { return interactions; }
 
   QRectF bounds;
   QString title;
@@ -220,8 +214,7 @@ struct GanttScene : MermaidScene {
   QVector<InteractionRegion> interactions;
 };
 
-GanttScene buildGanttScene(const GanttData& data, GanttConfig config,
-                           GanttSceneStyle style,
+GanttScene buildGanttScene(const GanttData& data, GanttConfig config, GanttSceneStyle style,
                            const GanttCssOverrides* css = nullptr);
 
-}  // namespace muffin::mermaid::gantt
+} // namespace muffin::mermaid::gantt

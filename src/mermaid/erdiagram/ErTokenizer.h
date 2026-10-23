@@ -85,8 +85,7 @@ private:
 // inter-token whitespace is recovered from the original source).
 class ErTokenCursor {
 public:
-  ErTokenCursor(const QVector<ErToken>& tokens, qsizetype begin = 0,
-                qsizetype end = -1);
+  ErTokenCursor(const QVector<ErToken>& tokens, qsizetype begin = 0, qsizetype end = -1);
 
   bool atEnd() const { return position_ >= end_; }
   qsizetype position() const { return position_; }
@@ -109,4 +108,4 @@ private:
 
 QString erTokenName(ErTokenKind kind);
 
-}  // namespace muffin::mermaid::er
+} // namespace muffin::mermaid::er

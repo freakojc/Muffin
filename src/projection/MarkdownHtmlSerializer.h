@@ -38,4 +38,4 @@ public:
   static QString serializeTree(const MarkdownNode& root, const MarkdownHtmlOptions& options);
 };
 
-}  // namespace muffin
+} // namespace muffin

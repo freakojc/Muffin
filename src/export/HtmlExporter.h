@@ -22,4 +22,4 @@ struct HtmlExportOptions {
 QString renderDocumentHtml(const QString& markdownSource, const QString& title, bool styled,
                            const QString& themeCss = {}, const HtmlExportOptions& options = {});
 
-}  // namespace muffin
+} // namespace muffin

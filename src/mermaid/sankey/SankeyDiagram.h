@@ -11,8 +11,7 @@ enum class SankeyErrorKind { Lexer, Parser, Runtime };
 
 class SankeyParseError final : public std::runtime_error {
 public:
-  SankeyParseError(SankeyErrorKind kind, int line, int column, QString token,
-                   const QString &message);
+  SankeyParseError(SankeyErrorKind kind, int line, int column, QString token, const QString& message);
 
   SankeyErrorKind kind = SankeyErrorKind::Parser;
   int line = 1;
@@ -37,7 +36,7 @@ struct SankeyData {
 
 class SankeyDiagram {
 public:
-  static SankeyData parse(const QString &source);
+  static SankeyData parse(const QString& source);
 };
 
 } // namespace muffin::mermaid::sankey

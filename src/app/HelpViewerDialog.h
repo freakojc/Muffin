@@ -60,4 +60,4 @@ private:
   HelpTopic currentTopic_ = HelpTopic::QuickStart;
 };
 
-}  // namespace muffin
+} // namespace muffin

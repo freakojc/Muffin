@@ -13,8 +13,7 @@ enum class RailroadErrorKind { Lexer, Parser, Runtime };
 
 class RailroadParseError : public std::runtime_error {
 public:
-  RailroadParseError(RailroadErrorKind kind, int line, int column,
-                     QString token, const QString& message);
+  RailroadParseError(RailroadErrorKind kind, int line, int column, QString token, const QString& message);
 
   RailroadErrorKind kind;
   int line;
@@ -22,15 +21,7 @@ public:
   QString token;
 };
 
-enum class RailroadNodeType {
-  Terminal,
-  NonTerminal,
-  Sequence,
-  Choice,
-  Optional,
-  Repetition,
-  Special
-};
+enum class RailroadNodeType { Terminal, NonTerminal, Sequence, Choice, Optional, Repetition, Special };
 
 // The four source grammars normalize to this exact railroadDb AST. Compound
 // nodes keep their children in source order; Optional/Repetition use child[0].
@@ -64,4 +55,4 @@ public:
   static RailroadData parse(const QString& source, RailroadDialect dialect);
 };
 
-}  // namespace muffin::mermaid::railroad
+} // namespace muffin::mermaid::railroad

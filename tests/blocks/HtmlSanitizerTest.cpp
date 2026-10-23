@@ -79,18 +79,15 @@ void testDataSvgStillBlocked() {
 }
 
 void testMermaidSvgMetadataMatchesDomPurify() {
-  const QString in = QStringLiteral(
-      "<svg onload=evil()>S<script>bad()</script></svg><u>AD</u>");
+  const QString in = QStringLiteral("<svg onload=evil()>S<script>bad()</script></svg><u>AD</u>");
   const QString out = kSanitizer.sanitizedMermaidText(in);
   require(out == QStringLiteral("<svg>S</svg><u>AD</u>"),
-          QStringLiteral("Mermaid SVG metadata should keep inert structure: %1")
-              .arg(out));
+          QStringLiteral("Mermaid SVG metadata should keep inert structure: %1").arg(out));
   const QString preview = kSanitizer.sanitizedPreview(in);
-  require(preview == QStringLiteral("<u>AD</u>"),
-          QStringLiteral("Preview SVG subtree policy must remain strict"));
+  require(preview == QStringLiteral("<u>AD</u>"), QStringLiteral("Preview SVG subtree policy must remain strict"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

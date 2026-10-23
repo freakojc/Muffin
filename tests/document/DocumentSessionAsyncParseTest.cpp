@@ -43,7 +43,8 @@ QJsonArray inlineSnapshot(const QVector<InlineNode>& inlines) {
 QJsonObject blockSnapshot(const MarkdownNode& node) {
   const auto r = node.sourceRange();
   QJsonArray children;
-  for (const auto& child : node.children()) children.append(blockSnapshot(*child));
+  for (const auto& child : node.children())
+    children.append(blockSnapshot(*child));
   return {
       {"type", int(node.type())},
       {"literal", node.literal()},
@@ -72,7 +73,8 @@ void testPreparedAsyncDocumentMatchesSyncAndRemainsEditable() {
                    [&] { publishedPrepared = blockSnapshot(async.document().root()) == expected; });
   QEventLoop loop;
   QObject::connect(&async, &DocumentSession::parseBusy, &loop, [&loop](bool busy) {
-    if (!busy) loop.quit();
+    if (!busy)
+      loop.quit();
   });
   async.openDocumentAsync(text);
   QTimer::singleShot(5000, &loop, &QEventLoop::quit);
@@ -112,7 +114,8 @@ void testParseOptionsWhileOpeningPreservesPendingFile() {
   QTimer::singleShot(5000, &loop, &QEventLoop::quit);
   loop.exec();
   require(!session.isAsyncParseInProgress(), "pending file finishes with new options");
-  require(session.markdownText().toString() == pending, "parse options must not replace the pending file with the previous buffer");
+  require(session.markdownText().toString() == pending,
+          "parse options must not replace the pending file with the previous buffer");
   require(!session.document().isModified(), "pending file remains clean");
 }
 
@@ -125,7 +128,7 @@ void testOpenDocumentAsyncEmitsParsed() {
   QObject::connect(&session, &DocumentSession::parsed, [&loop](qint64) { loop.quit(); });
 
   session.openDocumentAsync(QStringLiteral("# Heading\n\nparagraph text\n"));
-  QTimer::singleShot(5000, &loop, &QEventLoop::quit);  // timeout safeguard
+  QTimer::singleShot(5000, &loop, &QEventLoop::quit); // timeout safeguard
   loop.exec();
 
   require(parsedCount >= 1, "openDocumentAsync should emit parsed asynchronously");
@@ -162,16 +165,13 @@ void testOpenDocumentAsyncRetainsProfiledMetrics() {
 
   QEventLoop loop;
   QObject::connect(&session, &DocumentSession::parsed, [&loop](qint64) { loop.quit(); });
-  session.openDocumentAsync(QStringLiteral(
-      "# Profiled open\n\n"
-      "Paragraph with **inline content**.\n"));
+  session.openDocumentAsync(QStringLiteral("# Profiled open\n\n"
+                                           "Paragraph with **inline content**.\n"));
   QTimer::singleShot(5000, &loop, &QEventLoop::quit);
   loop.exec();
 
-  const ParsePerformanceMetrics& metrics =
-      session.lastFullParsePerformanceMetrics();
-  require(!metrics.isEmpty(),
-          "async full parse should retain structured performance metrics");
+  const ParsePerformanceMetrics& metrics = session.lastFullParsePerformanceMetrics();
+  require(!metrics.isEmpty(), "async full parse should retain structured performance metrics");
   bool sawCmark = false;
   for (const ParsePhasePerformance& phase : metrics.phases) {
     sawCmark = sawCmark || phase.name == QStringLiteral("parse.cmark");
@@ -202,8 +202,7 @@ void testAsyncStateCoversPendingGuiCommit() {
 
   QTimer::singleShot(5000, &loop, &QEventLoop::quit);
   loop.exec();
-  require(!session.isAsyncParseInProgress(),
-          "async open should become idle after the GUI commit");
+  require(!session.isAsyncParseInProgress(), "async open should become idle after the GUI commit");
   require(session.markdownText().toString() == QStringLiteral("new\n"),
           "the GUI commit should install the worker result");
 }
@@ -248,7 +247,10 @@ void testApplyTextDeltaRejectedWhileAsyncInFlight() {
   // parseBusy(false) quits the loop on BOTH success and the discard branch (finishAsyncParse emits
   // it either way), so a regression that discards the worker — and thus never emits parsed — still
   // exits promptly instead of waiting out the timeout.
-  QObject::connect(&session, &DocumentSession::parseBusy, [&loop](bool busy) { if (!busy) loop.quit(); });
+  QObject::connect(&session, &DocumentSession::parseBusy, [&loop](bool busy) {
+    if (!busy)
+      loop.quit();
+  });
   QTimer::singleShot(15000, &loop, &QEventLoop::quit);
 
   session.openDocumentAsync(big);
@@ -256,10 +258,9 @@ void testApplyTextDeltaRejectedWhileAsyncInFlight() {
   require(session.isAsyncParseInProgress(),
           "an async open parse should be in flight immediately after openDocumentAsync");
   const bool accepted = session.applyTextDelta(0, 0, QStringLiteral("X"), false, {});
-  require(!accepted,
-          "applyTextDelta must be rejected while an async parse is in flight (would clobber the open)");
+  require(!accepted, "applyTextDelta must be rejected while an async parse is in flight (would clobber the open)");
 
-  loop.exec();  // let the worker finish on the GUI thread
+  loop.exec(); // let the worker finish on the GUI thread
 
   const QString text = session.markdownText().toString();
   require(text.contains(QStringLiteral("para 19999")),
@@ -268,7 +269,7 @@ void testApplyTextDeltaRejectedWhileAsyncInFlight() {
           "the stale pre-open text must have been replaced by the opened file");
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication::setOrganizationName(QStringLiteral("MuffinTest"));

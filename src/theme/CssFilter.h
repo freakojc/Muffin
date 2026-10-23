@@ -17,7 +17,7 @@ struct CssFilterOperation {
 };
 // A malformed function invalidates the entire declaration. The same grammar
 // is used by @supports, cascade validation, and computed paint projection.
-std::optional<std::vector<CssFilterOperation>> parseCssFilters(const QString& value, const CssLengthContext& context = {},
-                                                             QColor currentColor = Qt::black);
+std::optional<std::vector<CssFilterOperation>>
+parseCssFilters(const QString& value, const CssLengthContext& context = {}, QColor currentColor = Qt::black);
 CssFilterOperation identityCssFilter(CssFilterOperation::Kind kind);
-}  // namespace muffin
+} // namespace muffin

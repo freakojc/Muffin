@@ -57,4 +57,4 @@ private:
   static void ensureLoaded();
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

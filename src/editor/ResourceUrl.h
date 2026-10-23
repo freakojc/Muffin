@@ -20,8 +20,7 @@ inline QUrl resolve(const QString& value, const QUrl& base) {
   // A native drive/UNC path is not a URL scheme (QUrl parses C: as scheme "c").
   if (QFileInfo(value).isAbsolute() && !value.startsWith(QLatin1Char('/'))) {
     const QString path = QDir::fromNativeSeparators(value);
-    return QUrl((path.startsWith(QStringLiteral("//")) ? QStringLiteral("file:")
-                                                       : QStringLiteral("file:///")) + path);
+    return QUrl((path.startsWith(QStringLiteral("//")) ? QStringLiteral("file:") : QStringLiteral("file:///")) + path);
   }
 #endif
   if (url.isLocalFile() && QFileInfo(url.toLocalFile()).isAbsolute()) {
@@ -38,12 +37,11 @@ inline QUrl resolve(const QString& value, const QUrl& base) {
   // and query/fragment components must not become part of a local filename.
   return base.resolved(url.isLocalFile() ? QUrl(url.toLocalFile()) : url);
 }
-}  // namespace resource_url_detail
+} // namespace resource_url_detail
 
 inline QUrl resolvedUrlForDocumentResource(const QString& value, const QString& documentPath) {
-  const QUrl base = documentPath.isEmpty()
-      ? QUrl::fromLocalFile(QDir::currentPath() + QLatin1Char('/'))
-      : QUrl::fromLocalFile(QFileInfo(documentPath).absoluteFilePath());
+  const QUrl base = documentPath.isEmpty() ? QUrl::fromLocalFile(QDir::currentPath() + QLatin1Char('/'))
+                                           : QUrl::fromLocalFile(QFileInfo(documentPath).absoluteFilePath());
   return resource_url_detail::resolve(value, base);
 }
 
@@ -52,4 +50,4 @@ inline QUrl resolvedUrlForDirectoryResource(const QString& value, const QString&
   return resource_url_detail::resolve(value, base);
 }
 
-}  // namespace muffin
+} // namespace muffin

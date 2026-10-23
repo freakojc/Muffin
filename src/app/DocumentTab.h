@@ -80,4 +80,4 @@ public:
   quint64 sidebarOutlineRevision = 0;
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -7,14 +7,10 @@ namespace muffin::math {
 namespace {
 
 constexpr std::array<MathStyle, 8> styles{
-    MathStyle(MathStyle::Display, 0, false),
-    MathStyle(MathStyle::DisplayCramped, 0, true),
-    MathStyle(MathStyle::Text, 1, false),
-    MathStyle(MathStyle::TextCramped, 1, true),
-    MathStyle(MathStyle::Script, 2, false),
-    MathStyle(MathStyle::ScriptCramped, 2, true),
-    MathStyle(MathStyle::ScriptScript, 3, false),
-    MathStyle(MathStyle::ScriptScriptCramped, 3, true),
+    MathStyle(MathStyle::Display, 0, false),      MathStyle(MathStyle::DisplayCramped, 0, true),
+    MathStyle(MathStyle::Text, 1, false),         MathStyle(MathStyle::TextCramped, 1, true),
+    MathStyle(MathStyle::Script, 2, false),       MathStyle(MathStyle::ScriptCramped, 2, true),
+    MathStyle(MathStyle::ScriptScript, 3, false), MathStyle(MathStyle::ScriptScriptCramped, 3, true),
 };
 
 constexpr std::array<int, 8> supMap{4, 5, 4, 5, 6, 7, 6, 7};
@@ -28,7 +24,7 @@ MathStyle mapped(MathStyle::Id id, const std::array<int, 8>& map) {
   return styles.at(static_cast<std::size_t>(map.at(static_cast<std::size_t>(id))));
 }
 
-}  // namespace
+} // namespace
 
 MathStyle::Id MathStyle::id() const {
   return id_;
@@ -86,4 +82,4 @@ MathStyle MathStyle::scriptScript() {
   return styles.at(ScriptScript);
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

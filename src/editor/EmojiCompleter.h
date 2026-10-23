@@ -45,8 +45,8 @@ private:
   const EmojiProvider* provider_;
   QListView* popup_ = nullptr;
   QStringListModel* model_ = nullptr;
-  QVector<EmojiEntry> entries_;  // parallel to model rows
-  bool active_ = false;  // whether a candidate list is currently presented (owned, not Qt-visibility)
+  QVector<EmojiEntry> entries_; // parallel to model rows
+  bool active_ = false;         // whether a candidate list is currently presented (owned, not Qt-visibility)
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -57,7 +57,7 @@ const InlineNode* findInline(const MarkdownNode& node, InlineType type) {
   }
   return nullptr;
 }
-}  // namespace
+} // namespace
 
 void testHighlightParses() {
   CmarkGfmParser parser;
@@ -87,7 +87,7 @@ void testHighlightNestedFormatting() {
 
 void testHighlightDisabledStaysLiteral() {
   CmarkGfmParser parser;
-  ParseOptions options;  // enableHighlight defaults false
+  ParseOptions options; // enableHighlight defaults false
   ParseResult result = parser.parseDocument(QStringLiteral("a ==key== b"), options);
   require(countInline(*result.root, InlineType::Highlight) == 0,
           "with enableHighlight=false the markers must stay literal");
@@ -98,8 +98,7 @@ void testTripleEqualsStaysLiteral() {
   ParseOptions options;
   options.enableHighlight = true;
   ParseResult result = parser.parseDocument(QStringLiteral("a === b"), options);
-  require(countInline(*result.root, InlineType::Highlight) == 0,
-          "a run of three = must not form a highlight marker");
+  require(countInline(*result.root, InlineType::Highlight) == 0, "a run of three = must not form a highlight marker");
 }
 
 void testEscapedHighlightStaysLiteral() {
@@ -107,8 +106,7 @@ void testEscapedHighlightStaysLiteral() {
   ParseOptions options;
   options.enableHighlight = true;
   ParseResult result = parser.parseDocument(QStringLiteral("\\==not=="), options);
-  require(countInline(*result.root, InlineType::Highlight) == 0,
-          "a backslash-escaped == must not open a highlight");
+  require(countInline(*result.root, InlineType::Highlight) == 0, "a backslash-escaped == must not open a highlight");
 }
 
 void testHighlightSerializesRoundTrip() {
@@ -119,8 +117,7 @@ void testHighlightSerializesRoundTrip() {
   require(result.root != nullptr, "parse should produce a root");
   require(result.root->children().size() >= 1, "root should have a paragraph child");
   const QString serialized = MarkdownSerializer().serializeBlock(*result.root->children().at(0));
-  require(serialized == QStringLiteral("a ==key== b"),
-          "highlight should round-trip to ==key== on serialize");
+  require(serialized == QStringLiteral("a ==key== b"), "highlight should round-trip to ==key== on serialize");
 }
 
 int main(int argc, char** argv) {

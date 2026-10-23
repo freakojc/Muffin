@@ -25,7 +25,9 @@ class QTimer;
 class QWidget;
 
 namespace muffin {
-namespace diag { struct MemoryAccounting; }
+namespace diag {
+struct MemoryAccounting;
+}
 
 class CodeFenceScrollController;
 class CodeLanguageEditor;
@@ -180,7 +182,7 @@ private:
   struct ViewportAnchor {
     bool valid = false;
     NodeId nodeId;
-    qreal screenOffset = 0.0;  // slotTop minus the unrounded logical scroll position
+    qreal screenOffset = 0.0; // slotTop minus the unrounded logical scroll position
   };
   // Resolve the block to anchor on into a ViewportAnchor. When `preferNode` is valid it is used
   // directly (e.g. the cursor's block, so a marker reveal keeps the clicked line put); otherwise
@@ -198,13 +200,13 @@ private:
   // re-enter layout, and on destruction re-derives the scrollbar value so the visible content never
   // jumps. Nested pins are safe: the outermost governs the final scroll position.
   class ScopedViewportPin {
-   public:
+  public:
     explicit ScopedViewportPin(EditorView& view, NodeId preferNode = {});
     ~ScopedViewportPin();
     ScopedViewportPin(const ScopedViewportPin&) = delete;
     ScopedViewportPin& operator=(const ScopedViewportPin&) = delete;
 
-   private:
+  private:
     EditorView& view_;
     ViewportAnchor anchor_;
     bool prevGuard_;
@@ -215,7 +217,7 @@ private:
   // coalescing check for callers whose visible output depends on state outside the stamp's
   // {selection, revision} key (spell toggle, smart-punct rendering, mermaid async arrival).
   bool refreshBlocksInternal(const QVector<NodeId>& blockIds, const MarkdownDocument& document, bool forceRebuild,
-                            DocumentLayout::BlockUpdateReason reason = DocumentLayout::BlockUpdateReason::Content);
+                             DocumentLayout::BlockUpdateReason reason = DocumentLayout::BlockUpdateReason::Content);
   // Drop any active IME composition (splice + state) and rebuild the caret block. Called on
   // focus changes so a composition cannot survive at a caret that has moved on.
   void resetComposition();
@@ -243,7 +245,8 @@ private:
   // (wrap off + overflow) paint their text translated by -offset, so the highlight must shift by
   // the same amount and be clipped to the visible text window (the content rect minus the scrollbar
   // strip) — otherwise the highlight sits at the content's natural x while the text has scrolled.
-  void paintSelectionRectsForBlock(QPainter& painter, const BlockLayout* block, const QVector<QRectF>& documentRects) const;
+  void paintSelectionRectsForBlock(QPainter& painter, const BlockLayout* block,
+                                   const QVector<QRectF>& documentRects) const;
   // Typora-style thin blue outline around a whole-selected thematic break (no text to highlight).
   void paintSelectedRuleOutline(QPainter& painter, const BlockLayout* block) const;
   // True for a code fence that paints a horizontal scrollbar (wrap off + a line wider than content).
@@ -307,8 +310,8 @@ private:
   // Active IME composition (paint-layer only — never touches the document; only commitString is
   // inserted). Empty when no composition is in progress. Set in inputMethodEvent, read in paintPreedit.
   QString preedit_;
-  QVector<QTextLayout::FormatRange> preeditFormats_;  // underline/highlight ranges over preedit_
-  int preeditCursor_ = -1;  // caret position within preedit_ from the IME's Cursor attribute (-1 = none)
+  QVector<QTextLayout::FormatRange> preeditFormats_; // underline/highlight ranges over preedit_
+  int preeditCursor_ = -1; // caret position within preedit_ from the IME's Cursor attribute (-1 = none)
   // Mouse drag-selection state machine: Idle (no button) → Pending (pressed, below drag
   // threshold) → Dragging (threshold crossed). Replaces the draggingSelection_/dragSelectionPending_
   // bool pair. `dragState_ != Idle` covers the old `(pending || dragging)` "armed" check.
@@ -335,7 +338,10 @@ private:
   // BrushQueue edit refresh both rebuild the same block). A block is skipped only if it was last
   // built with the CURRENT selection AND the CURRENT document revision — so a genuinely different
   // selection or a content edit still wins. Cleared on full rebuild (setDocument).
-  struct BuiltStamp { SelectionRange selection; quint64 revision; };
+  struct BuiltStamp {
+    SelectionRange selection;
+    quint64 revision;
+  };
   QHash<NodeId, BuiltStamp> blockBuiltAt_;
   bool resourcesDirty_ = false;
   bool resourceRefreshQueued_ = false;
@@ -344,7 +350,7 @@ private:
   // builder reads it. When a render finishes, the visible blocks are refreshed so
   // the diagram replaces its loading placeholder at the correct height.
   muffin::mermaid::editor::MermaidRenderCache mermaidCache_;
-  NodeId codeFenceScrollDragId_;  // block being horizontally dragged via its scrollbar (invalid when idle)
+  NodeId codeFenceScrollDragId_; // block being horizontally dragged via its scrollbar (invalid when idle)
   HtmlBlockHoverController htmlHover_;
   CssPaintContext cssPaintContext_;
   QElapsedTimer cssPaintClock_;
@@ -364,13 +370,13 @@ private:
   qreal viewportScrollRemainder_ = 0.0;
   // A checkbox click edits in place, even when the text caret is offscreen.
   bool togglingTaskCheckbox_ = false;
-  bool loading_ = false;  // set by setLoading; paintEvent shows a loading hint while true
-  QTimer* loadingTimer_ = nullptr;  // idle-gated: runs only while loading_, advancing loadingPhase_
-  QTimer* cursorTimer_ = nullptr;   // caret blink; runs only while focused with a caret, no preedit
-  QTimer* dragScrollTimer_ = nullptr;  // selection drag auto-scroll; active while dragging past the edge
-  QPointF lastDragViewportPos_;         // last drag mouse position (viewport coords)
-  bool caretBlinkOn_ = true;        // blink phase; stays true unfocused/offscreen (steady caret)
-  qreal loadingPhase_ = 0.0;  // 0..1 head position of the bright wave around the dot ring
+  bool loading_ = false;              // set by setLoading; paintEvent shows a loading hint while true
+  QTimer* loadingTimer_ = nullptr;    // idle-gated: runs only while loading_, advancing loadingPhase_
+  QTimer* cursorTimer_ = nullptr;     // caret blink; runs only while focused with a caret, no preedit
+  QTimer* dragScrollTimer_ = nullptr; // selection drag auto-scroll; active while dragging past the edge
+  QPointF lastDragViewportPos_;       // last drag mouse position (viewport coords)
+  bool caretBlinkOn_ = true;          // blink phase; stays true unfocused/offscreen (steady caret)
+  qreal loadingPhase_ = 0.0;          // 0..1 head position of the bright wave around the dot ring
 };
 
-}  // namespace muffin
+} // namespace muffin

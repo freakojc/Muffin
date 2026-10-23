@@ -21,16 +21,18 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 const er::ErSceneEntity* entityById(const editor::MermaidRenderEntry& e, const QString& id) {
   const auto* erScene = dynamic_cast<const er::ErScene*>(e.scene.get());
   require(erScene != nullptr, QStringLiteral("missing ER scene"));
   for (const auto& entity : erScene->entities)
-    if (entity.id == id) return &entity;
+    if (entity.id == id)
+      return &entity;
   return nullptr;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -40,11 +42,10 @@ int main(int argc, char** argv) {
   editor::MermaidRenderCache cache;
 
   // classDef + cssClass: CUSTOMER gets the "red" class.
-  const QString classSource = QStringLiteral(
-      "erDiagram\n"
-      "CUSTOMER ||--o{ ORDER : places\n"
-      "classDef red fill:#ff0000,stroke:#00ff00\n"
-      "cssClass CUSTOMER red");
+  const QString classSource = QStringLiteral("erDiagram\n"
+                                             "CUSTOMER ||--o{ ORDER : places\n"
+                                             "classDef red fill:#ff0000,stroke:#00ff00\n"
+                                             "cssClass CUSTOMER red");
   const auto classEntry = cache.getSync(cache.makeKey(classSource), classSource);
   require(classEntry.status == editor::MermaidRenderStatus::Ready,
           QStringLiteral("classDef ER diagram did not render: ") + classEntry.errorMessage);
@@ -56,10 +57,9 @@ int main(int argc, char** argv) {
           QStringLiteral("classDef stroke did not resolve; got ") + customer->stroke);
 
   // Inline style overrides.
-  const QString styleSource = QStringLiteral(
-      "erDiagram\n"
-      "CUSTOMER ||--o{ ORDER : places\n"
-      "style CUSTOMER fill:#0000ff");
+  const QString styleSource = QStringLiteral("erDiagram\n"
+                                             "CUSTOMER ||--o{ ORDER : places\n"
+                                             "style CUSTOMER fill:#0000ff");
   const auto styleEntry = cache.getSync(cache.makeKey(styleSource), styleSource);
   require(styleEntry.status == editor::MermaidRenderStatus::Ready,
           QStringLiteral("inline-style ER diagram did not render"));

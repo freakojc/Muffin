@@ -50,25 +50,25 @@ struct PerfTimer : diag::ScopedPerfProbe {
 QString plainTextForNode(const MarkdownNode& node) {
   QString text;
   switch (node.type()) {
-    case BlockType::List:
-    case BlockType::ListItem:
-      for (const auto& child : node.children()) {
-        const QString childText = plainTextForNode(*child);
-        if (childText.isEmpty()) {
-          continue;
-        }
-        if (!text.isEmpty()) {
-          text += QLatin1Char('\n');
-        }
-        text += childText;
+  case BlockType::List:
+  case BlockType::ListItem:
+    for (const auto& child : node.children()) {
+      const QString childText = plainTextForNode(*child);
+      if (childText.isEmpty()) {
+        continue;
       }
-      return text;
-    case BlockType::Paragraph:
-    case BlockType::Heading:
-    case BlockType::TableCell:
-      return InlineProjection::plainTextForInlines(node.inlines());
-    default:
-      return node.literal();
+      if (!text.isEmpty()) {
+        text += QLatin1Char('\n');
+      }
+      text += childText;
+    }
+    return text;
+  case BlockType::Paragraph:
+  case BlockType::Heading:
+  case BlockType::TableCell:
+    return InlineProjection::plainTextForInlines(node.inlines());
+  default:
+    return node.literal();
   }
 }
 
@@ -109,9 +109,10 @@ NodeId refreshNodeFor(DocumentSession* session, NodeId nodeId) {
   return node->id();
 }
 
-}  // namespace
+} // namespace
 
-InputController::InputController(QObject* parent) : QObject(parent) {}
+InputController::InputController(QObject* parent) : QObject(parent) {
+}
 
 void InputController::setContext(const EditorContext& ctx) {
   EditorView* const oldView = ctx_.view;
@@ -163,7 +164,7 @@ bool InputController::eventFilter(QObject* watched, QEvent* event) {
       // stale text and supersede (discard) the worker's parsed result for the file being opened.
       // The view shows a loading hint meanwhile; editing resumes once parseBusy(false) fires.
       if (ctx_.session && ctx_.session->isOpenInProgress()) {
-        return true;  // swallow — no edit, no fallback reparse
+        return true; // swallow — no edit, no fallback reparse
       }
       return handleKeyPress(static_cast<QKeyEvent*>(event));
     }
@@ -173,7 +174,7 @@ bool InputController::eventFilter(QObject* watched, QEvent* event) {
       // stayed up with a stale emojiColonStart_ and accepting an entry replaced the
       // whole span between the shortcode's colon and the new caret position.
       hideEmojiPopup();
-      return false;  // let the click place the caret normally
+      return false; // let the click place the caret normally
     }
   }
   return QObject::eventFilter(watched, event);
@@ -182,7 +183,7 @@ bool InputController::eventFilter(QObject* watched, QEvent* event) {
 bool InputController::insertText(QString text) {
   clearVerticalNavigationX();
   if (ctx_.session && ctx_.session->isOpenInProgress()) {
-    return false;  // document_ holds stale pre-open text during async parse — drop input (same gate as KeyPress)
+    return false; // document_ holds stale pre-open text during async parse — drop input (same gate as KeyPress)
   }
   if (ctx_.hasSession() && ctx_.session->markdownText().isEmpty()) {
     return insertIntoEmptyDocument(std::move(text));
@@ -221,7 +222,8 @@ bool InputController::insertText(QString text) {
     return true;
   }
   if (ctx_.selection && ctx_.selection->hasCursor() && !ctx_.selection->selection().isCollapsed()) {
-    const bool replaced = replaceSelection(std::move(text), EditTransaction::Kind::InsertText, QStringLiteral("Replace Selection"));
+    const bool replaced =
+        replaceSelection(std::move(text), EditTransaction::Kind::InsertText, QStringLiteral("Replace Selection"));
     if (replaced) {
       maybeUpdateEmojiPopup();
     }
@@ -239,7 +241,8 @@ bool InputController::insertText(QString text) {
     hideEmojiPopup();
     return true;
   }
-  const bool inserted = text.isEmpty() ? false : editParagraph(TextBlockCommandBuilder::Operation::InsertText, std::move(text));
+  const bool inserted =
+      text.isEmpty() ? false : editParagraph(TextBlockCommandBuilder::Operation::InsertText, std::move(text));
   if (inserted) {
     maybeUpdateEmojiPopup();
   }
@@ -339,7 +342,7 @@ bool InputController::insertBlockAfterCurrentBlock(QString text) {
   if (following && following->sourceRange().byteEnd > following->sourceRange().byteStart) {
     insertOffset = following->sourceRange().byteStart;
     insertedText = text + (isLiteralBlock ? QStringLiteral("\n") : QStringLiteral("\n\n"));
-    caretOffset = insertOffset + text.size();  // inside the new paragraph, before its trailing separator
+    caretOffset = insertOffset + text.size(); // inside the new paragraph, before its trailing separator
   } else {
     if (text.isEmpty()) {
       insertedText = QStringLiteral("\n\n");
@@ -354,20 +357,14 @@ bool InputController::insertBlockAfterCurrentBlock(QString text) {
       caretOffset = insertOffset + insertedText.size();
     }
   }
-  applyLocalEdit(
-      EditTransaction::Kind::SplitParagraph,
-      text.isEmpty() ? QStringLiteral("Insert Paragraph After") : QStringLiteral("Insert Text After Block"),
-      insertOffset,
-      0,
-      insertedText,
-      CursorPosition(),
-      caretOffset,
-      QVector<LocalEditNodeHint>{LocalEditNodeHint{node->id(), range.byteStart, node->type()}},
-      true,
-      false);  // structureEdit=false: this is a plain "\n\n…" text insert, so a TextDeltaCommand
-               // undo suffices. structureEdit=true forced the O(document) snapshot-undo path
-               // (full-doc toString ×3 + collectPendingMarkerOffsets ×2 ≈ 7s on an 18MB doc) on
-               // every "type after a block" keystroke.
+  applyLocalEdit(EditTransaction::Kind::SplitParagraph,
+                 text.isEmpty() ? QStringLiteral("Insert Paragraph After") : QStringLiteral("Insert Text After Block"),
+                 insertOffset, 0, insertedText, CursorPosition(), caretOffset,
+                 QVector<LocalEditNodeHint>{LocalEditNodeHint{node->id(), range.byteStart, node->type()}}, true,
+                 false); // structureEdit=false: this is a plain "\n\n…" text insert, so a TextDeltaCommand
+                         // undo suffices. structureEdit=true forced the O(document) snapshot-undo path
+                         // (full-doc toString ×3 + collectPendingMarkerOffsets ×2 ≈ 7s on an 18MB doc) on
+                         // every "type after a block" keystroke.
   return true;
 }
 
@@ -494,20 +491,13 @@ bool InputController::replaceSelection(QString text, EditTransaction::Kind kind,
     const qsizetype sourceStart = context.contentRange.byteStart + start;
     QVector<LocalEditNodeHint> nodeHints;
     if (context.node) {
-      nodeHints.push_back(LocalEditNodeHint{
-          context.node->id(),
-          context.blockRange.byteStart >= 0 ? context.blockRange.byteStart : context.contentRange.byteStart,
-          context.node->type()});
+      nodeHints.push_back(LocalEditNodeHint{context.node->id(),
+                                            context.blockRange.byteStart >= 0 ? context.blockRange.byteStart
+                                                                              : context.contentRange.byteStart,
+                                            context.node->type()});
     }
-    applyLocalEdit(
-        kind,
-        label,
-        sourceStart,
-        end - start,
-        std::move(text),
-        CursorPosition(),
-        sourceStart + insertedLength,
-        std::move(nodeHints));
+    applyLocalEdit(kind, label, sourceStart, end - start, std::move(text), CursorPosition(),
+                   sourceStart + insertedLength, std::move(nodeHints));
     return true;
   }
 
@@ -526,22 +516,17 @@ bool InputController::replaceSelection(QString text, EditTransaction::Kind kind,
   if (range.focus.blockId.isValid() && range.focus.blockId != range.anchor.blockId) {
     nodeHints.push_back(LocalEditNodeHint{range.focus.blockId, sourceEnd, BlockType::Unknown});
   }
-  applyLocalEdit(
-      kind,
-      label,
-      sourceStart,
-      sourceEnd - sourceStart,
-      std::move(text),
-      CursorPosition(),
-      sourceStart + insertedLength,
-      std::move(nodeHints));
+  applyLocalEdit(kind, label, sourceStart, sourceEnd - sourceStart, std::move(text), CursorPosition(),
+                 sourceStart + insertedLength, std::move(nodeHints));
   return true;
 }
 
 int InputController::topLevelBlockIndex(const MarkdownNode& node) const {
   const auto& blocks = ctx_.session->document().root().children();
   for (int i = 0; i < static_cast<int>(blocks.size()); ++i) {
-    if (blocks.at(static_cast<size_t>(i)).get() == &node) { return i; }
+    if (blocks.at(static_cast<size_t>(i)).get() == &node) {
+      return i;
+    }
   }
   return -1;
 }
@@ -603,7 +588,8 @@ void InputController::syncLiteralEditMode(NodeId newBlockId) {
 
   bool alreadyEditingTarget = false;
   if (type == BlockType::CodeFence) {
-    alreadyEditingTarget = codeFenceController_ && codeFenceController_->isEditing() && codeFenceController_->currentCodeFenceId() == newBlockId;
+    alreadyEditingTarget = codeFenceController_ && codeFenceController_->isEditing() &&
+                           codeFenceController_->currentCodeFenceId() == newBlockId;
   } else if (LiteralBlockController* ctrl = ctx_.literalEditors.value(static_cast<int>(type))) {
     alreadyEditingTarget = ctrl->isEditing() && ctrl->currentBlockId() == newBlockId;
   }
@@ -678,27 +664,22 @@ bool InputController::tryInsertOptionalDefinitionTitle(QString text) {
   }
 
   const QString inserted = definition.titleQuoted ? text : QStringLiteral("  \"%1\"").arg(text);
-  const qsizetype titleSourceStart = definition.titleQuoted ? definition.titleRange.start : definition.titleRange.start + 3;
+  const qsizetype titleSourceStart =
+      definition.titleQuoted ? definition.titleRange.start : definition.titleRange.start + 3;
   CursorPosition preferredCursor;
   preferredCursor.blockId = node->id();
   preferredCursor.text.nodeId = node->id();
   preferredCursor.text.sourceOffset = titleSourceStart + text.size();
   preferredCursor.text.textOffset = preferredCursor.text.sourceOffset - definition.markerRange.start;
   applyLocalEdit(
-      EditTransaction::Kind::InsertText,
-      QStringLiteral("Insert Link Definition Title"),
-      definition.titleRange.start,
-      0,
-      inserted,
-      preferredCursor,
-      preferredCursor.text.sourceOffset,
+      EditTransaction::Kind::InsertText, QStringLiteral("Insert Link Definition Title"), definition.titleRange.start, 0,
+      inserted, preferredCursor, preferredCursor.text.sourceOffset,
       QVector<LocalEditNodeHint>{LocalEditNodeHint{node->id(), node->sourceRange().byteStart, node->type()}});
   return true;
 }
 
 bool InputController::deleteBackwardInActiveLiteral() {
-  if (tryRemoveEmptyLiteralBlock(EditTransaction::Kind::DeleteText,
-                                  QStringLiteral("Backspace Empty Block"))) {
+  if (tryRemoveEmptyLiteralBlock(EditTransaction::Kind::DeleteText, QStringLiteral("Backspace Empty Block"))) {
     return true;
   }
   if (LiteralBlockController* active = activeLiteralEditor()) {
@@ -711,8 +692,7 @@ bool InputController::deleteBackwardInActiveLiteral() {
 }
 
 bool InputController::deleteForwardInActiveLiteral() {
-  if (tryRemoveEmptyLiteralBlock(EditTransaction::Kind::DeleteText,
-                                  QStringLiteral("Delete Empty Block"))) {
+  if (tryRemoveEmptyLiteralBlock(EditTransaction::Kind::DeleteText, QStringLiteral("Delete Empty Block"))) {
     return true;
   }
   if (LiteralBlockController* active = activeLiteralEditor()) {
@@ -765,7 +745,8 @@ bool InputController::handleKeyPress(QKeyEvent* event) {
   // Ctrl-combos the editor owns (word/paragraph/page navigation, word delete) are dispatched
   // below; every other Ctrl combo keeps falling through so menu shortcuts (Ctrl+S, Ctrl+F, ...)
   // and widget actions (Ctrl+Shift+Backspace = delete table row) win. Alt is never ours.
-  const bool ctrlOwned = event->modifiers().testFlag(Qt::ControlModifier) &&
+  const bool ctrlOwned =
+      event->modifiers().testFlag(Qt::ControlModifier) &&
       editor_keys::isEditorOwnedCtrlKey(event->key(), event->modifiers().testFlag(Qt::ShiftModifier));
   if (!ctx_.hasSession() || !ctx_.hasSelection() || !ctx_.view ||
       (event->modifiers().testFlag(Qt::ControlModifier) && !ctrlOwned) ||
@@ -777,23 +758,23 @@ bool InputController::handleKeyPress(QKeyEvent* event) {
   // it and then falls through so the keystroke keeps editing normally.
   if (emojiCompleter_ && emojiCompleter_->isVisible()) {
     switch (event->key()) {
-      case Qt::Key_Down:
-        emojiCompleter_->moveSelection(1);
-        return true;
-      case Qt::Key_Up:
-        emojiCompleter_->moveSelection(-1);
-        return true;
-      case Qt::Key_Return:
-      case Qt::Key_Enter:
-      case Qt::Key_Tab:
-        emojiCompleter_->acceptCurrent();
-        return true;
-      case Qt::Key_Escape:
-        hideEmojiPopup();
-        return true;
-      default:
-        hideEmojiPopup();
-        break;
+    case Qt::Key_Down:
+      emojiCompleter_->moveSelection(1);
+      return true;
+    case Qt::Key_Up:
+      emojiCompleter_->moveSelection(-1);
+      return true;
+    case Qt::Key_Return:
+    case Qt::Key_Enter:
+    case Qt::Key_Tab:
+      emojiCompleter_->acceptCurrent();
+      return true;
+    case Qt::Key_Escape:
+      hideEmojiPopup();
+      return true;
+    default:
+      hideEmojiPopup();
+      break;
     }
   }
 
@@ -823,116 +804,117 @@ bool InputController::handleKeyPress(QKeyEvent* event) {
              k == Qt::Key_AltGr || k == Qt::Key_CapsLock || k == Qt::Key_NumLock || k == Qt::Key_ScrollLock;
     };
     switch (key) {
-      case Qt::Key_Backspace:
-        codeFenceController_->clearPendingTrailingNewline();
-        return true;
-      case Qt::Key_Return:
-      case Qt::Key_Enter:
-        // Indented code cannot hold a second trailing empty line, and Enter-on-empty is the
-        // standard "leave the block" gesture. exitEditMode() clears the phantom as its choke point,
-        // so the cursor stays usable for the paragraph insert below.
-        codeFenceController_->exitEditMode();
-        return insertBlockAfterCurrentBlock();
-      case Qt::Key_Tab:
-      case Qt::Key_Backtab:
-        break;  // commit: the Tab text lands on the phantom line via the switch below
-      default:
-        if (!printableText(event).isEmpty()) {
-          break;  // commit: the character lands on the phantom line via insertText below
-        }
-        if (isModifierKey(key)) {
-          break;  // modifier-only press (e.g. Shift): leave the phantom intact
-        }
-        codeFenceController_->clearPendingTrailingNewline();
-        break;
+    case Qt::Key_Backspace:
+      codeFenceController_->clearPendingTrailingNewline();
+      return true;
+    case Qt::Key_Return:
+    case Qt::Key_Enter:
+      // Indented code cannot hold a second trailing empty line, and Enter-on-empty is the
+      // standard "leave the block" gesture. exitEditMode() clears the phantom as its choke point,
+      // so the cursor stays usable for the paragraph insert below.
+      codeFenceController_->exitEditMode();
+      return insertBlockAfterCurrentBlock();
+    case Qt::Key_Tab:
+    case Qt::Key_Backtab:
+      break; // commit: the Tab text lands on the phantom line via the switch below
+    default:
+      if (!printableText(event).isEmpty()) {
+        break; // commit: the character lands on the phantom line via insertText below
+      }
+      if (isModifierKey(key)) {
+        break; // modifier-only press (e.g. Shift): leave the phantom intact
+      }
+      codeFenceController_->clearPendingTrailingNewline();
+      break;
     }
   }
 
   switch (event->key()) {
-    case Qt::Key_Tab:
-      if (hasActiveLiteralEditor()) {
-        if (event->modifiers().testFlag(Qt::ShiftModifier) && tryDedentActiveCodeFence()) {
-          return true;
-        }
-        // Tab with a selection in a code fence indents the selected lines (symmetric to
-        // Shift+Tab); a bare Tab inserts a single indent unit at the caret.
-        if (codeFenceController_ && codeFenceController_->isEditing() && codeFenceController_->indentSelection()) {
-          return true;
-        }
-        return insertTextIntoActiveLiteral(activeLiteralTabText());
+  case Qt::Key_Tab:
+    if (hasActiveLiteralEditor()) {
+      if (event->modifiers().testFlag(Qt::ShiftModifier) && tryDedentActiveCodeFence()) {
+        return true;
       }
-      if (tableController_ && tableController_->currentCell().isValid()) {
-        // Tab in a cell navigates cells (row-major, wrapping; last cell appends a row) instead of
-        // inserting a zero-width space.
-        return moveTableCell(event->modifiers().testFlag(Qt::ShiftModifier) ? -1 : 1);
+      // Tab with a selection in a code fence indents the selected lines (symmetric to
+      // Shift+Tab); a bare Tab inserts a single indent unit at the caret.
+      if (codeFenceController_ && codeFenceController_->isEditing() && codeFenceController_->indentSelection()) {
+        return true;
       }
-      if (event->modifiers().testFlag(Qt::ShiftModifier)) {
-        return outdentListItem();
-      }
-      if (shouldIndentListItemFromKeyboard()) {
-        return indentListItem();
-      }
-      return insertText(QStringLiteral("\u200b"));
-    case Qt::Key_Backtab:
-      if (hasActiveLiteralEditor()) {
-        if (tryDedentActiveCodeFence()) {
-          return true;
-        }
-        return insertTextIntoActiveLiteral(activeLiteralTabText());
-      }
-      if (tableController_ && tableController_->currentCell().isValid()) {
-        return moveTableCell(-1);
-      }
-      return outdentListItem();
-    case Qt::Key_Backspace:
-      if (event->modifiers().testFlag(Qt::ControlModifier)) {
-        return deleteWordBackward();
-      }
-      return deleteBackward();
-    case Qt::Key_Delete:
-      if (event->modifiers().testFlag(Qt::ControlModifier)) {
-        return deleteWordForward();
-      }
-      return deleteForward();
-    case Qt::Key_Left:
-      if (event->modifiers().testFlag(Qt::ControlModifier)) {
-        return moveCursorWord(-1, event->modifiers().testFlag(Qt::ShiftModifier));
-      }
-      return moveCursorHorizontal(-1, event->modifiers().testFlag(Qt::ShiftModifier));
-    case Qt::Key_Right:
-      if (event->modifiers().testFlag(Qt::ControlModifier)) {
-        return moveCursorWord(1, event->modifiers().testFlag(Qt::ShiftModifier));
-      }
-      return moveCursorHorizontal(1, event->modifiers().testFlag(Qt::ShiftModifier));
-    case Qt::Key_Up:
-      if (event->modifiers().testFlag(Qt::ControlModifier)) {
-        return moveBlockVertical(-1, event->modifiers().testFlag(Qt::ShiftModifier));
-      }
-      return moveCursorVertical(-1, event->modifiers().testFlag(Qt::ShiftModifier));
-    case Qt::Key_Down:
-      if (event->modifiers().testFlag(Qt::ControlModifier)) {
-        return moveBlockVertical(1, event->modifiers().testFlag(Qt::ShiftModifier));
-      }
-      return moveCursorVertical(1, event->modifiers().testFlag(Qt::ShiftModifier));
-    case Qt::Key_PageUp:
-      return moveCursorPage(-1, event->modifiers().testFlag(Qt::ShiftModifier));
-    case Qt::Key_PageDown:
-      return moveCursorPage(1, event->modifiers().testFlag(Qt::ShiftModifier));
-    case Qt::Key_Home:
-      return moveJump(event->modifiers().testFlag(Qt::ControlModifier) ? JumpTarget::DocumentStart : JumpTarget::LineStart,
-                      event->modifiers().testFlag(Qt::ShiftModifier));
-    case Qt::Key_End:
-      return moveJump(event->modifiers().testFlag(Qt::ControlModifier) ? JumpTarget::DocumentEnd : JumpTarget::LineEnd,
-                      event->modifiers().testFlag(Qt::ShiftModifier));
-    case Qt::Key_Escape:
-      return exitActiveLiteralEditor();
-    case Qt::Key_Return:
-    case Qt::Key_Enter:
-      return insertParagraphBreak();
-    default: {
-      const QString text = printableText(event);
-      return insertText(text);
+      return insertTextIntoActiveLiteral(activeLiteralTabText());
     }
+    if (tableController_ && tableController_->currentCell().isValid()) {
+      // Tab in a cell navigates cells (row-major, wrapping; last cell appends a row) instead of
+      // inserting a zero-width space.
+      return moveTableCell(event->modifiers().testFlag(Qt::ShiftModifier) ? -1 : 1);
+    }
+    if (event->modifiers().testFlag(Qt::ShiftModifier)) {
+      return outdentListItem();
+    }
+    if (shouldIndentListItemFromKeyboard()) {
+      return indentListItem();
+    }
+    return insertText(QStringLiteral("\u200b"));
+  case Qt::Key_Backtab:
+    if (hasActiveLiteralEditor()) {
+      if (tryDedentActiveCodeFence()) {
+        return true;
+      }
+      return insertTextIntoActiveLiteral(activeLiteralTabText());
+    }
+    if (tableController_ && tableController_->currentCell().isValid()) {
+      return moveTableCell(-1);
+    }
+    return outdentListItem();
+  case Qt::Key_Backspace:
+    if (event->modifiers().testFlag(Qt::ControlModifier)) {
+      return deleteWordBackward();
+    }
+    return deleteBackward();
+  case Qt::Key_Delete:
+    if (event->modifiers().testFlag(Qt::ControlModifier)) {
+      return deleteWordForward();
+    }
+    return deleteForward();
+  case Qt::Key_Left:
+    if (event->modifiers().testFlag(Qt::ControlModifier)) {
+      return moveCursorWord(-1, event->modifiers().testFlag(Qt::ShiftModifier));
+    }
+    return moveCursorHorizontal(-1, event->modifiers().testFlag(Qt::ShiftModifier));
+  case Qt::Key_Right:
+    if (event->modifiers().testFlag(Qt::ControlModifier)) {
+      return moveCursorWord(1, event->modifiers().testFlag(Qt::ShiftModifier));
+    }
+    return moveCursorHorizontal(1, event->modifiers().testFlag(Qt::ShiftModifier));
+  case Qt::Key_Up:
+    if (event->modifiers().testFlag(Qt::ControlModifier)) {
+      return moveBlockVertical(-1, event->modifiers().testFlag(Qt::ShiftModifier));
+    }
+    return moveCursorVertical(-1, event->modifiers().testFlag(Qt::ShiftModifier));
+  case Qt::Key_Down:
+    if (event->modifiers().testFlag(Qt::ControlModifier)) {
+      return moveBlockVertical(1, event->modifiers().testFlag(Qt::ShiftModifier));
+    }
+    return moveCursorVertical(1, event->modifiers().testFlag(Qt::ShiftModifier));
+  case Qt::Key_PageUp:
+    return moveCursorPage(-1, event->modifiers().testFlag(Qt::ShiftModifier));
+  case Qt::Key_PageDown:
+    return moveCursorPage(1, event->modifiers().testFlag(Qt::ShiftModifier));
+  case Qt::Key_Home:
+    return moveJump(event->modifiers().testFlag(Qt::ControlModifier) ? JumpTarget::DocumentStart
+                                                                     : JumpTarget::LineStart,
+                    event->modifiers().testFlag(Qt::ShiftModifier));
+  case Qt::Key_End:
+    return moveJump(event->modifiers().testFlag(Qt::ControlModifier) ? JumpTarget::DocumentEnd : JumpTarget::LineEnd,
+                    event->modifiers().testFlag(Qt::ShiftModifier));
+  case Qt::Key_Escape:
+    return exitActiveLiteralEditor();
+  case Qt::Key_Return:
+  case Qt::Key_Enter:
+    return insertParagraphBreak();
+  default: {
+    const QString text = printableText(event);
+    return insertText(text);
+  }
   }
 }
 
@@ -941,24 +923,16 @@ bool InputController::insertIntoEmptyDocument(QString text) {
     return false;
   }
   const qsizetype insertedLength = text.size();
-  applyLocalEdit(
-      EditTransaction::Kind::InsertText,
-      QStringLiteral("Insert Text"),
-      0,
-      0,
-      std::move(text),
-      CursorPosition(),
-      insertedLength,
-      {},
-      false,
-      true);
+  applyLocalEdit(EditTransaction::Kind::InsertText, QStringLiteral("Insert Text"), 0, 0, std::move(text),
+                 CursorPosition(), insertedLength, {}, false, true);
   return true;
 }
 
 bool InputController::shouldIndentListItemFromKeyboard() const {
   BlockEditContextResolver resolver = contextResolver();
   BlockEditContext context;
-  if (!resolver.current(context) || !context.node || context.node->type() != BlockType::ListItem || !ctx_.selection || !ctx_.selection->hasCursor()) {
+  if (!resolver.current(context) || !context.node || context.node->type() != BlockType::ListItem || !ctx_.selection ||
+      !ctx_.selection->hasCursor()) {
     return false;
   }
 
@@ -1082,20 +1056,24 @@ CursorPosition InputController::cursorForSourceInNode(MarkdownNode& node, qsizet
   return cursorForSourceInContext(context, sourceOffset);
 }
 
-CursorPosition InputController::cursorForSourceInContext(const BlockEditContext& context, qsizetype sourceOffset) const {
-  const qsizetype localSourceOffset = qBound<qsizetype>(0, sourceOffset - context.contentRange.byteStart, context.contentText.size());
+CursorPosition InputController::cursorForSourceInContext(const BlockEditContext& context,
+                                                         qsizetype sourceOffset) const {
+  const qsizetype localSourceOffset =
+      qBound<qsizetype>(0, sourceOffset - context.contentRange.byteStart, context.contentText.size());
   qsizetype visibleOffset = -1;
   if (context.inlineProjection.visibleOffsetForSourceOffset(localSourceOffset, visibleOffset)) {
     CursorPosition cursorForVisible = cursorFor(context.blockId, visibleOffset);
     cursorForVisible.text.sourceOffset = sourceOffset;
     return cursorForVisible;
   }
-  CursorPosition fallbackCursor = cursorFor(context.blockId, qBound<qsizetype>(0, localSourceOffset, context.visibleText.size()));
+  CursorPosition fallbackCursor =
+      cursorFor(context.blockId, qBound<qsizetype>(0, localSourceOffset, context.visibleText.size()));
   fallbackCursor.text.sourceOffset = sourceOffset;
   return fallbackCursor;
 }
 
-CursorPosition InputController::cursorAfterEdit(CursorPosition preferredCursor, qsizetype fallbackSourceOffset, bool preferLaterEmptyAtOffset) const {
+CursorPosition InputController::cursorAfterEdit(CursorPosition preferredCursor, qsizetype fallbackSourceOffset,
+                                                bool preferLaterEmptyAtOffset) const {
   if (ctx_.hasSession() && preferredCursor.isValid()) {
     if (preferredCursor.text.sourceOffset >= 0) {
       CursorPosition sourceCursor = cursorForSourceOffset(preferredCursor.text.sourceOffset, preferLaterEmptyAtOffset);
@@ -1119,7 +1097,8 @@ CursorPosition InputController::cursorForBlockAfter(const MarkdownNode& host, qs
   return cursor;
 }
 
-MarkdownNode* InputController::paragraphAtSourceOffset(MarkdownNode& node, qsizetype sourceOffset, bool preferLaterEmptyAtOffset) const {
+MarkdownNode* InputController::paragraphAtSourceOffset(MarkdownNode& node, qsizetype sourceOffset,
+                                                       bool preferLaterEmptyAtOffset) const {
   return contextResolver().nodeAtContentSourceOffset(node, sourceOffset, preferLaterEmptyAtOffset);
 }
 
@@ -1153,10 +1132,10 @@ MarkdownNode* InputController::neighborBlockInDocumentDirection(const MarkdownNo
       BlockEditContextResolver resolver = contextResolver();
       for (const auto& child : node.children()) {
         if (primary != nullptr && child.get() == primary) {
-          continue;  // the item's own paragraph is where the caret already is
+          continue; // the item's own paragraph is where the caret already is
         }
         if (resolver.firstEditableDescendant(*child) != nullptr) {
-          return child.get();  // raw child (e.g. a nested List); visualEdgeHitForBlock descends
+          return child.get(); // raw child (e.g. a nested List); visualEdgeHitForBlock descends
         }
       }
     }
@@ -1179,40 +1158,40 @@ MarkdownNode* InputController::neighborBlockInDocumentDirection(const MarkdownNo
 
 qsizetype InputController::selectableTextLength(const MarkdownNode& node) const {
   switch (node.type()) {
-    case BlockType::Paragraph:
-    case BlockType::Heading:
-      return InlineProjection::plainTextForInlines(node.inlines()).size();
-    case BlockType::ListItem:
-      return plainTextForNode(node).size();
-    case BlockType::FrontMatter:
-    case BlockType::CodeFence:
-    case BlockType::MathBlock:
-    case BlockType::HtmlBlock:
-      return node.literal().size();
-    case BlockType::LinkDefinition:
-    case BlockType::FootnoteDefinition:
-      return definitionSelectableLength(node);
-    case BlockType::Table:
-      return 1;
-    default:
-      return 0;
+  case BlockType::Paragraph:
+  case BlockType::Heading:
+    return InlineProjection::plainTextForInlines(node.inlines()).size();
+  case BlockType::ListItem:
+    return plainTextForNode(node).size();
+  case BlockType::FrontMatter:
+  case BlockType::CodeFence:
+  case BlockType::MathBlock:
+  case BlockType::HtmlBlock:
+    return node.literal().size();
+  case BlockType::LinkDefinition:
+  case BlockType::FootnoteDefinition:
+    return definitionSelectableLength(node);
+  case BlockType::Table:
+    return 1;
+  default:
+    return 0;
   }
 }
 
 QString InputController::selectableTextOf(const MarkdownNode& node) const {
   switch (node.type()) {
-    case BlockType::Paragraph:
-    case BlockType::Heading:
-      return InlineProjection::plainTextForInlines(node.inlines());
-    case BlockType::ListItem:
-      return plainTextForNode(node);
-    case BlockType::FrontMatter:
-    case BlockType::CodeFence:
-    case BlockType::MathBlock:
-    case BlockType::HtmlBlock:
-      return node.literal();
-    default:
-      return {};  // Table / link / footnote defs: caret stepping is rare here — skip grapheme snap
+  case BlockType::Paragraph:
+  case BlockType::Heading:
+    return InlineProjection::plainTextForInlines(node.inlines());
+  case BlockType::ListItem:
+    return plainTextForNode(node);
+  case BlockType::FrontMatter:
+  case BlockType::CodeFence:
+  case BlockType::MathBlock:
+  case BlockType::HtmlBlock:
+    return node.literal();
+  default:
+    return {}; // Table / link / footnote defs: caret stepping is rare here — skip grapheme snap
   }
 }
 
@@ -1284,8 +1263,9 @@ HitTestResult InputController::visualEdgeHitForBlock(NodeId blockId, int directi
   // Navigation can target a list item's own text when moving up from its first
   // nested child. That is already an editable destination, not a container
   // whose last descendant should be selected again.
-  MarkdownNode* editable = isEditableTextBlock(node->type()) ? node :
-      (direction > 0 ? resolver.firstEditableDescendant(*node) : resolver.lastEditableDescendant(*node));
+  MarkdownNode* editable = isEditableTextBlock(node->type()) ? node
+                                                             : (direction > 0 ? resolver.firstEditableDescendant(*node)
+                                                                              : resolver.lastEditableDescendant(*node));
   if (!editable) {
     return result;
   }
@@ -1354,7 +1334,8 @@ bool InputController::moveTableCellHorizontal(int direction, bool extendSelectio
       targetColumn = static_cast<int>(tableLayout->tableRows().at(static_cast<size_t>(targetRow)).cells.size()) - 1;
       targetEnd = true;
     } else if (MarkdownNode* previous = neighborBlockInDocumentDirection(*table, -1)) {
-      setHitOrExtend(visualEdgeHitForBlock(previous->id(), -1, ctx_.view->effectiveCursorRect().left()), extendSelection);
+      setHitOrExtend(visualEdgeHitForBlock(previous->id(), -1, ctx_.view->effectiveCursorRect().left()),
+                     extendSelection);
       return true;
     } else {
       nextSource = context.contentRange.byteStart;
@@ -1404,7 +1385,8 @@ bool InputController::moveTableCellHorizontal(int direction, bool extendSelectio
     return false;
   }
   qsizetype visibleOffset = -1;
-  const qsizetype localSource = qBound<qsizetype>(0, nextSource - finalContext.contentRange.byteStart, finalContext.contentText.size());
+  const qsizetype localSource =
+      qBound<qsizetype>(0, nextSource - finalContext.contentRange.byteStart, finalContext.contentText.size());
   if (!finalContext.inlineProjection.visibleOffsetForSourceOffset(localSource, visibleOffset)) {
     visibleOffset = localSource;
   }
@@ -1455,7 +1437,8 @@ bool InputController::moveTableCellVertical(int direction, bool extendSelection,
   int currentLine = 0;
   const CursorPosition current = ctx_.selection->cursorPosition();
   if (current.text.sourceOffset >= 0 && currentCell.contentSourceStart >= 0) {
-    currentLine = currentCell.text.visualLineIndexForSourceOffset(current.text.sourceOffset - currentCell.contentSourceStart);
+    currentLine =
+        currentCell.text.visualLineIndexForSourceOffset(current.text.sourceOffset - currentCell.contentSourceStart);
   }
   if (currentLine < 0) {
     currentLine = currentCell.text.visualLineIndexForTextOffset(current.text.textOffset);
@@ -1581,8 +1564,7 @@ bool InputController::moveTableCell(int direction) {
         return false;
       }
       if (MarkdownNode* previous = neighborBlockInDocumentDirection(*table, -1)) {
-        setHitOrExtend(
-            visualEdgeHitForBlock(previous->id(), -1, ctx_.view->effectiveCursorRect().left()), false);
+        setHitOrExtend(visualEdgeHitForBlock(previous->id(), -1, ctx_.view->effectiveCursorRect().left()), false);
         return true;
       }
       return false;
@@ -1610,9 +1592,11 @@ bool InputController::moveCursorHorizontal(int direction, bool extendSelection) 
   BlockEditContext context;
   if (resolver.fill(*node, context)) {
     const qsizetype currentSourceOffset =
-        current.text.sourceOffset >= context.contentRange.byteStart && current.text.sourceOffset <= context.contentRange.byteEnd
+        current.text.sourceOffset >= context.contentRange.byteStart &&
+                current.text.sourceOffset <= context.contentRange.byteEnd
             ? current.text.sourceOffset
-            : context.contentRange.byteStart + qBound<qsizetype>(0, current.text.textOffset, context.contentText.size());
+            : context.contentRange.byteStart +
+                  qBound<qsizetype>(0, current.text.textOffset, context.contentText.size());
     qsizetype nextSourceOffset = currentSourceOffset + direction;
     if (nextSourceOffset < context.contentRange.byteStart) {
       if (MarkdownNode* previous = selectableBlockByDirection(current.blockId, -1)) {
@@ -1639,14 +1623,16 @@ bool InputController::moveCursorHorizontal(int direction, bool extendSelection) 
     {
       // Grapheme step: never land the caret between a surrogate pair or inside a base+combining cluster.
       const qsizetype localNext = nextSourceOffset - context.contentRange.byteStart;
-      nextSourceOffset = context.contentRange.byteStart +
-          snapOffsetToGrapheme(context.contentText, localNext, direction);
+      nextSourceOffset =
+          context.contentRange.byteStart + snapOffsetToGrapheme(context.contentText, localNext, direction);
     }
     // We already resolved this block and built its edit projection above.
     // Interior character steps do not need another document search and two
     // more projections. Shared block boundaries retain the normal resolver.
-    const auto next = nextSourceOffset > context.contentRange.byteStart && nextSourceOffset < context.contentRange.byteEnd
-        ? cursorForSourceInContext(context, nextSourceOffset) : cursorForSourceOffset(nextSourceOffset);
+    const auto next =
+        nextSourceOffset > context.contentRange.byteStart && nextSourceOffset < context.contentRange.byteEnd
+            ? cursorForSourceInContext(context, nextSourceOffset)
+            : cursorForSourceOffset(nextSourceOffset);
     setCursorOrExtend(next, extendSelection);
     return true;
   }
@@ -1708,16 +1694,17 @@ bool InputController::moveCursorWord(int direction, bool extendSelection) {
     return false;
   }
   const qsizetype currentSourceOffset =
-      current.text.sourceOffset >= context.contentRange.byteStart && current.text.sourceOffset <= context.contentRange.byteEnd
+      current.text.sourceOffset >= context.contentRange.byteStart &&
+              current.text.sourceOffset <= context.contentRange.byteEnd
           ? current.text.sourceOffset
           : context.contentRange.byteStart + qBound<qsizetype>(0, current.text.textOffset, context.contentText.size());
   // Word semantics run on the source-space content text (same text the source-mode editor scans,
   // so both modes agree). Render-only folds are ASCII punctuation in source, so no folded-span
   // handling is needed at word granularity.
-  const qsizetype local = qBound<qsizetype>(0, currentSourceOffset - context.contentRange.byteStart, context.contentText.size());
-  const qsizetype nextLocal = direction < 0
-      ? words::previousWordOffset(QStringView(context.contentText), local)
-      : words::nextWordOffset(QStringView(context.contentText), local);
+  const qsizetype local =
+      qBound<qsizetype>(0, currentSourceOffset - context.contentRange.byteStart, context.contentText.size());
+  const qsizetype nextLocal = direction < 0 ? words::previousWordOffset(QStringView(context.contentText), local)
+                                            : words::nextWordOffset(QStringView(context.contentText), local);
 
   if (nextLocal == local) {
     // No word boundary in that direction within this block — cross to the neighbouring block
@@ -1728,15 +1715,15 @@ bool InputController::moveCursorWord(int direction, bool extendSelection) {
     return true;
   }
 
-  const qsizetype nextSourceOffset = context.contentRange.byteStart +
-      snapOffsetToGrapheme(context.contentText, nextLocal, direction);
+  const qsizetype nextSourceOffset =
+      context.contentRange.byteStart + snapOffsetToGrapheme(context.contentText, nextLocal, direction);
   setCursorOrExtend(cursorForSourceInNode(*node, nextSourceOffset), extendSelection);
   return true;
 }
 
 bool InputController::deleteWordBackward() {
   if (hasActiveLiteralEditor()) {
-    return deleteBackward();  // literal blocks keep character semantics for now
+    return deleteBackward(); // literal blocks keep character semantics for now
   }
   if (ctx_.selection && ctx_.selection->hasCursor() && !ctx_.selection->selection().isCollapsed()) {
     return deleteSelection();
@@ -1770,28 +1757,23 @@ bool InputController::deleteWordInDirection(int direction) {
     return false;
   }
   const qsizetype currentSourceOffset =
-      current.text.sourceOffset >= context.contentRange.byteStart && current.text.sourceOffset <= context.contentRange.byteEnd
+      current.text.sourceOffset >= context.contentRange.byteStart &&
+              current.text.sourceOffset <= context.contentRange.byteEnd
           ? current.text.sourceOffset
           : context.contentRange.byteStart + qBound<qsizetype>(0, current.text.textOffset, context.contentText.size());
-  const qsizetype local = qBound<qsizetype>(0, currentSourceOffset - context.contentRange.byteStart, context.contentText.size());
-  const qsizetype stop = direction < 0
-      ? words::previousWordOffset(QStringView(context.contentText), local)
-      : words::nextWordOffset(QStringView(context.contentText), local);
+  const qsizetype local =
+      qBound<qsizetype>(0, currentSourceOffset - context.contentRange.byteStart, context.contentText.size());
+  const qsizetype stop = direction < 0 ? words::previousWordOffset(QStringView(context.contentText), local)
+                                       : words::nextWordOffset(QStringView(context.contentText), local);
   if (stop == local) {
-    return false;  // block edge: caller falls back to character semantics (merge across blocks)
+    return false; // block edge: caller falls back to character semantics (merge across blocks)
   }
 
   const qsizetype start = direction < 0 ? context.contentRange.byteStart + stop : currentSourceOffset;
   const qsizetype end = direction < 0 ? currentSourceOffset : context.contentRange.byteStart + stop;
   const CursorPosition preferred = cursorForSourceInNode(*node, start);
   applyLocalEdit(
-      EditTransaction::Kind::DeleteText,
-      QStringLiteral("Delete Word"),
-      start,
-      end - start,
-      QString(),
-      preferred,
-      start,
+      EditTransaction::Kind::DeleteText, QStringLiteral("Delete Word"), start, end - start, QString(), preferred, start,
       QVector<LocalEditNodeHint>{LocalEditNodeHint{node->id(), context.contentRange.byteStart, node->type()}});
   return true;
 }
@@ -1858,9 +1840,11 @@ bool InputController::moveCursorVertical(int direction, bool extendSelection) {
     if (targetLine >= 0 && targetLine < inlineLayout->visualLineCount()) {
       const QPointF origin = block->inlineTextOrigin();
       const qreal localX = verticalNavigationX_ - origin.x();
-      const CursorPosition target = block->contentSourceStart() >= 0
-          ? cursorForSourceInNode(*node, block->contentSourceStart() + inlineLayout->sourceOffsetAtVisualLineX(targetLine, localX))
-          : cursorForNode(*node, inlineLayout->textOffsetAtVisualLineX(targetLine, localX));
+      const CursorPosition target =
+          block->contentSourceStart() >= 0
+              ? cursorForSourceInNode(*node, block->contentSourceStart() +
+                                                 inlineLayout->sourceOffsetAtVisualLineX(targetLine, localX))
+              : cursorForNode(*node, inlineLayout->textOffsetAtVisualLineX(targetLine, localX));
       setHitOrExtend(richHitForCursor(target), extendSelection);
       verticalNavigationCursor_ = ctx_.selection->cursorPosition();
       return true;
@@ -1904,7 +1888,7 @@ bool InputController::moveBlockVertical(int direction, bool extendSelection) {
   }
   MarkdownNode* target = neighborBlockInDocumentDirection(*node, direction);
   if (!target) {
-    return true;  // document edge: stay put, but the key is still ours
+    return true; // document edge: stay put, but the key is still ours
   }
   // Word-like paragraph navigation: land at the target block's start in either direction.
   setCursorOrExtend(cursorForNode(*target, 0), extendSelection);
@@ -1942,7 +1926,8 @@ bool InputController::moveCursorPage(int direction, bool extendSelection) {
   return true;
 }
 
-bool InputController::moveLiteralVertical(const BlockLayout& block, MarkdownNode& node, int direction, bool extendSelection) {
+bool InputController::moveLiteralVertical(const BlockLayout& block, MarkdownNode& node, int direction,
+                                          bool extendSelection) {
   if (!ctx_.view || !ctx_.hasSession()) {
     return false;
   }
@@ -1956,7 +1941,7 @@ bool InputController::moveLiteralVertical(const BlockLayout& block, MarkdownNode
   const int line = block.literalVisualLineIndexForOffset(current.text.textOffset, theme);
   const int targetLine = line + direction;
   if (targetLine < 0 || targetLine >= count) {
-    return false;  // past the first/last visual line — caller falls through to leave the block
+    return false; // past the first/last visual line — caller falls through to leave the block
   }
 
   // Resolve the literal's ABSOLUTE content start (BlockLayout::contentSourceStart() is not populated
@@ -1979,61 +1964,61 @@ bool InputController::moveJump(JumpTarget target, bool extendSelection) {
     return false;
   }
   switch (target) {
-    case JumpTarget::LineStart:
-    case JumpTarget::LineEnd: {
-      MarkdownNode* node = ctx_.session->document().node(ctx_.selection->cursorPosition().blockId);
-      if (!node) {
-        return false;
-      }
-      // Home/End navigate within the CURRENT LINE. For literal blocks (code/math/html/front
-      // matter) the selectable text spans many physical lines, so jump to the current line's
-      // boundaries (the previous/next '\n'); for single-line blocks (paragraph/heading) there
-      // are no internal newlines and this reduces to block start/end — the previous behaviour.
-      const BlockType t = node->type();
-      const bool isLiteral = (t == BlockType::CodeFence || t == BlockType::MathBlock ||
-                              t == BlockType::HtmlBlock || t == BlockType::FrontMatter);
-      qsizetype offset;
-      if (isLiteral) {
-        const QString text = node->literal();
-        const qsizetype cur = qBound<qsizetype>(0, ctx_.selection->cursorPosition().text.textOffset, text.size());
-        if (target == JumpTarget::LineStart) {
-          offset = cur <= 0 ? 0 : (text.lastIndexOf(QLatin1Char('\n'), cur - 1) + 1);
-        } else {
-          const qsizetype nl = text.indexOf(QLatin1Char('\n'), cur);
-          offset = nl < 0 ? text.size() : nl;
-        }
-      } else {
-        offset = target == JumpTarget::LineStart ? 0 : selectableTextLength(*node);
-      }
-      setCursorOrExtend(cursorForNode(*node, offset), extendSelection);
-      return true;
+  case JumpTarget::LineStart:
+  case JumpTarget::LineEnd: {
+    MarkdownNode* node = ctx_.session->document().node(ctx_.selection->cursorPosition().blockId);
+    if (!node) {
+      return false;
     }
-    case JumpTarget::DocumentStart:
-    case JumpTarget::DocumentEnd: {
-      MarkdownNode& root = ctx_.session->document().root();
-      MarkdownNode* edge = nullptr;
-      if (target == JumpTarget::DocumentStart) {
-        for (const auto& child : root.children()) {
-          if (child->type() != BlockType::Unknown) {
-            edge = child.get();
-            break;
-          }
-        }
+    // Home/End navigate within the CURRENT LINE. For literal blocks (code/math/html/front
+    // matter) the selectable text spans many physical lines, so jump to the current line's
+    // boundaries (the previous/next '\n'); for single-line blocks (paragraph/heading) there
+    // are no internal newlines and this reduces to block start/end — the previous behaviour.
+    const BlockType t = node->type();
+    const bool isLiteral = (t == BlockType::CodeFence || t == BlockType::MathBlock || t == BlockType::HtmlBlock ||
+                            t == BlockType::FrontMatter);
+    qsizetype offset;
+    if (isLiteral) {
+      const QString text = node->literal();
+      const qsizetype cur = qBound<qsizetype>(0, ctx_.selection->cursorPosition().text.textOffset, text.size());
+      if (target == JumpTarget::LineStart) {
+        offset = cur <= 0 ? 0 : (text.lastIndexOf(QLatin1Char('\n'), cur - 1) + 1);
       } else {
-        for (auto it = root.children().rbegin(); it != root.children().rend(); ++it) {
-          if ((*it)->type() != BlockType::Unknown) {
-            edge = it->get();
-            break;
-          }
+        const qsizetype nl = text.indexOf(QLatin1Char('\n'), cur);
+        offset = nl < 0 ? text.size() : nl;
+      }
+    } else {
+      offset = target == JumpTarget::LineStart ? 0 : selectableTextLength(*node);
+    }
+    setCursorOrExtend(cursorForNode(*node, offset), extendSelection);
+    return true;
+  }
+  case JumpTarget::DocumentStart:
+  case JumpTarget::DocumentEnd: {
+    MarkdownNode& root = ctx_.session->document().root();
+    MarkdownNode* edge = nullptr;
+    if (target == JumpTarget::DocumentStart) {
+      for (const auto& child : root.children()) {
+        if (child->type() != BlockType::Unknown) {
+          edge = child.get();
+          break;
         }
       }
-      if (!edge) {
-        return false;
+    } else {
+      for (auto it = root.children().rbegin(); it != root.children().rend(); ++it) {
+        if ((*it)->type() != BlockType::Unknown) {
+          edge = it->get();
+          break;
+        }
       }
-      const qsizetype offset = target == JumpTarget::DocumentStart ? 0 : selectableTextLength(*edge);
-      setCursorOrExtend(cursorForNode(*edge, offset), extendSelection);
-      return true;
     }
+    if (!edge) {
+      return false;
+    }
+    const qsizetype offset = target == JumpTarget::DocumentStart ? 0 : selectableTextLength(*edge);
+    setCursorOrExtend(cursorForNode(*edge, offset), extendSelection);
+    return true;
+  }
   }
   return false;
 }
@@ -2045,7 +2030,7 @@ bool InputController::selectNextOccurrence() {
   qsizetype start = -1;
   qsizetype end = -1;
   if (!selectionSourceRange(start, end) || end <= start) {
-    return false;  // nothing selected — caller expands to the current word first
+    return false; // nothing selected — caller expands to the current word first
   }
   const QString markdown = ctx_.session->markdownText().toString();
   const QString needle = markdown.mid(start, end - start);
@@ -2054,7 +2039,7 @@ bool InputController::selectNextOccurrence() {
   }
   qsizetype idx = markdown.indexOf(needle, end);
   if (idx < 0) {
-    idx = markdown.indexOf(needle, 0);  // wrap around
+    idx = markdown.indexOf(needle, 0); // wrap around
   }
   if (idx < 0) {
     return false;
@@ -2072,13 +2057,14 @@ bool InputController::selectNextOccurrence() {
 }
 
 bool InputController::selectSourceRange(qsizetype start, qsizetype end) {
-  if (!ctx_.hasSession() || !ctx_.selection || start < 0 || end < start
-      || end > ctx_.session->markdownText().size()) {
+  if (!ctx_.hasSession() || !ctx_.selection || start < 0 || end < start || end > ctx_.session->markdownText().size()) {
     return false;
   }
   CursorPosition anchor = cursorForSourceOffset(start);
   CursorPosition focus = cursorForSourceOffset(end);
-  if (!anchor.isValid() || !focus.isValid()) { return false; }
+  if (!anchor.isValid() || !focus.isValid()) {
+    return false;
+  }
   SelectionRange range;
   range.anchor = anchor;
   range.focus = focus;
@@ -2145,4 +2131,4 @@ QString InputController::printableText(QKeyEvent* event) const {
   return text;
 }
 
-}  // namespace muffin
+} // namespace muffin

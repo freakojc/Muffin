@@ -69,8 +69,10 @@ void messages(QtMsgType type, const QMessageLogContext& context, const QString& 
     }
     return;
   }
-  if (type >= QtWarningMsg) std::fprintf(stderr, "%s\n", qPrintable(message.left(600)));
-  if (type == QtFatalMsg) std::abort();
+  if (type >= QtWarningMsg)
+    std::fprintf(stderr, "%s\n", qPrintable(message.left(600)));
+  if (type == QtFatalMsg)
+    std::abort();
 }
 QJsonObject measure(const QString& label, const std::function<void()>& operation) {
   std::fprintf(stderr, "starting %s\n", qPrintable(label));
@@ -102,9 +104,12 @@ QJsonObject measure(const QString& label, const std::function<void()>& operation
   for (auto it = detailTotals.cbegin(); it != detailTotals.cend(); ++it)
     detail[it.key()] = QJsonObject{{"calls", it->calls}, {"inclusive_ms", it->total}, {"max_ms", it->maximum}};
   row["detail_scopes"] = detail;
-  if (!boxRasters.isEmpty()) row["box_shadow_rasters"] = boxRasters;
-  if (!compactBoxRasters.isEmpty()) row["box_shadow_compact_masks"] = compactBoxRasters;
-  if (!shadowRasters.isEmpty()) row["text_shadow_rasters"] = shadowRasters;
+  if (!boxRasters.isEmpty())
+    row["box_shadow_rasters"] = boxRasters;
+  if (!compactBoxRasters.isEmpty())
+    row["box_shadow_compact_masks"] = compactBoxRasters;
+  if (!shadowRasters.isEmpty())
+    row["text_shadow_rasters"] = shadowRasters;
   row["text_paint_work"] = QJsonObject{{"calls", qint64(text.calls)},
                                        {"lines", qint64(text.lines)},
                                        {"format_ranges", qint64(text.formatRanges)},
@@ -134,20 +139,21 @@ QJsonObject measure(const QString& label, const std::function<void()>& operation
 }
 QString workload(int bytes) {
   QString text;
-  const auto paragraph = QString(
-                             "Plain text with **bold**, *italic*, ~~strike~~, `code`, and "
-                             "[Muffin](https://example.com). ")
+  const auto paragraph = QString("Plain text with **bold**, *italic*, ~~strike~~, `code`, and "
+                                 "[Muffin](https://example.com). ")
                              .repeated(12) +
                          "\n\n";
   while (text.size() < bytes) {
-    if (text.size() % 65536 < 1200) text += "# Heading\n\n";
+    if (text.size() % 65536 < 1200)
+      text += "# Heading\n\n";
     text += paragraph;
   }
   return text;
 }
-}  // namespace
+} // namespace
 int main(int argc, char** argv) {
-  if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) qputenv("QT_QPA_PLATFORM", "offscreen");
+  if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM"))
+    qputenv("QT_QPA_PLATFORM", "offscreen");
   QApplication app(argc, argv);
   QLoggingCategory::setFilterRules(
       QString(qEnvironmentVariableIsSet("MUFFIN_THEME_LAYOUT_DETAIL") ? "muffin.perf.detail.debug=true"
@@ -162,14 +168,16 @@ int main(int argc, char** argv) {
     return 2;
   }
   const double mib = QString::fromLocal8Bit(argv[2]).toDouble();
-  if (mib < .01 || mib > 100) return 2;
+  if (mib < .01 || mib > 100)
+    return 2;
   const auto path =
       argc > 3 ? QString::fromLocal8Bit(argv[3])
                : QStringLiteral(MUFFIN_SOURCE_DIR "/tests/fixtures/theme/vlook-fancy-dark/vlook-fancy-dark.css");
   QJsonArray rows;
   if (qEnvironmentVariableIsSet("MUFFIN_THEME_LIFECYCLE_ONLY")) {
     QTemporaryDir settings;
-    if (!settings.isValid()) return 2;
+    if (!settings.isValid())
+      return 2;
     QCoreApplication::setOrganizationName("MuffinBenchmarks");
     QCoreApplication::setApplicationName("ThemeLoadProbe");
     QSettings::setDefaultFormat(QSettings::IniFormat);
@@ -180,7 +188,8 @@ int main(int argc, char** argv) {
         measure("manager_scan", [&] { manager = std::make_unique<ThemeManager>(QFileInfo(path).absolutePath()); }));
     const auto id = QFileInfo(path).completeBaseName().toLower();
     rows.append(measure("manager_select_cold", [&] {
-      if (!manager->setTheme(id)) qFatal("Theme manager selection failed");
+      if (!manager->setTheme(id))
+        qFatal("Theme manager selection failed");
     }));
     auto theme = RenderTheme::github();
     rows.append(measure("manager_snapshot_cold", [&] { theme = manager->currentTheme(); }));
@@ -188,7 +197,8 @@ int main(int argc, char** argv) {
     const auto definition = manager->currentDefinition();
     for (int i = 0; i < 2; ++i) {
       rows.append(measure(QString("manager_select_repeat_%1").arg(i), [&] {
-        if (!manager->setTheme(id)) qFatal("Repeated manager selection failed");
+        if (!manager->setTheme(id))
+          qFatal("Repeated manager selection failed");
       }));
       rows.append(measure(QString("manager_snapshot_repeat_%1").arg(i), [&] {
         theme = manager->currentTheme();
@@ -201,27 +211,33 @@ int main(int argc, char** argv) {
     const auto connection = QObject::connect(
         manager.get(), &ThemeManager::themeChanged, manager.get(),
         [&](const QString& selected) {
-          if (selected != id) return;
+          if (selected != id)
+            return;
           // Match MainWindow::applyTheme's editor snapshot and chrome definition
           // reads inside the synchronous selection notification.
           theme = manager->currentTheme();
           const auto chrome = manager->definition(selected);
-          if (chrome.sourceSheet != definition.sourceSheet) qFatal("Selection callback reloaded unchanged CSS");
+          if (chrome.sourceSheet != definition.sourceSheet)
+            qFatal("Selection callback reloaded unchanged CSS");
           theme.updateForViewport(960, 900);
           ++callbacks;
         },
         Qt::DirectConnection);
     const auto away = id == "github" ? QStringLiteral("night") : QStringLiteral("github");
     for (int i = 0; i < 2; ++i) {
-      if (!manager->setTheme(away)) qFatal("Switch-away selection failed");
+      if (!manager->setTheme(away))
+        qFatal("Switch-away selection failed");
       rows.append(measure(QString("manager_apply_cycle_%1").arg(i), [&] {
-        if (!manager->setTheme(id)) qFatal("Selection with callbacks failed");
+        if (!manager->setTheme(id))
+          qFatal("Selection with callbacks failed");
       }));
     }
     QObject::disconnect(connection);
-    if (callbacks != 2) qFatal("Selection callback count differs");
+    if (callbacks != 2)
+      qFatal("Selection callback count differs");
     QFile output(QString::fromLocal8Bit(argv[1]));
-    if (!output.open(QIODevice::WriteOnly)) return 2;
+    if (!output.open(QIODevice::WriteOnly))
+      return 2;
     output.write(QJsonDocument(QJsonObject{{"theme", path},
                                            {"qpa", QGuiApplication::platformName()},
                                            {"qt_version", qVersion()},
@@ -241,7 +257,8 @@ int main(int argc, char** argv) {
       session.setMarkdownText(workload(mib * 1024 * 1024), false);
     else {
       QFile file(inputPath);
-      if (!file.open(QIODevice::ReadOnly)) qFatal("Cannot open benchmark document");
+      if (!file.open(QIODevice::ReadOnly))
+        qFatal("Cannot open benchmark document");
       const auto bytes = file.readAll();
       inputDigest = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex();
       session.setMarkdownText(QString::fromUtf8(bytes), false);
@@ -259,15 +276,18 @@ int main(int argc, char** argv) {
     documentManager = std::make_unique<ThemeManager>(QFileInfo(path).absolutePath());
     // Ensure selecting the built-in default emits a notification too. This
     // warms only the away theme; the requested theme still loads cold.
-    if (selectedId == "github" && !documentManager->setTheme("night")) qFatal("Cannot prime away theme");
+    if (selectedId == "github" && !documentManager->setTheme("night"))
+      qFatal("Cannot prime away theme");
     QObject::connect(
         documentManager.get(), &ThemeManager::themeChanged, documentManager.get(),
         [&](const QString& id) {
-          if (id != selectedId) return;
+          if (id != selectedId)
+            return;
           auto next = documentManager->currentTheme();
           definition = documentManager->definition(id);
           next.updateForViewport(960, 900);
-          if (selectionCallbacks) next.reuseDocumentSemantics(theme);
+          if (selectionCallbacks)
+            next.reuseDocumentSemantics(theme);
           theme = std::move(next);
           ++selectionCallbacks;
         },
@@ -278,7 +298,8 @@ int main(int argc, char** argv) {
   selectionClock.start();
   if (managerDocument) {
     rows.append(measure("manager_cold_select_snapshot", [&] {
-      if (!documentManager->setTheme(selectedId)) qFatal("Document theme selection failed");
+      if (!documentManager->setTheme(selectedId))
+        qFatal("Document theme selection failed");
     }));
   } else {
     rows.append(measure("theme_load", [&] { definition = ThemeDefinition::fromCss(path, "benchmark"); }));
@@ -309,7 +330,8 @@ int main(int argc, char** argv) {
   QImage lastImage;
   QJsonArray visuals;
   const auto captureVisual = [&](const QString& stage) {
-    if (!qEnvironmentVariableIsSet("MUFFIN_FIRST_LAYOUT_ONLY")) return;
+    if (!qEnvironmentVariableIsSet("MUFFIN_FIRST_LAYOUT_ONLY"))
+      return;
     QJsonArray geometry;
     const auto rectJson = [](QRectF r) { return QJsonArray{r.x(), r.y(), r.width(), r.height()}; };
     for (const auto* block : layout.visibleBlocks({0, 0, 960, 900}, theme)) {
@@ -338,7 +360,8 @@ int main(int argc, char** argv) {
     if (const auto* page = theme.elementStyle("#write"))
       paintLayoutBox(painter, LayoutBox::place("#write", *page, theme.usedBoxForStyle(*page, rect.width()), rect,
                                                theme.paragraphFont()));
-    for (const auto* block : layout.visibleBlocks({0, 0, 960, 900}, theme)) block->paint(painter, theme, 0);
+    for (const auto* block : layout.visibleBlocks({0, 0, 960, 900}, theme))
+      block->paint(painter, theme, 0);
     painter.end();
     lastImage = std::move(image);
   };
@@ -353,22 +376,27 @@ int main(int argc, char** argv) {
     for (int round = 0; round < 2; ++round) {
       rows.append(measure(QString("switch_away_%1").arg(round), [&] {
         auto away = [&] {
-          if (!managerDocument) return RenderTheme::github();
+          if (!managerDocument)
+            return RenderTheme::github();
           if (!documentManager->setTheme(selectedId == "github" ? "night" : "github"))
             qFatal("Document switch-away failed");
           return documentManager->currentTheme();
         }();
         away.updateForViewport(960, 900);
-        if (realSwitch) away.reuseDocumentSemantics(theme);
+        if (realSwitch)
+          away.reuseDocumentSemantics(theme);
         layout.rebuild(session.document(), away, 960, {}, {}, DocumentLayout::BuildPolicy::Lazy);
         layout.visibleBlocks({0, 0, 960, 900}, away);
-        if (realSwitch) theme = std::move(away);
+        if (realSwitch)
+          theme = std::move(away);
       }));
       selectionClock.start();
       if (managerDocument) {
         rows.append(measure(QString("manager_repeat_select_snapshot_%1").arg(round), [&] {
-          if (!documentManager->setTheme(selectedId)) qFatal("Document repeated selection failed");
-          if (definition.sourceSheet != selectedSource) qFatal("Unchanged document theme reloaded");
+          if (!documentManager->setTheme(selectedId))
+            qFatal("Document repeated selection failed");
+          if (definition.sourceSheet != selectedSource)
+            qFatal("Unchanged document theme reloaded");
         }));
       }
       rows.append(measure(QString("switch_back_%1").arg(round), [&] {
@@ -402,7 +430,8 @@ int main(int argc, char** argv) {
       layout.rebuildBlock(id, session.document(), theme, selection, DocumentLayout::BlockUpdateReason::Selection);
     }));
     rows.append(measure("edit", [&] {
-      if (!session.applyTextDelta(2, 0, "Edited ", true)) qFatal("Benchmark edit failed");
+      if (!session.applyTextDelta(2, 0, "Edited ", true))
+        qFatal("Benchmark edit failed");
       const auto range = session.lastLocalTopLevelRangeChange();
       if (range.isValid())
         layout.rebuildTopLevelRange(range, session.document(), theme, {});
@@ -411,7 +440,8 @@ int main(int argc, char** argv) {
     }));
     recordCounterStorage();
     const auto applyEdit = [&](qsizetype start, const QString& text) {
-      if (!session.applyTextDelta(start, 0, text, true)) qFatal("Benchmark edit failed");
+      if (!session.applyTextDelta(start, 0, text, true))
+        qFatal("Benchmark edit failed");
       const auto range = session.lastLocalTopLevelRangeChange();
       if (!range.isValid() || !layout.rebuildTopLevelRange(range, session.document(), theme, {}).rebuilt)
         qFatal("Benchmark range rebuild failed");
@@ -431,14 +461,16 @@ int main(int argc, char** argv) {
     const auto expected = theme.resolveDocumentCounters(session.document());
     auto full = RenderTheme::fromDefinition(definition);
     full.updateForViewport(960, 900);
-    if (full.resolveDocumentCounters(session.document()) != expected) qFatal("Full counter reference differs");
+    if (full.resolveDocumentCounters(session.document()) != expected)
+      qFatal("Full counter reference differs");
     for (const auto& node : session.document().root().children())
       if (theme.generatedCounterFingerprint(node->id()) != full.generatedCounterFingerprint(node->id()))
         qFatal("Full generated-content fingerprint differs");
   }));
   enableThemePerformance(false);
   QFile output(QString::fromLocal8Bit(argv[1]));
-  if (!output.open(QIODevice::WriteOnly)) return 2;
+  if (!output.open(QIODevice::WriteOnly))
+    return 2;
   QJsonObject result{{"theme", path},
                      {"qpa", QGuiApplication::platformName()},
                      {"switch_model", realSwitch ? "detached_with_semantic_seed" : "legacy_selected_copy"},
@@ -458,7 +490,8 @@ int main(int argc, char** argv) {
                      {"full_counter_reference_matches", true},
                      {"visuals", visuals},
                      {"measurements", rows}};
-  if (qEnvironmentVariableIsSet("MUFFIN_FIRST_LAYOUT_ONLY")) lastImage.save(QString::fromLocal8Bit(argv[1]) + ".png");
+  if (qEnvironmentVariableIsSet("MUFFIN_FIRST_LAYOUT_ONLY"))
+    lastImage.save(QString::fromLocal8Bit(argv[1]) + ".png");
   output.write(QJsonDocument(result).toJson(QJsonDocument::Indented));
   return 0;
 }

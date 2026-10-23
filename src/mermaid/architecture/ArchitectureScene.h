@@ -32,8 +32,7 @@ struct ArchitectureSceneStyle {
   QString edgeColor = QStringLiteral("#333333");
   QString arrowColor = QStringLiteral("#333333");
   QString edgeWidth = QStringLiteral("3");
-  QString groupBorderColor =
-      QStringLiteral("hsl(240, 60%, 86.2745098039%)");
+  QString groupBorderColor = QStringLiteral("hsl(240, 60%, 86.2745098039%)");
   QString groupBorderWidth = QStringLiteral("2px");
 };
 
@@ -156,15 +155,11 @@ struct ArchitectureScene final : MermaidScene {
   // the theme-css oracle locks values like -327.624 … 727.186), not the
   // raster-rounded canvas ints.
   QRectF svgClientViewBox() const override { return bounds; }
-  void paint(QPainter& painter,
-             const MermaidPaintOptions& options = {}) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options = {}) const override;
   QJsonObject toJsonObject() const override;
 };
 
-ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
-                                           ArchitectureConfig config,
-                                           ArchitectureSceneStyle style,
-                                           const ArchitectureCssOverrides* css =
-                                               nullptr);
+ArchitectureScene buildArchitectureScene(const ArchitectureData& data, ArchitectureConfig config,
+                                         ArchitectureSceneStyle style, const ArchitectureCssOverrides* css = nullptr);
 
-}  // namespace muffin::mermaid::architecture
+} // namespace muffin::mermaid::architecture

@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace muffin::mermaid::dagre {
-struct DagreSnapshot;  // defined in mermaid/dagre/Layout.h
+struct DagreSnapshot; // defined in mermaid/dagre/Layout.h
 }
 
 namespace muffin::mermaid::flowchart {
@@ -19,15 +19,18 @@ namespace muffin::mermaid::flowchart {
 enum class FlowLook { Classic, Neo, HandDrawn };
 
 inline FlowLook parseFlowLook(const QString& value) {
-  if (value.compare(QStringLiteral("neo"), Qt::CaseInsensitive) == 0) return FlowLook::Neo;
+  if (value.compare(QStringLiteral("neo"), Qt::CaseInsensitive) == 0)
+    return FlowLook::Neo;
   if (value.compare(QStringLiteral("handDrawn"), Qt::CaseInsensitive) == 0)
     return FlowLook::HandDrawn;
   return FlowLook::Classic;
 }
 
 inline QString flowLookName(FlowLook look) {
-  if (look == FlowLook::Neo) return QStringLiteral("neo");
-  if (look == FlowLook::HandDrawn) return QStringLiteral("handDrawn");
+  if (look == FlowLook::Neo)
+    return QStringLiteral("neo");
+  if (look == FlowLook::HandDrawn)
+    return QStringLiteral("handDrawn");
   return QStringLiteral("classic");
 }
 
@@ -150,36 +153,28 @@ struct FlowTextOptions {
 // measureFlowchartNodes and by flowShapeGeometry for shapes whose outline
 // depends on the label (bang, cloud).
 QSizeF measureLabel(const QString& text, const FlowTextOptions& options = {});
-QSizeF measureLabel(const QString& text, const QString& labelType,
-                    const FlowTextOptions& options = {});
-QSizeF measureFlowchartEdgeLabel(const FlowEdge& edge,
-                                 const FlowTextOptions& options = {});
-FlowEdgeLabelLayout layoutFlowchartEdgeLabel(
-    const FlowEdge& edge, const FlowTextOptions& options = {});
-QSizeF measureFlowchartClusterLabel(const FlowSubgraph& subgraph,
-                                    const FlowTextOptions& options = {});
+QSizeF measureLabel(const QString& text, const QString& labelType, const FlowTextOptions& options = {});
+QSizeF measureFlowchartEdgeLabel(const FlowEdge& edge, const FlowTextOptions& options = {});
+FlowEdgeLabelLayout layoutFlowchartEdgeLabel(const FlowEdge& edge, const FlowTextOptions& options = {});
+QSizeF measureFlowchartClusterLabel(const FlowSubgraph& subgraph, const FlowTextOptions& options = {});
 
-QMap<QString, QSizeF> measureFlowchartNodes(const FlowchartData& data,
-                                            FlowTextOptions options = {});
-QMap<QString, QSizeF> measureFlowchartNodes(
-    const FlowchartData& data, FlowTextOptions options,
-    const QMap<QString, FlowTextOptions>& perNodeOptions);
+QMap<QString, QSizeF> measureFlowchartNodes(const FlowchartData& data, FlowTextOptions options = {});
+QMap<QString, QSizeF> measureFlowchartNodes(const FlowchartData& data, FlowTextOptions options,
+                                            const QMap<QString, FlowTextOptions>& perNodeOptions);
 
 // Shared generic-node intersection used by diagram families that reuse
 // Mermaid's dagre-wrapper shapes without using Dagre for placement (Block).
 // `nodeRect` is centred at its scene position and `toward` is the next point
 // on the edge. The result follows the same ellipse/polygon/rect dispatch and
 // diamond bias correction as the flowchart renderer.
-QPointF intersectFlowShape(const FlowVertex& vertex, const QRectF& nodeRect,
-                           const QPointF& toward,
+QPointF intersectFlowShape(const FlowVertex& vertex, const QRectF& nodeRect, const QPointF& toward,
                            FlowLook look = FlowLook::Classic);
 
 // Applies Mermaid's marker refX contract to the rendered path while preserving
 // the unmodified router points for label placement and marker orientation.
 void clipFlowEdgeForMarkers(QVector<QPointF>& points, const QString& type);
 
-FlowLayoutResult layoutFlowchartNodes(const FlowchartData& data,
-                                      const QMap<QString, QSizeF>& measuredNodes,
+FlowLayoutResult layoutFlowchartNodes(const FlowchartData& data, const QMap<QString, QSizeF>& measuredNodes,
                                       FlowLayoutOptions options = {});
 
 // Native Dagre compound pipeline (milestone C). Same contract as
@@ -190,9 +185,8 @@ FlowLayoutResult layoutFlowchartNodes(const FlowchartData& data,
 // intermediate-state snapshots captured at the rank / parentDummyChains /
 // addBorderSegments / order phase boundaries for the Level-2 intermediate
 // golden. Null by default → no overhead.
-FlowLayoutResult layoutFlowchartNodesDagre(const FlowchartData& data,
-                                           const QMap<QString, QSizeF>& measuredNodes,
+FlowLayoutResult layoutFlowchartNodesDagre(const FlowchartData& data, const QMap<QString, QSizeF>& measuredNodes,
                                            FlowLayoutOptions options = {},
                                            std::vector<dagre::DagreSnapshot>* dagreSnapshots = nullptr);
 
-}  // namespace muffin::mermaid::flowchart
+} // namespace muffin::mermaid::flowchart

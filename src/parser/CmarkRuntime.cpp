@@ -8,7 +8,7 @@ std::mutex& inlineParsingMutex() {
   static std::mutex mutex;
   return mutex;
 }
-}  // namespace
+} // namespace
 
 cmark_node* finishCmarkParse(cmark_parser* parser) {
   const std::lock_guard lock(inlineParsingMutex());
@@ -20,4 +20,4 @@ cmark_node* parseCmarkDocument(const char* bytes, size_t length, int options) {
   return cmark_parse_document(bytes, length, options);
 }
 
-}  // namespace muffin
+} // namespace muffin

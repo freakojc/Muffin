@@ -32,16 +32,15 @@ MarkdownNode* firstHtmlBlock(DocumentSession& session) {
 }
 
 LiteralBlockSpec htmlSpec() {
-  return LiteralBlockSpec{
-      BlockType::HtmlBlock,
-      HitTestResult::Zone::Html,
-      QStringLiteral("No HTML block is active."),
-      QStringLiteral("Edit HTML Block"),
-      QStringLiteral("Backspace HTML Block"),
-      QStringLiteral("Delete HTML Block Text"),
-      QStringLiteral("Delete HTML Block Selection"),
-      QStringLiteral("Set HTML Block"),
-      QStringLiteral("  ")};
+  return LiteralBlockSpec{BlockType::HtmlBlock,
+                          HitTestResult::Zone::Html,
+                          QStringLiteral("No HTML block is active."),
+                          QStringLiteral("Edit HTML Block"),
+                          QStringLiteral("Backspace HTML Block"),
+                          QStringLiteral("Delete HTML Block Text"),
+                          QStringLiteral("Delete HTML Block Selection"),
+                          QStringLiteral("Set HTML Block"),
+                          QStringLiteral("  ")};
 }
 
 void setHtmlHit(SelectionController& selection, MarkdownNode* html, qsizetype offset = 0) {
@@ -71,14 +70,16 @@ void testEnterEditAndTextEditing() {
   require(selection.cursorPosition().text.textOffset == html->literal().size(), "enter html edit cursor mismatch");
 
   require(controller.insertText(QStringLiteral("\n<span>beta</span>")), "html insert should work");
-  require(session.markdownText().toString().contains(QStringLiteral("<span>beta</span>")), "html insert markdown mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("<span>beta</span>")),
+          "html insert markdown mismatch");
   require(undoStack.canUndo(), "html insert should push undo");
   EditTransaction htmlInsertUndo = undoStack.takeUndo();
   require(htmlInsertUndo.isReplaceNodeCommand(), "html insert should use ReplaceNodeCommand");
   require(htmlInsertUndo.replaceNodeCommand().nodeType == BlockType::HtmlBlock, "html insert command type mismatch");
 
   require(controller.deleteBackward(), "html backspace should work");
-  require(session.markdownText().toString().contains(QStringLiteral("<span>beta</span")), "html backspace markdown mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("<span>beta</span")),
+          "html backspace markdown mismatch");
 }
 
 void testSetHtmlRoundtripAndSanitizer() {
@@ -95,9 +96,11 @@ void testSetHtmlRoundtripAndSanitizer() {
   setHtmlHit(selection, html, 0);
 
   require(controller.enterEditMode(), "enter html edit should work for set html test");
-  const QString source = QStringLiteral("<div onclick=\"evil()\"><a href=\"javascript:alert(1)\">x</a><script>alert(2)</script></div>");
+  const QString source =
+      QStringLiteral("<div onclick=\"evil()\"><a href=\"javascript:alert(1)\">x</a><script>alert(2)</script></div>");
   require(controller.setContent(source), "set html should work");
-  require(session.markdownText().toString().contains(QStringLiteral("onclick=\"evil()\"")), "raw html roundtrip mismatch");
+  require(session.markdownText().toString().contains(QStringLiteral("onclick=\"evil()\"")),
+          "raw html roundtrip mismatch");
   require(undoStack.canUndo(), "set html should push undo");
   EditTransaction setHtmlUndo = undoStack.takeUndo();
   require(setHtmlUndo.isReplaceNodeCommand(), "set html should use ReplaceNodeCommand");
@@ -141,44 +144,54 @@ void testEditingIndentedHtmlPreservesSeparators() {
 }
 
 void testStandaloneSanitizer() {
-  const QString html = QStringLiteral("<img src=javascript:evil onerror='x'><SCRIPT>bad()</SCRIPT><p onClick=test>ok</p>");
+  const QString html =
+      QStringLiteral("<img src=javascript:evil onerror='x'><SCRIPT>bad()</SCRIPT><p onClick=test>ok</p>");
   const QString preview = HtmlSanitizer().sanitizedPreview(html);
-  require(!preview.contains(QStringLiteral("script"), Qt::CaseInsensitive), "standalone sanitizer should remove script");
-  require(!preview.contains(QStringLiteral("onerror"), Qt::CaseInsensitive), "standalone sanitizer should remove onerror");
-  require(!preview.contains(QStringLiteral("onclick"), Qt::CaseInsensitive), "standalone sanitizer should remove onclick");
-  require(!preview.contains(QStringLiteral("javascript:"), Qt::CaseInsensitive), "standalone sanitizer should remove javascript URL");
+  require(!preview.contains(QStringLiteral("script"), Qt::CaseInsensitive),
+          "standalone sanitizer should remove script");
+  require(!preview.contains(QStringLiteral("onerror"), Qt::CaseInsensitive),
+          "standalone sanitizer should remove onerror");
+  require(!preview.contains(QStringLiteral("onclick"), Qt::CaseInsensitive),
+          "standalone sanitizer should remove onclick");
+  require(!preview.contains(QStringLiteral("javascript:"), Qt::CaseInsensitive),
+          "standalone sanitizer should remove javascript URL");
 }
 
 void testSanitizerClosesBypassClasses() {
   // Slash-delimited event handler: the old \s+on regex missed `<img/onerror=...>`.
-  require(!HtmlSanitizer().sanitizedPreview(QStringLiteral("<img/onerror=alert(1) src=x>"))
-              .contains(QStringLiteral("onerror"), Qt::CaseInsensitive),
+  require(!HtmlSanitizer()
+               .sanitizedPreview(QStringLiteral("<img/onerror=alert(1) src=x>"))
+               .contains(QStringLiteral("onerror"), Qt::CaseInsensitive),
           "sanitizer must strip slash-separated event handlers");
 
   // <iframe> subtree dropped entirely (content included).
-  const QString iframe = HtmlSanitizer().sanitizedPreview(
-      QStringLiteral("<iframe src=\"javascript:alert(1)\">fallback</iframe>"));
+  const QString iframe =
+      HtmlSanitizer().sanitizedPreview(QStringLiteral("<iframe src=\"javascript:alert(1)\">fallback</iframe>"));
   require(!iframe.contains(QStringLiteral("iframe"), Qt::CaseInsensitive), "iframe subtree must be removed");
-  require(!iframe.contains(QStringLiteral("javascript:"), Qt::CaseInsensitive), "iframe javascript src must be removed");
+  require(!iframe.contains(QStringLiteral("javascript:"), Qt::CaseInsensitive),
+          "iframe javascript src must be removed");
 
   // <svg> can carry nested <script>/onload; drop the whole subtree.
-  const QString svg = HtmlSanitizer().sanitizedPreview(
-      QStringLiteral("<svg onload=\"alert(1)\"><script>alert(2)</script></svg>"));
+  const QString svg =
+      HtmlSanitizer().sanitizedPreview(QStringLiteral("<svg onload=\"alert(1)\"><script>alert(2)</script></svg>"));
   require(!svg.contains(QStringLiteral("svg"), Qt::CaseInsensitive), "svg subtree must be removed");
   require(!svg.contains(QStringLiteral("onload"), Qt::CaseInsensitive), "svg onload must be removed");
   require(!svg.contains(QStringLiteral("script"), Qt::CaseInsensitive), "svg nested script must be removed");
 
   // vbscript: and dangerous data: URIs are neutralized to '#'.
-  require(HtmlSanitizer().sanitizedPreview(QStringLiteral("<a href=\"vbscript:alert(1)\">x</a>"))
+  require(HtmlSanitizer()
+              .sanitizedPreview(QStringLiteral("<a href=\"vbscript:alert(1)\">x</a>"))
               .contains(QStringLiteral("href=\"#\""), Qt::CaseInsensitive),
           "vbscript URL must be neutralized to '#'");
-  require(!HtmlSanitizer().sanitizedPreview(QStringLiteral("<a href=\"data:text/html,<b>x</b>\">x</a>"))
-              .contains(QStringLiteral("data:"), Qt::CaseInsensitive),
+  require(!HtmlSanitizer()
+               .sanitizedPreview(QStringLiteral("<a href=\"data:text/html,<b>x</b>\">x</a>"))
+               .contains(QStringLiteral("data:"), Qt::CaseInsensitive),
           "data:text/html URL must be neutralized");
 
   // Control-character obfuscation of the scheme must not bypass the check.
-  require(!HtmlSanitizer().sanitizedPreview(QStringLiteral("<a href=\"java\tscript:alert(1)\">x</a>"))
-              .contains(QStringLiteral("script:"), Qt::CaseInsensitive),
+  require(!HtmlSanitizer()
+               .sanitizedPreview(QStringLiteral("<a href=\"java\tscript:alert(1)\">x</a>"))
+               .contains(QStringLiteral("script:"), Qt::CaseInsensitive),
           "tab-obfuscated javascript scheme must be neutralized");
 
   // Benign structure and safe data: images survive the whitelist.
@@ -190,7 +203,7 @@ void testSanitizerClosesBypassClasses() {
           "safe data:image URL should be preserved");
 }
 
-}  // namespace
+} // namespace
 
 int main() {
   testEnterEditAndTextEditing();

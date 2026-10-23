@@ -33,7 +33,7 @@ muffin::HelpTopic topicFromKey(const QString& key) {
   }
   return muffin::HelpTopic::QuickStart;
 }
-}  // namespace
+} // namespace
 
 void muffin::HelpViewerDialog::open(QWidget* parent, HelpTopic topic) {
   static QPointer<HelpViewerDialog> instance;
@@ -55,7 +55,7 @@ muffin::HelpViewerDialog::HelpViewerDialog(QWidget* parent) : QDialog(parent) {
 
   browser_ = new QTextBrowser(this);
   browser_->setReadOnly(true);
-  browser_->setOpenLinks(false);  // we route clicks ourselves via anchorClicked
+  browser_->setOpenLinks(false); // we route clicks ourselves via anchorClicked
   browser_->document()->setDocumentMargin(20);
   // Internal `help:<topic>` links navigate within the viewer; everything else
   // (http etc.) opens in the OS browser.
@@ -174,24 +174,24 @@ void muffin::HelpViewerDialog::changeEvent(QEvent* event) {
 
 QString muffin::HelpViewerDialog::topicKey(HelpTopic topic) {
   switch (topic) {
-    case HelpTopic::QuickStart:
-      return QStringLiteral("quick-start");
-    case HelpTopic::MarkdownReference:
-      return QStringLiteral("markdown-reference");
-    case HelpTopic::Acknowledgements:
-      return QStringLiteral("acknowledgements");
+  case HelpTopic::QuickStart:
+    return QStringLiteral("quick-start");
+  case HelpTopic::MarkdownReference:
+    return QStringLiteral("markdown-reference");
+  case HelpTopic::Acknowledgements:
+    return QStringLiteral("acknowledgements");
   }
   return QStringLiteral("quick-start");
 }
 
 QString muffin::HelpViewerDialog::topicTitle(HelpTopic topic) {
   switch (topic) {
-    case HelpTopic::QuickStart:
-      return tr("Quick Start");
-    case HelpTopic::MarkdownReference:
-      return tr("Markdown Reference");
-    case HelpTopic::Acknowledgements:
-      return tr("Acknowledgements");
+  case HelpTopic::QuickStart:
+    return tr("Quick Start");
+  case HelpTopic::MarkdownReference:
+    return tr("Markdown Reference");
+  case HelpTopic::Acknowledgements:
+    return tr("Acknowledgements");
   }
   return {};
 }

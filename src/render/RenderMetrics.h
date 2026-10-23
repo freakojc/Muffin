@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QtGlobal>  // qreal
+#include <QtGlobal> // qreal
 
 namespace muffin {
 
@@ -20,4 +20,4 @@ inline qreal cssLineHeightPx(qreal pointSizeF, qreal multiplier) {
   return pointSize * (96.0 / 72.0) * multiplier;
 }
 
-}  // namespace muffin
+} // namespace muffin

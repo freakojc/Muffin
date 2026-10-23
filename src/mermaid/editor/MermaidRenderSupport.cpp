@@ -23,13 +23,16 @@ namespace muffin::mermaid::editor {
 namespace {
 
 QString configString(const QJsonValue& value) {
-  if (value.isString()) return value.toString();
-  if (value.isDouble()) return QString::number(value.toDouble(), 'g', 15);
-  if (value.isBool()) return value.toBool() ? QStringLiteral("true") : QStringLiteral("false");
+  if (value.isString())
+    return value.toString();
+  if (value.isDouble())
+    return QString::number(value.toDouble(), 'g', 15);
+  if (value.isBool())
+    return value.toBool() ? QStringLiteral("true") : QStringLiteral("false");
   return {};
 }
 
-}  // namespace
+} // namespace
 
 flowtheme::FlowThemeId themeIdFromName(const QString& name) {
   static const QHash<QString, flowtheme::FlowThemeId> map = {
@@ -51,7 +54,8 @@ flowtheme::FlowThemeId themeIdFromName(const QString& name) {
 // Extract the mermaid theme the source declares (%%{init:{theme}}%%), else default.
 QString themeFromConfig(const QJsonObject& config) {
   const QJsonValue top = config.value(QStringLiteral("theme"));
-  if (top.isString()) return top.toString();
+  if (top.isString())
+    return top.toString();
   return QStringLiteral("default");
 }
 
@@ -59,12 +63,14 @@ QHash<QString, QString> themeOverrides(const QJsonObject& config) {
   QHash<QString, QString> result;
   const QJsonObject values = config.value(QStringLiteral("themeVariables")).toObject();
   for (auto it = values.constBegin(); it != values.constEnd(); ++it) {
-    if (it.key() == QLatin1String("THEME_COLOR_LIMIT")) continue;  // handled below via jsThemeColorLimit
+    if (it.key() == QLatin1String("THEME_COLOR_LIMIT"))
+      continue; // handled below via jsThemeColorLimit
     const QString value = configString(it.value());
     // An explicitly empty string is a real theme override (Journey uses it to
     // suppress an individual fillType CSS declaration). Arrays/objects still
     // stringify to empty here and remain outside the source-entry surface.
-    if (it.value().isString() || !value.isEmpty()) result.insert(it.key(), value);
+    if (it.value().isString() || !value.isEmpty())
+      result.insert(it.key(), value);
   }
   // XYChart is the one native family whose theme fields live in a nested
   // themeVariables object. Flatten its reviewed scalar surface for the typed
@@ -72,15 +78,14 @@ QHash<QString, QString> themeOverrides(const QJsonObject& config) {
   // unspecified defaults, while an explicitly empty string remains a real
   // final override, so preserve empty strings exactly like top-level fields.
   static const QStringList xyChartFields = {
-      QStringLiteral("backgroundColor"), QStringLiteral("titleColor"),
-      QStringLiteral("dataLabelColor"), QStringLiteral("xAxisTitleColor"),
-      QStringLiteral("xAxisLabelColor"), QStringLiteral("xAxisTickColor"),
-      QStringLiteral("xAxisLineColor"), QStringLiteral("yAxisTitleColor"),
-      QStringLiteral("yAxisLabelColor"), QStringLiteral("yAxisTickColor"),
-      QStringLiteral("yAxisLineColor"), QStringLiteral("plotColorPalette")};
+      QStringLiteral("backgroundColor"), QStringLiteral("titleColor"),      QStringLiteral("dataLabelColor"),
+      QStringLiteral("xAxisTitleColor"), QStringLiteral("xAxisLabelColor"), QStringLiteral("xAxisTickColor"),
+      QStringLiteral("xAxisLineColor"),  QStringLiteral("yAxisTitleColor"), QStringLiteral("yAxisLabelColor"),
+      QStringLiteral("yAxisTickColor"),  QStringLiteral("yAxisLineColor"),  QStringLiteral("plotColorPalette")};
   const QJsonObject xyChart = values.value(QStringLiteral("xyChart")).toObject();
   for (const QString& field : xyChartFields) {
-    if (!xyChart.contains(field)) continue;
+    if (!xyChart.contains(field))
+      continue;
     const QJsonValue raw = xyChart.value(field);
     const QString value = configString(raw);
     if (raw.isString() || !value.isEmpty())
@@ -95,12 +100,12 @@ QHash<QString, QString> themeOverrides(const QJsonObject& config) {
   const QJsonValue rawPacket = values.value(QStringLiteral("packet"));
   if (rawPacket.isObject()) {
     result.insert(QStringLiteral("packet.__replace"), QStringLiteral("true"));
-    static const QStringList packetSourceFields = {
-        QStringLiteral("labelColor"), QStringLiteral("labelFontSize"),
-        QStringLiteral("titleColor"), QStringLiteral("titleFontSize")};
+    static const QStringList packetSourceFields = {QStringLiteral("labelColor"), QStringLiteral("labelFontSize"),
+                                                   QStringLiteral("titleColor"), QStringLiteral("titleFontSize")};
     const QJsonObject packet = rawPacket.toObject();
     for (const QString& field : packetSourceFields) {
-      if (!packet.contains(field)) continue;
+      if (!packet.contains(field))
+        continue;
       const QJsonValue raw = packet.value(field);
       const QString value = configString(raw);
       if (raw.isString() || !value.isEmpty())
@@ -108,32 +113,28 @@ QHash<QString, QString> themeOverrides(const QJsonObject& config) {
     }
   }
   static const QStringList cynefinFields = {
-      QStringLiteral("domainFontSize"), QStringLiteral("itemFontSize"),
-      QStringLiteral("boundaryColor"), QStringLiteral("boundaryWidth"),
-      QStringLiteral("cliffColor"), QStringLiteral("cliffWidth"),
-      QStringLiteral("arrowColor"), QStringLiteral("arrowWidth"),
-      QStringLiteral("complexBg"), QStringLiteral("complicatedBg"),
-      QStringLiteral("chaoticBg"), QStringLiteral("clearBg"),
-      QStringLiteral("confusionBg"), QStringLiteral("textColor"),
-      QStringLiteral("labelColor")};
+      QStringLiteral("domainFontSize"), QStringLiteral("itemFontSize"), QStringLiteral("boundaryColor"),
+      QStringLiteral("boundaryWidth"),  QStringLiteral("cliffColor"),   QStringLiteral("cliffWidth"),
+      QStringLiteral("arrowColor"),     QStringLiteral("arrowWidth"),   QStringLiteral("complexBg"),
+      QStringLiteral("complicatedBg"),  QStringLiteral("chaoticBg"),    QStringLiteral("clearBg"),
+      QStringLiteral("confusionBg"),    QStringLiteral("textColor"),    QStringLiteral("labelColor")};
   const QJsonObject cynefin = values.value(QStringLiteral("cynefin")).toObject();
   for (const QString& field : cynefinFields) {
-    if (!cynefin.contains(field)) continue;
+    if (!cynefin.contains(field))
+      continue;
     const QJsonValue raw = cynefin.value(field);
     const QString value = configString(raw);
     if (raw.isString() || !value.isEmpty())
       result.insert(QStringLiteral("cynefin.") + field, value);
   }
   static const QStringList wardleyFields = {
-      QStringLiteral("backgroundColor"), QStringLiteral("axisColor"),
-      QStringLiteral("axisTextColor"), QStringLiteral("gridColor"),
-      QStringLiteral("componentFill"), QStringLiteral("componentStroke"),
-      QStringLiteral("componentLabelColor"), QStringLiteral("linkStroke"),
-      QStringLiteral("evolutionStroke")};
-  const QJsonObject wardley =
-      values.value(QStringLiteral("wardley")).toObject();
+      QStringLiteral("backgroundColor"),     QStringLiteral("axisColor"),     QStringLiteral("axisTextColor"),
+      QStringLiteral("gridColor"),           QStringLiteral("componentFill"), QStringLiteral("componentStroke"),
+      QStringLiteral("componentLabelColor"), QStringLiteral("linkStroke"),    QStringLiteral("evolutionStroke")};
+  const QJsonObject wardley = values.value(QStringLiteral("wardley")).toObject();
   for (const QString& field : wardleyFields) {
-    if (!wardley.contains(field)) continue;
+    if (!wardley.contains(field))
+      continue;
     const QJsonValue raw = wardley.value(field);
     const QString value = configString(raw);
     if (raw.isString() || !value.isEmpty())
@@ -169,14 +170,19 @@ double parseJsRadixInt(const QString& digits, int base) {
   for (const QChar& ch : digits) {
     const int lc = ch.toLower().toLatin1();
     int dv;
-    if (lc >= '0' && lc <= '9') dv = lc - '0';
-    else if (lc >= 'a' && lc <= 'z') dv = lc - 'a' + 10;
-    else return kJsNaN;  // non-alphanumeric -> not a valid literal
-    if (dv >= base) return kJsNaN;  // digit out of radix range
-    if (acc < 1e15) acc = acc * base + dv;  // stop growing once huge (no +inf)
+    if (lc >= '0' && lc <= '9')
+      dv = lc - '0';
+    else if (lc >= 'a' && lc <= 'z')
+      dv = lc - 'a' + 10;
+    else
+      return kJsNaN; // non-alphanumeric -> not a valid literal
+    if (dv >= base)
+      return kJsNaN; // digit out of radix range
+    if (acc < 1e15)
+      acc = acc * base + dv; // stop growing once huge (no +inf)
     any = true;
   }
-  return any ? acc : kJsNaN;  // empty -> NaN
+  return any ? acc : kJsNaN; // empty -> NaN
 }
 
 // JS Number(string): trims, then a numeric literal — decimal (with sign +
@@ -184,7 +190,8 @@ double parseJsRadixInt(const QString& digits, int base) {
 // (Signed hex/bin/oct and hex floats are not in the StringNumericLiteral grammar.)
 double jsNumberString(QString s) {
   s = s.trimmed();
-  if (s.isEmpty()) return 0.0;  // Number("") == 0
+  if (s.isEmpty())
+    return 0.0; // Number("") == 0
   if (s == QLatin1String("Infinity") || s == QLatin1String("+Infinity"))
     return std::numeric_limits<double>::infinity();
   if (s == QLatin1String("-Infinity"))
@@ -193,11 +200,14 @@ double jsNumberString(QString s) {
   const auto intPrefix = [&s](QLatin1String pfx) {
     return s.length() > 2 && s.left(2).compare(pfx, Qt::CaseInsensitive) == 0;
   };
-  if (intPrefix(QLatin1String("0x"))) return parseJsRadixInt(s.mid(2), 16);
-  if (intPrefix(QLatin1String("0b"))) return parseJsRadixInt(s.mid(2), 2);
-  if (intPrefix(QLatin1String("0o"))) return parseJsRadixInt(s.mid(2), 8);
+  if (intPrefix(QLatin1String("0x")))
+    return parseJsRadixInt(s.mid(2), 16);
+  if (intPrefix(QLatin1String("0b")))
+    return parseJsRadixInt(s.mid(2), 2);
+  if (intPrefix(QLatin1String("0o")))
+    return parseJsRadixInt(s.mid(2), 8);
   bool ok = false;
-  const double n = s.toDouble(&ok);  // decimal / scientific (toDouble trims too)
+  const double n = s.toDouble(&ok); // decimal / scientific (toDouble trims too)
   return ok ? n : kJsNaN;
 }
 
@@ -210,22 +220,28 @@ QString jsElementString(const QJsonValue& v);
 QString jsArrayToString(const QJsonArray& a) {
   QString r;
   for (int i = 0; i < a.size(); ++i) {
-    if (i) r += QLatin1Char(',');
+    if (i)
+      r += QLatin1Char(',');
     r += jsElementString(a.at(i));
   }
-  return r;  // [] -> ""  (so Number([]) == Number("") == 0)
+  return r; // [] -> ""  (so Number([]) == Number("") == 0)
 }
 QString jsElementString(const QJsonValue& v) {
   switch (v.type()) {
-    case QJsonValue::Double:
-      // 'g' with max_digits10 (17) round-trips; integral doubles still print as "2".
-      return QString::number(v.toDouble(), 'g', std::numeric_limits<double>::max_digits10);
-    case QJsonValue::Bool:   return v.toBool() ? QStringLiteral("true") : QStringLiteral("false");
-    case QJsonValue::Null:   return QString();  // null/undefined element -> ""
-    case QJsonValue::String: return v.toString();
-    case QJsonValue::Array:  return jsArrayToString(v.toArray());
-    case QJsonValue::Object:
-    default:                 return QStringLiteral("[object Object]");
+  case QJsonValue::Double:
+    // 'g' with max_digits10 (17) round-trips; integral doubles still print as "2".
+    return QString::number(v.toDouble(), 'g', std::numeric_limits<double>::max_digits10);
+  case QJsonValue::Bool:
+    return v.toBool() ? QStringLiteral("true") : QStringLiteral("false");
+  case QJsonValue::Null:
+    return QString(); // null/undefined element -> ""
+  case QJsonValue::String:
+    return v.toString();
+  case QJsonValue::Array:
+    return jsArrayToString(v.toArray());
+  case QJsonValue::Object:
+  default:
+    return QStringLiteral("[object Object]");
   }
 }
 
@@ -235,34 +251,44 @@ QString jsElementString(const QJsonValue& v) {
 // object/undefined->NaN.
 double jsNumber(const QJsonValue& v) {
   switch (v.type()) {
-    case QJsonValue::Double: return v.toDouble();
-    case QJsonValue::Bool:   return v.toBool() ? 1.0 : 0.0;
-    case QJsonValue::Null:   return 0.0;  // Number(null) == 0
-    case QJsonValue::String: return jsNumberString(v.toString());
-    case QJsonValue::Array:  return jsNumberString(jsArrayToString(v.toArray()));
-    case QJsonValue::Object:
-    case QJsonValue::Undefined:
-    default:                 return kJsNaN;  // Number({}) / Number(undefined) == NaN
+  case QJsonValue::Double:
+    return v.toDouble();
+  case QJsonValue::Bool:
+    return v.toBool() ? 1.0 : 0.0;
+  case QJsonValue::Null:
+    return 0.0; // Number(null) == 0
+  case QJsonValue::String:
+    return jsNumberString(v.toString());
+  case QJsonValue::Array:
+    return jsNumberString(jsArrayToString(v.toArray()));
+  case QJsonValue::Object:
+  case QJsonValue::Undefined:
+  default:
+    return kJsNaN; // Number({}) / Number(undefined) == NaN
   }
 }
-}  // namespace
+} // namespace
 
-double jsNumberValue(const QJsonValue& value) { return jsNumber(value); }
+double jsNumberValue(const QJsonValue& value) {
+  return jsNumber(value);
+}
 
 QString jsNumberToString(double value) {
-  if (value == 0.0) return QStringLiteral("0");  // includes -0
-  if (std::isnan(value)) return QStringLiteral("NaN");
+  if (value == 0.0)
+    return QStringLiteral("0"); // includes -0
+  if (std::isnan(value))
+    return QStringLiteral("NaN");
   if (std::isinf(value))
     return value < 0.0 ? QStringLiteral("-Infinity") : QStringLiteral("Infinity");
 
   char buffer[64];
-  const auto result = std::to_chars(std::begin(buffer), std::end(buffer), value,
-                                    std::chars_format::general);
+  const auto result = std::to_chars(std::begin(buffer), std::end(buffer), value, std::chars_format::general);
   if (result.ec != std::errc())
     return QString::number(value, 'g', std::numeric_limits<double>::max_digits10);
   std::string raw(buffer, result.ptr);
   const size_t exponentAt = raw.find_first_of("eE");
-  if (exponentAt == std::string::npos) return QString::fromStdString(raw);
+  if (exponentAt == std::string::npos)
+    return QString::fromStdString(raw);
 
   const std::string mantissa = raw.substr(0, exponentAt);
   const int exponent = std::stoi(raw.substr(exponentAt + 1));
@@ -271,10 +297,9 @@ QString jsNumberToString(double value) {
     const size_t start = negative ? 1 : 0;
     const size_t dot = mantissa.find('.', start);
     std::string digits = mantissa.substr(start);
-    const int beforeDot = dot == std::string::npos
-                              ? static_cast<int>(digits.size())
-                              : static_cast<int>(dot - start);
-    if (dot != std::string::npos) digits.erase(dot - start, 1);
+    const int beforeDot = dot == std::string::npos ? static_cast<int>(digits.size()) : static_cast<int>(dot - start);
+    if (dot != std::string::npos)
+      digits.erase(dot - start, 1);
     const int decimalPos = beforeDot + exponent;
     std::string fixed = negative ? "-" : "";
     if (decimalPos <= 0) {
@@ -308,11 +333,13 @@ QString jsNumberToString(double value) {
 // (full JS semantics incl. 0x/0b/0o strings and single-element arrays) and ceil it;
 // NaN / non-positive -> 0 rules.
 std::optional<int> jsThemeColorLimit(const QJsonObject& config) {
-  const QJsonValue v = config.value(QStringLiteral("themeVariables")).toObject()
-                           .value(QStringLiteral("THEME_COLOR_LIMIT"));
-  if (v.isUndefined() || v.isNull()) return std::nullopt;  // merge: null/absent keep default
+  const QJsonValue v =
+      config.value(QStringLiteral("themeVariables")).toObject().value(QStringLiteral("THEME_COLOR_LIMIT"));
+  if (v.isUndefined() || v.isNull())
+    return std::nullopt; // merge: null/absent keep default
   const double n = jsNumber(v);
-  if (!std::isfinite(n) || n <= 0.0) return 0;
+  if (!std::isfinite(n) || n <= 0.0)
+    return 0;
   // Saturate: a huge TCL (e.g. 2147483648) would overflow int on the cast; clamp
   // to INT_MAX so the consumer's `k < limit` gate still selects the full palette
   // (matching upstream, which visually covers all 12 color-ids for large TCL).
@@ -334,9 +361,10 @@ qreal rawShapeRadius(const flowtheme::FlowThemeVariables& theme) {
 
 qreal pixelValue(const QString& value, qreal fallback) {
   static const QRegularExpression number(QStringLiteral(R"(^\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))px\s*$)"),
-                                          QRegularExpression::CaseInsensitiveOption);
+                                         QRegularExpression::CaseInsensitiveOption);
   const auto match = number.match(value);
-  if (!match.hasMatch()) return fallback;
+  if (!match.hasMatch())
+    return fallback;
   bool ok = false;
   const qreal parsed = match.captured(1).toDouble(&ok);
   return ok && parsed > 0.0 ? parsed : fallback;
@@ -367,7 +395,8 @@ CssLengthContext pieCssLengthContext(const QString& fontFamily, qreal emPx) {
   // only when absent/invalid (cssFontSizePx already falls back to the parent).
   // Skip the QFont at 0: setPixelSize(0) warns and keeps the default, so ex/ch
   // are 0 (their natural value at a 0-size font).
-  if (emPx <= 0.0) return {emPx, 16.0, 0.0, 0.0, QSizeF(800.0, 600.0)};
+  if (emPx <= 0.0)
+    return {emPx, 16.0, 0.0, 0.0, QSizeF(800.0, 600.0)};
   // Any POSITIVE emPx -- including a sub-pixel root like 0.4px -- measures ex/ch
   // at the ACTUAL font size. Font metrics (x-height, '0' advance) scale LINEARLY
   // with pixel size for a scalable font, so measure them ONCE at a safe reference
@@ -380,22 +409,23 @@ CssLengthContext pieCssLengthContext(const QString& fontFamily, qreal emPx) {
   QStringList families;
   for (QString family : fontFamily.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
     family = family.trimmed();
-    if (family.size() >= 2 &&
-        ((family.front() == QLatin1Char('"') && family.back() == QLatin1Char('"')) ||
-         (family.front() == QLatin1Char('\'') && family.back() == QLatin1Char('\''))))
+    if (family.size() >= 2 && ((family.front() == QLatin1Char('"') && family.back() == QLatin1Char('"')) ||
+                               (family.front() == QLatin1Char('\'') && family.back() == QLatin1Char('\''))))
       family = family.mid(1, family.size() - 2);
-    if (!family.isEmpty()) families.append(family);
+    if (!family.isEmpty())
+      families.append(family);
   }
-  if (families.isEmpty()) families.append(QStringLiteral("Noto Sans"));
+  if (families.isEmpty())
+    families.append(QStringLiteral("Noto Sans"));
   QFont f(families.first());
-  if (families.size() > 1) f.setFamilies(families);
+  if (families.size() > 1)
+    f.setFamilies(families);
   MermaidFontRegistry::configureFont(f, fontFamily);
   f.setPixelSize(int(kReferencePx));
   const TextFontMetrics m(f);
   const qreal scale = emPx / kReferencePx;
   // viewport = mmdc default raster profile (RequirementScene.cpp:46).
-  return {emPx, 16.0, m.xHeight() * scale,
-          m.horizontalAdvance(QChar('0')) * scale, QSizeF(800.0, 600.0)};
+  return {emPx, 16.0, m.xHeight() * scale, m.horizontalAdvance(QChar('0')) * scale, QSizeF(800.0, 600.0)};
 }
 
 qreal cssStrokeWidthPx(const QString& value, const CssLengthContext& ctx, qreal diagonalPx) {
@@ -405,23 +435,28 @@ qreal cssStrokeWidthPx(const QString& value, const CssLengthContext& ctx, qreal 
   if (t.endsWith(QLatin1Char('%'))) {
     bool ok = false;
     const qreal n = t.left(t.size() - 1).toDouble(&ok);
-    if (!ok || !std::isfinite(n)) return 1.0;
+    if (!ok || !std::isfinite(n))
+      return 1.0;
     const qreal px = n / 100.0 * diagonalPx;
     return px < 0.0 ? 1.0 : std::min(px, kChromiumMaxStrokeWidthPx);
   }
   const CssLengthResult r = resolveCssLengthToPx(value, ctx);
-  if (r.status != CssLengthStatus::Valid) return 1.0;  // missing/invalid -> CSS initial
-  if (r.px < 0.0) return 1.0;                           // negative -> CSS initial
-  return std::min(r.px, kChromiumMaxStrokeWidthPx);     // 0 or positive (0 -> caller NoPen)
+  if (r.status != CssLengthStatus::Valid)
+    return 1.0; // missing/invalid -> CSS initial
+  if (r.px < 0.0)
+    return 1.0;                                     // negative -> CSS initial
+  return std::min(r.px, kChromiumMaxStrokeWidthPx); // 0 or positive (0 -> caller NoPen)
 }
 
 qreal cssOpacity(const QString& value) {
   QString s = value.trimmed();
   const bool percent = s.endsWith(QLatin1Char('%'));
-  if (percent) s.chop(1);
+  if (percent)
+    s.chop(1);
   bool ok = false;
   const double n = s.toDouble(&ok);
-  if (!ok || !std::isfinite(n)) return 1.0;  // CSS initial
+  if (!ok || !std::isfinite(n))
+    return 1.0; // CSS initial
   return std::clamp(percent ? n / 100.0 : n, 0.0, 1.0);
 }
 
@@ -429,19 +464,20 @@ QStringList cssFamilyList(const QString& expression) {
   QStringList result;
   for (QString family : expression.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
     family = family.trimmed();
-    if (family.size() >= 2 &&
-        ((family.front() == QLatin1Char('"') && family.back() == QLatin1Char('"')) ||
-         (family.front() == QLatin1Char('\'') && family.back() == QLatin1Char('\''))))
+    if (family.size() >= 2 && ((family.front() == QLatin1Char('"') && family.back() == QLatin1Char('"')) ||
+                               (family.front() == QLatin1Char('\'') && family.back() == QLatin1Char('\''))))
       family = family.mid(1, family.size() - 2);
-    if (!family.isEmpty()) result.append(family);
+    if (!family.isEmpty())
+      result.append(family);
   }
-  if (result.isEmpty()) result.append(QStringLiteral("Noto Sans"));
+  if (result.isEmpty())
+    result.append(QStringLiteral("Noto Sans"));
   return MermaidFontRegistry::resolveFamilies(result);
 }
 
-QFont::Weight faceAwareMetricWeight(const QString& family,
-                                    QFont::Weight weight) {
-  if (weight == QFont::Normal) return weight;
+QFont::Weight faceAwareMetricWeight(const QString& family, QFont::Weight weight) {
+  if (weight == QFont::Normal)
+    return weight;
   // Chromium answers a weight request against the registered Regular webfont
   // with synthesized bold — the physical face (vertical metrics, advances)
   // stays Regular. Qt's font matching instead substitutes a real bold face of
@@ -451,8 +487,7 @@ QFont::Weight faceAwareMetricWeight(const QString& family,
   const QFont probe = flowchart::makeFlowLabelFont(family, 16.0, weight);
   const QRawFont raw = QRawFont::fromFont(probe);
   const QString requested = cssFamilyList(family).first();
-  if (raw.isValid() && !raw.familyName().isEmpty() &&
-      raw.familyName().compare(requested, Qt::CaseInsensitive) != 0)
+  if (raw.isValid() && !raw.familyName().isEmpty() && raw.familyName().compare(requested, Qt::CaseInsensitive) != 0)
     return QFont::Normal;
   return weight;
 }
@@ -460,19 +495,28 @@ QFont::Weight faceAwareMetricWeight(const QString& family,
 qreal cssFontSizePx(const QString& value, const CssLengthContext& ctx) {
   const QString t = value.trimmed();
   const QString keyword = t.toLower();
-  if (keyword == QLatin1String("xx-small")) return 9.0;
-  if (keyword == QLatin1String("x-small")) return 10.0;
-  if (keyword == QLatin1String("small")) return 13.0;
-  if (keyword == QLatin1String("medium") || keyword == QLatin1String("initial")) return 16.0;
-  if (keyword == QLatin1String("large")) return 18.0;
-  if (keyword == QLatin1String("x-large")) return 24.0;
-  if (keyword == QLatin1String("xx-large")) return 32.0;
-  if (keyword == QLatin1String("xxx-large")) return 48.0;
+  if (keyword == QLatin1String("xx-small"))
+    return 9.0;
+  if (keyword == QLatin1String("x-small"))
+    return 10.0;
+  if (keyword == QLatin1String("small"))
+    return 13.0;
+  if (keyword == QLatin1String("medium") || keyword == QLatin1String("initial"))
+    return 16.0;
+  if (keyword == QLatin1String("large"))
+    return 18.0;
+  if (keyword == QLatin1String("x-large"))
+    return 24.0;
+  if (keyword == QLatin1String("xx-large"))
+    return 32.0;
+  if (keyword == QLatin1String("xxx-large"))
+    return 48.0;
   if (keyword == QLatin1String("larger"))
     return std::min(ctx.emPx * 1.2, kChromiumMaxFontSizePx);
-  if (keyword == QLatin1String("smaller")) return ctx.emPx / 1.2;
-  if (keyword == QLatin1String("inherit") || keyword == QLatin1String("unset") ||
-      keyword == QLatin1String("revert") || keyword == QLatin1String("revert-layer"))
+  if (keyword == QLatin1String("smaller"))
+    return ctx.emPx / 1.2;
+  if (keyword == QLatin1String("inherit") || keyword == QLatin1String("unset") || keyword == QLatin1String("revert") ||
+      keyword == QLatin1String("revert-layer"))
     return ctx.emPx;
   // font-size % -> N/100 of the PARENT font-size (ctx.emPx). An invalid/negative
   // percentage is dropped by the CSS parser and INHERITS the parent (ctx.emPx),
@@ -480,7 +524,8 @@ qreal cssFontSizePx(const QString& value, const CssLengthContext& ctx) {
   if (t.endsWith(QLatin1Char('%'))) {
     bool ok = false;
     const qreal n = t.left(t.size() - 1).toDouble(&ok);
-    if (!ok || !std::isfinite(n)) return ctx.emPx;
+    if (!ok || !std::isfinite(n))
+      return ctx.emPx;
     const qreal px = n / 100.0 * ctx.emPx;
     return px < 0.0 ? ctx.emPx : std::min(px, kChromiumMaxFontSizePx);
   }
@@ -500,8 +545,9 @@ qreal cssFontSizePx(const QString& value, const CssLengthContext& ctx) {
     return ok && number == 0.0 ? 0.0 : ctx.emPx;
   }
   const CssLengthResult r = resolveCssLengthToPx(value, ctx);
-  if (r.status != CssLengthStatus::Valid || r.px < 0.0) return ctx.emPx;  // inherited
-  return std::min(r.px, kChromiumMaxFontSizePx);  // Chromium used-value clamp
+  if (r.status != CssLengthStatus::Valid || r.px < 0.0)
+    return ctx.emPx;                             // inherited
+  return std::min(r.px, kChromiumMaxFontSizePx); // Chromium used-value clamp
 }
 
 qreal CssPixelFont::horizontalAdvance(const QString& text) const {
@@ -551,22 +597,23 @@ qreal parseFontSizeNumber(const QString& value) {
   // (correctly-rounded, same as V8).
   static const QRegularExpression re(QStringLiteral(R"(^\s*([+-]?\d+))"));
   const auto m = re.match(value);
-  if (!m.hasMatch()) return 2.0;
+  if (!m.hasMatch())
+    return 2.0;
   bool ok = false;
   const double n = m.captured(1).toDouble(&ok);
   return ok ? qreal(n) : 2.0;
 }
 
 qreal parseFontSizeNumber(const QJsonValue& raw, const QString& fallbackString) {
-  if (raw.isDouble()) return raw.toDouble();  // number verbatim (1.7 -> 1.7)
+  if (raw.isDouble())
+    return raw.toDouble(); // number verbatim (1.7 -> 1.7)
   return parseFontSizeNumber(raw.isString() ? raw.toString() : fallbackString);
 }
 
 QString firstFontFamily(QString cssFamily) {
   cssFamily = cssFamily.section(QLatin1Char(','), 0, 0).trimmed();
-  if (cssFamily.size() >= 2 &&
-      ((cssFamily.front() == QLatin1Char('"') && cssFamily.back() == QLatin1Char('"')) ||
-       (cssFamily.front() == QLatin1Char('\'') && cssFamily.back() == QLatin1Char('\''))))
+  if (cssFamily.size() >= 2 && ((cssFamily.front() == QLatin1Char('"') && cssFamily.back() == QLatin1Char('"')) ||
+                                (cssFamily.front() == QLatin1Char('\'') && cssFamily.back() == QLatin1Char('\''))))
     cssFamily = cssFamily.mid(1, cssFamily.size() - 2);
   return cssFamily.isEmpty() ? QStringLiteral("Arial") : cssFamily;
 }
@@ -581,18 +628,23 @@ QFont::Weight cssFontWeightToQt(const QJsonValue& value, QFont::Weight fallback)
     const double raw = value.toDouble();
     // CSS font-weight only has meaning in 1..1000; anything outside (0, 1001,
     // negative) is invalid and a browser falls back to normal — like mermaid.
-    if (raw < 1.0 || raw > 1000.0) return fallback;
+    if (raw < 1.0 || raw > 1000.0)
+      return fallback;
     return static_cast<QFont::Weight>(static_cast<int>(std::round(raw)));
   }
   if (value.isString()) {
     const QString text = value.toString().trimmed().toLower();
-    if (text == QLatin1String("normal")) return QFont::Normal;
-    if (text == QLatin1String("bold")) return QFont::Bold;
+    if (text == QLatin1String("normal"))
+      return QFont::Normal;
+    if (text == QLatin1String("bold"))
+      return QFont::Bold;
     // bolder/lighter resolve relative to the inherited weight. Sequence labels
     // inherit the default normal (400), so bolder -> 700 and lighter -> 100
     // (matching mermaid 11.16.0 / Chromium).
-    if (text == QLatin1String("bolder")) return QFont::Bold;
-    if (text == QLatin1String("lighter")) return QFont::Thin;
+    if (text == QLatin1String("bolder"))
+      return QFont::Bold;
+    if (text == QLatin1String("lighter"))
+      return QFont::Thin;
     // Parse with toDouble, not toInt: a CSS font-weight string may be a decimal
     // ("500.5"), scientific ("1e2"), or carry a sign/leading zeros ("+500",
     // "0500"). Qt's toDouble requires the whole string to be a valid number, and
@@ -608,47 +660,54 @@ QFont::Weight cssFontWeightToQt(const QJsonValue& value, QFont::Weight fallback)
 
 bool truthyConfigValue(const QJsonValue& value) {
   switch (value.type()) {
-    case QJsonValue::Bool: return value.toBool();
-    case QJsonValue::Double: return value.toDouble() != 0.0;
-    // JS truthiness: any non-empty string is truthy (including " ", "0", and
-    // "false") — do not trim. mermaid setConf() gates the global mirror on this.
-    case QJsonValue::String: return !value.toString().isEmpty();
-    // JS: objects and arrays are always truthy.
-    case QJsonValue::Array:
-    case QJsonValue::Object: return true;
-    default: return false;  // Null, Undefined
+  case QJsonValue::Bool:
+    return value.toBool();
+  case QJsonValue::Double:
+    return value.toDouble() != 0.0;
+  // JS truthiness: any non-empty string is truthy (including " ", "0", and
+  // "false") — do not trim. mermaid setConf() gates the global mirror on this.
+  case QJsonValue::String:
+    return !value.toString().isEmpty();
+  // JS: objects and arrays are always truthy.
+  case QJsonValue::Array:
+  case QJsonValue::Object:
+    return true;
+  default:
+    return false; // Null, Undefined
   }
 }
 
 bool evaluateConfigValue(const QJsonValue& value) {
-  if (value.isBool() && !value.toBool()) return false;
+  if (value.isBool() && !value.toBool())
+    return false;
   const auto jsString = [&](const auto& self, const QJsonValue& item) -> QString {
-    if (item.isString()) return item.toString();
-    if (item.isDouble()) return jsNumberToString(item.toDouble());
+    if (item.isString())
+      return item.toString();
+    if (item.isDouble())
+      return jsNumberToString(item.toDouble());
     if (item.isBool())
       return item.toBool() ? QStringLiteral("true") : QStringLiteral("false");
-    if (item.isNull()) return QStringLiteral("null");
-    if (item.isUndefined()) return QStringLiteral("undefined");
-    if (item.isObject()) return QStringLiteral("[object Object]");
+    if (item.isNull())
+      return QStringLiteral("null");
+    if (item.isUndefined())
+      return QStringLiteral("undefined");
+    if (item.isObject())
+      return QStringLiteral("[object Object]");
     QStringList elements;
     for (const QJsonValue& element : item.toArray())
-      elements.append(element.isNull() || element.isUndefined()
-                          ? QString() : self(self, element));
+      elements.append(element.isNull() || element.isUndefined() ? QString() : self(self, element));
     return elements.join(QLatin1Char(','));
   };
   QString text = jsString(jsString, value);
   text = text.trimmed().toLower();
-  return text != QLatin1String("false") && text != QLatin1String("null") &&
-         text != QLatin1String("0");
+  return text != QLatin1String("false") && text != QLatin1String("null") && text != QLatin1String("0");
 }
 
-MermaidRenderMetadata renderMetadata(
-    const MermaidPreprocessResult& pre, const QString& diagramType,
-    const QString& diagramTitle, const QString& accessibleTitle,
-    const QString& accessibleDescription, const QString& titleColor,
-    const QString& fontFamily, qreal titleFontSize,
-    qreal titleTopMargin, qreal diagramPadding,
-    qreal titleBandPadding) {
+MermaidRenderMetadata renderMetadata(const MermaidPreprocessResult& pre, const QString& diagramType,
+                                     const QString& diagramTitle, const QString& accessibleTitle,
+                                     const QString& accessibleDescription, const QString& titleColor,
+                                     const QString& fontFamily, qreal titleFontSize, qreal titleTopMargin,
+                                     qreal diagramPadding, qreal titleBandPadding) {
   MermaidRenderMetadata metadata;
   metadata.diagramType = diagramType;
   metadata.roleDescription = diagramType;
@@ -670,32 +729,30 @@ MermaidRenderMetadata renderMetadata(
   // field itself is upstream-inert and the generated effect matrix records it.
   const QJsonObject svgConfig = pre.config.value(configSection).toObject();
   metadata.svgUseMaxWidth = svgConfig.contains(QStringLiteral("useMaxWidth"))
-      ? svgConfig.value(QStringLiteral("useMaxWidth")).toBool(true) : true;
+                                ? svgConfig.value(QStringLiteral("useMaxWidth")).toBool(true)
+                                : true;
   // Mermaid's source-entry mirror writes the root option into the effective
   // Flow/Sequence configs. Nested family keys with the same name are schema
   // fields but are not observed by the 11.16 render path.
-  metadata.svgArrowMarkerAbsolute =
-      pre.config.value(QStringLiteral("arrowMarkerAbsolute")).toBool(false);
+  metadata.svgArrowMarkerAbsolute = pre.config.value(QStringLiteral("arrowMarkerAbsolute")).toBool(false);
   // Per-family renderer capability (upstream 11.16): only flowchart*/swimlane/sequence emit
   // absolute marker URLs, sequence with CSS escaping. The family-agnostic exporter reads the
   // computed bits instead of switching on diagramType.
-  metadata.svgMarkerAbsoluteEligible =
-      diagramType.startsWith(QLatin1String("flowchart")) ||
-      diagramType == QLatin1String("swimlane") ||
-      diagramType == QLatin1String("sequence");
+  metadata.svgMarkerAbsoluteEligible = diagramType.startsWith(QLatin1String("flowchart")) ||
+                                       diagramType == QLatin1String("swimlane") ||
+                                       diagramType == QLatin1String("sequence");
   metadata.svgMarkerUrlCssEscape = diagramType == QLatin1String("sequence");
-  metadata.svgDeterministicIds =
-      pre.config.value(QStringLiteral("deterministicIds")).toBool(false);
-  metadata.svgDeterministicIdSeed =
-      pre.config.value(QStringLiteral("deterministicIDSeed")).toString();
+  metadata.svgDeterministicIds = pre.config.value(QStringLiteral("deterministicIds")).toBool(false);
+  metadata.svgDeterministicIdSeed = pre.config.value(QStringLiteral("deterministicIDSeed")).toString();
   return metadata;
 }
 
-QRectF mermaidClientBox(const std::shared_ptr<const MermaidScene>& scene,
-                        const MermaidRenderMetadata& metadata) {
-  if (!scene) return {};
+QRectF mermaidClientBox(const std::shared_ptr<const MermaidScene>& scene, const MermaidRenderMetadata& metadata) {
+  if (!scene)
+    return {};
   const QRectF clientViewBox = scene->svgClientViewBox();
-  if (!clientViewBox.isValid()) return {};
+  if (!clientViewBox.isValid())
+    return {};
   // Upstream (state draw + rendering-util, browser-verified): the renderer
   // inserts the title BEFORE sizing the viewport — insertTitle anchors the
   // text baseline at ABSOLUTE -titleTopMargin (text y attr), centered
@@ -712,14 +769,10 @@ QRectF mermaidClientBox(const std::shared_ptr<const MermaidScene>& scene,
     const qreal ascent = qRound(TextFontMetrics(titleFace).ascent());
     const qreal descent = qRound(TextFontMetrics(titleFace).descent());
     const qreal titleWidth = measureMermaidTitleWidth(metadata);
-    const qreal padding = metadata.titleBandPadding >= 0.0
-        ? metadata.titleBandPadding : metadata.diagramPadding;
-    const QRectF titleBox(
-        clientViewBox.center().x() - titleWidth / 2.0,
-        -metadata.titleTopMargin - ascent,
-        titleWidth, ascent + descent);
-    clientBox = clientBox.united(titleBox.adjusted(-padding, -padding,
-                                                   padding, padding));
+    const qreal padding = metadata.titleBandPadding >= 0.0 ? metadata.titleBandPadding : metadata.diagramPadding;
+    const QRectF titleBox(clientViewBox.center().x() - titleWidth / 2.0, -metadata.titleTopMargin - ascent, titleWidth,
+                          ascent + descent);
+    clientBox = clientBox.united(titleBox.adjusted(-padding, -padding, padding, padding));
   }
   return clientBox;
 }
@@ -728,8 +781,7 @@ QRectF mermaidClientBox(const MermaidRenderEntry& entry) {
   return mermaidClientBox(entry.scene, entry.metadata);
 }
 
-void finalizeReadyEntry(MermaidRenderEntry& entry,
-                        MermaidRenderMetadata metadata) {
+void finalizeReadyEntry(MermaidRenderEntry& entry, MermaidRenderMetadata metadata) {
   const QRectF clientBox = mermaidClientBox(entry.scene, metadata);
   if (clientBox.isValid()) {
     // Client-box families: ONE rounding of the FRACTIONAL total box
@@ -739,28 +791,24 @@ void finalizeReadyEntry(MermaidRenderEntry& entry,
     // rastered 71 + ceil(52.25) = 124 instead of round(119.5) = 120, with
     // the title baseline pushed ~0.75px low.
     metadata.contentSize = clientBox.size();
-    entry.naturalSize = QSize(qMax(1, qRound(clientBox.width())),
-                              qMax(1, qRound(clientBox.height())));
+    entry.naturalSize = QSize(qMax(1, qRound(clientBox.width())), qMax(1, qRound(clientBox.height())));
     if (metadata.hasVisibleTitle()) {
       QFont titleFace(metadata.fontFamily);
       MermaidFontRegistry::configureFont(titleFace, metadata.fontFamily);
       setTextPixelSize(titleFace, metadata.titleFontSize);
       const qreal ascent = TextFontMetrics(titleFace).ascent();
-      const qreal bandPadding = metadata.titleBandPadding >= 0.0
-          ? metadata.titleBandPadding : metadata.diagramPadding;
+      const qreal bandPadding = metadata.titleBandPadding >= 0.0 ? metadata.titleBandPadding : metadata.diagramPadding;
       // Integer titleHeight for the paint-time title strip; the BASELINE
       // position is independent of this ceil (bottom-anchored at
       // -titleTopMargin).
-      metadata.titleHeight = qCeil(
-          metadata.titleTopMargin + qRound(ascent) + bandPadding);
+      metadata.titleHeight = qCeil(metadata.titleTopMargin + qRound(ascent) + bandPadding);
     }
     entry.metadata = std::move(metadata);
     return;
   }
   metadata.contentSize = QSizeF(entry.naturalSize);
-  entry.naturalSize = QSize(
-      qCeil(metadata.contentSize.width() + 2.0 * metadata.diagramPadding),
-      qCeil(metadata.contentSize.height() + 2.0 * metadata.diagramPadding));
+  entry.naturalSize = QSize(qCeil(metadata.contentSize.width() + 2.0 * metadata.diagramPadding),
+                            qCeil(metadata.contentSize.height() + 2.0 * metadata.diagramPadding));
   if (metadata.hasVisibleTitle()) {
     // Upstream (insertTitle + setupGraphViewbox, browser-verified against
     // the pinned Noto face): the title text bbox sits titleTopMargin +
@@ -771,19 +819,15 @@ void finalizeReadyEntry(MermaidRenderEntry& entry,
     MermaidFontRegistry::configureFont(titleFace, metadata.fontFamily);
     setTextPixelSize(titleFace, metadata.titleFontSize);
     const qreal ascent = TextFontMetrics(titleFace).ascent();
-    const qreal bandPadding = metadata.titleBandPadding >= 0.0
-        ? metadata.titleBandPadding : metadata.diagramPadding;
-    metadata.titleHeight = qCeil(
-        metadata.titleTopMargin + qRound(ascent) + bandPadding);
+    const qreal bandPadding = metadata.titleBandPadding >= 0.0 ? metadata.titleBandPadding : metadata.diagramPadding;
+    metadata.titleHeight = qCeil(metadata.titleTopMargin + qRound(ascent) + bandPadding);
     const qreal titleWidth = measureMermaidTitleWidth(metadata) + 16.0;
     // The raster client box snaps to the NEAREST device pixel (Chromium
     // element screenshots); ceil would inflate a 104.39px title to 105.
-    entry.naturalSize.setWidth(qRound(qMax(
-        static_cast<qreal>(entry.naturalSize.width()), titleWidth)));
-    entry.naturalSize.setHeight(qCeil(
-        entry.naturalSize.height() + metadata.titleHeight));
+    entry.naturalSize.setWidth(qRound(qMax(static_cast<qreal>(entry.naturalSize.width()), titleWidth)));
+    entry.naturalSize.setHeight(qCeil(entry.naturalSize.height() + metadata.titleHeight));
   }
   entry.metadata = std::move(metadata);
 }
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

@@ -30,25 +30,22 @@
 namespace muffin::mermaid::rough {
 
 inline QPainterPath roundedRectPath(const QRectF& bounds, qreal radius) {
-  const QString data = QStringLiteral(
-      "M %1 %2 H %3 A %4 %4 0 0 1 %5 %6 V %7 "
-      "A %4 %4 0 0 1 %3 %8 H %1 A %4 %4 0 0 1 %9 %7 "
-      "V %6 A %4 %4 0 0 1 %1 %2 Z")
-      .arg(bounds.left() + radius, 0, 'g', 17)
-      .arg(bounds.top(), 0, 'g', 17)
-      .arg(bounds.right() - radius, 0, 'g', 17)
-      .arg(radius, 0, 'g', 17)
-      .arg(bounds.right(), 0, 'g', 17)
-      .arg(bounds.top() + radius, 0, 'g', 17)
-      .arg(bounds.bottom() - radius, 0, 'g', 17)
-      .arg(bounds.bottom(), 0, 'g', 17)
-      .arg(bounds.left(), 0, 'g', 17);
+  const QString data = QStringLiteral("M %1 %2 H %3 A %4 %4 0 0 1 %5 %6 V %7 "
+                                      "A %4 %4 0 0 1 %3 %8 H %1 A %4 %4 0 0 1 %9 %7 "
+                                      "V %6 A %4 %4 0 0 1 %1 %2 Z")
+                           .arg(bounds.left() + radius, 0, 'g', 17)
+                           .arg(bounds.top(), 0, 'g', 17)
+                           .arg(bounds.right() - radius, 0, 'g', 17)
+                           .arg(radius, 0, 'g', 17)
+                           .arg(bounds.right(), 0, 'g', 17)
+                           .arg(bounds.top() + radius, 0, 'g', 17)
+                           .arg(bounds.bottom() - radius, 0, 'g', 17)
+                           .arg(bounds.bottom(), 0, 'g', 17)
+                           .arg(bounds.left(), 0, 'g', 17);
   return scene::parseSvgPath(data);
 }
 
-inline Drawable roughRoundedRectPathDrawable(const QRectF& bounds,
-                                              qreal radius,
-                                              Options options = {}) {
+inline Drawable roughRoundedRectPathDrawable(const QRectF& bounds, qreal radius, Options options = {}) {
   if (!qFuzzyIsNull(radius))
     return path(roundedRectPath(bounds, radius), std::move(options), true);
 
@@ -56,16 +53,17 @@ inline Drawable roughRoundedRectPathDrawable(const QRectF& bounds,
   const QPointF topRight = bounds.topRight();
   const QPointF bottomRight = bounds.bottomRight();
   const QPointF bottomLeft = bounds.bottomLeft();
-  const auto cubicAt = [](const QPointF& point) {
-    return PathCommand{PathCommandType::CubicTo, point, point, point};
-  };
-  QVector<PathCommand> commands{
-      {PathCommandType::Move, topLeft, {}, {}},
-      {PathCommandType::LineTo, topRight, {}, {}}, cubicAt(topRight),
-      {PathCommandType::LineTo, bottomRight, {}, {}}, cubicAt(bottomRight),
-      {PathCommandType::LineTo, bottomLeft, {}, {}}, cubicAt(bottomLeft),
-      {PathCommandType::LineTo, topLeft, {}, {}}, cubicAt(topLeft),
-      {PathCommandType::Close, {}, {}, {}}};
+  const auto cubicAt = [](const QPointF& point) { return PathCommand{PathCommandType::CubicTo, point, point, point}; };
+  QVector<PathCommand> commands{{PathCommandType::Move, topLeft, {}, {}},
+                                {PathCommandType::LineTo, topRight, {}, {}},
+                                cubicAt(topRight),
+                                {PathCommandType::LineTo, bottomRight, {}, {}},
+                                cubicAt(bottomRight),
+                                {PathCommandType::LineTo, bottomLeft, {}, {}},
+                                cubicAt(bottomLeft),
+                                {PathCommandType::LineTo, topLeft, {}, {}},
+                                cubicAt(topLeft),
+                                {PathCommandType::Close, {}, {}, {}}};
   return path(commands, std::move(options));
 }
 
@@ -88,25 +86,21 @@ inline Options edgeOptions(quint32 seed, qreal strokeWidth = 1.0) {
   return options;
 }
 
-inline Drawable roughRectDrawable(const QRectF& rect, quint32 seed,
-                                  qreal strokeWidth = 1.3) {
-  return rectangle(rect.x(), rect.y(), rect.width(), rect.height(),
-                   nodeOptions(seed, strokeWidth));
+inline Drawable roughRectDrawable(const QRectF& rect, quint32 seed, qreal strokeWidth = 1.3) {
+  return rectangle(rect.x(), rect.y(), rect.width(), rect.height(), nodeOptions(seed, strokeWidth));
 }
 
-inline Drawable roughNodeLineDrawable(const QPointF& a, const QPointF& b,
-                                      quint32 seed,
-                                      qreal strokeWidth = 1.3) {
+inline Drawable roughNodeLineDrawable(const QPointF& a, const QPointF& b, quint32 seed, qreal strokeWidth = 1.3) {
   return line(a.x(), a.y(), b.x(), b.y(), nodeOptions(seed, strokeWidth));
 }
 
-inline Drawable roughEdgeDrawable(const QPainterPath& source, quint32 seed,
-                                  qreal strokeWidth = 1.0) {
+inline Drawable roughEdgeDrawable(const QPainterPath& source, quint32 seed, qreal strokeWidth = 1.0) {
   return path(source, edgeOptions(seed, strokeWidth));
 }
 
 inline Drawable translatedDrawable(Drawable drawable, const QPointF& delta) {
-  if (delta.isNull()) return drawable;
+  if (delta.isNull())
+    return drawable;
   for (OpSet& set : drawable.sets) {
     for (Op& op : set.ops) {
       for (qsizetype i = 0; i + 1 < op.data.size(); i += 2) {
@@ -118,9 +112,8 @@ inline Drawable translatedDrawable(Drawable drawable, const QPointF& delta) {
   return drawable;
 }
 
-inline void drawRoughDrawable(QPainter& painter, const Drawable& drawable,
-                              const QBrush& fillBrush, const QPen& strokePen,
-                              const QPen& fillSketchPen) {
+inline void drawRoughDrawable(QPainter& painter, const Drawable& drawable, const QBrush& fillBrush,
+                              const QPen& strokePen, const QPen& fillSketchPen) {
   const auto svgPen = [](QPen pen) {
     if (pen.style() != Qt::NoPen) {
       // SVG/Canvas defaults used by RoughJS. QPen defaults to SquareCap and
@@ -134,45 +127,39 @@ inline void drawRoughDrawable(QPainter& painter, const Drawable& drawable,
   };
   for (const OpSet& set : drawable.sets) {
     switch (set.type) {
-      case OpSetType::FillPath:
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(fillBrush);
-        break;
-      case OpSetType::FillSketch:
-        painter.setPen(svgPen(fillSketchPen));
-        painter.setBrush(Qt::NoBrush);
-        break;
-      case OpSetType::Path:
-        painter.setPen(svgPen(strokePen));
-        painter.setBrush(Qt::NoBrush);
-        break;
+    case OpSetType::FillPath:
+      painter.setPen(Qt::NoPen);
+      painter.setBrush(fillBrush);
+      break;
+    case OpSetType::FillSketch:
+      painter.setPen(svgPen(fillSketchPen));
+      painter.setBrush(Qt::NoBrush);
+      break;
+    case OpSetType::Path:
+      painter.setPen(svgPen(strokePen));
+      painter.setBrush(Qt::NoBrush);
+      break;
     }
     painter.drawPath(toPainterPath(set));
   }
 }
 
-inline void roughRect(QPainter& painter, const QRectF& rect, quint32 seed,
-                      const QColor& fill, const QColor& stroke, qreal strokeWidth) {
-  drawRoughDrawable(painter, roughRectDrawable(
-                        rect, seed, std::max<qreal>(1.3, strokeWidth)),
-                    fill, QPen(stroke, strokeWidth), QPen(fill, strokeWidth));
+inline void roughRect(QPainter& painter, const QRectF& rect, quint32 seed, const QColor& fill, const QColor& stroke,
+                      qreal strokeWidth) {
+  drawRoughDrawable(painter, roughRectDrawable(rect, seed, std::max<qreal>(1.3, strokeWidth)), fill,
+                    QPen(stroke, strokeWidth), QPen(fill, strokeWidth));
 }
 
-inline void roughPath(QPainter& painter, const QPainterPath& source, quint32 seed,
-                      const QColor& stroke, qreal strokeWidth) {
-  drawRoughDrawable(painter, roughEdgeDrawable(
-                        source, seed, std::max<qreal>(1.3, strokeWidth)),
-                    Qt::NoBrush,
+inline void roughPath(QPainter& painter, const QPainterPath& source, quint32 seed, const QColor& stroke,
+                      qreal strokeWidth) {
+  drawRoughDrawable(painter, roughEdgeDrawable(source, seed, std::max<qreal>(1.3, strokeWidth)), Qt::NoBrush,
                     QPen(stroke, strokeWidth), Qt::NoPen);
 }
 
-inline void roughLine(QPainter& painter, const QPointF& a, const QPointF& b,
-                      quint32 seed, const QColor& stroke, qreal strokeWidth) {
-  const Drawable drawable = line(
-      a.x(), a.y(), b.x(), b.y(),
-      edgeOptions(seed, std::max<qreal>(1.3, strokeWidth)));
-  drawRoughDrawable(painter, drawable, Qt::NoBrush,
-                    QPen(stroke, strokeWidth), Qt::NoPen);
+inline void roughLine(QPainter& painter, const QPointF& a, const QPointF& b, quint32 seed, const QColor& stroke,
+                      qreal strokeWidth) {
+  const Drawable drawable = line(a.x(), a.y(), b.x(), b.y(), edgeOptions(seed, std::max<qreal>(1.3, strokeWidth)));
+  drawRoughDrawable(painter, drawable, Qt::NoBrush, QPen(stroke, strokeWidth), Qt::NoPen);
 }
 
-}  // namespace muffin::mermaid::rough
+} // namespace muffin::mermaid::rough

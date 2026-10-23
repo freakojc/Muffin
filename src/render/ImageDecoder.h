@@ -28,4 +28,4 @@ QImage decodeDataUri(const QString& uri);
 /// Returns an invalid QSize if detection fails.
 QSize detectSize(const QString& filePath);
 
-}  // namespace muffin::image_decoder
+} // namespace muffin::image_decoder

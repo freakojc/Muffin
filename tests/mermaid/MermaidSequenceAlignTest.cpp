@@ -43,14 +43,16 @@ namespace {
   std::exit(1);
 }
 void require(bool value, const QString& message) {
-  if (!value) fail(message);
+  if (!value)
+    fail(message);
 }
 
 QRect alphaBounds(const QImage& image, int alphaThreshold = 32) {
   QRect result;
   for (int y = 0; y < image.height(); ++y)
     for (int x = 0; x < image.width(); ++x) {
-      if (image.pixelColor(x, y).alpha() < alphaThreshold) continue;
+      if (image.pixelColor(x, y).alpha() < alphaThreshold)
+        continue;
       result = result.isNull() ? QRect(x, y, 1, 1) : result.united(QRect(x, y, 1, 1));
     }
   return result;
@@ -62,11 +64,11 @@ QRect alignedLabelInk(flowchart::FlowLabelAlign align, qreal margin) {
   image.fill(Qt::transparent);
   QPainter painter(&image);
   painter.setRenderHint(QPainter::TextAntialiasing);
-  const sequence::SequenceLabelDocument document = sequence::parseSequenceLabel(
-      QStringLiteral("hello message"), sequence::SequenceLabelKind::Message);
+  const sequence::SequenceLabelDocument document =
+      sequence::parseSequenceLabel(QStringLiteral("hello message"), sequence::SequenceLabelKind::Message);
   const QRectF rect(50.0, 5.0, 320.0, 30.0);
-  sequence::paintSequenceLabel(painter, document, rect, QStringLiteral("Noto Sans"),
-                               16.0, 22.0, QColor(Qt::black), true, align, margin);
+  sequence::paintSequenceLabel(painter, document, rect, QStringLiteral("Noto Sans"), 16.0, 22.0, QColor(Qt::black),
+                               true, align, margin);
   return alphaBounds(image);
 }
 
@@ -75,22 +77,20 @@ QRect alignedLabelInk(flowchart::FlowLabelAlign align, qreal margin) {
 // destroyed, and a static cache only delays that until LRU eviction).
 std::shared_ptr<const sequence::SequenceScene> sequenceScene(const QString& source) {
   editor::MermaidRenderCache cache;
-  editor::MermaidRenderEntry entry =
-      cache.getSync(editor::MermaidRenderCache::makeKey(source), source);
+  editor::MermaidRenderEntry entry = cache.getSync(editor::MermaidRenderCache::makeKey(source), source);
   return std::dynamic_pointer_cast<const sequence::SequenceScene>(entry.scene);
 }
 
 QImage renderPng(const QString& source) {
-  const QString dataUrl =
-      editor::MermaidRenderCache::renderMermaidSourceToPngDataUrl(source, 2.0);
+  const QString dataUrl = editor::MermaidRenderCache::renderMermaidSourceToPngDataUrl(source, 2.0);
   const int comma = dataUrl.indexOf(QLatin1Char(','));
   require(comma > 0, QStringLiteral("Mermaid PNG data URL is malformed"));
-  return QImage::fromData(
-      QByteArray::fromBase64(dataUrl.mid(comma + 1).toLatin1()), "PNG");
+  return QImage::fromData(QByteArray::fromBase64(dataUrl.mid(comma + 1).toLatin1()), "PNG");
 }
 
 int rgbaDiffPixels(const QImage& a, const QImage& b) {
-  if (a.size() != b.size()) return -1;
+  if (a.size() != b.size())
+    return -1;
   int diff = 0;
   for (int y = 0; y < a.height(); ++y)
     for (int x = 0; x < a.width(); ++x) {
@@ -98,11 +98,13 @@ int rgbaDiffPixels(const QImage& a, const QImage& b) {
       const QColor cb = b.pixelColor(x, y);
       const bool aa = ca.alpha() >= 16;
       const bool ab = cb.alpha() >= 16;
-      if (aa != ab) { ++diff; continue; }
-      if (!aa) continue;
-      if (std::abs(ca.red() - cb.red()) + std::abs(ca.green() - cb.green()) +
-              std::abs(ca.blue() - cb.blue()) >
-          24)
+      if (aa != ab) {
+        ++diff;
+        continue;
+      }
+      if (!aa)
+        continue;
+      if (std::abs(ca.red() - cb.red()) + std::abs(ca.green() - cb.green()) + std::abs(ca.blue() - cb.blue()) > 24)
         ++diff;
     }
   return diff;
@@ -113,8 +115,8 @@ int rgbaDiffPixels(const QImage& a, const QImage& b) {
 // For a normal span the dashed actor lifelines at the span edges are excluded.
 // For a zero-width self span, a window around the anchor is scanned with the
 // lifeline column at the anchor excluded. Returns false if no text ink found.
-bool messageTextRange(const QImage& img, const sequence::SequenceScene& scene,
-                      int msgIdx, qreal dpr, qreal& outLeft, qreal& outRight) {
+bool messageTextRange(const QImage& img, const sequence::SequenceScene& scene, int msgIdx, qreal dpr, qreal& outLeft,
+                      qreal& outRight) {
   const auto& msg = scene.messages.at(msgIdx);
   const QRectF vp = scene.viewportRect;
   const qreal excl = 5.0;
@@ -139,18 +141,22 @@ bool messageTextRange(const QImage& img, const sequence::SequenceScene& scene,
   int xmin = img.width(), xmax = -1;
   for (int y = y0; y <= y1; ++y)
     for (int x = xMin; x <= xMax; ++x) {
-      if (excludeCenter && std::abs(x - centerImg) <= exclImg) continue;
+      if (excludeCenter && std::abs(x - centerImg) <= exclImg)
+        continue;
       if (img.pixelColor(x, y).alpha() >= 32) {
-        if (x < xmin) xmin = x;
-        if (x > xmax) xmax = x;
+        if (x < xmin)
+          xmin = x;
+        if (x > xmax)
+          xmax = x;
       }
     }
-  if (xmax < 0) return false;
+  if (xmax < 0)
+    return false;
   outLeft = xmin / dpr + vp.left();
   outRight = xmax / dpr + vp.left();
   return true;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QGuiApplication app(argc, argv);
@@ -164,27 +170,21 @@ int main(int argc, char** argv) {
     const QRect right = alignedLabelInk(flowchart::FlowLabelAlign::Right, margin);
     require(left.width() > 0 && center.width() > 0 && right.width() > 0,
             QStringLiteral("Aligned label rendered no ink"));
-    require(qAbs(left.width() - center.width()) <= 1 &&
-                qAbs(right.width() - center.width()) <= 1,
+    require(qAbs(left.width() - center.width()) <= 1 && qAbs(right.width() - center.width()) <= 1,
             QStringLiteral("Align changed the label ink width"));
-    require(left.left() >= rect.left() + margin - 2 &&
-                left.left() <= rect.left() + margin + 4,
+    require(left.left() >= rect.left() + margin - 2 && left.left() <= rect.left() + margin + 4,
             QStringLiteral("Left align ink not inset by margin: %1").arg(left.left()));
-    require(right.right() <= rect.right() - margin + 2 &&
-                right.right() >= rect.right() - margin - 4,
+    require(right.right() <= rect.right() - margin + 2 && right.right() >= rect.right() - margin - 4,
             QStringLiteral("Right align ink not inset by margin: %1").arg(right.right()));
     require(left.left() < center.left() && center.left() < right.left(),
-            QStringLiteral("Align order wrong: L%1 C%2 R%3")
-                .arg(left.left()).arg(center.left()).arg(right.left()));
-    require(qAbs((center.left() + center.right()) -
-                 (rect.left() + rect.right())) <= 3,
+            QStringLiteral("Align order wrong: L%1 C%2 R%3").arg(left.left()).arg(center.left()).arg(right.left()));
+    require(qAbs((center.left() + center.right()) - (rect.left() + rect.right())) <= 3,
             QStringLiteral("Center align ink not centered"));
   }
 
   // --- 2. Config reaches the scene; default + invalid -> Center ---
   {
-    const auto scene = sequenceScene(
-        QStringLiteral("sequenceDiagram\nAlice->>Bob: hi\nNote over Bob: n"));
+    const auto scene = sequenceScene(QStringLiteral("sequenceDiagram\nAlice->>Bob: hi\nNote over Bob: n"));
     require(scene != nullptr, QStringLiteral("Default sequence yielded no SequenceScene"));
     require(scene->style.messageAlign == flowchart::FlowLabelAlign::Center,
             QStringLiteral("Default messageAlign is not Center"));
@@ -192,10 +192,9 @@ int main(int argc, char** argv) {
             QStringLiteral("Default noteAlign is not Center"));
   }
   {
-    const auto scene = sequenceScene(QStringLiteral(
-        "%%{init: {\"sequence\": {\"messageAlign\": \"left\", "
-        "\"noteAlign\": \"right\"}}}%%\n"
-        "sequenceDiagram\nAlice->>Bob: hi\nNote over Bob: n"));
+    const auto scene = sequenceScene(QStringLiteral("%%{init: {\"sequence\": {\"messageAlign\": \"left\", "
+                                                    "\"noteAlign\": \"right\"}}}%%\n"
+                                                    "sequenceDiagram\nAlice->>Bob: hi\nNote over Bob: n"));
     require(scene != nullptr, QStringLiteral("Configured sequence yielded no SequenceScene"));
     require(scene->style.messageAlign == flowchart::FlowLabelAlign::Left,
             QStringLiteral("messageAlign:left did not reach the scene"));
@@ -203,9 +202,8 @@ int main(int argc, char** argv) {
             QStringLiteral("noteAlign:right did not reach the scene"));
   }
   {
-    const auto scene = sequenceScene(QStringLiteral(
-        "%%{init: {\"sequence\": {\"messageAlign\": \"diagonal\"}}}%%\n"
-        "sequenceDiagram\nAlice->>Bob: hi"));
+    const auto scene = sequenceScene(QStringLiteral("%%{init: {\"sequence\": {\"messageAlign\": \"diagonal\"}}}%%\n"
+                                                    "sequenceDiagram\nAlice->>Bob: hi"));
     require(scene != nullptr && scene->style.messageAlign == flowchart::FlowLabelAlign::Center,
             QStringLiteral("Invalid messageAlign did not fall back to Center"));
   }
@@ -220,26 +218,28 @@ int main(int argc, char** argv) {
       require(scene != nullptr && scene->messages.size() > idx,
               QStringLiteral("%1: no scene/message at idx %2").arg(QLatin1String(tag)).arg(idx));
       const auto& msg = scene->messages.at(idx);
-      const qreal spanLeft = std::min(msg.startX, msg.stopX) - 6.0;  // arrow offset slack
+      const qreal spanLeft = std::min(msg.startX, msg.stopX) - 6.0; // arrow offset slack
       const qreal spanRight = std::max(msg.startX, msg.stopX) + 6.0;
-      require(qAbs(msg.alignRect.center().x() - (std::min(msg.startX, msg.stopX) +
-                   std::max(msg.startX, msg.stopX)) / 2.0) < 1.0,
+      require(qAbs(msg.alignRect.center().x() -
+                   (std::min(msg.startX, msg.stopX) + std::max(msg.startX, msg.stopX)) / 2.0) < 1.0,
               QStringLiteral("%1: alignRect not centered on the span").arg(QLatin1String(tag)));
       if (self) {
-        require(msg.alignRect.width() <= 1.0,
-                QStringLiteral("%1: self-message alignRect not zero-width (%2)")
-                    .arg(QLatin1String(tag)).arg(msg.alignRect.width()));
+        require(msg.alignRect.width() <= 1.0, QStringLiteral("%1: self-message alignRect not zero-width (%2)")
+                                                  .arg(QLatin1String(tag))
+                                                  .arg(msg.alignRect.width()));
       } else {
         require(msg.alignRect.left() >= spanLeft && msg.alignRect.right() <= spanRight,
                 QStringLiteral("%1: alignRect does not cover the span"));
         require(msg.alignRect.width() > msg.labelRect.width() + 40.0,
                 QStringLiteral("%1: alignRect not wider than labelRect (%2 > %3)")
-                    .arg(QLatin1String(tag)).arg(msg.alignRect.width()).arg(msg.labelRect.width()));
+                    .arg(QLatin1String(tag))
+                    .arg(msg.alignRect.width())
+                    .arg(msg.labelRect.width()));
       }
     };
     check(QStringLiteral("sequenceDiagram\nAlice->>Bob: hello message"), 0, "forward", false);
-    check(QStringLiteral("sequenceDiagram\nparticipant Alice\nparticipant Bob\nBob->>Alice: reply"),
-          0, "reverse", false);
+    check(QStringLiteral("sequenceDiagram\nparticipant Alice\nparticipant Bob\nBob->>Alice: reply"), 0, "reverse",
+          false);
     check(QStringLiteral("sequenceDiagram\nAlice->>Alice: hello message"), 0, "self", true);
   }
 
@@ -250,9 +250,8 @@ int main(int argc, char** argv) {
   // right -> anchor - margin.
   {
     const auto msgSrc = [](const QString& body, const QString& align) {
-      return QStringLiteral(
-          "%%{init: {\"sequence\": {\"actorMargin\": 200, \"messageAlign\": \"") +
-             align + QStringLiteral("\"}}}%%\n") + body;
+      return QStringLiteral("%%{init: {\"sequence\": {\"actorMargin\": 200, \"messageAlign\": \"") + align +
+             QStringLiteral("\"}}}%%\n") + body;
     };
     const qreal tol = 5.0;
     const auto checkSpanBbox = [&](const QString& body, int idx, const char* tag) {
@@ -276,20 +275,26 @@ int main(int argc, char** argv) {
               QStringLiteral("%1: could not extract right text").arg(QLatin1String(tag)));
       require(std::abs(lL - (msg.alignRect.left() + margin)) <= tol,
               QStringLiteral("%1: left text %2 != alignRect.left+margin %3")
-                  .arg(QLatin1String(tag)).arg(lL).arg(msg.alignRect.left() + margin));
+                  .arg(QLatin1String(tag))
+                  .arg(lL)
+                  .arg(msg.alignRect.left() + margin));
       require(std::abs(rR - (msg.alignRect.right() - margin)) <= tol,
               QStringLiteral("%1: right text %2 != alignRect.right-margin %3")
-                  .arg(QLatin1String(tag)).arg(rR).arg(msg.alignRect.right() - margin));
+                  .arg(QLatin1String(tag))
+                  .arg(rR)
+                  .arg(msg.alignRect.right() - margin));
       require(std::abs((cL + cR) / 2.0 - msg.alignRect.center().x()) <= tol,
               QStringLiteral("%1: center midpoint %2 != alignRect center %3")
-                  .arg(QLatin1String(tag)).arg((cL + cR) / 2.0).arg(msg.alignRect.center().x()));
-      require(lL < cL - 5.0 && cL < rL - 5.0,
-              QStringLiteral("%1: placements not distinct L%2 C%3 R%4")
-                  .arg(QLatin1String(tag)).arg(lL).arg(cL).arg(rL));
+                  .arg(QLatin1String(tag))
+                  .arg((cL + cR) / 2.0)
+                  .arg(msg.alignRect.center().x()));
+      require(
+          lL < cL - 5.0 && cL < rL - 5.0,
+          QStringLiteral("%1: placements not distinct L%2 C%3 R%4").arg(QLatin1String(tag)).arg(lL).arg(cL).arg(rL));
     };
     checkSpanBbox(QStringLiteral("sequenceDiagram\nAlice->>Bob: hello message"), 0, "forward");
-    checkSpanBbox(QStringLiteral(
-        "sequenceDiagram\nparticipant Alice\nparticipant Bob\nBob->>Alice: reply"), 0, "reverse");
+    checkSpanBbox(QStringLiteral("sequenceDiagram\nparticipant Alice\nparticipant Bob\nBob->>Alice: reply"), 0,
+                  "reverse");
 
     // Self message: zero-width span -> text at anchor +/- margin.
     {
@@ -298,8 +303,7 @@ int main(int argc, char** argv) {
       const QString sc = msgSrc(selfBody, "center");
       const QString sr = msgSrc(selfBody, "right");
       const auto scene = sequenceScene(sl);
-      require(scene != nullptr && !scene->messages.isEmpty(),
-              QStringLiteral("self: no message"));
+      require(scene != nullptr && !scene->messages.isEmpty(), QStringLiteral("self: no message"));
       const auto& msg = scene->messages.at(0);
       require(msg.alignRect.width() <= 1.0,
               QStringLiteral("self: alignRect not zero-width (%1)").arg(msg.alignRect.width()));
@@ -313,40 +317,33 @@ int main(int argc, char** argv) {
       require(messageTextRange(renderPng(sr), *sequenceScene(sr), 0, 2.0, rL, rR),
               QStringLiteral("self: could not extract right text"));
       require(lL > anchor + margin - 6.0,
-              QStringLiteral("self left text %1 not right of anchor+margin %2")
-                  .arg(lL).arg(anchor + margin));
+              QStringLiteral("self left text %1 not right of anchor+margin %2").arg(lL).arg(anchor + margin));
       require(rR < anchor - margin + 6.0,
-              QStringLiteral("self right text %1 not left of anchor-margin %2")
-                  .arg(rR).arg(anchor - margin));
+              QStringLiteral("self right text %1 not left of anchor-margin %2").arg(rR).arg(anchor - margin));
       require(std::abs((cL + cR) / 2.0 - anchor) <= 7.0,
               QStringLiteral("self center %1 not on anchor %2").arg((cL + cR) / 2.0).arg(anchor));
     }
 
     // Default (center) byte-identical to explicit center.
     const QString fwdBody = QStringLiteral("sequenceDiagram\nAlice->>Bob: hello message");
-    const QImage defaultImg = renderPng(
-        QStringLiteral("%%{init: {\"sequence\": {\"actorMargin\": 200}}}%%\n") + fwdBody);
+    const QImage defaultImg =
+        renderPng(QStringLiteral("%%{init: {\"sequence\": {\"actorMargin\": 200}}}%%\n") + fwdBody);
     require(rgbaDiffPixels(defaultImg, renderPng(msgSrc(fwdBody, "center"))) == 0,
             QStringLiteral("Default render differs from explicit messageAlign:center"));
 
     // noteAlign left/right move the note text (RGBA over opaque yellow bg).
-    const QString noteBody = QStringLiteral(
-        "sequenceDiagram\nAlice->>Bob: hi\nNote over Alice,Bob: a note");
+    const QString noteBody = QStringLiteral("sequenceDiagram\nAlice->>Bob: hi\nNote over Alice,Bob: a note");
     const auto noteSrc = [&noteBody](const QString& align) {
-      return QStringLiteral(
-          "%%{init: {\"sequence\": {\"actorMargin\": 200, \"noteAlign\": \"") +
-             align + QStringLiteral("\"}}}%%\n") + noteBody;
+      return QStringLiteral("%%{init: {\"sequence\": {\"actorMargin\": 200, \"noteAlign\": \"") + align +
+             QStringLiteral("\"}}}%%\n") + noteBody;
     };
-    const QImage noteDefault = renderPng(
-        QStringLiteral("%%{init: {\"sequence\": {\"actorMargin\": 200}}}%%\n") + noteBody);
+    const QImage noteDefault =
+        renderPng(QStringLiteral("%%{init: {\"sequence\": {\"actorMargin\": 200}}}%%\n") + noteBody);
     const QImage noteLeft = renderPng(noteSrc("left"));
     const QImage noteRight = renderPng(noteSrc("right"));
-    require(rgbaDiffPixels(noteLeft, noteDefault) > 20,
-            QStringLiteral("noteAlign:left did not move the note text"));
-    require(rgbaDiffPixels(noteRight, noteDefault) > 20,
-            QStringLiteral("noteAlign:right did not move the note text"));
-    require(rgbaDiffPixels(noteLeft, noteRight) > 20,
-            QStringLiteral("noteAlign:left and :right rendered identically"));
+    require(rgbaDiffPixels(noteLeft, noteDefault) > 20, QStringLiteral("noteAlign:left did not move the note text"));
+    require(rgbaDiffPixels(noteRight, noteDefault) > 20, QStringLiteral("noteAlign:right did not move the note text"));
+    require(rgbaDiffPixels(noteLeft, noteRight) > 20, QStringLiteral("noteAlign:left and :right rendered identically"));
   }
 
   // --- 5. Math labels stay centered regardless of align (drawKatex) ---
@@ -366,13 +363,14 @@ int main(int argc, char** argv) {
       const QImage right = renderPng(src("right"));
       require(rgbaDiffPixels(left, center) == 0 && rgbaDiffPixels(right, center) == 0,
               QStringLiteral("Math message changed with messageAlign: %1 (diff L=%2 R=%3)")
-                  .arg(msg).arg(rgbaDiffPixels(left, center)).arg(rgbaDiffPixels(right, center)));
+                  .arg(msg)
+                  .arg(rgbaDiffPixels(left, center))
+                  .arg(rgbaDiffPixels(right, center)));
     };
     const auto mathNoteUnchanged = [](const QString& note) {
       const auto src = [&note](const QString& align) {
         return QStringLiteral("%%{init: {\"sequence\": {\"noteAlign\": \"") + align +
-               QStringLiteral("\"}}}%%\nsequenceDiagram\nAlice->>Bob: hi\nNote over Alice,Bob: ") +
-               note;
+               QStringLiteral("\"}}}%%\nsequenceDiagram\nAlice->>Bob: hi\nNote over Alice,Bob: ") + note;
       };
       renderPng(src("center"));
       const QImage left = renderPng(src("left"));
@@ -380,7 +378,9 @@ int main(int argc, char** argv) {
       const QImage right = renderPng(src("right"));
       require(rgbaDiffPixels(left, center) == 0 && rgbaDiffPixels(right, center) == 0,
               QStringLiteral("Math note changed with noteAlign: %1 (diff L=%2 R=%3)")
-                  .arg(note).arg(rgbaDiffPixels(left, center)).arg(rgbaDiffPixels(right, center)));
+                  .arg(note)
+                  .arg(rgbaDiffPixels(left, center))
+                  .arg(rgbaDiffPixels(right, center)));
     };
     mathMsgUnchanged(QStringLiteral("$$x^2 + y^2 = r^2$$"));
     mathMsgUnchanged(QStringLiteral("value $$x^2$$ here"));
@@ -388,12 +388,11 @@ int main(int argc, char** argv) {
     mathNoteUnchanged(QStringLiteral("energy $$E$$ now"));
   }
 
-  qDebug().noquote()
-      << "MermaidSequenceAlignTest: messageAlign/noteAlign reach the scene "
-         "(default/invalid=Center); paint places ink at rect.left+margin / "
-         "centered / rect.right-margin; the message aligns across the full span "
-         "(alignRect >> labelRect), verified by pixel extraction for "
-         "left/center/right; Math labels stay centered; default == explicit "
-         "center byte-for-byte.";
+  qDebug().noquote() << "MermaidSequenceAlignTest: messageAlign/noteAlign reach the scene "
+                        "(default/invalid=Center); paint places ink at rect.left+margin / "
+                        "centered / rect.right-margin; the message aligns across the full span "
+                        "(alignRect >> labelRect), verified by pixel extraction for "
+                        "left/center/right; Math labels stay centered; default == explicit "
+                        "center byte-for-byte.";
   return 0;
 }

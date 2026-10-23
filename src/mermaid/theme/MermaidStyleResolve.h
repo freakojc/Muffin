@@ -31,9 +31,9 @@ struct ThemeDefaults {
   QString lineColor;
   qreal strokeWidth = 1.0;
   QString textColor;
-  QString nodeTextColor;  // may be empty (falls back to textColor)
+  QString nodeTextColor; // may be empty (falls back to textColor)
   QString fontFamily;
-  QString fontSize;       // e.g. "16px"
+  QString fontSize; // e.g. "16px"
 };
 
 // A classDef entry. `declarations` merges the class's node styles and text
@@ -52,10 +52,10 @@ struct ResolvedNodeStyle {
   // Resolved paint (theme defaults overridden by the cascade).
   QString fill;
   QString stroke;
-  QString strokeWidth;   // e.g. "2px"
+  QString strokeWidth; // e.g. "2px"
   QString color;
   QString fontFamily;
-  QString fontSize;      // e.g. "16px"
+  QString fontSize; // e.g. "16px"
   QString fontWeight;
 };
 
@@ -63,34 +63,29 @@ struct ResolvedEdgeStyle {
   QString stroke;
   QString strokeWidth;
   QString strokeDasharray;
-  QString fill;  // "none" for edges (auto-added)
+  QString fill; // "none" for edges (auto-added)
 };
 
 // Resolve a node's style. `classes` names the classDefs that apply (the
 // "default" and "node" built-ins are auto-prepended inside, so `classDef
 // default`/`classDef node` apply to every node). `inlineStyles` are the
 // per-element `style` declarations, applied after classDef.
-ResolvedNodeStyle resolveNodeStyle(const QStringList& classes,
-                                   const QStringList& inlineStyles,
-                                   const QVector<ClassDef>& classDefs,
-                                   const ThemeDefaults& theme);
+ResolvedNodeStyle resolveNodeStyle(const QStringList& classes, const QStringList& inlineStyles,
+                                   const QVector<ClassDef>& classDefs, const ThemeDefaults& theme);
 
 // Resolve an edge's style. `pattern` is the edge thickness token
 // (normal/dotted/thick/invisible). `linkStyles` are the linkStyle declarations
 // (classDef-via-setClass already merged in by the caller, plus the auto
 // "fill:none"). `animate`/`animation` force the dash pattern.
-ResolvedEdgeStyle resolveEdgeStyle(const QString& pattern,
-                                   const QStringList& linkStyles,
-                                   bool animate, const QString& animation,
-                                   const ThemeDefaults& theme);
+ResolvedEdgeStyle resolveEdgeStyle(const QString& pattern, const QStringList& linkStyles, bool animate,
+                                   const QString& animation, const ThemeDefaults& theme);
 
 // Merged classDef declarations (key:value, last-wins) for the given class names
 // — the edge/subgraph analogue of resolveNodeStyle without the inline `style`
 // tail or the default/node prepend. Callers split by key.
-QStringList compiledClassStyles(const QStringList& classNames,
-                                const QVector<ClassDef>& classDefs);
+QStringList compiledClassStyles(const QStringList& classNames, const QVector<ClassDef>& classDefs);
 
 // Whether a CSS property key is a label (text) style vs a node (box) style.
 bool isLabelStyle(const QString& key);
 
-}  // namespace muffin::mermaid::style
+} // namespace muffin::mermaid::style

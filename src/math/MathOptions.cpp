@@ -9,25 +9,26 @@ constexpr qreal kPointsPerCssPixel = 72.0 / 96.0;
 
 qreal multiplierForStyle(MathStyle style) {
   switch (style.id()) {
-    case MathStyle::Display:
-    case MathStyle::DisplayCramped:
-    case MathStyle::Text:
-    case MathStyle::TextCramped:
-      return 1.0;
-    case MathStyle::Script:
-    case MathStyle::ScriptCramped:
-      return 0.7;
-    case MathStyle::ScriptScript:
-    case MathStyle::ScriptScriptCramped:
-      return 0.5;
+  case MathStyle::Display:
+  case MathStyle::DisplayCramped:
+  case MathStyle::Text:
+  case MathStyle::TextCramped:
+    return 1.0;
+  case MathStyle::Script:
+  case MathStyle::ScriptCramped:
+    return 0.7;
+  case MathStyle::ScriptScript:
+  case MathStyle::ScriptScriptCramped:
+    return 0.5;
   }
   return 1.0;
 }
 
-}  // namespace
+} // namespace
 
 MathOptions::MathOptions(MathStyle style, qreal basePointSize, QColor color, MathSettings settings)
-    : style_(style), basePointSize_(basePointSize), color_(std::move(color)), settings_(std::move(settings)) {}
+    : style_(style), basePointSize_(basePointSize), color_(std::move(color)), settings_(std::move(settings)) {
+}
 
 MathStyle MathOptions::style() const {
   return style_;
@@ -121,7 +122,8 @@ QFont MathOptions::fontForClass(const QString& fontClass) const {
     family = QStringLiteral("KaTeX_Typewriter");
   } else if (fontClass == QStringLiteral("script")) {
     family = QStringLiteral("KaTeX_Script");
-  } else if (fontClass == QStringLiteral("sqrt") || fontClass == QStringLiteral("size") || fontClass == QStringLiteral("size1")) {
+  } else if (fontClass == QStringLiteral("sqrt") || fontClass == QStringLiteral("size") ||
+             fontClass == QStringLiteral("size1")) {
     family = QStringLiteral("KaTeX_Size1");
   } else if (fontClass == QStringLiteral("size2")) {
     family = QStringLiteral("KaTeX_Size2");
@@ -141,4 +143,4 @@ QFont MathOptions::fontForClass(const QString& fontClass) const {
   return font;
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

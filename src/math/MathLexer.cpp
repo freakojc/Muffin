@@ -2,7 +2,8 @@
 
 namespace muffin::math {
 
-MathLexer::MathLexer(QString input) : input_(std::move(input)) {}
+MathLexer::MathLexer(QString input) : input_(std::move(input)) {
+}
 
 MathToken MathLexer::peek() {
   if (!pushed_.isEmpty()) {
@@ -76,10 +77,12 @@ void MathLexer::setPreserveSpaces(bool preserve) {
 MathToken MathLexer::readToken() {
   if (preserveSpaces_ && pos_ < input_.size() && input_.at(pos_).isSpace()) {
     const qsizetype start = pos_;
-    while (pos_ < input_.size() && input_.at(pos_).isSpace()) ++pos_;
+    while (pos_ < input_.size() && input_.at(pos_).isSpace())
+      ++pos_;
     return {input_.mid(start, pos_ - start), start, pos_};
   }
-  while (pos_ < input_.size() && input_.at(pos_).isSpace()) ++pos_;
+  while (pos_ < input_.size() && input_.at(pos_).isSpace())
+    ++pos_;
   if (pos_ >= input_.size()) {
     return {QStringLiteral("EOF"), pos_, pos_};
   }
@@ -94,7 +97,8 @@ MathToken MathLexer::readToken() {
       const qsizetype tokenEnd = pos_;
       // TeX consumes whitespace that terminates a control word as part of
       // lexing the command. It is not text-mode content.
-      while (pos_ < input_.size() && input_.at(pos_).isSpace()) ++pos_;
+      while (pos_ < input_.size() && input_.at(pos_).isSpace())
+        ++pos_;
       return {input_.mid(start, tokenEnd - start), start, tokenEnd};
     }
     if (pos_ < input_.size()) {
@@ -111,4 +115,4 @@ MathToken MathLexer::readToken() {
   return {QString(ch), start, pos_};
 }
 
-}  // namespace muffin::math
+} // namespace muffin::math

@@ -10,18 +10,85 @@
 namespace muffin::mermaid::flowchart {
 
 enum class FlowTokenKind {
-  Eof, Semi, Newline, Space, Graph, NoDir, Dir, Subgraph, End,
-  AccTitle, AccTitleValue, AccDescr, AccDescrValue, AccDescrMultilineValue,
-  ShapeData, Amp, StyleSeparator, DoubleCircleStart, DoubleCircleEnd,
-  Sqs, Sqe, Ps, Pe, EllipseStart, EllipseEnd, StadiumStart, StadiumEnd,
-  SubroutineStart, SubroutineEnd, VertexWithPropsStart, Colon, Pipe,
-  CylinderStart, CylinderEnd, DiamondStart, DiamondStop, TagStart, TagEnd,
-  TrapStart, TrapEnd, InvTrapStart, InvTrapEnd, StartLink, Link, LinkId,
-  Str, MarkdownStr, Style, LinkStyle, ClassDef, Class, Click, Down, Up,
-  CallbackName, CallbackArgs, Href, LinkTarget, Default, Interpolate,
-  Number, Comma, NodeString, Unit, Bracket, Percent, Minus, Multiply,
-  UnicodeText, Text, EdgeText, DirectionTb, DirectionBt, DirectionRl,
-  DirectionLr, DirectionTd, Quote, Invalid, Unknown
+  Eof,
+  Semi,
+  Newline,
+  Space,
+  Graph,
+  NoDir,
+  Dir,
+  Subgraph,
+  End,
+  AccTitle,
+  AccTitleValue,
+  AccDescr,
+  AccDescrValue,
+  AccDescrMultilineValue,
+  ShapeData,
+  Amp,
+  StyleSeparator,
+  DoubleCircleStart,
+  DoubleCircleEnd,
+  Sqs,
+  Sqe,
+  Ps,
+  Pe,
+  EllipseStart,
+  EllipseEnd,
+  StadiumStart,
+  StadiumEnd,
+  SubroutineStart,
+  SubroutineEnd,
+  VertexWithPropsStart,
+  Colon,
+  Pipe,
+  CylinderStart,
+  CylinderEnd,
+  DiamondStart,
+  DiamondStop,
+  TagStart,
+  TagEnd,
+  TrapStart,
+  TrapEnd,
+  InvTrapStart,
+  InvTrapEnd,
+  StartLink,
+  Link,
+  LinkId,
+  Str,
+  MarkdownStr,
+  Style,
+  LinkStyle,
+  ClassDef,
+  Class,
+  Click,
+  Down,
+  Up,
+  CallbackName,
+  CallbackArgs,
+  Href,
+  LinkTarget,
+  Default,
+  Interpolate,
+  Number,
+  Comma,
+  NodeString,
+  Unit,
+  Bracket,
+  Percent,
+  Minus,
+  Multiply,
+  UnicodeText,
+  Text,
+  EdgeText,
+  DirectionTb,
+  DirectionBt,
+  DirectionRl,
+  DirectionLr,
+  DirectionTd,
+  Quote,
+  Invalid,
+  Unknown
 };
 
 struct FlowToken {
@@ -44,8 +111,17 @@ public:
 
 private:
   enum class Mode {
-    Initial, Dir, Text, TrapText, EdgeText, ThickEdgeText, DottedEdgeText,
-    AccTitleValue, AccDescrValue, CallbackName, CallbackArgs
+    Initial,
+    Dir,
+    Text,
+    TrapText,
+    EdgeText,
+    ThickEdgeText,
+    DottedEdgeText,
+    AccTitleValue,
+    AccDescrValue,
+    CallbackName,
+    CallbackArgs
   };
 
   bool atEnd() const;
@@ -76,4 +152,4 @@ private:
   bool firstGraph_ = true;
 };
 
-}  // namespace muffin::mermaid::flowchart
+} // namespace muffin::mermaid::flowchart

@@ -79,7 +79,8 @@ QImage rasterizeShadow(const ShadowRasterKey& key) {
   boxStats.largestMaskPixels = qMax(boxStats.largestMaskPixels, quint64(compactSize.width()) * compactSize.height());
   boxStats.outputPixels += quint64(key.size.width()) * key.size.height();
   QImage compact(compactSize, QImage::Format_ARGB32_Premultiplied);
-  if (compact.isNull()) return {};
+  if (compact.isNull())
+    return {};
   compact.fill(Qt::transparent);
   {
     diag::ScopedPerfProbe perf("paint.boxMask", effectPerf());
@@ -95,10 +96,12 @@ QImage rasterizeShadow(const ShadowRasterKey& key) {
     diag::ScopedPerfProbe perf("paint.boxBlur", effectPerf());
     boxBlur(compact, key.blur);
   }
-  if (!x.removed && !y.removed) return compact;
+  if (!x.removed && !y.removed)
+    return compact;
   diag::ScopedPerfProbe perf("paint.boxExpand", effectPerf());
   QImage result(key.size, QImage::Format_ARGB32_Premultiplied);
-  if (result.isNull()) return {};
+  if (result.isNull())
+    return {};
   for (int row = 0; row < result.height(); ++row) {
     auto* out = reinterpret_cast<QRgb*>(result.scanLine(row));
     const auto* in = reinterpret_cast<const QRgb*>(compact.constScanLine(y.source(row)));
@@ -179,7 +182,7 @@ const HoverEffect* hoverEffectFor(const RenderTheme& theme, const QString& host)
   return nullptr;
 }
 
-}  // namespace
+} // namespace
 
 BoxShadowRasterStats boxShadowRasterStats() {
   auto result = boxStats;
@@ -187,7 +190,9 @@ BoxShadowRasterStats boxShadowRasterStats() {
   result.cacheEntries = shadows.size();
   return result;
 }
-void resetBoxShadowRasterStats() { boxStats = {}; }
+void resetBoxShadowRasterStats() {
+  boxStats = {};
+}
 
 void paintIcon(QPainter& painter, const QByteArray& svgData, const QRectF& target, const QColor& tint, bool recolour) {
   const auto icon = svgIcon(svgData);
@@ -236,17 +241,26 @@ void paintWriteTexture(QPainter& painter, const RenderTheme& theme, const QRectF
   if (!rule) {
     return;
   }
-  if (rule->computed && (rule->computed->resolvedValue("content") == "none" ||
-      rule->computed->resolvedValue("content") == "normal" || rule->computed->resolvedValue("display") == "none")) return;
+  if (rule->computed &&
+      (rule->computed->resolvedValue("content") == "none" || rule->computed->resolvedValue("content") == "normal" ||
+       rule->computed->resolvedValue("display") == "none"))
+    return;
   if (rule->computed) {
-    const auto generated=generatedContentStyle(theme,*rule,theme.paragraphFont(),pageRect.size());
-    if (!generated) return;
-    const auto rect=positionGeneratedContent(*generated,pageRect,QRectF(pageRect.topLeft(),QSizeF(generated->width,generated->height)),theme.zoomPercent()/100.,false);
-    const auto box=LayoutBox::place("#write::before",generated->style,generated->used,rect,generated->font);
-    paintCssElement(painter,rect,box.visualOverflow,box.style.paint,theme.zoomPercent()/100.,nullptr,
-        [&](QPainter& target,const auto& neutral) {
-      auto style=box.style;style.paint=neutral;paintLayoutBox(target,box,{},&style);
-    },&box);
+    const auto generated = generatedContentStyle(theme, *rule, theme.paragraphFont(), pageRect.size());
+    if (!generated)
+      return;
+    const auto rect = positionGeneratedContent(*generated, pageRect,
+                                               QRectF(pageRect.topLeft(), QSizeF(generated->width, generated->height)),
+                                               theme.zoomPercent() / 100., false);
+    const auto box = LayoutBox::place("#write::before", generated->style, generated->used, rect, generated->font);
+    paintCssElement(
+        painter, rect, box.visualOverflow, box.style.paint, theme.zoomPercent() / 100., nullptr,
+        [&](QPainter& target, const auto& neutral) {
+          auto style = box.style;
+          style.paint = neutral;
+          paintLayoutBox(target, box, {}, &style);
+        },
+        &box);
     return;
   }
   // A #write::before texture is a MASK — either a gradient mask (maskPattern) or
@@ -284,7 +298,7 @@ void paintWriteTexture(QPainter& painter, const RenderTheme& theme, const QRectF
   if (tile.isNull()) {
     return;
   }
-  QBrush pattern(QPixmap::fromImage(tile));  // QBrush(QPixmap) → TexturePattern, tiles
+  QBrush pattern(QPixmap::fromImage(tile)); // QBrush(QPixmap) → TexturePattern, tiles
   painter.save();
   painter.setOpacity(rule->opacity);
   painter.fillRect(pageRect, pattern);
@@ -298,7 +312,7 @@ void paintGlow(QPainter& painter, const QRectF& rect, const QColor& color, qreal
   painter.save();
   painter.setPen(Qt::NoPen);
   QColor base = color;
-  base.setAlpha(qMin(base.alpha(), 60));  // cap the peak so the shell sum stays soft
+  base.setAlpha(qMin(base.alpha(), 60)); // cap the peak so the shell sum stays soft
   constexpr int kLayers = 8;
   for (int i = kLayers; i >= 1; --i) {
     const qreal grow = blur * (i / qreal(kLayers));
@@ -389,9 +403,11 @@ void paintBoxShadow(QPainter& painter, const QRectF& rect, qreal borderRadius, c
     ++boxStats.misses;
     diag::ScopedPerfProbe rasterPerf("paint.boxRasterize", effectPerf());
     shadow = rasterizeShadow(key);
-    if (shadow.isNull()) return;
+    if (shadow.isNull())
+      return;
     const auto kib = (shadow.sizeInBytes() + 1023) / 1024;
-    if (kib <= shadows.maxCost()) shadows.insert(key, new QImage(shadow), int(kib));
+    if (kib <= shadows.maxCost())
+      shadows.insert(key, new QImage(shadow), int(kib));
   }
 
   painter.save();
@@ -400,7 +416,8 @@ void paintBoxShadow(QPainter& painter, const QRectF& rect, qreal borderRadius, c
   painter.restore();
 }
 
-void paintBlockHoverGlow(QPainter& painter, const RenderTheme& theme, const QString& host, const QRectF& rect, qreal phase) {
+void paintBlockHoverGlow(QPainter& painter, const RenderTheme& theme, const QString& host, const QRectF& rect,
+                         qreal phase) {
   const HoverEffect* he = hoverEffectFor(theme, host);
   if (!he) {
     return;
@@ -408,5 +425,5 @@ void paintBlockHoverGlow(QPainter& painter, const RenderTheme& theme, const QStr
   paintGlow(painter, rect, he->glowColor, he->glowBlur, phase);
 }
 
-}  // namespace DecorationPainter
-}  // namespace muffin
+} // namespace DecorationPainter
+} // namespace muffin

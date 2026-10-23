@@ -45,4 +45,4 @@ private:
   std::unique_ptr<QTranslator> qtTranslator_;
 };
 
-}  // namespace muffin
+} // namespace muffin

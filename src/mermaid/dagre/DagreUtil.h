@@ -17,8 +17,7 @@ namespace muffin::mermaid::dagre {
 
 // util.addDummyNode: create a node with a unique "<name><n>" id (counter on the
 // graph label, deterministic per layout) and the `dummy` type tag set.
-QString addDummyNode(DagreGraph& g, const QString& type, DagreNodeLabel attrs,
-                     const QString& name);
+QString addDummyNode(DagreGraph& g, const QString& type, DagreNodeLabel attrs, const QString& name);
 
 // util.addBorderNode(g, prefix) — 2-arg form used by nesting-graph.
 QString addBorderNode(DagreGraph& g, const QString& prefix);
@@ -48,13 +47,11 @@ void normalizeRanks(DagreGraph& g);
 void removeEmptyRanks(DagreGraph& g);
 
 // util.partition: split a list into {lhs: fn=true, rhs: fn=false}.
-template <typename T>
-struct Partition {
+template <typename T> struct Partition {
   QVector<T> lhs;
   QVector<T> rhs;
 };
-template <typename T>
-Partition<T> partition(const QVector<T>& collection, const std::function<bool(const T&)>& fn) {
+template <typename T> Partition<T> partition(const QVector<T>& collection, const std::function<bool(const T&)>& fn) {
   Partition<T> result;
   for (const T& value : collection) {
     if (fn(value))
@@ -65,4 +62,4 @@ Partition<T> partition(const QVector<T>& collection, const std::function<bool(co
   return result;
 }
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

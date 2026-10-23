@@ -31,21 +31,25 @@ namespace {
 void testInlineMarkerExpansion() {
   QVector<InlineNode> inlines;
   inlines.push_back(InlineNode::text(QStringLiteral("before ")));
-  inlines.push_back(InlineNode::strong(QStringLiteral("**"), QVector<InlineNode>{InlineNode::text(QStringLiteral("bold"))}));
+  inlines.push_back(
+      InlineNode::strong(QStringLiteral("**"), QVector<InlineNode>{InlineNode::text(QStringLiteral("bold"))}));
   inlines.push_back(InlineNode::text(QStringLiteral(" after")));
 
   RenderTheme theme = RenderTheme::github();
   InlineLayout collapsed;
   collapsed.build(inlines, theme, 400.0, theme.paragraphFont());
-  require(!collapsed.displayText().contains(QStringLiteral("**")), QStringLiteral("collapsed inline should hide strong markers"));
+  require(!collapsed.displayText().contains(QStringLiteral("**")),
+          QStringLiteral("collapsed inline should hide strong markers"));
 
   InlineLayout expanded;
   InlineLayout::BuildOptions options;
   options.projectionState.cursorVisibleOffset = 8;
   options.projectionState.cursorSourceOffset = 10;
   expanded.build(inlines, QStringLiteral("before **bold** after"), theme, 400.0, theme.paragraphFont(), options);
-  require(expanded.displayText().contains(QStringLiteral("**")), QStringLiteral("active inline should show strong markers"));
-  require(expanded.plainText() == QStringLiteral("before bold after"), QStringLiteral("expanded plain text should stay collapsed"));
+  require(expanded.displayText().contains(QStringLiteral("**")),
+          QStringLiteral("active inline should show strong markers"));
+  require(expanded.plainText() == QStringLiteral("before bold after"),
+          QStringLiteral("expanded plain text should stay collapsed"));
   require(expanded.hitTestTextOffset(expanded.cursorRect(8).center()) == 8,
           QStringLiteral("expanded hit test should map display marker offsets back to visible offsets"));
   require(expanded.hitTestSourceOffset(expanded.cursorRectForSourceOffset(9).center()) == 9,
@@ -63,7 +67,8 @@ void testInlineMarkerExpansion() {
           QStringLiteral("math cursor rect should round-trip source offset after first char"));
 
   InlineLayout inactiveMath;
-  inactiveMath.build(mathInlines, QStringLiteral("$a123$"), theme, 400.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
+  inactiveMath.build(mathInlines, QStringLiteral("$a123$"), theme, 400.0, theme.paragraphFont(),
+                     InlineLayout::BuildOptions{});
   require(inactiveMath.mathAtomCount() == 1 && !inactiveMath.displayText().contains(QStringLiteral("a123")),
           QStringLiteral("inactive inline math should collapse to a native math atom"));
 
@@ -87,7 +92,7 @@ void testInlineMarkerExpansion() {
     across.anchor.text.sourceOffset = 0;
     across.focus.blockId = blockId;
     across.focus.text.nodeId = blockId;
-    across.focus.text.textOffset = 6;   // inside "B"
+    across.focus.text.textOffset = 6; // inside "B"
     across.focus.text.sourceOffset = 12;
     require(!across.isCollapsed(), QStringLiteral("across fixture should be a real selection"));
     InlineLayout::BuildOptions acrossOptions;
@@ -105,22 +110,27 @@ void testInlineMarkerExpansion() {
 void testInlineHighlightExpansion() {
   QVector<InlineNode> inlines;
   inlines.push_back(InlineNode::text(QStringLiteral("before ")));
-  inlines.push_back(InlineNode::highlight(QStringLiteral("=="), QVector<InlineNode>{InlineNode::text(QStringLiteral("key"))}));
+  inlines.push_back(
+      InlineNode::highlight(QStringLiteral("=="), QVector<InlineNode>{InlineNode::text(QStringLiteral("key"))}));
   inlines.push_back(InlineNode::text(QStringLiteral(" after")));
 
   RenderTheme theme = RenderTheme::github();
   InlineLayout collapsed;
   collapsed.build(inlines, theme, 400.0, theme.paragraphFont());
-  require(!collapsed.displayText().contains(QStringLiteral("==")), QStringLiteral("collapsed inline should hide highlight markers"));
-  require(collapsed.displayText().contains(QStringLiteral("key")), QStringLiteral("collapsed inline should show highlight content"));
-  require(collapsed.plainText() == QStringLiteral("before key after"), QStringLiteral("highlight plain text should drop markers"));
+  require(!collapsed.displayText().contains(QStringLiteral("==")),
+          QStringLiteral("collapsed inline should hide highlight markers"));
+  require(collapsed.displayText().contains(QStringLiteral("key")),
+          QStringLiteral("collapsed inline should show highlight content"));
+  require(collapsed.plainText() == QStringLiteral("before key after"),
+          QStringLiteral("highlight plain text should drop markers"));
 
   InlineLayout expanded;
   InlineLayout::BuildOptions options;
   options.projectionState.cursorVisibleOffset = 8;
   options.projectionState.cursorSourceOffset = 10;
   expanded.build(inlines, QStringLiteral("before ==key== after"), theme, 400.0, theme.paragraphFont(), options);
-  require(expanded.displayText().contains(QStringLiteral("==")), QStringLiteral("active inline should show highlight markers"));
+  require(expanded.displayText().contains(QStringLiteral("==")),
+          QStringLiteral("active inline should show highlight markers"));
 }
 
 void testTrailingInlineHidesMarkersAtBlockEnd() {
@@ -134,19 +144,21 @@ void testTrailingInlineHidesMarkersAtBlockEnd() {
   const QString source = QStringLiteral("X^2^");
   QVector<InlineNode> inlines;
   inlines.push_back(InlineNode::text(QStringLiteral("X")));
-  inlines.push_back(InlineNode::superscript(QStringLiteral("^"), QVector<InlineNode>{InlineNode::text(QStringLiteral("2"))}));
+  inlines.push_back(
+      InlineNode::superscript(QStringLiteral("^"), QVector<InlineNode>{InlineNode::text(QStringLiteral("2"))}));
 
   InlineLayout::BuildOptions endCursor;
-  endCursor.projectionState.cursorSourceOffset = source.size();  // caret right after the closing ^
-  endCursor.projectionState.cursorVisibleOffset = 2;             // visible text "X2" -> end
+  endCursor.projectionState.cursorSourceOffset = source.size(); // caret right after the closing ^
+  endCursor.projectionState.cursorVisibleOffset = 2;            // visible text "X2" -> end
   InlineLayout trailing;
   trailing.build(inlines, source, theme, 400.0, theme.paragraphFont(), endCursor);
   require(!trailing.displayText().contains(QLatin1Char('^')),
-          QStringLiteral("trailing inline markers should hide when the caret rests at end of block: %1").arg(trailing.displayText()));
+          QStringLiteral("trailing inline markers should hide when the caret rests at end of block: %1")
+              .arg(trailing.displayText()));
 
   // Sanity: a caret INSIDE the same inline still reveals its markers.
   InlineLayout::BuildOptions insideCursor;
-  insideCursor.projectionState.cursorSourceOffset = 2;  // on the "2"
+  insideCursor.projectionState.cursorSourceOffset = 2; // on the "2"
   insideCursor.projectionState.cursorVisibleOffset = 1;
   InlineLayout inside;
   inside.build(inlines, source, theme, 400.0, theme.paragraphFont(), insideCursor);
@@ -160,13 +172,15 @@ void testHighlightPaintsBackgroundOnContent() {
   // but content spans are emitted as Text — so nothing painted. Now it propagates via span.highlight.
   QVector<InlineNode> inlines;
   inlines.push_back(InlineNode::text(QStringLiteral("before ")));
-  inlines.push_back(InlineNode::highlight(QStringLiteral("=="), QVector<InlineNode>{InlineNode::text(QStringLiteral("key"))}));
+  inlines.push_back(
+      InlineNode::highlight(QStringLiteral("=="), QVector<InlineNode>{InlineNode::text(QStringLiteral("key"))}));
   inlines.push_back(InlineNode::text(QStringLiteral(" after")));
 
   const RenderTheme theme = RenderTheme::github();
   InlineLayout layout;
   layout.build(inlines, theme, 400.0, theme.paragraphFont());
-  require(layout.displayText() == QStringLiteral("before key after"), QStringLiteral("highlight should collapse to content text"));
+  require(layout.displayText() == QStringLiteral("before key after"),
+          QStringLiteral("highlight should collapse to content text"));
 
   QImage canvas(QSize(420, 60), QImage::Format_ARGB32);
   canvas.fill(theme.backgroundColor());
@@ -196,18 +210,22 @@ void testInlineProjectionContract() {
 
   InlineLayout collapsedLink;
   collapsedLink.build(linkInlines, linkMarkdown, theme, 400.0, theme.paragraphFont(), options);
-  require(collapsedLink.displayText() == QStringLiteral("label"), QStringLiteral("inactive link projection text mismatch"));
-  require(!collapsedLink.displayText().contains(QStringLiteral("](")), QStringLiteral("inactive link should not render source syntax"));
+  require(collapsedLink.displayText() == QStringLiteral("label"),
+          QStringLiteral("inactive link projection text mismatch"));
+  require(!collapsedLink.displayText().contains(QStringLiteral("](")),
+          QStringLiteral("inactive link should not render source syntax"));
 
   InlineLayout::BuildOptions activeLinkOptions = options;
   activeLinkOptions.projectionState.cursorSourceOffset = 2;
   InlineLayout activeLink;
   activeLink.build(linkInlines, linkMarkdown, theme, 400.0, theme.paragraphFont(), activeLinkOptions);
   require(activeLink.displayText() == linkMarkdown, QStringLiteral("active link projection text mismatch"));
-  require(activeLink.displayText().contains(QStringLiteral("](")), QStringLiteral("active link should render source syntax"));
+  require(activeLink.displayText().contains(QStringLiteral("](")),
+          QStringLiteral("active link should render source syntax"));
   require(activeLink.hitTestSourceOffset(activeLink.cursorRectForSourceOffset(2).center()) == 2,
           QStringLiteral("active link cursor rect should round-trip source offset"));
-  require(!activeLink.selectionRects(0, 5).isEmpty(), QStringLiteral("active link selection rects should remain valid"));
+  require(!activeLink.selectionRects(0, 5).isEmpty(),
+          QStringLiteral("active link selection rects should remain valid"));
 
   // Projection/layout tests must not start an asynchronous network request.
   // Resolve a real local image relative to the document, including on Windows.
@@ -224,24 +242,29 @@ void testInlineProjectionContract() {
 
   // The projection retains the alt text; layout replaces it with an image atom.
   const InlineProjection imageProjection(imageInlines, imageMarkdown, options.projectionState, 0);
-  require(imageProjection.displayText() == QStringLiteral("alt"), QStringLiteral("inactive image projection text mismatch"));
+  require(imageProjection.displayText() == QStringLiteral("alt"),
+          QStringLiteral("inactive image projection text mismatch"));
   InlineLayout::BuildOptions imageOptions = options;
   imageOptions.documentPath = imageDir.filePath(QStringLiteral("document.md"));
   InlineLayout collapsedImage;
   collapsedImage.build(imageInlines, imageMarkdown, theme, 400.0, theme.paragraphFont(), imageOptions);
   require(collapsedImage.plainText() == QStringLiteral("alt"), QStringLiteral("inactive image should retain alt text"));
-  require(collapsedImage.displayText().size() == 1, QStringLiteral("inactive loaded image should collapse to one image atom"));
-  require(!collapsedImage.displayText().contains(QStringLiteral("![")), QStringLiteral("inactive image should not render source syntax"));
+  require(collapsedImage.displayText().size() == 1,
+          QStringLiteral("inactive loaded image should collapse to one image atom"));
+  require(!collapsedImage.displayText().contains(QStringLiteral("![")),
+          QStringLiteral("inactive image should not render source syntax"));
 
   InlineLayout::BuildOptions activeImageOptions = imageOptions;
   activeImageOptions.projectionState.cursorSourceOffset = 2;
   InlineLayout activeImage;
   activeImage.build(imageInlines, imageMarkdown, theme, 400.0, theme.paragraphFont(), activeImageOptions);
   require(activeImage.displayText() == imageMarkdown, QStringLiteral("active image projection text mismatch"));
-  require(activeImage.displayText().contains(QStringLiteral("![")), QStringLiteral("active image should render source syntax"));
+  require(activeImage.displayText().contains(QStringLiteral("![")),
+          QStringLiteral("active image should render source syntax"));
   require(activeImage.hitTestSourceOffset(activeImage.cursorRectForSourceOffset(2).center()) == 2,
           QStringLiteral("active image cursor rect should round-trip source offset"));
-  require(!activeImage.selectionRects(0, 3).isEmpty(), QStringLiteral("active image selection rects should remain valid"));
+  require(!activeImage.selectionRects(0, 3).isEmpty(),
+          QStringLiteral("active image selection rects should remain valid"));
 }
 
 void testImageInsideLinkProjectsAsClickableImage() {
@@ -249,7 +272,8 @@ void testImageInsideLinkProjectsAsClickableImage() {
   // the Image Atom span survives (type stays Image so buildImageAtoms loads it) AND it is part of
   // the link (span.link + a linkRange → clicking opens the link URL). Before the fix, the link's
   // re-tag overwrote the span type to Link, so buildImageAtoms skipped it and only alt text rendered.
-  const QString markdown = QStringLiteral("[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/sumruler)");
+  const QString markdown =
+      QStringLiteral("[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/sumruler)");
   DocumentSession session;
   session.setMarkdownText(markdown, false);
   const QVector<InlineNode> inlines = session.document().root().children().front()->inlines();
@@ -280,7 +304,8 @@ void testImageInsideLinkProjectsAsClickableImage() {
 
   // The nesting round-trips through serialization, so copy/export keeps the image-link intact.
   require(InlineProjection::markdownForInlines(inlines) == markdown,
-          QStringLiteral("image-in-link should round-trip its markdown, got: %1").arg(InlineProjection::markdownForInlines(inlines)));
+          QStringLiteral("image-in-link should round-trip its markdown, got: %1")
+              .arg(InlineProjection::markdownForInlines(inlines)));
 }
 
 void testActiveLoadedImageKeepsSourceTextAndAddsPreviewSpace() {
@@ -300,7 +325,8 @@ void testActiveLoadedImageKeepsSourceTextAndAddsPreviewSpace() {
   InlineLayout inactive;
   inactive.build(inlines, markdown, theme, 400.0, theme.paragraphFont(), InlineLayout::BuildOptions{});
   require(inactive.displayText() != markdown, QStringLiteral("inactive loaded image should collapse"));
-  require(!inactive.displayText().contains(QStringLiteral("![")), QStringLiteral("inactive loaded image should hide source syntax"));
+  require(!inactive.displayText().contains(QStringLiteral("![")),
+          QStringLiteral("inactive loaded image should hide source syntax"));
 
   InlineLayout::BuildOptions activeOptions;
   activeOptions.projectionState.cursorSourceOffset = 2;
@@ -308,7 +334,8 @@ void testActiveLoadedImageKeepsSourceTextAndAddsPreviewSpace() {
   active.build(inlines, markdown, theme, 400.0, theme.paragraphFont(), activeOptions);
   require(active.displayText() == markdown,
           QStringLiteral("active loaded image should show complete source, got: %1").arg(active.displayText()));
-  require(active.height() > inactive.height(), QStringLiteral("active loaded image should reserve preview space below source text"));
+  require(active.height() > inactive.height(),
+          QStringLiteral("active loaded image should reserve preview space below source text"));
 
   const auto renderBlueBounds = [&](const InlineLayout& layout) {
     QImage canvas(QSize(420, qCeil(layout.height()) + 20), QImage::Format_ARGB32);
@@ -330,7 +357,8 @@ void testActiveLoadedImageKeepsSourceTextAndAddsPreviewSpace() {
   };
   const QRect inactiveImageBounds = renderBlueBounds(inactive);
   const QRect activeImageBounds = renderBlueBounds(active);
-  require(!inactiveImageBounds.isNull() && !activeImageBounds.isNull(), QStringLiteral("loaded image should paint in both states"));
+  require(!inactiveImageBounds.isNull() && !activeImageBounds.isNull(),
+          QStringLiteral("loaded image should paint in both states"));
   require(qAbs(inactiveImageBounds.width() - activeImageBounds.width()) <= 1 &&
               qAbs(inactiveImageBounds.height() - activeImageBounds.height()) <= 1,
           QStringLiteral("active preview should keep the same image size as inactive rendering"));
@@ -351,8 +379,7 @@ void testEntityDisplayAfterEdit() {
           QStringLiteral("initial entity display text mismatch: %1").arg(layout.displayText()));
 
   // Simulate inserting 'a' at the beginning
-  require(session.applyTextDelta(0, 0, QStringLiteral("a"), true),
-          "entity edit should apply");
+  require(session.applyTextDelta(0, 0, QStringLiteral("a"), true), "entity edit should apply");
 
   const QString edited = session.markdownText().toString();
   const QVector<InlineNode> editedInlines = session.document().root().children().front()->inlines();
@@ -375,8 +402,8 @@ void testEscapedPunctuationOffsetMapping() {
   struct Case {
     QString markdown;
     QString expectedDisplay;
-    qsizetype visibleOffset;   // caret position within the decoded text
-    qsizetype expectedSource;  // the source offset that caret must map to
+    qsizetype visibleOffset;  // caret position within the decoded text
+    qsizetype expectedSource; // the source offset that caret must map to
   };
   const Case cases[] = {
       // caret between "not " and "emphasized" -> before 'e'; one escape precedes it
@@ -403,7 +430,10 @@ void testEscapedPunctuationOffsetMapping() {
     const qsizetype mapped = layout.hitTestSourceOffset(caret.center());
     require(mapped == c.expectedSource,
             QStringLiteral("escape offset mapping for '%1' at visible %2: expected source %3, got %4")
-                .arg(c.markdown).arg(c.visibleOffset).arg(c.expectedSource).arg(mapped));
+                .arg(c.markdown)
+                .arg(c.visibleOffset)
+                .arg(c.expectedSource)
+                .arg(mapped));
   }
 }
 
@@ -426,8 +456,7 @@ void testEmojiShortcodeDisplay() {
   layout.build(inlines, markdown, theme, 400.0, theme.paragraphFont(), options);
   require(layout.displayText() == QStringLiteral("a ") + smile + QStringLiteral(" b"),
           QStringLiteral("emoji decode mismatch: expected 'a %1 b', got '%2'").arg(smile, layout.displayText()));
-  require(session.markdownText().toString() == markdown,
-          QStringLiteral("emoji decode must not mutate the source"));
+  require(session.markdownText().toString() == markdown, QStringLiteral("emoji decode must not mutate the source"));
 }
 
 void testEmojiOffsetMapping() {
@@ -454,13 +483,11 @@ void testEmojiOffsetMapping() {
 
   const QRectF caretAfterGlyph = layout.cursorRect(smile.size());
   const qsizetype mappedAfter = layout.hitTestSourceOffset(caretAfterGlyph.center());
-  require(mappedAfter == 7,
-          QStringLiteral("caret after emoji glyph: expected source 7, got %1").arg(mappedAfter));
+  require(mappedAfter == 7, QStringLiteral("caret after emoji glyph: expected source 7, got %1").arg(mappedAfter));
 
   const QRectF caretBefore = layout.cursorRect(0);
   const qsizetype mappedBefore = layout.hitTestSourceOffset(caretBefore.center());
-  require(mappedBefore == 0,
-          QStringLiteral("caret before emoji glyph: expected source 0, got %1").arg(mappedBefore));
+  require(mappedBefore == 0, QStringLiteral("caret before emoji glyph: expected source 0, got %1").arg(mappedBefore));
 }
 
 void testEmojiAndEscapeMix() {
@@ -521,7 +548,8 @@ void testFootnoteReferenceRendersAsSuperscriptLink() {
   const QString markdown = QStringLiteral("Text[^1] ref\n\n[^1]: note\n");
   session.setMarkdownText(markdown, false);
   const MarkdownNode& para = *session.document().root().children().front();
-  const QString paraSource = markdown.mid(para.sourceRange().byteStart, para.sourceRange().byteEnd - para.sourceRange().byteStart);
+  const QString paraSource =
+      markdown.mid(para.sourceRange().byteStart, para.sourceRange().byteEnd - para.sourceRange().byteStart);
   const QVector<InlineNode> inlines = para.inlines();
 
   InlineProjection proj(inlines, paraSource);
@@ -539,11 +567,12 @@ void testFootnoteReferenceRevealsLiteralWhenActive() {
   const QString markdown = QStringLiteral("Text[^1] ref\n\n[^1]: note\n");
   session.setMarkdownText(markdown, false);
   const MarkdownNode& para = *session.document().root().children().front();
-  const QString paraSource = markdown.mid(para.sourceRange().byteStart, para.sourceRange().byteEnd - para.sourceRange().byteStart);
+  const QString paraSource =
+      markdown.mid(para.sourceRange().byteStart, para.sourceRange().byteEnd - para.sourceRange().byteStart);
   const QVector<InlineNode> inlines = para.inlines();
 
   InlineProjectionState state;
-  state.cursorSourceOffset = 6;  // inside "[^1]" (the '1'), relative to the paragraph source
+  state.cursorSourceOffset = 6; // inside "[^1]" (the '1'), relative to the paragraph source
   InlineProjection proj(inlines, paraSource, state);
   require(proj.displayText().contains(QStringLiteral("[^1]")),
           QStringLiteral("active footnote ref reveals the literal source: %1").arg(proj.displayText()));
@@ -697,9 +726,10 @@ void testBrTagRendersAsHardBreak() {
     qsizetype disp = -1;
     require(projection.displayOffsetForSourceOffset(tagEndSource, disp),
             QStringLiteral("br %1 source-after-tag should resolve").arg(tag));
-    require(disp == tagEndSource,
-            QStringLiteral("br %1 source-after-tag should map to break display %2 but got %3")
-                .arg(tag).arg(tagEndSource).arg(disp));
+    require(disp == tagEndSource, QStringLiteral("br %1 source-after-tag should map to break display %2 but got %3")
+                                      .arg(tag)
+                                      .arg(tagEndSource)
+                                      .arg(disp));
   }
 }
 
@@ -707,7 +737,7 @@ void testBrTagRendersAsHardBreak() {
 // the line break vanishes the moment the tag is no longer intact.
 void testCorruptedBrRendersAsLiteralText() {
   DocumentSession session;
-  session.setMarkdownText(QStringLiteral("text<br"), false);  // no closing '>'
+  session.setMarkdownText(QStringLiteral("text<br"), false); // no closing '>'
   const MarkdownNode* para = session.document().root().children().front().get();
   require(para != nullptr, QStringLiteral("paragraph missing for corrupted br"));
   InlineProjection projection(para->inlines(), QStringLiteral("text<br"), InlineProjectionState{}, 0);
@@ -764,7 +794,9 @@ void testBrTagProducesMultipleLayoutLines() {
 
   require(withBreakLayout.size().height() > flatLayout.size().height() * 1.5,
           QStringLiteral("<br> should lay out as two lines (height %1 > 1.5x flat %2); display '%3'")
-              .arg(withBreakLayout.size().height()).arg(flatLayout.size().height()).arg(withBreakLayout.displayText()));
+              .arg(withBreakLayout.size().height())
+              .arg(flatLayout.size().height())
+              .arg(withBreakLayout.displayText()));
 }
 
 // <br> nested inside a paired inline HTML tag (<b>a<br>b</b>) reaches appendInline via
@@ -785,7 +817,7 @@ void testBrTagRendersAsHardBreakInsideHtmlGroup() {
           QStringLiteral("<br> inside <b> visible text should be 'a\\nb'; got '%1'").arg(projection.visibleText()));
 }
 
-}  // namespace
+} // namespace
 
 QStringList tableCellDisplayTexts(const QString& markdown) {
   DocumentSession session;
@@ -829,7 +861,8 @@ void testEmptyTableCellRendersEmpty() {
   const QStringList natural = tableCellDisplayTexts(QStringLiteral("| A | B |\n| --- | --- |\n|  | x |"));
   require(natural.size() == 4, QStringLiteral("natural table should have 4 cells: %1").arg(natural.size()));
   require(natural.at(2).isEmpty(), QStringLiteral("empty body cell should render empty: '%1'").arg(natural.at(2)));
-  require(natural.at(3) == QStringLiteral("x"), QStringLiteral("non-empty cell should render 'x': '%1'").arg(natural.at(3)));
+  require(natural.at(3) == QStringLiteral("x"),
+          QStringLiteral("non-empty cell should render 'x': '%1'").arg(natural.at(3)));
 
   // Insert a column: the new empty cells must render empty, neighbours intact.
   DocumentSession session;
@@ -843,10 +876,12 @@ void testEmptyTableCellRendersEmpty() {
   selectTableCell(selection, table, 1, 0);
   require(controller.insertColumnAfter(), QStringLiteral("insertColumnAfter should succeed"));
   const QStringList afterColumn = tableCellDisplayTexts(session.markdownText().toString());
-  require(afterColumn.size() == 6, QStringLiteral("table should have 6 cells after column insert: %1").arg(afterColumn.size()));
+  require(afterColumn.size() == 6,
+          QStringLiteral("table should have 6 cells after column insert: %1").arg(afterColumn.size()));
   for (int i = 0; i < afterColumn.size(); ++i) {
-    require(!afterColumn.at(i).contains(QLatin1Char('|')),
-            QStringLiteral("inserted/empty cell must not render a pipe: cell %1 was '%2'").arg(i).arg(afterColumn.at(i)));
+    require(
+        !afterColumn.at(i).contains(QLatin1Char('|')),
+        QStringLiteral("inserted/empty cell must not render a pipe: cell %1 was '%2'").arg(i).arg(afterColumn.at(i)));
   }
   require(afterColumn.at(0) == QStringLiteral("A") && afterColumn.at(2) == QStringLiteral("B"),
           QStringLiteral("header neighbours should survive column insert"));
@@ -861,8 +896,9 @@ void testEmptyTableCellRendersEmpty() {
   const QStringList afterRow = tableCellDisplayTexts(session.markdownText().toString());
   require(afterRow.size() == 6, QStringLiteral("table should have 6 cells after row insert: %1").arg(afterRow.size()));
   for (int i = 0; i < afterRow.size(); ++i) {
-    require(!afterRow.at(i).contains(QLatin1Char('|')),
-            QStringLiteral("inserted/empty row cell must not render a pipe: cell %1 was '%2'").arg(i).arg(afterRow.at(i)));
+    require(
+        !afterRow.at(i).contains(QLatin1Char('|')),
+        QStringLiteral("inserted/empty row cell must not render a pipe: cell %1 was '%2'").arg(i).arg(afterRow.at(i)));
   }
 }
 
@@ -888,7 +924,7 @@ void testSmartPunctRenderConvertsQuotesAndDashes() {
   require(!smart.displayText().contains(QLatin1Char('"')),
           QStringLiteral("convert-on-render should replace ASCII double quotes in display"));
   require(smart.displayText().contains(QString::fromUtf8("\xe2\x80\x9c")) &&
-          smart.displayText().contains(QString::fromUtf8("\xe2\x80\x9d")),
+              smart.displayText().contains(QString::fromUtf8("\xe2\x80\x9d")),
           QStringLiteral("smart quotes should render as curly double quotes"));
   require(smart.displayText().contains(QString::fromUtf8("\xe2\x80\x93")),
           QStringLiteral("-- should render as en dash"));
@@ -907,19 +943,23 @@ void testSmartPunctFoldedTokenDecomposesIntoSpans() {
   sp.convertDashes = true;
 
   InlineProjection proj(inlines, QStringLiteral("a--b"), InlineProjectionState{}, -1, 16.0, 0, sp);
-  require(proj.displayText() == QString::fromUtf8("a\xe2\x80\x93" "b"),
+  require(proj.displayText() == QString::fromUtf8("a\xe2\x80\x93"
+                                                  "b"),
           QStringLiteral("Convert on Rendering: -- should render as a single en-dash"));
   const InlineProjectionSpan* folded = nullptr;
   for (const auto& s : proj.spans()) {
-    if (s.folded) { folded = &s; break; }
+    if (s.folded) {
+      folded = &s;
+      break;
+    }
   }
   require(folded != nullptr, QStringLiteral("the dash token must be its own folded span"));
   require(folded->sourceEnd - folded->sourceStart == 2, QStringLiteral("folded token spans both source dashes"));
   require(folded->displayEnd - folded->displayStart == 1, QStringLiteral("folded token renders as one glyph"));
   // Backspace at the token's end targets the whole source token (not one dash).
   qsizetype start = 0, end = 0;
-  require(proj.foldedTokenForDeletion(folded->sourceEnd, -1, start, end) &&
-              start == folded->sourceStart && end == folded->sourceEnd,
+  require(proj.foldedTokenForDeletion(folded->sourceEnd, -1, start, end) && start == folded->sourceStart &&
+              end == folded->sourceEnd,
           QStringLiteral("backspace at en-dash end should delete the whole source token"));
 }
 
@@ -933,16 +973,15 @@ void testBreakOnSingleNewlineRendersSoftBreak() {
   inlines.push_back(InlineNode::text(QStringLiteral("2")));
 
   QVector<InlineNode> nested;
-  nested.push_back(InlineNode::strong(QStringLiteral("**"), QVector<InlineNode>{
-      InlineNode::text(QStringLiteral("1")),
-      InlineNode::softBreak(),
-      InlineNode::text(QStringLiteral("2"))}));
+  nested.push_back(InlineNode::strong(
+      QStringLiteral("**"), QVector<InlineNode>{InlineNode::text(QStringLiteral("1")), InlineNode::softBreak(),
+                                                InlineNode::text(QStringLiteral("2"))}));
 
   RenderTheme theme = RenderTheme::github();
 
   // CommonMark (flag off): the soft break joins the paragraph with a space.
   InlineLayout joined;
-  InlineLayout::BuildOptions joinedOptions;  // breakOnSingleNewline stays false (CommonMark)
+  InlineLayout::BuildOptions joinedOptions; // breakOnSingleNewline stays false (CommonMark)
   joined.build(inlines, QStringLiteral("1\n2"), theme, 400.0, theme.paragraphFont(), joinedOptions);
   require(joined.displayText() == QStringLiteral("1 2"),
           QStringLiteral("CommonMark should join a soft break with a space"));

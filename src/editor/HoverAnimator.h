@@ -40,7 +40,7 @@ private slots:
 
 private:
   QTimer* timer_ = nullptr;
-  QElapsedTimer clock_;  // value member: QElapsedTimer is not a QObject, so a `new`-ed pointer would leak
+  QElapsedTimer clock_; // value member: QElapsedTimer is not a QObject, so a `new`-ed pointer would leak
   NodeId blockId_;
   qreal phase_ = 0.0;
   qreal target_ = 0.0;
@@ -48,4 +48,4 @@ private:
   qint64 lastTickMs_ = 0;
 };
 
-}  // namespace muffin
+} // namespace muffin

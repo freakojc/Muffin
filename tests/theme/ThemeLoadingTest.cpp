@@ -20,7 +20,10 @@
 using namespace muffin;
 namespace {
 void require(bool ok, const char* message) {
-  if (!ok) { std::fprintf(stderr, "FAIL: %s\n", message); std::exit(1); }
+  if (!ok) {
+    std::fprintf(stderr, "FAIL: %s\n", message);
+    std::exit(1);
+  }
 }
 void write(const QString& path, const QByteArray& text) {
   QFile file(path);
@@ -49,7 +52,8 @@ void testResourceDigest() {
           "memory and streaming backends agree on the standard abc vector");
   for (const int size : {1, 55, 56, 63, 64, 65, 262143, 262144, 262145, 1024 * 1024 + 3}) {
     QByteArray bytes(size, Qt::Uninitialized);
-    for (int i = 0; i < size; ++i) bytes[i] = char((i * 137 + i / 251) & 255);
+    for (int i = 0; i < size; ++i)
+      bytes[i] = char((i * 137 + i / 251) & 255);
     write(path, bytes);
     require(themeResourceDigest(path) == QCryptographicHash::hash(bytes, QCryptographicHash::Sha256),
             "binary resources match independent Qt SHA-256 across block and streaming boundaries");
@@ -63,9 +67,9 @@ void testResourceDigest() {
     overwritePreservingTime(path, bytes);
     require(themeResourceDigest(path) == QCryptographicHash::hash(bytes, QCryptographicHash::Sha256),
             "digest reads current content despite identical size and timestamp");
-    require(
-        themeContentDigest(bytes) == themeResourceDigest(path) && themeContentDigest(view) != themeContentDigest(bytes),
-        "changed font bytes invalidate memory digests without changing an earlier borrowed view");
+    require(themeContentDigest(bytes) == themeResourceDigest(path) &&
+                themeContentDigest(view) != themeContentDigest(bytes),
+            "changed font bytes invalidate memory digests without changing an earlier borrowed view");
   }
   QFile embedded(":/themes/github.css");
   require(embedded.open(QIODevice::ReadOnly), "open embedded theme resource");
@@ -88,7 +92,8 @@ void testSelectionReadScope() {
   ThemeDefinition selected;
   int callbacks = 0;
   auto connection = QObject::connect(&manager, &ThemeManager::themeChanged, &manager, [&](const QString& id) {
-    if (id != "custom") return;
+    if (id != "custom")
+      return;
     ++callbacks;
     selected = manager.currentDefinition();
     overwritePreservingTime(path, "p{color:#654321}");
@@ -113,7 +118,8 @@ void testSelectionReadScope() {
   connection = QObject::connect(
       &manager, &ThemeManager::themeChanged, &manager,
       [&](const QString& id) {
-        if (id != "custom") return;
+        if (id != "custom")
+          return;
         queued = true;
         require(manager.currentDefinition().colors.text == QColor("#112233"),
                 "queued reads after selection revalidate current resource contents");
@@ -127,7 +133,8 @@ void testSelectionReadScope() {
 
   require(manager.setTheme("other"), "switch away before nested selection");
   connection = QObject::connect(&manager, &ThemeManager::themeChanged, &manager, [&](const QString& id) {
-    if (id != "custom") return;
+    if (id != "custom")
+      return;
     const auto outer = manager.currentDefinition();
     overwritePreservingTime(path, "p{color:#445566}");
     require(manager.setTheme("other"), "reentrant selection owns an independent verification scope");
@@ -194,7 +201,8 @@ void testLazyLoadingAndContentInvalidation() {
           "repeated theme projection reuses prepared data without document adapters or CSS evaluation");
   require(repeated.textColorForElement("p", &paragraph) == QColor("#123456"), "detached view resolves its own CSS");
   repeated.invalidateDocumentStyles();
-  require(prototype.textColorForElement("p", &paragraph) == QColor("#123456"), "view invalidation cannot mutate another snapshot");
+  require(prototype.textColorForElement("p", &paragraph) == QColor("#123456"),
+          "view invalidation cannot mutate another snapshot");
 
   QFile file(path);
   const auto timestamp = QFileInfo(file).lastModified();
@@ -211,8 +219,10 @@ void testLazyLoadingAndContentInvalidation() {
           "reloading replaces the snapshot without mutating previous themes");
   auto changed = manager.currentTheme();
   changed.updateForViewport(800, 600);
-  require(changed.textColorForElement("p", &paragraph) == QColor("#654321"), "same-size CSS edits invalidate prepared projections too");
-  require(!manager.setTheme("invalid") && manager.currentThemeName() == "custom", "invalid selection preserves current theme");
+  require(changed.textColorForElement("p", &paragraph) == QColor("#654321"),
+          "same-size CSS edits invalidate prepared projections too");
+  require(!manager.setTheme("invalid") && manager.currentThemeName() == "custom",
+          "invalid selection preserves current theme");
   require(!manager.setTheme("unknown"), "unknown theme cannot be selected");
   require(manager.definition("unknown").id == "github", "unknown definition falls back to GitHub");
   require(QFile::remove(path), "remove selected CSS");
@@ -284,7 +294,7 @@ void testVariableCacheInputs() {
 void testPreparedProjectionEnvironmentAndEviction() {
   QTemporaryDir dir;
   write(dir.filePath("responsive.css"), "p{color:#112233;font-size:16px}"
-      "@media(min-width:850px){p{color:#445566;font-size:20px}}");
+                                        "@media(min-width:850px){p{color:#445566;font-size:20px}}");
   ThemeManager manager(dir.path());
   require(manager.setTheme("responsive"), "select responsive theme");
   auto narrow = manager.currentTheme();
@@ -302,16 +312,16 @@ void testPreparedProjectionEnvironmentAndEviction() {
   require(narrowAgain.textColorForElement("p") == narrowColor, "bounded projection eviction preserves CSS results");
   auto zoomed = manager.currentTheme(200, 20);
   zoomed.updateForViewport(900, 600);
-  require(zoomed.textColorForElement("p") == narrowColor && QFontMetricsF(zoomed.paragraphFont()).height() > QFontMetricsF(narrow.paragraphFont()).height(),
+  require(zoomed.textColorForElement("p") == narrowColor &&
+              QFontMetricsF(zoomed.paragraphFont()).height() > QFontMetricsF(narrow.paragraphFont()).height(),
           "zoom and font settings use their own prepared environment");
   require(narrow.textColorForElement("p") == narrowColor, "other environment snapshots remain immutable");
 }
 void testPreparedEngineSourceAndEnvironmentInvalidation() {
-  auto definition = CssThemeMapper::fromCss(
-      "body{color:#123456}p{font-size:16px}p:hover{color:red}"
-      "@media(max-width:500px){p{font-size:20px;color:blue}}"
-      "@media(prefers-color-scheme:dark){strong{color:yellow}}",
-      "prepared", {});
+  auto definition = CssThemeMapper::fromCss("body{color:#123456}p{font-size:16px}p:hover{color:red}"
+                                            "@media(max-width:500px){p{font-size:20px;color:blue}}"
+                                            "@media(prefers-color-scheme:dark){strong{color:yellow}}",
+                                            "prepared", {});
   require(bool(definition.preparedEngine), "mapped themes retain a compiled immutable engine template");
   auto theme = RenderTheme::fromDefinition(definition);
   theme.updateForViewport(400, 600);
@@ -341,30 +351,38 @@ void testDeepDependenciesAndEviction() {
     write(dir.filePath(QString("level%1.css").arg(i)),
           i == 19 ? QByteArray(":root{--ink:#123456}") : QString("@import 'level%1.css';").arg(i + 1).toUtf8());
   ThemeManager manager(dir.path());
-  require(manager.setTheme("custom") && manager.currentDefinition().colors.text == QColor("#123456"), "load deep import chain");
+  require(manager.setTheme("custom") && manager.currentDefinition().colors.text == QColor("#123456"),
+          "load deep import chain");
   write(dir.filePath("level19.css"), ":root{--ink:#654321}");
   require(manager.setTheme("custom") && manager.currentDefinition().colors.text == QColor("#654321"),
           "dependency manifest must not truncate deep CSS import chains");
   const auto previous = manager.currentDefinition().sourceSheet;
-  for (int i = 0; i < 9; ++i) write(dir.filePath(QString("other%1.css").arg(i)), "p{color:#123456}");
+  for (int i = 0; i < 9; ++i)
+    write(dir.filePath(QString("other%1.css").arg(i)), "p{color:#123456}");
   manager.reloadCustomThemes();
-  for (int i = 0; i < 9; ++i) require(manager.setTheme(QString("other%1").arg(i)), "select cache eviction fixture");
+  for (int i = 0; i < 9; ++i)
+    require(manager.setTheme(QString("other%1").arg(i)), "select cache eviction fixture");
   require(manager.setTheme("custom") && manager.currentDefinition().sourceSheet != previous &&
-              manager.currentDefinition().colors.text == QColor("#654321"), "evicted themes reload correctly");
+              manager.currentDefinition().colors.text == QColor("#654321"),
+          "evicted themes reload correctly");
 
   write(dir.filePath("native.json"), R"({"label":"Authored JSON","colors":{"text":"#123456"}})");
   manager.reloadCustomThemes();
-  require(manager.setTheme("native") && manager.currentDefinition().label == "Authored JSON", "JSON themes load on demand too");
+  require(manager.setTheme("native") && manager.currentDefinition().label == "Authored JSON",
+          "JSON themes load on demand too");
   write(dir.filePath("native.json"), R"({"label":"Authored JSON","colors":{"text":"#654321"}})");
-  require(manager.setTheme("native") && manager.currentDefinition().colors.text == QColor("#654321"), "JSON content invalidates its cache");
+  require(manager.setTheme("native") && manager.currentDefinition().colors.text == QColor("#654321"),
+          "JSON content invalidates its cache");
 }
 void benchmarkInstalledThemes() {
   const auto directory = qEnvironmentVariable("MUFFIN_THEME_STARTUP_BENCH");
-  if (directory.isEmpty()) return;
+  if (directory.isEmpty())
+    return;
   QElapsedTimer timer;
   timer.start();
   ThemeManager manager(directory);
-  std::fprintf(stderr, "theme scan: %lld ms, %lld entries\n", timer.elapsed(), static_cast<long long>(manager.themes().size()));
+  std::fprintf(stderr, "theme scan: %lld ms, %lld entries\n", timer.elapsed(),
+               static_cast<long long>(manager.themes().size()));
   for (const auto& id : {"phycat-caramel", "vlook-fancy-dark", "vlook-fancy-dark"}) {
     timer.restart();
     const bool loaded = manager.setTheme(QString::fromLatin1(id));
@@ -372,7 +390,7 @@ void benchmarkInstalledThemes() {
     require(loaded, "benchmark theme loads successfully");
   }
 }
-}  // namespace
+} // namespace
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
   QCoreApplication::setOrganizationName("MuffinTests");

@@ -56,14 +56,15 @@ struct CssGridTrackList {
 struct CssGridAreas {
   bool operator==(const CssGridAreas&) const = default;
   int columns = 0, rows = 0;
-  QHash<QString, QRect> rectangles;  // zero-based cells, width/height are spans
+  QHash<QString, QRect> rectangles; // zero-based cells, width/height are spans
 };
 struct CssGridLine {
-  int number = 0;  // zero is the internal auto sentinel, never an authored line
+  int number = 0; // zero is the internal auto sentinel, never an authored line
   bool span = false;
   QString name;
 };
-std::optional<CssGridTrackList> parseCssGridTracks(const QString& value, const CssLengthContext& context = {}, bool allowNone = true);
+std::optional<CssGridTrackList> parseCssGridTracks(const QString& value, const CssLengthContext& context = {},
+                                                   bool allowNone = true);
 std::optional<CssGridLine> parseCssGridLine(const QString& value);
 std::optional<CssGridAreas> parseCssGridAreas(const QString& value);
-}  // namespace muffin
+} // namespace muffin

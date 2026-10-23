@@ -19,16 +19,20 @@ namespace {
   std::fprintf(stderr, "FAIL: %s\n", qPrintable(message));
   std::exit(1);
 }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 
 QString kind(block::BlockErrorKind value) {
-  if (value == block::BlockErrorKind::Lexer) return QStringLiteral("Lexer");
-  if (value == block::BlockErrorKind::Runtime) return QStringLiteral("Runtime");
+  if (value == block::BlockErrorKind::Lexer)
+    return QStringLiteral("Lexer");
+  if (value == block::BlockErrorKind::Runtime)
+    return QStringLiteral("Runtime");
   return QStringLiteral("Parser");
 }
 
-void compareNode(const block::BlockNode& actual, const QJsonObject& oracle,
-                 const QString& path) {
+void compareNode(const block::BlockNode& actual, const QJsonObject& oracle, const QString& path) {
   require(actual.id == oracle.value(QStringLiteral("id")).toString(), path + "/id");
   require(actual.type == oracle.value(QStringLiteral("type")).toString(),
           path + "/type: " + actual.type + " != " + oracle.value(QStringLiteral("type")).toString());
@@ -40,7 +44,8 @@ void compareNode(const block::BlockNode& actual, const QJsonObject& oracle,
   require(!width || actual.width == oracle.value(QStringLiteral("width")).toInt(), path + "/width");
   const bool widthInColumns = !oracle.value(QStringLiteral("widthInColumns")).isNull();
   require(actual.hasWidthInColumns == widthInColumns, path + "/widthInColumns-presence");
-  require(!widthInColumns || actual.widthInColumns == oracle.value(QStringLiteral("widthInColumns")).toInt(), path + "/widthInColumns");
+  require(!widthInColumns || actual.widthInColumns == oracle.value(QStringLiteral("widthInColumns")).toInt(),
+          path + "/widthInColumns");
   const bool columns = !oracle.value(QStringLiteral("columns")).isNull();
   require(actual.hasColumns == columns, path + "/columns-presence");
   require(!columns || actual.columns == oracle.value(QStringLiteral("columns")).toInt(), path + "/columns");
@@ -56,12 +61,10 @@ void compareNode(const block::BlockNode& actual, const QJsonObject& oracle,
   const QJsonArray children = oracle.value(QStringLiteral("children")).toArray();
   require(actual.children.size() == children.size(), path + "/children-count");
   for (qsizetype i = 0; i < children.size(); ++i)
-    compareNode(actual.children.at(i), children.at(i).toObject(),
-                path + QStringLiteral("/child-%1").arg(i));
+    compareNode(actual.children.at(i), children.at(i).toObject(), path + QStringLiteral("/child-%1").arg(i));
 }
 
-void compareData(const block::BlockData& actual, const QJsonObject& oracle,
-                 const QString& id) {
+void compareData(const block::BlockData& actual, const QJsonObject& oracle, const QString& id) {
   const QJsonArray blocks = oracle.value(QStringLiteral("blocks")).toArray();
   require(actual.blocks.size() == blocks.size(), id + "/blocks-count");
   for (qsizetype i = 0; i < blocks.size(); ++i)
@@ -70,25 +73,26 @@ void compareData(const block::BlockData& actual, const QJsonObject& oracle,
   require(actual.flat.size() == flat.size(), id + "/flat-count");
   for (qsizetype i = 0; i < flat.size(); ++i)
     compareNode(actual.flat.at(i), flat.at(i).toObject(), id + QStringLiteral("/flat-%1").arg(i));
-  const int publicColumns = actual.root.columns != 0
-      ? actual.root.columns : actual.root.children.size();
+  const int publicColumns = actual.root.columns != 0 ? actual.root.columns : actual.root.children.size();
   require(publicColumns == oracle.value(QStringLiteral("columns")).toInt(), id + "/columns");
   const QJsonArray edges = oracle.value(QStringLiteral("edges")).toArray();
   require(actual.edges.size() == edges.size(), id + "/edges-count");
   for (qsizetype i = 0; i < edges.size(); ++i) {
-    const auto& edge = actual.edges.at(i); const QJsonObject expected = edges.at(i).toObject();
+    const auto& edge = actual.edges.at(i);
+    const QJsonObject expected = edges.at(i).toObject();
     require(edge.id == expected.value(QStringLiteral("id")).toString(), id + "/edge-id");
     require(edge.start == expected.value(QStringLiteral("start")).toString(), id + "/edge-start");
     require(edge.end == expected.value(QStringLiteral("end")).toString(), id + "/edge-end");
     require(edge.label == expected.value(QStringLiteral("label")).toString(), id + "/edge-label");
     require(edge.thickness == expected.value(QStringLiteral("thickness")).toString(), id + "/edge-thickness");
     require(edge.pattern == expected.value(QStringLiteral("pattern")).toString(), id + "/edge-pattern");
-    require(edge.arrowTypeStart == expected.value(QStringLiteral("arrowTypeStart")).toString(), id + "/edge-start-marker");
+    require(edge.arrowTypeStart == expected.value(QStringLiteral("arrowTypeStart")).toString(),
+            id + "/edge-start-marker");
     require(edge.arrowTypeEnd == expected.value(QStringLiteral("arrowTypeEnd")).toString(), id + "/edge-end-marker");
   }
   require(actual.classes.size() == oracle.value(QStringLiteral("classes")).toArray().size(), id + "/classes-count");
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
@@ -115,16 +119,22 @@ int main(int argc, char** argv) {
     const QJsonObject expected = fixture.value(QStringLiteral("expected")).toObject();
     const MermaidPreprocessResult pre = preprocessDiagram(fixture.value(QStringLiteral("source")).toString());
     bool detected = false;
-    try { detected = detectDiagramType(pre.code, pre.config) == QLatin1String("block"); }
-    catch (const UnknownDiagramError&) {}
+    try {
+      detected = detectDiagramType(pre.code, pre.config) == QLatin1String("block");
+    } catch (const UnknownDiagramError&) {
+    }
     if (!expected.value(QStringLiteral("parse")).toBool()) {
       ++rejected;
-      if (!detected) continue;
+      if (!detected)
+        continue;
       bool threw = false;
-      try { (void)block::BlockDiagram::parse(pre.code); }
-      catch (const block::BlockParseError& error) {
+      try {
+        (void)block::BlockDiagram::parse(pre.code);
+      } catch (const block::BlockParseError& error) {
         threw = true;
-        require(kind(error.kind) == expected.value(QStringLiteral("error")).toObject().value(QStringLiteral("kind")).toString(), id + "/kind");
+        require(kind(error.kind) ==
+                    expected.value(QStringLiteral("error")).toObject().value(QStringLiteral("kind")).toString(),
+                id + "/kind");
       }
       require(threw, id + ": rejected source parsed");
       continue;

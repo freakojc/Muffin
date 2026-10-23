@@ -25,7 +25,8 @@ constexpr double kJsNaN = std::numeric_limits<double>::quiet_NaN();
 
 // `this.x = this.x || value` — keep existing non-empty value (JS truthy string).
 void assignIfEmpty(QString& field, const QString& value) {
-  if (field.isEmpty()) field = value;
+  if (field.isEmpty())
+    field = value;
 }
 
 // The number of cScale entries to derive. Upstream iterates
@@ -40,8 +41,8 @@ int cScaleCount(const FlowThemeVariables& t) {
   return std::clamp(t.themeColorLimit, 0, 13);
 }
 
-void setShadow(FlowThemeVariables& t, const QString& color, qreal opacity,
-               qreal offsetX, qreal offsetY, const QString& css) {
+void setShadow(FlowThemeVariables& t, const QString& color, qreal opacity, qreal offsetX, qreal offsetY,
+               const QString& css) {
   t.shadowColor = color;
   t.shadowOpacity = opacity;
   t.shadowOffsetX = offsetX;
@@ -100,7 +101,7 @@ void applyDark(FlowThemeVariables& t) {
   t.defaultLinkColor = QStringLiteral("calculated");
   t.titleColor = QStringLiteral("#F9FFFE");
   t.edgeLabelBackground = QStringLiteral("calculated");
-  t.clusterBkg = QStringLiteral("#302F3D");  // constructor overrides the "calculated" above
+  t.clusterBkg = QStringLiteral("#302F3D"); // constructor overrides the "calculated" above
   // dark ctor literals: radius, sequenceNumberColor, the dark-variant
   // darkTextColor, and labelColor — whose raw "calculated" sentinel is never
   // rewritten (dark's updateColors has no labelColor line), so the sentinel
@@ -118,7 +119,7 @@ void applyDefault(FlowThemeVariables& t) {
   t.background = QStringLiteral("#f4f4f4");
   t.primaryColor = QStringLiteral("#ECECFF");
   t.secondaryColor = adjust(t.primaryColor, {.h = 120.0});
-  t.secondaryColor = QStringLiteral("#ffffde");  // constructor overrides the adjust above
+  t.secondaryColor = QStringLiteral("#ffffde"); // constructor overrides the adjust above
   t.tertiaryColor = adjust(t.primaryColor, {.h = -160.0});
   t.primaryBorderColor = mkBorder(t.primaryColor, false);
   t.secondaryBorderColor = mkBorder(t.secondaryColor, false);
@@ -328,8 +329,7 @@ void applyReduxSequenceLiterals(FlowThemeVariables& t) {
 
 void applyReduxLegacyLiterals(FlowThemeVariables& t, bool dark) {
   t.filterColor = dark ? QStringLiteral("#FFFFFF") : QStringLiteral("#000000");
-  t.erEdgeLabelBackground =
-      dark ? QStringLiteral("#16141F") : QStringLiteral("#FFFFFF");
+  t.erEdgeLabelBackground = dark ? QStringLiteral("#16141F") : QStringLiteral("#FFFFFF");
 }
 
 void applyRedux(FlowThemeVariables& t) {
@@ -346,7 +346,7 @@ void applyRedux(FlowThemeVariables& t) {
   t.nodeBorder = QStringLiteral("#28253D");
   // redux constructor literal (chunk line 2564).
   t.stateBorder = QStringLiteral("#28253D");
-  t.gradientStart = QStringLiteral("#0042eb");  // redux ctor line 2566
+  t.gradientStart = QStringLiteral("#0042eb"); // redux ctor line 2566
   t.gradientStop = QStringLiteral("#eb0042");
   t.tertiaryColor = QStringLiteral("#ffffff");
   t.clusterBkg = QStringLiteral("#F9F9FB");
@@ -356,8 +356,7 @@ void applyRedux(FlowThemeVariables& t) {
   t.stateEdgeLabelBackground = QStringLiteral("#FFFFFF");
   applyReduxSequenceLiterals(t);
   applyReduxLegacyLiterals(t, /*dark=*/false);
-  setShadow(t, QStringLiteral("#000000"), 0.06, 4.0, 4.0,
-            QStringLiteral("url(#drop-shadow)"));
+  setShadow(t, QStringLiteral("#000000"), 0.06, 4.0, 4.0, QStringLiteral("url(#drop-shadow)"));
 }
 
 void applyReduxDark(FlowThemeVariables& t) {
@@ -383,7 +382,7 @@ void applyReduxDark(FlowThemeVariables& t) {
   t.nodeBorder = QStringLiteral("#FFFFFF");
   // redux-dark constructor literal (chunk line 2884).
   t.stateBorder = QStringLiteral("#FFFFFF");
-  t.gradientStart = QStringLiteral("#0042eb");  // redux-dark ctor line 2886
+  t.gradientStart = QStringLiteral("#0042eb"); // redux-dark ctor line 2886
   t.gradientStop = QStringLiteral("#eb0042");
   t.clusterBkg = QStringLiteral("#1E1A2E");
   t.clusterBorder = QStringLiteral("#BDBCCC");
@@ -397,8 +396,7 @@ void applyReduxDark(FlowThemeVariables& t) {
   t.darkTextColor = lighten(invert(QStringLiteral("#323D47")), 10);
   applyReduxSequenceLiterals(t);
   applyReduxLegacyLiterals(t, /*dark=*/true);
-  setShadow(t, QStringLiteral("#ffffff"), 0.06, 4.0, 4.0,
-            QStringLiteral("url(#drop-shadow)"));
+  setShadow(t, QStringLiteral("#ffffff"), 0.06, 4.0, 4.0, QStringLiteral("url(#drop-shadow)"));
 }
 
 // The 12-entry Tailwind *-400 border palette shared by redux-color and
@@ -407,12 +405,11 @@ void applyReduxDark(FlowThemeVariables& t) {
 // palette (applyReduxColor). requirementDiagram/er/rect cycle node stroke by
 // `colorIndex % borderColorArray.size()` when this is non-empty.
 void applyReduxColorBorderPalette(FlowThemeVariables& t) {
-  t.borderColorArray = {
-      QStringLiteral("#E879F9"), QStringLiteral("#2DD4BF"), QStringLiteral("#FB923C"),
-      QStringLiteral("#22D3EE"), QStringLiteral("#4ADE80"), QStringLiteral("#A78BFA"),
-      QStringLiteral("#F87171"), QStringLiteral("#FACC15"), QStringLiteral("#818CF8"),
-      QStringLiteral("#A3E635"),  // upstream literal is "#A3E635 " (trailing space; benign)
-      QStringLiteral("#38BDF8"), QStringLiteral("#FB7185")};
+  t.borderColorArray = {QStringLiteral("#E879F9"), QStringLiteral("#2DD4BF"), QStringLiteral("#FB923C"),
+                        QStringLiteral("#22D3EE"), QStringLiteral("#4ADE80"), QStringLiteral("#A78BFA"),
+                        QStringLiteral("#F87171"), QStringLiteral("#FACC15"), QStringLiteral("#818CF8"),
+                        QStringLiteral("#A3E635"), // upstream literal is "#A3E635 " (trailing space; benign)
+                        QStringLiteral("#38BDF8"), QStringLiteral("#FB7185")};
 }
 
 void applyReduxColor(FlowThemeVariables& t) {
@@ -428,23 +425,21 @@ void applyReduxColor(FlowThemeVariables& t) {
   t.nodeBorder = QStringLiteral("#28253D");
   // redux-color constructor literal (chunk line 3194).
   t.stateBorder = QStringLiteral("#28253D");
-  t.gradientStart = QStringLiteral("#0042eb");  // redux-color ctor line 3196
+  t.gradientStart = QStringLiteral("#0042eb"); // redux-color ctor line 3196
   t.gradientStop = QStringLiteral("#eb0042");
   t.tertiaryColor = QStringLiteral("#ffffff");
   t.actorBorder = QStringLiteral("#28253D");
   t.noteBkgColor = QStringLiteral("#fff5ad");
   applyReduxSequenceLiterals(t);
   applyReduxLegacyLiterals(t, /*dark=*/false);
-  setShadow(t, QStringLiteral("#000000"), 0.06, 4.0, 4.0,
-            QStringLiteral("url(#drop-shadow)"));
+  setShadow(t, QStringLiteral("#000000"), 0.06, 4.0, 4.0, QStringLiteral("url(#drop-shadow)"));
   // colorIndex palette (chunk-CHAKFXHA.mjs:3936-3987): 12 Tailwind *-400 border
   // + 12 Tailwind *-50 bkg. requirement nodes cycle both by insertion order.
   applyReduxColorBorderPalette(t);
-  t.bkgColorArray = {
-      QStringLiteral("#FDF4FF"), QStringLiteral("#F0FDFA"), QStringLiteral("#FFF7ED"),
-      QStringLiteral("#ECFEFF"), QStringLiteral("#F0FDF4"), QStringLiteral("#F5F3FF"),
-      QStringLiteral("#FEF2F2"), QStringLiteral("#FEFCE8"), QStringLiteral("#EEF2FF"),
-      QStringLiteral("#F7FEE7"), QStringLiteral("#F0F9FF"), QStringLiteral("#FFF1F2")};
+  t.bkgColorArray = {QStringLiteral("#FDF4FF"), QStringLiteral("#F0FDFA"), QStringLiteral("#FFF7ED"),
+                     QStringLiteral("#ECFEFF"), QStringLiteral("#F0FDF4"), QStringLiteral("#F5F3FF"),
+                     QStringLiteral("#FEF2F2"), QStringLiteral("#FEFCE8"), QStringLiteral("#EEF2FF"),
+                     QStringLiteral("#F7FEE7"), QStringLiteral("#F0F9FF"), QStringLiteral("#FFF1F2")};
 }
 
 void applyReduxDarkColor(FlowThemeVariables& t) {
@@ -459,92 +454,114 @@ void applyReduxDarkColor(FlowThemeVariables& t) {
 
 void applyRawConstructor(FlowThemeId id, FlowThemeVariables& t) {
   switch (id) {
-    case FlowThemeId::Base: applyBase(t); break;
-    case FlowThemeId::Dark: applyDark(t); break;
-    case FlowThemeId::Default: applyDefault(t); break;
-    case FlowThemeId::Forest: applyForest(t); break;
-    case FlowThemeId::Neutral: applyNeutral(t); break;
-    case FlowThemeId::Neo: applyNeo(t); break;
-    case FlowThemeId::NeoDark: applyNeoDark(t); break;
-    case FlowThemeId::Redux: applyRedux(t); break;
-    case FlowThemeId::ReduxDark: applyReduxDark(t); break;
-    case FlowThemeId::ReduxColor: applyReduxColor(t); break;
-    case FlowThemeId::ReduxDarkColor: applyReduxDarkColor(t); break;
+  case FlowThemeId::Base:
+    applyBase(t);
+    break;
+  case FlowThemeId::Dark:
+    applyDark(t);
+    break;
+  case FlowThemeId::Default:
+    applyDefault(t);
+    break;
+  case FlowThemeId::Forest:
+    applyForest(t);
+    break;
+  case FlowThemeId::Neutral:
+    applyNeutral(t);
+    break;
+  case FlowThemeId::Neo:
+    applyNeo(t);
+    break;
+  case FlowThemeId::NeoDark:
+    applyNeoDark(t);
+    break;
+  case FlowThemeId::Redux:
+    applyRedux(t);
+    break;
+  case FlowThemeId::ReduxDark:
+    applyReduxDark(t);
+    break;
+  case FlowThemeId::ReduxColor:
+    applyReduxColor(t);
+    break;
+  case FlowThemeId::ReduxDarkColor:
+    applyReduxDarkColor(t);
+    break;
   }
 
   // State diagram's roundedWithTitle renderer consumes these constructor
   // fields directly. They are not derived from clusterBkg: several themes
   // deliberately use different title and body colors.
   switch (id) {
-    case FlowThemeId::Base:
-      t.compositeBackground = QStringLiteral("#f4f4f4");
-      t.altBackground = QStringLiteral("hsl(220.5882352941, 100%, 98.3333333333%)");
-      t.compositeTitleBackground = QStringLiteral("#fff4dd");
-      break;
-    case FlowThemeId::Dark:
-      t.compositeBackground = QStringLiteral("#333");
-      t.altBackground = QStringLiteral("#555");
-      t.compositeTitleBackground = QStringLiteral("#1f2020");
-      break;
-    case FlowThemeId::Default:
-      t.compositeBackground = QStringLiteral("white");
-      t.altBackground = QStringLiteral("#f0f0f0");
-      t.compositeTitleBackground = QStringLiteral("#ECECFF");
-      break;
-    case FlowThemeId::Forest:
-      t.compositeBackground = QStringLiteral("white");
-      t.altBackground = QStringLiteral("#f0f0f0");
-      t.compositeTitleBackground = QStringLiteral("#cde498");
-      break;
-    case FlowThemeId::Neutral:
-      t.compositeBackground = QStringLiteral("#ffffff");
-      t.altBackground = QStringLiteral("#f4f4f4");
-      t.compositeTitleBackground = QStringLiteral("#eee");
-      break;
-    case FlowThemeId::Neo:
-      t.compositeBackground = QStringLiteral("#ffffff");
-      t.altBackground = QStringLiteral("#f0f0f0");
-      t.compositeTitleBackground = QStringLiteral("#ffffff");
-      break;
-    case FlowThemeId::NeoDark:
-      t.compositeBackground = QStringLiteral("#333");
-      t.altBackground = QStringLiteral("#f0f0f0");
-      t.compositeTitleBackground = QStringLiteral("#2a2020");
-      break;
-    case FlowThemeId::Redux:
-      t.compositeBackground = QStringLiteral("#ffffff");
-      t.altBackground = QStringLiteral("#F9F9FB");
-      t.compositeTitleBackground = QStringLiteral("#F9F9FB");
-      break;
-    case FlowThemeId::ReduxDark:
-      t.compositeBackground = QStringLiteral("#16141F");
-      t.altBackground = QStringLiteral("#16141F");
-      t.compositeTitleBackground = QStringLiteral("#16141F");
-      break;
-    case FlowThemeId::ReduxColor:
-      t.compositeBackground = QStringLiteral("#ffffff");
-      t.altBackground = QStringLiteral("#f0f0f0");
-      t.compositeTitleBackground = QStringLiteral("#ffffff");
-      break;
-    case FlowThemeId::ReduxDarkColor:
-      t.compositeBackground = QStringLiteral("#333");
-      t.altBackground = QStringLiteral("#f0f0f0");
-      t.compositeTitleBackground = QStringLiteral("#111113");
-      break;
+  case FlowThemeId::Base:
+    t.compositeBackground = QStringLiteral("#f4f4f4");
+    t.altBackground = QStringLiteral("hsl(220.5882352941, 100%, 98.3333333333%)");
+    t.compositeTitleBackground = QStringLiteral("#fff4dd");
+    break;
+  case FlowThemeId::Dark:
+    t.compositeBackground = QStringLiteral("#333");
+    t.altBackground = QStringLiteral("#555");
+    t.compositeTitleBackground = QStringLiteral("#1f2020");
+    break;
+  case FlowThemeId::Default:
+    t.compositeBackground = QStringLiteral("white");
+    t.altBackground = QStringLiteral("#f0f0f0");
+    t.compositeTitleBackground = QStringLiteral("#ECECFF");
+    break;
+  case FlowThemeId::Forest:
+    t.compositeBackground = QStringLiteral("white");
+    t.altBackground = QStringLiteral("#f0f0f0");
+    t.compositeTitleBackground = QStringLiteral("#cde498");
+    break;
+  case FlowThemeId::Neutral:
+    t.compositeBackground = QStringLiteral("#ffffff");
+    t.altBackground = QStringLiteral("#f4f4f4");
+    t.compositeTitleBackground = QStringLiteral("#eee");
+    break;
+  case FlowThemeId::Neo:
+    t.compositeBackground = QStringLiteral("#ffffff");
+    t.altBackground = QStringLiteral("#f0f0f0");
+    t.compositeTitleBackground = QStringLiteral("#ffffff");
+    break;
+  case FlowThemeId::NeoDark:
+    t.compositeBackground = QStringLiteral("#333");
+    t.altBackground = QStringLiteral("#f0f0f0");
+    t.compositeTitleBackground = QStringLiteral("#2a2020");
+    break;
+  case FlowThemeId::Redux:
+    t.compositeBackground = QStringLiteral("#ffffff");
+    t.altBackground = QStringLiteral("#F9F9FB");
+    t.compositeTitleBackground = QStringLiteral("#F9F9FB");
+    break;
+  case FlowThemeId::ReduxDark:
+    t.compositeBackground = QStringLiteral("#16141F");
+    t.altBackground = QStringLiteral("#16141F");
+    t.compositeTitleBackground = QStringLiteral("#16141F");
+    break;
+  case FlowThemeId::ReduxColor:
+    t.compositeBackground = QStringLiteral("#ffffff");
+    t.altBackground = QStringLiteral("#f0f0f0");
+    t.compositeTitleBackground = QStringLiteral("#ffffff");
+    break;
+  case FlowThemeId::ReduxDarkColor:
+    t.compositeBackground = QStringLiteral("#333");
+    t.altBackground = QStringLiteral("#f0f0f0");
+    t.compositeTitleBackground = QStringLiteral("#111113");
+    break;
   }
 }
 
 // --- updateColors variants ---
 // Forward declarations (pie/quadrant derivation).
-void populatePieFamilyA(FlowThemeVariables& t, const QString& primary,
-                        const QString& secondary, const QString& tertiary);
+void populatePieFamilyA(FlowThemeVariables& t, const QString& primary, const QString& secondary,
+                        const QString& tertiary);
 void populatePieDefault(FlowThemeVariables& t);
 void populatePieForest(FlowThemeVariables& t);
 void populatePieFromCScale(FlowThemeVariables& t, bool pie12FromCScale0);
 void populatePieScalars(FlowThemeVariables& t, const QString& titleLegendColor);
 void populateQuadrant(FlowThemeVariables& t, const QString& primary);
-void populateJourneyFillTypes(FlowThemeVariables& t, const QString& primary,
-                              const QString& secondary, bool unconditional);
+void populateJourneyFillTypes(FlowThemeVariables& t, const QString& primary, const QString& secondary,
+                              bool unconditional);
 void populateXYChart(FlowThemeId id, FlowThemeVariables& t);
 void populateGantt(FlowThemeId id, FlowThemeVariables& t);
 void populateArchitecture(FlowThemeId id, FlowThemeVariables& t);
@@ -561,33 +578,33 @@ void populateLegacySlots(FlowThemeId id, FlowThemeVariables& t) {
     QString surface, peer;
     const qreal step = static_cast<qreal>(i);
     switch (id) {
-      case FlowThemeId::Base:
-      case FlowThemeId::Neo:
-      case FlowThemeId::NeoDark:
-      case FlowThemeId::Redux:
-      case FlowThemeId::ReduxDark:
-      case FlowThemeId::ReduxColor:
-      case FlowThemeId::ReduxDarkColor:
-        // multiplier = darkMode ? -4 : -1 → always -1 for built-ins.
-        surface = adjust(t.mainBkg, {.h = 180.0, .s = -15.0, .l = -(5.0 + 3.0 * step)});
-        peer = adjust(t.mainBkg, {.h = 180.0, .s = -15.0, .l = -(8.0 + 3.0 * step)});
-        break;
-      case FlowThemeId::Dark:
-        surface = adjust(t.mainBkg, {.h = 30.0, .s = -30.0, .l = 10.0 - 4.0 * step});
-        peer = adjust(t.mainBkg, {.h = 30.0, .s = -30.0, .l = 7.0 - 4.0 * step});
-        break;
-      case FlowThemeId::Default:
-        surface = adjust(t.mainBkg, {.h = 30.0, .l = -(5.0 + 5.0 * step)});
-        peer = adjust(t.mainBkg, {.h = 30.0, .l = -(7.0 + 5.0 * step)});
-        break;
-      case FlowThemeId::Forest:
-        surface = adjust(t.mainBkg, {.h = 30.0, .s = -30.0, .l = -(5.0 + 5.0 * step)});
-        peer = adjust(t.mainBkg, {.h = 30.0, .s = -30.0, .l = -(8.0 + 5.0 * step)});
-        break;
-      case FlowThemeId::Neutral:
-        surface = adjust(t.mainBkg, {.l = -(5.0 + 5.0 * step)});
-        peer = adjust(t.mainBkg, {.l = -(8.0 + 5.0 * step)});
-        break;
+    case FlowThemeId::Base:
+    case FlowThemeId::Neo:
+    case FlowThemeId::NeoDark:
+    case FlowThemeId::Redux:
+    case FlowThemeId::ReduxDark:
+    case FlowThemeId::ReduxColor:
+    case FlowThemeId::ReduxDarkColor:
+      // multiplier = darkMode ? -4 : -1 → always -1 for built-ins.
+      surface = adjust(t.mainBkg, {.h = 180.0, .s = -15.0, .l = -(5.0 + 3.0 * step)});
+      peer = adjust(t.mainBkg, {.h = 180.0, .s = -15.0, .l = -(8.0 + 3.0 * step)});
+      break;
+    case FlowThemeId::Dark:
+      surface = adjust(t.mainBkg, {.h = 30.0, .s = -30.0, .l = 10.0 - 4.0 * step});
+      peer = adjust(t.mainBkg, {.h = 30.0, .s = -30.0, .l = 7.0 - 4.0 * step});
+      break;
+    case FlowThemeId::Default:
+      surface = adjust(t.mainBkg, {.h = 30.0, .l = -(5.0 + 5.0 * step)});
+      peer = adjust(t.mainBkg, {.h = 30.0, .l = -(7.0 + 5.0 * step)});
+      break;
+    case FlowThemeId::Forest:
+      surface = adjust(t.mainBkg, {.h = 30.0, .s = -30.0, .l = -(5.0 + 5.0 * step)});
+      peer = adjust(t.mainBkg, {.h = 30.0, .s = -30.0, .l = -(8.0 + 5.0 * step)});
+      break;
+    case FlowThemeId::Neutral:
+      surface = adjust(t.mainBkg, {.l = -(5.0 + 5.0 * step)});
+      peer = adjust(t.mainBkg, {.l = -(8.0 + 5.0 * step)});
+      break;
     }
     assignIfEmpty(t.surface[i], surface);
     assignIfEmpty(t.surfacePeer[i], peer);
@@ -605,94 +622,97 @@ void populateLegacySlots(FlowThemeId id, FlowThemeVariables& t) {
   // arm of each block's darkMode branch; the trailing `|| "#ffffff"` tier is
   // unreachable — khroma lighten never returns a falsy string).
   switch (id) {
-    case FlowThemeId::Base:
-      assignIfEmpty(t.rowOdd, lighten(t.mainBkg, 75));
-      assignIfEmpty(t.rowEven, lighten(t.mainBkg, 5));
-      break;
-    case FlowThemeId::Dark:
-      assignIfEmpty(t.rowOdd, lighten(t.mainBkg, 5));
-      assignIfEmpty(t.rowEven, darken(t.mainBkg, 10));
-      break;
-    case FlowThemeId::Default:
-      assignIfEmpty(t.rowOdd, lighten(t.primaryColor, 75));
-      assignIfEmpty(t.rowEven, lighten(t.primaryColor, 1));
-      break;
-    case FlowThemeId::Forest:
-      assignIfEmpty(t.rowOdd, lighten(t.mainBkg, 75));
-      assignIfEmpty(t.rowEven, lighten(t.mainBkg, 20));
-      break;
-    case FlowThemeId::Neutral:
-      assignIfEmpty(t.rowOdd, lighten(t.mainBkg, 75));
-      assignIfEmpty(t.rowEven, QStringLiteral("#f4f4f4"));
-      break;
-    default:
-      break;
+  case FlowThemeId::Base:
+    assignIfEmpty(t.rowOdd, lighten(t.mainBkg, 75));
+    assignIfEmpty(t.rowEven, lighten(t.mainBkg, 5));
+    break;
+  case FlowThemeId::Dark:
+    assignIfEmpty(t.rowOdd, lighten(t.mainBkg, 5));
+    assignIfEmpty(t.rowEven, darken(t.mainBkg, 10));
+    break;
+  case FlowThemeId::Default:
+    assignIfEmpty(t.rowOdd, lighten(t.primaryColor, 75));
+    assignIfEmpty(t.rowEven, lighten(t.primaryColor, 1));
+    break;
+  case FlowThemeId::Forest:
+    assignIfEmpty(t.rowOdd, lighten(t.mainBkg, 75));
+    assignIfEmpty(t.rowEven, lighten(t.mainBkg, 20));
+    break;
+  case FlowThemeId::Neutral:
+    assignIfEmpty(t.rowOdd, lighten(t.mainBkg, 75));
+    assignIfEmpty(t.rowEven, QStringLiteral("#f4f4f4"));
+    break;
+  default:
+    break;
   }
   // wardleyEvolutionColor: five themes derive it (dark pins #ff6b6b); the
   // neo/redux family never writes the key.
-  if (id == FlowThemeId::Base || id == FlowThemeId::Default ||
-      id == FlowThemeId::Forest || id == FlowThemeId::Neutral)
+  if (id == FlowThemeId::Base || id == FlowThemeId::Default || id == FlowThemeId::Forest || id == FlowThemeId::Neutral)
     assignIfEmpty(t.wardleyEvolutionColor, QStringLiteral("#dc3545"));
   else if (id == FlowThemeId::Dark)
     assignIfEmpty(t.wardleyEvolutionColor, QStringLiteral("#ff6b6b"));
   // pie0: only dark/neutral's pie loop starts at i=0 (pie0 = cScale0).
-  if (id == FlowThemeId::Dark || id == FlowThemeId::Neutral) t.pie0 = t.cScale[0];
+  if (id == FlowThemeId::Dark || id == FlowThemeId::Neutral)
+    t.pie0 = t.cScale[0];
 }
 
 void populateGitGraph(FlowThemeId id, FlowThemeVariables& t) {
-  if (t.git[0].isEmpty() && !t.git0.isEmpty()) t.git[0] = t.git0;
+  if (t.git[0].isEmpty() && !t.git0.isEmpty())
+    t.git[0] = t.git0;
   if (t.gitBranchLabel[0].isEmpty() && !t.gitBranchLabel0.isEmpty())
     t.gitBranchLabel[0] = t.gitBranchLabel0;
 
   if (id == FlowThemeId::Dark) {
     const int amounts[8] = {20, 20, 20, 20, 20, 10, 10, 20};
-    const QString fallbacks[8] = {
-        t.secondaryColor, t.pie[1].isEmpty() ? t.secondaryColor : t.pie[1],
-        t.pie[2].isEmpty() ? t.tertiaryColor : t.pie[2],
-        t.pie[3].isEmpty() ? adjust(t.primaryColor, {.h = -30.0}) : t.pie[3],
-        t.pie[4].isEmpty() ? adjust(t.primaryColor, {.h = -60.0}) : t.pie[4],
-        t.pie[5].isEmpty() ? adjust(t.primaryColor, {.h = -90.0}) : t.pie[5],
-        t.pie[6].isEmpty() ? adjust(t.primaryColor, {.h = 60.0}) : t.pie[6],
-        t.pie[7].isEmpty() ? adjust(t.primaryColor, {.h = 120.0}) : t.pie[7]};
-    for (int i = 0; i < 8; ++i) t.git[i] = lighten(fallbacks[i], amounts[i]);
+    const QString fallbacks[8] = {t.secondaryColor,
+                                  t.pie[1].isEmpty() ? t.secondaryColor : t.pie[1],
+                                  t.pie[2].isEmpty() ? t.tertiaryColor : t.pie[2],
+                                  t.pie[3].isEmpty() ? adjust(t.primaryColor, {.h = -30.0}) : t.pie[3],
+                                  t.pie[4].isEmpty() ? adjust(t.primaryColor, {.h = -60.0}) : t.pie[4],
+                                  t.pie[5].isEmpty() ? adjust(t.primaryColor, {.h = -90.0}) : t.pie[5],
+                                  t.pie[6].isEmpty() ? adjust(t.primaryColor, {.h = 60.0}) : t.pie[6],
+                                  t.pie[7].isEmpty() ? adjust(t.primaryColor, {.h = 120.0}) : t.pie[7]};
+    for (int i = 0; i < 8; ++i)
+      t.git[i] = lighten(fallbacks[i], amounts[i]);
   } else if (id == FlowThemeId::Neutral) {
     t.git[0] = darken(t.pie[0], 25);
-    for (int i = 1; i < 8; ++i) t.git[i] = t.pie[i];
+    for (int i = 1; i < 8; ++i)
+      t.git[i] = t.pie[i];
   } else {
     QString primary = t.primaryColor;
     QString secondary = t.secondaryColor;
     QString tertiary = t.tertiaryColor;
     bool lightenPalette = false;
-    if (id == FlowThemeId::Neo || id == FlowThemeId::Redux ||
-        id == FlowThemeId::ReduxColor) {
+    if (id == FlowThemeId::Neo || id == FlowThemeId::Redux || id == FlowThemeId::ReduxColor) {
       primary = QStringLiteral("#ECECFE");
       secondary = QStringLiteral("#E9E9F1");
       tertiary = adjust(primary, {.h = 180.0, .l = 5.0});
     } else if (id == FlowThemeId::NeoDark) {
-      const QString values[8] = {
-          QStringLiteral("#0b0000"), QStringLiteral("#4d1037"),
-          QStringLiteral("#3f5258"), QStringLiteral("#4f2f1b"),
-          QStringLiteral("#6e0a0a"), QStringLiteral("#3b0048"),
-          QStringLiteral("#995a01"), QStringLiteral("#154706")};
-      for (int i = 0; i < 8; ++i) assignIfEmpty(t.git[i], values[i]);
+      const QString values[8] = {QStringLiteral("#0b0000"), QStringLiteral("#4d1037"), QStringLiteral("#3f5258"),
+                                 QStringLiteral("#4f2f1b"), QStringLiteral("#6e0a0a"), QStringLiteral("#3b0048"),
+                                 QStringLiteral("#995a01"), QStringLiteral("#154706")};
+      for (int i = 0; i < 8; ++i)
+        assignIfEmpty(t.git[i], values[i]);
       lightenPalette = true;
     }
     if (id != FlowThemeId::NeoDark) {
-      const QString values[8] = {
-          primary, secondary, tertiary,
-          adjust(primary, {.h = -30.0}), adjust(primary, {.h = -60.0}),
-          adjust(primary, {.h = -90.0}), adjust(primary, {.h = 60.0}),
-          adjust(primary, {.h = 120.0})};
-      for (int i = 0; i < 8; ++i) assignIfEmpty(t.git[i], values[i]);
+      const QString values[8] = {primary,
+                                 secondary,
+                                 tertiary,
+                                 adjust(primary, {.h = -30.0}),
+                                 adjust(primary, {.h = -60.0}),
+                                 adjust(primary, {.h = -90.0}),
+                                 adjust(primary, {.h = 60.0}),
+                                 adjust(primary, {.h = 120.0})};
+      for (int i = 0; i < 8; ++i)
+        assignIfEmpty(t.git[i], values[i]);
     }
     for (QString& color : t.git)
       color = lightenPalette ? lighten(color, 25) : darken(color, 25);
   }
 
   for (int i = 0; i < 8; ++i) {
-    const QString inverse = id == FlowThemeId::Default && i == 0
-                                ? darken(invert(t.git[i]), 25)
-                                : invert(t.git[i]);
+    const QString inverse = id == FlowThemeId::Default && i == 0 ? darken(invert(t.git[i]), 25) : invert(t.git[i]);
     assignIfEmpty(t.gitInv[i], inverse);
   }
 
@@ -708,15 +728,13 @@ void populateGitGraph(FlowThemeId id, FlowThemeVariables& t) {
 
   if (id == FlowThemeId::Neutral) {
     for (int i = 0; i < 8; ++i)
-      t.gitBranchLabel[i] = (i == 1 || i == 3) ? QStringLiteral("white")
-                                               : labelColor;
-  } else if (id == FlowThemeId::Dark || id == FlowThemeId::Default ||
-             id == FlowThemeId::Forest) {
+      t.gitBranchLabel[i] = (i == 1 || i == 3) ? QStringLiteral("white") : labelColor;
+  } else if (id == FlowThemeId::Dark || id == FlowThemeId::Default || id == FlowThemeId::Forest) {
     for (int i = 0; i < 8; ++i)
-      assignIfEmpty(t.gitBranchLabel[i],
-                    (i == 0 || i == 3) ? invert(labelColor) : labelColor);
+      assignIfEmpty(t.gitBranchLabel[i], (i == 0 || i == 3) ? invert(labelColor) : labelColor);
   } else {
-    for (QString& color : t.gitBranchLabel) assignIfEmpty(color, labelColor);
+    for (QString& color : t.gitBranchLabel)
+      assignIfEmpty(color, labelColor);
   }
 
   assignIfEmpty(t.tagLabelColor, t.primaryTextColor);
@@ -726,8 +744,8 @@ void populateGitGraph(FlowThemeId id, FlowThemeVariables& t) {
   assignIfEmpty(t.commitLabelColor, invert(t.secondaryColor));
   assignIfEmpty(t.commitLabelBackground, t.secondaryColor);
   assignIfEmpty(t.commitLabelFontSize, QStringLiteral("10px"));
-  if (id == FlowThemeId::Redux || id == FlowThemeId::ReduxDark ||
-      id == FlowThemeId::ReduxColor || id == FlowThemeId::ReduxDarkColor)
+  if (id == FlowThemeId::Redux || id == FlowThemeId::ReduxDark || id == FlowThemeId::ReduxColor ||
+      id == FlowThemeId::ReduxDarkColor)
     assignIfEmpty(t.commitLineColor, QStringLiteral("#BDBCCC"));
 
   t.git0 = t.git[0];
@@ -741,8 +759,7 @@ void populateVenn(FlowThemeId id, FlowThemeVariables& t) {
   } else if (id == FlowThemeId::Neutral) {
     for (int i = 0; i < 8; ++i)
       assignIfEmpty(t.venn[i], t.cScale[i]);
-  } else if (id == FlowThemeId::Base || id == FlowThemeId::Default ||
-             id == FlowThemeId::Forest) {
+  } else if (id == FlowThemeId::Base || id == FlowThemeId::Default || id == FlowThemeId::Forest) {
     const qreal tertiaryLightness = id == FlowThemeId::Default ? -40.0 : -30.0;
     const QString values[8] = {
         adjust(t.primaryColor, {.l = -30.0}),
@@ -754,7 +771,8 @@ void populateVenn(FlowThemeId id, FlowThemeVariables& t) {
         adjust(t.primaryColor, {.h = 120.0, .l = -30.0}),
         adjust(t.secondaryColor, {.h = 120.0, .l = -30.0}),
     };
-    for (int i = 0; i < 8; ++i) assignIfEmpty(t.venn[i], values[i]);
+    for (int i = 0; i < 8; ++i)
+      assignIfEmpty(t.venn[i], values[i]);
   }
   assignIfEmpty(t.vennTitleTextColor, t.titleColor);
   assignIfEmpty(t.vennSetTextColor, t.textColor);
@@ -763,8 +781,8 @@ void populateVenn(FlowThemeId id, FlowThemeVariables& t) {
 // Family A (base/neo/neo-dark/redux/redux-dark/redux-color/redux-dark-color):
 // the shared `||`-guarded derivation (darkMode always false for built-in
 // themes). primaryTextColorDefault is the non-darkMode fallback ("#333" etc.).
-void updateColorsFamilyA(FlowThemeVariables& t, const QString& primaryTextColorDefault,
-                         bool nodeBorderFromBorder1, bool lightPalette = false) {
+void updateColorsFamilyA(FlowThemeVariables& t, const QString& primaryTextColorDefault, bool nodeBorderFromBorder1,
+                         bool lightPalette = false) {
   assignIfEmpty(t.primaryTextColor, primaryTextColorDefault);
   assignIfEmpty(t.actorTextColor, t.primaryTextColor);
   assignIfEmpty(t.secondaryColor, adjust(t.primaryColor, {.h = -120.0}));
@@ -790,7 +808,7 @@ void updateColorsFamilyA(FlowThemeVariables& t, const QString& primaryTextColorD
   // primaryBorderColor. Themes that pre-set nodeBorder in the constructor are
   // unaffected (assignIfEmpty keeps the constructor value).
   assignIfEmpty(t.nodeBorder, nodeBorderFromBorder1 ? t.border1 : t.primaryBorderColor);
-  t.specialStateColor = t.lineColor;  // Family-A updateColors (base line 161 etc.)
+  t.specialStateColor = t.lineColor; // Family-A updateColors (base line 161 etc.)
   // updateColors tail: gradientStart/Stop = primary/secondaryBorderColor for
   // base (line 396-397). The neo/redux constructors pre-set literal gradients,
   // so assignIfEmpty leaves them alone.
@@ -800,7 +818,7 @@ void updateColorsFamilyA(FlowThemeVariables& t, const QString& primaryTextColorD
   assignIfEmpty(t.clusterBorder, tertiaryBorderColor);
   assignIfEmpty(t.defaultLinkColor, t.lineColor);
   assignIfEmpty(t.titleColor, t.tertiaryTextColor);
-  assignIfEmpty(t.edgeLabelBackground, t.secondaryColor);  // darkMode false
+  assignIfEmpty(t.edgeLabelBackground, t.secondaryColor); // darkMode false
   assignIfEmpty(t.nodeTextColor, t.primaryTextColor);
   // Sequence/state/class/c4 stylesheet derivations (base updateColors lines
   // 1879-1935, shared verbatim by the neo/redux constructors). All `||`
@@ -830,8 +848,7 @@ void updateColorsFamilyA(FlowThemeVariables& t, const QString& primaryTextColorD
   // Evaluated BEFORE the shared stateBkg fallback (see updateColors tail), so
   // an explicit user stateBkg override feeds the label while the derived
   // stateBkg (= mainBkg) does not — upstream's derivation-order quirk.
-  assignIfEmpty(t.stateLabelColor,
-                t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
+  assignIfEmpty(t.stateLabelColor, t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
   assignIfEmpty(t.classText, t.textColor);
   // Palette-feed scalars (darkMode undefined → the light arm).
   assignIfEmpty(t.scaleLabelColor, t.labelTextColor);
@@ -853,7 +870,8 @@ void updateColorsFamilyA(FlowThemeVariables& t, const QString& primaryTextColorD
   // (upstream constructor literal) for golden parity; their pie title/legend
   // still use taskTextDarkColor, NOT mainContrastColor.
   assignIfEmpty(t.taskTextDarkColor, t.textColor);
-  if (nodeBorderFromBorder1) assignIfEmpty(t.mainContrastColor, QStringLiteral("lightgrey"));
+  if (nodeBorderFromBorder1)
+    assignIfEmpty(t.mainContrastColor, QStringLiteral("lightgrey"));
   populatePieScalars(t, t.taskTextDarkColor);
   if (lightPalette) {
     populatePieFamilyA(t, primary, QStringLiteral("#E9E9F1"), adjust(primary, {.h = 180.0, .l = 5.0}));
@@ -863,8 +881,7 @@ void updateColorsFamilyA(FlowThemeVariables& t, const QString& primaryTextColorD
   populateQuadrant(t, primary);
 }
 
-void finishCScale(FlowThemeVariables& t, bool darkMode,
-                  bool darkColorLabels = false) {
+void finishCScale(FlowThemeVariables& t, bool darkMode, bool darkColorLabels = false) {
   for (int i = 0; i < cScaleCount(t); ++i) {
     // An empty cScale[i] (e.g. cScale12 for every theme but dark) has no color to
     // invert/darken/lighten -- skip those color ops. cScaleLabel still takes its
@@ -872,20 +889,18 @@ void finishCScale(FlowThemeVariables& t, bool darkMode,
     // darkens a (non-empty) cScale[i].
     if (!t.cScale[i].isEmpty()) {
       assignIfEmpty(t.cScaleInv[i], invert(t.cScale[i]));
-      assignIfEmpty(t.cScalePeer[i], darkMode ? lighten(t.cScale[i], 10)
-                                              : darken(t.cScale[i], 10));
+      assignIfEmpty(t.cScalePeer[i], darkMode ? lighten(t.cScale[i], 10) : darken(t.cScale[i], 10));
     }
     assignIfEmpty(t.cScaleLabel[i],
-                  (darkColorLabels && !t.cScale[i].isEmpty()) ? darken(t.cScale[i], 75)
-                                                              : t.scaleLabelColor);
+                  (darkColorLabels && !t.cScale[i].isEmpty()) ? darken(t.cScale[i], 75) : t.scaleLabelColor);
   }
 }
 
 // Family-A pie palette (shared by base/neo/redux/redux-color/redux-dark/
 // redux-dark-color). pie1-3 = primary/secondary/tertiary; pie4-6 = adjust(base,
 // {l:-10}); pie7-12 = adjust(primary, {h, l}).
-void populatePieFamilyA(FlowThemeVariables& t, const QString& primary,
-                        const QString& secondary, const QString& tertiary) {
+void populatePieFamilyA(FlowThemeVariables& t, const QString& primary, const QString& secondary,
+                        const QString& tertiary) {
   assignIfEmpty(t.pie[0], primary);
   assignIfEmpty(t.pie[1], secondary);
   assignIfEmpty(t.pie[2], tertiary);
@@ -905,8 +920,8 @@ void populatePieFamilyA(FlowThemeVariables& t, const QString& primary,
 // unconditional assignments. The distinction matters during calculate(): a
 // direct fillType override still wins after the final override re-application,
 // while primary/secondary overrides must feed the derived palette.
-void populateJourneyFillTypes(FlowThemeVariables& t, const QString& primary,
-                              const QString& secondary, bool unconditional) {
+void populateJourneyFillTypes(FlowThemeVariables& t, const QString& primary, const QString& secondary,
+                              bool unconditional) {
   const QString values[8] = {
       primary,
       secondary,
@@ -979,9 +994,10 @@ void populatePieForest(FlowThemeVariables& t) {
 // AFTER cScale0..12 are finalized.
 void populatePieFromCScale(FlowThemeVariables& t, bool pie12FromCScale0) {
   const int last = std::min(cScaleCount(t) - 1, 12);
-  for (int i = 1; i <= last; ++i) t.pie[i - 1] = t.cScale[i];  // pie1..pieK = cScale1..cScaleK
+  for (int i = 1; i <= last; ++i)
+    t.pie[i - 1] = t.cScale[i]; // pie1..pieK = cScale1..cScaleK
   if (pie12FromCScale0 && t.themeColorLimit > 0)
-    t.pie[11] = t.cScale[0];  // neutral: this.pie12 = this.pie0 (= cScale0)
+    t.pie[11] = t.cScale[0]; // neutral: this.pie12 = this.pie0 (= cScale0)
 }
 
 // Pie scalar themeVariables (UNIFORM formulas across all 11 themes): the stroke
@@ -1040,19 +1056,19 @@ void populateQuadrant(FlowThemeVariables& t, const QString& primary) {
   //   (this.quadrantPointFill || isDark(q1)) ? lighten(q1) : darken(q1)
   // (see the function header); the one-arg calls produce hsl(h, s, NaN%).
   const bool lightenBranch = !t.quadrantPointFill.isEmpty() || isDark(t.quadrant[0]);
-  t.quadrantPointFill =
-      lightenBranch ? lighten(t.quadrant[0], kJsNaN) : darken(t.quadrant[0], kJsNaN);
+  t.quadrantPointFill = lightenBranch ? lighten(t.quadrant[0], kJsNaN) : darken(t.quadrant[0], kJsNaN);
 }
 
-void populateAdjustedScale(FlowThemeVariables& t, const QString& primary,
-                           const QString& secondary, const QString& tertiary) {
+void populateAdjustedScale(FlowThemeVariables& t, const QString& primary, const QString& secondary,
+                           const QString& tertiary) {
   assignIfEmpty(t.cScale[0], primary);
   assignIfEmpty(t.cScale[1], secondary);
   assignIfEmpty(t.cScale[2], tertiary);
   const int hues[9] = {30, 60, 90, 120, 150, 210, 270, 300, 330};
   for (int i = 0; i < 9; ++i) {
     color::ChannelAdjust delta{.h = static_cast<double>(hues[i])};
-    if (i == 5) delta.l = 150.0;
+    if (i == 5)
+      delta.l = 150.0;
     assignIfEmpty(t.cScale[i + 3], adjust(primary, delta));
   }
 }
@@ -1060,7 +1076,8 @@ void populateAdjustedScale(FlowThemeVariables& t, const QString& primary,
 void updateBaseCScale(FlowThemeVariables& t, bool darkMode) {
   populateAdjustedScale(t, t.primaryColor, t.secondaryColor, t.tertiaryColor);
   for (int i = 0; i < cScaleCount(t); ++i)
-    if (!t.cScale[i].isEmpty()) t.cScale[i] = darken(t.cScale[i], darkMode ? 75 : 25);
+    if (!t.cScale[i].isEmpty())
+      t.cScale[i] = darken(t.cScale[i], darkMode ? 75 : 25);
   finishCScale(t, false);
 }
 
@@ -1069,7 +1086,8 @@ void updateNeoCScale(FlowThemeVariables& t) {
   const QString secondary = QStringLiteral("#E9E9F1");
   populateAdjustedScale(t, primary, secondary, adjust(primary, {.h = 180.0, .l = 5.0}));
   for (int i = 0; i < cScaleCount(t); ++i)
-    if (!t.cScale[i].isEmpty()) t.cScale[i] = darken(t.cScale[i], 25);
+    if (!t.cScale[i].isEmpty())
+      t.cScale[i] = darken(t.cScale[i], 25);
   finishCScale(t, false);
 }
 
@@ -1082,10 +1100,10 @@ void updateReduxCScale(FlowThemeVariables& t) {
 }
 
 void updateReduxColorCScale(FlowThemeVariables& t, bool darkLabels) {
-  static const char* const colors[12] = {
-      "#f4a8ff", "#46ecd5", "#ffb86a", "#dab2ff", "#7bf1a8", "#c4b4ff",
-      "#ffa2a2", "#ffdf20", "#a3b3ff", "#bbf451", "#74d4ff", "#ffa1ad"};
-  for (int i = 0; i < 12; ++i) assignIfEmpty(t.cScale[i], QString::fromLatin1(colors[i]));
+  static const char* const colors[12] = {"#f4a8ff", "#46ecd5", "#ffb86a", "#dab2ff", "#7bf1a8", "#c4b4ff",
+                                         "#ffa2a2", "#ffdf20", "#a3b3ff", "#bbf451", "#74d4ff", "#ffa1ad"};
+  for (int i = 0; i < 12; ++i)
+    assignIfEmpty(t.cScale[i], QString::fromLatin1(colors[i]));
   finishCScale(t, false, darkLabels);
 }
 
@@ -1109,8 +1127,9 @@ void updateDefaultForestCScale(FlowThemeVariables& t) {
   assignIfEmpty(t.cScalePeer[1], darken(t.secondaryColor, 45));
   assignIfEmpty(t.cScalePeer[2], darken(t.tertiaryColor, 40));
   for (int i = 0; i < cScaleCount(t); ++i) {
-    if (t.cScale[i].isEmpty()) continue;  // no color to darken at this index (e.g. cScale12)
-    t.cScale[i] = darken(t.cScale[i], 10);  // UNCONDITIONAL — accumulates per call
+    if (t.cScale[i].isEmpty())
+      continue;                            // no color to darken at this index (e.g. cScale12)
+    t.cScale[i] = darken(t.cScale[i], 10); // UNCONDITIONAL — accumulates per call
     assignIfEmpty(t.cScalePeer[i], darken(t.cScale[i], 25));
     assignIfEmpty(t.cScaleInv[i], adjust(t.cScale[i], {.h = 180.0}));
   }
@@ -1131,10 +1150,10 @@ void updateColorsDefault(FlowThemeVariables& t) {
   }
   t.nodeBkg = t.mainBkg;
   t.nodeBorder = t.border1;
-  t.specialStateColor = t.lineColor;  // default updateColors line 977 (unconditional)
-  t.errorBkgColor = QStringLiteral("#552222");   // default ctor line 900
-  t.errorTextColor = QStringLiteral("#552222");  // default ctor line 901
-  assignIfEmpty(t.gradientStart, t.primaryBorderColor);   // default tail line 903
+  t.specialStateColor = t.lineColor;                    // default updateColors line 977 (unconditional)
+  t.errorBkgColor = QStringLiteral("#552222");          // default ctor line 900
+  t.errorTextColor = QStringLiteral("#552222");         // default ctor line 901
+  assignIfEmpty(t.gradientStart, t.primaryBorderColor); // default tail line 903
   assignIfEmpty(t.gradientStop, t.secondaryBorderColor);
   t.clusterBkg = t.secondBkg;
   t.clusterBorder = t.border2;
@@ -1156,16 +1175,13 @@ void updateColorsDefault(FlowThemeVariables& t) {
   assignIfEmpty(t.rectBkgColor, t.tertiaryColor);
   assignIfEmpty(t.transitionColor, t.lineColor);
   assignIfEmpty(t.transitionLabelColor, t.textColor);
-  assignIfEmpty(t.stateLabelColor,
-                t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
+  assignIfEmpty(t.stateLabelColor, t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
   t.classText = t.primaryTextColor;
   t.personBorder = t.primaryBorderColor;
   t.personBkg = t.mainBkg;
-  assignIfEmpty(t.noteFontWeight, QStringLiteral("normal"));  // line 2681
-  assignIfEmpty(t.scaleLabelColor, t.labelTextColor.isEmpty()
-                                       ? t.actorTextColor
-                                       : t.labelTextColor);
-  t.labelTextColor = t.actorTextColor;  // line 2748 — after the guarded block
+  assignIfEmpty(t.noteFontWeight, QStringLiteral("normal")); // line 2681
+  assignIfEmpty(t.scaleLabelColor, t.labelTextColor.isEmpty() ? t.actorTextColor : t.labelTextColor);
+  t.labelTextColor = t.actorTextColor; // line 2748 — after the guarded block
   assignIfEmpty(t.taskTextDarkColor, QStringLiteral("black"));
   populateJourneyFillTypes(t, t.primaryColor, t.secondaryColor, true);
   populatePieScalars(t, t.taskTextDarkColor);
@@ -1177,10 +1193,10 @@ void updateColorsForest(FlowThemeVariables& t) {
   updateDefaultForestCScale(t);
   t.nodeBkg = t.mainBkg;
   t.nodeBorder = t.border1;
-  t.specialStateColor = t.lineColor;  // forest updateColors line 1350 (unconditional)
-  t.errorBkgColor = QStringLiteral("#552222");   // forest ctor line 1280
-  t.errorTextColor = QStringLiteral("#552222");  // forest ctor line 1281
-  assignIfEmpty(t.gradientStart, t.primaryBorderColor);   // forest tail line 1283
+  t.specialStateColor = t.lineColor;                    // forest updateColors line 1350 (unconditional)
+  t.errorBkgColor = QStringLiteral("#552222");          // forest ctor line 1280
+  t.errorTextColor = QStringLiteral("#552222");         // forest ctor line 1281
+  assignIfEmpty(t.gradientStart, t.primaryBorderColor); // forest tail line 1283
   assignIfEmpty(t.gradientStop, t.secondaryBorderColor);
   t.clusterBkg = t.secondBkg;
   t.clusterBorder = t.border2;
@@ -1198,15 +1214,14 @@ void updateColorsForest(FlowThemeVariables& t) {
   assignIfEmpty(t.rectBkgColor, t.tertiaryColor);
   assignIfEmpty(t.transitionColor, t.lineColor);
   assignIfEmpty(t.transitionLabelColor, t.textColor);
-  assignIfEmpty(t.stateLabelColor,
-                t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
+  assignIfEmpty(t.stateLabelColor, t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
   t.classText = t.primaryTextColor;
   t.personBorder = t.primaryBorderColor;
   t.personBkg = t.mainBkg;
   assignIfEmpty(t.scaleLabelColor, t.labelTextColor);
   for (int i = 0; i < cScaleCount(t); ++i)
     assignIfEmpty(t.cScaleLabel[i], t.scaleLabelColor);
-  assignIfEmpty(t.noteFontWeight, QStringLiteral("normal"));  // forest line 3078
+  assignIfEmpty(t.noteFontWeight, QStringLiteral("normal")); // forest line 3078
   // forest keeps constructor titleColor (#333) and edgeLabelBackground (#e8e8e8).
   assignIfEmpty(t.taskTextDarkColor, QStringLiteral("black"));
   populateJourneyFillTypes(t, t.primaryColor, t.secondaryColor, true);
@@ -1223,10 +1238,10 @@ void updateColorsDark(FlowThemeVariables& t) {
   t.actorTextColor = t.mainContrastColor;
   t.nodeBkg = t.mainBkg;
   t.nodeBorder = t.border1;
-  t.specialStateColor = QStringLiteral("#f4f4f4");  // dark updateColors line 563 literal
-  t.errorBkgColor = QStringLiteral("#a44141");  // dark ctor line 508
-  t.errorTextColor = QStringLiteral("#ddd");    // dark ctor line 509
-  assignIfEmpty(t.gradientStart, t.primaryBorderColor);   // dark tail line 511
+  t.specialStateColor = QStringLiteral("#f4f4f4");      // dark updateColors line 563 literal
+  t.errorBkgColor = QStringLiteral("#a44141");          // dark ctor line 508
+  t.errorTextColor = QStringLiteral("#ddd");            // dark ctor line 509
+  assignIfEmpty(t.gradientStart, t.primaryBorderColor); // dark tail line 511
   assignIfEmpty(t.gradientStop, t.secondaryBorderColor);
   t.clusterBkg = t.secondBkg;
   t.clusterBorder = t.border2;
@@ -1251,8 +1266,7 @@ void updateColorsDark(FlowThemeVariables& t) {
   assignIfEmpty(t.rectBkgColor, t.tertiaryColor);
   assignIfEmpty(t.transitionColor, t.lineColor);
   assignIfEmpty(t.transitionLabelColor, t.textColor);
-  assignIfEmpty(t.stateLabelColor,
-                t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
+  assignIfEmpty(t.stateLabelColor, t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
   t.classText = t.primaryTextColor;
   t.personBorder = t.primaryBorderColor;
   t.personBkg = t.mainBkg;
@@ -1286,10 +1300,10 @@ void updateColorsDark(FlowThemeVariables& t) {
   // dark's final nodeBorder override (line 1502): nodeBorder = nodeBorder || "#999".
   assignIfEmpty(t.nodeBorder, QStringLiteral("#999"));
   // dark does NOT derive nodeTextColor (getStyles falls back to textColor).
-  assignIfEmpty(t.taskTextDarkColor, invert(t.mainContrastColor));  // dark: invert(lightgrey) = #2c2c2c
+  assignIfEmpty(t.taskTextDarkColor, invert(t.mainContrastColor)); // dark: invert(lightgrey) = #2c2c2c
   populateJourneyFillTypes(t, t.primaryColor, t.secondaryColor, true);
-  populatePieScalars(t, t.mainContrastColor);  // dark pie title/legend = mainContrastColor
-  populatePieFromCScale(t, false);  // dark: pie1..pie(K) = cScale1..K; pie12 empty at TCL<=12, =cScale12 at TCL>=13
+  populatePieScalars(t, t.mainContrastColor); // dark pie title/legend = mainContrastColor
+  populatePieFromCScale(t, false); // dark: pie1..pie(K) = cScale1..K; pie12 empty at TCL<=12, =cScale12 at TCL>=13
   populateQuadrant(t, t.primaryColor);
 }
 
@@ -1302,9 +1316,9 @@ void updateColorsNeutral(FlowThemeVariables& t) {
   // specialStateColor literal (both distinct from lineColor #666).
   assignIfEmpty(t.stateBorder, QStringLiteral("#000"));
   t.specialStateColor = QStringLiteral("#222");
-  t.errorBkgColor = QStringLiteral("#552222");   // neutral ctor line 1662
-  t.errorTextColor = QStringLiteral("#552222");  // neutral ctor line 1663
-  assignIfEmpty(t.gradientStart, t.primaryBorderColor);   // neutral tail line 1665
+  t.errorBkgColor = QStringLiteral("#552222");          // neutral ctor line 1662
+  t.errorTextColor = QStringLiteral("#552222");         // neutral ctor line 1663
+  assignIfEmpty(t.gradientStart, t.primaryBorderColor); // neutral tail line 1665
   assignIfEmpty(t.gradientStop, t.secondaryBorderColor);
   t.clusterBkg = t.secondBkg;
   t.clusterBorder = t.border2;
@@ -1327,23 +1341,21 @@ void updateColorsNeutral(FlowThemeVariables& t) {
   assignIfEmpty(t.rectBkgColor, t.tertiaryColor);
   assignIfEmpty(t.transitionColor, QStringLiteral("#000"));
   assignIfEmpty(t.transitionLabelColor, t.textColor);
-  assignIfEmpty(t.stateLabelColor,
-                t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
+  assignIfEmpty(t.stateLabelColor, t.stateBkg.isEmpty() ? t.primaryTextColor : t.stateBkg);
   t.classText = t.primaryTextColor;
   t.personBorder = t.primaryBorderColor;
   t.personBkg = t.mainBkg;
   t.titleColor = t.text;
-  t.actorTextColor = t.text;  // upstream @1674, unconditional
+  t.actorTextColor = t.text; // upstream @1674, unconditional
   // cScale: all literals (neutral lines 2418-2429).
-  const QString literals[12] = {
-      QStringLiteral("#555"), QStringLiteral("#F4F4F4"), QStringLiteral("#555"),
-      QStringLiteral("#BBB"), QStringLiteral("#777"), QStringLiteral("#999"),
-      QStringLiteral("#DDD"), QStringLiteral("#FFF"), QStringLiteral("#DDD"),
-      QStringLiteral("#BBB"), QStringLiteral("#999"), QStringLiteral("#777")};
+  const QString literals[12] = {QStringLiteral("#555"), QStringLiteral("#F4F4F4"), QStringLiteral("#555"),
+                                QStringLiteral("#BBB"), QStringLiteral("#777"),    QStringLiteral("#999"),
+                                QStringLiteral("#DDD"), QStringLiteral("#FFF"),    QStringLiteral("#DDD"),
+                                QStringLiteral("#BBB"), QStringLiteral("#999"),    QStringLiteral("#777")};
   for (int i = 0; i < 12; ++i) {
     assignIfEmpty(t.cScale[i], literals[i]);
     assignIfEmpty(t.cScaleInv[i], invert(t.cScale[i]));
-    assignIfEmpty(t.cScalePeer[i], darken(t.cScale[i], 10));  // darkMode false
+    assignIfEmpty(t.cScalePeer[i], darken(t.cScale[i], 10)); // darkMode false
   }
   // Lines 3517-3521: scaleLabelColor feeds the label loop; slots 0/2 take
   // cScale1 first (both #F4F4F4 for the literal palette).
@@ -1359,31 +1371,31 @@ void updateColorsNeutral(FlowThemeVariables& t) {
   // so a taskTextDarkColor override is clobbered during updateColors and does NOT
   // propagate to pie title/legend (probed vs upstream). Re-applied after, the
   // override still wins on get("taskTextDarkColor") itself.
-  t.taskTextDarkColor = t.text;  // neutral.text = #333
+  t.taskTextDarkColor = t.text; // neutral.text = #333
   populateJourneyFillTypes(t, t.primaryColor, t.secondaryColor, true);
   populatePieScalars(t, t.taskTextDarkColor);
-  populatePieFromCScale(t, true);  // neutral: pie1..pie(K) = cScale1..K; pie12 = cScale0
+  populatePieFromCScale(t, true); // neutral: pie1..pie(K) = cScale1..K; pie12 = cScale0
   populateQuadrant(t, t.primaryColor);
 }
 
 void populateXYChart(FlowThemeId id, FlowThemeVariables& t) {
   QString palette;
   switch (id) {
-    case FlowThemeId::Dark:
-      palette = QStringLiteral("#3498db,#2ecc71,#e74c3c,#f1c40f,#bdc3c7,#ffffff,#34495e,#9b59b6,#1abc9c,#e67e22");
-      break;
-    case FlowThemeId::Default:
-      palette = QStringLiteral("#ECECFF,#8493A6,#FFC3A0,#DCDDE1,#B8E994,#D1A36F,#C3CDE6,#FFB6C1,#496078,#F8F3E3");
-      break;
-    case FlowThemeId::Forest:
-      palette = QStringLiteral("#CDE498,#FF6B6B,#A0D2DB,#D7BDE2,#F0F0F0,#FFC3A0,#7FD8BE,#FF9A8B,#FAF3E0,#FFF176");
-      break;
-    case FlowThemeId::Neutral:
-      palette = QStringLiteral("#EEE,#6BB8E4,#8ACB88,#C7ACD6,#E8DCC2,#FFB2A8,#FFF380,#7E8D91,#FFD8B1,#FAF3E0");
-      break;
-    default:
-      palette = QStringLiteral("#FFF4DD,#FFD8B1,#FFA07A,#ECEFF1,#D6DBDF,#C3E0A8,#FFB6A4,#FFD74D,#738FA7,#FFFFF0");
-      break;
+  case FlowThemeId::Dark:
+    palette = QStringLiteral("#3498db,#2ecc71,#e74c3c,#f1c40f,#bdc3c7,#ffffff,#34495e,#9b59b6,#1abc9c,#e67e22");
+    break;
+  case FlowThemeId::Default:
+    palette = QStringLiteral("#ECECFF,#8493A6,#FFC3A0,#DCDDE1,#B8E994,#D1A36F,#C3CDE6,#FFB6C1,#496078,#F8F3E3");
+    break;
+  case FlowThemeId::Forest:
+    palette = QStringLiteral("#CDE498,#FF6B6B,#A0D2DB,#D7BDE2,#F0F0F0,#FFC3A0,#7FD8BE,#FF9A8B,#FAF3E0,#FFF176");
+    break;
+  case FlowThemeId::Neutral:
+    palette = QStringLiteral("#EEE,#6BB8E4,#8ACB88,#C7ACD6,#E8DCC2,#FFB2A8,#FFF380,#7E8D91,#FFD8B1,#FAF3E0");
+    break;
+  default:
+    palette = QStringLiteral("#FFF4DD,#FFD8B1,#FFA07A,#ECEFF1,#D6DBDF,#C3E0A8,#FFB6A4,#FFD74D,#738FA7,#FFFFF0");
+    break;
   }
 
   assignIfEmpty(t.xyChart.backgroundColor, t.background);
@@ -1393,13 +1405,10 @@ void populateXYChart(FlowThemeId id, FlowThemeVariables& t) {
   // Their own XYChart object literals omit dataLabelColor, so the value created
   // by the base constructor survives as #131300 instead of following those
   // themes' primaryTextColor. The other five themes set it directly.
-  const bool inheritedDataLabel =
-      id == FlowThemeId::Neo || id == FlowThemeId::NeoDark ||
-      id == FlowThemeId::Redux || id == FlowThemeId::ReduxDark ||
-      id == FlowThemeId::ReduxColor || id == FlowThemeId::ReduxDarkColor;
-  assignIfEmpty(t.xyChart.dataLabelColor,
-                inheritedDataLabel ? QStringLiteral("#131300")
-                                   : t.primaryTextColor);
+  const bool inheritedDataLabel = id == FlowThemeId::Neo || id == FlowThemeId::NeoDark || id == FlowThemeId::Redux ||
+                                  id == FlowThemeId::ReduxDark || id == FlowThemeId::ReduxColor ||
+                                  id == FlowThemeId::ReduxDarkColor;
+  assignIfEmpty(t.xyChart.dataLabelColor, inheritedDataLabel ? QStringLiteral("#131300") : t.primaryTextColor);
 
   assignIfEmpty(t.xyChart.xAxisTitleColor, t.primaryTextColor);
   assignIfEmpty(t.xyChart.xAxisLabelColor, t.primaryTextColor);
@@ -1413,10 +1422,9 @@ void populateXYChart(FlowThemeId id, FlowThemeVariables& t) {
 }
 
 void populateCynefin(FlowThemeId id, FlowThemeVariables& t) {
-  const bool stylesheetDefaults =
-      id == FlowThemeId::Neo || id == FlowThemeId::NeoDark ||
-      id == FlowThemeId::Redux || id == FlowThemeId::ReduxDark ||
-      id == FlowThemeId::ReduxColor || id == FlowThemeId::ReduxDarkColor;
+  const bool stylesheetDefaults = id == FlowThemeId::Neo || id == FlowThemeId::NeoDark || id == FlowThemeId::Redux ||
+                                  id == FlowThemeId::ReduxDark || id == FlowThemeId::ReduxColor ||
+                                  id == FlowThemeId::ReduxDarkColor;
   if (stylesheetDefaults) {
     assignIfEmpty(t.cynefin.domainFontSize, QStringLiteral("16"));
     assignIfEmpty(t.cynefin.itemFontSize, QStringLiteral("12"));
@@ -1469,7 +1477,8 @@ void populateCynefin(FlowThemeId id, FlowThemeVariables& t) {
 }
 
 void populatePacket(FlowThemeId id, FlowThemeVariables& t) {
-  if (id != FlowThemeId::Dark && id != FlowThemeId::Forest) return;
+  if (id != FlowThemeId::Dark && id != FlowThemeId::Forest)
+    return;
   // Both upstream updateColors implementations assign a fresh object, not a
   // field-wise merge. PacketStyleOptions supplies the four typography/stroke
   // defaults that are absent from that object.
@@ -1486,17 +1495,13 @@ void populateEventModeling(FlowThemeId id, FlowThemeVariables& t) {
   if (id == FlowThemeId::Dark) {
     assignIfEmpty(t.emUiFill, QStringLiteral("#2d2d2d"));
     assignIfEmpty(t.emUiStroke, QStringLiteral("#555"));
-    assignIfEmpty(t.emProcessorFill,
-                  lighten(QStringLiteral("#5a3d5c"), 10));
+    assignIfEmpty(t.emProcessorFill, lighten(QStringLiteral("#5a3d5c"), 10));
     assignIfEmpty(t.emProcessorStroke, QStringLiteral("#8a6d8c"));
-    assignIfEmpty(t.emReadModelFill,
-                  lighten(QStringLiteral("#3d5a2d"), 10));
+    assignIfEmpty(t.emReadModelFill, lighten(QStringLiteral("#3d5a2d"), 10));
     assignIfEmpty(t.emReadModelStroke, QStringLiteral("#6d8c5c"));
-    assignIfEmpty(t.emCommandFill,
-                  lighten(QStringLiteral("#2d3d5a"), 10));
+    assignIfEmpty(t.emCommandFill, lighten(QStringLiteral("#2d3d5a"), 10));
     assignIfEmpty(t.emCommandStroke, QStringLiteral("#5c6d8c"));
-    assignIfEmpty(t.emEventFill,
-                  lighten(QStringLiteral("#5a452d"), 10));
+    assignIfEmpty(t.emEventFill, lighten(QStringLiteral("#5a452d"), 10));
     assignIfEmpty(t.emEventStroke, QStringLiteral("#8c755c"));
     assignIfEmpty(t.emSwimlaneBackgroundOdd, lighten(t.background, 5));
     assignIfEmpty(t.emSwimlaneBackgroundStroke, lighten(t.background, 12));
@@ -1511,10 +1516,8 @@ void populateEventModeling(FlowThemeId id, FlowThemeVariables& t) {
     assignIfEmpty(t.emCommandStroke, QStringLiteral("#679ac3"));
     assignIfEmpty(t.emEventFill, QStringLiteral("#ffb778"));
     assignIfEmpty(t.emEventStroke, QStringLiteral("#c19a0f"));
-    assignIfEmpty(t.emSwimlaneBackgroundOdd,
-                  QStringLiteral("rgb(250,250,250)"));
-    assignIfEmpty(t.emSwimlaneBackgroundStroke,
-                  QStringLiteral("rgb(240,240,240)"));
+    assignIfEmpty(t.emSwimlaneBackgroundOdd, QStringLiteral("rgb(250,250,250)"));
+    assignIfEmpty(t.emSwimlaneBackgroundStroke, QStringLiteral("rgb(240,240,240)"));
   }
   assignIfEmpty(t.emArrowhead, t.lineColor);
   assignIfEmpty(t.emRelationStroke, t.lineColor);
@@ -1609,26 +1612,21 @@ void populateGantt(FlowThemeId id, FlowThemeVariables& t) {
     t.critBorderColor = darken(t.critBkgColor, 10);
     t.todayLineColor = t.critBkgColor;
     t.vertLineColor = t.critBkgColor;
-  } else if (id == FlowThemeId::Neo || id == FlowThemeId::Redux ||
-             id == FlowThemeId::ReduxColor) {
+  } else if (id == FlowThemeId::Neo || id == FlowThemeId::Redux || id == FlowThemeId::ReduxColor) {
     t.sectionBkgColor = QStringLiteral("hsl(60, 90%, 100%)");
     t.altSectionBkgColor = QStringLiteral("white");
     t.sectionBkgColor2 = QStringLiteral("#ECECFE");
     t.taskBkgColor = QStringLiteral("#ECECFE");
-    t.taskBorderColor = id == FlowThemeId::Redux
-                            ? QStringLiteral("hsl(247.5, 0%, 9.2156862745%)")
-                            : QStringLiteral("hsl(0, 0%, 70%)");
-    t.taskTextColor = id == FlowThemeId::Neo
-                          ? QStringLiteral("#333") : QStringLiteral("#28253D");
+    t.taskBorderColor =
+        id == FlowThemeId::Redux ? QStringLiteral("hsl(247.5, 0%, 9.2156862745%)") : QStringLiteral("hsl(0, 0%, 70%)");
+    t.taskTextColor = id == FlowThemeId::Neo ? QStringLiteral("#333") : QStringLiteral("#28253D");
     t.taskTextOutsideColor = t.taskTextColor;
     t.taskTextLightColor = t.taskTextColor;
     t.taskTextDarkColor = t.taskTextColor;
     t.activeTaskBorderColor = QStringLiteral("#ECECFE");
     t.activeTaskBkgColor = QStringLiteral("hsl(240, 90%, 100%)");
     t.vertLineColor = t.taskBorderColor;
-  } else if (id == FlowThemeId::NeoDark ||
-             id == FlowThemeId::ReduxDark ||
-             id == FlowThemeId::ReduxDarkColor) {
+  } else if (id == FlowThemeId::NeoDark || id == FlowThemeId::ReduxDark || id == FlowThemeId::ReduxDarkColor) {
     t.sectionBkgColor = QStringLiteral("hsl(20, 1.5873015873%, 12.3529411765%)");
     t.altSectionBkgColor = QStringLiteral("white");
     t.sectionBkgColor2 = QStringLiteral("#1f2020");
@@ -1646,28 +1644,48 @@ void populateGantt(FlowThemeId id, FlowThemeVariables& t) {
 
 void updateColors(FlowThemeId id, FlowThemeVariables& t) {
   switch (id) {
-    case FlowThemeId::Base:
-      updateColorsFamilyA(t, QStringLiteral("#333"), false); updateBaseCScale(t, false); break;
-    case FlowThemeId::Neo:
-      updateColorsFamilyA(t, QStringLiteral("#333"), false, true); updateNeoCScale(t); break;
-    case FlowThemeId::NeoDark:
-      updateColorsFamilyA(t, QStringLiteral("#333"), true); updateBaseCScale(t, false); break;
-    case FlowThemeId::Redux:
-      updateColorsFamilyA(t, QStringLiteral("#28253D"), false, true); updateReduxCScale(t);
-      t.requirementEdgeLabelBackground = QStringLiteral("#FFFFFF");
-      break;
-    case FlowThemeId::ReduxDark:
-      updateColorsFamilyA(t, QStringLiteral("#FFFFFF"), true); updateBaseCScale(t, false);
-      t.requirementEdgeLabelBackground = QStringLiteral("#16141F");
-      break;
-    case FlowThemeId::ReduxColor:
-      updateColorsFamilyA(t, QStringLiteral("#28253D"), false, true); updateReduxColorCScale(t, false); break;
-    case FlowThemeId::ReduxDarkColor:
-      updateColorsFamilyA(t, QStringLiteral("#FFFFFF"), true); updateReduxColorCScale(t, true); break;
-    case FlowThemeId::Default: updateColorsDefault(t); break;
-    case FlowThemeId::Forest: updateColorsForest(t); break;
-    case FlowThemeId::Dark: updateColorsDark(t); break;
-    case FlowThemeId::Neutral: updateColorsNeutral(t); break;
+  case FlowThemeId::Base:
+    updateColorsFamilyA(t, QStringLiteral("#333"), false);
+    updateBaseCScale(t, false);
+    break;
+  case FlowThemeId::Neo:
+    updateColorsFamilyA(t, QStringLiteral("#333"), false, true);
+    updateNeoCScale(t);
+    break;
+  case FlowThemeId::NeoDark:
+    updateColorsFamilyA(t, QStringLiteral("#333"), true);
+    updateBaseCScale(t, false);
+    break;
+  case FlowThemeId::Redux:
+    updateColorsFamilyA(t, QStringLiteral("#28253D"), false, true);
+    updateReduxCScale(t);
+    t.requirementEdgeLabelBackground = QStringLiteral("#FFFFFF");
+    break;
+  case FlowThemeId::ReduxDark:
+    updateColorsFamilyA(t, QStringLiteral("#FFFFFF"), true);
+    updateBaseCScale(t, false);
+    t.requirementEdgeLabelBackground = QStringLiteral("#16141F");
+    break;
+  case FlowThemeId::ReduxColor:
+    updateColorsFamilyA(t, QStringLiteral("#28253D"), false, true);
+    updateReduxColorCScale(t, false);
+    break;
+  case FlowThemeId::ReduxDarkColor:
+    updateColorsFamilyA(t, QStringLiteral("#FFFFFF"), true);
+    updateReduxColorCScale(t, true);
+    break;
+  case FlowThemeId::Default:
+    updateColorsDefault(t);
+    break;
+  case FlowThemeId::Forest:
+    updateColorsForest(t);
+    break;
+  case FlowThemeId::Dark:
+    updateColorsDark(t);
+    break;
+  case FlowThemeId::Neutral:
+    updateColorsNeutral(t);
+    break;
   }
   // Every theme's updateColors ends with `stateBkg = stateBkg || mainBkg`
   // (base line 151, dark line 556, default line 966, ...) followed by
@@ -1675,11 +1693,12 @@ void updateColors(FlowThemeId id, FlowThemeVariables& t) {
   // compositeBorder (`|| nodeBorder` — neutral never derives it) and
   // innerEndBackground (unconditional; dark/forest/neutral take
   // primaryBorderColor, every other theme nodeBorder).
-  if (t.stateBkg.isEmpty()) t.stateBkg = t.mainBkg;
+  if (t.stateBkg.isEmpty())
+    t.stateBkg = t.mainBkg;
   assignIfEmpty(t.labelBackgroundColor, t.stateBkg);
-  if (id != FlowThemeId::Neutral) assignIfEmpty(t.compositeBorder, t.nodeBorder);
-  t.innerEndBackground = (id == FlowThemeId::Dark || id == FlowThemeId::Forest ||
-                          id == FlowThemeId::Neutral)
+  if (id != FlowThemeId::Neutral)
+    assignIfEmpty(t.compositeBorder, t.nodeBorder);
+  t.innerEndBackground = (id == FlowThemeId::Dark || id == FlowThemeId::Forest || id == FlowThemeId::Neutral)
                              ? t.primaryBorderColor
                              : t.nodeBorder;
   populateLegacySlots(id, t);
@@ -1692,36 +1711,28 @@ void updateColors(FlowThemeId id, FlowThemeVariables& t) {
   populateCynefin(id, t);
   populateVenn(id, t);
   populateRequirement(id, t);
-  const auto wardleyFallback = [](QString& value,
-                                  const QString& replacement) {
-    if (value.isEmpty()) value = replacement;
+  const auto wardleyFallback = [](QString& value, const QString& replacement) {
+    if (value.isEmpty())
+      value = replacement;
   };
   wardleyFallback(t.wardley.backgroundColor, t.background);
-  const bool wardleyBlackLine =
-      id == FlowThemeId::Neo || id == FlowThemeId::NeoDark ||
-      id == FlowThemeId::Redux || id == FlowThemeId::ReduxDark ||
-      id == FlowThemeId::ReduxColor || id == FlowThemeId::ReduxDarkColor;
-  wardleyFallback(t.wardley.axisColor,
-                  wardleyBlackLine ? QStringLiteral("#000") : t.lineColor);
+  const bool wardleyBlackLine = id == FlowThemeId::Neo || id == FlowThemeId::NeoDark || id == FlowThemeId::Redux ||
+                                id == FlowThemeId::ReduxDark || id == FlowThemeId::ReduxColor ||
+                                id == FlowThemeId::ReduxDarkColor;
+  wardleyFallback(t.wardley.axisColor, wardleyBlackLine ? QStringLiteral("#000") : t.lineColor);
   wardleyFallback(t.wardley.axisTextColor, t.primaryTextColor);
   wardleyFallback(t.wardley.gridColor, t.gridColor);
-  wardleyFallback(t.wardley.componentFill,
-                  id == FlowThemeId::Dark
-                      ? t.mainBkg
-                      : wardleyBlackLine ? QStringLiteral("#fff")
-                                         : t.background);
-  wardleyFallback(t.wardley.componentStroke,
-                  wardleyBlackLine ? QStringLiteral("#000") : t.lineColor);
+  wardleyFallback(t.wardley.componentFill, id == FlowThemeId::Dark ? t.mainBkg
+                                           : wardleyBlackLine      ? QStringLiteral("#fff")
+                                                                   : t.background);
+  wardleyFallback(t.wardley.componentStroke, wardleyBlackLine ? QStringLiteral("#000") : t.lineColor);
   wardleyFallback(t.wardley.componentLabelColor, t.primaryTextColor);
-  wardleyFallback(t.wardley.linkStroke,
-                  wardleyBlackLine ? QStringLiteral("#000") : t.lineColor);
+  wardleyFallback(t.wardley.linkStroke, wardleyBlackLine ? QStringLiteral("#000") : t.lineColor);
   wardleyFallback(t.wardley.evolutionStroke,
-                  id == FlowThemeId::Dark ? QStringLiteral("#ff6b6b")
-                                          : QStringLiteral("#dc3545"));
+                  id == FlowThemeId::Dark ? QStringLiteral("#ff6b6b") : QStringLiteral("#dc3545"));
   wardleyFallback(t.wardley.annotationStroke, t.lineColor);
   wardleyFallback(t.wardley.annotationTextColor, t.primaryTextColor);
-  wardleyFallback(t.wardley.annotationFill,
-                  id == FlowThemeId::Dark ? t.mainBkg : t.background);
+  wardleyFallback(t.wardley.annotationFill, id == FlowThemeId::Dark ? t.mainBkg : t.background);
 }
 
 // Requirement getStyles() variables (src/themes/theme-*.js `this.x = this.x ||
@@ -1734,25 +1745,23 @@ void populateRequirement(FlowThemeId id, FlowThemeVariables& t) {
   // neo/redux/redux-color bind a LOCAL `const primaryColor = "#ECECFE"` inside
   // updateColors (chunk @2006/@2622/@3302) and derive requirementBackground
   // from it; every other theme uses the themeVariables primaryColor.
-  const bool lightPalette = id == FlowThemeId::Neo || id == FlowThemeId::Redux ||
-                            id == FlowThemeId::ReduxColor;
-  assignIfEmpty(t.requirementBackground,
-                lightPalette ? QStringLiteral("#ECECFE") : t.primaryColor);
+  const bool lightPalette = id == FlowThemeId::Neo || id == FlowThemeId::Redux || id == FlowThemeId::ReduxColor;
+  assignIfEmpty(t.requirementBackground, lightPalette ? QStringLiteral("#ECECFE") : t.primaryColor);
   assignIfEmpty(t.requirementBorderColor, t.primaryBorderColor);
   assignIfEmpty(t.requirementBorderSize, QStringLiteral("1"));
   assignIfEmpty(t.requirementTextColor, t.primaryTextColor);
   assignIfEmpty(t.relationColor, t.lineColor);
   switch (id) {
-    case FlowThemeId::Default:
-      assignIfEmpty(t.relationLabelBackground, t.labelBackground);
-      break;
-    case FlowThemeId::Forest:
-    case FlowThemeId::Neutral:
-      assignIfEmpty(t.relationLabelBackground, t.edgeLabelBackground);
-      break;
-    default:
-      assignIfEmpty(t.relationLabelBackground, t.secondaryColor);
-      break;
+  case FlowThemeId::Default:
+    assignIfEmpty(t.relationLabelBackground, t.labelBackground);
+    break;
+  case FlowThemeId::Forest:
+  case FlowThemeId::Neutral:
+    assignIfEmpty(t.relationLabelBackground, t.edgeLabelBackground);
+    break;
+  default:
+    assignIfEmpty(t.relationLabelBackground, t.secondaryColor);
+    break;
   }
   assignIfEmpty(t.relationLabelColor, t.actorTextColor);
 }
@@ -1761,40 +1770,40 @@ void populateArchitecture(FlowThemeId id, FlowThemeVariables& t) {
   QString edge;
   QString group;
   switch (id) {
-    case FlowThemeId::Base:
-      edge = QStringLiteral("#777");
-      group = QStringLiteral("#000");
-      break;
-    case FlowThemeId::Dark:
-      edge = QStringLiteral("lightgrey");
-      group = QStringLiteral("#cccccc");
-      break;
-    case FlowThemeId::Default:
-      edge = QStringLiteral("#333333");
-      group = QStringLiteral("hsl(240, 60%, 86.2745098039%)");
-      break;
-    case FlowThemeId::Forest:
-      edge = QStringLiteral("#000000");
-      group = QStringLiteral("hsl(78.1578947368, 18.4615384615%, 64.5098039216%)");
-      break;
-    case FlowThemeId::Neutral:
-      edge = QStringLiteral("#666");
-      group = QStringLiteral("hsl(0, 0%, 83.3333333333%)");
-      break;
-    case FlowThemeId::Neo:
-    case FlowThemeId::ReduxColor:
-      edge = QStringLiteral("#000000");
-      group = QStringLiteral("hsl(0, 0%, 70%)");
-      break;
-    case FlowThemeId::Redux:
-      edge = QStringLiteral("#000000");
-      group = QStringLiteral("hsl(247.5, 0%, 9.2156862745%)");
-      break;
-    case FlowThemeId::NeoDark:
-    case FlowThemeId::ReduxDark:
-    case FlowThemeId::ReduxDarkColor:
-      edge = group = QStringLiteral("#cccccc");
-      break;
+  case FlowThemeId::Base:
+    edge = QStringLiteral("#777");
+    group = QStringLiteral("#000");
+    break;
+  case FlowThemeId::Dark:
+    edge = QStringLiteral("lightgrey");
+    group = QStringLiteral("#cccccc");
+    break;
+  case FlowThemeId::Default:
+    edge = QStringLiteral("#333333");
+    group = QStringLiteral("hsl(240, 60%, 86.2745098039%)");
+    break;
+  case FlowThemeId::Forest:
+    edge = QStringLiteral("#000000");
+    group = QStringLiteral("hsl(78.1578947368, 18.4615384615%, 64.5098039216%)");
+    break;
+  case FlowThemeId::Neutral:
+    edge = QStringLiteral("#666");
+    group = QStringLiteral("hsl(0, 0%, 83.3333333333%)");
+    break;
+  case FlowThemeId::Neo:
+  case FlowThemeId::ReduxColor:
+    edge = QStringLiteral("#000000");
+    group = QStringLiteral("hsl(0, 0%, 70%)");
+    break;
+  case FlowThemeId::Redux:
+    edge = QStringLiteral("#000000");
+    group = QStringLiteral("hsl(247.5, 0%, 9.2156862745%)");
+    break;
+  case FlowThemeId::NeoDark:
+  case FlowThemeId::ReduxDark:
+  case FlowThemeId::ReduxDarkColor:
+    edge = group = QStringLiteral("#cccccc");
+    break;
   }
   assignIfEmpty(t.archEdgeColor, edge);
   assignIfEmpty(t.archEdgeArrowColor, edge);
@@ -1805,7 +1814,9 @@ void populateArchitecture(FlowThemeId id, FlowThemeVariables& t) {
 
 // Whether the theme's constructor calls this.updateColors() (chunk line 1641).
 // Only `default` does — so default runs updateColors twice (constructor + calculate).
-bool constructorCallsUpdateColors(FlowThemeId id) { return id == FlowThemeId::Default; }
+bool constructorCallsUpdateColors(FlowThemeId id) {
+  return id == FlowThemeId::Default;
+}
 
 // default/forest calculate() clears "calculated" sentinels to undefined before
 // the first updateColors pass (chunk lines 1905-1909). base themes do not.
@@ -1814,28 +1825,49 @@ bool clearsCalculatedSentinels(FlowThemeId id) {
 }
 
 void clearCalculatedSentinels(FlowThemeVariables& t) {
-  const auto clear = [](QString& f) { if (f == QStringLiteral("calculated")) f.clear(); };
-  clear(t.secondBkg); clear(t.lineColor); clear(t.arrowheadColor); clear(t.nodeBkg);
-  clear(t.nodeBorder); clear(t.clusterBkg); clear(t.clusterBorder);
-  clear(t.defaultLinkColor); clear(t.titleColor); clear(t.edgeLabelBackground);
+  const auto clear = [](QString& f) {
+    if (f == QStringLiteral("calculated"))
+      f.clear();
+  };
+  clear(t.secondBkg);
+  clear(t.lineColor);
+  clear(t.arrowheadColor);
+  clear(t.nodeBkg);
+  clear(t.nodeBorder);
+  clear(t.clusterBkg);
+  clear(t.clusterBorder);
+  clear(t.defaultLinkColor);
+  clear(t.titleColor);
+  clear(t.edgeLabelBackground);
   clear(t.border2);
 }
 
-}  // namespace
+} // namespace
 
 FlowThemeId parseThemeId(const QString& name) {
   const QString n = name.toLower().trimmed();
-  if (n == QStringLiteral("base")) return FlowThemeId::Base;
-  if (n == QStringLiteral("dark")) return FlowThemeId::Dark;
-  if (n == QStringLiteral("default")) return FlowThemeId::Default;
-  if (n == QStringLiteral("forest")) return FlowThemeId::Forest;
-  if (n == QStringLiteral("neutral")) return FlowThemeId::Neutral;
-  if (n == QStringLiteral("neo")) return FlowThemeId::Neo;
-  if (n == QStringLiteral("neo-dark")) return FlowThemeId::NeoDark;
-  if (n == QStringLiteral("redux")) return FlowThemeId::Redux;
-  if (n == QStringLiteral("redux-dark")) return FlowThemeId::ReduxDark;
-  if (n == QStringLiteral("redux-color")) return FlowThemeId::ReduxColor;
-  if (n == QStringLiteral("redux-dark-color")) return FlowThemeId::ReduxDarkColor;
+  if (n == QStringLiteral("base"))
+    return FlowThemeId::Base;
+  if (n == QStringLiteral("dark"))
+    return FlowThemeId::Dark;
+  if (n == QStringLiteral("default"))
+    return FlowThemeId::Default;
+  if (n == QStringLiteral("forest"))
+    return FlowThemeId::Forest;
+  if (n == QStringLiteral("neutral"))
+    return FlowThemeId::Neutral;
+  if (n == QStringLiteral("neo"))
+    return FlowThemeId::Neo;
+  if (n == QStringLiteral("neo-dark"))
+    return FlowThemeId::NeoDark;
+  if (n == QStringLiteral("redux"))
+    return FlowThemeId::Redux;
+  if (n == QStringLiteral("redux-dark"))
+    return FlowThemeId::ReduxDark;
+  if (n == QStringLiteral("redux-color"))
+    return FlowThemeId::ReduxColor;
+  if (n == QStringLiteral("redux-dark-color"))
+    return FlowThemeId::ReduxDarkColor;
   return FlowThemeId::Default;
 }
 
@@ -1843,10 +1875,12 @@ FlowThemeVariables resolveFlowTheme(FlowThemeId id, const QHash<QString, QString
   FlowThemeVariables t;
   applyRawConstructor(id, t);
   // default's constructor calls updateColors() at the end (1st pass).
-  if (constructorCallsUpdateColors(id)) updateColors(id, t);
+  if (constructorCallsUpdateColors(id))
+    updateColors(id, t);
   // calculate(overrides): sentinel-clear (default/forest) → apply overrides →
   // updateColors → re-apply overrides (user wins over derived).
-  if (clearsCalculatedSentinels(id)) clearCalculatedSentinels(t);
+  if (clearsCalculatedSentinels(id))
+    clearCalculatedSentinels(t);
   const auto applyOverrides = [&overrides](FlowThemeVariables& theme) {
     // calculate() replays the top-level `packet` key as one object. Replacing
     // it discards Dark/Forest's derived sibling colors; styles.ts then fills
@@ -1872,266 +1906,493 @@ FlowThemeVariables resolveFlowTheme(FlowThemeId id) {
 // --- get/set by field name (override application + golden comparison) ---
 
 QString FlowThemeVariables::get(const QString& key) const {
-  if (key == QStringLiteral("background")) return background;
-  if (key == QStringLiteral("primaryColor")) return primaryColor;
-  if (key == QStringLiteral("secondaryColor")) return secondaryColor;
-  if (key == QStringLiteral("tertiaryColor")) return tertiaryColor;
-  if (key == QStringLiteral("mainBkg")) return mainBkg;
-  if (key == QStringLiteral("secondBkg")) return secondBkg;
-  if (key == QStringLiteral("lineColor")) return lineColor;
-  if (key == QStringLiteral("border1")) return border1;
-  if (key == QStringLiteral("border2")) return border2;
-  if (key == QStringLiteral("arrowheadColor")) return arrowheadColor;
-  if (key == QStringLiteral("fontFamily")) return fontFamily;
-  if (key == QStringLiteral("fontSize")) return fontSize;
-  if (key == QStringLiteral("fontWeight")) return fontWeight;
-  if (key == QStringLiteral("emUiFill")) return emUiFill;
-  if (key == QStringLiteral("emUiStroke")) return emUiStroke;
-  if (key == QStringLiteral("emProcessorFill")) return emProcessorFill;
-  if (key == QStringLiteral("emProcessorStroke")) return emProcessorStroke;
-  if (key == QStringLiteral("emReadModelFill")) return emReadModelFill;
-  if (key == QStringLiteral("emReadModelStroke")) return emReadModelStroke;
-  if (key == QStringLiteral("emCommandFill")) return emCommandFill;
-  if (key == QStringLiteral("emCommandStroke")) return emCommandStroke;
-  if (key == QStringLiteral("emEventFill")) return emEventFill;
-  if (key == QStringLiteral("emEventStroke")) return emEventStroke;
-  if (key == QStringLiteral("emSwimlaneBackgroundOdd")) return emSwimlaneBackgroundOdd;
-  if (key == QStringLiteral("emSwimlaneBackgroundStroke")) return emSwimlaneBackgroundStroke;
-  if (key == QStringLiteral("emArrowhead")) return emArrowhead;
-  if (key == QStringLiteral("emRelationStroke")) return emRelationStroke;
-  if (key == QStringLiteral("labelBackground")) return labelBackground;
-  if (key == QStringLiteral("textColor")) return textColor;
-  if (key == QStringLiteral("titleColor")) return titleColor;
-  if (key == QStringLiteral("edgeLabelBackground")) return edgeLabelBackground;
+  if (key == QStringLiteral("background"))
+    return background;
+  if (key == QStringLiteral("primaryColor"))
+    return primaryColor;
+  if (key == QStringLiteral("secondaryColor"))
+    return secondaryColor;
+  if (key == QStringLiteral("tertiaryColor"))
+    return tertiaryColor;
+  if (key == QStringLiteral("mainBkg"))
+    return mainBkg;
+  if (key == QStringLiteral("secondBkg"))
+    return secondBkg;
+  if (key == QStringLiteral("lineColor"))
+    return lineColor;
+  if (key == QStringLiteral("border1"))
+    return border1;
+  if (key == QStringLiteral("border2"))
+    return border2;
+  if (key == QStringLiteral("arrowheadColor"))
+    return arrowheadColor;
+  if (key == QStringLiteral("fontFamily"))
+    return fontFamily;
+  if (key == QStringLiteral("fontSize"))
+    return fontSize;
+  if (key == QStringLiteral("fontWeight"))
+    return fontWeight;
+  if (key == QStringLiteral("emUiFill"))
+    return emUiFill;
+  if (key == QStringLiteral("emUiStroke"))
+    return emUiStroke;
+  if (key == QStringLiteral("emProcessorFill"))
+    return emProcessorFill;
+  if (key == QStringLiteral("emProcessorStroke"))
+    return emProcessorStroke;
+  if (key == QStringLiteral("emReadModelFill"))
+    return emReadModelFill;
+  if (key == QStringLiteral("emReadModelStroke"))
+    return emReadModelStroke;
+  if (key == QStringLiteral("emCommandFill"))
+    return emCommandFill;
+  if (key == QStringLiteral("emCommandStroke"))
+    return emCommandStroke;
+  if (key == QStringLiteral("emEventFill"))
+    return emEventFill;
+  if (key == QStringLiteral("emEventStroke"))
+    return emEventStroke;
+  if (key == QStringLiteral("emSwimlaneBackgroundOdd"))
+    return emSwimlaneBackgroundOdd;
+  if (key == QStringLiteral("emSwimlaneBackgroundStroke"))
+    return emSwimlaneBackgroundStroke;
+  if (key == QStringLiteral("emArrowhead"))
+    return emArrowhead;
+  if (key == QStringLiteral("emRelationStroke"))
+    return emRelationStroke;
+  if (key == QStringLiteral("labelBackground"))
+    return labelBackground;
+  if (key == QStringLiteral("textColor"))
+    return textColor;
+  if (key == QStringLiteral("titleColor"))
+    return titleColor;
+  if (key == QStringLiteral("edgeLabelBackground"))
+    return edgeLabelBackground;
   if (key == QStringLiteral("requirementEdgeLabelBackground"))
     return requirementEdgeLabelBackground.value_or(QString());
-  if (key == QStringLiteral("requirementBackground")) return requirementBackground;
-  if (key == QStringLiteral("requirementBorderColor")) return requirementBorderColor;
-  if (key == QStringLiteral("requirementBorderSize")) return requirementBorderSize;
-  if (key == QStringLiteral("requirementTextColor")) return requirementTextColor;
-  if (key == QStringLiteral("relationColor")) return relationColor;
-  if (key == QStringLiteral("relationLabelBackground")) return relationLabelBackground;
-  if (key == QStringLiteral("relationLabelColor")) return relationLabelColor;
-  if (key == QStringLiteral("actorTextColor")) return actorTextColor;
-  if (key == QStringLiteral("clusterBkg")) return clusterBkg;
-  if (key == QStringLiteral("clusterBorder")) return clusterBorder;
-  if (key == QStringLiteral("compositeBackground")) return compositeBackground;
-  if (key == QStringLiteral("altBackground")) return altBackground;
-  if (key == QStringLiteral("compositeTitleBackground")) return compositeTitleBackground;
-  if (key == QStringLiteral("specialStateColor")) return specialStateColor;
-  if (key == QStringLiteral("stateBorder")) return stateBorder;
-  if (key == QStringLiteral("stateBkg")) return stateBkg;
-  if (key == QStringLiteral("errorBkgColor")) return errorBkgColor;
-  if (key == QStringLiteral("errorTextColor")) return errorTextColor;
+  if (key == QStringLiteral("requirementBackground"))
+    return requirementBackground;
+  if (key == QStringLiteral("requirementBorderColor"))
+    return requirementBorderColor;
+  if (key == QStringLiteral("requirementBorderSize"))
+    return requirementBorderSize;
+  if (key == QStringLiteral("requirementTextColor"))
+    return requirementTextColor;
+  if (key == QStringLiteral("relationColor"))
+    return relationColor;
+  if (key == QStringLiteral("relationLabelBackground"))
+    return relationLabelBackground;
+  if (key == QStringLiteral("relationLabelColor"))
+    return relationLabelColor;
+  if (key == QStringLiteral("actorTextColor"))
+    return actorTextColor;
+  if (key == QStringLiteral("clusterBkg"))
+    return clusterBkg;
+  if (key == QStringLiteral("clusterBorder"))
+    return clusterBorder;
+  if (key == QStringLiteral("compositeBackground"))
+    return compositeBackground;
+  if (key == QStringLiteral("altBackground"))
+    return altBackground;
+  if (key == QStringLiteral("compositeTitleBackground"))
+    return compositeTitleBackground;
+  if (key == QStringLiteral("specialStateColor"))
+    return specialStateColor;
+  if (key == QStringLiteral("stateBorder"))
+    return stateBorder;
+  if (key == QStringLiteral("stateBkg"))
+    return stateBkg;
+  if (key == QStringLiteral("errorBkgColor"))
+    return errorBkgColor;
+  if (key == QStringLiteral("errorTextColor"))
+    return errorTextColor;
   // Sequence palette (sequence/styles.js consumes the resolved theme).
-  if (key == QStringLiteral("actorBkg")) return actorBkg;
-  if (key == QStringLiteral("actorBorder")) return actorBorder;
-  if (key == QStringLiteral("actorLineColor")) return actorLineColor;
-  if (key == QStringLiteral("signalColor")) return signalColor;
-  if (key == QStringLiteral("signalTextColor")) return signalTextColor;
-  if (key == QStringLiteral("labelTextColor")) return labelTextColor;
-  if (key == QStringLiteral("loopTextColor")) return loopTextColor;
-  if (key == QStringLiteral("labelBoxBkgColor")) return labelBoxBkgColor;
-  if (key == QStringLiteral("labelBoxBorderColor")) return labelBoxBorderColor;
-  if (key == QStringLiteral("sequenceNumberColor")) return sequenceNumberColor;
-  if (key == QStringLiteral("activationBkgColor")) return activationBkgColor;
-  if (key == QStringLiteral("activationBorderColor")) return activationBorderColor;
-  if (key == QStringLiteral("rectBkgColor")) return rectBkgColor;
+  if (key == QStringLiteral("actorBkg"))
+    return actorBkg;
+  if (key == QStringLiteral("actorBorder"))
+    return actorBorder;
+  if (key == QStringLiteral("actorLineColor"))
+    return actorLineColor;
+  if (key == QStringLiteral("signalColor"))
+    return signalColor;
+  if (key == QStringLiteral("signalTextColor"))
+    return signalTextColor;
+  if (key == QStringLiteral("labelTextColor"))
+    return labelTextColor;
+  if (key == QStringLiteral("loopTextColor"))
+    return loopTextColor;
+  if (key == QStringLiteral("labelBoxBkgColor"))
+    return labelBoxBkgColor;
+  if (key == QStringLiteral("labelBoxBorderColor"))
+    return labelBoxBorderColor;
+  if (key == QStringLiteral("sequenceNumberColor"))
+    return sequenceNumberColor;
+  if (key == QStringLiteral("activationBkgColor"))
+    return activationBkgColor;
+  if (key == QStringLiteral("activationBorderColor"))
+    return activationBorderColor;
+  if (key == QStringLiteral("rectBkgColor"))
+    return rectBkgColor;
   // Note palette + weight (gitGraph redux branch labels).
-  if (key == QStringLiteral("noteBkgColor")) return noteBkgColor;
-  if (key == QStringLiteral("noteBorderColor")) return noteBorderColor;
-  if (key == QStringLiteral("noteTextColor")) return noteTextColor;
-  if (key == QStringLiteral("noteFontWeight")) return noteFontWeight;
+  if (key == QStringLiteral("noteBkgColor"))
+    return noteBkgColor;
+  if (key == QStringLiteral("noteBorderColor"))
+    return noteBorderColor;
+  if (key == QStringLiteral("noteTextColor"))
+    return noteTextColor;
+  if (key == QStringLiteral("noteFontWeight"))
+    return noteFontWeight;
   // State palette (state/styles.js).
-  if (key == QStringLiteral("transitionColor")) return transitionColor;
-  if (key == QStringLiteral("transitionLabelColor")) return transitionLabelColor;
-  if (key == QStringLiteral("stateLabelColor")) return stateLabelColor;
-  if (key == QStringLiteral("labelBackgroundColor")) return labelBackgroundColor;
-  if (key == QStringLiteral("innerEndBackground")) return innerEndBackground;
-  if (key == QStringLiteral("compositeBorder")) return compositeBorder;
+  if (key == QStringLiteral("transitionColor"))
+    return transitionColor;
+  if (key == QStringLiteral("transitionLabelColor"))
+    return transitionLabelColor;
+  if (key == QStringLiteral("stateLabelColor"))
+    return stateLabelColor;
+  if (key == QStringLiteral("labelBackgroundColor"))
+    return labelBackgroundColor;
+  if (key == QStringLiteral("innerEndBackground"))
+    return innerEndBackground;
+  if (key == QStringLiteral("compositeBorder"))
+    return compositeBorder;
   // class/c4 scalars + radius + palette-feed scalars.
-  if (key == QStringLiteral("classText")) return classText;
-  if (key == QStringLiteral("personBkg")) return personBkg;
-  if (key == QStringLiteral("personBorder")) return personBorder;
-  if (key == QStringLiteral("radius")) return radius;
-  if (key == QStringLiteral("scaleLabelColor")) return scaleLabelColor;
-  if (key == QStringLiteral("branchLabelColor")) return branchLabelColor;
+  if (key == QStringLiteral("classText"))
+    return classText;
+  if (key == QStringLiteral("personBkg"))
+    return personBkg;
+  if (key == QStringLiteral("personBorder"))
+    return personBorder;
+  if (key == QStringLiteral("radius"))
+    return radius;
+  if (key == QStringLiteral("scaleLabelColor"))
+    return scaleLabelColor;
+  if (key == QStringLiteral("branchLabelColor"))
+    return branchLabelColor;
   // Upstream-dead but derived slots.
-  if (key == QStringLiteral("pie0")) return pie0;
+  if (key == QStringLiteral("pie0"))
+    return pie0;
   if (key.startsWith(QStringLiteral("surface")) && key.size() == 8) {
     const int index = key.mid(7).toInt();
-    if (index >= 0 && index < 5) return surface[index];
+    if (index >= 0 && index < 5)
+      return surface[index];
   }
   if (key.startsWith(QStringLiteral("surfacePeer")) && key.size() == 12) {
     const int index = key.mid(11).toInt();
-    if (index >= 0 && index < 5) return surfacePeer[index];
+    if (index >= 0 && index < 5)
+      return surfacePeer[index];
   }
   if (key == QStringLiteral("attributeBackgroundColorOdd"))
     return attributeBackgroundColorOdd;
   if (key == QStringLiteral("attributeBackgroundColorEven"))
     return attributeBackgroundColorEven;
-  if (key == QStringLiteral("rowOdd")) return rowOdd;
-  if (key == QStringLiteral("rowEven")) return rowEven;
-  if (key == QStringLiteral("erEdgeLabelBackground")) return erEdgeLabelBackground;
-  if (key == QStringLiteral("stateEdgeLabelBackground")) return stateEdgeLabelBackground;
-  if (key == QStringLiteral("darkTextColor")) return darkTextColor;
-  if (key == QStringLiteral("filterColor")) return filterColor;
-  if (key == QStringLiteral("rootLabelColor")) return rootLabelColor;
-  if (key == QStringLiteral("wardleyEvolutionColor")) return wardleyEvolutionColor;
-  if (key == QStringLiteral("labelColor")) return labelColor;
-  if (key == QStringLiteral("note")) return note;
-  if (key == QStringLiteral("critical")) return critical;
-  if (key == QStringLiteral("done")) return done;
-  if (key == QStringLiteral("contrast")) return contrast;
-  if (key == QStringLiteral("text")) return text;
-  if (key == QStringLiteral("primaryBorderColor")) return primaryBorderColor;
-  if (key == QStringLiteral("primaryTextColor")) return primaryTextColor;
-  if (key == QStringLiteral("secondaryBorderColor")) return secondaryBorderColor;
-  if (key == QStringLiteral("secondaryTextColor")) return secondaryTextColor;
-  if (key == QStringLiteral("tertiaryBorderColor")) return tertiaryBorderColor;
-  if (key == QStringLiteral("tertiaryTextColor")) return tertiaryTextColor;
-  if (key == QStringLiteral("nodeTextColor")) return nodeTextColor;
-  if (key == QStringLiteral("nodeBkg")) return nodeBkg;
-  if (key == QStringLiteral("nodeBorder")) return nodeBorder;
-  if (key == QStringLiteral("defaultLinkColor")) return defaultLinkColor;
-  if (key == QStringLiteral("git0")) return git0;
-  if (key == QStringLiteral("gitBranchLabel0")) return gitBranchLabel0;
+  if (key == QStringLiteral("rowOdd"))
+    return rowOdd;
+  if (key == QStringLiteral("rowEven"))
+    return rowEven;
+  if (key == QStringLiteral("erEdgeLabelBackground"))
+    return erEdgeLabelBackground;
+  if (key == QStringLiteral("stateEdgeLabelBackground"))
+    return stateEdgeLabelBackground;
+  if (key == QStringLiteral("darkTextColor"))
+    return darkTextColor;
+  if (key == QStringLiteral("filterColor"))
+    return filterColor;
+  if (key == QStringLiteral("rootLabelColor"))
+    return rootLabelColor;
+  if (key == QStringLiteral("wardleyEvolutionColor"))
+    return wardleyEvolutionColor;
+  if (key == QStringLiteral("labelColor"))
+    return labelColor;
+  if (key == QStringLiteral("note"))
+    return note;
+  if (key == QStringLiteral("critical"))
+    return critical;
+  if (key == QStringLiteral("done"))
+    return done;
+  if (key == QStringLiteral("contrast"))
+    return contrast;
+  if (key == QStringLiteral("text"))
+    return text;
+  if (key == QStringLiteral("primaryBorderColor"))
+    return primaryBorderColor;
+  if (key == QStringLiteral("primaryTextColor"))
+    return primaryTextColor;
+  if (key == QStringLiteral("secondaryBorderColor"))
+    return secondaryBorderColor;
+  if (key == QStringLiteral("secondaryTextColor"))
+    return secondaryTextColor;
+  if (key == QStringLiteral("tertiaryBorderColor"))
+    return tertiaryBorderColor;
+  if (key == QStringLiteral("tertiaryTextColor"))
+    return tertiaryTextColor;
+  if (key == QStringLiteral("nodeTextColor"))
+    return nodeTextColor;
+  if (key == QStringLiteral("nodeBkg"))
+    return nodeBkg;
+  if (key == QStringLiteral("nodeBorder"))
+    return nodeBorder;
+  if (key == QStringLiteral("defaultLinkColor"))
+    return defaultLinkColor;
+  if (key == QStringLiteral("git0"))
+    return git0;
+  if (key == QStringLiteral("gitBranchLabel0"))
+    return gitBranchLabel0;
   for (int i = 0; i < 8; ++i) {
-    if (key == QStringLiteral("git%1").arg(i)) return git[i];
-    if (key == QStringLiteral("gitInv%1").arg(i)) return gitInv[i];
+    if (key == QStringLiteral("git%1").arg(i))
+      return git[i];
+    if (key == QStringLiteral("gitInv%1").arg(i))
+      return gitInv[i];
     if (key == QStringLiteral("gitBranchLabel%1").arg(i))
       return gitBranchLabel[i];
   }
-  if (key == QStringLiteral("commitLineColor")) return commitLineColor;
-  if (key == QStringLiteral("commitLabelColor")) return commitLabelColor;
-  if (key == QStringLiteral("commitLabelBackground")) return commitLabelBackground;
-  if (key == QStringLiteral("commitLabelFontSize")) return commitLabelFontSize;
-  if (key == QStringLiteral("tagLabelColor")) return tagLabelColor;
-  if (key == QStringLiteral("tagLabelBackground")) return tagLabelBackground;
-  if (key == QStringLiteral("tagLabelBorder")) return tagLabelBorder;
-  if (key == QStringLiteral("tagLabelFontSize")) return tagLabelFontSize;
-  if (key == QStringLiteral("strokeWidth")) return QString::number(strokeWidth);
-  if (key == QStringLiteral("useGradient")) return useGradient ? QStringLiteral("true") : QStringLiteral("false");
-  if (key == QStringLiteral("gradientStart")) return gradientStart;
-  if (key == QStringLiteral("gradientStop")) return gradientStop;
-  if (key == QStringLiteral("dropShadow")) return dropShadow;
-  if (key == QStringLiteral("archEdgeColor")) return archEdgeColor;
-  if (key == QStringLiteral("archEdgeArrowColor")) return archEdgeArrowColor;
-  if (key == QStringLiteral("archEdgeWidth")) return archEdgeWidth;
-  if (key == QStringLiteral("archGroupBorderColor")) return archGroupBorderColor;
-  if (key == QStringLiteral("archGroupBorderWidth")) return archGroupBorderWidth;
-  if (key == QStringLiteral("THEME_COLOR_LIMIT")) return QString::number(themeColorLimit);
+  if (key == QStringLiteral("commitLineColor"))
+    return commitLineColor;
+  if (key == QStringLiteral("commitLabelColor"))
+    return commitLabelColor;
+  if (key == QStringLiteral("commitLabelBackground"))
+    return commitLabelBackground;
+  if (key == QStringLiteral("commitLabelFontSize"))
+    return commitLabelFontSize;
+  if (key == QStringLiteral("tagLabelColor"))
+    return tagLabelColor;
+  if (key == QStringLiteral("tagLabelBackground"))
+    return tagLabelBackground;
+  if (key == QStringLiteral("tagLabelBorder"))
+    return tagLabelBorder;
+  if (key == QStringLiteral("tagLabelFontSize"))
+    return tagLabelFontSize;
+  if (key == QStringLiteral("strokeWidth"))
+    return QString::number(strokeWidth);
+  if (key == QStringLiteral("useGradient"))
+    return useGradient ? QStringLiteral("true") : QStringLiteral("false");
+  if (key == QStringLiteral("gradientStart"))
+    return gradientStart;
+  if (key == QStringLiteral("gradientStop"))
+    return gradientStop;
+  if (key == QStringLiteral("dropShadow"))
+    return dropShadow;
+  if (key == QStringLiteral("archEdgeColor"))
+    return archEdgeColor;
+  if (key == QStringLiteral("archEdgeArrowColor"))
+    return archEdgeArrowColor;
+  if (key == QStringLiteral("archEdgeWidth"))
+    return archEdgeWidth;
+  if (key == QStringLiteral("archGroupBorderColor"))
+    return archGroupBorderColor;
+  if (key == QStringLiteral("archGroupBorderWidth"))
+    return archGroupBorderWidth;
+  if (key == QStringLiteral("THEME_COLOR_LIMIT"))
+    return QString::number(themeColorLimit);
   for (int i = 0; i < 13; ++i) {
-    if (key == QStringLiteral("cScale%1").arg(i)) return cScale[i];
-    if (key == QStringLiteral("cScaleInv%1").arg(i)) return cScaleInv[i];
-    if (key == QStringLiteral("cScalePeer%1").arg(i)) return cScalePeer[i];
-    if (key == QStringLiteral("cScaleLabel%1").arg(i)) return cScaleLabel[i];
+    if (key == QStringLiteral("cScale%1").arg(i))
+      return cScale[i];
+    if (key == QStringLiteral("cScaleInv%1").arg(i))
+      return cScaleInv[i];
+    if (key == QStringLiteral("cScalePeer%1").arg(i))
+      return cScalePeer[i];
+    if (key == QStringLiteral("cScaleLabel%1").arg(i))
+      return cScaleLabel[i];
   }
   // Journey + Pie + Quadrant themeVariables.
   for (int i = 0; i < 8; ++i)
-    if (key == QStringLiteral("fillType%1").arg(i)) return fillType[i];
+    if (key == QStringLiteral("fillType%1").arg(i))
+      return fillType[i];
   for (int i = 0; i < 12; ++i)
-    if (key == QStringLiteral("pie%1").arg(i + 1)) return pie[i];
+    if (key == QStringLiteral("pie%1").arg(i + 1))
+      return pie[i];
   // NOTE: upstream "pie0" (dark/neutral `this["pie"+i] = this["cScale"+i]`
   // with i=0) is derived but never consumed by any renderer — the pie
   // renderer reads pie1..pie12 only — so it is not modeled (see the
   // themeVariables inventory remaining list).
   for (int i = 0; i < 8; ++i)
-    if (key == QStringLiteral("venn%1").arg(i + 1)) return venn[i];
+    if (key == QStringLiteral("venn%1").arg(i + 1))
+      return venn[i];
   for (int i = 0; i < 4; ++i) {
-    if (key == QStringLiteral("quadrant%1Fill").arg(i + 1)) return quadrant[i];
-    if (key == QStringLiteral("quadrant%1TextFill").arg(i + 1)) return quadrantText[i];
+    if (key == QStringLiteral("quadrant%1Fill").arg(i + 1))
+      return quadrant[i];
+    if (key == QStringLiteral("quadrant%1TextFill").arg(i + 1))
+      return quadrantText[i];
   }
-  if (key == QStringLiteral("mainContrastColor")) return mainContrastColor;
-  if (key == QStringLiteral("taskTextDarkColor")) return taskTextDarkColor;
-  if (key == QStringLiteral("sectionBkgColor")) return sectionBkgColor;
-  if (key == QStringLiteral("altSectionBkgColor")) return altSectionBkgColor;
-  if (key == QStringLiteral("sectionBkgColor2")) return sectionBkgColor2;
-  if (key == QStringLiteral("excludeBkgColor")) return excludeBkgColor;
-  if (key == QStringLiteral("taskBorderColor")) return taskBorderColor;
-  if (key == QStringLiteral("taskBkgColor")) return taskBkgColor;
-  if (key == QStringLiteral("taskTextColor")) return taskTextColor;
-  if (key == QStringLiteral("taskTextOutsideColor")) return taskTextOutsideColor;
-  if (key == QStringLiteral("taskTextLightColor")) return taskTextLightColor;
-  if (key == QStringLiteral("taskTextClickableColor")) return taskTextClickableColor;
-  if (key == QStringLiteral("activeTaskBorderColor")) return activeTaskBorderColor;
-  if (key == QStringLiteral("activeTaskBkgColor")) return activeTaskBkgColor;
-  if (key == QStringLiteral("gridColor")) return gridColor;
-  if (key == QStringLiteral("doneTaskBkgColor")) return doneTaskBkgColor;
-  if (key == QStringLiteral("doneTaskBorderColor")) return doneTaskBorderColor;
-  if (key == QStringLiteral("critBorderColor")) return critBorderColor;
-  if (key == QStringLiteral("critBkgColor")) return critBkgColor;
-  if (key == QStringLiteral("todayLineColor")) return todayLineColor;
-  if (key == QStringLiteral("vertLineColor")) return vertLineColor;
-  if (key == QStringLiteral("pieTitleTextColor")) return pieTitleTextColor;
-  if (key == QStringLiteral("pieSectionTextColor")) return pieSectionTextColor;
-  if (key == QStringLiteral("pieLegendTextColor")) return pieLegendTextColor;
-  if (key == QStringLiteral("pieStrokeColor")) return pieStrokeColor;
-  if (key == QStringLiteral("pieStrokeWidth")) return pieStrokeWidth;
-  if (key == QStringLiteral("pieOpacity")) return pieOpacity;
-  if (key == QStringLiteral("pieOuterStrokeColor")) return pieOuterStrokeColor;
-  if (key == QStringLiteral("pieOuterStrokeWidth")) return pieOuterStrokeWidth;
-  if (key == QStringLiteral("pieTitleTextSize")) return pieTitleTextSize;
-  if (key == QStringLiteral("pieSectionTextSize")) return pieSectionTextSize;
-  if (key == QStringLiteral("pieLegendTextSize")) return pieLegendTextSize;
-  if (key == QStringLiteral("vennTitleTextColor")) return vennTitleTextColor;
-  if (key == QStringLiteral("vennSetTextColor")) return vennSetTextColor;
-  if (key == QStringLiteral("quadrantPointFill")) return quadrantPointFill;
-  if (key == QStringLiteral("quadrantPointTextFill")) return quadrantPointTextFill;
-  if (key == QStringLiteral("quadrantXAxisTextFill")) return quadrantXAxisTextFill;
-  if (key == QStringLiteral("quadrantYAxisTextFill")) return quadrantYAxisTextFill;
-  if (key == QStringLiteral("quadrantInternalBorderStrokeFill")) return quadrantInternalBorderStrokeFill;
-  if (key == QStringLiteral("quadrantExternalBorderStrokeFill")) return quadrantExternalBorderStrokeFill;
-  if (key == QStringLiteral("quadrantTitleFill")) return quadrantTitleFill;
-  if (key == QStringLiteral("xyChart.backgroundColor")) return xyChart.backgroundColor;
-  if (key == QStringLiteral("xyChart.titleColor")) return xyChart.titleColor;
-  if (key == QStringLiteral("xyChart.dataLabelColor")) return xyChart.dataLabelColor;
-  if (key == QStringLiteral("xyChart.xAxisTitleColor")) return xyChart.xAxisTitleColor;
-  if (key == QStringLiteral("xyChart.xAxisLabelColor")) return xyChart.xAxisLabelColor;
-  if (key == QStringLiteral("xyChart.xAxisTickColor")) return xyChart.xAxisTickColor;
-  if (key == QStringLiteral("xyChart.xAxisLineColor")) return xyChart.xAxisLineColor;
-  if (key == QStringLiteral("xyChart.yAxisTitleColor")) return xyChart.yAxisTitleColor;
-  if (key == QStringLiteral("xyChart.yAxisLabelColor")) return xyChart.yAxisLabelColor;
-  if (key == QStringLiteral("xyChart.yAxisTickColor")) return xyChart.yAxisTickColor;
-  if (key == QStringLiteral("xyChart.yAxisLineColor")) return xyChart.yAxisLineColor;
-  if (key == QStringLiteral("xyChart.plotColorPalette")) return xyChart.plotColorPalette;
-  if (key == QStringLiteral("packet.byteFontSize")) return packet.byteFontSize;
-  if (key == QStringLiteral("packet.startByteColor")) return packet.startByteColor;
-  if (key == QStringLiteral("packet.endByteColor")) return packet.endByteColor;
-  if (key == QStringLiteral("packet.labelColor")) return packet.labelColor;
-  if (key == QStringLiteral("packet.labelFontSize")) return packet.labelFontSize;
-  if (key == QStringLiteral("packet.titleColor")) return packet.titleColor;
-  if (key == QStringLiteral("packet.titleFontSize")) return packet.titleFontSize;
-  if (key == QStringLiteral("packet.blockStrokeColor")) return packet.blockStrokeColor;
-  if (key == QStringLiteral("packet.blockStrokeWidth")) return packet.blockStrokeWidth;
-  if (key == QStringLiteral("packet.blockFillColor")) return packet.blockFillColor;
-  if (key == QStringLiteral("cynefin.domainFontSize")) return cynefin.domainFontSize;
-  if (key == QStringLiteral("cynefin.itemFontSize")) return cynefin.itemFontSize;
-  if (key == QStringLiteral("cynefin.boundaryColor")) return cynefin.boundaryColor;
-  if (key == QStringLiteral("cynefin.boundaryWidth")) return cynefin.boundaryWidth;
-  if (key == QStringLiteral("cynefin.cliffColor")) return cynefin.cliffColor;
-  if (key == QStringLiteral("cynefin.cliffWidth")) return cynefin.cliffWidth;
-  if (key == QStringLiteral("cynefin.arrowColor")) return cynefin.arrowColor;
-  if (key == QStringLiteral("cynefin.arrowWidth")) return cynefin.arrowWidth;
-  if (key == QStringLiteral("cynefin.complexBg")) return cynefin.complexBg;
-  if (key == QStringLiteral("cynefin.complicatedBg")) return cynefin.complicatedBg;
-  if (key == QStringLiteral("cynefin.chaoticBg")) return cynefin.chaoticBg;
-  if (key == QStringLiteral("cynefin.clearBg")) return cynefin.clearBg;
-  if (key == QStringLiteral("cynefin.confusionBg")) return cynefin.confusionBg;
-  if (key == QStringLiteral("cynefin.textColor")) return cynefin.textColor;
-  if (key == QStringLiteral("cynefin.labelColor")) return cynefin.labelColor;
-  if (key == QStringLiteral("wardley.backgroundColor")) return wardley.backgroundColor;
-  if (key == QStringLiteral("wardley.axisColor")) return wardley.axisColor;
-  if (key == QStringLiteral("wardley.axisTextColor")) return wardley.axisTextColor;
-  if (key == QStringLiteral("wardley.gridColor")) return wardley.gridColor;
-  if (key == QStringLiteral("wardley.componentFill")) return wardley.componentFill;
-  if (key == QStringLiteral("wardley.componentStroke")) return wardley.componentStroke;
-  if (key == QStringLiteral("wardley.componentLabelColor")) return wardley.componentLabelColor;
-  if (key == QStringLiteral("wardley.linkStroke")) return wardley.linkStroke;
-  if (key == QStringLiteral("wardley.evolutionStroke")) return wardley.evolutionStroke;
-  if (key == QStringLiteral("wardley.annotationStroke")) return wardley.annotationStroke;
-  if (key == QStringLiteral("wardley.annotationTextColor")) return wardley.annotationTextColor;
-  if (key == QStringLiteral("wardley.annotationFill")) return wardley.annotationFill;
+  if (key == QStringLiteral("mainContrastColor"))
+    return mainContrastColor;
+  if (key == QStringLiteral("taskTextDarkColor"))
+    return taskTextDarkColor;
+  if (key == QStringLiteral("sectionBkgColor"))
+    return sectionBkgColor;
+  if (key == QStringLiteral("altSectionBkgColor"))
+    return altSectionBkgColor;
+  if (key == QStringLiteral("sectionBkgColor2"))
+    return sectionBkgColor2;
+  if (key == QStringLiteral("excludeBkgColor"))
+    return excludeBkgColor;
+  if (key == QStringLiteral("taskBorderColor"))
+    return taskBorderColor;
+  if (key == QStringLiteral("taskBkgColor"))
+    return taskBkgColor;
+  if (key == QStringLiteral("taskTextColor"))
+    return taskTextColor;
+  if (key == QStringLiteral("taskTextOutsideColor"))
+    return taskTextOutsideColor;
+  if (key == QStringLiteral("taskTextLightColor"))
+    return taskTextLightColor;
+  if (key == QStringLiteral("taskTextClickableColor"))
+    return taskTextClickableColor;
+  if (key == QStringLiteral("activeTaskBorderColor"))
+    return activeTaskBorderColor;
+  if (key == QStringLiteral("activeTaskBkgColor"))
+    return activeTaskBkgColor;
+  if (key == QStringLiteral("gridColor"))
+    return gridColor;
+  if (key == QStringLiteral("doneTaskBkgColor"))
+    return doneTaskBkgColor;
+  if (key == QStringLiteral("doneTaskBorderColor"))
+    return doneTaskBorderColor;
+  if (key == QStringLiteral("critBorderColor"))
+    return critBorderColor;
+  if (key == QStringLiteral("critBkgColor"))
+    return critBkgColor;
+  if (key == QStringLiteral("todayLineColor"))
+    return todayLineColor;
+  if (key == QStringLiteral("vertLineColor"))
+    return vertLineColor;
+  if (key == QStringLiteral("pieTitleTextColor"))
+    return pieTitleTextColor;
+  if (key == QStringLiteral("pieSectionTextColor"))
+    return pieSectionTextColor;
+  if (key == QStringLiteral("pieLegendTextColor"))
+    return pieLegendTextColor;
+  if (key == QStringLiteral("pieStrokeColor"))
+    return pieStrokeColor;
+  if (key == QStringLiteral("pieStrokeWidth"))
+    return pieStrokeWidth;
+  if (key == QStringLiteral("pieOpacity"))
+    return pieOpacity;
+  if (key == QStringLiteral("pieOuterStrokeColor"))
+    return pieOuterStrokeColor;
+  if (key == QStringLiteral("pieOuterStrokeWidth"))
+    return pieOuterStrokeWidth;
+  if (key == QStringLiteral("pieTitleTextSize"))
+    return pieTitleTextSize;
+  if (key == QStringLiteral("pieSectionTextSize"))
+    return pieSectionTextSize;
+  if (key == QStringLiteral("pieLegendTextSize"))
+    return pieLegendTextSize;
+  if (key == QStringLiteral("vennTitleTextColor"))
+    return vennTitleTextColor;
+  if (key == QStringLiteral("vennSetTextColor"))
+    return vennSetTextColor;
+  if (key == QStringLiteral("quadrantPointFill"))
+    return quadrantPointFill;
+  if (key == QStringLiteral("quadrantPointTextFill"))
+    return quadrantPointTextFill;
+  if (key == QStringLiteral("quadrantXAxisTextFill"))
+    return quadrantXAxisTextFill;
+  if (key == QStringLiteral("quadrantYAxisTextFill"))
+    return quadrantYAxisTextFill;
+  if (key == QStringLiteral("quadrantInternalBorderStrokeFill"))
+    return quadrantInternalBorderStrokeFill;
+  if (key == QStringLiteral("quadrantExternalBorderStrokeFill"))
+    return quadrantExternalBorderStrokeFill;
+  if (key == QStringLiteral("quadrantTitleFill"))
+    return quadrantTitleFill;
+  if (key == QStringLiteral("xyChart.backgroundColor"))
+    return xyChart.backgroundColor;
+  if (key == QStringLiteral("xyChart.titleColor"))
+    return xyChart.titleColor;
+  if (key == QStringLiteral("xyChart.dataLabelColor"))
+    return xyChart.dataLabelColor;
+  if (key == QStringLiteral("xyChart.xAxisTitleColor"))
+    return xyChart.xAxisTitleColor;
+  if (key == QStringLiteral("xyChart.xAxisLabelColor"))
+    return xyChart.xAxisLabelColor;
+  if (key == QStringLiteral("xyChart.xAxisTickColor"))
+    return xyChart.xAxisTickColor;
+  if (key == QStringLiteral("xyChart.xAxisLineColor"))
+    return xyChart.xAxisLineColor;
+  if (key == QStringLiteral("xyChart.yAxisTitleColor"))
+    return xyChart.yAxisTitleColor;
+  if (key == QStringLiteral("xyChart.yAxisLabelColor"))
+    return xyChart.yAxisLabelColor;
+  if (key == QStringLiteral("xyChart.yAxisTickColor"))
+    return xyChart.yAxisTickColor;
+  if (key == QStringLiteral("xyChart.yAxisLineColor"))
+    return xyChart.yAxisLineColor;
+  if (key == QStringLiteral("xyChart.plotColorPalette"))
+    return xyChart.plotColorPalette;
+  if (key == QStringLiteral("packet.byteFontSize"))
+    return packet.byteFontSize;
+  if (key == QStringLiteral("packet.startByteColor"))
+    return packet.startByteColor;
+  if (key == QStringLiteral("packet.endByteColor"))
+    return packet.endByteColor;
+  if (key == QStringLiteral("packet.labelColor"))
+    return packet.labelColor;
+  if (key == QStringLiteral("packet.labelFontSize"))
+    return packet.labelFontSize;
+  if (key == QStringLiteral("packet.titleColor"))
+    return packet.titleColor;
+  if (key == QStringLiteral("packet.titleFontSize"))
+    return packet.titleFontSize;
+  if (key == QStringLiteral("packet.blockStrokeColor"))
+    return packet.blockStrokeColor;
+  if (key == QStringLiteral("packet.blockStrokeWidth"))
+    return packet.blockStrokeWidth;
+  if (key == QStringLiteral("packet.blockFillColor"))
+    return packet.blockFillColor;
+  if (key == QStringLiteral("cynefin.domainFontSize"))
+    return cynefin.domainFontSize;
+  if (key == QStringLiteral("cynefin.itemFontSize"))
+    return cynefin.itemFontSize;
+  if (key == QStringLiteral("cynefin.boundaryColor"))
+    return cynefin.boundaryColor;
+  if (key == QStringLiteral("cynefin.boundaryWidth"))
+    return cynefin.boundaryWidth;
+  if (key == QStringLiteral("cynefin.cliffColor"))
+    return cynefin.cliffColor;
+  if (key == QStringLiteral("cynefin.cliffWidth"))
+    return cynefin.cliffWidth;
+  if (key == QStringLiteral("cynefin.arrowColor"))
+    return cynefin.arrowColor;
+  if (key == QStringLiteral("cynefin.arrowWidth"))
+    return cynefin.arrowWidth;
+  if (key == QStringLiteral("cynefin.complexBg"))
+    return cynefin.complexBg;
+  if (key == QStringLiteral("cynefin.complicatedBg"))
+    return cynefin.complicatedBg;
+  if (key == QStringLiteral("cynefin.chaoticBg"))
+    return cynefin.chaoticBg;
+  if (key == QStringLiteral("cynefin.clearBg"))
+    return cynefin.clearBg;
+  if (key == QStringLiteral("cynefin.confusionBg"))
+    return cynefin.confusionBg;
+  if (key == QStringLiteral("cynefin.textColor"))
+    return cynefin.textColor;
+  if (key == QStringLiteral("cynefin.labelColor"))
+    return cynefin.labelColor;
+  if (key == QStringLiteral("wardley.backgroundColor"))
+    return wardley.backgroundColor;
+  if (key == QStringLiteral("wardley.axisColor"))
+    return wardley.axisColor;
+  if (key == QStringLiteral("wardley.axisTextColor"))
+    return wardley.axisTextColor;
+  if (key == QStringLiteral("wardley.gridColor"))
+    return wardley.gridColor;
+  if (key == QStringLiteral("wardley.componentFill"))
+    return wardley.componentFill;
+  if (key == QStringLiteral("wardley.componentStroke"))
+    return wardley.componentStroke;
+  if (key == QStringLiteral("wardley.componentLabelColor"))
+    return wardley.componentLabelColor;
+  if (key == QStringLiteral("wardley.linkStroke"))
+    return wardley.linkStroke;
+  if (key == QStringLiteral("wardley.evolutionStroke"))
+    return wardley.evolutionStroke;
+  if (key == QStringLiteral("wardley.annotationStroke"))
+    return wardley.annotationStroke;
+  if (key == QStringLiteral("wardley.annotationTextColor"))
+    return wardley.annotationTextColor;
+  if (key == QStringLiteral("wardley.annotationFill"))
+    return wardley.annotationFill;
   return QString();
 }
 
@@ -2139,7 +2400,8 @@ void FlowThemeVariables::set(const QString& key, const QString& value) {
   for (int i = 0; i < 8; ++i) {
     if (key == QStringLiteral("git%1").arg(i)) {
       git[i] = value;
-      if (i == 0) git0 = value;
+      if (i == 0)
+        git0 = value;
       return;
     }
     if (key == QStringLiteral("gitInv%1").arg(i)) {
@@ -2148,255 +2410,512 @@ void FlowThemeVariables::set(const QString& key, const QString& value) {
     }
     if (key == QStringLiteral("gitBranchLabel%1").arg(i)) {
       gitBranchLabel[i] = value;
-      if (i == 0) gitBranchLabel0 = value;
+      if (i == 0)
+        gitBranchLabel0 = value;
       return;
     }
   }
-  if (key == QStringLiteral("commitLineColor")) { commitLineColor = value; return; }
-  if (key == QStringLiteral("commitLabelColor")) { commitLabelColor = value; return; }
-  if (key == QStringLiteral("commitLabelBackground")) { commitLabelBackground = value; return; }
-  if (key == QStringLiteral("commitLabelFontSize")) { commitLabelFontSize = value; return; }
-  if (key == QStringLiteral("tagLabelColor")) { tagLabelColor = value; return; }
-  if (key == QStringLiteral("tagLabelBackground")) { tagLabelBackground = value; return; }
-  if (key == QStringLiteral("tagLabelBorder")) { tagLabelBorder = value; return; }
-  if (key == QStringLiteral("tagLabelFontSize")) { tagLabelFontSize = value; return; }
+  if (key == QStringLiteral("commitLineColor")) {
+    commitLineColor = value;
+    return;
+  }
+  if (key == QStringLiteral("commitLabelColor")) {
+    commitLabelColor = value;
+    return;
+  }
+  if (key == QStringLiteral("commitLabelBackground")) {
+    commitLabelBackground = value;
+    return;
+  }
+  if (key == QStringLiteral("commitLabelFontSize")) {
+    commitLabelFontSize = value;
+    return;
+  }
+  if (key == QStringLiteral("tagLabelColor")) {
+    tagLabelColor = value;
+    return;
+  }
+  if (key == QStringLiteral("tagLabelBackground")) {
+    tagLabelBackground = value;
+    return;
+  }
+  if (key == QStringLiteral("tagLabelBorder")) {
+    tagLabelBorder = value;
+    return;
+  }
+  if (key == QStringLiteral("tagLabelFontSize")) {
+    tagLabelFontSize = value;
+    return;
+  }
 
-  if (key == QStringLiteral("background")) background = value;
-  else if (key == QStringLiteral("primaryColor")) primaryColor = value;
-  else if (key == QStringLiteral("secondaryColor")) secondaryColor = value;
-  else if (key == QStringLiteral("tertiaryColor")) tertiaryColor = value;
-  else if (key == QStringLiteral("mainBkg")) mainBkg = value;
-  else if (key == QStringLiteral("secondBkg")) secondBkg = value;
-  else if (key == QStringLiteral("lineColor")) lineColor = value;
-  else if (key == QStringLiteral("border1")) border1 = value;
-  else if (key == QStringLiteral("border2")) border2 = value;
-  else if (key == QStringLiteral("arrowheadColor")) arrowheadColor = value;
-  else if (key == QStringLiteral("fontFamily")) fontFamily = value;
-  else if (key == QStringLiteral("fontSize")) fontSize = value;
-  else if (key == QStringLiteral("fontWeight")) fontWeight = value;
-  else if (key == QStringLiteral("emUiFill")) emUiFill = value;
-  else if (key == QStringLiteral("emUiStroke")) emUiStroke = value;
-  else if (key == QStringLiteral("emProcessorFill")) emProcessorFill = value;
-  else if (key == QStringLiteral("emProcessorStroke")) emProcessorStroke = value;
-  else if (key == QStringLiteral("emReadModelFill")) emReadModelFill = value;
-  else if (key == QStringLiteral("emReadModelStroke")) emReadModelStroke = value;
-  else if (key == QStringLiteral("emCommandFill")) emCommandFill = value;
-  else if (key == QStringLiteral("emCommandStroke")) emCommandStroke = value;
-  else if (key == QStringLiteral("emEventFill")) emEventFill = value;
-  else if (key == QStringLiteral("emEventStroke")) emEventStroke = value;
-  else if (key == QStringLiteral("emSwimlaneBackgroundOdd")) emSwimlaneBackgroundOdd = value;
-  else if (key == QStringLiteral("emSwimlaneBackgroundStroke")) emSwimlaneBackgroundStroke = value;
-  else if (key == QStringLiteral("emArrowhead")) emArrowhead = value;
-  else if (key == QStringLiteral("emRelationStroke")) emRelationStroke = value;
-  else if (key == QStringLiteral("labelBackground")) labelBackground = value;
-  else if (key == QStringLiteral("textColor")) textColor = value;
-  else if (key == QStringLiteral("titleColor")) titleColor = value;
-  else if (key == QStringLiteral("edgeLabelBackground")) edgeLabelBackground = value;
+  if (key == QStringLiteral("background"))
+    background = value;
+  else if (key == QStringLiteral("primaryColor"))
+    primaryColor = value;
+  else if (key == QStringLiteral("secondaryColor"))
+    secondaryColor = value;
+  else if (key == QStringLiteral("tertiaryColor"))
+    tertiaryColor = value;
+  else if (key == QStringLiteral("mainBkg"))
+    mainBkg = value;
+  else if (key == QStringLiteral("secondBkg"))
+    secondBkg = value;
+  else if (key == QStringLiteral("lineColor"))
+    lineColor = value;
+  else if (key == QStringLiteral("border1"))
+    border1 = value;
+  else if (key == QStringLiteral("border2"))
+    border2 = value;
+  else if (key == QStringLiteral("arrowheadColor"))
+    arrowheadColor = value;
+  else if (key == QStringLiteral("fontFamily"))
+    fontFamily = value;
+  else if (key == QStringLiteral("fontSize"))
+    fontSize = value;
+  else if (key == QStringLiteral("fontWeight"))
+    fontWeight = value;
+  else if (key == QStringLiteral("emUiFill"))
+    emUiFill = value;
+  else if (key == QStringLiteral("emUiStroke"))
+    emUiStroke = value;
+  else if (key == QStringLiteral("emProcessorFill"))
+    emProcessorFill = value;
+  else if (key == QStringLiteral("emProcessorStroke"))
+    emProcessorStroke = value;
+  else if (key == QStringLiteral("emReadModelFill"))
+    emReadModelFill = value;
+  else if (key == QStringLiteral("emReadModelStroke"))
+    emReadModelStroke = value;
+  else if (key == QStringLiteral("emCommandFill"))
+    emCommandFill = value;
+  else if (key == QStringLiteral("emCommandStroke"))
+    emCommandStroke = value;
+  else if (key == QStringLiteral("emEventFill"))
+    emEventFill = value;
+  else if (key == QStringLiteral("emEventStroke"))
+    emEventStroke = value;
+  else if (key == QStringLiteral("emSwimlaneBackgroundOdd"))
+    emSwimlaneBackgroundOdd = value;
+  else if (key == QStringLiteral("emSwimlaneBackgroundStroke"))
+    emSwimlaneBackgroundStroke = value;
+  else if (key == QStringLiteral("emArrowhead"))
+    emArrowhead = value;
+  else if (key == QStringLiteral("emRelationStroke"))
+    emRelationStroke = value;
+  else if (key == QStringLiteral("labelBackground"))
+    labelBackground = value;
+  else if (key == QStringLiteral("textColor"))
+    textColor = value;
+  else if (key == QStringLiteral("titleColor"))
+    titleColor = value;
+  else if (key == QStringLiteral("edgeLabelBackground"))
+    edgeLabelBackground = value;
   else if (key == QStringLiteral("requirementEdgeLabelBackground"))
     requirementEdgeLabelBackground = value;
-  else if (key == QStringLiteral("requirementBackground")) requirementBackground = value;
-  else if (key == QStringLiteral("requirementBorderColor")) requirementBorderColor = value;
-  else if (key == QStringLiteral("requirementBorderSize")) requirementBorderSize = value;
-  else if (key == QStringLiteral("requirementTextColor")) requirementTextColor = value;
-  else if (key == QStringLiteral("relationColor")) relationColor = value;
-  else if (key == QStringLiteral("relationLabelBackground")) relationLabelBackground = value;
-  else if (key == QStringLiteral("relationLabelColor")) relationLabelColor = value;
-  else if (key == QStringLiteral("actorTextColor")) actorTextColor = value;
-  else if (key == QStringLiteral("clusterBkg")) clusterBkg = value;
-  else if (key == QStringLiteral("clusterBorder")) clusterBorder = value;
-  else if (key == QStringLiteral("compositeBackground")) compositeBackground = value;
-  else if (key == QStringLiteral("altBackground")) altBackground = value;
-  else if (key == QStringLiteral("compositeTitleBackground")) compositeTitleBackground = value;
-  else if (key == QStringLiteral("specialStateColor")) specialStateColor = value;
-  else if (key == QStringLiteral("stateBorder")) stateBorder = value;
-  else if (key == QStringLiteral("stateBkg")) stateBkg = value;
-  else if (key == QStringLiteral("errorBkgColor")) errorBkgColor = value;
-  else if (key == QStringLiteral("actorBkg")) actorBkg = value;
-  else if (key == QStringLiteral("actorBorder")) actorBorder = value;
-  else if (key == QStringLiteral("actorLineColor")) actorLineColor = value;
-  else if (key == QStringLiteral("signalColor")) signalColor = value;
-  else if (key == QStringLiteral("signalTextColor")) signalTextColor = value;
-  else if (key == QStringLiteral("labelTextColor")) labelTextColor = value;
-  else if (key == QStringLiteral("loopTextColor")) loopTextColor = value;
-  else if (key == QStringLiteral("labelBoxBkgColor")) labelBoxBkgColor = value;
-  else if (key == QStringLiteral("labelBoxBorderColor")) labelBoxBorderColor = value;
-  else if (key == QStringLiteral("sequenceNumberColor")) sequenceNumberColor = value;
-  else if (key == QStringLiteral("activationBkgColor")) activationBkgColor = value;
-  else if (key == QStringLiteral("activationBorderColor")) activationBorderColor = value;
-  else if (key == QStringLiteral("rectBkgColor")) rectBkgColor = value;
-  else if (key == QStringLiteral("noteBkgColor")) noteBkgColor = value;
-  else if (key == QStringLiteral("noteBorderColor")) noteBorderColor = value;
-  else if (key == QStringLiteral("noteTextColor")) noteTextColor = value;
-  else if (key == QStringLiteral("noteFontWeight")) noteFontWeight = value;
-  else if (key == QStringLiteral("transitionColor")) transitionColor = value;
-  else if (key == QStringLiteral("transitionLabelColor")) transitionLabelColor = value;
-  else if (key == QStringLiteral("stateLabelColor")) stateLabelColor = value;
-  else if (key == QStringLiteral("labelBackgroundColor")) labelBackgroundColor = value;
-  else if (key == QStringLiteral("innerEndBackground")) innerEndBackground = value;
-  else if (key == QStringLiteral("compositeBorder")) compositeBorder = value;
-  else if (key == QStringLiteral("classText")) classText = value;
-  else if (key == QStringLiteral("personBkg")) personBkg = value;
-  else if (key == QStringLiteral("personBorder")) personBorder = value;
-  else if (key == QStringLiteral("radius")) radius = value;
-  else if (key == QStringLiteral("scaleLabelColor")) scaleLabelColor = value;
-  else if (key == QStringLiteral("branchLabelColor")) branchLabelColor = value;
-  else if (key == QStringLiteral("pie0")) pie0 = value;
+  else if (key == QStringLiteral("requirementBackground"))
+    requirementBackground = value;
+  else if (key == QStringLiteral("requirementBorderColor"))
+    requirementBorderColor = value;
+  else if (key == QStringLiteral("requirementBorderSize"))
+    requirementBorderSize = value;
+  else if (key == QStringLiteral("requirementTextColor"))
+    requirementTextColor = value;
+  else if (key == QStringLiteral("relationColor"))
+    relationColor = value;
+  else if (key == QStringLiteral("relationLabelBackground"))
+    relationLabelBackground = value;
+  else if (key == QStringLiteral("relationLabelColor"))
+    relationLabelColor = value;
+  else if (key == QStringLiteral("actorTextColor"))
+    actorTextColor = value;
+  else if (key == QStringLiteral("clusterBkg"))
+    clusterBkg = value;
+  else if (key == QStringLiteral("clusterBorder"))
+    clusterBorder = value;
+  else if (key == QStringLiteral("compositeBackground"))
+    compositeBackground = value;
+  else if (key == QStringLiteral("altBackground"))
+    altBackground = value;
+  else if (key == QStringLiteral("compositeTitleBackground"))
+    compositeTitleBackground = value;
+  else if (key == QStringLiteral("specialStateColor"))
+    specialStateColor = value;
+  else if (key == QStringLiteral("stateBorder"))
+    stateBorder = value;
+  else if (key == QStringLiteral("stateBkg"))
+    stateBkg = value;
+  else if (key == QStringLiteral("errorBkgColor"))
+    errorBkgColor = value;
+  else if (key == QStringLiteral("actorBkg"))
+    actorBkg = value;
+  else if (key == QStringLiteral("actorBorder"))
+    actorBorder = value;
+  else if (key == QStringLiteral("actorLineColor"))
+    actorLineColor = value;
+  else if (key == QStringLiteral("signalColor"))
+    signalColor = value;
+  else if (key == QStringLiteral("signalTextColor"))
+    signalTextColor = value;
+  else if (key == QStringLiteral("labelTextColor"))
+    labelTextColor = value;
+  else if (key == QStringLiteral("loopTextColor"))
+    loopTextColor = value;
+  else if (key == QStringLiteral("labelBoxBkgColor"))
+    labelBoxBkgColor = value;
+  else if (key == QStringLiteral("labelBoxBorderColor"))
+    labelBoxBorderColor = value;
+  else if (key == QStringLiteral("sequenceNumberColor"))
+    sequenceNumberColor = value;
+  else if (key == QStringLiteral("activationBkgColor"))
+    activationBkgColor = value;
+  else if (key == QStringLiteral("activationBorderColor"))
+    activationBorderColor = value;
+  else if (key == QStringLiteral("rectBkgColor"))
+    rectBkgColor = value;
+  else if (key == QStringLiteral("noteBkgColor"))
+    noteBkgColor = value;
+  else if (key == QStringLiteral("noteBorderColor"))
+    noteBorderColor = value;
+  else if (key == QStringLiteral("noteTextColor"))
+    noteTextColor = value;
+  else if (key == QStringLiteral("noteFontWeight"))
+    noteFontWeight = value;
+  else if (key == QStringLiteral("transitionColor"))
+    transitionColor = value;
+  else if (key == QStringLiteral("transitionLabelColor"))
+    transitionLabelColor = value;
+  else if (key == QStringLiteral("stateLabelColor"))
+    stateLabelColor = value;
+  else if (key == QStringLiteral("labelBackgroundColor"))
+    labelBackgroundColor = value;
+  else if (key == QStringLiteral("innerEndBackground"))
+    innerEndBackground = value;
+  else if (key == QStringLiteral("compositeBorder"))
+    compositeBorder = value;
+  else if (key == QStringLiteral("classText"))
+    classText = value;
+  else if (key == QStringLiteral("personBkg"))
+    personBkg = value;
+  else if (key == QStringLiteral("personBorder"))
+    personBorder = value;
+  else if (key == QStringLiteral("radius"))
+    radius = value;
+  else if (key == QStringLiteral("scaleLabelColor"))
+    scaleLabelColor = value;
+  else if (key == QStringLiteral("branchLabelColor"))
+    branchLabelColor = value;
+  else if (key == QStringLiteral("pie0"))
+    pie0 = value;
   else if (key.startsWith(QStringLiteral("surface")) && key.size() == 8) {
     const int index = key.mid(7).toInt();
-    if (index >= 0 && index < 5) surface[index] = value;
+    if (index >= 0 && index < 5)
+      surface[index] = value;
   } else if (key.startsWith(QStringLiteral("surfacePeer")) && key.size() == 12) {
     const int index = key.mid(11).toInt();
-    if (index >= 0 && index < 5) surfacePeer[index] = value;
-  }
-  else if (key == QStringLiteral("attributeBackgroundColorOdd"))
+    if (index >= 0 && index < 5)
+      surfacePeer[index] = value;
+  } else if (key == QStringLiteral("attributeBackgroundColorOdd"))
     attributeBackgroundColorOdd = value;
   else if (key == QStringLiteral("attributeBackgroundColorEven"))
     attributeBackgroundColorEven = value;
-  else if (key == QStringLiteral("rowOdd")) rowOdd = value;
-  else if (key == QStringLiteral("rowEven")) rowEven = value;
-  else if (key == QStringLiteral("erEdgeLabelBackground")) erEdgeLabelBackground = value;
-  else if (key == QStringLiteral("stateEdgeLabelBackground")) stateEdgeLabelBackground = value;
-  else if (key == QStringLiteral("darkTextColor")) darkTextColor = value;
-  else if (key == QStringLiteral("filterColor")) filterColor = value;
-  else if (key == QStringLiteral("rootLabelColor")) rootLabelColor = value;
-  else if (key == QStringLiteral("wardleyEvolutionColor")) wardleyEvolutionColor = value;
-  else if (key == QStringLiteral("labelColor")) labelColor = value;
-  else if (key == QStringLiteral("note")) note = value;
-  else if (key == QStringLiteral("critical")) critical = value;
-  else if (key == QStringLiteral("done")) done = value;
-  else if (key == QStringLiteral("contrast")) contrast = value;
-  else if (key == QStringLiteral("text")) text = value;
-  else if (key == QStringLiteral("errorTextColor")) errorTextColor = value;
-  else if (key == QStringLiteral("primaryBorderColor")) primaryBorderColor = value;
-  else if (key == QStringLiteral("primaryTextColor")) primaryTextColor = value;
-  else if (key == QStringLiteral("secondaryBorderColor")) secondaryBorderColor = value;
-  else if (key == QStringLiteral("secondaryTextColor")) secondaryTextColor = value;
-  else if (key == QStringLiteral("tertiaryBorderColor")) tertiaryBorderColor = value;
-  else if (key == QStringLiteral("tertiaryTextColor")) tertiaryTextColor = value;
-  else if (key == QStringLiteral("nodeTextColor")) nodeTextColor = value;
-  else if (key == QStringLiteral("nodeBkg")) nodeBkg = value;
-  else if (key == QStringLiteral("nodeBorder")) nodeBorder = value;
-  else if (key == QStringLiteral("defaultLinkColor")) defaultLinkColor = value;
-  else if (key == QStringLiteral("strokeWidth")) strokeWidth = value.toDouble();
-  else if (key == QStringLiteral("useGradient")) useGradient = value.compare(QStringLiteral("true"), Qt::CaseInsensitive) == 0;
-  else if (key == QStringLiteral("gradientStart")) gradientStart = value;
-  else if (key == QStringLiteral("gradientStop")) gradientStop = value;
-  else if (key == QStringLiteral("dropShadow")) dropShadow = value;
-  else if (key == QStringLiteral("archEdgeColor")) archEdgeColor = value;
-  else if (key == QStringLiteral("archEdgeArrowColor")) archEdgeArrowColor = value;
-  else if (key == QStringLiteral("archEdgeWidth")) archEdgeWidth = value;
-  else if (key == QStringLiteral("archGroupBorderColor")) archGroupBorderColor = value;
-  else if (key == QStringLiteral("archGroupBorderWidth")) archGroupBorderWidth = value;
-  else if (key == QStringLiteral("THEME_COLOR_LIMIT")) themeColorLimit = value.toInt();
+  else if (key == QStringLiteral("rowOdd"))
+    rowOdd = value;
+  else if (key == QStringLiteral("rowEven"))
+    rowEven = value;
+  else if (key == QStringLiteral("erEdgeLabelBackground"))
+    erEdgeLabelBackground = value;
+  else if (key == QStringLiteral("stateEdgeLabelBackground"))
+    stateEdgeLabelBackground = value;
+  else if (key == QStringLiteral("darkTextColor"))
+    darkTextColor = value;
+  else if (key == QStringLiteral("filterColor"))
+    filterColor = value;
+  else if (key == QStringLiteral("rootLabelColor"))
+    rootLabelColor = value;
+  else if (key == QStringLiteral("wardleyEvolutionColor"))
+    wardleyEvolutionColor = value;
+  else if (key == QStringLiteral("labelColor"))
+    labelColor = value;
+  else if (key == QStringLiteral("note"))
+    note = value;
+  else if (key == QStringLiteral("critical"))
+    critical = value;
+  else if (key == QStringLiteral("done"))
+    done = value;
+  else if (key == QStringLiteral("contrast"))
+    contrast = value;
+  else if (key == QStringLiteral("text"))
+    text = value;
+  else if (key == QStringLiteral("errorTextColor"))
+    errorTextColor = value;
+  else if (key == QStringLiteral("primaryBorderColor"))
+    primaryBorderColor = value;
+  else if (key == QStringLiteral("primaryTextColor"))
+    primaryTextColor = value;
+  else if (key == QStringLiteral("secondaryBorderColor"))
+    secondaryBorderColor = value;
+  else if (key == QStringLiteral("secondaryTextColor"))
+    secondaryTextColor = value;
+  else if (key == QStringLiteral("tertiaryBorderColor"))
+    tertiaryBorderColor = value;
+  else if (key == QStringLiteral("tertiaryTextColor"))
+    tertiaryTextColor = value;
+  else if (key == QStringLiteral("nodeTextColor"))
+    nodeTextColor = value;
+  else if (key == QStringLiteral("nodeBkg"))
+    nodeBkg = value;
+  else if (key == QStringLiteral("nodeBorder"))
+    nodeBorder = value;
+  else if (key == QStringLiteral("defaultLinkColor"))
+    defaultLinkColor = value;
+  else if (key == QStringLiteral("strokeWidth"))
+    strokeWidth = value.toDouble();
+  else if (key == QStringLiteral("useGradient"))
+    useGradient = value.compare(QStringLiteral("true"), Qt::CaseInsensitive) == 0;
+  else if (key == QStringLiteral("gradientStart"))
+    gradientStart = value;
+  else if (key == QStringLiteral("gradientStop"))
+    gradientStop = value;
+  else if (key == QStringLiteral("dropShadow"))
+    dropShadow = value;
+  else if (key == QStringLiteral("archEdgeColor"))
+    archEdgeColor = value;
+  else if (key == QStringLiteral("archEdgeArrowColor"))
+    archEdgeArrowColor = value;
+  else if (key == QStringLiteral("archEdgeWidth"))
+    archEdgeWidth = value;
+  else if (key == QStringLiteral("archGroupBorderColor"))
+    archGroupBorderColor = value;
+  else if (key == QStringLiteral("archGroupBorderWidth"))
+    archGroupBorderWidth = value;
+  else if (key == QStringLiteral("THEME_COLOR_LIMIT"))
+    themeColorLimit = value.toInt();
   // Indexed palette and family overrides are separate from the scalar chain;
   // return as soon as the matching slot is found.
   for (int i = 0; i < 13; ++i) {
-    if (key == QStringLiteral("cScale%1").arg(i)) { cScale[i] = value; return; }
-    if (key == QStringLiteral("cScaleInv%1").arg(i)) { cScaleInv[i] = value; return; }
-    if (key == QStringLiteral("cScalePeer%1").arg(i)) { cScalePeer[i] = value; return; }
-    if (key == QStringLiteral("cScaleLabel%1").arg(i)) { cScaleLabel[i] = value; return; }
+    if (key == QStringLiteral("cScale%1").arg(i)) {
+      cScale[i] = value;
+      return;
+    }
+    if (key == QStringLiteral("cScaleInv%1").arg(i)) {
+      cScaleInv[i] = value;
+      return;
+    }
+    if (key == QStringLiteral("cScalePeer%1").arg(i)) {
+      cScalePeer[i] = value;
+      return;
+    }
+    if (key == QStringLiteral("cScaleLabel%1").arg(i)) {
+      cScaleLabel[i] = value;
+      return;
+    }
   }
   // Journey + Pie + Quadrant overrides.
   for (int i = 0; i < 8; ++i)
-    if (key == QStringLiteral("fillType%1").arg(i)) { fillType[i] = value; return; }
+    if (key == QStringLiteral("fillType%1").arg(i)) {
+      fillType[i] = value;
+      return;
+    }
   for (int i = 0; i < 12; ++i)
-    if (key == QStringLiteral("pie%1").arg(i + 1)) { pie[i] = value; return; }
+    if (key == QStringLiteral("pie%1").arg(i + 1)) {
+      pie[i] = value;
+      return;
+    }
   for (int i = 0; i < 8; ++i)
-    if (key == QStringLiteral("venn%1").arg(i + 1)) { venn[i] = value; return; }
+    if (key == QStringLiteral("venn%1").arg(i + 1)) {
+      venn[i] = value;
+      return;
+    }
   for (int i = 0; i < 4; ++i) {
-    if (key == QStringLiteral("quadrant%1Fill").arg(i + 1)) { quadrant[i] = value; return; }
-    if (key == QStringLiteral("quadrant%1TextFill").arg(i + 1)) { quadrantText[i] = value; return; }
+    if (key == QStringLiteral("quadrant%1Fill").arg(i + 1)) {
+      quadrant[i] = value;
+      return;
+    }
+    if (key == QStringLiteral("quadrant%1TextFill").arg(i + 1)) {
+      quadrantText[i] = value;
+      return;
+    }
   }
-  if (key == QStringLiteral("mainContrastColor")) mainContrastColor = value;
-  else if (key == QStringLiteral("taskTextDarkColor")) taskTextDarkColor = value;
-  else if (key == QStringLiteral("sectionBkgColor")) sectionBkgColor = value;
-  else if (key == QStringLiteral("altSectionBkgColor")) altSectionBkgColor = value;
-  else if (key == QStringLiteral("sectionBkgColor2")) sectionBkgColor2 = value;
-  else if (key == QStringLiteral("excludeBkgColor")) excludeBkgColor = value;
-  else if (key == QStringLiteral("taskBorderColor")) taskBorderColor = value;
-  else if (key == QStringLiteral("taskBkgColor")) taskBkgColor = value;
-  else if (key == QStringLiteral("taskTextColor")) taskTextColor = value;
-  else if (key == QStringLiteral("taskTextOutsideColor")) taskTextOutsideColor = value;
-  else if (key == QStringLiteral("taskTextLightColor")) taskTextLightColor = value;
-  else if (key == QStringLiteral("taskTextClickableColor")) taskTextClickableColor = value;
-  else if (key == QStringLiteral("activeTaskBorderColor")) activeTaskBorderColor = value;
-  else if (key == QStringLiteral("activeTaskBkgColor")) activeTaskBkgColor = value;
-  else if (key == QStringLiteral("gridColor")) gridColor = value;
-  else if (key == QStringLiteral("doneTaskBkgColor")) doneTaskBkgColor = value;
-  else if (key == QStringLiteral("doneTaskBorderColor")) doneTaskBorderColor = value;
-  else if (key == QStringLiteral("critBorderColor")) critBorderColor = value;
-  else if (key == QStringLiteral("critBkgColor")) critBkgColor = value;
-  else if (key == QStringLiteral("todayLineColor")) todayLineColor = value;
-  else if (key == QStringLiteral("vertLineColor")) vertLineColor = value;
-  else if (key == QStringLiteral("pieTitleTextColor")) pieTitleTextColor = value;
-  else if (key == QStringLiteral("pieSectionTextColor")) pieSectionTextColor = value;
-  else if (key == QStringLiteral("pieLegendTextColor")) pieLegendTextColor = value;
-  else if (key == QStringLiteral("pieStrokeColor")) pieStrokeColor = value;
-  else if (key == QStringLiteral("pieStrokeWidth")) pieStrokeWidth = value;
-  else if (key == QStringLiteral("pieOpacity")) pieOpacity = value;
-  else if (key == QStringLiteral("pieOuterStrokeColor")) pieOuterStrokeColor = value;
-  else if (key == QStringLiteral("pieOuterStrokeWidth")) pieOuterStrokeWidth = value;
-  else if (key == QStringLiteral("pieTitleTextSize")) pieTitleTextSize = value;
-  else if (key == QStringLiteral("pieSectionTextSize")) pieSectionTextSize = value;
-  else if (key == QStringLiteral("pieLegendTextSize")) pieLegendTextSize = value;
-  else if (key == QStringLiteral("vennTitleTextColor")) vennTitleTextColor = value;
-  else if (key == QStringLiteral("vennSetTextColor")) vennSetTextColor = value;
-  else if (key == QStringLiteral("quadrantPointFill")) quadrantPointFill = value;
-  else if (key == QStringLiteral("quadrantPointTextFill")) quadrantPointTextFill = value;
-  else if (key == QStringLiteral("quadrantXAxisTextFill")) quadrantXAxisTextFill = value;
-  else if (key == QStringLiteral("quadrantYAxisTextFill")) quadrantYAxisTextFill = value;
-  else if (key == QStringLiteral("quadrantInternalBorderStrokeFill")) quadrantInternalBorderStrokeFill = value;
-  else if (key == QStringLiteral("quadrantExternalBorderStrokeFill")) quadrantExternalBorderStrokeFill = value;
-  else if (key == QStringLiteral("quadrantTitleFill")) quadrantTitleFill = value;
-  else if (key == QStringLiteral("xyChart.backgroundColor")) xyChart.backgroundColor = value;
-  else if (key == QStringLiteral("xyChart.titleColor")) xyChart.titleColor = value;
-  else if (key == QStringLiteral("xyChart.dataLabelColor")) xyChart.dataLabelColor = value;
-  else if (key == QStringLiteral("xyChart.xAxisTitleColor")) xyChart.xAxisTitleColor = value;
-  else if (key == QStringLiteral("xyChart.xAxisLabelColor")) xyChart.xAxisLabelColor = value;
-  else if (key == QStringLiteral("xyChart.xAxisTickColor")) xyChart.xAxisTickColor = value;
-  else if (key == QStringLiteral("xyChart.xAxisLineColor")) xyChart.xAxisLineColor = value;
-  else if (key == QStringLiteral("xyChart.yAxisTitleColor")) xyChart.yAxisTitleColor = value;
-  else if (key == QStringLiteral("xyChart.yAxisLabelColor")) xyChart.yAxisLabelColor = value;
-  else if (key == QStringLiteral("xyChart.yAxisTickColor")) xyChart.yAxisTickColor = value;
-  else if (key == QStringLiteral("xyChart.yAxisLineColor")) xyChart.yAxisLineColor = value;
-  else if (key == QStringLiteral("xyChart.plotColorPalette")) xyChart.plotColorPalette = value;
-  else if (key == QStringLiteral("packet.byteFontSize")) packet.byteFontSize = value;
-  else if (key == QStringLiteral("packet.startByteColor")) packet.startByteColor = value;
-  else if (key == QStringLiteral("packet.endByteColor")) packet.endByteColor = value;
-  else if (key == QStringLiteral("packet.labelColor")) packet.labelColor = value;
-  else if (key == QStringLiteral("packet.labelFontSize")) packet.labelFontSize = value;
-  else if (key == QStringLiteral("packet.titleColor")) packet.titleColor = value;
-  else if (key == QStringLiteral("packet.titleFontSize")) packet.titleFontSize = value;
-  else if (key == QStringLiteral("packet.blockStrokeColor")) packet.blockStrokeColor = value;
-  else if (key == QStringLiteral("packet.blockStrokeWidth")) packet.blockStrokeWidth = value;
-  else if (key == QStringLiteral("packet.blockFillColor")) packet.blockFillColor = value;
-  else if (key == QStringLiteral("cynefin.domainFontSize")) cynefin.domainFontSize = value;
-  else if (key == QStringLiteral("cynefin.itemFontSize")) cynefin.itemFontSize = value;
-  else if (key == QStringLiteral("cynefin.boundaryColor")) cynefin.boundaryColor = value;
-  else if (key == QStringLiteral("cynefin.boundaryWidth")) cynefin.boundaryWidth = value;
-  else if (key == QStringLiteral("cynefin.cliffColor")) cynefin.cliffColor = value;
-  else if (key == QStringLiteral("cynefin.cliffWidth")) cynefin.cliffWidth = value;
-  else if (key == QStringLiteral("cynefin.arrowColor")) cynefin.arrowColor = value;
-  else if (key == QStringLiteral("cynefin.arrowWidth")) cynefin.arrowWidth = value;
-  else if (key == QStringLiteral("cynefin.complexBg")) cynefin.complexBg = value;
-  else if (key == QStringLiteral("cynefin.complicatedBg")) cynefin.complicatedBg = value;
-  else if (key == QStringLiteral("cynefin.chaoticBg")) cynefin.chaoticBg = value;
-  else if (key == QStringLiteral("cynefin.clearBg")) cynefin.clearBg = value;
-  else if (key == QStringLiteral("cynefin.confusionBg")) cynefin.confusionBg = value;
-  else if (key == QStringLiteral("cynefin.textColor")) cynefin.textColor = value;
-  else if (key == QStringLiteral("cynefin.labelColor")) cynefin.labelColor = value;
-  else if (key == QStringLiteral("wardley.backgroundColor")) wardley.backgroundColor = value;
-  else if (key == QStringLiteral("wardley.axisColor")) wardley.axisColor = value;
-  else if (key == QStringLiteral("wardley.axisTextColor")) wardley.axisTextColor = value;
-  else if (key == QStringLiteral("wardley.gridColor")) wardley.gridColor = value;
-  else if (key == QStringLiteral("wardley.componentFill")) wardley.componentFill = value;
-  else if (key == QStringLiteral("wardley.componentStroke")) wardley.componentStroke = value;
-  else if (key == QStringLiteral("wardley.componentLabelColor")) wardley.componentLabelColor = value;
-  else if (key == QStringLiteral("wardley.linkStroke")) wardley.linkStroke = value;
-  else if (key == QStringLiteral("wardley.evolutionStroke")) wardley.evolutionStroke = value;
-  else if (key == QStringLiteral("wardley.annotationStroke")) wardley.annotationStroke = value;
-  else if (key == QStringLiteral("wardley.annotationTextColor")) wardley.annotationTextColor = value;
-  else if (key == QStringLiteral("wardley.annotationFill")) wardley.annotationFill = value;
+  if (key == QStringLiteral("mainContrastColor"))
+    mainContrastColor = value;
+  else if (key == QStringLiteral("taskTextDarkColor"))
+    taskTextDarkColor = value;
+  else if (key == QStringLiteral("sectionBkgColor"))
+    sectionBkgColor = value;
+  else if (key == QStringLiteral("altSectionBkgColor"))
+    altSectionBkgColor = value;
+  else if (key == QStringLiteral("sectionBkgColor2"))
+    sectionBkgColor2 = value;
+  else if (key == QStringLiteral("excludeBkgColor"))
+    excludeBkgColor = value;
+  else if (key == QStringLiteral("taskBorderColor"))
+    taskBorderColor = value;
+  else if (key == QStringLiteral("taskBkgColor"))
+    taskBkgColor = value;
+  else if (key == QStringLiteral("taskTextColor"))
+    taskTextColor = value;
+  else if (key == QStringLiteral("taskTextOutsideColor"))
+    taskTextOutsideColor = value;
+  else if (key == QStringLiteral("taskTextLightColor"))
+    taskTextLightColor = value;
+  else if (key == QStringLiteral("taskTextClickableColor"))
+    taskTextClickableColor = value;
+  else if (key == QStringLiteral("activeTaskBorderColor"))
+    activeTaskBorderColor = value;
+  else if (key == QStringLiteral("activeTaskBkgColor"))
+    activeTaskBkgColor = value;
+  else if (key == QStringLiteral("gridColor"))
+    gridColor = value;
+  else if (key == QStringLiteral("doneTaskBkgColor"))
+    doneTaskBkgColor = value;
+  else if (key == QStringLiteral("doneTaskBorderColor"))
+    doneTaskBorderColor = value;
+  else if (key == QStringLiteral("critBorderColor"))
+    critBorderColor = value;
+  else if (key == QStringLiteral("critBkgColor"))
+    critBkgColor = value;
+  else if (key == QStringLiteral("todayLineColor"))
+    todayLineColor = value;
+  else if (key == QStringLiteral("vertLineColor"))
+    vertLineColor = value;
+  else if (key == QStringLiteral("pieTitleTextColor"))
+    pieTitleTextColor = value;
+  else if (key == QStringLiteral("pieSectionTextColor"))
+    pieSectionTextColor = value;
+  else if (key == QStringLiteral("pieLegendTextColor"))
+    pieLegendTextColor = value;
+  else if (key == QStringLiteral("pieStrokeColor"))
+    pieStrokeColor = value;
+  else if (key == QStringLiteral("pieStrokeWidth"))
+    pieStrokeWidth = value;
+  else if (key == QStringLiteral("pieOpacity"))
+    pieOpacity = value;
+  else if (key == QStringLiteral("pieOuterStrokeColor"))
+    pieOuterStrokeColor = value;
+  else if (key == QStringLiteral("pieOuterStrokeWidth"))
+    pieOuterStrokeWidth = value;
+  else if (key == QStringLiteral("pieTitleTextSize"))
+    pieTitleTextSize = value;
+  else if (key == QStringLiteral("pieSectionTextSize"))
+    pieSectionTextSize = value;
+  else if (key == QStringLiteral("pieLegendTextSize"))
+    pieLegendTextSize = value;
+  else if (key == QStringLiteral("vennTitleTextColor"))
+    vennTitleTextColor = value;
+  else if (key == QStringLiteral("vennSetTextColor"))
+    vennSetTextColor = value;
+  else if (key == QStringLiteral("quadrantPointFill"))
+    quadrantPointFill = value;
+  else if (key == QStringLiteral("quadrantPointTextFill"))
+    quadrantPointTextFill = value;
+  else if (key == QStringLiteral("quadrantXAxisTextFill"))
+    quadrantXAxisTextFill = value;
+  else if (key == QStringLiteral("quadrantYAxisTextFill"))
+    quadrantYAxisTextFill = value;
+  else if (key == QStringLiteral("quadrantInternalBorderStrokeFill"))
+    quadrantInternalBorderStrokeFill = value;
+  else if (key == QStringLiteral("quadrantExternalBorderStrokeFill"))
+    quadrantExternalBorderStrokeFill = value;
+  else if (key == QStringLiteral("quadrantTitleFill"))
+    quadrantTitleFill = value;
+  else if (key == QStringLiteral("xyChart.backgroundColor"))
+    xyChart.backgroundColor = value;
+  else if (key == QStringLiteral("xyChart.titleColor"))
+    xyChart.titleColor = value;
+  else if (key == QStringLiteral("xyChart.dataLabelColor"))
+    xyChart.dataLabelColor = value;
+  else if (key == QStringLiteral("xyChart.xAxisTitleColor"))
+    xyChart.xAxisTitleColor = value;
+  else if (key == QStringLiteral("xyChart.xAxisLabelColor"))
+    xyChart.xAxisLabelColor = value;
+  else if (key == QStringLiteral("xyChart.xAxisTickColor"))
+    xyChart.xAxisTickColor = value;
+  else if (key == QStringLiteral("xyChart.xAxisLineColor"))
+    xyChart.xAxisLineColor = value;
+  else if (key == QStringLiteral("xyChart.yAxisTitleColor"))
+    xyChart.yAxisTitleColor = value;
+  else if (key == QStringLiteral("xyChart.yAxisLabelColor"))
+    xyChart.yAxisLabelColor = value;
+  else if (key == QStringLiteral("xyChart.yAxisTickColor"))
+    xyChart.yAxisTickColor = value;
+  else if (key == QStringLiteral("xyChart.yAxisLineColor"))
+    xyChart.yAxisLineColor = value;
+  else if (key == QStringLiteral("xyChart.plotColorPalette"))
+    xyChart.plotColorPalette = value;
+  else if (key == QStringLiteral("packet.byteFontSize"))
+    packet.byteFontSize = value;
+  else if (key == QStringLiteral("packet.startByteColor"))
+    packet.startByteColor = value;
+  else if (key == QStringLiteral("packet.endByteColor"))
+    packet.endByteColor = value;
+  else if (key == QStringLiteral("packet.labelColor"))
+    packet.labelColor = value;
+  else if (key == QStringLiteral("packet.labelFontSize"))
+    packet.labelFontSize = value;
+  else if (key == QStringLiteral("packet.titleColor"))
+    packet.titleColor = value;
+  else if (key == QStringLiteral("packet.titleFontSize"))
+    packet.titleFontSize = value;
+  else if (key == QStringLiteral("packet.blockStrokeColor"))
+    packet.blockStrokeColor = value;
+  else if (key == QStringLiteral("packet.blockStrokeWidth"))
+    packet.blockStrokeWidth = value;
+  else if (key == QStringLiteral("packet.blockFillColor"))
+    packet.blockFillColor = value;
+  else if (key == QStringLiteral("cynefin.domainFontSize"))
+    cynefin.domainFontSize = value;
+  else if (key == QStringLiteral("cynefin.itemFontSize"))
+    cynefin.itemFontSize = value;
+  else if (key == QStringLiteral("cynefin.boundaryColor"))
+    cynefin.boundaryColor = value;
+  else if (key == QStringLiteral("cynefin.boundaryWidth"))
+    cynefin.boundaryWidth = value;
+  else if (key == QStringLiteral("cynefin.cliffColor"))
+    cynefin.cliffColor = value;
+  else if (key == QStringLiteral("cynefin.cliffWidth"))
+    cynefin.cliffWidth = value;
+  else if (key == QStringLiteral("cynefin.arrowColor"))
+    cynefin.arrowColor = value;
+  else if (key == QStringLiteral("cynefin.arrowWidth"))
+    cynefin.arrowWidth = value;
+  else if (key == QStringLiteral("cynefin.complexBg"))
+    cynefin.complexBg = value;
+  else if (key == QStringLiteral("cynefin.complicatedBg"))
+    cynefin.complicatedBg = value;
+  else if (key == QStringLiteral("cynefin.chaoticBg"))
+    cynefin.chaoticBg = value;
+  else if (key == QStringLiteral("cynefin.clearBg"))
+    cynefin.clearBg = value;
+  else if (key == QStringLiteral("cynefin.confusionBg"))
+    cynefin.confusionBg = value;
+  else if (key == QStringLiteral("cynefin.textColor"))
+    cynefin.textColor = value;
+  else if (key == QStringLiteral("cynefin.labelColor"))
+    cynefin.labelColor = value;
+  else if (key == QStringLiteral("wardley.backgroundColor"))
+    wardley.backgroundColor = value;
+  else if (key == QStringLiteral("wardley.axisColor"))
+    wardley.axisColor = value;
+  else if (key == QStringLiteral("wardley.axisTextColor"))
+    wardley.axisTextColor = value;
+  else if (key == QStringLiteral("wardley.gridColor"))
+    wardley.gridColor = value;
+  else if (key == QStringLiteral("wardley.componentFill"))
+    wardley.componentFill = value;
+  else if (key == QStringLiteral("wardley.componentStroke"))
+    wardley.componentStroke = value;
+  else if (key == QStringLiteral("wardley.componentLabelColor"))
+    wardley.componentLabelColor = value;
+  else if (key == QStringLiteral("wardley.linkStroke"))
+    wardley.linkStroke = value;
+  else if (key == QStringLiteral("wardley.evolutionStroke"))
+    wardley.evolutionStroke = value;
+  else if (key == QStringLiteral("wardley.annotationStroke"))
+    wardley.annotationStroke = value;
+  else if (key == QStringLiteral("wardley.annotationTextColor"))
+    wardley.annotationTextColor = value;
+  else if (key == QStringLiteral("wardley.annotationFill"))
+    wardley.annotationFill = value;
 }
 
-}  // namespace muffin::mermaid::flowtheme
+} // namespace muffin::mermaid::flowtheme

@@ -76,4 +76,4 @@ private:
   QPushButton* winSetDefaultButton_ = nullptr;
 };
 
-}  // namespace muffin
+} // namespace muffin

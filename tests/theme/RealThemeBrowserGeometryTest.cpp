@@ -21,23 +21,27 @@ void boxNear(const QRectF& actual, QJsonArray expected, const QString& message) 
 }
 void testRealThemeBrowserGeometry() {
   const auto reference =
-      QJsonDocument::fromJson(readFixture(QStringLiteral(MUFFIN_SOURCE_DIR "/tests/fixtures/theme/real-theme-browser.json")).toUtf8())
+      QJsonDocument::fromJson(
+          readFixture(QStringLiteral(MUFFIN_SOURCE_DIR "/tests/fixtures/theme/real-theme-browser.json")).toUtf8())
           .object();
   const auto family = browserLayoutFont(reference).value("muffinfixturesans");
   const auto sources = reference["sources"].toObject();
   for (auto it = sources.begin(); it != sources.end(); ++it) {
     auto text = readFixture(QStringLiteral(MUFFIN_SOURCE_DIR "/") + it.key());
     text.replace("\r\n", "\n");
-    require(QString::fromLatin1(QCryptographicHash::hash(text.toUtf8(), QCryptographicHash::Sha256).toHex()) == it.value().toString(),
+    require(QString::fromLatin1(QCryptographicHash::hash(text.toUtf8(), QCryptographicHash::Sha256).toHex()) ==
+                it.value().toString(),
             "real theme CSS changed; regenerate the browser geometry reference");
   }
   for (const auto value : reference["cases"].toArray()) {
     const auto entry = value.toObject();
     const auto context = entry["id"].toString();
-    auto css = readFixture(QStringLiteral(MUFFIN_SOURCE_DIR "/resources/themes/") + entry["theme"].toString() + ".css") + '\n' +
-               reference["fixedFontCss"].toString();
+    auto css =
+        readFixture(QStringLiteral(MUFFIN_SOURCE_DIR "/resources/themes/") + entry["theme"].toString() + ".css") +
+        '\n' + reference["fixedFontCss"].toString();
     css.replace("MuffinFixtureSans", family);
-    auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(css, context, QStringLiteral(MUFFIN_SOURCE_DIR "/resources/themes")));
+    auto theme = RenderTheme::fromDefinition(
+        CssThemeMapper::fromCss(css, context, QStringLiteral(MUFFIN_SOURCE_DIR "/resources/themes")));
     const auto width = entry["width"].toDouble();
     theme.updateForViewport(width, 1000);
     DocumentSession session;
@@ -64,7 +68,8 @@ void testRealThemeBrowserGeometry() {
       const auto chars = expectedBlock["characters"].toArray();
       require(text->visibleText().size() == chars.size(), context + " visible text size");
       for (int j = 0; j < chars.size(); ++j) {
-        if (text->visibleText()[j].isSpace()) continue;
+        if (text->visibleText()[j].isSpace())
+          continue;
         const auto caret = text->cursorRect(j);
         const auto character = chars[j].toObject();
         requireNear(caret.x() + block->inlineTextOrigin().x(), character["x"].toDouble(), context + " character x");
@@ -75,11 +80,12 @@ void testRealThemeBrowserGeometry() {
       const auto components = expectedBlock["components"].toArray();
       QVector<const LayoutBox*> componentBoxes;
       for (const auto& box : text->inlineBoxes())
-        if (box.hostKey == "code" || box.hostKey == "kbd") componentBoxes.push_back(&box);
+        if (box.hostKey == "code" || box.hostKey == "kbd")
+          componentBoxes.push_back(&box);
       require(componentBoxes.size() == components.size(), context + " code/keyboard component count");
       for (int j = 0; j < components.size(); ++j)
-        boxNear(componentBoxes[j]->borderBox.translated(block->inlineTextOrigin()), components[j].toObject()["border"].toArray(),
-                context + " component box");
+        boxNear(componentBoxes[j]->borderBox.translated(block->inlineTextOrigin()),
+                components[j].toObject()["border"].toArray(), context + " component box");
     }
     const auto compare = [&] {
       for (const auto policy : {DocumentLayout::BuildPolicy::Eager, DocumentLayout::BuildPolicy::Lazy}) {
@@ -90,12 +96,14 @@ void testRealThemeBrowserGeometry() {
           const auto* a = layout.block(node->id());
           const auto* b = fresh.block(node->id());
           require(a && b && a->rect() == b->rect(), context + " full/lazy/incremental box");
-          if (!a->inlineLayout()) continue;
+          if (!a->inlineLayout())
+            continue;
           const auto* x = a->inlineLayout();
           const auto* y = b->inlineLayout();
           require(x->selectionRects(0, x->visibleText().size()) == y->selectionRects(0, y->visibleText().size()),
                   context + " selection consistency");
-          for (int i = 0; i <= x->visibleText().size(); ++i) require(x->cursorRect(i) == y->cursorRect(i), context + " caret consistency");
+          for (int i = 0; i <= x->visibleText().size(); ++i)
+            require(x->cursorRect(i) == y->cursorRect(i), context + " caret consistency");
         }
       }
     };
@@ -110,7 +118,7 @@ void testRealThemeBrowserGeometry() {
     compare();
   }
 }
-}  // namespace
+} // namespace
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
   qputenv("QT_FONT_DPI", "96");

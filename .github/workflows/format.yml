@@ -1,0 +1,29 @@
+name: Code format
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  clang-format:
+    name: clang-format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install pinned formatter
+        run: python -m pip install -r requirements-format.txt
+
+      - name: Check C/C++ formatting
+        run: python scripts/format_cpp.py --check

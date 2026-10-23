@@ -83,15 +83,15 @@ struct TimelineCssOverrides {
   // The transient classless probe <text> upstream measures node heights with:
   // its font feeds wrap and bbox, so font rules change layout.
   TimelineElementCss measureText;
-  TimelineElementCss title;  // classless svg-level <text>
-  TimelineElementCss axis;   // the axis lineWrapper <line>
+  TimelineElementCss title; // classless svg-level <text>
+  TimelineElementCss axis;  // the axis lineWrapper <line>
   struct Node {
-    TimelineElementCss box;      // path.node-bkg
-    TimelineElementCss divider;  // line.node-line-N
-    TimelineElementCss text;     // classless <text> in the node group
+    TimelineElementCss box;     // path.node-bkg
+    TimelineElementCss divider; // line.node-line-N
+    TimelineElementCss text;    // classless <text> in the node group
   };
-  QVector<Node> nodes;  // scene.nodes order
-  QVector<TimelineElementCss> connectors;  // scene.lines order, non-axis
+  QVector<Node> nodes;                    // scene.nodes order
+  QVector<TimelineElementCss> connectors; // scene.lines order, non-axis
 };
 
 struct TimelineTextLine {
@@ -180,12 +180,11 @@ struct TimelineScene : MermaidScene {
   QString markerDefinitionId = QStringLiteral("arrowhead");
 };
 
-TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config,
-                                 TimelineSceneStyle style,
+TimelineScene buildTimelineScene(const TimelineData& data, TimelineConfig config, TimelineSceneStyle style,
                                  const TimelineCssOverrides* css = nullptr);
 
 // The 4ex title presentation attribute resolved against the root font, shared
 // by the builder (ink bounds) and the adapter's cascade tree.
 qreal timelineTitleFontSizePx(const TimelineSceneStyle& style);
 
-}  // namespace muffin::mermaid::timeline
+} // namespace muffin::mermaid::timeline

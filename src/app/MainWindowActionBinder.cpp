@@ -19,7 +19,8 @@ Q_LOGGING_CATEGORY(actionDetailProbe, "muffin.perf.detail", QtWarningMsg)
 
 namespace {
 void updateCommandHint(QAction* action, const CommandDeclaration& declaration, const MainWindow& window) {
-  if (!declaration.disabledReason) return;
+  if (!declaration.disabledReason)
+    return;
   const auto reason = action->isEnabled() ? QString() : declaration.disabledReason(window);
   action->setToolTip(reason);
   action->setStatusTip(reason);
@@ -83,9 +84,10 @@ bool MainWindow::commandInlineFormatEnabled() const {
 }
 
 bool MainWindow::commandSingleInlineSelection() const {
-  if (commandContextSnapshotActive_) return commandContextSnapshot_.singleInlineSelection;
-  return !tab_->session.isOpenInProgress() && !tab_->backend->isSourceMode()
-      && tab_->renderCommands.isSingleInlineSelection();
+  if (commandContextSnapshotActive_)
+    return commandContextSnapshot_.singleInlineSelection;
+  return !tab_->session.isOpenInProgress() && !tab_->backend->isSourceMode() &&
+         tab_->renderCommands.isSingleInlineSelection();
 }
 
 bool MainWindow::commandInTableCell() const {
@@ -119,8 +121,8 @@ MainWindow::CommandContextSnapshot MainWindow::captureCommandContext() const {
   const bool sourceMode = tab_->backend->isSourceMode();
   snapshot.hasCursor = sourceMode || tab_->editorController.selection().hasCursor();
   snapshot.hasSelection = sourceMode
-      ? tab_->editor->hasSelection()
-      : snapshot.hasCursor && !tab_->editorController.selection().selection().isCollapsed();
+                              ? tab_->editor->hasSelection()
+                              : snapshot.hasCursor && !tab_->editorController.selection().selection().isCollapsed();
   if (sourceMode) {
     return snapshot;
   }
@@ -129,7 +131,8 @@ MainWindow::CommandContextSnapshot MainWindow::captureCommandContext() const {
   snapshot.inlineFormatEnabled = tab_->renderCommands.isInlineFormatEnabled();
   snapshot.singleInlineSelection = !tab_->session.isOpenInProgress() && tab_->renderCommands.isSingleInlineSelection();
   const auto cursorState = tab_->renderCommands.currentCursorState();
-  if (snapshot.inlineFormatEnabled) snapshot.inlineFormats = cursorState.formats;
+  if (snapshot.inlineFormatEnabled)
+    snapshot.inlineFormats = cursorState.formats;
   snapshot.inTableCell = tab_->renderCommands.hasCurrentTableCell();
   snapshot.onImage = !cursorState.imageSource.isEmpty();
   if (snapshot.onImage) {
@@ -139,7 +142,8 @@ MainWindow::CommandContextSnapshot MainWindow::captureCommandContext() const {
 }
 
 CursorFormatState MainWindow::commandInlineFormats() const {
-  return commandContextSnapshotActive_ ? commandContextSnapshot_.inlineFormats : tab_->renderCommands.currentInlineFormats();
+  return commandContextSnapshotActive_ ? commandContextSnapshot_.inlineFormats
+                                       : tab_->renderCommands.currentInlineFormats();
 }
 
 // ---- action state refresh (table-driven) -----------------------------------
@@ -206,15 +210,33 @@ void MainWindow::updateFileActions() {
     reopenEncodingMenu_->setEnabled(!tab_->session.filePath().isEmpty());
   }
 }
-void MainWindow::updateEditActions() { updateActionsForCategory(CommandCategory::Edit); }
-void MainWindow::updateTableActions() { updateActionsForCategory(CommandCategory::Table); }
-void MainWindow::updateParagraphActions() { updateActionsForCategory(CommandCategory::Paragraph); }
-void MainWindow::updateCodeActions() { updateActionsForCategory(CommandCategory::Code); }
-void MainWindow::updateHtmlActions() { updateActionsForCategory(CommandCategory::Html); }
-void MainWindow::updateMathActions() { updateActionsForCategory(CommandCategory::Math); }
-void MainWindow::updateImageActions() { updateActionsForCategory(CommandCategory::Image); }
-void MainWindow::updateFormatActions() { updateActionsForCategory(CommandCategory::Format); }
-void MainWindow::updateThemeActions() { updateActionsForCategory(CommandCategory::Theme); }
+void MainWindow::updateEditActions() {
+  updateActionsForCategory(CommandCategory::Edit);
+}
+void MainWindow::updateTableActions() {
+  updateActionsForCategory(CommandCategory::Table);
+}
+void MainWindow::updateParagraphActions() {
+  updateActionsForCategory(CommandCategory::Paragraph);
+}
+void MainWindow::updateCodeActions() {
+  updateActionsForCategory(CommandCategory::Code);
+}
+void MainWindow::updateHtmlActions() {
+  updateActionsForCategory(CommandCategory::Html);
+}
+void MainWindow::updateMathActions() {
+  updateActionsForCategory(CommandCategory::Math);
+}
+void MainWindow::updateImageActions() {
+  updateActionsForCategory(CommandCategory::Image);
+}
+void MainWindow::updateFormatActions() {
+  updateActionsForCategory(CommandCategory::Format);
+}
+void MainWindow::updateThemeActions() {
+  updateActionsForCategory(CommandCategory::Theme);
+}
 
 void MainWindow::updateContextActions() {
   diag::ScopedPerfProbe perf("main.contextActions", actionDetailProbe());
@@ -223,17 +245,17 @@ void MainWindow::updateContextActions() {
   diag::ScopedPerfProbe predicatesPerf("main.actionPredicates", actionDetailProbe());
   for (const CommandDeclaration& decl : commandDeclarations()) {
     switch (decl.category) {
-      case CommandCategory::Edit:
-      case CommandCategory::Table:
-      case CommandCategory::Paragraph:
-      case CommandCategory::Code:
-      case CommandCategory::Html:
-      case CommandCategory::Math:
-      case CommandCategory::Image:
-      case CommandCategory::Format:
-        break;
-      default:
-        continue;
+    case CommandCategory::Edit:
+    case CommandCategory::Table:
+    case CommandCategory::Paragraph:
+    case CommandCategory::Code:
+    case CommandCategory::Html:
+    case CommandCategory::Math:
+    case CommandCategory::Image:
+    case CommandCategory::Format:
+      break;
+    default:
+      continue;
     }
     QAction* action = commands_.action(decl.id);
     if (!action) {
@@ -316,8 +338,9 @@ void MainWindow::restorePersistentActionStates() {
     window.setWindowFlag(Qt::WindowStaysOnTopHint, alwaysOnTop);
     // main() shows the window after session restoration. Changing a window
     // flag during construction must not expose its unfinished startup view.
-    if (wasVisible) window.show();
+    if (wasVisible)
+      window.show();
   }
 }
 
-}  // namespace muffin
+} // namespace muffin

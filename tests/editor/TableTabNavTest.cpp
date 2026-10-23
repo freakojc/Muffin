@@ -28,8 +28,8 @@ DocumentSession& setupTableDoc(DocumentSession& session, EditorController& contr
 }
 
 // Activate the caret at the start of a body cell.
-void activateCell(EditorController& controller, EditorView& view, MarkdownNode* table, MarkdownNode* cell,
-                  int row, int column) {
+void activateCell(EditorController& controller, EditorView& view, MarkdownNode* table, MarkdownNode* cell, int row,
+                  int column) {
   HitTestResult hit;
   hit.zone = HitTestResult::Zone::TableCell;
   hit.blockId = table->id();
@@ -60,8 +60,7 @@ void testTabMovesToNextCell() {
   DocumentSession session;
   EditorController controller;
   EditorView view;
-  setupTableDoc(session, controller, view,
-                QStringLiteral("| a | b |\n| --- | --- |\n| c | d |"));
+  setupTableDoc(session, controller, view, QStringLiteral("| a | b |\n| --- | --- |\n| c | d |"));
 
   MarkdownNode* table = blockAt(session, 0);
   activateCell(controller, view, table, cellOfRow(table, 0, 0), 1, 0);
@@ -82,8 +81,7 @@ void testBacktabMovesToPreviousCell() {
   DocumentSession session;
   EditorController controller;
   EditorView view;
-  setupTableDoc(session, controller, view,
-                QStringLiteral("| a | b |\n| --- | --- |\n| c | d |"));
+  setupTableDoc(session, controller, view, QStringLiteral("| a | b |\n| --- | --- |\n| c | d |"));
 
   MarkdownNode* table = blockAt(session, 0);
   activateCell(controller, view, table, cellOfRow(table, 0, 1), 1, 1);
@@ -102,8 +100,7 @@ void testBacktabAtFirstCellLeavesTable() {
   DocumentSession session;
   EditorController controller;
   EditorView view;
-  setupTableDoc(session, controller, view,
-                QStringLiteral("intro text\n\n| a | b |\n| --- | --- |\n| c | d |"));
+  setupTableDoc(session, controller, view, QStringLiteral("intro text\n\n| a | b |\n| --- | --- |\n| c | d |"));
 
   MarkdownNode* table = blockAt(session, 1);
   activateCell(controller, view, table, cellOfRow(table, 1, 0), 0, 0);
@@ -117,8 +114,7 @@ void testTabNoLongerInsertsZeroWidthSpaceInCells() {
   DocumentSession session;
   EditorController controller;
   EditorView view;
-  setupTableDoc(session, controller, view,
-                QStringLiteral("| a | b |\n| --- | --- |\n| c | d |"));
+  setupTableDoc(session, controller, view, QStringLiteral("| a | b |\n| --- | --- |\n| c | d |"));
 
   MarkdownNode* table = blockAt(session, 0);
   activateCell(controller, view, table, cellOfRow(table, 0, 0), 1, 0);
@@ -130,7 +126,7 @@ void testTabNoLongerInsertsZeroWidthSpaceInCells() {
           "no accidental text changes in the table");
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {

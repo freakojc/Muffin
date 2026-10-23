@@ -80,4 +80,4 @@ private:
   int editingIndex_ = -1;
 };
 
-}  // namespace muffin
+} // namespace muffin

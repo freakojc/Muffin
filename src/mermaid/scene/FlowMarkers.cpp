@@ -15,14 +15,17 @@ QString markerEndType(const QString& edgeType) {
     return QStringLiteral("crossEnd");
   if (edgeType == QLatin1String("arrow_circle") || edgeType == QLatin1String("double_arrow_circle"))
     return QStringLiteral("circleEnd");
-  return QString();  // arrow_open / unknown -> no marker
+  return QString(); // arrow_open / unknown -> no marker
 }
 
 QString markerStartType(const QString& edgeType) {
-  if (edgeType == QLatin1String("double_arrow_point")) return QStringLiteral("pointStart");
-  if (edgeType == QLatin1String("double_arrow_cross")) return QStringLiteral("crossStart");
-  if (edgeType == QLatin1String("double_arrow_circle")) return QStringLiteral("circleStart");
-  return QString();  // single-direction edges have no start marker
+  if (edgeType == QLatin1String("double_arrow_point"))
+    return QStringLiteral("pointStart");
+  if (edgeType == QLatin1String("double_arrow_cross"))
+    return QStringLiteral("crossStart");
+  if (edgeType == QLatin1String("double_arrow_circle"))
+    return QStringLiteral("circleStart");
+  return QString(); // single-direction edges have no start marker
 }
 
 // Marker <def> geometry (chunk-4F4KDU6L.mjs L887-948, captured via the rendered
@@ -31,23 +34,30 @@ MarkerGeometry markerGeometry(const QString& type) {
   MarkerGeometry g;
   if (type == QLatin1String("pointEnd")) {
     g.viewBox = QStringLiteral("0 0 10 10");
-    g.refX = 5; g.refY = 5;
-    g.markerWidth = 8; g.markerHeight = 8;
+    g.refX = 5;
+    g.refY = 5;
+    g.markerWidth = 8;
+    g.markerHeight = 8;
     g.tag = QStringLiteral("path");
     g.pathData = QStringLiteral("M 0 0 L 10 5 L 0 10 z");
   } else if (type == QLatin1String("pointStart")) {
     g.viewBox = QStringLiteral("0 0 10 10");
-    g.refX = 4.5; g.refY = 5;
-    g.markerWidth = 8; g.markerHeight = 8;
+    g.refX = 4.5;
+    g.refY = 5;
+    g.markerWidth = 8;
+    g.markerHeight = 8;
     g.tag = QStringLiteral("path");
     g.pathData = QStringLiteral("M 0 5 L 10 10 L 10 0 z");
   } else if (type == QLatin1String("circleEnd") || type == QLatin1String("circleStart")) {
     g.viewBox = QStringLiteral("0 0 10 10");
     g.refX = type == QLatin1String("circleEnd") ? 11 : -1;
     g.refY = 5;
-    g.markerWidth = 11; g.markerHeight = 11;
+    g.markerWidth = 11;
+    g.markerHeight = 11;
     g.tag = QStringLiteral("circle");
-    g.cx = 5; g.cy = 5; g.r = 5;
+    g.cx = 5;
+    g.cy = 5;
+    g.r = 5;
   } else if (type == QLatin1String("crossEnd") || type == QLatin1String("crossStart")) {
     g.viewBox = QStringLiteral("0 0 11 11");
     g.refX = type == QLatin1String("crossEnd") ? 12 : -1;
@@ -60,4 +70,4 @@ MarkerGeometry markerGeometry(const QString& type) {
   return g;
 }
 
-}  // namespace muffin::mermaid::flowscene
+} // namespace muffin::mermaid::flowscene

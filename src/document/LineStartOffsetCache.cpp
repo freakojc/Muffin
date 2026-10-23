@@ -44,7 +44,7 @@ qsizetype utf8ByteLength(uint ucs4) {
   return 4;
 }
 
-}  // namespace
+} // namespace
 
 LineStartOffsetCache::LineStartOffsetCache() {
   rebuild(QStringView());
@@ -62,7 +62,7 @@ void LineStartOffsetCache::rebuild(QStringView text) {
   lineIsAscii_.clear();
   lineIsAscii_.reserve(qMax<qsizetype>(1, text.size() / 48));
   lineStarts_.push_back(0);
-  bool ascii = true;  // ascii-ness of the line starting at the last pushed lineStarts_ entry
+  bool ascii = true; // ascii-ness of the line starting at the last pushed lineStarts_ entry
   for (qsizetype i = 0; i < text.size(); ++i) {
     const QChar c = text.at(i);
     if (c.unicode() > 0x7F) {
@@ -74,7 +74,7 @@ void LineStartOffsetCache::rebuild(QStringView text) {
       ascii = true;
     }
   }
-  lineIsAscii_.push_back(ascii ? 1 : 0);  // the final line (no trailing newline)
+  lineIsAscii_.push_back(ascii ? 1 : 0); // the final line (no trailing newline)
 }
 
 void LineStartOffsetCache::bind(const PieceTable& text) {
@@ -84,8 +84,8 @@ void LineStartOffsetCache::bind(const PieceTable& text) {
   lineIsAscii_.clear();
 }
 
-void LineStartOffsetCache::applyEdit(
-    qsizetype sourceStart, qsizetype removedLen, qsizetype insertedLen, const PieceTable& fullPostEditText) {
+void LineStartOffsetCache::applyEdit(qsizetype sourceStart, qsizetype removedLen, qsizetype insertedLen,
+                                     const PieceTable& fullPostEditText) {
   if (pieceText_) {
     Q_UNUSED(sourceStart)
     Q_UNUSED(removedLen)
@@ -101,8 +101,8 @@ void LineStartOffsetCache::applyEdit(
 
   // All offsets below are pre-edit until winEndPost. lineStarts_/textSize_ still describe the
   // pre-edit text here; textSize_ is refreshed at the end.
-  const int firstLine = lineForOffset(sourceStart);      // index of first entry > sourceStart
-  const int suffixStartIdx = lineForOffset(sourceEnd);   // index of first entry > sourceEnd
+  const int firstLine = lineForOffset(sourceStart);    // index of first entry > sourceStart
+  const int suffixStartIdx = lineForOffset(sourceEnd); // index of first entry > sourceEnd
   const qsizetype winStartPre = lineStarts_.at(firstLine - 1);
 
   const bool hasSuffix = suffixStartIdx < lineStarts_.size();
@@ -229,7 +229,7 @@ QStringView LineStartOffsetCache::lineText(QStringView doc, int line) const {
     return {};
   }
   const qsizetype start = lineStartOffset(line);
-  const qsizetype end = lineEndOffset(line);  // '\n' position (exclusive content end); textSize_ for the last line
+  const qsizetype end = lineEndOffset(line); // '\n' position (exclusive content end); textSize_ for the last line
   if (end < start || end > doc.size()) {
     return {};
   }
@@ -280,4 +280,4 @@ qreal LineStartOffsetCache::byteColPerfMs() {
   return g_byteColNs / 1000000.0;
 }
 
-}  // namespace muffin
+} // namespace muffin

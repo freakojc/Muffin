@@ -22,7 +22,6 @@ namespace muffin::mermaid::pie {
 
 struct PieScene;
 
-void paintPieScene(const PieScene& scene, QPainter& painter,
-                   const MermaidPaintOptions& options);
+void paintPieScene(const PieScene& scene, QPainter& painter, const MermaidPaintOptions& options);
 
-}  // namespace muffin::mermaid::pie
+} // namespace muffin::mermaid::pie

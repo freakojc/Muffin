@@ -34,9 +34,8 @@ struct Diagram {
   // Run the full pipeline (parse -> measure -> layout -> scene) and return a
   // Ready entry, or throw a diagram-specific parse error (caught centrally by
   // the orchestrator).
-  virtual MermaidRenderEntry render(const MermaidPreprocessResult& pre,
-                                    const QString& type,
+  virtual MermaidRenderEntry render(const MermaidPreprocessResult& pre, const QString& type,
                                     const QString& theme) const = 0;
 };
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

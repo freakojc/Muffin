@@ -45,4 +45,4 @@ public:
   static TimelineData parse(const QString& source);
 };
 
-}  // namespace muffin::mermaid::timeline
+} // namespace muffin::mermaid::timeline

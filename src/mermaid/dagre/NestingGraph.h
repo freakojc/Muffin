@@ -24,4 +24,4 @@ QHash<QString, int> treeDepths(const DagreGraph& g);
 void runNestingGraph(DagreGraph& g);
 void cleanupNestingGraph(DagreGraph& g);
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

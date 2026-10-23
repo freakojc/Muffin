@@ -139,13 +139,11 @@ struct TreemapScene final : MermaidScene {
 
   QRectF sceneBounds() const override { return bounds; }
   QRectF renderBounds() const override { return rasterBounds; }
-  void paint(QPainter &painter,
-             const MermaidPaintOptions &options = {}) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options = {}) const override;
   QJsonObject toJsonObject() const override;
 };
 
-TreemapScene buildTreemapScene(const TreemapData &data, TreemapConfig config,
-                               TreemapSceneStyle style,
-                               const TreemapCssOverrides *css = nullptr);
+TreemapScene buildTreemapScene(const TreemapData& data, TreemapConfig config, TreemapSceneStyle style,
+                               const TreemapCssOverrides* css = nullptr);
 
 } // namespace muffin::mermaid::treemap

@@ -15,7 +15,6 @@ namespace muffin::mermaid::requirement {
 
 struct RequirementScene;
 
-void paintRequirementScene(const RequirementScene& scene, QPainter& painter,
-                           const MermaidPaintOptions& options);
+void paintRequirementScene(const RequirementScene& scene, QPainter& painter, const MermaidPaintOptions& options);
 
-}  // namespace muffin::mermaid::requirement
+} // namespace muffin::mermaid::requirement

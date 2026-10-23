@@ -6,7 +6,7 @@
 // free functions (rather than a state-holding class) matches their nature: none
 // of them write member state, so there is nothing for an object to encapsulate.
 
-#include "editor/CursorPosition.h"  // HitTestResult, CursorPosition, SelectionRange, NodeId
+#include "editor/CursorPosition.h" // HitTestResult, CursorPosition, SelectionRange, NodeId
 #include "render/BlockLayout.h"
 #include "render/DocumentLayout.h"
 #include "theme/RenderTheme.h"
@@ -77,9 +77,8 @@ bool blockComesBefore(const DocumentLayout& layout, NodeId first, NodeId second)
 // Single-block selections are NOT handled here — paint uses the recursive selectionRects against
 // the endpoint block instead.
 void forEachMultiBlockSelectionBlock(
-    const DocumentLayout& layout,
-    const SelectionRange& selection,
+    const DocumentLayout& layout, const SelectionRange& selection,
     const std::function<void(const BlockLayout* block, qsizetype start, qsizetype end)>& visit);
 
-}  // namespace editor_geometry
-}  // namespace muffin
+} // namespace editor_geometry
+} // namespace muffin

@@ -31,4 +31,4 @@ MermaidPreprocessResult preprocessDiagram(const QString& source);
 // because Mermaid exposes that helper independently.
 QJsonObject mermaidRenderConfig(const QJsonObject& preprocessedConfig);
 
-}  // namespace muffin::mermaid
+} // namespace muffin::mermaid

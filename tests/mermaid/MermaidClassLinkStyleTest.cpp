@@ -21,15 +21,15 @@ namespace {
   std::exit(1);
 }
 void require(bool condition, const QString& message) {
-  if (!condition) fail(message);
+  if (!condition)
+    fail(message);
 }
 const classdiagram::ClassSceneEdge& firstEdge(const editor::MermaidRenderEntry& e) {
   const auto* classScene = dynamic_cast<const classdiagram::ClassScene*>(e.scene.get());
-  require(classScene && !classScene->edges.isEmpty(),
-          QStringLiteral("class scene has no edges"));
+  require(classScene && !classScene->edges.isEmpty(), QStringLiteral("class scene has no edges"));
   return classScene->edges.constFirst();
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -39,12 +39,11 @@ int main(int argc, char** argv) {
   editor::MermaidRenderCache cache;
 
   // linkStyle by index: stroke + stroke-width override the theme defaults.
-  const QString linkSource = QStringLiteral(
-      "classDiagram\n"
-      "class A\n"
-      "class B\n"
-      "A --> B\n"
-      "linkStyle 0 stroke:#ff0000,stroke-width:3px");
+  const QString linkSource = QStringLiteral("classDiagram\n"
+                                            "class A\n"
+                                            "class B\n"
+                                            "A --> B\n"
+                                            "linkStyle 0 stroke:#ff0000,stroke-width:3px");
   const auto linkEntry = cache.getSync(cache.makeKey(linkSource), linkSource);
   require(linkEntry.status == editor::MermaidRenderStatus::Ready,
           QStringLiteral("linkStyle class diagram did not render: ") + linkEntry.errorMessage);
@@ -56,12 +55,11 @@ int main(int argc, char** argv) {
 
   // Edge classDef: edges carry the built-in "relation" class, so a `classDef
   // relation ...` reaches every edge.
-  const QString classDefSource = QStringLiteral(
-      "classDiagram\n"
-      "class A\n"
-      "class B\n"
-      "A --> B\n"
-      "classDef relation stroke:#0000ff");
+  const QString classDefSource = QStringLiteral("classDiagram\n"
+                                                "class A\n"
+                                                "class B\n"
+                                                "A --> B\n"
+                                                "classDef relation stroke:#0000ff");
   const auto classDefEntry = cache.getSync(cache.makeKey(classDefSource), classDefSource);
   require(classDefEntry.status == editor::MermaidRenderStatus::Ready,
           QStringLiteral("classDef-relation class diagram did not render"));

@@ -11,32 +11,32 @@ namespace {
 
 void appendInlineText(const InlineNode& node, QString& text) {
   switch (node.type()) {
-    case InlineType::Text:
-    case InlineType::Code:
-    case InlineType::HtmlInline:
-    case InlineType::InlineMath:
-    case InlineType::TaskMarker:
-      text.append(node.textView());
-      return;
-    case InlineType::Image:
-      text += node.alt();
-      return;
-    case InlineType::SoftBreak:
-    case InlineType::LineBreak:
-      text += QLatin1Char(' ');
-      return;
-    case InlineType::Emphasis:
-    case InlineType::Strong:
-    case InlineType::Link:
-    case InlineType::Strikethrough:
-    case InlineType::Highlight:
-    case InlineType::Subscript:
-    case InlineType::Superscript:
-    case InlineType::Unknown:
-      for (const InlineNode& child : node.children()) {
-        appendInlineText(child, text);
-      }
-      return;
+  case InlineType::Text:
+  case InlineType::Code:
+  case InlineType::HtmlInline:
+  case InlineType::InlineMath:
+  case InlineType::TaskMarker:
+    text.append(node.textView());
+    return;
+  case InlineType::Image:
+    text += node.alt();
+    return;
+  case InlineType::SoftBreak:
+  case InlineType::LineBreak:
+    text += QLatin1Char(' ');
+    return;
+  case InlineType::Emphasis:
+  case InlineType::Strong:
+  case InlineType::Link:
+  case InlineType::Strikethrough:
+  case InlineType::Highlight:
+  case InlineType::Subscript:
+  case InlineType::Superscript:
+  case InlineType::Unknown:
+    for (const InlineNode& child : node.children()) {
+      appendInlineText(child, text);
+    }
+    return;
   }
 }
 
@@ -70,7 +70,7 @@ void collectHeadings(const MarkdownNode& node, QVector<OutlineEntry>& entries, Q
   }
 }
 
-}  // namespace
+} // namespace
 
 QVector<OutlineEntry> buildOutline(const MarkdownDocument& document) {
   return document.outline();
@@ -86,4 +86,4 @@ QVector<OutlineEntry> buildOutlineFragment(const MarkdownNode& topLevel) {
   return entries;
 }
 
-}  // namespace muffin
+} // namespace muffin

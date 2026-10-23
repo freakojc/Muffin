@@ -24,4 +24,4 @@ private:
   qsizetype endPosition_ = -1;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

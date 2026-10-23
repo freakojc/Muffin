@@ -14,8 +14,13 @@ namespace muffin::mermaid::state {
 
 enum class StateErrorStage { Detector, Lexer, Parser, Semantic, Resource };
 enum class StateErrorCode {
-  MissingHeader, UnexpectedToken, MissingClosingBrace, MissingEndNote,
-  InvalidDirection, InvalidStateName, LimitExceeded,
+  MissingHeader,
+  UnexpectedToken,
+  MissingClosingBrace,
+  MissingEndNote,
+  InvalidDirection,
+  InvalidStateName,
+  LimitExceeded,
 };
 
 struct StateSourceSpan {
@@ -37,6 +42,7 @@ class StateParseError final : public std::runtime_error {
 public:
   explicit StateParseError(StateDiagnostic diagnostic);
   const StateDiagnostic& diagnostic() const noexcept { return diagnostic_; }
+
 private:
   StateDiagnostic diagnostic_;
 };
@@ -88,6 +94,7 @@ public:
   static StateDiagram parse(const QString& source, StateLimits limits = {});
   const StateDiagramData& data() const { return data_; }
   QJsonObject toJson() const;
+
 private:
   StateDiagramData data_;
 };
@@ -102,4 +109,4 @@ QString stateErrorStageName(StateErrorStage stage);
 QString stateErrorCodeName(StateErrorCode code);
 QString formatStateDiagnostic(const StateDiagnostic& diagnostic);
 
-}  // namespace muffin::mermaid::state
+} // namespace muffin::mermaid::state

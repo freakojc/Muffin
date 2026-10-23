@@ -58,27 +58,24 @@ ResolvedEdgeStyle toEdgeResult(const style::ResolvedEdgeStyle& s) {
   return r;
 }
 
-}  // namespace
+} // namespace
 
-QStringList compiledClassStyles(const QStringList& classNames,
-                                const QVector<flowchart::FlowClass>& classes) {
+QStringList compiledClassStyles(const QStringList& classNames, const QVector<flowchart::FlowClass>& classes) {
   return style::compiledClassStyles(classNames, classDefs(classes));
 }
 
-bool isLabelStyle(const QString& key) { return style::isLabelStyle(key); }
-
-ResolvedNodeStyle resolveNodeStyle(const flowchart::FlowVertex& vertex,
-                                   const QVector<flowchart::FlowClass>& classes,
-                                   const flowtheme::FlowThemeVariables& theme) {
-  return toNodeResult(style::resolveNodeStyle(vertex.classes, vertex.styles,
-                                              classDefs(classes), themeDefaults(theme)));
+bool isLabelStyle(const QString& key) {
+  return style::isLabelStyle(key);
 }
 
-ResolvedEdgeStyle resolveEdgeStyle(const flowchart::FlowEdge& edge,
+ResolvedNodeStyle resolveNodeStyle(const flowchart::FlowVertex& vertex, const QVector<flowchart::FlowClass>& classes,
                                    const flowtheme::FlowThemeVariables& theme) {
-  return toEdgeResult(style::resolveEdgeStyle(edge.stroke, edge.style,
-                                              edge.animate, edge.animation,
-                                              themeDefaults(theme)));
+  return toNodeResult(style::resolveNodeStyle(vertex.classes, vertex.styles, classDefs(classes), themeDefaults(theme)));
 }
 
-}  // namespace muffin::mermaid::flowstyle
+ResolvedEdgeStyle resolveEdgeStyle(const flowchart::FlowEdge& edge, const flowtheme::FlowThemeVariables& theme) {
+  return toEdgeResult(
+      style::resolveEdgeStyle(edge.stroke, edge.style, edge.animate, edge.animation, themeDefaults(theme)));
+}
+
+} // namespace muffin::mermaid::flowstyle

@@ -22,15 +22,14 @@ namespace {
 }
 
 void require(bool value, const QString& message) {
-  if (!value) fail(message);
+  if (!value)
+    fail(message);
 }
 
 QImage render(const QString& source) {
   const QString url = editor::MermaidRenderCache::renderMermaidSourceToPng(source, 1).dataUrl;
   QImage image;
-  image.loadFromData(QByteArray::fromBase64(
-                         url.mid(url.indexOf(QLatin1Char(',')) + 1).toLatin1()),
-                     "PNG");
+  image.loadFromData(QByteArray::fromBase64(url.mid(url.indexOf(QLatin1Char(',')) + 1).toLatin1()), "PNG");
   return image.convertToFormat(QImage::Format_RGBA8888);
 }
 
@@ -54,15 +53,16 @@ qreal rgbaScore(const QImage& actual, const QImage& expected) {
     for (int x = 0; x < expected.width(); ++x) {
       const QColor a = actual.pixelColor(x, y);
       const QColor b = expected.pixelColor(x, y);
-      if (a.alpha() < 16 && b.alpha() < 16) continue;
-      difference += std::abs(a.red() - b.red()) + std::abs(a.green() - b.green()) +
-                    std::abs(a.blue() - b.blue()) + std::abs(a.alpha() - b.alpha());
+      if (a.alpha() < 16 && b.alpha() < 16)
+        continue;
+      difference += std::abs(a.red() - b.red()) + std::abs(a.green() - b.green()) + std::abs(a.blue() - b.blue()) +
+                    std::abs(a.alpha() - b.alpha());
       ++count;
     }
   }
   return count ? 1.0 - difference / (count * 1020.0) : 1.0;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -87,8 +87,7 @@ int main(int argc, char** argv) {
   for (const QJsonValue& value : cases) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
-    QFile reference(info.absolutePath() + QLatin1Char('/') +
-                    fixture.value(QStringLiteral("file")).toString());
+    QFile reference(info.absolutePath() + QLatin1Char('/') + fixture.value(QStringLiteral("file")).toString());
     require(reference.open(QIODevice::ReadOnly), id + QStringLiteral("/reference"));
     const QByteArray png = reference.readAll();
     require(QCryptographicHash::hash(png, QCryptographicHash::Sha256).toHex() ==
@@ -98,10 +97,12 @@ int main(int argc, char** argv) {
     expected.loadFromData(png, "PNG");
     const QImage actual = render(fixture.value(QStringLiteral("source")).toString());
     require(!actual.isNull(), id + QStringLiteral("/native"));
-    require(actual.size() == expected.size(),
-            QStringLiteral("%1/size %2x%3 != %4x%5")
-                .arg(id).arg(actual.width()).arg(actual.height())
-                .arg(expected.width()).arg(expected.height()));
+    require(actual.size() == expected.size(), QStringLiteral("%1/size %2x%3 != %4x%5")
+                                                  .arg(id)
+                                                  .arg(actual.width())
+                                                  .arg(actual.height())
+                                                  .arg(expected.width())
+                                                  .arg(expected.height()));
     const qreal alphaIou = iou(actual, expected);
     const qreal score = rgbaScore(actual, expected);
     std::fprintf(stderr, "%s IoU %.5f RGBA %.5f\n", qPrintable(id), alphaIou, score);

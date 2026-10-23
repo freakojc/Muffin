@@ -21,8 +21,14 @@
 using namespace muffin::mermaid::flowchart;
 
 namespace {
-[[noreturn]] void fail(const QString& message) { qCritical().noquote() << message; std::exit(1); }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+[[noreturn]] void fail(const QString& message) {
+  qCritical().noquote() << message;
+  std::exit(1);
+}
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 void requirePathNear(const QString& actual, const QString& expected, const QString& context) {
   static const QRegularExpression numberPattern(QStringLiteral("-?\\d+(?:\\.\\d+)?(?:e[-+]?\\d+)?"),
                                                 QRegularExpression::CaseInsensitiveOption);
@@ -40,12 +46,13 @@ void requirePathNear(const QString& actual, const QString& expected, const QStri
     // at the tolerance boundary is accepted. A real 0.0021 algorithm diff still
     // fails.
     require(std::abs(actualValue - expectedValue) <= 0.002 + 1e-9,
-            context + QStringLiteral(" path coordinate mismatch: native=%1 upstream=%2")
-                          .arg(actualValue).arg(expectedValue));
+            context +
+                QStringLiteral(" path coordinate mismatch: native=%1 upstream=%2").arg(actualValue).arg(expectedValue));
   }
-  require(!actualMatch.hasNext() && !expectedMatch.hasNext(), context + QStringLiteral(" path coordinate count mismatch"));
+  require(!actualMatch.hasNext() && !expectedMatch.hasNext(),
+          context + QStringLiteral(" path coordinate count mismatch"));
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QGuiApplication app(argc, argv);
@@ -60,30 +67,34 @@ int main(int argc, char** argv) {
     const QJsonObject fixture = value.toObject();
     const QString id = fixture.value(QStringLiteral("id")).toString();
     const Flowchart chart = Flowchart::parse(fixture.value(QStringLiteral("source")).toString());
-    const QJsonArray expectedNodes = fixture.value(QStringLiteral("expected")).toObject().value(QStringLiteral("nodes")).toArray();
+    const QJsonArray expectedNodes =
+        fixture.value(QStringLiteral("expected")).toObject().value(QStringLiteral("nodes")).toArray();
     QMap<QString, QSizeF> sizes;
     for (const QJsonValue& nodeValue : expectedNodes) {
       const QJsonObject node = nodeValue.toObject();
-      sizes.insert(node.value(QStringLiteral("id")).toString(),
-                   QSizeF(node.value(QStringLiteral("width")).toDouble(), node.value(QStringLiteral("height")).toDouble()));
+      sizes.insert(
+          node.value(QStringLiteral("id")).toString(),
+          QSizeF(node.value(QStringLiteral("width")).toDouble(), node.value(QStringLiteral("height")).toDouble()));
     }
     FlowLayoutOptions layoutOptions;
     layoutOptions.curve = fixture.value(QStringLiteral("curve")).toString();
-    const QJsonArray expectedEdges = fixture.value(QStringLiteral("expected")).toObject().value(QStringLiteral("edges")).toArray();
+    const QJsonArray expectedEdges =
+        fixture.value(QStringLiteral("expected")).toObject().value(QStringLiteral("edges")).toArray();
     for (const QJsonValue& edgeValue : expectedEdges) {
       const QJsonObject edge = edgeValue.toObject();
       const QJsonObject label = edge.value(QStringLiteral("label")).toObject();
       if (!label.isEmpty()) {
         layoutOptions.measuredEdgeLabels.insert(
             edge.value(QStringLiteral("id")).toString(),
-            QSizeF(label.value(QStringLiteral("width")).toDouble(),
-                   label.value(QStringLiteral("height")).toDouble()));
+            QSizeF(label.value(QStringLiteral("width")).toDouble(), label.value(QStringLiteral("height")).toDouble()));
       }
     }
     const FlowLayoutResult actual = layoutFlowchartNodesDagre(chart.data(), sizes, layoutOptions);
     require(actual.nodes.size() == expectedNodes.size(),
             QStringLiteral("Dagre %1 node count mismatch native=%2 upstream=%3")
-                .arg(id).arg(actual.nodes.size()).arg(expectedNodes.size()));
+                .arg(id)
+                .arg(actual.nodes.size())
+                .arg(expectedNodes.size()));
     for (qsizetype i = 0; i < actual.nodes.size(); ++i) {
       const FlowLayoutNode& node = actual.nodes.at(i);
       const QJsonObject expected = expectedNodes.at(i).toObject();
@@ -92,14 +103,20 @@ int main(int argc, char** argv) {
                   .arg(id, node.id, node.id, expected.value(QStringLiteral("id")).toString()));
       require(std::abs(node.x - expected.value(QStringLiteral("dx")).toDouble()) <= 0.002,
               QStringLiteral("Dagre %1/%2 x mismatch: native=%3 upstream=%4")
-                  .arg(id, node.id).arg(node.x).arg(expected.value(QStringLiteral("dx")).toDouble()));
+                  .arg(id, node.id)
+                  .arg(node.x)
+                  .arg(expected.value(QStringLiteral("dx")).toDouble()));
       require(std::abs(node.y - expected.value(QStringLiteral("dy")).toDouble()) <= 0.002,
               QStringLiteral("Dagre %1/%2 y mismatch: native=%3 upstream=%4")
-                  .arg(id, node.id).arg(node.y).arg(expected.value(QStringLiteral("dy")).toDouble()));
+                  .arg(id, node.id)
+                  .arg(node.y)
+                  .arg(expected.value(QStringLiteral("dy")).toDouble()));
     }
     require(actual.edges.size() == expectedEdges.size(),
             QStringLiteral("Dagre %1 edge count mismatch native=%2 upstream=%3")
-                .arg(id).arg(actual.edges.size()).arg(expectedEdges.size()));
+                .arg(id)
+                .arg(actual.edges.size())
+                .arg(expectedEdges.size()));
     for (qsizetype i = 0; i < actual.edges.size(); ++i) {
       const QJsonObject expected = expectedEdges.at(i).toObject();
       require(actual.edges.at(i).id == expected.value(QStringLiteral("id")).toString(),
@@ -109,19 +126,24 @@ int main(int argc, char** argv) {
       const QJsonObject expectedLabel = expected.value(QStringLiteral("label")).toObject();
       if (expectedLabel.value(QStringLiteral("width")).toDouble() > 0.0) {
         require(actual.edges.at(i).hasLabelPosition &&
-                    std::abs(actual.edges.at(i).labelX - expectedLabel.value(QStringLiteral("dx")).toDouble()) <= 0.002 &&
+                    std::abs(actual.edges.at(i).labelX - expectedLabel.value(QStringLiteral("dx")).toDouble()) <=
+                        0.002 &&
                     std::abs(actual.edges.at(i).labelY - expectedLabel.value(QStringLiteral("dy")).toDouble()) <= 0.002,
                 QStringLiteral("Dagre %1/%2 label position mismatch: native=%3,%4 upstream=%5,%6")
                     .arg(id, actual.edges.at(i).id)
-                    .arg(actual.edges.at(i).labelX).arg(actual.edges.at(i).labelY)
+                    .arg(actual.edges.at(i).labelX)
+                    .arg(actual.edges.at(i).labelY)
                     .arg(expectedLabel.value(QStringLiteral("dx")).toDouble())
                     .arg(expectedLabel.value(QStringLiteral("dy")).toDouble()));
       }
     }
-    const QJsonArray expectedClusters = fixture.value(QStringLiteral("expected")).toObject().value(QStringLiteral("clusters")).toArray();
+    const QJsonArray expectedClusters =
+        fixture.value(QStringLiteral("expected")).toObject().value(QStringLiteral("clusters")).toArray();
     require(actual.clusters.size() == expectedClusters.size(),
             QStringLiteral("Dagre %1 cluster count mismatch native=%2 upstream=%3")
-                .arg(id).arg(actual.clusters.size()).arg(expectedClusters.size()));
+                .arg(id)
+                .arg(actual.clusters.size())
+                .arg(expectedClusters.size()));
     for (qsizetype i = 0; i < actual.clusters.size(); ++i) {
       const FlowLayoutCluster& cluster = actual.clusters.at(i);
       const QJsonObject expected = expectedClusters.at(i).toObject();
@@ -133,7 +155,11 @@ int main(int argc, char** argv) {
                   std::abs(cluster.width - expected.value(QStringLiteral("width")).toDouble()) <= 0.002 &&
                   std::abs(cluster.height - expected.value(QStringLiteral("height")).toDouble()) <= 0.002,
               QStringLiteral("Dagre %1/%2 cluster bounds mismatch: native=%3,%4 %5x%6 upstream=%7,%8 %9x%10")
-                  .arg(id, cluster.id).arg(cluster.x).arg(cluster.y).arg(cluster.width).arg(cluster.height)
+                  .arg(id, cluster.id)
+                  .arg(cluster.x)
+                  .arg(cluster.y)
+                  .arg(cluster.width)
+                  .arg(cluster.height)
                   .arg(expected.value(QStringLiteral("dx")).toDouble())
                   .arg(expected.value(QStringLiteral("dy")).toDouble())
                   .arg(expected.value(QStringLiteral("width")).toDouble())

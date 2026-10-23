@@ -27,4 +27,4 @@ QString sidebarStyleSheet(const ThemeDefinition& theme, bool outlineFoldable);
 QString dialogStyleSheet(const ThemeDefinition& theme);
 QString quickOpenStyleSheet(const ThemeDefinition& theme);
 
-}  // namespace muffin
+} // namespace muffin

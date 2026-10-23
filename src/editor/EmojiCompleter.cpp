@@ -58,7 +58,8 @@ void BundledEmojiProvider::load() const {
 }
 
 EmojiCompleter::EmojiCompleter(QWidget* viewport, const EmojiProvider* provider, QObject* parent)
-    : QObject(parent), viewport_(viewport), provider_(provider) {}
+    : QObject(parent), viewport_(viewport), provider_(provider) {
+}
 
 void EmojiCompleter::ensurePopup() {
   if (popup_) {
@@ -72,24 +73,23 @@ void EmojiCompleter::ensurePopup() {
   popup_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   popup_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   popup_->setFocusPolicy(Qt::NoFocus);
-  popup_->setStyleSheet(QStringLiteral(
-      "QListView#emojiPopup {"
-      "  background:#ffffff;"
-      "  color:#333333;"
-      "  border:1px solid #e1e4e8;"
-      "  border-radius:6px;"
-      "  padding:4px 0;"
-      "  outline:0;"
-      "  font-size:13px;"
-      "}"
-      "QListView#emojiPopup::item {"
-      "  min-height:26px;"
-      "  padding:3px 12px;"
-      "}"
-      "QListView#emojiPopup::item:selected {"
-      "  background:#f1f6ff;"
-      "  color:#111111;"
-      "}"));
+  popup_->setStyleSheet(QStringLiteral("QListView#emojiPopup {"
+                                       "  background:#ffffff;"
+                                       "  color:#333333;"
+                                       "  border:1px solid #e1e4e8;"
+                                       "  border-radius:6px;"
+                                       "  padding:4px 0;"
+                                       "  outline:0;"
+                                       "  font-size:13px;"
+                                       "}"
+                                       "QListView#emojiPopup::item {"
+                                       "  min-height:26px;"
+                                       "  padding:3px 12px;"
+                                       "}"
+                                       "QListView#emojiPopup::item:selected {"
+                                       "  background:#f1f6ff;"
+                                       "  color:#111111;"
+                                       "}"));
   auto* shadow = new QGraphicsDropShadowEffect(popup_);
   shadow->setBlurRadius(14.0);
   shadow->setOffset(0.0, 3.0);
@@ -126,7 +126,7 @@ void EmojiCompleter::present(const QString& prefix, const QPoint& caretViewportP
   model_->setStringList(labels);
   popup_->setCurrentIndex(model_->index(0));
 
-  const int rowHeight = 26 + 6;  // min-height 26 + padding 3*2
+  const int rowHeight = 26 + 6; // min-height 26 + padding 3*2
   const int width = 240;
   const int visibleRows = qMin(entries_.size(), 8);
   popup_->setFixedSize(width, qMax(1, visibleRows) * rowHeight + 8);
@@ -141,7 +141,7 @@ void EmojiCompleter::present(const QString& prefix, const QPoint& caretViewportP
     x = qMax(0, available.right() - width);
   }
   if (y + popup_->height() > available.bottom()) {
-    y = qMax(available.top(), caretGlobal.y() - popup_->height() - 4);  // flip above the caret
+    y = qMax(available.top(), caretGlobal.y() - popup_->height() - 4); // flip above the caret
   }
   popup_->move(qMax(0, x), qMax(0, y));
   popup_->show();
@@ -186,4 +186,4 @@ void EmojiCompleter::acceptCurrent() {
   hide();
 }
 
-}  // namespace muffin
+} // namespace muffin

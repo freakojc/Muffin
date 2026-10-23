@@ -19,4 +19,4 @@ private:
   QJsonObject report_;
 };
 
-}  // namespace muffin
+} // namespace muffin

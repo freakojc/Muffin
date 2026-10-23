@@ -15,19 +15,19 @@ struct WrapperSyntax {
 
 bool canContinueAcrossBlockBreak(const InlineNode& node) {
   switch (node.type()) {
-    case InlineType::Emphasis:
-    case InlineType::Strong:
-    case InlineType::Code:
-    case InlineType::Strikethrough:
-    case InlineType::InlineMath:
-    case InlineType::Highlight:
-    case InlineType::Subscript:
-    case InlineType::Superscript:
-      return true;
-    case InlineType::Link:
-      return !node.isAutolink();
-    default:
-      return false;
+  case InlineType::Emphasis:
+  case InlineType::Strong:
+  case InlineType::Code:
+  case InlineType::Strikethrough:
+  case InlineType::InlineMath:
+  case InlineType::Highlight:
+  case InlineType::Subscript:
+  case InlineType::Superscript:
+    return true;
+  case InlineType::Link:
+    return !node.isAutolink();
+  default:
+    return false;
   }
 }
 
@@ -43,26 +43,18 @@ QString sourceSlice(QStringView source, InlineRange range, qsizetype sourceBase)
   return source.mid(start, end - start).toString();
 }
 
-void collectActiveWrappers(
-    const QVector<InlineNode>& inlines,
-    QStringView source,
-    qsizetype sourceBase,
-    qsizetype cursor,
-    QVector<WrapperSyntax>& wrappers) {
+void collectActiveWrappers(const QVector<InlineNode>& inlines, QStringView source, qsizetype sourceBase,
+                           qsizetype cursor, QVector<WrapperSyntax>& wrappers) {
   for (const InlineNode& node : inlines) {
     const InlineRange sourceRange = node.sourceRange();
     const InlineRange contentRange = node.contentRange();
-    const bool containsCursor =
-        sourceRange.isValid() && contentRange.isValid() &&
-        sourceRange.start <= contentRange.start &&
-        contentRange.end <= sourceRange.end &&
-        cursor > contentRange.start && cursor < contentRange.end;
+    const bool containsCursor = sourceRange.isValid() && contentRange.isValid() &&
+                                sourceRange.start <= contentRange.start && contentRange.end <= sourceRange.end &&
+                                cursor > contentRange.start && cursor < contentRange.end;
 
     if (containsCursor && canContinueAcrossBlockBreak(node)) {
-      const QString open = sourceSlice(
-          source, InlineRange{sourceRange.start, contentRange.start}, sourceBase);
-      const QString close = sourceSlice(
-          source, InlineRange{contentRange.end, sourceRange.end}, sourceBase);
+      const QString open = sourceSlice(source, InlineRange{sourceRange.start, contentRange.start}, sourceBase);
+      const QString close = sourceSlice(source, InlineRange{contentRange.end, sourceRange.end}, sourceBase);
       if (!open.isEmpty() && !close.isEmpty()) {
         wrappers.push_back(WrapperSyntax{open, close});
       }
@@ -74,7 +66,7 @@ void collectActiveWrappers(
   }
 }
 
-}  // namespace
+} // namespace
 
 bool InlineSplitPlan::isEmpty() const {
   return closeBeforeBreak.isEmpty() && reopenAfterBreak.isEmpty();
@@ -87,32 +79,20 @@ QString InlineSplitPlan::wrap(QString blockBreak) const {
   return closeBeforeBreak + blockBreak + reopenAfterBreak;
 }
 
-InlineSplitPlan inlineSplitPlanAt(
-    const MarkdownNode& editableNode,
-    QStringView contentSource,
-    qsizetype contentSourceStart,
-    qsizetype cursorSourceOffset) {
-  return inlineSplitPlanForRange(
-      editableNode,
-      contentSource,
-      contentSourceStart,
-      cursorSourceOffset,
-      cursorSourceOffset);
+InlineSplitPlan inlineSplitPlanAt(const MarkdownNode& editableNode, QStringView contentSource,
+                                  qsizetype contentSourceStart, qsizetype cursorSourceOffset) {
+  return inlineSplitPlanForRange(editableNode, contentSource, contentSourceStart, cursorSourceOffset,
+                                 cursorSourceOffset);
 }
 
-InlineSplitPlan inlineSplitPlanForRange(
-    const MarkdownNode& editableNode,
-    QStringView contentSource,
-    qsizetype contentSourceStart,
-    qsizetype selectionSourceStart,
-    qsizetype selectionSourceEnd) {
+InlineSplitPlan inlineSplitPlanForRange(const MarkdownNode& editableNode, QStringView contentSource,
+                                        qsizetype contentSourceStart, qsizetype selectionSourceStart,
+                                        qsizetype selectionSourceEnd) {
   InlineSplitPlan plan;
   const MarkdownNode* topLevel = editableNode.topLevelBlock();
   const qsizetype contentSourceEnd = contentSourceStart + contentSource.size();
-  if (!topLevel || contentSourceStart < 0 ||
-      selectionSourceStart < contentSourceStart ||
-      selectionSourceEnd < selectionSourceStart ||
-      selectionSourceEnd > contentSourceEnd) {
+  if (!topLevel || contentSourceStart < 0 || selectionSourceStart < contentSourceStart ||
+      selectionSourceEnd < selectionSourceStart || selectionSourceEnd > contentSourceEnd) {
     return plan;
   }
 
@@ -123,11 +103,9 @@ InlineSplitPlan inlineSplitPlanForRange(
   const qsizetype selectionEnd = selectionSourceEnd - topLevelStart;
 
   QVector<WrapperSyntax> startWrappers;
-  collectActiveWrappers(
-      editableNode.inlines(), contentSource, sourceBase, selectionStart, startWrappers);
+  collectActiveWrappers(editableNode.inlines(), contentSource, sourceBase, selectionStart, startWrappers);
   QVector<WrapperSyntax> endWrappers;
-  collectActiveWrappers(
-      editableNode.inlines(), contentSource, sourceBase, selectionEnd, endWrappers);
+  collectActiveWrappers(editableNode.inlines(), contentSource, sourceBase, selectionEnd, endWrappers);
 
   for (const WrapperSyntax& wrapper : endWrappers) {
     plan.reopenAfterBreak += wrapper.open;
@@ -158,4 +136,4 @@ qsizetype normalizeSplitOffset(QString& source, qsizetype offset) {
   return offset;
 }
 
-}  // namespace muffin
+} // namespace muffin

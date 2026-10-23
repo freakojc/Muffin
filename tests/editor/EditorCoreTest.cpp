@@ -72,29 +72,37 @@ void testUndoStack() {
 
 // testNodeAttributeValueContract (lines 114-129)
 void testNodeAttributeValueContract() {
-  require(nodeAttributeAcceptsValue(NodeAttribute::HeadingLevel, NodeAttributeValue{1}), "heading level should accept int");
+  require(nodeAttributeAcceptsValue(NodeAttribute::HeadingLevel, NodeAttributeValue{1}),
+          "heading level should accept int");
   require(nodeAttributeAcceptsValue(NodeAttribute::ListStart, NodeAttributeValue{1}), "list start should accept int");
-  require(nodeAttributeAcceptsValue(NodeAttribute::ListKind, NodeAttributeValue{ListKind::Ordered}), "list kind should accept ListKind");
-  require(nodeAttributeAcceptsValue(NodeAttribute::ListTight, NodeAttributeValue{true}), "list tight should accept bool");
-  require(nodeAttributeAcceptsValue(NodeAttribute::TaskChecked, NodeAttributeValue{false}), "task checked should accept bool");
-  require(nodeAttributeAcceptsValue(NodeAttribute::CodeLanguage, NodeAttributeValue{QStringLiteral("cpp")}), "code language should accept QString");
-  require(
-      nodeAttributeAcceptsValue(NodeAttribute::TableAlignments, NodeAttributeValue{QVector<TableAlignment>{TableAlignment::Left}}),
-      "table alignments should accept alignment vector");
-  require(nodeAttributeAcceptsValue(NodeAttribute::TableRowIsHeader, NodeAttributeValue{true}), "table row header should accept bool");
+  require(nodeAttributeAcceptsValue(NodeAttribute::ListKind, NodeAttributeValue{ListKind::Ordered}),
+          "list kind should accept ListKind");
+  require(nodeAttributeAcceptsValue(NodeAttribute::ListTight, NodeAttributeValue{true}),
+          "list tight should accept bool");
+  require(nodeAttributeAcceptsValue(NodeAttribute::TaskChecked, NodeAttributeValue{false}),
+          "task checked should accept bool");
+  require(nodeAttributeAcceptsValue(NodeAttribute::CodeLanguage, NodeAttributeValue{QStringLiteral("cpp")}),
+          "code language should accept QString");
+  require(nodeAttributeAcceptsValue(NodeAttribute::TableAlignments,
+                                    NodeAttributeValue{QVector<TableAlignment>{TableAlignment::Left}}),
+          "table alignments should accept alignment vector");
+  require(nodeAttributeAcceptsValue(NodeAttribute::TableRowIsHeader, NodeAttributeValue{true}),
+          "table row header should accept bool");
 
-  require(!nodeAttributeAcceptsValue(NodeAttribute::HeadingLevel, NodeAttributeValue{true}), "heading level should reject bool");
-  require(!nodeAttributeAcceptsValue(NodeAttribute::CodeLanguage, NodeAttributeValue{1}), "code language should reject int");
-  require(!nodeAttributeAcceptsValue(NodeAttribute::Unknown, NodeAttributeValue{1}), "unknown attribute should reject values");
+  require(!nodeAttributeAcceptsValue(NodeAttribute::HeadingLevel, NodeAttributeValue{true}),
+          "heading level should reject bool");
+  require(!nodeAttributeAcceptsValue(NodeAttribute::CodeLanguage, NodeAttributeValue{1}),
+          "code language should reject int");
+  require(!nodeAttributeAcceptsValue(NodeAttribute::Unknown, NodeAttributeValue{1}),
+          "unknown attribute should reject values");
 }
 
 // testBrushQueueBatchesRefreshRequests (lines 131-182)
 void testBrushQueueBatchesRefreshRequests() {
   BrushQueue queue;
   QVector<BrushQueue::RefreshRequest> requests;
-  QObject::connect(&queue, &BrushQueue::refreshRequested, [&requests](BrushQueue::RefreshRequest request) {
-    requests.push_back(std::move(request));
-  });
+  QObject::connect(&queue, &BrushQueue::refreshRequested,
+                   [&requests](BrushQueue::RefreshRequest request) { requests.push_back(std::move(request)); });
 
   const NodeId first = NodeId::fromString(QStringLiteral("first"));
   const NodeId second = NodeId::fromString(QStringLiteral("second"));
@@ -105,7 +113,8 @@ void testBrushQueueBatchesRefreshRequests() {
   require(requests.size() == 1, "brush queue should batch block refresh requests");
   require(!requests.first().fullLayoutDirty, "batched block refresh should not be full dirty");
   require(requests.first().layoutDirtyBlocks.size() == 2, "batched block refresh should deduplicate ids");
-  require(requests.first().layoutDirtyBlocks.at(0) == first, "batched refresh should preserve first requested id order");
+  require(requests.first().layoutDirtyBlocks.at(0) == first,
+          "batched refresh should preserve first requested id order");
   require(requests.first().layoutDirtyBlocks.at(1) == second, "batched refresh should append each block id once");
 
   TopLevelRangeChange range{1, 1, 2, 7};
@@ -139,7 +148,8 @@ void testBrushQueueBatchesRefreshRequests() {
   require(!requests.at(2).fullLayoutDirty, "first incompatible range should flush as a localized range, not full");
   require(requests.at(2).topLevelRangeDirty == range, "first incompatible range should preserve its range");
   require(!requests.last().fullLayoutDirty, "second incompatible range should be a localized range, not full");
-  require(requests.last().topLevelRangeDirty == TopLevelRangeChange{2, 1, 2, 7}, "second incompatible range should preserve its range");
+  require(requests.last().topLevelRangeDirty == TopLevelRangeChange{2, 1, 2, 7},
+          "second incompatible range should preserve its range");
 
   queue.requestTopLevelRangeRefresh({});
   queue.flush();
@@ -161,7 +171,8 @@ void testBrushQueueBatchesRefreshRequests() {
 void testSourceEditorPreservesZeroWidthSpaceText() {
   SourceEditorWidget sourceEditor;
   sourceEditor.setText(QStringLiteral("# Title\n​alpha"));
-  require(sourceEditor.text() == QStringLiteral("# Title\n​alpha"), "source editor should preserve U+200B source text");
+  require(sourceEditor.text() == QStringLiteral("# Title\n​alpha"),
+          "source editor should preserve U+200B source text");
   sourceEditor.resize(900, 600);
   sourceEditor.setZoomPercent(125);
   require(sourceEditor.text().contains(QChar(0x200b)), "source editor zoom should not rewrite U+200B text");

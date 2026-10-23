@@ -14,8 +14,8 @@
 
 namespace muffin {
 
-CodeLanguageEditor::CodeLanguageEditor(QWidget* viewport, QObject* parent)
-    : QObject(parent), viewport_(viewport) {}
+CodeLanguageEditor::CodeLanguageEditor(QWidget* viewport, QObject* parent) : QObject(parent), viewport_(viewport) {
+}
 
 void CodeLanguageEditor::setSuggestions(QStringList languages) {
   languages.removeDuplicates();
@@ -26,15 +26,13 @@ void CodeLanguageEditor::setSuggestions(QStringList languages) {
   }
 }
 
-void CodeLanguageEditor::update(const CursorPosition& cursor, const HitTestResult& hit,
-                                const DocumentLayout* layout, const MarkdownDocument* doc,
-                                qreal scrollY, int viewportHeight) {
+void CodeLanguageEditor::update(const CursorPosition& cursor, const HitTestResult& hit, const DocumentLayout* layout,
+                                const MarkdownDocument* doc, qreal scrollY, int viewportHeight) {
   if (updating_) {
     return;
   }
 
-  if (!layout || !doc || !cursor.isValid() || cursor.blockId != hit.blockId ||
-      hit.zone != HitTestResult::Zone::Code) {
+  if (!layout || !doc || !cursor.isValid() || cursor.blockId != hit.blockId || hit.zone != HitTestResult::Zone::Code) {
     forceHide();
     return;
   }
@@ -66,17 +64,16 @@ void CodeLanguageEditor::ensureEditor() {
   editor_->setFrame(false);
   editor_->setFixedWidth(116);
   editor_->hide();
-  editor_->setStyleSheet(QStringLiteral(
-      "QLineEdit#codeLanguageEditor {"
-      "  background:rgba(255,255,255,235);"
-      "  color:#222222;"
-      "  border:1px solid #d7dce2;"
-      "  border-radius:4px;"
-      "  padding:2px 8px;"
-      "  selection-background-color:#2f80ed;"
-      "  selection-color:#ffffff;"
-      "  font-size:12px;"
-      "}"));
+  editor_->setStyleSheet(QStringLiteral("QLineEdit#codeLanguageEditor {"
+                                        "  background:rgba(255,255,255,235);"
+                                        "  color:#222222;"
+                                        "  border:1px solid #d7dce2;"
+                                        "  border-radius:4px;"
+                                        "  padding:2px 8px;"
+                                        "  selection-background-color:#2f80ed;"
+                                        "  selection-color:#ffffff;"
+                                        "  font-size:12px;"
+                                        "}"));
   auto* shadow = new QGraphicsDropShadowEffect(editor_);
   shadow->setBlurRadius(14.0);
   shadow->setOffset(0.0, 3.0);
@@ -93,24 +90,23 @@ void CodeLanguageEditor::ensureEditor() {
   popup->setAlternatingRowColors(false);
   popup->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   popup->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-  popup->setStyleSheet(QStringLiteral(
-      "QListView#codeLanguagePopup {"
-      "  background:#ffffff;"
-      "  color:#333333;"
-      "  border:1px solid #e1e4e8;"
-      "  border-radius:5px;"
-      "  padding:6px 0;"
-      "  outline:0;"
-      "  font-size:13px;"
-      "}"
-      "QListView#codeLanguagePopup::item {"
-      "  min-height:28px;"
-      "  padding:4px 12px;"
-      "}"
-      "QListView#codeLanguagePopup::item:selected {"
-      "  background:#f1f6ff;"
-      "  color:#111111;"
-      "}"));
+  popup->setStyleSheet(QStringLiteral("QListView#codeLanguagePopup {"
+                                      "  background:#ffffff;"
+                                      "  color:#333333;"
+                                      "  border:1px solid #e1e4e8;"
+                                      "  border-radius:5px;"
+                                      "  padding:6px 0;"
+                                      "  outline:0;"
+                                      "  font-size:13px;"
+                                      "}"
+                                      "QListView#codeLanguagePopup::item {"
+                                      "  min-height:28px;"
+                                      "  padding:4px 12px;"
+                                      "}"
+                                      "QListView#codeLanguagePopup::item:selected {"
+                                      "  background:#f1f6ff;"
+                                      "  color:#111111;"
+                                      "}"));
   completer_->setPopup(popup);
   editor_->setCompleter(completer_);
 
@@ -143,8 +139,8 @@ void CodeLanguageEditor::ensureEditor() {
   });
 }
 
-void CodeLanguageEditor::show(const BlockLayout& block, const MarkdownDocument& doc,
-                              qreal scrollY, int viewportHeight) {
+void CodeLanguageEditor::show(const BlockLayout& block, const MarkdownDocument& doc, qreal scrollY,
+                              int viewportHeight) {
   ensureEditor();
   if (!editor_) {
     return;
@@ -181,4 +177,4 @@ void CodeLanguageEditor::show(const BlockLayout& block, const MarkdownDocument& 
   updating_ = false;
 }
 
-}  // namespace muffin
+} // namespace muffin

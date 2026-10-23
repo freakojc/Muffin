@@ -15,15 +15,15 @@ inline const muffin::MarkdownNode& childAt(const muffin::MarkdownNode& node, qsi
   return *node.children()[index];
 }
 
-inline const muffin::MarkdownNode& definitionByLabel(const muffin::MarkdownNode& root, muffin::BlockType type, const QString& label) {
+inline const muffin::MarkdownNode& definitionByLabel(const muffin::MarkdownNode& root, muffin::BlockType type,
+                                                     const QString& label) {
   for (const auto& child : root.children()) {
     if (child->type() == type && child->definition().label == label) {
       return *child;
     }
   }
-  qCritical().noquote() << QStringLiteral("definition block not found: type=%1 label=%2")
-                               .arg(static_cast<int>(type))
-                               .arg(label);
+  qCritical().noquote()
+      << QStringLiteral("definition block not found: type=%1 label=%2").arg(static_cast<int>(type)).arg(label);
   std::exit(1);
   return root;
 }

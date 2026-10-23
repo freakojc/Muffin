@@ -62,11 +62,11 @@ private:
   // the confirm-discard prompt is skipped. No-op unless files/autoSaveOnSwitch is on.
   void autoSaveOnSwitchIfEnabled(DocumentSession& session, QWidget* parent);
   bool readTextFile(const QString& path, QString* out, TextFileFormat* format, QWidget* parent) const;
-  bool readTextFileWithEncoding(const QString& path, QString* out, TextFileFormat* format,
-                                QWidget* parent, const QString& encodingName) const;
-  bool writeTextFile(const QString& path, const QString& text, const TextFileFormat& format,
-                     QString* normalizedText, QWidget* parent) const;
+  bool readTextFileWithEncoding(const QString& path, QString* out, TextFileFormat* format, QWidget* parent,
+                                const QString& encodingName) const;
+  bool writeTextFile(const QString& path, const QString& text, const TextFileFormat& format, QString* normalizedText,
+                     QWidget* parent) const;
   TextFileFormat formatForNewFile() const;
 };
 
-}  // namespace muffin
+} // namespace muffin

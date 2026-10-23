@@ -17,6 +17,6 @@ void rankGraph(DagreGraph& g);
 // Exposed for unit tests:
 void longestPath(DagreGraph& g);
 int slack(const DagreGraph& g, const graphlib::Edge& e);
-void networkSimplex(DagreGraph& g);  // input must already be simplified
+void networkSimplex(DagreGraph& g); // input must already be simplified
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

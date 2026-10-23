@@ -17,4 +17,4 @@ namespace muffin::mermaid::dagre {
 // node->x on the graph.
 QHash<QString, qreal> positionX(DagreGraph& g);
 
-}  // namespace muffin::mermaid::dagre
+} // namespace muffin::mermaid::dagre

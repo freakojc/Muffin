@@ -13,8 +13,7 @@ enum class GitGraphErrorKind { Lexer, Parser, Runtime };
 
 class GitGraphParseError : public std::runtime_error {
 public:
-  GitGraphParseError(GitGraphErrorKind kind, int line, int column,
-                     QString token, const QString& message);
+  GitGraphParseError(GitGraphErrorKind kind, int line, int column, QString token, const QString& message);
 
   GitGraphErrorKind kind;
   int line;
@@ -62,8 +61,7 @@ struct GitGraphData {
 
 class GitGraphDiagram {
 public:
-  static GitGraphData parse(const QString& source,
-                            const GitGraphParseConfig& config = {});
+  static GitGraphData parse(const QString& source, const GitGraphParseConfig& config = {});
 };
 
-}  // namespace muffin::mermaid::gitgraph
+} // namespace muffin::mermaid::gitgraph

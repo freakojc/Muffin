@@ -18,8 +18,7 @@ struct Node {
   bool obstacle = true;
 };
 
-QVector<QVector<QPointF>> routeOrthogonalEdges(const QVector<Node>& nodes,
-                                             const QVector<FlowEdge>& edges);
+QVector<QVector<QPointF>> routeOrthogonalEdges(const QVector<Node>& nodes, const QVector<FlowEdge>& edges);
 QVector<QPointF> simplifyRouterPoints(QVector<QPointF> points);
 
-}  // namespace muffin::mermaid::flowchart::routing
+} // namespace muffin::mermaid::flowchart::routing

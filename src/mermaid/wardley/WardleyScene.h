@@ -82,12 +82,10 @@ struct WardleyScene final : MermaidScene {
   QVector<WardleyPrimitive> primitives;
 
   QRectF sceneBounds() const override { return bounds; }
-  void paint(QPainter &painter,
-             const MermaidPaintOptions &options = {}) const override;
+  void paint(QPainter& painter, const MermaidPaintOptions& options = {}) const override;
   QJsonObject toJsonObject() const override;
 };
 
-WardleyScene buildWardleyScene(const WardleyData &data, WardleyConfig config,
-                               WardleySceneStyle style);
+WardleyScene buildWardleyScene(const WardleyData& data, WardleyConfig config, WardleySceneStyle style);
 
 } // namespace muffin::mermaid::wardley

@@ -60,9 +60,8 @@ struct MermaidDiagnosticTextMetrics {
   qreal height() const { return headerHeight + gap + bodyHeight; }
 };
 
-MermaidDiagnosticTextMetrics measureMermaidDiagnosticText(
-    const mermaid::MermaidDiagnostic& diagnostic, const RenderTheme& theme,
-    qreal width) {
+MermaidDiagnosticTextMetrics measureMermaidDiagnosticText(const mermaid::MermaidDiagnostic& diagnostic,
+                                                          const RenderTheme& theme, qreal width) {
   MermaidDiagnosticTextMetrics result;
   result.header = mermaid::formatMermaidDiagnosticHeader(diagnostic);
   result.body = mermaid::formatMermaidDiagnosticBody(diagnostic);
@@ -73,20 +72,15 @@ MermaidDiagnosticTextMetrics measureMermaidDiagnosticText(
   const TextFontMetrics bodyMetrics(bodyFont);
   const int flags = Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap;
   if (!result.header.isEmpty()) {
-    const qreal measured = headerMetrics.boundingRect(
-        QRectF(0.0, 0.0, qMax<qreal>(1.0, width), 100000.0),
-        flags, result.header).height();
-    result.headerHeight = qBound<qreal>(
-        headerMetrics.lineSpacing(), qCeil(measured),
-        headerMetrics.lineSpacing() * 2.0);
+    const qreal measured =
+        headerMetrics.boundingRect(QRectF(0.0, 0.0, qMax<qreal>(1.0, width), 100000.0), flags, result.header).height();
+    result.headerHeight =
+        qBound<qreal>(headerMetrics.lineSpacing(), qCeil(measured), headerMetrics.lineSpacing() * 2.0);
   }
   if (!result.body.isEmpty()) {
-    const qreal measured = bodyMetrics.boundingRect(
-        QRectF(0.0, 0.0, qMax<qreal>(1.0, width), 100000.0),
-        flags, result.body).height();
-    result.bodyHeight = qBound<qreal>(
-        bodyMetrics.lineSpacing(), qCeil(measured),
-        bodyMetrics.lineSpacing() * 6.0);
+    const qreal measured =
+        bodyMetrics.boundingRect(QRectF(0.0, 0.0, qMax<qreal>(1.0, width), 100000.0), flags, result.body).height();
+    result.bodyHeight = qBound<qreal>(bodyMetrics.lineSpacing(), qCeil(measured), bodyMetrics.lineSpacing() * 6.0);
   }
   if (result.headerHeight > 0.0 && result.bodyHeight > 0.0) {
     result.gap = qMax<qreal>(2.0, bodyMetrics.lineSpacing() * 0.18);
@@ -94,40 +88,37 @@ MermaidDiagnosticTextMetrics measureMermaidDiagnosticText(
   return result;
 }
 
-QPair<qsizetype, qsizetype> mermaidHighlightRange(
-    const mermaid::MermaidDiagnostic& diagnostic, const QString& literal) {
-  if (!diagnostic.span.hasLocation() || literal.isEmpty()) return {-1, -1};
-  const qsizetype caret = qBound<qsizetype>(
-      0, diagnostic.span.offset, literal.size());
-  const qsizetype start = caret == literal.size()
-      ? literal.size() - 1
-      : caret;
+QPair<qsizetype, qsizetype> mermaidHighlightRange(const mermaid::MermaidDiagnostic& diagnostic,
+                                                  const QString& literal) {
+  if (!diagnostic.span.hasLocation() || literal.isEmpty())
+    return {-1, -1};
+  const qsizetype caret = qBound<qsizetype>(0, diagnostic.span.offset, literal.size());
+  const qsizetype start = caret == literal.size() ? literal.size() - 1 : caret;
   const qsizetype requestedLength = qMax<qsizetype>(1, diagnostic.span.length);
-  const qsizetype end = qMax<qsizetype>(
-      start + 1,
-      qMin<qsizetype>(literal.size(), caret + requestedLength));
+  const qsizetype end = qMax<qsizetype>(start + 1, qMin<qsizetype>(literal.size(), caret + requestedLength));
   return {start, end};
 }
 
-void paintUnorderedListMarker(QPainter& painter, BlockLayout::ListMarkerKind kind, QPointF center, qreal fontHeight, const QColor& color) {
+void paintUnorderedListMarker(QPainter& painter, BlockLayout::ListMarkerKind kind, QPointF center, qreal fontHeight,
+                              const QColor& color) {
   const qreal size = qBound<qreal>(4.2, fontHeight * 0.34, 6.2);
   const QRectF markerRect(center.x() - size * 0.5, center.y() - size * 0.5, size, size);
   painter.setPen(Qt::NoPen);
   painter.setBrush(color);
   switch (kind) {
-    case BlockLayout::ListMarkerKind::BulletDisc:
-      painter.drawEllipse(markerRect);
-      break;
-    case BlockLayout::ListMarkerKind::BulletCircle:
-      painter.setPen(QPen(color, qMax<qreal>(1.1, size * 0.18)));
-      painter.setBrush(Qt::NoBrush);
-      painter.drawEllipse(markerRect);
-      break;
-    case BlockLayout::ListMarkerKind::BulletSquare:
-      painter.drawRect(markerRect);
-      break;
-    default:
-      break;
+  case BlockLayout::ListMarkerKind::BulletDisc:
+    painter.drawEllipse(markerRect);
+    break;
+  case BlockLayout::ListMarkerKind::BulletCircle:
+    painter.setPen(QPen(color, qMax<qreal>(1.1, size * 0.18)));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawEllipse(markerRect);
+    break;
+  case BlockLayout::ListMarkerKind::BulletSquare:
+    painter.drawRect(markerRect);
+    break;
+  default:
+    break;
   }
 }
 
@@ -174,38 +165,39 @@ QVector<CodeHighlightSpan> highlightMathTex(const QString& text) {
 
 HitTestResult::DefinitionField definitionHitFieldFor(BlockLayout::DefinitionSlotLayout::Field field) {
   switch (field) {
-    case BlockLayout::DefinitionSlotLayout::Field::Label:
-      return HitTestResult::DefinitionField::Label;
-    case BlockLayout::DefinitionSlotLayout::Field::Destination:
-      return HitTestResult::DefinitionField::Destination;
-    case BlockLayout::DefinitionSlotLayout::Field::Title:
-      return HitTestResult::DefinitionField::Title;
-    case BlockLayout::DefinitionSlotLayout::Field::Note:
-      return HitTestResult::DefinitionField::Note;
+  case BlockLayout::DefinitionSlotLayout::Field::Label:
+    return HitTestResult::DefinitionField::Label;
+  case BlockLayout::DefinitionSlotLayout::Field::Destination:
+    return HitTestResult::DefinitionField::Destination;
+  case BlockLayout::DefinitionSlotLayout::Field::Title:
+    return HitTestResult::DefinitionField::Title;
+  case BlockLayout::DefinitionSlotLayout::Field::Note:
+    return HitTestResult::DefinitionField::Note;
   }
   return HitTestResult::DefinitionField::None;
 }
 
-const BlockLayout::DefinitionTokenLayout* firstDefinitionToken(const QVector<BlockLayout::DefinitionTokenLayout>& tokens) {
+const BlockLayout::DefinitionTokenLayout*
+firstDefinitionToken(const QVector<BlockLayout::DefinitionTokenLayout>& tokens) {
   return tokens.isEmpty() ? nullptr : &tokens.first();
 }
 
-const BlockLayout::DefinitionTokenLayout* lastDefinitionToken(const QVector<BlockLayout::DefinitionTokenLayout>& tokens) {
+const BlockLayout::DefinitionTokenLayout*
+lastDefinitionToken(const QVector<BlockLayout::DefinitionTokenLayout>& tokens) {
   return tokens.isEmpty() ? nullptr : &tokens.last();
 }
 
-const BlockLayout::DefinitionTokenLayout* nearestEditableDefinitionToken(
-    const QVector<BlockLayout::DefinitionTokenLayout>& tokens,
-    qreal x) {
+const BlockLayout::DefinitionTokenLayout*
+nearestEditableDefinitionToken(const QVector<BlockLayout::DefinitionTokenLayout>& tokens, qreal x) {
   const BlockLayout::DefinitionTokenLayout* target = nullptr;
   qreal bestDistance = std::numeric_limits<qreal>::max();
   for (const BlockLayout::DefinitionTokenLayout& token : tokens) {
     if (!token.editable) {
       continue;
     }
-    const qreal distance = x < token.rect.left() ? token.rect.left() - x
+    const qreal distance = x < token.rect.left()    ? token.rect.left() - x
                            : x > token.rect.right() ? x - token.rect.right()
-                                                     : 0.0;
+                                                    : 0.0;
     if (distance < bestDistance) {
       bestDistance = distance;
       target = &token;
@@ -215,14 +207,12 @@ const BlockLayout::DefinitionTokenLayout* nearestEditableDefinitionToken(
 }
 
 qreal horizontalDistanceToDefinitionToken(const BlockLayout::DefinitionTokenLayout& token, qreal x) {
-  return x < token.rect.left() ? token.rect.left() - x
-         : x > token.rect.right() ? x - token.rect.right()
-                                  : 0.0;
+  return x < token.rect.left() ? token.rect.left() - x : x > token.rect.right() ? x - token.rect.right() : 0.0;
 }
 
-const BlockLayout::DefinitionTokenLayout* zeroWidthEditableDefinitionTokenAtSourceOffset(
-    const QVector<BlockLayout::DefinitionTokenLayout>& tokens,
-    qsizetype sourceOffset) {
+const BlockLayout::DefinitionTokenLayout*
+zeroWidthEditableDefinitionTokenAtSourceOffset(const QVector<BlockLayout::DefinitionTokenLayout>& tokens,
+                                               qsizetype sourceOffset) {
   const BlockLayout::DefinitionTokenLayout* target = nullptr;
   for (const BlockLayout::DefinitionTokenLayout& token : tokens) {
     if (!token.editable || token.sourceStart != sourceOffset || token.sourceEnd != sourceOffset) {
@@ -238,10 +228,11 @@ const BlockLayout::DefinitionTokenLayout* zeroWidthEditableDefinitionTokenAtSour
   return target;
 }
 
-const BlockLayout::DefinitionTokenLayout* editableDefinitionTokenForSourceOffset(
-    const QVector<BlockLayout::DefinitionTokenLayout>& tokens,
-    qsizetype sourceOffset) {
-  if (const BlockLayout::DefinitionTokenLayout* token = zeroWidthEditableDefinitionTokenAtSourceOffset(tokens, sourceOffset)) {
+const BlockLayout::DefinitionTokenLayout*
+editableDefinitionTokenForSourceOffset(const QVector<BlockLayout::DefinitionTokenLayout>& tokens,
+                                       qsizetype sourceOffset) {
+  if (const BlockLayout::DefinitionTokenLayout* token =
+          zeroWidthEditableDefinitionTokenAtSourceOffset(tokens, sourceOffset)) {
     return token;
   }
   for (const BlockLayout::DefinitionTokenLayout& token : tokens) {
@@ -252,9 +243,10 @@ const BlockLayout::DefinitionTokenLayout* editableDefinitionTokenForSourceOffset
   return nullptr;
 }
 
-}  // namespace
+} // namespace
 
-BlockLayout::BlockLayout(NodeId id) : id_(std::move(id)) {}
+BlockLayout::BlockLayout(NodeId id) : id_(std::move(id)) {
+}
 
 NodeId BlockLayout::nodeId() const {
   return id_;
@@ -275,30 +267,43 @@ QRectF BlockLayout::rect() const {
 void BlockLayout::setRect(QRectF rect) {
   rect_ = rect;
   cssBoxGeometry_ = LayoutBox::place({}, {}, {}, rect);
-  if (hasListMarker()) cssBoxGeometry_.inlineTextOrigin.rx() += listContentIndent_;
+  if (hasListMarker())
+    cssBoxGeometry_.inlineTextOrigin.rx() += listContentIndent_;
 }
 
-void BlockLayout::setCssBoxGeometry(CssBoxGeometry geometry) { cssBoxGeometry_ = std::move(geometry); }
-BlockLayout::CssBoxGeometry BlockLayout::cssBoxGeometry() const { return cssBoxGeometry_; }
-QRectF BlockLayout::cssBorderBox() const { return cssBoxGeometry_.borderBox; }
-QPointF BlockLayout::inlineTextOrigin() const { return cssBoxGeometry_.inlineTextOrigin; }
+void BlockLayout::setCssBoxGeometry(CssBoxGeometry geometry) {
+  cssBoxGeometry_ = std::move(geometry);
+}
+BlockLayout::CssBoxGeometry BlockLayout::cssBoxGeometry() const {
+  return cssBoxGeometry_;
+}
+QRectF BlockLayout::cssBorderBox() const {
+  return cssBoxGeometry_.borderBox;
+}
+QPointF BlockLayout::inlineTextOrigin() const {
+  return cssBoxGeometry_.inlineTextOrigin;
+}
 QRectF BlockLayout::visualOverflowRect() const {
   auto bounds = cssBoxGeometry_.visualOverflow;
-  if (outerCssBox_) bounds = bounds.united(outerCssBox_->visualOverflow);
+  if (outerCssBox_)
+    bounds = bounds.united(outerCssBox_->visualOverflow);
   for (const auto& pseudo : positionedPseudos_)
     for (const auto& box : pseudo.boxes)
-      if (box.valid) bounds = bounds.united(box.visualOverflow.translated(rect_.topLeft()));
+      if (box.valid)
+        bounds = bounds.united(box.visualOverflow.translated(rect_.topLeft()));
   return bounds;
 }
 
 QVector<QRectF> BlockLayout::positionedPseudoRects() const {
   QVector<QRectF> result;
   for (const auto& pseudo : positionedPseudos_)
-    if (pseudo.boxes[0].valid) result.push_back(pseudo.boxes[0].borderBox.translated(rect_.topLeft()));
+    if (pseudo.boxes[0].valid)
+      result.push_back(pseudo.boxes[0].borderBox.translated(rect_.topLeft()));
   return result;
 }
 
-void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderTheme& theme, QPair<QString, QString> resolvedText) {
+void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderTheme& theme,
+                                         QPair<QString, QString> resolvedText) {
   positionedPseudos_.clear();
   generatedContentLaidOut_ = true;
   const auto* origin = theme.cssElementForNode(node);
@@ -312,13 +317,17 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
     fragment.identity = name;
     bool present = false;
     for (int stateIndex = 0; stateIndex < 4; ++stateIndex) {
-      CssElementState state; state.hover = stateIndex & 1; state.focus = stateIndex & 2;
+      CssElementState state;
+      state.hover = stateIndex & 1;
+      state.focus = stateIndex & 2;
       const auto rule = theme.pseudoForElement(*origin, name, state);
       positionedPseudoFingerprints_[pseudoIndex * 4 + stateIndex] = generatedContentFingerprint(rule);
-      if (!rule || !rule->absolute || !containing.isValid()) continue;
+      if (!rule || !rule->absolute || !containing.isValid())
+        continue;
       const auto value = generatedContentStyle(theme, *rule, cssBoxGeometry_.font, containing.size(),
-          pseudoIndex == 0 ? resolvedText.first : resolvedText.second);
-      if (!value) continue;
+                                               pseudoIndex == 0 ? resolvedText.first : resolvedText.second);
+      if (!value)
+        continue;
       auto v = *value;
       const auto inset = LayoutBox::insets(v.used);
       const auto valid = [&](const char* property) {
@@ -326,23 +335,35 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
       };
       if (!v.text.isEmpty() && !v.icon) {
         auto text = std::make_shared<TextLayout>(v.text, v.font);
-        QTextCharFormat format; format.setForeground(rule->color); format.setFont(v.font);
+        QTextCharFormat format;
+        format.setForeground(rule->color);
+        format.setFont(v.font);
         text->setFormats({{0, int(v.text.size()), format}});
-        QTextOption option; option.setWrapMode(QTextOption::WordWrap); text->setTextOption(option);
+        QTextOption option;
+        option.setWrapMode(QTextOption::WordWrap);
+        text->setTextOption(option);
         const auto natural = intrinsicTextWidths(*text, false, false);
-        qreal width = valid("width") || (valid("left") && valid("right")) ? qMax<qreal>(0, v.width - inset.left() - inset.right())
-            : qMin(natural.maxContent, containing.width() - inset.left() - inset.right());
-        width = constrainedGeneratedSize(v,containing.size(),{width+inset.left()+inset.right(),v.height},zoom).width()-inset.left()-inset.right();
-        text->beginLayout(); qreal y = 0;
+        qreal width = valid("width") || (valid("left") && valid("right"))
+                          ? qMax<qreal>(0, v.width - inset.left() - inset.right())
+                          : qMin(natural.maxContent, containing.width() - inset.left() - inset.right());
+        width = constrainedGeneratedSize(v, containing.size(), {width + inset.left() + inset.right(), v.height}, zoom)
+                    .width() -
+                inset.left() - inset.right();
+        text->beginLayout();
+        qreal y = 0;
         for (;;) {
-          auto line = text->createLine(); if (!line.isValid()) break;
+          auto line = text->createLine();
+          if (!line.isValid())
+            break;
           line.setLineWidth(qMax<qreal>(0, width));
           InlineLineBox lineBox(v.font, cssLineHeightPx(v.font.pointSizeF(), v.style.text.lineHeight));
           y += lineBox.placeLine(line, y);
         }
         text->endLayout();
-        if (!valid("width")) v.width = qMax<qreal>(0, width) + inset.left() + inset.right();
-        if (!valid("height") && !(valid("top") && valid("bottom"))) v.height = y + inset.top() + inset.bottom();
+        if (!valid("width"))
+          v.width = qMax<qreal>(0, width) + inset.left() + inset.right();
+        if (!valid("height") && !(valid("top") && valid("bottom")))
+          v.height = y + inset.top() + inset.bottom();
         fragment.texts[stateIndex] = std::move(text);
       }
       auto staticOrigin = cssBoxGeometry_.contentBox.topLeft() - rect_.topLeft();
@@ -351,30 +372,34 @@ void BlockLayout::layoutGeneratedContent(const MarkdownNode& node, const RenderT
         staticOrigin = caret.topLeft() + inlineTextOrigin() - rect_.topLeft();
       }
       const auto rect = positionGeneratedContent(v, containing, QRectF(staticOrigin, QSizeF(v.width, v.height)), zoom);
-      fragment.untransformedRects[stateIndex] = positionGeneratedContent(v,containing,QRectF(staticOrigin,QSizeF(v.width,v.height)),zoom,false);
+      fragment.untransformedRects[stateIndex] =
+          positionGeneratedContent(v, containing, QRectF(staticOrigin, QSizeF(v.width, v.height)), zoom, false);
       if (stateIndex == 0) {
         int side = 0;
-        for (const auto& property : {"top", "right", "bottom", "left"}) fragment.anchors[side++] = rule->computed->length(property);
+        for (const auto& property : {"top", "right", "bottom", "left"})
+          fragment.anchors[side++] = rule->computed->length(property);
       }
       auto& box = fragment.boxes[stateIndex];
       box = LayoutBox::place(v.style.key, v.style, v.used, rect, v.font);
-      if (v.icon && rule->svgFromMask) box.style.paint.backgroundColor = QColor();
+      if (v.icon && rule->svgFromMask)
+        box.style.paint.backgroundColor = QColor();
       fragment.rules[stateIndex] = *rule;
       fragment.icons[stateIndex] = generatedIconRect(v, box.contentBox, zoom);
-      if (fragment.texts[stateIndex]) box.visualOverflow = box.visualOverflow.united(
-          fragment.texts[stateIndex]->boundingRect().translated(box.inlineTextOrigin));
+      if (fragment.texts[stateIndex])
+        box.visualOverflow =
+            box.visualOverflow.united(fragment.texts[stateIndex]->boundingRect().translated(box.inlineTextOrigin));
       present = true;
     }
-    if (present) positionedPseudos_.push_back(std::move(fragment));
+    if (present)
+      positionedPseudos_.push_back(std::move(fragment));
     ++pseudoIndex;
   }
 }
 
 void BlockLayout::paintPositionedPseudos(QPainter& painter, QPointF origin, qreal hover, qreal focus,
-                                        CssPaintContext* context, qreal zoom) const {
+                                         CssPaintContext* context, qreal zoom) const {
   const auto blend = [](const QRectF& a, const QRectF& b, qreal phase) {
-    return QRectF(a.topLeft() + (b.topLeft() - a.topLeft()) * phase,
-                  a.size() + (b.size() - a.size()) * phase);
+    return QRectF(a.topLeft() + (b.topLeft() - a.topLeft()) * phase, a.size() + (b.size() - a.size()) * phase);
   };
   const auto geometry = [&](const std::array<LayoutBox, 4>& boxes) {
     return blend(blend(boxes[0].borderBox, boxes[1].borderBox, hover),
@@ -383,87 +408,112 @@ void BlockLayout::paintPositionedPseudos(QPainter& painter, QPointF origin, qrea
   for (const auto& fragment : positionedPseudos_) {
     const int state = (hover > .5 ? 1 : 0) | (focus > .5 ? 2 : 0);
     const auto& snapshot = fragment.boxes[state];
-    if (!snapshot.valid) continue;
+    if (!snapshot.valid)
+      continue;
     // Animation interpolates already laid-out endpoints; no CSS is evaluated here.
-    auto box = LayoutBox::place(snapshot.hostKey, snapshot.style, snapshot.usedBox, geometry(fragment.boxes), snapshot.font);
+    auto box =
+        LayoutBox::place(snapshot.hostKey, snapshot.style, snapshot.usedBox, geometry(fragment.boxes), snapshot.font);
     {
-      auto style = context && fragment.recipe ? context->sample(*fragment.recipe, id_.toString() + "::" + fragment.identity,
-                                  state | (hover > .5 && context->pressed ? 4 : 0)) : snapshot.style;
-      auto rect = blend(blend(fragment.untransformedRects[0],fragment.untransformedRects[1],hover),
-                        blend(fragment.untransformedRects[2],fragment.untransformedRects[3],hover),focus);
+      auto style = context && fragment.recipe
+                       ? context->sample(*fragment.recipe, id_.toString() + "::" + fragment.identity,
+                                         state | (hover > .5 && context->pressed ? 4 : 0))
+                       : snapshot.style;
+      auto rect = blend(blend(fragment.untransformedRects[0], fragment.untransformedRects[1], hover),
+                        blend(fragment.untransformedRects[2], fragment.untransformedRects[3], hover), focus);
       const auto inset = LayoutBox::insets(snapshot.usedBox);
-      const auto size = [&](const CssLengthPercentage& value,const CssLengthPercentage& minimum,const CssLengthPercentage& maximum,
-                            qreal basis,qreal padding,qreal fallback) {
-        const qreal extra=style.box.borderBox?0:padding;
-        const auto used=[&](const auto& length){return length.px*zoom+length.fraction*basis+extra;};
-        auto size=value.status==CssLengthStatus::Valid?used(value):fallback;
-        if(maximum.status==CssLengthStatus::Valid)size=qMin(size,used(maximum));
-        if(minimum.status==CssLengthStatus::Valid)size=qMax(size,used(minimum));
-        return qMax(padding,size);
+      const auto size = [&](const CssLengthPercentage& value, const CssLengthPercentage& minimum,
+                            const CssLengthPercentage& maximum, qreal basis, qreal padding, qreal fallback) {
+        const qreal extra = style.box.borderBox ? 0 : padding;
+        const auto used = [&](const auto& length) { return length.px * zoom + length.fraction * basis + extra; };
+        auto size = value.status == CssLengthStatus::Valid ? used(value) : fallback;
+        if (maximum.status == CssLengthStatus::Valid)
+          size = qMin(size, used(maximum));
+        if (minimum.status == CssLengthStatus::Valid)
+          size = qMax(size, used(minimum));
+        return qMax(padding, size);
       };
-      rect.setWidth(size(style.box.widthLength,style.box.minWidthLength,style.box.maxWidthLength,fragment.containing.width(),inset.left()+inset.right(),rect.width()));
-      rect.setHeight(size(style.box.heightLength,style.box.minHeightLength,style.box.maxHeightLength,fragment.containing.height(),inset.top()+inset.bottom(),rect.height()));
+      rect.setWidth(size(style.box.widthLength, style.box.minWidthLength, style.box.maxWidthLength,
+                         fragment.containing.width(), inset.left() + inset.right(), rect.width()));
+      rect.setHeight(size(style.box.heightLength, style.box.minHeightLength, style.box.maxHeightLength,
+                          fragment.containing.height(), inset.top() + inset.bottom(), rect.height()));
       // Preserve the selected state's right/bottom anchor when an animated size changes.
       const auto& anchors = fragment.rules[state].computed;
-      if (anchors && anchors->length("left").status != CssLengthStatus::Valid && anchors->length("right").status == CssLengthStatus::Valid)
+      if (anchors && anchors->length("left").status != CssLengthStatus::Valid &&
+          anchors->length("right").status == CssLengthStatus::Valid)
         rect.moveRight(fragment.untransformedRects[state].right());
-      if (anchors && anchors->length("top").status != CssLengthStatus::Valid && anchors->length("bottom").status == CssLengthStatus::Valid)
+      if (anchors && anchors->length("top").status != CssLengthStatus::Valid &&
+          anchors->length("bottom").status == CssLengthStatus::Valid)
         rect.moveBottom(fragment.untransformedRects[state].bottom());
-      auto used = snapshot.usedBox; used.borderRadius = style.box.borderRadius * zoom;
+      auto used = snapshot.usedBox;
+      used.borderRadius = style.box.borderRadius * zoom;
       box = LayoutBox::place(snapshot.hostKey, std::move(style), used, rect, snapshot.font);
     }
     const auto& rule = fragment.rules[state];
     auto paint = box.style.paint;
-    paintCssElement(painter, box.borderBox.translated(origin), box.visualOverflow.translated(origin), paint, zoom, context,
+    paintCssElement(
+        painter, box.borderBox.translated(origin), box.visualOverflow.translated(origin), paint, zoom, context,
         [&](QPainter& target, const ThemeElementPaintStyle& unfiltered) {
-      auto style = box.style; style.paint = unfiltered;
-      const auto maskTint = style.paint.backgroundColor;
-      if (rule.svgFromMask) style.paint.backgroundColor = {};
-      paintLayoutBox(target, box, origin, &style);
-      if (!rule.svgData.isEmpty()) {
-        target.save(); target.setClipRect(box.contentBox.translated(origin), Qt::IntersectClip);
-        auto icon = fragment.icons[state]; icon.translate(box.contentBox.topLeft() - snapshot.contentBox.topLeft() + origin);
-        DecorationPainter::paintIcon(target, rule.svgData, icon,
-            rule.svgFromMask ? maskTint.isValid() ? maskTint : rule.maskTint : style.paint.color, rule.svgFromMask);
-        target.restore();
-      } else if (fragment.texts[state]) {
-        QTextCharFormat format; format.setForeground(style.paint.color);
-        fragment.texts[state]->draw(&target, box.inlineTextOrigin + origin,
-                                   {{0, int(fragment.texts[state]->text().size()), format}});
-      }
-    },&box);
+          auto style = box.style;
+          style.paint = unfiltered;
+          const auto maskTint = style.paint.backgroundColor;
+          if (rule.svgFromMask)
+            style.paint.backgroundColor = {};
+          paintLayoutBox(target, box, origin, &style);
+          if (!rule.svgData.isEmpty()) {
+            target.save();
+            target.setClipRect(box.contentBox.translated(origin), Qt::IntersectClip);
+            auto icon = fragment.icons[state];
+            icon.translate(box.contentBox.topLeft() - snapshot.contentBox.topLeft() + origin);
+            DecorationPainter::paintIcon(
+                target, rule.svgData, icon,
+                rule.svgFromMask ? maskTint.isValid() ? maskTint : rule.maskTint : style.paint.color, rule.svgFromMask);
+            target.restore();
+          } else if (fragment.texts[state]) {
+            QTextCharFormat format;
+            format.setForeground(style.paint.color);
+            fragment.texts[state]->draw(&target, box.inlineTextOrigin + origin,
+                                        {{0, int(fragment.texts[state]->text().size()), format}});
+          }
+        },
+        &box);
   }
 }
 
 bool BlockLayout::selectionLayoutMatches(const SelectionRange& selection, const MarkdownDocument& document) const {
-  if (!document.node(id_)) return false;
+  if (!document.node(id_))
+    return false;
   // Ordinary source blocks keep the same geometry when the caret enters,
   // leaves or moves inside them. Retain their shaping and syntax highlights.
   // Mermaid, math and HTML can switch between a preview and a source editor;
   // a cancelled IME splice also needs a fresh layout.
-  if ((type_ == BlockType::CodeFence && codeLanguage_.trimmed().compare(QStringLiteral("mermaid"), Qt::CaseInsensitive) != 0) ||
+  if ((type_ == BlockType::CodeFence &&
+       codeLanguage_.trimmed().compare(QStringLiteral("mermaid"), Qt::CaseInsensitive) != 0) ||
       type_ == BlockType::FrontMatter)
     return literalTextLayout_ && !literalTextLayout_->hasPreedit();
   // Entering/leaving a block can switch generated previews, literal editors or
   // omitted empty paragraphs. Reuse within a block is governed by its actual
   // projection decisions, rather than the caret's exact character offset.
   if (layoutSelection_.focus.blockId != selection.focus.blockId ||
-      layoutSelection_.focus.text.nodeId != selection.focus.text.nodeId ||
-      isLiteralBlockType(type_) || type_ == BlockType::LinkDefinition || type_ == BlockType::FootnoteDefinition) return false;
+      layoutSelection_.focus.text.nodeId != selection.focus.text.nodeId || isLiteralBlockType(type_) ||
+      type_ == BlockType::LinkDefinition || type_ == BlockType::FootnoteDefinition)
+    return false;
   // A quote's virtual empty paragraphs also depend on the selection anchor.
   // Containers may omit those children entirely, so compare that dependency
   // before inspecting just the materialized descendants.
   if (!children_.empty() && (layoutSelection_.anchor.blockId != selection.anchor.blockId ||
-      layoutSelection_.anchor.text.nodeId != selection.anchor.text.nodeId ||
-      layoutSelection_.anchor.text.sourceOffset != selection.anchor.text.sourceOffset)) return false;
-  if (inlineLayout_ && !inlineLayout_->projectionMatchesState(
-          InlineProjectionState::forSelection(selection, id_, contentSourceStart_))) return false;
+                             layoutSelection_.anchor.text.nodeId != selection.anchor.text.nodeId ||
+                             layoutSelection_.anchor.text.sourceOffset != selection.anchor.text.sourceOffset))
+    return false;
+  if (inlineLayout_ &&
+      !inlineLayout_->projectionMatchesState(InlineProjectionState::forSelection(selection, id_, contentSourceStart_)))
+    return false;
   for (const auto& row : tableRows_)
     for (const auto& cell : row.cells) {
       InlineProjectionState state;
       if (selection.focus.text.nodeId == cell.nodeId)
         state = InlineProjectionState::forSelection(selection, selection.focus.blockId, cell.contentSourceStart);
-      if (!cell.text.projectionMatchesState(state)) return false;
+      if (!cell.text.projectionMatchesState(state))
+        return false;
     }
   return std::all_of(children_.cbegin(), children_.cend(),
                      [&](const auto& child) { return child->selectionLayoutMatches(selection, document); });
@@ -471,22 +521,28 @@ bool BlockLayout::selectionLayoutMatches(const SelectionRange& selection, const 
 
 bool BlockLayout::stylesMatch(const RenderTheme& theme, const MarkdownDocument& document) const {
   const auto* node = document.node(id_);
-  if (!node) return false;
+  if (!node)
+    return false;
   if (generatedContentLaidOut_) {
     int index = 0;
     for (const auto& pseudo : {QStringLiteral("before"), QStringLiteral("after")})
       for (int bits = 0; bits < 4; ++bits) {
-        CssElementState state; state.hover = bits & 1; state.focus = bits & 2;
+        CssElementState state;
+        state.hover = bits & 1;
+        state.focus = bits & 2;
         const auto rule = theme.pseudoForElement(*theme.cssElementForNode(*node), pseudo, state);
-        if ((generatedContentFingerprint(rule)) != positionedPseudoFingerprints_[index++]) return false;
+        if ((generatedContentFingerprint(rule)) != positionedPseudoFingerprints_[index++])
+          return false;
       }
   }
   const auto matches = [&](const LayoutBox& box, const MarkdownNode& owner) {
     const auto* style = theme.elementStyleForNode(owner, box.hostKey);
     return style && style->fingerprint == box.style.fingerprint;
   };
-  if (!cssBoxGeometry_.hostKey.isEmpty() && !matches(cssBoxGeometry_, *node)) return false;
-  if (outerCssBox_ && !matches(*outerCssBox_, *node)) return false;
+  if (!cssBoxGeometry_.hostKey.isEmpty() && !matches(cssBoxGeometry_, *node))
+    return false;
+  if (outerCssBox_ && !matches(*outerCssBox_, *node))
+    return false;
   if (inlineLayout_) {
     const auto* owner = node;
     if (type_ == BlockType::ListItem) {
@@ -496,19 +552,23 @@ bool BlockLayout::stylesMatch(const RenderTheme& theme, const MarkdownDocument& 
           break;
         }
     }
-    if (!inlineLayout_->stylesMatch(theme, *owner)) return false;
+    if (!inlineLayout_->stylesMatch(theme, *owner))
+      return false;
   }
   for (const auto& row : tableRows_) {
     const auto* rowNode = document.node(row.nodeId);
-    if (!rowNode || !matches(row.box, *rowNode)) return false;
+    if (!rowNode || !matches(row.box, *rowNode))
+      return false;
     for (const auto& cell : row.cells) {
       if (const auto* owner = document.node(cell.nodeId)) {
-        if (!matches(cell.box, *owner) || !cell.text.stylesMatch(theme, *owner)) return false;
+        if (!matches(cell.box, *owner) || !cell.text.stylesMatch(theme, *owner))
+          return false;
       }
     }
   }
   for (const auto& child : children_)
-    if (!child->stylesMatch(theme, document)) return false;
+    if (!child->stylesMatch(theme, document))
+      return false;
   return true;
 }
 
@@ -516,9 +576,12 @@ void BlockLayout::translate(qreal dx, qreal dy) {
   reuse.origin += QPointF(dx, dy);
   rect_.translate(dx, dy);
   if (outerCssBox_) {
-    outerCssBox_->flowRect.translate(dx, dy); outerCssBox_->borderBox.translate(dx, dy);
-    outerCssBox_->paddingBox.translate(dx, dy); outerCssBox_->contentBox.translate(dx, dy);
-    outerCssBox_->visualOverflow.translate(dx, dy); outerCssBox_->inlineTextOrigin += QPointF(dx, dy);
+    outerCssBox_->flowRect.translate(dx, dy);
+    outerCssBox_->borderBox.translate(dx, dy);
+    outerCssBox_->paddingBox.translate(dx, dy);
+    outerCssBox_->contentBox.translate(dx, dy);
+    outerCssBox_->visualOverflow.translate(dx, dy);
+    outerCssBox_->inlineTextOrigin += QPointF(dx, dy);
   }
   if (cssBoxGeometry_.valid) {
     cssBoxGeometry_.flowRect.translate(dx, dy);
@@ -552,43 +615,60 @@ void BlockLayout::translateY(qreal dy) {
 }
 
 qreal BlockLayout::firstBaseline() const {
-  if (formattingBaselines_.first >= 0) return formattingBaselines_.first;
-  if (inlineLayout_) return inlineTextOrigin().y() - rect_.y() + inlineLayout_->firstLineBaselineY();
+  if (formattingBaselines_.first >= 0)
+    return formattingBaselines_.first;
+  if (inlineLayout_)
+    return inlineTextOrigin().y() - rect_.y() + inlineLayout_->firstLineBaselineY();
   for (const auto& child : children_)
-    if (const auto baseline = child->firstBaseline(); baseline >= 0) return child->rect().y() - rect_.y() + baseline;
+    if (const auto baseline = child->firstBaseline(); baseline >= 0)
+      return child->rect().y() - rect_.y() + baseline;
   return -1;
 }
 qreal BlockLayout::lastBaseline() const {
-  if (formattingBaselines_.second >= 0) return formattingBaselines_.second;
-  if (inlineLayout_) return inlineTextOrigin().y() - rect_.y() + inlineLayout_->lastLineBaselineY();
+  if (formattingBaselines_.second >= 0)
+    return formattingBaselines_.second;
+  if (inlineLayout_)
+    return inlineTextOrigin().y() - rect_.y() + inlineLayout_->lastLineBaselineY();
   for (auto child = children_.rbegin(); child != children_.rend(); ++child)
-    if (const auto baseline = (*child)->lastBaseline(); baseline >= 0) return (*child)->rect().y() - rect_.y() + baseline;
+    if (const auto baseline = (*child)->lastBaseline(); baseline >= 0)
+      return (*child)->rect().y() - rect_.y() + baseline;
   return -1;
 }
 
 void BlockLayout::shiftSourceOffsets(qsizetype delta) {
   reuse.sourceStart += delta;
-  if (contentSourceStart_ >= 0) contentSourceStart_ += delta;
-  for (auto& child : children_) child->shiftSourceOffsets(delta);
+  if (contentSourceStart_ >= 0)
+    contentSourceStart_ += delta;
+  for (auto& child : children_)
+    child->shiftSourceOffsets(delta);
   for (auto& row : tableRows_)
     for (auto& cell : row.cells)
-      if (cell.contentSourceStart >= 0) cell.contentSourceStart += delta;
+      if (cell.contentSourceStart >= 0)
+        cell.contentSourceStart += delta;
   for (auto& slot : definitionSlots_) {
-    if (slot.sourceStart >= 0) slot.sourceStart += delta;
-    if (slot.sourceEnd >= 0) slot.sourceEnd += delta;
+    if (slot.sourceStart >= 0)
+      slot.sourceStart += delta;
+    if (slot.sourceEnd >= 0)
+      slot.sourceEnd += delta;
   }
   for (auto& token : definitionTokens_) {
-    if (token.sourceStart >= 0) token.sourceStart += delta;
-    if (token.sourceEnd >= 0) token.sourceEnd += delta;
+    if (token.sourceStart >= 0)
+      token.sourceStart += delta;
+    if (token.sourceEnd >= 0)
+      token.sourceEnd += delta;
   }
 }
 
 void BlockLayout::refreshPaintResources() {
-  if (inlineLayout_) inlineLayout_->refreshImageResources();
+  if (inlineLayout_)
+    inlineLayout_->refreshImageResources();
   for (auto& row : tableRows_)
-    for (auto& cell : row.cells) cell.text.refreshImageResources();
-  for (auto& child : children_) child->refreshPaintResources();
-  for (auto it = reuse.resources.begin(); it != reuse.resources.end(); ++it) it.value() = LayoutResources::instance().read(it.key());
+    for (auto& cell : row.cells)
+      cell.text.refreshImageResources();
+  for (auto& child : children_)
+    child->refreshPaintResources();
+  for (auto it = reuse.resources.begin(); it != reuse.resources.end(); ++it)
+    it.value() = LayoutResources::instance().read(it.key());
 }
 
 qreal BlockLayout::height() const {
@@ -660,9 +740,8 @@ const html::HtmlLayoutResult* BlockLayout::htmlLayout() const {
   return htmlLayout_.get();
 }
 
-void BlockLayout::setMermaidScene(
-    std::shared_ptr<const muffin::mermaid::MermaidScene> scene,
-    QSizeF naturalSize, mermaid::MermaidRenderMetadata metadata) {
+void BlockLayout::setMermaidScene(std::shared_ptr<const muffin::mermaid::MermaidScene> scene, QSizeF naturalSize,
+                                  mermaid::MermaidRenderMetadata metadata) {
   mermaidScene_ = std::move(scene);
   mermaidNaturalSize_ = naturalSize;
   mermaidMetadata_ = std::move(metadata);
@@ -689,11 +768,10 @@ const mermaid::MermaidRenderMetadata& BlockLayout::mermaidMetadata() const {
 }
 
 bool BlockLayout::hasAnimatedMermaid() const {
-  if (mermaidScene_ && mermaidScene_->hasAnimation()) return true;
+  if (mermaidScene_ && mermaidScene_->hasAnimation())
+    return true;
   return std::any_of(children_.cbegin(), children_.cend(),
-                     [](const auto& child) {
-                       return child && child->hasAnimatedMermaid();
-                     });
+                     [](const auto& child) { return child && child->hasAnimatedMermaid(); });
 }
 
 void BlockLayout::setMermaidState(MermaidState state) {
@@ -704,11 +782,9 @@ BlockLayout::MermaidState BlockLayout::mermaidState() const {
   return mermaidState_;
 }
 
-void BlockLayout::setMermaidDiagnostic(
-    mermaid::MermaidDiagnostic diagnostic) {
+void BlockLayout::setMermaidDiagnostic(mermaid::MermaidDiagnostic diagnostic) {
   mermaidDiagnostic_ = std::move(diagnostic);
-  mermaidDiagnosticMessage_ =
-      mermaid::formatMermaidDiagnostic(mermaidDiagnostic_).trimmed();
+  mermaidDiagnosticMessage_ = mermaid::formatMermaidDiagnostic(mermaidDiagnostic_).trimmed();
 }
 
 const mermaid::MermaidDiagnostic& BlockLayout::mermaidDiagnostic() const {
@@ -719,52 +795,46 @@ const QString& BlockLayout::mermaidDiagnosticMessage() const {
   return mermaidDiagnosticMessage_;
 }
 
-qreal BlockLayout::mermaidDiagnosticFootprint(
-    const mermaid::MermaidDiagnostic& diagnostic,
-    const RenderTheme& theme, qreal width) {
-  if (diagnostic.isEmpty()) return 0.0;
+qreal BlockLayout::mermaidDiagnosticFootprint(const mermaid::MermaidDiagnostic& diagnostic, const RenderTheme& theme,
+                                              qreal width) {
+  if (diagnostic.isEmpty())
+    return 0.0;
   const qreal padding = mermaidDiagnosticPadding(theme);
   const qreal iconSize = mermaidDiagnosticIconSize(theme);
-  const qreal textWidth = qMax<qreal>(
-      1.0, width - padding * 3.0 - iconSize);
-  const MermaidDiagnosticTextMetrics text =
-      measureMermaidDiagnosticText(diagnostic, theme, textWidth);
-  const qreal panelHeight =
-      qCeil(padding * 2.0 + qMax(iconSize, text.height()));
+  const qreal textWidth = qMax<qreal>(1.0, width - padding * 3.0 - iconSize);
+  const MermaidDiagnosticTextMetrics text = measureMermaidDiagnosticText(diagnostic, theme, textWidth);
+  const qreal panelHeight = qCeil(padding * 2.0 + qMax(iconSize, text.height()));
   return qCeil(mermaidDiagnosticGap(theme) + panelHeight);
 }
 
 bool BlockLayout::hasMermaidDiagnostic() const {
-  return (mermaidState_ == MermaidState::Error ||
-          mermaidState_ == MermaidState::Unsupported) &&
+  return (mermaidState_ == MermaidState::Error || mermaidState_ == MermaidState::Unsupported) &&
          !mermaidDiagnosticMessage_.isEmpty();
 }
 
 QRectF BlockLayout::mermaidCodeFenceRect(const RenderTheme& theme) const {
-  if (!hasMermaidDiagnostic()) return rect_;
+  if (!hasMermaidDiagnostic())
+    return rect_;
   QRectF sourceRect = rect_;
-  sourceRect.setHeight(qMax<qreal>(
-      1.0, rect_.height() - mermaidDiagnosticFootprint(
-                                mermaidDiagnostic_, theme, rect_.width())));
+  sourceRect.setHeight(
+      qMax<qreal>(1.0, rect_.height() - mermaidDiagnosticFootprint(mermaidDiagnostic_, theme, rect_.width())));
   return sourceRect;
 }
 
 QRectF BlockLayout::mermaidDiagnosticRect(const RenderTheme& theme) const {
-  if (!hasMermaidDiagnostic()) return {};
-  const qreal footprint = mermaidDiagnosticFootprint(
-      mermaidDiagnostic_, theme, rect_.width());
-  const qreal panelHeight = qMax<qreal>(
-      1.0, footprint - mermaidDiagnosticGap(theme));
-  return QRectF(rect_.left(), rect_.bottom() - panelHeight,
-                rect_.width(), panelHeight);
+  if (!hasMermaidDiagnostic())
+    return {};
+  const qreal footprint = mermaidDiagnosticFootprint(mermaidDiagnostic_, theme, rect_.width());
+  const qreal panelHeight = qMax<qreal>(1.0, footprint - mermaidDiagnosticGap(theme));
+  return QRectF(rect_.left(), rect_.bottom() - panelHeight, rect_.width(), panelHeight);
 }
 
-QVector<QRectF> BlockLayout::mermaidDiagnosticSourceRects(
-    const RenderTheme& theme) const {
-  if (mermaidState_ != MermaidState::Error) return {};
-  const auto [start, end] = mermaidHighlightRange(
-      mermaidDiagnostic_, literal_);
-  if (start < 0 || end <= start) return {};
+QVector<QRectF> BlockLayout::mermaidDiagnosticSourceRects(const RenderTheme& theme) const {
+  if (mermaidState_ != MermaidState::Error)
+    return {};
+  const auto [start, end] = mermaidHighlightRange(mermaidDiagnostic_, literal_);
+  if (start < 0 || end <= start)
+    return {};
   return literalSelectionRects(start, end, theme);
 }
 
@@ -804,8 +874,7 @@ QRectF BlockLayout::literalContentRect(const RenderTheme& theme) const {
   if (type_ == BlockType::MathBlock && literalEditing_) {
     return mathEditorSourceRect(theme);
   }
-  const QRectF literalRect =
-      type_ == BlockType::CodeFence ? mermaidCodeFenceRect(theme) : rect_;
+  const QRectF literalRect = type_ == BlockType::CodeFence ? mermaidCodeFenceRect(theme) : rect_;
   QRectF content = literalRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox));
   // Reserve a left gutter for line numbers in code fences (set at build time); 0 for other blocks.
   if (type_ == BlockType::CodeFence && lineNumberGutterWidth_ > 0.0) {
@@ -823,18 +892,18 @@ const LiteralTextLayout& BlockLayout::sourceTextLayout(qreal width, bool wrap) c
   // Manual blocks and newly loaded fonts may require a fresh snapshot.
   if (!literalTextLayout_ || !literalTextLayout_->matches(literal_, literalFont(), width, literalLineHeight(), wrap)) {
     const auto preedit = literalTextLayout_ ? literalTextLayout_->preedit() : LiteralTextLayout::Preedit{};
-    literalTextLayout_ = std::make_shared<LiteralTextLayout>(literal_, literalFont(), width, literalLineHeight(), wrap, preedit);
+    literalTextLayout_ =
+        std::make_shared<LiteralTextLayout>(literal_, literalFont(), width, literalLineHeight(), wrap, preedit);
   }
   return *literalTextLayout_;
 }
 
 const LiteralTextLayout& BlockLayout::literalTextLayout(const RenderTheme& theme) const {
   const auto padding = LayoutBox::insets(cssBoxGeometry_.usedBox);
-  const qreal width = type_ == BlockType::MathBlock
-      ? qMax<qreal>(1, rect_.width() - padding.left() - padding.right())
-      : literalContentRect(theme).width();
+  const qreal width = type_ == BlockType::MathBlock ? qMax<qreal>(1, rect_.width() - padding.left() - padding.right())
+                                                    : literalContentRect(theme).width();
   const bool wrap = literalTextLayout_ ? literalTextLayout_->wraps()
-      : (type_ == BlockType::CodeFence ? codeBlockWrapEnabled() : true);
+                                       : (type_ == BlockType::CodeFence ? codeBlockWrapEnabled() : true);
   return sourceTextLayout(width, wrap);
 }
 
@@ -948,14 +1017,13 @@ QRectF BlockLayout::definitionCursorRectForSourceOffset(qsizetype sourceOffset, 
     return {};
   }
 
-  const qsizetype sourceStart = definition_.sourceRange.isValid()
-                                    ? definition_.sourceRange.start
-                                    : definition_.markerRange.start;
-  const qsizetype sourceEnd = definition_.sourceRange.isValid()
-                                  ? definition_.sourceRange.end
-                                  : qMax(definition_.markerRange.end,
-                                         qMax(definition_.destinationRange.end,
-                                              qMax(definition_.titleRange.end, definition_.noteRange.end)));
+  const qsizetype sourceStart =
+      definition_.sourceRange.isValid() ? definition_.sourceRange.start : definition_.markerRange.start;
+  const qsizetype sourceEnd =
+      definition_.sourceRange.isValid()
+          ? definition_.sourceRange.end
+          : qMax(definition_.markerRange.end,
+                 qMax(definition_.destinationRange.end, qMax(definition_.titleRange.end, definition_.noteRange.end)));
   const DefinitionTokenLayout* firstToken = firstDefinitionToken(definitionTokens_);
   if (sourceOffset <= sourceStart) {
     return firstToken ? QRectF(firstToken->rect.left(), rect_.top(), 1.0, rect_.height()) : QRectF();
@@ -975,7 +1043,7 @@ QRectF BlockLayout::definitionCursorRectForSourceOffset(qsizetype sourceOffset, 
       }
       const qreal distance = sourceOffset < token.sourceStart ? token.sourceStart - sourceOffset
                              : sourceOffset > token.sourceEnd ? sourceOffset - token.sourceEnd
-                                                             : 0.0;
+                                                              : 0.0;
       if (distance < bestDistance) {
         bestDistance = distance;
         target = &token;
@@ -1054,7 +1122,8 @@ void BlockLayout::setChildren(std::vector<std::unique_ptr<BlockLayout>> children
   children_ = std::move(children);
   formattingPaintOrder_.clear();
   if (cssBoxGeometry_.style.layout.establishesFormattingContext()) {
-    for (size_t i = 0; i < children_.size(); ++i) formattingPaintOrder_.push_back(i);
+    for (size_t i = 0; i < children_.size(); ++i)
+      formattingPaintOrder_.push_back(i);
     std::stable_sort(formattingPaintOrder_.begin(), formattingPaintOrder_.end(), [&](size_t a, size_t b) {
       return children_[a]->formattingOrder() < children_[b]->formattingOrder();
     });
@@ -1081,7 +1150,8 @@ const std::vector<BlockLayout::TableRowLayout>& BlockLayout::tableRows() const {
   return tableRows_;
 }
 
-void BlockLayout::paint(QPainter& painter, const RenderTheme& theme, qreal scrollY, const CodeFenceScrollController* scroll, BlockPaintState hover) const {
+void BlockLayout::paint(QPainter& painter, const RenderTheme& theme, qreal scrollY,
+                        const CodeFenceScrollController* scroll, BlockPaintState hover) const {
   ThemePerfScope performance(ThemePerfStage::Paint);
   painter.save();
   ThemeElementStyle sampled = cssBoxGeometry_.style;
@@ -1089,39 +1159,52 @@ void BlockLayout::paint(QPainter& painter, const RenderTheme& theme, qreal scrol
     const auto rect = cssBoxGeometry_.borderBox.translated(0, -scrollY);
     const bool over = hover.css->pointer && rect.contains(painter.worldTransform().inverted().map(*hover.css->pointer));
     const bool focused = hover.css->focusedAncestors.contains(id_) || hover.focusedNode == id_;
-    hover.hoverActive = over; hover.hoverPhase = over ? 1 : 0;
-    hover.focusActive = focused; hover.focusPhase = focused ? 1 : 0;
+    hover.hoverActive = over;
+    hover.hoverPhase = over ? 1 : 0;
+    hover.focusActive = focused;
+    hover.focusPhase = focused ? 1 : 0;
     const int bits = (over ? 1 : 0) | (focused ? 2 : 0) | (over && hover.css->pressed ? 4 : 0);
-    if (cssBoxGeometry_.paintRecipe) sampled = hover.css->sample(*cssBoxGeometry_.paintRecipe, id_.toString(), bits);
+    if (cssBoxGeometry_.paintRecipe)
+      sampled = hover.css->sample(*cssBoxGeometry_.paintRecipe, id_.toString(), bits);
   }
-  paintCssElement(painter, cssBoxGeometry_.borderBox.translated(0, -scrollY), visualOverflowRect().translated(0, -scrollY),
-      sampled.paint, theme.zoomPercent() / 100., hover.css, [&](QPainter& target, const ThemeElementPaintStyle& paint) {
-    auto style = sampled; style.paint = paint;
-    hover.hostStyle = hover.css || sampled.paint.opacity!=1 || sampled.paint.filterPresent || !sampled.paint.maskLayers.empty() ? &style : nullptr;
-  const auto& overflow = cssBoxGeometry_.style.layout;
-  if (cssBoxGeometry_.valid && (overflow.clipsX() || overflow.clipsY())) {
-    auto clip = cssBoxGeometry_.paddingBox.translated(0, -scrollY);
-    if (!overflow.clipsX()) clip.setLeft(-1e9), clip.setRight(1e9);
-    if (!overflow.clipsY()) clip.setTop(-1e9), clip.setBottom(1e9);
-    // Overflow clips content at the padding edge, not the element's own border
-    // and shadow. paintSelf paints the part inside this clip below. Paint the
-    // complementary area once, preserving translucent decoration opacity.
-    QPainterPath visible, content;
-    visible.addRect(target.hasClipping() ? target.clipBoundingRect()
-                                         : target.combinedTransform().inverted().mapRect(QRectF(target.viewport())));
-    content.addRect(clip);
-    target.save();
-    target.setClipPath(visible.subtracted(content), Qt::IntersectClip);
-    paintLayoutBox(target, cssBoxGeometry_, QPointF(0, -scrollY), hover.hostStyle);
-    target.restore();
-    target.setClipRect(clip, Qt::IntersectClip);
-  }
-  paintSelf(target, theme, scrollY, scroll, hover);
-  for (size_t i = 0; i < children_.size(); ++i) {
-    const auto& child = children_[formattingPaintOrder_.empty() ? i : formattingPaintOrder_[i]];
-    child->paint(target, theme, scrollY, scroll, hover);
-  }
-  },&cssBoxGeometry_);
+  paintCssElement(
+      painter, cssBoxGeometry_.borderBox.translated(0, -scrollY), visualOverflowRect().translated(0, -scrollY),
+      sampled.paint, theme.zoomPercent() / 100., hover.css,
+      [&](QPainter& target, const ThemeElementPaintStyle& paint) {
+        auto style = sampled;
+        style.paint = paint;
+        hover.hostStyle =
+            hover.css || sampled.paint.opacity != 1 || sampled.paint.filterPresent || !sampled.paint.maskLayers.empty()
+                ? &style
+                : nullptr;
+        const auto& overflow = cssBoxGeometry_.style.layout;
+        if (cssBoxGeometry_.valid && (overflow.clipsX() || overflow.clipsY())) {
+          auto clip = cssBoxGeometry_.paddingBox.translated(0, -scrollY);
+          if (!overflow.clipsX())
+            clip.setLeft(-1e9), clip.setRight(1e9);
+          if (!overflow.clipsY())
+            clip.setTop(-1e9), clip.setBottom(1e9);
+          // Overflow clips content at the padding edge, not the element's own border
+          // and shadow. paintSelf paints the part inside this clip below. Paint the
+          // complementary area once, preserving translucent decoration opacity.
+          QPainterPath visible, content;
+          visible.addRect(target.hasClipping()
+                              ? target.clipBoundingRect()
+                              : target.combinedTransform().inverted().mapRect(QRectF(target.viewport())));
+          content.addRect(clip);
+          target.save();
+          target.setClipPath(visible.subtracted(content), Qt::IntersectClip);
+          paintLayoutBox(target, cssBoxGeometry_, QPointF(0, -scrollY), hover.hostStyle);
+          target.restore();
+          target.setClipRect(clip, Qt::IntersectClip);
+        }
+        paintSelf(target, theme, scrollY, scroll, hover);
+        for (size_t i = 0; i < children_.size(); ++i) {
+          const auto& child = children_[formattingPaintOrder_.empty() ? i : formattingPaintOrder_[i]];
+          child->paint(target, theme, scrollY, scroll, hover);
+        }
+      },
+      &cssBoxGeometry_);
   painter.restore();
 }
 
@@ -1143,16 +1226,19 @@ bool BlockLayout::containsNode(NodeId id) const {
 
 bool BlockLayout::containsInteractiveContent(QPointF documentPos, const RenderTheme& theme) const {
   if (isLiteralBlockType(type_)) {
-    if (rect_.adjusted(-2, 0, 2, 0).contains(documentPos)) return true;
-    const bool sourceVisible = type_ == BlockType::FrontMatter ||
-        (type_ == BlockType::CodeFence && !isMermaidRendered()) || literalEditing_;
-    if (!sourceVisible) return false;
+    if (rect_.adjusted(-2, 0, 2, 0).contains(documentPos))
+      return true;
+    const bool sourceVisible =
+        type_ == BlockType::FrontMatter || (type_ == BlockType::CodeFence && !isMermaidRendered()) || literalEditing_;
+    if (!sourceVisible)
+      return false;
     const auto& source = literalTextLayout(theme);
     // Wrapped trailing spaces retain editable advances beyond the box edge.
     // Route those points to the measured source row instead of DocumentLayout's
     // nearest-block fallback, which clamps x and replaces y with the box centre.
     // Unwrapped source remains restricted to its horizontally scrolled viewport.
-    if (!source.wraps()) return false;
+    if (!source.wraps())
+      return false;
     auto bounds = literalContentRect(theme);
     bounds.setWidth(qMax(bounds.width(), source.maximumLineWidth() + 1));
     return bounds.contains(documentPos);
@@ -1163,24 +1249,24 @@ bool BlockLayout::containsInteractiveContent(QPointF documentPos, const RenderTh
   return rect_.adjusted(-2, -theme.blockSpacing() * 0.5, 2, theme.blockSpacing() * 0.5).contains(documentPos);
 }
 
-HitTestResult BlockLayout::hitTest(
-    QPointF documentPos, const RenderTheme& theme,
-    const CodeFenceScrollController* scroll,
-    const QSet<QString>* openSequenceMenus) const {
+HitTestResult BlockLayout::hitTest(QPointF documentPos, const RenderTheme& theme,
+                                   const CodeFenceScrollController* scroll,
+                                   const QSet<QString>* openSequenceMenus) const {
   const auto& overflow = cssBoxGeometry_.style.layout;
   const auto clip = cssBoxGeometry_.paddingBox;
   if (cssBoxGeometry_.valid &&
       ((overflow.clipsX() && (documentPos.x() < clip.left() || documentPos.x() > clip.right())) ||
-       (overflow.clipsY() && (documentPos.y() < clip.top() || documentPos.y() > clip.bottom())))) return {};
+       (overflow.clipsY() && (documentPos.y() < clip.top() || documentPos.y() > clip.bottom()))))
+    return {};
   for (size_t i = children_.size(); i > 0; --i) {
     const BlockLayout& child = *children_[formattingPaintOrder_.empty() ? i - 1 : formattingPaintOrder_[i - 1]];
-    const auto target = cssBoxGeometry_.style.layout.establishesFormattingContext() ? child.rect()
-                                                              : child.rect().adjusted(-theme.blockSpacing(), -theme.blockSpacing(),
-                                                                                      theme.blockSpacing(), theme.blockSpacing());
+    const auto target = cssBoxGeometry_.style.layout.establishesFormattingContext()
+                            ? child.rect()
+                            : child.rect().adjusted(-theme.blockSpacing(), -theme.blockSpacing(), theme.blockSpacing(),
+                                                    theme.blockSpacing());
     if (target.contains(documentPos) ||
         (isLiteralBlockType(child.type_) && child.containsInteractiveContent(documentPos, theme))) {
-      HitTestResult childHit =
-          child.hitTest(documentPos, theme, scroll, openSequenceMenus);
+      HitTestResult childHit = child.hitTest(documentPos, theme, scroll, openSequenceMenus);
       if (childHit.isValid()) {
         return childHit;
       }
@@ -1198,65 +1284,66 @@ HitTestResult BlockLayout::hitTest(
   return hitSelf(documentPos, theme, scroll, openSequenceMenus);
 }
 
-void BlockLayout::paintSelf(QPainter& painter, const RenderTheme& theme, qreal scrollY, const CodeFenceScrollController* scroll, BlockPaintState hover) const {
+void BlockLayout::paintSelf(QPainter& painter, const RenderTheme& theme, qreal scrollY,
+                            const CodeFenceScrollController* scroll, BlockPaintState hover) const {
   const QRectF viewRect = rect_.translated(0, -scrollY);
 
   switch (type_) {
-    case BlockType::Heading:
-    case BlockType::ListItem:
+  case BlockType::Heading:
+  case BlockType::ListItem:
+    paintInlineBlock(painter, theme, viewRect, scrollY, hover);
+    break;
+  case BlockType::Paragraph:
+    // A `[TOC]` paragraph paints a generated heading list while the caret is
+    // elsewhere; when the caret is in the block the builder rebuilds it as a
+    // normal paragraph (isToc_ false), so the literal "[TOC]" shows for editing.
+    if (isToc_) {
+      paintToc(painter, theme, viewRect);
+    } else {
       paintInlineBlock(painter, theme, viewRect, scrollY, hover);
-      break;
-    case BlockType::Paragraph:
-      // A `[TOC]` paragraph paints a generated heading list while the caret is
-      // elsewhere; when the caret is in the block the builder rebuilds it as a
-      // normal paragraph (isToc_ false), so the literal "[TOC]" shows for editing.
-      if (isToc_) {
-        paintToc(painter, theme, viewRect);
-      } else {
-        paintInlineBlock(painter, theme, viewRect, scrollY, hover);
-      }
-      break;
-    case BlockType::BlockQuote:
-      paintBlockQuote(painter, theme, viewRect, scrollY, hover);
-      break;
-    case BlockType::FrontMatter:
-    case BlockType::CodeFence:
-      if (isMermaidRendered())
-        paintMermaidDiagram(painter, theme, viewRect, hover);
-      else {
-        const QRectF codeRect =
-            mermaidCodeFenceRect(theme).translated(0, -scrollY);
-        paintCodeFence(painter, theme, codeRect, scroll, hover);
-        if (hasMermaidDiagnostic())
-          paintMermaidDiagnostic(painter, theme, viewRect);
-      }
-      break;
-    case BlockType::MathBlock:
-      paintMathBlock(painter, theme, viewRect, scrollY, hover);
-      break;
-    case BlockType::HtmlBlock:
-      paintHtmlBlock(painter, theme, viewRect, hover);
-      break;
-    case BlockType::ThematicBreak:
-      paintThematicBreak(painter, theme, viewRect);
-      break;
-    case BlockType::Table:
-      paintTable(painter, theme, scrollY, hover);
-      break;
-    case BlockType::LinkDefinition:
-    case BlockType::FootnoteDefinition:
-      paintDefinition(painter, theme, viewRect);
-      break;
-    default:
-      if (cssBoxGeometry_.valid && cssBoxGeometry_.style.layout.establishesFormattingContext())
-        paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), hover.hostStyle);
-      break;
+    }
+    break;
+  case BlockType::BlockQuote:
+    paintBlockQuote(painter, theme, viewRect, scrollY, hover);
+    break;
+  case BlockType::FrontMatter:
+  case BlockType::CodeFence:
+    if (isMermaidRendered())
+      paintMermaidDiagram(painter, theme, viewRect, hover);
+    else {
+      const QRectF codeRect = mermaidCodeFenceRect(theme).translated(0, -scrollY);
+      paintCodeFence(painter, theme, codeRect, scroll, hover);
+      if (hasMermaidDiagnostic())
+        paintMermaidDiagnostic(painter, theme, viewRect);
+    }
+    break;
+  case BlockType::MathBlock:
+    paintMathBlock(painter, theme, viewRect, scrollY, hover);
+    break;
+  case BlockType::HtmlBlock:
+    paintHtmlBlock(painter, theme, viewRect, hover);
+    break;
+  case BlockType::ThematicBreak:
+    paintThematicBreak(painter, theme, viewRect);
+    break;
+  case BlockType::Table:
+    paintTable(painter, theme, scrollY, hover);
+    break;
+  case BlockType::LinkDefinition:
+  case BlockType::FootnoteDefinition:
+    paintDefinition(painter, theme, viewRect);
+    break;
+  default:
+    if (cssBoxGeometry_.valid && cssBoxGeometry_.style.layout.establishesFormattingContext())
+      paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), hover.hostStyle);
+    break;
   }
-  paintPositionedPseudos(painter, rect_.topLeft() + QPointF(0, -scrollY),
-      hover.hoverActive ? hover.hoverPhase : 0, hover.focusActive ? hover.focusPhase : 0, hover.css, theme.zoomPercent() / 100.);
+  paintPositionedPseudos(painter, rect_.topLeft() + QPointF(0, -scrollY), hover.hoverActive ? hover.hoverPhase : 0,
+                         hover.focusActive ? hover.focusPhase : 0, hover.css, theme.zoomPercent() / 100.);
 }
 
-void BlockLayout::paintInlineBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState hover) const {
+void BlockLayout::paintInlineBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY,
+                                   BlockPaintState hover) const {
   if (inlineLayout_) {
     paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), hover.hostStyle);
     // Text and decorations consume the same sampled style, while the immutable
@@ -1295,23 +1382,28 @@ void BlockLayout::paintInlineBlock(QPainter& painter, const RenderTheme& theme, 
         const qreal orderedX = contentX - markerGap - metrics.horizontalAdvance(listMarker_);
         drawDocumentText(painter, QPointF(orderedX, viewRect.top() + firstBaseline), listMarker_);
       } else {
-        QPointF markerCenter(markerX + metrics.horizontalAdvance(QStringLiteral("0")) * 0.35, viewRect.top() + firstBaseline - metrics.xHeight() * 0.45);
+        QPointF markerCenter(markerX + metrics.horizontalAdvance(QStringLiteral("0")) * 0.35,
+                             viewRect.top() + firstBaseline - metrics.xHeight() * 0.45);
         // Non-regressive clamp: with a small indent the default marker column
         // would land inside the content gutter. Shift the bullet left so its
         // right edge honours listMarkerGap() — only moves it when it would
         // otherwise crowd the text (large-indent themes are untouched).
         const qreal bulletRadius = qBound<qreal>(4.2, metrics.height() * 0.34, 6.2) / 2.0;
         const qreal maxX = contentX - markerGap - bulletRadius;
-        if (markerCenter.x() > maxX) { markerCenter.setX(qMax<qreal>(viewRect.left(), maxX)); }
+        if (markerCenter.x() > maxX) {
+          markerCenter.setX(qMax<qreal>(viewRect.left(), maxX));
+        }
         paintUnorderedListMarker(painter, listMarkerKind_, markerCenter, metrics.height(), markerColor);
       }
       painter.restore();
-      inlineLayout_->paint(painter, QPointF(contentX, viewRect.top()), hoverPhase, focusPhase, hover.css, id_.toString(),
-                           hover.focusedNode == id_ ? hover.focusSourceOffset - contentSourceStart_ : -1, hover.hostStyle);
+      inlineLayout_->paint(
+          painter, QPointF(contentX, viewRect.top()), hoverPhase, focusPhase, hover.css, id_.toString(),
+          hover.focusedNode == id_ ? hover.focusSourceOffset - contentSourceStart_ : -1, hover.hostStyle);
     } else {
       const QPointF textOrigin = inlineTextOrigin() + QPointF(0, -scrollY);
       inlineLayout_->paint(painter, textOrigin, hoverPhase, focusPhase, hover.css, id_.toString(),
-                           hover.focusedNode == id_ ? hover.focusSourceOffset - contentSourceStart_ : -1, hover.hostStyle);
+                           hover.focusedNode == id_ ? hover.focusSourceOffset - contentSourceStart_ : -1,
+                           hover.hostStyle);
     }
     if (!placeholderText_.isEmpty()) {
       painter.save();
@@ -1321,14 +1413,15 @@ void BlockLayout::paintInlineBlock(QPainter& painter, const RenderTheme& theme, 
       // Align with the first text line's baseline (line-height aware) so the
       // placeholder sits where the caret and typed text will, not at the raw
       // block top + ascent.
-      drawDocumentText(painter, QPointF(textOrigin.x(), textOrigin.y() + inlineLayout_->firstLineBaselineY()), placeholderText_);
+      drawDocumentText(painter, QPointF(textOrigin.x(), textOrigin.y() + inlineLayout_->firstLineBaselineY()),
+                       placeholderText_);
       painter.restore();
     }
-
   }
 }
 
-void BlockLayout::paintBlockQuote(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState state) const {
+void BlockLayout::paintBlockQuote(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY,
+                                  BlockPaintState state) const {
   painter.save();
   painter.setPen(Qt::NoPen);
   if (alertKind_ != AlertKind::None && !alertThemed_) {
@@ -1340,15 +1433,15 @@ void BlockLayout::paintBlockQuote(QPainter& painter, const RenderTheme& theme, Q
     painter.setBrush(tint);
     painter.drawRoundedRect(viewRect, 6.0, 6.0);
     painter.setBrush(theme.alertAccent(alertKind_));
-    painter.drawRoundedRect(QRectF(viewRect.left(), viewRect.top() + 3.0, 4.0, viewRect.height() - 6.0),
-                            2.0, 2.0);
+    painter.drawRoundedRect(QRectF(viewRect.left(), viewRect.top() + 3.0, 4.0, viewRect.height() - 6.0), 2.0, 2.0);
   } else {
     paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), state.hostStyle);
   }
   painter.restore();
 }
 
-void BlockLayout::paintMathBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY, BlockPaintState state) const {
+void BlockLayout::paintMathBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, qreal scrollY,
+                                 BlockPaintState state) const {
   painter.save();
   paintLayoutBox(painter, cssBoxGeometry_, viewRect.topLeft() - rect_.topLeft(), state.hostStyle);
   if (literalEditing_) {
@@ -1359,8 +1452,10 @@ void BlockLayout::paintMathBlock(QPainter& painter, const RenderTheme& theme, QR
     const TextFontMetrics codeMetrics(codeFont);
     const qreal markerHeight = qMax<qreal>(14.0, codeMetrics.height());
     const qreal sourcePanelBottom = sourceRect.bottom() + markerHeight + padding.bottom();
-    const QRectF sourcePanel(viewRect.left(), viewRect.top(), viewRect.width(), qMax<qreal>(1.0, sourcePanelBottom - viewRect.top()));
-    const QRectF previewPanel(viewRect.left(), sourcePanel.bottom(), viewRect.width(), qMax<qreal>(1.0, viewRect.bottom() - sourcePanel.bottom()));
+    const QRectF sourcePanel(viewRect.left(), viewRect.top(), viewRect.width(),
+                             qMax<qreal>(1.0, sourcePanelBottom - viewRect.top()));
+    const QRectF previewPanel(viewRect.left(), sourcePanel.bottom(), viewRect.width(),
+                              qMax<qreal>(1.0, viewRect.bottom() - sourcePanel.bottom()));
 
     painter.fillRect(sourcePanel, theme.codeBackgroundColor());
     painter.fillRect(previewPanel, theme.backgroundColor());
@@ -1370,7 +1465,8 @@ void BlockLayout::paintMathBlock(QPainter& painter, const RenderTheme& theme, QR
     option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
     const QString openMarker = mathOpeningDelimiter(mathDelimiter_);
     const QString closeMarker = mathClosingDelimiter(mathDelimiter_);
-    drawDocumentText(painter, QPointF(sourceRect.left(), viewRect.top() + padding.top() + codeMetrics.ascent()), openMarker);
+    drawDocumentText(painter, QPointF(sourceRect.left(), viewRect.top() + padding.top() + codeMetrics.ascent()),
+                     openMarker);
     paintLiteralSource(painter, theme, sourceRect, highlightMathTex(literal_));
     drawDocumentText(painter, QPointF(sourceRect.left(), sourceRect.bottom() + codeMetrics.ascent()), closeMarker);
     painter.setPen(QPen(theme.codeBorderColor(), 1));
@@ -1396,10 +1492,10 @@ void BlockLayout::paintMathBlock(QPainter& painter, const RenderTheme& theme, QR
   painter.restore();
 }
 
-void BlockLayout::paintMermaidDiagram(QPainter& painter, const RenderTheme& theme,
-                                      QRectF viewRect,
+void BlockLayout::paintMermaidDiagram(QPainter& painter, const RenderTheme& theme, QRectF viewRect,
                                       BlockPaintState state) const {
-  if (!mermaidScene_) return;
+  if (!mermaidScene_)
+    return;
   painter.save();
   paintLayoutBox(painter, cssBoxGeometry_, viewRect.topLeft() - rect_.topLeft(), state.hostStyle);
   // Scale the scene's natural size to fit the content width (never upscale beyond 1:1),
@@ -1417,22 +1513,17 @@ void BlockLayout::paintMermaidDiagram(QPainter& painter, const RenderTheme& them
     // fractional client box fills the canvas, content painted through
     // translate(-clientBox.topLeft()), title at its scene-absolute anchor.
     // Piecewise families keep the centered contentOffset model.
-    const QRectF clientBox = muffin::mermaid::editor::mermaidClientBox(
-        mermaidScene_, mermaidMetadata_);
-    qreal contentOffsetX = qMax<qreal>(
-        0.0, (natW - mermaidMetadata_.contentSize.width()) / 2.0);
-    qreal contentOffsetY =
-        mermaidMetadata_.titleHeight + mermaidMetadata_.diagramPadding;
+    const QRectF clientBox = muffin::mermaid::editor::mermaidClientBox(mermaidScene_, mermaidMetadata_);
+    qreal contentOffsetX = qMax<qreal>(0.0, (natW - mermaidMetadata_.contentSize.width()) / 2.0);
+    qreal contentOffsetY = mermaidMetadata_.titleHeight + mermaidMetadata_.diagramPadding;
     QRectF titleRect(0.0, 0.0, natW, mermaidMetadata_.titleHeight);
     if (clientBox.isValid()) {
       contentOffsetX = 0.0;
       contentOffsetY = 0.0;
-      const qreal titleWidth =
-          muffin::mermaid::measureMermaidTitleWidth(mermaidMetadata_);
+      const qreal titleWidth = muffin::mermaid::measureMermaidTitleWidth(mermaidMetadata_);
       const qreal centerX = mermaidScene_->svgClientViewBox().center().x();
-      titleRect = QRectF(centerX - titleWidth / 2.0,
-                         -mermaidMetadata_.titleHeight, titleWidth,
-                         mermaidMetadata_.titleHeight);
+      titleRect =
+          QRectF(centerX - titleWidth / 2.0, -mermaidMetadata_.titleHeight, titleWidth, mermaidMetadata_.titleHeight);
     }
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setRenderHint(QPainter::TextAntialiasing, true);
@@ -1446,26 +1537,23 @@ void BlockLayout::paintMermaidDiagram(QPainter& painter, const RenderTheme& them
       muffin::mermaid::paintMermaidTitle(mermaidMetadata_, painter, titleRect);
     if (mermaidViewportCullingEnabled_ && painter.hasClipping()) {
       const QRectF visibleCanvas = painter.clipBoundingRect().intersected(
-          clientBox.isValid()
-              ? QRectF(0.0, 0.0, natW, natH)
-              : QRectF(contentOffsetX, contentOffsetY,
-                       sceneBounds.width(), sceneBounds.height()));
+          clientBox.isValid() ? QRectF(0.0, 0.0, natW, natH)
+                              : QRectF(contentOffsetX, contentOffsetY, sceneBounds.width(), sceneBounds.height()));
       if (!visibleCanvas.isValid()) {
         painter.restore();
         return;
       }
       paintOptions.cullToVisibleRect = true;
       paintOptions.visibleSceneRect = clientBox.isValid()
-          ? visibleCanvas.translated(clientBox.topLeft())
-          : QRectF(
-                sceneBounds.left() + visibleCanvas.left() - contentOffsetX,
-                sceneBounds.top() + visibleCanvas.top() - contentOffsetY,
-                visibleCanvas.width(), visibleCanvas.height());
+                                          ? visibleCanvas.translated(clientBox.topLeft())
+                                          : QRectF(sceneBounds.left() + visibleCanvas.left() - contentOffsetX,
+                                                   sceneBounds.top() + visibleCanvas.top() - contentOffsetY,
+                                                   visibleCanvas.width(), visibleCanvas.height());
     }
-    if (clientBox.isValid()) painter.translate(-clientBox.topLeft());
+    if (clientBox.isValid())
+      painter.translate(-clientBox.topLeft());
     else
-      painter.translate(contentOffsetX - sceneBounds.left(),
-                        contentOffsetY - sceneBounds.top());
+      painter.translate(contentOffsetX - sceneBounds.left(), contentOffsetY - sceneBounds.top());
     if (clientBox.isValid())
       muffin::mermaid::paintMermaidTitle(mermaidMetadata_, painter, titleRect);
     mermaidScene_->paint(painter, paintOptions);
@@ -1473,16 +1561,14 @@ void BlockLayout::paintMermaidDiagram(QPainter& painter, const RenderTheme& them
   painter.restore();
 }
 
-void BlockLayout::paintMermaidDiagnostic(
-    QPainter& painter, const RenderTheme& theme, QRectF viewRect) const {
-  if (!hasMermaidDiagnostic()) return;
+void BlockLayout::paintMermaidDiagnostic(QPainter& painter, const RenderTheme& theme, QRectF viewRect) const {
+  if (!hasMermaidDiagnostic())
+    return;
   painter.save();
   const qreal viewOffsetY = viewRect.top() - rect_.top();
-  const QRectF panel =
-      mermaidDiagnosticRect(theme).translated(0.0, viewOffsetY);
-  const QColor accent = theme.alertAccent(
-      mermaidState_ == MermaidState::Error ? AlertKind::Caution
-                                           : AlertKind::Warning);
+  const QRectF panel = mermaidDiagnosticRect(theme).translated(0.0, viewOffsetY);
+  const QColor accent =
+      theme.alertAccent(mermaidState_ == MermaidState::Error ? AlertKind::Caution : AlertKind::Warning);
   QColor tint = accent;
   tint.setAlpha(24);
 
@@ -1498,17 +1584,13 @@ void BlockLayout::paintMermaidDiagnostic(
   const qreal stripeWidth = 4.0;
   painter.setBrush(accent);
   painter.drawRoundedRect(
-      QRectF(panel.left() + 1.0, panel.top() + 1.0, stripeWidth,
-             qMax<qreal>(1.0, panel.height() - 2.0)),
-      2.0, 2.0);
+      QRectF(panel.left() + 1.0, panel.top() + 1.0, stripeWidth, qMax<qreal>(1.0, panel.height() - 2.0)), 2.0, 2.0);
 
   const QFont font = literalFont();
   painter.setFont(font);
   const qreal padding = mermaidDiagnosticPadding(theme);
   const qreal iconSize = mermaidDiagnosticIconSize(theme);
-  const QRectF iconRect(panel.left() + padding,
-                        panel.center().y() - iconSize / 2.0,
-                        iconSize, iconSize);
+  const QRectF iconRect(panel.left() + padding, panel.center().y() - iconSize / 2.0, iconSize, iconSize);
   painter.setPen(Qt::NoPen);
   painter.setBrush(accent);
   painter.drawEllipse(iconRect);
@@ -1518,43 +1600,38 @@ void BlockLayout::paintMermaidDiagnostic(
   painter.setPen(Qt::white);
   drawDocumentText(painter, iconRect, Qt::AlignCenter, QStringLiteral("!"));
 
-  const QRectF textRect(
-      iconRect.right() + padding, panel.top() + padding,
-      qMax<qreal>(1.0, panel.right() - padding - iconRect.right() - padding),
-      qMax<qreal>(1.0, panel.height() - padding * 2.0));
+  const QRectF textRect(iconRect.right() + padding, panel.top() + padding,
+                        qMax<qreal>(1.0, panel.right() - padding - iconRect.right() - padding),
+                        qMax<qreal>(1.0, panel.height() - padding * 2.0));
   painter.setClipRect(textRect);
-  const MermaidDiagnosticTextMetrics text =
-      measureMermaidDiagnosticText(
-          mermaidDiagnostic_, theme, textRect.width());
-  const qreal textTop = textRect.top() +
-      qMax<qreal>(0.0, (textRect.height() - text.height()) / 2.0);
+  const MermaidDiagnosticTextMetrics text = measureMermaidDiagnosticText(mermaidDiagnostic_, theme, textRect.width());
+  const qreal textTop = textRect.top() + qMax<qreal>(0.0, (textRect.height() - text.height()) / 2.0);
   const int textFlags = Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap;
   QFont headerFont = font;
   headerFont.setBold(true);
   painter.setFont(headerFont);
   painter.setPen(accent);
-  drawDocumentText(painter,
-      QRectF(textRect.left(), textTop, textRect.width(), text.headerHeight),
-      textFlags, text.header);
+  drawDocumentText(painter, QRectF(textRect.left(), textTop, textRect.width(), text.headerHeight), textFlags,
+                   text.header);
   if (text.bodyHeight > 0.0) {
     painter.setFont(font);
     painter.setPen(theme.textColor());
     drawDocumentText(painter,
-        QRectF(textRect.left(), textTop + text.headerHeight + text.gap,
-               textRect.width(), text.bodyHeight),
-        textFlags, text.body);
+                     QRectF(textRect.left(), textTop + text.headerHeight + text.gap, textRect.width(), text.bodyHeight),
+                     textFlags, text.body);
   }
   painter.restore();
 }
 
-bool BlockLayout::mermaidScenePointAt(
-    QPointF documentPos, const RenderTheme& theme,
-    const QRectF& sceneBounds, QPointF& scenePos) const {
-  if (!isMermaidRendered()) return false;
+bool BlockLayout::mermaidScenePointAt(QPointF documentPos, const RenderTheme& theme, const QRectF& sceneBounds,
+                                      QPointF& scenePos) const {
+  if (!isMermaidRendered())
+    return false;
   const QRectF content = rect_.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox));
   const qreal natW = mermaidNaturalSize_.width();
   const qreal natH = mermaidNaturalSize_.height();
-  if (natW <= 0.0 || natH <= 0.0) return false;
+  if (natW <= 0.0 || natH <= 0.0)
+    return false;
   const qreal s = qMin<qreal>(1.0, content.width() / natW);
   const qreal drawW = natW * s;
   const qreal drawH = natH * s;
@@ -1563,29 +1640,23 @@ bool BlockLayout::mermaidScenePointAt(
   // Inverse of the paint transform: document → scene coordinates. Client-box
   // families paint through translate(-clientBox.topLeft()) (the SVG/PNG
   // mapping); piecewise families keep the centered contentOffset model.
-  const QRectF clientBox = muffin::mermaid::editor::mermaidClientBox(
-      mermaidScene_, mermaidMetadata_);
+  const QRectF clientBox = muffin::mermaid::editor::mermaidClientBox(mermaidScene_, mermaidMetadata_);
   if (clientBox.isValid()) {
-    scenePos = QPointF((documentPos.x() - dx) / s + clientBox.left(),
-                       (documentPos.y() - dy) / s + clientBox.top());
+    scenePos = QPointF((documentPos.x() - dx) / s + clientBox.left(), (documentPos.y() - dy) / s + clientBox.top());
     return true;
   }
-  const qreal contentOffsetX = qMax<qreal>(
-      0.0, (natW - mermaidMetadata_.contentSize.width()) / 2.0);
-  scenePos = QPointF(
-      (documentPos.x() - dx) / s - contentOffsetX +
-          sceneBounds.left(),
-      (documentPos.y() - dy) / s - mermaidMetadata_.titleHeight -
-          mermaidMetadata_.diagramPadding +
-          sceneBounds.top());
+  const qreal contentOffsetX = qMax<qreal>(0.0, (natW - mermaidMetadata_.contentSize.width()) / 2.0);
+  scenePos = QPointF((documentPos.x() - dx) / s - contentOffsetX + sceneBounds.left(),
+                     (documentPos.y() - dy) / s - mermaidMetadata_.titleHeight - mermaidMetadata_.diagramPadding +
+                         sceneBounds.top());
   return true;
 }
 
-BlockLayout::MermaidInteractionHit BlockLayout::mermaidInteractionAt(
-    QPointF documentPos, const RenderTheme& theme,
-    const QSet<QString>* openSequenceMenus) const {
+BlockLayout::MermaidInteractionHit BlockLayout::mermaidInteractionAt(QPointF documentPos, const RenderTheme& theme,
+                                                                     const QSet<QString>* openSequenceMenus) const {
   MermaidInteractionHit result;
-  if (!mermaidScene_) return result;
+  if (!mermaidScene_)
+    return result;
   QPointF scenePos;
   if (!mermaidScenePointAt(documentPos, theme, mermaidScene_->sceneBounds(), scenePos)) {
     return result;
@@ -1598,18 +1669,22 @@ BlockLayout::MermaidInteractionHit BlockLayout::mermaidInteractionAt(
     const auto& r = *it;
     if (!r.requiresOpenMenu.isEmpty() && !force &&
         !(openSequenceMenus && openSequenceMenus->contains(r.requiresOpenMenu)))
-      continue;  // sequence menu item whose menu is closed
-    if (!r.togglesMenu.isEmpty() && force) continue;  // actor toggle inactive under forceMenus
-    if (!r.bounds.contains(scenePos)) continue;
-    result.toolTip = r.toolTip;  // empty for sequence items/actors (matches prior behavior)
-    if (!r.href.isEmpty() && isSafeUrl(r.href, false)) result.linkHref = r.href;
+      continue; // sequence menu item whose menu is closed
+    if (!r.togglesMenu.isEmpty() && force)
+      continue; // actor toggle inactive under forceMenus
+    if (!r.bounds.contains(scenePos))
+      continue;
+    result.toolTip = r.toolTip; // empty for sequence items/actors (matches prior behavior)
+    if (!r.href.isEmpty() && isSafeUrl(r.href, false))
+      result.linkHref = r.href;
     result.menuActorId = r.togglesMenu;
     return result;
   }
   return result;
 }
 
-void BlockLayout::paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect, BlockPaintState state) const {
+void BlockLayout::paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QRectF viewRect,
+                                 BlockPaintState state) const {
   if (literalEditing_) {
     painter.save();
     paintLayoutBox(painter, cssBoxGeometry_, viewRect.topLeft() - rect_.topLeft(), state.hostStyle);
@@ -1618,7 +1693,8 @@ void BlockLayout::paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QR
     // must match the build/estimate/selection/hit-test paths, all of which
     // treat HtmlBlock as wrap=true — otherwise the reserved height (wrapped)
     // and the painted text (NoWrap, clipped, no scrollbar) disagree.
-    paintLiteralSource(painter, theme, viewRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox)), codeHighlightSpans_);
+    paintLiteralSource(painter, theme, viewRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox)),
+                       codeHighlightSpans_);
     painter.restore();
   } else if (htmlLayout_ && htmlLayout_->valid()) {
     htmlLayout_->paint(painter, viewRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox)).topLeft());
@@ -1630,7 +1706,8 @@ void BlockLayout::paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QR
     painter.setPen(theme.codeBorderColor());
     painter.setBrush(theme.codeBackgroundColor());
     painter.drawRect(viewRect.adjusted(0.5, 0.5, -0.5, -0.5));
-    paintLiteralSource(painter, theme, viewRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox)), codeHighlightSpans_);
+    paintLiteralSource(painter, theme, viewRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox)),
+                       codeHighlightSpans_);
     painter.restore();
   }
 }
@@ -1666,13 +1743,13 @@ QRectF BlockLayout::mathPreviewContentRect(const RenderTheme& theme) const {
   const qreal markerHeight = qMax<qreal>(14.0, metrics.height());
   const QRectF sourceRect = mathEditorSourceRect(theme);
   const qreal previewTop = sourceRect.bottom() + markerHeight + padding.bottom() + padding.top();
-  return QRectF(rect_.left() + padding.left(),
-                previewTop,
+  return QRectF(rect_.left() + padding.left(), previewTop,
                 qMax<qreal>(1.0, rect_.width() - padding.left() - padding.right()),
                 qMax<qreal>(1.0, rect_.bottom() - padding.bottom() - previewTop));
 }
 
-void BlockLayout::paintCodeFence(QPainter& painter, const RenderTheme& theme, QRectF viewRect, const CodeFenceScrollController* scroll, BlockPaintState state) const {
+void BlockLayout::paintCodeFence(QPainter& painter, const RenderTheme& theme, QRectF viewRect,
+                                 const CodeFenceScrollController* scroll, BlockPaintState state) const {
   painter.save();
   auto sourceBox = cssBoxGeometry_;
   sourceBox.borderBox = viewRect;
@@ -1713,7 +1790,8 @@ void BlockLayout::paintCodeFence(QPainter& painter, const RenderTheme& theme, QR
   painter.restore();
 }
 
-void BlockLayout::paintCodeFenceScrollBar(QPainter& painter, const RenderTheme& theme, QRectF contentRect, qreal offset, qreal maxLineWidth) const {
+void BlockLayout::paintCodeFenceScrollBar(QPainter& painter, const RenderTheme& theme, QRectF contentRect, qreal offset,
+                                          qreal maxLineWidth) const {
   const qreal stripH = scrollBarStripHeight(theme);
   const QRectF strip(contentRect.left(), contentRect.bottom() - stripH, contentRect.width(), stripH);
   const qreal visibleW = contentRect.width();
@@ -1731,7 +1809,8 @@ void BlockLayout::paintCodeFenceScrollBar(QPainter& painter, const RenderTheme& 
   painter.drawRoundedRect(thumb, 3.0, 3.0);
 }
 
-void BlockLayout::paintLiteralSource(QPainter& painter, const RenderTheme& theme, QRectF contentRect, const QVector<CodeHighlightSpan>& spans) const {
+void BlockLayout::paintLiteralSource(QPainter& painter, const RenderTheme& theme, QRectF contentRect,
+                                     const QVector<CodeHighlightSpan>& spans) const {
   painter.setPen(theme.textColor());
   QTextCharFormat base;
   base.setForeground(theme.textColor());
@@ -1742,9 +1821,9 @@ void BlockLayout::paintLiteralSource(QPainter& painter, const RenderTheme& theme
     const auto [start, end] = literalTextLayout(theme).sourceRangeForY(clip.top(), clip.bottom());
     // Highlight spans are normalized: sorted and non-overlapping.
     first = std::lower_bound(first, last, start,
-        [](const CodeHighlightSpan& span, qsizetype offset) { return span.end <= offset; });
+                             [](const CodeHighlightSpan& span, qsizetype offset) { return span.end <= offset; });
     last = std::lower_bound(first, last, end,
-        [](const CodeHighlightSpan& span, qsizetype offset) { return span.start < offset; });
+                            [](const CodeHighlightSpan& span, qsizetype offset) { return span.start < offset; });
   }
   for (auto it = first; it != last; ++it) {
     const auto& span = *it;
@@ -1777,10 +1856,8 @@ void BlockLayout::paintCodeLineNumbers(QPainter& painter, const RenderTheme& the
   auto first = lines.cbegin(), last = lines.cend();
   if (painter.hasClipping()) {
     const auto clip = painter.clipBoundingRect().translated(-codeRect.topLeft());
-    first = std::lower_bound(first, last, clip.top(),
-        [](const auto& line, qreal y) { return line.rect.bottom() < y; });
-    last = std::upper_bound(first, last, clip.bottom(),
-        [](qreal y, const auto& line) { return y < line.rect.top(); });
+    first = std::lower_bound(first, last, clip.top(), [](const auto& line, qreal y) { return line.rect.bottom() < y; });
+    last = std::upper_bound(first, last, clip.bottom(), [](qreal y, const auto& line) { return y < line.rect.top(); });
   }
   for (auto it = first; it != last; ++it) {
     const auto& line = *it;
@@ -1793,14 +1870,15 @@ void BlockLayout::paintCodeLineNumbers(QPainter& painter, const RenderTheme& the
 
 void BlockLayout::paintTable(QPainter& painter, const RenderTheme& theme, qreal scrollY, BlockPaintState state) const {
   painter.save();
-  if (outerCssBox_) paintLayoutBox(painter, *outerCssBox_, QPointF(0, -scrollY));
+  if (outerCssBox_)
+    paintLayoutBox(painter, *outerCssBox_, QPointF(0, -scrollY));
   paintLayoutBox(painter, cssBoxGeometry_, QPointF(0, -scrollY), state.hostStyle);
   for (const TableRowLayout& row : tableRows_) {
     paintLayoutBox(painter, row.box, QPointF(0, -scrollY));
     for (const TableCellLayout& cell : row.cells) {
       paintLayoutBox(painter, cell.box, QPointF(0, -scrollY));
-      cell.text.paint(painter, cell.textOrigin() + QPointF(0, -scrollY), 0, 0, state.css,
-                      cell.nodeId.toString(), state.focusedNode == cell.nodeId ? state.focusSourceOffset - cell.contentSourceStart : -1);
+      cell.text.paint(painter, cell.textOrigin() + QPointF(0, -scrollY), 0, 0, state.css, cell.nodeId.toString(),
+                      state.focusedNode == cell.nodeId ? state.focusSourceOffset - cell.contentSourceStart : -1);
     }
   }
   painter.restore();
@@ -1867,7 +1945,7 @@ void BlockLayout::paintToc(QPainter& painter, const RenderTheme& theme, QRectF v
   if (tocEntries_.isEmpty()) {
     return;
   }
-  const qreal scrollOffset = viewRect.top() - rect_.top();  // = -scrollY
+  const qreal scrollOffset = viewRect.top() - rect_.top(); // = -scrollY
   painter.save();
   const QFont font = theme.paragraphFont();
   painter.setFont(font);
@@ -1904,14 +1982,13 @@ HitTestResult BlockLayout::hitDefinition(QPointF documentPos, const RenderTheme&
   result.zone = HitTestResult::Zone::Text;
 
   const TextFontMetrics metrics(theme.paragraphFont());
-  const qsizetype sourceStart = definition_.sourceRange.isValid()
-                                    ? definition_.sourceRange.start
-                                    : definition_.markerRange.start;
-  const qsizetype sourceEnd = definition_.sourceRange.isValid()
-                                  ? definition_.sourceRange.end
-                                  : qMax(definition_.markerRange.end,
-                                         qMax(definition_.destinationRange.end,
-                                              qMax(definition_.titleRange.end, definition_.noteRange.end)));
+  const qsizetype sourceStart =
+      definition_.sourceRange.isValid() ? definition_.sourceRange.start : definition_.markerRange.start;
+  const qsizetype sourceEnd =
+      definition_.sourceRange.isValid()
+          ? definition_.sourceRange.end
+          : qMax(definition_.markerRange.end,
+                 qMax(definition_.destinationRange.end, qMax(definition_.titleRange.end, definition_.noteRange.end)));
   const DefinitionTokenLayout* firstToken = firstDefinitionToken(definitionTokens_);
   const DefinitionTokenLayout* lastToken = lastDefinitionToken(definitionTokens_);
   if (firstToken && lastToken) {
@@ -1932,8 +2009,8 @@ HitTestResult BlockLayout::hitDefinition(QPointF documentPos, const RenderTheme&
   const DefinitionTokenLayout* target = nullptr;
   qreal bestDistance = std::numeric_limits<qreal>::max();
   for (const DefinitionTokenLayout& token : definitionTokens_) {
-    if (token.editable &&
-        token.rect.adjusted(-4.0, -theme.blockSpacing() * 0.25, 4.0, theme.blockSpacing() * 0.25).contains(documentPos)) {
+    if (token.editable && token.rect.adjusted(-4.0, -theme.blockSpacing() * 0.25, 4.0, theme.blockSpacing() * 0.25)
+                              .contains(documentPos)) {
       const qreal distance = horizontalDistanceToDefinitionToken(token, documentPos.x());
       if (distance <= bestDistance) {
         bestDistance = distance;
@@ -1980,7 +2057,8 @@ HitTestResult BlockLayout::hitDefinition(QPointF documentPos, const RenderTheme&
   return result;
 }
 
-QVector<QRectF> BlockLayout::definitionSelectionRects(qsizetype startOffset, qsizetype endOffset, const RenderTheme& theme) const {
+QVector<QRectF> BlockLayout::definitionSelectionRects(qsizetype startOffset, qsizetype endOffset,
+                                                      const RenderTheme& theme) const {
   QVector<QRectF> rects;
   if (definitionSlots_.isEmpty() || startOffset == endOffset || !definition_.markerRange.isValid()) {
     return rects;
@@ -2007,9 +2085,7 @@ QVector<QRectF> BlockLayout::definitionSelectionRects(qsizetype startOffset, qsi
   // Fill gaps between slot rects so that syntax tokens between selected
   // slots also receive a continuous selection highlight.
   if (rects.size() > 1) {
-    std::sort(rects.begin(), rects.end(), [](const QRectF& a, const QRectF& b) {
-      return a.left() < b.left();
-    });
+    std::sort(rects.begin(), rects.end(), [](const QRectF& a, const QRectF& b) { return a.left() < b.left(); });
     QVector<QRectF> continuous;
     continuous.push_back(rects.first());
     for (int i = 1; i < rects.size(); ++i) {
@@ -2018,7 +2094,7 @@ QVector<QRectF> BlockLayout::definitionSelectionRects(qsizetype startOffset, qsi
       if (curr.left() <= prev.right() + 0.5) {
         prev.setRight(qMax(prev.right(), curr.right()));
       } else {
-        prev.setRight(curr.left());  // Extend to cover syntax tokens between slots
+        prev.setRight(curr.left()); // Extend to cover syntax tokens between slots
         continuous.push_back(curr);
       }
     }
@@ -2028,4 +2104,4 @@ QVector<QRectF> BlockLayout::definitionSelectionRects(qsizetype startOffset, qsi
   return rects;
 }
 
-}  // namespace muffin
+} // namespace muffin

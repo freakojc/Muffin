@@ -6,8 +6,7 @@
 namespace muffin::mermaid::text {
 
 QString collapsedSvgText(QString value, bool trimEdges) {
-  static const QRegularExpression whitespace(
-      QStringLiteral(R"([\x{0009}-\x{000D}\x{0020}]+)"));
+  static const QRegularExpression whitespace(QStringLiteral(R"([\x{0009}-\x{000D}\x{0020}]+)"));
   value.replace(whitespace, QStringLiteral(" "));
   if (!trimEdges) {
     return value;
@@ -25,9 +24,8 @@ QStringList cssFontFamilies(const QString& expression) {
   QStringList result;
   for (QString family : expression.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
     family = family.trimmed();
-    if (family.size() >= 2 &&
-        ((family.front() == QLatin1Char('"') && family.back() == QLatin1Char('"')) ||
-         (family.front() == QLatin1Char('\'') && family.back() == QLatin1Char('\'')))) {
+    if (family.size() >= 2 && ((family.front() == QLatin1Char('"') && family.back() == QLatin1Char('"')) ||
+                               (family.front() == QLatin1Char('\'') && family.back() == QLatin1Char('\'')))) {
       family = family.mid(1, family.size() - 2);
     }
     if (!family.isEmpty()) {
@@ -37,4 +35,4 @@ QStringList cssFontFamilies(const QString& expression) {
   return MermaidFontRegistry::resolveFamilies(result);
 }
 
-}  // namespace muffin::mermaid::text
+} // namespace muffin::mermaid::text

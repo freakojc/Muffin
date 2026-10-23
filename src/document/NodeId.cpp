@@ -7,7 +7,8 @@ namespace {
 QAtomicInteger<quint64> nextNodeId = 1;
 }
 
-NodeId::NodeId(quint64 id) : id_(id) {}
+NodeId::NodeId(quint64 id) : id_(id) {
+}
 
 NodeId NodeId::create() {
   return NodeId(nextNodeId.fetchAndAddRelaxed(1));
@@ -50,4 +51,4 @@ uint qHash(const NodeId& id, uint seed) {
   return seed ^ static_cast<quint32>(id.id_) ^ static_cast<quint32>(id.id_ >> 32);
 }
 
-}  // namespace muffin
+} // namespace muffin

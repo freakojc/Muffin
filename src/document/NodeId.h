@@ -33,4 +33,4 @@ private:
 
 uint qHash(const NodeId& id, uint seed = 0);
 
-}  // namespace muffin
+} // namespace muffin

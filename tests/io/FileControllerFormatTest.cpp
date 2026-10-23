@@ -75,8 +75,8 @@ void testReopenDirtyFile(const QString& path, QMessageBox::StandardButton choice
   } else {
     require(opened, QStringLiteral("Reopen failed"));
     waitForParse(session);
-    const QString expected = autoSave || choice == QMessageBox::Save
-        ? QStringLiteral("edited") : QStringLiteral("original");
+    const QString expected =
+        autoSave || choice == QMessageBox::Save ? QStringLiteral("edited") : QStringLiteral("original");
     require(session.markdownText().toString() == expected, QStringLiteral("Reopen installed stale pre-save text"));
     require(!session.document().isModified(), QStringLiteral("Reopened content should be clean"));
     require(readBytes(path) == expected.toUtf8(), QStringLiteral("Disk and clean buffer must agree"));
@@ -106,15 +106,19 @@ void testDoubleDollarMathSaveRoundTrip(const QString& path) {
   require(controller.open(session, nullptr, path), QStringLiteral("Could not open double-dollar formulas"));
   waitForParse(session);
   const qsizetype offset = session.markdownText().toString().indexOf(QStringLiteral("{a}")) + 2;
-  require(session.applyTextDelta(offset, 0, QStringLiteral("+1"), true), QStringLiteral("Could not edit double-dollar math"));
-  require(controller.save(session, nullptr) == SaveOutcome::Saved, QStringLiteral("Could not save double-dollar formulas"));
+  require(session.applyTextDelta(offset, 0, QStringLiteral("+1"), true),
+          QStringLiteral("Could not edit double-dollar math"));
+  require(controller.save(session, nullptr) == SaveOutcome::Saved,
+          QStringLiteral("Could not save double-dollar formulas"));
   QString expected = original;
   expected.replace(QStringLiteral("{a}"), QStringLiteral("{a+1}"));
-  require(readBytes(path) == expected.toUtf8(), QStringLiteral("Saving must preserve double dollars, CRLF and final line format"));
+  require(readBytes(path) == expected.toUtf8(),
+          QStringLiteral("Saving must preserve double dollars, CRLF and final line format"));
   require(controller.open(session, nullptr, path), QStringLiteral("Could not reopen double-dollar formulas"));
   waitForParse(session);
   expected.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
-  require(session.markdownText().toString() == expected, QStringLiteral("Reopening must preserve edited formula source"));
+  require(session.markdownText().toString() == expected,
+          QStringLiteral("Reopening must preserve edited formula source"));
 }
 
 void testLegacyEncodingRoundTrips(const QString& path) {
@@ -131,8 +135,7 @@ void testLegacyEncodingRoundTrips(const QString& path) {
   require(encoding.compare(QStringLiteral("windows-1252"), Qt::CaseInsensitive) == 0,
           QStringLiteral("Legacy file was classified as %1 instead of windows-1252").arg(encoding));
   session.setMarkdownText(QStringLiteral("caf\u00e9\nfin"), true);
-  require(controller.save(session, nullptr) == SaveOutcome::Saved,
-          QStringLiteral("Could not save legacy file"));
+  require(controller.save(session, nullptr) == SaveOutcome::Saved, QStringLiteral("Could not save legacy file"));
   const QByteArray saved = readBytes(path);
   require(saved.contains(QByteArray("\xe9", 1)), QStringLiteral("Legacy encoding was not preserved"));
   require(!saved.contains(QByteArray::fromHex("c3a9")), QStringLiteral("Legacy file was silently converted to UTF-8"));
@@ -158,8 +161,7 @@ void testWindows1252PunctuationRoundTrips(const QString& path) {
   require(session.markdownText().toString() == QStringLiteral("say \u201chello\u201d"),
           QStringLiteral("Explicit Windows-1252 decoding was not deterministic"));
   session.setMarkdownText(session.markdownText().toString(), true);
-  require(controller.save(session, nullptr) == SaveOutcome::Saved,
-          QStringLiteral("Could not save Windows-1252 file"));
+  require(controller.save(session, nullptr) == SaveOutcome::Saved, QStringLiteral("Could not save Windows-1252 file"));
   require(readBytes(path) == raw, QStringLiteral("Windows-1252 punctuation did not round-trip"));
 }
 
@@ -186,11 +188,10 @@ void testWindows1252UndefinedBytesRoundTrip(const QString& path) {
   session.setMarkdownText(session.markdownText().toString(), true);
   require(controller.save(session, nullptr) == SaveOutcome::Saved,
           QStringLiteral("Undefined Windows-1252 bytes must save back instead of deadlocking"));
-  require(readBytes(path) == raw,
-          QStringLiteral("Undefined Windows-1252 bytes did not round-trip"));
+  require(readBytes(path) == raw, QStringLiteral("Undefined Windows-1252 bytes did not round-trip"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QApplication app(argc, argv);

@@ -98,7 +98,7 @@ struct FlowchartLimits {
   int maxVertices = 2000;
   int maxClasses = 200;
   int maxSubgraphs = 50;
-  int maxSubgraphDepth = 10;  // nesting depth of the open-subgraph stack
+  int maxSubgraphDepth = 10; // nesting depth of the open-subgraph stack
   int maxTooltips = 2000;
   int maxLineLength = 10000;
   int maxNodeIdLength = 256;
@@ -139,4 +139,4 @@ private:
   FlowchartData data_;
 };
 
-}  // namespace muffin::mermaid::flowchart
+} // namespace muffin::mermaid::flowchart

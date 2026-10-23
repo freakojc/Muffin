@@ -48,28 +48,25 @@ const QHash<QString, SequenceTokenKind>& keywords() {
 
 const QStringList& arrows() {
   static const QStringList values = {
-      QStringLiteral("<<-->>"), QStringLiteral("<<->>"),
-      QStringLiteral("--|\\"), QStringLiteral("--|/"),
-      QStringLiteral("/|--"), QStringLiteral("\\|--"),
-      QStringLiteral("//--"), QStringLiteral("\\\\--"),
-      QStringLiteral("--\\\\"), QStringLiteral("--//"),
-      QStringLiteral("-|\\"), QStringLiteral("-|/"),
-      QStringLiteral("/|-"), QStringLiteral("\\|-"),
-      QStringLiteral("//-"), QStringLiteral("\\\\-"),
-      QStringLiteral("-\\\\"), QStringLiteral("-//"),
-      QStringLiteral("-->>"), QStringLiteral("->>"),
-      QStringLiteral("--x"), QStringLiteral("--)") ,
-      QStringLiteral("-->"), QStringLiteral("-x"),
-      QStringLiteral("-)"), QStringLiteral("->"),
+      QStringLiteral("<<-->>"), QStringLiteral("<<->>"), QStringLiteral("--|\\"), QStringLiteral("--|/"),
+      QStringLiteral("/|--"),   QStringLiteral("\\|--"), QStringLiteral("//--"),  QStringLiteral("\\\\--"),
+      QStringLiteral("--\\\\"), QStringLiteral("--//"),  QStringLiteral("-|\\"),  QStringLiteral("-|/"),
+      QStringLiteral("/|-"),    QStringLiteral("\\|-"),  QStringLiteral("//-"),   QStringLiteral("\\\\-"),
+      QStringLiteral("-\\\\"),  QStringLiteral("-//"),   QStringLiteral("-->>"),  QStringLiteral("->>"),
+      QStringLiteral("--x"),    QStringLiteral("--)"),   QStringLiteral("-->"),   QStringLiteral("-x"),
+      QStringLiteral("-)"),     QStringLiteral("->"),
   };
   return values;
 }
 
-}  // namespace
+} // namespace
 
-SequenceTokenizer::SequenceTokenizer(QString source) : source_(std::move(source)) {}
+SequenceTokenizer::SequenceTokenizer(QString source) : source_(std::move(source)) {
+}
 
-bool SequenceTokenizer::atEnd() const { return offset_ >= source_.size(); }
+bool SequenceTokenizer::atEnd() const {
+  return offset_ >= source_.size();
+}
 
 QChar SequenceTokenizer::peek(qsizetype ahead) const {
   const qsizetype index = offset_ + ahead;
@@ -86,8 +83,10 @@ void SequenceTokenizer::advance(QStringView text) {
     } else {
       ++column_;
       if (!labelMode_) {
-        if (ch == QLatin1Char('{')) ++braceDepth_;
-        else if (ch == QLatin1Char('}') && braceDepth_ > 0) --braceDepth_;
+        if (ch == QLatin1Char('{'))
+          ++braceDepth_;
+        else if (ch == QLatin1Char('}') && braceDepth_ > 0)
+          --braceDepth_;
       }
     }
   }
@@ -103,14 +102,13 @@ SequenceToken SequenceTokenizer::take(SequenceTokenKind kind, qsizetype length) 
 SequenceToken SequenceTokenizer::next() {
   while (!atEnd()) {
     if (peek() == QLatin1Char('\r')) {
-      SequenceToken token = take(
-          SequenceTokenKind::Newline,
-          peek(1) == QLatin1Char('\n') ? 2 : 1);
+      SequenceToken token = take(SequenceTokenKind::Newline, peek(1) == QLatin1Char('\n') ? 2 : 1);
       braceDepth_ = 0;
       labelMode_ = false;
       return token;
     }
-    if (peek() == QLatin1Char('\n')) return take(SequenceTokenKind::Newline, 1);
+    if (peek() == QLatin1Char('\n'))
+      return take(SequenceTokenKind::Newline, 1);
     if (peek() == QLatin1Char(';')) {
       SequenceToken token = take(SequenceTokenKind::Semi, 1);
       braceDepth_ = 0;
@@ -119,23 +117,23 @@ SequenceToken SequenceTokenizer::next() {
     }
     if (labelMode_) {
       const qsizetype start = offset_;
-      while (!atEnd() && peek() != QLatin1Char('\n') &&
-             peek() != QLatin1Char('\r') && peek() != QLatin1Char(';'))
+      while (!atEnd() && peek() != QLatin1Char('\n') && peek() != QLatin1Char('\r') && peek() != QLatin1Char(';'))
         advance(QStringView(source_).mid(offset_, 1));
       return SequenceToken{SequenceTokenKind::Word,
                            source_.mid(start, offset_ - start),
-                           start, offset_ - start, line_,
+                           start,
+                           offset_ - start,
+                           line_,
                            column_ - static_cast<int>(offset_ - start)};
     }
     if (peek().isSpace()) {
       const qsizetype start = offset_;
-      while (!atEnd() && peek().isSpace() && peek() != QLatin1Char('\n') &&
-             peek() != QLatin1Char('\r'))
+      while (!atEnd() && peek().isSpace() && peek() != QLatin1Char('\n') && peek() != QLatin1Char('\r'))
         advance(QStringView(source_).mid(offset_, 1));
-      if (offset_ > start) continue;
+      if (offset_ > start)
+        continue;
     }
-    if (peek() == QLatin1Char('#') ||
-        (peek() == QLatin1Char('%') && peek(1) != QLatin1Char('{'))) {
+    if (peek() == QLatin1Char('#') || (peek() == QLatin1Char('%') && peek(1) != QLatin1Char('{'))) {
       while (!atEnd() && peek() != QLatin1Char('\n') && peek() != QLatin1Char('\r'))
         advance(QStringView(source_).mid(offset_, 1));
       continue;
@@ -147,32 +145,43 @@ SequenceToken SequenceTokenizer::next() {
     if (QStringView(source_).mid(offset_, 2) == QLatin1String("()"))
       return take(SequenceTokenKind::Central, 2);
     switch (peek().unicode()) {
-      case '+': return take(SequenceTokenKind::Plus, 1);
-      case '-': return take(SequenceTokenKind::Minus, 1);
-      case ':': {
-        SequenceToken token = take(SequenceTokenKind::Colon, 1);
-        if (braceDepth_ == 0) labelMode_ = true;
-        return token;
-      }
-      case ',': return take(SequenceTokenKind::Comma, 1);
-      default: break;
+    case '+':
+      return take(SequenceTokenKind::Plus, 1);
+    case '-':
+      return take(SequenceTokenKind::Minus, 1);
+    case ':': {
+      SequenceToken token = take(SequenceTokenKind::Colon, 1);
+      if (braceDepth_ == 0)
+        labelMode_ = true;
+      return token;
+    }
+    case ',':
+      return take(SequenceTokenKind::Comma, 1);
+    default:
+      break;
     }
     const qsizetype start = offset_;
-    while (!atEnd() && !peek().isSpace() && peek() != QLatin1Char(';') &&
-           peek() != QLatin1Char(':') && peek() != QLatin1Char(',') &&
-           peek() != QLatin1Char('+') && peek() != QLatin1Char('-') &&
+    while (!atEnd() && !peek().isSpace() && peek() != QLatin1Char(';') && peek() != QLatin1Char(':') &&
+           peek() != QLatin1Char(',') && peek() != QLatin1Char('+') && peek() != QLatin1Char('-') &&
            peek() != QLatin1Char('=')) {
       bool arrowStart = false;
       for (const QString& arrow : arrows())
         arrowStart = arrowStart || QStringView(source_).mid(offset_, arrow.size()) == arrow;
-      if (arrowStart || QStringView(source_).mid(offset_, 2) == QLatin1String("()")) break;
+      if (arrowStart || QStringView(source_).mid(offset_, 2) == QLatin1String("()"))
+        break;
       advance(QStringView(source_).mid(offset_, 1));
     }
-    if (offset_ == start) return take(SequenceTokenKind::Invalid, 1);
-    SequenceToken token{SequenceTokenKind::Word, source_.mid(start, offset_ - start),
-                        start, offset_ - start, line_, column_ - static_cast<int>(offset_ - start)};
+    if (offset_ == start)
+      return take(SequenceTokenKind::Invalid, 1);
+    SequenceToken token{SequenceTokenKind::Word,
+                        source_.mid(start, offset_ - start),
+                        start,
+                        offset_ - start,
+                        line_,
+                        column_ - static_cast<int>(offset_ - start)};
     const auto keyword = keywords().constFind(token.text.toLower());
-    if (keyword != keywords().constEnd()) token.kind = keyword.value();
+    if (keyword != keywords().constEnd())
+      token.kind = keyword.value();
     return token;
   }
   return {SequenceTokenKind::Eof, {}, offset_, 0, line_, column_};
@@ -188,15 +197,23 @@ QVector<SequenceToken> SequenceTokenizer::tokenize() {
 
 QString sequenceTokenName(SequenceTokenKind kind) {
   switch (kind) {
-    case SequenceTokenKind::Eof: return QStringLiteral("EOF");
-    case SequenceTokenKind::Newline: return QStringLiteral("NEWLINE");
-    case SequenceTokenKind::Semi: return QStringLiteral("SEMI");
-    case SequenceTokenKind::Header: return QStringLiteral("SD");
-    case SequenceTokenKind::Arrow: return QStringLiteral("ARROW");
-    case SequenceTokenKind::Word: return QStringLiteral("ACTOR");
-    case SequenceTokenKind::Invalid: return QStringLiteral("INVALID");
-    default: return QStringLiteral("KEYWORD");
+  case SequenceTokenKind::Eof:
+    return QStringLiteral("EOF");
+  case SequenceTokenKind::Newline:
+    return QStringLiteral("NEWLINE");
+  case SequenceTokenKind::Semi:
+    return QStringLiteral("SEMI");
+  case SequenceTokenKind::Header:
+    return QStringLiteral("SD");
+  case SequenceTokenKind::Arrow:
+    return QStringLiteral("ARROW");
+  case SequenceTokenKind::Word:
+    return QStringLiteral("ACTOR");
+  case SequenceTokenKind::Invalid:
+    return QStringLiteral("INVALID");
+  default:
+    return QStringLiteral("KEYWORD");
   }
 }
 
-}  // namespace muffin::mermaid::sequence
+} // namespace muffin::mermaid::sequence

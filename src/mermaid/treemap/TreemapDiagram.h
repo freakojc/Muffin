@@ -12,8 +12,7 @@ enum class TreemapErrorKind { Lexer, Parser, Runtime };
 
 class TreemapParseError final : public std::runtime_error {
 public:
-  TreemapParseError(TreemapErrorKind kind, int line, int column,
-                    QString token, const QString &message);
+  TreemapParseError(TreemapErrorKind kind, int line, int column, QString token, const QString& message);
 
   TreemapErrorKind kind = TreemapErrorKind::Parser;
   int line = 1;
@@ -48,7 +47,7 @@ struct TreemapData {
 
 class TreemapDiagram {
 public:
-  static TreemapData parse(const QString &source);
+  static TreemapData parse(const QString& source);
 };
 
 } // namespace muffin::mermaid::treemap

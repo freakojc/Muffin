@@ -61,24 +61,21 @@ inline void runTest(const char* name, const std::function<void()>& test) {
 // resolution — module+offset is enough to say exe vs MuffinUi.dll vs a Qt DLL.
 inline void installMuffinTestCrashHandler() {
   static auto handler = +[](EXCEPTION_POINTERS* info) -> LONG {
-    std::fprintf(stderr, "CRASH code=0x%08lX addr=%p\n",
-                 info->ExceptionRecord->ExceptionCode,
+    std::fprintf(stderr, "CRASH code=0x%08lX addr=%p\n", info->ExceptionRecord->ExceptionCode,
                  info->ExceptionRecord->ExceptionAddress);
     void* frames[12] = {};
     const USHORT captured = CaptureStackBackTrace(0, 12, frames, nullptr);
     for (USHORT index = 0; index < captured; ++index) {
       HMODULE module = nullptr;
       char moduleName[MAX_PATH] = "?";
-      if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                                 GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+      if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                              static_cast<LPCWSTR>(frames[index]), &module) &&
           module) {
         GetModuleFileNameA(module, moduleName, MAX_PATH);
         const char* base = std::strrchr(moduleName, '\\');
         base = base ? base + 1 : moduleName;
         std::fprintf(stderr, "  frame %u: %s+0x%tx\n", index, base,
-                     reinterpret_cast<char*>(frames[index]) -
-                         reinterpret_cast<char*>(module));
+                     reinterpret_cast<char*>(frames[index]) - reinterpret_cast<char*>(module));
       } else {
         std::fprintf(stderr, "  frame %u: %p (no module)\n", index, frames[index]);
       }
@@ -89,7 +86,8 @@ inline void installMuffinTestCrashHandler() {
   SetUnhandledExceptionFilter(handler);
 }
 #else
-inline void installMuffinTestCrashHandler() {}
+inline void installMuffinTestCrashHandler() {
+}
 #endif
 
 // RAII guard that sets a QSettings key for the duration of a scope and restores (or removes) the

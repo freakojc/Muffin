@@ -38,11 +38,10 @@ void testEmptyDocumentHasNoOutline() {
 }
 
 void testHeadingLevelsAndRanges() {
-  const QString markdown = QStringLiteral(
-      "# Title\n\n"
-      "Text\n\n"
-      "## Child\n\n"
-      "###### Deep\n");
+  const QString markdown = QStringLiteral("# Title\n\n"
+                                          "Text\n\n"
+                                          "## Child\n\n"
+                                          "###### Deep\n");
   MarkdownDocument document;
   parseDocument(document, markdown);
   const QVector<OutlineEntry> outline = buildOutline(document);
@@ -65,13 +64,10 @@ void testHeadingLevelsAndRanges() {
 
 void testSkippedHeadingLevelsUseNearestLowerParent() {
   MarkdownDocument document;
-  parseDocument(
-      document,
-      QStringLiteral(
-          "# Root\n\n"
-          "### Grandchild\n\n"
-          "## Sibling\n\n"
-          "#### Nested\n"));
+  parseDocument(document, QStringLiteral("# Root\n\n"
+                                         "### Grandchild\n\n"
+                                         "## Sibling\n\n"
+                                         "#### Nested\n"));
   const QVector<OutlineEntry> outline = buildOutline(document);
 
   require(outline.size() == 4, QStringLiteral("Unexpected skipped-level outline size"));
@@ -96,26 +92,23 @@ void testOutlineIndexTracksLocalEdits() {
   const quint64 initialRevision = session.document().outlineRevision();
   const qsizetype oldBStart = session.document().outline().at(1).sourceRange.byteStart;
 
-  require(session.applyTextDelta(8, 0, QStringLiteral("x"), true),
-          QStringLiteral("Body edit should apply locally"));
+  require(session.applyTextDelta(8, 0, QStringLiteral("x"), true), QStringLiteral("Body edit should apply locally"));
   require(session.document().outlineRevision() == initialRevision,
           QStringLiteral("Non-heading edit should not invalidate heading index"));
   require(session.document().outline().at(1).sourceRange.byteStart == oldBStart + 1,
           QStringLiteral("Lazy heading source range did not shift"));
 
-  require(session.applyTextDelta(3, 0, QStringLiteral("x"), true),
-          QStringLiteral("Heading edit should apply locally"));
+  require(session.applyTextDelta(3, 0, QStringLiteral("x"), true), QStringLiteral("Heading edit should apply locally"));
   const QVector<OutlineEntry> outline = session.document().outline();
   require(session.document().outlineRevision() > initialRevision,
           QStringLiteral("Heading edit should advance outline revision"));
   require(outline.size() == 2 && outline.at(0).title == QStringLiteral("Ax") &&
               outline.at(1).title == QStringLiteral("B"),
           QStringLiteral("Incremental outline titles/order mismatch"));
-  require(outline.at(1).parentIndex == 0,
-          QStringLiteral("Incremental outline hierarchy mismatch"));
+  require(outline.at(1).parentIndex == 0, QStringLiteral("Incremental outline hierarchy mismatch"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);

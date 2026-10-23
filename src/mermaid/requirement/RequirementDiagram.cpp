@@ -43,14 +43,13 @@ const QHash<QString, QString>& typeKeywordMap() {
 // Relationship keyword set (lowercase). Used by the relationship regex + parser.
 const QSet<QString>& relationshipKeywords() {
   static const QSet<QString> kSet = {
-      QStringLiteral("contains"), QStringLiteral("copies"), QStringLiteral("derives"),
-      QStringLiteral("satisfies"), QStringLiteral("verifies"), QStringLiteral("refines"),
-      QStringLiteral("traces"),
+      QStringLiteral("contains"), QStringLiteral("copies"),  QStringLiteral("derives"), QStringLiteral("satisfies"),
+      QStringLiteral("verifies"), QStringLiteral("refines"), QStringLiteral("traces"),
   };
   return kSet;
 }
 
-}  // namespace
+} // namespace
 
 namespace muffin::mermaid::requirement {
 
@@ -59,7 +58,8 @@ QString requirementTypeDisplay(const QString& keyword) {
 }
 
 RequirementParseError::RequirementParseError(const QString& message, int line)
-    : std::runtime_error(message.toUtf8().toStdString()), line(line) {}
+    : std::runtime_error(message.toUtf8().toStdString()), line(line) {
+}
 
 QString RequirementEnumDisplay::risk(const QString& keyword) {
   static const QHash<QString, QString> kMap = {
@@ -90,7 +90,7 @@ enum class BodyKind { None, MultiLine, SingleLine, Invalid, JunkBeforeBrace };
 
 struct NameAndClass {
   QString name;
-  QStringList styleClasses;  // `::: <idList>` — comma-separated classes
+  QStringList styleClasses; // `::: <idList>` — comma-separated classes
   BodyKind body = BodyKind::None;
 };
 
@@ -99,7 +99,7 @@ struct NameAndClass {
 struct Token {
   QString value;
   bool quoted = false;
-  int end = 0;  // index just past the consumed token
+  int end = 0; // index just past the consumed token
 };
 Token consumeToken(const QString& s, int pos, int lineNo);
 QStringList parseIdList(const QString& raw, int lineNo);
@@ -141,15 +141,15 @@ NameAndClass parseNameTail(QString tail, int lineNo) {
   if (brace < 0)
     result.body = BodyKind::None;
   else if (brace > 0)
-    result.body = BodyKind::JunkBeforeBrace;  // e.g. `"X" junk {`
+    result.body = BodyKind::JunkBeforeBrace; // e.g. `"X" junk {`
   else {
     const QString afterBrace = rest.mid(1).trimmed();
     if (afterBrace.isEmpty())
       result.body = BodyKind::MultiLine;
     else if (afterBrace.startsWith(QLatin1Char('}')))
-      result.body = BodyKind::SingleLine;  // `{ ... }` on one line
+      result.body = BodyKind::SingleLine; // `{ ... }` on one line
     else
-      result.body = BodyKind::Invalid;  // `{ junk`
+      result.body = BodyKind::Invalid; // `{ junk`
   }
   return result;
 }
@@ -159,7 +159,8 @@ NameAndClass parseNameTail(QString tail, int lineNo) {
 // parseValue validates + unwraps it.
 bool parseFieldLine(const QString& line, QString& keyOut, QString& valueOut) {
   const int colon = line.indexOf(QLatin1Char(':'));
-  if (colon <= 0) return false;
+  if (colon <= 0)
+    return false;
   keyOut = line.left(colon).trimmed().toLower();
   valueOut = line.mid(colon + 1).trimmed();
   return true;
@@ -183,15 +184,13 @@ bool parseFieldLine(const QString& line, QString& keyOut, QString& valueOut) {
 bool isWordChar(QChar c) {
   // Upstream JS \w is ASCII-only [A-Za-z0-9_] — a Unicode first char (e.g. a
   // CJK identifier) is a Lexical error, so do not use Unicode isLetterOrNumber.
-  return (c >= QLatin1Char('A') && c <= QLatin1Char('Z')) ||
-         (c >= QLatin1Char('a') && c <= QLatin1Char('z')) ||
-         (c >= QLatin1Char('0') && c <= QLatin1Char('9')) ||
-         c == QLatin1Char('_');
+  return (c >= QLatin1Char('A') && c <= QLatin1Char('Z')) || (c >= QLatin1Char('a') && c <= QLatin1Char('z')) ||
+         (c >= QLatin1Char('0') && c <= QLatin1Char('9')) || c == QLatin1Char('_');
 }
 bool isUnqStopChar(QChar c) {
-  return c == QLatin1Char(':') || c == QLatin1Char(',') || c == QLatin1Char('{') ||
-         c == QLatin1Char('<') || c == QLatin1Char('>') || c == QLatin1Char('-') ||
-         c == QLatin1Char('=') || c == QLatin1Char('\r') || c == QLatin1Char('\n');
+  return c == QLatin1Char(':') || c == QLatin1Char(',') || c == QLatin1Char('{') || c == QLatin1Char('<') ||
+         c == QLatin1Char('>') || c == QLatin1Char('-') || c == QLatin1Char('=') || c == QLatin1Char('\r') ||
+         c == QLatin1Char('\n');
 }
 
 // Consumes one token (qString or unqString) starting at `pos`. Throws on an
@@ -210,10 +209,10 @@ Token consumeToken(const QString& s, int pos, int lineNo) {
     return t;
   }
   if (!isWordChar(s.at(pos)))
-    throw RequirementParseError(
-        QStringLiteral("value must start with a word character or be quoted"), lineNo);
+    throw RequirementParseError(QStringLiteral("value must start with a word character or be quoted"), lineNo);
   int end = pos + 1;
-  while (end < s.size() && !isUnqStopChar(s.at(end))) ++end;
+  while (end < s.size() && !isUnqStopChar(s.at(end)))
+    ++end;
   t.value = s.mid(pos, end - pos);
   t.end = end;
   return t;
@@ -225,8 +224,7 @@ QString parseValue(const QString& raw, int lineNo) {
   const Token t = consumeToken(raw, 0, lineNo);
   if (t.end != raw.size())
     throw RequirementParseError(
-        QStringLiteral("invalid value '%1' (trailing text or a special char outside quotes)").arg(raw),
-        lineNo);
+        QStringLiteral("invalid value '%1' (trailing text or a special char outside quotes)").arg(raw), lineNo);
   if (t.value.isEmpty())
     throw RequirementParseError(QStringLiteral("empty field value"), lineNo);
   return t.value;
@@ -258,12 +256,10 @@ QStringList parseIdList(const QString& raw, int lineNo) {
   for (const QString& part : parts) {
     const QString trimmed = part.trimmed();
     if (trimmed.isEmpty())
-      throw RequirementParseError(
-          QStringLiteral("malformed class list (empty/leading/trailing/double comma)"), lineNo);
+      throw RequirementParseError(QStringLiteral("malformed class list (empty/leading/trailing/double comma)"), lineNo);
     const Token t = consumeToken(trimmed, 0, lineNo);
     if (t.end != trimmed.size())
-      throw RequirementParseError(
-          QStringLiteral("malformed class list token '%1'").arg(trimmed), lineNo);
+      throw RequirementParseError(QStringLiteral("malformed class list token '%1'").arg(trimmed), lineNo);
     if (t.value.isEmpty())
       throw RequirementParseError(QStringLiteral("empty class name"), lineNo);
     result.append(t.value);
@@ -278,8 +274,8 @@ bool isValidRisk(const QString& value) {
 
 bool isValidVerifyMethod(const QString& value) {
   const QString l = value.toLower();
-  return l == QLatin1String("analysis") || l == QLatin1String("demonstration") ||
-         l == QLatin1String("inspection") || l == QLatin1String("test");
+  return l == QLatin1String("analysis") || l == QLatin1String("demonstration") || l == QLatin1String("inspection") ||
+         l == QLatin1String("test");
 }
 
 // --- mermaid `style` lexer condition (style-state tokenizer) ---------------
@@ -302,7 +298,10 @@ bool isValidVerifyMethod(const QString& value) {
 // separator. qString is NOT a styleComponent, so a quoted value inside
 // stylesOpt (e.g. font-family:"Courier New") is a Parse error.
 enum class StyleTok { Word, Colon, Semicolon, Minus, Hash, Comma, QString };
-struct StyleToken { StyleTok type; QString text; };
+struct StyleToken {
+  StyleTok type;
+  QString text;
+};
 
 // Tokenizes `s` under the style condition. Throws RequirementParseError on any
 // char with no matching style-state rule. Single spaces (0x20) are eaten.
@@ -310,15 +309,32 @@ QVector<StyleToken> tokenizeStyleState(const QString& s, int lineNo) {
   QVector<StyleToken> out;
   for (int i = 0; i < s.size(); ++i) {
     const QChar c = s.at(i);
-    if (c == QLatin1Char(' ')) continue;  // eaten (style rule 56, case 56)
-    if (c == QLatin1Char(',')) { out.append({StyleTok::Comma, c}); continue; }
-    if (c == QLatin1Char(':')) { out.append({StyleTok::Colon, c}); continue; }
-    if (c == QLatin1Char(';')) { out.append({StyleTok::Semicolon, c}); continue; }
-    if (c == QLatin1Char('-')) { out.append({StyleTok::Minus, c}); continue; }
-    if (c == QLatin1Char('#')) { out.append({StyleTok::Hash, c}); continue; }
+    if (c == QLatin1Char(' '))
+      continue; // eaten (style rule 56, case 56)
+    if (c == QLatin1Char(',')) {
+      out.append({StyleTok::Comma, c});
+      continue;
+    }
+    if (c == QLatin1Char(':')) {
+      out.append({StyleTok::Colon, c});
+      continue;
+    }
+    if (c == QLatin1Char(';')) {
+      out.append({StyleTok::Semicolon, c});
+      continue;
+    }
+    if (c == QLatin1Char('-')) {
+      out.append({StyleTok::Minus, c});
+      continue;
+    }
+    if (c == QLatin1Char('#')) {
+      out.append({StyleTok::Hash, c});
+      continue;
+    }
     if (isWordChar(c)) {
       int j = i + 1;
-      while (j < s.size() && isWordChar(s.at(j))) ++j;
+      while (j < s.size() && isWordChar(s.at(j)))
+        ++j;
       out.append({StyleTok::Word, s.mid(i, j - i)});
       i = j - 1;
       continue;
@@ -326,15 +342,13 @@ QVector<StyleToken> tokenizeStyleState(const QString& s, int lineNo) {
     if (c == QLatin1Char('"')) {
       const int close = s.indexOf(QLatin1Char('"'), i + 1);
       if (close < 0)
-        throw RequirementParseError(
-            QStringLiteral("unterminated quoted string in style"), lineNo);
+        throw RequirementParseError(QStringLiteral("unterminated quoted string in style"), lineNo);
       out.append({StyleTok::QString, s.mid(i + 1, close - i - 1)});
       i = close;
       continue;
     }
     // '%', '(', ')', '.', '/', tab, etc. — no style-state rule -> Lexical error.
-    throw RequirementParseError(
-        QStringLiteral("invalid character '%1' in style/class/classDef").arg(c), lineNo);
+    throw RequirementParseError(QStringLiteral("invalid character '%1' in style/class/classDef").arg(c), lineNo);
   }
   return out;
 }
@@ -346,24 +360,21 @@ QVector<StyleToken> tokenizeStyleState(const QString& s, int lineNo) {
 // (possibly empty) ids and advances `pos`.
 QStringList extractStyleIdList(const QVector<StyleToken>& toks, int& pos, int lineNo) {
   QStringList ids;
-  const auto isIdTok = [](const StyleToken& t) {
-    return t.type == StyleTok::Word || t.type == StyleTok::QString;
-  };
+  const auto isIdTok = [](const StyleToken& t) { return t.type == StyleTok::Word || t.type == StyleTok::QString; };
   // An empty qString ("") is not a valid id — mermaid rejects `class A ""` etc.
   // as a Parse error, in every idList position (node / class / classDef).
   const auto takeId = [&lineNo](const StyleToken& t) -> QString {
     if (t.type == StyleTok::QString && t.text.isEmpty())
-      throw RequirementParseError(
-          QStringLiteral("empty quoted id is not allowed"), lineNo);
+      throw RequirementParseError(QStringLiteral("empty quoted id is not allowed"), lineNo);
     return t.text;
   };
-  if (pos >= toks.size() || !isIdTok(toks.at(pos))) return ids;
+  if (pos >= toks.size() || !isIdTok(toks.at(pos)))
+    return ids;
   ids.append(takeId(toks.at(pos)));
   ++pos;
   while (pos < toks.size() && toks.at(pos).type == StyleTok::Comma) {
     if (pos + 1 >= toks.size() || !isIdTok(toks.at(pos + 1)))
-      throw RequirementParseError(
-          QStringLiteral("malformed id list (trailing/empty comma)"), lineNo);
+      throw RequirementParseError(QStringLiteral("malformed id list (trailing/empty comma)"), lineNo);
     ids.append(takeId(toks.at(pos + 1)));
     pos += 2;
   }
@@ -378,30 +389,27 @@ QStringList extractStyleIdList(const QVector<StyleToken>& toks, int& pos, int li
 QStringList extractStylesOpt(const QVector<StyleToken>& toks, int& pos, int lineNo) {
   QStringList comps;
   const auto isCompTok = [](const StyleToken& t) {
-    return t.type == StyleTok::Word || t.type == StyleTok::Colon ||
-           t.type == StyleTok::Semicolon || t.type == StyleTok::Minus ||
-           t.type == StyleTok::Hash;
+    return t.type == StyleTok::Word || t.type == StyleTok::Colon || t.type == StyleTok::Semicolon ||
+           t.type == StyleTok::Minus || t.type == StyleTok::Hash;
   };
   while (pos < toks.size()) {
     if (toks.at(pos).type == StyleTok::QString)
-      throw RequirementParseError(
-          QStringLiteral("quoted string is not valid in a style value"), lineNo);
+      throw RequirementParseError(QStringLiteral("quoted string is not valid in a style value"), lineNo);
     if (!isCompTok(toks.at(pos)))
-      throw RequirementParseError(
-          QStringLiteral("malformed style list (leading/empty comma)"), lineNo);
+      throw RequirementParseError(QStringLiteral("malformed style list (leading/empty comma)"), lineNo);
     QString comp;
     while (pos < toks.size() && isCompTok(toks.at(pos))) {
       comp += toks.at(pos).text;
       ++pos;
     }
     comps.append(comp);
-    if (pos >= toks.size()) break;  // end of stream
+    if (pos >= toks.size())
+      break; // end of stream
     if (toks.at(pos).type != StyleTok::Comma)
       throw RequirementParseError(QStringLiteral("malformed style list"), lineNo);
-    ++pos;  // consume the comma
+    ++pos; // consume the comma
     if (pos >= toks.size())
-      throw RequirementParseError(
-          QStringLiteral("malformed style list (trailing comma)"), lineNo);
+      throw RequirementParseError(QStringLiteral("malformed style list (trailing comma)"), lineNo);
   }
   return comps;
 }
@@ -426,7 +434,7 @@ public:
     enum class BodyOwner { None, Requirement, Element, DiscardRequirement, DiscardElement };
     BodyOwner bodyOwner = BodyOwner::None;
     QString bodyOwnerName;
-    int bodyStartLine = 0;  // 1-based source line of the `{` opener (for errors)
+    int bodyStartLine = 0; // 1-based source line of the `{` opener (for errors)
     QStringList bodyBuffer;
 
     for (qsizetype i = 0; i < lines_.size(); ++i) {
@@ -437,7 +445,8 @@ public:
         if (accLine == QLatin1String("}")) {
           inMultilineAccDescr = false;
         } else {
-          if (!data_.accDescription.isEmpty()) data_.accDescription += QLatin1Char('\n');
+          if (!data_.accDescription.isEmpty())
+            data_.accDescription += QLatin1Char('\n');
           data_.accDescription += accLine;
         }
         continue;
@@ -449,7 +458,8 @@ public:
       QString line = rawLine.trimmed();
       if (line.startsWith(QLatin1Char('#')) || line.startsWith(QLatin1Char('%')))
         continue;
-      if (line.isEmpty()) continue;
+      if (line.isEmpty())
+        continue;
 
       if (inBody) {
         if (line == QLatin1String("}")) {
@@ -457,12 +467,14 @@ public:
           // even if the requirements/elements vectors reallocated mid-body.
           if (bodyOwner == BodyOwner::Requirement) {
             RequirementNode* target = findRequirement(bodyOwnerName);
-            if (target) applyRequirementBody(*target, bodyBuffer, bodyStartLine);
+            if (target)
+              applyRequirementBody(*target, bodyBuffer, bodyStartLine);
           } else if (bodyOwner == BodyOwner::Element) {
             ElementNode* target = findElement(bodyOwnerName);
-            if (target) applyElementBody(*target, bodyBuffer, bodyStartLine);
+            if (target)
+              applyElementBody(*target, bodyBuffer, bodyStartLine);
           } else if (bodyOwner == BodyOwner::DiscardRequirement) {
-            RequirementNode dummy;  // validate only; the first definition stands.
+            RequirementNode dummy; // validate only; the first definition stands.
             applyRequirementBody(dummy, bodyBuffer, bodyStartLine);
           } else if (bodyOwner == BodyOwner::DiscardElement) {
             ElementNode dummy;
@@ -490,8 +502,10 @@ public:
         // whitespace and a `#`/`%` comment, is valid; trailing whitespace alone or
         // any non-comment text is a Parse error.
         QString raw = rawLine;
-        while (!raw.isEmpty() && raw.at(0).isSpace()) raw.remove(0, 1);
-        if (raw.endsWith(QLatin1Char('\r'))) raw.chop(1);
+        while (!raw.isEmpty() && raw.at(0).isSpace())
+          raw.remove(0, 1);
+        if (raw.endsWith(QLatin1Char('\r')))
+          raw.chop(1);
         const QString lower = raw.toLower();
         bool validHeader = false;
         if (lower.startsWith(QStringLiteral("requirementdiagram"))) {
@@ -500,10 +514,10 @@ public:
             validHeader = true;
           } else {
             int j = 0;
-            while (j < suffix.size() && suffix.at(j).isSpace()) ++j;
-            if (j < suffix.size() &&
-                (suffix.at(j) == QLatin1Char('#') || suffix.at(j) == QLatin1Char('%')))
-              validHeader = true;  // whitespace then a comment
+            while (j < suffix.size() && suffix.at(j).isSpace())
+              ++j;
+            if (j < suffix.size() && (suffix.at(j) == QLatin1Char('#') || suffix.at(j) == QLatin1Char('%')))
+              validHeader = true; // whitespace then a comment
             // else: whitespace-only, or non-comment text -> rejected
           }
         }
@@ -511,16 +525,14 @@ public:
           headerSeen = true;
           continue;
         }
-        throw RequirementParseError(
-            QStringLiteral("Expected 'requirementDiagram' header, got: %1").arg(line), i + 1);
+        throw RequirementParseError(QStringLiteral("Expected 'requirementDiagram' header, got: %1").arg(line), i + 1);
       }
 
       // direction TB|BT|RL|LR (may be prefixed with other text per the lexer
       // `.*direction\s+TB` rule, but the common form is bare).
       {
-        static const QRegularExpression dirRe(
-            QStringLiteral(R"(direction\s+(TB|BT|RL|LR))"),
-            QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression dirRe(QStringLiteral(R"(direction\s+(TB|BT|RL|LR))"),
+                                              QRegularExpression::CaseInsensitiveOption);
         const QRegularExpressionMatch m = dirRe.match(line);
         if (m.hasMatch() && m.capturedStart(0) >= 0) {
           data_.direction = m.captured(1).toUpper();
@@ -564,24 +576,19 @@ public:
         for (auto it = typeKeywordMap().constBegin(); it != typeKeywordMap().constEnd(); ++it) {
           const QString& keyword = it.key();
           // Word-boundary match at line start (case-insensitive, like the lexer).
-          if (line.size() >= keyword.size() &&
-              line.left(keyword.size()).compare(keyword, Qt::CaseInsensitive) == 0 &&
-              (line.size() == keyword.size() ||
-               line.at(keyword.size()).isSpace() ||
+          if (line.size() >= keyword.size() && line.left(keyword.size()).compare(keyword, Qt::CaseInsensitive) == 0 &&
+              (line.size() == keyword.size() || line.at(keyword.size()).isSpace() ||
                line.at(keyword.size()) == QLatin1Char('{'))) {
             const NameAndClass nc = parseNameTail(line.mid(keyword.size()), i + 1);
             if (nc.name.isEmpty())
-              throw RequirementParseError(
-                  QStringLiteral("requirement declaration requires a name"), i + 1);
+              throw RequirementParseError(QStringLiteral("requirement declaration requires a name"), i + 1);
             if (nc.body == BodyKind::None)
               throw RequirementParseError(
-                  QStringLiteral("requirement '%1' requires a multi-line body { ... }").arg(nc.name),
-                  i + 1);
+                  QStringLiteral("requirement '%1' requires a multi-line body { ... }").arg(nc.name), i + 1);
             if (nc.body != BodyKind::MultiLine)
               throw RequirementParseError(
-                  QStringLiteral(
-                      "requirement declaration is malformed — the body opener `{` must "
-                      "immediately follow the name / `:::` idList and be the last token on its line"),
+                  QStringLiteral("requirement declaration is malformed — the body opener `{` must "
+                                 "immediately follow the name / `:::` idList and be the last token on its line"),
                   i + 1);
             // Map semantics: one node per name; the FIRST definition wins. A
             // duplicate declaration's body is still validated but not stored.
@@ -609,25 +616,23 @@ public:
             break;
           }
         }
-        if (matched) continue;
+        if (matched)
+          continue;
       }
 
       // element keyword (7 chars: e-l-e-m-e-n-t).
-      if (line.size() >= 7 &&
-          line.left(7).compare(QStringLiteral("element"), Qt::CaseInsensitive) == 0 &&
+      if (line.size() >= 7 && line.left(7).compare(QStringLiteral("element"), Qt::CaseInsensitive) == 0 &&
           (line.size() == 7 || line.at(7).isSpace() || line.at(7) == QLatin1Char('{'))) {
         const NameAndClass nc = parseNameTail(line.mid(7), i + 1);
         if (nc.name.isEmpty())
-          throw RequirementParseError(
-              QStringLiteral("element declaration requires a name"), i + 1);
+          throw RequirementParseError(QStringLiteral("element declaration requires a name"), i + 1);
         if (nc.body == BodyKind::None)
-          throw RequirementParseError(
-              QStringLiteral("element '%1' requires a multi-line body { ... }").arg(nc.name), i + 1);
+          throw RequirementParseError(QStringLiteral("element '%1' requires a multi-line body { ... }").arg(nc.name),
+                                      i + 1);
         if (nc.body != BodyKind::MultiLine)
           throw RequirementParseError(
-              QStringLiteral(
-                  "element declaration is malformed — the body opener `{` must "
-                  "immediately follow the name / `:::` idList and be the last token on its line"),
+              QStringLiteral("element declaration is malformed — the body opener `{` must "
+                             "immediately follow the name / `:::` idList and be the last token on its line"),
               i + 1);
         const bool duplicate = findElement(nc.name) != nullptr;
         if (!duplicate) {
@@ -672,20 +677,17 @@ public:
         defineClasses(classIds, styles);
         continue;
       }
-      if (line.startsWith(QStringLiteral("class"), Qt::CaseInsensitive) &&
-          (line.size() == 5 || line.at(5).isSpace())) {
+      if (line.startsWith(QStringLiteral("class"), Qt::CaseInsensitive) && (line.size() == 5 || line.at(5).isSpace())) {
         const QVector<StyleToken> toks = tokenizeStyleState(line.mid(5), i + 1);
         int pos = 0;
         const QStringList nodeIds = extractStyleIdList(toks, pos, i + 1);
         const QStringList classIds = extractStyleIdList(toks, pos, i + 1);
         if (classIds.isEmpty())
-          throw RequirementParseError(
-              QStringLiteral("class requires at least one class name"), i + 1);
+          throw RequirementParseError(QStringLiteral("class requires at least one class name"), i + 1);
         applyClasses(nodeIds, classIds);
         continue;
       }
-      if (line.startsWith(QStringLiteral("style"), Qt::CaseInsensitive) &&
-          (line.size() == 5 || line.at(5).isSpace())) {
+      if (line.startsWith(QStringLiteral("style"), Qt::CaseInsensitive) && (line.size() == 5 || line.at(5).isSpace())) {
         const QVector<StyleToken> toks = tokenizeStyleState(line.mid(5), i + 1);
         int pos = 0;
         const QStringList nodeIds = extractStyleIdList(toks, pos, i + 1);
@@ -696,13 +698,11 @@ public:
 
       // Unrecognized line — mermaid returns a Parse error rather than silently
       // producing a (wrong) Ready scene. Report the 1-based source line.
-      throw RequirementParseError(
-          QStringLiteral("Unrecognized requirementDiagram syntax: %1").arg(line), i + 1);
+      throw RequirementParseError(QStringLiteral("Unrecognized requirementDiagram syntax: %1").arg(line), i + 1);
     }
     // An open body at end-of-source is an unclosed block — also a parse error.
     if (inBody)
-      throw RequirementParseError(
-          QStringLiteral("Unclosed requirement/element body"), lines_.size());
+      throw RequirementParseError(QStringLiteral("Unclosed requirement/element body"), lines_.size());
     return std::move(data_);
   }
 
@@ -720,26 +720,26 @@ private:
       const int lineNo = bodyStartLine + 1 + idx;
       QString key, rawValue;
       if (!parseFieldLine(raw, key, rawValue))
-        throw RequirementParseError(
-            QStringLiteral("invalid requirement body line: %1").arg(raw), lineNo);
+        throw RequirementParseError(QStringLiteral("invalid requirement body line: %1").arg(raw), lineNo);
       const QString value = parseValue(rawValue, lineNo);
-      if (key == QLatin1String("id")) node.requirementId = value;
-      else if (key == QLatin1String("text")) node.text = value;
+      if (key == QLatin1String("id"))
+        node.requirementId = value;
+      else if (key == QLatin1String("text"))
+        node.text = value;
       else if (key == QLatin1String("risk")) {
         if (!isValidRisk(value))
-          throw RequirementParseError(
-              QStringLiteral("invalid risk '%1' (expected low/medium/high)").arg(value), lineNo);
+          throw RequirementParseError(QStringLiteral("invalid risk '%1' (expected low/medium/high)").arg(value),
+                                      lineNo);
         node.risk = RequirementEnumDisplay::risk(value);
       } else if (key == QLatin1String("verifymethod")) {
         if (!isValidVerifyMethod(value))
-          throw RequirementParseError(
-              QStringLiteral("invalid verifyMethod '%1' "
-                             "(expected analysis/demonstration/inspection/test)").arg(value),
-              lineNo);
+          throw RequirementParseError(QStringLiteral("invalid verifyMethod '%1' "
+                                                     "(expected analysis/demonstration/inspection/test)")
+                                          .arg(value),
+                                      lineNo);
         node.verifyMethod = RequirementEnumDisplay::verifyMethod(value);
       } else {
-        throw RequirementParseError(
-            QStringLiteral("unknown requirement body field '%1'").arg(key), lineNo);
+        throw RequirementParseError(QStringLiteral("unknown requirement body field '%1'").arg(key), lineNo);
       }
     }
   }
@@ -750,14 +750,14 @@ private:
       const int lineNo = bodyStartLine + 1 + idx;
       QString key, rawValue;
       if (!parseFieldLine(raw, key, rawValue))
-        throw RequirementParseError(
-            QStringLiteral("invalid element body line: %1").arg(raw), lineNo);
+        throw RequirementParseError(QStringLiteral("invalid element body line: %1").arg(raw), lineNo);
       const QString value = parseValue(rawValue, lineNo);
-      if (key == QLatin1String("type")) node.type = value;
-      else if (key == QLatin1String("docref")) node.docRef = value;
+      if (key == QLatin1String("type"))
+        node.type = value;
+      else if (key == QLatin1String("docref"))
+        node.docRef = value;
       else
-        throw RequirementParseError(
-            QStringLiteral("unknown element body field '%1'").arg(key), lineNo);
+        throw RequirementParseError(QStringLiteral("unknown element body field '%1'").arg(key), lineNo);
     }
   }
 
@@ -770,9 +770,11 @@ private:
     for (const QString& cid : classIds) {
       data_.classDefs[cid].append(styles);
       for (RequirementNode& n : data_.requirements)
-        if (n.cssClasses.contains(cid)) n.cssStyles.append(styles);
+        if (n.cssClasses.contains(cid))
+          n.cssStyles.append(styles);
       for (ElementNode& n : data_.elements)
-        if (n.cssClasses.contains(cid)) n.cssStyles.append(styles);
+        if (n.cssClasses.contains(cid))
+          n.cssStyles.append(styles);
     }
   }
 
@@ -784,7 +786,8 @@ private:
     for (const QString& nid : nodeIds) {
       RequirementNode* rn = findRequirement(nid);
       ElementNode* en = rn ? nullptr : findElement(nid);
-      if (!rn && !en) continue;  // missing node — skip (setClass keeps going)
+      if (!rn && !en)
+        continue; // missing node — skip (setClass keeps going)
       for (const QString& cid : classIds) {
         const QStringList decls = data_.classDefs.value(cid);
         if (rn) {
@@ -806,21 +809,26 @@ private:
     for (const QString& nid : nodeIds) {
       RequirementNode* rn = findRequirement(nid);
       ElementNode* en = rn ? nullptr : findElement(nid);
-      if (!rn && !en) return;  // missing node — abort the whole list
-      if (rn) rn->cssStyles.append(styles);
-      else en->cssStyles.append(styles);
+      if (!rn && !en)
+        return; // missing node — abort the whole list
+      if (rn)
+        rn->cssStyles.append(styles);
+      else
+        en->cssStyles.append(styles);
     }
   }
 
   RequirementNode* findRequirement(const QString& name) {
     for (RequirementNode& n : data_.requirements)
-      if (n.name == name) return &n;
+      if (n.name == name)
+        return &n;
     return nullptr;
   }
 
   ElementNode* findElement(const QString& name) {
     for (ElementNode& n : data_.elements)
-      if (n.name == name) return &n;
+      if (n.name == name)
+        return &n;
     return nullptr;
   }
 
@@ -834,7 +842,8 @@ private:
             R"((.+?)\s*(<-|->|-)\s*(contains|copies|derives|satisfies|verifies|refines|traces)\s*(<-|->|-)\s*(.+))"),
         QRegularExpression::CaseInsensitiveOption);
     const QRegularExpressionMatch m = re.match(line);
-    if (!m.hasMatch()) return false;
+    if (!m.hasMatch())
+      return false;
     const QString connectorBefore = m.captured(2);
     const QString type = m.captured(3).toLower();
     const QString connectorAfter = m.captured(4);
@@ -842,19 +851,21 @@ private:
     // validate unquoted). An empty quoted endpoint is rejected like any other.
     const QString leftRaw = m.captured(1).trimmed();
     const Token leftTok = consumeToken(leftRaw, 0, lineNo);
-    if (leftTok.end != leftRaw.size() || leftTok.value.isEmpty()) return false;
+    if (leftTok.end != leftRaw.size() || leftTok.value.isEmpty())
+      return false;
     const QString rightRaw = m.captured(5).trimmed();
     const Token rightTok = consumeToken(rightRaw, 0, lineNo);
-    if (rightTok.end != rightRaw.size() || rightTok.value.isEmpty()) return false;
+    if (rightTok.end != rightRaw.size() || rightTok.value.isEmpty())
+      return false;
     const QString left = leftTok.value;
     const QString right = rightTok.value;
     // Validate the connector pairing: only `<- ... -` and `- ... ->` are legal.
-    const bool formArrowRight =
-        connectorBefore == QLatin1String("-") && connectorAfter == QLatin1String("->");
-    const bool formArrowLeft =
-        connectorBefore == QLatin1String("<-") && connectorAfter == QLatin1String("-");
-    if (!formArrowRight && !formArrowLeft) return false;
-    if (!relationshipKeywords().contains(type)) return false;
+    const bool formArrowRight = connectorBefore == QLatin1String("-") && connectorAfter == QLatin1String("->");
+    const bool formArrowLeft = connectorBefore == QLatin1String("<-") && connectorAfter == QLatin1String("-");
+    if (!formArrowRight && !formArrowLeft)
+      return false;
+    if (!relationshipKeywords().contains(type))
+      return false;
     rel.type = type;
     if (formArrowRight) {
       rel.src = left;
@@ -868,7 +879,7 @@ private:
   }
 };
 
-}  // namespace
+} // namespace
 
 RequirementDiagram RequirementDiagram::parse(const QString& source) {
   Parser parser(source);
@@ -877,4 +888,4 @@ RequirementDiagram RequirementDiagram::parse(const QString& source) {
   return diagram;
 }
 
-}  // namespace muffin::mermaid::requirement
+} // namespace muffin::mermaid::requirement

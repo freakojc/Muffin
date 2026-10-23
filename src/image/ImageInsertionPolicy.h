@@ -16,9 +16,9 @@ namespace muffin {
 struct ImageInsertRequest {
   QString sourcePath;
   QImage pastedImage;
-  QString documentPath;  // absolute path of the .md file; empty for an untitled doc.
-  QString documentText;  // raw markdown, scanned for a frontmatter upload directive.
-  QString alt;           // desired alt text; empty → caller/insert site picks a default.
+  QString documentPath; // absolute path of the .md file; empty for an untitled doc.
+  QString documentText; // raw markdown, scanned for a frontmatter upload directive.
+  QString alt;          // desired alt text; empty → caller/insert site picks a default.
 };
 
 // The href (and alt) to splice into `![alt](href)`, plus status. `uploaded` tells
@@ -28,7 +28,7 @@ struct ImageInsertResult {
   bool ok = false;
   QString href;
   QString alt;
-  QString error;    // non-fatal warning (e.g. upload failed, fell back to local path); empty when clean.
+  QString error; // non-fatal warning (e.g. upload failed, fell back to local path); empty when clean.
   bool uploaded = false;
 };
 
@@ -43,4 +43,4 @@ public:
   static ImageInsertResult resolveHref(const ImageInsertRequest& request, QSettings& settings, QWidget* parent);
 };
 
-}  // namespace muffin
+} // namespace muffin

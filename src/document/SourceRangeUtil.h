@@ -27,8 +27,7 @@ struct ListLineInfo {
 // Full byte span of a block, including serialized leading indentation. Templated so
 // it reads the document text from either a QString (command/edit path) or a PieceTable (zero-copy);
 // body only uses size(), at() and lineStartOffset(), which work on either.
-template <typename Text>
-SourceRange fullBlockSourceRange(const MarkdownNode& node, const Text& markdown) {
+template <typename Text> SourceRange fullBlockSourceRange(const MarkdownNode& node, const Text& markdown) {
   SourceRange range = node.sourceRange();
   if (range.byteStart < 0 || range.byteEnd < range.byteStart || range.byteEnd > markdown.size()) {
     return range;
@@ -40,16 +39,16 @@ SourceRange fullBlockSourceRange(const MarkdownNode& node, const Text& markdown)
   // from its start column. Replacing from that column would duplicate the
   // indentation and can turn the first HTML line into indented code.
   const bool indentedCode = node.type() == BlockType::CodeFence && node.isIndentedCode();
-  const bool topLevelHtml = node.type() == BlockType::HtmlBlock && node.parent() &&
-                            node.parent()->type() == BlockType::Document;
+  const bool topLevelHtml =
+      node.type() == BlockType::HtmlBlock && node.parent() && node.parent()->type() == BlockType::Document;
   if ((indentedCode || topLevelHtml) && range.byteStart > 0) {
     range.byteStart = lineStartOffset(markdown, range.byteStart);
   }
   // cmark keeps this newline in the HTML literal but leaves it outside the
   // source span. Replace it as well so every keystroke does not append a blank
   // line. The separator after that newline remains outside the replacement.
-  if (topLevelHtml && node.literal().endsWith(QLatin1Char('\n')) &&
-      range.byteEnd < markdown.size() && markdown.at(range.byteEnd) == QLatin1Char('\n')) {
+  if (topLevelHtml && node.literal().endsWith(QLatin1Char('\n')) && range.byteEnd < markdown.size() &&
+      markdown.at(range.byteEnd) == QLatin1Char('\n')) {
     ++range.byteEnd;
   }
   return range;
@@ -65,8 +64,7 @@ bool isMathClosingLine(const MarkdownNode& node, QStringView line);
 // QString (parse/command/edit path) or a PieceTable (render builder path) -- both expose
 // indexOf(QChar, from) and size(). Definitions live here (not SourceRangeUtil.cpp) because they
 // must be visible at every instantiation site.
-template <typename Text>
-qsizetype sourceOffsetForLineColumn(const Text& text, int line, int column) {
+template <typename Text> qsizetype sourceOffsetForLineColumn(const Text& text, int line, int column) {
   if (line <= 0 || column <= 0) {
     return -1;
   }
@@ -81,8 +79,7 @@ qsizetype sourceOffsetForLineColumn(const Text& text, int line, int column) {
   return qMin<qsizetype>(text.size(), offset + column - 1);
 }
 
-template <typename Text>
-qsizetype sourceOffsetForLineEnd(const Text& text, int line) {
+template <typename Text> qsizetype sourceOffsetForLineEnd(const Text& text, int line) {
   if (line <= 0) {
     return -1;
   }
@@ -100,8 +97,7 @@ qsizetype sourceOffsetForLineEnd(const Text& text, int line) {
 // boundary keeps block-leading whitespace inside the range/slice.
 // Templated so it reads the document text from either a QString (parse path) or a PieceTable
 // (edit path) — both expose at()/size() and are indexed by QChar.
-template <typename Text>
-qsizetype lineStartOffset(const Text& text, qsizetype offset) {
+template <typename Text> qsizetype lineStartOffset(const Text& text, qsizetype offset) {
   const qsizetype bounded = qBound<qsizetype>(0, offset, text.size());
   for (qsizetype i = bounded; i > 0; --i) {
     if (text.at(i - 1) == QLatin1Char('\n')) {
@@ -117,8 +113,7 @@ qsizetype lineStartOffset(const Text& text, qsizetype offset) {
 // whole-block replacement range) use this so the inserted paragraph lands after the last line
 // instead of swallowing the closing delimiter. Returns byteStart < 0 when the line span is unusable.
 // Templated so it reads the document text from either a QString or a PieceTable (zero-copy).
-template <typename Text>
-SourceRange blockLineSpan(const MarkdownNode& node, const Text& markdown) {
+template <typename Text> SourceRange blockLineSpan(const MarkdownNode& node, const Text& markdown) {
   SourceRange span;
   span.byteStart = -1;
   span.byteEnd = -1;
@@ -142,8 +137,7 @@ SourceRange blockLineSpan(const MarkdownNode& node, const Text& markdown) {
 // usual byte/line end.
 // Templated so it reads the document text from either a QString (edit/command path) or a
 // PieceTable (render builder path) -- both expose the indexOf/size that sourceOffsetForLineEnd uses.
-template <typename Text>
-qsizetype headingContentEndOffset(const MarkdownNode& node, const Text& markdown) {
+template <typename Text> qsizetype headingContentEndOffset(const MarkdownNode& node, const Text& markdown) {
   const SourceRange range = node.sourceRange();
   if (node.setext() && range.lineStart > 0) {
     // Setext: editable content is the text line only; stop before the underline line.
@@ -158,4 +152,4 @@ const MarkdownNode* primaryParagraph(const MarkdownNode& node);
 QString listMarkerFor(const QString& line);
 ListLineInfo listLineInfoFor(const QString& line);
 
-}  // namespace muffin
+} // namespace muffin

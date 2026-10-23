@@ -13,31 +13,26 @@ namespace muffin::mermaid::editor {
 // dependency between TUs.
 const Diagram* findMermaidDiagram(const QString& type) {
   static const QVector<const Diagram*> kAll = {
-      &stateDiagramAdapter(),       &classDiagramAdapter(),   &sequenceDiagramAdapter(),
-      &flowchartDiagramAdapter(),   &swimlaneDiagramAdapter(), &erDiagramAdapter(),
-      &requirementDiagramAdapter(),
-      &pieDiagramAdapter(),         &quadrantDiagramAdapter(), &journeyDiagramAdapter(),
-      &radarDiagramAdapter(),       &xyChartDiagramAdapter(),   &timelineDiagramAdapter(),
-      &packetDiagramAdapter(),      &kanbanDiagramAdapter(),
-      &mindmapDiagramAdapter(),     &gitGraphDiagramAdapter(),
-      &c4DiagramAdapter(),
-      &ganttDiagramAdapter(),
-      &infoDiagramAdapter(),        &treeViewDiagramAdapter(),
-      &eventModelingDiagramAdapter(), &ishikawaDiagramAdapter(),
-      &vennDiagramAdapter(),       &sankeyDiagramAdapter(),
-      &treemapDiagramAdapter(),     &cynefinDiagramAdapter(),
-      &wardleyDiagramAdapter(),    &architectureDiagramAdapter(),
-      &blockDiagramAdapter(),
-      &railroadDiagramAdapter(),   &railroadEbnfDiagramAdapter(),
-      &railroadAbnfDiagramAdapter(), &railroadPegDiagramAdapter(),
-      &errorDiagramAdapter(),      &dashDiagramAdapter()};
+      &stateDiagramAdapter(),         &classDiagramAdapter(),        &sequenceDiagramAdapter(),
+      &flowchartDiagramAdapter(),     &swimlaneDiagramAdapter(),     &erDiagramAdapter(),
+      &requirementDiagramAdapter(),   &pieDiagramAdapter(),          &quadrantDiagramAdapter(),
+      &journeyDiagramAdapter(),       &radarDiagramAdapter(),        &xyChartDiagramAdapter(),
+      &timelineDiagramAdapter(),      &packetDiagramAdapter(),       &kanbanDiagramAdapter(),
+      &mindmapDiagramAdapter(),       &gitGraphDiagramAdapter(),     &c4DiagramAdapter(),
+      &ganttDiagramAdapter(),         &infoDiagramAdapter(),         &treeViewDiagramAdapter(),
+      &eventModelingDiagramAdapter(), &ishikawaDiagramAdapter(),     &vennDiagramAdapter(),
+      &sankeyDiagramAdapter(),        &treemapDiagramAdapter(),      &cynefinDiagramAdapter(),
+      &wardleyDiagramAdapter(),       &architectureDiagramAdapter(), &blockDiagramAdapter(),
+      &railroadDiagramAdapter(),      &railroadEbnfDiagramAdapter(), &railroadAbnfDiagramAdapter(),
+      &railroadPegDiagramAdapter(),   &errorDiagramAdapter(),        &dashDiagramAdapter()};
   static const QHash<QString, const Diagram*> kByType = [] {
     QHash<QString, const Diagram*> registry;
     for (const Diagram* diagram : kAll)
-      for (const QString& id : diagram->ids()) registry.insert(id, diagram);
+      for (const QString& id : diagram->ids())
+        registry.insert(id, diagram);
     return registry;
   }();
   return kByType.value(type, nullptr);
 }
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

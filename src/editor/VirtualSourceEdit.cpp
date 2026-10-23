@@ -52,28 +52,22 @@ constexpr QChar kZeroWidthSpace(0x200b);
 QTextCharFormat sourceFormat(QColor foreground, bool bold = false) {
   QTextCharFormat format;
   format.setForeground(foreground);
-  if (bold) format.setFontWeight(QFont::Bold);
+  if (bold)
+    format.setFontWeight(QFont::Bold);
   return format;
 }
 
-void appendRegexFormats(
-    const QString& text,
-    const QRegularExpression& regex,
-    const QTextCharFormat& format,
-    QVector<QTextLayout::FormatRange>& ranges) {
+void appendRegexFormats(const QString& text, const QRegularExpression& regex, const QTextCharFormat& format,
+                        QVector<QTextLayout::FormatRange>& ranges) {
   auto iterator = regex.globalMatch(text);
   while (iterator.hasNext()) {
     const QRegularExpressionMatch match = iterator.next();
-    ranges.push_back(QTextLayout::FormatRange{
-        static_cast<int>(match.capturedStart()),
-        static_cast<int>(match.capturedLength()),
-        format});
+    ranges.push_back(QTextLayout::FormatRange{static_cast<int>(match.capturedStart()),
+                                              static_cast<int>(match.capturedLength()), format});
   }
 }
 
-QVector<QTextLayout::FormatRange> sourceFormats(
-    const QString& text,
-    const SourceEditorColors& colors) {
+QVector<QTextLayout::FormatRange> sourceFormats(const QString& text, const SourceEditorColors& colors) {
   QVector<QTextLayout::FormatRange> ranges;
   const auto whole = [&](const QTextCharFormat& format) {
     ranges.push_back(QTextLayout::FormatRange{0, static_cast<int>(text.size()), format});
@@ -103,12 +97,10 @@ QVector<QTextLayout::FormatRange> sourceFormats(
     auto links = linkRe.globalMatch(text);
     while (links.hasNext()) {
       const QRegularExpressionMatch match = links.next();
-      ranges.push_back({static_cast<int>(match.capturedStart()),
-                        static_cast<int>(match.capturedLength()),
+      ranges.push_back({static_cast<int>(match.capturedStart()), static_cast<int>(match.capturedLength()),
                         sourceFormat(colors.linkTarget)});
       if (match.capturedStart(1) >= 0) {
-        ranges.push_back({static_cast<int>(match.capturedStart(1) - 1),
-                          static_cast<int>(match.capturedLength(1) + 2),
+        ranges.push_back({static_cast<int>(match.capturedStart(1) - 1), static_cast<int>(match.capturedLength(1) + 2),
                           sourceFormat(colors.linkLabel)});
       }
     }
@@ -124,17 +116,15 @@ QVector<QTextLayout::FormatRange> sourceFormats(
 
   SpellChecker& checker = SpellChecker::instance();
   if (checker.isEnabled()) {
-    static const QRegularExpression wordRe(
-        QStringLiteral("[\\p{L}][\\p{L}'\\x{2019}]*"),
-        QRegularExpression::UseUnicodePropertiesOption);
+    static const QRegularExpression wordRe(QStringLiteral("[\\p{L}][\\p{L}'\\x{2019}]*"),
+                                           QRegularExpression::UseUnicodePropertiesOption);
     static const QRegularExpression skipRe(
         QStringLiteral("`[^`]*`|\\b(?:https?|ftp|file)://\\S+|\\bwww\\.[^\\s]+|[\\w.+-]+@[\\w-]+(?:\\.[\\w-]+)+"));
     QVector<QPair<int, int>> skip;
     auto skips = skipRe.globalMatch(text);
     while (skips.hasNext()) {
       const auto match = skips.next();
-      skip.push_back({static_cast<int>(match.capturedStart()),
-                      static_cast<int>(match.capturedEnd())});
+      skip.push_back({static_cast<int>(match.capturedStart()), static_cast<int>(match.capturedEnd())});
     }
     QTextCharFormat spell;
     spell.setUnderlineColor(colors.spell);
@@ -142,7 +132,8 @@ QVector<QTextLayout::FormatRange> sourceFormats(
     auto words = wordRe.globalMatch(text);
     while (words.hasNext()) {
       const auto match = words.next();
-      if (match.capturedLength() <= 1) continue;
+      if (match.capturedLength() <= 1)
+        continue;
       const int start = static_cast<int>(match.capturedStart());
       const int end = static_cast<int>(match.capturedEnd());
       const bool excluded = std::any_of(skip.cbegin(), skip.cend(), [start, end](const auto& range) {
@@ -157,17 +148,14 @@ QVector<QTextLayout::FormatRange> sourceFormats(
 }
 
 int boundedScrollRange(qint64 value) {
-  return static_cast<int>(qBound<qint64>(
-      qint64(0), value, static_cast<qint64>(std::numeric_limits<int>::max())));
+  return static_cast<int>(qBound<qint64>(qint64(0), value, static_cast<qint64>(std::numeric_limits<int>::max())));
 }
 
 QColor mixColor(const QColor& from, const QColor& to, qreal amount) {
   const qreal t = qBound<qreal>(0.0, amount, 1.0);
   return QColor::fromRgbF(
-      from.redF() + (to.redF() - from.redF()) * t,
-      from.greenF() + (to.greenF() - from.greenF()) * t,
-      from.blueF() + (to.blueF() - from.blueF()) * t,
-      from.alphaF() + (to.alphaF() - from.alphaF()) * t);
+      from.redF() + (to.redF() - from.redF()) * t, from.greenF() + (to.greenF() - from.greenF()) * t,
+      from.blueF() + (to.blueF() - from.blueF()) * t, from.alphaF() + (to.alphaF() - from.alphaF()) * t);
 }
 
 qreal linearColorChannel(qreal channel) {
@@ -175,8 +163,7 @@ qreal linearColorChannel(qreal channel) {
 }
 
 qreal colorLuminance(const QColor& color) {
-  return 0.2126 * linearColorChannel(color.redF()) +
-         0.7152 * linearColorChannel(color.greenF()) +
+  return 0.2126 * linearColorChannel(color.redF()) + 0.7152 * linearColorChannel(color.greenF()) +
          0.0722 * linearColorChannel(color.blueF());
 }
 
@@ -187,7 +174,8 @@ qreal colorContrast(const QColor& a, const QColor& b) {
 }
 
 QColor ensureContrast(const QColor& color, const QColor& background, qreal minimum, bool dark) {
-  if (colorContrast(color, background) >= minimum) return color;
+  if (colorContrast(color, background) >= minimum)
+    return color;
 
   const QColor target = dark ? QColor(Qt::white) : QColor(Qt::black);
   qreal low = 0.0;
@@ -203,7 +191,7 @@ QColor ensureContrast(const QColor& color, const QColor& background, qreal minim
   return mixColor(color, target, high);
 }
 
-}  // namespace
+} // namespace
 
 struct VirtualSourceEdit::LineLayout {
   int line = 0;
@@ -236,8 +224,8 @@ SourceEditorColors SourceEditorColors::fromTheme(const RenderTheme& theme) {
   // Keep source chrome in the active theme's tonal range. The old fixed
   // near-black gutter detached medium-dark themes such as Night from the page.
   colors.gutterBackground = mixColor(colors.background, QColor(Qt::black), dark ? 0.08 : 0.025);
-  colors.lineNumber = ensureContrast(
-      mixColor(colors.background, colors.text, 0.65), colors.gutterBackground, 3.1, dark);
+  colors.lineNumber =
+      ensureContrast(mixColor(colors.background, colors.text, 0.65), colors.gutterBackground, 3.1, dark);
   colors.currentLine = mixColor(colors.background, QColor(Qt::black), dark ? 0.12 : 0.04);
   colors.zeroWidthText = colors.heading;
   colors.zeroWidthBackground = dark ? QColor(QStringLiteral("#3a2230")) : QColor(QStringLiteral("#fff0f6"));
@@ -299,7 +287,8 @@ PieceTable& VirtualSourceEdit::standaloneSource() {
 }
 
 void VirtualSourceEdit::bindSession(DocumentSession* session) {
-  if (session_ == session) return;
+  if (session_ == session)
+    return;
   QObject::disconnect(replacementConnection_);
   session_ = session;
   if (session_) {
@@ -321,8 +310,10 @@ void VirtualSourceEdit::bindSession(DocumentSession* session) {
 void VirtualSourceEdit::syncFromSession(bool preserveCursor) {
   // A full-parse fallback publishes the new text while applyEdit still owns
   // the caret, undo record and incremental line-height update.
-  if (applyingEdit_) return;
-  if (!preserveCursor) cursor_ = anchor_ = 0;
+  if (applyingEdit_)
+    return;
+  if (!preserveCursor)
+    cursor_ = anchor_ = 0;
   cursor_ = boundedOffset(cursor_);
   anchor_ = boundedOffset(anchor_);
   resetGeometryIndex(preserveCursor);
@@ -331,7 +322,8 @@ void VirtualSourceEdit::syncFromSession(bool preserveCursor) {
 
 void VirtualSourceEdit::notifyDocumentChanged() {
   // Our own delta is reconciled by applyEdit after the session has emitted its signals.
-  if (applyingEdit_) return;
+  if (applyingEdit_)
+    return;
   undoStack_.clear();
   redoStack_.clear();
   cursor_ = boundedOffset(cursor_);
@@ -350,12 +342,24 @@ void VirtualSourceEdit::setStandaloneText(QString text) {
   emitCursorPosition();
 }
 
-QString VirtualSourceEdit::text() const { return source().toString(); }
-qsizetype VirtualSourceEdit::cursorPosition() const { return cursor_; }
-qsizetype VirtualSourceEdit::anchorPosition() const { return anchor_; }
-qsizetype VirtualSourceEdit::selectionStart() const { return qMin(anchor_, cursor_); }
-qsizetype VirtualSourceEdit::selectionEnd() const { return qMax(anchor_, cursor_); }
-bool VirtualSourceEdit::hasSelection() const { return anchor_ != cursor_; }
+QString VirtualSourceEdit::text() const {
+  return source().toString();
+}
+qsizetype VirtualSourceEdit::cursorPosition() const {
+  return cursor_;
+}
+qsizetype VirtualSourceEdit::anchorPosition() const {
+  return anchor_;
+}
+qsizetype VirtualSourceEdit::selectionStart() const {
+  return qMin(anchor_, cursor_);
+}
+qsizetype VirtualSourceEdit::selectionEnd() const {
+  return qMax(anchor_, cursor_);
+}
+bool VirtualSourceEdit::hasSelection() const {
+  return anchor_ != cursor_;
+}
 
 QString VirtualSourceEdit::selectedText() const {
   return hasSelection() ? source().mid(selectionStart(), selectionEnd() - selectionStart()) : QString();
@@ -396,7 +400,9 @@ void VirtualSourceEdit::setSelection(qsizetype start, qsizetype end) {
   viewport()->update();
 }
 
-void VirtualSourceEdit::selectAll() { setSelection(0, source().size()); }
+void VirtualSourceEdit::selectAll() {
+  setSelection(0, source().size());
+}
 
 int VirtualSourceEdit::lineForOffset(qsizetype offset) const {
   return qMax(0, source().lineForOffset(boundedOffset(offset)) - 1);
@@ -432,9 +438,9 @@ void VirtualSourceEdit::selectWord() {
   setSelection(start, end);
 }
 
-bool VirtualSourceEdit::applyEdit(
-    qsizetype start, qsizetype end, const QString& inserted, bool recordUndo) {
-  if (readOnly_ || (session_ && session_->isOpenInProgress())) return false;
+bool VirtualSourceEdit::applyEdit(qsizetype start, qsizetype end, const QString& inserted, bool recordUndo) {
+  if (readOnly_ || (session_ && session_->isOpenInProgress()))
+    return false;
   start = boundedOffset(start);
   end = qBound(start, end, source().size());
   EditRecord record;
@@ -455,11 +461,12 @@ bool VirtualSourceEdit::applyEdit(
       // edits must still apply and remain undoable through a full parse.
       QString nextText = source().toString();
       nextText.replace(start, end - start, inserted);
-      auto pendingOffsets = shiftPendingMarkerOffsets(
-          session_->pendingMarkerOffsets(), start, end - start, inserted.size());
+      auto pendingOffsets =
+          shiftPendingMarkerOffsets(session_->pendingMarkerOffsets(), start, end - start, inserted.size());
       if (!inserted.contains(QLatin1Char('\n'))) {
         const qsizetype pendingOffset = pendingBlockMarkerOffset(nextText, start);
-        if (pendingOffset >= 0) pendingOffsets.append(pendingOffset);
+        if (pendingOffset >= 0)
+          pendingOffsets.append(pendingOffset);
       }
       session_->applyMarkdownText(std::move(nextText), true, std::move(pendingOffsets));
     }
@@ -498,7 +505,8 @@ bool VirtualSourceEdit::applyEdit(
 
 void VirtualSourceEdit::insertText(const QString& text) {
   // An empty replacement still removes the selection (including Replace All's whole document).
-  if (text.isEmpty() && !hasSelection()) return;
+  if (text.isEmpty() && !hasSelection())
+    return;
   QString normalized = text;
   normalized.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
   normalized.replace(QLatin1Char('\r'), QLatin1Char('\n'));
@@ -506,7 +514,8 @@ void VirtualSourceEdit::insertText(const QString& text) {
 }
 
 void VirtualSourceEdit::replaceSelection(const QString& text) {
-  if (hasSelection()) insertText(text);
+  if (hasSelection())
+    insertText(text);
 }
 
 void VirtualSourceEdit::replaceAllWithUndo(const QString& text) {
@@ -521,7 +530,8 @@ void VirtualSourceEdit::deleteForward() {
     applyEdit(selectionStart(), selectionEnd(), {}, true);
   } else if (cursor_ < source().size()) {
     qsizetype end = cursor_ + 1;
-    if (source().at(cursor_).isHighSurrogate() && end < source().size() && source().at(end).isLowSurrogate()) ++end;
+    if (source().at(cursor_).isHighSurrogate() && end < source().size() && source().at(end).isLowSurrogate())
+      ++end;
     applyEdit(cursor_, end, {}, true);
   }
 }
@@ -531,14 +541,16 @@ void VirtualSourceEdit::deleteBackward() {
     applyEdit(selectionStart(), selectionEnd(), {}, true);
   } else if (cursor_ > 0) {
     qsizetype start = cursor_ - 1;
-    if (source().at(start).isLowSurrogate() && start > 0 && source().at(start - 1).isHighSurrogate()) --start;
+    if (source().at(start).isLowSurrogate() && start > 0 && source().at(start - 1).isHighSurrogate())
+      --start;
     applyEdit(start, cursor_, {}, true);
   }
 }
 
 void VirtualSourceEdit::deleteWord() {
   const auto [start, end] = wordRangeAt(cursor_);
-  if (start != end) applyEdit(start, end, {}, true);
+  if (start != end)
+    applyEdit(start, end, {}, true);
 }
 
 void VirtualSourceEdit::deleteLineContent() {
@@ -558,7 +570,8 @@ void VirtualSourceEdit::deleteWholeLine() {
 
 void VirtualSourceEdit::moveCurrentLineUp() {
   const int line = lineForOffset(cursor_);
-  if (line <= 0) return;
+  if (line <= 0)
+    return;
   const qsizetype previousStart = lineStart(line - 1);
   const qsizetype currentStart = lineStart(line);
   const qsizetype currentEnd = lineEnd(line);
@@ -572,7 +585,8 @@ void VirtualSourceEdit::moveCurrentLineUp() {
 
 void VirtualSourceEdit::moveCurrentLineDown() {
   const int line = lineForOffset(cursor_);
-  if (line + 1 >= source().lineCount()) return;
+  if (line + 1 >= source().lineCount())
+    return;
   const qsizetype currentStart = lineStart(line);
   const qsizetype nextStart = lineStart(line + 1);
   const qsizetype nextEnd = lineEnd(line + 1);
@@ -584,8 +598,12 @@ void VirtualSourceEdit::moveCurrentLineDown() {
   }
 }
 
-bool VirtualSourceEdit::canUndo() const { return !readOnly_ && !undoStack_.isEmpty(); }
-bool VirtualSourceEdit::canRedo() const { return !readOnly_ && !redoStack_.isEmpty(); }
+bool VirtualSourceEdit::canUndo() const {
+  return !readOnly_ && !undoStack_.isEmpty();
+}
+bool VirtualSourceEdit::canRedo() const {
+  return !readOnly_ && !redoStack_.isEmpty();
+}
 
 bool VirtualSourceEdit::applyEditRecord(const EditRecord& record, bool reverse) {
   const QString& remove = reverse ? record.inserted : record.removed;
@@ -601,7 +619,8 @@ bool VirtualSourceEdit::applyEditRecord(const EditRecord& record, bool reverse) 
 }
 
 void VirtualSourceEdit::undo() {
-  if (!canUndo()) return;
+  if (!canUndo())
+    return;
   EditRecord record = undoStack_.takeLast();
   if (applyEditRecord(record, true)) {
     redoStack_.push_back(std::move(record));
@@ -611,7 +630,8 @@ void VirtualSourceEdit::undo() {
 }
 
 void VirtualSourceEdit::redo() {
-  if (!canRedo()) return;
+  if (!canRedo())
+    return;
   EditRecord record = redoStack_.takeLast();
   if (applyEditRecord(record, false)) {
     undoStack_.push_back(std::move(record));
@@ -620,14 +640,23 @@ void VirtualSourceEdit::redo() {
   }
 }
 
-void VirtualSourceEdit::moveDocumentStart() { setCursorPosition(0); }
-void VirtualSourceEdit::moveDocumentEnd() { setCursorPosition(source().size()); }
-void VirtualSourceEdit::moveLineStart() { setCursorPosition(lineStart(lineForOffset(cursor_))); }
-void VirtualSourceEdit::moveLineEnd() { setCursorPosition(lineEnd(lineForOffset(cursor_))); }
+void VirtualSourceEdit::moveDocumentStart() {
+  setCursorPosition(0);
+}
+void VirtualSourceEdit::moveDocumentEnd() {
+  setCursorPosition(source().size());
+}
+void VirtualSourceEdit::moveLineStart() {
+  setCursorPosition(lineStart(lineForOffset(cursor_)));
+}
+void VirtualSourceEdit::moveLineEnd() {
+  setCursorPosition(lineEnd(lineForOffset(cursor_)));
+}
 
 void VirtualSourceEdit::moveLineVertical(int delta) {
   const int currentLine = lineForOffset(cursor_);
-  if (preferredColumn_ < 0) preferredColumn_ = cursorColumn() - 1;
+  if (preferredColumn_ < 0)
+    preferredColumn_ = cursorColumn() - 1;
   const int targetLine = qBound(0, currentLine + delta, source().lineCount() - 1);
   setCursorPosition(qMin(lineStart(targetLine) + preferredColumn_, lineEnd(targetLine)));
   preferredColumn_ = qMax(0, preferredColumn_);
@@ -639,10 +668,13 @@ void VirtualSourceEdit::selectNextOccurrence() {
     const auto [start, end] = wordRangeAt(cursor_);
     needle = source().mid(start, end - start);
   }
-  if (needle.isEmpty()) return;
+  if (needle.isEmpty())
+    return;
   qsizetype found = source().indexOf(needle, selectionEnd());
-  if (found < 0) found = source().indexOf(needle);
-  if (found >= 0) setSelection(found, found + needle.size());
+  if (found < 0)
+    found = source().indexOf(needle);
+  if (found >= 0)
+    setSelection(found, found + needle.size());
 }
 
 qsizetype VirtualSourceEdit::findText(QStringView text, qsizetype from) const {
@@ -689,7 +721,8 @@ std::shared_ptr<VirtualSourceEdit::LineLayout> VirtualSourceEdit::buildLineLayou
     }
     layoutCache_.insert(zeroBasedLine, result);
     layoutLru_.append(zeroBasedLine);
-    if (layoutLru_.size() > kMaxCachedLayouts) layoutCache_.remove(layoutLru_.takeFirst());
+    if (layoutLru_.size() > kMaxCachedLayouts)
+      layoutCache_.remove(layoutLru_.takeFirst());
     return result;
   }
 
@@ -705,7 +738,8 @@ std::shared_ptr<VirtualSourceEdit::LineLayout> VirtualSourceEdit::buildLineLayou
   qreal maxWidth = 0.0;
   while (true) {
     TextLine line = result->layout->createLine();
-    if (!line.isValid()) break;
+    if (!line.isValid())
+      break;
     line.setLineWidth(wordWrap_ ? textAreaWidth() : 1000000000.0);
     line.setPosition(QPointF(0.0, y));
     y += qMax<qreal>(rowHeight, line.height());
@@ -716,7 +750,8 @@ std::shared_ptr<VirtualSourceEdit::LineLayout> VirtualSourceEdit::buildLineLayou
   result->width = maxWidth;
   layoutCache_.insert(zeroBasedLine, result);
   layoutLru_.append(zeroBasedLine);
-  if (layoutLru_.size() > kMaxCachedLayouts) layoutCache_.remove(layoutLru_.takeFirst());
+  if (layoutLru_.size() > kMaxCachedLayouts)
+    layoutCache_.remove(layoutLru_.takeFirst());
   return result;
 }
 
@@ -729,7 +764,8 @@ void VirtualSourceEdit::resetGeometryIndex(bool preserveScroll) {
   invalidateLayoutCache();
   heights_.reset(source().lineCount(), baseLineHeight());
   updateScrollBars();
-  if (preserveScroll) verticalScrollBar()->setValue(qMin(oldValue, verticalScrollBar()->maximum()));
+  if (preserveScroll)
+    verticalScrollBar()->setValue(qMin(oldValue, verticalScrollBar()->maximum()));
   viewport()->update();
 }
 
@@ -753,18 +789,19 @@ void VirtualSourceEdit::applyScrollBarStyle() {
   const QString background = colors_.background.name(QColor::HexRgb);
   // Same hit-area/visible-thumb split as EditorView: 14px hit, 3px insets → ~8px
   // visible thumb. The old 8px/4px combo was under 3 physical pixels at 150% DPI.
-  setStyleSheet(QStringLiteral(
-      "QScrollBar:vertical { background:%1; width:14px; margin:0; }"
-      "QScrollBar::handle:vertical { background:#b7b7b7; min-height:54px; border-radius:4px; margin:2px 3px; }"
-      "QScrollBar::handle:vertical:hover { background:#999999; }"
-      "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; border:0; background:transparent; }"
-      "QScrollBar:add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }"
-      "QScrollBar:horizontal { background:%1; height:14px; margin:0; }"
-      "QScrollBar::handle:horizontal { background:#b7b7b7; min-width:54px; border-radius:4px; margin:3px 2px; }"
-      "QScrollBar::handle:horizontal:hover { background:#999999; }"
-      "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width:0; border:0; background:transparent; }"
-      "QScrollBar:add-page:horizontal, QScrollBar::sub-page:horizontal { background:transparent; }")
-      .arg(background));
+  setStyleSheet(
+      QStringLiteral(
+          "QScrollBar:vertical { background:%1; width:14px; margin:0; }"
+          "QScrollBar::handle:vertical { background:#b7b7b7; min-height:54px; border-radius:4px; margin:2px 3px; }"
+          "QScrollBar::handle:vertical:hover { background:#999999; }"
+          "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; border:0; background:transparent; }"
+          "QScrollBar:add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }"
+          "QScrollBar:horizontal { background:%1; height:14px; margin:0; }"
+          "QScrollBar::handle:horizontal { background:#b7b7b7; min-width:54px; border-radius:4px; margin:3px 2px; }"
+          "QScrollBar::handle:horizontal:hover { background:#999999; }"
+          "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width:0; border:0; background:transparent; }"
+          "QScrollBar:add-page:horizontal, QScrollBar::sub-page:horizontal { background:transparent; }")
+          .arg(background));
 }
 
 void VirtualSourceEdit::paintEvent(QPaintEvent* event) {
@@ -793,38 +830,38 @@ void VirtualSourceEdit::paintEvent(QPaintEvent* event) {
     heights_.setHeight(line, lineLayout->height);
     widest = qMax(widest, lineLayout->width);
     if (line == currentLine) {
-      painter.fillRect(QRectF(kGutterWidth, y, viewport()->width() - kGutterWidth, lineLayout->height), colors_.currentLine);
+      painter.fillRect(QRectF(kGutterWidth, y, viewport()->width() - kGutterWidth, lineLayout->height),
+                       colors_.currentLine);
     }
 
     painter.setFont(lineNumberFont_);
     painter.setPen(colors_.lineNumber);
-    painter.drawText(QRectF(0, y, kGutterWidth - 10, baseLineHeight()),
-                     Qt::AlignRight | Qt::AlignVCenter, QString::number(line + 1));
+    painter.drawText(QRectF(0, y, kGutterWidth - 10, baseLineHeight()), Qt::AlignRight | Qt::AlignVCenter,
+                     QString::number(line + 1));
 
     const qreal originX = kGutterWidth + kTextInset - horizontalScrollBar()->value();
     if (lineLayout->longLine) {
       const qreal advance = qMax<qreal>(1.0, TextFontMetrics(sourceFont_).horizontalAdvance(QLatin1Char('M')));
       const int rowHeight = baseLineHeight();
       const qsizetype columns = wordWrap_
-          ? qMax<qsizetype>(1, static_cast<qsizetype>(textAreaWidth() / advance))
-          : qMax<qsizetype>(1, static_cast<qsizetype>(viewport()->width() / advance) + 4);
+                                    ? qMax<qsizetype>(1, static_cast<qsizetype>(textAreaWidth() / advance))
+                                    : qMax<qsizetype>(1, static_cast<qsizetype>(viewport()->width() / advance) + 4);
       const int firstRow = wordWrap_ ? qMax(0, static_cast<int>(std::floor(-y / rowHeight))) : 0;
-      const int lastRow = wordWrap_
-          ? qMin<int>(static_cast<int>((lineLayout->length + columns - 1) / columns),
-                      static_cast<int>(std::ceil((viewport()->height() - y) / rowHeight)) + 1)
-          : 1;
+      const int lastRow = wordWrap_ ? qMin<int>(static_cast<int>((lineLayout->length + columns - 1) / columns),
+                                                static_cast<int>(std::ceil((viewport()->height() - y) / rowHeight)) + 1)
+                                    : 1;
       painter.setFont(sourceFont_);
       painter.setPen(colors_.text);
       for (int row = firstRow; row < lastRow; ++row) {
         qsizetype chunkStart = wordWrap_ ? static_cast<qsizetype>(row) * columns
                                          : static_cast<qsizetype>(horizontalScrollBar()->value() / advance);
         const qsizetype chunkLength = qMin(columns, lineLayout->length - chunkStart);
-        if (chunkLength <= 0) break;
+        if (chunkLength <= 0)
+          break;
         const QString chunk = source().mid(lineLayout->sourceStart + chunkStart, chunkLength);
         const qreal rowY = y + row * rowHeight;
-        const qreal chunkX = wordWrap_
-            ? originX
-            : kGutterWidth + kTextInset - std::fmod(horizontalScrollBar()->value(), advance);
+        const qreal chunkX =
+            wordWrap_ ? originX : kGutterWidth + kTextInset - std::fmod(horizontalScrollBar()->value(), advance);
         const qsizetype absoluteStart = lineLayout->sourceStart + chunkStart;
         const qsizetype selectedStart = qMax(selStart, absoluteStart);
         const qsizetype selectedEnd = qMin(selEnd, absoluteStart + chunkLength);
@@ -832,8 +869,10 @@ void VirtualSourceEdit::paintEvent(QPaintEvent* event) {
           const qreal sx = chunkX + (selectedStart - absoluteStart) * advance;
           painter.fillRect(QRectF(sx, rowY, (selectedEnd - selectedStart) * advance, rowHeight), colors_.selection);
         }
-        drawDocumentText(painter, QPointF(chunkX, rowY + TextFontMetrics(sourceFont_).ascent() +
-                                 (rowHeight - TextFontMetrics(sourceFont_).height()) / 2.0), chunk);
+        drawDocumentText(painter,
+                         QPointF(chunkX, rowY + TextFontMetrics(sourceFont_).ascent() +
+                                             (rowHeight - TextFontMetrics(sourceFont_).height()) / 2.0),
+                         chunk);
       }
     } else {
       QVector<QTextLayout::FormatRange> selections;
@@ -864,10 +903,9 @@ void VirtualSourceEdit::paintEvent(QPaintEvent* event) {
     // is transient and does not extend the horizontal scroll range).
     const QRect cursorRect = cursorRectForOffset(cursor_);
     const qreal rowHeight = qMax<qreal>(cursorRect.height(), TextFontMetrics(sourceFont_).height());
-    painter.fillRect(
-        QRectF(qreal(cursorRect.left()), qreal(cursorRect.top()),
-               qMax<qreal>(1.0, qreal(viewport()->width()) - cursorRect.left()), rowHeight),
-        colors_.background);
+    painter.fillRect(QRectF(qreal(cursorRect.left()), qreal(cursorRect.top()),
+                            qMax<qreal>(1.0, qreal(viewport()->width()) - cursorRect.left()), rowHeight),
+                     colors_.background);
 
     TextLayout preeditLayout(preedit_, sourceFont_);
     preeditLayout.setFormats(preeditFormats_);
@@ -913,8 +951,7 @@ void VirtualSourceEdit::paintEvent(QPaintEvent* event) {
 }
 
 QPoint VirtualSourceEdit::contentPoint(const QPoint& viewportPoint) const {
-  return QPoint(viewportPoint.x() + horizontalScrollBar()->value(),
-                viewportPoint.y() + verticalScrollBar()->value());
+  return QPoint(viewportPoint.x() + horizontalScrollBar()->value(), viewportPoint.y() + verticalScrollBar()->value());
 }
 
 qsizetype VirtualSourceEdit::offsetForPoint(const QPoint& viewportPoint) const {
@@ -927,9 +964,8 @@ qsizetype VirtualSourceEdit::offsetForPoint(const QPoint& viewportPoint) const {
   qsizetype local = 0;
   if (layout->longLine) {
     const qreal advance = qMax<qreal>(1.0, TextFontMetrics(sourceFont_).horizontalAdvance(QLatin1Char('M')));
-    const qsizetype columns = wordWrap_
-        ? qMax<qsizetype>(1, static_cast<qsizetype>(textAreaWidth() / advance))
-        : layout->length;
+    const qsizetype columns =
+        wordWrap_ ? qMax<qsizetype>(1, static_cast<qsizetype>(textAreaWidth() / advance)) : layout->length;
     const qsizetype row = wordWrap_ ? qMax<qsizetype>(0, static_cast<qsizetype>(localY / baseLineHeight())) : 0;
     local = row * columns + qMax<qsizetype>(0, static_cast<qsizetype>(std::round(x / advance)));
   } else if (layout->layout) {
@@ -957,16 +993,16 @@ QRect VirtualSourceEdit::cursorRectForOffset(qsizetype offset) const {
   int height = baseLineHeight();
   if (layout->longLine) {
     const qreal advance = qMax<qreal>(1.0, TextFontMetrics(sourceFont_).horizontalAdvance(QLatin1Char('M')));
-    const qsizetype columns = wordWrap_
-        ? qMax<qsizetype>(1, static_cast<qsizetype>(textAreaWidth() / advance))
-        : qMax<qsizetype>(1, layout->length + 1);
+    const qsizetype columns = wordWrap_ ? qMax<qsizetype>(1, static_cast<qsizetype>(textAreaWidth() / advance))
+                                        : qMax<qsizetype>(1, layout->length + 1);
     const qsizetype row = wordWrap_ ? local / columns : 0;
     const qsizetype column = wordWrap_ ? local % columns : local;
     x += column * advance;
     y += row * baseLineHeight();
   } else if (layout->layout) {
     TextLine textLine = layout->layout->lineForTextPosition(static_cast<int>(local));
-    if (!textLine.isValid() && layout->layout->lineCount() > 0) textLine = layout->layout->lineAt(layout->layout->lineCount() - 1);
+    if (!textLine.isValid() && layout->layout->lineCount() > 0)
+      textLine = layout->layout->lineAt(layout->layout->lineCount() - 1);
     if (textLine.isValid()) {
       x += textLine.cursorToX(static_cast<int>(local));
       y += textLine.y();
@@ -978,7 +1014,8 @@ QRect VirtualSourceEdit::cursorRectForOffset(qsizetype offset) const {
 
 void VirtualSourceEdit::moveCursorTo(qsizetype position, bool keepAnchor) {
   cursor_ = boundedOffset(position);
-  if (!keepAnchor) anchor_ = cursor_;
+  if (!keepAnchor)
+    anchor_ = cursor_;
   preferredColumn_ = -1;
   resetCursorBlink();
   emitCursorPosition();
@@ -988,14 +1025,18 @@ void VirtualSourceEdit::moveCursorTo(qsizetype position, bool keepAnchor) {
 void VirtualSourceEdit::ensureCursorVisible() {
   const QRect rect = cursorRectForOffset(cursor_);
   int vertical = verticalScrollBar()->value();
-  if (rect.top() < 0) vertical += rect.top() - baseLineHeight();
-  else if (rect.bottom() > viewport()->height()) vertical += rect.bottom() - viewport()->height() + baseLineHeight();
+  if (rect.top() < 0)
+    vertical += rect.top() - baseLineHeight();
+  else if (rect.bottom() > viewport()->height())
+    vertical += rect.bottom() - viewport()->height() + baseLineHeight();
   verticalScrollBar()->setValue(vertical);
   if (!wordWrap_) {
     int horizontal = horizontalScrollBar()->value();
     const int left = kGutterWidth + kTextInset;
-    if (rect.left() < left) horizontal += rect.left() - left - kTextInset;
-    else if (rect.right() > viewport()->width()) horizontal += rect.right() - viewport()->width() + kTextInset;
+    if (rect.left() < left)
+      horizontal += rect.left() - left - kTextInset;
+    else if (rect.right() > viewport()->width())
+      horizontal += rect.right() - viewport()->width() + kTextInset;
     horizontalScrollBar()->setValue(horizontal);
   }
 }
@@ -1006,11 +1047,16 @@ void VirtualSourceEdit::centerCursor() {
   ensureCursorVisible();
 }
 
-int VirtualSourceEdit::cursorLine() const { return lineForOffset(cursor_) + 1; }
-int VirtualSourceEdit::cursorColumn() const { return static_cast<int>(cursor_ - lineStart(lineForOffset(cursor_)) + 1); }
+int VirtualSourceEdit::cursorLine() const {
+  return lineForOffset(cursor_) + 1;
+}
+int VirtualSourceEdit::cursorColumn() const {
+  return static_cast<int>(cursor_ - lineStart(lineForOffset(cursor_)) + 1);
+}
 
 void VirtualSourceEdit::setWordWrapEnabled(bool enabled) {
-  if (wordWrap_ == enabled) return;
+  if (wordWrap_ == enabled)
+    return;
   wordWrap_ = enabled;
   setHorizontalScrollBarPolicy(enabled ? Qt::ScrollBarAlwaysOff : Qt::ScrollBarAsNeeded);
   horizontalScrollBar()->setValue(0);
@@ -1018,7 +1064,9 @@ void VirtualSourceEdit::setWordWrapEnabled(bool enabled) {
   ensureCursorVisible();
 }
 
-bool VirtualSourceEdit::wordWrapEnabled() const { return wordWrap_; }
+bool VirtualSourceEdit::wordWrapEnabled() const {
+  return wordWrap_;
+}
 
 void VirtualSourceEdit::setSourceFont(QFont font) {
   sourceFont_ = std::move(font);
@@ -1042,16 +1090,22 @@ void VirtualSourceEdit::setPlaceholderText(QString text) {
   viewport()->update();
 }
 
-void VirtualSourceEdit::setDocumentPath(QString path) { documentPath_ = std::move(path); }
+void VirtualSourceEdit::setDocumentPath(QString path) {
+  documentPath_ = std::move(path);
+}
 
 void VirtualSourceEdit::setReadOnly(bool readOnly) {
-  if (readOnly_ == readOnly) return;
+  if (readOnly_ == readOnly)
+    return;
   readOnly_ = readOnly;
-  if (readOnly_) preedit_.clear();
+  if (readOnly_)
+    preedit_.clear();
   viewport()->update();
 }
 
-bool VirtualSourceEdit::isReadOnly() const { return readOnly_; }
+bool VirtualSourceEdit::isReadOnly() const {
+  return readOnly_;
+}
 
 ViewportPosition VirtualSourceEdit::viewportPosition() const {
   ViewportPosition position;
@@ -1064,15 +1118,18 @@ ViewportPosition VirtualSourceEdit::viewportPosition() const {
 }
 
 void VirtualSourceEdit::restoreViewportPosition(const ViewportPosition& position) {
-  if (position.sourceOffset < 0) return;
+  if (position.sourceOffset < 0)
+    return;
   const auto offset = boundedOffset(position.sourceOffset);
   const int line = lineForOffset(offset);
   const auto measured = buildLineLayout(line);
   heights_.setHeight(line, measured->height);
-  if (!wordWrap_) horizontalScrollBar()->setRange(0, qMax(0, qCeil(measured->width) - textAreaWidth()));
+  if (!wordWrap_)
+    horizontalScrollBar()->setRange(0, qMax(0, qCeil(measured->width) - textAreaWidth()));
   updateScrollBars();
   const auto rect = cursorRectForOffset(offset);
-  verticalScrollBar()->setValue(position.atStart ? 0 : qRound(verticalScrollBar()->value() + rect.top() - position.screenOffset));
+  verticalScrollBar()->setValue(
+      position.atStart ? 0 : qRound(verticalScrollBar()->value() + rect.top() - position.screenOffset));
   horizontalScrollBar()->setValue(position.horizontal);
   viewport()->update();
 }
@@ -1097,7 +1154,8 @@ bool VirtualSourceEdit::event(QEvent* event) {
       // QWidget consumes Tab for focus traversal before keyPressEvent. Source
       // editing owns plain Tab; modified Tab shortcuts still reach the window.
       event->accept();
-      if (event->type() == QEvent::KeyPress) keyPressEvent(key);
+      if (event->type() == QEvent::KeyPress)
+        keyPressEvent(key);
       return true;
     }
   }
@@ -1110,14 +1168,16 @@ void VirtualSourceEdit::keyPressEvent(QKeyEvent* event) {
   const bool command = event->modifiers().testFlag(Qt::MetaModifier);
   const bool wordNavigation = control || command;
   if (event->matches(QKeySequence::Copy)) {
-    if (hasSelection()) QApplication::clipboard()->setText(selectedText());
+    if (hasSelection())
+      QApplication::clipboard()->setText(selectedText());
   } else if (event->matches(QKeySequence::Cut)) {
     if (!readOnly_ && hasSelection()) {
       QApplication::clipboard()->setText(selectedText());
       applyEdit(selectionStart(), selectionEnd(), {}, true);
     }
   } else if (event->matches(QKeySequence::Paste)) {
-    if (!readOnly_) insertText(QApplication::clipboard()->text());
+    if (!readOnly_)
+      insertText(QApplication::clipboard()->text());
   } else if (event->matches(QKeySequence::Undo)) {
     undo();
   } else if (event->matches(QKeySequence::Redo)) {
@@ -1126,67 +1186,75 @@ void VirtualSourceEdit::keyPressEvent(QKeyEvent* event) {
     selectAll();
   } else {
     switch (event->key()) {
-      case Qt::Key_Left: {
-        qsizetype next = cursor_;
-        if (!shift && hasSelection()) next = selectionStart();
-        else next = wordNavigation ? previousWordOffset(next) : previousCharacterOffset(next);
-        moveCursorTo(next, shift);
-        break;
+    case Qt::Key_Left: {
+      qsizetype next = cursor_;
+      if (!shift && hasSelection())
+        next = selectionStart();
+      else
+        next = wordNavigation ? previousWordOffset(next) : previousCharacterOffset(next);
+      moveCursorTo(next, shift);
+      break;
+    }
+    case Qt::Key_Right: {
+      qsizetype next = cursor_;
+      if (!shift && hasSelection())
+        next = selectionEnd();
+      else
+        next = wordNavigation ? nextWordOffset(next) : nextCharacterOffset(next);
+      moveCursorTo(next, shift);
+      break;
+    }
+    case Qt::Key_Up:
+    case Qt::Key_Down: {
+      const int direction = event->key() == Qt::Key_Up ? -1 : 1;
+      const int column = preferredColumn_ >= 0 ? preferredColumn_ : cursorColumn() - 1;
+      const int targetLine = qBound(0, lineForOffset(cursor_) + direction, source().lineCount() - 1);
+      moveCursorTo(qMin(lineStart(targetLine) + column, lineEnd(targetLine)), shift);
+      preferredColumn_ = column;
+      break;
+    }
+    case Qt::Key_Home:
+      moveCursorTo(control ? 0 : lineStart(lineForOffset(cursor_)), shift);
+      break;
+    case Qt::Key_End:
+      moveCursorTo(control ? source().size() : lineEnd(lineForOffset(cursor_)), shift);
+      break;
+    case Qt::Key_PageUp:
+    case Qt::Key_PageDown: {
+      const int lines = qMax(1, viewport()->height() / baseLineHeight());
+      const int direction = event->key() == Qt::Key_PageUp ? -lines : lines;
+      const int targetLine = qBound(0, lineForOffset(cursor_) + direction, source().lineCount() - 1);
+      moveCursorTo(qMin(lineStart(targetLine) + cursorColumn() - 1, lineEnd(targetLine)), shift);
+      break;
+    }
+    case Qt::Key_Backspace:
+      if (wordNavigation && !hasSelection()) {
+        applyEdit(previousWordOffset(cursor_), cursor_, {}, true);
+      } else {
+        deleteBackward();
       }
-      case Qt::Key_Right: {
-        qsizetype next = cursor_;
-        if (!shift && hasSelection()) next = selectionEnd();
-        else next = wordNavigation ? nextWordOffset(next) : nextCharacterOffset(next);
-        moveCursorTo(next, shift);
-        break;
+      break;
+    case Qt::Key_Delete:
+      if (wordNavigation && !hasSelection()) {
+        applyEdit(cursor_, nextWordOffset(cursor_), {}, true);
+      } else {
+        deleteForward();
       }
-      case Qt::Key_Up:
-      case Qt::Key_Down: {
-        const int direction = event->key() == Qt::Key_Up ? -1 : 1;
-        const int column = preferredColumn_ >= 0 ? preferredColumn_ : cursorColumn() - 1;
-        const int targetLine = qBound(0, lineForOffset(cursor_) + direction, source().lineCount() - 1);
-        moveCursorTo(qMin(lineStart(targetLine) + column, lineEnd(targetLine)), shift);
-        preferredColumn_ = column;
-        break;
+      break;
+    case Qt::Key_Return:
+    case Qt::Key_Enter:
+      insertText(QStringLiteral("\n"));
+      break;
+    case Qt::Key_Tab:
+      insertText(QStringLiteral("\t"));
+      break;
+    default:
+      if (!control && !command && !event->modifiers().testFlag(Qt::AltModifier) && !event->text().isEmpty()) {
+        insertText(event->text());
+      } else {
+        QAbstractScrollArea::keyPressEvent(event);
+        return;
       }
-      case Qt::Key_Home:
-        moveCursorTo(control ? 0 : lineStart(lineForOffset(cursor_)), shift);
-        break;
-      case Qt::Key_End:
-        moveCursorTo(control ? source().size() : lineEnd(lineForOffset(cursor_)), shift);
-        break;
-      case Qt::Key_PageUp:
-      case Qt::Key_PageDown: {
-        const int lines = qMax(1, viewport()->height() / baseLineHeight());
-        const int direction = event->key() == Qt::Key_PageUp ? -lines : lines;
-        const int targetLine = qBound(0, lineForOffset(cursor_) + direction, source().lineCount() - 1);
-        moveCursorTo(qMin(lineStart(targetLine) + cursorColumn() - 1, lineEnd(targetLine)), shift);
-        break;
-      }
-      case Qt::Key_Backspace:
-        if (wordNavigation && !hasSelection()) {
-          applyEdit(previousWordOffset(cursor_), cursor_, {}, true);
-        } else {
-          deleteBackward();
-        }
-        break;
-      case Qt::Key_Delete:
-        if (wordNavigation && !hasSelection()) {
-          applyEdit(cursor_, nextWordOffset(cursor_), {}, true);
-        } else {
-          deleteForward();
-        }
-        break;
-      case Qt::Key_Return:
-      case Qt::Key_Enter: insertText(QStringLiteral("\n")); break;
-      case Qt::Key_Tab: insertText(QStringLiteral("\t")); break;
-      default:
-        if (!control && !command && !event->modifiers().testFlag(Qt::AltModifier) && !event->text().isEmpty()) {
-          insertText(event->text());
-        } else {
-          QAbstractScrollArea::keyPressEvent(event);
-          return;
-        }
     }
     ensureCursorVisible();
   }
@@ -1194,7 +1262,8 @@ void VirtualSourceEdit::keyPressEvent(QKeyEvent* event) {
 }
 
 void VirtualSourceEdit::mousePressEvent(QMouseEvent* event) {
-  if (event->button() != Qt::LeftButton) return;
+  if (event->button() != Qt::LeftButton)
+    return;
   setFocus(Qt::MouseFocusReason);
   moveCursorTo(offsetForPoint(event->position().toPoint()), event->modifiers().testFlag(Qt::ShiftModifier));
   draggingSelection_ = true;
@@ -1202,16 +1271,16 @@ void VirtualSourceEdit::mousePressEvent(QMouseEvent* event) {
 }
 
 void VirtualSourceEdit::mouseMoveEvent(QMouseEvent* event) {
-  viewport()->setCursor(event->position().x() < kGutterWidth
-                            ? Qt::ArrowCursor
-                            : Qt::IBeamCursor);
-  if (!draggingSelection_) return;
+  viewport()->setCursor(event->position().x() < kGutterWidth ? Qt::ArrowCursor : Qt::IBeamCursor);
+  if (!draggingSelection_)
+    return;
   moveCursorTo(offsetForPoint(event->position().toPoint()), true);
   ensureCursorVisible();
 }
 
 void VirtualSourceEdit::mouseReleaseEvent(QMouseEvent* event) {
-  if (event->button() == Qt::LeftButton) draggingSelection_ = false;
+  if (event->button() == Qt::LeftButton)
+    draggingSelection_ = false;
 }
 
 void VirtualSourceEdit::mouseDoubleClickEvent(QMouseEvent* event) {
@@ -1238,7 +1307,8 @@ void VirtualSourceEdit::focusOutEvent(QFocusEvent* event) {
 
 void VirtualSourceEdit::resetCursorBlink() {
   cursorVisible_ = true;
-  if (hasFocus() && QApplication::cursorFlashTime() > 0) cursorTimer_->start();
+  if (hasFocus() && QApplication::cursorFlashTime() > 0)
+    cursorTimer_->start();
 }
 
 void VirtualSourceEdit::inputMethodEvent(QInputMethodEvent* event) {
@@ -1246,7 +1316,8 @@ void VirtualSourceEdit::inputMethodEvent(QInputMethodEvent* event) {
     event->ignore();
     return;
   }
-  if (!event->commitString().isEmpty()) insertText(event->commitString());
+  if (!event->commitString().isEmpty())
+    insertText(event->commitString());
   preedit_ = event->preeditString();
   preeditFormats_.clear();
   preeditCursor_ = -1;
@@ -1270,13 +1341,20 @@ void VirtualSourceEdit::inputMethodEvent(QInputMethodEvent* event) {
 
 QVariant VirtualSourceEdit::inputMethodQuery(Qt::InputMethodQuery query) const {
   switch (query) {
-    case Qt::ImCursorRectangle: return cursorRectForOffset(cursor_);
-    case Qt::ImCursorPosition: return static_cast<int>(cursor_);
-    case Qt::ImAnchorPosition: return static_cast<int>(anchor_);
-    case Qt::ImAbsolutePosition: return static_cast<int>(cursor_);
-    case Qt::ImCurrentSelection: return selectedText();
-    case Qt::ImSurroundingText: return lineText(lineForOffset(cursor_));
-    default: return QAbstractScrollArea::inputMethodQuery(query);
+  case Qt::ImCursorRectangle:
+    return cursorRectForOffset(cursor_);
+  case Qt::ImCursorPosition:
+    return static_cast<int>(cursor_);
+  case Qt::ImAnchorPosition:
+    return static_cast<int>(anchor_);
+  case Qt::ImAbsolutePosition:
+    return static_cast<int>(cursor_);
+  case Qt::ImCurrentSelection:
+    return selectedText();
+  case Qt::ImSurroundingText:
+    return lineText(lineForOffset(cursor_));
+  default:
+    return QAbstractScrollArea::inputMethodQuery(query);
   }
 }
 
@@ -1293,8 +1371,7 @@ void VirtualSourceEdit::contextMenuEvent(QContextMenuEvent* event) {
   if (checker.isEnabled() && !word.isEmpty() && !checker.isCorrect(word)) {
     const QStringList suggestions = checker.suggestions(word);
     if (suggestions.isEmpty()) {
-      QAction* none = menu.addAction(QCoreApplication::translate(
-          "muffin::EditorView", "(no spelling suggestions)"));
+      QAction* none = menu.addAction(QCoreApplication::translate("muffin::EditorView", "(no spelling suggestions)"));
       none->setEnabled(false);
     } else {
       for (int i = 0; i < qMin(8, suggestions.size()); ++i) {
@@ -1305,8 +1382,7 @@ void VirtualSourceEdit::contextMenuEvent(QContextMenuEvent* event) {
         replacement->setEnabled(!readOnly_);
       }
     }
-    menu.addAction(QCoreApplication::translate(
-        "muffin::EditorView", "Ignore \"%1\"").arg(word), this, [this, word] {
+    menu.addAction(QCoreApplication::translate("muffin::EditorView", "Ignore \"%1\"").arg(word), this, [this, word] {
       SpellChecker::instance().ignoreWord(word);
       invalidateLayoutCache();
       viewport()->update();
@@ -1314,8 +1390,10 @@ void VirtualSourceEdit::contextMenuEvent(QContextMenuEvent* event) {
     menu.addSeparator();
   }
 
-  QAction* undoAction = menu.addAction(QCoreApplication::translate("muffin::VirtualSourceEdit", "Undo"), this, &VirtualSourceEdit::undo);
-  QAction* redoAction = menu.addAction(QCoreApplication::translate("muffin::VirtualSourceEdit", "Redo"), this, &VirtualSourceEdit::redo);
+  QAction* undoAction =
+      menu.addAction(QCoreApplication::translate("muffin::VirtualSourceEdit", "Undo"), this, &VirtualSourceEdit::undo);
+  QAction* redoAction =
+      menu.addAction(QCoreApplication::translate("muffin::VirtualSourceEdit", "Redo"), this, &VirtualSourceEdit::redo);
   undoAction->setEnabled(canUndo());
   redoAction->setEnabled(canRedo());
   menu.addSeparator();
@@ -1326,11 +1404,11 @@ void VirtualSourceEdit::contextMenuEvent(QContextMenuEvent* event) {
     }
   });
   QAction* copyAction = menu.addAction(QCoreApplication::translate("muffin::VirtualSourceEdit", "Copy"), this, [this] {
-    if (hasSelection()) QApplication::clipboard()->setText(selectedText());
+    if (hasSelection())
+      QApplication::clipboard()->setText(selectedText());
   });
-  QAction* pasteAction = menu.addAction(QCoreApplication::translate("muffin::VirtualSourceEdit", "Paste"), this, [this] {
-    insertText(QApplication::clipboard()->text());
-  });
+  QAction* pasteAction = menu.addAction(QCoreApplication::translate("muffin::VirtualSourceEdit", "Paste"), this,
+                                        [this] { insertText(QApplication::clipboard()->text()); });
   cutAction->setEnabled(hasSelection());
   copyAction->setEnabled(hasSelection());
   if (readOnly_) {
@@ -1340,12 +1418,14 @@ void VirtualSourceEdit::contextMenuEvent(QContextMenuEvent* event) {
     pasteAction->setEnabled(false);
   }
   menu.addSeparator();
-  menu.addAction(QCoreApplication::translate("muffin::VirtualSourceEdit", "Select All"), this, &VirtualSourceEdit::selectAll);
+  menu.addAction(QCoreApplication::translate("muffin::VirtualSourceEdit", "Select All"), this,
+                 &VirtualSourceEdit::selectAll);
   menu.exec(event->globalPos());
 }
 
 void VirtualSourceEdit::dragEnterEvent(QDragEnterEvent* event) {
-  if (event->mimeData()->hasText() || event->mimeData()->hasUrls()) event->acceptProposedAction();
+  if (event->mimeData()->hasText() || event->mimeData()->hasUrls())
+    event->acceptProposedAction();
 }
 
 void VirtualSourceEdit::dropEvent(QDropEvent* event) {
@@ -1379,4 +1459,4 @@ void VirtualSourceEdit::scrollContentsBy(int dx, int dy) {
   viewport()->update();
 }
 
-}  // namespace muffin
+} // namespace muffin

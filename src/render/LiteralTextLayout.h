@@ -89,4 +89,4 @@ private:
   QVector<NumberedLine> numberedLines_;
 };
 
-}  // namespace muffin
+} // namespace muffin

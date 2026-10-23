@@ -32,7 +32,7 @@ struct SourcePositionToken {
 // ownership around them, so top-level blocks can resolve their current source adjustment in O(log
 // n). Suffix add and structural range replacement are both O(log n + inserted blocks).
 class SourcePositionIndex {
- public:
+public:
   SourcePositionIndex() = default;
   SourcePositionIndex(const SourcePositionIndex&) = delete;
   SourcePositionIndex& operator=(const SourcePositionIndex&) = delete;
@@ -45,27 +45,22 @@ class SourcePositionIndex {
   qsizetype rank(const SourcePositionToken* token) const;
   qsizetype typeRank(const SourcePositionToken* token) const;
   std::unique_ptr<SourcePositionToken> makeToken(quint8 siblingKind = 0);
-  void replace(
-      qsizetype first,
-      qsizetype count,
-      std::unique_ptr<SourcePositionToken> replacements);
+  void replace(qsizetype first, qsizetype count, std::unique_ptr<SourcePositionToken> replacements);
 
-  static std::unique_ptr<SourcePositionToken> merge(
-      std::unique_ptr<SourcePositionToken> left,
-      std::unique_ptr<SourcePositionToken> right);
+  static std::unique_ptr<SourcePositionToken> merge(std::unique_ptr<SourcePositionToken> left,
+                                                    std::unique_ptr<SourcePositionToken> right);
 
- private:
+private:
   static qsizetype nodeSize(const std::unique_ptr<SourcePositionToken>& node);
   static void apply(SourcePositionToken* node, SourcePositionDelta delta);
   static void push(SourcePositionToken* node);
   static void update(SourcePositionToken* node);
-  static std::pair<std::unique_ptr<SourcePositionToken>, std::unique_ptr<SourcePositionToken>> split(
-      std::unique_ptr<SourcePositionToken> root,
-      qsizetype leftCount);
+  static std::pair<std::unique_ptr<SourcePositionToken>, std::unique_ptr<SourcePositionToken>>
+  split(std::unique_ptr<SourcePositionToken> root, qsizetype leftCount);
   quint32 nextPriority();
 
   std::unique_ptr<SourcePositionToken> root_;
   quint32 randomState_ = 0x9e3779b9U;
 };
 
-}  // namespace muffin
+} // namespace muffin

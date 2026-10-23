@@ -29,42 +29,41 @@ qreal layoutUnit(qreal value) {
   return std::round(value * 64.0) / 64.0;
 }
 
-QRectF textBounds(const QString& text, const QString& family, qreal fontSize,
-                  const QPointF& anchor, Qt::Alignment horizontal,
-                  bool bold = false) {
-  if (text.isEmpty() || !(fontSize > 0.0)) return {};
-  const auto cssFont = editor::makeUnhintedCssPixelFont(
-      editor::firstFontFamily(family), fontSize);
+QRectF textBounds(const QString& text, const QString& family, qreal fontSize, const QPointF& anchor,
+                  Qt::Alignment horizontal, bool bold = false) {
+  if (text.isEmpty() || !(fontSize > 0.0))
+    return {};
+  const auto cssFont = editor::makeUnhintedCssPixelFont(editor::firstFontFamily(family), fontSize);
   QStringList families;
   for (QString item : family.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
     item = item.trimmed();
-    if (item.size() >= 2 &&
-        ((item.front() == QLatin1Char('"') && item.back() == QLatin1Char('"')) ||
-         (item.front() == QLatin1Char('\'') && item.back() == QLatin1Char('\''))))
+    if (item.size() >= 2 && ((item.front() == QLatin1Char('"') && item.back() == QLatin1Char('"')) ||
+                             (item.front() == QLatin1Char('\'') && item.back() == QLatin1Char('\''))))
       item = item.mid(1, item.size() - 2);
-    if (!item.isEmpty()) families.append(item);
+    if (!item.isEmpty())
+      families.append(item);
   }
   QFont font = cssFont.font;
-  if (!families.isEmpty()) font.setFamilies(editor::cssFamilyList(family));
-  if (bold) font.setWeight(QFont::Bold);
+  if (!families.isEmpty())
+    font.setFamilies(editor::cssFamilyList(family));
+  if (bold)
+    font.setWeight(QFont::Bold);
   // getComputedTextLength parity: the browser's LayoutUnit-quantized design
   // advance, not TextFontMetrics's hinted per-glyph sum (which drifts ~0.05px
   // per string and shows up in the setupGraphViewbox union).
   flowchart::FlowLabelDocument document;
   document.text = text;
   document.baseWeight = bold ? QFont::Bold : QFont::Normal;
-  const qreal advance = flowchart::measureOpenTypeDesignAdvance(
-                            document, family, fontSize)
-                            .value_or(
-                                TextFontMetrics(font).horizontalAdvance(text) *
-                                cssFont.scale);
+  const qreal advance = flowchart::measureOpenTypeDesignAdvance(document, family, fontSize)
+                            .value_or(TextFontMetrics(font).horizontalAdvance(text) * cssFont.scale);
   const qreal width = std::ceil(advance * 64.0 - 1e-9) / 64.0;
-  const auto metrics = flowchart::flowLabelFontBoundingMetrics(
-      family, fontSize, bold ? QFont::Bold : QFont::Normal,
-      QFont::StyleNormal);
+  const auto metrics =
+      flowchart::flowLabelFontBoundingMetrics(family, fontSize, bold ? QFont::Bold : QFont::Normal, QFont::StyleNormal);
   qreal x = anchor.x();
-  if (horizontal.testFlag(Qt::AlignHCenter)) x -= width / 2.0;
-  else if (horizontal.testFlag(Qt::AlignRight)) x -= width;
+  if (horizontal.testFlag(Qt::AlignHCenter))
+    x -= width / 2.0;
+  else if (horizontal.testFlag(Qt::AlignRight))
+    x -= width;
   // createText's SVG text uses dy=1em and y=-10.1 before its group
   // translation. With Noto 16 this places the ink top at 3.28 and gives the
   // browser's hhea 22px box. Scale the same offsets with the CSS font size.
@@ -80,28 +79,31 @@ struct CssFont {
   bool bold = false;
 };
 
-CssFont cssFontOf(const QString& baseFamily, qreal baseSize,
-                  const ArchitectureElementCss& css, bool cssActive) {
+CssFont cssFontOf(const QString& baseFamily, qreal baseSize, const ArchitectureElementCss& css, bool cssActive) {
   CssFont out;
   out.family = baseFamily;
   out.size = baseSize;
   out.bold = false;
-  if (!cssActive) return out;
-  if (!css.fontFamily.trimmed().isEmpty()) out.family = css.fontFamily;
-  if (css.fontSize >= 0.0) out.size = css.fontSize;
+  if (!cssActive)
+    return out;
+  if (!css.fontFamily.trimmed().isEmpty())
+    out.family = css.fontFamily;
+  if (css.fontSize >= 0.0)
+    out.size = css.fontSize;
   const QString weight = css.fontWeight.trimmed().toLower();
-  out.bold = weight == QLatin1String("bold") ||
-             weight == QLatin1String("bolder") ||
+  out.bold = weight == QLatin1String("bold") || weight == QLatin1String("bolder") ||
              (!weight.isEmpty() && weight.toInt() >= 700);
   return out;
 }
 
 QPointF port(const ArchitectureNodeGeometry& node, QChar direction) {
-  const QRectF rect(node.topLeft,
-                    QSizeF(node.localBounds.width(), node.localBounds.height()));
-  if (direction == QLatin1Char('L')) return {rect.left(), rect.center().y()};
-  if (direction == QLatin1Char('R')) return {rect.right(), rect.center().y()};
-  if (direction == QLatin1Char('T')) return {rect.center().x(), rect.top()};
+  const QRectF rect(node.topLeft, QSizeF(node.localBounds.width(), node.localBounds.height()));
+  if (direction == QLatin1Char('L'))
+    return {rect.left(), rect.center().y()};
+  if (direction == QLatin1Char('R'))
+    return {rect.right(), rect.center().y()};
+  if (direction == QLatin1Char('T'))
+    return {rect.center().x(), rect.top()};
   return {rect.center().x(), rect.bottom()};
 }
 
@@ -116,37 +118,35 @@ QPolygonF arrowPolygon(QChar direction, qreal size) {
 }
 
 QPointF arrowPosition(QChar direction, const QPointF& endpoint, qreal size) {
-  if (direction == QLatin1Char('L')) return {endpoint.x() - size + 2, endpoint.y() - size / 2.0};
-  if (direction == QLatin1Char('R')) return {endpoint.x() - 2, endpoint.y() - size / 2.0};
-  if (direction == QLatin1Char('T')) return {endpoint.x() - size / 2.0, endpoint.y() - size + 2};
+  if (direction == QLatin1Char('L'))
+    return {endpoint.x() - size + 2, endpoint.y() - size / 2.0};
+  if (direction == QLatin1Char('R'))
+    return {endpoint.x() - 2, endpoint.y() - size / 2.0};
+  if (direction == QLatin1Char('T'))
+    return {endpoint.x() - size / 2.0, endpoint.y() - size + 2};
   return {endpoint.x() - size / 2.0, endpoint.y() - 2};
 }
 
-QRectF edgeLabelBounds(const QString& text, const QString& fontFamily,
-                       qreal fontSize, const QPointF& middle,
-                       QChar sourceDirection, QChar targetDirection,
-                       bool bold = false) {
-  if (text.isEmpty() || !(fontSize > 0.0)) return {};
+QRectF edgeLabelBounds(const QString& text, const QString& fontFamily, qreal fontSize, const QPointF& middle,
+                       QChar sourceDirection, QChar targetDirection, bool bold = false) {
+  if (text.isEmpty() || !(fontSize > 0.0))
+    return {};
   flowchart::FlowLabelDocument document;
   document.text = text;
   document.baseWeight = bold ? QFont::Bold : QFont::Normal;
-  QRectF autoBaseline = flowchart::measureFlowSvgTextBounds(
-      document, fontFamily, fontSize);
-  autoBaseline.setWidth(
-      std::ceil(autoBaseline.width() * 64.0 - 1e-9) / 64.0);
-  autoBaseline.setHeight(
-      std::ceil(autoBaseline.height() * 64.0 - 1e-9) / 64.0);
+  QRectF autoBaseline = flowchart::measureFlowSvgTextBounds(document, fontFamily, fontSize);
+  autoBaseline.setWidth(std::ceil(autoBaseline.width() * 64.0 - 1e-9) / 64.0);
+  autoBaseline.setHeight(std::ceil(autoBaseline.height() * 64.0 - 1e-9) / 64.0);
   autoBaseline.moveLeft(-autoBaseline.width() / 2.0);
-  const bool sourceX = sourceDirection == QLatin1Char('L') ||
-                       sourceDirection == QLatin1Char('R');
-  const bool targetX = targetDirection == QLatin1Char('L') ||
-                       targetDirection == QLatin1Char('R');
+  const bool sourceX = sourceDirection == QLatin1Char('L') || sourceDirection == QLatin1Char('R');
+  const bool targetX = targetDirection == QLatin1Char('L') || targetDirection == QLatin1Char('R');
   if (sourceX == targetX) {
     QRectF middleBaseline = autoBaseline;
     middleBaseline.moveTop(fontSize * 0.205);
     QTransform transform;
     transform.translate(middle.x(), middle.y());
-    if (!sourceX) transform.rotate(-90.0);
+    if (!sourceX)
+      transform.rotate(-90.0);
     return transform.mapRect(middleBaseline);
   }
 
@@ -173,12 +173,13 @@ QRectF edgeLabelBounds(const QString& text, const QString& fontFamily,
   rotated.translate(0.0, -autoBaseline.height() / 2.0);
   QRectF result = rotated.mapRect(autoBaseline);
   result.translate(middle.x() + xFactor * rotatedBox.width() / 2.0,
-                   middle.y() - autoBaseline.height() / 2.0 +
-                       yFactor * rotatedBox.height() / 2.0);
+                   middle.y() - autoBaseline.height() / 2.0 + yFactor * rotatedBox.height() / 2.0);
   return result;
 }
 
-QString point(qreal value) { return QString::number(value, 'g', 17); }
+QString point(qreal value) {
+  return QString::number(value, 'g', 17);
+}
 
 QJsonObject rectJson(const QRectF& rect) {
   return {{QStringLiteral("x"), rect.x()},
@@ -197,46 +198,37 @@ struct SvgFloatRect {
   float width = 0.0f;
   float height = 0.0f;
 
-  QRectF exposedRect() const {
-    return QRectF(qreal(x), qreal(y), qreal(width), qreal(height));
-  }
+  QRectF exposedRect() const { return QRectF(qreal(x), qreal(y), qreal(width), qreal(height)); }
 };
 
 SvgFloatRect svgFloatBounds(const QRectF& rect) {
-  return {float(rect.x()), float(rect.y()), float(rect.width()),
-          float(rect.height())};
+  return {float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height())};
 }
 
-SvgFloatRect svgTranslateFloatBounds(const QRectF& rect,
-                                     const QPointF& offset) {
+SvgFloatRect svgTranslateFloatBounds(const QRectF& rect, const QPointF& offset) {
   const SvgFloatRect value = svgFloatBounds(rect);
   const float dx = float(offset.x());
   const float dy = float(offset.y());
-  return {float(value.x + dx), float(value.y + dy), value.width,
-          value.height};
+  return {float(value.x + dx), float(value.y + dy), value.width, value.height};
 }
 
-SvgFloatRect svgTranslateFloatBounds(const SvgFloatRect& value,
-                                     const QPointF& offset) {
+SvgFloatRect svgTranslateFloatBounds(const SvgFloatRect& value, const QPointF& offset) {
   const float dx = float(offset.x());
   const float dy = float(offset.y());
-  return {float(value.x + dx), float(value.y + dy), value.width,
-          value.height};
+  return {float(value.x + dx), float(value.y + dy), value.width, value.height};
 }
 
-SvgFloatRect svgUniteFloatBounds(const SvgFloatRect& lhs,
-                                 const SvgFloatRect& rhs) {
+SvgFloatRect svgUniteFloatBounds(const SvgFloatRect& lhs, const SvgFloatRect& rhs) {
   const float left = std::min(lhs.x, rhs.x);
   const float top = std::min(lhs.y, rhs.y);
-  const float right = std::max(float(lhs.x + lhs.width),
-                               float(rhs.x + rhs.width));
-  const float bottom = std::max(float(lhs.y + lhs.height),
-                                float(rhs.y + rhs.height));
+  const float right = std::max(float(lhs.x + lhs.width), float(rhs.x + rhs.width));
+  const float bottom = std::max(float(lhs.y + lhs.height), float(rhs.y + rhs.height));
   return {left, top, float(right - left), float(bottom - top)};
 }
 
 SvgFloatRect svgPolylineFloatBounds(const QVector<QPointF>& points) {
-  if (points.isEmpty()) return {};
+  if (points.isEmpty())
+    return {};
   float minX = float(points.first().x());
   float maxX = minX;
   float minY = float(points.first().y());
@@ -252,12 +244,10 @@ SvgFloatRect svgPolylineFloatBounds(const QVector<QPointF>& points) {
   return {minX, minY, float(maxX - minX), float(maxY - minY)};
 }
 
-}  // namespace
+} // namespace
 
-ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
-                                           ArchitectureConfig config,
-                                           ArchitectureSceneStyle style,
-                                           const ArchitectureCssOverrides* css) {
+ArchitectureScene buildArchitectureScene(const ArchitectureData& data, ArchitectureConfig config,
+                                         ArchitectureSceneStyle style, const ArchitectureCssOverrides* css) {
   ArchitectureScene scene;
   scene.config = std::move(config);
   scene.style = std::move(style);
@@ -271,9 +261,8 @@ ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
   for (const ArchitectureService& service : data.services) {
     QRectF painted(0, 0, iconSize, iconSize);
     if (service.hasTitle) {
-      const QRectF label = textBounds(service.title, scene.style.fontFamily,
-                                      fontSize, QPointF(iconSize / 2.0, iconSize),
-                                      Qt::AlignHCenter);
+      const QRectF label = textBounds(service.title, scene.style.fontFamily, fontSize,
+                                      QPointF(iconSize / 2.0, iconSize), Qt::AlignHCenter);
       painted = painted.united(label);
     }
     renderedHeights.insert(service.id, painted.height());
@@ -286,14 +275,12 @@ ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
   layoutOptions.padding = padding;
   layoutOptions.fontSize = fontSize;
   layoutOptions.nodeSeparation = number(scene.config.nodeSeparation, 75.0);
-  layoutOptions.idealEdgeLengthMultiplier =
-      number(scene.config.idealEdgeLengthMultiplier, 1.5);
+  layoutOptions.idealEdgeLengthMultiplier = number(scene.config.idealEdgeLengthMultiplier, 1.5);
   layoutOptions.edgeElasticity = number(scene.config.edgeElasticity, 0.45);
   layoutOptions.numIter = std::max(0, int(number(scene.config.numIter, 2500.0)));
   layoutOptions.randomize = truthy(scene.config.randomize);
   layoutOptions.seed = quint32(std::max(0.0, number(scene.config.seed, 1.0)));
-  const ArchitectureFcoseResult layout =
-      layoutArchitectureFcose(data, layoutOptions, renderedHeights);
+  const ArchitectureFcoseResult layout = layoutArchitectureFcose(data, layoutOptions, renderedHeights);
 
   QHash<QString, int> nodeIndex;
   int serviceSlot = 0;
@@ -307,8 +294,7 @@ ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
     node.parent = service.parent;
     node.topLeft = layout.topLeft.value(service.id);
     node.localBounds = QRectF(0, 0, iconSize, iconSize);
-    node.paintedBounds = QRectF(0, 0, iconSize,
-                                renderedHeights.value(service.id, iconSize));
+    node.paintedBounds = QRectF(0, 0, iconSize, renderedHeights.value(service.id, iconSize));
     if (cssActive && serviceSlot < css->nodes.size()) {
       node.groupCss = css->nodes.at(serviceSlot).group;
       node.labelCss = css->nodes.at(serviceSlot).label;
@@ -340,18 +326,17 @@ ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
     group.title = source.title;
     group.parent = source.parent;
     const QRectF layoutRect = layout.groups.value(source.id);
-    const bool hasChildGroup = std::any_of(
-        data.groups.cbegin(), data.groups.cend(), [&](const ArchitectureGroup& candidate) {
+    const bool hasChildGroup =
+        std::any_of(data.groups.cbegin(), data.groups.cend(), [&](const ArchitectureGroup& candidate) {
           return candidate.hasParent && candidate.parent == source.id;
         });
     const qreal nestedExpansion = hasChildGroup ? 1.5 : 0.0;
     // drawGroups() uses Cytoscape's rendered compound bounding box (2.5px
     // expansion per side), then offsets the rectangle by half the icon size.
-    group.rect = QRectF(layoutRect.x() + iconSize / 2.0 - 2.5 - nestedExpansion,
-                        layoutRect.y() + iconSize / 2.0 - 2.5 - nestedExpansion,
-                        layoutRect.width() + 5.0 + nestedExpansion,
-                        layoutRect.height() + 5.0 + 2.0 * nestedExpansion +
-                            (source.title.isEmpty() ? 0.0 : fontSize + 1.0));
+    group.rect =
+        QRectF(layoutRect.x() + iconSize / 2.0 - 2.5 - nestedExpansion,
+               layoutRect.y() + iconSize / 2.0 - 2.5 - nestedExpansion, layoutRect.width() + 5.0 + nestedExpansion,
+               layoutRect.height() + 5.0 + 2.0 * nestedExpansion + (source.title.isEmpty() ? 0.0 : fontSize + 1.0));
     if (cssActive && groupSlot < css->groups.size()) {
       group.rectCss = css->groups.at(groupSlot).rect;
       group.labelCss = css->groups.at(groupSlot).label;
@@ -373,13 +358,19 @@ ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
     const QPointF routeEnd = end;
     const qreal groupShift = padding + 4.0;
     const auto shiftGroup = [&](QPointF& value, QChar direction) {
-      if (direction == QLatin1Char('L')) value.rx() -= groupShift;
-      else if (direction == QLatin1Char('R')) value.rx() += groupShift;
-      else if (direction == QLatin1Char('T')) value.ry() -= groupShift;
-      else value.ry() += groupShift + 18.0;
+      if (direction == QLatin1Char('L'))
+        value.rx() -= groupShift;
+      else if (direction == QLatin1Char('R'))
+        value.rx() += groupShift;
+      else if (direction == QLatin1Char('T'))
+        value.ry() -= groupShift;
+      else
+        value.ry() += groupShift + 18.0;
     };
-    if (source.lhsGroup) shiftGroup(start, source.lhsDir);
-    if (source.rhsGroup) shiftGroup(end, source.rhsDir);
+    if (source.lhsGroup)
+      shiftGroup(start, source.lhsDir);
+    if (source.rhsGroup)
+      shiftGroup(end, source.rhsDir);
     if (!source.lhsGroup && lhs.kind == ArchitectureNodeKind::Junction)
       start = lhs.topLeft + QPointF(iconSize / 2.0, iconSize / 2.0);
     if (!source.rhsGroup && rhs.kind == ArchitectureNodeKind::Junction)
@@ -389,8 +380,7 @@ ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
     const bool lhsX = source.lhsDir == QLatin1Char('L') || source.lhsDir == QLatin1Char('R');
     const bool rhsX = source.rhsDir == QLatin1Char('L') || source.rhsDir == QLatin1Char('R');
     if (lhsX != rhsX)
-      middle = lhsX ? QPointF(routeEnd.x(), routeStart.y())
-                    : QPointF(routeStart.x(), routeEnd.y());
+      middle = lhsX ? QPointF(routeEnd.x(), routeStart.y()) : QPointF(routeStart.x(), routeEnd.y());
 
     ArchitectureEdgeGeometry edge;
     edge.id = QStringLiteral("L_%1_%2_%3").arg(source.lhsId, source.rhsId).arg(i);
@@ -399,37 +389,33 @@ ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
     edge.title = source.title;
     edge.points = {start, middle, end};
     edge.pathData = QStringLiteral("M %1,%2 L %3,%4 L%5,%6")
-        .arg(point(start.x()), point(start.y()), point(middle.x()),
-             point(middle.y()), point(end.x()), point(end.y()));
+                        .arg(point(start.x()), point(start.y()), point(middle.x()), point(middle.y()), point(end.x()),
+                             point(end.y()));
     const qreal edgeLeft = std::min({start.x(), middle.x(), end.x()});
     const qreal edgeTop = std::min({start.y(), middle.y(), end.y()});
     const qreal edgeRight = std::max({start.x(), middle.x(), end.x()});
     const qreal edgeBottom = std::max({start.y(), middle.y(), end.y()});
-    edge.bounds = QRectF(QPointF(edgeLeft, edgeTop),
-                         QPointF(edgeRight, edgeBottom));
+    edge.bounds = QRectF(QPointF(edgeLeft, edgeTop), QPointF(edgeRight, edgeBottom));
     if (cssActive && i < css->edges.size()) {
       edge.lineCss = css->edges.at(i).line;
       edge.arrowCss = css->edges.at(i).arrow;
       edge.labelCss = css->edges.at(i).label;
     }
     if (!source.title.isEmpty()) {
-      const CssFont labelFont = cssFontOf(
-          scene.style.fontFamily, fontSize, edge.labelCss, cssActive);
-      edge.labelBounds = edgeLabelBounds(
-          source.title, labelFont.family, labelFont.size, middle,
-          source.lhsDir, source.rhsDir, labelFont.bold);
+      const CssFont labelFont = cssFontOf(scene.style.fontFamily, fontSize, edge.labelCss, cssActive);
+      edge.labelBounds = edgeLabelBounds(source.title, labelFont.family, labelFont.size, middle, source.lhsDir,
+                                         source.rhsDir, labelFont.bold);
     }
     if (source.lhsInto)
-      edge.arrows.append({source.lhsDir, arrowPosition(source.lhsDir, start, arrowSize),
-                          arrowPolygon(source.lhsDir, arrowSize)});
+      edge.arrows.append(
+          {source.lhsDir, arrowPosition(source.lhsDir, start, arrowSize), arrowPolygon(source.lhsDir, arrowSize)});
     if (source.rhsInto)
-      edge.arrows.append({source.rhsDir, arrowPosition(source.rhsDir, end, arrowSize),
-                          arrowPolygon(source.rhsDir, arrowSize)});
+      edge.arrows.append(
+          {source.rhsDir, arrowPosition(source.rhsDir, end, arrowSize), arrowPolygon(source.rhsDir, arrowSize)});
     scene.edges.append(std::move(edge));
   }
 
-  const auto includeFloat = [](SvgFloatRect& target, bool& hasTarget,
-                               const SvgFloatRect& rect) {
+  const auto includeFloat = [](SvgFloatRect& target, bool& hasTarget, const SvgFloatRect& rect) {
     if (!hasTarget) {
       target = rect;
       hasTarget = true;
@@ -451,17 +437,13 @@ ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
     for (const ArchitectureEdgeGeometry& edge : scene.edges) {
       SvgFloatRect edgeGroup;
       bool hasEdgeGroup = false;
-      includeFloat(edgeGroup, hasEdgeGroup,
-                   svgPolylineFloatBounds(edge.points));
+      includeFloat(edgeGroup, hasEdgeGroup, svgPolylineFloatBounds(edge.points));
       if (!edge.labelBounds.isEmpty()) {
-        includeFloat(edgeGroup, hasEdgeGroup,
-                     svgFloatBounds(edge.labelBounds));
+        includeFloat(edgeGroup, hasEdgeGroup, svgFloatBounds(edge.labelBounds));
       }
       for (const ArchitectureArrowGeometry& arrow : edge.arrows) {
         const QRectF localArrowBounds = arrow.polygon.boundingRect();
-        includeFloat(edgeGroup, hasEdgeGroup,
-                     svgTranslateFloatBounds(localArrowBounds,
-                                             arrow.position));
+        includeFloat(edgeGroup, hasEdgeGroup, svgTranslateFloatBounds(localArrowBounds, arrow.position));
       }
       if (hasEdgeGroup)
         includeFloat(edgeLayer, hasEdgeLayer, edgeGroup);
@@ -474,61 +456,53 @@ ArchitectureScene buildArchitectureScene(const ArchitectureData& data,
       SvgFloatRect serviceGroup;
       bool hasServiceGroup = false;
       if (!node.title.isEmpty()) {
-        const CssFont labelFont = cssFontOf(
-            scene.style.fontFamily, fontSize, node.labelCss, cssActive);
-        const QRectF label = textBounds(
-            node.title, labelFont.family, labelFont.size,
-            QPointF(iconSize / 2.0, iconSize), Qt::AlignHCenter,
-            labelFont.bold);
+        const CssFont labelFont = cssFontOf(scene.style.fontFamily, fontSize, node.labelCss, cssActive);
+        const QRectF label = textBounds(node.title, labelFont.family, labelFont.size, QPointF(iconSize / 2.0, iconSize),
+                                        Qt::AlignHCenter, labelFont.bold);
         includeFloat(serviceGroup, hasServiceGroup, svgFloatBounds(label));
       }
-      includeFloat(serviceGroup, hasServiceGroup,
-                   svgFloatBounds(node.localBounds));
-      includeFloat(serviceLayer, hasServiceLayer,
-                   svgTranslateFloatBounds(serviceGroup, node.topLeft));
+      includeFloat(serviceGroup, hasServiceGroup, svgFloatBounds(node.localBounds));
+      includeFloat(serviceLayer, hasServiceLayer, svgTranslateFloatBounds(serviceGroup, node.topLeft));
     }
   }
 
   SvgFloatRect groupLayer;
   bool hasGroupLayer = false;
   if (groupsDisplayed) {
-  for (const ArchitectureGroupGeometry& group : scene.groups) {
-    includeFloat(groupLayer, hasGroupLayer, svgFloatBounds(group.rect));
-    if (!group.icon.isEmpty() || !group.title.isEmpty()) {
-      // drawGroups appends a label-container sibling after the rectangle. Its
-      // contents sit inside the background, but the sibling union still
-      // reconstructs the FloatRect size before the architecture-groups layer
-      // is returned to the SVG root.
-      const QRectF innerLabel(group.rect.x() + 1.0,
-                              group.rect.y() + 1.0, 1.0, 1.0);
-      includeFloat(groupLayer, hasGroupLayer,
-                   svgFloatBounds(innerLabel));
+    for (const ArchitectureGroupGeometry& group : scene.groups) {
+      includeFloat(groupLayer, hasGroupLayer, svgFloatBounds(group.rect));
+      if (!group.icon.isEmpty() || !group.title.isEmpty()) {
+        // drawGroups appends a label-container sibling after the rectangle. Its
+        // contents sit inside the background, but the sibling union still
+        // reconstructs the FloatRect size before the architecture-groups layer
+        // is returned to the SVG root.
+        const QRectF innerLabel(group.rect.x() + 1.0, group.rect.y() + 1.0, 1.0, 1.0);
+        includeFloat(groupLayer, hasGroupLayer, svgFloatBounds(innerLabel));
+      }
     }
-  }
   }
 
   SvgFloatRect rootBounds;
   bool hasContent = false;
-  if (hasEdgeLayer) includeFloat(rootBounds, hasContent, edgeLayer);
-  if (hasServiceLayer) includeFloat(rootBounds, hasContent, serviceLayer);
-  if (hasGroupLayer) includeFloat(rootBounds, hasContent, groupLayer);
+  if (hasEdgeLayer)
+    includeFloat(rootBounds, hasContent, edgeLayer);
+  if (hasServiceLayer)
+    includeFloat(rootBounds, hasContent, serviceLayer);
+  if (hasGroupLayer)
+    includeFloat(rootBounds, hasContent, groupLayer);
   const QRectF content = hasContent ? rootBounds.exposedRect() : QRectF();
   scene.contentBounds = content;
-  scene.bounds = QRectF(content.x() - padding, content.y() - padding,
-                        content.width() + 2.0 * padding,
+  scene.bounds = QRectF(content.x() - padding, content.y() - padding, content.width() + 2.0 * padding,
                         content.height() + 2.0 * padding);
-  scene.rasterBounds = QRectF(
-      scene.bounds.topLeft(),
-      QSizeF(qreal(qRound(scene.bounds.width())),
-             qreal(qRound(scene.bounds.height()))));
+  scene.rasterBounds =
+      QRectF(scene.bounds.topLeft(), QSizeF(qreal(qRound(scene.bounds.width())), qreal(qRound(scene.bounds.height()))));
   scene.viewBoxAttribute = QStringLiteral("%1 %2 %3 %4")
-      .arg(point(scene.bounds.x()), point(scene.bounds.y()),
-           point(scene.bounds.width()), point(scene.bounds.height()));
+                               .arg(point(scene.bounds.x()), point(scene.bounds.y()), point(scene.bounds.width()),
+                                    point(scene.bounds.height()));
   return scene;
 }
 
-void ArchitectureScene::paint(QPainter& painter,
-                              const MermaidPaintOptions& options) const {
+void ArchitectureScene::paint(QPainter& painter, const MermaidPaintOptions& options) const {
   paintArchitectureScene(*this, painter, options);
 }
 
@@ -540,17 +514,16 @@ QJsonObject ArchitectureScene::toJsonObject() const {
   root.insert(QStringLiteral("useMaxWidth"), useMaxWidth);
   QJsonArray nodeArray;
   for (const ArchitectureNodeGeometry& node : nodes) {
-    nodeArray.append(QJsonObject{
-        {QStringLiteral("id"), node.id},
-        {QStringLiteral("kind"), node.kind == ArchitectureNodeKind::Service
-                                     ? QStringLiteral("service")
-                                     : QStringLiteral("junction")},
-        {QStringLiteral("icon"), node.icon},
-        {QStringLiteral("iconText"), node.iconText},
-        {QStringLiteral("title"), node.title},
-        {QStringLiteral("x"), node.topLeft.x()},
-        {QStringLiteral("y"), node.topLeft.y()},
-        {QStringLiteral("bounds"), rectJson(node.paintedBounds)}});
+    nodeArray.append(
+        QJsonObject{{QStringLiteral("id"), node.id},
+                    {QStringLiteral("kind"), node.kind == ArchitectureNodeKind::Service ? QStringLiteral("service")
+                                                                                        : QStringLiteral("junction")},
+                    {QStringLiteral("icon"), node.icon},
+                    {QStringLiteral("iconText"), node.iconText},
+                    {QStringLiteral("title"), node.title},
+                    {QStringLiteral("x"), node.topLeft.x()},
+                    {QStringLiteral("y"), node.topLeft.y()},
+                    {QStringLiteral("bounds"), rectJson(node.paintedBounds)}});
   }
   root.insert(QStringLiteral("nodes"), nodeArray);
   QJsonArray groupArray;
@@ -569,4 +542,4 @@ QJsonObject ArchitectureScene::toJsonObject() const {
   return root;
 }
 
-}  // namespace muffin::mermaid::architecture
+} // namespace muffin::mermaid::architecture

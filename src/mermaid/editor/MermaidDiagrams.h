@@ -56,4 +56,4 @@ const Diagram& dashDiagramAdapter();
 // it instead of an if/else chain.
 const Diagram* findMermaidDiagram(const QString& type);
 
-}  // namespace muffin::mermaid::editor
+} // namespace muffin::mermaid::editor

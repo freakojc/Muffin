@@ -15,9 +15,7 @@ WordSegment findWordSegment(const QString& text, qsizetype offset) {
 
   offset = qBound<qsizetype>(0, offset, text.size());
 
-  auto isWordChar = [](QChar ch) {
-    return ch.isLetterOrNumber() || ch == QLatin1Char('_');
-  };
+  auto isWordChar = [](QChar ch) { return ch.isLetterOrNumber() || ch == QLatin1Char('_'); };
 
   // Determine which character the cursor is "on".
   qsizetype checkPos = -1;
@@ -31,16 +29,13 @@ WordSegment findWordSegment(const QString& text, qsizetype offset) {
   }
 
   UErrorCode status = U_ZERO_ERROR;
-  std::unique_ptr<icu::BreakIterator> bi(
-      icu::BreakIterator::createWordInstance(icu::Locale::getDefault(), status));
+  std::unique_ptr<icu::BreakIterator> bi(icu::BreakIterator::createWordInstance(icu::Locale::getDefault(), status));
   if (U_FAILURE(status)) {
     return {offset, offset, false};
   }
 
   // QString is UTF-16; UChar is char16_t on Windows. Construct directly.
-  const icu::UnicodeString ustr(
-      reinterpret_cast<const UChar*>(text.utf16()),
-      static_cast<int32_t>(text.size()));
+  const icu::UnicodeString ustr(reinterpret_cast<const UChar*>(text.utf16()), static_cast<int32_t>(text.size()));
   bi->setText(ustr);
 
   // Find the boundary at or before checkPos.
@@ -59,9 +54,7 @@ WordSegment findWordSegment(const QString& text, qsizetype offset) {
   const int32_t ruleStatus = bi->getRuleStatus();
   const bool isWord = (ruleStatus != UBRK_WORD_NONE);
 
-  return {static_cast<qsizetype>(segStart),
-          static_cast<qsizetype>(segEnd),
-          isWord};
+  return {static_cast<qsizetype>(segStart), static_cast<qsizetype>(segEnd), isWord};
 }
 
-}  // namespace muffin
+} // namespace muffin

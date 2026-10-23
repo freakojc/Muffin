@@ -35,8 +35,14 @@
 using namespace muffin::mermaid;
 
 namespace {
-[[noreturn]] void fail(const QString& message) { qCritical().noquote() << message; std::exit(1); }
-void require(bool condition, const QString& message) { if (!condition) fail(message); }
+[[noreturn]] void fail(const QString& message) {
+  qCritical().noquote() << message;
+  std::exit(1);
+}
+void require(bool condition, const QString& message) {
+  if (!condition)
+    fail(message);
+}
 
 // Build the case→snapshots JSON from a native Dagre run.
 QJsonArray computeAll(const QJsonArray& cases) {
@@ -49,8 +55,9 @@ QJsonArray computeAll(const QJsonArray& cases) {
     QMap<QString, QSizeF> sizes;
     for (const QJsonValue& nodeValue : expected.value(QStringLiteral("nodes")).toArray()) {
       const QJsonObject node = nodeValue.toObject();
-      sizes.insert(node.value(QStringLiteral("id")).toString(),
-                   QSizeF(node.value(QStringLiteral("width")).toDouble(), node.value(QStringLiteral("height")).toDouble()));
+      sizes.insert(
+          node.value(QStringLiteral("id")).toString(),
+          QSizeF(node.value(QStringLiteral("width")).toDouble(), node.value(QStringLiteral("height")).toDouble()));
     }
     flowchart::FlowLayoutOptions options;
     options.curve = fixture.value(QStringLiteral("curve")).toString();
@@ -58,8 +65,9 @@ QJsonArray computeAll(const QJsonArray& cases) {
       const QJsonObject edge = edgeValue.toObject();
       const QJsonObject label = edge.value(QStringLiteral("label")).toObject();
       if (!label.isEmpty() && label.value(QStringLiteral("width")).toDouble() > 0.0)
-        options.measuredEdgeLabels.insert(edge.value(QStringLiteral("id")).toString(),
-                                          QSizeF(label.value(QStringLiteral("width")).toDouble(), label.value(QStringLiteral("height")).toDouble()));
+        options.measuredEdgeLabels.insert(
+            edge.value(QStringLiteral("id")).toString(),
+            QSizeF(label.value(QStringLiteral("width")).toDouble(), label.value(QStringLiteral("height")).toDouble()));
     }
     std::vector<dagre::DagreSnapshot> snapshots;
     flowchart::layoutFlowchartNodesDagre(chart.data(), sizes, options, &snapshots);
@@ -77,7 +85,7 @@ QJsonArray computeAll(const QJsonArray& cases) {
   }
   return out;
 }
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   QGuiApplication app(argc, argv);
@@ -111,14 +119,16 @@ int main(int argc, char** argv) {
   require(snapshotFile.open(QIODevice::ReadOnly), QStringLiteral("Could not open snapshot golden"));
   const QJsonObject goldenRoot = QJsonDocument::fromJson(snapshotFile.readAll()).object();
   const QJsonArray goldenCases = goldenRoot.value(QStringLiteral("cases")).toArray();
-  require(goldenCases.size() == computed.size(),
-          QStringLiteral("Snapshot case count drift: golden=%1 native=%2").arg(goldenCases.size()).arg(computed.size()));
+  require(
+      goldenCases.size() == computed.size(),
+      QStringLiteral("Snapshot case count drift: golden=%1 native=%2").arg(goldenCases.size()).arg(computed.size()));
 
   for (int i = 0; i < computed.size(); ++i) {
     const QJsonObject goldenCase = goldenCases.at(i).toObject();
     const QJsonObject nativeCase = computed.at(i).toObject();
     const QString id = nativeCase.value(QStringLiteral("id")).toString();
-    require(goldenCase.value(QStringLiteral("id")).toString() == id, QStringLiteral("Snapshot case id order mismatch at %1").arg(i));
+    require(goldenCase.value(QStringLiteral("id")).toString() == id,
+            QStringLiteral("Snapshot case id order mismatch at %1").arg(i));
     const QJsonValue goldenSnaps = goldenCase.value(QStringLiteral("snapshots"));
     const QJsonValue nativeSnaps = nativeCase.value(QStringLiteral("snapshots"));
     if (goldenSnaps != nativeSnaps) {
@@ -128,6 +138,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  qDebug().noquote() << "MermaidDagreSnapshotTest:" << computed.size() << "cases × 5 input/phase snapshots match golden";
+  qDebug().noquote() << "MermaidDagreSnapshotTest:" << computed.size()
+                     << "cases × 5 input/phase snapshots match golden";
   return 0;
 }

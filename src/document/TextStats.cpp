@@ -24,7 +24,7 @@ private:
   bool inWord_ = false;
 };
 
-}  // namespace
+} // namespace
 
 int countWords(QStringView text) {
   WordCounter counter;
@@ -36,4 +36,4 @@ int countWords(const PieceTable& text) {
   return text.wordCount();
 }
 
-}  // namespace muffin::text_stats
+} // namespace muffin::text_stats

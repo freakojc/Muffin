@@ -63,4 +63,4 @@ struct InlineLineBox {
   }
 };
 
-}  // namespace muffin
+} // namespace muffin

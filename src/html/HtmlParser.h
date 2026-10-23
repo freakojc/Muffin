@@ -29,4 +29,4 @@ private:
   QString error_;
 };
 
-}  // namespace muffin::html
+} // namespace muffin::html

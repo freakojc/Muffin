@@ -58,12 +58,12 @@ private:
   static qreal ease(qreal x, const QString& e);
 
   QTimer* timer_ = nullptr;
-  QElapsedTimer clock_;  // value member: QElapsedTimer is not a QObject, so a `new`-ed pointer would leak
+  QElapsedTimer clock_; // value member: QElapsedTimer is not a QObject, so a `new`-ed pointer would leak
   std::vector<AnimationDef> anims_;
   std::vector<KeyframesDef> keyframes_;
   QHash<QString, AnimatedSample> samples_;
-  QSet<QString> activeHosts_;   // visible hosts with an infinite animation
-  QSet<QString> lastVisible_;   // for idempotent setVisibleHosts
+  QSet<QString> activeHosts_; // visible hosts with an infinite animation
+  QSet<QString> lastVisible_; // for idempotent setVisibleHosts
 };
 
-}  // namespace muffin
+} // namespace muffin

@@ -22,6 +22,6 @@ bool isGradient(const GradientSpec& spec);
 // positions and hard edges resolve against that used gradient axis.
 QBrush makeBrush(const GradientSpec& spec, const QRectF& target, qreal lengthScale = 1);
 
-}  // namespace GradientPainter
+} // namespace GradientPainter
 
-}  // namespace muffin
+} // namespace muffin

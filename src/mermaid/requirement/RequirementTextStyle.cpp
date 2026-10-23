@@ -8,9 +8,9 @@
 
 #include "mermaid/requirement/RequirementTextStyle.h"
 
-#include "mermaid/flowchart/FlowLabel.h"  // makeFlowLabelFont
-#include "mermaid/theme/MermaidColor.h"   // color::isParsableColor / toQColor
-#include "theme/CssCalc.h"                // CssLengthContext, resolveCssLengthToPx
+#include "mermaid/flowchart/FlowLabel.h" // makeFlowLabelFont
+#include "mermaid/theme/MermaidColor.h"  // color::isParsableColor / toQColor
+#include "theme/CssCalc.h"               // CssLengthContext, resolveCssLengthToPx
 
 #include <QChar>
 #include <QColor>
@@ -45,39 +45,47 @@ constexpr qreal kChromeFontCapPx = 10000.0;
 // Reproduces STEP0D B.3: bolder 400->700->900 (cap), lighter -> 100 (cap).
 QFont::Weight bolderStep(QFont::Weight w) {
   const int n = static_cast<int>(w);
-  if (n < 400) return QFont::Normal;   // 100/200/300 -> 400
-  if (n < 600) return QFont::Bold;     // 400/500 -> 700
-  return QFont::Black;                 // 600..900 -> 900
+  if (n < 400)
+    return QFont::Normal; // 100/200/300 -> 400
+  if (n < 600)
+    return QFont::Bold; // 400/500 -> 700
+  return QFont::Black;  // 600..900 -> 900
 }
 QFont::Weight lighterStep(QFont::Weight w) {
   const int n = static_cast<int>(w);
-  if (n >= 800) return QFont::Bold;    // 800/900 -> 700
-  if (n >= 600) return QFont::Normal;  // 600/700 -> 400
-  return QFont::Thin;                  // ..500 -> 100
+  if (n >= 800)
+    return QFont::Bold; // 800/900 -> 700
+  if (n >= 600)
+    return QFont::Normal; // 600/700 -> 400
+  return QFont::Thin;     // ..500 -> 100
 }
 
 // Resolve a single font-weight declaration against the parent weight.
 QFont::Weight resolveWeightOne(const QString& text, QFont::Weight parentWeight) {
   const QString t = text.trimmed().toLower();
-  if (t.isEmpty()) return parentWeight;        // unset -> inherit
-  if (t == QLatin1String("normal")) return QFont::Normal;
-  if (t == QLatin1String("bold")) return QFont::Bold;
-  if (t == QLatin1String("bolder")) return bolderStep(parentWeight);
-  if (t == QLatin1String("lighter")) return lighterStep(parentWeight);
+  if (t.isEmpty())
+    return parentWeight; // unset -> inherit
+  if (t == QLatin1String("normal"))
+    return QFont::Normal;
+  if (t == QLatin1String("bold"))
+    return QFont::Bold;
+  if (t == QLatin1String("bolder"))
+    return bolderStep(parentWeight);
+  if (t == QLatin1String("lighter"))
+    return lighterStep(parentWeight);
   // CSS-wide keywords (probed vs mermaid 11.16.0: inherit/initial/unset/revert/
   // revert-layer all resolve to 400 in the default theme). font-weight is an
   // INHERITED property, so inherit/unset take the parent weight; initial/revert/
   // revert-layer fall back to the property's initial value (Normal = 400).
   if (t == QLatin1String("inherit") || t == QLatin1String("unset"))
     return parentWeight;
-  if (t == QLatin1String("initial") || t == QLatin1String("revert") ||
-      t == QLatin1String("revert-layer"))
+  if (t == QLatin1String("initial") || t == QLatin1String("revert") || t == QLatin1String("revert-layer"))
     return QFont::Normal;
   bool ok = false;
   const double w = t.toDouble(&ok);
   if (ok && w >= 1.0 && w <= 1000.0)
     return static_cast<QFont::Weight>(static_cast<int>(std::round(w)));
-  return parentWeight;  // invalid -> inherit (probe: inert)
+  return parentWeight; // invalid -> inherit (probe: inert)
 }
 
 // A VALID font-weight declaration. Used to decide whether the name row's default
@@ -88,13 +96,13 @@ QFont::Weight resolveWeightOne(const QString& text, QFont::Weight parentWeight) 
 // suppress the default bold); only a truly garbage value (e.g. "foo") is inert.
 bool isValidFontWeight(const QString& text) {
   const QString t = text.trimmed().toLower();
-  if (t.isEmpty()) return false;
-  if (t == QLatin1String("normal") || t == QLatin1String("bold") ||
-      t == QLatin1String("bolder") || t == QLatin1String("lighter"))
+  if (t.isEmpty())
+    return false;
+  if (t == QLatin1String("normal") || t == QLatin1String("bold") || t == QLatin1String("bolder") ||
+      t == QLatin1String("lighter"))
     return true;
-  if (t == QLatin1String("inherit") || t == QLatin1String("initial") ||
-      t == QLatin1String("unset") || t == QLatin1String("revert") ||
-      t == QLatin1String("revert-layer"))
+  if (t == QLatin1String("inherit") || t == QLatin1String("initial") || t == QLatin1String("unset") ||
+      t == QLatin1String("revert") || t == QLatin1String("revert-layer"))
     return true;
   bool ok = false;
   const double w = t.toDouble(&ok);
@@ -106,8 +114,7 @@ bool isValidFontWeight(const QString& text) {
 // layer-invariant; emPx/exPx/chPx are parent-coupled in the font-size loop.
 CssLengthContext layerCtx(qreal emPx, const QFont& metricFont) {
   const TextFontMetrics m(metricFont);
-  return CssLengthContext{emPx, 16.0, m.xHeight(), m.horizontalAdvance(QChar('0')),
-                          kMmdcViewport};
+  return CssLengthContext{emPx, 16.0, m.xHeight(), m.horizontalAdvance(QChar('0')), kMmdcViewport};
 }
 
 // True iff the ENTIRE trimmed string is a CSS <number> with NO unit — i.e. a
@@ -120,28 +127,39 @@ CssLengthContext layerCtx(qreal emPx, const QFont& metricFont) {
 // the exponent 'e' (1e1) for a unit and parsed both 1e1 and 1e1px as 10px.
 bool isUnitlessCssNumber(const QString& raw) {
   const QString t = raw.trimmed();
-  if (t.isEmpty()) return false;
+  if (t.isEmpty())
+    return false;
   int i = 0;
   const int n = t.size();
-  if (i < n && (t.at(i) == QLatin1Char('+') || t.at(i) == QLatin1Char('-'))) ++i;
+  if (i < n && (t.at(i) == QLatin1Char('+') || t.at(i) == QLatin1Char('-')))
+    ++i;
   bool anyDigit = false;
-  while (i < n && t.at(i).isDigit()) { ++i; anyDigit = true; }
+  while (i < n && t.at(i).isDigit()) {
+    ++i;
+    anyDigit = true;
+  }
   if (i < n && t.at(i) == QLatin1Char('.')) {
     ++i;
-    while (i < n && t.at(i).isDigit()) { ++i; anyDigit = true; }
-  }
-  if (!anyDigit) return false;
-  if (i < n && (t.at(i) == QLatin1Char('e') || t.at(i) == QLatin1Char('E'))) {
-    int k = i + 1;
-    if (k < n && (t.at(k) == QLatin1Char('+') || t.at(k) == QLatin1Char('-'))) ++k;
-    if (k < n && t.at(k).isDigit()) {
-      i = k;
-      while (i < n && t.at(i).isDigit()) ++i;
-    } else {
-      return false;  // 'e' with no exponent digits -> not a pure number
+    while (i < n && t.at(i).isDigit()) {
+      ++i;
+      anyDigit = true;
     }
   }
-  return i == n;  // whole string consumed -> no unit
+  if (!anyDigit)
+    return false;
+  if (i < n && (t.at(i) == QLatin1Char('e') || t.at(i) == QLatin1Char('E'))) {
+    int k = i + 1;
+    if (k < n && (t.at(k) == QLatin1Char('+') || t.at(k) == QLatin1Char('-')))
+      ++k;
+    if (k < n && t.at(k).isDigit()) {
+      i = k;
+      while (i < n && t.at(i).isDigit())
+        ++i;
+    } else {
+      return false; // 'e' with no exponent digits -> not a pure number
+    }
+  }
+  return i == n; // whole string consumed -> no unit
 }
 
 // Case-convert (upper/lower) a source string while preserving `$$...$$` block-math
@@ -159,7 +177,7 @@ QString caseWithMathPreserved(const QString& src, bool upper) {
     out += upper ? src.mid(i, dd - i).toUpper() : src.mid(i, dd - i).toLower();
     const int close = src.indexOf(QStringLiteral("$$"), dd + 2);
     const int end = (close < 0) ? src.size() : close + 2;
-    out += src.mid(dd, end - dd);  // math verbatim
+    out += src.mid(dd, end - dd); // math verbatim
     i = end;
   }
   return out;
@@ -175,12 +193,11 @@ QString capitalizeWithMathPreserved(const QString& src) {
   mapped.reserve(src.size());
   int i = 0;
   while (i < src.size()) {
-    if (i + 1 < src.size() && src.at(i) == QLatin1Char('$') &&
-        src.at(i + 1) == QLatin1Char('$')) {
+    if (i + 1 < src.size() && src.at(i) == QLatin1Char('$') && src.at(i + 1) == QLatin1Char('$')) {
       const int close = src.indexOf(QStringLiteral("$$"), i + 2);
       const int end = (close < 0) ? src.size() : close + 2;
-      mapped += QLatin1Char(' ');  // math -> word boundary
-      srcPos.append(i);            // no source letter to title here
+      mapped += QLatin1Char(' '); // math -> word boundary
+      srcPos.append(i);           // no source letter to title here
       i = end;
     } else {
       const QChar ch = src.at(i);
@@ -197,39 +214,41 @@ QString capitalizeWithMathPreserved(const QString& src) {
   QTextBoundaryFinder bf(QTextBoundaryFinder::Word, mapped);
   bf.toStart();
   for (int pos = 0; pos <= mapped.size();) {
-    if (pos < mapped.size() &&
-        (bf.boundaryReasons() & QTextBoundaryFinder::StartOfItem)) {
+    if (pos < mapped.size() && (bf.boundaryReasons() & QTextBoundaryFinder::StartOfItem)) {
       const QChar c = mapped.at(pos);
       if (c.isLetter()) {
         const int sp = srcPos.value(pos, -1);
         if (sp >= 0 && sp < result.size()) {
           const QChar titled = c.toTitleCase();
-          if (titled != QChar::Null) result.replace(sp, 1, titled);
+          if (titled != QChar::Null)
+            result.replace(sp, 1, titled);
         }
       }
     }
     const int next = bf.toNextBoundary();
-    if (next < 0 || next == pos) break;
+    if (next < 0 || next == pos)
+      break;
     pos = next;
   }
   return result;
 }
 
-}  // namespace
+} // namespace
 
-RequirementTextStyle resolveRequirementTextStyle(
-    const QStringList& cssStyles,
-    const QString& themeFontFamily, qreal themeFontSize,
-    QFont::Weight themeFontWeight, qreal themeLineHeightPx) {
+RequirementTextStyle resolveRequirementTextStyle(const QStringList& cssStyles, const QString& themeFontFamily,
+                                                 qreal themeFontSize, QFont::Weight themeFontWeight,
+                                                 qreal themeLineHeightPx) {
   RequirementTextStyle s;
-  if (cssStyles.isEmpty()) return s;  // all defaults (use theme)
+  if (cssStyles.isEmpty())
+    return s; // all defaults (use theme)
 
   // styles2Map: last value per key wins (split on ':', keep first two segments),
   // mirroring resolveBoxStyle / upstream styles2Map.
   QHash<QString, QString> map;
   for (const QString& decl : cssStyles) {
     const QStringList parts = decl.split(QLatin1Char(':'));
-    if (parts.isEmpty() || parts.first().trimmed().isEmpty()) continue;
+    if (parts.isEmpty() || parts.first().trimmed().isEmpty())
+      continue;
     const QString key = parts.first().trimmed();
     const QString value = parts.size() >= 2 ? parts.at(1).trimmed() : QString();
     map.insert(key, value);
@@ -262,8 +281,7 @@ RequirementTextStyle resolveRequirementTextStyle(
   const QString nodeFamily = s.fontFamily.isEmpty() ? themeFontFamily : s.fontFamily;
   const QString sizeValue = map.value(QStringLiteral("font-size"));
   const QString weightValue = map.value(QStringLiteral("font-weight"));
-  const bool hasWeight =
-      map.contains(QStringLiteral("font-weight")) && !weightValue.isEmpty();
+  const bool hasWeight = map.contains(QStringLiteral("font-weight")) && !weightValue.isEmpty();
   // A valid font-weight declaration wins over the name row's default bold on
   // every row (see isValidFontWeight / the struct comment).
   const bool fontWeightResolved = hasWeight && isValidFontWeight(weightValue);
@@ -272,18 +290,17 @@ RequirementTextStyle resolveRequirementTextStyle(
   // Validate font-size once at the root layer: negative/invalid -> inert (theme).
   bool sizeActive = false;
   if (map.contains(QStringLiteral("font-size")) && !sizeValue.isEmpty()) {
-    const QFont themeFont =
-        flowchart::makeFlowLabelFont(themeFontFamily, themeFontSize, themeFontWeight);
+    const QFont themeFont = flowchart::makeFlowLabelFont(themeFontFamily, themeFontSize, themeFontWeight);
     const CssLengthResult r = resolveCssLengthToPx(sizeValue, layerCtx(themeFontSize, themeFont));
-    if (r.status == CssLengthStatus::Valid && r.px >= 0.0) sizeActive = true;
+    if (r.status == CssLengthStatus::Valid && r.px >= 0.0)
+      sizeActive = true;
   }
 
   if (sizeActive || hasWeight) {
     qreal parentSize = themeFontSize;
     QFont::Weight parentWeight = themeFontWeight;
-    QFont parentFont =
-        flowchart::makeFlowLabelFont(themeFontFamily, themeFontSize, themeFontWeight);
-    for (int layer = 0; layer < 3; ++layer) {  // foreignObject -> DIV -> SPAN
+    QFont parentFont = flowchart::makeFlowLabelFont(themeFontFamily, themeFontSize, themeFontWeight);
+    for (int layer = 0; layer < 3; ++layer) { // foreignObject -> DIV -> SPAN
       qreal size = parentSize;
       if (sizeActive) {
         const CssLengthResult r = resolveCssLengthToPx(sizeValue, layerCtx(parentSize, parentFont));
@@ -304,7 +321,8 @@ RequirementTextStyle resolveRequirementTextStyle(
       // next layer's parent font = NODE font at this layer's resolved size+weight
       parentFont = flowchart::makeFlowLabelFont(nodeFamily, parentSize, parentWeight, s.fontStyle);
     }
-    if (sizeActive) s.fontSizePx = parentSize;
+    if (sizeActive)
+      s.fontSizePx = parentSize;
     s.fontWeight = parentWeight;
   }
 
@@ -329,7 +347,8 @@ RequirementTextStyle resolveRequirementTextStyle(
       if (isUnitlessCssNumber(tl)) {
         bool ok = false;
         const double n = tl.toDouble(&ok);
-        if (ok) s.lineHeightPx = (n < 0.0) ? -1.0 : n * emBasis;
+        if (ok)
+          s.lineHeightPx = (n < 0.0) ? -1.0 : n * emBasis;
       } else {
         const QFont mf = flowchart::makeFlowLabelFont(nodeFamily, emBasis, s.fontWeight, s.fontStyle);
         const CssLengthResult r = resolveCssLengthToPx(v, layerCtx(emBasis, mf));
@@ -338,22 +357,25 @@ RequirementTextStyle resolveRequirementTextStyle(
       }
     }
   }
-  (void)themeLineHeightPx;  // theme default carried by the caller's sentinel (-1)
+  (void)themeLineHeightPx; // theme default carried by the caller's sentinel (-1)
 
   // letter-spacing / word-spacing: em basis = compounded fontSize; negatives are
   // LIVE (CSS allows them; probe §3). bare number == px (resolveCssLengthToPx).
   const auto resolveSpacing = [&](const QString& key, qreal& out) {
-    if (!map.contains(key)) return;
+    if (!map.contains(key))
+      return;
     const QString v = map.value(key);
     const QString tl = v.trimmed().toLower();
     if (tl.isEmpty() || tl == QLatin1String("normal")) {
       out = 0.0;
       return;
     }
-    if (noFont) return;  // collapsed node: spacing irrelevant, no 0px QFont
+    if (noFont)
+      return; // collapsed node: spacing irrelevant, no 0px QFont
     const QFont mf = flowchart::makeFlowLabelFont(nodeFamily, emBasis, s.fontWeight, s.fontStyle);
     const CssLengthResult r = resolveCssLengthToPx(v, layerCtx(emBasis, mf));
-    if (r.status == CssLengthStatus::Valid) out = r.px;  // negatives kept
+    if (r.status == CssLengthStatus::Valid)
+      out = r.px; // negatives kept
   };
   resolveSpacing(QStringLiteral("letter-spacing"), s.letterSpacingPx);
   resolveSpacing(QStringLiteral("word-spacing"), s.wordSpacingPx);
@@ -362,15 +384,21 @@ RequirementTextStyle resolveRequirementTextStyle(
   // dropped by the lexer -> none, so only one of these is ever set).
   if (map.contains(QStringLiteral("text-decoration"))) {
     const QString v = map.value(QStringLiteral("text-decoration")).trimmed().toLower();
-    if (v == QLatin1String("underline")) s.underline = true;
-    else if (v == QLatin1String("overline")) s.overline = true;
-    else if (v == QLatin1String("line-through")) s.strikeOut = true;
+    if (v == QLatin1String("underline"))
+      s.underline = true;
+    else if (v == QLatin1String("overline"))
+      s.overline = true;
+    else if (v == QLatin1String("line-through"))
+      s.strikeOut = true;
   }
   if (map.contains(QStringLiteral("text-transform"))) {
     const QString v = map.value(QStringLiteral("text-transform")).trimmed().toLower();
-    if (v == QLatin1String("uppercase")) s.transform = RequirementTextTransform::UpperCase;
-    else if (v == QLatin1String("lowercase")) s.transform = RequirementTextTransform::LowerCase;
-    else if (v == QLatin1String("capitalize")) s.transform = RequirementTextTransform::Capitalize;
+    if (v == QLatin1String("uppercase"))
+      s.transform = RequirementTextTransform::UpperCase;
+    else if (v == QLatin1String("lowercase"))
+      s.transform = RequirementTextTransform::LowerCase;
+    else if (v == QLatin1String("capitalize"))
+      s.transform = RequirementTextTransform::Capitalize;
   }
   if (map.contains(QStringLiteral("color"))) {
     const QString v = map.value(QStringLiteral("color"));
@@ -382,10 +410,13 @@ RequirementTextStyle resolveRequirementTextStyle(
 }
 
 QString applyRequirementTextTransform(QString source, RequirementTextTransform tf) {
-  if (tf == RequirementTextTransform::None || source.isEmpty()) return source;
-  if (tf == RequirementTextTransform::UpperCase) return caseWithMathPreserved(source, true);
-  if (tf == RequirementTextTransform::LowerCase) return caseWithMathPreserved(source, false);
+  if (tf == RequirementTextTransform::None || source.isEmpty())
+    return source;
+  if (tf == RequirementTextTransform::UpperCase)
+    return caseWithMathPreserved(source, true);
+  if (tf == RequirementTextTransform::LowerCase)
+    return caseWithMathPreserved(source, false);
   return capitalizeWithMathPreserved(source);
 }
 
-}  // namespace muffin::mermaid::requirement
+} // namespace muffin::mermaid::requirement

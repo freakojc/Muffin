@@ -16,7 +16,8 @@ namespace {
 void testInlineLayoutHitTesting() {
   RenderTheme theme = RenderTheme::github();
   QVector<InlineNode> plainInlines;
-  plainInlines.push_back(InlineNode::text(QStringLiteral("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda")));
+  plainInlines.push_back(
+      InlineNode::text(QStringLiteral("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda")));
 
   InlineLayout::BuildOptions probeOptions;
   InlineLayout plain;
@@ -31,7 +32,8 @@ void testInlineLayoutHitTesting() {
   for (qsizetype offset = 1; offset + 1 < plain.plainText().size(); ++offset) {
     const QRectF leftCursor = plain.cursorRect(offset);
     const QRectF rightCursor = plain.cursorRect(offset + 1);
-    if (!leftCursor.isEmpty() && !rightCursor.isEmpty() && qAbs(leftCursor.center().y() - rightCursor.center().y()) < 0.5 &&
+    if (!leftCursor.isEmpty() && !rightCursor.isEmpty() &&
+        qAbs(leftCursor.center().y() - rightCursor.center().y()) < 0.5 &&
         qAbs(leftCursor.left() - rightCursor.left()) >= 0.5) {
       requireTextLayoutCharacterBias(plain, offset, QStringLiteral("plain same-line char"));
       testedWrappedBias = true;
@@ -43,9 +45,11 @@ void testInlineLayoutHitTesting() {
   const QVector<QRectF> wrappedSelection = plain.selectionRects(0, plain.plainText().size());
   require(wrappedSelection.size() >= 2, QStringLiteral("inline hit-test fixture should wrap across lines"));
   for (const QRectF& rect : wrappedSelection) {
-    require(plain.hitTestTextOffset(QPointF(rect.left(), rect.center().y())) >= 0, QStringLiteral("wrapped line start hit should be valid"));
+    require(plain.hitTestTextOffset(QPointF(rect.left(), rect.center().y())) >= 0,
+            QStringLiteral("wrapped line start hit should be valid"));
     require(plain.hitTestTextOffset(rect.center()) >= 0, QStringLiteral("wrapped line middle hit should be valid"));
-    require(plain.hitTestTextOffset(QPointF(rect.right(), rect.center().y())) >= 0, QStringLiteral("wrapped line end hit should be valid"));
+    require(plain.hitTestTextOffset(QPointF(rect.right(), rect.center().y())) >= 0,
+            QStringLiteral("wrapped line end hit should be valid"));
   }
 
   QVector<InlineNode> activeInlines;
@@ -55,16 +59,19 @@ void testInlineLayoutHitTesting() {
   InlineLayout::BuildOptions activeOptions = probeOptions;
   activeOptions.projectionState.revealMarkdownMarkers = true;
   InlineLayout active;
-  active.build(activeInlines, QStringLiteral("before **bold** after"), theme, 240.0, theme.paragraphFont(), activeOptions);
+  active.build(activeInlines, QStringLiteral("before **bold** after"), theme, 240.0, theme.paragraphFont(),
+               activeOptions);
   requireTextLayoutCursorRoundTrip(active, 7, QStringLiteral("active visible bold start"));
-  require(active.hitTestSourceOffset(QPointF(active.cursorRectForSourceOffset(9).left(), active.cursorRectForSourceOffset(9).center().y())) == 9,
+  require(active.hitTestSourceOffset(QPointF(active.cursorRectForSourceOffset(9).left(),
+                                             active.cursorRectForSourceOffset(9).center().y())) == 9,
           QStringLiteral("active marker source hit-test should not drift"));
 }
 
 void testInlineLayoutCursorRects() {
   RenderTheme theme = RenderTheme::github();
   QVector<InlineNode> plainInlines;
-  plainInlines.push_back(InlineNode::text(QStringLiteral("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda")));
+  plainInlines.push_back(
+      InlineNode::text(QStringLiteral("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda")));
 
   InlineLayout layout;
   InlineLayout::BuildOptions options;
@@ -83,7 +90,8 @@ void testInlineLayoutCursorRects() {
     const QRectF third = layout.cursorRect(offset + 2);
     if (!first.isEmpty() && !second.isEmpty() && !third.isEmpty() &&
         qAbs(first.center().y() - second.center().y()) < 0.5 && qAbs(second.center().y() - third.center().y()) < 0.5) {
-      require(first.left() <= second.left() && second.left() <= third.left(), QStringLiteral("inline cursor x should be monotonic on same line"));
+      require(first.left() <= second.left() && second.left() <= third.left(),
+              QStringLiteral("inline cursor x should be monotonic on same line"));
       testedMonotonic = true;
       break;
     }
@@ -95,7 +103,8 @@ void testInlineLayoutCursorRects() {
     const QRectF previous = layout.cursorRect(offset);
     const QRectF next = layout.cursorRect(offset + 1);
     if (!previous.isEmpty() && !next.isEmpty() && next.center().y() > previous.center().y() + previous.height() * 0.5) {
-      require(next.left() < previous.left(), QStringLiteral("inline cursor x should return toward line start after wrap"));
+      require(next.left() < previous.left(),
+              QStringLiteral("inline cursor x should return toward line start after wrap"));
       foundWrap = true;
       break;
     }
@@ -109,7 +118,8 @@ void testInlineLayoutCursorRects() {
   InlineLayout::BuildOptions activeOptions = options;
   activeOptions.projectionState.revealMarkdownMarkers = true;
   InlineLayout active;
-  active.build(activeInlines, QStringLiteral("before **bold** after"), theme, 240.0, theme.paragraphFont(), activeOptions);
+  active.build(activeInlines, QStringLiteral("before **bold** after"), theme, 240.0, theme.paragraphFont(),
+               activeOptions);
   const QRectF markerRect = active.cursorRectForSourceOffset(9);
   require(!markerRect.isEmpty(), QStringLiteral("inline source marker cursor rect should be non-empty"));
   require(active.hitTestSourceOffset(QPointF(markerRect.left(), markerRect.center().y())) == 9,
@@ -135,17 +145,20 @@ void testInlineLayoutSelectionRects() {
   require(qAbs(reverseSingle.first().left() - single.first().left()) < 0.5 &&
               qAbs(reverseSingle.first().width() - single.first().width()) < 0.5,
           QStringLiteral("inline reverse selection should match forward rect"));
-  require(singleLine.selectionRects(3, 3).isEmpty(), QStringLiteral("inline collapsed selection should return no rects"));
+  require(singleLine.selectionRects(3, 3).isEmpty(),
+          QStringLiteral("inline collapsed selection should return no rects"));
 
   QVector<InlineNode> wrappedInlines;
-  wrappedInlines.push_back(InlineNode::text(QStringLiteral("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda")));
+  wrappedInlines.push_back(
+      InlineNode::text(QStringLiteral("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda")));
   InlineLayout wrapped;
   wrapped.build(wrappedInlines, theme, 125.0, theme.paragraphFont());
   const QVector<QRectF> wrappedRects = wrapped.selectionRects(0, wrapped.plainText().size());
   require(wrappedRects.size() >= 2, QStringLiteral("inline wrapped selection should span multiple rects"));
   requireValidSelectionRects(wrappedRects, QStringLiteral("inline wrapped"));
   for (qsizetype i = 1; i < wrappedRects.size(); ++i) {
-    require(wrappedRects.at(i).top() > wrappedRects.at(i - 1).top(), QStringLiteral("inline wrapped selection rects should move downward"));
+    require(wrappedRects.at(i).top() > wrappedRects.at(i - 1).top(),
+            QStringLiteral("inline wrapped selection rects should move downward"));
   }
 
   QVector<InlineNode> activeInlines;
@@ -155,14 +168,18 @@ void testInlineLayoutSelectionRects() {
   InlineLayout::BuildOptions activeOptions;
   activeOptions.projectionState.revealMarkdownMarkers = true;
   InlineLayout active;
-  active.build(activeInlines, QStringLiteral("before **bold** after"), theme, 240.0, theme.paragraphFont(), activeOptions);
+  active.build(activeInlines, QStringLiteral("before **bold** after"), theme, 240.0, theme.paragraphFont(),
+               activeOptions);
   const QVector<QRectF> visibleContent = active.selectionRects(7, 11);
-  require(visibleContent.size() == 1, QStringLiteral("inline active visible content selection should stay single-line"));
+  require(visibleContent.size() == 1,
+          QStringLiteral("inline active visible content selection should stay single-line"));
   requireValidSelectionRects(visibleContent, QStringLiteral("inline active visible content"));
   const QRectF markerStart = active.cursorRectForSourceOffset(7);
   const QRectF markerEnd = active.cursorRectForSourceOffset(9);
-  require(!markerStart.isEmpty() && !markerEnd.isEmpty(), QStringLiteral("inline active marker cursor rects should exist"));
-  require(markerEnd.left() > markerStart.left(), QStringLiteral("inline active marker source rect should cover visible marker width"));
+  require(!markerStart.isEmpty() && !markerEnd.isEmpty(),
+          QStringLiteral("inline active marker cursor rects should exist"));
+  require(markerEnd.left() > markerStart.left(),
+          QStringLiteral("inline active marker source rect should cover visible marker width"));
   const QVector<QRectF> openerMarker = active.selectionRectsForSourceOffsets(7, 9);
   require(openerMarker.size() == 1, QStringLiteral("inline active marker source selection should stay single-line"));
   requireValidSelectionRects(openerMarker, QStringLiteral("inline active marker source"));
@@ -172,7 +189,7 @@ void testInlineLayoutSelectionRects() {
           QStringLiteral("inline active marker source selection should cover opener marker width"));
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {

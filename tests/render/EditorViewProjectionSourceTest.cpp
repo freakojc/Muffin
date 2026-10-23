@@ -4,7 +4,8 @@
 #include <QFile>
 
 void testSelectionRefreshRetainsStylesAndUnchangedProjection() {
-  const QString markdown = "Plain **bold** and ~~strikethrough~~ with <kbd>Ctrl</kbd> + <kbd>S</kbd>.\n\nother paragraph";
+  const QString markdown =
+      "Plain **bold** and ~~strikethrough~~ with <kbd>Ctrl</kbd> + <kbd>S</kbd>.\n\nother paragraph";
   DocumentSession session;
   session.setMarkdownText(markdown, false);
   auto theme = RenderTheme::fromDefinition(CssThemeMapper::fromCss(
@@ -21,54 +22,73 @@ void testSelectionRefreshRetainsStylesAndUnchangedProjection() {
   SelectionRange selection;
   const auto move = [&](qsizetype source) {
     selection.anchor = selection.focus = inlineCursor(node.id(), source, source);
-    require(layout.rebuildBlock(node.id(), session.document(), theme, selection,
-                               DocumentLayout::BlockUpdateReason::Selection).rebuilt, "selection refresh");
+    require(
+        layout
+            .rebuildBlock(node.id(), session.document(), theme, selection, DocumentLayout::BlockUpdateReason::Selection)
+            .rebuilt,
+        "selection refresh");
   };
   move(markdown.indexOf("bold") + 1);
   const auto* expanded = layout.block(node.id())->inlineLayout();
   require(expanded->displayText().contains("**bold**"), "entering bold reveals syntax");
   move(markdown.indexOf("bold") + 2);
-  require(layout.block(node.id())->inlineLayout() == expanded, "moving within revealed syntax retains shaping and HTML");
+  require(layout.block(node.id())->inlineLayout() == expanded,
+          "moving within revealed syntax retains shaping and HTML");
   selection.anchor.text.sourceOffset = 0;
-  require(layout.rebuildBlock(node.id(), session.document(), theme, selection,
-                             DocumentLayout::BlockUpdateReason::Selection).rebuilt, "selection extent refresh");
-  require(layout.block(node.id())->inlineLayout() == expanded, "selection extent does not reflow unchanged focus syntax");
+  require(
+      layout.rebuildBlock(node.id(), session.document(), theme, selection, DocumentLayout::BlockUpdateReason::Selection)
+          .rebuilt,
+      "selection extent refresh");
+  require(layout.block(node.id())->inlineLayout() == expanded,
+          "selection extent does not reflow unchanged focus syntax");
   move(markdown.indexOf("strikethrough") + 2);
   const auto text = layout.block(node.id())->inlineLayout()->displayText();
-  require(!text.contains("**bold**") && text.contains("~~strikethrough~~"), "crossing inline boundary updates both markers");
+  require(!text.contains("**bold**") && text.contains("~~strikethrough~~"),
+          "crossing inline boundary updates both markers");
   require(layout.block(other) == otherLayout && theme.elementStyleForNode(node, "p") == style,
           "selection changes preserve other blocks and the document style cache");
-  require(session.applyTextDelta(0, 0, "edited ", true, {{nodeId, 0, BlockType::Paragraph}}), "edit before queued refresh");
-  require(layout.rebuildBlock(nodeId, session.document(), theme, selection,
-                             DocumentLayout::BlockUpdateReason::Selection).rebuilt, "revision change cannot reuse selection-only layout");
-  require(layout.block(nodeId)->inlineLayout()->visibleText().startsWith("edited Plain"), "pending edit is not lost to navigation reuse");
+  require(session.applyTextDelta(0, 0, "edited ", true, {{nodeId, 0, BlockType::Paragraph}}),
+          "edit before queued refresh");
+  require(
+      layout.rebuildBlock(nodeId, session.document(), theme, selection, DocumentLayout::BlockUpdateReason::Selection)
+          .rebuilt,
+      "revision change cannot reuse selection-only layout");
+  require(layout.block(nodeId)->inlineLayout()->visibleText().startsWith("edited Plain"),
+          "pending edit is not lost to navigation reuse");
 }
 
 void testProjectionReuseDecisionsMatchFreshProjection() {
   for (const QString& source : {QString("plain **bold and *nested*** / ~~strike~~ / `code` / $E=mc^2$"),
-                               QString("&amp; &#x41; \\* :smile: [link](https://example.com)"),
-                               QString("text <kbd>Ctrl</kbd> + <span style=\"color:red\">HTML</span> after")}) {
+                                QString("&amp; &#x41; \\* :smile: [link](https://example.com)"),
+                                QString("text <kbd>Ctrl</kbd> + <span style=\"color:red\">HTML</span> after")}) {
     DocumentSession session;
     session.setMarkdownText(source, false);
     const auto& inlines = session.document().root().children().front()->inlines();
     for (int mode = 0; mode < 3; ++mode) {
       for (qsizetype offset : {qsizetype(-1), qsizetype(0), source.size() / 3, source.size() / 2, source.size()}) {
         InlineProjectionState initial;
-        if (mode != 1) initial.cursorSourceOffset = offset;
-        if (mode != 0) initial.cursorVisibleOffset = offset;
+        if (mode != 1)
+          initial.cursorSourceOffset = offset;
+        if (mode != 0)
+          initial.cursorVisibleOffset = offset;
         InlineProjection projection(inlines, source, initial, 0);
         for (qsizetype target = -1; target <= source.size(); ++target) {
           InlineProjectionState next;
-          if (mode != 1) next.cursorSourceOffset = target;
-          if (mode != 0) next.cursorVisibleOffset = target;
-          if (!projection.matchesState(next)) continue;
+          if (mode != 1)
+            next.cursorSourceOffset = target;
+          if (mode != 0)
+            next.cursorVisibleOffset = target;
+          if (!projection.matchesState(next))
+            continue;
           InlineProjection fresh(inlines, source, next, 0);
           require(projection.displayText() == fresh.displayText() && projection.visibleText() == fresh.visibleText(),
                   "reused reveal decisions agree with fresh display text");
           for (qsizetype sourceOffset = 0; sourceOffset <= source.size(); ++sourceOffset) {
             qsizetype before = -1, after = -1;
-            require(projection.displayOffsetForSourceOffset(sourceOffset, before) == fresh.displayOffsetForSourceOffset(sourceOffset, after)
-                        && before == after, "reused projection retains source mapping");
+            require(projection.displayOffsetForSourceOffset(sourceOffset, before) ==
+                            fresh.displayOffsetForSourceOffset(sourceOffset, after) &&
+                        before == after,
+                    "reused projection retains source mapping");
           }
         }
       }
@@ -77,7 +97,8 @@ void testProjectionReuseDecisionsMatchFreshProjection() {
 }
 
 void benchmarkInlineNavigation() {
-  if (!qEnvironmentVariableIsSet("MUFFIN_INLINE_NAV_BENCH")) return;
+  if (!qEnvironmentVariableIsSet("MUFFIN_INLINE_NAV_BENCH"))
+    return;
   QFile file(qEnvironmentVariable("MUFFIN_NAV_DOCUMENT"));
   require(file.open(QIODevice::ReadOnly), "open navigation benchmark document");
   const auto markdown = QString::fromUtf8(file.readAll());
@@ -86,7 +107,8 @@ void benchmarkInlineNavigation() {
   EditorView view;
   view.resize(1000, 700);
   const auto cssPath = qEnvironmentVariable("MUFFIN_NAV_THEME");
-  if (!cssPath.isEmpty()) view.setTheme(RenderTheme::fromDefinition(ThemeDefinition::fromCss(cssPath, "nav-benchmark")));
+  if (!cssPath.isEmpty())
+    view.setTheme(RenderTheme::fromDefinition(ThemeDefinition::fromCss(cssPath, "nav-benchmark")));
   view.setDocument(session.document());
   EditorController controller;
   controller.attach(&session, &view);
@@ -98,7 +120,8 @@ void benchmarkInlineNavigation() {
   const auto measure = [&](const char* label, const auto& action) {
     QVector<qreal> eventMs, frameMs;
     for (int i = 0; i < 20; ++i) {
-      QElapsedTimer timer; timer.start();
+      QElapsedTimer timer;
+      timer.start();
       action(i);
       eventMs.append(timer.nsecsElapsed() / 1000000.);
       QApplication::processEvents();
@@ -110,7 +133,8 @@ void benchmarkInlineNavigation() {
       std::cout << "[inline-nav-bench] " << label << ' ' << phase << " p50Ms=" << values[values.size() / 2]
                 << " p95Ms=" << values[values.size() * 95 / 100] << " maxMs=" << values.back() << std::endl;
     };
-    report(eventMs, "event"); report(frameMs, "frame");
+    report(eventMs, "event");
+    report(frameMs, "frame");
   };
   measure("activate", [&](int i) {
     const auto cursor = controller.inputController().cursorForSourceOffset(i % 2 ? strike : bold);
@@ -119,10 +143,12 @@ void benchmarkInlineNavigation() {
   });
   controller.selection().setCursorPosition(controller.inputController().cursorForSourceOffset(strike + 4));
   measure("horizontal", [&](int i) {
-    require(pressKey(controller.inputController(), &view, i % 2 ? Qt::Key_Left : Qt::Key_Right), "horizontal benchmark navigation");
+    require(pressKey(controller.inputController(), &view, i % 2 ? Qt::Key_Left : Qt::Key_Right),
+            "horizontal benchmark navigation");
   });
   measure("vertical", [&](int i) {
-    require(pressKey(controller.inputController(), &view, i % 2 ? Qt::Key_Up : Qt::Key_Down), "vertical benchmark navigation");
+    require(pressKey(controller.inputController(), &view, i % 2 ? Qt::Key_Up : Qt::Key_Down),
+            "vertical benchmark navigation");
   });
 }
 
@@ -213,7 +239,8 @@ void testInlineProjectionFallbackDoesNotSkipAheadToRepeatedMarkdown() {
   InlineProjection projection({first, second}, markdown, InlineProjectionState{}, 0);
   require(projection.isValid(), "projection should remain valid when fallback cannot safely align every inline");
   require(projection.displayText() == QStringLiteral("bold middle **bold**"),
-          QStringLiteral("fallback should preserve unmatched source instead of skipping ahead: %1").arg(projection.displayText()));
+          QStringLiteral("fallback should preserve unmatched source instead of skipping ahead: %1")
+              .arg(projection.displayText()));
   require(projection.visibleText() == QStringLiteral("bold middle **bold**"),
           QStringLiteral("fallback visible text should preserve unmatched source: %1").arg(projection.visibleText()));
 
@@ -231,9 +258,11 @@ void testInlineProjectionExpandsParserContentRangesForDelimitedInlines() {
   require(block->inlines().size() == 3, "content-range code sample should parse as three inlines");
   const InlineNode& first = block->inlines().at(0);
   const InlineNode& second = block->inlines().at(2);
-  require(first.sourceRange().start == 0 && first.sourceRange().end == 7, "first code source range should include delimiters");
+  require(first.sourceRange().start == 0 && first.sourceRange().end == 7,
+          "first code source range should include delimiters");
   require(first.contentRange().start == 2 && first.contentRange().end == 5, "first code content range mismatch");
-  require(second.sourceRange().start == 12 && second.sourceRange().end == markdown.size(), "second code source range should include delimiters");
+  require(second.sourceRange().start == 12 && second.sourceRange().end == markdown.size(),
+          "second code source range should include delimiters");
   require(second.contentRange().start == 14 && second.contentRange().end == 17, "second code content range mismatch");
 
   InlineProjectionState state;
@@ -371,9 +400,12 @@ void testTextHitActivationAddsSourceOffsetForInlineEditing() {
   hit.textOffset = 9;
   controller.activateHit(hit);
 
-  require(controller.selection().cursorPosition().text.sourceOffset == 11, "text hit should resolve strong source offset");
-  require(controller.inputController().insertText(QStringLiteral("X")), "typing after text hit should edit strong inline");
-  require(session.markdownText().toString() == QStringLiteral("before **boXld** after"), "text hit inline insert mismatch");
+  require(controller.selection().cursorPosition().text.sourceOffset == 11,
+          "text hit should resolve strong source offset");
+  require(controller.inputController().insertText(QStringLiteral("X")),
+          "typing after text hit should edit strong inline");
+  require(session.markdownText().toString() == QStringLiteral("before **boXld** after"),
+          "text hit inline insert mismatch");
 }
 
 void testDoubleDollarNavigationEditAndUndo() {
@@ -428,11 +460,14 @@ void testEditorViewInlineLayoutSmoke() {
 
   view.setCursorHit(textHit);
   controller.activateHit(textHit);
-  require(controller.selection().cursorPosition().text.sourceOffset == 11, "probe view activation should keep source offset");
+  require(controller.selection().cursorPosition().text.sourceOffset == 11,
+          "probe view activation should keep source offset");
   const QRectF activatedRect = view.nodeRect(block->id());
   const BlockLayout* activatedBlock = view.blockAtViewportPos(activatedRect.center());
-  require(activatedBlock != nullptr && activatedBlock->inlineLayout() != nullptr, "probe activated inline layout should exist");
-  const QPointF activatedPoint = activatedRect.topLeft() + activatedBlock->inlineLayout()->cursorRectForSourceOffset(11).center();
+  require(activatedBlock != nullptr && activatedBlock->inlineLayout() != nullptr,
+          "probe activated inline layout should exist");
+  const QPointF activatedPoint =
+      activatedRect.topLeft() + activatedBlock->inlineLayout()->cursorRectForSourceOffset(11).center();
   require(view.hitTest(activatedPoint).sourceOffset == 11, "probe view cursor rect should round-trip through hit-test");
 
   CursorPosition inside;
@@ -443,7 +478,8 @@ void testEditorViewInlineLayoutSmoke() {
   view.setCursorPosition(inside);
   const QRectF expandedRect = view.nodeRect(block->id());
   const BlockLayout* expandedBlock = view.blockAtViewportPos(expandedRect.center());
-  require(expandedBlock != nullptr && expandedBlock->inlineLayout() != nullptr, "probe expanded inline layout should exist");
+  require(expandedBlock != nullptr && expandedBlock->inlineLayout() != nullptr,
+          "probe expanded inline layout should exist");
   const InlineLayout* expandedLayout = expandedBlock->inlineLayout();
 
   const QPointF markerPoint = expandedRect.topLeft() + expandedLayout->cursorRectForSourceOffset(8).center();

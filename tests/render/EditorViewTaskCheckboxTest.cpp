@@ -53,12 +53,13 @@ void testCheckboxAlignsWithFirstLine() {
 
   const RenderTheme theme = view.theme();
   const QFontMetricsF metrics(theme.paragraphFont());
-  const qreal expectedTextCenter = item->rect().top() + inlineLayout->firstLineBaselineY() +
-                                   (metrics.descent() - metrics.ascent()) * 0.5;
+  const qreal expectedTextCenter =
+      item->rect().top() + inlineLayout->firstLineBaselineY() + (metrics.descent() - metrics.ascent()) * 0.5;
   const QRectF box = item->taskCheckboxRect(theme);
   require(qAbs(box.center().y() - expectedTextCenter) < 0.75,
           QStringLiteral("checkbox should be centered on the first rendered text line (box=%1 expected=%2)")
-              .arg(box.center().y()).arg(expectedTextCenter));
+              .arg(box.center().y())
+              .arg(expectedTextCenter));
 }
 
 void testCheckboxClickTarget() {
@@ -93,8 +94,7 @@ void testCheckboxClickTarget() {
 
 namespace {
 
-void verifyCheckboxClickPreservesViewport(bool hasCaret, bool typewriterMode = false,
-                                         bool replaceDocuments = false) {
+void verifyCheckboxClickPreservesViewport(bool hasCaret, bool typewriterMode = false, bool replaceDocuments = false) {
   DocumentSession session;
   EditorController controller;
   EditorView view;
@@ -125,13 +125,12 @@ void verifyCheckboxClickPreservesViewport(bool hasCaret, bool typewriterMode = f
   }
 
   const QString filler = QStringLiteral("Filler paragraph.\n\n").repeated(40);
-  const QString tasks = QStringLiteral(
-      "- [x] Parse CommonMark blocks\n"
-      "- [x] Parse GFM tables and task markers\n"
-      "- [x] Parse inline and block math\n"
-      "- [x] Render Markdown from the document AST\n"
-      "- [x] Edit tables, code fences, math blocks, and HTML blocks\n"
-      "- [ ] Complete export workflows\n\n");
+  const QString tasks = QStringLiteral("- [x] Parse CommonMark blocks\n"
+                                       "- [x] Parse GFM tables and task markers\n"
+                                       "- [x] Parse inline and block math\n"
+                                       "- [x] Render Markdown from the document AST\n"
+                                       "- [x] Edit tables, code fences, math blocks, and HTML blocks\n"
+                                       "- [ ] Complete export workflows\n\n");
   const QString original = filler + tasks + filler;
   if (replaceDocuments) {
     openDocument(original);
@@ -163,12 +162,10 @@ void verifyCheckboxClickPreservesViewport(bool hasCaret, bool typewriterMode = f
   const QPointF click = view.mapDocumentToViewport(checkboxCenter);
   require(view.hitTest(click).taskCheckboxHit, "click should hit the scrolled checkbox");
 
-  QMouseEvent press(QEvent::MouseButtonPress, click, click, Qt::LeftButton,
-                    Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent press(QEvent::MouseButtonPress, click, click, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &press);
   require(bar->value() == scrollBefore, "checkbox click must not scroll to the old caret");
-  QMouseEvent release(QEvent::MouseButtonRelease, click, click, Qt::LeftButton,
-                      Qt::NoButton, Qt::NoModifier);
+  QMouseEvent release(QEvent::MouseButtonRelease, click, click, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
   QApplication::sendEvent(view.viewport(), &release);
   controller.brushQueue().flush();
   QApplication::processEvents();
@@ -191,7 +188,7 @@ void verifyCheckboxClickPreservesViewport(bool hasCaret, bool typewriterMode = f
   }
 }
 
-}  // namespace
+} // namespace
 
 void testCheckboxClickPreservesViewportWithOffscreenCaret() {
   verifyCheckboxClickPreservesViewport(true);

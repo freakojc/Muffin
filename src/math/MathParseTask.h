@@ -12,8 +12,7 @@ namespace muffin::math {
 // a heap-backed work stack; only run() resumes them. In particular, neither
 // await_suspend nor final_suspend resumes another coroutine (even symmetric
 // transfer can accumulate native stack frames on some compiler configurations).
-template <typename T>
-class MathParseTask {
+template <typename T> class MathParseTask {
 public:
   struct promise_type;
   using Handle = std::coroutine_handle<promise_type>;
@@ -34,16 +33,19 @@ public:
   MathParseTask(MathParseTask&& other) noexcept : handle_(std::exchange(other.handle_, {})) {}
   MathParseTask(const MathParseTask&) = delete;
   MathParseTask& operator=(const MathParseTask&) = delete;
-  ~MathParseTask() { if (handle_) handle_.destroy(); }
+  ~MathParseTask() {
+    if (handle_)
+      handle_.destroy();
+  }
 
   bool await_ready() const noexcept { return false; }
-  template <typename ParentPromise>
-  void await_suspend(std::coroutine_handle<ParentPromise> parent) {
+  template <typename ParentPromise> void await_suspend(std::coroutine_handle<ParentPromise> parent) {
     handle_.promise().work = parent.promise().work;
     handle_.promise().work->push_back(handle_);
   }
   T await_resume() {
-    if (handle_.promise().error) std::rethrow_exception(handle_.promise().error);
+    if (handle_.promise().error)
+      std::rethrow_exception(handle_.promise().error);
     return std::move(*handle_.promise().value);
   }
 
@@ -57,7 +59,8 @@ public:
       // A child is removed before its parent resumes and destroys its frame.
       // Errors also propagate one continuation at a time, without recursive
       // resumption or recursive destruction of suspended coroutine chains.
-      if (next.done()) work.pop_back();
+      if (next.done())
+        work.pop_back();
     }
     return await_resume();
   }
@@ -67,4 +70,4 @@ private:
   Handle handle_;
 };
 
-}  // namespace muffin::math
+} // namespace muffin::math

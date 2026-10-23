@@ -22,14 +22,13 @@ struct CachedNode {
 
 class Builder {
 public:
-  Builder(const StateDiagramData& data, QString look)
-      : data_(data), look_(std::move(look)) {
-    for (const StateNode& state : data.states) states_.insert(state.id, &state);
+  Builder(const StateDiagramData& data, QString look) : data_(data), look_(std::move(look)) {
+    for (const StateNode& state : data.states)
+      states_.insert(state.id, &state);
   }
   StateLayoutInput build() {
     result_.direction = documentDirection(data_.root);
-    QJsonObject root{{QStringLiteral("id"), QStringLiteral("root")},
-                     {QStringLiteral("doc"), data_.root}};
+    QJsonObject root{{QStringLiteral("id"), QStringLiteral("root")}, {QStringLiteral("doc"), data_.root}};
     fetch({}, root, true);
     return result_;
   }
@@ -43,18 +42,18 @@ private:
     return result;
   }
   void insertOrUpdate(StateLayoutNodeInput node) {
-    if (node.id.isEmpty() || node.id == QLatin1String("</join></fork>") ||
-        node.id == QLatin1String("</choice>"))
+    if (node.id.isEmpty() || node.id == QLatin1String("</join></fork>") || node.id == QLatin1String("</choice>"))
       return;
     const auto it = std::find_if(result_.nodes.begin(), result_.nodes.end(),
-        [&](const StateLayoutNodeInput& value) { return value.id == node.id; });
+                                 [&](const StateLayoutNodeInput& value) { return value.id == node.id; });
     if (it == result_.nodes.end()) {
       result_.nodes.append(std::move(node));
     } else {
       // Upstream uses Object.assign(existingNodeData, nodeData). A root-level
       // reference has no parentId property, so it cannot detach a state that
       // was already parented while traversing a composite document.
-      if (node.parentId.isEmpty()) node.parentId = it->parentId;
+      if (node.parentId.isEmpty())
+        node.parentId = it->parentId;
       *it = std::move(node);
     }
   }
@@ -75,7 +74,8 @@ private:
   // Declarations apply in order, last-wins per key (the painter re-splits them).
   QStringList mergedStylesFor(const QString& id) const {
     const StateNode* state = states_.value(id, nullptr);
-    if (!state) return {};
+    if (!state)
+      return {};
     QStringList result;
     for (const QString& name : state->classes)
       for (const StateStyleClass& cls : data_.styleClasses)
@@ -86,10 +86,10 @@ private:
     result.append(state->styles);
     return result;
   }
-  void setupDocument(const QJsonObject& parent, const QJsonArray& document,
-                     bool alternate) {
+  void setupDocument(const QJsonObject& parent, const QJsonArray& document, bool alternate) {
     for (const QJsonValue& value : document) {
-      if (!value.isObject()) continue;
+      if (!value.isObject())
+        continue;
       const QJsonObject item = value.toObject();
       const QString kind = item.value(QStringLiteral("stmt")).toString();
       if (kind == QLatin1String("state")) {
@@ -104,24 +104,22 @@ private:
         edge.start = left.value(QStringLiteral("id")).toString();
         edge.end = right.value(QStringLiteral("id")).toString();
         edge.label = item.value(QStringLiteral("description")).toString();
-        edge.arrowTypeEnd = look_ == QLatin1String("neo")
-            ? QStringLiteral("arrow_barb_neo") : QStringLiteral("arrow_barb");
+        edge.arrowTypeEnd =
+            look_ == QLatin1String("neo") ? QStringLiteral("arrow_barb_neo") : QStringLiteral("arrow_barb");
         result_.edges.append(std::move(edge));
         ++graphItemCount_;
       }
     }
   }
-  void fetch(const QJsonObject& parent, const QJsonObject& parsedItem,
-             bool alternate) {
+  void fetch(const QJsonObject& parent, const QJsonObject& parsedItem, bool alternate) {
     const QString itemId = parsedItem.value(QStringLiteral("id")).toString();
     if (itemId != QLatin1String("root")) {
       QString shape = QStringLiteral("rect");
       if (parsedItem.value(QStringLiteral("start")).isBool())
-        shape = parsedItem.value(QStringLiteral("start")).toBool()
-            ? QStringLiteral("stateStart") : QStringLiteral("stateEnd");
+        shape = parsedItem.value(QStringLiteral("start")).toBool() ? QStringLiteral("stateStart")
+                                                                   : QStringLiteral("stateEnd");
       const QString parsedType = parsedItem.value(QStringLiteral("type")).toString();
-      if (!parsedItem.contains(QStringLiteral("type")) &&
-          !parsedItem.value(QStringLiteral("start")).isBool())
+      if (!parsedItem.contains(QStringLiteral("type")) && !parsedItem.value(QStringLiteral("start")).isBool())
         shape.clear();
       else if (parsedType != QLatin1String("default"))
         shape = parsedType;
@@ -147,7 +145,8 @@ private:
         } else if (!cached.description.toString().isEmpty()) {
           cached.shape = QStringLiteral("rectWithTitle");
           QJsonArray values;
-          if (cached.description.toString() != itemId) values.append(cached.description);
+          if (cached.description.toString() != itemId)
+            values.append(cached.description);
           values.append(description);
           cached.description = values;
         } else {
@@ -157,24 +156,23 @@ private:
       }
       if (cached.description.isArray() && cached.description.toArray().size() == 1 &&
           cached.shape == QLatin1String("rectWithTitle"))
-        cached.shape = cached.type == QLatin1String("group")
-            ? QStringLiteral("roundedWithTitle") : QStringLiteral("rect");
+        cached.shape =
+            cached.type == QLatin1String("group") ? QStringLiteral("roundedWithTitle") : QStringLiteral("rect");
 
       const QJsonArray childDocument = parsedItem.value(QStringLiteral("doc")).toArray();
       const bool hasDocument = parsedItem.value(QStringLiteral("doc")).isArray();
       if (cached.type.isEmpty() && hasDocument) {
         cached.type = QStringLiteral("group");
         cached.direction = documentDirection(childDocument);
-        cached.shape = parsedType == QLatin1String("divider")
-            ? QStringLiteral("divider") : QStringLiteral("roundedWithTitle");
+        cached.shape =
+            parsedType == QLatin1String("divider") ? QStringLiteral("divider") : QStringLiteral("roundedWithTitle");
         cached.cssClasses += QStringLiteral(" statediagram-cluster ") +
-            (alternate ? QStringLiteral("statediagram-cluster-alt") : QString{});
+                             (alternate ? QStringLiteral("statediagram-cluster-alt") : QString{});
       }
       StateLayoutNodeInput node;
       node.id = itemId;
       node.shape = cached.shape;
-      node.label = node.shape == QLatin1String("divider") ? QJsonValue(QString{})
-                                                          : cached.description;
+      node.label = node.shape == QLatin1String("divider") ? QJsonValue(QString{}) : cached.description;
       node.direction = cached.direction;
       // Mermaid 11.16.0 records explicitDir in its internal node cache but does
       // not copy it to NodeData. Preserve the observable getData() contract.
@@ -190,7 +188,8 @@ private:
         // Upstream keeps NodeData.description as an ARRAY (empty when the
         // description had a single row — the row IS the label).
         QJsonArray descriptions;
-        for (qsizetype i = 1; i < labels.size(); ++i) descriptions.append(labels.at(i));
+        for (qsizetype i = 1; i < labels.size(); ++i)
+          descriptions.append(labels.at(i));
         node.description = descriptions;
       }
       if (!parent.isEmpty() && parent.value(QStringLiteral("id")).toString() != QLatin1String("root"))
@@ -202,19 +201,26 @@ private:
         const QString noteId = itemId + QStringLiteral("----note-") + QString::number(graphItemCount_);
         const QString groupId = itemId + QStringLiteral("----parent");
         StateLayoutNodeInput group;
-        group.id = groupId; group.shape = QStringLiteral("noteGroup");
-        group.label = note.value(QStringLiteral("text")); group.isGroup = true;
-        group.cssClasses = cached.cssClasses; group.position = position;
+        group.id = groupId;
+        group.shape = QStringLiteral("noteGroup");
+        group.label = note.value(QStringLiteral("text"));
+        group.isGroup = true;
+        group.cssClasses = cached.cssClasses;
+        group.position = position;
         StateLayoutNodeInput noteNode;
-        noteNode.id = noteId; noteNode.shape = QStringLiteral("note");
-        noteNode.label = note.value(QStringLiteral("text")); noteNode.parentId = groupId;
-        noteNode.cssClasses = QStringLiteral("statediagram-note"); noteNode.position = position;
+        noteNode.id = noteId;
+        noteNode.shape = QStringLiteral("note");
+        noteNode.label = note.value(QStringLiteral("text"));
+        noteNode.parentId = groupId;
+        noteNode.cssClasses = QStringLiteral("statediagram-note");
+        noteNode.position = position;
         ++graphItemCount_;
-        insertOrUpdate(group); insertOrUpdate(noteNode); insertOrUpdate(node);
+        insertOrUpdate(group);
+        insertOrUpdate(noteNode);
+        insertOrUpdate(node);
         const bool left = position == QLatin1String("left of");
         StateLayoutEdgeInput edge;
-        edge.id = left ? noteId + QLatin1Char('-') + itemId
-                       : itemId + QLatin1Char('-') + noteId;
+        edge.id = left ? noteId + QLatin1Char('-') + itemId : itemId + QLatin1Char('-') + noteId;
         edge.start = left ? noteId : itemId;
         edge.end = left ? itemId : noteId;
         edge.arrowhead = QStringLiteral("none");
@@ -239,7 +245,8 @@ private:
 
 QJsonArray strings(const QStringList& values) {
   QJsonArray result;
-  for (const QString& value : values) result.append(value);
+  for (const QString& value : values)
+    result.append(value);
   return result;
 }
 }
@@ -248,11 +255,10 @@ StateLayoutInput buildStateLayoutInput(const StateDiagramData& data, QString loo
   return Builder(data, std::move(look)).build();
 }
 
-StateLayoutMeasurements measureStateLayoutInput(
-    const StateLayoutInput& input, QString fontFamily, qreal fontSize,
-    bool handDrawn, quint32 handDrawnSeed, bool shapeHidden,
-    const QHash<QString, StateMeasureCss>* nodeCss,
-    const QHash<QString, StateMeasureCss>* edgeLabelCss) {
+StateLayoutMeasurements measureStateLayoutInput(const StateLayoutInput& input, QString fontFamily, qreal fontSize,
+                                                bool handDrawn, quint32 handDrawnSeed, bool shapeHidden,
+                                                const QHash<QString, StateMeasureCss>* nodeCss,
+                                                const QHash<QString, StateMeasureCss>* edgeLabelCss) {
   StateLayoutMeasurements result;
   auto optionsFor = [&](const QString& family, qreal size) {
     flowchart::FlowTextOptions options;
@@ -276,41 +282,34 @@ StateLayoutMeasurements measureStateLayoutInput(
         const StateMeasureCss* clusterCss = nullptr;
         if (nodeCss) {
           const auto it = nodeCss->constFind(node.id);
-          if (it != nodeCss->constEnd() &&
-              (it->fontSize > 0.0 || !it->fontFamily.isEmpty() || it->labelHidden))
+          if (it != nodeCss->constEnd() && (it->fontSize > 0.0 || !it->fontFamily.isEmpty() || it->labelHidden))
             clusterCss = &it.value();
         }
         result.clusterLabels.insert(
             node.id, clusterCss && clusterCss->labelHidden
-                ? QSizeF(0.0, 0.0)
-                : flowchart::measureLabel(node.label.toString(),
-                                          QStringLiteral("markdown"),
-                                          clusterCss
-                                              ? optionsFor(clusterCss->fontFamily,
-                                                           clusterCss->fontSize)
-                                              : defaultOptions));
+                         ? QSizeF(0.0, 0.0)
+                         : flowchart::measureLabel(node.label.toString(), QStringLiteral("markdown"),
+                                                   clusterCss ? optionsFor(clusterCss->fontFamily, clusterCss->fontSize)
+                                                              : defaultOptions));
       }
       continue;
     }
     const StateMeasureCss* css = nullptr;
     if (nodeCss) {
       const auto it = nodeCss->constFind(node.id);
-      if (it != nodeCss->constEnd() &&
-          (it->fontSize > 0.0 || !it->fontFamily.isEmpty() || it->labelHidden ||
-           it->descFontSize > 0.0 || !it->descFontFamily.isEmpty() ||
-           it->descHidden))
+      if (it != nodeCss->constEnd() && (it->fontSize > 0.0 || !it->fontFamily.isEmpty() || it->labelHidden ||
+                                        it->descFontSize > 0.0 || !it->descFontFamily.isEmpty() || it->descHidden))
         css = &it.value();
     }
-    const flowchart::FlowTextOptions options =
-        css ? optionsFor(css->fontFamily, css->fontSize) : defaultOptions;
+    const flowchart::FlowTextOptions options = css ? optionsFor(css->fontFamily, css->fontSize) : defaultOptions;
     const QString shape = node.shape.isEmpty() ? QStringLiteral("rect") : node.shape;
     // `.node rect { display:none }` collapses the drawState temp group for
     // rect-bearing shapes (rect/rectWithTitle measure 0x0). Note nodes keep
     // their size: the note shape measures label+padding via labelHelper, not
     // the rect-only temp group (browser-verified: the hidden case's note
     // still reserves its full box).
-    const bool hidden = shape != QLatin1String("note") &&
-        (shapeHidden || (nodeCss && nodeCss->value(node.id).shapeHidden));
+    const bool hidden =
+        shape != QLatin1String("note") && (shapeHidden || (nodeCss && nodeCss->value(node.id).shapeHidden));
     QSizeF size;
     QSizeF paintedSize;
     if (shape == QLatin1String("stateStart") || shape == QLatin1String("stateEnd"))
@@ -324,20 +323,18 @@ StateLayoutMeasurements measureStateLayoutInput(
       paintedSize = QSizeF(70.0, 10.0);
     } else if (shape == QLatin1String("choice"))
       size = paintedSize = QSizeF(28.0, 28.0);
-    if (hidden && shape != QLatin1String("note") &&
-        shape != QLatin1String("rect") && shape != QLatin1String("rectWithTitle")) {
+    if (hidden && shape != QLatin1String("note") && shape != QLatin1String("rect") &&
+        shape != QLatin1String("rectWithTitle")) {
       // display:none on a pseudostate's circle/paths also collapses the
       // drawState temp group to 0x0 — dagre gets a point node while the
       // label (if any) keeps painting at the centre.
       paintedSize = size;
       size = QSizeF(0.0, 0.0);
-    } else if (shape != QLatin1String("stateStart") &&
-               shape != QLatin1String("stateEnd") &&
-               shape != QLatin1String("fork") &&
-               shape != QLatin1String("join") &&
-               shape != QLatin1String("choice")) {
+    } else if (shape != QLatin1String("stateStart") && shape != QLatin1String("stateEnd") &&
+               shape != QLatin1String("fork") && shape != QLatin1String("join") && shape != QLatin1String("choice")) {
       QStringList lines;
-      if (node.label.isString()) lines.append(node.label.toString());
+      if (node.label.isString())
+        lines.append(node.label.toString());
       QStringList descLines;
       if (node.description.isArray())
         for (const QJsonValue& value : node.description.toArray())
@@ -359,21 +356,18 @@ StateLayoutMeasurements measureStateLayoutInput(
         // all) collapses the second fo to 0x0, and a 0x0 foreignObject is
         // EXCLUDED from label.getBBox(): the box is the title alone and the
         // 9px title-rows gap vanishes (vertical add-on 17 -> 8 below).
-        const bool descCollapsed =
-            descLines.isEmpty() || (css && css->descHidden);
+        const bool descCollapsed = descLines.isEmpty() || (css && css->descHidden);
         const flowchart::FlowTextOptions descOptions =
             css && (css->descFontSize > 0.0 || !css->descFontFamily.isEmpty())
-            ? optionsFor(css->descFontFamily, css->descFontSize) : options;
-        const QSizeF title = flowchart::measureLabel(
-            node.label.toString(), QStringLiteral("markdown"), options);
+                ? optionsFor(css->descFontFamily, css->descFontSize)
+                : options;
+        const QSizeF title = flowchart::measureLabel(node.label.toString(), QStringLiteral("markdown"), options);
         if (descCollapsed) {
           size = title;
         } else {
-          const QSizeF rows = flowchart::measureLabel(
-              descLines.join(QLatin1Char('\n')), QStringLiteral("markdown"),
-              descOptions);
-          size = QSizeF(std::max(title.width(), rows.width()),
-                        title.height() + rows.height());
+          const QSizeF rows =
+              flowchart::measureLabel(descLines.join(QLatin1Char('\n')), QStringLiteral("markdown"), descOptions);
+          size = QSizeF(std::max(title.width(), rows.width()), title.height() + rows.height());
         }
       } else {
         size = flowchart::measureLabel(lines.join(QLatin1Char('\n')), QStringLiteral("markdown"), options);
@@ -392,19 +386,18 @@ StateLayoutMeasurements measureStateLayoutInput(
         // title (halfPadding + 5 upstream) + 8px padding; rows collapsed ->
         // padding only (browser: 65 -> 32 tall with the same title).
         if (shape == QLatin1String("rectWithTitle"))
-          size += QSizeF(8.0, descLines.isEmpty() || (css && css->descHidden)
-                                  ? 8.0 : 17.0);
-        else if (shape == QLatin1String("note")) size += QSizeF(30.0, 30.0);
-        else size += QSizeF(16.0, 16.0);
+          size += QSizeF(8.0, descLines.isEmpty() || (css && css->descHidden) ? 8.0 : 17.0);
+        else if (shape == QLatin1String("note"))
+          size += QSizeF(30.0, 30.0);
+        else
+          size += QSizeF(16.0, 16.0);
         paintedSize = size;
       }
     }
     if (handDrawn) {
-      const QRectF local(-paintedSize.width() / 2.0,
-                         -paintedSize.height() / 2.0,
-                         paintedSize.width(), paintedSize.height());
-      const QRectF roughBounds = stateRoughBounds(
-          stateRoughNodeDrawables(shape, local, handDrawnSeed));
+      const QRectF local(-paintedSize.width() / 2.0, -paintedSize.height() / 2.0, paintedSize.width(),
+                         paintedSize.height());
+      const QRectF roughBounds = stateRoughBounds(stateRoughNodeDrawables(shape, local, handDrawnSeed));
       if (roughBounds.isValid()) {
         size = roughBounds.size();
       }
@@ -413,32 +406,34 @@ StateLayoutMeasurements measureStateLayoutInput(
     result.paintedNodes.insert(node.id, paintedSize);
   }
   for (const StateLayoutEdgeInput& edge : input.edges) {
-    if (!edge.label.isString() || edge.label.toString().isEmpty()) continue;
+    if (!edge.label.isString() || edge.label.toString().isEmpty())
+      continue;
     flowchart::FlowEdge projected;
     projected.text = edge.label.toString();
     projected.labelType = QStringLiteral("markdown");
     const StateMeasureCss* css = nullptr;
     if (edgeLabelCss) {
       const auto it = edgeLabelCss->constFind(edge.id);
-      if (it != edgeLabelCss->constEnd()) css = &it.value();
+      if (it != edgeLabelCss->constEnd())
+        css = &it.value();
     }
     // display:none on the label <p> collapses the whole label box: the edge
     // reserves NO space (paths and viewBox shrink — the browser drops the fo
     // content from getBBox), not just the paint.
-    result.edgeLabels.insert(edge.id, css && css->labelHidden
-        ? QSizeF(0.0, 0.0)
-        : flowchart::measureLabel(
-              projected.text, QStringLiteral("markdown"),
-              css ? optionsFor(css->fontFamily, css->fontSize) : defaultOptions));
+    result.edgeLabels.insert(
+        edge.id, css && css->labelHidden
+                     ? QSizeF(0.0, 0.0)
+                     : flowchart::measureLabel(projected.text, QStringLiteral("markdown"),
+                                               css ? optionsFor(css->fontFamily, css->fontSize) : defaultOptions));
   }
   return result;
 }
 
-StatePlacementResult layoutStateDiagramDagre(
-    const StateLayoutInput& input, const StateLayoutMeasurements& measurements,
-    qreal nodeSpacing, qreal rankSpacing, bool handDrawn,
-    quint32 handDrawnSeed) {
-  if (input.nodes.isEmpty()) return {};
+StatePlacementResult layoutStateDiagramDagre(const StateLayoutInput& input, const StateLayoutMeasurements& measurements,
+                                             qreal nodeSpacing, qreal rankSpacing, bool handDrawn,
+                                             quint32 handDrawnSeed) {
+  if (input.nodes.isEmpty())
+    return {};
   flowchart::FlowchartData projected;
   projected.direction = input.direction;
   for (const StateLayoutNodeInput& node : input.nodes) {
@@ -449,15 +444,16 @@ StatePlacementResult layoutStateDiagramDagre(
       group.dir = node.direction;
       group.hasExplicitDir = node.explicitDirection;
       for (const StateLayoutNodeInput& child : input.nodes)
-        if (child.parentId == node.id) group.nodes.append(child.id);
+        if (child.parentId == node.id)
+          group.nodes.append(child.id);
       projected.subgraphs.prepend(std::move(group));
     } else {
       flowchart::FlowVertex vertex;
       vertex.id = node.id;
       vertex.text = node.label.toString();
-      vertex.type = (node.shape == QLatin1String("stateStart") ||
-                     node.shape == QLatin1String("stateEnd"))
-          ? node.shape : QStringLiteral("rect");
+      vertex.type = (node.shape == QLatin1String("stateStart") || node.shape == QLatin1String("stateEnd"))
+                        ? node.shape
+                        : QStringLiteral("rect");
       projected.vertices.append(std::move(vertex));
     }
   }
@@ -495,17 +491,13 @@ StatePlacementResult layoutStateDiagramDagre(
   options.measuredClusterLabels = measurements.clusterLabels;
   if (handDrawn) {
     options.preserveRecursiveSvgFrame = true;
-    options.clusterSizeTransform = [&, handDrawnSeed](
-        const QString& id, const QRectF& bounds) {
-      const auto semantic = std::find_if(
-          input.nodes.cbegin(), input.nodes.cend(),
-          [&](const StateLayoutNodeInput& node) { return node.id == id; });
-      if (semantic == input.nodes.cend() ||
-          semantic->shape == QLatin1String("noteGroup"))
+    options.clusterSizeTransform = [&, handDrawnSeed](const QString& id, const QRectF& bounds) {
+      const auto semantic = std::find_if(input.nodes.cbegin(), input.nodes.cend(),
+                                         [&](const StateLayoutNodeInput& node) { return node.id == id; });
+      if (semantic == input.nodes.cend() || semantic->shape == QLatin1String("noteGroup"))
         return bounds.size();
       const qreal titleHeight = measurements.clusterLabels.value(id).height();
-      const QRectF rendered = stateRoughBounds(stateRoughClusterDrawables(
-          bounds, titleHeight, handDrawnSeed));
+      const QRectF rendered = stateRoughBounds(stateRoughClusterDrawables(bounds, titleHeight, handDrawnSeed));
       return rendered.isValid() ? rendered.size() : bounds.size();
     };
   }
@@ -514,20 +506,19 @@ StatePlacementResult layoutStateDiagramDagre(
   StatePlacementResult result;
   for (const flowchart::FlowLayoutNode& node : placed.nodes)
     result.nodes.append({node.id, QPointF(node.x, node.y), QSizeF(node.width, node.height),
-                         measurements.paintedNodes.value(node.id, QSizeF(node.width, node.height)),
-                         node.rank});
+                         measurements.paintedNodes.value(node.id, QSizeF(node.width, node.height)), node.rank});
   for (const flowchart::FlowLayoutEdge& edge : placed.edges) {
     StatePlacementEdge converted;
     converted.id = edge.id;
     converted.path = edge.path;
     converted.points = edge.points;
     converted.segments = edge.segments;
-    if (edge.hasLabelPosition) converted.labelPosition = QPointF(edge.labelX, edge.labelY);
+    if (edge.hasLabelPosition)
+      converted.labelPosition = QPointF(edge.labelX, edge.labelY);
     result.edges.append(std::move(converted));
   }
   for (const flowchart::FlowLayoutCluster& cluster : placed.clusters)
-    result.clusters.append({cluster.id, QPointF(cluster.x, cluster.y),
-                            QSizeF(cluster.width, cluster.height),
+    result.clusters.append({cluster.id, QPointF(cluster.x, cluster.y), QSizeF(cluster.width, cluster.height),
                             QSizeF(cluster.logicalWidth, cluster.logicalHeight)});
 
   return result;
@@ -536,7 +527,8 @@ StatePlacementResult layoutStateDiagramDagre(
 QJsonObject stateLayoutInputToJson(const StateLayoutInput& input) {
   QJsonArray nodes;
   for (const StateLayoutNodeInput& node : input.nodes) {
-    QJsonObject object{{QStringLiteral("id"), node.id},
+    QJsonObject object{
+        {QStringLiteral("id"), node.id},
         {QStringLiteral("label"), node.label},
         {QStringLiteral("parentId"), node.parentId.isEmpty() ? QJsonValue::Null : QJsonValue(node.parentId)},
         {QStringLiteral("dir"), node.direction.isEmpty() ? QJsonValue::Null : QJsonValue(node.direction)},
@@ -546,19 +538,25 @@ QJsonObject stateLayoutInputToJson(const StateLayoutInput& input) {
         {QStringLiteral("cssStyles"), strings(node.cssStyles)},
         {QStringLiteral("position"), node.position.isEmpty() ? QJsonValue::Null : QJsonValue(node.position)},
         {QStringLiteral("description"), node.description}};
-    if (!node.shape.isEmpty()) object.insert(QStringLiteral("shape"), node.shape);
+    if (!node.shape.isEmpty())
+      object.insert(QStringLiteral("shape"), node.shape);
     nodes.append(object);
   }
   QJsonArray edges;
   for (const StateLayoutEdgeInput& edge : input.edges)
     edges.append(QJsonObject{{QStringLiteral("id"), edge.id},
-        {QStringLiteral("start"), edge.start}, {QStringLiteral("end"), edge.end},
-        {QStringLiteral("label"), edge.label}, {QStringLiteral("arrowhead"), edge.arrowhead},
-        {QStringLiteral("arrowTypeEnd"), edge.arrowTypeEnd}, {QStringLiteral("style"), edge.style},
-        {QStringLiteral("labelStyle"), edge.labelStyle},
-        {QStringLiteral("thickness"), edge.thickness}, {QStringLiteral("classes"), edge.classes}});
+                             {QStringLiteral("start"), edge.start},
+                             {QStringLiteral("end"), edge.end},
+                             {QStringLiteral("label"), edge.label},
+                             {QStringLiteral("arrowhead"), edge.arrowhead},
+                             {QStringLiteral("arrowTypeEnd"), edge.arrowTypeEnd},
+                             {QStringLiteral("style"), edge.style},
+                             {QStringLiteral("labelStyle"), edge.labelStyle},
+                             {QStringLiteral("thickness"), edge.thickness},
+                             {QStringLiteral("classes"), edge.classes}});
   return {{QStringLiteral("direction"), input.direction},
-          {QStringLiteral("nodes"), nodes}, {QStringLiteral("edges"), edges}};
+          {QStringLiteral("nodes"), nodes},
+          {QStringLiteral("edges"), edges}};
 }
 
-}  // namespace muffin::mermaid::state
+} // namespace muffin::mermaid::state

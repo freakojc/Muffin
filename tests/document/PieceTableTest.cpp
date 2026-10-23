@@ -51,9 +51,9 @@ static void testInsertAtBoundaries() {
 
 static void testDeleteAndReplaceWhole() {
   PieceTable pt(QStringLiteral("abcdef"));
-  pt.replace(2, 4, QString());  // drop "cd" -> "abef"
+  pt.replace(2, 4, QString()); // drop "cd" -> "abef"
   require(pt.toString() == QStringLiteral("abef"), "delete middle");
-  pt.replace(1, 3, QStringLiteral("XYZ"));  // "aXYZf"
+  pt.replace(1, 3, QStringLiteral("XYZ")); // "aXYZf"
   require(pt.toString() == QStringLiteral("aXYZf"), "replace range");
   pt.replace(0, pt.size(), QStringLiteral("done"));
   require(pt.toString() == QStringLiteral("done"), "replace whole");
@@ -73,7 +73,7 @@ static void testCjkAndSurrogates() {
   require(pt.toUtf8() == seed.toUtf8(), "cjk/emoji: toUtf8 matches");
 
   QString ref = seed;
-  pt.replace(0, 1, QString());      // drop '你'  (pt replace [0,1) ↔ QString replace(0,1,...))
+  pt.replace(0, 1, QString()); // drop '你'  (pt replace [0,1) ↔ QString replace(0,1,...))
   ref.replace(0, 1, QString());
   require(pt.toString() == ref, "cjk delete matches QString");
 
@@ -90,7 +90,7 @@ static void testCjkAndSurrogates() {
 // proves coalescing stays QChar-correct; this pins the piece-count invariant itself.
 static void testCoalescesConsecutiveAppends() {
   PieceTable pt(QStringLiteral("AB"));
-  const qsizetype initialPieces = pt.pieceCount();  // 1 (the single original_ piece)
+  const qsizetype initialPieces = pt.pieceCount(); // 1 (the single original_ piece)
   QString ref = QStringLiteral("AB");
   for (int i = 0; i < 1000; ++i) {
     const QChar ch = QLatin1Char(static_cast<char>('a' + (i % 26)));
@@ -101,7 +101,8 @@ static void testCoalescesConsecutiveAppends() {
   // 1000 consecutive appends must fold into a single new piece, not 1000.
   require(pt.pieceCount() == initialPieces + 1,
           QStringLiteral("coalesce: expected %1 pieces after 1000 appends, got %2")
-              .arg(initialPieces + 1).arg(pt.pieceCount()));
+              .arg(initialPieces + 1)
+              .arg(pt.pieceCount()));
 }
 
 static void testStreamingSearchAcrossPieces() {
@@ -132,18 +133,15 @@ static void requireLineIndexMatches(const PieceTable& table, const QString& text
   require(table.lineCount() == starts.size(), label + QStringLiteral(": line count"));
   for (int line = 1; line <= starts.size(); ++line) {
     const qsizetype expectedEnd = line < starts.size() ? starts.at(line) - 1 : text.size();
-    require(table.lineStartOffset(line) == starts.at(line - 1),
-            label + QStringLiteral(": line %1 start").arg(line));
-    require(table.lineEndOffset(line) == expectedEnd,
-            label + QStringLiteral(": line %1 end").arg(line));
+    require(table.lineStartOffset(line) == starts.at(line - 1), label + QStringLiteral(": line %1 start").arg(line));
+    require(table.lineEndOffset(line) == expectedEnd, label + QStringLiteral(": line %1 end").arg(line));
   }
   int expectedLine = 1;
   for (qsizetype offset = 0; offset <= text.size(); ++offset) {
     while (expectedLine < starts.size() && starts.at(expectedLine) <= offset) {
       ++expectedLine;
     }
-    require(table.lineForOffset(offset) == expectedLine,
-            label + QStringLiteral(": offset %1 line").arg(offset));
+    require(table.lineForOffset(offset) == expectedLine, label + QStringLiteral(": offset %1 line").arg(offset));
   }
 }
 
@@ -163,9 +161,9 @@ static void testFuzzMirrorsQString() {
       if (r < 5) {
         s += QChar(static_cast<char16_t>('a' + (rng() % 26)));
       } else if (r < 8) {
-        s += QChar(static_cast<char16_t>(0x4e00 + (rng() % 0x100)));  // CJK
+        s += QChar(static_cast<char16_t>(0x4e00 + (rng() % 0x100))); // CJK
       } else {
-        s += QStringLiteral("😊");  // surrogate pair (2 QChars) — can land mid-pair, both sides agree
+        s += QStringLiteral("😊"); // surrogate pair (2 QChars) — can land mid-pair, both sides agree
       }
     }
     return s;
@@ -185,8 +183,9 @@ static void testFuzzMirrorsQString() {
     require(pt.size() == ref.size(),
             QStringLiteral("size mismatch @ iter %1: pt=%2 ref=%3").arg(iter).arg(pt.size()).arg(ref.size()));
     if (pt.toString() != ref) {
-      require(false, QStringLiteral("toString mismatch @ iter %1\n  pt:  %2\n  ref: %3")
-                          .arg(iter).arg(pt.toString()).arg(ref));
+      require(
+          false,
+          QStringLiteral("toString mismatch @ iter %1\n  pt:  %2\n  ref: %3").arg(iter).arg(pt.toString()).arg(ref));
     }
     if (ref.size() > 0) {
       const qsizetype i = static_cast<qsizetype>(rng() % static_cast<unsigned long long>(ref.size()));
@@ -249,7 +248,9 @@ static QVector<qsizetype> unfilteredPendingMarkers(QStringView text, const Markd
         result.append(qMin(node.sourceRange().byteEnd, text.size()) - marker.prefixLength);
       }
     }
-    for (const auto& child : node.children()) if (child) self(self, *child);
+    for (const auto& child : node.children())
+      if (child)
+        self(self, *child);
   };
   visit(visit, root);
   return result;
@@ -268,22 +269,53 @@ static void testPendingMarkerCollectionMatchesUnfilteredRecognition() {
     require(collectPendingMarkerOffsets(text, paragraph) == expected,
             "pending marker prefilter changed recognition or source offsets");
   };
-  const QStringList prefixes{QString(), QStringLiteral(" "), QStringLiteral("   "), QStringLiteral("    "),
-      QStringLiteral("\t"), QStringLiteral(" \t "), QStringLiteral("\r"), QStringLiteral("> "),
-      QStringLiteral("> > "), QStringLiteral("- "), QStringLiteral("1. "), QStringLiteral("> - 12) "),
-      QStringLiteral("   > "), QString(QChar(0x2003))};
-  const QStringList bodies{QString(), QStringLiteral("#"), QStringLiteral("######"), QStringLiteral("#######"),
-      QStringLiteral("# "), QStringLiteral("# real heading"), QStringLiteral("-"), QStringLiteral("+"),
-      QStringLiteral("*"), QStringLiteral("123."), QStringLiteral("9)"), QStringLiteral("1. "),
-      QStringLiteral("```"), QStringLiteral("```cpp"), QStringLiteral("````` a b"), QStringLiteral("```a`"),
-      QStringLiteral("~~~lang`"), QStringLiteral("$$"), QStringLiteral("\\["), QStringLiteral("\\]"),
-      QStringLiteral("ordinary paragraph"), QStringLiteral("中文正文"), QStringLiteral("\U0001f600 text"),
-      QStringLiteral("word\n#"), QStringLiteral("\n$$"), QStringLiteral("$$\n"),
-      QStringLiteral("0.42"), QStringLiteral("https://example.com")};
+  const QStringList prefixes{QString(),
+                             QStringLiteral(" "),
+                             QStringLiteral("   "),
+                             QStringLiteral("    "),
+                             QStringLiteral("\t"),
+                             QStringLiteral(" \t "),
+                             QStringLiteral("\r"),
+                             QStringLiteral("> "),
+                             QStringLiteral("> > "),
+                             QStringLiteral("- "),
+                             QStringLiteral("1. "),
+                             QStringLiteral("> - 12) "),
+                             QStringLiteral("   > "),
+                             QString(QChar(0x2003))};
+  const QStringList bodies{QString(),
+                           QStringLiteral("#"),
+                           QStringLiteral("######"),
+                           QStringLiteral("#######"),
+                           QStringLiteral("# "),
+                           QStringLiteral("# real heading"),
+                           QStringLiteral("-"),
+                           QStringLiteral("+"),
+                           QStringLiteral("*"),
+                           QStringLiteral("123."),
+                           QStringLiteral("9)"),
+                           QStringLiteral("1. "),
+                           QStringLiteral("```"),
+                           QStringLiteral("```cpp"),
+                           QStringLiteral("````` a b"),
+                           QStringLiteral("```a`"),
+                           QStringLiteral("~~~lang`"),
+                           QStringLiteral("$$"),
+                           QStringLiteral("\\["),
+                           QStringLiteral("\\]"),
+                           QStringLiteral("ordinary paragraph"),
+                           QStringLiteral("中文正文"),
+                           QStringLiteral("\U0001f600 text"),
+                           QStringLiteral("word\n#"),
+                           QStringLiteral("\n$$"),
+                           QStringLiteral("$$\n"),
+                           QStringLiteral("0.42"),
+                           QStringLiteral("https://example.com")};
   const QStringList endings{QString(), QStringLiteral("\r"), QStringLiteral("\n"), QString(QChar(0x2003))};
   for (const auto& prefix : prefixes)
     for (const auto& body : bodies)
-      for (const auto& ending : endings) check(prefix + body + ending);
+      for (const auto& ending : endings)
+        check(prefix + body + ending);
   for (uint code = 0; code < 65536; ++code) {
     check(QString(QChar(ushort(code))) + QStringLiteral("$$"));
     check(QString(QChar(ushort(code))) + QStringLiteral("> *"));
@@ -293,7 +325,8 @@ static void testPendingMarkerCollectionMatchesUnfilteredRecognition() {
   for (int sample = 0; sample < 100000; ++sample) {
     QString source;
     const auto length = random() % 64;
-    for (unsigned i = 0; i < length; ++i) source += alphabet.at(random() % alphabet.size());
+    for (unsigned i = 0; i < length; ++i)
+      source += alphabet.at(random() % alphabet.size());
     check(source);
   }
   require(positiveCases > 100, "pending marker comparison must include valid markers");
@@ -323,7 +356,8 @@ static void testPendingMarkerCollectionPreservesNestedAndRelativeOffsets() {
   const QVector<qsizetype> expected{text.indexOf(QLatin1Char('*')), text.indexOf(QStringLiteral("\\["))};
   require(unfilteredPendingMarkers(text, root) == expected, "nested marker oracle must retain only paragraphs");
   require(collectPendingMarkerOffsets(text, root) == expected, "nested marker collection changed");
-  for (const auto& child : root.children()) child->relativizeDescendants();
+  for (const auto& child : root.children())
+    child->relativizeDescendants();
   require(collectPendingMarkerOffsets(text, root) == expected, "relative marker source coordinates changed");
 }
 
@@ -337,8 +371,7 @@ static void testPendingMarkerCacheTracksLocalEdits() {
             QStringLiteral("pending marker cache mismatch %1").arg(QString::fromUtf8(label)));
   };
   requireCache("after full parse");
-  require(session.applyTextDelta(0, 0, QStringLiteral("x"), true),
-          "pending marker prefix insert should apply locally");
+  require(session.applyTextDelta(0, 0, QStringLiteral("x"), true), "pending marker prefix insert should apply locally");
   requireCache("after suffix shift");
   const qsizetype marker = session.markdownText().toString().indexOf(QLatin1Char('*'));
   require(session.applyTextDelta(marker + 1, 0, QStringLiteral(" item"), true),
@@ -358,19 +391,17 @@ static void testSourcePositionIndexPreservesOrderAndTypeRanksAcrossSplices() {
   auto replacements = SourcePositionIndex::merge(std::move(firstReplacement), std::move(secondReplacement));
   index.replace(1, 2, std::move(replacements));
 
-  const QVector<SourcePositionToken*> expectedOrder{
-      original.at(0), firstReplacementPtr, secondReplacementPtr, original.at(3), original.at(4)};
+  const QVector<SourcePositionToken*> expectedOrder{original.at(0), firstReplacementPtr, secondReplacementPtr,
+                                                    original.at(3), original.at(4)};
   const QVector<qsizetype> expectedTypeRanks{0, 1, 0, 0, 2};
   for (qsizetype i = 0; i < expectedOrder.size(); ++i) {
-    require(index.rank(expectedOrder.at(i)) == i,
-            QStringLiteral("source position rank mismatch at %1").arg(i));
+    require(index.rank(expectedOrder.at(i)) == i, QStringLiteral("source position rank mismatch at %1").arg(i));
     require(index.typeRank(expectedOrder.at(i)) == expectedTypeRanks.at(i),
             QStringLiteral("source position type rank mismatch at %1").arg(i));
   }
   require(index.adjustmentFor(firstReplacementPtr).bytes == 0,
           "fresh replacement must not inherit the removed range's source shift");
-  require(index.adjustmentFor(original.at(3)).bytes == 100 &&
-              index.adjustmentFor(original.at(3)).lines == 4,
+  require(index.adjustmentFor(original.at(3)).bytes == 100 && index.adjustmentFor(original.at(3)).lines == 4,
           "unchanged suffix token must preserve its lazy source shift through splice");
 }
 
@@ -384,7 +415,8 @@ int main(int argc, char** argv) {
   runTest("streaming search across pieces", testStreamingSearchAcrossPieces);
   runTest("fuzz mirrors QString", testFuzzMirrorsQString);
   runTest("dual-write stays in sync", testDualWriteStaysInSyncWithMarkdownText);
-  runTest("pending marker collection matches full recognition", testPendingMarkerCollectionMatchesUnfilteredRecognition);
+  runTest("pending marker collection matches full recognition",
+          testPendingMarkerCollectionMatchesUnfilteredRecognition);
   runTest("pending marker nested and relative offsets", testPendingMarkerCollectionPreservesNestedAndRelativeOffsets);
   runTest("pending marker cache tracks local edits", testPendingMarkerCacheTracksLocalEdits);
   runTest("source position index preserves ranks", testSourcePositionIndexPreservesOrderAndTypeRanksAcrossSplices);

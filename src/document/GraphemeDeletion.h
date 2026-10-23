@@ -26,4 +26,4 @@ inline GraphemeDeletion graphemeDeletion(const QString& text, qsizetype offset, 
   return {start, end - start};
 }
 
-}  // namespace muffin
+} // namespace muffin
