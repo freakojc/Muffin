@@ -40,6 +40,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--exe", type=Path, default=Path("build/Release/MuffinDocumentTabsTest.exe"))
     parser.add_argument("--repeats", type=int, default=2)
+    parser.add_argument("--kind", choices=("chinese", "dense", "code"), help="measure only one fixture category")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
     output = args.output.resolve()
@@ -53,6 +54,8 @@ def main():
     env["QT_SCALE_FACTOR"] = "1"
     env["QT_FONT_DPI"] = "96"
     for fixture in fixtures(root):
+        if args.kind and not fixture.stem.startswith(args.kind + "-"):
+            continue
         for repeat in range(args.repeats):
             name = f"{fixture.stem}-{repeat + 1}"
             report = output / f"{name}.json"

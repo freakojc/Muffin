@@ -261,7 +261,7 @@ std::unique_ptr<HtmlBox> HtmlBoxBuilder::buildTextNode(void* textNode) {
   QString content = QString::fromUtf8(reinterpret_cast<const char*>(data), static_cast<int>(len));
 
   // Skip whitespace-only text nodes that are children of block-level elements
-  if (content.trimmed().isEmpty()) {
+  if (!preserveWhitespace_ && content.trimmed().isEmpty()) {
     if (node->parent && node->parent->type == LXB_DOM_NODE_TYPE_ELEMENT) {
       HtmlTag parentTag = mapTag(node->parent);
       if (parentTag == HtmlTag::Pre || isInlineTag(parentTag)) {

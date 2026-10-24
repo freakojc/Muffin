@@ -184,6 +184,7 @@ set(MUFFIN_TRANSLATABLE_SOURCES
   src/app/PrefsImagePage.cpp
   src/app/PrefsMarkdownPage.cpp
   src/app/PrefsExportPage.cpp
+  src/app/PrefsShortcutsPage.cpp
   src/app/PrefsAppearancePage.cpp
   src/app/PrefsGeneralPage.cpp
   src/app/UpdateChecker.cpp
@@ -1121,6 +1122,8 @@ add_executable(Muffin
   src/app/PrefsMarkdownPage.h
   src/app/PrefsExportPage.cpp
   src/app/PrefsExportPage.h
+  src/app/PrefsShortcutsPage.cpp
+  src/app/PrefsShortcutsPage.h
   src/app/PrefsAppearancePage.cpp
   src/app/PrefsAppearancePage.h
   src/app/PrefsGeneralPage.cpp
@@ -1242,6 +1245,10 @@ set(MUFFIN_UI_SOURCES
   src/editor/InlineSplit.h
   src/editor/ClipboardController.cpp
   src/editor/ClipboardController.h
+  src/projection/HtmlMarkdownImporter.cpp
+  src/projection/HtmlMarkdownImporter.h
+  src/editor/ShortcutSettings.cpp
+  src/editor/ShortcutSettings.h
   src/editor/EditorContext.cpp
   src/editor/EditorContext.h
   src/editor/EditorContextHolder.h

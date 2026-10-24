@@ -4,6 +4,8 @@
 #include "document/ImageSyntaxOps.h"
 #include "editor/InputController.h"
 #include "editor/SelectionController.h"
+#include "document/MarkdownNode.h"
+#include "projection/HtmlMarkdownImporter.h"
 #include "image/ImageInsertionPolicy.h"
 
 #include <QApplication>
@@ -11,6 +13,75 @@
 #include <QImage>
 #include <QMimeData>
 #include <QSettings>
+
+namespace {
+QString clipboardHtmlMarkdown(QString html) {
+  // Windows browser/Office clipboards may contain the surrounding page too.
+  const auto first = html.indexOf(QStringLiteral("<!--StartFragment-->"));
+  const auto last = html.indexOf(QStringLiteral("<!--EndFragment-->"));
+  if (first >= 0 && last > first)
+    html = html.mid(first + 20, last - first - 20);
+  return muffin::importHtmlMarkdown(html);
+}
+
+QString clipboardTableMarkdown(QString text) {
+  if (!text.contains('\t'))
+    return {};
+  text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
+  // Spreadsheet TSV quotes cells containing tabs/newlines and doubles quotes.
+  QList<QStringList> rows;
+  QStringList row;
+  QString cell;
+  bool quoted = false;
+  for (qsizetype i = 0; i < text.size(); ++i) {
+    const auto c = text[i];
+    if (c == '"' && (quoted || cell.isEmpty())) {
+      if (quoted && i + 1 < text.size() && text[i + 1] == '"') {
+        cell += '"';
+        ++i;
+      } else
+        quoted = !quoted;
+    } else if (!quoted && (c == '\t' || c == '\n')) {
+      row.append(std::move(cell));
+      cell.clear();
+      if (c == '\n') {
+        rows.append(std::move(row));
+        row.clear();
+      }
+    } else
+      cell += c;
+  }
+  if (quoted)
+    return {};
+  if (!cell.isEmpty() || !row.isEmpty()) {
+    row.append(std::move(cell));
+    rows.append(std::move(row));
+  }
+  if (rows.size() < 2 || rows.first().size() < 2)
+    return {};
+  QString result;
+  for (qsizetype i = 0; i < rows.size(); ++i) {
+    if (rows[i].size() != rows.first().size())
+      return {};
+    result += '|';
+    for (QString value : rows[i]) {
+      QString escaped;
+      for (const auto c : value) {
+        if (QStringLiteral("\\`*_{}[]<>()!#|~").contains(c))
+          escaped += '\\';
+        escaped += c;
+      }
+      escaped.replace('\n', QStringLiteral("<br>"));
+      result += ' ' + escaped + QStringLiteral(" |");
+    }
+    result += '\n';
+    if (i == 0)
+      result += '|' + QStringLiteral(" --- |").repeated(rows.first().size()) + '\n';
+  }
+  result.chop(1);
+  return result;
+}
+} // namespace
 
 namespace muffin {
 
@@ -34,11 +105,16 @@ bool ClipboardController::copy() {
     return false;
   }
 
-  // editor/copyAsMarkdown (default on): put the markdown source on the clipboard (as the primary
-  // text and a text/markdown MIME part) so rich paste targets keep the markup. Off, copy only the
-  // decoded plain text.
+  // Plain-text preference only controls plain targets. Rich editors receive
+  // HTML, while Muffin-to-Muffin paste always retains the exact Markdown.
   const bool preferMarkdown = QSettings().value(QStringLiteral("editor/copyAsMarkdown"), true).toBool();
   auto* mimeData = new QMimeData();
+  if (!markdown.text.isEmpty())
+    mimeData->setData(QStringLiteral("text/markdown"), markdown.mimeData);
+  const auto html = selectionSerializer_.exportSelection(
+      SelectionExportRequest{&ctx_.session->document(), ctx_.selection->selection(), SelectionExportFormat::Html});
+  if (!html.text.isEmpty())
+    mimeData->setHtml(html.text);
   if (preferMarkdown) {
     mimeData->setText(markdown.text.isEmpty() ? plainText.text : markdown.text);
     if (!markdown.text.isEmpty()) {
@@ -69,10 +145,29 @@ bool ClipboardController::paste() {
     return false;
   }
 
-  // Image data on the clipboard goes through the centralized insertion policy
-  // (image/insertAction + the syntax/apply checkboxes) instead of a hardcoded
-  // save-to-document-dir. Non-image pastes fall through to plain-text insertion.
   const QMimeData* mimeData = QApplication::clipboard()->mimeData();
+  if (!mimeData)
+    return false;
+  // Literal editors must receive text exactly as copied, including indentation
+  // and tabs. The source editor has its own plain-text clipboard path.
+  const auto* node = ctx_.hasCursor() && ctx_.hasSession()
+                         ? ctx_.session->document().node(ctx_.selection->cursorPosition().blockId)
+                         : nullptr;
+  const bool literal = node && (node->type() == BlockType::CodeFence || node->type() == BlockType::HtmlBlock ||
+                                node->type() == BlockType::MathBlock || node->type() == BlockType::FrontMatter);
+  if (literal)
+    return pasteAsPlainText();
+  if (mimeData->hasFormat(QStringLiteral("text/markdown"))) {
+    const auto markdown = QString::fromUtf8(mimeData->data(QStringLiteral("text/markdown")));
+    if (!markdown.isEmpty())
+      return inputController_->insertText(markdown);
+  }
+  if (mimeData->hasHtml()) {
+    const auto markdown = clipboardHtmlMarkdown(mimeData->html());
+    if (!markdown.isEmpty())
+      return inputController_->insertText(markdown);
+  }
+  // A genuine bitmap still follows the user's image insertion policy.
   if (mimeData && mimeData->hasImage() && ctx_.hasSession()) {
     const QImage image = qvariant_cast<QImage>(mimeData->imageData());
     if (!image.isNull()) {
@@ -89,6 +184,9 @@ bool ClipboardController::paste() {
   }
 
   const QString text = QApplication::clipboard()->text();
+  const auto table = clipboardTableMarkdown(text);
+  if (!table.isEmpty())
+    return inputController_->insertText(table);
   return text.isEmpty() ? false : inputController_->insertText(text);
 }
 

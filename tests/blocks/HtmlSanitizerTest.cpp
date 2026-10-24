@@ -87,6 +87,14 @@ void testMermaidSvgMetadataMatchesDomPurify() {
   require(preview == QStringLiteral("<u>AD</u>"), QStringLiteral("Preview SVG subtree policy must remain strict"));
 }
 
+void testClipboardUsesPreviewPolicyAndPreservesHidden() {
+  const auto input = QStringLiteral("<span hidden onclick='bad()'>Hidden</span><a href='javascript:bad()'>Link</a>"
+                                    "<svg><text>Icon</text></svg><script>bad()</script><img src='image.png'>");
+  const auto clipboard = kSanitizer.sanitizedClipboard(input);
+  require(clipboard == kSanitizer.sanitizedPreview(input).replace("<span>", "<span hidden=\"\">"),
+          QStringLiteral("Clipboard preserves hidden without changing active content / URL policy: %1").arg(clipboard));
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -100,5 +108,6 @@ int main(int argc, char** argv) {
   testJavascriptSchemeStillNeutralized();
   testDataSvgStillBlocked();
   testMermaidSvgMetadataMatchesDomPurify();
+  testClipboardUsesPreviewPolicyAndPreservesHidden();
   return 0;
 }

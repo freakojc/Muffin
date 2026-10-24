@@ -1,10 +1,22 @@
 #include "app/CommandRegistry.h"
+#include "editor/ShortcutSettings.h"
 
 #include <utility>
 
 namespace muffin {
 
 CommandRegistry::CommandRegistry(QObject* parent) : QObject(parent) {
+  connect(&ShortcutSettings::instance(), &ShortcutSettings::changed, this, [this] {
+    for (auto it = actions_.cbegin(); it != actions_.cend(); ++it)
+      applyShortcut(it.key(), it.value());
+  });
+}
+
+void CommandRegistry::applyShortcut(const QString& id, QAction* action) {
+  const auto fallback = defaultShortcuts_.value(id);
+  const auto shortcut = ShortcutSettings::instance().sequence(id, fallback);
+  action->setShortcut(shortcut);
+  action->setShortcutContext(shortcut == fallback ? defaultContexts_.value(id) : Qt::WindowShortcut);
 }
 
 QAction* CommandRegistry::action(const QString& id) const {
@@ -17,12 +29,17 @@ QAction* CommandRegistry::registerAction(QString id, QAction* action) {
   }
   const QString actionId = std::move(id);
   actions_.insert(actionId, action);
+  defaultShortcuts_.insert(actionId, action->shortcut());
+  defaultContexts_.insert(actionId, action->shortcutContext());
+  applyShortcut(actionId, action);
   attachHandler(actionId, action);
   return action;
 }
 
 void CommandRegistry::clearActions() {
   actions_.clear();
+  defaultShortcuts_.clear();
+  defaultContexts_.clear();
 }
 
 void CommandRegistry::bind(const QString& id, std::function<void()> handler) {

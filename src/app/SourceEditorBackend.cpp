@@ -150,22 +150,22 @@ void SourceEditorBackend::pasteAsPlainText() {
   paste();
 }
 void SourceEditorBackend::toggleBold() {
-  editor_->insertText(QStringLiteral("****"));
+  editor_->toggleInlineMarkup(QStringLiteral("**"), QStringLiteral("**"));
 }
 void SourceEditorBackend::toggleItalic() {
-  editor_->insertText(QStringLiteral("**"));
+  editor_->toggleInlineMarkup(QStringLiteral("*"), QStringLiteral("*"));
 }
 void SourceEditorBackend::toggleCode() {
-  editor_->insertText(QStringLiteral("``"));
+  editor_->toggleInlineMarkup(QStringLiteral("`"), QStringLiteral("`"));
 }
 void SourceEditorBackend::toggleStrikethrough() {
-  editor_->insertText(QStringLiteral("~~~~"));
+  editor_->toggleInlineMarkup(QStringLiteral("~~"), QStringLiteral("~~"));
 }
 void SourceEditorBackend::toggleInlineMath() {
-  editor_->insertText(QStringLiteral("$$"));
+  editor_->toggleInlineMarkup(QStringLiteral("$"), QStringLiteral("$"));
 }
 void SourceEditorBackend::toggleUnderline() {
-  editor_->insertText(QStringLiteral("<u></u>"));
+  editor_->toggleInlineMarkup(QStringLiteral("<u>"), QStringLiteral("</u>"));
 }
 void SourceEditorBackend::insertLink() {
   const auto start = editor_->selectionStart();

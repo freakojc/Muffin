@@ -9,12 +9,15 @@
 #include "app/PrefsFilesPage.h"
 #include "app/PreferencesDialog.h"
 #include "app/PrefsExportPage.h"
+#include "app/PrefsShortcutsPage.h"
+#include "editor/ShortcutSettings.h"
 #include "editor/EditorView.h"
 #include "editor/SourceEditorWidget.h"
 #include "editor/VirtualSourceEdit.h"
 #include "render/BlockLayout.h"
 #include "render/ImageLoader.h"
 #include "render/LayoutResources.h"
+#include "projection/SelectionSerializer.h"
 
 #include "../TestUtils.h"
 #include "../../scripts/MemoryLifecycleAudit.h"
@@ -39,6 +42,7 @@
 #include <QLayout>
 #include <QLineEdit>
 #include <QInputMethodEvent>
+#include <QKeySequenceEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QProgressDialog>
@@ -549,6 +553,85 @@ void noteLinkMoveAndConflicts() {
           "stale preview preserves externally edited bytes");
 }
 
+void configurableShortcuts() {
+  auto& shortcuts = ShortcutSettings::instance();
+  for (bool source : {false, true}) {
+    Fixture f;
+    auto* document = f.open(f.file("shortcuts.md", QStringLiteral("中文 value\n")));
+    if (source)
+      action(f.window, "Source Code Mode")->trigger();
+    QWidget* input = source ? static_cast<QWidget*>(document->editor->findChild<VirtualSourceEdit*>())
+                            : static_cast<QWidget*>(document->renderView);
+    const auto select = [&] {
+      if (source)
+        document->editor->setSelection(0, 2);
+      else
+        document->editorController.selection().setSelection(
+            {document->editorController.cursorForSourceOffset(0), document->editorController.cursorForSourceOffset(2)});
+      input->setFocus();
+      QApplication::processEvents();
+    };
+    PrefsShortcutsPage page;
+    auto* filter = page.findChild<QLineEdit*>("ShortcutFilter");
+    auto* sequence = page.findChild<QKeySequenceEdit*>("ShortcutSequence");
+    auto* apply = page.findChild<QPushButton*>("ShortcutApply");
+    require(filter && sequence && apply, "shortcut preferences have searchable command and recorder");
+    filter->setText("format.bold");
+    const QKeySequence custom(Qt::CTRL | Qt::ALT | Qt::Key_Left);
+    sequence->setKeySequence(custom);
+    require(apply->isEnabled(), "valid custom shortcut can be applied");
+    apply->click();
+    require(action(f.window, "Bold")->shortcut() == custom, "shortcut updates existing action immediately");
+    select();
+    QTest::keyClick(input, Qt::Key_Left, Qt::ControlModifier | Qt::AltModifier);
+    require(document->session.markdownText().toString().startsWith(QStringLiteral("**中文**")),
+            QStringLiteral("custom shortcut formats in %1 editing: %2; focus=%3 enabled=%4")
+                .arg(source ? "source" : "render", document->session.markdownText().toString(),
+                     QApplication::focusWidget() ? QApplication::focusWidget()->metaObject()->className() : "none")
+                .arg(action(f.window, "Bold")->isEnabled()));
+    action(f.window, "Undo")->trigger();
+
+    filter->setText("format.italic");
+    sequence->setKeySequence(custom);
+    require(apply->text() == "Reassign", "conflict is shown before reassignment");
+    apply->click();
+    require(action(f.window, "Bold")->shortcut().isEmpty() && action(f.window, "Italic")->shortcut() == custom,
+            "explicit reassignment clears previous owner");
+    sequence->setKeySequence(QKeySequence(Qt::Key_A));
+    require(!apply->isEnabled(), "typing keys cannot be stolen by a window shortcut");
+    sequence->setKeySequence(QKeySequence("Ctrl+Left"));
+    require(!apply->isEnabled(), "editor navigation keys remain available");
+    shortcuts.clearOverride("format.bold");
+    shortcuts.clearOverride("format.italic");
+
+    const QKeySequence copyKey(Qt::CTRL | Qt::ALT | Qt::Key_F12);
+    shortcuts.setOverride("edit.copy", copyKey);
+    select();
+    QApplication::clipboard()->setText("sentinel");
+    QTest::keyClick(input, Qt::Key_C, Qt::ControlModifier);
+    require(QApplication::clipboard()->text() == "sentinel", "old source editor fallback shortcut is disabled");
+    QTest::keyClick(input, Qt::Key_F12, Qt::ControlModifier | Qt::AltModifier);
+    require(QApplication::clipboard()->text() == QStringLiteral("中文"), "new copy shortcut works in both editors");
+    shortcuts.clearOverride("edit.copy");
+    require(action(f.window, "Copy")->shortcut() == QKeySequence(QKeySequence::Copy), "restore default action");
+    shortcuts.setOverride("edit.select_all", QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_F10));
+    select();
+    const auto selectedText = [&] {
+      if (source)
+        return document->editor->selectedText();
+      return SelectionSerializer()
+          .exportSelection({&document->session.document(), document->editorController.selection().selection(),
+                            SelectionExportFormat::Markdown})
+          .text;
+    };
+    QTest::keyClick(input, Qt::Key_A, Qt::ControlModifier);
+    require(selectedText() == QStringLiteral("中文"), "old select-all shortcut no longer selects");
+    QTest::keyClick(input, Qt::Key_F10, Qt::ControlModifier | Qt::AltModifier);
+    require(selectedText() == document->session.markdownText().toString(), "custom select-all covers the document");
+    shortcuts.clearOverride("edit.select_all");
+  }
+}
+
 void continuousEditingWorkflow() {
   // Exercise the same document through real widget input and window commands,
   // without resetting its AST or history between individual editing operations.
@@ -793,8 +876,8 @@ void restrictedFormattingActions() {
           "valid selection clears the unavailable explanation");
   action(f.window, "Source Code Mode")->trigger();
   QApplication::processEvents();
-  require(!underline->isEnabled() && underline->toolTip().contains("live editing"),
-          "source formatting limit explains which mode to use");
+  require(underline->isEnabled() && !underline->toolTip().contains("live editing"),
+          "source formatting commands are enabled and clear the obsolete mode limitation");
   document->editor->setSelection(4, 1); // backwards selection
   QApplication::processEvents();
   require(link->isEnabled(), "source single-line link enabled");
@@ -2908,6 +2991,7 @@ int main(int argc, char** argv) {
   if (QCoreApplication::arguments().contains(QStringLiteral("--note-links")))
     return 0;
   runTest("continuousEditingWorkflow", continuousEditingWorkflow);
+  runTest("configurableShortcuts", configurableShortcuts);
   runTest("imeSelectionReplacementWorkflow", imeSelectionReplacementWorkflow);
   runTest("restrictedFormattingActions", restrictedFormattingActions);
   if (QCoreApplication::arguments().contains(QStringLiteral("--editing-workflow")))

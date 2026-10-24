@@ -10,6 +10,7 @@
 #include "app/PrefsGeneralPage.h"
 #include "app/PrefsMarkdownPage.h"
 #include "app/PrefsExportPage.h"
+#include "app/PrefsShortcutsPage.h"
 
 #include <QEvent>
 #include <QHBoxLayout>
@@ -27,7 +28,7 @@ namespace {
 // UI language.
 const QStringList kCategoryKeys = {
     QStringLiteral("general"), QStringLiteral("appearance"), QStringLiteral("editor"), QStringLiteral("markdown"),
-    QStringLiteral("image"),   QStringLiteral("files"),      QStringLiteral("export"),
+    QStringLiteral("image"),   QStringLiteral("files"),      QStringLiteral("export"), QStringLiteral("shortcuts"),
 };
 const QString kLastCategorySetting = QStringLiteral("preferences/lastCategory");
 } // namespace
@@ -123,6 +124,13 @@ muffin::PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent) 
     contentStack_->addWidget(scroll);
   }
 
+  {
+    auto* scroll = makeScrollArea();
+    shortcutsPage_ = new PrefsShortcutsPage(scroll);
+    scroll->setWidget(shortcutsPage_);
+    contentStack_->addWidget(scroll);
+  }
+
   connect(categoryList_, &QListWidget::currentRowChanged, contentStack_, &QStackedWidget::setCurrentIndex);
   // Remember the last-viewed category so the dialog reopens on it next time. retranslateUi sets the
   // row with signals blocked, so this only fires on genuine user navigation.
@@ -205,7 +213,8 @@ void muffin::PreferencesDialog::retranslateUi() {
   }
 
   const QStringList categories = {
-      tr("General"), tr("Appearance"), tr("Editor"), QStringLiteral("Markdown"), tr("Image"), tr("Files"), tr("Export"),
+      tr("General"), tr("Appearance"), tr("Editor"), QStringLiteral("Markdown"),
+      tr("Image"),   tr("Files"),      tr("Export"), tr("Keyboard Shortcuts"),
   };
 
   int currentRow = categoryList_->currentRow();
@@ -215,7 +224,8 @@ void muffin::PreferencesDialog::retranslateUi() {
     // preserved by the branch above, so we only restore on the initial build.
     const QString savedKey = QSettings().value(kLastCategorySetting).toString();
     const int restored = kCategoryKeys.indexOf(savedKey);
-    currentRow = (restored >= 0 && restored < categories.size()) ? restored : categories.size() - 1;
+    currentRow =
+        (restored >= 0 && restored < categories.size()) ? restored : kCategoryKeys.indexOf(QStringLiteral("export"));
   }
 
   categoryList_->blockSignals(true);
@@ -251,6 +261,9 @@ void muffin::PreferencesDialog::retranslateUi() {
   }
   if (appearancePage_) {
     appearancePage_->retranslateUi();
+  }
+  if (shortcutsPage_) {
+    shortcutsPage_->retranslateUi();
   }
   // General page handles its own retranslation via LanguageManager
 }

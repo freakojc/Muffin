@@ -588,6 +588,32 @@ void testPreeditReflowsSourceAndCommitsAtCaret() {
 
 } // namespace
 
+void testLongFenceBoundedShaping() {
+  QFont font(QStringLiteral("Consolas"));
+  font.setPixelSize(16);
+  const QString row = QStringLiteral("中文🙂 é const int value = 123;   \n");
+  const QString source = row.repeated(12000);
+  LiteralTextLayout layout(source, font, 250, 22, true);
+  require(layout.cachedParagraphCount() == 0, "long fence retains geometry without all Qt shaping engines");
+  for (int i = 0; i < 12000; i += 7) {
+    const qsizetype offset = i * row.size() + 8;
+    const auto caret = layout.cursorRect(offset);
+    require(layout.offsetAtPoint(caret.center()) == offset,
+            "evicted paragraph reshapes with identical Unicode/wrapped caret geometry");
+  }
+  require(layout.cachedParagraphCount() <= 256 * 1024 / (row.size() - 1 + 128),
+          "shaping working set stays bounded while navigating beyond cache capacity");
+  QImage image(300, 200, QImage::Format_ARGB32_Premultiplied);
+  image.fill(Qt::white);
+  QPainter painter(&image);
+  const auto target = layout.cursorRect(9000 * row.size());
+  painter.setClipRect(image.rect());
+  layout.draw(painter, {0, -target.top()}, {});
+  painter.end();
+  require(layout.offsetAtPoint(layout.cursorRect(8).center()) == 8,
+          "painting distant rows cannot invalidate earlier hit testing");
+}
+
 int main(int argc, char** argv) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
   QApplication app(argc, argv);
@@ -605,5 +631,6 @@ int main(int argc, char** argv) {
   runTest("overflowing trailing space carets", testOverflowingTrailingSpaceCarets);
   runTest("horizontal scroll and vertical navigation", testHorizontalScrollAndNavigation);
   runTest("source preedit and commit", testPreeditReflowsSourceAndCommitsAtCaret);
+  runTest("long fence bounded shaping", testLongFenceBoundedShaping);
   QApplication::clipboard()->clear();
 }

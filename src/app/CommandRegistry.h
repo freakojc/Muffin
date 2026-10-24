@@ -23,8 +23,11 @@ public:
 
 private:
   void attachHandler(const QString& id, QAction* action);
+  void applyShortcut(const QString& id, QAction* action);
 
   QHash<QString, QAction*> actions_;
+  QHash<QString, QKeySequence> defaultShortcuts_;
+  QHash<QString, Qt::ShortcutContext> defaultContexts_;
   QHash<QString, std::function<void()>> handlers_;
 };
 

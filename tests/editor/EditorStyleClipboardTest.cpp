@@ -9,10 +9,14 @@
 #include "editor/InputController.h"
 #include "editor/SelectionController.h"
 #include "projection/SelectionSerializer.h"
+#include "projection/HtmlMarkdownImporter.h"
 #include "EditorTestUtils.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QKeyEvent>
+#include <QMimeData>
+#include <QSettings>
+#include <QTemporaryDir>
 #include <iostream>
 #include <variant>
 
@@ -414,11 +418,218 @@ void testClearFormattingUndoRedo() {
   require(session.markdownText().toString() == QStringLiteral("bold and italic"),
           "clearFormatting redo should re-clear");
 }
+void testBrowserHeadingClipboard() {
+  const auto github = QStringLiteral(
+      "<p>MikuDanceStudio: <a href='https://learnmmd.com/downloads/'>MikuMikuDance</a>.</p>"
+      "<div class='markdown-heading'><h3 class='heading-element' style='font-weight:600'>Features</h3>"
+      "<a class='anchor' aria-label='Permalink: Features' href='https://github.com/example/studio#features' "
+      "style='opacity:0'><svg aria-hidden='true'><path d='M0 0'/></svg></a></div>"
+      "<ul><li><strong>Models</strong>: PMD / PMX</li><li><strong>UI</strong>: EN/JP</li></ul>"
+      "<div class='markdown-heading'><h3>Building from Source</h3>"
+      "<a class='anchor' href='https://github.com/example/studio#building-from-source'><svg></svg></a></div>"
+      "<p>Dependencies: <a href='https://cmake.org/'>CMake</a>.</p>");
+  const auto expected = QStringLiteral("MikuDanceStudio: [MikuMikuDance](https://learnmmd.com/downloads/)\\.\n\n"
+                                       "### Features\n\n- **Models**: PMD / PMX\n- **UI**: EN/JP\n\n"
+                                       "### Building from Source\n\nDependencies: [CMake](https://cmake.org/)\\.");
+  require(importHtmlMarkdown(github) == expected,
+          QStringLiteral("GitHub heading permalink controls must not become empty links: ") +
+              importHtmlMarkdown(github));
+  require(importHtmlMarkdown("<h3><a href='#features'><svg></svg></a>Features</h3>") == "### Features",
+          "permalink icons inside headings do not alter heading text");
+  require(importHtmlMarkdown("<h3><a href='guide.md#features'><strong>Features</strong></a></h3>") ==
+              "### [**Features**](guide.md#features)",
+          "headings retain real links and emphasis");
+  require(importHtmlMarkdown("<p><a href='guide.md'><img src='icon.png' alt='Guide'></a></p>") ==
+              "[![Guide](icon.png)](guide.md)",
+          "linked images remain meaningful link content");
+  require(importHtmlMarkdown("<h3>Features<a href='#features'> \n </a></h3>") == "### Features",
+          "whitespace-only heading links are omitted");
+
+  DocumentSession session;
+  SelectionController selection;
+  UndoStack undoStack;
+  BrushQueue brushQueue;
+  InputController input;
+  ClipboardController clipboard;
+  wireInput(input, session, selection, undoStack, brushQueue);
+  wireClipboard(clipboard, session, selection, input);
+  session.setMarkdownText(QStringLiteral("replace me"), false);
+  setSelection(selection, blockAt(session, 0), 0, 10);
+  auto* mime = new QMimeData;
+  mime->setHtml("<html><body><p>Outside selection</p><!--StartFragment-->" + github +
+                "<!--EndFragment--><p>Also outside selection</p></body></html>");
+  mime->setText(QStringLiteral("Plain text fallback"));
+  QApplication::clipboard()->setMimeData(mime);
+  require(clipboard.paste(), "paste a browser HTML fragment");
+  require(session.markdownText().toString() == expected,
+          "browser paste retains headings, list formatting and actual links without page controls");
+  const auto outline = session.document().outline();
+  require(outline.size() == 2 && outline[0].level == 3 && outline[0].title == "Features" &&
+              outline[1].title == "Building from Source",
+          "pasted browser headings remain clean in the document outline");
+}
+
+void testRichClipboardInterop() {
+  require(importHtmlMarkdown("<p>- literal</p><p>1. literal</p><p>$value$ &amp;amp;</p>") ==
+              "\\- literal\n\n1\\. literal\n\n\\$value\\$ \\&amp;",
+          "HTML text cannot accidentally become Markdown lists, math or entities");
+  require(importHtmlMarkdown("<p><code> x </code> <code>   </code></p>") == "`  x  ` `   `",
+          "HTML inline code preserves significant leading and trailing spaces");
+  require(importHtmlMarkdown("<p><b>one</b> <i>two</i> <a href='https://example.com'>three</a></p>") ==
+              "**one** *two* [three](https://example.com)",
+          "HTML inline spacing is preserved independently of fonts");
+  const auto importedTable = importHtmlMarkdown("<table><tr><th>Name</th><th>Value</th></tr>"
+                                                "<tr><td><b>bold</b></td><td>a<br>b</td></tr></table>");
+  require(importedTable.contains("| **bold** | a  <br>b |"),
+          QStringLiteral("HTML spreadsheet preserves cell structure and rich content: ") + importedTable);
+  require(importHtmlMarkdown("<pre><code class='language-cpp'>int a = 1;\n\n  x();\n</code></pre>") ==
+              "```cpp\nint a = 1;\n\n  x();\n```",
+          "HTML code retains blank lines and indentation");
+  const auto unsafe = importHtmlMarkdown("<p><a href='javascript:alert(1)'>safe label</a>"
+                                         "<img src='https://example.com/a.png' alt='image'></p><script>bad()</script>");
+  require(!unsafe.contains("javascript") && !unsafe.contains("bad()") &&
+              unsafe.contains("![image](https://example.com/a.png)"),
+          "HTML import shares URL policy and strips active content");
+  DocumentSession session;
+  SelectionController selection;
+  UndoStack undoStack;
+  BrushQueue brushQueue;
+  InputController input;
+  ClipboardController clipboard;
+  wireInput(input, session, selection, undoStack, brushQueue);
+  wireClipboard(clipboard, session, selection, input);
+  const auto reset = [&] {
+    session.setMarkdownText(QStringLiteral("text"), false);
+    setSelection(selection, blockAt(session, 0), 0, 4);
+  };
+  reset();
+  auto* rich = new QMimeData;
+  rich->setHtml(
+      QStringLiteral("<h2>中文标题</h2><p><strong>重点</strong>与 <a href=\"https://example.com\">链接</a></p>"
+                     "<ul><li>第一项</li><li>第二项</li></ul><script>unwanted()</script>"));
+  rich->setText(QStringLiteral("plain fallback"));
+  QApplication::clipboard()->setMimeData(rich);
+  require(clipboard.paste(), "paste rich content");
+  const auto imported = session.markdownText().toString();
+  require(imported.contains(QStringLiteral("## 中文标题")) && imported.contains(QStringLiteral("**重点**")) &&
+              imported.contains(QStringLiteral("[链接](https://example.com)")) &&
+              imported.contains(QStringLiteral("第一项")) && !imported.contains("unwanted"),
+          QStringLiteral("rich paste preserves semantic Markdown: ") + imported);
+  reset();
+  require(clipboard.pasteAsPlainText() && session.markdownText().toString() == "plain fallback",
+          "plain paste explicitly ignores HTML");
+
+  reset();
+  QApplication::clipboard()->setText(QStringLiteral("名称\t说明\r\n中文\t\"换行\n单元格\"\r\n"));
+  require(clipboard.paste(), "paste spreadsheet cells");
+  require(session.markdownText().toString().contains(QStringLiteral("| 中文 | 换行<br>单元格 |")) &&
+              blockAt(session, 0)->type() == BlockType::Table,
+          "spreadsheet TSV becomes an editable table");
+
+  session.setMarkdownText(QStringLiteral("**中文** [链接](note.md)"), false);
+  const auto* paragraph = blockAt(session, 0);
+  selection.setSelection(
+      {inlineCursor(paragraph->id(), 0, 0), inlineCursor(paragraph->id(), 5, session.markdownText().size())});
+  const auto preference = QSettings().value("editor/copyAsMarkdown");
+  QSettings().setValue("editor/copyAsMarkdown", false);
+  require(clipboard.copy(), "copy rich selection");
+  const auto* copied = QApplication::clipboard()->mimeData();
+  require(copied->hasHtml() && copied->hasFormat("text/markdown") && copied->html().contains("<strong>") &&
+              !copied->text().contains("**"),
+          QStringLiteral(
+              "copy provides rich HTML and Markdown independently of plain text preference: formats=%1 html=%2 text=%3")
+              .arg(copied->formats().join(','), copied->html(), copied->text()));
+  const auto exact = QString::fromUtf8(copied->data("text/markdown"));
+  reset();
+  require(clipboard.paste() && session.markdownText().toString() == exact,
+          "Muffin round trip uses exact Markdown MIME");
+  if (preference.isValid())
+    QSettings().setValue("editor/copyAsMarkdown", preference);
+  else
+    QSettings().remove("editor/copyAsMarkdown");
+
+  session.setMarkdownText(QStringLiteral("```cpp\nvalue\n```\n"), false);
+  EditorView literalView;
+  literalView.setDocument(session.document());
+  EditorController literalEditor;
+  literalEditor.attach(&session, &literalView);
+  setCursor(literalEditor.selection(), blockAt(session, 0), 0);
+  require(literalEditor.codeFenceController().enterEditMode(), "literal paste fixture enters code editing");
+  auto* code = new QMimeData;
+  code->setHtml("<b>changed</b>");
+  code->setText("a\tb\nc\td");
+  QApplication::clipboard()->setMimeData(code);
+  require(literalEditor.clipboardController().paste() && session.markdownText().toString().contains("a\tb\nc\td"),
+          "literal paste keeps original tabs and text, ignoring HTML and table conversion");
+}
+
+void testHtmlImportStructure() {
+  struct Case {
+    const char* html;
+    const char* markdown;
+  };
+  const Case cases[] = {
+      {"<div><h3>Features<a href='#features'><strong><code></code></strong></a></h3></div>", "### Features"},
+      {"<h3>Features</h3><a href='#features'><code></code><u></u><em></em></a><p>Body</p>", "### Features\n\nBody"},
+      {"<h3>Features</h3><a href='#features'>\xe2\x80\x8b</a>", "### Features"},
+      {"<p>one<a href='#empty'><span> </span></a>two</p>", "one two"},
+      {"<h3>Features</h3><h4><b></b></h4><blockquote><p><br></p></blockquote><p>Body</p>", "### Features\n\nBody"},
+      {"<p><code></code><strong></strong><a href='#empty'><img></a></p>", ""},
+      {"<div>\n  <section>\n<h3>Features</h3>\n </section>\n</div>\n<p>Body</p>", "### Features\n\nBody"},
+      {"<div>before<section><p>middle</p></section>after</div>", "before\n\nmiddle\n\nafter"},
+      {"<div><h3>Features</h3></div>\n<div><ul><li><b>Models</b></li><li>Motion</li></ul></div>",
+       "### Features\n\n- **Models**\n- Motion"},
+      {"<p>before</p><div><pre><code>one\n\n\nthree\n</code></pre></div><p>after</p>",
+       "before\n\n```\none\n\n\nthree\n```\n\nafter"},
+      {"<h3>Features<span hidden><a href='#features'>Permalink</a></span></h3>", "### Features"},
+      {"<div hidden='until-found'><h3>Hidden</h3></div><p>Body</p>", "Body"},
+      {"<custom-wrapper hidden><h3>Hidden</h3></custom-wrapper><p>Body</p>", "Body"},
+      {"<custom-wrapper style='display:none'><h3>Hidden</h3></custom-wrapper><p>Body</p>", "Body"},
+      {"<h3>Features<a href='#features' style='DISPLAY: /* note */ none !important'>#</a></h3>", "### Features"},
+      {"<p><span style='display:none!important; display:inline'>Hidden</span>Body</p>", "Body"},
+      {"<p><span style='display:none; display:inline'>Visible</span></p>", "Visible"},
+      {"<h3><a href='guide.md#features'><strong>Features</strong></a></h3>", "### [**Features**](guide.md#features)"},
+      {"<a href='guide.md#features'><div><h3>Features</h3><p>Body</p></div></a>",
+       "### [Features](guide.md#features)\n\n[Body](guide.md#features)"},
+      {"<a href='guide.md'><ul><li>Feature</li><li>Motion</li></ul></a>",
+       "- [Feature](guide.md)\n- [Motion](guide.md)"},
+      {"<strong><p>First</p><p>Second</p></strong>", "**First**\n\n**Second**"},
+      {"<a href='guide.md'><table><tr><td>First</td><td>Last</td></tr></table></a>",
+       "| [First](guide.md) | [Last](guide.md) |\n| --- | --- |"},
+      {"<a href='guide.md'><pre><code> one\n\n two\n</code></pre></a>", "```\n one\n\n two\n```"},
+      {"<p><a href='guide.md'> <b>Guide</b> </a>text</p>", "[**Guide**](guide.md) text"},
+      {"<p><a href='guide.md'><img src='icon.png' alt=''></a></p>", "[![](icon.png)](guide.md)"},
+      {"<p><a href='guide.md'><img alt='Guide'></a></p>", "[Guide](guide.md)"},
+      {"<p><span aria-hidden='true'>Visible</span> text</p>", "Visible text"},
+      {"<p><span style='font-weight:7000'>normal</span> <span style='font-weight:700'>bold</span></p>",
+       "normal **bold**"},
+      {"<p><span style='font-weight:700; font-weight:normal'>normal</span></p>", "normal"},
+      {"<table><tr><td>First</td><td></td></tr><tr><td></td><td>Last</td></tr></table>",
+       "| First |  |\n| --- | --- |\n|  | Last |"},
+      {"<table><tr><td></td><td></td></tr><tr><td>First</td><td>Last</td></tr></table>",
+       "|  |  |\n| --- | --- |\n| First | Last |"},
+      {"<table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>First</td><td>Last</td></tr></tbody></table>",
+       "|  |  |\n| --- | --- |\n| First | Last |"},
+      {"<pre><code>\xe2\x80\x8b\n</code></pre>", "```\n\xe2\x80\x8b\n```"},
+  };
+  for (const auto& test : cases) {
+    const auto result = importHtmlMarkdown(QString::fromUtf8(test.html));
+    require(result == QString::fromUtf8(test.markdown),
+            QStringLiteral("HTML content projection mismatch:\nHTML: %1\nExpected: %2\nActual: %3")
+                .arg(QString::fromUtf8(test.html), QString::fromUtf8(test.markdown), result));
+  }
+}
+
 int main(int argc, char** argv) {
   if (qgetenv("QT_QPA_PLATFORM").isEmpty()) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
   }
   QApplication app(argc, argv);
+  QTemporaryDir settingsDirectory;
+  require(settingsDirectory.isValid(), "temporary clipboard test settings");
+  QCoreApplication::setOrganizationName(QStringLiteral("MuffinClipboardTest"));
+  QSettings::setDefaultFormat(QSettings::IniFormat);
+  QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settingsDirectory.path());
 #define RUN_TEST(test) runTest(#test, test)
   RUN_TEST(testClearFormatting);
   RUN_TEST(testClearFormattingUndoRedo);
@@ -429,6 +640,9 @@ int main(int argc, char** argv) {
   RUN_TEST(testHeadingAndListItemStylize);
   RUN_TEST(testStylizeCrossParagraphSelectionWrap);
   RUN_TEST(testClipboardPlainText);
+  RUN_TEST(testBrowserHeadingClipboard);
+  RUN_TEST(testRichClipboardInterop);
+  RUN_TEST(testHtmlImportStructure);
   RUN_TEST(testClipboardMarkdownPreservesLinePrefix);
   RUN_TEST(testClipboardCrossMarkdownPreservesStartPrefix);
   RUN_TEST(testSelectionSerializerFormats);

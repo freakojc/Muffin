@@ -15,7 +15,7 @@
 namespace muffin {
 namespace {
 
-enum class UnsafeUrlHandling { ReplaceWithHash, DropAttribute };
+enum class SanitizationTarget { Preview, Clipboard, Mermaid };
 
 // Elements whose entire subtree is dropped: active content (script, style),
 // embeds/frames, document-level metadata, and foreign markup which can carry
@@ -68,20 +68,21 @@ const QSet<QString>& voidTags() {
 // Attributes kept on surviving elements (after the on* and URL checks).
 const QSet<QString>& safeAttributes() {
   static const QSet<QString> attrs = {
-      QStringLiteral("class"),       QStringLiteral("id"),          QStringLiteral("style"),
-      QStringLiteral("title"),       QStringLiteral("lang"),        QStringLiteral("dir"),
-      QStringLiteral("alt"),         QStringLiteral("width"),       QStringLiteral("height"),
-      QStringLiteral("colspan"),     QStringLiteral("rowspan"),     QStringLiteral("span"),
-      QStringLiteral("start"),       QStringLiteral("type"),        QStringLiteral("reversed"),
-      QStringLiteral("value"),       QStringLiteral("open"),        QStringLiteral("align"),
-      QStringLiteral("valign"),      QStringLiteral("color"),       QStringLiteral("size"),
-      QStringLiteral("href"),        QStringLiteral("src"),         QStringLiteral("cite"),
-      QStringLiteral("poster"),      QStringLiteral("background"),  QStringLiteral("action"),
-      QStringLiteral("formaction"),  QStringLiteral("srcset"),      QStringLiteral("usemap"),
-      QStringLiteral("name"),        QStringLiteral("target"),      QStringLiteral("rel"),
-      QStringLiteral("datetime"),    QStringLiteral("abbr"),        QStringLiteral("scope"),
-      QStringLiteral("headers"),     QStringLiteral("summary"),     QStringLiteral("nowrap"),
-      QStringLiteral("cellpadding"), QStringLiteral("cellspacing"), QStringLiteral("border")};
+      QStringLiteral("class"),       QStringLiteral("id"),       QStringLiteral("style"),
+      QStringLiteral("title"),       QStringLiteral("lang"),     QStringLiteral("dir"),
+      QStringLiteral("alt"),         QStringLiteral("width"),    QStringLiteral("height"),
+      QStringLiteral("colspan"),     QStringLiteral("rowspan"),  QStringLiteral("span"),
+      QStringLiteral("start"),       QStringLiteral("type"),     QStringLiteral("reversed"),
+      QStringLiteral("value"),       QStringLiteral("open"),     QStringLiteral("align"),
+      QStringLiteral("checked"),     QStringLiteral("disabled"), QStringLiteral("valign"),
+      QStringLiteral("color"),       QStringLiteral("size"),     QStringLiteral("href"),
+      QStringLiteral("src"),         QStringLiteral("cite"),     QStringLiteral("poster"),
+      QStringLiteral("background"),  QStringLiteral("action"),   QStringLiteral("formaction"),
+      QStringLiteral("srcset"),      QStringLiteral("usemap"),   QStringLiteral("name"),
+      QStringLiteral("target"),      QStringLiteral("rel"),      QStringLiteral("datetime"),
+      QStringLiteral("abbr"),        QStringLiteral("scope"),    QStringLiteral("headers"),
+      QStringLiteral("summary"),     QStringLiteral("nowrap"),   QStringLiteral("cellpadding"),
+      QStringLiteral("cellspacing"), QStringLiteral("border")};
   return attrs;
 }
 
@@ -124,15 +125,15 @@ QString scrubStyle(const QString& value) {
   return value;
 }
 
-void sanitizeNode(lxb_dom_node_t* node, QString& out, UnsafeUrlHandling unsafeUrlHandling);
+void sanitizeNode(lxb_dom_node_t* node, QString& out, SanitizationTarget target);
 
-void sanitizeChildren(lxb_dom_node_t* parent, QString& out, UnsafeUrlHandling unsafeUrlHandling) {
+void sanitizeChildren(lxb_dom_node_t* parent, QString& out, SanitizationTarget target) {
   for (lxb_dom_node_t* child = parent->first_child; child != nullptr; child = child->next) {
-    sanitizeNode(child, out, unsafeUrlHandling);
+    sanitizeNode(child, out, target);
   }
 }
 
-void sanitizeAttributes(lxb_dom_element_t* element, QString& out, UnsafeUrlHandling unsafeUrlHandling) {
+void sanitizeAttributes(lxb_dom_element_t* element, QString& out, SanitizationTarget target) {
   for (lxb_dom_attr_t* attr = lxb_dom_element_first_attribute(element); attr != nullptr;
        attr = lxb_dom_element_next_attribute(attr)) {
     size_t nameLen = 0;
@@ -143,7 +144,8 @@ void sanitizeAttributes(lxb_dom_element_t* element, QString& out, UnsafeUrlHandl
     // Drop event handlers and any attribute outside the allowlist.
     if (name.startsWith(QStringLiteral("on")))
       continue;
-    if (!safeAttributes().contains(name))
+    if (!safeAttributes().contains(name) &&
+        !(target == SanitizationTarget::Clipboard && name == QLatin1String("hidden")))
       continue;
 
     size_t valueLen = 0;
@@ -157,7 +159,7 @@ void sanitizeAttributes(lxb_dom_element_t* element, QString& out, UnsafeUrlHandl
         continue;
     } else if (urlAttributes().contains(name)) {
       if (!isSafeUrl(value, true)) {
-        if (unsafeUrlHandling == UnsafeUrlHandling::DropAttribute)
+        if (target == SanitizationTarget::Mermaid)
           continue;
         value = QStringLiteral("#");
       }
@@ -171,7 +173,7 @@ void sanitizeAttributes(lxb_dom_element_t* element, QString& out, UnsafeUrlHandl
   }
 }
 
-void sanitizeNode(lxb_dom_node_t* node, QString& out, UnsafeUrlHandling unsafeUrlHandling) {
+void sanitizeNode(lxb_dom_node_t* node, QString& out, SanitizationTarget target) {
   if (node->type == LXB_DOM_NODE_TYPE_TEXT) {
     size_t len = 0;
     const lxb_char_t* data = lxb_dom_node_text_content(node, &len);
@@ -189,30 +191,36 @@ void sanitizeNode(lxb_dom_node_t* node, QString& out, UnsafeUrlHandling unsafeUr
   const lxb_char_t* tagData = lxb_dom_element_local_name(element, &tagLen);
   const QString tag = QString::fromUtf8(reinterpret_cast<const char*>(tagData), static_cast<int>(tagLen)).toLower();
 
-  const bool mermaidSvg = unsafeUrlHandling == UnsafeUrlHandling::DropAttribute && tag == QLatin1String("svg");
+  const bool mermaidSvg = target == SanitizationTarget::Mermaid && tag == QLatin1String("svg");
   if (dropSubtreeTags().contains(tag) && !mermaidSvg) {
     return; // drop the entire subtree
   }
+  QString outputTag = tag;
   if (!safeTags().contains(tag) && !mermaidSvg) {
-    sanitizeChildren(node, out, unsafeUrlHandling); // unwrap: keep children, drop the wrapper
-    return;
+    if (target != SanitizationTarget::Clipboard) {
+      sanitizeChildren(node, out, target); // unwrap: keep children, drop the wrapper
+      return;
+    }
+    // Keep visibility metadata on unknown inert wrappers without retaining a
+    // custom element. Active/foreign subtrees have already been removed above.
+    outputTag = QStringLiteral("span");
   }
 
   out += QLatin1Char('<');
-  out += tag;
-  sanitizeAttributes(element, out, unsafeUrlHandling);
-  if (voidTags().contains(tag)) {
+  out += outputTag;
+  sanitizeAttributes(element, out, target);
+  if (voidTags().contains(outputTag)) {
     out += QLatin1Char('>'); // void: no closing tag, no children
     return;
   }
   out += QLatin1Char('>');
-  sanitizeChildren(node, out, unsafeUrlHandling);
+  sanitizeChildren(node, out, target);
   out += QStringLiteral("</");
-  out += tag;
+  out += outputTag;
   out += QLatin1Char('>');
 }
 
-QString sanitizeHtml(QString html, UnsafeUrlHandling unsafeUrlHandling) {
+QString sanitizeHtml(QString html, SanitizationTarget target) {
   lxb_html_document_t* doc = lxb_html_document_create();
   if (!doc) {
     return escapeText(html);
@@ -228,7 +236,7 @@ QString sanitizeHtml(QString html, UnsafeUrlHandling unsafeUrlHandling) {
 
   QString out;
   if (lxb_html_body_element_t* body = lxb_html_document_body_element(doc)) {
-    sanitizeChildren(lxb_dom_interface_node(body), out, unsafeUrlHandling);
+    sanitizeChildren(lxb_dom_interface_node(body), out, target);
   }
 
   lxb_html_document_destroy(doc);
@@ -238,11 +246,15 @@ QString sanitizeHtml(QString html, UnsafeUrlHandling unsafeUrlHandling) {
 } // namespace
 
 QString HtmlSanitizer::sanitizedPreview(QString html) const {
-  return sanitizeHtml(std::move(html), UnsafeUrlHandling::ReplaceWithHash);
+  return sanitizeHtml(std::move(html), SanitizationTarget::Preview);
+}
+
+QString HtmlSanitizer::sanitizedClipboard(QString html) const {
+  return sanitizeHtml(std::move(html), SanitizationTarget::Clipboard);
 }
 
 QString HtmlSanitizer::sanitizedMermaidText(QString html) const {
-  return sanitizeHtml(std::move(html), UnsafeUrlHandling::DropAttribute);
+  return sanitizeHtml(std::move(html), SanitizationTarget::Mermaid);
 }
 
 } // namespace muffin

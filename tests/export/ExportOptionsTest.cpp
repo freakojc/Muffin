@@ -8,6 +8,7 @@
 #include <QRegularExpression>
 #include <QSettings>
 #include <QTemporaryDir>
+#include <QDir>
 
 using namespace muffin;
 
@@ -76,6 +77,50 @@ void imageDimensionsAndContent() {
   require(hasInk, "PNG contains painted document content");
 }
 
+void pdfHeadersFootersAndPageNumbers() {
+  DocumentSession document;
+  QString markdown = QStringLiteral("# 中文长文\n\n");
+  for (int i = 0; i < 80; ++i)
+    markdown += QStringLiteral("正文记录 ROW%1 中文内容与 English text，验证分页保留正文。\n\n")
+                    .arg(i, 3, 10, QLatin1Char('0'));
+  markdown += QStringLiteral("# 第二章\n\n```cpp\n");
+  for (int i = 0; i < 80; ++i)
+    markdown += QStringLiteral("int CODE%1 = %2; // 跨页代码\n").arg(i, 3, 10, QLatin1Char('0')).arg(i);
+  markdown += QStringLiteral("```\n\n最后一行 END_MARKER\n");
+  document.setMarkdownText(markdown, false);
+  QSettings().setValue("export/pdf/header", "${title} · ${author}");
+  QSettings().setValue("export/pdf/footer", "${fileName} | ${pageNo} of ${pageCount}");
+  QSettings().setValue("export/pdf/author", QStringLiteral("作者"));
+  QSettings().setValue("export/pdf/pageNumbers", true);
+  auto options = pdfExportOptions();
+  require(options.header.contains("${title}") && options.footer.contains("${pageCount}") && options.pageNumbers &&
+              options.author == QStringLiteral("作者"),
+          "PDF decoration settings are loaded");
+  options.breakOnHeading = true;
+  QTemporaryDir temporary;
+  const auto output = qEnvironmentVariable("MUFFIN_PDF_QA_DIRECTORY", temporary.path());
+  require(QDir().mkpath(output), "PDF QA directory");
+  for (int variant = 0; variant < 3; ++variant) {
+    options.pageLayout =
+        QPageLayout(QPageSize(QPageSize::A5), variant == 2 ? QPageLayout::Landscape : QPageLayout::Portrait,
+                    variant == 1 ? QMarginsF() : QMarginsF(10, 10, 10, 10), QPageLayout::Millimeter);
+    const auto path = QDir(output).filePath(QStringLiteral("decorated-%1.pdf").arg(variant));
+    require(exportNativePdf(path, document.document(), RenderTheme::defaultTheme(), QStringLiteral("notes/中文.md"),
+                            options),
+            "export decorated multipage PDF");
+    const auto data = QString::fromLatin1(read(path));
+    auto pages = QRegularExpression("/Type\\s*/Page\\b").globalMatch(data);
+    int count = 0;
+    while (pages.hasNext()) {
+      pages.next();
+      ++count;
+    }
+    require(count > 2, "decorations are tested across paragraphs, heading breaks and a long code block");
+  }
+  for (const auto& key : {"header", "footer", "author", "pageNumbers"})
+    QSettings().remove(QStringLiteral("export/pdf/") + key);
+}
+
 void formatOptionsAndQuotedArguments() {
   QSettings().setValue("export/docx/referenceDocument", "/notes/style template.docx");
   QSettings().setValue("export/docx/toc", true);
@@ -118,5 +163,6 @@ int main(int argc, char** argv) {
   QCoreApplication::setApplicationName("ExportOptions");
   runTest("pdfPageSettingsAndHeadingBreaks", pdfPageSettingsAndHeadingBreaks);
   runTest("imageDimensionsAndContent", imageDimensionsAndContent);
+  runTest("pdfHeadersFootersAndPageNumbers", pdfHeadersFootersAndPageNumbers);
   runTest("formatOptionsAndQuotedArguments", formatOptionsAndQuotedArguments);
 }

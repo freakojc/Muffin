@@ -68,27 +68,38 @@ template <typename Text> qsizetype sourceOffsetForLineColumn(const Text& text, i
   if (line <= 0 || column <= 0) {
     return -1;
   }
-  qsizetype offset = 0;
-  for (int currentLine = 1; currentLine < line; ++currentLine) {
-    const qsizetype newline = text.indexOf(QLatin1Char('\n'), offset);
-    if (newline < 0) {
-      return -1;
+  // PieceTable already maintains line positions across edits. Do not walk
+  // every preceding line when a menu predicate asks about a long code block.
+  if constexpr (requires { text.lineStartOffset(line); }) {
+    const auto start = text.lineStartOffset(line);
+    return start < 0 ? -1 : qMin<qsizetype>(text.size(), start + column - 1);
+  } else {
+    qsizetype offset = 0;
+    for (int currentLine = 1; currentLine < line; ++currentLine) {
+      const qsizetype newline = text.indexOf(QLatin1Char('\n'), offset);
+      if (newline < 0) {
+        return -1;
+      }
+      offset = newline + 1;
     }
-    offset = newline + 1;
+    return qMin<qsizetype>(text.size(), offset + column - 1);
   }
-  return qMin<qsizetype>(text.size(), offset + column - 1);
 }
 
 template <typename Text> qsizetype sourceOffsetForLineEnd(const Text& text, int line) {
   if (line <= 0) {
     return -1;
   }
-  const qsizetype offset = sourceOffsetForLineColumn(text, line, 1);
-  if (offset < 0) {
-    return -1;
+  if constexpr (requires { text.lineEndOffset(line); }) {
+    return text.lineEndOffset(line);
+  } else {
+    const qsizetype offset = sourceOffsetForLineColumn(text, line, 1);
+    if (offset < 0) {
+      return -1;
+    }
+    const qsizetype newline = text.indexOf(QLatin1Char('\n'), offset);
+    return newline < 0 ? text.size() : newline;
   }
-  const qsizetype newline = text.indexOf(QLatin1Char('\n'), offset);
-  return newline < 0 ? text.size() : newline;
 }
 
 // Byte offset of the first character on the line that contains `offset`. cmark reports indented

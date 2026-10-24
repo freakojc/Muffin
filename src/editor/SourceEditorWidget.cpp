@@ -60,6 +60,10 @@ qsizetype muffin::SourceEditorWidget::selectionEnd() const {
 bool muffin::SourceEditorWidget::hasSelection() const {
   return editor_->hasSelection();
 }
+void muffin::SourceEditorWidget::toggleInlineMarkup(const QString& prefix, const QString& suffix) {
+  editor_->toggleInlineMarkup(prefix, suffix);
+}
+
 QString muffin::SourceEditorWidget::selectedText() const {
   return editor_->selectedText();
 }

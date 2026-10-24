@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "editor/ShortcutSettings.h"
 #include "app/FileOpenConfirmation.h"
 #include "diagnostics/ScopedPerfProbe.h"
 
@@ -283,6 +284,7 @@ void muffin::MainWindow::setupUi() {
   updateTabBarVisibility();
   connect(newTabButton, &QToolButton::clicked, this, &MainWindow::startNewDocument);
   retranslateTabs();
+  connect(&ShortcutSettings::instance(), &ShortcutSettings::changed, this, &MainWindow::retranslateTabs);
   connect(tabs_, &QTabWidget::currentChanged, this, &MainWindow::activateTab);
   connect(tabs_, &QTabWidget::tabCloseRequested, this, &MainWindow::closeTab);
 

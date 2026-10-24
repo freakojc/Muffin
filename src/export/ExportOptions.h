@@ -14,6 +14,10 @@ struct PdfExportOptions {
   bool breakOnHeading = false;
   QString theme;
   int fontSize = 16;
+  QString header;
+  QString footer;
+  QString author;
+  bool pageNumbers = false;
 };
 
 struct ImageExportOptions {

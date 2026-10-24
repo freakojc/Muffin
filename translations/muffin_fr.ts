@@ -982,22 +982,22 @@ Un éditeur Markdown natif, rapide et léger, construit avec C++ et Qt 6 Widgets
         <translation>Un éditeur Markdown rapide, léger et natif, conçu en C++ et Qt 6.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="185"/>
+        <location filename="../src/main.cpp" line="182"/>
         <source>Open &lt;folder&gt; in the sidebar file browser.</source>
         <translation>Ouvrir &lt;folder&gt; dans l’explorateur de fichiers de la barre latérale.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="189"/>
+        <location filename="../src/main.cpp" line="186"/>
         <source>Markdown or text file (or folder) to open.</source>
         <translation>Fichier Markdown, fichier texte ou dossier à ouvrir.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="226"/>
+        <location filename="../src/main.cpp" line="223"/>
         <source>Default Markdown editor</source>
         <translation>Éditeur Markdown par défaut</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="227"/>
+        <location filename="../src/main.cpp" line="224"/>
         <source>Muffin is registered as an editor for Markdown files.
 Make it your default editor now?</source>
         <translation>Muffin est enregistré comme éditeur de fichiers Markdown.
@@ -1011,7 +1011,7 @@ En faire votre éditeur par défaut maintenant ?</translation>
 <context>
     <name>muffin::BlockLayoutBuilder</name>
     <message>
-        <location filename="../src/render/BlockLayoutBuilder.cpp" line="474"/>
+        <location filename="../src/render/BlockLayoutBuilder.cpp" line="480"/>
         <source>Start writing...</source>
         <translation>Commencez à écrire...</translation>
     </message>
@@ -1019,22 +1019,22 @@ En faire votre éditeur par défaut maintenant ?</translation>
 <context>
     <name>muffin::CustomCommandUploader</name>
     <message>
-        <location filename="../src/image/CustomCommandUploader.cpp" line="24"/>
+        <location filename="../src/image/CustomCommandUploader.cpp" line="25"/>
         <source>no upload command configured</source>
         <translation>aucune commande de téléversement configurée</translation>
     </message>
     <message>
-        <location filename="../src/image/CustomCommandUploader.cpp" line="33"/>
+        <location filename="../src/image/CustomCommandUploader.cpp" line="34"/>
         <source>empty upload command</source>
         <translation>la commande de téléversement est vide</translation>
     </message>
     <message>
-        <location filename="../src/image/CustomCommandUploader.cpp" line="90"/>
+        <location filename="../src/image/CustomCommandUploader.cpp" line="92"/>
         <source>uploader exited with code %1</source>
         <translation>le programme de téléversement s’est terminé avec le code %1</translation>
     </message>
     <message>
-        <location filename="../src/image/CustomCommandUploader.cpp" line="104"/>
+        <location filename="../src/image/CustomCommandUploader.cpp" line="109"/>
         <source>uploader produced no URLs</source>
         <translation>le programme de téléversement n’a renvoyé aucune URL</translation>
     </message>
@@ -1042,7 +1042,7 @@ En faire votre éditeur par défaut maintenant ?</translation>
 <context>
     <name>muffin::DocumentSession</name>
     <message>
-        <location filename="../src/document/DocumentSession.cpp" line="604"/>
+        <location filename="../src/document/DocumentSession.cpp" line="588"/>
         <source>Untitled</source>
         <translation>Sans titre</translation>
     </message>
@@ -1050,14 +1050,14 @@ En faire votre éditeur par défaut maintenant ?</translation>
 <context>
     <name>muffin::EditorView</name>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="75"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1296"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="76"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1405"/>
         <source>(no spelling suggestions)</source>
         <translation>(aucune suggestion orthographique)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="89"/>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1308"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="90"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1416"/>
         <source>Ignore &quot;%1&quot;</source>
         <translation>Ignorer « %1 »</translation>
     </message>
@@ -1067,12 +1067,12 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation>Chargement…</translation>
     </message>
     <message>
-        <location filename="../src/editor/EditorView.cpp" line="601"/>
+        <location filename="../src/editor/EditorView.cpp" line="578"/>
         <source>Markdown editor</source>
         <translation>Éditeur Markdown</translation>
     </message>
     <message>
-        <location filename="../src/editor/EditorView.cpp" line="602"/>
+        <location filename="../src/editor/EditorView.cpp" line="579"/>
         <source>Rendered Markdown document</source>
         <translation>Document Markdown rendu</translation>
     </message>
@@ -1080,88 +1080,88 @@ En faire votre éditeur par défaut maintenant ?</translation>
 <context>
     <name>muffin::FileController</name>
     <message>
-        <location filename="../src/io/FileController.cpp" line="302"/>
+        <location filename="../src/io/FileController.cpp" line="360"/>
         <source>Open</source>
         <translation>Ouvrir</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="304"/>
+        <location filename="../src/io/FileController.cpp" line="361"/>
         <source>Markdown and text files (*.md *.markdown *.mdown *.txt);;All files (*.*)</source>
         <translation>Fichiers Markdown et texte (*.md *.markdown *.mdown *.txt);;Tous les fichiers (*.*)</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="418"/>
+        <location filename="../src/io/FileController.cpp" line="475"/>
         <source>Save As</source>
         <translation>Enregistrer sous</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="554"/>
+        <location filename="../src/io/FileController.cpp" line="604"/>
         <source>The document cannot be encoded as %1.</source>
         <translation>Le document ne peut pas être encodé en %1.</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="653"/>
+        <location filename="../src/io/FileController.cpp" line="696"/>
         <source>Markdown files (*.md);;Text files (*.txt);;All files (*.*)</source>
         <translation>Fichiers Markdown (*.md);;Fichiers texte (*.txt);;Tous les fichiers (*.*)</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="457"/>
-        <location filename="../src/io/FileController.cpp" line="612"/>
+        <location filename="../src/io/FileController.cpp" line="511"/>
+        <location filename="../src/io/FileController.cpp" line="659"/>
         <source>Muffin</source>
         <translation>Muffin</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="420"/>
+        <location filename="../src/io/FileController.cpp" line="475"/>
         <source>Markdown files (*.md *.markdown);;Text files (*.txt);;All files (*.*)</source>
         <translation>Fichiers Markdown (*.md *.markdown);;Fichiers texte (*.txt);;Tous les fichiers (*.*)</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="458"/>
+        <location filename="../src/io/FileController.cpp" line="511"/>
         <source>The current document has unsaved changes.</source>
         <translation>Le document actuel contient des modifications non enregistrées.</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="478"/>
+        <location filename="../src/io/FileController.cpp" line="530"/>
         <source>File Missing</source>
         <translation>Fichier introuvable</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="479"/>
+        <location filename="../src/io/FileController.cpp" line="531"/>
         <source>The file &quot;%1&quot; no longer exists on disk. Use Save As to write it to a new location.</source>
         <translation>Le fichier « %1 » n’existe plus sur le disque. Utilisez Enregistrer sous pour l’enregistrer à un nouvel emplacement.</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="487"/>
+        <location filename="../src/io/FileController.cpp" line="539"/>
         <source>File Changed on Disk</source>
         <translation>Fichier modifié sur le disque</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="488"/>
+        <location filename="../src/io/FileController.cpp" line="540"/>
         <source>The file &quot;%1&quot; has been changed outside Muffin. Overwrite it?</source>
         <translation>Le fichier « %1 » a été modifié en dehors de Muffin. Voulez-vous l’écraser ?</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="497"/>
-        <location filename="../src/io/FileController.cpp" line="589"/>
+        <location filename="../src/io/FileController.cpp" line="549"/>
+        <location filename="../src/io/FileController.cpp" line="637"/>
         <source>Open Failed</source>
         <translation>Échec de l&apos;ouverture</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="513"/>
+        <location filename="../src/io/FileController.cpp" line="564"/>
         <source>Could not detect a lossless text encoding for this file.</source>
         <translation>Impossible de détecter un encodage de texte sans perte pour ce fichier.</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="525"/>
-        <location filename="../src/io/FileController.cpp" line="562"/>
-        <location filename="../src/io/FileController.cpp" line="567"/>
+        <location filename="../src/io/FileController.cpp" line="575"/>
+        <location filename="../src/io/FileController.cpp" line="612"/>
+        <location filename="../src/io/FileController.cpp" line="617"/>
         <source>Save Failed</source>
         <translation>Échec de l&apos;enregistrement</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="512"/>
-        <location filename="../src/io/FileController.cpp" line="553"/>
-        <location filename="../src/io/FileController.cpp" line="595"/>
+        <location filename="../src/io/FileController.cpp" line="564"/>
+        <location filename="../src/io/FileController.cpp" line="603"/>
+        <location filename="../src/io/FileController.cpp" line="643"/>
         <source>Encoding Error</source>
         <translation>Erreur d&apos;encodage</translation>
     </message>
@@ -1170,27 +1170,27 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation type="vanished">Encodage non pris en charge : %1</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="596"/>
+        <location filename="../src/io/FileController.cpp" line="644"/>
         <source>Failed to decode file with encoding: %1</source>
         <translation>Échec du décodage du fichier avec l&apos;encodage : %1</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="613"/>
+        <location filename="../src/io/FileController.cpp" line="659"/>
         <source>The document has unsaved changes. Save before reopening with a new encoding?</source>
         <translation>Le document a des modifications non enregistrées. Enregistrer avant de rouvrir avec un nouvel encodage ?</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="651"/>
+        <location filename="../src/io/FileController.cpp" line="696"/>
         <source>Move To</source>
         <translation>Déplacer vers</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="662"/>
+        <location filename="../src/io/FileController.cpp" line="705"/>
         <source>Move Failed</source>
         <translation>Échec du déplacement</translation>
     </message>
     <message>
-        <location filename="../src/io/FileController.cpp" line="663"/>
+        <location filename="../src/io/FileController.cpp" line="705"/>
         <source>Could not move file to:
 %1</source>
         <translation>Impossible de déplacer le fichier vers :
@@ -1210,7 +1210,7 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation>Ce fichier n’est pas un fichier Markdown ou texte. Voulez-vous vraiment l’ouvrir ?</translation>
     </message>
     <message>
-        <location filename="../src/app/FileOpenConfirmation.cpp" line="86"/>
+        <location filename="../src/app/FileOpenConfirmation.cpp" line="87"/>
         <source>Opening this large file may take a long time and use a lot of memory. Are you sure you want to open it?</source>
         <translation>L’ouverture de ce fichier volumineux peut prendre beaucoup de temps et utiliser beaucoup de mémoire. Voulez-vous vraiment l’ouvrir ?</translation>
     </message>
@@ -1218,7 +1218,7 @@ En faire votre éditeur par défaut maintenant ?</translation>
 <context>
     <name>muffin::FilePathOps</name>
     <message>
-        <location filename="../src/io/FilePathOps.cpp" line="181"/>
+        <location filename="../src/io/FilePathOps.cpp" line="182"/>
         <source>path does not exist</source>
         <translation>le chemin n’existe pas</translation>
     </message>
@@ -1248,27 +1248,27 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation>impossible de créer le dossier</translation>
     </message>
     <message>
-        <location filename="../src/io/FilePathOps.cpp" line="85"/>
+        <location filename="../src/io/FilePathOps.cpp" line="84"/>
         <source>could not rename (target may exist or the move crosses volumes)</source>
         <translation>impossible de renommer (la destination existe peut-être déjà ou le déplacement s’effectue entre des volumes)</translation>
     </message>
     <message>
-        <location filename="../src/io/FilePathOps.cpp" line="92"/>
+        <location filename="../src/io/FilePathOps.cpp" line="93"/>
         <source>could not rename (case-change intermediate step failed)</source>
         <translation>impossible de renommer (échec de l’étape intermédiaire du changement de casse)</translation>
     </message>
     <message>
-        <location filename="../src/io/FilePathOps.cpp" line="102"/>
+        <location filename="../src/io/FilePathOps.cpp" line="103"/>
         <source>could not rename (case-change final step failed)</source>
         <translation>impossible de renommer (échec de l’étape finale du changement de casse)</translation>
     </message>
     <message>
-        <location filename="../src/io/FilePathOps.cpp" line="136"/>
+        <location filename="../src/io/FilePathOps.cpp" line="137"/>
         <source>could not create destination directory</source>
         <translation>impossible de créer le dossier de destination</translation>
     </message>
     <message>
-        <location filename="../src/io/FilePathOps.cpp" line="142"/>
+        <location filename="../src/io/FilePathOps.cpp" line="143"/>
         <source>could not copy (destination may already exist)</source>
         <translation>impossible de copier (la destination existe peut-être déjà)</translation>
     </message>
@@ -1276,53 +1276,53 @@ En faire votre éditeur par défaut maintenant ?</translation>
 <context>
     <name>muffin::FindBarWidget</name>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="103"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="99"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="100"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="96"/>
         <source>Find</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="101"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="97"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="102"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="98"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="104"/>
-        <location filename="../src/editor/FindBarWidget.cpp" line="105"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="100"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="101"/>
         <source>Replace</source>
         <translation>Remplacer</translation>
     </message>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="106"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="102"/>
         <source>Replace All</source>
         <translation>Tout remplacer</translation>
     </message>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="107"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="103"/>
         <source>Regex</source>
         <translation>Expression régulière</translation>
     </message>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="108"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="104"/>
         <source>Match Case</source>
         <translation>Respecter la casse</translation>
     </message>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="146"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="142"/>
         <source>Not found</source>
         <translation>Non trouvé</translation>
     </message>
     <message>
-        <location filename="../src/editor/FindBarWidget.cpp" line="148"/>
+        <location filename="../src/editor/FindBarWidget.cpp" line="144"/>
         <source>%1/%2</source>
         <translation>%1/%2</translation>
     </message>
@@ -1374,22 +1374,22 @@ En faire votre éditeur par défaut maintenant ?</translation>
 <context>
     <name>muffin::ImageFileOps</name>
     <message>
-        <location filename="../src/io/ImageFileOps.cpp" line="194"/>
+        <location filename="../src/io/ImageFileOps.cpp" line="216"/>
         <source>source or destination directory is unavailable</source>
         <translation>le dossier source ou de destination est indisponible</translation>
     </message>
     <message>
-        <location filename="../src/io/ImageFileOps.cpp" line="222"/>
+        <location filename="../src/io/ImageFileOps.cpp" line="250"/>
         <source>could not locate an image destination in the document source</source>
         <translation>impossible de trouver le chemin d’une image dans le code source du document</translation>
     </message>
     <message>
-        <location filename="../src/io/ImageFileOps.cpp" line="238"/>
+        <location filename="../src/io/ImageFileOps.cpp" line="269"/>
         <source>could not move %1</source>
         <translation>impossible de déplacer %1</translation>
     </message>
     <message>
-        <location filename="../src/io/ImageFileOps.cpp" line="240"/>
+        <location filename="../src/io/ImageFileOps.cpp" line="271"/>
         <source>; rollback failed for %1</source>
         <translation> ; impossible de rétablir l’emplacement d’origine de %1</translation>
     </message>
@@ -1397,7 +1397,7 @@ En faire votre éditeur par défaut maintenant ?</translation>
 <context>
     <name>muffin::LanguageManager</name>
     <message>
-        <location filename="../src/app/LanguageManager.cpp" line="16"/>
+        <location filename="../src/app/LanguageManager.cpp" line="17"/>
         <source>System Default</source>
         <translation>Valeur par défaut du système</translation>
     </message>
@@ -1409,12 +1409,12 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation type="vanished">Analyse %1 ms</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindow.cpp" line="508"/>
+        <location filename="../src/app/MainWindow.cpp" line="521"/>
         <source>Open Folder</source>
         <translation>Ouvrir un dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1550"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1719"/>
         <source>Show / Hide Sidebar</source>
         <translation>Afficher / masquer la barre latérale</translation>
     </message>
@@ -1423,119 +1423,119 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation type="vanished">Basculer source / rendu</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1757"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="69"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="195"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1937"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="84"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="244"/>
         <source>File</source>
         <translation>Fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="86"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="102"/>
         <source>New</source>
         <translation>Nouveau</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="93"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="107"/>
         <source>New Window</source>
         <translation>Nouvelle fenêtre</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="102"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="116"/>
         <source>Open...</source>
         <translation>Ouvrir...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="98"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="112"/>
         <source>Open Folder...</source>
         <translation>Ouvrir un dossier...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="109"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="121"/>
         <source>Quick Open...</source>
         <translation>Ouverture rapide...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1764"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1945"/>
         <source>Open Recent</source>
         <translation>Ouvrir récent</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1766"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1949"/>
         <source>Reopen with Encoding</source>
         <translation>Rouvrir avec l&apos;encodage</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="118"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="132"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="130"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="146"/>
         <source>Save As...</source>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="140"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="157"/>
         <source>Move To...</source>
         <translation>Déplacer vers...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="146"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="163"/>
         <source>Save All Open Files...</source>
         <translation>Enregistrer tous les fichiers ouverts...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="152"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="322"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="396"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1394"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="169"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="305"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="406"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1427"/>
         <source>Properties</source>
         <translation>Propriétés</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="157"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="174"/>
         <source>Show in File Manager...</source>
         <translation>Afficher dans le gestionnaire de fichiers...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="162"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="179"/>
         <source>Show in Sidebar</source>
         <translation>Afficher dans la barre latérale</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="168"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="185"/>
         <source>Delete...</source>
         <translation>Supprimer...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="174"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="191"/>
         <source>Import...</source>
         <translation>Importer...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1530"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1700"/>
         <source>Could not move images:
 %1</source>
         <translation>Impossible de déplacer les images :
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1721"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1901"/>
         <source>&lt;h3&gt;Muffin %1&lt;/h3&gt;&lt;p&gt;&lt;b&gt;Platform:&lt;/b&gt; %2&lt;br&gt;&lt;b&gt;Author:&lt;/b&gt; 夏寒&lt;br&gt;&lt;b&gt;License:&lt;/b&gt; MIT License&lt;br&gt;&lt;b&gt;Website:&lt;/b&gt; https://github.com/jstzwj/Muffin&lt;/p&gt;</source>
         <translation>&lt;h3&gt;Muffin %1&lt;/h3&gt;&lt;p&gt;&lt;b&gt;Plateforme :&lt;/b&gt; %2&lt;br&gt;&lt;b&gt;Auteur :&lt;/b&gt; 夏寒&lt;br&gt;&lt;b&gt;Licence :&lt;/b&gt; MIT License&lt;br&gt;&lt;b&gt;Site web :&lt;/b&gt; https://github.com/jstzwj/Muffin&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1779"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1963"/>
         <source>Export</source>
         <translation>Exporter</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="180"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="197"/>
         <source>Print...</source>
         <translation>Imprimer...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="265"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="282"/>
         <source>Preferences...</source>
         <translation>Préférences...</translation>
     </message>
@@ -1544,68 +1544,68 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation type="vanished">Fermer</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1810"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1995"/>
         <source>Edit</source>
         <translation>Édition</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="306"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="323"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="311"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="328"/>
         <source>Redo</source>
         <translation>Rétablir</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="316"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="333"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="321"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="338"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1219"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1360"/>
         <source>Copy Image</source>
         <translation>Copier l&apos;image</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="353"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="374"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="358"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="379"/>
         <source>Copy as Plain Text</source>
         <translation>Copier en texte brut</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="364"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="385"/>
         <source>Copy as Markdown</source>
         <translation>Copier en Markdown</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="371"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="392"/>
         <source>Copy as HTML</source>
         <translation>Copier en HTML</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="377"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="398"/>
         <source>Paste as Plain Text</source>
         <translation>Coller en texte brut</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1827"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="196"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2012"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="191"/>
         <source>Select</source>
         <translation>Sélectionner</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="382"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="403"/>
         <source>Select All</source>
         <translation>Tout sélectionner</translation>
     </message>
@@ -1614,63 +1614,63 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation type="vanished">Sélectionner la ligne actuelle</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="401"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="422"/>
         <source>Select Current Format Text</source>
         <translation>Sélectionner le texte au format actuel</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="449"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="470"/>
         <source>Move Line Up</source>
         <translation>Déplacer la ligne vers le haut</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="456"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="477"/>
         <source>Move Line Down</source>
         <translation>Déplacer la ligne vers le bas</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="463"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="320"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="484"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="303"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1847"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2033"/>
         <source>Delete Range</source>
         <translation>Supprimer la plage</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="469"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="490"/>
         <source>Delete Block</source>
         <translation>Supprimer le bloc</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="475"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="496"/>
         <source>Delete Current Line</source>
         <translation>Supprimer la ligne courante</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="481"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="502"/>
         <source>Delete Current Format Text</source>
         <translation>Supprimer le texte formaté courant</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="487"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="508"/>
         <source>Delete Current Word</source>
         <translation>Supprimer le mot courant</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1855"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2042"/>
         <source>Math Tools</source>
         <translation>Outils mathématiques</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1860"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2048"/>
         <source>Smart Punctuation</source>
         <translation>Ponctuation intelligente</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1872"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2062"/>
         <source>Line Breaks</source>
         <translation>Sauts de ligne</translation>
     </message>
@@ -1679,17 +1679,17 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation type="vanished">Espaces et sauts de ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="504"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="526"/>
         <source>Windows (CRLF)</source>
         <translation>Windows (CRLF)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="514"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="537"/>
         <source>Unix (LF)</source>
         <translation>Unix (LF)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="524"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="548"/>
         <source>Ensure Trailing Newline on Save</source>
         <translation>Garantir un saut de ligne final lors de l&apos;enregistrement</translation>
     </message>
@@ -1698,14 +1698,14 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation type="vanished">Correction orthographique...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1881"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2072"/>
         <source>Find and Replace</source>
         <translation>Rechercher et remplacer</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="627"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1897"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="176"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="654"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2089"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="173"/>
         <source>Paragraph</source>
         <translation>Paragraphe</translation>
     </message>
@@ -1714,265 +1714,265 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation type="vanished">Titre %1</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="636"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="663"/>
         <source>Promote Heading</source>
         <translation>Promouvoir le titre</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="646"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="674"/>
         <source>Demote Heading</source>
         <translation>Rétrograder le titre</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1930"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1994"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="132"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2124"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2195"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="130"/>
         <source>Table</source>
         <translation>Tableau</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="656"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="685"/>
         <source>Formula Block</source>
         <translation>Bloc de formule</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="664"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="696"/>
         <source>Code Block</source>
         <translation>Bloc de code</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1956"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2151"/>
         <source>Code Tools</source>
         <translation>Outils de code</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1968"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2164"/>
         <source>Alert</source>
         <translation>Alerte</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="672"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="707"/>
         <source>Quote</source>
         <translation>Citation</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="679"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="714"/>
         <source>Ordered List</source>
         <translation>Liste numérotée</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="686"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="721"/>
         <source>Unordered List</source>
         <translation>Liste à puces</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="693"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="728"/>
         <source>Task List</source>
         <translation>Liste de tâches</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1914"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2106"/>
         <source>Task Status</source>
         <translation>État de la tâche</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1919"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2112"/>
         <source>List Indent</source>
         <translation>Retrait de liste</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="700"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="735"/>
         <source>Insert Paragraph Before</source>
         <translation>Insérer un paragraphe avant</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="708"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="745"/>
         <source>Insert Paragraph After</source>
         <translation>Insérer un paragraphe après</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="716"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="755"/>
         <source>Link Reference</source>
         <translation>Référence de lien</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="722"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="761"/>
         <source>Footnote</source>
         <translation>Note de bas de page</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="728"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="767"/>
         <source>Horizontal Rule</source>
         <translation>Ligne horizontale</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="734"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="773"/>
         <source>Table of Contents</source>
         <translation>Table des matières</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1977"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2177"/>
         <source>Front Matter</source>
         <translation>En-tête</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="740"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="779"/>
         <source>YAML</source>
         <translation>YAML</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="744"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="783"/>
         <source>TOML</source>
         <translation>TOML</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="748"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="787"/>
         <source>JSON</source>
         <translation>JSON</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2027"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2232"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1014"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1108"/>
         <source>Bold</source>
         <translation>Gras</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1022"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1119"/>
         <source>Italic</source>
         <translation>Italique</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1030"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1130"/>
         <source>Underline</source>
         <translation>Souligné</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1043"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1151"/>
         <source>Inline Code</source>
         <translation>Code en ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1051"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1162"/>
         <source>Inline Formula</source>
         <translation>Formule en ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1060"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1174"/>
         <source>Strikethrough</source>
         <translation>Barré</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1069"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1186"/>
         <source>Comment</source>
         <translation>Commentaire</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1073"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1190"/>
         <source>Hyperlink</source>
         <translation>Hyperlien</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2039"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2244"/>
         <source>Link Actions</source>
         <translation>Actions de lien</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2045"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="115"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2251"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="114"/>
         <source>Image</source>
         <translation>Image</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1195"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1335"/>
         <source>Insert Image...</source>
         <translation>Insérer une image...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1201"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1341"/>
         <source>Insert Local Image...</source>
         <translation>Insérer une image locale...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1206"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1346"/>
         <source>Open Image Location...</source>
         <translation>Ouvrir l&apos;emplacement de l&apos;image...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1237"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1379"/>
         <source>Delete Image File</source>
         <translation>Supprimer le fichier image</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1262"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1404"/>
         <source>Copy Image To...</source>
         <translation>Copier l&apos;image vers...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1293"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1437"/>
         <source>Rename / Move Image To...</source>
         <translation>Renommer / Déplacer l&apos;image vers...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1360"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1509"/>
         <source>Upload All Local Images</source>
         <translation>Téléverser toutes les images locales</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1411"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1568"/>
         <source>Reload All Images</source>
         <translation>Recharger toutes les images</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2061"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2268"/>
         <source>Resize Image</source>
         <translation>Redimensionner l&apos;image</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1420"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1578"/>
         <source>25%</source>
         <translation>25 %</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1428"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1587"/>
         <source>50%</source>
         <translation>50 %</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1436"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1596"/>
         <source>75%</source>
         <translation>75 %</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1444"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1605"/>
         <source>100%</source>
         <translation>100 %</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1453"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1615"/>
         <source>150%</source>
         <translation>150 %</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1461"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1624"/>
         <source>Custom...</source>
         <translation>Personnalisé...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2072"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2280"/>
         <source>Convert Image Syntax</source>
         <translation>Convertir la syntaxe d&apos;image</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1480"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1645"/>
         <source>Standard Markdown ![](url)</source>
         <translation>Markdown standard ![](url)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1486"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1651"/>
         <source>HTML &lt;img&gt;</source>
         <translation>HTML &lt;img&gt;</translation>
     </message>
@@ -1993,184 +1993,184 @@ En faire votre éditeur par défaut maintenant ?</translation>
         <translation type="vanished">Copier dans un dossier personnalisé</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1492"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1657"/>
         <source>Copy All Images To...</source>
         <translation>Copier toutes les images vers...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1515"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1683"/>
         <source>Move All Images To...</source>
         <translation>Déplacer toutes les images vers...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1544"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1713"/>
         <source>Global Image Settings...</source>
         <translation>Paramètres globaux des images...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1090"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1215"/>
         <source>Clear Style</source>
         <translation>Effacer le style</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="809"/>
-        <location filename="../src/app/MainWindowActions.cpp" line="164"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="857"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="165"/>
         <source>Insert Table</source>
         <translation>Insérer un tableau</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="815"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="863"/>
         <source>Insert Row Above</source>
         <translation>Insérer une ligne au-dessus</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="820"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="868"/>
         <source>Insert Row Below</source>
         <translation>Insérer une ligne en dessous</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="858"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="906"/>
         <source>Delete Row</source>
         <translation>Supprimer la ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="836"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="884"/>
         <source>Move Row Up</source>
         <translation>Déplacer la ligne vers le haut</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="841"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="889"/>
         <source>Move Row Down</source>
         <translation>Déplacer la ligne vers le bas</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="826"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="874"/>
         <source>Insert Column Left</source>
         <translation>Insérer une colonne à gauche</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="831"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="879"/>
         <source>Insert Column Right</source>
         <translation>Insérer une colonne à droite</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="864"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="912"/>
         <source>Delete Column</source>
         <translation>Supprimer la colonne</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="846"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="894"/>
         <source>Move Column Left</source>
         <translation>Déplacer la colonne à gauche</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="852"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="900"/>
         <source>Move Column Right</source>
         <translation>Déplacer la colonne à droite</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="884"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="932"/>
         <source>Align Left</source>
         <translation>Aligner à gauche</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="888"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="937"/>
         <source>Align Center</source>
         <translation>Centrer</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="892"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="942"/>
         <source>Align Right</source>
         <translation>Aligner à droite</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="896"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="947"/>
         <source>Clear Alignment</source>
         <translation>Effacer l&apos;alignement</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="879"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="927"/>
         <source>Delete Table</source>
         <translation>Supprimer le tableau</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="387"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="408"/>
         <source>Select Paragraph or Block</source>
         <translation>Sélectionner le paragraphe ou le bloc</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="394"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="415"/>
         <source>Select Current Line or Sentence</source>
         <translation>Sélectionner la ligne ou la phrase courante</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="408"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="429"/>
         <source>Select Current Word</source>
         <translation>Sélectionner le mot courant</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="415"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="436"/>
         <source>Jump to Start of Document</source>
         <translation>Aller au début du document</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="422"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="443"/>
         <source>Jump to Selection</source>
         <translation>Aller à la sélection</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="428"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="449"/>
         <source>Jump to End of Document</source>
         <translation>Aller à la fin du document</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="435"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="456"/>
         <source>Jump to Start of Line</source>
         <translation>Aller au début de la ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="442"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="463"/>
         <source>Jump to End of Line</source>
         <translation>Aller à la fin de la ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="869"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="917"/>
         <source>Copy Table</source>
         <translation>Copier le tableau</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="874"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="922"/>
         <source>Format Table Source</source>
         <translation>Formater la source du tableau</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1328"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1364"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1476"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1515"/>
         <source>No upload command is configured.
 Set up a custom upload command in Preferences → Images.</source>
         <translation>Aucune commande de téléversement n&apos;est configurée.
 Configurez une commande de téléversement personnalisée dans Préférences → Images.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1343"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1394"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1492"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1547"/>
         <source>Upload failed:
 %1</source>
         <translation>Échec du téléversement :
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1385"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1537"/>
         <source>There are no local images to upload.</source>
         <translation>Il n&apos;y a aucune image locale à téléverser.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1394"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1549"/>
         <source>the uploader did not return one URL per image</source>
         <translation>le programme de téléversement n’a pas renvoyé une URL pour chaque image</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1406"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1563"/>
         <source>Uploaded %1 image(s).</source>
         <translation>%1 image(s) téléversée(s).</translation>
     </message>
@@ -2187,56 +2187,56 @@ Un éditeur Markdown rapide, léger et natif, conçu en C++ et Qt 6.
 Aperçu en direct et édition source ; exportation au format PDF, HTML et de nombreux autres formats via Pandoc ; insertion d&apos;images avec copie vers un dossier et envoi par commande personnalisée ; vérification orthographique ; thèmes ; recherche et remplacement ; plan ; ouverture rapide ; et récupération de brouillon résistante aux plantages.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2003"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2205"/>
         <source>Code</source>
         <translation>Code</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="902"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="962"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="988"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="954"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1038"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1073"/>
         <source>Enter Edit</source>
         <translation>Entrer en Édition</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="907"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="967"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="993"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="962"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1046"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1081"/>
         <source>Exit Edit</source>
         <translation>Quitter l&apos;Édition</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="912"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="970"/>
         <source>Set Language...</source>
         <translation>Définir la langue...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2019"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2223"/>
         <source>Math</source>
         <translation>Maths</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="998"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1089"/>
         <source>Set TeX...</source>
         <translation>Définir TeX...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="972"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1054"/>
         <source>Set HTML...</source>
         <translation>Définir le HTML...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2086"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2295"/>
         <source>View</source>
         <translation>Affichage</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1560"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1730"/>
         <source>Outline</source>
         <translation>Plan</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1565"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1735"/>
         <source>File Tree</source>
         <translation>Arborescence des fichiers</translation>
     </message>
@@ -2245,62 +2245,62 @@ Aperçu en direct et édition source ; exportation au format PDF, HTML et de nom
         <translation type="vanished">Recherche</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1570"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1740"/>
         <source>Source Code Mode</source>
         <translation>Mode code source</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1581"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1752"/>
         <source>Word Wrap</source>
         <translation>Retour automatique</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1593"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1765"/>
         <source>Focus Mode</source>
         <translation>Mode concentration</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1603"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1776"/>
         <source>Typewriter Mode</source>
         <translation>Mode machine à écrire</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1613"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1787"/>
         <source>Show Status Bar</source>
         <translation>Afficher la barre d&apos;état</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1623"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1798"/>
         <source>Word Count Window</source>
         <translation>Fenêtre du nombre de mots</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1627"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1802"/>
         <source>Toggle Full Screen</source>
         <translation>Basculer le plein écran</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1632"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1807"/>
         <source>Always on Top</source>
         <translation>Toujours au premier plan</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1642"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1818"/>
         <source>Actual Size</source>
         <translation>Taille réelle</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1650"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1827"/>
         <source>Zoom In</source>
         <translation>Zoom avant</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1658"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1836"/>
         <source>Zoom Out</source>
         <translation>Zoom arrière</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1666"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1845"/>
         <source>Switch Windows</source>
         <translation>Changer de fenêtre</translation>
     </message>
@@ -2309,378 +2309,378 @@ Aperçu en direct et édition source ; exportation au format PDF, HTML et de nom
         <translation type="vanished">&lt;h3&gt;Muffin %1&lt;/h3&gt;&lt;p&gt;&lt;b&gt;Plateforme :&lt;/b&gt; %2&lt;br&gt;&lt;b&gt;Auteur :&lt;/b&gt; jstzwj&lt;br&gt;&lt;b&gt;Licence :&lt;/b&gt; MIT License&lt;br&gt;&lt;b&gt;Site web :&lt;/b&gt; https://github.com/jstzwj/Muffin&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1927"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2121"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2115"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2324"/>
         <source>Theme</source>
         <translation>Thème</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2117"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2326"/>
         <source>Help</source>
         <translation>Aide</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1678"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1857"/>
         <source>Quick Start</source>
         <translation>Démarrage rapide</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1682"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1861"/>
         <source>Markdown Reference</source>
         <translation>Référence Markdown</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1686"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1865"/>
         <source>Custom Themes</source>
         <translation>Thèmes personnalisés</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1690"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1869"/>
         <source>Acknowledgements</source>
         <translation>Remerciements</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1694"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1873"/>
         <source>Changelog</source>
         <translation>Journal des modifications</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1700"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1881"/>
         <source>Official Website</source>
         <translation>Site officiel</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1706"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1886"/>
         <source>Feedback</source>
         <translation>Commentaires</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1712"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1893"/>
         <source>Check for Updates...</source>
         <translation>Rechercher des mises à jour...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1716"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1897"/>
         <source>About</source>
         <translation>À propos</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1247"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1389"/>
         <source>Delete Image</source>
         <translation>Supprimer l&apos;image</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="125"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="141"/>
         <source>Document is still loading…</source>
         <translation>Le document est encore en cours de chargement…</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="187"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="204"/>
         <source>PDF</source>
         <translation>PDF</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="193"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="2011"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="210"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="2214"/>
         <source>HTML</source>
         <translation>HTML</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="199"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="216"/>
         <source>HTML (without Styles)</source>
         <translation>HTML (sans styles)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="205"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="222"/>
         <source>Image (PNG)</source>
         <translation>Image (PNG)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="211"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="228"/>
         <source>Word (.docx)</source>
         <translation>Word (.docx)</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="217"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="234"/>
         <source>OpenOffice</source>
         <translation>OpenOffice</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="223"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="240"/>
         <source>RTF</source>
         <translation>RTF</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="229"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="246"/>
         <source>Epub</source>
         <translation>EPUB</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="235"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="252"/>
         <source>LaTeX</source>
         <translation>LaTeX</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="241"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="258"/>
         <source>Media Wiki</source>
         <translation>MediaWiki</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="247"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="264"/>
         <source>reStructuredText</source>
         <translation>reStructuredText</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="253"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="270"/>
         <source>Textile</source>
         <translation>Textile</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="259"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="276"/>
         <source>OPML</source>
         <translation>OPML</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="270"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="192"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="222"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="436"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="287"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="199"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="233"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="460"/>
         <source>Close Tab</source>
         <translation>Fermer l’onglet</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="275"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="292"/>
         <source>Quit</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="282"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="299"/>
         <source>Next Tab</source>
         <translation>Onglet suivant</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="287"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="304"/>
         <source>Previous Tab</source>
         <translation>Onglet précédent</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="294"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="311"/>
         <source>Back</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="300"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="317"/>
         <source>Forward</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="326"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="343"/>
         <source>Open Link</source>
         <translation>Ouvrir le lien</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="340"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="359"/>
         <source>Copy Link Address</source>
         <translation>Copier l&apos;adresse du lien</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="493"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="514"/>
         <source>Spell Check</source>
         <translation>Vérification orthographique</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="543"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="328"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="568"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="311"/>
         <source>Find in Folder…</source>
         <translation>Rechercher dans le dossier…</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="548"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="573"/>
         <source>Replace in Folder…</source>
         <translation>Remplacer dans le dossier…</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="579"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="606"/>
         <source>Heading 1</source>
         <translation>Titre 1</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="587"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="614"/>
         <source>Heading 2</source>
         <translation>Titre 2</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="595"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="622"/>
         <source>Heading 3</source>
         <translation>Titre 3</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="603"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="630"/>
         <source>Heading 4</source>
         <translation>Titre 4</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="611"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="638"/>
         <source>Heading 5</source>
         <translation>Titre 5</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="619"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="646"/>
         <source>Heading 6</source>
         <translation>Titre 6</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="754"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="793"/>
         <source>Note</source>
         <translation>Remarque</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="760"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="799"/>
         <source>Tip</source>
         <translation>Astuce</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="766"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="805"/>
         <source>Important</source>
         <translation>Important</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="772"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="811"/>
         <source>Warning</source>
         <translation>Avertissement</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="778"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="817"/>
         <source>Caution</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="787"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="826"/>
         <source>Toggle Task Status</source>
         <translation>Basculer l&apos;état de la tâche</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="795"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="837"/>
         <source>Indent</source>
         <translation>Augmenter le retrait</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="801"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="846"/>
         <source>Outdent</source>
         <translation>Diminuer le retrait</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="926"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="988"/>
         <source>Copy Code Block Content</source>
         <translation>Copier le contenu du bloc de code</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="936"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1002"/>
         <source>Indent Selection</source>
         <translation>Augmenter le retrait de la sélection</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="943"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1011"/>
         <source>Dedent Selection</source>
         <translation>Diminuer le retrait de la sélection</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="950"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1020"/>
         <source>Indent Whole Block</source>
         <translation>Augmenter le retrait de tout le bloc</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="955"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1028"/>
         <source>Dedent Whole Block</source>
         <translation>Diminuer le retrait de tout le bloc</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1038"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1100"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1145"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1228"/>
         <source>Switch to live editing to use this formatting command.</source>
         <translation>Passez à l’édition en direct pour utiliser cette commande de mise en forme.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1039"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1086"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1146"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1210"/>
         <source>Select text within a single paragraph or table cell, or place the caret in editable text.</source>
         <translation>Sélectionnez du texte dans un seul paragraphe ou une seule cellule de tableau, ou placez le curseur dans du texte modifiable.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1083"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1206"/>
         <source>Wait for the document to finish loading.</source>
         <translation>Attendez la fin du chargement du document.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1085"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1208"/>
         <source>Select text within one line, or place the caret where you want to insert the link.</source>
         <translation>Sélectionnez du texte sur une seule ligne, ou placez le curseur à l’endroit où vous souhaitez insérer le lien.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1101"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1229"/>
         <source>Place the caret in the paragraph or table cell whose formatting you want to clear.</source>
         <translation>Placez le curseur dans le paragraphe ou la cellule de tableau dont vous souhaitez effacer la mise en forme.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1107"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1236"/>
         <source>Refresh All Math</source>
         <translation>Actualiser toutes les formules</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1115"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1245"/>
         <source>Convert on Input</source>
         <translation>Convertir à la saisie</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1134"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1266"/>
         <source>Convert on Rendering</source>
         <translation>Convertir lors de l&apos;affichage</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1153"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1287"/>
         <source>Smart Quotes</source>
         <translation>Guillemets intelligents</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1165"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1301"/>
         <source>Smart Dashes</source>
         <translation>Tirets intelligents</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1177"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1315"/>
         <source>Remap Unicode Punctuation on Parse</source>
         <translation>Remapper la ponctuation Unicode lors de l&apos;analyse</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1189"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1329"/>
         <source>More Options...</source>
         <translation>Plus d&apos;options...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1248"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1390"/>
         <source>Delete image file &quot;%1&quot;?
 This cannot be undone.</source>
         <translation>Supprimer le fichier image « %1 » ?
 Cette action est irréversible.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1271"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1415"/>
         <source>Copy Image To</source>
         <translation>Copier l&apos;image vers</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1302"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1448"/>
         <source>Move Image To</source>
         <translation>Déplacer l&apos;image vers</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1323"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1327"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1342"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1469"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1475"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1491"/>
         <source>Upload Image</source>
         <translation>Téléverser l&apos;image</translation>
     </message>
@@ -2691,88 +2691,88 @@ Set up an image uploader in Preferences → Images.</source>
 Configurez un téléverseur dans Préférences → Images.</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1363"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1384"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1393"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1404"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1405"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1514"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1536"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1546"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1561"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1562"/>
         <source>Upload All Images</source>
         <translation>Téléverser toutes les images</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1467"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1631"/>
         <source>Image Size</source>
         <translation>Taille de l&apos;image</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1467"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1631"/>
         <source>Zoom percent:</source>
         <translation>Pourcentage de zoom :</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1498"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1665"/>
         <source>Copy All Images To</source>
         <translation>Copier toutes les images vers</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1509"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1677"/>
         <source>Copy All Images</source>
         <translation>Copier toutes les images</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1510"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1678"/>
         <source>Copied %1 of %2 image(s).</source>
         <translation>%1 sur %2 image(s) copiée(s).</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1521"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1691"/>
         <source>Move All Images To</source>
         <translation>Déplacer toutes les images vers</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1529"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1536"/>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1538"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1699"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1705"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1707"/>
         <source>Move All Images</source>
         <translation>Déplacer toutes les images</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1539"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1708"/>
         <source>Moved %1 image(s).</source>
         <translation>%1 image(s) déplacée(s).</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="916"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="975"/>
         <source>Code Language</source>
         <translation>Langage du code</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="916"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="976"/>
         <source>Language:</source>
         <translation>Langue :</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="976"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1058"/>
         <source>HTML Source</source>
         <translation>Source HTML</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="976"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1059"/>
         <source>HTML:</source>
         <translation>HTML :</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1002"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1093"/>
         <source>Math TeX</source>
         <translation>TeX mathématique</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1002"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1094"/>
         <source>TeX:</source>
         <translation>TeX :</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="1720"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="1900"/>
         <source>About Muffin</source>
         <translation>À propos de Muffin</translation>
     </message>
@@ -2793,127 +2793,127 @@ Un éditeur Markdown natif, rapide et léger, construit avec C++ et Qt 6 Widgets
         <translation type="vanished">%1 mots</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="180"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="181"/>
         <source>Rows:</source>
         <translation>Lignes :</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="181"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="182"/>
         <source>Columns:</source>
         <translation>Colonnes :</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="184"/>
-        <location filename="../src/app/MainWindowActions.cpp" line="226"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="185"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="227"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="185"/>
-        <location filename="../src/app/MainWindowActions.cpp" line="227"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="46"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="186"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="228"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="50"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="206"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="207"/>
         <source>Insert Image</source>
         <translation>Insérer une image</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="213"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="214"/>
         <source>https://example.com/image.png</source>
         <translation>https://example.com/image.png</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="216"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="217"/>
         <source>Alternative text</source>
         <translation>Texte alternatif</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="219"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="220"/>
         <source>Title (optional)</source>
         <translation>Titre (facultatif)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="221"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="222"/>
         <source>URL:</source>
         <translation>URL :</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="222"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="223"/>
         <source>Alt Text:</source>
         <translation>Texte alternatif :</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="223"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="224"/>
         <source>Title:</source>
         <translation>Titre :</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="256"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="258"/>
         <source>Images (%1)</source>
         <translation>Images (%1)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowActions.cpp" line="258"/>
+        <location filename="../src/app/MainWindowActions.cpp" line="259"/>
         <source>Select Image</source>
         <translation>Sélectionner une image</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="97"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="95"/>
         <source>Clear Recent Files</source>
         <translation>Effacer les fichiers récents</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="153"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="151"/>
         <source>Import Theme...</source>
         <translation>Importer un thème…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="155"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="153"/>
         <source>Open Themes Folder</source>
         <translation>Ouvrir le dossier des thèmes</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="183"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="191"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="204"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="210"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="216"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="232"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="181"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="189"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="202"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="208"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="214"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="230"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="239"/>
         <source>Import Theme</source>
         <translation>Importer un thème</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="183"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="181"/>
         <source>Theme Files (*.css *.json)</source>
         <translation>Fichiers de thème (*.css *.json)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="204"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="232"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="202"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="230"/>
         <source>Could not read the selected file.</source>
         <translation>Impossible de lire le fichier sélectionné.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="210"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="208"/>
         <source>The selected file is not a valid theme.</source>
         <translation>Le fichier sélectionné n&apos;est pas un thème valide.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="192"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="190"/>
         <source>A built-in theme named &quot;%1&quot; already exists; choose a different file name.</source>
         <translation>Un thème intégré nommé « %1 » existe déjà ; choisissez un autre nom de fichier.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="127"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="125"/>
         <source>Clear Recent Folders</source>
         <translation>Effacer les dossiers récents</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="217"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="215"/>
         <source>The theme file is missing required colours (background and text).</source>
         <translation>Le fichier de thème ne contient pas les couleurs requises (arrière-plan et texte).</translation>
     </message>
@@ -2923,7 +2923,7 @@ Un éditeur Markdown natif, rapide et léger, construit avec C++ et Qt 6 Widgets
         <translation>Impossible de copier le thème dans le dossier des thèmes.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="382"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="396"/>
         <source>Name: %1
 Location: %2
 Size: %3 bytes
@@ -2938,13 +2938,13 @@ Mots : %5
 Temps d&apos;analyse : %6 ms</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="559"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="570"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="567"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="578"/>
         <source>Unsaved Drafts Found</source>
         <translation>Brouillons non enregistrés trouvés</translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/MainWindowFileOps.cpp" line="564"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="572"/>
         <source>Muffin found %n unsaved draft(s) from a previous session. Restore one into this window, discard all of them, or keep them for later.</source>
         <translation>
             <numerusform>Muffin a trouvé %n brouillon non enregistré d&apos;une session précédente. Restaurez-le dans cette fenêtre, supprimez-le ou conservez-le pour plus tard.</numerusform>
@@ -2952,13 +2952,13 @@ Temps d&apos;analyse : %6 ms</translation>
         </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="576"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="801"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="584"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="823"/>
         <source>Untitled</source>
         <translation>Sans titre</translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/MainWindowFileOps.cpp" line="578"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="585"/>
         <source>%1  —  %2  (%n char(s))</source>
         <translation>
             <numerusform>%1  —  %2  (%n caractère)</numerusform>
@@ -2966,124 +2966,124 @@ Temps d&apos;analyse : %6 ms</translation>
         </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="586"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="593"/>
         <source>Restore</source>
         <translation>Restaurer</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="587"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="594"/>
         <source>Discard All</source>
         <translation>Tout supprimer</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="588"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="595"/>
         <source>Later</source>
         <translation>Plus tard</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="668"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="676"/>
         <source>No files to open</source>
         <translation>Aucun fichier à ouvrir</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="688"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="697"/>
         <source>Import</source>
         <translation>Importer</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="689"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="698"/>
         <source>Word (*.docx);;OpenDocument (*.odt);;RTF (*.rtf);;EPUB (*.epub);;HTML (*.html *.htm);;LaTeX (*.tex *.latex);;MediaWiki (*.wiki *.mediawini);;reStructuredText (*.rst);;Textile (*.textile);;OPML (*.opml);;All files (*)</source>
         <translation>Word (*.docx);;OpenDocument (*.odt);;RTF (*.rtf);;EPUB (*.epub);;HTML (*.html *.htm);;LaTeX (*.tex *.latex);;MediaWiki (*.wiki *.mediawini);;reStructuredText (*.rst);;Textile (*.textile);;OPML (*.opml);;Tous les fichiers (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="698"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="715"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="706"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="723"/>
         <source>Import Failed</source>
         <translation>Échec de l&apos;import</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="699"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="862"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="707"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="889"/>
         <source>Pandoc was not found. Install Pandoc or set its path in Preferences → Export.</source>
         <translation>Pandoc est introuvable. Installez Pandoc ou définissez son chemin dans Préférences → Export.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="703"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="711"/>
         <source>Importing %1…</source>
         <translation>Importation de %1…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="716"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="724"/>
         <source>Pandoc could not convert the file.</source>
         <translation>Pandoc n&apos;a pas pu convertir le fichier.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="725"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="733"/>
         <source>Imported %1</source>
         <translation>%1 importé</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="796"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="818"/>
         <source>Nothing to export</source>
         <translation>Rien à exporter</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="229"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="269"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="806"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="218"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="253"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="828"/>
         <source>Export As</source>
         <translation>Exporter sous</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="806"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="828"/>
         <source>%1 files (*%2)</source>
         <translation>Fichiers %1 (*%2)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="865"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="892"/>
         <source>Exporting %1…</source>
         <translation>Exportation de %1…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="897"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="929"/>
         <source>Pandoc failed:</source>
         <translation>Échec de Pandoc :</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="243"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="287"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="816"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="916"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="234"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="272"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="838"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="950"/>
         <source>Export Failed</source>
         <translation>Échec de l&apos;export</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="247"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="291"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="920"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="237"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="275"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="954"/>
         <source>Exported to %1</source>
         <translation>Exporté vers %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1064"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1099"/>
         <source>Save All</source>
         <translation>Tout enregistrer</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1065"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1100"/>
         <source>Saved %1 file(s). %2 file(s) could not be saved.</source>
         <translation>%1 fichier(s) enregistré(s). %2 fichier(s) n&apos;ont pas pu être enregistrés.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1098"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1126"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1329"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1130"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1156"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1358"/>
         <source>Delete File</source>
         <translation>Supprimer le fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1099"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1332"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1131"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1363"/>
         <source>Are you sure you want to move &quot;%1&quot; to the trash?
 
 This action cannot be undone.</source>
@@ -3092,8 +3092,8 @@ This action cannot be undone.</source>
 Cette action est irréversible.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1127"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1357"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1157"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1390"/>
         <source>Could not move to trash. Permanently delete &quot;%1&quot;?
 
 This action cannot be undone.</source>
@@ -3102,35 +3102,35 @@ This action cannot be undone.</source>
 Cette action est irréversible.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1138"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1364"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1167"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1398"/>
         <source>Delete Failed</source>
         <translation>Échec de la suppression</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1139"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1167"/>
         <source>Could not delete file:
 %1</source>
         <translation>Impossible de supprimer le fichier :
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1248"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1277"/>
         <source>Name cannot be empty.</source>
         <translation>Le nom ne peut pas être vide.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1262"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1291"/>
         <source>An item named &quot;%1&quot; already exists.</source>
         <translation>Un élément nommé « %1 » existe déjà.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1284"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1313"/>
         <source>Could not rename: %1</source>
         <translation>Impossible de renommer : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1201"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1230"/>
         <source>Could not create file:
 %1
 
@@ -3141,207 +3141,207 @@ Cette action est irréversible.</translation>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="816"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="838"/>
         <source>Could not create a temporary export file.</source>
         <translation>Impossible de créer un fichier d’exportation temporaire.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="836"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="858"/>
         <source>PDF export failed: the printer device could not be opened.</source>
         <translation>L’exportation PDF a échoué : impossible d’ouvrir le périphérique d’impression.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="844"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="867"/>
         <source>Image export failed. The image must fit within 64 million pixels and 32,767 pixels in height. Try a smaller width or scale, or export as PDF.</source>
         <translation>L’exportation de l’image a échoué. L’image ne doit pas dépasser 64 millions de pixels et 32 767 pixels de hauteur. Réduisez la largeur ou l’échelle, ou exportez au format PDF.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="875"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="902"/>
         <source>Export resource was not found: %1</source>
         <translation>Ressource d’exportation introuvable : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="882"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="913"/>
         <source>Additional arguments cannot override the input format, output format, output path, or defaults file.</source>
         <translation>Les arguments supplémentaires ne peuvent pas remplacer le format d’entrée, le format de sortie, le chemin de sortie ou le fichier de paramètres par défaut.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="946"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="982"/>
         <source>Unicode</source>
         <translation>Unicode</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="948"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="984"/>
         <source>UTF-8</source>
         <translation>UTF-8</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="949"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="985"/>
         <source>UTF-16 LE</source>
         <translation>UTF-16 LE</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="950"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="986"/>
         <source>UTF-16 BE</source>
         <translation>UTF-16 BE</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="952"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="988"/>
         <source>Western</source>
         <translation>Occidental</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="954"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="990"/>
         <source>Western (Windows-1252)</source>
         <translation>Occidental (Windows-1252)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="956"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="992"/>
         <source>Cyrillic</source>
         <translation>Cyrillique</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="958"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="994"/>
         <source>Cyrillic (Windows-1251)</source>
         <translation>Cyrillique (Windows-1251)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="959"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="995"/>
         <source>Cyrillic (ISO-8859-5)</source>
         <translation>Cyrillique (ISO-8859-5)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="960"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="996"/>
         <source>Cyrillic (IBM866)</source>
         <translation>Cyrillique (IBM866)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="961"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="997"/>
         <source>Cyrillic (IBM855)</source>
         <translation>Cyrillique (IBM855)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="962"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="998"/>
         <source>Cyrillic (KOI8-R)</source>
         <translation>Cyrillique (KOI8-R)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="963"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="999"/>
         <source>Cyrillic (Mac)</source>
         <translation>Cyrillique (Mac)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="965"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1001"/>
         <source>Central European</source>
         <translation>Europe centrale</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="967"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1003"/>
         <source>Central European (Windows-1250)</source>
         <translation>Europe centrale (Windows-1250)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="968"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1004"/>
         <source>Central European (ISO-8859-2)</source>
         <translation>Europe centrale (ISO-8859-2)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="970"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1006"/>
         <source>Greek</source>
         <translation>Grec</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="972"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1008"/>
         <source>Greek (Windows-1253)</source>
         <translation>Grec (Windows-1253)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="973"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1009"/>
         <source>Greek (ISO-8859-7)</source>
         <translation>Grec (ISO-8859-7)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="975"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1011"/>
         <source>Hebrew</source>
         <translation>Hébreu</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="977"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1013"/>
         <source>Hebrew (Windows-1255)</source>
         <translation>Hébreu (Windows-1255)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="978"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1014"/>
         <source>Hebrew (ISO-8859-8)</source>
         <translation>Hébreu (ISO-8859-8)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="980"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1016"/>
         <source>Chinese Simplified</source>
         <translation>Chinois simplifié</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="982"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1018"/>
         <source>Chinese Simplified (GB2312)</source>
         <translation>Chinois simplifié (GB2312)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="983"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1019"/>
         <source>Chinese Simplified (GB18030)</source>
         <translation>Chinois simplifié (GB18030)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="985"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1021"/>
         <source>Chinese Traditional</source>
         <translation>Chinois traditionnel</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="987"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1023"/>
         <source>Chinese Traditional (Big5)</source>
         <translation>Chinois traditionnel (Big5)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="989"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1025"/>
         <source>Japanese</source>
         <translation>Japonais</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="991"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1027"/>
         <source>Japanese (Shift_JIS)</source>
         <translation>Japonais (Shift_JIS)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="992"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1028"/>
         <source>Japanese (EUC-JP)</source>
         <translation>Japonais (EUC-JP)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="994"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1030"/>
         <source>Korean</source>
         <translation>Coréen</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="996"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1032"/>
         <source>Korean (EUC-KR)</source>
         <translation>Coréen (EUC-KR)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="998"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1034"/>
         <source>Thai</source>
         <translation>Thaï</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1000"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1036"/>
         <source>Thai (TIS-620)</source>
         <translation>Thaï (TIS-620)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1033"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1067"/>
         <source>Markdown Files (*.md *.markdown);;All Files (*)</source>
         <translation>Fichiers Markdown (*.md *.markdown);;Tous les fichiers (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1220"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1249"/>
         <source>Could not create folder:
 %1
 
@@ -3352,7 +3352,7 @@ Cette action est irréversible.</translation>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1316"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1345"/>
         <source>Could not create a copy:
 %1
 
@@ -3363,12 +3363,12 @@ Cette action est irréversible.</translation>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1329"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1358"/>
         <source>Delete Folder</source>
         <translation>Supprimer le dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1331"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1361"/>
         <source>Are you sure you want to move &quot;%1&quot; and all its contents to the trash?
 
 This action cannot be undone.</source>
@@ -3377,32 +3377,32 @@ This action cannot be undone.</source>
 Cette action ne peut pas être annulée.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1365"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1398"/>
         <source>Could not delete:
 %1</source>
         <translation>Impossible de supprimer :
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1388"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1421"/>
         <source>Folder</source>
         <translation>Dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1388"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1421"/>
         <source>File</source>
         <comment>properties: entry type</comment>
         <translation>Fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1390"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1423"/>
         <source>Size: %1 bytes
 </source>
         <translation>Taille : %1 octets
 </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1391"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1424"/>
         <source>Name: %1
 Type: %2
 Location: %3
@@ -3413,21 +3413,21 @@ Emplacement : %3
 %4Modifié le : %5</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1411"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1444"/>
         <source>Could not reveal:
 %1</source>
         <translation>Impossible d’afficher l’emplacement :
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1111"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1435"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1142"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1467"/>
         <source>Muffin</source>
         <translation>Muffin</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1111"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1436"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1142"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1467"/>
         <source>The current document has unsaved changes.</source>
         <translation>Le document actuel contient des modifications non enregistrées.</translation>
     </message>
@@ -3472,54 +3472,54 @@ Emplacement : %3
         <translation type="vanished">Ma licence...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="533"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="558"/>
         <source>Find...</source>
         <translation>Rechercher...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="538"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="563"/>
         <source>Replace...</source>
         <translation>Remplacer...</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="557"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="582"/>
         <source>Find Next</source>
         <translation>Rechercher le suivant</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="567"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="593"/>
         <source>Find Previous</source>
         <translation>Rechercher le précédent</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="193"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="221"/>
         <source>File Already Open</source>
         <translation>Fichier déjà ouvert</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="194"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="222"/>
         <source>This file is already open in another tab. Switch to that tab to edit or save it.</source>
         <translation>Ce fichier est déjà ouvert dans un autre onglet. Passez à cet onglet pour le modifier ou l’enregistrer.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="253"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="283"/>
         <source>File Changed on Disk</source>
         <translation>Fichier modifié sur le disque</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="254"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="284"/>
         <source>The file &quot;%1&quot; has changed outside Muffin. Reload it?
 Unsaved changes in the editor will be lost.</source>
         <translation>Le fichier « %1 » a été modifié en dehors de Muffin. Voulez-vous le recharger ?
 Les modifications non enregistrées dans l’éditeur seront perdues.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="347"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="377"/>
         <source>Update Available</source>
         <translation>Mise à jour disponible</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="348"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="378"/>
         <source>A new version of Muffin (%1) is available.
 
 Would you like to open the download page?</source>
@@ -3528,34 +3528,34 @@ Would you like to open the download page?</source>
 Souhaitez-vous ouvrir la page de téléchargement ?</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="355"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="387"/>
         <source>Muffin %1 is available. Use Help &gt; Check for Updates to download.</source>
         <translation>Muffin %1 est disponible. Utilisez Aide &gt; Rechercher des mises à jour pour télécharger.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="362"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="393"/>
         <source>Up to Date</source>
         <translation>À jour</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="363"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="394"/>
         <source>You are running the latest version of Muffin.</source>
         <translation>Vous utilisez la dernière version de Muffin.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="370"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="401"/>
         <source>Update Check Failed</source>
         <translation>Échec de la vérification des mises à jour</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="371"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="402"/>
         <source>Could not check for updates:
 %1</source>
         <translation>Impossible de vérifier les mises à jour :
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="101"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="102"/>
         <source>Export Mermaid as SVG...</source>
         <translation>Exporter Mermaid au format SVG...</translation>
     </message>
@@ -3565,176 +3565,176 @@ Souhaitez-vous ouvrir la page de téléchargement ?</translation>
         <translation>Exporter Mermaid au format PNG...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="119"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="117"/>
         <source>Resize</source>
         <translation>Redimensionner</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="123"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="121"/>
         <source>Convert</source>
         <translation>Convertir</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="158"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="155"/>
         <source>Copy as</source>
         <translation>Copier en</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="311"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="294"/>
         <source>Open</source>
         <translation>Ouvrir</translation>
     </message>
     <message>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="295"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="312"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="329"/>
         <source>Open in New Window</source>
         <translation>Ouvrir dans une nouvelle fenêtre</translation>
     </message>
     <message>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="297"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="314"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="331"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1200"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1229"/>
         <source>New File</source>
         <translation>Nouveau fichier</translation>
     </message>
     <message>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="298"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="315"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="332"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1213"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1219"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1242"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1248"/>
         <source>New Folder</source>
         <translation>Nouveau dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="317"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="300"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="318"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1032"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="301"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1067"/>
         <location filename="../src/app/MainWindowNoteLinks.cpp" line="30"/>
         <source>Move To</source>
         <translation>Déplacer vers</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="319"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1315"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="302"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1344"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="324"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="334"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="467"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="307"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="317"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="495"/>
         <source>Copy Path</source>
         <translation>Copier le chemin</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="325"/>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="335"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1410"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="473"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="308"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="318"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1443"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="501"/>
         <source>Reveal in File Manager</source>
         <translation>Afficher dans le gestionnaire de fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFind.cpp" line="56"/>
-        <location filename="../src/app/MainWindowFind.cpp" line="140"/>
-        <location filename="../src/app/MainWindowFind.cpp" line="184"/>
+        <location filename="../src/app/MainWindowFind.cpp" line="68"/>
+        <location filename="../src/app/MainWindowFind.cpp" line="160"/>
+        <location filename="../src/app/MainWindowFind.cpp" line="205"/>
         <source>Invalid regular expression: %1</source>
         <translation>Expression régulière non valide : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFind.cpp" line="170"/>
+        <location filename="../src/app/MainWindowFind.cpp" line="189"/>
         <source>Replace</source>
         <translation>Remplacer</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFind.cpp" line="195"/>
+        <location filename="../src/app/MainWindowFind.cpp" line="216"/>
         <source>Replace All</source>
         <translation>Tout remplacer</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="192"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="222"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="463"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="199"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="233"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="491"/>
         <source>Unpin Tab</source>
         <translation>Désépingler l’onglet</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="211"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="220"/>
         <source>Open Documents</source>
         <translation>Documents ouverts</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="214"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="216"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="224"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="227"/>
         <source>New Tab</source>
         <translation>Nouvel onglet</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="458"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="486"/>
         <source>Close Others</source>
         <translation>Fermer les autres onglets</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="459"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="487"/>
         <source>Close Tabs to the Right</source>
         <translation>Fermer les onglets à droite</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="460"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="488"/>
         <source>Close Saved Tabs</source>
         <translation>Fermer les onglets enregistrés</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="461"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="489"/>
         <source>Close All Tabs</source>
         <translation>Fermer tous les onglets</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="463"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="491"/>
         <source>Pin Tab</source>
         <translation>Épingler l’onglet</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="469"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="497"/>
         <source>Reveal in Finder</source>
         <translation>Afficher dans le Finder</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="471"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="499"/>
         <source>Reveal in File Explorer</source>
         <translation>Afficher dans l’explorateur de fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="477"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="505"/>
         <source>Move Tab to New Window</source>
         <translation>Déplacer l’onglet vers une nouvelle fenêtre</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="479"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="508"/>
         <source>Copy Tab to New Window</source>
         <translation>Copier l’onglet dans une nouvelle fenêtre</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="133"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="161"/>
         <source>This file changed. Search again to update its matches.</source>
         <translation>Ce fichier a été modifié. Relancez la recherche pour mettre à jour ses occurrences.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="162"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="196"/>
         <source>This match cannot be selected precisely in live preview. Showing it in source mode.</source>
         <translation>Cette occurrence ne peut pas être sélectionnée précisément dans l’aperçu en direct. Elle est affichée en mode source.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="183"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="221"/>
         <source>Preview Folder Replacement</source>
         <translation>Aperçu du remplacement dans le dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="185"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="225"/>
         <source>Folder: %1
 Find: %2
 Replace with: %3</source>
@@ -3747,145 +3747,145 @@ Remplacer par : %3</translation>
         <translation type="vanished">Chemins à inclure : %1 · Chemins à exclure : %2 · Respecter la casse : %3 · Expression régulière : %4</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="190"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="192"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="233"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="235"/>
         <source>Yes</source>
         <translation>Oui</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="190"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="192"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="233"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="235"/>
         <source>No</source>
         <translation>Non</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="195"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="244"/>
         <source>Matches</source>
         <translation>Occurrences</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="39"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="166"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="42"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="216"/>
         <source>Rename / Move</source>
         <translation>Renommer / Déplacer</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="39"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="43"/>
         <source>The destination already exists or is inside the folder being moved.</source>
         <translation>La destination existe déjà ou se trouve dans le dossier en cours de déplacement.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="46"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="50"/>
         <source>Checking links…</source>
         <translation>Vérification des liens…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="61"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="69"/>
         <source>Preview Link Updates</source>
         <translation>Aperçu de la mise à jour des liens</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="63"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="72"/>
         <source>%1 → %2
 Search folder: %3</source>
         <translation>%1 → %2
 Dossier de recherche : %3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="69"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="84"/>
         <source>Links</source>
         <translation>Liens</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="73"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="89"/>
         <source> (unsaved)</source>
         <translation> (non enregistré)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="78"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="203"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="96"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="255"/>
         <source>Skipped</source>
         <translation>Ignorés</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="95"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="122"/>
         <source>Updates Markdown links, reference definitions and Markdown images in this folder. Code and external URLs are excluded. Unsaved notes stay unsaved and can be undone. Disk originals are backed up.
 Hidden folders, build folders, symbolic links, unreadable files and files over 8 MB are excluded; links outside this folder are not scanned.</source>
         <translation>Met à jour les liens Markdown, les définitions de références et les images Markdown dans ce dossier. Le code et les URL externes sont exclus. Les notes non enregistrées le restent et les modifications peuvent être annulées. Les originaux sur disque sont sauvegardés.
 Les dossiers cachés, les dossiers de compilation, les liens symboliques, les fichiers illisibles et les fichiers de plus de 8 Mo sont exclus ; les liens hors de ce dossier ne sont pas analysés.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="98"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="128"/>
         <source>Some files could not be checked. Their links may need manual updates.</source>
         <translation>Certains fichiers n’ont pas pu être vérifiés. Leurs liens peuvent nécessiter une mise à jour manuelle.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="102"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="133"/>
         <source>Rename / Move Only</source>
         <translation>Renommer / Déplacer uniquement</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="104"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="135"/>
         <source>Update Links</source>
         <translation>Mettre à jour les liens</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="126"/>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="129"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="165"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="169"/>
         <source>A note changed after the preview. Please try again.</source>
         <translation>Une note a été modifiée après l’aperçu. Veuillez réessayer.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="133"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="174"/>
         <source>A file changed on disk after the preview. Please try again.</source>
         <translation>Un fichier sur disque a été modifié après l’aperçu. Veuillez réessayer.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="142"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="186"/>
         <source>
 Some originals could not be restored. Backups: %1</source>
         <translation>
 Certains originaux n’ont pas pu être restaurés. Sauvegardes : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="146"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="191"/>
         <source>Link updates could not be completed. The path was not changed.</source>
         <translation>La mise à jour des liens n’a pas pu être terminée. Le chemin n’a pas été modifié.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="158"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="206"/>
         <source>Could not rename or move: %1</source>
         <translation>Impossible de renommer ou de déplacer : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="188"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="244"/>
         <source>Update Note Links</source>
         <translation>Mettre à jour les liens des notes</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNoteLinks.cpp" line="210"/>
+        <location filename="../src/app/MainWindowNoteLinks.cpp" line="271"/>
         <source>Links updated. Originals backed up in %1</source>
         <translation>Liens mis à jour. Originaux sauvegardés dans %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="205"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="257"/>
         <source>Unsaved, changed, unreadable, oversized, mixed line endings, or not losslessly writable.</source>
         <translation>Non enregistrés, modifiés, illisibles, trop volumineux, avec des fins de ligne mixtes ou impossibles à réécrire sans perte.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="207"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="261"/>
         <source>Replacement preview</source>
         <translation>Aperçu du remplacement</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="211"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="267"/>
         <source>
 … Preview truncated; the full file will be processed.</source>
         <translation>
 … Aperçu tronqué ; le fichier entier sera traité.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="212"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="270"/>
         <source>Before:
 %1
 
@@ -3898,49 +3898,49 @@ Après :
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="215"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="275"/>
         <source>Files with unsaved changes are skipped. Originals are backed up for recovery. Files changed since this preview will not be overwritten.</source>
         <translation>Les fichiers contenant des modifications non enregistrées sont ignorés. Les originaux sont sauvegardés pour permettre leur restauration. Les fichiers modifiés depuis cet aperçu ne seront pas écrasés.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="222"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="289"/>
         <source>Replace %1 matches in %2 files</source>
         <translation>Remplacer %1 occurrences dans %2 fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="241"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="321"/>
         <source>Folder Replacement</source>
         <translation>Remplacement dans le dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="242"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="322"/>
         <source>%1 files changed; %2 skipped.
 %3</source>
         <translation>%1 fichiers modifiés ; %2 ignorés.
 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="244"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="325"/>
         <source>
 Recovery folder: %1</source>
         <translation>
 Dossier de récupération : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/CommandDeclarations.cpp" line="553"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="250"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="251"/>
-        <location filename="../src/app/MainWindowSearch.cpp" line="263"/>
+        <location filename="../src/app/CommandDeclarations.cpp" line="578"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="333"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="337"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="356"/>
         <source>Undo Folder Replacement</source>
         <translation>Annuler le remplacement dans le dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="250"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="333"/>
         <source>No folder replacement is available to restore.</source>
         <translation>Aucun remplacement dans un dossier ne peut être annulé.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="252"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="338"/>
         <source>Restore the original files from this replacement?
 %1
 
@@ -3951,39 +3951,39 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
 Les fichiers modifiés par la suite ou contenant des modifications non enregistrées seront ignorés.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="254"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="341"/>
         <source>Restore Originals</source>
         <translation>Restaurer les originaux</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="255"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="342"/>
         <source>Open Recovery Folder</source>
         <translation>Ouvrir le dossier de récupération</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="264"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="357"/>
         <source>%1 files restored; %2 skipped.
 %3</source>
         <translation>%1 fichiers restaurés ; %2 ignorés.
 %3</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="293"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="400"/>
         <source>Updating files…</source>
         <translation>Mise à jour des fichiers…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="293"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="400"/>
         <source>Stop after current file</source>
         <translation>Arrêter après le fichier en cours</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNavigation.cpp" line="30"/>
+        <location filename="../src/app/MainWindowNavigation.cpp" line="31"/>
         <source>Linked file not found: %1</source>
         <translation>Fichier lié introuvable : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowNavigation.cpp" line="103"/>
+        <location filename="../src/app/MainWindowNavigation.cpp" line="112"/>
         <source>Heading not found: %1</source>
         <translation>Titre introuvable : %1</translation>
     </message>
@@ -4002,48 +4002,53 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::PreferencesDialog</name>
     <message>
-        <location filename="../src/app/PreferencesDialog.cpp" line="214"/>
-        <location filename="../src/app/PreferencesDialog.cpp" line="216"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="210"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="212"/>
         <source>Preferences</source>
         <translation>Préférences</translation>
     </message>
     <message>
-        <location filename="../src/app/PreferencesDialog.cpp" line="225"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="217"/>
         <source>Files</source>
         <translation>Fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/PreferencesDialog.cpp" line="222"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="216"/>
         <source>Editor</source>
         <translation>Éditeur</translation>
     </message>
     <message>
-        <location filename="../src/app/PreferencesDialog.cpp" line="66"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="62"/>
         <source>Categories</source>
         <translation>Catégories</translation>
     </message>
     <message>
-        <location filename="../src/app/PreferencesDialog.cpp" line="224"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="217"/>
         <source>Image</source>
         <translation>Image</translation>
     </message>
     <message>
-        <location filename="../src/app/PreferencesDialog.cpp" line="226"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="217"/>
         <source>Export</source>
         <translation>Exportation</translation>
     </message>
     <message>
-        <location filename="../src/app/PreferencesDialog.cpp" line="221"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="216"/>
         <source>Appearance</source>
         <translation>Apparence</translation>
     </message>
     <message>
-        <location filename="../src/app/PreferencesDialog.cpp" line="220"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="216"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="../src/app/PreferencesDialog.cpp" line="251"/>
+        <location filename="../src/app/PreferencesDialog.cpp" line="217"/>
+        <source>Keyboard Shortcuts</source>
+        <translation>Raccourcis clavier</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PreferencesDialog.cpp" line="243"/>
         <source>No settings available.</source>
         <translation>Aucun paramètre disponible.</translation>
     </message>
@@ -4111,62 +4116,62 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::PrefsAppearancePage</name>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="141"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="143"/>
         <source>Theme</source>
         <translation>Thème</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="142"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="144"/>
         <source>Zoom</source>
         <translation>Zoom</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="143"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="145"/>
         <source>Reset</source>
         <translation>Réinitialiser</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="144"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="146"/>
         <source>Text Size</source>
         <translation>Taille du texte</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="145"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="147"/>
         <source>Content Width</source>
         <translation>Largeur du contenu</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="146"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="148"/>
         <source>Theme Default</source>
         <translation>Valeur par défaut du thème</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="147"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="149"/>
         <source>Comfortable (1024 px)</source>
         <translation>Confortable (1024 px)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="148"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="150"/>
         <source>Wide (1200 px)</source>
         <translation>Large (1200 px)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="149"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="151"/>
         <source>Full Width</source>
         <translation>Pleine largeur</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="150"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="152"/>
         <source>Status Bar</source>
         <translation>Barre d&apos;état</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="151"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="153"/>
         <source>Show status bar</source>
         <translation>Afficher la barre d&apos;état</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsAppearancePage.cpp" line="153"/>
+        <location filename="../src/app/PrefsAppearancePage.cpp" line="155"/>
         <source>Import Theme...</source>
         <translation>Importer un thème…</translation>
     </message>
@@ -4174,107 +4179,107 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::PrefsEditorPage</name>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="183"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="181"/>
         <source>Default Indent</source>
         <translation>Retrait par défaut</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="184"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="182"/>
         <source>Only effective for references and lists generated via menu bar or shortcuts</source>
         <translation>Effectif uniquement pour les références et listes générées via la barre de menus ou les raccourcis</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="186"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="184"/>
         <source>Align Indent</source>
         <translation>Aligner le retrait</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="188"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="186"/>
         <source>Use Paired Symbols</source>
         <translation>Utiliser les symboles appariés</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="189"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="187"/>
         <source>Match brackets and quotes</source>
         <translation>Compléter les parenthèses et guillemets</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="190"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="188"/>
         <source>Match Markdown characters</source>
         <translation>Compléter les caractères Markdown</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="192"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="190"/>
         <source>Autocomplete</source>
         <translation>Complétion automatique</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="193"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="191"/>
         <source>Enable Emoji autocomplete</source>
         <translation>Activer la complétion automatique des émojis</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="195"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="193"/>
         <source>Live Rendering</source>
         <translation>Rendu en direct</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="196"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="194"/>
         <source>Show Markdown source of the current block element</source>
         <translation>Afficher la source Markdown de l&apos;élément de bloc actuel</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="197"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="195"/>
         <source>Show Mermaid diagrams as source code instead of rendering</source>
         <translation>Afficher les diagrammes Mermaid sous forme de code source au lieu d&apos;en effectuer le rendu</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="199"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="197"/>
         <source>Default Copy Behavior</source>
         <translation>Comportement de copie par défaut</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="200"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="198"/>
         <source>Copy Markdown source when copying plain text</source>
         <translation>Copier la source Markdown lors de la copie en texte brut</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="201"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="199"/>
         <source>Copy or cut the entire line when no text is selected</source>
         <translation>Copier ou couper la ligne entière lorsqu&apos;aucun texte n&apos;est sélectionné</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="203"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="201"/>
         <source>Default Line Break</source>
         <translation>Saut de ligne par défaut</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="204"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="202"/>
         <source>Default line break for new files</source>
         <translation>Saut de ligne par défaut pour les nouveaux fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="205"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="203"/>
         <source>LF (Unix Style)</source>
         <translation>LF (style Unix)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="206"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="204"/>
         <source>CRLF (Windows Style)</source>
         <translation>CRLF (style Windows)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="208"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="206"/>
         <source>Spell Check</source>
         <translation>Vérification orthographique</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="209"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="207"/>
         <source>Enable spell checking</source>
         <translation>Activer la vérification orthographique</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="210"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="208"/>
         <source>Language</source>
         <translation>Langue</translation>
     </message>
@@ -4287,17 +4292,17 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Chinois (simplifié)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="212"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="210"/>
         <source>Typewriter Mode</source>
         <translation>Mode machine à écrire</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="213"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="211"/>
         <source>Always keep the cursor in the middle of the screen</source>
         <translation>Toujours garder le curseur au milieu de l&apos;écran</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsEditorPage.cpp" line="214"/>
+        <location filename="../src/app/PrefsEditorPage.cpp" line="212"/>
         <source>Disable Typewriter / Focus Mode</source>
         <translation>Désactiver le mode machine à écrire / concentration</translation>
     </message>
@@ -4313,28 +4318,28 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Exécutables (*.exe);;Tous les fichiers (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="70"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="71"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="70"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="71"/>
         <source>HTML (without Styles)</source>
         <translation>HTML (sans styles)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="70"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="71"/>
         <source>Image</source>
         <translation>Image</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="67"/>
         <location filename="../src/app/PrefsExportPage.cpp" line="68"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="69"/>
         <source>Formats</source>
         <translation>Formats</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="194"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="202"/>
         <source>Default Export Folder</source>
         <translation>Dossier d&apos;exportation par défaut</translation>
     </message>
@@ -4343,250 +4348,271 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Automatique</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="190"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="198"/>
         <source>Same folder as current file</source>
         <translation>Même dossier que le fichier actuel</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="191"/>
-        <location filename="../src/app/PrefsExportPage.cpp" line="226"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="199"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="239"/>
         <source>Custom...</source>
         <translation>Personnalisé...</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="205"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="214"/>
         <source>Pandoc Path</source>
         <translation>Chemin de Pandoc</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="207"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="216"/>
         <source>(Auto-detect)</source>
         <translation>(Détection automatique)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="132"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="134"/>
         <source>Browse...</source>
         <translation>Parcourir...</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="187"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="195"/>
         <source>Shared defaults for all export formats. Select a format to configure its own options.</source>
         <translation>Paramètres par défaut communs à tous les formats d’exportation. Sélectionnez un format pour configurer ses propres options.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="197"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="206"/>
         <source>Custom Folder</source>
         <translation>Dossier personnalisé</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="204"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="213"/>
         <source>Untitled documents use the Documents folder.</source>
         <translation>Les documents sans titre utilisent le dossier Documents.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="205"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="214"/>
         <source>All Files (*)</source>
         <translation>Tous les fichiers (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="208"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="217"/>
         <source>Auto-detect</source>
         <translation>Détecter automatiquement</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="214"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="226"/>
         <source>PDF, HTML and images use Muffin&apos;s renderer. Other formats require Pandoc.</source>
         <translation>Les PDF, le HTML et les images utilisent le moteur de rendu de Muffin. Les autres formats nécessitent Pandoc.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="221"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="233"/>
         <source>Used when exporting as %1. Changes are saved immediately.</source>
         <translation>Utilisé pour l’exportation au format %1. Les modifications sont enregistrées immédiatement.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="223"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="235"/>
         <source>Theme</source>
         <translation>Thème</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="223"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="235"/>
         <source>Current theme</source>
         <translation>Thème actuel</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="223"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="235"/>
         <source>Default light theme</source>
         <translation>Thème clair par défaut</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="226"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="239"/>
         <source>Page Size</source>
         <translation>Format de page</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="228"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="241"/>
         <source>Width</source>
         <translation>Largeur</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="229"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="242"/>
         <source>Height</source>
         <translation>Hauteur</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="248"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="264"/>
         <source>Landscape</source>
         <translation>Paysage</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="249"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="265"/>
         <source>Page Margins</source>
         <translation>Marges de page</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="251"/>
-        <location filename="../src/app/PrefsExportPage.cpp" line="262"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="267"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="286"/>
         <source>Font Size (px)</source>
         <translation>Taille de police (px)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="252"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="268"/>
         <source>Start each level-one heading on a new page</source>
         <translation>Commencer chaque titre de niveau 1 sur une nouvelle page</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="254"/>
-        <location filename="../src/app/PrefsExportPage.cpp" line="277"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="269"/>
+        <source>Header</source>
+        <translation>En-tête</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsExportPage.cpp" line="270"/>
+        <source>Footer</source>
+        <translation>Pied de page</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsExportPage.cpp" line="272"/>
+        <source>Show page numbers</source>
+        <translation>Afficher les numéros de page</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsExportPage.cpp" line="273"/>
+        <source>Header and footer variables: ${title}, ${author}, ${fileName}, ${date}, ${pageNo}, ${pageCount}. Space is reserved automatically so they do not overlap the document.</source>
+        <translation>Variables des en-têtes et pieds de page : ${title}, ${author}, ${fileName}, ${date}, ${pageNo}, ${pageCount}. Un espace est réservé automatiquement pour éviter tout chevauchement avec le contenu du document.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsExportPage.cpp" line="276"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="304"/>
         <source>Include a table of contents</source>
         <translation>Inclure une table des matières</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="256"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="279"/>
         <source>Add to &lt;head&gt;</source>
         <translation>Ajouter à &lt;head&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="257"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="280"/>
         <source>Add before document content</source>
         <translation>Ajouter avant le contenu du document</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="258"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="282"/>
         <source>Muffin adds no theme stylesheet to this format.</source>
         <translation>Muffin n’ajoute aucune feuille de style de thème à ce format.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="260"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="284"/>
         <source>Width (px)</source>
         <translation>Largeur (px)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="261"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="285"/>
         <source>Output Scale</source>
         <translation>Échelle de sortie</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="264"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="288"/>
         <source>Exports one PNG. Maximum: 64 million pixels and 32,767 pixels in height. Use PDF for longer documents.</source>
         <translation>Exporte un fichier PNG. Maximum : 64 millions de pixels et 32 767 pixels de hauteur. Utilisez le PDF pour les documents plus longs.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="266"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="290"/>
         <source>Requires Pandoc. Configure its path under General.</source>
         <translation>Nécessite Pandoc. Configurez son chemin dans Général.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="268"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="292"/>
         <source>Reference Document</source>
         <translation>Document de référence</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="269"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="295"/>
         <source>Custom CSS</source>
         <translation>CSS personnalisé</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="272"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="298"/>
         <source>Title</source>
         <translation>Titre</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="273"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="271"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="300"/>
         <source>Author</source>
         <translation>Auteur</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="278"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="305"/>
         <source>TOC Depth</source>
         <translation>Profondeur de la table des matières</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="283"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="310"/>
         <source>Number sections</source>
         <translation>Numéroter les sections</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="286"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="313"/>
         <source>Line Wrapping</source>
         <translation>Retour à la ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="286"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="313"/>
         <source>Do not wrap</source>
         <translation>Aucun retour à la ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="286"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="313"/>
         <source>Automatic</source>
         <translation>Automatique</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="286"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="313"/>
         <source>Preserve source wrapping</source>
         <translation>Conserver les retours à la ligne de la source</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="288"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="315"/>
         <source>Additional Pandoc Arguments</source>
         <translation>Arguments Pandoc supplémentaires</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="289"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="316"/>
         <source>Quote paths containing spaces. Muffin manages the input format, output format and output path.</source>
         <translation>Mettez entre guillemets les chemins contenant des espaces. Muffin gère le format d’entrée, le format de sortie et le chemin de sortie.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="292"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="319"/>
         <source>After Export</source>
         <translation>Après l&apos;exportation</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="294"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="321"/>
         <source>Open the exported file directory</source>
         <translation>Ouvrir le dossier du fichier exporté</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="295"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="323"/>
         <source>Open the exported file</source>
         <translation>Ouvrir le fichier exporté</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="303"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="332"/>
         <source>Using: %1</source>
         <translation>Utilisé : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="303"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="333"/>
         <source>Not a valid executable; will auto-detect.</source>
         <translation>Ce n&apos;est pas un exécutable valide ; détection automatique.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="309"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="340"/>
         <source>Detected: %1</source>
         <translation>Détecté : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsExportPage.cpp" line="308"/>
+        <location filename="../src/app/PrefsExportPage.cpp" line="339"/>
         <source>Pandoc was not found. Install it, or click Browse to locate.</source>
         <translation>Pandoc est introuvable. Installez-le, ou cliquez sur « Parcourir » pour le localiser.</translation>
     </message>
@@ -4594,7 +4620,7 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::PrefsFilesPage</name>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="438"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="441"/>
         <source>Startup</source>
         <translation>Démarrage</translation>
     </message>
@@ -4607,12 +4633,12 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Rouvrir le dernier fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="424"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="427"/>
         <source>File Open Protection</source>
         <translation>Protection à l’ouverture des fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="425"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="428"/>
         <source>Extension protection</source>
         <translation>Protection par extension</translation>
     </message>
@@ -4625,175 +4651,175 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Séparez les extensions par des virgules, des espaces ou des points-virgules. Vous pouvez ajouter ou supprimer des extensions.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="426"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="429"/>
         <source>Allowed file extensions</source>
         <translation>Extensions de fichiers autorisées</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="427"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="430"/>
         <source>Ask before opening files with extensions outside this list.</source>
         <translation>Demander confirmation avant d’ouvrir des fichiers dont l’extension ne figure pas dans cette liste.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="428"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="431"/>
         <source>e.g. .txt, .log</source>
         <translation>p. ex. .txt, .log</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="429"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="432"/>
         <source>Add</source>
         <translation>Ajouter</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="430"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="433"/>
         <source>Restore Defaults</source>
         <translation>Rétablir les valeurs par défaut</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="431"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="434"/>
         <source>File size protection</source>
         <translation>Protection par taille de fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="432"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="435"/>
         <source>Large files may take longer to open and use more memory.</source>
         <translation>Les fichiers volumineux peuvent prendre plus de temps à s’ouvrir et utiliser davantage de mémoire.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="433"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="436"/>
         <source>Warn before opening files larger than</source>
         <translation>Avertir avant d’ouvrir les fichiers de plus de</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="436"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="439"/>
         <source>File size unit</source>
         <translation>Unité de taille des fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="443"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="446"/>
         <source>Always start fresh</source>
         <translation>Toujours démarrer avec une session vide</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="444"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="447"/>
         <source>Restore previous session</source>
         <translation>Restaurer la session précédente</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="450"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="453"/>
         <source>Outline</source>
         <translation>Plan</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="451"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="454"/>
         <source>Allow collapsing and expanding the outline view in the sidebar</source>
         <translation>Autoriser la réduction et le développement de la vue du plan dans la barre latérale</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="453"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="456"/>
         <source>Default File Type / Extension</source>
         <translation>Type de fichier / extension par défaut</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="460"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="463"/>
         <source>Plain Text (.txt)</source>
         <translation>Texte brut (.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="466"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="469"/>
         <source>Save &amp; Restore</source>
         <translation>Enregistrer &amp; Restaurer</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="467"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="470"/>
         <source>Auto Save</source>
         <translation>Enregistrement automatique</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="468"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="471"/>
         <source>Auto-save changes to the previous file when switching files</source>
         <translation>Enregistrer automatiquement les modifications du fichier précédent lors du changement de fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="469"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="472"/>
         <source>Restore Unsaved Drafts</source>
         <translation>Restaurer les brouillons non enregistrés</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="471"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="474"/>
         <source>Recently Used Files</source>
         <translation>Fichiers récemment utilisés</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="472"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="475"/>
         <source>Record history files and folders</source>
         <translation>Enregistrer l&apos;historique des fichiers et dossiers</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="473"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="476"/>
         <source>Clear History</source>
         <translation>Effacer l&apos;historique</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="475"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="478"/>
         <source>When dragging files/folders into the window</source>
         <translation>Lors du glisser-déposer de fichiers/dossiers dans la fenêtre</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="476"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="479"/>
         <source>When dragging a folder</source>
         <translation>Lors du glisser-déposer d&apos;un dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="481"/>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="492"/>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="504"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="484"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="495"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="507"/>
         <source>Open in Muffin</source>
         <translation>Ouvrir dans Muffin</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="482"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="485"/>
         <source>Open in File Manager</source>
         <translation>Ouvrir dans le gestionnaire de fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="487"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="490"/>
         <source>When dragging a Markdown file</source>
         <translation>Lors du glisser-déposer d&apos;un fichier Markdown</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="493"/>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="503"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="496"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="506"/>
         <source>Import File</source>
         <translation>Importer un fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="498"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="501"/>
         <source>When dragging an importable file</source>
         <translation>Lors du glisser-déposer d&apos;un fichier importable</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="511"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="514"/>
         <source>Windows Integration</source>
         <translation>Intégration à Windows</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="513"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="515"/>
         <source>Add &quot;Open with Muffin&quot; to File Explorer context menu for files and folders</source>
         <translation>Ajouter « Ouvrir avec Muffin » au menu contextuel des fichiers et des dossiers dans l’Explorateur de fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="515"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="517"/>
         <source>Register Muffin as an editor for Markdown files (.md, .markdown, .mdx, .mkd, .mdown)</source>
         <translation>Enregistrer Muffin comme éditeur pour les fichiers Markdown (.md, .markdown, .mdx, .mkd, .mdown)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="516"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="518"/>
         <source>Set Muffin as Default…</source>
         <translation>Définir Muffin comme application par défaut…</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="557"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="562"/>
         <source>Remove .%1</source>
         <translation>Supprimer .%1</translation>
     </message>
@@ -4801,59 +4827,59 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::PrefsGeneralPage</name>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="106"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="109"/>
         <source>Checking...</source>
         <translation>Vérification...</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="83"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="86"/>
         <source>Update Available</source>
         <translation>Mise à jour disponible</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="84"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="87"/>
         <source>A new version of Muffin (%1) is available.</source>
         <translation>Une nouvelle version de Muffin (%1) est disponible.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="91"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="95"/>
         <source>Up to Date</source>
         <translation>À jour</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="92"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="95"/>
         <source>You are running the latest version of Muffin.</source>
         <translation>Vous utilisez la dernière version de Muffin.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="99"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="103"/>
         <source>Update Check Failed</source>
         <translation>Échec de la vérification des mises à jour</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="100"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="103"/>
         <source>Could not check for updates:
 %1</source>
         <translation>Impossible de vérifier les mises à jour :
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="119"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="122"/>
         <source>Language</source>
         <translation>Langue</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="120"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="123"/>
         <source>Update</source>
         <translation>Mise à jour</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="121"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="124"/>
         <source>Check for Updates</source>
         <translation>Vérifier les mises à jour</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsGeneralPage.cpp" line="122"/>
+        <location filename="../src/app/PrefsGeneralPage.cpp" line="125"/>
         <source>Automatically check for updates</source>
         <translation>Vérifier automatiquement les mises à jour</translation>
     </message>
@@ -4881,7 +4907,7 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::PrefsImagePage</name>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="182"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="184"/>
         <source>When Inserting Images</source>
         <translation>Lors de l&apos;insertion d&apos;images</translation>
     </message>
@@ -4890,7 +4916,7 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">En savoir plus...</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="187"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="189"/>
         <source>No special operation</source>
         <translation>Aucune opération particulière</translation>
     </message>
@@ -4899,143 +4925,143 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Copier vers un dossier personnalisé</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="188"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="190"/>
         <source>Copy image to current folder (./)</source>
         <translation>Copier l&apos;image dans le dossier courant (./)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="189"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="191"/>
         <source>Copy image to ./assets folder</source>
         <translation>Copier l&apos;image dans le dossier ./assets</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="190"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="192"/>
         <source>Copy image to ./%1 folder</source>
         <translation>Copier l&apos;image dans le dossier ./%1</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="191"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="193"/>
         <source>Upload image</source>
         <translation>Téléverser l&apos;image</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="192"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="194"/>
         <source>Copy to specified path</source>
         <translation>Copier vers le chemin spécifié</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="197"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="199"/>
         <source>Destination folder for copied images</source>
         <translation>Dossier de destination des images copiées</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="198"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="200"/>
         <source>Browse...</source>
         <translation>Parcourir...</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="199"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="201"/>
         <source>Apply the above rules to local images</source>
         <translation>Appliquer les règles ci-dessus aux images locales</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="200"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="202"/>
         <source>Apply the above rules to network images</source>
         <translation>Appliquer les règles ci-dessus aux images en ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="201"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="203"/>
         <source>Allow automatic image upload based on YAML settings</source>
         <translation>Autoriser le téléversement automatique des images selon les paramètres YAML</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="204"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="206"/>
         <source>Image Syntax Preferences</source>
         <translation>Préférences de syntaxe des images</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="205"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="207"/>
         <source>Prefer relative paths</source>
         <translation>Préférer les chemins relatifs</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="206"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="208"/>
         <source>Add / to relative paths</source>
         <translation>Ajouter / aux chemins relatifs</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="207"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="209"/>
         <source>Auto-escape image URLs on insertion</source>
         <translation>Échapper automatiquement les URL d&apos;images lors de l&apos;insertion</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="210"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="212"/>
         <source>Upload Service Settings</source>
         <translation>Paramètres du service de téléversement</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="211"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="213"/>
         <source>Upload Service</source>
         <translation>Service de téléversement</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="216"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="218"/>
         <source>None</source>
         <translation>Aucun</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="217"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="219"/>
         <source>Custom Command</source>
         <translation>Commande personnalisée</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="222"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="224"/>
         <source>e.g. picgo upload or uPic -m upload</source>
         <translation>par ex. picgo upload ou uPic -m upload</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="223"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="225"/>
         <source>Test</source>
         <translation>Tester</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="290"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="292"/>
         <source>Select Image Folder</source>
         <translation>Sélectionner le dossier d&apos;images</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="299"/>
-        <location filename="../src/app/PrefsImagePage.cpp" line="307"/>
-        <location filename="../src/app/PrefsImagePage.cpp" line="313"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="301"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="309"/>
         <location filename="../src/app/PrefsImagePage.cpp" line="315"/>
         <location filename="../src/app/PrefsImagePage.cpp" line="317"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="319"/>
         <source>Test Upload</source>
         <translation>Test de téléversement</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="299"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="301"/>
         <source>Enter an upload command first.</source>
         <translation>Saisissez d&apos;abord une commande de téléversement.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="307"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="309"/>
         <source>Could not create a test image.</source>
         <translation>Impossible de créer une image de test.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="313"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="315"/>
         <source>Upload canceled.</source>
         <translation>Téléversement annulé.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="315"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="317"/>
         <source>Upload succeeded. Returned URL:
 %1</source>
         <translation>Téléversement réussi. URL renvoyée :
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsImagePage.cpp" line="317"/>
+        <location filename="../src/app/PrefsImagePage.cpp" line="319"/>
         <source>Upload failed:
 %1</source>
         <translation>Échec du téléversement :
@@ -5064,7 +5090,7 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation>Le mode strict désactive les tableaux, le texte barré et les listes de tâches pour conserver la structure CommonMark standard. Les extensions en ligne (formules, liens automatiques, indices et exposants, etc.) suivent toujours leurs propres réglages et ne sont pas affectées par le mode strict.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="262"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="261"/>
         <source>Break on Single Newline</source>
         <translation>Saut de ligne sur nouvelle ligne simple</translation>
     </message>
@@ -5074,47 +5100,47 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation>Affiche chaque simple passage à la ligne comme un saut de ligne. Désactivez-le pour le CommonMark strict, qui regroupe les lignes à retour mou en un seul paragraphe.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="266"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="265"/>
         <source>Heading Style</source>
         <translation>Style de titre</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="268"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="267"/>
         <source>Unordered List</source>
         <translation>Liste à puces</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="270"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="269"/>
         <source>Ordered List</source>
         <translation>Liste numérotée</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="271"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="270"/>
         <source>1. ... 2. ... 3. ...</source>
         <translation>1. ... 2. ... 3. ...</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="271"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="270"/>
         <source>1. ... 1. ... 1. ...</source>
         <translation>1. ... 1. ... 1. ...</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="274"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="273"/>
         <source>Markdown Extended Syntax</source>
         <translation>Syntaxe étendue Markdown</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="275"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="274"/>
         <source>Auto Recognize Links</source>
         <translation>Reconnaissance automatique des liens</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="276"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="275"/>
         <source>Inline Formula</source>
         <translation>Formule en ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="277"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="276"/>
         <source>Allow Spaces Inside Formula Delimiters</source>
         <translation>Autoriser les espaces à l’intérieur des délimiteurs de formule</translation>
     </message>
@@ -5124,22 +5150,22 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation>Acceptez les espaces ou tabulations à côté des délimiteurs de formule en ligne. Désactivez cette option pour utiliser l’analyse de style Pandoc, qui évite les textes monétaires ambigus.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="281"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="280"/>
         <source>Subscript</source>
         <translation>Indice</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="282"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="281"/>
         <source>Superscript</source>
         <translation>Exposant</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="283"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="282"/>
         <source>Highlight</source>
         <translation>Surligner</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="284"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="283"/>
         <source>Render Emoji Shortcodes</source>
         <translation>Afficher les codes courts d’emoji</translation>
     </message>
@@ -5149,12 +5175,12 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation>Convertir les codes courts de style GitHub, comme :smile: et :heart:, en emoji lors du rendu. Désactivez cette option pour conserver le texte :shortcode: tel quel (par exemple dans la documentation technique).</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="288"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="287"/>
         <source>Github Style Alert Box</source>
         <translation>Boîte d&apos;alerte de style GitHub</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="289"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="288"/>
         <source>Mermaid Diagrams</source>
         <translation>Diagrammes Mermaid</translation>
     </message>
@@ -5163,53 +5189,53 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Diagrammes (Séquence, Organigramme, Mermaid)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="290"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="289"/>
         <source>Diagram Options</source>
         <translation>Options de diagramme</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="293"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="292"/>
         <source>Smart Punctuation</source>
         <translation>Ponctuation intelligente</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="294"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="293"/>
         <source>Convert on Input</source>
         <translation>Convertir à la saisie</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="295"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="294"/>
         <source>No conversion</source>
         <translation>Pas de conversion</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="295"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="294"/>
         <source>When typing</source>
         <translation>Lors de la frappe</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="295"/>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="312"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="294"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="318"/>
         <source>Always</source>
         <translation>Toujours</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="296"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="295"/>
         <source>Smart Quotes</source>
         <translation>Guillemets intelligents</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="299"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="304"/>
         <source>Smart Dashes</source>
         <translation>Tirets intelligents</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="300"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="305"/>
         <source>Convert on Rendering</source>
         <translation>Convertir lors de l&apos;affichage</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="301"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="306"/>
         <source>Remap Unicode Punctuation on Parse</source>
         <translation>Remapper la ponctuation Unicode lors de l&apos;analyse</translation>
     </message>
@@ -5218,17 +5244,17 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Autoriser et convertir la ponctuation Unicode lors de l&apos;analyse Markdown</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="304"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="309"/>
         <source>Code Blocks</source>
         <translation>Blocs de code</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="305"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="310"/>
         <source>Show Line Numbers</source>
         <translation>Afficher les numéros de ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="306"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="311"/>
         <source>Code Blocks Auto Wrap</source>
         <translation>Retour automatique des blocs de code</translation>
     </message>
@@ -5237,41 +5263,122 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Utiliser Shift+Tab pour ajuster automatiquement le retrait du code sélectionné</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="307"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="312"/>
         <source>Code Indent</source>
         <translation>Retrait du code</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="309"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="314"/>
         <source>Default Code Block Language</source>
         <translation>Langue par défaut des blocs de code</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="310"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="315"/>
         <source>(empty)</source>
         <translation>(vide)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="311"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="317"/>
         <source>Automatically add code block language</source>
         <translation>Ajouter automatiquement la langue du bloc de code</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="312"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="318"/>
         <source>When inserting code blocks via Markdown code</source>
         <translation>Lors de l&apos;insertion de blocs de code via du code Markdown</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsMarkdownPage.cpp" line="312"/>
+        <location filename="../src/app/PrefsMarkdownPage.cpp" line="318"/>
         <source>Never</source>
         <translation>Jamais</translation>
+    </message>
+</context>
+<context>
+    <name>muffin::PrefsShortcutsPage</name>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="64"/>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="72"/>
+        <source>Keyboard Shortcuts</source>
+        <translation>Raccourcis clavier</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="64"/>
+        <source>Restore all default shortcuts?</source>
+        <translation>Rétablir tous les raccourcis par défaut ?</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="73"/>
+        <source>Select a command and press a key combination. Changes apply to all windows immediately.</source>
+        <translation>Sélectionnez une commande et appuyez sur une combinaison de touches. Les modifications s’appliquent immédiatement à toutes les fenêtres.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="74"/>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="75"/>
+        <source>Search commands or shortcuts…</source>
+        <translation>Rechercher une commande ou un raccourci…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="76"/>
+        <source>Command</source>
+        <translation>Commande</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="76"/>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="77"/>
+        <source>Shortcut</source>
+        <translation>Raccourci</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="76"/>
+        <source>Default</source>
+        <translation>Par défaut</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="78"/>
+        <source>Clear</source>
+        <translation>Effacer</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="79"/>
+        <source>Use Default</source>
+        <translation>Utiliser la valeur par défaut</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="80"/>
+        <source>Restore All Defaults…</source>
+        <translation>Tout rétablir par défaut…</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="145"/>
+        <source>Apply</source>
+        <translation>Appliquer</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="145"/>
+        <source>Reassign</source>
+        <translation>Réattribuer</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="150"/>
+        <source>This key is reserved for text entry or cursor navigation. Use a modifier key or a function key.</source>
+        <translation>Cette touche est réservée à la saisie de texte ou au déplacement du curseur. Utilisez une touche de modification ou une touche de fonction.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="156"/>
+        <source>Used by: %1. Reassigning will clear those shortcuts.</source>
+        <translation>Utilisé par : %1. La réattribution supprimera ces raccourcis.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsShortcutsPage.cpp" line="158"/>
+        <source>Clear and Apply removes the shortcut. Use Default and Apply restores it.</source>
+        <translation>« Effacer » puis « Appliquer » supprime le raccourci. « Utiliser la valeur par défaut » puis « Appliquer » le rétablit.</translation>
     </message>
 </context>
 <context>
     <name>muffin::QuickOpenDialog</name>
     <message>
         <location filename="../src/app/QuickOpenDialog.cpp" line="81"/>
-        <location filename="../src/app/QuickOpenDialog.cpp" line="259"/>
+        <location filename="../src/app/QuickOpenDialog.cpp" line="286"/>
         <source>Quick Open</source>
         <translation>Ouverture rapide</translation>
     </message>
@@ -5281,42 +5388,42 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation>Fichiers correspondants</translation>
     </message>
     <message>
-        <location filename="../src/app/QuickOpenDialog.cpp" line="223"/>
+        <location filename="../src/app/QuickOpenDialog.cpp" line="245"/>
         <source>Scanning folder…</source>
         <translation>Analyse du dossier…</translation>
     </message>
     <message>
-        <location filename="../src/app/QuickOpenDialog.cpp" line="224"/>
+        <location filename="../src/app/QuickOpenDialog.cpp" line="246"/>
         <source>No matching files</source>
         <translation>Aucun fichier correspondant</translation>
     </message>
     <message>
-        <location filename="../src/app/QuickOpenDialog.cpp" line="224"/>
+        <location filename="../src/app/QuickOpenDialog.cpp" line="247"/>
         <source>%1 matching files</source>
         <translation>%1 fichiers correspondants</translation>
     </message>
     <message>
-        <location filename="../src/app/QuickOpenDialog.cpp" line="225"/>
+        <location filename="../src/app/QuickOpenDialog.cpp" line="249"/>
         <source> · Showing the first %1; type to narrow results</source>
         <translation> · Affichage des %1 premiers ; saisissez du texte pour affiner les résultats</translation>
     </message>
     <message>
-        <location filename="../src/app/QuickOpenDialog.cpp" line="226"/>
+        <location filename="../src/app/QuickOpenDialog.cpp" line="251"/>
         <source> · File limit reached; results are incomplete</source>
         <translation> · Limite de fichiers atteinte ; résultats incomplets</translation>
     </message>
     <message>
-        <location filename="../src/app/QuickOpenDialog.cpp" line="227"/>
+        <location filename="../src/app/QuickOpenDialog.cpp" line="253"/>
         <source> · %1 unreadable folders skipped</source>
         <translation> · %1 dossiers illisibles ignorés</translation>
     </message>
     <message>
-        <location filename="../src/app/QuickOpenDialog.cpp" line="260"/>
+        <location filename="../src/app/QuickOpenDialog.cpp" line="287"/>
         <source>Search file names or paths…</source>
         <translation>Rechercher des noms de fichiers ou des chemins…</translation>
     </message>
     <message>
-        <location filename="../src/app/QuickOpenDialog.cpp" line="261"/>
+        <location filename="../src/app/QuickOpenDialog.cpp" line="288"/>
         <source>Open and recent files</source>
         <translation>Fichiers ouverts et récents</translation>
     </message>
@@ -5328,110 +5435,110 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::SearchPanelWidget</name>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="193"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="297"/>
         <source> · Unsaved</source>
         <translation> · Non enregistré</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="210"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="317"/>
         <source>Open a folder to search its contents.</source>
         <translation>Ouvrez un dossier pour rechercher dans son contenu.</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="211"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="319"/>
         <source>Search failed: %1</source>
         <translation>Échec de la recherche : %1</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="212"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="321"/>
         <source>Search text files in this folder and its subfolders.</source>
         <translation>Rechercher dans les fichiers texte de ce dossier et de ses sous-dossiers.</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="213"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="323"/>
         <source>%1 matches in %2 files</source>
         <translation>%1 occurrences dans %2 fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="214"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="325"/>
         <source> · Searching…</source>
         <translation> · Recherche en cours…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="215"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="327"/>
         <source> · Incomplete results; search again before replacing</source>
         <translation> · Résultats incomplets ; relancez la recherche avant de remplacer</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="216"/>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="228"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="329"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="345"/>
         <source>%1 files searched</source>
         <translation>%1 fichiers parcourus</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="217"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="331"/>
         <source> · %1 files or folders skipped</source>
         <translation> · %1 fichiers ou dossiers ignorés</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="218"/>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="247"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="333"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="386"/>
         <source>Result limit reached</source>
         <translation>Limite de résultats atteinte</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="221"/>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="226"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="336"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="342"/>
         <source>Search details</source>
         <translation>Détails de la recherche</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="230"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="348"/>
         <source>Path</source>
         <translation>Chemin</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="230"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="348"/>
         <source>Reason</source>
         <translation>Motif</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="235"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="356"/>
         <source>File size exceeds %1 MiB</source>
         <translation>La taille du fichier dépasse %1 MiB</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="236"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="359"/>
         <source>Regular expression search is limited to %1 MiB per file</source>
         <translation>La recherche par expression régulière est limitée à %1 MiB par fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="237"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="363"/>
         <source>File is loading or has conflicting unsaved versions</source>
         <translation>Le fichier est en cours de chargement ou possède des versions non enregistrées en conflit</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="238"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="366"/>
         <source>Cannot read file or folder</source>
         <translation>Impossible de lire le fichier ou le dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="239"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="369"/>
         <source>Unsupported encoding or binary content</source>
         <translation>Encodage non pris en charge ou contenu binaire</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="240"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="372"/>
         <source>File changed during search</source>
         <translation>Le fichier a été modifié pendant la recherche</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="241"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="375"/>
         <source>Search exceeded its resource limit</source>
         <translation>La recherche a dépassé sa limite de ressources</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="242"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="378"/>
         <source>Ignored directory</source>
         <translation>Dossier ignoré</translation>
     </message>
@@ -5440,12 +5547,12 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Aucun dossier ouvert</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="254"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="394"/>
         <source>Search contents…</source>
         <translation>Rechercher dans le contenu…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="254"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="395"/>
         <source>Search contents</source>
         <translation>Rechercher dans le contenu</translation>
     </message>
@@ -5458,44 +5565,45 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Chemins à exclure (mots ou segments de chemin)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="189"/>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="256"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="232"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="398"/>
         <source>Match case</source>
         <translation>Respecter la casse</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSearch.cpp" line="191"/>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="257"/>
+        <location filename="../src/app/MainWindowSearch.cpp" line="234"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="400"/>
         <source>Regular expression</source>
         <translation>Expression régulière</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="258"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="402"/>
         <source>Replace with…</source>
         <translation>Remplacer par…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="258"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="403"/>
         <source>Replace with</source>
         <translation>Remplacer par</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="259"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="404"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="405"/>
         <source>Replace</source>
         <translation>Remplacer</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="260"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="406"/>
         <source>Preview folder replacement…</source>
         <translation>Aperçu du remplacement dans le dossier…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="261"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="407"/>
         <source>Search</source>
         <translation>Recherche</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="261"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="408"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
@@ -5504,7 +5612,7 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Annuler le remplacement dans le dossier…</translation>
     </message>
     <message>
-        <location filename="../src/app/SearchPanelWidget.cpp" line="262"/>
+        <location filename="../src/app/SearchPanelWidget.cpp" line="409"/>
         <source>Content search results</source>
         <translation>Résultats de recherche dans le contenu</translation>
     </message>
@@ -5512,92 +5620,92 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::SidebarWidget</name>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="314"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="909"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="934"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="317"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="958"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="987"/>
         <source>Files</source>
         <translation>Fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="455"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="912"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="462"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="961"/>
         <source>Outline</source>
         <translation>Plan</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="892"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="938"/>
         <source>No folder open</source>
         <translation>Aucun dossier ouvert</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="895"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="944"/>
         <source>New File</source>
         <translation>Nouveau fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="896"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="945"/>
         <source>New Folder</source>
         <translation>Nouveau dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="898"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="947"/>
         <source>Refresh Files</source>
         <translation>Actualiser les fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="899"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="948"/>
         <source>Sort Files</source>
         <translation>Trier les fichiers</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="900"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="949"/>
         <source>File Name</source>
         <translation>Nom du fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="901"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="950"/>
         <source>Date Modified</source>
         <translation>Date de modification</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="902"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="951"/>
         <source>Date Created</source>
         <translation>Date de création</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="903"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="952"/>
         <source>File Type</source>
         <translation>Type de fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="904"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="953"/>
         <source>File Size</source>
         <translation>Taille du fichier</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="905"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="954"/>
         <source>Ascending</source>
         <translation>Ordre croissant</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="906"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="955"/>
         <source>Descending</source>
         <translation>Ordre décroissant</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="915"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="935"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="964"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="988"/>
         <source>Search</source>
         <translation>Recherche</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="340"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="323"/>
         <source>Expand All Folders</source>
         <translation>Développer tous les dossiers</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="341"/>
-        <location filename="../src/app/SidebarWidget.cpp" line="897"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="324"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="946"/>
         <source>Collapse All Folders</source>
         <translation>Réduire tous les dossiers</translation>
     </message>
@@ -5610,12 +5718,12 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
         <translation type="vanished">Ouvrir un dossier...</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowContextMenu.cpp" line="342"/>
+        <location filename="../src/app/MainWindowContextMenu.cpp" line="325"/>
         <source>Close Folder</source>
         <translation>Fermer le dossier</translation>
     </message>
     <message>
-        <location filename="../src/app/SidebarWidget.cpp" line="918"/>
+        <location filename="../src/app/SidebarWidget.cpp" line="967"/>
         <source>No Headings</source>
         <translation>Aucun titre</translation>
     </message>
@@ -5623,7 +5731,7 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::SourceEditorWidget</name>
     <message>
-        <location filename="../src/editor/SourceEditorWidget.cpp" line="129"/>
+        <location filename="../src/editor/SourceEditorWidget.cpp" line="215"/>
         <source>Start writing...</source>
         <translation>Commencez à écrire...</translation>
     </message>
@@ -5631,94 +5739,94 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::StatusBarWidget</name>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="203"/>
-        <location filename="../src/app/StatusBarWidget.cpp" line="515"/>
-        <location filename="../src/app/StatusBarWidget.cpp" line="540"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="217"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="528"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="555"/>
         <source>%1 words</source>
         <translation>%1 mots</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="360"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="374"/>
         <source>Click to view document statistics</source>
         <translation>Cliquez pour afficher les statistiques du document</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="363"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="377"/>
         <source>Click to change the spell-check language</source>
         <translation>Cliquez pour changer la langue de la correction orthographique</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="364"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="377"/>
         <source>Spell check is off — click to enable</source>
         <translation>La correction orthographique est désactivée — cliquez pour l&apos;activer</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="367"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="380"/>
         <source>Cursor position (line : column)</source>
         <translation>Position du curseur (ligne : colonne)</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="370"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="383"/>
         <source>File encoding · line ending</source>
         <translation>Encodage du fichier · fin de ligne</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="491"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="504"/>
         <source>Spell Check</source>
         <translation>Vérification orthographique</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="510"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="523"/>
         <source>Words</source>
         <translation>Mots</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="511"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="524"/>
         <source>Characters</source>
         <translation>Caractères</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="512"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="525"/>
         <source>Lines</source>
         <translation>Lignes</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="513"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="526"/>
         <source>Reading time</source>
         <translation>Temps de lecture</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="513"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="526"/>
         <source>&lt; 1 min</source>
         <translation>&lt; 1 min</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="513"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="526"/>
         <source>%1 min</source>
         <translation>%1 min</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="515"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="528"/>
         <source>Selected</source>
         <translation>Sélection</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="548"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="563"/>
         <source>Hide sidebar</source>
         <translation>Masquer la barre latérale</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="548"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="563"/>
         <source>Show sidebar</source>
         <translation>Afficher la barre latérale</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="549"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="565"/>
         <source>Switch to rendered mode</source>
         <translation>Passer en mode rendu</translation>
     </message>
     <message>
-        <location filename="../src/app/StatusBarWidget.cpp" line="549"/>
+        <location filename="../src/app/StatusBarWidget.cpp" line="565"/>
         <source>Switch to source mode</source>
         <translation>Passer en mode code source</translation>
     </message>
@@ -5734,42 +5842,42 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::VirtualSourceEdit</name>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="282"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="271"/>
         <source>Markdown source editor</source>
         <translation>Éditeur de source Markdown</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="283"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="272"/>
         <source>Plain-text Markdown source</source>
         <translation>Source Markdown en texte brut</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1317"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1425"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1318"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1427"/>
         <source>Redo</source>
         <translation>Rétablir</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1322"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1431"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1328"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1437"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1331"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1441"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1343"/>
+        <location filename="../src/editor/VirtualSourceEdit.cpp" line="1452"/>
         <source>Select All</source>
         <translation>Tout sélectionner</translation>
     </message>
@@ -5777,25 +5885,25 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::WorkspaceReplace</name>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="132"/>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="137"/>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="151"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="171"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="183"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="204"/>
         <source>Could not create recovery folder</source>
         <translation>Impossible de créer le dossier de récupération</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="134"/>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="206"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="176"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="280"/>
         <source>Another folder replacement is running</source>
         <translation>Un autre remplacement dans un dossier est en cours</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="208"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="285"/>
         <source>Could not read recovery journal</source>
         <translation>Impossible de lire le journal de récupération</translation>
     </message>
     <message>
-        <location filename="../src/app/WorkspaceReplace.cpp" line="210"/>
+        <location filename="../src/app/WorkspaceReplace.cpp" line="291"/>
         <source>Invalid recovery journal</source>
         <translation>Journal de récupération invalide</translation>
     </message>
@@ -5803,7 +5911,7 @@ Les fichiers modifiés par la suite ou contenant des modifications non enregistr
 <context>
     <name>muffin::WorkspaceSearch</name>
     <message>
-        <location filename="../src/app/WorkspaceSearch.cpp" line="245"/>
+        <location filename="../src/app/WorkspaceSearch.cpp" line="380"/>
         <source>Folder is unavailable</source>
         <translation>Le dossier est indisponible</translation>
     </message>

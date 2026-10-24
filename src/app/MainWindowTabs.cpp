@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "editor/ShortcutSettings.h"
 
 #include "app/MarkdownSettings.h"
 #include "app/FileOpenConfirmation.h"
@@ -219,8 +220,10 @@ void muffin::MainWindow::retranslateTabs() {
   tabs_->tabBar()->setAccessibleName(tr("Open Documents"));
   auto* button = static_cast<QToolButton*>(tabs_->cornerWidget());
   if (button) {
-    button->setToolTip(tr("New Tab") +
-                       QStringLiteral(" (%1)").arg(QKeySequence(QKeySequence::New).toString(QKeySequence::NativeText)));
+    const auto key = ShortcutSettings::instance().sequence(QStringLiteral("file.new"), QKeySequence::New);
+    button->setToolTip(tr("New Tab") + (key.isEmpty()
+                                            ? QString()
+                                            : QStringLiteral(" (%1)").arg(key.toString(QKeySequence::NativeText))));
     button->setAccessibleName(tr("New Tab"));
   }
   for (DocumentTab* document : documentTabs()) {

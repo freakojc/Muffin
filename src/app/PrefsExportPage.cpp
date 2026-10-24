@@ -266,6 +266,12 @@ void muffin::PrefsExportPage::rebuildPage() {
     theme();
     number(tr("Font Size (px)"), p + "fontSize", 16, 10, 40, "ExportPdfFontSize");
     check(tr("Start each level-one heading on a new page"), p + "breakOnHeading", false, "ExportPdfHeadingBreak");
+    edit(tr("Header"), p + "header", "ExportPdfHeader");
+    edit(tr("Footer"), p + "footer", "ExportPdfFooter");
+    edit(tr("Author"), p + "author", "ExportPdfAuthor");
+    check(tr("Show page numbers"), p + "pageNumbers", false, "ExportPdfPageNumbers");
+    note(tr("Header and footer variables: ${title}, ${author}, ${fileName}, ${date}, ${pageNo}, ${pageCount}. "
+            "Space is reserved automatically so they do not overlap the document."));
   } else if (format == ExportFormat::Html || format == ExportFormat::HtmlPlain) {
     check(tr("Include a table of contents"), p + "outline", false, "ExportHtmlOutline");
     if (format == ExportFormat::Html)

@@ -1,0 +1,2292 @@
+{
+  "date": "2026-10-24",
+  "baseline": "270f91c2",
+  "platform": "Windows-11-10.0.26100-SP0",
+  "method": {
+    "qpa": "windows",
+    "window": [
+      1000,
+      700
+    ],
+    "dpi": 96,
+    "scale": 1,
+    "repeats_per_case_per_phase": 2,
+    "peak_private_sampling_ms": 5,
+    "settle_ms": 2000,
+    "stable_samples": 10,
+    "stable_interval_ms": 100,
+    "census_after_sampling": true,
+    "kernel_peak_working_set": true,
+    "cold_disk": false,
+    "sequential_phases": true,
+    "text_backend": "native"
+  },
+  "notes": [
+    "Baseline is the after phase of document-memory-2026-10-23.json.",
+    "Code fixtures were rerun after indexed source lookup optimization.",
+    "Clicks measured after memory sampling, with independent clicks separated beyond the double-click interval; scrolling settles before timing.",
+    "caret_reposition_ms includes mouse press/release and the following Qt event processing."
+  ],
+  "runs": [
+    {
+      "baseline": {
+        "peak_working_set_bytes": 195604480,
+        "private_commit_bytes": 91160576,
+        "working_set_bytes": 195588096
+      },
+      "code_units": 3582825,
+      "document": {
+        "ast_arrays_payload": 16418704,
+        "ast_block_payload": 2835808,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 0,
+        "ast_string_payload": 0,
+        "block_nodes": 15412,
+        "inline_nodes": 184921,
+        "payload_total": 42849014,
+        "shared_inline_nodes": 100165,
+        "sizeof_inline": 88,
+        "source_position_payload": 2219184,
+        "text_buffer_payload": 20973014,
+        "text_index_payload": 2621488
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\chinese-10mib.md",
+      "layout": {
+        "detail_object_minimum": 94176,
+        "inline_style_entries": 9,
+        "node_style_entries": 38,
+        "position_payload": 863016,
+        "resident_details": 9,
+        "slot_count": 15411,
+        "slot_payload": 1232880
+      },
+      "lines": 115576,
+      "open_ms": 319,
+      "sampled_peak_private_commit_bytes": 186134528,
+      "sampled_peak_working_set_bytes": 275902464,
+      "sha256": "d21ad0774ebdbcfb83e1d8f97b1dbdb7f6c0ebeea2339cf6bc1747e03f1ae847",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        },
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        },
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        },
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        },
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        },
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        },
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        },
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        },
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        },
+        {
+          "peak_working_set_bytes": 284737536,
+          "private_commit_bytes": 149864448,
+          "working_set_bytes": 240439296
+        }
+      ],
+      "words": 377545,
+      "phase": "baseline",
+      "sample": "chinese-10mib-1"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 195055616,
+        "private_commit_bytes": 90546176,
+        "working_set_bytes": 195039232
+      },
+      "code_units": 3582825,
+      "document": {
+        "ast_arrays_payload": 16418704,
+        "ast_block_payload": 2835808,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 0,
+        "ast_string_payload": 0,
+        "block_nodes": 15412,
+        "inline_nodes": 184921,
+        "payload_total": 42849014,
+        "shared_inline_nodes": 100165,
+        "sizeof_inline": 88,
+        "source_position_payload": 2219184,
+        "text_buffer_payload": 20973014,
+        "text_index_payload": 2621488
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\chinese-10mib.md",
+      "layout": {
+        "detail_object_minimum": 94176,
+        "inline_style_entries": 9,
+        "node_style_entries": 38,
+        "position_payload": 863016,
+        "resident_details": 9,
+        "slot_count": 15411,
+        "slot_payload": 1232880
+      },
+      "lines": 115576,
+      "open_ms": 325,
+      "sampled_peak_private_commit_bytes": 193150976,
+      "sampled_peak_working_set_bytes": 282804224,
+      "sha256": "d21ad0774ebdbcfb83e1d8f97b1dbdb7f6c0ebeea2339cf6bc1747e03f1ae847",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        },
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        },
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        },
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        },
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        },
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        },
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        },
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        },
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        },
+        {
+          "peak_working_set_bytes": 284700672,
+          "private_commit_bytes": 150097920,
+          "working_set_bytes": 240422912
+        }
+      ],
+      "words": 377545,
+      "phase": "baseline",
+      "sample": "chinese-10mib-2"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 195522560,
+        "private_commit_bytes": 91021312,
+        "working_set_bytes": 195506176
+      },
+      "code_units": 358515,
+      "document": {
+        "ast_arrays_payload": 1641232,
+        "ast_block_payload": 284096,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 0,
+        "ast_string_payload": 0,
+        "block_nodes": 1544,
+        "inline_nodes": 18505,
+        "payload_total": 4351722,
+        "shared_inline_nodes": 10023,
+        "sizeof_inline": 88,
+        "source_position_payload": 222192,
+        "text_buffer_payload": 2098666,
+        "text_index_payload": 327728
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\chinese-1mib.md",
+      "layout": {
+        "detail_object_minimum": 94176,
+        "inline_style_entries": 9,
+        "node_style_entries": 38,
+        "position_payload": 86408,
+        "resident_details": 9,
+        "slot_count": 1543,
+        "slot_payload": 123440
+      },
+      "lines": 11566,
+      "open_ms": 65,
+      "sampled_peak_private_commit_bytes": 104828928,
+      "sampled_peak_working_set_bytes": 209575936,
+      "sha256": "406aa84a4b2d1739c2764633cf9862594c585e4cb69aab54636d9c0830eb4c96",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 207593472,
+          "private_commit_bytes": 103727104,
+          "working_set_bytes": 207413248
+        },
+        {
+          "peak_working_set_bytes": 207593472,
+          "private_commit_bytes": 103727104,
+          "working_set_bytes": 207417344
+        },
+        {
+          "peak_working_set_bytes": 207593472,
+          "private_commit_bytes": 103727104,
+          "working_set_bytes": 207417344
+        },
+        {
+          "peak_working_set_bytes": 207593472,
+          "private_commit_bytes": 103727104,
+          "working_set_bytes": 207417344
+        },
+        {
+          "peak_working_set_bytes": 207593472,
+          "private_commit_bytes": 103727104,
+          "working_set_bytes": 207417344
+        },
+        {
+          "peak_working_set_bytes": 207593472,
+          "private_commit_bytes": 103727104,
+          "working_set_bytes": 207417344
+        },
+        {
+          "peak_working_set_bytes": 207593472,
+          "private_commit_bytes": 103727104,
+          "working_set_bytes": 207417344
+        },
+        {
+          "peak_working_set_bytes": 207593472,
+          "private_commit_bytes": 103727104,
+          "working_set_bytes": 207417344
+        },
+        {
+          "peak_working_set_bytes": 207593472,
+          "private_commit_bytes": 103727104,
+          "working_set_bytes": 207417344
+        },
+        {
+          "peak_working_set_bytes": 209371136,
+          "private_commit_bytes": 103809024,
+          "working_set_bytes": 209371136
+        }
+      ],
+      "words": 37779,
+      "phase": "baseline",
+      "sample": "chinese-1mib-1"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 194879488,
+        "private_commit_bytes": 90734592,
+        "working_set_bytes": 194863104
+      },
+      "code_units": 358515,
+      "document": {
+        "ast_arrays_payload": 1641232,
+        "ast_block_payload": 284096,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 0,
+        "ast_string_payload": 0,
+        "block_nodes": 1544,
+        "inline_nodes": 18505,
+        "payload_total": 4351722,
+        "shared_inline_nodes": 10023,
+        "sizeof_inline": 88,
+        "source_position_payload": 222192,
+        "text_buffer_payload": 2098666,
+        "text_index_payload": 327728
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\chinese-1mib.md",
+      "layout": {
+        "detail_object_minimum": 94176,
+        "inline_style_entries": 9,
+        "node_style_entries": 38,
+        "position_payload": 86408,
+        "resident_details": 9,
+        "slot_count": 1543,
+        "slot_payload": 123440
+      },
+      "lines": 11566,
+      "open_ms": 67,
+      "sampled_peak_private_commit_bytes": 104161280,
+      "sampled_peak_working_set_bytes": 206450688,
+      "sha256": "406aa84a4b2d1739c2764633cf9862594c585e4cb69aab54636d9c0830eb4c96",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        },
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        },
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        },
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        },
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        },
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        },
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        },
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        },
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        },
+        {
+          "peak_working_set_bytes": 207519744,
+          "private_commit_bytes": 102899712,
+          "working_set_bytes": 206450688
+        }
+      ],
+      "words": 37779,
+      "phase": "baseline",
+      "sample": "chinese-1mib-2"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 196710400,
+        "private_commit_bytes": 91734016,
+        "working_set_bytes": 196694016
+      },
+      "code_units": 9039461,
+      "document": {
+        "ast_arrays_payload": 8,
+        "ast_block_payload": 368,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 56,
+        "ast_string_payload": 20971542,
+        "block_nodes": 2,
+        "inline_nodes": 0,
+        "payload_total": 51380756,
+        "shared_inline_nodes": 0,
+        "sizeof_inline": 88,
+        "source_position_payload": 144,
+        "text_buffer_payload": 20971550,
+        "text_index_payload": 9437232
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\code-10mib.md",
+      "layout": {
+        "detail_object_minimum": 10464,
+        "inline_style_entries": 0,
+        "node_style_entries": 4,
+        "position_payload": 56,
+        "resident_details": 1,
+        "slot_count": 1,
+        "slot_payload": 80
+      },
+      "lines": 180792,
+      "open_ms": 10786,
+      "sampled_peak_private_commit_bytes": 1439838208,
+      "sampled_peak_working_set_bytes": 1474637824,
+      "sha256": "c363cf6a3d3d7008fcc4fd91e16f060bc391dfcd3fe0899e0ca3a297e563991e",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        },
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        },
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        },
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        },
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        },
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        },
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        },
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        },
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        },
+        {
+          "peak_working_set_bytes": 1474637824,
+          "private_commit_bytes": 1439838208,
+          "working_set_bytes": 1474637824
+        }
+      ],
+      "words": 1265524,
+      "phase": "baseline",
+      "sample": "code-10mib-1"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 195743744,
+        "private_commit_bytes": 91189248,
+        "working_set_bytes": 195727360
+      },
+      "code_units": 9039461,
+      "document": {
+        "ast_arrays_payload": 8,
+        "ast_block_payload": 368,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 56,
+        "ast_string_payload": 20971542,
+        "block_nodes": 2,
+        "inline_nodes": 0,
+        "payload_total": 51380756,
+        "shared_inline_nodes": 0,
+        "sizeof_inline": 88,
+        "source_position_payload": 144,
+        "text_buffer_payload": 20971550,
+        "text_index_payload": 9437232
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\code-10mib.md",
+      "layout": {
+        "detail_object_minimum": 10464,
+        "inline_style_entries": 0,
+        "node_style_entries": 4,
+        "position_payload": 56,
+        "resident_details": 1,
+        "slot_count": 1,
+        "slot_payload": 80
+      },
+      "lines": 180792,
+      "open_ms": 10769,
+      "sampled_peak_private_commit_bytes": 1439121408,
+      "sampled_peak_working_set_bytes": 1471639552,
+      "sha256": "c363cf6a3d3d7008fcc4fd91e16f060bc391dfcd3fe0899e0ca3a297e563991e",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        },
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        },
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        },
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        },
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        },
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        },
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        },
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        },
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        },
+        {
+          "peak_working_set_bytes": 1471639552,
+          "private_commit_bytes": 1439121408,
+          "working_set_bytes": 1471639552
+        }
+      ],
+      "words": 1265524,
+      "phase": "baseline",
+      "sample": "code-10mib-2"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 196452352,
+        "private_commit_bytes": 91697152,
+        "working_set_bytes": 196435968
+      },
+      "code_units": 903961,
+      "document": {
+        "ast_arrays_payload": 8,
+        "ast_block_payload": 368,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 56,
+        "ast_string_payload": 2097182,
+        "block_nodes": 2,
+        "inline_nodes": 0,
+        "payload_total": 4850212,
+        "shared_inline_nodes": 0,
+        "sizeof_inline": 88,
+        "source_position_payload": 144,
+        "text_buffer_payload": 2097190,
+        "text_index_payload": 655408
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\code-1mib.md",
+      "layout": {
+        "detail_object_minimum": 10464,
+        "inline_style_entries": 0,
+        "node_style_entries": 4,
+        "position_payload": 56,
+        "resident_details": 1,
+        "slot_count": 1,
+        "slot_payload": 80
+      },
+      "lines": 18082,
+      "open_ms": 2185,
+      "sampled_peak_private_commit_bytes": 228651008,
+      "sampled_peak_working_set_bytes": 336003072,
+      "sha256": "79df6ace3f598f8812daf696fbab918da11ca48f9884894e5d0067088e5c5ad6",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        },
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        },
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        },
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        },
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        },
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        },
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        },
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        },
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        },
+        {
+          "peak_working_set_bytes": 336003072,
+          "private_commit_bytes": 228651008,
+          "working_set_bytes": 336003072
+        }
+      ],
+      "words": 126554,
+      "phase": "baseline",
+      "sample": "code-1mib-1"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 196390912,
+        "private_commit_bytes": 91312128,
+        "working_set_bytes": 196374528
+      },
+      "code_units": 903961,
+      "document": {
+        "ast_arrays_payload": 8,
+        "ast_block_payload": 368,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 56,
+        "ast_string_payload": 2097182,
+        "block_nodes": 2,
+        "inline_nodes": 0,
+        "payload_total": 4850212,
+        "shared_inline_nodes": 0,
+        "sizeof_inline": 88,
+        "source_position_payload": 144,
+        "text_buffer_payload": 2097190,
+        "text_index_payload": 655408
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\code-1mib.md",
+      "layout": {
+        "detail_object_minimum": 10464,
+        "inline_style_entries": 0,
+        "node_style_entries": 4,
+        "position_payload": 56,
+        "resident_details": 1,
+        "slot_count": 1,
+        "slot_payload": 80
+      },
+      "lines": 18082,
+      "open_ms": 2122,
+      "sampled_peak_private_commit_bytes": 228294656,
+      "sampled_peak_working_set_bytes": 335740928,
+      "sha256": "79df6ace3f598f8812daf696fbab918da11ca48f9884894e5d0067088e5c5ad6",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        },
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        },
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        },
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        },
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        },
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        },
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        },
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        },
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        },
+        {
+          "peak_working_set_bytes": 335740928,
+          "private_commit_bytes": 228294656,
+          "working_set_bytes": 335740928
+        }
+      ],
+      "words": 126554,
+      "phase": "baseline",
+      "sample": "code-1mib-2"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 197472256,
+        "private_commit_bytes": 92069888,
+        "working_set_bytes": 197455872
+      },
+      "code_units": 6088550,
+      "document": {
+        "ast_arrays_payload": 136627664,
+        "ast_block_payload": 28465168,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 11757200,
+        "ast_string_payload": 3005600,
+        "block_nodes": 154702,
+        "inline_nodes": 1535951,
+        "payload_total": 210265768,
+        "shared_inline_nodes": 1071850,
+        "sizeof_inline": 88,
+        "source_position_payload": 6364944,
+        "text_buffer_payload": 20972904,
+        "text_index_payload": 9437232
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\dense-10mib.md",
+      "layout": {
+        "detail_object_minimum": 146496,
+        "inline_style_entries": 192,
+        "node_style_entries": 166,
+        "position_payload": 2475256,
+        "resident_details": 14,
+        "slot_count": 44201,
+        "slot_payload": 3536080
+      },
+      "lines": 198901,
+      "open_ms": 1678,
+      "sampled_peak_private_commit_bytes": 471216128,
+      "sampled_peak_working_set_bytes": 558268416,
+      "sha256": "e8f8ae72b611be596e5a6552fc6fb7b6180d63ed13e471f136f803a5486e6d57",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386867200,
+          "working_set_bytes": 473415680
+        },
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386871296,
+          "working_set_bytes": 473419776
+        },
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386871296,
+          "working_set_bytes": 473419776
+        },
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386871296,
+          "working_set_bytes": 473419776
+        },
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386871296,
+          "working_set_bytes": 473419776
+        },
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386871296,
+          "working_set_bytes": 473419776
+        },
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386871296,
+          "working_set_bytes": 473419776
+        },
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386871296,
+          "working_set_bytes": 473419776
+        },
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386871296,
+          "working_set_bytes": 473419776
+        },
+        {
+          "peak_working_set_bytes": 561541120,
+          "private_commit_bytes": 386871296,
+          "working_set_bytes": 473419776
+        }
+      ],
+      "words": 1093950,
+      "phase": "baseline",
+      "sample": "dense-10mib-1"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 197001216,
+        "private_commit_bytes": 91643904,
+        "working_set_bytes": 196984832
+      },
+      "code_units": 6088550,
+      "document": {
+        "ast_arrays_payload": 136627664,
+        "ast_block_payload": 28465168,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 11757200,
+        "ast_string_payload": 3005600,
+        "block_nodes": 154702,
+        "inline_nodes": 1535951,
+        "payload_total": 210265768,
+        "shared_inline_nodes": 1071850,
+        "sizeof_inline": 88,
+        "source_position_payload": 6364944,
+        "text_buffer_payload": 20972904,
+        "text_index_payload": 9437232
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\dense-10mib.md",
+      "layout": {
+        "detail_object_minimum": 146496,
+        "inline_style_entries": 192,
+        "node_style_entries": 166,
+        "position_payload": 2475256,
+        "resident_details": 14,
+        "slot_count": 44201,
+        "slot_payload": 3536080
+      },
+      "lines": 198901,
+      "open_ms": 1662,
+      "sampled_peak_private_commit_bytes": 470896640,
+      "sampled_peak_working_set_bytes": 557645824,
+      "sha256": "e8f8ae72b611be596e5a6552fc6fb7b6180d63ed13e471f136f803a5486e6d57",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386691072,
+          "working_set_bytes": 472739840
+        },
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386695168,
+          "working_set_bytes": 472743936
+        },
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386695168,
+          "working_set_bytes": 472743936
+        },
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386695168,
+          "working_set_bytes": 472743936
+        },
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386695168,
+          "working_set_bytes": 472743936
+        },
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386695168,
+          "working_set_bytes": 472743936
+        },
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386695168,
+          "working_set_bytes": 472743936
+        },
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386695168,
+          "working_set_bytes": 472743936
+        },
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386695168,
+          "working_set_bytes": 472743936
+        },
+        {
+          "peak_working_set_bytes": 561188864,
+          "private_commit_bytes": 386695168,
+          "working_set_bytes": 472743936
+        }
+      ],
+      "words": 1093950,
+      "phase": "baseline",
+      "sample": "dense-10mib-2"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 198631424,
+        "private_commit_bytes": 93376512,
+        "working_set_bytes": 198615040
+      },
+      "code_units": 608855,
+      "document": {
+        "ast_arrays_payload": 13656848,
+        "ast_block_payload": 2846848,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 1175720,
+        "ast_string_payload": 300560,
+        "block_nodes": 15472,
+        "inline_nodes": 153596,
+        "payload_total": 20732678,
+        "shared_inline_nodes": 107185,
+        "sizeof_inline": 88,
+        "source_position_payload": 636624,
+        "text_buffer_payload": 2097294,
+        "text_index_payload": 655408
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\dense-1mib.md",
+      "layout": {
+        "detail_object_minimum": 146496,
+        "inline_style_entries": 192,
+        "node_style_entries": 166,
+        "position_payload": 247576,
+        "resident_details": 14,
+        "slot_count": 4421,
+        "slot_payload": 353680
+      },
+      "lines": 19891,
+      "open_ms": 241,
+      "sampled_peak_private_commit_bytes": 138108928,
+      "sampled_peak_working_set_bytes": 243535872,
+      "sha256": "f71b3ece312a0593bc876ec9b19c8dd5f31eb73a077558c69285ca612129c3b2",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 243531776,
+          "private_commit_bytes": 138104832,
+          "working_set_bytes": 243531776
+        },
+        {
+          "peak_working_set_bytes": 243531776,
+          "private_commit_bytes": 138104832,
+          "working_set_bytes": 243531776
+        },
+        {
+          "peak_working_set_bytes": 243531776,
+          "private_commit_bytes": 138104832,
+          "working_set_bytes": 243531776
+        },
+        {
+          "peak_working_set_bytes": 243531776,
+          "private_commit_bytes": 138104832,
+          "working_set_bytes": 243531776
+        },
+        {
+          "peak_working_set_bytes": 243531776,
+          "private_commit_bytes": 138104832,
+          "working_set_bytes": 243531776
+        },
+        {
+          "peak_working_set_bytes": 243531776,
+          "private_commit_bytes": 138104832,
+          "working_set_bytes": 243531776
+        },
+        {
+          "peak_working_set_bytes": 243531776,
+          "private_commit_bytes": 138104832,
+          "working_set_bytes": 243531776
+        },
+        {
+          "peak_working_set_bytes": 243531776,
+          "private_commit_bytes": 138108928,
+          "working_set_bytes": 243531776
+        },
+        {
+          "peak_working_set_bytes": 243535872,
+          "private_commit_bytes": 138108928,
+          "working_set_bytes": 243535872
+        },
+        {
+          "peak_working_set_bytes": 243535872,
+          "private_commit_bytes": 138108928,
+          "working_set_bytes": 243535872
+        }
+      ],
+      "words": 109395,
+      "phase": "baseline",
+      "sample": "dense-1mib-1"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 199671808,
+        "private_commit_bytes": 92135424,
+        "working_set_bytes": 199655424
+      },
+      "code_units": 608855,
+      "document": {
+        "ast_arrays_payload": 13656848,
+        "ast_block_payload": 2846848,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 1175720,
+        "ast_string_payload": 300560,
+        "block_nodes": 15472,
+        "inline_nodes": 153596,
+        "payload_total": 20732678,
+        "shared_inline_nodes": 107185,
+        "sizeof_inline": 88,
+        "source_position_payload": 636624,
+        "text_buffer_payload": 2097294,
+        "text_index_payload": 655408
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\dense-1mib.md",
+      "layout": {
+        "detail_object_minimum": 146496,
+        "inline_style_entries": 192,
+        "node_style_entries": 166,
+        "position_payload": 247576,
+        "resident_details": 14,
+        "slot_count": 4421,
+        "slot_payload": 353680
+      },
+      "lines": 19891,
+      "open_ms": 224,
+      "sampled_peak_private_commit_bytes": 136933376,
+      "sampled_peak_working_set_bytes": 244301824,
+      "sha256": "f71b3ece312a0593bc876ec9b19c8dd5f31eb73a077558c69285ca612129c3b2",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        },
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        },
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        },
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        },
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        },
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        },
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        },
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        },
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        },
+        {
+          "peak_working_set_bytes": 244301824,
+          "private_commit_bytes": 136933376,
+          "working_set_bytes": 244301824
+        }
+      ],
+      "words": 109395,
+      "phase": "baseline",
+      "sample": "dense-1mib-2"
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 196505600,
+        "private_commit_bytes": 91189248,
+        "working_set_bytes": 196489216
+      },
+      "code_units": 3582825,
+      "document": {
+        "ast_arrays_payload": 16418704,
+        "ast_block_payload": 2835808,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 0,
+        "ast_string_payload": 0,
+        "block_nodes": 15412,
+        "inline_nodes": 184921,
+        "payload_total": 42849014,
+        "shared_inline_nodes": 100165,
+        "sizeof_inline": 88,
+        "source_position_payload": 2219184,
+        "text_buffer_payload": 20973014,
+        "text_index_payload": 2621488
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\chinese-10mib.md",
+      "layout": {
+        "detail_object_minimum": 94176,
+        "inline_style_entries": 9,
+        "node_style_entries": 38,
+        "position_payload": 863016,
+        "resident_details": 9,
+        "slot_count": 15411,
+        "slot_payload": 1232880
+      },
+      "lines": 115576,
+      "open_ms": 323,
+      "sampled_peak_private_commit_bytes": 190660608,
+      "sampled_peak_working_set_bytes": 280907776,
+      "sha256": "d21ad0774ebdbcfb83e1d8f97b1dbdb7f6c0ebeea2339cf6bc1747e03f1ae847",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        },
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        },
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        },
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        },
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        },
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        },
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        },
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        },
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        },
+        {
+          "peak_working_set_bytes": 285720576,
+          "private_commit_bytes": 150257664,
+          "working_set_bytes": 241348608
+        }
+      ],
+      "words": 377545,
+      "phase": "optimized",
+      "sample": 1
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 195874816,
+        "private_commit_bytes": 90963968,
+        "working_set_bytes": 195858432
+      },
+      "code_units": 3582825,
+      "document": {
+        "ast_arrays_payload": 16418704,
+        "ast_block_payload": 2835808,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 0,
+        "ast_string_payload": 0,
+        "block_nodes": 15412,
+        "inline_nodes": 184921,
+        "payload_total": 42849014,
+        "shared_inline_nodes": 100165,
+        "sizeof_inline": 88,
+        "source_position_payload": 2219184,
+        "text_buffer_payload": 20973014,
+        "text_index_payload": 2621488
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\chinese-10mib.md",
+      "layout": {
+        "detail_object_minimum": 94176,
+        "inline_style_entries": 9,
+        "node_style_entries": 38,
+        "position_payload": 863016,
+        "resident_details": 9,
+        "slot_count": 15411,
+        "slot_payload": 1232880
+      },
+      "lines": 115576,
+      "open_ms": 315,
+      "sampled_peak_private_commit_bytes": 185868288,
+      "sampled_peak_working_set_bytes": 276094976,
+      "sha256": "d21ad0774ebdbcfb83e1d8f97b1dbdb7f6c0ebeea2339cf6bc1747e03f1ae847",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        },
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        },
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        },
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        },
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        },
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        },
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        },
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        },
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        },
+        {
+          "peak_working_set_bytes": 284966912,
+          "private_commit_bytes": 149037056,
+          "working_set_bytes": 240402432
+        }
+      ],
+      "words": 377545,
+      "phase": "optimized",
+      "sample": 2
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 196272128,
+        "private_commit_bytes": 91181056,
+        "working_set_bytes": 196255744
+      },
+      "code_units": 358515,
+      "document": {
+        "ast_arrays_payload": 1641232,
+        "ast_block_payload": 284096,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 0,
+        "ast_string_payload": 0,
+        "block_nodes": 1544,
+        "inline_nodes": 18505,
+        "payload_total": 4351722,
+        "shared_inline_nodes": 10023,
+        "sizeof_inline": 88,
+        "source_position_payload": 222192,
+        "text_buffer_payload": 2098666,
+        "text_index_payload": 327728
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\chinese-1mib.md",
+      "layout": {
+        "detail_object_minimum": 94176,
+        "inline_style_entries": 9,
+        "node_style_entries": 38,
+        "position_payload": 86408,
+        "resident_details": 9,
+        "slot_count": 1543,
+        "slot_payload": 123440
+      },
+      "lines": 11566,
+      "open_ms": 64,
+      "sampled_peak_private_commit_bytes": 105930752,
+      "sampled_peak_working_set_bytes": 208158720,
+      "sha256": "406aa84a4b2d1739c2764633cf9862594c585e4cb69aab54636d9c0830eb4c96",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103567360,
+          "working_set_bytes": 207777792
+        },
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103567360,
+          "working_set_bytes": 207777792
+        },
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103567360,
+          "working_set_bytes": 207777792
+        },
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103571456,
+          "working_set_bytes": 207781888
+        },
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103571456,
+          "working_set_bytes": 207781888
+        },
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103571456,
+          "working_set_bytes": 207781888
+        },
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103571456,
+          "working_set_bytes": 207781888
+        },
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103571456,
+          "working_set_bytes": 207781888
+        },
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103571456,
+          "working_set_bytes": 207781888
+        },
+        {
+          "peak_working_set_bytes": 208945152,
+          "private_commit_bytes": 103571456,
+          "working_set_bytes": 207781888
+        }
+      ],
+      "words": 37779,
+      "phase": "optimized",
+      "sample": 1
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 195723264,
+        "private_commit_bytes": 90828800,
+        "working_set_bytes": 195706880
+      },
+      "code_units": 358515,
+      "document": {
+        "ast_arrays_payload": 1641232,
+        "ast_block_payload": 284096,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 0,
+        "ast_string_payload": 0,
+        "block_nodes": 1544,
+        "inline_nodes": 18505,
+        "payload_total": 4351722,
+        "shared_inline_nodes": 10023,
+        "sizeof_inline": 88,
+        "source_position_payload": 222192,
+        "text_buffer_payload": 2098666,
+        "text_index_payload": 327728
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\chinese-1mib.md",
+      "layout": {
+        "detail_object_minimum": 94176,
+        "inline_style_entries": 9,
+        "node_style_entries": 38,
+        "position_payload": 86408,
+        "resident_details": 9,
+        "slot_count": 1543,
+        "slot_payload": 123440
+      },
+      "lines": 11566,
+      "open_ms": 65,
+      "sampled_peak_private_commit_bytes": 104271872,
+      "sampled_peak_working_set_bytes": 207450112,
+      "sha256": "406aa84a4b2d1739c2764633cf9862594c585e4cb69aab54636d9c0830eb4c96",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        },
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        },
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        },
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        },
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        },
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        },
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        },
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        },
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        },
+        {
+          "peak_working_set_bytes": 208142336,
+          "private_commit_bytes": 102604800,
+          "working_set_bytes": 207450112
+        }
+      ],
+      "words": 37779,
+      "phase": "optimized",
+      "sample": 2
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 196816896,
+        "private_commit_bytes": 91222016,
+        "working_set_bytes": 196800512
+      },
+      "caret_reposition_ms": [
+        14.3417,
+        20.0784,
+        29.1325,
+        18.3392,
+        14.4793
+      ],
+      "code_units": 9039461,
+      "document": {
+        "ast_arrays_payload": 8,
+        "ast_block_payload": 368,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 56,
+        "ast_string_payload": 20971542,
+        "block_nodes": 2,
+        "inline_nodes": 0,
+        "payload_total": 51380756,
+        "shared_inline_nodes": 0,
+        "sizeof_inline": 88,
+        "source_position_payload": 144,
+        "text_buffer_payload": 20971550,
+        "text_index_payload": 9437232
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\code-10mib.md",
+      "layout": {
+        "detail_object_minimum": 10464,
+        "inline_style_entries": 0,
+        "node_style_entries": 4,
+        "position_payload": 56,
+        "resident_details": 1,
+        "slot_count": 1,
+        "slot_payload": 80
+      },
+      "lines": 180792,
+      "open_ms": 10093,
+      "sampled_peak_private_commit_bytes": 763211776,
+      "sampled_peak_working_set_bytes": 786411520,
+      "sha256": "c363cf6a3d3d7008fcc4fd91e16f060bc391dfcd3fe0899e0ca3a297e563991e",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        },
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        },
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        },
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        },
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        },
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        },
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        },
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        },
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        },
+        {
+          "peak_working_set_bytes": 815316992,
+          "private_commit_bytes": 247562240,
+          "working_set_bytes": 317947904
+        }
+      ],
+      "words": 1265524,
+      "phase": "optimized",
+      "sample": 1
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 195923968,
+        "private_commit_bytes": 91181056,
+        "working_set_bytes": 195907584
+      },
+      "caret_reposition_ms": [
+        17.1822,
+        21.6405,
+        16.0145,
+        14.5307,
+        14.3373
+      ],
+      "code_units": 9039461,
+      "document": {
+        "ast_arrays_payload": 8,
+        "ast_block_payload": 368,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 56,
+        "ast_string_payload": 20971542,
+        "block_nodes": 2,
+        "inline_nodes": 0,
+        "payload_total": 51380756,
+        "shared_inline_nodes": 0,
+        "sizeof_inline": 88,
+        "source_position_payload": 144,
+        "text_buffer_payload": 20971550,
+        "text_index_payload": 9437232
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\code-10mib.md",
+      "layout": {
+        "detail_object_minimum": 10464,
+        "inline_style_entries": 0,
+        "node_style_entries": 4,
+        "position_payload": 56,
+        "resident_details": 1,
+        "slot_count": 1,
+        "slot_payload": 80
+      },
+      "lines": 180792,
+      "open_ms": 10234,
+      "sampled_peak_private_commit_bytes": 762601472,
+      "sampled_peak_working_set_bytes": 784510976,
+      "sha256": "c363cf6a3d3d7008fcc4fd91e16f060bc391dfcd3fe0899e0ca3a297e563991e",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        },
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        },
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        },
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        },
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        },
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        },
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        },
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        },
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        },
+        {
+          "peak_working_set_bytes": 814137344,
+          "private_commit_bytes": 247267328,
+          "working_set_bytes": 316461056
+        }
+      ],
+      "words": 1265524,
+      "phase": "optimized",
+      "sample": 2
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 198008832,
+        "private_commit_bytes": 92237824,
+        "working_set_bytes": 197992448
+      },
+      "caret_reposition_ms": [
+        7.5681,
+        6.58,
+        5.5945,
+        8.2437,
+        5.0588
+      ],
+      "code_units": 903961,
+      "document": {
+        "ast_arrays_payload": 8,
+        "ast_block_payload": 368,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 56,
+        "ast_string_payload": 2097182,
+        "block_nodes": 2,
+        "inline_nodes": 0,
+        "payload_total": 4850212,
+        "shared_inline_nodes": 0,
+        "sizeof_inline": 88,
+        "source_position_payload": 144,
+        "text_buffer_payload": 2097190,
+        "text_index_payload": 655408
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\code-1mib.md",
+      "layout": {
+        "detail_object_minimum": 10464,
+        "inline_style_entries": 0,
+        "node_style_entries": 4,
+        "position_payload": 56,
+        "resident_details": 1,
+        "slot_count": 1,
+        "slot_payload": 80
+      },
+      "lines": 18082,
+      "open_ms": 2429,
+      "sampled_peak_private_commit_bytes": 164859904,
+      "sampled_peak_working_set_bytes": 267235328,
+      "sha256": "79df6ace3f598f8812daf696fbab918da11ca48f9884894e5d0067088e5c5ad6",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        },
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        },
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        },
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        },
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        },
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        },
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        },
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        },
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        },
+        {
+          "peak_working_set_bytes": 267763712,
+          "private_commit_bytes": 111411200,
+          "working_set_bytes": 221663232
+        }
+      ],
+      "words": 126554,
+      "phase": "optimized",
+      "sample": 1
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 197136384,
+        "private_commit_bytes": 91381760,
+        "working_set_bytes": 197120000
+      },
+      "caret_reposition_ms": [
+        5.3964,
+        6.0727,
+        6.4536,
+        29.0986,
+        6.4182
+      ],
+      "code_units": 903961,
+      "document": {
+        "ast_arrays_payload": 8,
+        "ast_block_payload": 368,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 56,
+        "ast_string_payload": 2097182,
+        "block_nodes": 2,
+        "inline_nodes": 0,
+        "payload_total": 4850212,
+        "shared_inline_nodes": 0,
+        "sizeof_inline": 88,
+        "source_position_payload": 144,
+        "text_buffer_payload": 2097190,
+        "text_index_payload": 655408
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\code-1mib.md",
+      "layout": {
+        "detail_object_minimum": 10464,
+        "inline_style_entries": 0,
+        "node_style_entries": 4,
+        "position_payload": 56,
+        "resident_details": 1,
+        "slot_count": 1,
+        "slot_payload": 80
+      },
+      "lines": 18082,
+      "open_ms": 2233,
+      "sampled_peak_private_commit_bytes": 161955840,
+      "sampled_peak_working_set_bytes": 266657792,
+      "sha256": "79df6ace3f598f8812daf696fbab918da11ca48f9884894e5d0067088e5c5ad6",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        },
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        },
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        },
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        },
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        },
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        },
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        },
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        },
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        },
+        {
+          "peak_working_set_bytes": 267436032,
+          "private_commit_bytes": 112058368,
+          "working_set_bytes": 221884416
+        }
+      ],
+      "words": 126554,
+      "phase": "optimized",
+      "sample": 2
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 196628480,
+        "private_commit_bytes": 92295168,
+        "working_set_bytes": 196612096
+      },
+      "code_units": 6088550,
+      "document": {
+        "ast_arrays_payload": 136627664,
+        "ast_block_payload": 28465168,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 11757200,
+        "ast_string_payload": 3005600,
+        "block_nodes": 154702,
+        "inline_nodes": 1535951,
+        "payload_total": 210265768,
+        "shared_inline_nodes": 1071850,
+        "sizeof_inline": 88,
+        "source_position_payload": 6364944,
+        "text_buffer_payload": 20972904,
+        "text_index_payload": 9437232
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\dense-10mib.md",
+      "layout": {
+        "detail_object_minimum": 146496,
+        "inline_style_entries": 192,
+        "node_style_entries": 166,
+        "position_payload": 2475256,
+        "resident_details": 14,
+        "slot_count": 44201,
+        "slot_payload": 3536080
+      },
+      "lines": 198901,
+      "open_ms": 1771,
+      "sampled_peak_private_commit_bytes": 468525056,
+      "sampled_peak_working_set_bytes": 554295296,
+      "sha256": "e8f8ae72b611be596e5a6552fc6fb7b6180d63ed13e471f136f803a5486e6d57",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        },
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        },
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        },
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        },
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        },
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        },
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        },
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        },
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        },
+        {
+          "peak_working_set_bytes": 560967680,
+          "private_commit_bytes": 388067328,
+          "working_set_bytes": 473161728
+        }
+      ],
+      "words": 1093950,
+      "phase": "optimized",
+      "sample": 1
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 197378048,
+        "private_commit_bytes": 91811840,
+        "working_set_bytes": 197361664
+      },
+      "code_units": 6088550,
+      "document": {
+        "ast_arrays_payload": 136627664,
+        "ast_block_payload": 28465168,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 11757200,
+        "ast_string_payload": 3005600,
+        "block_nodes": 154702,
+        "inline_nodes": 1535951,
+        "payload_total": 210265768,
+        "shared_inline_nodes": 1071850,
+        "sizeof_inline": 88,
+        "source_position_payload": 6364944,
+        "text_buffer_payload": 20972904,
+        "text_index_payload": 9437232
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\dense-10mib.md",
+      "layout": {
+        "detail_object_minimum": 146496,
+        "inline_style_entries": 192,
+        "node_style_entries": 166,
+        "position_payload": 2475256,
+        "resident_details": 14,
+        "slot_count": 44201,
+        "slot_payload": 3536080
+      },
+      "lines": 198901,
+      "open_ms": 1704,
+      "sampled_peak_private_commit_bytes": 471838720,
+      "sampled_peak_working_set_bytes": 559124480,
+      "sha256": "e8f8ae72b611be596e5a6552fc6fb7b6180d63ed13e471f136f803a5486e6d57",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        },
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        },
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        },
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        },
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        },
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        },
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        },
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        },
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        },
+        {
+          "peak_working_set_bytes": 561795072,
+          "private_commit_bytes": 387551232,
+          "working_set_bytes": 473165824
+        }
+      ],
+      "words": 1093950,
+      "phase": "optimized",
+      "sample": 2
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 195674112,
+        "private_commit_bytes": 90546176,
+        "working_set_bytes": 195657728
+      },
+      "code_units": 608855,
+      "document": {
+        "ast_arrays_payload": 13656848,
+        "ast_block_payload": 2846848,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 1175720,
+        "ast_string_payload": 300560,
+        "block_nodes": 15472,
+        "inline_nodes": 153596,
+        "payload_total": 20732678,
+        "shared_inline_nodes": 107185,
+        "sizeof_inline": 88,
+        "source_position_payload": 636624,
+        "text_buffer_payload": 2097294,
+        "text_index_payload": 655408
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\dense-1mib.md",
+      "layout": {
+        "detail_object_minimum": 146496,
+        "inline_style_entries": 192,
+        "node_style_entries": 166,
+        "position_payload": 247576,
+        "resident_details": 14,
+        "slot_count": 4421,
+        "slot_payload": 353680
+      },
+      "lines": 19891,
+      "open_ms": 257,
+      "sampled_peak_private_commit_bytes": 135507968,
+      "sampled_peak_working_set_bytes": 240271360,
+      "sha256": "f71b3ece312a0593bc876ec9b19c8dd5f31eb73a077558c69285ca612129c3b2",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 240267264,
+          "private_commit_bytes": 135503872,
+          "working_set_bytes": 240267264
+        },
+        {
+          "peak_working_set_bytes": 240267264,
+          "private_commit_bytes": 135503872,
+          "working_set_bytes": 240267264
+        },
+        {
+          "peak_working_set_bytes": 240271360,
+          "private_commit_bytes": 135507968,
+          "working_set_bytes": 240271360
+        },
+        {
+          "peak_working_set_bytes": 240271360,
+          "private_commit_bytes": 135507968,
+          "working_set_bytes": 240271360
+        },
+        {
+          "peak_working_set_bytes": 240271360,
+          "private_commit_bytes": 135507968,
+          "working_set_bytes": 240271360
+        },
+        {
+          "peak_working_set_bytes": 240271360,
+          "private_commit_bytes": 135507968,
+          "working_set_bytes": 240271360
+        },
+        {
+          "peak_working_set_bytes": 240271360,
+          "private_commit_bytes": 135507968,
+          "working_set_bytes": 240271360
+        },
+        {
+          "peak_working_set_bytes": 240271360,
+          "private_commit_bytes": 135507968,
+          "working_set_bytes": 240271360
+        },
+        {
+          "peak_working_set_bytes": 240271360,
+          "private_commit_bytes": 135507968,
+          "working_set_bytes": 240271360
+        },
+        {
+          "peak_working_set_bytes": 240271360,
+          "private_commit_bytes": 135507968,
+          "working_set_bytes": 240271360
+        }
+      ],
+      "words": 109395,
+      "phase": "optimized",
+      "sample": 1
+    },
+    {
+      "baseline": {
+        "peak_working_set_bytes": 197545984,
+        "private_commit_bytes": 92020736,
+        "working_set_bytes": 197529600
+      },
+      "code_units": 608855,
+      "document": {
+        "ast_arrays_payload": 13656848,
+        "ast_block_payload": 2846848,
+        "ast_extra_source_payload": 0,
+        "ast_metadata_payload": 1175720,
+        "ast_string_payload": 300560,
+        "block_nodes": 15472,
+        "inline_nodes": 153596,
+        "payload_total": 20732678,
+        "shared_inline_nodes": 107185,
+        "sizeof_inline": 88,
+        "source_position_payload": 636624,
+        "text_buffer_payload": 2097294,
+        "text_index_payload": 655408
+      },
+      "file": "G:\\github\\Muffin\\build\\document-memory-fixtures\\dense-1mib.md",
+      "layout": {
+        "detail_object_minimum": 146496,
+        "inline_style_entries": 192,
+        "node_style_entries": 166,
+        "position_payload": 247576,
+        "resident_details": 14,
+        "slot_count": 4421,
+        "slot_payload": 353680
+      },
+      "lines": 19891,
+      "open_ms": 228,
+      "sampled_peak_private_commit_bytes": 135860224,
+      "sampled_peak_working_set_bytes": 241647616,
+      "sha256": "f71b3ece312a0593bc876ec9b19c8dd5f31eb73a077558c69285ca612129c3b2",
+      "stable_samples": [
+        {
+          "peak_working_set_bytes": 241643520,
+          "private_commit_bytes": 135856128,
+          "working_set_bytes": 241643520
+        },
+        {
+          "peak_working_set_bytes": 241643520,
+          "private_commit_bytes": 135856128,
+          "working_set_bytes": 241643520
+        },
+        {
+          "peak_working_set_bytes": 241647616,
+          "private_commit_bytes": 135860224,
+          "working_set_bytes": 241647616
+        },
+        {
+          "peak_working_set_bytes": 241647616,
+          "private_commit_bytes": 135860224,
+          "working_set_bytes": 241647616
+        },
+        {
+          "peak_working_set_bytes": 241647616,
+          "private_commit_bytes": 135860224,
+          "working_set_bytes": 241647616
+        },
+        {
+          "peak_working_set_bytes": 241647616,
+          "private_commit_bytes": 135860224,
+          "working_set_bytes": 241647616
+        },
+        {
+          "peak_working_set_bytes": 241647616,
+          "private_commit_bytes": 135860224,
+          "working_set_bytes": 241647616
+        },
+        {
+          "peak_working_set_bytes": 241647616,
+          "private_commit_bytes": 135860224,
+          "working_set_bytes": 241647616
+        },
+        {
+          "peak_working_set_bytes": 241647616,
+          "private_commit_bytes": 135860224,
+          "working_set_bytes": 241647616
+        },
+        {
+          "peak_working_set_bytes": 241647616,
+          "private_commit_bytes": 135860224,
+          "working_set_bytes": 241647616
+        }
+      ],
+      "words": 109395,
+      "phase": "optimized",
+      "sample": 2
+    }
+  ]
+}

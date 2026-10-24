@@ -6,6 +6,7 @@
 #include "document/DocumentSession.h"
 #include "document/PendingBlockMarker.h"
 #include "document/SourcePositionIndex.h"
+#include "document/SourceRangeUtil.h"
 
 #include "../TestUtils.h"
 
@@ -19,6 +20,25 @@
 #include <limits>
 
 using namespace muffin;
+
+static void testIndexedSourceRangeLookups() {
+  QString text = QStringLiteral("第一行🙂\n\nlast\n");
+  PieceTable table(text);
+  for (int edit = 0; edit < 20; ++edit) {
+    for (int line = -1; line <= text.count('\n') + 3; ++line) {
+      require(sourceOffsetForLineEnd(table, line) == sourceOffsetForLineEnd(text, line),
+              "indexed line ends retain QString boundary semantics");
+      for (int column : {-1, 0, 1, 3, 100})
+        require(sourceOffsetForLineColumn(table, line, column) == sourceOffsetForLineColumn(text, line, column),
+                "indexed source offsets retain invalid-line, Unicode and column clamping semantics");
+    }
+    const auto start = (edit * 7) % (text.size() + 1);
+    const auto count = qMin<qsizetype>(edit % 4, text.size() - start);
+    const auto inserted = edit % 3 ? QStringLiteral("x\n") : QString();
+    text.replace(start, count, inserted);
+    table.replace(start, start + count, inserted);
+  }
+}
 
 static void testEmptyTable() {
   PieceTable pt;
@@ -461,6 +481,7 @@ static void testCompactOffsetIndexPromotionAndSnapshots() {
 }
 
 int main(int argc, char** argv) {
+  runTest("indexed source range lookups", testIndexedSourceRangeLookups);
   QCoreApplication app(argc, argv);
   runTest("empty table", testEmptyTable);
   runTest("compact index promotion and snapshots", testCompactOffsetIndexPromotionAndSnapshots);

@@ -10,14 +10,58 @@
 
 namespace muffin {
 
-qreal LiteralTextLayout::VisualLine::cursorX(qsizetype offset) const {
+qreal LiteralTextLayout::cursorX(const VisualLine& visual, qsizetype offset) const {
+  const auto line = cachedParagraph(visual.paragraph).layout->lineAt(visual.row);
   if (!line.isValid())
     return 0;
-  if (trailingStart >= 0 && offset >= trailingStart) {
-    const qreal base = line.cursorToX(int(trailingStart - start) + line.textStart());
-    return base + qreal(offset - trailingStart) * trailingSpaceAdvance;
+  if (visual.trailingStart >= 0 && offset >= visual.trailingStart) {
+    const qreal base = line.cursorToX(int(visual.trailingStart - visual.start) + line.textStart());
+    return base + qreal(offset - visual.trailingStart) * visual.trailingSpaceAdvance;
   }
-  return line.cursorToX(int(offset - start) + line.textStart());
+  return line.cursorToX(int(offset - visual.start) + line.textStart());
+}
+
+std::unique_ptr<TextLayout> LiteralTextLayout::shapeParagraph(qsizetype start, qsizetype length) const {
+  auto layout = std::make_unique<TextLayout>(length ? display_.mid(start, length) : QStringLiteral(" "), font_);
+  layout->setCacheEnabled(true);
+  QTextOption option;
+  option.setWrapMode(wrap_ ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
+  option.setFlags(option.flags() | QTextOption::IncludeTrailingSpaces);
+  layout->setTextOption(option);
+  QList<TextLayout::FormatRange> formats;
+  for (const auto& format : preedit_.formats) {
+    const qsizetype first = qMax(start, preedit_.offset + qMax(0, format.start));
+    const qsizetype last =
+        qMin(start + length,
+             preedit_.offset + qMin<qsizetype>(preedit_.text.size(), qsizetype(format.start) + format.length));
+    if (first < last)
+      formats.append({int(first - start), int(last - first), format.format});
+  }
+  layout->setFormats(formats);
+  return layout;
+}
+
+LiteralTextLayout::ParagraphLayout& LiteralTextLayout::cachedParagraph(qsizetype index) const {
+  if (auto* cached = paragraphCache_.object(index))
+    return *cached;
+  const auto& paragraph = paragraphs_[index];
+  auto cached = std::make_unique<ParagraphLayout>();
+  cached->layout = shapeParagraph(paragraph.start, paragraph.length);
+  cached->layout->beginLayout();
+  for (int row = 0; row < paragraph.lineCount; ++row) {
+    auto line = cached->layout->createLine();
+    if (!line.isValid())
+      break;
+    line.setLineWidth(width_);
+    const auto& rect = lines_[paragraph.firstLine + row].rect;
+    line.setPosition({0, rect.top() + (rect.height() - line.height()) * .5});
+  }
+  cached->layout->endLayout();
+  auto* result = cached.release();
+  // Even one giant physical line must remain usable. Cap its cache cost so
+  // QCache retains it rather than deleting an entry larger than the budget.
+  paragraphCache_.insert(index, result, int(qMin<qsizetype>(paragraph.length + 128, paragraphCache_.maxCost())));
+  return *result;
 }
 
 LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qreal lineHeight, bool wrap)
@@ -31,12 +75,9 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
       fontGeneration_(LayoutResources::instance().read(LayoutResources::fontKey()).geometry) {
   preedit_.offset = qBound<qsizetype>(0, preedit_.offset, source_.size());
   display_.insert(preedit_.offset, preedit_.text);
-  QTextOption option;
-  option.setWrapMode(wrap_ ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
   // Keep trailing spaces in Qt's hit-test interval. Without this flag Qt can
   // paint their advances while xToCursor() collapses the whole suffix onto
   // the paragraph end, making a caret round-trip choose the newline offset.
-  option.setFlags(option.flags() | QTextOption::IncludeTrailingSpaces);
   const qreal defaultSpaceAdvance = TextFontMetrics(font_).horizontalAdvance(QLatin1Char(' '));
   qsizetype start = 0;
   qsizetype countedSource = 0;
@@ -44,20 +85,7 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
   do {
     const qsizetype newline = display_.indexOf(QLatin1Char('\n'), start);
     const qsizetype length = (newline < 0 ? display_.size() : newline) - start;
-    const QString text = length ? display_.mid(start, length) : QStringLiteral(" ");
-    auto layout = std::make_unique<TextLayout>(text, font_);
-    layout->setCacheEnabled(true);
-    layout->setTextOption(option);
-    QList<TextLayout::FormatRange> preeditFormats;
-    for (const auto& format : preedit_.formats) {
-      const qsizetype first = qMax(start, preedit_.offset + qMax(0, format.start));
-      const qsizetype last =
-          qMin(start + length,
-               preedit_.offset + qMin<qsizetype>(preedit_.text.size(), qsizetype(format.start) + format.length));
-      if (first < last)
-        preeditFormats.append({int(first - start), int(last - first), format.format});
-    }
-    layout->setFormats(preeditFormats);
+    auto layout = shapeParagraph(start, length);
     layout->beginLayout();
     const qreal paragraphTop = height_;
     const qsizetype firstVisualLine = lines_.size();
@@ -69,7 +97,8 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
       const qreal rowHeight = qMax(lineHeight_, line.height());
       line.setPosition({0, height_ + (rowHeight - line.height()) * .5});
       lines_.append({start + line.textStart(), qMin<qsizetype>(line.textLength(), length - line.textStart()),
-                     QRectF(0, height_, width_, rowHeight), line, layout.get()});
+                     QRectF(0, height_, width_, rowHeight), qsizetype(paragraphs_.size()),
+                     int(lines_.size() - firstVisualLine)});
       height_ += rowHeight;
     }
     // QTextLine::textLength() excludes trailing breakable spaces unless the
@@ -83,13 +112,14 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
       const qsizetype end =
           i + 1 < lines_.size() && lines_[i + 1].start <= paragraphEnd ? lines_[i + 1].start : paragraphEnd;
       auto& visual = lines_[i];
+      const auto line = layout->lineAt(visual.row);
       visual.length = qMax<qsizetype>(0, end - visual.start);
       qsizetype trailingStart = end;
       while (trailingStart > visual.start && display_.at(trailingStart - 1) == QLatin1Char(' '))
         --trailingStart;
       if (trailingStart < end) {
-        const qreal base = visual.line.cursorToX(int(trailingStart - visual.start) + visual.line.textStart());
-        const qreal measured = visual.line.cursorToX(int(end - visual.start) + visual.line.textStart()) - base;
+        const qreal base = line.cursorToX(int(trailingStart - visual.start) + line.textStart());
+        const qreal measured = line.cursorToX(int(end - visual.start) + line.textStart()) - base;
         // At a hard wrap Qt can report the whole trailing run at one x
         // coordinate. Use the same font/device advance as the document
         // shaper in that case, retaining one caret slot per source space.
@@ -99,8 +129,12 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
         visual.trailingStart = trailingStart;
         visual.trailingSpaceAdvance = qMax<qreal>(defaultSpaceAdvance / 64, advance);
       }
-      maximumLineWidth_ = qMax(maximumLineWidth_, visual.line.naturalTextWidth());
-      maximumLineWidth_ = qMax(maximumLineWidth_, std::abs(visual.cursorX(end)));
+      maximumLineWidth_ = qMax(maximumLineWidth_, line.naturalTextWidth());
+      const auto endX = visual.trailingStart >= 0
+                            ? line.cursorToX(int(visual.trailingStart - visual.start) + line.textStart()) +
+                                  (end - visual.trailingStart) * visual.trailingSpaceAdvance
+                            : line.cursorToX(int(end - visual.start) + line.textStart());
+      maximumLineWidth_ = qMax(maximumLineWidth_, std::abs(endX));
     }
     layout->endLayout();
     const qsizetype sourceStart = sourceOffset(start);
@@ -109,7 +143,13 @@ LiteralTextLayout::LiteralTextLayout(QString source, QFont font, qreal width, qr
         ++sourceLineNumber;
     }
     numberedLines_.append({sourceLineNumber, QRectF(0, paragraphTop, width_, height_ - paragraphTop)});
-    paragraphs_.push_back({start, length, std::move(layout)});
+    paragraphs_.push_back({start, length, firstVisualLine, int(lines_.size() - firstVisualLine)});
+    // Small blocks keep their measured layout; large ones are shaped only for
+    // paint/hit testing after this geometry pass, without retaining all Qt engines.
+    if (display_.size() <= 64 * 1024) {
+      auto* cached = new ParagraphLayout{std::move(layout)};
+      paragraphCache_.insert(qsizetype(paragraphs_.size()) - 1, cached, int(length + 128));
+    }
     if (newline < 0)
       break;
     start = newline + 1;
@@ -152,25 +192,25 @@ qsizetype LiteralTextLayout::offsetAtLineX(int index, qreal x) const {
   if (index < 0 || index >= lines_.size())
     return 0;
   const auto& line = lines_[index];
-  const int first = line.line.textStart(), last = first + int(line.length);
-  const int position = qBound(first, line.line.xToCursor(x), last);
+  const auto& layout = *cachedParagraph(line.paragraph).layout;
+  const auto shapedLine = layout.lineAt(line.row);
+  const int first = shapedLine.textStart(), last = first + int(line.length);
+  const int position = qBound(first, shapedLine.xToCursor(x), last);
   // Qt deliberately excludes the end of a soft-wrapped line from xToCursor.
   // Compare its answer with neighbouring valid carets and both line edges so
   // hit testing is the inverse of the retained cursor geometry at those edges.
   int best = position;
-  qreal distance = std::abs(line.cursorX(line.start + best - first) - x);
+  qreal distance = std::abs(cursorX(line, line.start + best - first) - x);
   const auto consider = [&](int candidate, bool allowTrailingSpace = false) {
-    if (candidate < first || candidate > last ||
-        (!allowTrailingSpace && !line.layout->isValidCursorPosition(candidate)))
+    if (candidate < first || candidate > last || (!allowTrailingSpace && !layout.isValidCursorPosition(candidate)))
       return;
-    const qreal candidateDistance = std::abs(line.cursorX(line.start + candidate - first) - x);
+    const qreal candidateDistance = std::abs(cursorX(line, line.start + candidate - first) - x);
     if (candidateDistance < distance || (candidateDistance == distance && candidate > best)) {
       best = candidate;
       distance = candidateDistance;
     }
   };
-  for (int candidate :
-       {first, last, line.layout->previousCursorPosition(position), line.layout->nextCursorPosition(position)})
+  for (int candidate : {first, last, layout.previousCursorPosition(position), layout.nextCursorPosition(position)})
     consider(candidate);
   if (line.trailingStart >= line.start) {
     const int trailing = first + int(line.trailingStart - line.start);
@@ -192,7 +232,7 @@ QRectF LiteralTextLayout::displayCursorRect(qsizetype offset) const {
   if (index < 0)
     return {0, 0, 1, lineHeight_};
   const auto& line = lines_[index];
-  return {line.cursorX(qBound(line.start, offset, line.start + line.length)), line.rect.top(), 1, line.rect.height()};
+  return {cursorX(line, qBound(line.start, offset, line.start + line.length)), line.rect.top(), 1, line.rect.height()};
 }
 
 QRectF LiteralTextLayout::cursorRect(qsizetype offset) const {
@@ -217,11 +257,11 @@ QVector<QRectF> LiteralTextLayout::selectionRects(qsizetype start, qsizetype end
     const qsizetype lineEnd = line.start + line.length;
     const qsizetype first = qMax(start, line.start), last = qMin(end, lineEnd);
     if (first < last) {
-      const qreal x1 = line.cursorX(first), x2 = line.cursorX(last);
+      const qreal x1 = cursorX(line, first), x2 = cursorX(line, last);
       result.append({qMin(x1, x2), line.rect.top(), qMax<qreal>(1, std::abs(x2 - x1)), line.rect.height()});
     } else if (end > lineEnd && start <= lineEnd && lineEnd < display_.size() &&
                display_[lineEnd] == QLatin1Char('\n')) {
-      const qreal x = line.cursorX(lineEnd);
+      const qreal x = cursorX(line, lineEnd);
       result.append({x, line.rect.top(), qMax<qreal>(1, qMin<qreal>(24, width_ - x)), line.rect.height()});
     }
   }
@@ -296,7 +336,7 @@ void LiteralTextLayout::draw(QPainter& painter, QPointF origin,
            preedit_.offset + qMin<qsizetype>(preedit_.text.size(), qsizetype(range.start) + range.length),
            range.format);
   for (qsizetype i = firstParagraph; i < lastParagraph; ++i) {
-    const auto& paragraph = paragraphs_[i];
+    auto& paragraph = cachedParagraph(i);
     const auto& paragraphFormats = formats[i - firstParagraph];
     if (paragraphFormats == paragraph.layout->formats()) {
       paragraph.paintLayout.reset();

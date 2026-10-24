@@ -76,6 +76,10 @@ PdfExportOptions pdfExportOptions() {
   options.breakOnHeading = settings.value(prefix + "breakOnHeading", false).toBool();
   options.theme = settings.value(prefix + "theme", "current").toString();
   options.fontSize = qBound(10, settings.value(prefix + "fontSize", 16).toInt(), 40);
+  options.header = settings.value(prefix + "header").toString();
+  options.footer = settings.value(prefix + "footer").toString();
+  options.author = settings.value(prefix + "author").toString();
+  options.pageNumbers = settings.value(prefix + "pageNumbers", false).toBool();
   return options;
 }
 

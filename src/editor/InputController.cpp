@@ -1,4 +1,5 @@
 #include "editor/InputController.h"
+#include "editor/ShortcutSettings.h"
 
 #include "diagnostics/ScopedPerfProbe.h"
 
@@ -141,11 +142,11 @@ bool InputController::eventFilter(QObject* watched, QEvent* event) {
   if (watched == ctx_.view || (ctx_.view && watched == ctx_.view->viewport())) {
     if (event->type() == QEvent::ShortcutOverride) {
       auto* keyEvent = static_cast<QKeyEvent*>(event);
-      if (keyEvent->key() == Qt::Key_A && keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
+      if (ShortcutSettings::instance().matches(*keyEvent, QStringLiteral("edit.select_all"), QKeySequence::SelectAll)) {
         keyEvent->accept();
         return true;
       }
-      if (keyEvent->modifiers().testFlag(Qt::ControlModifier) &&
+      if (keyEvent->modifiers().testFlag(Qt::ControlModifier) && !keyEvent->modifiers().testFlag(Qt::AltModifier) &&
           editor_keys::isEditorOwnedCtrlKey(keyEvent->key(), keyEvent->modifiers().testFlag(Qt::ShiftModifier))) {
         keyEvent->accept();
         return true;
@@ -736,8 +737,8 @@ QString InputController::activeLiteralTabText() const {
 
 bool InputController::handleKeyPress(QKeyEvent* event) {
   PerfTimer perf("input.keypress");
-  if (event && event->key() == Qt::Key_A && event->modifiers().testFlag(Qt::ControlModifier) &&
-      !event->modifiers().testFlag(Qt::AltModifier)) {
+  if (event &&
+      ShortcutSettings::instance().matches(*event, QStringLiteral("edit.select_all"), QKeySequence::SelectAll)) {
     emit selectAllRequested();
     return true;
   }

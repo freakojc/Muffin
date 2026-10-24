@@ -87,6 +87,7 @@ public:
   void selectWord();
 
   void insertText(const QString& text);
+  void toggleInlineMarkup(const QString& prefix, const QString& suffix);
   void replaceAllWithUndo(const QString& text);
   void replaceSelection(const QString& text);
   void deleteForward();

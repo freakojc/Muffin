@@ -1,4 +1,5 @@
 #include "editor/VirtualSourceEdit.h"
+#include "editor/ShortcutSettings.h"
 
 #include "document/DocumentSession.h"
 #include "document/PendingBlockMarker.h"
@@ -436,6 +437,35 @@ std::pair<qsizetype, qsizetype> VirtualSourceEdit::wordRangeAt(qsizetype positio
 void VirtualSourceEdit::selectWord() {
   const auto [start, end] = wordRangeAt(cursor_);
   setSelection(start, end);
+}
+
+void VirtualSourceEdit::toggleInlineMarkup(const QString& prefix, const QString& suffix) {
+  qsizetype start = selectionStart(), end = selectionEnd();
+  const bool reversed = cursor_ < anchor_;
+  QString content = source().mid(start, end - start);
+  qsizetype contentStart = start;
+  QString replacement;
+  if (content.size() >= prefix.size() + suffix.size() && content.startsWith(prefix) && content.endsWith(suffix)) {
+    content = content.mid(prefix.size(), content.size() - prefix.size() - suffix.size());
+    replacement = content;
+  } else if (start >= prefix.size() && end + suffix.size() <= source().size() &&
+             source().mid(start - prefix.size(), prefix.size()) == prefix &&
+             source().mid(end, suffix.size()) == suffix) {
+    start -= prefix.size();
+    end += suffix.size();
+    contentStart = start;
+    replacement = content;
+  } else {
+    replacement = prefix + content + suffix;
+    contentStart += prefix.size();
+  }
+  if (applyEdit(start, end, replacement, true)) {
+    const auto contentEnd = contentStart + content.size();
+    setSelection(reversed ? contentEnd : contentStart, reversed ? contentStart : contentEnd);
+    // Redo must restore the selected content / skeleton's interior caret too.
+    undoStack_.back().afterAnchor = anchor_;
+    undoStack_.back().afterCursor = cursor_;
+  }
 }
 
 bool VirtualSourceEdit::applyEdit(qsizetype start, qsizetype end, const QString& inserted, bool recordUndo) {
@@ -1167,22 +1197,23 @@ void VirtualSourceEdit::keyPressEvent(QKeyEvent* event) {
   const bool control = event->modifiers().testFlag(Qt::ControlModifier);
   const bool command = event->modifiers().testFlag(Qt::MetaModifier);
   const bool wordNavigation = control || command;
-  if (event->matches(QKeySequence::Copy)) {
+  const auto& shortcuts = ShortcutSettings::instance();
+  if (shortcuts.matches(*event, QStringLiteral("edit.copy"), QKeySequence::Copy)) {
     if (hasSelection())
       QApplication::clipboard()->setText(selectedText());
-  } else if (event->matches(QKeySequence::Cut)) {
+  } else if (shortcuts.matches(*event, QStringLiteral("edit.cut"), QKeySequence::Cut)) {
     if (!readOnly_ && hasSelection()) {
       QApplication::clipboard()->setText(selectedText());
       applyEdit(selectionStart(), selectionEnd(), {}, true);
     }
-  } else if (event->matches(QKeySequence::Paste)) {
+  } else if (shortcuts.matches(*event, QStringLiteral("edit.paste"), QKeySequence::Paste)) {
     if (!readOnly_)
       insertText(QApplication::clipboard()->text());
-  } else if (event->matches(QKeySequence::Undo)) {
+  } else if (shortcuts.matches(*event, QStringLiteral("edit.undo"), QKeySequence::Undo)) {
     undo();
-  } else if (event->matches(QKeySequence::Redo)) {
+  } else if (shortcuts.matches(*event, QStringLiteral("edit.redo"), QKeySequence::Redo)) {
     redo();
-  } else if (event->matches(QKeySequence::SelectAll)) {
+  } else if (shortcuts.matches(*event, QStringLiteral("edit.select_all"), QKeySequence::SelectAll)) {
     selectAll();
   } else {
     switch (event->key()) {

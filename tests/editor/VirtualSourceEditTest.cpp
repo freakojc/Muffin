@@ -17,6 +17,40 @@ using namespace muffin;
 namespace {
 QFont fixtureSourceFont;
 
+void testInlineMarkupPreservesSelectionAndHistory() {
+  for (bool reversed : {false, true}) {
+    VirtualSourceEdit edit;
+    edit.setSourceFont(fixtureSourceFont);
+    const auto original = QStringLiteral("中文 value");
+    edit.setStandaloneText(original);
+    edit.setSelection(reversed ? 2 : 0, reversed ? 0 : 2);
+    edit.toggleInlineMarkup("**", "**");
+    require(edit.text() == QStringLiteral("**中文** value") && edit.selectedText() == QStringLiteral("中文"),
+            "source formatting preserves selected text");
+    require((edit.cursorPosition() < edit.anchorPosition()) == reversed, "source formatting preserves direction");
+    edit.undo();
+    require(edit.text() == original && edit.selectedText() == QStringLiteral("中文"), "undo restores source selection");
+    edit.redo();
+    require(edit.selectedText() == QStringLiteral("中文"), "redo restores formatted content selection");
+    edit.toggleInlineMarkup("**", "**");
+    require(edit.text() == original && edit.selectedText() == QStringLiteral("中文"), "repeat toggle removes markup");
+    edit.setSelection(reversed ? 2 : 0, reversed ? 0 : 2);
+    edit.toggleInlineMarkup("<u>", "</u>");
+    require(edit.text() == QStringLiteral("<u>中文</u> value"), "unequal marker lengths preserve text");
+    edit.setCursorPosition(edit.text().size());
+    edit.toggleInlineMarkup("`", "`");
+    const auto caret = edit.cursorPosition();
+    require(edit.text().mid(caret - 1, 2) == "``" && !edit.hasSelection(), "empty skeleton places caret inside");
+    edit.undo();
+    edit.redo();
+    require(edit.cursorPosition() == caret, "skeleton redo restores interior caret");
+    edit.setReadOnly(true);
+    const auto before = edit.text();
+    edit.toggleInlineMarkup("*", "*");
+    require(edit.text() == before, "read-only source cannot be formatted");
+  }
+}
+
 void testHeadingsKeepSourceRowGeometry() {
   QString text = QStringLiteral("plain source\n");
   for (int level = 1; level <= 6; ++level) {
@@ -326,6 +360,7 @@ int main(int argc, char** argv) {
 
 #define RUN_TEST(test) runTest(#test, test)
   RUN_TEST(testReplacementRetiresSourceHistory);
+  RUN_TEST(testInlineMarkupPreservesSelectionAndHistory);
   RUN_TEST(testEmptyReplacementDeletesSelection);
   RUN_TEST(testHeadingsKeepSourceRowGeometry);
   RUN_TEST(testSourcePreeditRendersWithoutOverlap);

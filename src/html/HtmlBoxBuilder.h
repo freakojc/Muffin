@@ -14,6 +14,8 @@ public:
   ~HtmlBoxBuilder();
 
   std::unique_ptr<HtmlBox> build(const HtmlDocument& document);
+  // Semantic import must preserve spaces separating adjacent inline elements.
+  void setPreserveWhitespace(bool enabled) { preserveWhitespace_ = enabled; }
 
 private:
   HtmlTag mapTag(void* node) const;
@@ -24,6 +26,7 @@ private:
   void assignListMarkers(HtmlBox& box);
   static QString formatOrderedMarker(int index, HtmlListMarkerType type);
   static QString toRoman(int n);
+  bool preserveWhitespace_ = false;
 };
 
 } // namespace muffin::html

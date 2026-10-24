@@ -1,4 +1,5 @@
 #include "app/SidebarWidget.h"
+#include "editor/ShortcutSettings.h"
 #include "app/OutlineModel.h"
 #include "app/FileTreeModel.h"
 #include "app/SearchPanelWidget.h"
@@ -216,6 +217,7 @@ muffin::SidebarWidget::SidebarWidget(QWidget* parent) : QWidget(parent) {
   retranslateUi();
   applyTheme(ThemeDefinition::builtIn(QStringLiteral("github")).value());
   setPanel(Panel::Files);
+  connect(&ShortcutSettings::instance(), &ShortcutSettings::changed, this, &SidebarWidget::updateTabButtons);
 
   connect(filesTabButton_, &QToolButton::clicked, this, [this] {
     setPanel(Panel::Files);
@@ -978,11 +980,13 @@ void muffin::SidebarWidget::updateTabButtons() {
   filesTabButton_->setChecked(panel_ != Panel::Outline);
   outlineTabButton_->setChecked(panel_ == Panel::Outline);
   searchFilesButton_->setChecked(panel_ == Panel::Search);
+  const auto key = ShortcutSettings::instance().sequence(QStringLiteral("edit.find_in_folder"),
+                                                         QKeySequence(QStringLiteral("Ctrl+Shift+F")));
   searchFilesButton_->setToolTip(
       panel_ == Panel::Search
           ? tr("Files")
-          : tr("Search") + QStringLiteral(" (%1)").arg(
-                               QKeySequence(QStringLiteral("Ctrl+Shift+F")).toString(QKeySequence::NativeText)));
+          : tr("Search") +
+                (key.isEmpty() ? QString() : QStringLiteral(" (%1)").arg(key.toString(QKeySequence::NativeText))));
 }
 
 void muffin::SidebarWidget::applyStyle() {

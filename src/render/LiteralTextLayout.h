@@ -3,6 +3,7 @@
 #include "render/TextLayout.h"
 
 #include <QVector>
+#include <QCache>
 #include <memory>
 #include <vector>
 
@@ -23,14 +24,13 @@ public:
     qsizetype start = 0;
     qsizetype length = 0;
     QRectF rect;
-    TextLine line;
-    const TextLayout* layout = nullptr;
+    qsizetype paragraph = 0;
+    int row = 0;
     // Qt may collapse a run of trailing breakable spaces onto the line end
     // when the line reaches its wrap width. Keep their logical caret advance
     // explicitly so painting, selection and hit testing remain invertible.
     qsizetype trailingStart = -1;
     qreal trailingSpaceAdvance = 0;
-    qreal cursorX(qsizetype displayOffset) const;
   };
   struct NumberedLine {
     int number = 1;
@@ -48,6 +48,7 @@ public:
   bool hasPreedit() const { return !preedit_.text.isEmpty(); }
   const QVector<VisualLine>& lines() const { return lines_; }
   const QVector<NumberedLine>& numberedLines() const { return numberedLines_; }
+  qsizetype cachedParagraphCount() const { return paragraphCache_.size(); }
 
   int lineIndexForOffset(qsizetype sourceOffset) const;
   qsizetype offsetAtPoint(QPointF point) const;
@@ -64,10 +65,17 @@ private:
   struct Paragraph {
     qsizetype start = 0;
     qsizetype length = 0;
-    std::unique_ptr<TextLayout> layout;
-    mutable std::unique_ptr<TextLayout> paintLayout;
-    mutable QList<TextLayout::FormatRange> paintFormats;
+    qsizetype firstLine = 0;
+    int lineCount = 0;
   };
+  struct ParagraphLayout {
+    std::unique_ptr<TextLayout> layout;
+    std::unique_ptr<TextLayout> paintLayout;
+    QList<TextLayout::FormatRange> paintFormats;
+  };
+  std::unique_ptr<TextLayout> shapeParagraph(qsizetype start, qsizetype length) const;
+  ParagraphLayout& cachedParagraph(qsizetype index) const;
+  qreal cursorX(const VisualLine& line, qsizetype displayOffset) const;
   qsizetype displayOffset(qsizetype sourceOffset) const;
   qsizetype sourceOffset(qsizetype displayOffset) const;
   int lineIndexForDisplayOffset(qsizetype offset) const;
@@ -85,6 +93,9 @@ private:
   qreal height_ = 0;
   qreal maximumLineWidth_ = 0;
   std::vector<Paragraph> paragraphs_;
+  // Retain exact geometry for every row, but only keep shaping for a bounded
+  // working set. Qt glyph engines otherwise dwarf the source of long fences.
+  mutable QCache<qsizetype, ParagraphLayout> paragraphCache_{256 * 1024};
   QVector<VisualLine> lines_;
   QVector<NumberedLine> numberedLines_;
 };

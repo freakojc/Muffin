@@ -1109,7 +1109,10 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          .shortcut = QKeySequence::Bold,
          .checkable = true,
          .handler = [](MainWindow& window) { window.tab_->backend->toggleBold(); },
-         .enabled = [](const MainWindow& w) { return inlineFormat(w); },
+         .enabled =
+             [](const MainWindow& w) {
+               return !w.tab_->session.isOpenInProgress() && (w.tab_->backend->isSourceMode() || inlineFormat(w));
+             },
          .checked = [](const MainWindow& w) { return inlineFormat(w) && w.commandInlineFormats().bold; }},
         {.id = QStringLiteral("format.italic"),
          .category = CommandCategory::Format,
@@ -1117,7 +1120,10 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          .shortcut = QKeySequence::Italic,
          .checkable = true,
          .handler = [](MainWindow& window) { window.tab_->backend->toggleItalic(); },
-         .enabled = [](const MainWindow& w) { return inlineFormat(w); },
+         .enabled =
+             [](const MainWindow& w) {
+               return !w.tab_->session.isOpenInProgress() && (w.tab_->backend->isSourceMode() || inlineFormat(w));
+             },
          .checked = [](const MainWindow& w) { return inlineFormat(w) && w.commandInlineFormats().italic; }},
         {.id = QStringLiteral("format.underline"),
          .category = CommandCategory::Format,
@@ -1126,7 +1132,11 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          .checkable = true,
          .enabledInitial = false,
          .handler = [](MainWindow& window) { window.tab_->backend->toggleUnderline(); },
-         .enabled = [](const MainWindow& w) { return w.commandSingleInlineSelection(); },
+         .enabled =
+             [](const MainWindow& w) {
+               return !w.tab_->session.isOpenInProgress() &&
+                      (w.tab_->backend->isSourceMode() || w.commandSingleInlineSelection());
+             },
          .checked =
              [](const MainWindow& w) { return w.commandSingleInlineSelection() && w.commandInlineFormats().underline; },
          .disabledReason =
@@ -1142,7 +1152,10 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          .shortcut = QKeySequence(QStringLiteral("Ctrl+Shift+`")),
          .checkable = true,
          .handler = [](MainWindow& window) { window.tab_->backend->toggleCode(); },
-         .enabled = [](const MainWindow& w) { return inlineFormat(w); },
+         .enabled =
+             [](const MainWindow& w) {
+               return !w.tab_->session.isOpenInProgress() && (w.tab_->backend->isSourceMode() || inlineFormat(w));
+             },
          .checked = [](const MainWindow& w) { return inlineFormat(w) && w.commandInlineFormats().code; }},
         {.id = QStringLiteral("format.inline_math"),
          .category = CommandCategory::Format,
@@ -1151,7 +1164,10 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          .checkable = true,
          .enabledInitial = false,
          .handler = [](MainWindow& window) { window.tab_->backend->toggleInlineMath(); },
-         .enabled = [](const MainWindow& w) { return inlineFormat(w); },
+         .enabled =
+             [](const MainWindow& w) {
+               return !w.tab_->session.isOpenInProgress() && (w.tab_->backend->isSourceMode() || inlineFormat(w));
+             },
          .checked = [](const MainWindow& w) { return inlineFormat(w) && w.commandInlineFormats().inlineMath; }},
         {.id = QStringLiteral("format.strike"),
          .category = CommandCategory::Format,
@@ -1160,7 +1176,10 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          .checkable = true,
          .enabledInitial = false,
          .handler = [](MainWindow& window) { window.tab_->backend->toggleStrikethrough(); },
-         .enabled = [](const MainWindow& w) { return inlineFormat(w); },
+         .enabled =
+             [](const MainWindow& w) {
+               return !w.tab_->session.isOpenInProgress() && (w.tab_->backend->isSourceMode() || inlineFormat(w));
+             },
          .checked = [](const MainWindow& w) { return inlineFormat(w) && w.commandInlineFormats().strikethrough; }},
         {.id = QStringLiteral("format.comment"),
          .category = CommandCategory::Format,

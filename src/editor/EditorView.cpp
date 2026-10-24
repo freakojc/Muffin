@@ -1,4 +1,5 @@
 #include "editor/EditorView.h"
+#include "editor/ShortcutSettings.h"
 #include "diagnostics/ViewportUpdate.h"
 
 #include "diagnostics/ScopedPerfProbe.h"
@@ -601,14 +602,14 @@ bool EditorView::event(QEvent* event) {
   }
   if (event->type() == QEvent::KeyPress || event->type() == QEvent::ShortcutOverride) {
     auto* keyEvent = static_cast<QKeyEvent*>(event);
-    if (keyEvent->key() == Qt::Key_A && keyEvent->modifiers().testFlag(Qt::ControlModifier)) {
+    if (ShortcutSettings::instance().matches(*keyEvent, QStringLiteral("edit.select_all"), QKeySequence::SelectAll)) {
       if (event->type() == QEvent::ShortcutOverride) {
         event->accept();
         return true;
       }
       return QAbstractScrollArea::event(event);
     }
-    if (keyEvent->modifiers().testFlag(Qt::ControlModifier) &&
+    if (keyEvent->modifiers().testFlag(Qt::ControlModifier) && !keyEvent->modifiers().testFlag(Qt::AltModifier) &&
         editor_keys::isEditorOwnedCtrlKey(keyEvent->key(), keyEvent->modifiers().testFlag(Qt::ShiftModifier))) {
       if (event->type() == QEvent::ShortcutOverride) {
         event->accept();

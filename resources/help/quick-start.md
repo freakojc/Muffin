@@ -28,6 +28,10 @@ Insert tables, math (`$E=mc^2$`), footnotes, and fenced code blocks — Muffin r
 
 ## Tips
 
+- In live editing, paste browser or office HTML to keep headings, emphasis, lists, links and tables. Spreadsheet cells copied as tab-separated text become a Markdown table. Use **Edit → Paste as Plain Text** to keep only text; code blocks and source mode always paste literal text.
+- Copying in live editing provides HTML for rich editors and Markdown for Muffin. **Preferences → Editor** controls the plain-text representation sent to plain-text apps.
+- Use **Preferences → Keyboard Shortcuts** to search commands, record a key combination, resolve conflicts or restore defaults. Changes apply immediately and are saved for future sessions.
+- In **Preferences → Export → PDF**, configure the header, footer, author and page numbers. Templates support `${title}`, `${author}`, `${fileName}`, `${date}`, `${pageNo}` and `${pageCount}`.
 - Press the formatting and paragraph entries in the menus to style text without remembering syntax.
 - **Edit → Find / Replace** searches the current document.
 - Pick a look under **Theme** — Muffin ships light, dark and "Whitey" themes.
