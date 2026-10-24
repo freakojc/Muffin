@@ -91,6 +91,57 @@ QAction* action(MainWindow& window, const QString& text) {
   return nullptr;
 }
 
+void acceptSaveFile(QFileDialog& dialog, const QString& path) {
+  require(dialog.acceptMode() == QFileDialog::AcceptSave, "file chooser is a save dialog");
+  dialog.setOption(QFileDialog::DontConfirmOverwrite, true);
+  auto* filename = dialog.findChild<QLineEdit*>(QStringLiteral("fileNameEdit"));
+  require(filename, "non-native file dialog exposes its filename input");
+  // selectFile() deliberately leaves a visible, focused filename editor alone
+  // (Qt 6 qfiledialog.cpp). Write the intended path as user input instead of
+  // relying on platform-dependent initial focus or the directory model's timing.
+  filename->setFocus();
+  filename->setText(QDir::toNativeSeparators(QFileInfo(path).absoluteFilePath()));
+  const auto selected = dialog.selectedFiles();
+  const auto expected = QFileInfo(path).absoluteFilePath();
+  require(selected.size() == 1 && QFileInfo(selected.first()).absoluteFilePath() == expected,
+          QStringLiteral("save dialog must select %1, got %2").arg(expected, selected.join(QStringLiteral(", "))));
+  QString emitted;
+  const auto connection =
+      QObject::connect(&dialog, &QFileDialog::fileSelected, &dialog, [&](const QString& file) { emitted = file; });
+  const bool invoked = QMetaObject::invokeMethod(&dialog, "accept", Qt::DirectConnection);
+  QObject::disconnect(connection);
+  require(invoked && dialog.result() == QDialog::Accepted && !emitted.isEmpty() &&
+              QFileInfo(emitted).absoluteFilePath() == expected,
+          QStringLiteral("save dialog must accept %1, result=%2, emitted=%3")
+              .arg(expected)
+              .arg(dialog.result())
+              .arg(emitted));
+}
+
+void focusedSaveDialogSelectsExactPath() {
+  QTemporaryDir directory;
+  require(directory.isValid(), "save dialog fixture directory");
+  require(QDir(directory.path()).mkdir(QStringLiteral("中文 folder")), "save dialog alternative directory");
+  const auto target = directory.filePath(QStringLiteral("中文 folder/chosen file.md"));
+  for (bool existing : {false, true}) {
+    if (existing) {
+      QFile file(target);
+      require(file.open(QIODevice::WriteOnly) && file.write("original") == 8, "existing save dialog fixture");
+    }
+    QFileDialog dialog(nullptr, QStringLiteral("Save"), directory.filePath("suggested.md"));
+    dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.open();
+    auto* filename = dialog.findChild<QLineEdit*>(QStringLiteral("fileNameEdit"));
+    require(filename, "focused save dialog filename input");
+    filename->setFocus();
+    waitUntil([&] { return filename->hasFocus(); }, "filename input receives initial focus");
+    // Force the state which made selectFile() a no-op, for both a new path
+    // and an overwrite, including a different directory, spaces and Unicode.
+    acceptSaveFile(dialog, target);
+  }
+}
+
 struct Fixture {
   QTemporaryDir directory;
   SettingsOverride sourceMode{"view/sourceMode", false};
@@ -207,18 +258,24 @@ void exportPreferencesAndOutputs() {
     require(command->isEnabled(), "export action is enabled when the File menu opens");
     QTimer accept;
     accept.setInterval(5);
+    bool selected = false;
     QObject::connect(&accept, &QTimer::timeout, &f.window, [&] {
       if (auto* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
-        dialog->setOption(QFileDialog::DontConfirmOverwrite, true);
-        dialog->selectFile(path);
-        QMetaObject::invokeMethod(dialog, "accept", Qt::DirectConnection);
+        if (!selected) {
+          selected = true;
+          acceptSaveFile(*dialog, path);
+        }
       } else if (auto* message = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
         require(false, "Unexpected export error: " + message->text());
       }
     });
     accept.start();
     command->trigger();
-    require(QFileInfo(path).isFile(), "export menu creates the selected output");
+    accept.stop();
+    require(selected && QFileInfo(path).isFile(),
+            QStringLiteral("export %1 creates the selected output %2 (dialog handled=%3)")
+                .arg(QString::fromUtf8(name), path)
+                .arg(selected));
     if (!captures.isEmpty()) {
       const auto copy = QDir(captures).filePath(QFileInfo(path).fileName());
       QFile::remove(copy);
@@ -258,9 +315,8 @@ void exportPreferencesAndOutputs() {
   choose.setInterval(5);
   QObject::connect(&choose, &QTimer::timeout, &f.window, [&] {
     if (auto* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
-      dialog->setOption(QFileDialog::DontConfirmOverwrite, true);
-      dialog->selectFile(word);
-      QMetaObject::invokeMethod(dialog, "accept", Qt::DirectConnection);
+      choose.stop();
+      acceptSaveFile(*dialog, word);
     }
   });
   dismiss.start();
@@ -2370,10 +2426,8 @@ void openFailuresAndConflictingSaveAs() {
     choose.setInterval(5);
     QObject::connect(&choose, &QTimer::timeout, &choose, [&] {
       if (auto* dialog = qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
-        dialog->setOption(QFileDialog::DontConfirmOverwrite, true);
-        dialog->selectFile(second);
-        QMetaObject::invokeMethod(dialog, "accept", Qt::DirectConnection);
         choose.stop();
+        acceptSaveFile(*dialog, second);
       }
     });
     choose.start();
@@ -2978,6 +3032,9 @@ int main(int argc, char** argv) {
     runSessionViewTests();
     return 0;
   }
+  runTest("focusedSaveDialogSelectsExactPath", focusedSaveDialogSelectsExactPath);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--save-dialog")))
+    return 0;
   runTest("fileTreeOpeningPreservesScrollPosition", fileTreeOpeningPreservesScrollPosition);
   if (QCoreApplication::arguments().contains(QStringLiteral("--sidebar-file-open")))
     return 0;
