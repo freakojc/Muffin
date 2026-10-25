@@ -181,6 +181,8 @@ private:
   void connectEditorSignals(DocumentTab* tab);
   void connectRenderSignals(DocumentTab* tab);
   void connectSessionSignals(DocumentTab* tab);
+  void queueExternalFileChange(DocumentTab* tab);
+  void showNextExternalFileChange();
   void connectApplicationSignals();
   void connectFindBarSignals(DocumentTab* tab);
   void connectChromeSignals();
@@ -388,6 +390,7 @@ private:
   DraftSnapshotWriter draftWriter_;
   QTabWidget* tabs_ = nullptr;
   DocumentTab* tab_ = nullptr;
+  bool externalFileChangePromptActive_ = false;
   bool suppressSaveOnTabSwitch_ = false;
   bool normalizingPinnedTabs_ = false;
   CommandRegistry commands_;

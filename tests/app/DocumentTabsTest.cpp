@@ -35,6 +35,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFileDialog>
+#include <QSaveFile>
 #include <QMessageBox>
 #include <QMenu>
 #include <QMenuBar>
@@ -187,6 +188,187 @@ struct Fixture {
 
   void close(DocumentTab* document) { tabs->tabCloseRequested(tabs->indexOf(document)); }
 };
+
+QList<QMessageBox*> reloadQuestions(MainWindow& window) {
+  QList<QMessageBox*> visible;
+  for (auto* dialog : window.findChildren<QMessageBox*>())
+    if (dialog->isVisible() && dialog->windowTitle() == QStringLiteral("File Changed on Disk"))
+      visible.append(dialog);
+  return visible;
+}
+
+void externalWrite(DocumentTab* document, const QString& text) {
+  QSaveFile file(document->session.filePath());
+  const auto bytes = text.toUtf8();
+  const bool committed = file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
+  require(committed, QStringLiteral("external atomic replacement of %1 (%2) succeeds: %3")
+                         .arg(document->session.filePath(), text.left(40), file.errorString()));
+  // Exercise the real baseline/deduplication path without depending on when a
+  // platform's watcher delivers each event. The dedicated file-watch test
+  // separately covers notification delivery and re-arming after atomic writes.
+  require(QMetaObject::invokeMethod(&document->session, "onFileChanged", Qt::DirectConnection),
+          "check the externally changed file");
+}
+
+void externalFileChangesCoalesceAndReloadLatest() {
+  SettingsOverride autoSave("files/autoSave", true);
+  Fixture f;
+  auto* document = f.open(f.file("agent-edited.md", "# Original\n"));
+  document->session.setMarkdownText("Unsaved local edits\n", true);
+  require(document->autoSaveTimer->isActive(), "local edits schedule auto-save before the external conflict");
+  // Fail promptly on the old synchronous question(), rather than leave the
+  // regression hanging forever in a modal event loop.
+  QTimer watchdog;
+  watchdog.setInterval(1000);
+  QObject::connect(&watchdog, &QTimer::timeout, &f.window, [&] {
+    for (auto* question : reloadQuestions(f.window))
+      question->button(QMessageBox::No)->click();
+  });
+  watchdog.start();
+  externalWrite(document, "Agent revision 0\n");
+  watchdog.stop();
+  require(!document->autoSaveTimer->isActive(), "pending reload decision suspends the background auto-save");
+  waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "one asynchronous reload question appears");
+  QPointer<QMessageBox> first = reloadQuestions(f.window).first();
+  QString latest;
+  for (int i = 1; i <= 12; ++i) {
+    latest = QStringLiteral("Agent revision %1\n%2\n").arg(i).arg(QString(i, QLatin1Char('x')));
+    externalWrite(document, latest);
+    QApplication::processEvents();
+    require(reloadQuestions(f.window).size() == 1 && reloadQuestions(f.window).first() == first,
+            "repeated writes reuse the existing question instead of stacking or queuing duplicates");
+  }
+  require(document->session.markdownText().toString() == "Unsaved local edits\n" &&
+              document->session.document().isModified(),
+          "external writes never discard unsaved edits before confirmation");
+  first->button(QMessageBox::Yes)->click();
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty() && document->session.markdownText().toString() == latest &&
+              !document->session.document().isModified(),
+          "one confirmation reloads the latest revision and dismisses the entire burst");
+
+  document->session.setMarkdownText("Keep my new local work\n", true);
+  externalWrite(document, "Another external revision after reloading\n");
+  waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "a later edit starts a new question");
+  externalWrite(document, "Latest external revision while declining to reload\n");
+  reloadQuestions(f.window).first()->button(QMessageBox::No)->click();
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty() &&
+              document->session.markdownText().toString() == "Keep my new local work\n" &&
+              document->session.document().isModified(),
+          "declining once preserves local edits without replaying older notifications");
+  QFile disk(document->session.filePath());
+  require(disk.open(QIODevice::ReadOnly) && disk.readAll() == "Latest external revision while declining to reload\n",
+          "declining does not overwrite the agent's disk changes");
+  disk.close();
+  externalWrite(document, "A genuinely new change must still be reported\n");
+  waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "declining does not disable later notifications");
+  reloadQuestions(f.window).first()->button(QMessageBox::No)->click();
+}
+
+void backgroundExternalFileChangesWaitForActivation() {
+  SettingsOverride autoSave("files/autoSave", true);
+  SettingsOverride saveOnSwitch("files/autoSaveOnSwitch", true);
+  Fixture f;
+  auto* foreground = f.open(f.file("foreground.md", "Foreground\n"));
+  auto* background = f.open(f.file("background.md", "Background\n"));
+  auto* other = f.open(f.file("other.md", "Other\n"));
+  f.tabs->setCurrentWidget(foreground);
+  background->session.setMarkdownText("Unsaved background work\n", true);
+  QString latest;
+  for (int i = 0; i < 12; ++i) {
+    latest = QStringLiteral("Background revision %1\n%2\n").arg(i).arg(QString(i, QLatin1Char('x')));
+    externalWrite(background, latest);
+    QApplication::processEvents();
+    require(reloadQuestions(f.window).isEmpty() && f.current() == foreground,
+            "background file changes never interrupt the active tab");
+  }
+  externalWrite(other, "Other external revision\n");
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty() && !background->autoSaveTimer->isActive() &&
+              background->session.markdownText().toString() == "Unsaved background work\n",
+          "background conflict preserves local edits and suspends auto-save silently");
+  f.tabs->setCurrentWidget(other);
+  waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "activating a changed file shows its question");
+  require(reloadQuestions(f.window).first()->text().contains("other.md"),
+          "older background changes do not block the newly active file");
+  reloadQuestions(f.window).first()->button(QMessageBox::Yes)->click();
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty() &&
+              other->session.markdownText().toString() == "Other external revision\n",
+          "confirming the active file does not pop questions for inactive files");
+
+  // Rapid activation superseded before the deferred callback must not flash a question.
+  f.tabs->setCurrentWidget(background);
+  f.tabs->setCurrentWidget(foreground);
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty(), "a tab deactivated before dispatch never opens a question");
+  f.tabs->setCurrentWidget(background);
+  waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "background changes prompt on activation");
+  require(reloadQuestions(f.window).first()->text().contains("background.md"), "question belongs to the active tab");
+  // Programmatic activation (e.g. navigation/close) must retire the now-irrelevant
+  // question without treating it as an explicit decision to discard the reminder.
+  f.tabs->setCurrentWidget(foreground);
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty(), "deactivation closes the question without saving or reloading");
+  f.tabs->setCurrentWidget(background);
+  waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "returning to an unanswered tab asks again");
+  reloadQuestions(f.window).first()->button(QMessageBox::Yes)->click();
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty() && background->session.markdownText().toString() == latest &&
+              !background->session.document().isModified(),
+          "one confirmation after activation reads the latest background revision");
+  f.tabs->setCurrentWidget(foreground);
+  f.tabs->setCurrentWidget(background);
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty(), "resolved changes are not repeated on later activation");
+}
+
+void externalFileQuestionsRetireWithTheirTab() {
+  Fixture f;
+  auto* first = f.open(f.file("first.md", "First\n"));
+  auto* second = f.open(f.file("second.md", "Second\n"));
+  auto* third = f.open(f.file("third.md", "Third\n"));
+  f.tabs->setCurrentWidget(first);
+  externalWrite(first, "First external edit\n");
+  waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "first file asks to reload");
+  externalWrite(second, "Second external edit\n");
+  externalWrite(second, "Latest second external edit\n");
+  externalWrite(third, "Third external edit\n");
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).size() == 1 && reloadQuestions(f.window).first()->text().contains("first.md"),
+          "background changes do not stack over the active file's question");
+  require(second->fileController.reload(second->session, &f.window), "resolve a background file's external change");
+  reloadQuestions(f.window).first()->button(QMessageBox::No)->click();
+  f.tabs->setCurrentWidget(second);
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty(), "resolved background changes are skipped on activation");
+  f.tabs->setCurrentWidget(third);
+  waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "unresolved file asks on activation");
+  require(reloadQuestions(f.window).first()->text().contains("third.md"), "activation targets only that file");
+  QPointer<DocumentTab> closed = third;
+  f.close(third);
+  QApplication::processEvents();
+  require(!closed && reloadQuestions(f.window).isEmpty(), "closing a tab retires its active question safely");
+
+  f.tabs->setCurrentWidget(first);
+  externalWrite(first, "First changes again with a longer revision\n");
+  waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "queue remains usable after closing a tab");
+  externalWrite(second, "Second pending edit before closing\n");
+  f.close(second);
+  first->session.newDocument();
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty() && first->session.filePath().isEmpty() &&
+              first->session.markdownText().isEmpty(),
+          "path changes cancel active questions and closed queued tabs are ignored");
+
+  // Destroying a window with a question still open must retire its callbacks
+  // while the window-owned queue and services still exist.
+  Fixture closing;
+  auto* active = closing.open(closing.file("closing.md", "Before closing\n"));
+  externalWrite(active, "External revision before window destruction\n");
+  waitUntil([&] { return reloadQuestions(closing.window).size() == 1; }, "window has an active question at teardown");
+}
 
 void exportPreferencesAndOutputs() {
   Fixture f;
@@ -1950,6 +2132,26 @@ void movingTabsPreservesHistoryAndRebindsWindowLifetime() {
   deleteTestWindow(finalWindow);
 }
 
+void pendingExternalChangeFollowsMovedTab() {
+  Fixture f;
+  auto* document = f.open(f.file("moving-conflict.md", "Original\n"));
+  auto* other = f.open(f.file("staying.md", "Staying\n"));
+  externalWrite(document, "Latest revision before moving the background tab\n");
+  QApplication::processEvents();
+  require(reloadQuestions(f.window).isEmpty(), "moving fixture starts with a silent background change");
+  const auto before = QApplication::topLevelWidgets();
+  triggerTabMenu(f.window, document, "Move Tab to New Window");
+  auto* moved = otherWindow(before);
+  waitUntil([&] { return reloadQuestions(*moved).size() == 1; }, "moved tab asks when activated in the new window");
+  require(f.current() == other && reloadQuestions(f.window).isEmpty(), "old window retains no stale question");
+  reloadQuestions(*moved).first()->button(QMessageBox::Yes)->click();
+  QApplication::processEvents();
+  require(document->session.markdownText().toString() == "Latest revision before moving the background tab\n" &&
+              reloadQuestions(*moved).isEmpty(),
+          "moved tab reloads the latest pending revision once");
+  deleteTestWindow(moved);
+}
+
 void copyingTabsIncludesUnsavedContentAndIndependentBuffers() {
   Fixture f;
   auto* document = f.open(f.file("copy.md", "Original\r\n"));
@@ -3032,6 +3234,12 @@ int main(int argc, char** argv) {
     runSessionViewTests();
     return 0;
   }
+  runTest("externalFileChangesCoalesceAndReloadLatest", externalFileChangesCoalesceAndReloadLatest);
+  runTest("backgroundExternalFileChangesWaitForActivation", backgroundExternalFileChangesWaitForActivation);
+  runTest("externalFileQuestionsRetireWithTheirTab", externalFileQuestionsRetireWithTheirTab);
+  runTest("pendingExternalChangeFollowsMovedTab", pendingExternalChangeFollowsMovedTab);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--external-file-changes")))
+    return 0;
   runTest("focusedSaveDialogSelectsExactPath", focusedSaveDialogSelectsExactPath);
   if (QCoreApplication::arguments().contains(QStringLiteral("--save-dialog")))
     return 0;

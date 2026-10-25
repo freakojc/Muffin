@@ -15,6 +15,7 @@
 
 #include <QAction>
 #include <QDesktopServices>
+#include <QFileInfo>
 #include <QSettings>
 #include <QTimer>
 #include <QUrl>
@@ -24,6 +25,7 @@
 #include <QLoggingCategory>
 #include <QMenu>
 #include <QToolButton>
+#include <QTabWidget>
 
 namespace {
 
@@ -276,19 +278,8 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
   });
   connect(tab->autoSaveTimer, &QTimer::timeout, tab->windowConnections, [this, tab] { performAutoSave(tab); });
   connect(tab->draftTimer, &QTimer::timeout, tab->windowConnections, [this, tab] { snapshotDraft(tab); });
-  connect(&tab->session, &DocumentSession::externalFileChanged, tab->windowConnections, [this, tab] {
-    if (tab->session.filePath().isEmpty()) {
-      return;
-    }
-    const auto choice = QMessageBox::question(this, tr("File Changed on Disk"),
-                                              tr("The file \"%1\" has changed outside Muffin. Reload it?\n"
-                                                 "Unsaved changes in the editor will be lost.")
-                                                  .arg(tab->session.filePath()),
-                                              QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-    if (choice == QMessageBox::Yes) {
-      tab->fileController.reload(tab->session, this);
-    }
-  });
+  connect(&tab->session, &DocumentSession::externalFileChanged, tab->windowConnections,
+          [this, tab] { queueExternalFileChange(tab); });
   connect(&tab->fileController, &FileController::documentBecameClean, tab->windowConnections,
           [this, tab](const QString& path) { clearDraftSnapshot(path, tab->draftKey); });
   connect(&tab->session, &DocumentSession::parseBusy, tab->windowConnections, [tab](bool busy) {
@@ -336,6 +327,81 @@ void muffin::MainWindow::connectSessionSignals(DocumentTab* tab) {
       scheduleEditorStateRefresh();
     }
   });
+}
+
+void muffin::MainWindow::queueExternalFileChange(DocumentTab* tab) {
+  const auto path = tab->session.filePath();
+  if (path.isEmpty()) {
+    return;
+  }
+  tab->pendingExternalFileChangePath = path;
+  // The pending decision owns this conflict; a background auto-save must not
+  // open a second overwrite question while the user is deciding about reload.
+  tab->autoSaveTimer->stop();
+  if (tab == tab_)
+    QTimer::singleShot(0, this, &MainWindow::showNextExternalFileChange);
+}
+
+void muffin::MainWindow::showNextExternalFileChange() {
+  if (externalFileChangePromptActive_ || suppressSaveOnTabSwitch_ || !tab_ ||
+      tab_->pendingExternalFileChangePath.isEmpty())
+    return;
+  auto* tab = tab_;
+  const auto path = tab->pendingExternalFileChangePath;
+  if (tab->session.filePath() != path || !tab->session.hasFileBaseline()) {
+    tab->pendingExternalFileChangePath.clear();
+    return;
+  }
+  // A background tab may already have been saved/reloaded before activation.
+  const QFileInfo info(path);
+  if (info.exists() && info.lastModified() == tab->session.fileBaselineMtime() &&
+      info.size() == tab->session.fileBaselineSize()) {
+    tab->pendingExternalFileChangePath.clear();
+    return;
+  }
+  externalFileChangePromptActive_ = true;
+  auto* dialog = new QMessageBox(QMessageBox::Question, tr("File Changed on Disk"),
+                                 tr("The file \"%1\" has changed outside Muffin. Reload it?\n"
+                                    "Unsaved changes in the editor will be lost.")
+                                     .arg(path),
+                                 QMessageBox::Yes | QMessageBox::No, this);
+  dialog->setObjectName(QStringLiteral("ExternalFileChangeDialog"));
+  dialog->setDefaultButton(QMessageBox::Yes);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  connect(
+      dialog, &QDialog::finished, this,
+      [this, document = QPointer<DocumentTab>(tab), path](int result) {
+        if (document && document->pendingExternalFileChangePath == path) {
+          // Rejecting a retired/deactivated question is not the user's No.
+          // Keep it with the tab so activation in either window can ask again.
+          const bool deferred =
+              result != QMessageBox::Yes && result != QMessageBox::No && document->session.filePath() == path;
+          if (!deferred)
+            document->pendingExternalFileChangePath.clear();
+          if (result == QMessageBox::Yes && document == tab_ && documentTabs().contains(document) &&
+              document->session.filePath() == path) {
+            // Read at confirmation time, not when the first watcher event arrived.
+            document->fileController.reload(document->session, this);
+          }
+        }
+        externalFileChangePromptActive_ = false;
+        QTimer::singleShot(0, this, &MainWindow::showNextExternalFileChange);
+      },
+      Qt::SingleShotConnection);
+  // Closing/moving a tab retires its window bindings. A question must neither
+  // outlive those bindings nor reload a tab that now represents another path.
+  connect(tab->windowConnections, &QObject::destroyed, dialog, &QDialog::reject);
+  connect(&tab->session, &DocumentSession::filePathChanged, dialog, [dialog, path](const QString& current) {
+    if (current != path)
+      dialog->reject();
+  });
+  connect(tabs_, &QTabWidget::currentChanged, dialog, [this, tab, dialog](int) {
+    if (tabs_->currentWidget() != tab)
+      dialog->reject();
+  });
+  // open() returns to the application event loop; exec()/question() would
+  // nest event loops and let subsequent watcher events stack more dialogs.
+  dialog->open();
 }
 
 void muffin::MainWindow::connectApplicationSignals() {

@@ -59,6 +59,9 @@ public:
   int cursorLine = 1;
   int cursorColumn = 1;
   QString renderCursorStatus;
+  // External changes wait with their tab until it becomes active. Keeping the
+  // path also prevents a deferred question from applying to a replacement file.
+  QString pendingExternalFileChangePath;
   bool lastFindRegularExpression = false;
   bool lastFindCaseSensitive = false;
   QString lastFindText;

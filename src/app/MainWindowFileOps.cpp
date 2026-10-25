@@ -521,6 +521,9 @@ void muffin::MainWindow::performAutoSave(DocumentTab* tab) {
   if (tab->session.filePath().isEmpty() || !tab->session.document().isModified()) {
     return;
   }
+  if (tab->pendingExternalFileChangePath == tab->session.filePath()) {
+    return; // Resolve the deferred reload decision before any background write.
+  }
   const SaveOutcome outcome = tab->fileController.save(tab->session, this);
   if (outcome == SaveOutcome::Saved) {
     clearDraftSnapshot(tab->session.filePath(), tab->draftKey);

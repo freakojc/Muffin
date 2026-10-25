@@ -365,7 +365,7 @@ void muffin::MainWindow::activateTab(int index) {
   }
   auto* next = static_cast<DocumentTab*>(tabs_->widget(index));
   if (tab_ != next && !suppressSaveOnTabSwitch_ && !tab_->session.filePath().isEmpty() &&
-      tab_->session.document().isModified() &&
+      tab_->session.document().isModified() && tab_->pendingExternalFileChangePath != tab_->session.filePath() &&
       QSettings().value(QStringLiteral("files/autoSaveOnSwitch"), false).toBool()) {
     tab_->fileController.save(tab_->session, this);
   }
@@ -409,6 +409,7 @@ void muffin::MainWindow::activateTab(int index) {
   scheduleSessionSave();
   QTimer::singleShot(0, next->windowConnections, [this, next] { restoreTabViewState(next); });
   QTimer::singleShot(0, next->windowConnections, [this, next] { applyLinkNavigation(next); });
+  QTimer::singleShot(0, this, &MainWindow::showNextExternalFileChange);
 }
 
 bool muffin::MainWindow::closeTab(int index) {
