@@ -191,8 +191,10 @@ struct Fixture {
 
 QList<QMessageBox*> reloadQuestions(MainWindow& window) {
   QList<QMessageBox*> visible;
-  for (auto* dialog : window.findChildren<QMessageBox*>())
-    if (dialog->isVisible() && dialog->windowTitle() == QStringLiteral("File Changed on Disk"))
+  // QMessageBox deliberately ignores window titles on macOS. Locate this
+  // application-owned dialog by identity, independently of platform or locale.
+  for (auto* dialog : window.findChildren<QMessageBox*>(QStringLiteral("ExternalFileChangeDialog")))
+    if (dialog->isVisible())
       visible.append(dialog);
   return visible;
 }
@@ -230,6 +232,10 @@ void externalFileChangesCoalesceAndReloadLatest() {
   require(!document->autoSaveTimer->isActive(), "pending reload decision suspends the background auto-save");
   waitUntil([&] { return reloadQuestions(f.window).size() == 1; }, "one asynchronous reload question appears");
   QPointer<QMessageBox> first = reloadQuestions(f.window).first();
+  // Exercise macOS's titleless message boxes on every platform as well.
+  first->setWindowTitle(QString());
+  require(reloadQuestions(f.window).size() == 1 && reloadQuestions(f.window).first() == first,
+          "reload question detection also works without a window title");
   QString latest;
   for (int i = 1; i <= 12; ++i) {
     latest = QStringLiteral("Agent revision %1\n%2\n").arg(i).arg(QString(i, QLatin1Char('x')));
