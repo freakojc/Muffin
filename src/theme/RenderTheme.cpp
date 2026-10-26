@@ -209,6 +209,12 @@ RenderTheme RenderTheme::fromDefinitionWithEngine(const ThemeDefinition& input, 
   t.codeBlockBackground_ = c.codeBlockBackground;
   t.headingAccentColor_ = c.headingAccentColor;
   t.blockquoteBackground_ = c.blockquoteBackground;
+  // Code-surface ink and palette polarity follow the theme's `pre`/`code`
+  // declarations, not the page tone, so a light page can carry a dark code
+  // panel (Lengyi) with readable syntax colours.
+  t.codeTextColor_ = t.textColorForElement(QStringLiteral("pre"));
+  t.codeBlockDark_ = colorIsDarkOn(t.codeBlockBackgroundColor(), t.backgroundColor_);
+  t.inlineCodeDark_ = colorIsDarkOn(t.codeBackgroundColor(), t.backgroundColor_);
   t.setZoomPercent(zoomPercent);
   t.setFontSizePx(fontSizePx);
   return t;
@@ -1405,8 +1411,40 @@ const ThemeDecorations& RenderTheme::decorations() const {
   return decorations_;
 }
 
+QColor RenderTheme::codeTextColor() const {
+  return codeTextColor_.isValid() ? codeTextColor_ : textColor_;
+}
+
+bool RenderTheme::codeBlockIsDark() const {
+  return codeBlockDark_;
+}
+
+bool RenderTheme::inlineCodeIsDark() const {
+  return inlineCodeDark_;
+}
+
+bool RenderTheme::colorIsDarkOn(const QColor& color, const QColor& backdrop) {
+  if (!color.isValid())
+    return false;
+  QColor flat = color;
+  if (flat.alpha() < 255) {
+    const qreal alpha = flat.alphaF();
+    flat.setAlpha(255);
+    flat.setRed(int(flat.red() * alpha + backdrop.red() * (1.0 - alpha)));
+    flat.setGreen(int(flat.green() * alpha + backdrop.green() * (1.0 - alpha)));
+    flat.setBlue(int(flat.blue() * alpha + backdrop.blue() * (1.0 - alpha)));
+  }
+  return flat.lightnessF() < 0.5;
+}
+
 QColor RenderTheme::codeHighlightColor(CodeHighlightRole role) const {
-  const bool dark = backgroundColor_.lightness() < 128;
+  // Legacy page-based polarity. Painters that know the actual code surface
+  // (which may differ from the page — a dark fence on a light theme) should
+  // call the onDark overload instead.
+  return codeHighlightColor(role, backgroundColor_.lightness() < 128);
+}
+
+QColor RenderTheme::codeHighlightColor(CodeHighlightRole role, bool dark) const {
   switch (role) {
   case CodeHighlightRole::Comment:
     return dark ? QColor(QStringLiteral("#8b949e")) : QColor(QStringLiteral("#8c8c8c"));
@@ -1426,17 +1464,21 @@ QColor RenderTheme::codeHighlightColor(CodeHighlightRole role) const {
   case CodeHighlightRole::Type:
     return dark ? QColor(QStringLiteral("#ffa657")) : QColor(QStringLiteral("#008000"));
   case CodeHighlightRole::Variable:
-    return textColor_;
+    // Variable and plain tokens are the code surface's own ink: honours the
+    // CSS `pre` colour (Lengyi paints light code text on a dark panel).
+    return dark ? codeTextColor() : textColor_;
   case CodeHighlightRole::Property:
     return dark ? QColor(QStringLiteral("#7ee787")) : QColor(QStringLiteral("#795e26"));
   case CodeHighlightRole::Operator:
   case CodeHighlightRole::Punctuation:
-    return dark ? mutedTextColor_ : QColor(QStringLiteral("#3f3f3f"));
+    // The dark palette used the page's muted ink, which is nearly invisible on
+    // a dark panel of a light-page theme. Ride the code text colour instead.
+    return dark ? codeTextColor() : QColor(QStringLiteral("#3f3f3f"));
   case CodeHighlightRole::Escape:
     return dark ? QColor(QStringLiteral("#f2cc60")) : QColor(QStringLiteral("#b000b0"));
   case CodeHighlightRole::Plain:
   default:
-    return textColor_;
+    return dark ? codeTextColor() : textColor_;
   }
 }
 

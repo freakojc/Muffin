@@ -126,7 +126,7 @@ The curve measures the time from opening the Markdown file until the first viewp
 
 ### 🎨 Appearance
 
-- **5 built-in themes** — GitHub, Newsprint, Night, Pixyll (now with a serif body font), and Whitey.
+- **7 built-in themes** — GitHub, Newsprint, Night, Pixyll (now with a serif body font), Whitey, and Lengyi / Lengyi Dark (a port of the [Lengyi Markdown Editor](https://github.com/woyin2024/lengyi-markdown-editor) design, MIT — see [docs/lengyi-theme.md](docs/lengyi-theme.md)).
 - **Custom themes** — The built-in themes are authored as plain CSS, and you can author your own the same way: drop a `.css` (or `.json`) file into the themes folder and it shows up in the live Theme menu instantly. Import themes directly from the menu or the Appearance preferences page.
 - **Appearance preferences** — Font size, zoom level, content width (theme default, comfortable, wide, or full width), focus mode, typewriter mode, and status bar visibility — all persisted across sessions.
 - **Always-on-top** — Keep the window above all others through the View menu.

@@ -175,14 +175,19 @@ void testLazyLoadingAndContentInvalidation() {
   write(dir.filePath("github.css"), "p{color:red}");
   ThemeManager manager(dir.path());
   const auto& entries = manager.themes();
-  require(entries.size() == 7 && entries.front().id == "github",
+  // Built-ins first, then the directory's *.css/*.json in sorted order (custom.css,
+  // invalid.json); the authored `github.css` is skipped because a user file never
+  // shadows a built-in id. Derived from the registry so adding a built-in theme
+  // cannot date this fixture.
+  const size_t builtInCount = ThemeDefinition::builtInDescriptors().size();
+  require(entries.size() == builtInCount + 2 && entries.front().id == "github",
           "scan filenames without loading or shadowing built-ins");
-  require(entries[5].label == "Custom", "unselected theme has filename metadata, not parsed CSS");
+  require(entries[builtInCount].label == "Custom", "unselected theme has filename metadata, not parsed CSS");
   require(manager.availableThemes().contains("invalid"), "listing does not parse an invalid unselected JSON file");
   require(manager.setTheme("custom"), "select and load CSS");
   const auto before = manager.currentDefinition();
   require(before.colors.text == QColor("#123456"), "selected CSS drives the theme");
-  require(manager.themes()[5].label.contains("Authored label"), "loaded theme retains authored label");
+  require(manager.themes()[builtInCount].label.contains("Authored label"), "loaded theme retains authored label");
   require(manager.setTheme("custom") && manager.currentDefinition().sourceSheet == before.sourceSheet,
           "unchanged selection reuses the loaded definition");
   auto prototype = manager.currentTheme();

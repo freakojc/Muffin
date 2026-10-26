@@ -5,10 +5,14 @@
     <file alias="font-licenses/Open-Sans-Apache-2.0.txt">../resources/themes/font-licenses/Open-Sans-Apache-2.0.txt</file>
     <file alias="font-licenses/Lato-OFL.txt">../resources/themes/font-licenses/Lato-OFL.txt</file>
     <file alias="font-licenses/Merriweather-OFL.txt">../resources/themes/font-licenses/Merriweather-OFL.txt</file>
+    <file alias="theme-licenses/README.md">../resources/themes/theme-licenses/README.md</file>
+    <file alias="theme-licenses/Lengyi-MIT.txt">../resources/themes/theme-licenses/Lengyi-MIT.txt</file>
     <file alias="github.css">../resources/themes/github.css</file>
     <file alias="newsprint.css">../resources/themes/newsprint.css</file>
     <file alias="night.css">../resources/themes/night.css</file>
     <file alias="pixyll.css">../resources/themes/pixyll.css</file>
     <file alias="whitey.css">../resources/themes/whitey.css</file>
+    <file alias="lengyi.css">../resources/themes/lengyi.css</file>
+    <file alias="lengyi-dark.css">../resources/themes/lengyi-dark.css</file>
   </qresource>
 </RCC>

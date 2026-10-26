@@ -38,6 +38,20 @@ bool codeBlockWrapEnabled() {
   return QSettings().value(QStringLiteral("markdown/codeBlockWrap"), true).toBool();
 }
 
+// The fill a literal block actually paints behind its source text: the live
+// per-node `pre` background when CSS declares one, otherwise the theme's
+// code-block token. Lengyi-style themes paint a dark panel on a light page, so
+// callers decide ink and syntax palette from THIS colour rather than from the
+// page tone.
+QColor literalSourceFill(const RenderTheme& theme, const LayoutBox& box) {
+  const QColor fill = box.style.paint.backgroundColor;
+  return fill.isValid() && fill.alpha() > 0 ? fill : theme.codeBlockBackgroundColor();
+}
+
+bool literalSourceIsDark(const RenderTheme& theme, const LayoutBox& box) {
+  return RenderTheme::colorIsDarkOn(literalSourceFill(theme, box), theme.backgroundColor());
+}
+
 qreal mermaidDiagnosticGap(const RenderTheme& theme) {
   return qMax<qreal>(6.0, theme.codeLineHeight() * 0.3);
 }
@@ -1467,7 +1481,8 @@ void BlockLayout::paintMathBlock(QPainter& painter, const RenderTheme& theme, QR
     const QString closeMarker = mathClosingDelimiter(mathDelimiter_);
     drawDocumentText(painter, QPointF(sourceRect.left(), viewRect.top() + padding.top() + codeMetrics.ascent()),
                      openMarker);
-    paintLiteralSource(painter, theme, sourceRect, highlightMathTex(literal_));
+    paintLiteralSource(painter, theme, sourceRect, highlightMathTex(literal_), theme.textColor(),
+                       theme.inlineCodeIsDark());
     drawDocumentText(painter, QPointF(sourceRect.left(), sourceRect.bottom() + codeMetrics.ascent()), closeMarker);
     painter.setPen(QPen(theme.codeBorderColor(), 1));
     const qreal dividerY = sourcePanel.bottom() + 0.5;
@@ -1694,7 +1709,7 @@ void BlockLayout::paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QR
     // treat HtmlBlock as wrap=true — otherwise the reserved height (wrapped)
     // and the painted text (NoWrap, clipped, no scrollbar) disagree.
     paintLiteralSource(painter, theme, viewRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox)),
-                       codeHighlightSpans_);
+                       codeHighlightSpans_, theme.codeTextColor(), literalSourceIsDark(theme, cssBoxGeometry_));
     painter.restore();
   } else if (htmlLayout_ && htmlLayout_->valid()) {
     htmlLayout_->paint(painter, viewRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox)).topLeft());
@@ -1707,7 +1722,7 @@ void BlockLayout::paintHtmlBlock(QPainter& painter, const RenderTheme& theme, QR
     painter.setBrush(theme.codeBackgroundColor());
     painter.drawRect(viewRect.adjusted(0.5, 0.5, -0.5, -0.5));
     paintLiteralSource(painter, theme, viewRect.marginsRemoved(LayoutBox::insets(cssBoxGeometry_.usedBox)),
-                       codeHighlightSpans_);
+                       codeHighlightSpans_, theme.textColor(), theme.inlineCodeIsDark());
     painter.restore();
   }
 }
@@ -1765,9 +1780,12 @@ void BlockLayout::paintCodeFence(QPainter& painter, const RenderTheme& theme, QR
   const qreal offset = (scroll != nullptr && scrollable) ? scroll->offsetFor(id_) : 0.0;
   const qreal stripH = scrollable ? scrollBarStripHeight(theme) : 0.0;
   const QRectF textRect = contentRect.adjusted(0, 0, 0, -stripH);
+  // Code panels are not always the page tone: a light theme may paint a dark
+  // fence (Lengyi). Both the ink and the syntax palette follow the panel.
+  const bool onDark = literalSourceIsDark(theme, cssBoxGeometry_);
 
   if (lineNumberGutterWidth_ > 0.0) {
-    paintCodeLineNumbers(painter, theme, textRect);
+    paintCodeLineNumbers(painter, theme, textRect, onDark);
   }
 
   if (scrollable) {
@@ -1781,17 +1799,17 @@ void BlockLayout::paintCodeFence(QPainter& painter, const RenderTheme& theme, QR
     // scrolls left and the clip reveals its right portion. (Earlier code passed textRect.translated
     // (offset,0), which drew at textRect.left()+offset — that +offset cancelled the translate and
     // froze the content in place, so scrolling moved only the thumb, never the text.)
-    paintLiteralSource(painter, theme, textRect, codeHighlightSpans_);
+    paintLiteralSource(painter, theme, textRect, codeHighlightSpans_, theme.codeTextColor(), onDark);
     painter.restore();
-    paintCodeFenceScrollBar(painter, theme, contentRect, offset, maxLineWidth);
+    paintCodeFenceScrollBar(painter, theme, contentRect, offset, maxLineWidth, onDark);
   } else {
-    paintLiteralSource(painter, theme, contentRect, codeHighlightSpans_);
+    paintLiteralSource(painter, theme, contentRect, codeHighlightSpans_, theme.codeTextColor(), onDark);
   }
   painter.restore();
 }
 
 void BlockLayout::paintCodeFenceScrollBar(QPainter& painter, const RenderTheme& theme, QRectF contentRect, qreal offset,
-                                          qreal maxLineWidth) const {
+                                          qreal maxLineWidth, bool onDark) const {
   const qreal stripH = scrollBarStripHeight(theme);
   const QRectF strip(contentRect.left(), contentRect.bottom() - stripH, contentRect.width(), stripH);
   const qreal visibleW = contentRect.width();
@@ -1805,15 +1823,18 @@ void BlockLayout::paintCodeFenceScrollBar(QPainter& painter, const RenderTheme& 
   painter.setPen(Qt::NoPen);
   painter.setBrush(theme.codeBorderColor());
   painter.drawRoundedRect(track, 3.0, 3.0);
-  painter.setBrush(theme.mutedTextColor());
+  // On a dark panel the page's muted ink can vanish; step the code ink down
+  // instead so the thumb stays visible without leaving the panel's tone.
+  painter.setBrush(onDark ? theme.codeTextColor().darker(160) : theme.mutedTextColor());
   painter.drawRoundedRect(thumb, 3.0, 3.0);
 }
 
 void BlockLayout::paintLiteralSource(QPainter& painter, const RenderTheme& theme, QRectF contentRect,
-                                     const QVector<CodeHighlightSpan>& spans) const {
-  painter.setPen(theme.textColor());
+                                     const QVector<CodeHighlightSpan>& spans, const QColor& baseColor,
+                                     bool onDark) const {
+  painter.setPen(baseColor);
   QTextCharFormat base;
-  base.setForeground(theme.textColor());
+  base.setForeground(baseColor);
   QList<TextLayout::FormatRange> formats{{0, int(literal_.size()), base}};
   auto first = spans.cbegin(), last = spans.cend();
   if (painter.hasClipping()) {
@@ -1828,7 +1849,7 @@ void BlockLayout::paintLiteralSource(QPainter& painter, const RenderTheme& theme
   for (auto it = first; it != last; ++it) {
     const auto& span = *it;
     QTextCharFormat format;
-    format.setForeground(theme.codeHighlightColor(span.role));
+    format.setForeground(theme.codeHighlightColor(span.role, onDark));
     formats.append({int(span.start), int(span.end - span.start), format});
   }
   if (mermaidState_ == MermaidState::Error) {
@@ -1847,11 +1868,12 @@ void BlockLayout::paintLiteralSource(QPainter& painter, const RenderTheme& theme
   literalTextLayout(theme).draw(painter, contentRect.topLeft(), formats);
 }
 
-void BlockLayout::paintCodeLineNumbers(QPainter& painter, const RenderTheme& theme, const QRectF& codeRect) const {
+void BlockLayout::paintCodeLineNumbers(QPainter& painter, const RenderTheme& theme, const QRectF& codeRect,
+                                       bool onDark) const {
   const TextFontMetrics metrics(literalFont());
   const qreal numRightX = codeRect.left() - 2.0 * metrics.horizontalAdvance(QStringLiteral("8"));
   painter.setFont(literalFont());
-  painter.setPen(theme.mutedTextColor());
+  painter.setPen(onDark ? theme.codeTextColor().darker(160) : theme.mutedTextColor());
   const auto& lines = literalTextLayout(theme).numberedLines();
   auto first = lines.cbegin(), last = lines.cend();
   if (painter.hasClipping()) {

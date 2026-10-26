@@ -201,7 +201,26 @@ public:
   // P5 cheap decorations the paint engine can already draw; invalid → unused.
   QColor headingAccentColor() const; // h2 left accent bar
   QColor blockquoteBackgroundColor() const;
+  // The ink literal source text (code fences, front matter, HTML-source
+  // editing) is painted in. Follows the CSS `pre` colour so a light page can
+  // carry a dark code panel (Lengyi) while prose keeps its own ink; falls back
+  // to the prose text colour when no `pre` rule declares one.
+  QColor codeTextColor() const;
+  // True when the theme's fenced code panel resolves to a dark fill. This is
+  // the token-level answer (the mapped `pre` background); painters prefer the
+  // live per-block fill so scoped CSS still picks the right palette.
+  bool codeBlockIsDark() const;
+  // True when inline `code` chips (and the source panels that reuse their
+  // fill: math/HTML source editing) are dark.
+  bool inlineCodeIsDark() const;
+  // Flatten `color` over `backdrop` and decide whether it reads as a dark
+  // surface. Reused by painters that need a per-block answer.
+  static bool colorIsDarkOn(const QColor& color, const QColor& backdrop);
   QColor codeHighlightColor(CodeHighlightRole role) const;
+  // Syntax palette for a specific code surface instead of the whole page —
+  // the palette must follow the panel the tokens are drawn on (Lengyi paints
+  // a dark fence on a light page).
+  QColor codeHighlightColor(CodeHighlightRole role, bool onDark) const;
 
   // ::before/::after decorations keyed by host ("h2","blockquote","#write",…).
   // Painters filter the vector for the host they are drawing. Empty for themes
@@ -325,6 +344,9 @@ private:
   QColor codeBlockBackground_;  // invalid → codeBackgroundColor()
   QColor headingAccentColor_;   // invalid → no h2 accent bar
   QColor blockquoteBackground_; // invalid → no quote fill
+  QColor codeTextColor_;        // invalid → textColor()
+  bool codeBlockDark_ = false;  // fenced code panel reads as a dark surface
+  bool inlineCodeDark_ = false; // inline-code fill (and source panels) read as dark
 };
 
 } // namespace muffin

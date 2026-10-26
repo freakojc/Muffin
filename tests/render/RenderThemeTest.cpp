@@ -200,19 +200,66 @@ void testThemeCodeHighlightPalette() {
           QStringLiteral("light code type color should match default green"));
 }
 
+void testCodeSurfacePaletteFollowsThePanel() {
+  // Lengyi is a light theme whose code panel is deliberately dark. The literal
+  // ink and the syntax palette must follow the panel the tokens are painted on,
+  // not the page tone — otherwise the light code ink and the light-theme
+  // keyword colours (dark purple/blue) vanish against the dark fill.
+  const auto lengyi = ThemeDefinition::builtIn(QStringLiteral("lengyi"));
+  require(lengyi.has_value(), QStringLiteral("Lengyi built-in should load"));
+  const RenderTheme theme = RenderTheme::fromDefinition(*lengyi);
+  require(theme.backgroundColor().name() == QStringLiteral("#ffffff"), QStringLiteral("Lengyi page stays light"));
+  require(theme.codeBlockIsDark(), QStringLiteral("Lengyi fenced code panel should read as dark on the light page"));
+  require(!theme.inlineCodeIsDark(), QStringLiteral("Lengyi inline code chips should stay light"));
+  require(theme.codeTextColor().name() == QStringLiteral("#e4e4e7"),
+          QStringLiteral("Lengyi literal source ink should come from the CSS pre colour"));
+  require(theme.codeHighlightColor(CodeHighlightRole::Keyword, theme.codeBlockIsDark()).name() ==
+              QStringLiteral("#ff7b72"),
+          QStringLiteral("keyword palette should flip to the dark set on a dark panel"));
+  require(theme.codeHighlightColor(CodeHighlightRole::Plain, true).name() == theme.codeTextColor().name(),
+          QStringLiteral("plain tokens should ride the panel ink on a dark panel"));
+  require(theme.codeHighlightColor(CodeHighlightRole::Operator, true).name() == theme.codeTextColor().name(),
+          QStringLiteral("operators should stay readable on a dark panel instead of dark-muted-on-dark"));
+  // The legacy one-argument query keeps its page-based polarity; only painting
+  // consults the panel, so existing callers are unchanged.
+  require(theme.codeHighlightColor(CodeHighlightRole::Keyword).name() == QStringLiteral("#9b008b"),
+          QStringLiteral("one-argument palette query should keep the page-based light palette"));
+
+  // Themes without a dark panel keep their exact previous colours.
+  const RenderTheme github = RenderTheme::github();
+  require(!github.codeBlockIsDark(), QStringLiteral("GitHub code panel should stay light"));
+  require(github.codeTextColor().name() == github.textColor().name(),
+          QStringLiteral("themes without a pre colour should keep the prose ink for code"));
+  require(github.codeHighlightColor(CodeHighlightRole::Keyword, github.codeBlockIsDark()).name() ==
+              github.codeHighlightColor(CodeHighlightRole::Keyword).name(),
+          QStringLiteral("light-fence themes should see no palette change from the panel overload"));
+  const RenderTheme night = RenderTheme::night();
+  require(night.codeBlockIsDark(), QStringLiteral("Night code panel should read as dark"));
+  require(night.codeHighlightColor(CodeHighlightRole::Keyword, true).name() == QStringLiteral("#ff7b72"),
+          QStringLiteral("dark-fence themes should keep the dark keyword colour"));
+
+  // Alpha fills (newsprint/night's translucent chip) resolve against their page
+  // before deciding polarity, instead of flattening to "black means dark".
+  require(!RenderTheme::colorIsDarkOn(QColor(0, 0, 0, 13), QColor(QStringLiteral("#fdf6e3"))),
+          QStringLiteral("a translucent black chip on a light page stays light"));
+  require(RenderTheme::colorIsDarkOn(QColor(0, 0, 0, 13), QColor(QStringLiteral("#363B40"))),
+          QStringLiteral("the same chip on a dark page reads as dark"));
+}
+
 void testThemeManagerSupportsBuiltInThemes() {
   ThemeManager manager;
   const QStringList expectedThemes{
       QStringLiteral("github"), QStringLiteral("newsprint"), QStringLiteral("night"),
-      QStringLiteral("pixyll"), QStringLiteral("whitey"),
+      QStringLiteral("pixyll"), QStringLiteral("whitey"),     QStringLiteral("lengyi"),
+      QStringLiteral("lengyi-dark"),
   };
 
   // Built-ins must be present and in canonical order at the front, but custom
   // (user-loaded) themes may follow — the list is no longer required to be
-  // exactly the five built-ins once JSON themes can be imported.
+  // exactly the built-ins once JSON themes can be imported.
   const QStringList available = manager.availableThemes();
   require(available.size() >= expectedThemes.size(),
-          QStringLiteral("Theme manager should expose at least the five built-in themes"));
+          QStringLiteral("Theme manager should expose at least the seven built-in themes"));
   for (int i = 0; i < expectedThemes.size(); ++i) {
     require(available.at(i) == expectedThemes.at(i),
             QStringLiteral("Built-in %1 should remain at position %2").arg(expectedThemes.at(i)).arg(i));
@@ -1080,6 +1127,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testThemeCodeFontFallbackOrder);
   RUN_TEST(testCssFontStackPreservesPlatformAliasesBeforeCjkFallback);
   RUN_TEST(testThemeCodeHighlightPalette);
+  RUN_TEST(testCodeSurfacePaletteFollowsThePanel);
   RUN_TEST(testThemeMathFontUsesMappedMathJaxSize);
   RUN_TEST(testStaticBoxShadowBlursSpreadEdge);
   RUN_TEST(testThemeManagerSupportsBuiltInThemes);
@@ -1109,6 +1157,16 @@ int main(int argc, char** argv) {
           [&] { testLayoutForTheme(document, RenderTheme::pixyll(), QStringLiteral("pixyll")); });
   runTest("testLayoutForTheme/whitey",
           [&] { testLayoutForTheme(document, RenderTheme::whitey(), QStringLiteral("whitey")); });
+  runTest("testLayoutForTheme/lengyi", [&] {
+    const auto definition = ThemeDefinition::builtIn(QStringLiteral("lengyi"));
+    require(definition.has_value(), QStringLiteral("Lengyi built-in should load for the layout smoke test"));
+    testLayoutForTheme(document, RenderTheme::fromDefinition(*definition), QStringLiteral("lengyi"));
+  });
+  runTest("testLayoutForTheme/lengyi-dark", [&] {
+    const auto definition = ThemeDefinition::builtIn(QStringLiteral("lengyi-dark"));
+    require(definition.has_value(), QStringLiteral("Lengyi Dark built-in should load for the layout smoke test"));
+    testLayoutForTheme(document, RenderTheme::fromDefinition(*definition), QStringLiteral("lengyi-dark"));
+  });
   runTest("testNarrowViewportFillsForCardTheme", [&] { testNarrowViewportFillsForCardTheme(document); });
   runTest("testContentWidthOverrideControlsPageColumn", [&] { testContentWidthOverrideControlsPageColumn(document); });
   runTest("testDecoratedThemePaints", [&] { testDecoratedThemePaints(document); });

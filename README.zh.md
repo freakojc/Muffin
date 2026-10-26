@@ -126,7 +126,7 @@ xychart-beta
 
 ### 🎨 外观
 
-- **5 种内置主题** — GitHub、Newsprint、Night、Pixyll（现已使用衬线正文字体）和 Whitey。
+- **7 种内置主题** — GitHub、Newsprint、Night、Pixyll（现已使用衬线正文字体）、Whitey，以及 Lengyi / Lengyi Dark（移植自 [冷逸 Markdown 编辑器](https://github.com/woyin2024/lengyi-markdown-editor) 的设计，MIT 协议，详见 [docs/lengyi-theme.md](docs/lengyi-theme.md)）。
 - **自定义主题** — 内置主题以标准 CSS 编写，你也可以用同样方式编写自己的主题：将 `.css`（或 `.json`）文件放入主题文件夹后立即出现在动态主题菜单中。也可从菜单或外观偏好页面直接导入主题。
 - **外观偏好设置** — 字体大小、缩放比例、专注模式、打字机模式和状态栏可见性，所有设置跨会话持久化。
 - **窗口置顶** — 通过“视图”菜单将窗口保持在最前端。

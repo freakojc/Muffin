@@ -381,10 +381,10 @@ private:
   void paintCodeFence(QPainter& painter, const RenderTheme& theme, QRectF viewRect,
                       const CodeFenceScrollController* scroll, BlockPaintState state) const;
   void paintLiteralSource(QPainter& painter, const RenderTheme& theme, QRectF contentRect,
-                          const QVector<CodeHighlightSpan>& spans) const;
-  void paintCodeLineNumbers(QPainter& painter, const RenderTheme& theme, const QRectF& codeRect) const;
+                          const QVector<CodeHighlightSpan>& spans, const QColor& baseColor, bool onDark) const;
+  void paintCodeLineNumbers(QPainter& painter, const RenderTheme& theme, const QRectF& codeRect, bool onDark) const;
   void paintCodeFenceScrollBar(QPainter& painter, const RenderTheme& theme, QRectF contentRect, qreal offset,
-                               qreal maxLineWidth) const;
+                               qreal maxLineWidth, bool onDark) const;
   void paintDefinition(QPainter& painter, const RenderTheme& theme, QRectF viewRect) const;
   HitTestResult hitDefinition(QPointF documentPos, const RenderTheme& theme) const;
   void paintToc(QPainter& painter, const RenderTheme& theme, QRectF viewRect) const;

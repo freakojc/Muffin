@@ -613,7 +613,12 @@ const std::vector<ThemeDescriptor>& ThemeDefinition::builtInDescriptors() {
       {QStringLiteral("newsprint"), QStringLiteral("Newsprint"), true},
       {QStringLiteral("night"), QStringLiteral("Night"), true},
       {QStringLiteral("pixyll"), QStringLiteral("Pixyll"), true},
-      {QStringLiteral("whitey"), QStringLiteral("Whitey"), true}};
+      {QStringLiteral("whitey"), QStringLiteral("Whitey"), true},
+      // Lengyi ports the Lengyi Markdown Editor's design (MIT, 冷逸 / 沃垠AI) —
+      // see resources/themes/theme-licenses/README.md. Appended last so the
+      // established five keep their canonical positions.
+      {QStringLiteral("lengyi"), QStringLiteral("Lengyi"), true},
+      {QStringLiteral("lengyi-dark"), QStringLiteral("Lengyi Dark"), true}};
   return descriptors;
 }
 

@@ -1,0 +1,286 @@
+/*
+ * Lengyi — a Muffin theme ported from the Lengyi Markdown Editor.
+ *
+ * Source: https://github.com/woyin2024/lengyi-markdown-editor
+ * Author: 冷逸 / 沃垠AI (Lengyi / Woyin AI)
+ * License: MIT — see resources/themes/theme-licenses/Lengyi-MIT.txt
+ *
+ * The original is a single-page browser editor whose look is defined by one
+ * block of CSS custom properties (low-saturation indigo + neutral grey, soft
+ * layered shadows, a dark code panel on a light page). This theme re-expresses
+ * that palette for Muffin's document host (`html > body > content > #write`)
+ * and, through the `--muffin-*` extension variables, for its whole chrome:
+ * menus, sidebar, tabs, dialogs and the status bar.
+ *
+ * Deviations from the browser original, all deliberate:
+ *   - the text-selection tint is stronger than `--accent-soft` (10%), which is
+ *     too faint to read as a selection outside a browser's own ::selection;
+ *   - font stacks gain Windows-native fallbacks, since Muffin runs offline and
+ *     never fetches webfonts;
+ *   - editor chrome that the browser build draws with DOM/CSS (toolbars,
+ *     panes, modals) maps onto Muffin's chrome palette instead of CSS rules.
+ */
+
+:root {
+  /* Colour system: low-saturation indigo/violet + neutral grey. */
+  --bg: #f7f8fa;
+  --panel-bg: #ffffff;
+  --surface: #f3f5f8;
+  --surface-hover: #ebeef3;
+  --text: #1a1d23;
+  --text-secondary: #5f6775;
+  --text-muted: #8a93a1;
+  --border: rgba(0, 0, 0, 0.08);
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: rgba(79, 70, 229, 0.1);
+  --code-bg: #1e1e2e;
+  --code-text: #e4e4e7;
+
+  /* Shadows: layered and soft. */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+
+  /* Fonts: system-first so the theme works offline. */
+  --font-sans: "SF Pro Text", "Inter", -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
+
+  /* Corner radii. */
+  --radius-sm: 6px;
+  --radius: 10px;
+
+  /* Conventional community-theme vocabulary: fills any token the cascade
+     leaves unset, so the chrome follows the document palette. */
+  --bg-color: var(--panel-bg);
+  --text-color: var(--text);
+  --text-color-secondary: var(--text-secondary);
+  --primary-color: var(--accent);
+  --code-bg-color: var(--surface);
+  --side-bar-bg-color: var(--panel-bg);
+  --control-text-color: var(--text-secondary);
+  --item-hover-bg-color: var(--surface-hover);
+  --active-file-bg-color: var(--accent-soft);
+  --select-text-bg-color: rgba(79, 70, 229, 0.16);
+
+  /* Muffin chrome — the whole shell reads as one Lengyi surface. */
+  --muffin-chrome-background: var(--bg);
+  --muffin-chrome-text: var(--text);
+  --muffin-chrome-muted: var(--text-secondary);
+  --muffin-surface: var(--panel-bg);
+  --muffin-canvas: var(--surface);
+  --muffin-border: #e4e7ec;
+  --muffin-hover: var(--surface-hover);
+  --muffin-selected: var(--accent-soft);
+  --muffin-accent: var(--accent);
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The application canvas (behind the page card) is the app grey. */
+body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+/* The page is a white writing surface, 800px wide, centred — the editor pane. */
+#write {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 40px;
+  background-color: var(--panel-bg);
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+::selection {
+  background-color: rgba(79, 70, 229, 0.16);
+  color: var(--text);
+}
+
+#write::selection {
+  background-color: rgba(79, 70, 229, 0.16);
+  color: var(--text);
+}
+
+/* Headings: generous top air, tight leading, negative tracking. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 48px 0 16px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 2.25em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.75em;
+}
+
+h3 {
+  font-size: 1.4em;
+}
+
+h4 {
+  font-size: 1.15em;
+}
+
+h5 {
+  font-size: 0.83em;
+}
+
+h6 {
+  font-size: 0.67em;
+}
+
+/* Body text. Colour is inherited so blockquote and other containers can
+   re-tint their paragraphs. */
+p {
+  margin: 0 0 20px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+ul,
+ol {
+  margin: 0 0 20px;
+  padding-left: 1.8em;
+}
+
+li {
+  margin: 6px 0;
+}
+
+.task-list {
+  padding-left: 1.8em;
+}
+
+.md-task-list-item {
+  list-style: none;
+}
+
+.md-task-list-item > input {
+  margin-right: 6px;
+}
+
+/* Inline code: a soft chip in the accent colour. */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding: 3px 7px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--surface);
+  color: var(--accent);
+}
+
+/* Fenced code, front matter and HTML source share Lengyi's dark panel —
+   the one deliberately dark surface in a light theme. */
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  line-height: 1.8;
+  margin: 0 0 20px;
+  padding: 18px 22px;
+  border: none;
+  border-radius: var(--radius);
+  background-color: var(--code-bg);
+  color: var(--code-text);
+  box-shadow: var(--shadow-sm);
+}
+
+pre code {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  color: inherit;
+  font-size: 0.9em;
+}
+
+/* A rendered display-math block is typeset material, not source code, so it
+   sits on the page rather than in the dark panel. */
+div.md-math-block pre,
+div.mathjax-block pre {
+  margin: 16px 0;
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--text);
+}
+
+/* KaTeX-scale math typography (Muffin maps `.MathJax` to its math runs). */
+.MathJax {
+  font-size: 1.1em;
+}
+
+blockquote {
+  margin: 0 0 20px;
+  padding: 10px 24px;
+  border-left: 3px solid var(--text-muted);
+  background-color: transparent;
+  color: var(--text-muted);
+  font-size: 0.95em;
+  font-style: italic;
+}
+
+table {
+  width: 100%;
+  margin: 0 0 20px;
+  border-collapse: collapse;
+  border-radius: var(--radius-sm);
+}
+
+th,
+td {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+th {
+  background-color: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+hr {
+  height: 1px;
+  margin: 40px 0;
+  border: 0;
+  background-color: transparent;
+  background-image: linear-gradient(90deg, transparent, var(--border), transparent);
+}

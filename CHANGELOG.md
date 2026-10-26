@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add the **Lengyi** and **Lengyi Dark** built-in themes, porting the design of the [Lengyi Markdown Editor](https://github.com/woyin2024/lengyi-markdown-editor) (MIT — see `docs/lengyi-theme.md` and `resources/themes/theme-licenses/`). The port includes its indigo-on-neutral chrome palette, 800px paper column, type scale, and the signature dark code panel on a light page.
+- Honour a theme's `pre` colour for literal source ink and pick the syntax-highlight palette from the actual code surface instead of the page tone, so themes can paint a dark code panel on a light page while keeping readable tokens, line numbers and the fence scrollbar.
+
 ### Fixed
 
 - Keep plain Tab in the source editor instead of moving focus away, and preserve selected text when inserting a source-mode hyperlink.

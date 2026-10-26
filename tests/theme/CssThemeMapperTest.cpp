@@ -1795,6 +1795,60 @@ table { border-radius:6px; }
           QStringLiteral("pre and td defaults come from the shared host stylesheet"));
 }
 
+// The Lengyi themes port the Lengyi Markdown Editor's design tokens (MIT,
+// 冷逸 / 沃垠AI — see resources/themes/theme-licenses). This pins the port so a
+// future edit cannot silently drop the palette, the 800px paper column, or the
+// dark code panel that the chrome and the renderer both key off.
+void testLengyiBuiltInThemePortsThePalette() {
+  const auto light = ThemeDefinition::builtIn(QStringLiteral("lengyi"));
+  require(light.has_value(), QStringLiteral("lengyi.css should load as a built-in theme"));
+  require(light->valid(), QStringLiteral("lengyi should resolve to a valid palette"));
+  require(!light->colors.isDark, QStringLiteral("lengyi is the light variant"));
+
+  // Document: grey canvas, white paper, near-black ink, indigo accent.
+  require(light->page.viewportBackground.name() == QStringLiteral("#f7f8fa"),
+          QStringLiteral("body paints the app-grey viewport"));
+  require(light->colors.background.name() == QStringLiteral("#ffffff"),
+          QStringLiteral("#write paints the white paper"));
+  require(light->colors.text.name() == QStringLiteral("#1a1d23"), QStringLiteral("prose ink"));
+  require(light->colors.muted.name() == QStringLiteral("#5f6775"), QStringLiteral("secondary ink"));
+  require(light->colors.link.name() == QStringLiteral("#4f46e5"), QStringLiteral("links use the accent"));
+  require(light->typography.linkUnderlined == false, QStringLiteral("lengyi links carry no underline"));
+  require(light->colors.codeBackground.name() == QStringLiteral("#f3f5f8"),
+          QStringLiteral("inline code chips use the surface tone"));
+  require(light->colors.codeBlockBackground.name() == QStringLiteral("#1e1e2e"),
+          QStringLiteral("the signature dark code panel survives the port"));
+  require(light->colors.quoteBorder.name() == QStringLiteral("#8a93a1"), QStringLiteral("quote bar uses muted ink"));
+  require(light->colors.tableHeaderBackground.name() == QStringLiteral("#f3f5f8"),
+          QStringLiteral("table headers take the surface tone"));
+
+  // Page geometry + type scale: an 800px centred column at 16px / 1.8 leading.
+  require(qAbs(light->page.pageMaxWidth - 800.0) < 0.01, QStringLiteral("800px paper column"));
+  require(qAbs(light->bodyFontPx - 16.0) < 0.01, QStringLiteral("16px body root"));
+  require(qAbs(light->typography.lineHeight - 1.8) < 0.001, QStringLiteral("1.8 line height"));
+
+  // Chrome: the whole shell follows the same tokens.
+  require(light->colors.chromeBackground.name() == QStringLiteral("#f7f8fa"), QStringLiteral("chrome canvas"));
+  require(light->colors.surface.name() == QStringLiteral("#ffffff"), QStringLiteral("chrome cards stay panel-white"));
+  require(light->colors.canvas.name() == QStringLiteral("#f3f5f8"), QStringLiteral("dialog backdrop tone"));
+  require(light->colors.border.name() == QStringLiteral("#e4e7ec"), QStringLiteral("opaque chrome hairline"));
+  require(light->colors.hover.name() == QStringLiteral("#ebeef3"), QStringLiteral("hover uses surface-hover"));
+  require(light->colors.accent.name() == QStringLiteral("#4f46e5"), QStringLiteral("focus/checked accent"));
+
+  const auto dark = ThemeDefinition::builtIn(QStringLiteral("lengyi-dark"));
+  require(dark.has_value(), QStringLiteral("lengyi-dark.css should load as a built-in theme"));
+  require(dark->valid(), QStringLiteral("lengyi-dark should resolve to a valid palette"));
+  require(dark->colors.isDark, QStringLiteral("lengyi-dark resolves as a dark theme"));
+  require(dark->page.viewportBackground.name() == QStringLiteral("#0b0d12"), QStringLiteral("near-black viewport"));
+  require(dark->colors.background.name() == QStringLiteral("#151821"), QStringLiteral("raised panel paper"));
+  require(dark->colors.text.name() == QStringLiteral("#f0f2f7"), QStringLiteral("light ink"));
+  require(dark->colors.accent.name() == QStringLiteral("#818cf8"), QStringLiteral("dark mode lifts the accent"));
+  require(dark->colors.codeBlockBackground.name() == QStringLiteral("#0f1115"),
+          QStringLiteral("the dark variant sinks the code panel further"));
+  require(dark->colors.chromeBackground.name() == QStringLiteral("#0b0d12"), QStringLiteral("chrome follows the app"));
+  require(dark->colors.surface.name() == QStringLiteral("#151821"), QStringLiteral("chrome panels stay raised"));
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -1863,6 +1917,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testComputedElementStylesCaptureMarkerAndQuoteParagraph);
   RUN_TEST(testBlockquoteBoxCapture);
   RUN_TEST(testCodeAndTableBoxCapture);
+  RUN_TEST(testLengyiBuiltInThemePortsThePalette);
 #undef RUN_TEST
   runTest("testMistBlueFixture", [&] { testMistBlueFixture(fixture); });
   return 0;
