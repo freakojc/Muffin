@@ -15,11 +15,61 @@
  * Deviations from the browser original, all deliberate:
  *   - the text-selection tint is stronger than `--accent-soft` (10%), which is
  *     too faint to read as a selection outside a browser's own ::selection;
- *   - font stacks gain Windows-native fallbacks, since Muffin runs offline and
- *     never fetches webfonts;
+ *   - the paper column is canvas-adaptive (92%, capped by a wider gutter on big
+ *     screens) instead of the original's fixed 800px pane;
+ *   - tables are denser (0.92em, 1.5 leading, tighter padding, nowrap headers,
+ *     a faint zebra stripe) so long tables stop ballooning vertically;
+ *   - Inter and JetBrains Mono ship with the theme (SIL OFL 1.1, see
+ *     resources/themes/font-licenses/); CJK text still falls back to the
+ *     platform font, as in the original;
  *   - editor chrome that the browser build draws with DOM/CSS (toolbars,
  *     panes, modals) maps onto Muffin's chrome palette instead of CSS rules.
  */
+
+/* Bundled faces. The original only lists these families and relies on the
+   system; Muffin renders offline, so the same design ships its own faces.
+   CMake converts these WOFF2 sources to native TTF for the resource bundle. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Inter Regular'), local('Inter'), url('./lengyi/inter-v4.1-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: normal;
+  src: local('Inter Italic'), url('./lengyi/inter-v4.1-italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Inter SemiBold'), local('Inter Semibold'), url('./lengyi/inter-v4.1-semibold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: bold;
+  src: local('Inter Bold'), url('./lengyi/inter-v4.1-bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: normal;
+  src: local('JetBrains Mono'), url('./lengyi/jetbrains-mono-v2.304-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: bold;
+  src: local('JetBrains Mono Bold'), url('./lengyi/jetbrains-mono-v2.304-bold.woff2') format('woff2');
+}
 
 :root {
   /* Colour system: low-saturation indigo/violet + neutral grey. */
@@ -41,8 +91,8 @@
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
   --shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 
-  /* Fonts: system-first so the theme works offline. */
-  --font-sans: "SF Pro Text", "Inter", -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* Fonts: bundled Inter / JetBrains Mono, then the platform UI stack. */
+  --font-sans: "Inter", "SF Pro Text", -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
 
   /* Corner radii. */
@@ -88,15 +138,25 @@ body {
   background-color: var(--bg);
 }
 
-/* The page is a white writing surface, 800px wide, centred — the editor pane. */
+/* The page is a white writing surface that tracks the canvas: a 92% column
+   (Muffin re-resolves the percentage on every viewport change) instead of the
+   original's fixed 800px pane, with a wider gutter on large windows.
+   Preferences → Appearance → Content Width still overrides this. */
 #write {
-  max-width: 800px;
+  max-width: 92%;
   margin: 0 auto;
-  padding: 32px 40px;
+  padding: 40px 56px 72px;
   background-color: var(--panel-bg);
   font-size: 16px;
   line-height: 1.8;
   color: var(--text);
+}
+
+@media (min-width: 1700px) {
+  #write {
+    padding-left: 88px;
+    padding-right: 88px;
+  }
 }
 
 ::selection {
@@ -250,24 +310,41 @@ blockquote {
   font-style: italic;
 }
 
+/* Tables: denser than the original so wide/long tables don't balloon. Muffin
+   sizes columns from each cell's unwrapped width and scales every column down
+   when the total exceeds the available width, so the smaller face, tighter
+   padding and explicit 1.5 leading keep wrapped rows short. */
+figure.table-figure {
+  margin: 0 0 24px;
+}
+
 table {
   width: 100%;
-  margin: 0 0 20px;
+  margin: 0;
   border-collapse: collapse;
   border-radius: var(--radius-sm);
+  font-size: 0.92em;
+  line-height: 1.5;
 }
 
 th,
 td {
-  padding: 10px 14px;
+  padding: 8px 14px;
   border: 1px solid var(--border);
   text-align: left;
+  vertical-align: top;
+  line-height: 1.5;
 }
 
 th {
   background-color: var(--surface);
   color: var(--text);
   font-weight: 600;
+  white-space: nowrap;
+}
+
+tbody tr:nth-child(2n) {
+  background-color: rgba(79, 70, 229, 0.035);
 }
 
 img {

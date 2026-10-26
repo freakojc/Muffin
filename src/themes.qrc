@@ -5,6 +5,9 @@
     <file alias="font-licenses/Open-Sans-Apache-2.0.txt">../resources/themes/font-licenses/Open-Sans-Apache-2.0.txt</file>
     <file alias="font-licenses/Lato-OFL.txt">../resources/themes/font-licenses/Lato-OFL.txt</file>
     <file alias="font-licenses/Merriweather-OFL.txt">../resources/themes/font-licenses/Merriweather-OFL.txt</file>
+    <file alias="font-licenses/Inter-OFL.txt">../resources/themes/font-licenses/Inter-OFL.txt</file>
+    <file alias="font-licenses/JetBrains-Mono-OFL.txt">../resources/themes/font-licenses/JetBrains-Mono-OFL.txt</file>
+    <file alias="font-licenses/JetBrains-Mono-AUTHORS.txt">../resources/themes/font-licenses/JetBrains-Mono-AUTHORS.txt</file>
     <file alias="theme-licenses/README.md">../resources/themes/theme-licenses/README.md</file>
     <file alias="theme-licenses/Lengyi-MIT.txt">../resources/themes/theme-licenses/Lengyi-MIT.txt</file>
     <file alias="github.css">../resources/themes/github.css</file>

@@ -8,8 +8,53 @@
  * The Lengyi Markdown Editor's dark mode: a near-black canvas
  * (#0b0d12), slightly raised panels (#151821), softer indigo accents
  * (#818cf8) and an even darker code panel (#0f1115). See lengyi.css for
- * the shared porting notes.
+ * the shared porting notes (canvas-adaptive paper column, denser tables,
+ * bundled Inter / JetBrains Mono under SIL OFL 1.1).
  */
+
+/* Bundled faces — identical to lengyi.css. CMake converts these WOFF2 sources
+   to native TTF for the resource bundle. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Inter Regular'), local('Inter'), url('./lengyi/inter-v4.1-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: normal;
+  src: local('Inter Italic'), url('./lengyi/inter-v4.1-italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Inter SemiBold'), local('Inter Semibold'), url('./lengyi/inter-v4.1-semibold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: bold;
+  src: local('Inter Bold'), url('./lengyi/inter-v4.1-bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: normal;
+  src: local('JetBrains Mono'), url('./lengyi/jetbrains-mono-v2.304-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: bold;
+  src: local('JetBrains Mono Bold'), url('./lengyi/jetbrains-mono-v2.304-bold.woff2') format('woff2');
+}
 
 :root {
   /* Colour system: low-saturation indigo/violet + neutral grey, dark. */
@@ -31,8 +76,8 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 
-  /* Fonts: system-first so the theme works offline. */
-  --font-sans: "SF Pro Text", "Inter", -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* Fonts: bundled Inter / JetBrains Mono, then the platform UI stack. */
+  --font-sans: "Inter", "SF Pro Text", -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
 
   /* Corner radii. */
@@ -78,15 +123,24 @@ body {
   background-color: var(--bg);
 }
 
-/* The page is a raised panel (#151821), 800px wide, centred. */
+/* The page is a raised panel (#151821) that tracks the canvas: a 92% column
+   (re-resolved on every viewport change), with a wider gutter on large windows.
+   Preferences → Appearance → Content Width still overrides this. */
 #write {
-  max-width: 800px;
+  max-width: 92%;
   margin: 0 auto;
-  padding: 32px 40px;
+  padding: 40px 56px 72px;
   background-color: var(--panel-bg);
   font-size: 16px;
   line-height: 1.8;
   color: var(--text);
+}
+
+@media (min-width: 1700px) {
+  #write {
+    padding-left: 88px;
+    padding-right: 88px;
+  }
 }
 
 ::selection {
@@ -239,24 +293,39 @@ blockquote {
   font-style: italic;
 }
 
+/* Tables: denser than the original so wide/long tables don't balloon (same
+   rationale as lengyi.css). */
+figure.table-figure {
+  margin: 0 0 24px;
+}
+
 table {
   width: 100%;
-  margin: 0 0 20px;
+  margin: 0;
   border-collapse: collapse;
   border-radius: var(--radius-sm);
+  font-size: 0.92em;
+  line-height: 1.5;
 }
 
 th,
 td {
-  padding: 10px 14px;
+  padding: 8px 14px;
   border: 1px solid var(--border);
   text-align: left;
+  vertical-align: top;
+  line-height: 1.5;
 }
 
 th {
   background-color: var(--surface);
   color: var(--text);
   font-weight: 600;
+  white-space: nowrap;
+}
+
+tbody tr:nth-child(2n) {
+  background-color: rgba(129, 140, 248, 0.07);
 }
 
 img {

@@ -1822,10 +1822,26 @@ void testLengyiBuiltInThemePortsThePalette() {
   require(light->colors.tableHeaderBackground.name() == QStringLiteral("#f3f5f8"),
           QStringLiteral("table headers take the surface tone"));
 
-  // Page geometry + type scale: an 800px centred column at 16px / 1.8 leading.
-  require(qAbs(light->page.pageMaxWidth - 800.0) < 0.01, QStringLiteral("800px paper column"));
+  // Page geometry + type scale: a canvas-adaptive 92% column (resolved against
+  // the 1024px default viewport of the built-in loader) at 16px / 1.8 leading,
+  // with the 40/56/72 gutters. Denser table metrics keep wide tables wrapping
+  // shorter; six bundled faces (Inter 400/i/600/700, JetBrains Mono 400/700)
+  // ship with the theme under the same OFL pattern as the other built-ins.
+  require(qAbs(light->page.pageMaxWidth - 0.92 * 1024.0) < 1.0,
+          QStringLiteral("92% canvas-adaptive paper column (got %1)").arg(light->page.pageMaxWidth));
+  require(qAbs(light->page.pagePadding.left() - 56.0) < 0.01 && qAbs(light->page.pagePadding.top() - 40.0) < 0.01 &&
+              qAbs(light->page.pagePadding.right() - 56.0) < 0.01 && qAbs(light->page.pagePadding.bottom() - 72.0) < 0.01,
+          QStringLiteral("paper gutters 40/56/72"));
   require(qAbs(light->bodyFontPx - 16.0) < 0.01, QStringLiteral("16px body root"));
   require(qAbs(light->typography.lineHeight - 1.8) < 0.001, QStringLiteral("1.8 line height"));
+  require(qAbs(light->spacing.tableCellPadding.top() - 8.0) < 0.01 &&
+              qAbs(light->spacing.tableCellPadding.left() - 14.0) < 0.01,
+          QStringLiteral("table cells use the denser 8/14 padding"));
+  const auto* tdStyle = elementStyleFor(*light, QStringLiteral("td"));
+  require(tdStyle && qAbs(tdStyle->text.lineHeight - 1.5) < 0.001,
+          QStringLiteral("table cells carry the compact 1.5 leading"));
+  require(light->sourceSheet && light->sourceSheet->fontFaces().size() == 6,
+          QStringLiteral("the six bundled Lengyi faces are embedded in the stylesheet"));
 
   // Chrome: the whole shell follows the same tokens.
   require(light->colors.chromeBackground.name() == QStringLiteral("#f7f8fa"), QStringLiteral("chrome canvas"));
@@ -1847,6 +1863,8 @@ void testLengyiBuiltInThemePortsThePalette() {
           QStringLiteral("the dark variant sinks the code panel further"));
   require(dark->colors.chromeBackground.name() == QStringLiteral("#0b0d12"), QStringLiteral("chrome follows the app"));
   require(dark->colors.surface.name() == QStringLiteral("#151821"), QStringLiteral("chrome panels stay raised"));
+  require(dark->sourceSheet && dark->sourceSheet->fontFaces().size() == 6,
+          QStringLiteral("the dark variant carries the same six bundled faces"));
 }
 
 } // namespace

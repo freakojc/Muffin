@@ -15,6 +15,13 @@ only the webfont container is converted to SFNT.
   `Lato-OFL.txt`.
 - Merriweather (Pixyll): Sorkin Type, SIL Open Font License;
   `Merriweather-OFL.txt`. The committed source is the v19 static family.
+- Inter (Lengyi, Lengyi Dark): The Inter Project Authors / Rasmus Andersson,
+  SIL Open Font License; `Inter-OFL.txt`. The committed source is the v4.1
+  static family (regular, italic, semi-bold, bold) with full unicode coverage,
+  so prose is not limited to a latin subset.
+- JetBrains Mono (Lengyi, Lengyi Dark): JetBrains, SIL Open Font License;
+  `JetBrains-Mono-OFL.txt`, authors in `JetBrains-Mono-AUTHORS.txt`. The
+  committed source is v2.304 (regular, bold).
 
 The font resources expose the original authored CSS URLs through QRC aliases,
 so theme CSS stays independent of the native packaging format. The resource
