@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "app/FileOpenDispatcher.h"
 #include "app/NoteLinks.h"
 #include "app/QuickOpenDialog.h"
 #include "app/SearchPanelWidget.h"
@@ -35,6 +36,7 @@
 #include <QDialog>
 #include <QFile>
 #include <QFileInfo>
+#include <QFileOpenEvent>
 #include <QFileDialog>
 #include <QSaveFile>
 #include <QMessageBox>
@@ -211,6 +213,131 @@ void externalWrite(DocumentTab* document, const QString& text) {
   // separately covers notification delivery and re-arming after atomic writes.
   require(QMetaObject::invokeMethod(&document->session, "onFileChanged", Qt::DirectConnection),
           "check the externally changed file");
+}
+
+void externalFilesOpenInTabsByPreference() {
+  SettingsOverride preference(file_open_preferences::kOpenInTabs, true);
+  SettingsOverride session("session/window", QVariantMap{});
+  QSettings().remove(QLatin1String(file_open_preferences::kOpenInTabs));
+  PrefsFilesPage preferences;
+  auto* check = preferences.findChild<QCheckBox*>(QStringLiteral("openFilesInTabs"));
+  require(check && check->isChecked() && file_open_preferences::openInTabs(), "tab reuse is enabled by default");
+  require(LanguageManager::instance().setLanguage(QStringLiteral("zh_CN")), "file-open preference language loads");
+  preferences.retranslateUi();
+  require(check->text() == QString::fromUtf8("默认以标签页打开文件"), "the new preference is translated at runtime");
+  LanguageManager::instance().setLanguage(QStringLiteral("en"));
+  preferences.retranslateUi();
+  check->setChecked(false);
+  require(!file_open_preferences::openInTabs(), "preference immediately changes the open policy");
+  PrefsFilesPage reloadedPreferences;
+  require(!reloadedPreferences.findChild<QCheckBox*>(QStringLiteral("openFilesInTabs"))->isChecked(),
+          "file-open preference persists across preferences windows");
+  check->setChecked(true);
+
+  Fixture f;
+  FileOpenDispatcher dispatcher;
+  dispatcher.setInitialWindow(&f.window);
+  auto* unsaved = f.current();
+  unsaved->session.setMarkdownText("Unsaved original work\n", true);
+  const auto first = f.file(QString::fromUtf8("中文 first.md"), "# First\n");
+  const auto second = f.file("second.md", "# Second\n");
+  dispatcher.openFiles({first, second});
+  waitUntil(
+      [&] {
+        return f.window.hasOpenFile(first) && f.window.hasOpenFile(second) && !f.current()->session.isOpenInProgress();
+      },
+      "external files load as tabs");
+  require(f.tabs->count() == 3 && unsaved->session.markdownText().toString() == "Unsaved original work\n" &&
+              unsaved->session.document().isModified(),
+          "external opens preserve the dirty untitled buffer");
+  dispatcher.openFiles({first});
+  require(f.tabs->count() == 3 && f.current()->session.filePath() == first, "reopening selects the existing tab");
+  auto* edited = f.current();
+  waitUntil([&] { return !edited->session.isOpenInProgress(); }, "first tab finishes loading");
+  edited->session.setMarkdownText("Unsaved first-file changes\n", true);
+  f.window.showMinimized();
+  dispatcher.openFiles({first});
+  require(!f.window.isMinimized() && edited->session.markdownText().toString() == "Unsaved first-file changes\n" &&
+              edited->session.document().isModified(),
+          "reopening restores the window without reloading unsaved edits");
+
+  // Native FileOpen events (Finder on macOS) must follow the same policy.
+  QFileOpenEvent event(second);
+  QCoreApplication::sendEvent(qApp, &event);
+  require(f.tabs->count() == 3 && f.current()->session.filePath() == second, "native file events also reuse tabs");
+
+  QDialog modal(&f.window);
+  modal.setModal(true);
+  modal.show();
+  QApplication::processEvents();
+  dispatcher.openFiles({first});
+  require(f.current()->session.filePath() == second, "external requests wait while a modal operation is active");
+  modal.close();
+  waitUntil([&] { return f.current()->session.filePath() == first; }, "queued request opens after the modal closes");
+
+  check->setChecked(false);
+  const auto third = f.file("new-window.md", "# Third\n");
+  dispatcher.openFiles({third});
+  QPointer<MainWindow> other;
+  for (auto* widget : QApplication::topLevelWidgets())
+    if (auto* window = qobject_cast<MainWindow*>(widget); window && window != &f.window && window->hasOpenFile(third))
+      other = window;
+  require(other && f.tabs->count() == 3 && !f.window.hasOpenFile(third), "disabling tab reuse opens a separate window");
+  waitUntil(
+      [&] {
+        return other->hasOpenFile(third) &&
+               !static_cast<DocumentTab*>(
+                    other->findChild<QTabWidget*>(QStringLiteral("DocumentTabs"))->currentWidget())
+                    ->session.isOpenInProgress();
+      },
+      "separate window finishes loading");
+  check->setChecked(true);
+  QEvent activate(QEvent::WindowActivate);
+  QCoreApplication::sendEvent(other, &activate);
+  dispatcher.openFiles({first});
+  require(!other->hasOpenFile(first) && f.current()->session.filePath() == first,
+          "an existing tab in another window is activated without duplicating its document");
+  other->close();
+  waitUntil([&] { return !other; }, "separate window is destroyed on close");
+  dispatcher.openFiles({second});
+  require(f.current()->session.filePath() == second, "routing survives closing the last active window");
+}
+
+void closedInitialWindowDoesNotCaptureFileOpens() {
+  SettingsOverride preference(file_open_preferences::kOpenInTabs, true);
+  SettingsOverride session("session/window", QVariantMap{});
+  Fixture f;
+  const auto path = f.file("closed-window.md", "# Previously opened\n");
+  f.open(path);
+  FileOpenDispatcher dispatcher;
+  dispatcher.setInitialWindow(&f.window);
+  MainWindow remaining;
+  remaining.show();
+  QApplication::processEvents();
+  require(f.window.close() && !f.window.isVisible(), "the original window closes while another remains open");
+  dispatcher.openFiles({path});
+  auto* tabs = remaining.findChild<QTabWidget*>(QStringLiteral("DocumentTabs"));
+  auto* document = static_cast<DocumentTab*>(tabs->currentWidget());
+  waitUntil([&] { return !document->session.isOpenInProgress(); }, "file opens in the remaining window");
+  require(remaining.hasOpenFile(path) && !f.window.isVisible(),
+          "a closed stack-owned window never captures requests intended for an existing window");
+}
+
+void earlyNativeFileEventsAreRetained() {
+  SettingsOverride preference(file_open_preferences::kOpenInTabs, true);
+  SettingsOverride session("session/window", QVariantMap{});
+  Fixture f;
+  FileOpenDispatcher dispatcher;
+  const auto first = f.file("early-one.md", "# One\n");
+  const auto second = f.file("early-two.md", "# Two\n");
+  QFileOpenEvent one(first);
+  QFileOpenEvent two(second);
+  QCoreApplication::sendEvent(qApp, &one);
+  QCoreApplication::sendEvent(qApp, &two);
+  require(f.tabs->count() == 1 && !f.window.hasOpenFile(first), "events wait for the initial window");
+  require(dispatcher.setInitialWindow(&f.window), "early events suppress unrelated session restoration");
+  waitUntil([&] { return f.window.hasOpenFile(first) && f.window.hasOpenFile(second); }, "all early events replay");
+  require(f.tabs->count() == 2, "early events do not overwrite one another or create an extra blank tab");
 }
 
 void externalFileChangesCoalesceAndReloadLatest() {
@@ -3350,6 +3477,11 @@ int main(int argc, char** argv) {
     runSessionViewTests();
     return 0;
   }
+  runTest("externalFilesOpenInTabsByPreference", externalFilesOpenInTabsByPreference);
+  runTest("closedInitialWindowDoesNotCaptureFileOpens", closedInitialWindowDoesNotCaptureFileOpens);
+  runTest("earlyNativeFileEventsAreRetained", earlyNativeFileEventsAreRetained);
+  if (QCoreApplication::arguments().contains(QStringLiteral("--file-opening")))
+    return 0;
   runTest("externalFileChangesCoalesceAndReloadLatest", externalFileChangesCoalesceAndReloadLatest);
   runTest("backgroundExternalFileChangesWaitForActivation", backgroundExternalFileChangesWaitForActivation);
   runTest("externalFileQuestionsRetireWithTheirTab", externalFileQuestionsRetireWithTheirTab);

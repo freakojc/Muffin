@@ -1,4 +1,5 @@
 #include "app/PrefsFilesPage.h"
+#include "app/FileOpenDispatcher.h"
 
 #include "app/WindowsIntegration.h"
 #include "app/FileOpenProtection.h"
@@ -125,6 +126,18 @@ muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent
   startupLayout->addStretch(1);
   startupLayout->addWidget(startupCombo_);
   cardColumn->addWidget(startupCard);
+
+  auto* openingCard = makeCard(this);
+  auto* openingLayout = makeCardLayout(openingCard);
+  openingLabel_ = makeSectionLabel(openingCard);
+  openInTabsCheck_ = new QCheckBox(openingCard);
+  openInTabsCheck_->setObjectName(QStringLiteral("openFilesInTabs"));
+  openInTabsHint_ = makeMutedLabel(openingCard);
+  openInTabsHint_->setWordWrap(true);
+  openingLayout->addWidget(openingLabel_);
+  openingLayout->addWidget(openInTabsCheck_);
+  openingLayout->addWidget(openInTabsHint_);
+  cardColumn->addWidget(openingCard);
 
   // --- Card 2: Outline ---
   auto* outlineCard = new QWidget(this);
@@ -391,6 +404,11 @@ muffin::PrefsFilesPage::PrefsFilesPage(QWidget* parent) : PreferencesPage(parent
   connect(sizeProtectionCheck_, &QCheckBox::toggled, sizeLimitLabel_, &QWidget::setEnabled);
   connect(startupCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           [](int index) { QSettings().setValue(QStringLiteral("files/startupBehavior"), index); });
+  connect(openInTabsCheck_, &QCheckBox::toggled, this, [](bool checked) {
+    QSettings settings;
+    settings.setValue(QLatin1String(file_open_preferences::kOpenInTabs), checked);
+    settings.sync(); // The next external launcher must see the change immediately.
+  });
   connect(outlineFoldableCheck_, &QCheckBox::toggled, this, [this](bool checked) {
     QSettings().setValue(QStringLiteral("files/outlineFoldable"), checked);
     emit outlineFoldableChanged(checked);
@@ -439,6 +457,10 @@ void muffin::PrefsFilesPage::retranslateUi() {
   sizeLimitUnit_->setAccessibleName(tr("File size unit"));
   refreshTextExtensionChips();
   startupLabel_->setText(tr("Startup"));
+  openingLabel_->setText(tr("Opening Files"));
+  openInTabsCheck_->setText(tr("Open files in tabs by default"));
+  openInTabsHint_->setText(tr("Files opened from the file manager or command line use the existing Muffin window. "
+                              "Turn this off to open them in a new window."));
   {
     const int cur = startupCombo_->currentIndex();
     startupCombo_->blockSignals(true);
@@ -602,6 +624,7 @@ void muffin::PrefsFilesPage::loadSettings() {
   sizeLimitLabel_->setEnabled(sizeProtectionCheck_->isChecked());
 
   const int startup = settings.value(QStringLiteral("files/startupBehavior"), 1).toInt();
+  loadCheck(openInTabsCheck_, QLatin1String(file_open_preferences::kOpenInTabs), true);
   if (startupCombo_->count() > 0) {
     startupCombo_->blockSignals(true);
     startupCombo_->setCurrentIndex(qBound(0, startup, startupCombo_->count() - 1));

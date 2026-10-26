@@ -492,6 +492,10 @@ muffin_add_test(NAME MuffinBlockTableUndoTest      SOURCE tests/blocks/BlockTabl
 muffin_add_test(NAME MuffinBlockCodeFrontMatterTest SOURCE tests/blocks/BlockCodeFrontMatterTest.cpp LINK MuffinUi RESOURCE_LOCK)
 
 # --- app ---
+muffin_add_test(NAME MuffinApplicationInstanceTest SOURCE tests/app/ApplicationInstanceTest.cpp LINK Qt6::Network
+  EXTRA_SOURCES src/app/ApplicationInstance.cpp src/app/ApplicationInstance.h)
+target_include_directories(MuffinApplicationInstanceTest PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
 # Exercise the actual window and command bindings. Omit main()/platform packaging resources
 # and dictionaries; this fixture neither launches the app nor checks spelling.
 get_target_property(_tab_test_app_sources Muffin SOURCES)

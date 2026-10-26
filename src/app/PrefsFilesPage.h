@@ -35,6 +35,9 @@ private:
 
   QLabel* startupLabel_ = nullptr;
   QComboBox* startupCombo_ = nullptr;
+  QLabel* openingLabel_ = nullptr;
+  QCheckBox* openInTabsCheck_ = nullptr;
+  QLabel* openInTabsHint_ = nullptr;
   QLabel* outlineLabel_ = nullptr;
   QCheckBox* outlineFoldableCheck_ = nullptr;
   QLabel* defaultExtLabel_ = nullptr;

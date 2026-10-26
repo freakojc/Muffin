@@ -981,27 +981,27 @@ C++와 Qt 6 Widgets으로 제작된 빠르고 가벼운 네이티브 Markdown �
         <translation type="vanished">C++ 및 Qt 6 Widgets로 만든 빠른 네이티브 Markdown 편집기입니다.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="175"/>
+        <location filename="../src/main.cpp" line="113"/>
         <source>A fast, lightweight, native Markdown editor built with C++ and Qt 6.</source>
         <translation>빠르고 가벼운 네이티브 Markdown 편집기로, C++ 및 Qt 6로 만들어졌습니다.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="182"/>
+        <location filename="../src/main.cpp" line="120"/>
         <source>Open &lt;folder&gt; in the sidebar file browser.</source>
         <translation>사이드바 파일 브라우저에서 &lt;folder&gt;를 엽니다.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="186"/>
+        <location filename="../src/main.cpp" line="127"/>
         <source>Markdown or text file (or folder) to open.</source>
         <translation>열 Markdown 파일, 텍스트 파일 또는 폴더.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="223"/>
+        <location filename="../src/main.cpp" line="185"/>
         <source>Default Markdown editor</source>
         <translation>기본 Markdown 편집기</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="224"/>
+        <location filename="../src/main.cpp" line="186"/>
         <source>Muffin is registered as an editor for Markdown files.
 Make it your default editor now?</source>
         <translation>Muffin이 Markdown 파일용 편집기로 등록되어 있습니다.
@@ -1492,7 +1492,7 @@ Make it your default editor now?</source>
         <location filename="../src/app/CommandDeclarations.cpp" line="169"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="305"/>
         <location filename="../src/app/MainWindowFileOps.cpp" line="406"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1427"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1430"/>
         <source>Properties</source>
         <translation>속성</translation>
     </message>
@@ -2452,7 +2452,7 @@ Live preview and source editing; export to PDF, HTML, and many more formats via 
         <location filename="../src/app/CommandDeclarations.cpp" line="287"/>
         <location filename="../src/app/MainWindowTabs.cpp" line="199"/>
         <location filename="../src/app/MainWindowTabs.cpp" line="233"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="460"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="465"/>
         <source>Close Tab</source>
         <translation>탭 닫기</translation>
     </message>
@@ -2942,150 +2942,150 @@ Parse time: %6 ms</source>
 파싱 시간: %6 ms</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="567"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="578"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="570"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="581"/>
         <source>Unsaved Drafts Found</source>
         <translation>저장되지 않은 초안 발견</translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/MainWindowFileOps.cpp" line="572"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="575"/>
         <source>Muffin found %n unsaved draft(s) from a previous session. Restore one into this window, discard all of them, or keep them for later.</source>
         <translation>
             <numerusform>이전 세션에서 저장되지 않은 초안 %n개를 발견했습니다. 이 창에 하나를 복원하거나, 모두 삭제하거나, 나중을 위해 보관할 수 있습니다.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="584"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="823"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="587"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="826"/>
         <source>Untitled</source>
         <translation>제목 없음</translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/app/MainWindowFileOps.cpp" line="585"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="588"/>
         <source>%1  —  %2  (%n char(s))</source>
         <translation>
             <numerusform>%1  —  %2  (%n자)</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="593"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="596"/>
         <source>Restore</source>
         <translation>복원</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="594"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="597"/>
         <source>Discard All</source>
         <translation>모두 삭제</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="595"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="598"/>
         <source>Later</source>
         <translation>나중에</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="676"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="679"/>
         <source>No files to open</source>
         <translation>열 파일이 없습니다</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="697"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="700"/>
         <source>Import</source>
         <translation>가져오기</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="698"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="701"/>
         <source>Word (*.docx);;OpenDocument (*.odt);;RTF (*.rtf);;EPUB (*.epub);;HTML (*.html *.htm);;LaTeX (*.tex *.latex);;MediaWiki (*.wiki *.mediawini);;reStructuredText (*.rst);;Textile (*.textile);;OPML (*.opml);;All files (*)</source>
         <translation>Word (*.docx);;OpenDocument (*.odt);;RTF (*.rtf);;EPUB (*.epub);;HTML (*.html *.htm);;LaTeX (*.tex *.latex);;MediaWiki (*.wiki *.mediawini);;reStructuredText (*.rst);;Textile (*.textile);;OPML (*.opml);;모든 파일 (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="706"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="723"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="709"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="726"/>
         <source>Import Failed</source>
         <translation>가져오기 실패</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="707"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="889"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="710"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="892"/>
         <source>Pandoc was not found. Install Pandoc or set its path in Preferences → Export.</source>
         <translation>Pandoc를 찾을 수 없습니다. Pandoc를 설치하거나 환경 설정 → 내보내기에서 경로를 지정하세요.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="711"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="714"/>
         <source>Importing %1…</source>
         <translation>%1 가져오는 중…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="724"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="727"/>
         <source>Pandoc could not convert the file.</source>
         <translation>Pandoc에서 파일을 변환할 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="733"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="736"/>
         <source>Imported %1</source>
         <translation>%1을(를) 가져왔습니다</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="818"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="821"/>
         <source>Nothing to export</source>
         <translation>내보낼 항목이 없습니다</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="218"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="253"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="828"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="831"/>
         <source>Export As</source>
         <translation>형식을 지정하여 내보내기</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="828"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="831"/>
         <source>%1 files (*%2)</source>
         <translation>%1 파일 (*%2)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="892"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="895"/>
         <source>Exporting %1…</source>
         <translation>%1 내보내는 중…</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="929"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="932"/>
         <source>Pandoc failed:</source>
         <translation>Pandoc 실패:</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="234"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="272"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="838"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="950"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="841"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="953"/>
         <source>Export Failed</source>
         <translation>내보내기 실패</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="237"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="275"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="954"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="957"/>
         <source>Exported to %1</source>
         <translation>%1(으)로 내보냈습니다</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1099"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1102"/>
         <source>Save All</source>
         <translation>모두 저장</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1100"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1103"/>
         <source>Saved %1 file(s). %2 file(s) could not be saved.</source>
         <translation>%1개 파일을 저장했습니다. %2개 파일을 저장할 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1130"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1156"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1358"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1133"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1159"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1361"/>
         <source>Delete File</source>
         <translation>파일 삭제</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1131"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1363"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1134"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1366"/>
         <source>Are you sure you want to move &quot;%1&quot; to the trash?
 
 This action cannot be undone.</source>
@@ -3094,8 +3094,8 @@ This action cannot be undone.</source>
 이 작업은 되돌릴 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1157"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1390"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1160"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1393"/>
         <source>Could not move to trash. Permanently delete &quot;%1&quot;?
 
 This action cannot be undone.</source>
@@ -3104,35 +3104,35 @@ This action cannot be undone.</source>
 이 작업은 되돌릴 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1167"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1398"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1170"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1401"/>
         <source>Delete Failed</source>
         <translation>삭제 실패</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1167"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1170"/>
         <source>Could not delete file:
 %1</source>
         <translation>파일을 삭제할 수 없습니다:
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1277"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1280"/>
         <source>Name cannot be empty.</source>
         <translation>이름은 비워 둘 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1291"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1294"/>
         <source>An item named &quot;%1&quot; already exists.</source>
         <translation>&quot;%1&quot;이라는 이름의 항목이 이미 존재합니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1313"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1316"/>
         <source>Could not rename: %1</source>
         <translation>이름을 바꿀 수 없습니다: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1230"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1233"/>
         <source>Could not create file:
 %1
 
@@ -3143,207 +3143,207 @@ This action cannot be undone.</source>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="838"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="841"/>
         <source>Could not create a temporary export file.</source>
         <translation>내보내기용 임시 파일을 만들 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="858"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="861"/>
         <source>PDF export failed: the printer device could not be opened.</source>
         <translation>PDF 내보내기 실패: 프린터 장치를 열 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="867"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="870"/>
         <source>Image export failed. The image must fit within 64 million pixels and 32,767 pixels in height. Try a smaller width or scale, or export as PDF.</source>
         <translation>이미지를 내보내지 못했습니다. 이미지의 총 픽셀 수는 6400만 픽셀, 높이는 32,767 픽셀 이하여야 합니다. 너비나 배율을 줄이거나 PDF로 내보내세요.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="902"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="905"/>
         <source>Export resource was not found: %1</source>
         <translation>내보내기에 필요한 리소스를 찾을 수 없습니다: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="913"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="916"/>
         <source>Additional arguments cannot override the input format, output format, output path, or defaults file.</source>
         <translation>추가 인수로 입력 형식, 출력 형식, 출력 경로 또는 기본 설정 파일을 덮어쓸 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="982"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="985"/>
         <source>Unicode</source>
         <translation>유니코드</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="984"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="987"/>
         <source>UTF-8</source>
         <translation>UTF-8</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="985"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="988"/>
         <source>UTF-16 LE</source>
         <translation>UTF-16 LE</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="986"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="989"/>
         <source>UTF-16 BE</source>
         <translation>UTF-16 BE</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="988"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="991"/>
         <source>Western</source>
         <translation>서유럽</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="990"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="993"/>
         <source>Western (Windows-1252)</source>
         <translation>서유럽 (Windows-1252)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="992"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="995"/>
         <source>Cyrillic</source>
         <translation>키릴</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="994"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="997"/>
         <source>Cyrillic (Windows-1251)</source>
         <translation>키릴 (Windows-1251)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="995"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="998"/>
         <source>Cyrillic (ISO-8859-5)</source>
         <translation>키릴 (ISO-8859-5)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="996"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="999"/>
         <source>Cyrillic (IBM866)</source>
         <translation>키릴 (IBM866)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="997"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1000"/>
         <source>Cyrillic (IBM855)</source>
         <translation>키릴 (IBM855)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="998"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1001"/>
         <source>Cyrillic (KOI8-R)</source>
         <translation>키릴 (KOI8-R)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="999"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1002"/>
         <source>Cyrillic (Mac)</source>
         <translation>키릴 (Mac)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1001"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1004"/>
         <source>Central European</source>
         <translation>중부 유럽</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1003"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1006"/>
         <source>Central European (Windows-1250)</source>
         <translation>중부 유럽 (Windows-1250)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1004"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1007"/>
         <source>Central European (ISO-8859-2)</source>
         <translation>중부 유럽 (ISO-8859-2)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1006"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1009"/>
         <source>Greek</source>
         <translation>그리스</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1008"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1011"/>
         <source>Greek (Windows-1253)</source>
         <translation>그리스 (Windows-1253)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1009"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1012"/>
         <source>Greek (ISO-8859-7)</source>
         <translation>그리스 (ISO-8859-7)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1011"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1014"/>
         <source>Hebrew</source>
         <translation>히브리</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1013"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1016"/>
         <source>Hebrew (Windows-1255)</source>
         <translation>히브리 (Windows-1255)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1014"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1017"/>
         <source>Hebrew (ISO-8859-8)</source>
         <translation>히브리 (ISO-8859-8)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1016"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1019"/>
         <source>Chinese Simplified</source>
         <translation>중국어 간체</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1018"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1021"/>
         <source>Chinese Simplified (GB2312)</source>
         <translation>중국어 간체 (GB2312)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1019"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1022"/>
         <source>Chinese Simplified (GB18030)</source>
         <translation>중국어 간체 (GB18030)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1021"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1024"/>
         <source>Chinese Traditional</source>
         <translation>중국어 번체</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1023"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1026"/>
         <source>Chinese Traditional (Big5)</source>
         <translation>중국어 번체 (Big5)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1025"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1028"/>
         <source>Japanese</source>
         <translation>일본어</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1027"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1030"/>
         <source>Japanese (Shift_JIS)</source>
         <translation>일본어 (Shift_JIS)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1028"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1031"/>
         <source>Japanese (EUC-JP)</source>
         <translation>일본어 (EUC-JP)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1030"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1033"/>
         <source>Korean</source>
         <translation>한국어</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1032"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1035"/>
         <source>Korean (EUC-KR)</source>
         <translation>한국어 (EUC-KR)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1034"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1037"/>
         <source>Thai</source>
         <translation>태국어</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1036"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1039"/>
         <source>Thai (TIS-620)</source>
         <translation>태국어 (TIS-620)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1067"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1070"/>
         <source>Markdown Files (*.md *.markdown);;All Files (*)</source>
         <translation>Markdown 파일 (*.md *.markdown);;모든 파일 (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1249"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1252"/>
         <source>Could not create folder:
 %1
 
@@ -3354,7 +3354,7 @@ This action cannot be undone.</source>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1345"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1348"/>
         <source>Could not create a copy:
 %1
 
@@ -3365,12 +3365,12 @@ This action cannot be undone.</source>
 %2</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1358"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1361"/>
         <source>Delete Folder</source>
         <translation>폴더 삭제</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1361"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1364"/>
         <source>Are you sure you want to move &quot;%1&quot; and all its contents to the trash?
 
 This action cannot be undone.</source>
@@ -3379,32 +3379,32 @@ This action cannot be undone.</source>
 이 작업은 실행 취소할 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1398"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1401"/>
         <source>Could not delete:
 %1</source>
         <translation>삭제할 수 없습니다:
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1421"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1424"/>
         <source>Folder</source>
         <translation>폴더</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1421"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1424"/>
         <source>File</source>
         <comment>properties: entry type</comment>
         <translation>파일</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1423"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1426"/>
         <source>Size: %1 bytes
 </source>
         <translation>크기: %1바이트
 </translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1424"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1427"/>
         <source>Name: %1
 Type: %2
 Location: %3
@@ -3415,21 +3415,21 @@ Location: %3
 %4수정한 날짜: %5</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1444"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1447"/>
         <source>Could not reveal:
 %1</source>
         <translation>파일 위치를 표시할 수 없습니다:
 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1142"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1467"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1145"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1470"/>
         <source>Muffin</source>
         <translation>Muffin</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1142"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1467"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1145"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1470"/>
         <source>The current document has unsaved changes.</source>
         <translation>현재 문서에 저장되지 않은 변경 사항이 있습니다.</translation>
     </message>
@@ -3494,34 +3494,34 @@ Location: %3
         <translation>이전 찾기</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="221"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="223"/>
         <source>File Already Open</source>
         <translation>이미 열린 파일</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="222"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="224"/>
         <source>This file is already open in another tab. Switch to that tab to edit or save it.</source>
         <translation>이 파일은 이미 다른 탭에서 열려 있습니다. 편집하거나 저장하려면 해당 탭으로 전환하세요.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="283"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="363"/>
         <source>File Changed on Disk</source>
         <translation>디스크의 파일이 변경됨</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="284"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="364"/>
         <source>The file &quot;%1&quot; has changed outside Muffin. Reload it?
 Unsaved changes in the editor will be lost.</source>
         <translation>파일 &quot;%1&quot;이(가) Muffin 외부에서 변경되었습니다. 다시 불러오시겠습니까?
 편집기에서 저장하지 않은 변경 사항은 사라집니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="377"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="443"/>
         <source>Update Available</source>
         <translation>업데이트 가능</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="378"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="444"/>
         <source>A new version of Muffin (%1) is available.
 
 Would you like to open the download page?</source>
@@ -3530,27 +3530,27 @@ Would you like to open the download page?</source>
 다운로드 페이지를 여시겠습니까?</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="387"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="453"/>
         <source>Muffin %1 is available. Use Help &gt; Check for Updates to download.</source>
         <translation>Muffin %1을(를) 사용할 수 있습니다. 도움말 &gt; 업데이트 확인에서 다운로드하세요.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="393"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="459"/>
         <source>Up to Date</source>
         <translation>최신 버전</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="394"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="460"/>
         <source>You are running the latest version of Muffin.</source>
         <translation>Muffin의 최신 버전을 사용 중입니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="401"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="467"/>
         <source>Update Check Failed</source>
         <translation>업데이트 확인 실패</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowSignalBinder.cpp" line="402"/>
+        <location filename="../src/app/MainWindowSignalBinder.cpp" line="468"/>
         <source>Could not check for updates:
 %1</source>
         <translation>업데이트를 확인할 수 없습니다:
@@ -3587,6 +3587,7 @@ Would you like to open the download page?</source>
         <translation>열기</translation>
     </message>
     <message>
+        <location filename="../src/main.cpp" line="124"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="295"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="312"/>
         <source>Open in New Window</source>
@@ -3595,15 +3596,15 @@ Would you like to open the download page?</source>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="297"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="314"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1229"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1232"/>
         <source>New File</source>
         <translation>새 파일</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="298"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="315"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1242"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1248"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1245"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1251"/>
         <source>New Folder</source>
         <translation>새 폴더</translation>
     </message>
@@ -3614,29 +3615,29 @@ Would you like to open the download page?</source>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="301"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1067"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1070"/>
         <location filename="../src/app/MainWindowNoteLinks.cpp" line="30"/>
         <source>Move To</source>
         <translation>이동 위치</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="302"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1344"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1347"/>
         <source>Duplicate</source>
         <translation>복제</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="307"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="317"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="495"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="500"/>
         <source>Copy Path</source>
         <translation>경로 복사</translation>
     </message>
     <message>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="308"/>
         <location filename="../src/app/MainWindowContextMenu.cpp" line="318"/>
-        <location filename="../src/app/MainWindowFileOps.cpp" line="1443"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="501"/>
+        <location filename="../src/app/MainWindowFileOps.cpp" line="1446"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="506"/>
         <source>Reveal in File Manager</source>
         <translation>파일 관리자에서 표시</translation>
     </message>
@@ -3660,7 +3661,7 @@ Would you like to open the download page?</source>
     <message>
         <location filename="../src/app/MainWindowTabs.cpp" line="199"/>
         <location filename="../src/app/MainWindowTabs.cpp" line="233"/>
-        <location filename="../src/app/MainWindowTabs.cpp" line="491"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="496"/>
         <source>Unpin Tab</source>
         <translation>탭 고정 해제</translation>
     </message>
@@ -3676,47 +3677,47 @@ Would you like to open the download page?</source>
         <translation>새 탭</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="486"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="491"/>
         <source>Close Others</source>
         <translation>다른 탭 닫기</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="487"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="492"/>
         <source>Close Tabs to the Right</source>
         <translation>오른쪽 탭 닫기</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="488"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="493"/>
         <source>Close Saved Tabs</source>
         <translation>저장된 탭 닫기</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="489"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="494"/>
         <source>Close All Tabs</source>
         <translation>모든 탭 닫기</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="491"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="496"/>
         <source>Pin Tab</source>
         <translation>탭 고정</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="497"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="502"/>
         <source>Reveal in Finder</source>
         <translation>Finder에서 보기</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="499"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="504"/>
         <source>Reveal in File Explorer</source>
         <translation>파일 탐색기에서 보기</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="505"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="510"/>
         <source>Move Tab to New Window</source>
         <translation>탭을 새 창으로 이동</translation>
     </message>
     <message>
-        <location filename="../src/app/MainWindowTabs.cpp" line="508"/>
+        <location filename="../src/app/MainWindowTabs.cpp" line="513"/>
         <source>Copy Tab to New Window</source>
         <translation>탭을 새 창으로 복사</translation>
     </message>
@@ -4622,7 +4623,7 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
 <context>
     <name>muffin::PrefsFilesPage</name>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="441"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="459"/>
         <source>Startup</source>
         <translation>시작</translation>
     </message>
@@ -4635,12 +4636,12 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
         <translation type="vanished">마지막 파일 다시 열기</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="427"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="445"/>
         <source>File Open Protection</source>
         <translation>파일 열기 보호</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="428"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="446"/>
         <source>Extension protection</source>
         <translation>확장자 보호</translation>
     </message>
@@ -4653,175 +4654,190 @@ Files edited afterward or containing unsaved changes will be skipped.</source>
         <translation type="vanished">확장자는 쉼표, 공백 또는 세미콜론으로 구분하세요. 확장자를 추가하거나 제거할 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="429"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="447"/>
         <source>Allowed file extensions</source>
         <translation>확인 없이 열 수 있는 확장자</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="430"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="448"/>
         <source>Ask before opening files with extensions outside this list.</source>
         <translation>목록에 없는 확장자의 파일을 열기 전에 확인합니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="431"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="449"/>
         <source>e.g. .txt, .log</source>
         <translation>예: .txt, .log</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="432"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="450"/>
         <source>Add</source>
         <translation>추가</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="433"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="451"/>
         <source>Restore Defaults</source>
         <translation>기본값 복원</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="434"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="452"/>
         <source>File size protection</source>
         <translation>파일 크기 보호</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="435"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="453"/>
         <source>Large files may take longer to open and use more memory.</source>
         <translation>큰 파일은 여는 데 시간이 오래 걸리고 메모리를 더 많이 사용할 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="436"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="454"/>
         <source>Warn before opening files larger than</source>
         <translation>다음 크기를 초과하는 파일을 열기 전에 경고</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="439"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="457"/>
         <source>File size unit</source>
         <translation>파일 크기 단위</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="446"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="460"/>
+        <source>Opening Files</source>
+        <translation>파일 열기</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="461"/>
+        <source>Open files in tabs by default</source>
+        <translation>기본적으로 파일을 탭에서 열기</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="462"/>
+        <source>Files opened from the file manager or command line use the existing Muffin window. Turn this off to open them in a new window.</source>
+        <translation>파일 관리자나 명령줄에서 연 파일은 기존 Muffin 창에서 열립니다. 새 창에서 열려면 이 옵션을 끄세요.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="468"/>
         <source>Always start fresh</source>
         <translation>항상 새로 시작</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="447"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="469"/>
         <source>Restore previous session</source>
         <translation>이전 세션 복원</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="453"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="475"/>
         <source>Outline</source>
         <translation>개요</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="454"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="476"/>
         <source>Allow collapsing and expanding the outline view in the sidebar</source>
         <translation>사이드바에서 개요 보기 접기 및 펼치기 허용</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="456"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="478"/>
         <source>Default File Type / Extension</source>
         <translation>기본 파일 형식 / 확장자</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="463"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="485"/>
         <source>Plain Text (.txt)</source>
         <translation>일반 텍스트 (.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="469"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="491"/>
         <source>Save &amp; Restore</source>
         <translation>저장 및 복원</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="470"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="492"/>
         <source>Auto Save</source>
         <translation>자동 저장</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="471"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="493"/>
         <source>Auto-save changes to the previous file when switching files</source>
         <translation>파일 전환 시 이전 파일의 변경 사항 자동 저장</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="472"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="494"/>
         <source>Restore Unsaved Drafts</source>
         <translation>저장되지 않은 임시 보관 복원</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="474"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="496"/>
         <source>Recently Used Files</source>
         <translation>최근 사용한 파일</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="475"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="497"/>
         <source>Record history files and folders</source>
         <translation>기록 파일 및 폴더 저장</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="476"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="498"/>
         <source>Clear History</source>
         <translation>기록 지우기</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="478"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="500"/>
         <source>When dragging files/folders into the window</source>
         <translation>파일/폴더를 창으로 끌어올 때</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="479"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="501"/>
         <source>When dragging a folder</source>
         <translation>폴더를 끌어올 때</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="484"/>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="495"/>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="507"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="506"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="517"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="529"/>
         <source>Open in Muffin</source>
         <translation>Muffin에서 열기</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="485"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="507"/>
         <source>Open in File Manager</source>
         <translation>파일 관리자에서 열기</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="490"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="512"/>
         <source>When dragging a Markdown file</source>
         <translation>Markdown 파일을 끌어올 때</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="496"/>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="506"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="518"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="528"/>
         <source>Import File</source>
         <translation>파일 가져오기</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="501"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="523"/>
         <source>When dragging an importable file</source>
         <translation>가져오기 가능한 파일을 끌어올 때</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="514"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="536"/>
         <source>Windows Integration</source>
         <translation>Windows 통합</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="515"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="537"/>
         <source>Add &quot;Open with Muffin&quot; to File Explorer context menu for files and folders</source>
         <translation>파일 탐색기의 파일 및 폴더 상황에 맞는 메뉴에 &quot;Muffin으로 열기&quot; 추가</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="517"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="539"/>
         <source>Register Muffin as an editor for Markdown files (.md, .markdown, .mdx, .mkd, .mdown)</source>
         <translation>Muffin을 Markdown 파일(.md, .markdown, .mdx, .mkd, .mdown)의 편집기로 등록</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="518"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="540"/>
         <source>Set Muffin as Default…</source>
         <translation>Muffin을 기본 앱으로 설정…</translation>
     </message>
     <message>
-        <location filename="../src/app/PrefsFilesPage.cpp" line="562"/>
+        <location filename="../src/app/PrefsFilesPage.cpp" line="584"/>
         <source>Remove .%1</source>
         <translation>.%1 제거</translation>
     </message>

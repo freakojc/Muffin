@@ -6,6 +6,7 @@ Welcome to **Muffin**, a fast, native Markdown editor built with C++ and Qt.
 
 - Choose **File → New** for a blank document, or **File → Open** to open an existing `.md` file.
 - **File → Open Folder** opens a folder in the sidebar so you can browse and switch files.
+- **Preferences → Files → Open files in tabs by default** is enabled by default. Files opened from the file manager or command line use tabs in the existing window; turn it off to open a new window instead. **Open in New Window** and the command-line `--new-window` option explicitly request a separate window.
 
 ## Two editing modes
 

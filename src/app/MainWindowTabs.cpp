@@ -236,6 +236,10 @@ void muffin::MainWindow::retranslateTabs() {
   }
 }
 
+bool muffin::MainWindow::hasOpenFile(const QString& path) const {
+  return isPathOpen(path);
+}
+
 bool muffin::MainWindow::openFile(QString path) {
   if (workspaceWriteInProgress_)
     return false;

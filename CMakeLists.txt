@@ -1076,6 +1076,10 @@ add_executable(Muffin
   src/app/CommandRegistry.h
   src/app/LanguageManager.cpp
   src/app/LanguageManager.h
+  src/app/ApplicationInstance.cpp
+  src/app/ApplicationInstance.h
+  src/app/FileOpenDispatcher.cpp
+  src/app/FileOpenDispatcher.h
   src/app/MainWindow.cpp
   src/app/MainWindow.h
   src/app/DocumentTab.cpp

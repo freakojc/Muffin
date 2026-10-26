@@ -61,6 +61,7 @@ public:
 
   // True when opened or awaiting confirmation in its tab. Rejection happens asynchronously.
   bool openFile(QString path);
+  bool hasOpenFile(const QString& path) const;
   // Open <path> as the sidebar folder root (switches to the Files panel).
   // Shared body of the File → Open Folder command and the new-window path,
   // and the entry point for the command-line --folder argument and the
