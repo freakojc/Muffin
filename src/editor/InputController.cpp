@@ -966,14 +966,23 @@ CursorPosition InputController::cursorFor(NodeId blockId, qsizetype offset) cons
   cursor.blockId = blockId;
   cursor.text.nodeId = blockId;
   cursor.text.textOffset = offset;
+  // Cells own editable text, while their table owns the rendered block. Match
+  // the identity used by hit testing so programmatic and mouse selections
+  // share the same highlight, formatting and navigation paths.
+  const auto* node = ctx_.hasSession() ? ctx_.session->document().node(blockId) : nullptr;
+  if (node && node->type() == BlockType::TableCell) {
+    for (auto* owner = node->parent(); owner; owner = owner->parent()) {
+      if (owner->type() == BlockType::Table) {
+        cursor.blockId = owner->id();
+        break;
+      }
+    }
+  }
   return cursor;
 }
 
 CursorPosition InputController::cursorForNode(MarkdownNode& node, qsizetype offset) const {
-  CursorPosition cursor;
-  cursor.blockId = node.id();
-  cursor.text.nodeId = node.id();
-  cursor.text.textOffset = qBound<qsizetype>(0, offset, selectableTextLength(node));
+  CursorPosition cursor = cursorFor(node.id(), qBound<qsizetype>(0, offset, selectableTextLength(node)));
   if (node.type() == BlockType::Table) {
     for (const auto& row : node.children()) {
       for (const auto& cell : row->children()) {

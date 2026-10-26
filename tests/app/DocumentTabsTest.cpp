@@ -1495,6 +1495,9 @@ void documentFindRevealsMatchesInsideTallBlocks() {
       require(!rect.isEmpty() && rect.top() >= top && rect.bottom() <= top + view->viewport()->height(),
               QStringLiteral("match %1 inside a tall block must be fully visible").arg(index));
     }
+    const auto* block = view->blockLayoutForNode(range.focus.blockId);
+    if (block && block->type() == BlockType::Table)
+      require(!block->selectionRects(range, view->theme()).isEmpty(), "table search must highlight the matched text");
   };
   for (const bool typewriter : {false, true}) {
     auto* mode = action(f.window, "Typewriter Mode");

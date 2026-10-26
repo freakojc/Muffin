@@ -1243,6 +1243,78 @@ void testCrossCellSelectionCoversBothCells() {
   }
 }
 
+void testSourceRangeSelectionHighlightsTableText() {
+  const QString needle = QString::fromUtf8("语法高亮");
+  for (const auto& content : {QString::fromUtf8("代码块语法高亮"), QString::fromUtf8("before **语法高亮** after"),
+                              QString::fromUtf8("before [语法高亮](https://example.test) after"),
+                              QStringLiteral("wrapped cell text ").repeated(40) + needle}) {
+    DocumentSession session;
+    EditorView view;
+    EditorController controller;
+    controller.attach(&session, &view);
+    view.resize(900, 600);
+    const QString markdown =
+        QStringLiteral("# Prefix\n\n| Library | Usage |\n| --- | --- |\n| tree-sitter | %1 |\n").arg(content);
+    session.setMarkdownText(markdown, false);
+    view.setDocument(session.document());
+    auto* table = blockAt(session, 1);
+    auto* cell = childAt(childAt(table, 1), 1);
+    const auto start = markdown.indexOf(needle);
+    const auto end = start + needle.size();
+    require(controller.selectSourceRange(start, end), "select table match from source offsets");
+    const auto range = controller.selection().selection();
+    require(range.anchor.blockId == table->id() && range.focus.blockId == table->id() &&
+                range.anchor.text.nodeId == cell->id() && range.focus.text.nodeId == cell->id(),
+            "source-mapped table selection must identify both the owning table and its cell");
+    const auto checkHighlight = [&] {
+      const auto* layout = view.blockLayoutForNode(table->id());
+      const auto rects = layout->selectionRects(controller.selection().selection(), view.theme());
+      const auto& cellLayout = layout->tableRows()[1].cells[1];
+      const auto expected = cellLayout.text.selectionRectsForSourceOffsets(start - cellLayout.contentSourceStart,
+                                                                           end - cellLayout.contentSourceStart);
+      require(!expected.isEmpty() && rects.size() == expected.size(), "table match must produce text highlight rows");
+      for (int i = 0; i < rects.size(); ++i) {
+        const auto textRect = expected[i].translated(cellLayout.textOrigin());
+        require(qAbs(rects[i].left() - textRect.left()) <= 1.1 && qAbs(rects[i].width() - textRect.width()) <= 2.1 &&
+                    qAbs(rects[i].top() - textRect.top()) < .01,
+                "table selection highlights the matched characters rather than the whole cell");
+      }
+      return rects;
+    };
+    checkHighlight();
+    SelectionRange reverse{range.focus, range.anchor};
+    controller.selection().setSelection(reverse);
+    checkHighlight();
+    require(controller.clipboardController().copy() && QApplication::clipboard()->text() == needle,
+            "source-mapped cell selection copies only the matched text");
+
+    if (content == QString::fromUtf8("代码块语法高亮")) {
+      // Search keeps focus in its input. With no editor focus, compare a caret
+      // in this same cell against the selected word: the blue cell wash exists
+      // in both images, so only the text highlight can change the inner pixels.
+      controller.selection().setCursorPosition(range.focus);
+      const auto baseline = captureView(view);
+      controller.selectSourceRange(start, end);
+      const auto selected = captureView(view);
+      require(!view.hasFocus(), "search highlight is visible without editor focus");
+      const auto rects = checkHighlight();
+      const auto word =
+          rects.front().translated(view.viewport()->pos()).translated(0, -view.verticalScrollBar()->value());
+      const auto dpr = selected.devicePixelRatio();
+      const auto pixels = QRectF(word.topLeft() * dpr, word.size() * dpr)
+                              .adjusted(2, 2, -2, -2)
+                              .toAlignedRect()
+                              .intersected(selected.rect());
+      int changed = 0;
+      for (int y = pixels.top(); y <= pixels.bottom(); ++y)
+        for (int x = pixels.left(); x <= pixels.right(); ++x)
+          changed += baseline.pixel(x, y) != selected.pixel(x, y);
+      require(changed > 10, "selected table word must visibly highlight beyond the current-cell frame");
+    }
+    require(session.markdownText().toString() == markdown, "highlighting never modifies table text");
+  }
+}
+
 // The selection overlay color comes from the theme (selectionColor, alpha-capped for legibility),
 // not the historical hardcoded blue — sampled at the painted pixel.
 void testSelectionColorIsThemed() {
@@ -1733,6 +1805,7 @@ int main(int argc, char** argv) {
   RUN_TEST(testListItemOwnSelectionRectsDoNotLeakToNested);
   RUN_TEST(testCrossCellSelectionIsNotCollapsed);
   RUN_TEST(testCrossCellSelectionCoversBothCells);
+  RUN_TEST(testSourceRangeSelectionHighlightsTableText);
   RUN_TEST(testSelectionColorIsThemed);
   RUN_TEST(testInputMethodQueryAnswersImeContext);
   RUN_TEST(testFocusOutResetsPreedit);

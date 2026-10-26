@@ -61,6 +61,25 @@ struct Harness {
     hit.textNodeId = hit.blockId;
     controller.activateHit(hit);
   }
+  void checkEditableLastTableCell() {
+    const auto cursor = controller.selection().cursorPosition();
+    const auto* table = session.document().node(cursor.blockId);
+    const auto* cell = session.document().node(cursor.text.nodeId);
+    require(table && table->type() == BlockType::Table && cell && cell->type() == BlockType::TableCell &&
+                cell == table->children().back()->children().back().get(),
+            "caret must identify the rendered table and its last editable cell");
+    const auto hit = view.hitForCursorPosition(cursor);
+    require(hit.zone == HitTestResult::Zone::TableCell && hit.tableRow == 1 && hit.tableColumn == 1 &&
+                !hit.cursorRect.isEmpty(),
+            "retreated table caret must have valid cell geometry");
+    const auto original = session.markdownText().toString();
+    QString typed = original;
+    typed.insert(original.indexOf(QStringLiteral("2 |")) + 1, QLatin1Char('!'));
+    require(controller.inputController().insertText(QStringLiteral("!")) && session.markdownText().toString() == typed,
+            "typing after retreat must edit only the last cell and preserve table delimiters");
+    controller.undo();
+    require(session.markdownText().toString() == original, "undo must restore the table after typing in the last cell");
+  }
 };
 } // namespace
 
@@ -80,8 +99,7 @@ void testEmptyParagraphAfterTable() {
 
   const CursorPosition c = h.controller.selection().cursorPosition();
   require(!c.afterBlock, "caret should leave the empty paragraph");
-  MarkdownNode* block = h.session.document().node(c.blockId);
-  require(block != nullptr && block->type() == BlockType::TableCell, "caret should land in the last table cell");
+  h.checkEditableLastTableCell();
 }
 
 // Virtual trailing caret below a table retreats into the last cell (was a stuck no-op).
@@ -96,8 +114,7 @@ void testTrailingCaretAfterTable() {
   require(h.session.markdownText().toString() == table, "trailing backspace must not change the table source");
   const CursorPosition c = h.controller.selection().cursorPosition();
   require(!c.afterBlock, "caret should leave the trailing paragraph");
-  MarkdownNode* block = h.session.document().node(c.blockId);
-  require(block != nullptr && block->type() == BlockType::TableCell, "caret should retreat into the last table cell");
+  h.checkEditableLastTableCell();
 }
 
 // Mid-document regression: an empty paragraph sitting BETWEEN a table and a following block.
@@ -138,8 +155,7 @@ void testEmptyParagraphBetweenTableAndNextBlock() {
 
   const CursorPosition c = h.controller.selection().cursorPosition();
   require(!c.afterBlock, "caret should leave the empty paragraph");
-  MarkdownNode* block = h.session.document().node(c.blockId);
-  require(block != nullptr && block->type() == BlockType::TableCell, "caret should land in the last table cell");
+  h.checkEditableLastTableCell();
 }
 
 // Empty paragraph after an HTML block: deleted, caret at the block's content end (was a no-op).
