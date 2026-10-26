@@ -126,9 +126,9 @@ void muffin::MainWindow::performFind(const QString& text, bool forward, bool reg
     tab_->editor->ensureCursorVisible();
   } else {
     tab_->editorController.inputController().selectSourceRange(match.start, match.start + match.length);
-    if (MarkdownNode* block = tab_->session.document().topLevelBlockAtOffset(match.start)) {
-      tab_->renderView->scrollToNode(block->id());
-    }
+    // A table, wrapped paragraph or code fence can span many screens. Reveal
+    // the selected text row rather than scrolling back to its block's top.
+    tab_->renderView->scrollToCursorCentered();
   }
   tab_->findBar->setResultInfo(selectedIndex, results.matches.size());
 }

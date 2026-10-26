@@ -28,8 +28,8 @@ void muffin::FindBarWidget::setupUi() {
     Q_UNUSED(text)
     setResultInfo(0, 0);
   });
-  connect(findEdit_, &QLineEdit::returnPressed, this,
-          [this] { emit findRequested(findEdit_->text(), true, regularExpressionEnabled(), caseSensitiveEnabled()); });
+  // QLineEdit propagates Return/Enter to its parent. Handle it once in
+  // keyPressEvent, including Shift for backward search.
 
   prevButton_ = new QPushButton(this);
   connect(prevButton_, &QPushButton::clicked, this,

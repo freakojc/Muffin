@@ -199,6 +199,8 @@ void EditorView::scrollToCursorCentered() {
   if (togglingTaskCheckbox_) {
     return;
   }
+  // An explicit jump supersedes any in-flight typewriter scrolling.
+  stopScrollAnimation();
   const QRectF cursor = effectiveCursorRect();
   if (cursor.isEmpty()) {
     return;

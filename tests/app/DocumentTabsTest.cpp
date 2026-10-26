@@ -12,6 +12,7 @@
 #include "app/PrefsShortcutsPage.h"
 #include "editor/ShortcutSettings.h"
 #include "editor/EditorView.h"
+#include "editor/FindBarWidget.h"
 #include "editor/SourceEditorWidget.h"
 #include "editor/VirtualSourceEdit.h"
 #include "render/BlockLayout.h"
@@ -1434,6 +1435,112 @@ void workspaceSidebarWidth() {
   require(sidebar->width() == width, "reopening search restores the user's sidebar width");
   files->click();
   require(sidebar->width() == width, "returning to files retains a wide search sidebar");
+}
+
+void documentFindRevealsMatchesInsideTallBlocks() {
+  SettingsOverride typewriterSetting("appearance/typewriterMode", false);
+  Fixture f;
+  const QString needle = QString::fromUtf8("定位文本");
+  QString text = "# Search positions\n\n| Column | Other |\n| --- | --- |\n";
+  QVector<qsizetype> offsets;
+  for (int row = 0; row < 120; ++row) {
+    text += QStringLiteral("| Row %1 | ").arg(row);
+    if (row == 30 || row == 90) {
+      if (row == 30)
+        text += "**";
+      offsets.append(text.size());
+      text += needle;
+      if (row == 30)
+        text += "**";
+    } else {
+      text += "ordinary cell";
+    }
+    text += " |\n";
+  }
+  text += "\n" + QStringLiteral("Wrapped paragraph text. ").repeated(900);
+  offsets.append(text.size());
+  text += needle + "\n\n```text\n";
+  for (int line = 0; line < 100; ++line)
+    text += QStringLiteral("Code line %1\n").arg(line);
+  offsets.append(text.size());
+  text += needle + "\n```\n\nEnd.\n";
+  auto* document = f.open(f.file("find-tall-blocks.md", text));
+  auto* view = document->renderView;
+  require(!document->backend->isSourceMode(), "search fixture starts in live editing");
+  action(f.window, "Find...")->trigger();
+  document->findBar->setSearchText(needle);
+  auto* query = document->findBar->findChild<QLineEdit*>();
+  const auto button = [&](const QString& label) {
+    for (auto* candidate : document->findBar->findChildren<QPushButton*>())
+      if (candidate->text() == label)
+        return candidate;
+    require(false, "find navigation button exists");
+    return static_cast<QPushButton*>(nullptr);
+  };
+  const auto check = [&](int index) {
+    QApplication::processEvents();
+    const auto range = document->editorController.selection().selection();
+    require(!document->backend->isSourceMode() && range.anchor.text.sourceOffset == offsets[index] &&
+                range.focus.text.sourceOffset == offsets[index] + needle.size(),
+            QStringLiteral("find match %1 must select [%2, %3], got [%4, %5] (source mode: %6)")
+                .arg(index)
+                .arg(offsets[index])
+                .arg(offsets[index] + needle.size())
+                .arg(range.anchor.text.sourceOffset)
+                .arg(range.focus.text.sourceOffset)
+                .arg(document->backend->isSourceMode()));
+    for (const auto position : {range.anchor, range.focus}) {
+      const auto rect = view->hitForCursorPosition(position).cursorRect;
+      const auto top = view->verticalScrollBar()->value();
+      require(!rect.isEmpty() && rect.top() >= top && rect.bottom() <= top + view->viewport()->height(),
+              QStringLiteral("match %1 inside a tall block must be fully visible").arg(index));
+    }
+  };
+  for (const bool typewriter : {false, true}) {
+    auto* mode = action(f.window, "Typewriter Mode");
+    if (mode->isChecked() != typewriter)
+      mode->trigger();
+    document->lastFindOffset = -1;
+    document->editorController.setCursorForSourceOffset(0);
+    view->verticalScrollBar()->setValue(0);
+    button("Next")->click();
+    check(0);
+    button("Next")->click();
+    check(1);
+    action(f.window, "Find Next")->trigger();
+    check(2);
+    QTest::keyClick(query, Qt::Key_Return);
+    check(3);
+    QTest::keyClick(query, Qt::Key_Return);
+    check(0); // wrap forward from the code block back into the table
+    button("Previous")->click();
+    check(3);
+    action(f.window, "Find Previous")->trigger();
+    check(2);
+    button("Previous")->click();
+    check(1);
+    QTest::keyClick(query, Qt::Key_Return, Qt::ShiftModifier);
+    check(0);
+    if (typewriter) {
+      const int landing = view->verticalScrollBar()->value();
+      QTest::qWait(350); // longer than the maximum typewriter scroll animation
+      require(view->verticalScrollBar()->value() == landing, "search cancels stale typewriter scroll animations");
+      check(0);
+    }
+    require(query->hasFocus(), "find navigation retains focus in the query input");
+  }
+  action(f.window, "Typewriter Mode")->trigger();
+  action(f.window, "Source Code Mode")->trigger();
+  document->lastFindOffset = -1;
+  document->editor->setSelection(0, 0);
+  QTest::keyClick(query, Qt::Key_Return);
+  require(document->editor->selectionStart() == offsets[0] && document->editor->selectedText() == needle,
+          "Enter advances exactly once in source mode too");
+  QTest::keyClick(query, Qt::Key_Enter, Qt::ShiftModifier);
+  require(document->editor->selectionStart() == offsets.back() && document->editor->selectedText() == needle,
+          "Shift+keypad Enter searches backward and wraps in source mode");
+  require(document->session.markdownText().toString() == text && !document->session.document().isModified(),
+          "search navigation never changes the document");
 }
 
 void workspaceRenderedNavigation() {
@@ -3269,6 +3376,7 @@ int main(int argc, char** argv) {
     return 0;
   runTest("workspaceSearchAndReplace", workspaceSearchAndReplace);
   runTest("workspaceSidebarWidth", workspaceSidebarWidth);
+  runTest("documentFindRevealsMatchesInsideTallBlocks", documentFindRevealsMatchesInsideTallBlocks);
   runTest("workspaceRenderedNavigation", workspaceRenderedNavigation);
   if (QCoreApplication::arguments().contains(QStringLiteral("--workspace-search")))
     return 0;
