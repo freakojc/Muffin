@@ -22,6 +22,7 @@
 #include "projection/SelectionSerializer.h"
 
 #include "../TestUtils.h"
+#include "../AtomicFileWrite.h"
 #include "../../scripts/MemoryLifecycleAudit.h"
 #include "../../scripts/DocumentMemoryBenchmark.h"
 
@@ -203,11 +204,11 @@ QList<QMessageBox*> reloadQuestions(MainWindow& window) {
 }
 
 void externalWrite(DocumentTab* document, const QString& text) {
-  QSaveFile file(document->session.filePath());
   const auto bytes = text.toUtf8();
-  const bool committed = file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
+  QString error;
+  const bool committed = muffin::test::writeFileAtomically(document->session.filePath(), bytes, &error);
   require(committed, QStringLiteral("external atomic replacement of %1 (%2) succeeds: %3")
-                         .arg(document->session.filePath(), text.left(40), file.errorString()));
+                         .arg(document->session.filePath(), text.left(40), error));
   // Exercise the real baseline/deduplication path without depending on when a
   // platform's watcher delivers each event. The dedicated file-watch test
   // separately covers notification delivery and re-arming after atomic writes.

@@ -265,6 +265,8 @@ muffin_add_test(NAME MuffinSubscriptSuperscriptParseTest SOURCE tests/document/S
 muffin_add_test(NAME MuffinDraftRecoveryTest SOURCE tests/app/DraftRecoveryTest.cpp LINK MuffinCore)
 muffin_add_test(NAME MuffinDocumentSessionAsyncParseTest SOURCE tests/document/DocumentSessionAsyncParseTest.cpp LINK MuffinCore)
 muffin_add_test(NAME MuffinDocumentSessionFileWatchTest SOURCE tests/document/DocumentSessionFileWatchTest.cpp LINK MuffinCore)
+muffin_add_test(NAME MuffinAtomicFileWriteTest SOURCE tests/io/AtomicFileWriteTest.cpp LINK Qt6::Core
+  EXTRA_SOURCES tests/AtomicFileWrite.h)
 
 # --- render (link MuffinUi, take the render_smoke fixture, lock the GUI) ---
 muffin_add_test(NAME MuffinRenderThemeTest            SOURCE tests/render/RenderThemeTest.cpp            LINK MuffinUi EXTRA_SOURCES ${MUFFIN_THEMES_QRC} FIXTURE tests/fixtures/render_smoke.md RESOURCE_LOCK DISABLED_ON APPLE)

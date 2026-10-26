@@ -1,10 +1,10 @@
 #include "document/DocumentSession.h"
+#include "../AtomicFileWrite.h"
 
 #include <QCoreApplication>
 #include <QDebug>
 #include <QElapsedTimer>
 #include <QFile>
-#include <QSaveFile>
 #include <QTemporaryDir>
 #include <QThread>
 
@@ -24,10 +24,9 @@ void require(bool condition, const QString& message) {
 }
 
 void atomicWrite(const QString& path, const QByteArray& data) {
-  QSaveFile file(path);
-  require(file.open(QIODevice::WriteOnly), QStringLiteral("Could not open atomic writer"));
-  require(file.write(data) == data.size(), QStringLiteral("Could not write replacement"));
-  require(file.commit(), QStringLiteral("Could not commit replacement"));
+  QString error;
+  const bool committed = muffin::test::writeFileAtomically(path, data, &error);
+  require(committed, QStringLiteral("Atomic replacement: %1").arg(error));
 }
 
 bool waitForCount(int& count, int expected) {
