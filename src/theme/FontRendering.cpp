@@ -3,6 +3,8 @@
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QSet>
+#include <QSettings>
+#include <QString>
 #include <QtGlobal>
 #include <initializer_list>
 #include <tuple>
@@ -12,13 +14,44 @@
 #include "theme/CssContent.h"
 #include "theme/FontMetricsPolicy.h"
 
+namespace {
+// Windows screen-text smoothing mode, resolved once per process:
+//   natural (default) → DirectWrite ClearType Natural   (QFont::PreferVerticalHinting)
+//   full              → GDI-classic full hinting       (QFont::PreferFullHinting)
+//   none              → unhinted outlines              (QFont::PreferNoHinting)
+//   default           → Qt's own choice                (QFont::PreferDefaultHinting)
+// A/B it without rebuilding: set MUFFIN_FONT_SMOOTHING=<mode>, or persist it in
+// the settings key appearance/fontSmoothing.
+const QString& fontSmoothingMode() {
+  static const QString mode = [] {
+    const QString fromEnvironment = qEnvironmentVariable("MUFFIN_FONT_SMOOTHING").toLower();
+    if (!fromEnvironment.isEmpty())
+      return fromEnvironment;
+    return QSettings()
+        .value(QStringLiteral("appearance/fontSmoothing"), QStringLiteral("natural"))
+        .toString()
+        .toLower();
+  }();
+  return mode;
+}
+} // namespace
+
 void muffin::font_rendering::configureForScreen(QFont& font) {
 #if defined(Q_OS_WIN)
   // Qt 6.11 maps the default preference at DPR 1 to full horizontal hinting
   // and GDI-classic metrics for small text. Vertical hinting selects
   // DirectWrite ClearType Natural instead: vertical grid fitting stays crisp,
   // while horizontal advances remain fractional and layout-device independent.
-  font.setHintingPreference(QFont::PreferVerticalHinting);
+  const QString& smoothing = fontSmoothingMode();
+  if (smoothing == QStringLiteral("full")) {
+    font.setHintingPreference(QFont::PreferFullHinting);
+  } else if (smoothing == QStringLiteral("none")) {
+    font.setHintingPreference(QFont::PreferNoHinting);
+  } else if (smoothing == QStringLiteral("default")) {
+    font.setHintingPreference(QFont::PreferDefaultHinting);
+  } else {
+    font.setHintingPreference(QFont::PreferVerticalHinting);
+  }
 #else
   Q_UNUSED(font);
 #endif
