@@ -551,10 +551,10 @@ void EditorView::setEditingLocked(bool locked) {
       cursorTimer_->stop();
     }
     if (tableToolbar_) {
-      tableToolbar_->hide();
+      tableToolbar_->forceHide();
     }
     if (codeLanguageEditor_) {
-      codeLanguageEditor_->hide();
+      codeLanguageEditor_->forceHide();
     }
   } else {
     updateCursorHitFromPosition();
@@ -1334,7 +1334,7 @@ void EditorView::updateCodeLanguageEditor() {
     return;
   }
   if (editingLocked_) {
-    codeLanguageEditor_->hide(); // 锁定编辑: no floating code-fence language editor
+    codeLanguageEditor_->forceHide(); // 锁定编辑: no floating code-fence language editor
     return;
   }
   codeLanguageEditor_->update(cursorPosition_, cursorHit_, layout_.get(), document_.data(), scrollY(),
@@ -1346,7 +1346,7 @@ void EditorView::updateTableToolbar() {
     return;
   }
   if (editingLocked_) {
-    tableToolbar_->hide(); // 锁定编辑: no “调整表格大小” toolbar over a table cell
+    tableToolbar_->forceHide(); // 锁定编辑: no “调整表格大小” toolbar over a table cell
     return;
   }
   tableToolbar_->update(cursorHit_, layout_.get(), scrollY(), viewport()->rect());
