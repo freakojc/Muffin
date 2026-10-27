@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add the **Lengyi** and **Lengyi Dark** built-in themes, porting the design of the [Lengyi Markdown Editor](https://github.com/woyin2024/lengyi-markdown-editor) (MIT — see `docs/lengyi-theme.md` and `resources/themes/theme-licenses/`). The port includes its indigo-on-neutral chrome palette, a canvas-adaptive 92% paper column, denser tables, and the signature dark code panel on a light page. Inter and JetBrains Mono ship with the themes under SIL OFL 1.1 (`resources/themes/font-licenses/`), converted to native TTF by the existing theme-font build step.
 - Honour a theme's `pre` colour for literal source ink and pick the syntax-highlight palette from the actual code surface instead of the page tone, so themes can paint a dark code panel on a light page while keeping readable tokens, line numbers and the fence scrollbar.
+- Add **锁定编辑 / 解锁编辑** (locked editing, Edit menu + editor context menu, F12): a read-only reading mode that hides the blinking caret and the inline floating controls (table toolbar, code-fence language editor, HTML source toggle), rejects keyboard/IME/drop input, and disables every incremental edit at the session layer — while mouse selection, right-click menus, scrolling and copy keep working. The window title shows `(已锁定编辑)` while locked, and the lock survives tab switches.
 
 ### Fixed
 
