@@ -44,6 +44,18 @@ jobs:
       - name: Install dependencies
         run: conan install . -s build_type=Release -s compiler.cppstd=20 -s arch=x86_64 --build=missing
 
+      # Save the Qt/dependency build as soon as it exists: a compile error later
+      # in the job must not throw away a 90-minute dependency build.
+      - name: Prune Conan cache
+        run: conan cache clean --source --build --download
+
+      - name: Save Conan packages
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.conan2/p
+          key: conan-pkg-${{ runner.os }}-x86_64-${{ hashFiles('conanfile.py') }}
+        continue-on-error: true
+
       - name: Configure
         shell: bash
         run: cmake --preset conan-default -DMUFFIN_VERSION_OVERRIDE=0.7.6
@@ -67,16 +79,6 @@ jobs:
       - name: Test
         continue-on-error: true
         run: ctest --preset conan-release --output-on-failure
-
-      - name: Prune Conan cache
-        run: conan cache clean --source --build --download
-
-      - name: Save Conan packages
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.conan2/p
-          key: conan-pkg-${{ runner.os }}-x86_64-${{ hashFiles('conanfile.py') }}
-        continue-on-error: true
 
       - name: Archive portable package
         shell: pwsh
