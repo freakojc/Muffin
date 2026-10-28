@@ -48,6 +48,11 @@ public:
 
   bool insertColumnBefore();
   bool insertColumnAfter();
+  // 勾选列：在活动表格的当前列左侧（direction < 0）或右侧插入一列，表头写「#」，
+  // 正文单元格写入 uncheckedGlyph（空心字形），之后点击单元格即可实心/空心切换。
+  bool insertChecklistColumn(int direction, const QString& uncheckedGlyph);
+  // 当前单元格内容恰好是某组勾选字形时，替换为对偶字形；否则无操作并返回 false。
+  bool toggleChecklistCell();
   bool deleteCurrentColumn();
   bool moveCurrentColumnLeft();
   bool moveCurrentColumnRight();

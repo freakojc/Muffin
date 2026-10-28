@@ -142,6 +142,21 @@ bool RenderCommandFacade::insertColumnAfter() {
   return runCommand("insertColumnAfter", [&] { return editorController_.tableController().insertColumnAfter(); });
 }
 
+bool RenderCommandFacade::insertChecklistColumn(int direction, const QString& uncheckedGlyph) {
+  return runCommand(direction < 0 ? "insertChecklistColumnBefore" : "insertChecklistColumnAfter", [&] {
+    return editorController_.tableController().insertChecklistColumn(direction, uncheckedGlyph);
+  });
+}
+
+bool RenderCommandFacade::toggleChecklistCell() {
+  // Not routed through runCommand(): a plain click on an ordinary table cell is a *expected*
+  // miss (the cell is not a checklist glyph), and it must not spam the render-command log.
+  if (!canRun()) {
+    return false;
+  }
+  return editorController_.tableController().toggleChecklistCell();
+}
+
 bool RenderCommandFacade::deleteCurrentColumn() {
   return runCommand("deleteCurrentColumn", [&] { return editorController_.tableController().deleteCurrentColumn(); });
 }

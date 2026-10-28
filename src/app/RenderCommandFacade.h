@@ -56,6 +56,10 @@ public:
   bool moveCurrentRowDown();
   bool insertColumnBefore();
   bool insertColumnAfter();
+  // 勾选列（表头「#」+ 空心字形正文）：direction < 0 插入当前列左侧，否则右侧。
+  bool insertChecklistColumn(int direction, const QString& uncheckedGlyph);
+  // 当前单元格若恰为勾选字形则切换实心/空心；否则无操作。
+  bool toggleChecklistCell();
   bool deleteCurrentColumn();
   bool moveCurrentColumnLeft();
   bool moveCurrentColumnRight();

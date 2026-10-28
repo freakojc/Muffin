@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QPair>
+#include <QString>
 
 class QToolButton;
 class QWidget;
@@ -51,6 +52,9 @@ private:
   QToolButton* alignLeftButton_ = nullptr;
   QToolButton* alignCenterButton_ = nullptr;
   QToolButton* alignRightButton_ = nullptr;
+  QToolButton* checklistShapeButton_ = nullptr;
+  QToolButton* checklistLeftButton_ = nullptr;
+  QToolButton* checklistRightButton_ = nullptr;
   QToolButton* moreButton_ = nullptr;
   QToolButton* deleteButton_ = nullptr;
   QWidget* resizePopup_ = nullptr;

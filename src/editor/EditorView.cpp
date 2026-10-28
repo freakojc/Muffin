@@ -5,6 +5,7 @@
 #include "diagnostics/ScopedPerfProbe.h"
 
 #include "blocks/code/CodeFenceScrollController.h"
+#include "blocks/table/TableChecklist.h"
 #include "document/MarkdownDocument.h"
 #include "editor/CodeLanguageEditor.h"
 #include "editor/EditorKeyRouting.h"
@@ -38,6 +39,7 @@
 #include <QScrollBar>
 #include <QScopedValueRollback>
 #include <QPropertyAnimation>
+#include <QSettings>
 #include <QTimer>
 #include <QVector>
 #include <QWheelEvent>
@@ -183,10 +185,22 @@ EditorView::EditorView(QWidget* parent) : QAbstractScrollArea(parent), layout_(s
   connect(codeLanguageEditor_, &CodeLanguageEditor::languageCommitted, this, &EditorView::codeLanguageCommitted);
 
   tableToolbar_ = new TableToolbar(viewport(), this);
+  checklistGlyphIndex_ = QSettings().value(QStringLiteral("editor/checklistGlyphIndex"), 1).toInt();
+  if (checklistGlyphIndex_ < 0 || checklistGlyphIndex_ >= checklistGlyphPairCount()) {
+    checklistGlyphIndex_ = 1;
+  }
   connect(tableToolbar_, &TableToolbar::columnAlignmentRequested, this, &EditorView::tableColumnAlignmentRequested);
   connect(tableToolbar_, &TableToolbar::moreActionsRequested, this, &EditorView::tableMoreActionsRequested);
   connect(tableToolbar_, &TableToolbar::deleteRequested, this, &EditorView::tableDeleteRequested);
   connect(tableToolbar_, &TableToolbar::resizeRequested, this, &EditorView::tableResizeRequested);
+  connect(tableToolbar_, &TableToolbar::checklistShapeCycled, this, [this] {
+    checklistGlyphIndex_ = (checklistGlyphIndex_ + 1) % checklistGlyphPairCount();
+    QSettings().setValue(QStringLiteral("editor/checklistGlyphIndex"), checklistGlyphIndex_);
+    tableToolbar_->setChecklistGlyph(checklistGlyphPairs().at(checklistGlyphIndex_).unchecked);
+  });
+  connect(tableToolbar_, &TableToolbar::checklistColumnRequested, this, [this](int direction) {
+    emit tableChecklistColumnRequested(direction, checklistGlyphPairs().at(checklistGlyphIndex_).unchecked);
+  });
 
   connect(verticalScrollBar(), &QScrollBar::valueChanged, this, [this] {
     clearHtmlHover();
@@ -777,6 +791,11 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
       return;
     }
     const HitTestResult hit = hitTest(event->position());
+    if (!editingLocked_ && !event->isDoubleClick() && hit.zone == HitTestResult::Zone::TableCell) {
+      // 勾选列：单击表格单元格时尝试切换实心/空心。推迟到本次点击的光标落位之后再发，
+      // 否则切换的会是上一次点击留下的单元格；双击保持原有的落位行为，不触发切换。
+      QMetaObject::invokeMethod(this, [this] { emit tableChecklistToggleRequested(); }, Qt::QueuedConnection);
+    }
     // Click anywhere on a rendered HTML block to enter source editing mode.
     // When already editing this block, fall through to normal cursor placement.
     if (!editingLocked_ && hit.isValid() && hit.zone == HitTestResult::Zone::Html &&
@@ -1350,6 +1369,10 @@ void EditorView::updateTableToolbar() {
     tableToolbar_->forceHide(); // 锁定编辑: no “调整表格大小” toolbar over a table cell
     return;
   }
+  if (checklistGlyphIndex_ < 0 || checklistGlyphIndex_ >= checklistGlyphPairCount()) {
+    checklistGlyphIndex_ = 1;
+  }
+  tableToolbar_->setChecklistGlyph(checklistGlyphPairs().at(checklistGlyphIndex_).unchecked);
   tableToolbar_->update(cursorHit_, layout_.get(), scrollY(), viewport()->rect());
 }
 

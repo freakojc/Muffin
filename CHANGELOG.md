@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Honour a theme's `pre` colour for literal source ink and pick the syntax-highlight palette from the actual code surface instead of the page tone, so themes can paint a dark code panel on a light page while keeping readable tokens, line numbers and the fence scrollbar.
 - Add **锁定编辑 / 解锁编辑** (locked editing, Edit menu + editor context menu, F12): a read-only reading mode that hides the blinking caret and the inline floating controls (table toolbar, code-fence language editor, HTML source toggle), rejects keyboard/IME/drop input, and disables every incremental edit at the session layer — while mouse selection, right-click menus, scrolling and copy keep working. The window title shows `(已锁定编辑)` while locked, and the lock survives tab switches.
 
+- Add **table checklist columns** (勾选列): the table toolbar gains left/right insert buttons and a shape cycler (⭐ / ☑️ / ■ / ●; each shape is a hollow ⇄ filled pair). Inserting a column writes `#` into the header and the hollow glyph into every body cell; single-clicking such a cell flips it to the filled glyph and back, persisted as ordinary table-cell text (undoable). The chosen shape is remembered in `editor/checklistGlyphIndex`.
+
 ### Fixed
 
 - Keep plain Tab in the source editor instead of moving focus away, and preserve selected text when inserting a source-mode hyperlink.

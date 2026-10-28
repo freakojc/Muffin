@@ -129,6 +129,13 @@ signals:
   void tableColumnAlignmentRequested(TableAlignment alignment);
   void tableDeleteRequested();
   void tableMoreActionsRequested(QPoint globalPos);
+  // 勾选列：direction<0 表示在当前列左侧插入，>=0 右侧；uncheckedGlyph 为空心字形。
+  void tableChecklistColumnRequested(int direction, QString uncheckedGlyph);
+  // 单击表格单元格：若该单元格恰好是勾选字形则切换实心/空心。
+  void tableChecklistToggleRequested();
+  // 勾选列：请求在当前列左/右插入（direction<0=左），以及点击单元格切换实心/空心。
+  void tableChecklistColumnRequested(int direction, QString uncheckedGlyph);
+  void tableChecklistToggleRequested();
   void htmlEditToggleRequested(NodeId blockId);
   void taskCheckboxToggled(NodeId blockId);
   // Right-click in rendered mode: carries the hit under the cursor (zone/link/
@@ -337,7 +344,8 @@ private:
   bool typewriterMode_ = false;
   bool typewriterCursorMiddle_ = true;
   bool focusMode_ = false;
-  bool editingLocked_ = false; // 锁定编辑: no caret, no inline popups, no text input
+  bool editingLocked_ = false;  // 锁定编辑: no caret, no inline popups, no text input
+  int checklistGlyphIndex_ = 1; // 勾选列字形：⭐/☑/■/● 的下标（editor/checklistGlyphIndex）
   QPropertyAnimation* scrollAnimation_ = nullptr;
   NodeId editingHtmlBlockId_;
   // Per-block coalesce of the per-keystroke double-refresh (immediate selection refresh + deferred

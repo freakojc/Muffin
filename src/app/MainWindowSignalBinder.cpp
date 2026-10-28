@@ -117,6 +117,23 @@ void muffin::MainWindow::connectRenderSignals(DocumentTab* tab) {
       tab->renderCommands.deleteCurrentTable();
     }
   });
+  QObject::connect(tab->renderView, &EditorView::tableChecklistColumnRequested, tab->windowConnections,
+                   [&window, tab](int direction, const QString& uncheckedGlyph) {
+                     if (window.tab_ != tab) {
+                       return;
+                     }
+                     if (!tab->backend->isSourceMode()) {
+                       tab->renderCommands.insertChecklistColumn(direction, uncheckedGlyph);
+                     }
+                   });
+  QObject::connect(tab->renderView, &EditorView::tableChecklistToggleRequested, tab->windowConnections, [&window, tab] {
+    if (window.tab_ != tab) {
+      return;
+    }
+    if (!tab->backend->isSourceMode()) {
+      tab->renderCommands.toggleChecklistCell();
+    }
+  });
   QObject::connect(tab->renderView, &EditorView::tableMoreActionsRequested, tab->windowConnections,
                    [&window, tab](QPoint globalPos) {
                      if (window.tab_ != tab) {

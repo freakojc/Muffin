@@ -491,6 +491,7 @@ muffin_add_test(NAME MuffinMathBlockControllerTest SOURCE tests/blocks/MathBlock
 muffin_add_test(NAME MuffinHtmlBlockControllerTest SOURCE tests/blocks/HtmlBlockControllerTest.cpp LINK MuffinUi)
 muffin_add_test(NAME MuffinHtmlSanitizerTest       SOURCE tests/blocks/HtmlSanitizerTest.cpp       LINK MuffinUi)
 muffin_add_test(NAME MuffinBlockTableUndoTest      SOURCE tests/blocks/BlockTableUndoTest.cpp      LINK MuffinUi RESOURCE_LOCK)
+muffin_add_test(NAME MuffinTableChecklistTest    SOURCE tests/blocks/TableChecklistTest.cpp    LINK MuffinUi RESOURCE_LOCK)
 muffin_add_test(NAME MuffinBlockCodeFrontMatterTest SOURCE tests/blocks/BlockCodeFrontMatterTest.cpp LINK MuffinUi RESOURCE_LOCK)
 
 # --- app ---

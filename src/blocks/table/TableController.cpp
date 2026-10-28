@@ -1,4 +1,5 @@
 #include "blocks/table/TableController.h"
+#include "blocks/table/TableChecklist.h"
 
 #include "document/DocumentSession.h"
 #include "document/InlineNode.h"
@@ -208,6 +209,21 @@ bool TableController::moveCurrentRowDown() {
                             });
 }
 
+// 勾选列初始内容：表头单元格写「#」，正文单元格写空心字形。
+namespace {
+void fillChecklistColumn(MarkdownNode& table, int column, const QString& uncheckedGlyph) {
+  const int rows = TableModelOps::rowCount(table);
+  for (int row = 0; row < rows; ++row) {
+    MarkdownNode* cell = TableModelOps::cellAt(table, row, column);
+    if (cell == nullptr) {
+      continue;
+    }
+    cell->inlines().clear();
+    cell->inlines().push_back(InlineNode::text(row == 0 ? QStringLiteral("#") : uncheckedGlyph));
+  }
+}
+} // namespace
+
 bool TableController::insertColumnBefore() {
   return mutateCurrentTable(QStringLiteral("Insert Table Column Before"), EditTransaction::Kind::InsertText,
                             [](MarkdownNode& table, TableLocation& location) {
@@ -223,6 +239,39 @@ bool TableController::insertColumnAfter() {
                               ++location.column;
                               return true;
                             });
+}
+
+bool TableController::insertChecklistColumn(int direction, const QString& uncheckedGlyph) {
+  const InsertPosition position = direction < 0 ? InsertPosition::Before : InsertPosition::After;
+  const QString glyph = uncheckedGlyph.isEmpty() ? checklistGlyphPairs().at(1).unchecked : uncheckedGlyph;
+  return mutateCurrentTable(QStringLiteral("Insert Checklist Column"), EditTransaction::Kind::InsertText,
+                            [position, direction, glyph](MarkdownNode& table, TableLocation& location) {
+                              TableModelOps::insertColumn(table, location.column, position);
+                              const int column = direction < 0 ? location.column : location.column + 1;
+                              fillChecklistColumn(table, column, glyph);
+                              if (direction >= 0) {
+                                ++location.column;
+                              }
+                              return true;
+                            });
+}
+
+bool TableController::toggleChecklistCell() {
+  return editCurrentCellSource(
+      QStringLiteral("Toggle Checklist Cell"), EditTransaction::Kind::ReplaceDocumentText,
+      [](const MarkdownNode&, const QString& content, qsizetype) -> std::optional<TableCellSourceEdit> {
+        const auto pair = checklistPairForCellText(content);
+        if (!pair.has_value()) {
+          return std::nullopt;
+        }
+        const QString next = checklistOppositeGlyph(*pair, content);
+        TableCellSourceEdit edit;
+        edit.replaceStart = 0;
+        edit.replaceLength = content.size();
+        edit.replacement = next;
+        edit.nextSourceOffset = next.size();
+        return edit;
+      });
 }
 
 bool TableController::deleteCurrentColumn() {

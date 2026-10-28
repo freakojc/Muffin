@@ -267,6 +267,20 @@ void TableToolbar::ensureToolbar() {
   alignLeftButton_ = makeButton(IconKind::AlignLeft, QStringLiteral("左对齐"));
   alignCenterButton_ = makeButton(IconKind::AlignCenter, QStringLiteral("居中对齐"));
   alignRightButton_ = makeButton(IconKind::AlignRight, QStringLiteral("右对齐"));
+  auto makeTextButton = [this, layout](const QString& text, const QString& tooltip) {
+    auto* button = new QToolButton(toolbar_);
+    button->setText(text);
+    button->setToolTip(tooltip);
+    button->setAutoRaise(true);
+    button->setFocusPolicy(Qt::NoFocus);
+    button->setCursor(Qt::PointingHandCursor);
+    button->setFixedSize(24, 22);
+    layout->addWidget(button);
+    return button;
+  };
+  checklistShapeButton_ = makeTextButton(QStringLiteral("☑"), QStringLiteral("勾选样式：点击切换（⭐ ☑ ■ ●）"));
+  checklistLeftButton_ = makeTextButton(QStringLiteral("◀"), QStringLiteral("在左侧插入勾选列（表头 #）"));
+  checklistRightButton_ = makeTextButton(QStringLiteral("▶"), QStringLiteral("在右侧插入勾选列（表头 #）"));
   moreButton_ = makeButton(IconKind::More, QStringLiteral("更多操作"));
   deleteButton_ = makeButton(IconKind::Delete, QStringLiteral("删除表格"));
 
@@ -302,9 +316,18 @@ void TableToolbar::ensureToolbar() {
           [this] { emit columnAlignmentRequested(TableAlignment::Center); });
   connect(alignRightButton_, &QToolButton::clicked, this,
           [this] { emit columnAlignmentRequested(TableAlignment::Right); });
+  connect(checklistShapeButton_, &QToolButton::clicked, this, &TableToolbar::checklistShapeCycled);
+  connect(checklistLeftButton_, &QToolButton::clicked, this, [this] { emit checklistColumnRequested(-1); });
+  connect(checklistRightButton_, &QToolButton::clicked, this, [this] { emit checklistColumnRequested(1); });
   connect(moreButton_, &QToolButton::clicked, this,
           [this] { emit moreActionsRequested(moreButton_->mapToGlobal(QPoint(0, moreButton_->height()))); });
   connect(deleteButton_, &QToolButton::clicked, this, [this] { emit deleteRequested(); });
+}
+
+void TableToolbar::setChecklistGlyph(const QString& glyph) {
+  if (checklistShapeButton_ != nullptr) {
+    checklistShapeButton_->setText(glyph);
+  }
 }
 
 void TableToolbar::show(const BlockLayout& table, qreal scrollY, const QRect& viewportRect) {
