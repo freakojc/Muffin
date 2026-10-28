@@ -53,6 +53,7 @@ signals:
   void outlineFoldableChanged(bool foldable);
   void restoreDraftsRequested();
   void disableTypewriterFocusRequested();
+  void lockEditingSettingsChanged();
 
 protected:
   void changeEvent(QEvent* event) override;

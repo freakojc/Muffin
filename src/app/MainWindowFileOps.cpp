@@ -467,6 +467,7 @@ void muffin::MainWindow::showPreferences() {
     }
   });
   connect(&dialog, &PreferencesDialog::restoreDraftsRequested, this, [this] { offerDraftRecovery(); });
+  connect(&dialog, &PreferencesDialog::lockEditingSettingsChanged, this, [this] { applyLockEditingSettings(); });
   connect(&dialog, &PreferencesDialog::disableTypewriterFocusRequested, this, [this] {
     setTypewriterMode(false);
     setFocusMode(false);

@@ -152,8 +152,8 @@ private:
   bool asyncParsePending_ = false;
   bool openConfirmationPending_ = false;
   bool editingReadOnly_ = false; // 锁定编辑: incremental edits rejected
-  quint64 parseGeneration_ = 0; // bumped on every parseAndStore + local edit; supersedes in-flight workers
-  QString pendingText_;         // text held for the GUI-thread finish step
+  quint64 parseGeneration_ = 0;  // bumped on every parseAndStore + local edit; supersedes in-flight workers
+  QString pendingText_;          // text held for the GUI-thread finish step
   bool pendingModified_ = false;
   QVector<qsizetype> pendingDemoteAtOffsets_;
   QVector<qsizetype> pendingMarkerOffsets_;

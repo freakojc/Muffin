@@ -96,12 +96,18 @@ public:
   bool commandOnLocalImage() const;
   CursorFormatState commandInlineFormats() const;
 
-  // 锁定编辑 (locked editing). Window-wide: the active tab's rendered view drops its
-  // caret and inline popups, the source view goes read-only, and the session rejects
-  // incremental edits. Mouse selection and context menus keep working.
+  // 锁定编辑 (locked editing). The rendered view drops its caret and inline popups,
+  // the source view goes read-only, and the session rejects incremental edits, while
+  // mouse selection and context menus keep working. Preferences → Editor decides
+  // whether each tab keeps its own lock (独立标签页, default) or one lock covers the
+  // whole window (全局窗口).
   void setEditingLocked(bool locked);
   void toggleEditingLocked();
-  bool editingLocked() const { return editingLocked_; }
+  bool editingLocked() const;
+  bool lockEditingEnabled() const { return lockEditingEnabled_; }
+  bool lockEditingPerTab() const { return lockEditingPerTab_; }
+  // Re-read the editor/lockEditing* preferences and re-assert the state on every tab.
+  void applyLockEditingSettings();
 
 protected:
   bool eventFilter(QObject* watched, QEvent* event) override;
@@ -203,7 +209,10 @@ private:
   void buildMenuItems(QMenu* parent, const std::vector<MenuItem>& items);
 
   void updateTitle();
-  // Re-assert the window's 锁定编辑 state on one tab's views and session.
+  // Keep the 锁定编辑 menu action's check mark and flipping label in sync with the
+  // effective state of the active tab.
+  void syncLockEditingAction();
+  // Re-assert the effective 锁定编辑 state on one tab's views and session.
   void applyEditingLockedTo(DocumentTab* document) const;
   void updateStatus();
   void updateCursorStatus(int line, int column);
@@ -438,7 +447,11 @@ private:
   mutable CommandContextSnapshot commandContextSnapshot_;
   bool focusMode_ = false;
   bool typewriterMode_ = false;
-  bool editingLocked_ = false; // 锁定编辑开关（窗口级，随标签页切换重新应用）
+  // 锁定编辑: 功能开关与作用范围（Preferences → Editor），以及「全局窗口」模式下的状态。
+  // 「独立标签页」模式下每个 DocumentTab 自己持有状态，这里只缓存偏好项。
+  bool lockEditingEnabled_ = true;
+  bool lockEditingPerTab_ = true;
+  bool editingLocked_ = false;
 };
 
 } // namespace muffin

@@ -779,7 +779,8 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
     const HitTestResult hit = hitTest(event->position());
     // Click anywhere on a rendered HTML block to enter source editing mode.
     // When already editing this block, fall through to normal cursor placement.
-    if (!editingLocked_ && hit.isValid() && hit.zone == HitTestResult::Zone::Html && editingHtmlBlockId_ != hit.blockId) {
+    if (!editingLocked_ && hit.isValid() && hit.zone == HitTestResult::Zone::Html &&
+        editingHtmlBlockId_ != hit.blockId) {
       emit htmlEditToggleRequested(hit.blockId);
       event->accept();
       return;

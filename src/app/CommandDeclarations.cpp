@@ -582,6 +582,7 @@ const std::vector<muffin::CommandDeclaration>& muffin::commandDeclarations() {
          .shortcut = QKeySequence(QStringLiteral("F12")),
          .checkable = true,
          .handler = [](MainWindow& window) { window.toggleEditingLocked(); },
+         .enabled = [](const MainWindow& window) { return window.lockEditingEnabled(); },
          .checked = [](const MainWindow& window) { return window.editingLocked(); }},
         {.id = QStringLiteral("edit.undo_folder_replace"),
          .category = CommandCategory::Edit,
@@ -2091,10 +2092,10 @@ const std::vector<muffin::MenuSpec>& muffin::mainMenuSpec() {
                           {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.find_next")},
                           {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.find_previous")},
                       }},
-                  {.kind = MenuItem::Kind::Separator},
-                  // 锁定编辑 sits at the Edit menu's top level; its label flips to
-                  // 解锁编辑 while locked (MainWindow::setEditingLocked rewrites the action text).
-                  {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.lock_editing")},
+                 {.kind = MenuItem::Kind::Separator},
+                 // 锁定编辑 sits at the Edit menu's top level; its label flips to
+                 // 解锁编辑 while locked (MainWindow::setEditingLocked rewrites the action text).
+                 {.kind = MenuItem::Kind::Action, .commandId = QStringLiteral("edit.lock_editing")},
              }},
             // Paragraph — paragraph/block structure: heading levels, body type
             // (paragraph / quote / lists) and list indent. Block-level *inserts*

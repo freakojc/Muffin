@@ -375,7 +375,8 @@ void muffin::MainWindow::activateTab(int index) {
     tab_->fileController.save(tab_->session, this);
   }
   tab_ = next;
-  applyEditingLockedTo(tab_); // keep the window-level 锁定编辑 state across tabs
+  applyEditingLockedTo(tab_); // 独立标签页: 各页签保持自己的锁定状态; 全局窗口: 统一重新落状态
+  syncLockEditingAction();
   if (pendingNavigation_ && pendingNavigation_->destination != next)
     pendingNavigation_.reset();
   QTimer::singleShot(0, next->windowConnections, [this, next] { applySearchNavigation(next); });
