@@ -133,9 +133,6 @@ signals:
   void tableChecklistColumnRequested(int direction, QString uncheckedGlyph);
   // 单击表格单元格：若该单元格恰好是勾选字形则切换实心/空心。
   void tableChecklistToggleRequested();
-  // 勾选列：请求在当前列左/右插入（direction<0=左），以及点击单元格切换实心/空心。
-  void tableChecklistColumnRequested(int direction, QString uncheckedGlyph);
-  void tableChecklistToggleRequested();
   void htmlEditToggleRequested(NodeId blockId);
   void taskCheckboxToggled(NodeId blockId);
   // Right-click in rendered mode: carries the hit under the cursor (zone/link/

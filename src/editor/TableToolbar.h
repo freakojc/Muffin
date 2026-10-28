@@ -26,12 +26,16 @@ public:
 
   void update(const HitTestResult& hit, const DocumentLayout* layout, qreal scrollY, const QRect& viewportRect);
   void forceHide();
+  // 勾选列：当前字形显示在切换按钮上（点击循环 ⭐/☑/■/●），左右箭头插入勾选列。
+  void setChecklistGlyph(const QString& glyph);
 
 signals:
   void columnAlignmentRequested(TableAlignment alignment);
   void moreActionsRequested(QPoint globalPos);
   void deleteRequested();
   void resizeRequested(int rows, int columns);
+  void checklistShapeCycled();
+  void checklistColumnRequested(int direction);
 
 private:
   void ensureToolbar();

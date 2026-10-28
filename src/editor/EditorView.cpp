@@ -791,9 +791,9 @@ void EditorView::mousePressEvent(QMouseEvent* event) {
       return;
     }
     const HitTestResult hit = hitTest(event->position());
-    if (!editingLocked_ && !event->isDoubleClick() && hit.zone == HitTestResult::Zone::TableCell) {
+    if (!editingLocked_ && hit.zone == HitTestResult::Zone::TableCell) {
       // 勾选列：单击表格单元格时尝试切换实心/空心。推迟到本次点击的光标落位之后再发，
-      // 否则切换的会是上一次点击留下的单元格；双击保持原有的落位行为，不触发切换。
+      // 否则切换的会是上一次点击留下的单元格。双击走 mouseDoubleClickEvent，不经过这里。
       QMetaObject::invokeMethod(this, [this] { emit tableChecklistToggleRequested(); }, Qt::QueuedConnection);
     }
     // Click anywhere on a rendered HTML block to enter source editing mode.
